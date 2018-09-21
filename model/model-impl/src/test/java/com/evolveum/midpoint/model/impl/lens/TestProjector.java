@@ -605,16 +605,13 @@ public class TestProjector extends AbstractLensTest {
 
         assertFocusModificationSanity(context);
 
-        try {
-	        // WHEN
-	        projector.project(context, "test", task, result);
+        // WHEN
+        displayWhen(TEST_NAME);
+        projector.project(context, "test", task, result);
 
-	        AssertJUnit.fail("Unexpected success of projector");
-        } catch (PolicyViolationException e) {
-        	// This is expected
-
-        }
-
+        // THEN
+        displayThen(TEST_NAME);
+        assertPartialError(result);
     }
 
 	/**

@@ -132,7 +132,7 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 		// DO nothing. This test is meaningless in non-unique environment
 	}
 
-	private String addFettucini(final String TEST_NAME, File file, String oid, String expectedFullName) throws SchemaException, ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, IOException, SchemaViolationException, ConflictException, ExpressionEvaluationException {
+	private String addFettucini(final String TEST_NAME, File file, String oid, String expectedFullName) throws Exception {
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();

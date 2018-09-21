@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -315,28 +315,30 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
 	}
 
 	@Test
-	public void test105modifyAddNonTolerantAttribute() throws Exception{
-		 TestUtil.displayTestTitle(this, "test105modifyAddNonTolerantAttribute");
+	public void test105ModifyAddNonTolerantAttribute() throws Exception {
+		final String TEST_NAME = "test105ModifyAddNonTolerantAttribute";
+		displayTestTitle(TEST_NAME);
 
-	        // GIVEN
-	        Task task = taskManager.createTaskInstance(TestTolerantAttributes.class.getName() + ".test105modifyAddNonTolerantAttribute");
-	        OperationResult result = task.getResult();
-	        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestTolerantAttributes.class.getName() + ".test105modifyAddNonTolerantAttribute");
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
-	        ObjectDelta<ShadowType> userDelta = ObjectDelta.createEmptyModifyDelta(ShadowType.class, accountOid, prismContext);
+        ObjectDelta<ShadowType> userDelta = ObjectDelta.createEmptyModifyDelta(ShadowType.class, accountOid, prismContext);
 
-	        ItemPath drinkItemPath = new ItemPath(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_DUMMY_BLACK_NAMESPACE, "drink"));
-	        assertNotNull("null definition for drink attribute ", accountDefinition.findPropertyDefinition(drinkItemPath));
-	        PropertyDelta propertyDelta = PropertyDelta.createModificationAddProperty(drinkItemPath, accountDefinition.findPropertyDefinition(drinkItemPath), "This should be ignored");
-			userDelta.addModification(propertyDelta);
-			Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
+        ItemPath drinkItemPath = new ItemPath(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_DUMMY_BLACK_NAMESPACE, "drink"));
+        assertNotNull("null definition for drink attribute ", accountDefinition.findPropertyDefinition(drinkItemPath));
+        PropertyDelta propertyDelta = PropertyDelta.createModificationAddProperty(drinkItemPath, accountDefinition.findPropertyDefinition(drinkItemPath), "This should be ignored");
+		userDelta.addModification(propertyDelta);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
 
-			try{
-			modelService.executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, result);
-			fail("Expected Policy violation exception, because non-tolerant attribute is modified, but haven't got one.");
-			} catch (PolicyViolationException ex){
-				//this is expected
-			}
+		// WHEN
+		displayWhen(TEST_NAME);
+		modelService.executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, result);
+		
+		// THEN
+		displayThen(TEST_NAME);
+		assertPartialError(result);
 	}
 
 

@@ -42,6 +42,7 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -83,7 +84,7 @@ public abstract class ErrorHandler {
 			OperationResult parentResult) 
 					throws SchemaException, GenericFrameworkException, CommunicationException,
 					ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
-					SecurityViolationException, ExpressionEvaluationException;
+					SecurityViolationException, PolicyViolationException, ExpressionEvaluationException;
 			
 	
 	public abstract OperationResultStatus handleAddError(ProvisioningContext ctx,
@@ -96,7 +97,7 @@ public abstract class ErrorHandler {
 			OperationResult parentResult)
 				throws SchemaException, GenericFrameworkException, CommunicationException,
 				ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
-				SecurityViolationException, ExpressionEvaluationException;
+				SecurityViolationException, PolicyViolationException, ExpressionEvaluationException;
 	
 	protected OperationResultStatus postponeAdd(ProvisioningContext ctx,
 			PrismObject<ShadowType> shadowToAdd,
@@ -127,7 +128,7 @@ public abstract class ErrorHandler {
 			OperationResult parentResult)
 				throws SchemaException, GenericFrameworkException, CommunicationException,
 				ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
-				SecurityViolationException, ExpressionEvaluationException;
+				SecurityViolationException, PolicyViolationException, ExpressionEvaluationException;
 	
 	protected OperationResultStatus postponeModify(ProvisioningContext ctx,
 			PrismObject<ShadowType> repoShadow,
@@ -176,7 +177,7 @@ public abstract class ErrorHandler {
 			OperationResult parentResult)
 				throws SchemaException, GenericFrameworkException, CommunicationException,
 				ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
-				SecurityViolationException, ExpressionEvaluationException;
+				SecurityViolationException, PolicyViolationException, ExpressionEvaluationException;
 	
 	/**
 	 * Throw exception of appropriate type.
@@ -186,7 +187,7 @@ public abstract class ErrorHandler {
 	protected abstract void throwException(Exception cause, ProvisioningOperationState<? extends AsynchronousOperationResult> opState, OperationResult result)
 			throws SchemaException, GenericFrameworkException, CommunicationException,
 			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
-			SecurityViolationException, ExpressionEvaluationException;
+			SecurityViolationException, PolicyViolationException, ExpressionEvaluationException;
 	
 	/**
 	 * Record error that completes the operation. If such error is recorded then this is definitive end of the operation.

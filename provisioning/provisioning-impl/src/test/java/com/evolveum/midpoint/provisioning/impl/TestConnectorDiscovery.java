@@ -68,21 +68,20 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 	@Test
 	public void test001Connectors() throws Exception {
 		final String TEST_NAME = "test001Connectors";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		OperationResult result = new OperationResult(TestConnectorDiscovery.class.getName() + "." + TEST_NAME);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		List<PrismObject<ConnectorType>> connectors = repositoryService.searchObjects(ConnectorType.class, null, null, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		assertFalse("No connector found",connectors.isEmpty());
 		display("Found "+connectors.size()+" discovered connector");
 
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
 		for (PrismObject<ConnectorType> connector : connectors) {
 			ConnectorType conn = connector.asObjectable();
@@ -116,7 +115,7 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 	@Test
 	public void testSearchConnectorSimple() throws SchemaException{
 		final String TEST_NAME = "testSearchConnectorSimple";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		OperationResult result = new OperationResult(TestConnectorDiscovery.class.getName()
 				+ "." + TEST_NAME);
 

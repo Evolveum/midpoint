@@ -18,7 +18,9 @@ package com.evolveum.midpoint.provisioning.api;
 
 import java.io.Serializable;
 
-public class ProvisioningOperationOptions implements Serializable {
+import com.evolveum.midpoint.util.ShortDumpable;
+
+public class ProvisioningOperationOptions implements Serializable, ShortDumpable {
     private static final long serialVersionUID = -6960273605308871338L;
 
     /**
@@ -218,18 +220,7 @@ public class ProvisioningOperationOptions implements Serializable {
 	@Override
     public String toString() {
     	StringBuilder sb = new StringBuilder("ProvisioningOperationOptions(");
-    	appendFlag(sb, "raw", raw);
-    	appendFlag(sb, "completePostponed", completePostponed);
-    	appendFlag(sb, "force", force);
-    	appendFlag(sb, "postpone", postpone);
-    	appendFlag(sb, "doNotDiscovery", doNotDiscovery);
-    	appendFlag(sb, "overwrite", overwrite);
-    	if (runAsAccountOid != null) {
-    		sb.append("runAsAccountOid=").append(runAsAccountOid).append(",");
-    	}
-    	if (sb.charAt(sb.length() - 1) == ',') {
-			sb.deleteCharAt(sb.length() - 1);
-		}
+    	shortDump(sb);
 		sb.append(")");
 		return sb.toString();
     }
@@ -244,6 +235,25 @@ public class ProvisioningOperationOptions implements Serializable {
 			sb.append(name);
 			sb.append("=false,");
 		}
+	}
+
+	@Override
+	public void shortDump(StringBuilder sb) {
+		appendFlag(sb, "raw", raw);
+    	appendFlag(sb, "completePostponed", completePostponed);
+    	appendFlag(sb, "force", force);
+    	appendFlag(sb, "postpone", postpone);
+    	appendFlag(sb, "doNotDiscovery", doNotDiscovery);
+    	appendFlag(sb, "overwrite", overwrite);
+    	if (runAsAccountOid != null) {
+    		sb.append("runAsAccountOid=").append(runAsAccountOid).append(",");
+    	}
+    	if (sb.charAt(sb.length() - 1) == ',') {
+			sb.deleteCharAt(sb.length() - 1);
+		}
+    	if (sb.length() == 0) {
+    		sb.append("(empty)");
+    	}
 	}
 	
 }

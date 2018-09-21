@@ -127,9 +127,6 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
     protected List<Component> createToolbarButtonsList(String buttonId){
         List<Component> buttonsList = new ArrayList<>();
-        // TODO if displaying shadows in the repository (and not from resource) we can afford to count the objects
-        boolean canCountBeforeExporting = getType() == null || !ShadowType.class.isAssignableFrom(getType());
-
         AjaxIconButton newObjectIcon = new AjaxIconButton(buttonId, new Model<>(GuiStyleConstants.CLASS_ADD_NEW_OBJECT),
                 createStringResource("MainObjectListPanel.newObject")) {
 
@@ -190,6 +187,8 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         });
         buttonsList.add(importObject);
 
+        boolean canCountBeforeExporting = getType() == null || !ShadowType.class.isAssignableFrom(getType()) ||
+                isRawOrNoFetchOption(getOptions());
         CsvDownloadButtonPanel exportDataLink = new CsvDownloadButtonPanel(buttonId, canCountBeforeExporting) {
 
             private static final long serialVersionUID = 1L;
@@ -217,6 +216,19 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
         buttonsList.add(exportDataLink);
         return buttonsList;
+    }
+
+    private boolean isRawOrNoFetchOption(Collection<SelectorOptions<GetOperationOptions>> options){
+        if (options == null){
+            return false;
+        }
+        for (SelectorOptions<GetOperationOptions> option : options){
+            if (Boolean.TRUE.equals(option.getOptions().getRaw()) ||
+                    Boolean.TRUE.equals(option.getOptions().getNoFetch())){
+                return true;
+            }
+        }
+        return false;
     }
 
     private static class ButtonBar extends Fragment {

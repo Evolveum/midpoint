@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -341,7 +341,7 @@ public class ChangeExecutor {
 					subResult.recordNotApplicableIfUnknown();
 
 				} catch (SchemaException | ObjectNotFoundException | PreconditionViolationException | CommunicationException |
-						ConfigurationException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | Error e) {
+						ConfigurationException | SecurityViolationException | PolicyViolationException | ExpressionEvaluationException | RuntimeException | Error e) {
 					recordProjectionExecutionException(e, projCtx, subResult, SynchronizationPolicyDecision.BROKEN);
 					
 					// We still want to update the links here. E.g. this may be live sync case where we discovered new account
@@ -894,7 +894,7 @@ public class ChangeExecutor {
 			ConflictResolutionType conflictResolution, ResourceType resource, Task task, OperationResult parentResult)
 					throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException,
 					CommunicationException, ConfigurationException, SecurityViolationException,
-					ExpressionEvaluationException, PreconditionViolationException {
+					PolicyViolationException, ExpressionEvaluationException, PreconditionViolationException {
 
 		if (objectDelta == null) {
 			throw new IllegalArgumentException("Null change");
@@ -1294,7 +1294,7 @@ public class ChangeExecutor {
 			final LensContext<F> context, LensElementContext<T> objectContext, ModelExecuteOptions options,
 			ResourceType resource, Task task, OperationResult result) throws ObjectAlreadyExistsException,
 					ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-					SecurityViolationException, ExpressionEvaluationException {
+					SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 
 		PrismObject<T> objectToAdd = change.getObjectToAdd();
 
@@ -1368,7 +1368,7 @@ public class ChangeExecutor {
 			LensContext<F> context, LensElementContext<T> objectContext, ModelExecuteOptions options,
 			ResourceType resource, Task task, OperationResult result) throws ObjectNotFoundException,
 					ObjectAlreadyExistsException, SchemaException, CommunicationException,
-					ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+					ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 
 		String oid = change.getOid();
 		Class<T> objectTypeClass = change.getObjectTypeClass();
@@ -1427,7 +1427,7 @@ public class ChangeExecutor {
 			LensContext<F> context, LensElementContext<T> objectContext, ModelExecuteOptions options, 
 			ConflictResolutionType conflictResolution, ResourceType resource, Task task, OperationResult result) 
 					throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, CommunicationException,
-					ConfigurationException, SecurityViolationException, ExpressionEvaluationException, PreconditionViolationException {
+					ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, PreconditionViolationException {
 		Class<T> objectTypeClass = delta.getObjectTypeClass();
 
 		// We need current object here. The current object is used to get data for id-only container delete deltas,
@@ -1504,7 +1504,7 @@ public class ChangeExecutor {
 			LensContext<F> context, LensElementContext<T> objectContext, ProvisioningOperationOptions options,
 			ResourceType resource, Task task, OperationResult result) throws ObjectNotFoundException,
 					ObjectAlreadyExistsException, SchemaException, CommunicationException,
-					ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+					ConfigurationException, SecurityViolationException, ExpressionEvaluationException, PolicyViolationException {
 
 		if (object.canRepresent(ShadowType.class)) {
 			ShadowType shadow = (ShadowType) object.asObjectable();
@@ -1530,7 +1530,7 @@ public class ChangeExecutor {
 			ProvisioningOperationOptions options, ResourceType resource, Task task, OperationResult result)
 					throws ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException,
 					CommunicationException, ConfigurationException, SecurityViolationException,
-					ExpressionEvaluationException {
+					ExpressionEvaluationException, PolicyViolationException {
 
 		PrismObject<T> shadowToModify = null;
 		OperationProvisioningScriptsType scripts = null;
@@ -1559,7 +1559,7 @@ public class ChangeExecutor {
 			LensContext<F> context, LensElementContext<T> objectContext, ProvisioningOperationOptions options,
 			ResourceType resource, Task task, OperationResult result) throws ObjectNotFoundException,
 					CommunicationException, SchemaException, ConfigurationException,
-					SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
+					SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
 
 		PrismObject<T> shadowToModify = null;
 		OperationProvisioningScriptsType scripts = null;

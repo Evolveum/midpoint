@@ -123,7 +123,6 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
 				return false;
 			}
 		});
-
 	}
 
 }

@@ -37,6 +37,7 @@ import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorOperationOptions;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.Operation;
 import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
@@ -72,6 +73,7 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
 	private String resourceSchemaNamespace;
 	private ObjectClassComplexTypeDefinition objectClassDef;
 	private String connectorDescription;
+	private ConnectorOperationOptions options;
 	
 	private ConnIdNameMapper connIdNameMapper;
 	private Protector protector;
@@ -144,6 +146,14 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
 	
 	public List<Operation> getAdditionalOperations() {
 		return additionalOperations;
+	}
+
+	public ConnectorOperationOptions getOptions() {
+		return options;
+	}
+
+	public void setOptions(ConnectorOperationOptions options) {
+		this.options = options;
 	}
 
 	/**
@@ -304,6 +314,10 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
 		} else if (!passwordDelta.getElementName().equals(PasswordType.F_VALUE)) {
 			return;
 		}
+		collectPassword(passwordDelta);
+	}
+	
+	protected void collectPassword(PropertyDelta<ProtectedStringType> passwordDelta) throws SchemaException {
 		PrismProperty<ProtectedStringType> newPassword = passwordDelta.getPropertyNewMatchingPath();
 		if (newPassword == null || newPassword.isEmpty()) {
 			// This is the case of setting no password. E.g. removing existing password
@@ -311,12 +325,16 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
 			collectReplace(OperationalAttributes.PASSWORD_NAME, null);
 		} else if (newPassword.getRealValue().canGetCleartext()) {
 			// We have password and we can get a cleartext value of the passowrd. This is normal case
-			GuardedString guardedPassword = ConnIdUtil.toGuardedString(newPassword.getRealValue(), "new password", protector);
+			GuardedString guardedPassword = passwordToGuardedString(newPassword.getRealValue(), "new password");
 			collectReplace(OperationalAttributes.PASSWORD_NAME, guardedPassword);
 		} else {
 			// We have password, but we cannot get a cleartext value. Just to nothing.
 			LOGGER.debug("We would like to set password, but we do not have cleartext value. Skipping the opearation.");
 		}
+	}
+	
+	protected GuardedString passwordToGuardedString(ProtectedStringType ps, String propertyName) {
+		return ConnIdUtil.toGuardedString(ps, propertyName, protector);
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -355,7 +373,7 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
 				throw new SchemaException("Auxiliary object class "+auxQName+" not found in the schema");
 			}
 			auxiliaryObjectClassMap.put(auxQName, auxDef);
-			ObjectClass icfOc = connIdNameMapper.objectClassToIcf(pval.getValue(), resourceSchemaNamespace, connectorType, false);
+			ObjectClass icfOc = connIdNameMapper.objectClassToConnId(pval.getValue(), resourceSchemaNamespace, connectorType, false);
 			connIdVals.add(icfOc.getObjectClassValue());
 		}
 		return connIdVals;

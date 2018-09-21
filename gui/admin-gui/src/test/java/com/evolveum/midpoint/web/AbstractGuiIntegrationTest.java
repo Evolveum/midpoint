@@ -54,8 +54,11 @@ import org.apache.wicket.protocol.http.WicketFilter;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.mock.web.MockFilterConfig;
 import org.springframework.mock.web.MockServletContext;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.web.context.WebApplicationContext;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
@@ -107,7 +110,7 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 	protected static final String ORG_SAVE_ELAINE_OID = "00000000-8888-6666-0000-200000000001";
 	protected static final String ORG_KIDNAP_AND_MARRY_ELAINE_OID = "00000000-8888-6666-0000-200000000002";
 
-    private MidPointApplication application;
+    @Autowired private MidPointApplication application;
     
     @Autowired private ApplicationContext appContext;
     @Autowired protected PrismContext prismContext;
@@ -129,14 +132,15 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
     		display("App "+key, Application.get(key));
     	}
     	
-    	application = (MidPointApplication) Application.get("midpoint");
-    	if (application == null) {
+//    	application = (MidPointApplication) Application.get("midpoint");
+//    	if (application == null) {
     		application = createInitializedMidPointApplication();
-    	}
+//    	}
     }
     
     private MidPointApplication createInitializedMidPointApplication() throws ServletException {
-		MidPointApplication application = new MidPointApplication();
+//		MidPointApplication application = new MidPointApplication();
+//		application.setApplicationContext(appContext);
     	WicketFilter wicketFilter = new WicketFilter(application);
     	MockServletContext servletContext = new MockServletContext();
     	WebApplicationContext wac = new MockWebApplicationContext(appContext, servletContext);

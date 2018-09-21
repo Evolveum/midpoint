@@ -149,8 +149,26 @@ public class DummyConnector extends AbstractDummyConnector implements PoolableCo
 							addUidChange(sideEffectChanges, newName);
 						}
 		        	} else if (delta.is(OperationalAttributes.PASSWORD_NAME)) {
-		        		assertReplace(delta);
-		        		changePassword(account, delta);
+		        		if (delta.getValuesToReplace() != null) {
+		        			// Password reset
+			        		assertReplace(delta);
+			        		changePassword(account, delta);
+		        		} else {
+		        			// Password change (self-service)
+		        			assertSelfService(options);
+		        			List<GuardedString> addValues = getAddValues(delta, GuardedString.class);
+		        			if (addValues == null || addValues.size() != 1) {
+		        				throw new InvalidAttributeValueException("Wrong add set in password delta: "+addValues);
+		        			}
+		        			GuardedString newPasswordGs = addValues.get(0);
+		        			List<GuardedString> removeValues = getRemoveValues(delta, GuardedString.class);
+		        			if (removeValues == null || removeValues.size() != 1) {
+		        				throw new InvalidAttributeValueException("Wrong remove set in password delta: "+removeValues);
+		        			}
+		        			GuardedString oldPasswordGs = removeValues.get(0);
+		        			assertPassword(account, oldPasswordGs);
+		        			changePassword(account, newPasswordGs);
+		        		}
 
 		        	} else if (delta.is(OperationalAttributes.ENABLE_NAME)) {
 		        		assertReplace(delta);

@@ -164,12 +164,14 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
         }
 
     }
+    
+    
 
     @Override
     protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
         return configureApplication(application);
     }
-
+    
     private static SpringApplicationBuilder configureApplication(SpringApplicationBuilder application) {
         String mpHome = System.getProperty(MIDPOINT_HOME_PROPERTY);
         if (StringUtils.isEmpty(mpHome)) {
@@ -182,6 +184,8 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
             mpHome += "midpoint";
             System.setProperty(MIDPOINT_HOME_PROPERTY, mpHome);
         }
+        
+        System.setProperty("spring.config.location", MidPointSpringApplication.class.getResource("/") + ",${midpoint.home}/");
 
         application.bannerMode(Banner.Mode.LOG);
 

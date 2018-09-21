@@ -250,7 +250,7 @@ public abstract class ResourceContentPanel extends Panel {
         initShadowStatistics(totals);
 
 		MainObjectListPanel<ShadowType> shadowListPanel = new MainObjectListPanel<ShadowType>(ID_TABLE,
-				ShadowType.class, getTableId(), null, pageBase) {
+				ShadowType.class, getTableId(), createSearchOptions(), pageBase) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -280,7 +280,7 @@ public abstract class ResourceContentPanel extends Panel {
 				provider = (SelectableBeanObjectDataProvider<ShadowType>) super.initProvider();
 				provider.setEmptyListOnNullQuery(true);
 				provider.setSort(null);
-				createSearchOptions(provider);
+				provider.setUseObjectCounting(isUseObjectCounting());
 				return provider;
 			}
 
@@ -557,7 +557,7 @@ public abstract class ResourceContentPanel extends Panel {
 
 	protected abstract Search createSearch();
 
-	private void createSearchOptions(SelectableBeanObjectDataProvider<ShadowType> provider) {
+	private Collection<SelectorOptions<GetOperationOptions>> createSearchOptions() {
 
 		Collection<SelectorOptions<GetOperationOptions>> opts = SelectorOptions.createCollection(
 				ShadowType.F_ASSOCIATION, GetOperationOptions.createRetrieve(RetrieveOption.EXCLUDE));
@@ -565,10 +565,7 @@ public abstract class ResourceContentPanel extends Panel {
 		if (addAdditionalOptions() != null) {
 			opts.add(addAdditionalOptions());
 		}
-
-		provider.setUseObjectCounting(isUseObjectCounting());
-		provider.setOptions(opts);
-
+		return opts;
 	}
 
 	private StringResourceModel createStringResource(String key) {
@@ -1225,5 +1222,4 @@ public abstract class ResourceContentPanel extends Panel {
 	protected abstract SelectorOptions<GetOperationOptions> addAdditionalOptions();
 
 	protected abstract boolean isUseObjectCounting();
-
 }

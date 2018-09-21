@@ -18,26 +18,23 @@ package com.evolveum.midpoint.provisioning.impl.errorhandling;
 
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.util.exception.PolicyViolationException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 
 @Component
-public class GenericErrorHandler extends HardErrorHandler {
-
-	private static final Trace LOGGER = TraceManager.getTrace(GenericErrorHandler.class);
-
+public class PolicyViolationHandler extends HardErrorHandler {
+	
 	@Override
 	protected void throwException(Exception cause, ProvisioningOperationState<? extends AsynchronousOperationResult> opState, OperationResult result)
-			throws GenericConnectorException {
+			throws PolicyViolationException {
 		recordCompletionError(cause, opState, result);
-		if (cause instanceof GenericConnectorException) {
-			throw (GenericConnectorException)cause;
+		if (cause instanceof PolicyViolationException) {
+			throw (PolicyViolationException)cause;
 		} else {
-			throw new GenericConnectorException(cause.getMessage(), cause);
+			throw new PolicyViolationException(cause.getMessage(), cause);
 		}
 	}
 
