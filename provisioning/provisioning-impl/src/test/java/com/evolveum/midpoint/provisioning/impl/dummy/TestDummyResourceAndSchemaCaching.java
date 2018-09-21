@@ -54,6 +54,7 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -649,7 +650,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		assertConnectorInstanceChanged(resourceProvisioning);
 	}
 
-	private String addAccount(File file) throws SchemaException, ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, IOException, ExpressionEvaluationException {
+	private String addAccount(File file) throws SchemaException, ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, IOException, ExpressionEvaluationException, PolicyViolationException {
 		Task task = taskManager.createTaskInstance(TestDummyResourceAndSchemaCaching.class.getName()
 				+ ".addAccount");
 		OperationResult result = task.getResult();

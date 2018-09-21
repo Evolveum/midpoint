@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015-2016 Evolveum
+ * Copyright (c) 2015 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.testing.conntest;
+package com.evolveum.midpoint.testing.conntest.ad;
 
 import java.io.File;
 
@@ -25,19 +25,16 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
+ * AD test to run manually. Assumess connector server on localhost (or a tunneled connection).
+ *
  * @author semancik
  *
  */
-public class TestAdLdapLocalhost extends AbstractAdLdapCookedTest {
+public class TestAdLocalhost extends AbstractAdTest {
 
 	@Override
-	protected String getResourceOid() {
-		return "eced6d24-73e3-11e5-8457-93eff15a6b85";
-	}
-
-	@Override
-	protected File getResourceFile() {
-		return new File(getBaseDir(), "resource-localhost.xml");
+	protected File getConnectorHostFile() {
+		return new File(getBaseDir(), "connector-host-localhost.xml");
 	}
 
 	@Override
@@ -47,7 +44,7 @@ public class TestAdLdapLocalhost extends AbstractAdLdapCookedTest {
 
 	@Override
 	protected int getLdapServerPort() {
-		return 9636;
+		return 44389;
 	}
 
 }

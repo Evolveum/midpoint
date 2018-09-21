@@ -15,20 +15,26 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeDelta;
 import org.identityconnectors.framework.common.objects.AttributeDeltaBuilder;
+import org.identityconnectors.framework.common.objects.OperationalAttributes;
 
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * @author semancik
@@ -91,6 +97,59 @@ public class DeltaModificationConverter extends AbstractModificationConverter {
 		} else {
 			attributesDelta.add(AttributeDeltaBuilder.build(connIdAttrName, connIdAttrValue));
 		}
+	}
+	
+	@Override
+	protected void collectPassword(PropertyDelta<ProtectedStringType> passwordDelta) throws SchemaException {
+		if (isSelfPasswordChange(passwordDelta)) {
+			AttributeDeltaBuilder deltaBuilder = new AttributeDeltaBuilder();
+			deltaBuilder.setName(OperationalAttributes.PASSWORD_NAME);
+			
+			PrismProperty<ProtectedStringType> newPasswordProperty = passwordDelta.getPropertyNewMatchingPath();
+			GuardedString newPasswordGs = passwordToGuardedString(newPasswordProperty.getRealValue(), "new password");
+			deltaBuilder.addValueToAdd(newPasswordGs);
+			
+			ProtectedStringType oldPasswordPs = passwordDelta.getEstimatedOldValues().iterator().next().getRealValue();
+			GuardedString oldPasswordGs = passwordToGuardedString(oldPasswordPs, "old password");
+			deltaBuilder.addValueToRemove(oldPasswordGs);
+			
+			attributesDelta.add(deltaBuilder.build());
+		} else {
+			super.collectPassword(passwordDelta);
+		}
+	}
+	
+	protected void collectPasswordDelta(String connIdAttrName, PropertyDelta<ProtectedStringType> delta, PlusMinusZero isInModifiedAuxilaryClass, CollectorValuesConverter<ProtectedStringType> valuesConverter) throws SchemaException {
+		AttributeDeltaBuilder deltaBuilder = new AttributeDeltaBuilder();
+		deltaBuilder.setName(connIdAttrName);
+		List<Object> newPasswordConnIdValues = valuesConverter.covertAttributeValuesToConnId(delta.getValuesToReplace(), delta.getElementName());
+		if (isSelfPasswordChange(delta)) {
+			// Self-service password *change*
+			List<Object> oldPasswordConnIdValues = valuesConverter.covertAttributeValuesToConnId(delta.getEstimatedOldValues(), delta.getElementName());
+			deltaBuilder.addValueToAdd(newPasswordConnIdValues);
+			deltaBuilder.addValueToRemove(oldPasswordConnIdValues);
+		} else {
+			// Password *reset*
+			deltaBuilder.addValueToReplace(newPasswordConnIdValues);
+		}
+		attributesDelta.add(deltaBuilder.build());
+	}
+
+	private boolean isSelfPasswordChange(PropertyDelta<ProtectedStringType> delta) {
+		// We need runAs option, otherwise this is no self-service but an administrator setting the password.
+		if (getOptions() == null) {
+			return false;
+		}
+		if (getOptions().getRunAsIdentification() == null) {
+			return false;
+		}
+		
+		Collection<PrismPropertyValue<ProtectedStringType>> estimatedOldValues = delta.getEstimatedOldValues();
+		if (estimatedOldValues == null || estimatedOldValues.isEmpty()) {
+			return false;
+		}
+		
+		return true;
 	}
 
 	@Override

@@ -250,7 +250,7 @@ public interface ConnectorInstance {
 	 */
     AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> addObject(PrismObject<? extends ShadowType> object, Collection<Operation> additionalOperations, StateReporter reporter,
 													  OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException,
-			ObjectAlreadyExistsException, ConfigurationException;
+			ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, PolicyViolationException;
 
 	/**
 	 * TODO: This should return indication how the operation went, e.g. what changes were applied, what were not
@@ -273,11 +273,11 @@ public interface ConnectorInstance {
     		ConnectorOperationOptions options,
     		StateReporter reporter, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
-			SecurityViolationException, ObjectAlreadyExistsException, ConfigurationException;
+			SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ConfigurationException;
 	
     AsynchronousOperationResult deleteObject(ObjectClassComplexTypeDefinition objectClass, Collection<Operation> additionalOperations, PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers, StateReporter reporter,
 							 OperationResult parentResult)
-					throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException;
+					throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException;
 
 	Object executeScript(ExecuteProvisioningScriptOperation scriptOperation, StateReporter reporter, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
 

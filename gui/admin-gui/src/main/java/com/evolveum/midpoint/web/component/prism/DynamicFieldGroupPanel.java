@@ -76,7 +76,7 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 
 	private void initLayout(String groupName, List<AbstractFormItemType> formItems, Form<?> mainForm) {
 
-		Label header = new Label(ID_HEADER, groupName);
+		Label header = new Label(ID_HEADER, getPageBase().getString(groupName, (Object []) null));
 		add(header);
 
 		RepeatingView itemView = new RepeatingView(ID_PROPERTY);

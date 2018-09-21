@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.testing.conntest;
+package com.evolveum.midpoint.testing.conntest.ad;
 
 import static org.testng.AssertJUnit.assertNotNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
@@ -41,6 +41,7 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.testing.conntest.AbstractLdapTest;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;

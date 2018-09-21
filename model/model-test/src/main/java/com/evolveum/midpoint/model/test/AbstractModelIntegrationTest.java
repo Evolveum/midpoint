@@ -718,6 +718,20 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 		modelService.executeChanges(deltas, null, task, result);
 	}
+	
+	protected ObjectDelta<UserType> createOldNewPasswordDelta(String oid, String oldPassword, String newPassword) throws SchemaException {
+		ProtectedStringType oldPasswordPs = new ProtectedStringType();
+		oldPasswordPs.setClearValue(oldPassword);
+		
+		ProtectedStringType newPasswordPs = new ProtectedStringType();
+		newPasswordPs.setClearValue(newPassword);
+		
+		return deltaFor(UserType.class)
+			.item(PASSWORD_VALUE_PATH)
+				.oldRealValue(oldPasswordPs)
+				.replace(newPasswordPs)
+				.asObjectDelta(oid);
+	}
 
 	protected void modifyUserChangePassword(String userOid, String newPassword, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
 		ProtectedStringType userPasswordPs = new ProtectedStringType();

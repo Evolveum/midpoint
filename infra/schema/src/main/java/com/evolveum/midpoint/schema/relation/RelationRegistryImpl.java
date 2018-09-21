@@ -51,7 +51,7 @@ public class RelationRegistryImpl implements RelationRegistry {
 	public void applyRelationsConfiguration(SystemConfigurationType systemConfiguration) {
 		RoleManagementConfigurationType roleManagement = systemConfiguration != null ? systemConfiguration.getRoleManagement() : null;
 		RelationsDefinitionType relationsDef = roleManagement != null ? roleManagement.getRelations() : null;
-		LOGGER.info("Applying relation configuration ({} entries)", relationsDef != null ? relationsDef.getRelation().size() : 0);
+		LOGGER.debug("Applying relation configuration ({} entries)", relationsDef != null ? relationsDef.getRelation().size() : 0);
 		indexedRelationDefinitions = createAndIndexRelationDefinitions(relationsDef);
 		prismContext.setDefaultRelation(indexedRelationDefinitions.getDefaultRelationFor(RelationKindType.MEMBER));
 	}

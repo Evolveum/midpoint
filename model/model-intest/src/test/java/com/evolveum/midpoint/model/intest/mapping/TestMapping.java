@@ -1622,19 +1622,13 @@ public class TestMapping extends AbstractMappingTest {
         		prismContext, "Black Pearl");
         deltas.add(accountDelta);
 
-     // WHEN
-        try {
-        	modelService.executeChanges(deltas, null, task, result);
-
-        	AssertJUnit.fail("Unexpected success");
-        } catch (PolicyViolationException e) {
-        	// This is expected
-        	display("Expected exception", e);
-        }
+        // WHEN
+        displayWhen(TEST_NAME);
+    	modelService.executeChanges(deltas, null, task, result);
 
 		// THEN
-		result.computeStatus();
-        TestUtil.assertFailure(result);
+    	displayThen(TEST_NAME);
+		assertPartialError(result);
 
 		userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -1647,8 +1641,8 @@ public class TestMapping extends AbstractMappingTest {
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(0);
-        dummyAuditService.assertExecutionOutcome(OperationResultStatus.FATAL_ERROR);
+        dummyAuditService.assertExecutionDeltas(1);
+        dummyAuditService.assertExecutionOutcome(OperationResultStatus.PARTIAL_ERROR);
 	}
 
 	/**
@@ -2031,19 +2025,13 @@ public class TestMapping extends AbstractMappingTest {
         		prismContext, "Fountain of Youth");
         deltas.add(accountDelta);
 
-     // WHEN
-        try {
-        	modelService.executeChanges(deltas, null, task, result);
-
-        	AssertJUnit.fail("Unexpected success");
-        } catch (PolicyViolationException e) {
-        	// This is expected
-        	display("Expected exception", e);
-        }
+        // WHEN
+        displayWhen(TEST_NAME);
+    	modelService.executeChanges(deltas, null, task, result);
 
 		// THEN
-        result.computeStatus();
-        TestUtil.assertFailure(result);
+        displayThen(TEST_NAME);
+        assertPartialError(result);
 
 		userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -2056,8 +2044,8 @@ public class TestMapping extends AbstractMappingTest {
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(0);
-        dummyAuditService.assertExecutionOutcome(OperationResultStatus.FATAL_ERROR);
+        dummyAuditService.assertExecutionDeltas(1);
+        dummyAuditService.assertExecutionOutcome(OperationResultStatus.PARTIAL_ERROR);
 	}
 
 	@Test

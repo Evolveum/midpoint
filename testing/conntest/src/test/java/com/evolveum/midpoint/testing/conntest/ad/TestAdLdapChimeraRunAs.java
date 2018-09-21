@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.testing.conntest;
+package com.evolveum.midpoint.testing.conntest.ad;
 
 import java.io.File;
 
@@ -33,7 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 @ContextConfiguration(locations = {"classpath:ctx-conntest-test-main.xml"})
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestAdLdapChimera extends AbstractAdLdapMultidomainTest {
+public class TestAdLdapChimeraRunAs extends AbstractAdLdapMultidomainRunAsTest {
 
 	@Override
 	protected String getResourceOid() {
@@ -42,7 +42,7 @@ public class TestAdLdapChimera extends AbstractAdLdapMultidomainTest {
 
 	@Override
 	protected File getResourceFile() {
-		return new File(getBaseDir(), "resource-chimera.xml");
+		return new File(getBaseDir(), "resource-chimera-runas.xml");
 	}
 
 	@Override

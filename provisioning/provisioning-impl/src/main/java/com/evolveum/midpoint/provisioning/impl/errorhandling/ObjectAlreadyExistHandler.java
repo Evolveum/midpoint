@@ -20,22 +20,19 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
@@ -47,7 +44,6 @@ import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -64,11 +60,11 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 @Component
@@ -93,7 +89,7 @@ public class ObjectAlreadyExistHandler extends HardErrorHandler {
 			Exception cause, OperationResult failedOperationResult, Task task, OperationResult parentResult)
 			throws SchemaException, GenericFrameworkException, CommunicationException,
 			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
-			SecurityViolationException, ExpressionEvaluationException {
+			SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 		
 		if (ProvisioningUtil.isDoDiscovery(ctx.getResource(), options)) {
 			discoverConflictingShadow(ctx, shadowToAdd, options, opState, cause, failedOperationResult, task, parentResult);
@@ -111,7 +107,7 @@ public class ObjectAlreadyExistHandler extends HardErrorHandler {
 			Exception cause, OperationResult failedOperationResult, Task task, OperationResult parentResult)
 			throws SchemaException, GenericFrameworkException, CommunicationException,
 			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
-			SecurityViolationException, ExpressionEvaluationException {
+			SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 		
 		if (ProvisioningUtil.isDoDiscovery(ctx.getResource(), options)) {
 			PrismObject<ShadowType> newShadow = repoShadow.clone();

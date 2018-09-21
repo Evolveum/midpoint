@@ -647,19 +647,17 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         Task task = createTask(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
-        try {
-        	// WHEN
-        	displayWhen(TEST_NAME);
-        	modifyAccountChangePassword(accountJackUglyOid, "#badPassword!", task, result);
+    	// WHEN
+    	displayWhen(TEST_NAME);
+    	modifyAccountChangePassword(accountJackUglyOid, "#badPassword!", task, result);
+    	
+    	// THEN
+    	displayThen(TEST_NAME);
+    	assertPartialError(result);
+    	
+    	assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_EMPLOYEE_NUMBER);
 
-        	fail("Expected policy violation because password doesn't satisfy password policy but didn't get one.");
-        } catch (PolicyViolationException ex) {
-        	// THEN
-        	displayThen(TEST_NAME);
-        	assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_EMPLOYEE_NUMBER);
-        }
-
-        assertNoAccountPasswordNotifications();
+    	assertNoAccountPasswordNotifications();
 		assertNoUserPasswordNotifications();
 	}
 
@@ -679,19 +677,13 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         OperationResult result = task.getResult();
         prepareTest();
 
-        try {
-			// WHEN
-	        modifyUserReplace(USER_JACK_OID, UserType.F_EMPLOYEE_NUMBER, task, result,
-	        		USER_JACK_EMPLOYEE_NUMBER_NEW_BAD);
-	        assertNotReached();
-        } catch (PolicyViolationException e) {
-        	// this is expected
-        	display("Expected exception", e);
-        }
+		// WHEN
+        displayWhen(TEST_NAME);
+        modifyUserReplace(USER_JACK_OID, UserType.F_EMPLOYEE_NUMBER, task, result,
+        		USER_JACK_EMPLOYEE_NUMBER_NEW_BAD);
 
 		// THEN
-		result.computeStatus();
-        TestUtil.assertFailure(result);
+		assertPartialError(result);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after", userJack);
@@ -806,17 +798,15 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         OperationResult result = task.getResult();
         prepareTest();
 
-        try {
-        	// WHEN
-        	displayWhen(TEST_NAME);
-        	modifyAccountChangePassword(accountJackBlackOid, USER_PASSWORD_A_CLEAR, task, result);
+    	// WHEN
+    	displayWhen(TEST_NAME);
+    	modifyAccountChangePassword(accountJackBlackOid, USER_PASSWORD_A_CLEAR, task, result);
 
-        	fail("Expected policy violation because password doesn't satisfy password policy but didn't get one.");
-        } catch (PolicyViolationException ex) {
-        	// THEN
-        	displayThen(TEST_NAME);
-        	assertDummyPasswordConditional(RESOURCE_DUMMY_BLACK_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_1_CLEAR);
-        }
+    	// THEN
+    	displayThen(TEST_NAME);
+    	assertPartialError(result);
+    	
+    	assertDummyPasswordConditional(RESOURCE_DUMMY_BLACK_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_1_CLEAR);
 
         assertNoAccountPasswordNotifications();
 		assertNoUserPasswordNotifications();
@@ -2071,7 +2061,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	
 	/**
 	 * Monkey has password that does not comply with current password policy.
-	 * Attempt to create account on blue account should fail. Global password
+	 * Attempt to create account on blue resource should fail. Global password
 	 * policy is applied to resources as well.
 	 * MID-4791
 	 */
@@ -2085,20 +2075,45 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         OperationResult result = task.getResult();
         prepareTest();
 
-        try {
-			// WHEN
-	        displayWhen(TEST_NAME);
+		// WHEN
+        displayWhen(TEST_NAME);
+        
+        assignAccountToUser(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_BLUE_OID, null, task, result);
 	        
-	        assignAccountToUser(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_BLUE_OID, null, task, result);
-	        
-	        assertNotReached();
-        } catch (PolicyViolationException e) {
-        	// expected
-        }
-
 		// THEN
         displayThen(TEST_NAME);
-		assertFailure(result);
+		assertPartialError(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
+		display("User after", userAfter);
+		assertAssignments(userAfter, 2);
+		assertUserPassword(userAfter, USER_PASSWORD_A_CLEAR);
+		
+		assertDummyAccount(null, USER_THREE_HEADED_MONKEY_NAME);
+		assertNoDummyAccount(RESOURCE_DUMMY_BLUE_NAME, USER_THREE_HEADED_MONKEY_NAME);
+	}
+	
+	/**
+	 * Get rid of that bad assignment.
+	 */
+	@Test
+    public void test346UnassignMonkeyAccountBlue() throws Exception {
+		final String TEST_NAME = "test346UnassignMonkeyAccountBlue";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        prepareTest();
+
+		// WHEN
+        displayWhen(TEST_NAME);
+        
+        unassignAccountFromUser(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_BLUE_OID, null, task, result);
+	        
+		// THEN
+        displayThen(TEST_NAME);
+		assertSuccess(result);
         
         PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
 		display("User after", userAfter);
@@ -2116,8 +2131,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	 * MID-4791
 	 */
 	@Test
-    public void test346AssignMonkeyAccountYellow() throws Exception {
-		final String TEST_NAME = "test346AssignMonkeyYellow";
+    public void test347AssignMonkeyAccountYellow() throws Exception {
+		final String TEST_NAME = "test347AssignMonkeyAccountYellow";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -2125,20 +2140,43 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         OperationResult result = task.getResult();
         prepareTest();
 
-        try {
-			// WHEN
-	        displayWhen(TEST_NAME);
+		// WHEN
+        displayWhen(TEST_NAME);
+        
+        assignAccountToUser(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
 	        
-	        assignAccountToUser(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
-	        
-	        assertNotReached();
-        } catch (PolicyViolationException e) {
-        	// expected
-        }
-
 		// THEN
         displayThen(TEST_NAME);
-		assertFailure(result);
+		assertPartialError(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
+		display("User after", userAfter);
+		assertAssignments(userAfter, 2);
+		assertUserPassword(userAfter, USER_PASSWORD_A_CLEAR);
+		
+		assertDummyAccount(null, USER_THREE_HEADED_MONKEY_NAME);
+		assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, USER_THREE_HEADED_MONKEY_NAME);
+		assertNoDummyAccount(RESOURCE_DUMMY_BLUE_NAME, USER_THREE_HEADED_MONKEY_NAME);
+	}
+	
+	@Test
+    public void test348UnassignMonkeyAccountYellow() throws Exception {
+		final String TEST_NAME = "test348UnassignMonkeyAccountYellow";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        prepareTest();
+
+		// WHEN
+        displayWhen(TEST_NAME);
+        
+        unassignAccountFromUser(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
+	        
+		// THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
 		display("User after", userAfter);
@@ -2157,8 +2195,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	 * MID-4791
 	 */
 	@Test
-    public void test347AssignMonkeyPirate() throws Exception {
-		final String TEST_NAME = "test347AssignMonkeyPirate";
+    public void test349AssignMonkeyPirate() throws Exception {
+		final String TEST_NAME = "test349AssignMonkeyPirate";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -2193,8 +2231,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	 * MID-4791
 	 */
 	@Test
-    public void test348DisableMonkey() throws Exception {
-		final String TEST_NAME = "test348DisableMonkey";
+    public void test350DisableMonkey() throws Exception {
+		final String TEST_NAME = "test350DisableMonkey";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -2229,8 +2267,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	 * MID-4791
 	 */
 	@Test
-    public void test349EnableMonkey() throws Exception {
-		final String TEST_NAME = "test349EnableMonkey";
+    public void test351EnableMonkey() throws Exception {
+		final String TEST_NAME = "test351EnableMonkey";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -2265,8 +2303,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	 * MID-4791
 	 */
 	@Test
-    public void test350UnassignMonkeyPirate() throws Exception {
-		final String TEST_NAME = "test350UnassignMonkeyPirate";
+    public void test352UnassignMonkeyPirate() throws Exception {
+		final String TEST_NAME = "test352UnassignMonkeyPirate";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -2300,8 +2338,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	 * MID-4791
 	 */
 	@Test
-    public void test352ModifyUserMonkeyPasswordValid1() throws Exception {
-		final String TEST_NAME = "test352ModifyUserMonkeyPasswordValid1";
+    public void test354ModifyUserMonkeyPasswordValid1() throws Exception {
+		final String TEST_NAME = "test354ModifyUserMonkeyPasswordValid1";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -2329,8 +2367,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	 * MID-4791
 	 */
 	@Test
-    public void test353ModifyUserMonkeyDescriptionAgain() throws Exception {
-		final String TEST_NAME = "test353ModifyUserMonkeyDescriptionAgain";
+    public void test355ModifyUserMonkeyDescriptionAgain() throws Exception {
+		final String TEST_NAME = "test355ModifyUserMonkeyDescriptionAgain";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -3146,20 +3184,13 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		
 		ObjectDelta<ShadowType> shadowDelta = createAccountInitializationDelta(accountJackMaverickOid, PASSWORD_ALLIGATOR);
 		
-		try {
-			// WHEN
-			displayWhen(TEST_NAME);
-			executeChanges(shadowDelta, null, task, result);
+		// WHEN
+		displayWhen(TEST_NAME);
+		executeChanges(shadowDelta, null, task, result);
 			
-			assertNotReached();
-		
-		} catch (PolicyViolationException e) {
-			display("Expected exception", e);
-		}
-
 		// THEN
 		displayThen(TEST_NAME);
-		assertFailure(result);
+		assertPartialError(result);
 
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
 		display("User after", userAfter);
@@ -3229,20 +3260,13 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		OperationResult result = task.getResult();
 		prepareTest();
 		
-		try {
-			// WHEN
-			displayWhen(TEST_NAME);
-			modifyAccountChangePassword(accountJackMaverickOid, PASSWORD_ALLIGATOR, task, result);
+		// WHEN
+		displayWhen(TEST_NAME);
+		modifyAccountChangePassword(accountJackMaverickOid, PASSWORD_ALLIGATOR, task, result);
 			
-			assertNotReached();
-			
-		} catch (PolicyViolationException e) {
-			display("Expected exception", e);
-		}
-
 		// THEN
 		displayThen(TEST_NAME);
-		assertFailure(result);
+		assertPartialError(result);
 
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
 		display("User after", userAfter);
@@ -3562,21 +3586,6 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
      	assertHasAccountPasswordNotification(RESOURCE_DUMMY_RED_NAME, USER_JACK_USERNAME, USER_PASSWORD_VALID_4);
      	// not BLUE, it already has a password
 		assertSingleUserPasswordNotification(USER_JACK_USERNAME, USER_PASSWORD_VALID_4);
-	}
-	
-
-	private ObjectDelta<UserType> createOldNewPasswordDelta(String oid, String oldPassword, String newPassword) throws SchemaException {
-		ProtectedStringType oldPasswordPs = new ProtectedStringType();
-		oldPasswordPs.setClearValue(oldPassword);
-		
-		ProtectedStringType newPasswordPs = new ProtectedStringType();
-		newPasswordPs.setClearValue(newPassword);
-		
-		return deltaFor(UserType.class)
-			.item(PASSWORD_VALUE_PATH)
-				.oldRealValue(oldPasswordPs)
-				.replace(newPasswordPs)
-				.asObjectDelta(USER_JACK_OID);
 	}
 	
 	/**
