@@ -71,196 +71,196 @@ import org.jetbrains.annotations.NotNull;
  * @author semancik
  */
 public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageAdmin
-		implements ProgressReportingAwarePage {
-	private static final long serialVersionUID = 1L;
+        implements ProgressReportingAwarePage {
+    private static final long serialVersionUID = 1L;
 
-	private static final String DOT_CLASS = PageAdminObjectDetails.class.getName() + ".";
+    private static final String DOT_CLASS = PageAdminObjectDetails.class.getName() + ".";
 
-	public static final String PARAM_RETURN_PAGE = "returnPage";
+    public static final String PARAM_RETURN_PAGE = "returnPage";
 
-	private static final String OPERATION_LOAD_OBJECT = DOT_CLASS + "loadObject";
-	private static final String OPERATION_LOAD_PARENT_ORGS = DOT_CLASS + "loadParentOrgs";
-	private static final String OPERATION_LOAD_GUI_CONFIGURATION = DOT_CLASS + "loadGuiConfiguration";
-	protected static final String OPERATION_SAVE = DOT_CLASS + "save";
-	protected static final String OPERATION_PREVIEW_CHANGES = DOT_CLASS + "previewChanges";
-	protected static final String OPERATION_SEND_TO_SUBMIT = DOT_CLASS + "sendToSubmit";
+    private static final String OPERATION_LOAD_OBJECT = DOT_CLASS + "loadObject";
+    private static final String OPERATION_LOAD_PARENT_ORGS = DOT_CLASS + "loadParentOrgs";
+    private static final String OPERATION_LOAD_GUI_CONFIGURATION = DOT_CLASS + "loadGuiConfiguration";
+    protected static final String OPERATION_SAVE = DOT_CLASS + "save";
+    protected static final String OPERATION_PREVIEW_CHANGES = DOT_CLASS + "previewChanges";
+    protected static final String OPERATION_SEND_TO_SUBMIT = DOT_CLASS + "sendToSubmit";
 
-	protected static final String ID_SUMMARY_PANEL = "summaryPanel";
-	protected static final String ID_MAIN_PANEL = "mainPanel";
-	private static final String ID_PROGRESS_PANEL = "progressPanel";
+    protected static final String ID_SUMMARY_PANEL = "summaryPanel";
+    protected static final String ID_MAIN_PANEL = "mainPanel";
+    private static final String ID_PROGRESS_PANEL = "progressPanel";
 
-	private static final Trace LOGGER = TraceManager.getTrace(PageAdminObjectDetails.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PageAdminObjectDetails.class);
 
-	private LoadableModel<ObjectWrapper<O>> objectModel;
-	private LoadableModel<List<FocusSubwrapperDto<OrgType>>> parentOrgModel;
+    private LoadableModel<ObjectWrapper<O>> objectModel;
+    private LoadableModel<List<FocusSubwrapperDto<OrgType>>> parentOrgModel;
 
-	private ProgressPanel progressPanel;
+    private ProgressPanel progressPanel;
 
-	// used to determine whether to leave this page or stay on it (after
-	// operation finishing)
-	private ObjectDelta<O> delta;
+    // used to determine whether to leave this page or stay on it (after
+    // operation finishing)
+    private ObjectDelta<O> delta;
 
-	private AbstractObjectMainPanel<O> mainPanel;
-	private boolean saveOnConfigure;		// ugly hack - whether to invoke 'Save' when returning to this page
+    private AbstractObjectMainPanel<O> mainPanel;
+    private boolean saveOnConfigure;		// ugly hack - whether to invoke 'Save' when returning to this page
 
-	private boolean editingFocus = false; 			//before we got isOidParameterExists status depending only on oid parameter existence
-													//we should set editingFocus=true not only when oid parameter exists but also
-													//when object is given as a constructor parameter
+    private boolean editingFocus = false; 			//before we got isOidParameterExists status depending only on oid parameter existence
+    //we should set editingFocus=true not only when oid parameter exists but also
+    //when object is given as a constructor parameter
 
-	public boolean isEditingFocus() {
-		return editingFocus;
-	}
+    public boolean isEditingFocus() {
+        return editingFocus;
+    }
 
-	@Override
-	protected void createBreadcrumb() {
-		createInstanceBreadcrumb();
-	}
+    @Override
+    protected void createBreadcrumb() {
+        createInstanceBreadcrumb();
+    }
 
-	@Override
-	protected void onConfigure() {
-		super.onConfigure();
-		if (saveOnConfigure) {
-			saveOnConfigure = false;
-			add(new AbstractAjaxTimerBehavior(Duration.milliseconds(100)) {
-				@Override
-				protected void onTimer(AjaxRequestTarget target) {
-					stop(target);
-					savePerformed(target);
-				}
-			});
-		}
-	}
+    @Override
+    protected void onConfigure() {
+        super.onConfigure();
+        if (saveOnConfigure) {
+            saveOnConfigure = false;
+            add(new AbstractAjaxTimerBehavior(Duration.milliseconds(100)) {
+                @Override
+                protected void onTimer(AjaxRequestTarget target) {
+                    stop(target);
+                    savePerformed(target);
+                }
+            });
+        }
+    }
 
-	@Override
-	protected IModel<String> createPageTitleModel() {
-		return new LoadableModel<String>() {
-			private static final long serialVersionUID = 1L;
+    @Override
+    protected IModel<String> createPageTitleModel() {
+        return new LoadableModel<String>() {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			protected String load() {
-				if (!isOidParameterExists() && !editingFocus) {
-					String key = "PageAdminObjectDetails.title.new" + getCompileTimeClass().getSimpleName();
-					return createStringResource(key).getObject();
-				}
+            @Override
+            protected String load() {
+                if (!isOidParameterExists() && !editingFocus) {
+                    String key = "PageAdminObjectDetails.title.new" + getCompileTimeClass().getSimpleName();
+                    return createStringResource(key).getObject();
+                }
 
-				String name = null;
-				if (getObjectWrapper() != null && getObjectWrapper().getObject() != null) {
-					name = WebComponentUtil.getName(getObjectWrapper().getObject());
-				}
+                String name = null;
+                if (getObjectWrapper() != null && getObjectWrapper().getObject() != null) {
+                    name = WebComponentUtil.getName(getObjectWrapper().getObject());
+                }
 
-				String key = "PageAdminObjectDetails.title.edit" + getCompileTimeClass().getSimpleName();
-				return createStringResource(key, name).getObject();
-			}
-		};
-	}
+                String key = "PageAdminObjectDetails.title.edit" + getCompileTimeClass().getSimpleName();
+                return createStringResource(key, name).getObject();
+            }
+        };
+    }
 
-	public LoadableModel<ObjectWrapper<O>> getObjectModel() {
-		return objectModel;
-	}
+    public LoadableModel<ObjectWrapper<O>> getObjectModel() {
+        return objectModel;
+    }
 
-	public LoadableModel<List<FocusSubwrapperDto<OrgType>>> getParentOrgModel() {
-		return parentOrgModel;
-	}
+    public LoadableModel<List<FocusSubwrapperDto<OrgType>>> getParentOrgModel() {
+        return parentOrgModel;
+    }
 
-	protected AbstractObjectMainPanel<O> getMainPanel() {
-		return mainPanel;
-	}
+    protected AbstractObjectMainPanel<O> getMainPanel() {
+        return mainPanel;
+    }
 
-	public ObjectWrapper<O> getObjectWrapper() {
-		return objectModel.getObject();
-	}
+    public ObjectWrapper<O> getObjectWrapper() {
+        return objectModel.getObject();
+    }
 
-	public List<FocusSubwrapperDto<OrgType>> getParentOrgs() {
-		return parentOrgModel.getObject();
-	}
+    public List<FocusSubwrapperDto<OrgType>> getParentOrgs() {
+        return parentOrgModel.getObject();
+    }
 
-	public ObjectDelta<O> getDelta() {
-		return delta;
-	}
+    public ObjectDelta<O> getDelta() {
+        return delta;
+    }
 
-	public void setDelta(ObjectDelta<O> delta) {
-		this.delta = delta;
-	}
+    public void setDelta(ObjectDelta<O> delta) {
+        this.delta = delta;
+    }
 
-	public ProgressPanel getProgressPanel() {
-		return progressPanel;
-	}
+    public ProgressPanel getProgressPanel() {
+        return progressPanel;
+    }
 
-	protected void reviveModels() throws SchemaException {
-		WebComponentUtil.revive(objectModel, getPrismContext());
-		WebComponentUtil.revive(parentOrgModel, getPrismContext());
-	}
+    protected void reviveModels() throws SchemaException {
+        WebComponentUtil.revive(objectModel, getPrismContext());
+        WebComponentUtil.revive(parentOrgModel, getPrismContext());
+    }
 
-	public abstract Class<O> getCompileTimeClass();
+    public abstract Class<O> getCompileTimeClass();
 
 
-	public void initialize(final PrismObject<O> objectToEdit) {
-		boolean isNewObject = objectToEdit == null;
+    public void initialize(final PrismObject<O> objectToEdit) {
+        boolean isNewObject = objectToEdit == null;
 
-		initialize(objectToEdit, isNewObject, false);
-	}
+        initialize(objectToEdit, isNewObject, false);
+    }
 
-	public void initialize(final PrismObject<O> objectToEdit, boolean isNewObject) {
-		initialize(objectToEdit, isNewObject, false);
-	}
+    public void initialize(final PrismObject<O> objectToEdit, boolean isNewObject) {
+        initialize(objectToEdit, isNewObject, false);
+    }
 
-	public void initialize(final PrismObject<O> objectToEdit, boolean isNewObject, boolean isReadonly) {
-		initializeModel(objectToEdit, isNewObject, isReadonly);
-		initLayout();
-	}
+    public void initialize(final PrismObject<O> objectToEdit, boolean isNewObject, boolean isReadonly) {
+        initializeModel(objectToEdit, isNewObject, isReadonly);
+        initLayout();
+    }
 
-	protected void initializeModel(final PrismObject<O> objectToEdit, boolean isNewObject, boolean isReadonly) {
-		editingFocus = !isNewObject;
+    protected void initializeModel(final PrismObject<O> objectToEdit, boolean isNewObject, boolean isReadonly) {
+        editingFocus = !isNewObject;
 
-		objectModel = new LoadableModel<ObjectWrapper<O>>(false) {
-			private static final long serialVersionUID = 1L;
+        objectModel = new LoadableModel<ObjectWrapper<O>>(false) {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			protected ObjectWrapper<O> load() {
-				ObjectWrapper<O> wrapper = loadObjectWrapper(objectToEdit, isReadonly);
-				wrapper.sort();
-				return wrapper;
-			}
-		};
+            @Override
+            protected ObjectWrapper<O> load() {
+                ObjectWrapper<O> wrapper = loadObjectWrapper(objectToEdit, isReadonly);
+                wrapper.sort();
+                return wrapper;
+            }
+        };
 
-		parentOrgModel = new LoadableModel<List<FocusSubwrapperDto<OrgType>>>(false) {
-			private static final long serialVersionUID = 1L;
+        parentOrgModel = new LoadableModel<List<FocusSubwrapperDto<OrgType>>>(false) {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			protected List<FocusSubwrapperDto<OrgType>> load() {
-				return loadOrgWrappers();
-			}
-		};
-	}
+            @Override
+            protected List<FocusSubwrapperDto<OrgType>> load() {
+                return loadOrgWrappers();
+            }
+        };
+    }
 
-	protected List<FocusSubwrapperDto<OrgType>> loadOrgWrappers() {
-		// WRONG!! TODO: fix
-		return null;
-	}
+    protected List<FocusSubwrapperDto<OrgType>> loadOrgWrappers() {
+        // WRONG!! TODO: fix
+        return null;
+    }
 
-	protected abstract O createNewObject();
+    protected abstract O createNewObject();
 
-	protected void initLayout() {
-		initLayoutSummaryPanel();
+    protected void initLayout() {
+        initLayoutSummaryPanel();
 
-		mainPanel = createMainPanel(ID_MAIN_PANEL);
-		mainPanel.setOutputMarkupId(true);
-		add(mainPanel);
+        mainPanel = createMainPanel(ID_MAIN_PANEL);
+        mainPanel.setOutputMarkupId(true);
+        add(mainPanel);
 
-		progressPanel = new ProgressPanel(ID_PROGRESS_PANEL);
-		add(progressPanel);
-	}
+        progressPanel = new ProgressPanel(ID_PROGRESS_PANEL);
+        add(progressPanel);
+    }
 
-	protected abstract FocusSummaryPanel<O> createSummaryPanel();
+    protected abstract FocusSummaryPanel<O> createSummaryPanel();
 
-	protected void initLayoutSummaryPanel() {
+    protected void initLayoutSummaryPanel() {
 
-		FocusSummaryPanel<O> summaryPanel = createSummaryPanel();
-		summaryPanel.setOutputMarkupId(true);
+        FocusSummaryPanel<O> summaryPanel = createSummaryPanel();
+        summaryPanel.setOutputMarkupId(true);
 
-		setSummaryPanelVisibility(summaryPanel);
-		add(summaryPanel);
-	}
+        setSummaryPanelVisibility(summaryPanel);
+        add(summaryPanel);
+    }
 
     protected void setSummaryPanelVisibility(FocusSummaryPanel<O> summaryPanel){
         summaryPanel.add(new VisibleEnableBehaviour() {
@@ -273,317 +273,319 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         });
     }
 
-	protected abstract AbstractObjectMainPanel<O> createMainPanel(String id);
+    protected abstract AbstractObjectMainPanel<O> createMainPanel(String id);
 
-	protected String getObjectOidParameter() {
-		PageParameters parameters = getPageParameters();
-		LOGGER.trace("Page parameters: {}", parameters);
-		StringValue oidValue = parameters.get(OnePageParameterEncoder.PARAMETER);
-		LOGGER.trace("OID parameter: {}", oidValue);
-		if (oidValue == null) {
-			return null;
-		}
-		String oid = oidValue.toString();
-		if (StringUtils.isBlank(oid)) {
-			return null;
-		}
-		return oid;
-	}
+    protected String getObjectOidParameter() {
+        PageParameters parameters = getPageParameters();
+        LOGGER.trace("Page parameters: {}", parameters);
+        StringValue oidValue = parameters.get(OnePageParameterEncoder.PARAMETER);
+        LOGGER.trace("OID parameter: {}", oidValue);
+        if (oidValue == null) {
+            return null;
+        }
+        String oid = oidValue.toString();
+        if (StringUtils.isBlank(oid)) {
+            return null;
+        }
+        return oid;
+    }
 
-	public boolean isOidParameterExists() {
-		return getObjectOidParameter() != null;
-	}
+    public boolean isOidParameterExists() {
+        return getObjectOidParameter() != null;
+    }
 
-	protected ObjectWrapper<O> loadObjectWrapper(PrismObject<O> objectToEdit, boolean isReadonly) {
-		Task task = createSimpleTask(OPERATION_LOAD_OBJECT);
-		OperationResult result = task.getResult();
-		PrismObject<O> object = null;
-		Collection<SelectorOptions<GetOperationOptions>> loadOptions = null;
-		try {
-			if (!isOidParameterExists()) {
-				if (objectToEdit == null) {
-					LOGGER.trace("Loading object: New object (creating)");
-					O focusType = createNewObject();
-					getMidpointApplication().getPrismContext().adopt(focusType);
-					object = (PrismObject<O>) focusType.asPrismObject();
-				} else {
-					LOGGER.trace("Loading object: New object (supplied): {}", objectToEdit);
-					object = objectToEdit;
-				}
-			} else {
+    protected ObjectWrapper<O> loadObjectWrapper(PrismObject<O> objectToEdit, boolean isReadonly) {
+        Task task = createSimpleTask(OPERATION_LOAD_OBJECT);
+        OperationResult result = task.getResult();
+        PrismObject<O> object = null;
+        Collection<SelectorOptions<GetOperationOptions>> loadOptions = null;
+        try {
+            if (!isOidParameterExists()) {
+                if (objectToEdit == null) {
+                    LOGGER.trace("Loading object: New object (creating)");
+                    O focusType = createNewObject();
+                    getMidpointApplication().getPrismContext().adopt(focusType);
+                    object = (PrismObject<O>) focusType.asPrismObject();
+                } else {
+                    LOGGER.trace("Loading object: New object (supplied): {}", objectToEdit);
+                    object = objectToEdit;
+                }
+            } else {
 
-				loadOptions = SelectorOptions.createCollection(UserType.F_JPEG_PHOTO,
-						GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
+                loadOptions = SelectorOptions.createCollection(UserType.F_JPEG_PHOTO,
+                        GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
 
-				String focusOid = getObjectOidParameter();
-				object = WebModelServiceUtils.loadObject(getCompileTimeClass(), focusOid, loadOptions, this, task,
-						result);
+                String focusOid = getObjectOidParameter();
+                object = WebModelServiceUtils.loadObject(getCompileTimeClass(), focusOid, loadOptions, this, task,
+                        result);
 
-				LOGGER.trace("Loading object: Existing object (loadled): {} -> {}", focusOid, object);
-			}
+                LOGGER.trace("Loading object: Existing object (loadled): {} -> {}", focusOid, object);
+            }
 
-			result.recordSuccess();
-		} catch (Exception ex) {
-			result.recordFatalError("Couldn't get object.", ex);
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object", ex);
-		}
+            result.recordSuccess();
+        } catch (Exception ex) {
+            result.recordFatalError("Couldn't get object.", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object", ex);
+        }
 
-		showResult(result, false);
+        showResult(result, false);
 
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Loaded object:\n{}", object.debugDump());
-		}
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Loaded object:\n{}", object.debugDump());
+        }
 
-		if (object == null) {
-			if (isOidParameterExists()) {
-				getSession().error(getString("pageAdminFocus.message.cantEditFocus"));
-			} else {
-				getSession().error(getString("pageAdminFocus.message.cantNewFocus"));
-			}
-			throw new RestartResponseException(getRestartResponsePage());
-		}
+        if (object == null) {
+            if (isOidParameterExists()) {
+                getSession().error(getString("pageAdminFocus.message.cantEditFocus"));
+            } else {
+                getSession().error(getString("pageAdminFocus.message.cantNewFocus"));
+            }
+            throw new RestartResponseException(getRestartResponsePage());
+        }
 
-		ContainerStatus status = isOidParameterExists() || editingFocus ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
-		ObjectWrapper<O> wrapper;
-		ObjectWrapperFactory owf = new ObjectWrapperFactory(this);
-		try {
-			wrapper = owf.createObjectWrapper("pageAdminFocus.focusDetails", null, object, status, task);
-		} catch (Exception ex) {
-			result.recordFatalError("Couldn't get user.", ex);
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load user", ex);
-			try {
-				wrapper = owf.createObjectWrapper("pageAdminFocus.focusDetails", null, object, null, null, status, task);
-			} catch (SchemaException e) {
-				throw new SystemException(e.getMessage(), e);
-			}
-		}
-		wrapper.setLoadOptions(loadOptions);
+        ContainerStatus status = isOidParameterExists() || editingFocus ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
+        ObjectWrapper<O> wrapper;
+        ObjectWrapperFactory owf = new ObjectWrapperFactory(this);
+        try {
+            wrapper = owf.createObjectWrapper("pageAdminFocus.focusDetails", null, object, status, task);
+        } catch (Exception ex) {
+            result.recordFatalError("Couldn't get user.", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load user", ex);
+            try {
+                wrapper = owf.createObjectWrapper("pageAdminFocus.focusDetails", null, object, null, null, status, task);
+            } catch (SchemaException e) {
+                throw new SystemException(e.getMessage(), e);
+            }
+        }
+        wrapper.setLoadOptions(loadOptions);
 
-		showResult(wrapper.getResult(), false);
+        showResult(wrapper.getResult(), false);
 
-		loadParentOrgs(wrapper, task, result);
+        loadParentOrgs(wrapper, task, result);
 
-		wrapper.setShowEmpty(!isOidParameterExists() && !editingFocus);
-		wrapper.setReadonly(isReadonly);
+        wrapper.setShowEmpty(!isOidParameterExists() && !editingFocus);
+        wrapper.setReadonly(isReadonly);
 
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Loaded focus wrapper:\n{}", wrapper.debugDump());
-		}
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Loaded focus wrapper:\n{}", wrapper.debugDump());
+        }
 
-		return wrapper;
-	}
+        return wrapper;
+    }
 
-	private void loadParentOrgs(ObjectWrapper<O> wrapper, Task task, OperationResult result) {
-		OperationResult subResult = result.createMinorSubresult(OPERATION_LOAD_PARENT_ORGS);
-		PrismObject<O> focus = wrapper.getObject();
-		// Load parent organizations (full objects). There are used in the
-		// summary panel and also in the main form.
-		// Do it here explicitly instead of using resolve option to have ability
-		// to better handle (ignore) errors.
-		for (ObjectReferenceType parentOrgRef : focus.asObjectable().getParentOrgRef()) {
+    private void loadParentOrgs(ObjectWrapper<O> wrapper, Task task, OperationResult result) {
+        OperationResult subResult = result.createMinorSubresult(OPERATION_LOAD_PARENT_ORGS);
+        PrismObject<O> focus = wrapper.getObject();
+        // Load parent organizations (full objects). There are used in the
+        // summary panel and also in the main form.
+        // Do it here explicitly instead of using resolve option to have ability
+        // to better handle (ignore) errors.
+        for (ObjectReferenceType parentOrgRef : focus.asObjectable().getParentOrgRef()) {
 
-			PrismObject<OrgType> parentOrg = null;
-			try {
+            PrismObject<OrgType> parentOrg = null;
+            try {
 
-				parentOrg = getModelService().getObject(OrgType.class, parentOrgRef.getOid(), null, task,
-						subResult);
-				LOGGER.trace("Loaded parent org with result {}",
-						new Object[] { subResult.getLastSubresult() });
-			} catch (AuthorizationException e) {
-				// This can happen if the user has permission to read parentOrgRef but it does not have
-				// the permission to read target org
-				// It is OK to just ignore it.
-				subResult.muteLastSubresultError();
-				LOGGER.debug("User {} does not have permission to read parent org unit {} (ignoring error)", task.getOwner().getName(), parentOrgRef.getOid());
-			} catch (Exception ex) {
-				subResult.recordWarning("Cannot load parent org " + parentOrgRef.getOid(), ex);
-				LOGGER.warn("Cannot load parent org {}: {}", parentOrgRef.getOid(), ex.getMessage(), ex);
-			}
+                parentOrg = getModelService().getObject(OrgType.class, parentOrgRef.getOid(), null, task,
+                        subResult);
+                LOGGER.trace("Loaded parent org with result {}",
+                        new Object[] { subResult.getLastSubresult() });
+            } catch (AuthorizationException e) {
+                // This can happen if the user has permission to read parentOrgRef but it does not have
+                // the permission to read target org
+                // It is OK to just ignore it.
+                subResult.muteLastSubresultError();
+                LOGGER.debug("User {} does not have permission to read parent org unit {} (ignoring error)", task.getOwner().getName(), parentOrgRef.getOid());
+            } catch (Exception ex) {
+                subResult.recordWarning("Cannot load parent org " + parentOrgRef.getOid(), ex);
+                LOGGER.warn("Cannot load parent org {}: {}", parentOrgRef.getOid(), ex.getMessage(), ex);
+            }
 
-			if (parentOrg != null) {
-				wrapper.getParentOrgs().add(parentOrg);
-			}
-		}
-		subResult.computeStatus();
-	}
+            if (parentOrg != null) {
+                wrapper.getParentOrgs().add(parentOrg);
+            }
+        }
+        subResult.computeStatus();
+    }
 
-	protected abstract Class<? extends Page> getRestartResponsePage();
+    protected abstract Class<? extends Page> getRestartResponsePage();
 
-	public Object findParam(String param, String oid, OperationResult result) {
+    public Object findParam(String param, String oid, OperationResult result) {
 
-		Object object = null;
+        Object object = null;
 
-		for (OperationResult subResult : result.getSubresults()) {
-			if (subResult != null && subResult.getParams() != null) {
-				if (subResult.getParams().get(param) != null
-						&& subResult.getParams().get(OperationResult.PARAM_OID) != null
-						&& subResult.getParams().get(OperationResult.PARAM_OID).equals(oid)) {
-					return subResult.getParams().get(param);
-				}
-				object = findParam(param, oid, subResult);
+        for (OperationResult subResult : result.getSubresults()) {
+            if (subResult != null && subResult.getParams() != null) {
+                if (subResult.getParams().get(param) != null
+                        && subResult.getParams().get(OperationResult.PARAM_OID) != null
+                        && subResult.getParams().get(OperationResult.PARAM_OID).equals(oid)) {
+                    return subResult.getParams().get(param);
+                }
+                object = findParam(param, oid, subResult);
 
-			}
-		}
-		return object;
-	}
+            }
+        }
+        return object;
+    }
 
-	// TODO put this into correct place
-	protected boolean previewRequested;
+    // TODO put this into correct place
+    protected boolean previewRequested;
 
-	/**
-	 * This will be called from the main form when save button is pressed.
-	 */
-	public void savePerformed(AjaxRequestTarget target) {
-		progressPanel.onBeforeSave();
-		OperationResult result = new OperationResult(OPERATION_SAVE);
-		previewRequested = false;
-		saveOrPreviewPerformed(target, result, false);
-	}
+    /**
+     * This will be called from the main form when save button is pressed.
+     */
+    public void savePerformed(AjaxRequestTarget target) {
+        progressPanel.onBeforeSave();
+        OperationResult result = new OperationResult(OPERATION_SAVE);
+        previewRequested = false;
+        saveOrPreviewPerformed(target, result, false);
+    }
 
-	public void previewPerformed(AjaxRequestTarget target) {
-		progressPanel.onBeforeSave();
-		OperationResult result = new OperationResult(OPERATION_PREVIEW_CHANGES);
-		previewRequested = true;
-		saveOrPreviewPerformed(target, result, true);
-	}
+    public void previewPerformed(AjaxRequestTarget target) {
+        progressPanel.onBeforeSave();
+        OperationResult result = new OperationResult(OPERATION_PREVIEW_CHANGES);
+        previewRequested = true;
+        saveOrPreviewPerformed(target, result, true);
+    }
 
-	public void saveOrPreviewPerformed(AjaxRequestTarget target, OperationResult result, boolean previewOnly) {
-		boolean isAnythingChanged = processDeputyAssignments(previewOnly);
+    public void saveOrPreviewPerformed(AjaxRequestTarget target, OperationResult result, boolean previewOnly) {
+        boolean delegationChangesExist = processDeputyAssignments(previewOnly);
 
-		ObjectWrapper<O> objectWrapper = getObjectWrapper();
-		LOGGER.debug("Saving object {}", objectWrapper);
+        ObjectWrapper<O> objectWrapper = getObjectWrapper();
+        LOGGER.debug("Saving object {}", objectWrapper);
 
-		// todo: improve, delta variable is quickfix for MID-1006
-		// redirecting to user list page everytime user is created in repository
-		// during user add in gui,
-		// and we're not taking care about account/assignment create errors
-		// (error message is still displayed)
-		delta = null;
+        // todo: improve, delta variable is quickfix for MID-1006
+        // redirecting to user list page everytime user is created in repository
+        // during user add in gui,
+        // and we're not taking care about account/assignment create errors
+        // (error message is still displayed)
+        delta = null;
 
-		Task task = createSimpleTask(OPERATION_SEND_TO_SUBMIT);
+        Task task = createSimpleTask(OPERATION_SEND_TO_SUBMIT);
 
-		ModelExecuteOptions options = getExecuteChangesOptions();
-		if (previewOnly) {
-			options.getOrCreatePartialProcessing().setApprovals(PartialProcessingTypeType.PROCESS);
-		}
-		LOGGER.debug("Using execute options {}.", options);
+        ModelExecuteOptions options = getOptions(previewOnly);
 
-		try {
-			reviveModels();
+        LOGGER.debug("Using execute options {}.", options);
 
-			delta = objectWrapper.getObjectDelta();
-			if (objectWrapper.getOldDelta() != null) {
-				delta = ObjectDelta.summarize(objectWrapper.getOldDelta(), delta);
-			}
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("User delta computed from form:\n{}", new Object[] { delta.debugDump(3) });
-			}
-		} catch (Exception ex) {
-			result.recordFatalError(getString("pageUser.message.cantCreateUser"), ex);
-			LoggingUtils.logUnexpectedException(LOGGER, "Create user failed", ex);
-			showResult(result);
-			return;
-		}
+        try {
+            reviveModels();
 
-		switch (objectWrapper.getStatus()) {
-			case ADDING:
-				try {
-					PrismObject<O> objectToAdd = delta.getObjectToAdd();
-					WebComponentUtil.encryptCredentials(objectToAdd, true, getMidpointApplication());
-					prepareObjectForAdd(objectToAdd);
-					getPrismContext().adopt(objectToAdd, getCompileTimeClass());
-					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("Delta before add user:\n{}", new Object[] { delta.debugDump(3) });
-					}
+            delta = objectWrapper.getObjectDelta();
+            if (objectWrapper.getOldDelta() != null) {
+                delta = ObjectDelta.summarize(objectWrapper.getOldDelta(), delta);
+            }
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("User delta computed from form:\n{}", new Object[] { delta.debugDump(3) });
+            }
+        } catch (Exception ex) {
+            result.recordFatalError(getString("pageUser.message.cantCreateUser"), ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Create user failed", ex);
+            showResult(result);
+            return;
+        }
 
-					if (!delta.isEmpty()) {
-						delta.revive(getPrismContext());
+        switch (objectWrapper.getStatus()) {
+            case ADDING:
+                try {
+                    PrismObject<O> objectToAdd = delta.getObjectToAdd();
+                    WebComponentUtil.encryptCredentials(objectToAdd, true, getMidpointApplication());
+                    prepareObjectForAdd(objectToAdd);
+                    getPrismContext().adopt(objectToAdd, getCompileTimeClass());
+                    if (LOGGER.isTraceEnabled()) {
+                        LOGGER.trace("Delta before add user:\n{}", new Object[] { delta.debugDump(3) });
+                    }
 
-						final Collection<ObjectDelta<? extends ObjectType>> deltas = WebComponentUtil.createDeltaCollection(delta);
-						final Collection<SimpleValidationError> validationErrors = performCustomValidation(objectToAdd, deltas);
-						if (checkValidationErrors(target, validationErrors)) {
-							return;
-						}
-						progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
-					} else {
-						result.recordSuccess();
-					}
-				} catch (Exception ex) {
-					result.recordFatalError(getString("pageFocus.message.cantCreateFocus"), ex);
-					LoggingUtils.logUnexpectedException(LOGGER, "Create user failed", ex);
-					showResult(result);
-				}
-				break;
+                    if (!delta.isEmpty()) {
+                        delta.revive(getPrismContext());
 
-			case MODIFYING:
-				try {
-					WebComponentUtil.encryptCredentials(delta, true, getMidpointApplication());
-					prepareObjectDeltaForModify(delta);
+                        final Collection<ObjectDelta<? extends ObjectType>> deltas = WebComponentUtil.createDeltaCollection(delta);
+                        final Collection<SimpleValidationError> validationErrors = performCustomValidation(objectToAdd, deltas);
+                        if (checkValidationErrors(target, validationErrors)) {
+                            return;
+                        }
+                        progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
+                    } else {
+                        result.recordSuccess();
+                    }
+                } catch (Exception ex) {
+                    result.recordFatalError(getString("pageFocus.message.cantCreateFocus"), ex);
+                    LoggingUtils.logUnexpectedException(LOGGER, "Create user failed", ex);
+                    showResult(result);
+                }
+                break;
 
-					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("Delta before modify user:\n{}", new Object[] { delta.debugDump(3) });
-					}
+            case MODIFYING:
+                try {
+                    WebComponentUtil.encryptCredentials(delta, true, getMidpointApplication());
+                    prepareObjectDeltaForModify(delta);
 
-					Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-					if (!delta.isEmpty()) {
-						delta.revive(getPrismContext());
-						deltas.add(delta);
-					}
+                    if (LOGGER.isTraceEnabled()) {
+                        LOGGER.trace("Delta before modify user:\n{}", new Object[] { delta.debugDump(3) });
+                    }
 
-					List<ObjectDelta<? extends ObjectType>> additionalDeltas = getAdditionalModifyDeltas(result);
-					if (additionalDeltas != null) {
-						for (ObjectDelta additionalDelta : additionalDeltas) {
-							if (!additionalDelta.isEmpty()) {
-								additionalDelta.revive(getPrismContext());
-								deltas.add(additionalDelta);
-							}
-						}
-					}
+                    Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
+                    if (!delta.isEmpty()) {
+                        delta.revive(getPrismContext());
+                        deltas.add(delta);
+                    }
 
-					if (delta.isEmpty() && ModelExecuteOptions.isReconcile(options)) {
-						ObjectDelta emptyDelta = ObjectDelta.createEmptyModifyDelta(getCompileTimeClass(),
-								objectWrapper.getObject().getOid(), getPrismContext());
-						deltas.add(emptyDelta);
+                    List<ObjectDelta<? extends ObjectType>> additionalDeltas = getAdditionalModifyDeltas(result);
+                    if (additionalDeltas != null) {
+                        for (ObjectDelta additionalDelta : additionalDeltas) {
+                            if (!additionalDelta.isEmpty()) {
+                                additionalDelta.revive(getPrismContext());
+                                deltas.add(additionalDelta);
+                            }
+                        }
+                    }
 
-						Collection<SimpleValidationError> validationErrors = performCustomValidation(null, deltas);
-						if (checkValidationErrors(target, validationErrors)) {
-							return;
-						}
-						progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
-					} else if (!deltas.isEmpty()) {
-						Collection<SimpleValidationError> validationErrors = performCustomValidation(null, deltas);
-						if (checkValidationErrors(target, validationErrors)) {
-							return;
-						}
-						progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
-					} else {
-						progressPanel.clearProgressPanel();			// from previous attempts (useful only if we would call finishProcessing at the end, but that's not the case now)
-						if (!previewOnly) {
-							if (!isAnythingChanged) {
-								result.recordWarning(getString("PageAdminObjectDetails.noChangesSave"));
-								showResult(result);
-							}
-							redirectBack();
-						} else {
-							warn(getString("PageAdminObjectDetails.noChangesPreview"));
-							target.add(getFeedbackPanel());
-						}
-					}
+                    if (delta.isEmpty() && ModelExecuteOptions.isReconcile(options)) {
+                        ObjectDelta emptyDelta = ObjectDelta.createEmptyModifyDelta(getCompileTimeClass(),
+                                objectWrapper.getObject().getOid(), getPrismContext());
+                        deltas.add(emptyDelta);
 
-				} catch (Exception ex) {
-					if (!executeForceDelete(objectWrapper, task, options, result)) {
-						result.recordFatalError(getString("pageUser.message.cantUpdateUser"), ex);
-						LoggingUtils.logUnexpectedException(LOGGER, getString("pageUser.message.cantUpdateUser"), ex);
-					} else {
-						result.recomputeStatus();
-					}
-					showResult(result);
-				}
-				break;
-			// support for add/delete containers (e.g. delete credentials)
-			default:
-				error(getString("pageAdminFocus.message.unsupportedState", objectWrapper.getStatus()));
-		}
+                        Collection<SimpleValidationError> validationErrors = performCustomValidation(null, deltas);
+                        if (checkValidationErrors(target, validationErrors)) {
+                            return;
+                        }
+                        progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
+                    } else if (!deltas.isEmpty()) {
+                        Collection<SimpleValidationError> validationErrors = performCustomValidation(null, deltas);
+                        if (checkValidationErrors(target, validationErrors)) {
+                            return;
+                        }
+                        progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
+                    } else if (previewOnly && delta.isEmpty() && delegationChangesExist){
+                        progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
+                    } else {
+                        progressPanel.clearProgressPanel();			// from previous attempts (useful only if we would call finishProcessing at the end, but that's not the case now)
+                        if (!previewOnly) {
+                            if (!delegationChangesExist) {
+                                result.recordWarning(getString("PageAdminObjectDetails.noChangesSave"));
+                                showResult(result);
+                            }
+                            redirectBack();
+                        } else {
+                            if (!delegationChangesExist) {
+                                warn(getString("PageAdminObjectDetails.noChangesPreview"));
+                                target.add(getFeedbackPanel());
+                            }
+                        }
+                    }
+
+                } catch (Exception ex) {
+                    if (!executeForceDelete(objectWrapper, task, options, result)) {
+                        result.recordFatalError(getString("pageUser.message.cantUpdateUser"), ex);
+                        LoggingUtils.logUnexpectedException(LOGGER, getString("pageUser.message.cantUpdateUser"), ex);
+                    } else {
+                        result.recomputeStatus();
+                    }
+                    showResult(result);
+                }
+                break;
+            // support for add/delete containers (e.g. delete credentials)
+            default:
+                error(getString("pageAdminFocus.message.unsupportedState", objectWrapper.getStatus()));
+        }
 
 //		result.recomputeStatus();
 //
@@ -592,144 +594,148 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 //			finishProcessing(target, result, false);
 //		}
 
-		LOGGER.trace("returning from saveOrPreviewPerformed");
-	}
+        LOGGER.trace("returning from saveOrPreviewPerformed");
+    }
 
-	protected boolean processDeputyAssignments(boolean previewOnly){
-		return false;
-	}
+    protected boolean processDeputyAssignments(boolean previewOnly){
+        return false;
+    }
 
-	protected boolean checkValidationErrors(AjaxRequestTarget target, Collection<SimpleValidationError> validationErrors) {
-		if (validationErrors != null && !validationErrors.isEmpty()) {
-			for (SimpleValidationError error : validationErrors) {
-				LOGGER.error("Validation error, attribute: '" + error.printAttribute()
-						+ "', message: '" + error.getMessage() + "'.");
-				error("Validation error, attribute: '" + error.printAttribute()
-						+ "', message: '" + error.getMessage() + "'.");
-			}
+    protected boolean checkValidationErrors(AjaxRequestTarget target, Collection<SimpleValidationError> validationErrors) {
+        if (validationErrors != null && !validationErrors.isEmpty()) {
+            for (SimpleValidationError error : validationErrors) {
+                LOGGER.error("Validation error, attribute: '" + error.printAttribute()
+                        + "', message: '" + error.getMessage() + "'.");
+                error("Validation error, attribute: '" + error.printAttribute()
+                        + "', message: '" + error.getMessage() + "'.");
+            }
 
-			target.add(getFeedbackPanel());
-			return true;
-		}
-		return false;
-	}
+            target.add(getFeedbackPanel());
+            return true;
+        }
+        return false;
+    }
 
-	@Override
-	public void startProcessing(AjaxRequestTarget target, OperationResult result) {
-		LOGGER.trace("startProcessing called, making main panel invisible");
-		mainPanel.setVisible(false);
-		target.add(mainPanel);
-	}
+    @Override
+    public void startProcessing(AjaxRequestTarget target, OperationResult result) {
+        LOGGER.trace("startProcessing called, making main panel invisible");
+        mainPanel.setVisible(false);
+        target.add(mainPanel);
+    }
 
-	@NotNull
-	protected ModelExecuteOptions getExecuteChangesOptions() {
-		return mainPanel.getExecuteChangeOptionsDto().createOptions();
-	}
+    @NotNull
+    protected ModelExecuteOptions getOptions(boolean previewOnly) {
+        ModelExecuteOptions options = mainPanel.getExecuteChangeOptionsDto().createOptions();
+        if (previewOnly) {
+            options.getOrCreatePartialProcessing().setApprovals(PartialProcessingTypeType.PROCESS);
+        }
+        return options;
+    }
 
-	protected void prepareObjectForAdd(PrismObject<O> object) throws SchemaException {
+    protected void prepareObjectForAdd(PrismObject<O> object) throws SchemaException {
 
-	}
+    }
 
-	protected void prepareObjectDeltaForModify(ObjectDelta<O> objectDelta) throws SchemaException {
+    protected void prepareObjectDeltaForModify(ObjectDelta<O> objectDelta) throws SchemaException {
 
-	}
+    }
 
-	protected List<ObjectDelta<? extends ObjectType>> getAdditionalModifyDeltas(OperationResult result) {
-		return null;
-	}
+    protected List<ObjectDelta<? extends ObjectType>> getAdditionalModifyDeltas(OperationResult result) {
+        return null;
+    }
 
-	protected boolean executeForceDelete(ObjectWrapper userWrapper, Task task, ModelExecuteOptions options,
-			OperationResult parentResult) {
-		return isForce();
-	}
+    protected boolean executeForceDelete(ObjectWrapper userWrapper, Task task, ModelExecuteOptions options,
+                                         OperationResult parentResult) {
+        return isForce();
+    }
 
-	protected boolean isForce() {
-		return getMainPanel().getExecuteChangeOptionsDto().isForce();
-	}
+    protected boolean isForce() {
+        return getMainPanel().getExecuteChangeOptionsDto().isForce();
+    }
 
-	protected boolean isKeepDisplayingResults() {
-		return getMainPanel().getExecuteChangeOptionsDto().isKeepDisplayingResults();
-	}
+    protected boolean isKeepDisplayingResults() {
+        return getMainPanel().getExecuteChangeOptionsDto().isKeepDisplayingResults();
+    }
 
 
-	protected Collection<SimpleValidationError> performCustomValidation(PrismObject<O> object,
-			Collection<ObjectDelta<? extends ObjectType>> deltas) throws SchemaException {
-		Collection<SimpleValidationError> errors = null;
+    protected Collection<SimpleValidationError> performCustomValidation(PrismObject<O> object,
+                                                                        Collection<ObjectDelta<? extends ObjectType>> deltas) throws SchemaException {
+        Collection<SimpleValidationError> errors = null;
 
-		if (object == null) {
-			if (getObjectWrapper() != null && getObjectWrapper().getObject() != null) {
-				object = getObjectWrapper().getObject().clone();		// otherwise original object could get corrupted e.g. by applying the delta below
+        if (object == null) {
+            if (getObjectWrapper() != null && getObjectWrapper().getObject() != null) {
+                object = getObjectWrapper().getObject().clone();		// otherwise original object could get corrupted e.g. by applying the delta below
 
-				for (ObjectDelta delta : deltas) {
-					// because among deltas there can be also ShadowType deltas
-					if (UserType.class.isAssignableFrom(delta.getObjectTypeClass())) {
-						delta.applyTo(object);
-					}
-				}
-			}
-		} else {
-			object = object.clone();
-		}
+                for (ObjectDelta delta : deltas) {
+                    // because among deltas there can be also ShadowType deltas
+                    if (UserType.class.isAssignableFrom(delta.getObjectTypeClass())) {
+                        delta.applyTo(object);
+                    }
+                }
+            }
+        } else {
+            object = object.clone();
+        }
 
-		performAdditionalValidation(object, deltas, errors);
+        performAdditionalValidation(object, deltas, errors);
 
-		for (MidpointFormValidator validator : getFormValidatorRegistry().getValidators()) {
-			if (errors == null) {
-				errors = validator.validateObject(object, deltas);
-			} else {
-				errors.addAll(validator.validateObject(object, deltas));
-			}
-		}
+        for (MidpointFormValidator validator : getFormValidatorRegistry().getValidators()) {
+            if (errors == null) {
+                errors = validator.validateObject(object, deltas);
+            } else {
+                errors.addAll(validator.validateObject(object, deltas));
+            }
+        }
 
-		return errors;
-	}
+        return errors;
+    }
 
-	protected void performAdditionalValidation(PrismObject<O> object,
-			Collection<ObjectDelta<? extends ObjectType>> deltas, Collection<SimpleValidationError> errors) throws SchemaException {
+    protected void performAdditionalValidation(PrismObject<O> object,
+                                               Collection<ObjectDelta<? extends ObjectType>> deltas, Collection<SimpleValidationError> errors) throws SchemaException {
 
-	}
+    }
 
-	public List<ObjectFormType> getObjectFormTypes() {
-		Task task = createSimpleTask(OPERATION_LOAD_GUI_CONFIGURATION);
-		OperationResult result = task.getResult();
-		AdminGuiConfigurationType adminGuiConfiguration;
-		try {
-			adminGuiConfiguration = getModelInteractionService().getAdminGuiConfiguration(task, result);
-		} catch (ObjectNotFoundException | SchemaException e) {
-			throw new SystemException("Cannot load GUI configuration: "+e.getMessage(), e);
-		}
-		ObjectFormsType objectFormsType = adminGuiConfiguration.getObjectForms();
-		if (objectFormsType == null) {
-			return null;
-		}
-		List<ObjectFormType> objectForms = objectFormsType.getObjectForm();
-		if (objectForms == null || objectForms.isEmpty()) {
-			return objectForms;
-		}
-		List<ObjectFormType> validObjectForms = new ArrayList<>();
-		for (ObjectFormType objectForm: objectForms) {
-			if (isSupportedObjectType(objectForm.getType())) {
-				validObjectForms.add(objectForm);
-			}
-		}
-		return validObjectForms;
-	}
+    public List<ObjectFormType> getObjectFormTypes() {
+        Task task = createSimpleTask(OPERATION_LOAD_GUI_CONFIGURATION);
+        OperationResult result = task.getResult();
+        AdminGuiConfigurationType adminGuiConfiguration;
+        try {
+            adminGuiConfiguration = getModelInteractionService().getAdminGuiConfiguration(task, result);
+        } catch (ObjectNotFoundException | SchemaException e) {
+            throw new SystemException("Cannot load GUI configuration: "+e.getMessage(), e);
+        }
+        ObjectFormsType objectFormsType = adminGuiConfiguration.getObjectForms();
+        if (objectFormsType == null) {
+            return null;
+        }
+        List<ObjectFormType> objectForms = objectFormsType.getObjectForm();
+        if (objectForms == null || objectForms.isEmpty()) {
+            return objectForms;
+        }
+        List<ObjectFormType> validObjectForms = new ArrayList<>();
+        for (ObjectFormType objectForm: objectForms) {
+            if (isSupportedObjectType(objectForm.getType())) {
+                validObjectForms.add(objectForm);
+            }
+        }
+        return validObjectForms;
+    }
 
-	protected boolean isSupportedObjectType(QName type) {
-		ObjectTypes objectType = ObjectTypes.getObjectType(getCompileTimeClass());
-		return QNameUtil.match(objectType.getTypeQName(),type);
-	}
+    protected boolean isSupportedObjectType(QName type) {
+        ObjectTypes objectType = ObjectTypes.getObjectType(getCompileTimeClass());
+        return QNameUtil.match(objectType.getTypeQName(),type);
+    }
 
-	public void setSaveOnConfigure(boolean saveOnConfigure) {
-		this.saveOnConfigure = saveOnConfigure;
-	}
+    public void setSaveOnConfigure(boolean saveOnConfigure) {
+        this.saveOnConfigure = saveOnConfigure;
+    }
 
-	public boolean isSaveOnConfigure() {
-		return saveOnConfigure;
-	}
+    public boolean isSaveOnConfigure() {
+        return saveOnConfigure;
+    }
 
-	public boolean isForcedPreview(){
-		GuiObjectDetailsPageType objectDetails = AdminGuiConfigTypeUtil.findObjectConfiguration(getCompileTimeClass(), getAdminGuiConfiguration());
-		return objectDetails != null && DetailsPageSaveMethodType.FORCED_PREVIEW.equals(objectDetails.getSaveMethod());
-	}
+    public boolean isForcedPreview(){
+        GuiObjectDetailsPageType objectDetails = AdminGuiConfigTypeUtil.findObjectConfiguration(getCompileTimeClass(), getAdminGuiConfiguration());
+        return objectDetails != null && DetailsPageSaveMethodType.FORCED_PREVIEW.equals(objectDetails.getSaveMethod());
+    }
 }

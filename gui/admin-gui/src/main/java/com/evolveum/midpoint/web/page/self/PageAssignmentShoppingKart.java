@@ -98,6 +98,7 @@ public class PageAssignmentShoppingKart extends PageSelf {
 
     private static final String OPERATION_LOAD_ASSIGNABLE_ROLES = DOT_CLASS + "loadAssignableRoles";
     private static final String OPERATION_GET_ASSIGNMENT_VIEW_LIST = DOT_CLASS + "getRoleCatalogViewsList";
+    private static final String OPERATION_LOAD_ASSIGNMENTS_LIMIT = DOT_CLASS + "loadAssignmentsLimit";
     private static final Trace LOGGER = TraceManager.getTrace(PageAssignmentShoppingKart.class);
 
     private ShoppingCartConfigurationDto shoppingCartConfigurationDto;
@@ -116,6 +117,8 @@ public class PageAssignmentShoppingKart extends PageSelf {
             initShoppingCartConfigurationDto();
             getRoleCatalogStorage().setShoppingCartConfigurationDto(shoppingCartConfigurationDto);
         }
+        getRoleCatalogStorage().setAssignmentRequestLimit(
+                AssignmentsUtil.loadAssignmentsLimit(new OperationResult(OPERATION_LOAD_ASSIGNMENTS_LIMIT), this));
         if (StringUtils.isEmpty(getRoleCatalogStorage().getSelectedOid()) && shoppingCartConfigurationDto != null) {
             getRoleCatalogStorage().setSelectedOid(shoppingCartConfigurationDto.getRoleCatalogOid());
         }
@@ -288,7 +291,10 @@ public class PageAssignmentShoppingKart extends PageSelf {
 
                     @Override
                     protected void assignmentAddedToShoppingCartPerformed(AjaxRequestTarget target){
-                        target.add(getCatalogItemsPanelContainer());
+                        int assignmentsLimit = getRoleCatalogStorage().getAssignmentRequestLimit();
+                        if (AssignmentsUtil.isShoppingCartAssignmentsLimitReached(assignmentsLimit, PageAssignmentShoppingKart.this)){
+                            target.add(getCatalogItemsPanelContainer());
+                        }
                         PageAssignmentShoppingKart.this.reloadCartButton(target);
 
                     }

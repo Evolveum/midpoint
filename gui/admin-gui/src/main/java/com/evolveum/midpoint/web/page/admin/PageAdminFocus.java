@@ -185,7 +185,16 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 
 		showResult(result);
 		target.add(getFeedbackPanel());
-		navigateToNext(new PagePreviewChanges(getProgressPanel().getPreviewResult(), getModelInteractionService()));
+
+		Map<PrismObject<F>, ModelContext<? extends ObjectType>> modelContextMap = new LinkedHashMap<>();
+		modelContextMap.put(getObjectWrapper().getObject(), getProgressPanel().getPreviewResult());
+
+		processAdditionalFocalObjectsForPreview(modelContextMap);
+
+		navigateToNext(new PagePreviewChanges(modelContextMap, getModelInteractionService()));
+	}
+
+	protected void processAdditionalFocalObjectsForPreview(Map<PrismObject<F>, ModelContext<? extends ObjectType>> modelContextMap){
 	}
 
 	@Override

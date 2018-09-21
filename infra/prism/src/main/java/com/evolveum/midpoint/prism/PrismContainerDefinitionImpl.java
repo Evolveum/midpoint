@@ -83,10 +83,10 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
         this.complexTypeDefinition = complexTypeDefinition;
         if (complexTypeDefinition == null) {
             isRuntimeSchema = true;
-            super.setDynamic(true);
+            super.setDynamic(true);             // todo is this really ok?
         } else {
             isRuntimeSchema = complexTypeDefinition.isXsdAnyMarker();
-            super.setDynamic(isRuntimeSchema);
+            super.setDynamic(isRuntimeSchema);  // todo is this really ok?
         }
 		this.compileTimeClass = compileTimeClass;
     }

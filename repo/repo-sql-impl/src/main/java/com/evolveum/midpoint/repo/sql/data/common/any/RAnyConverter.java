@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.marshaller.PrismBeanInspector;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
+import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
@@ -31,10 +32,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.Validate;
-import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -131,12 +131,12 @@ public class RAnyConverter {
         return assignment ? type.createNewAExtValue(extractedValue) : type.createNewOExtValue(extractedValue);
     }
 
-    public RAnyValue convertToRValue(PrismValue value, boolean assignment) throws SchemaException {
+    public RAnyValue convertToRValue(PrismValue value, boolean assignment, RObjectExtensionType ownerType) throws SchemaException {
         RAnyValue rValue;
 
         ItemDefinition definition = value.getParent().getDefinition();
 
-        if (!isIndexed(definition, value.getParent().getElementName(), prismContext)) {
+        if (!isIndexed(definition, value.getParent().getElementName(), areDynamicsOfThisKindIndexed(ownerType), prismContext)) {
             return null;
         }
 
@@ -163,13 +163,14 @@ public class RAnyConverter {
     }
 
     //todo assignment parameter really messed up this method, proper interfaces must be introduced later [lazyman]
-    public Set<RAnyValue<?>> convertToRValue(Item item, boolean assignment) throws SchemaException, DtoTranslationException {
+    public Set<RAnyValue<?>> convertToRValue(Item item, boolean assignment,
+            RObjectExtensionType ownerType) throws SchemaException, DtoTranslationException {
         Validate.notNull(item, "Object for converting must not be null.");
         Validate.notNull(item.getDefinition(), "Item '" + item.getElementName() + "' without definition can't be saved.");
 
         ItemDefinition definition = item.getDefinition();
         Set<RAnyValue<?>> rValues = new HashSet<>();
-        if (!isIndexed(definition, item.getElementName(), prismContext)) {
+        if (!isIndexed(definition, item.getElementName(), areDynamicsOfThisKindIndexed(ownerType), prismContext)) {
             return rValues;
         }
 
@@ -181,7 +182,7 @@ public class RAnyConverter {
             RAnyValue rValue;
             List<PrismValue> values = item.getValues();
             for (PrismValue value : values) {
-                rValue = convertToRValue(value, assignment);
+                rValue = convertToRValue(value, assignment, ownerType);
                 rValues.add(rValue);
             }
         } catch (Exception ex) {
@@ -195,7 +196,8 @@ public class RAnyConverter {
         return PrismBeanInspector.findEnumFieldValueUncached(realValue.getClass(), realValue.toString());
     }
 
-    private static boolean isIndexed(ItemDefinition definition, QName elementName, PrismContext prismContext)
+    private static boolean isIndexed(ItemDefinition definition, QName elementName,
+            boolean indexAlsoDynamics, PrismContext prismContext)
             throws SchemaException {
         if (definition instanceof PrismContainerDefinition) {
             return false;
@@ -210,6 +212,11 @@ public class RAnyConverter {
 
         PrismPropertyDefinition pDefinition = (PrismPropertyDefinition) definition;
         Boolean isIndexed = pDefinition.isIndexed();
+
+        if (definition.isDynamic() && !indexAlsoDynamics && BooleanUtils.isNotTrue(isIndexed)) {
+            return false;
+        }
+
         if (isIndexed != null) {
             if (isIndexed && !isIndexedByDefault(definition, prismContext)) {
                 throw new SchemaException("Item is marked as indexed (definition " + definition.debugDump()
@@ -220,6 +227,14 @@ public class RAnyConverter {
         }
 
         return isIndexedByDefault(definition, prismContext);
+    }
+
+    private static boolean areDynamicsOfThisKindIndexed(RObjectExtensionType extensionType) {
+        // We assume that if an object/assignment extension item is not configured in XSD, we won't be searching for it.
+        // This is to fix MID-4878 with a reasonable effort (as the sync token is currently not defined in any XSD).
+        //
+        // For shadow attributes we - of course - treat them as indexed.
+        return extensionType != RObjectExtensionType.EXTENSION;
     }
 
     //todo should be renamed to canBeIndexed
@@ -299,7 +314,7 @@ public class RAnyConverter {
      */
     public static String getAnySetType(ItemDefinition definition, PrismContext prismContext) throws
             SchemaException, QueryException {
-        if (!isIndexed(definition, definition.getName(), prismContext)) {
+        if (!isIndexed(definition, definition.getName(), true, prismContext)) {
             throw new QueryException("Can't query non-indexed value for '" + definition.getName()
                     + "', definition " + definition);
         }
