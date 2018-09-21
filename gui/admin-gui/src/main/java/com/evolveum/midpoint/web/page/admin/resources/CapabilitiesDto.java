@@ -1,11 +1,28 @@
+/*
+ * Copyright (c) 2010-2018 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.midpoint.web.page.admin.resources;
 
 import java.io.Serializable;
 
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.RunAsCapabilityType;
 
 public class CapabilitiesDto implements Serializable {
+	private static final long serialVersionUID = 1L;
 
 	private boolean activation;
 
@@ -40,6 +57,8 @@ public class CapabilitiesDto implements Serializable {
 	private boolean read;
 
 	private boolean script;
+	
+	private boolean runAs;
 
 	public CapabilitiesDto(ResourceType resource){
 		activation = ResourceTypeUtil.isActivationCapabilityEnabled(resource);
@@ -59,6 +78,7 @@ public class CapabilitiesDto implements Serializable {
 		delete = ResourceTypeUtil.isDeleteCapabilityEnabled(resource);
 		read = ResourceTypeUtil.isReadCapabilityEnabled(resource);
 		script = ResourceTypeUtil.isScriptCapabilityEnabled(resource);
+		runAs = ResourceTypeUtil.isCapabilityEnabled(resource, RunAsCapabilityType.class);
 	}
 
 	public boolean isActivation() {
@@ -197,7 +217,12 @@ public class CapabilitiesDto implements Serializable {
 		this.script = script;
 	}
 
+	public boolean isRunAs() {
+		return runAs;
+	}
 
-
+	public void setRunAs(boolean runAs) {
+		this.runAs = runAs;
+	}
 
 }

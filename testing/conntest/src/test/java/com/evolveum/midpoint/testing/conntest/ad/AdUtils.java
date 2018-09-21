@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.testing.conntest;
+package com.evolveum.midpoint.testing.conntest.ad;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
@@ -45,6 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 public class AdUtils {
 
 	public static final String ATTRIBUTE_OBJECT_GUID_NAME = "objectGUID";
+	public static final String ATTRIBUTE_OBJECT_SID_NAME = "objectSid";
 	public static final String ATTRIBUTE_SAM_ACCOUNT_NAME_NAME = "sAMAccountName";
 	public static final String ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME = "userAccountControl";
 	public static final QName ATTRIBUTE_USER_ACCOUNT_CONTROL_QNAME = new QName(MidPointConstants.NS_RI, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME);
@@ -181,6 +182,13 @@ public class AdUtils {
         assertTrue("nTSecurityDescriptor read", nTSecurityDescriptorDef.canRead());
         assertTrue("nTSecurityDescriptor modify", nTSecurityDescriptorDef.canModify());
         assertTrue("nTSecurityDescriptor add", nTSecurityDescriptorDef.canAdd());
+        
+        ResourceAttributeDefinition<Long> objectSidDef = accountObjectClassDefinition.findAttributeDefinition(ATTRIBUTE_OBJECT_SID_NAME);
+        PrismAsserts.assertDefinition(objectSidDef, new QName(MidPointConstants.NS_RI, ATTRIBUTE_OBJECT_SID_NAME),
+        		DOMUtil.XSD_STRING, 0, 1);
+        assertTrue("objectSid read", objectSidDef.canRead());
+        assertFalse("objectSid modify", objectSidDef.canModify());
+        assertFalse("objectSid add", objectSidDef.canAdd());
 
         ResourceAttributeDefinition<Long> lastLogonDef = accountObjectClassDefinition.findAttributeDefinition("lastLogon");
         PrismAsserts.assertDefinition(lastLogonDef, new QName(MidPointConstants.NS_RI, "lastLogon"),

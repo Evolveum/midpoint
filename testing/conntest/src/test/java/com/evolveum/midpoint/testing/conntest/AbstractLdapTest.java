@@ -148,6 +148,9 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 
 	protected static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
 	protected static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
+	
+	protected static final File ROLE_END_USER_FILE = new File(COMMON_DIR, "role-end-user.xml");
+	protected static final String ROLE_END_USER_OID = "00000000-0000-0000-0000-000000000008";
 
 	protected static final File USER_BARBOSSA_FILE = new File(COMMON_DIR, "user-barbossa.xml");
 	protected static final String USER_BARBOSSA_OID = "c0c010c0-d34d-b33f-f00d-111111111112";
@@ -155,6 +158,8 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	protected static final String USER_BARBOSSA_FULL_NAME = "Hector Barbossa";
 	protected static final String USER_BARBOSSA_PASSWORD = "deadjack.tellnotales123";
 	protected static final String USER_BARBOSSA_PASSWORD_2 = "hereThereBeMonsters";
+	protected static final String USER_BARBOSSA_PASSWORD_AD_1 = "There.Be.Monsters.111";
+	protected static final String USER_BARBOSSA_PASSWORD_AD_2 = "There.Be.Monsters.222";
 
 	// Barbossa after rename
 	protected static final String USER_CPTBARBOSSA_USERNAME = "cptbarbossa";

@@ -24,6 +24,7 @@ import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -38,28 +39,32 @@ public class ErrorHandlerLocator {
 	@Autowired GenericErrorHandler genericErrorHandler;
 	@Autowired ConfigurationExceptionHandler configurationExceptionHandler;
 	@Autowired SecurityViolationHandler securityViolationHandler;
+	@Autowired PolicyViolationHandler policyViolationHandler;
 	
 	public ErrorHandler locateErrorHandler(Throwable ex) {
 		if (ex instanceof CommunicationException){
 			return communicationExceptionHandler;
 		}
-		if (ex instanceof GenericConnectorException){
+		if (ex instanceof GenericConnectorException) {
 			return genericErrorHandler;
 		}
-		if (ex instanceof ObjectAlreadyExistsException){
+		if (ex instanceof ObjectAlreadyExistsException) {
 			return objectAlreadyExistsHandler;
 		}
-		if (ex instanceof ObjectNotFoundException){
+		if (ex instanceof ObjectNotFoundException) {
 			return objectNotFoundHandler;
 		}
-		if (ex instanceof SchemaException){
+		if (ex instanceof SchemaException) {
 			return schemaExceptionHandler;
 		}
-		if (ex instanceof ConfigurationException){
+		if (ex instanceof ConfigurationException) {
 			return configurationExceptionHandler;
 		}
-		if (ex instanceof SecurityViolationException){
+		if (ex instanceof SecurityViolationException) {
 			return securityViolationHandler;
+		}
+		if (ex instanceof PolicyViolationException) {
+			return policyViolationHandler;
 		}
 		if (ex instanceof RuntimeException) {
 			throw (RuntimeException)ex;

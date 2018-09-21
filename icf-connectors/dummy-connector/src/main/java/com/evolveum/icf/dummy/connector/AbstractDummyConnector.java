@@ -41,6 +41,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 
+import javax.security.sasl.AuthenticationException;
+
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.common.security.GuardedString.Accessor;
@@ -1571,22 +1573,36 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
 		}
 	}
 
-	protected void changePassword(final DummyAccount account, GuardedString guardedString) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
-		final String[] passwdArray = { null };
-		if (guardedString != null) {
-			guardedString.access(new Accessor() {
-				@Override
-				public void access(char[] passwdChars) {
-					String password = new String(passwdChars);
-					checkPasswordPolicies(password);
-					passwdArray[0] = password;
-				}
-			});
-		} else {
-			// empty password => null
-			checkPasswordPolicies(null);
+	protected String getString(GuardedString guardedString) {
+		if (guardedString == null) {
+			return null;
 		}
-		account.setPassword(passwdArray[0]);
+		final String[] passwdArray = { null };
+		guardedString.access(new Accessor() {
+			@Override
+			public void access(char[] passwdChars) {
+				String password = new String(passwdChars);
+				checkPasswordPolicies(password);
+				passwdArray[0] = password;
+			}
+		});
+		return passwdArray[0];
+	}
+	
+	protected void changePassword(final DummyAccount account, GuardedString guardedString) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+		String password = getString(guardedString);
+		checkPasswordPolicies(password);
+		account.setPassword(password);
+	}
+	
+	protected void assertPassword(final DummyAccount account, GuardedString guardedString) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+		String password = getString(guardedString);
+		if (password == null) {
+			throw new InvalidPasswordException("Null password");
+		}
+		if (!password.equals(account.getPassword())) {
+			throw new InvalidPasswordException("Wrong password");
+		}
 	}
 
 	private void checkPasswordPolicies(String password) {
@@ -1630,6 +1646,18 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
 			object.setLastModifier(runAsAccount.getName());
 		} else {
 			object.setLastModifier(null);
+		}
+	}
+	
+	protected void assertSelfService(OperationOptions options) {
+		if (!configuration.getSupportRunAs()) {
+			throw new IllegalStateException("Expected self-service, but runAs capability is disabled in this connector");
+		}
+		if (options == null) {
+			throw new IllegalStateException("Expected self-service, but there were no operation options");
+		}
+		if (options.getRunAsUser() == null || options.getRunWithPassword() == null) {
+			throw new IllegalStateException("Expected self-service, but there were wrong runAs options");
 		}
 	}
 

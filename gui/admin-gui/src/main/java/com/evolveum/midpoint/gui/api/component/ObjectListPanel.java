@@ -502,6 +502,10 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
 	}
 
+	protected Collection<SelectorOptions<GetOperationOptions>> getOptions(){
+		return options;
+	}
+
 	@SuppressWarnings("unchecked")
 	protected BoxedTablePanel<SelectableBean<O>> getTable() {
 		return (BoxedTablePanel<SelectableBean<O>>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));

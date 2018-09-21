@@ -1377,19 +1377,14 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta);
 		display("Input deltas: ", deltas);
 
-		try {
-			// WHEN
-	        ModelContext<UserType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
-	        display("Preview context", modelContext);
+		// WHEN
+		displayWhen(TEST_NAME);
+        ModelContext<UserType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
+        display("Preview context", modelContext);
 
-	        AssertJUnit.fail("Preview unexpectedly succeeded");
-		} catch (PolicyViolationException e) {
-			// This is expected
-			display("Expected exception", e);
-		}
-
-		result.computeStatus();
-        TestUtil.assertFailure(result);
+        // THEN
+ 		displayThen(TEST_NAME);
+ 		assertPartialError(result);
 	}
 
 	// the test5xx is testing mappings with blue dummy resource. It has WEAK mappings.

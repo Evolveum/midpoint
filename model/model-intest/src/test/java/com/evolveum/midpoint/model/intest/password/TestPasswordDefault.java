@@ -74,19 +74,13 @@ public class TestPasswordDefault extends AbstractPasswordTest {
 		display("User before", userBefore);
 		assertLinks(userBefore, 4);
 
-		try {
-			// WHEN
-	        reconcileUser(USER_JACK_OID, task, result);
-
-	        assertNotReached();
-
-		} catch (PolicyViolationException e) {
-			display("Expected exception", e);
-		}
+		// WHEN
+		displayWhen(TEST_NAME);
+        reconcileUser(USER_JACK_OID, task, result);
 
 		// THEN
-		result.computeStatus();
-		TestUtil.assertFailure(result);
+        displayThen(TEST_NAME);
+		assertPartialError(result);
 
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
 		display("User after", userAfter);

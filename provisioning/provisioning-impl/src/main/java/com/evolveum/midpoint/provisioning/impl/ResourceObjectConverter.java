@@ -236,7 +236,7 @@ public class ResourceObjectConverter {
 			PrismObject<ShadowType> shadow, OperationProvisioningScriptsType scripts, ConnectorOperationOptions connOptions,
 			boolean skipExplicitUniquenessCheck, OperationResult parentResult)
 					throws ObjectNotFoundException, SchemaException, CommunicationException,
-					ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+					ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 		
 		OperationResult result = parentResult.createSubresult(OPERATION_ADD_RESOURCE_OBJECT);
 		
@@ -303,7 +303,7 @@ public class ResourceObjectConverter {
 		} catch (ObjectAlreadyExistsException ex){
 			result.recordFatalError("Could not create object on the resource. Object already exists on the resource: " + ex.getMessage(), ex);
 			throw new ObjectAlreadyExistsException("Object already exists on the resource: " + ex.getMessage(), ex);
-		} catch (ConfigurationException | SchemaException | RuntimeException | Error e){
+		} catch (ConfigurationException | SchemaException | SecurityViolationException | PolicyViolationException | RuntimeException | Error e){
 			result.recordFatalError(e);
 			throw e;
 		}
@@ -378,7 +378,7 @@ public class ResourceObjectConverter {
 	public AsynchronousOperationResult deleteResourceObject(ProvisioningContext ctx, PrismObject<ShadowType> shadow, 
 			OperationProvisioningScriptsType scripts, ConnectorOperationOptions connOptions, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-			SecurityViolationException, ExpressionEvaluationException {
+			SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 		
 		OperationResult result = parentResult.createSubresult(OPERATION_DELETE_RESOURCE_OBJECT);
 		
@@ -457,7 +457,7 @@ public class ResourceObjectConverter {
 		} catch (GenericFrameworkException ex) {
 			result.recordFatalError("Generic error in connector: " + ex.getMessage(), ex);
 			throw new GenericConnectorException("Generic error in connector: " + ex.getMessage(), ex);
-		} catch (RuntimeException | Error ex) {
+		} catch (SecurityViolationException | PolicyViolationException | RuntimeException | Error ex) {
 			result.recordFatalError(ex);
 			throw ex;
 		}
@@ -489,7 +489,7 @@ public class ResourceObjectConverter {
 			XMLGregorianCalendar now,
 			OperationResult parentResult)
 					throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-						SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+						SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
 		
 		OperationResult result = parentResult.createSubresult(OPERATION_MODIFY_RESOURCE_OBJECT);
 		
@@ -708,7 +708,7 @@ public class ResourceObjectConverter {
 	private AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> executeModify(ProvisioningContext ctx, 
 			PrismObject<ShadowType> currentShadow, Collection<? extends ResourceAttribute<?>> identifiers, 
 			Collection<Operation> operations, ConnectorOperationOptions connOptions, OperationResult parentResult) 
-			throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+			throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException, PolicyViolationException, ConfigurationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
 		
 		Collection<PropertyModificationOperation> sideEffectChanges = new HashSet<>();
 
@@ -850,26 +850,17 @@ public class ResourceObjectConverter {
 					"Error communicating with the connector " + connector + ": " + ex.getMessage(), ex);
 			throw new CommunicationException("Error communicating with connector " + connector + ": "
 					+ ex.getMessage(), ex);
-		} catch (SchemaException ex) {
-			parentResult.recordFatalError("Schema violation: " + ex.getMessage(), ex);
-			throw new SchemaException("Schema violation: " + ex.getMessage(), ex);
-		} catch (SecurityViolationException ex) {
-			parentResult.recordFatalError("Security violation: " + ex.getMessage(), ex);
-			throw new SecurityViolationException("Security violation: " + ex.getMessage(), ex);
 		} catch (GenericFrameworkException ex) {
 			parentResult.recordFatalError(
 					"Generic error in the connector " + connector + ": " + ex.getMessage(), ex);
 			throw new GenericConnectorException("Generic error in connector connector " + connector + ": "
 					+ ex.getMessage(), ex);
-		} catch (ConfigurationException ex) {
-			parentResult.recordFatalError("Configuration error: " + ex.getMessage(), ex);
-			throw ex;
-		} catch (ExpressionEvaluationException ex) {
-			parentResult.recordFatalError("Configuration error: " + ex.getMessage(), ex);
-			throw ex;
 		} catch (ObjectAlreadyExistsException ex) {
 			parentResult.recordFatalError("Conflict during modify: " + ex.getMessage(), ex);
 			throw new ObjectAlreadyExistsException("Conflict during modify: " + ex.getMessage(), ex);
+		} catch (SchemaException | ConfigurationException | ExpressionEvaluationException | SecurityViolationException | PolicyViolationException | RuntimeException | Error ex) {
+			parentResult.recordFatalError(ex.getMessage(), ex);
+			throw ex;
 		}
 		
 		AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> asyncOpRet = AsynchronousOperationReturnValue.wrap(sideEffectChanges, parentResult);
@@ -1239,7 +1230,7 @@ public class ResourceObjectConverter {
 				
 				result.recordSuccess();
 				
-			} catch (ObjectNotFoundException | CommunicationException | SchemaException | SecurityViolationException | ConfigurationException | ObjectAlreadyExistsException | ExpressionEvaluationException e) {
+			} catch (ObjectNotFoundException | CommunicationException | SchemaException | SecurityViolationException | PolicyViolationException | ConfigurationException | ObjectAlreadyExistsException | ExpressionEvaluationException e) {
 				// We need to handle this specially. 
 				// E.g. ObjectNotFoundException means that the entitlement object was not found,
 				// not that the subject was not found. It we throw ObjectNotFoundException here it may be

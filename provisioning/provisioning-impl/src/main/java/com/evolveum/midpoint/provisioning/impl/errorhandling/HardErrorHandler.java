@@ -49,6 +49,7 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -76,7 +77,7 @@ public abstract class HardErrorHandler extends ErrorHandler {
 			PrismObject<ShadowType> repositoryShadow, GetOperationOptions rootOptions, Exception cause,
 			Task task, OperationResult parentResult) throws SchemaException, GenericFrameworkException,
 			CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException,
-			ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+			ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 		
 		throwException(cause, null, parentResult);
 		return null; // not reached
@@ -89,7 +90,7 @@ public abstract class HardErrorHandler extends ErrorHandler {
 			Exception cause, OperationResult failedOperationResult, Task task, OperationResult parentResult)
 			throws SchemaException, GenericFrameworkException, CommunicationException,
 			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
-			SecurityViolationException, ExpressionEvaluationException {
+			SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 		
 		throwException(cause, opState, parentResult);
 		return OperationResultStatus.FATAL_ERROR; // not reached
@@ -102,7 +103,7 @@ public abstract class HardErrorHandler extends ErrorHandler {
 			Exception cause, OperationResult failedOperationResult, Task task, OperationResult parentResult)
 			throws SchemaException, GenericFrameworkException, CommunicationException,
 			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
-			SecurityViolationException, ExpressionEvaluationException {
+			SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 
 		throwException(cause, opState, parentResult);
 		return OperationResultStatus.FATAL_ERROR; // not reached
@@ -115,7 +116,7 @@ public abstract class HardErrorHandler extends ErrorHandler {
 			OperationResult failedOperationResult, Task task, OperationResult parentResult)
 			throws SchemaException, GenericFrameworkException, CommunicationException,
 			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
-			SecurityViolationException, ExpressionEvaluationException {
+			SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 
 		throwException(cause, opState, parentResult);
 		return OperationResultStatus.FATAL_ERROR; // not reached

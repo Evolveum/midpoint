@@ -260,13 +260,12 @@ public class ConnIdNameMapper {
 		}
 	}
 
-	public ObjectClass objectClassToIcf(PrismObject<? extends ShadowType> shadow, String schemaNamespace, ConnectorType connectorType, boolean legacySchema) {
+	public ObjectClass objectClassToConnId(PrismObject<? extends ShadowType> shadow, String schemaNamespace, ConnectorType connectorType, boolean legacySchema) {
 
 		ShadowType shadowType = shadow.asObjectable();
 		QName qnameObjectClass = shadowType.getObjectClass();
 		if (qnameObjectClass == null) {
-			ResourceAttributeContainer attrContainer = ShadowUtil
-					.getAttributesContainer(shadowType);
+			ResourceAttributeContainer attrContainer = ShadowUtil.getAttributesContainer(shadowType);
 			if (attrContainer == null) {
 				return null;
 			}
@@ -274,7 +273,7 @@ public class ConnIdNameMapper {
 			qnameObjectClass = objectClassDefinition.getTypeName();
 		}
 
-		return objectClassToIcf(qnameObjectClass, schemaNamespace, connectorType, legacySchema);
+		return objectClassToConnId(qnameObjectClass, schemaNamespace, connectorType, legacySchema);
 	}
 
 	/**
@@ -285,12 +284,12 @@ public class ConnIdNameMapper {
 	 * <p/>
 	 * TODO: mind the special characters in the ICF objectclass names.
 	 */
-	public ObjectClass objectClassToIcf(ObjectClassComplexTypeDefinition objectClassDefinition, String schemaNamespace, ConnectorType connectorType, boolean legacySchema) {
+	public ObjectClass objectClassToConnId(ObjectClassComplexTypeDefinition objectClassDefinition, String schemaNamespace, ConnectorType connectorType, boolean legacySchema) {
 		QName qnameObjectClass = objectClassDefinition.getTypeName();
-		return objectClassToIcf(qnameObjectClass, schemaNamespace, connectorType, legacySchema);
+		return objectClassToConnId(qnameObjectClass, schemaNamespace, connectorType, legacySchema);
 	}
 
-	public ObjectClass objectClassToIcf(QName qnameObjectClass, String schemaNamespace, ConnectorType connectorType, boolean legacySchema) {
+	public ObjectClass objectClassToConnId(QName qnameObjectClass, String schemaNamespace, ConnectorType connectorType, boolean legacySchema) {
 		if (!schemaNamespace.equals(qnameObjectClass.getNamespaceURI())) {
 			throw new IllegalArgumentException("ObjectClass QName " + qnameObjectClass
 					+ " is not in the appropriate namespace for "

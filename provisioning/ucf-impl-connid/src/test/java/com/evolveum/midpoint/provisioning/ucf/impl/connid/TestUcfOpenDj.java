@@ -249,8 +249,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	}
 
 	private Collection<ResourceAttribute<?>> addSampleResourceObject(String name, String givenName, String familyName)
-			throws CommunicationException, GenericFrameworkException, SchemaException,
-			ObjectAlreadyExistsException, ConfigurationException {
+			throws Exception {
 		OperationResult result = new OperationResult(this.getClass().getName() + ".testAdd");
 
 		QName objectClassQname = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), OpenDJController.OBJECT_CLASS_INETORGPERSON_NAME);

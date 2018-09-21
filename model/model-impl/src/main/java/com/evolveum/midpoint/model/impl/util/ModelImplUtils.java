@@ -829,7 +829,7 @@ public class ModelImplUtils {
 				// The consistency mechanism has (most likely) already done the best.
 				// We cannot do any better.
 				criticality = ExceptionUtil.getCriticality(errorSelector, e, CriticalityType.PARTIAL);
-			} else if (e instanceof SchemaException) {
+			} else if (e instanceof SchemaException || e instanceof PolicyViolationException) {
 				// This may be caused by a variety of causes. It may be multiple values in a single-valued attribute.
 				// But it may also be duplicate value or a problem of resource-side password policy.
 				// Treat this as partial error by default. This is partially motivated by compatibility with

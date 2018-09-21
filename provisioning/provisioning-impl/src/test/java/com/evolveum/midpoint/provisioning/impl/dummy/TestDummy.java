@@ -3874,7 +3874,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		return shadow;
 	}
 
-	protected void testAddProtectedAccount(final String TEST_NAME, String username) throws SchemaException, ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException {
+	protected void testAddProtectedAccount(final String TEST_NAME, String username) throws Exception {
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
@@ -3901,7 +3901,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		assertSteadyResource();
 	}
 
-	private void testAddAccount(final String TEST_NAME, String username) throws SchemaException, ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	private void testAddAccount(final String TEST_NAME, String username) throws Exception {
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
