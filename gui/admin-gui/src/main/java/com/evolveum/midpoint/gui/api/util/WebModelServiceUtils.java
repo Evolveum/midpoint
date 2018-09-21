@@ -638,6 +638,10 @@ public class WebModelServiceUtils {
     }
 
     public static Task createSimpleTask(String operation, PrismObject<UserType> owner, TaskManager manager) {
+        return createSimpleTask(operation, null, owner, manager);
+    }
+    
+    public static Task createSimpleTask(String operation, String channel, PrismObject<UserType> owner, TaskManager manager) {
         Task task = manager.createTaskInstance(operation);
 
         if (owner == null) {
@@ -650,7 +654,11 @@ public class WebModelServiceUtils {
         }
 
         task.setOwner(owner);
-        task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
+        if (channel == null) {
+        	task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
+        } else {
+        	task.setChannel(channel);
+        }
 
         return task;
     }
