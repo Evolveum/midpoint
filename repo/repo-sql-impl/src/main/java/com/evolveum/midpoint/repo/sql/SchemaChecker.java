@@ -33,6 +33,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.io.*;
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -80,17 +81,29 @@ public class SchemaChecker {
 			throw new SystemException(message, exception);
 		}
 
-		createSchema();
+		if (missingSchemaAction == SqlRepositoryConfiguration.MissingSchemaAction.CREATE) {
 
-		LOGGER.info("Validating database tables after creation.");
-		try {
-			new SchemaValidator().validate(metadata);
-		} catch (org.hibernate.tool.schema.spi.SchemaManagementException e) {
+			createSchema();
+
+			LOGGER.info("Validating database tables after creation.");
+			try {
+				new SchemaValidator().validate(metadata);
+			} catch (org.hibernate.tool.schema.spi.SchemaManagementException e) {
+				bigWindow();
+				LOGGER.error("The following problem is present even after running the create script: {}", exception.getMessage(),
+						exception);
+				throw new SystemException("DB schema is not OK even after running the create script: " + e.getMessage(), e);
+			}
+			LOGGER.info("Schema creation was successful.");
+
+		} else {
+
 			bigWindow();
-			LOGGER.error("The following problem is present even after running the create script: {}", exception.getMessage(), exception);
-			throw new SystemException("DB schema is not OK even after running the create script: " + e.getMessage(), e);
+			String message = "Stopping because midPoint database tables are not present [" + exception.getMessage() +
+					"] and missingSchemaAction has an unsupported value of '" + missingSchemaAction + "'";
+			LOGGER.error("{}", message);
+			throw new SystemException(message, exception);
 		}
-		LOGGER.info("Schema creation was successful.");
 	}
 
 	private void createSchema() {
@@ -114,11 +127,24 @@ public class SchemaChecker {
 
 		try (Session session = baseHelper.getSessionFactory().openSession()) {
 			session.doWork(connection -> {
-				ScriptRunner scriptRunner = new ScriptRunner(connection, false, false);
+				int transactionIsolation = connection.getTransactionIsolation();
+				if (baseHelper.getConfiguration().isUsingSQLServer()) {
+					int newTxIsolation = Connection.TRANSACTION_READ_COMMITTED;
+					LOGGER.info("Setting transaction isolation to {}", newTxIsolation);
+					connection.setTransactionIsolation(newTxIsolation);
+				}
 				try {
-					scriptRunner.runScript(reader);
-				} catch (IOException e) {
-					throw new SystemException("Couldn't execute DB creation script " + filePath + ": " + e.getMessage(), e);
+					ScriptRunner scriptRunner = new ScriptRunner(connection, false, false);
+					try {
+						scriptRunner.runScript(reader);
+					} catch (IOException e) {
+						throw new SystemException("Couldn't execute DB creation script " + filePath + ": " + e.getMessage(), e);
+					}
+				} finally {
+					if (connection.getTransactionIsolation() != transactionIsolation) {
+						LOGGER.info("Resetting transaction isolation back to {}", transactionIsolation);
+						connection.setTransactionIsolation(transactionIsolation);
+					}
 				}
 			});
 		}
