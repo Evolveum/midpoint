@@ -640,7 +640,7 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
     	if (cval == null) {
     		return;
     	}
-    	cval.removeItem(ItemPath.pathRestStartingWithName(path.rest()), itemType);
+    	cval.removeItem(ItemPath.pathRestStartingWithName(path), itemType);
     }
 
     // Expects that the "self" path segment is NOT included in the basePath

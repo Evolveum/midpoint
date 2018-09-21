@@ -25,7 +25,9 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
-import org.apache.commons.codec.binary.Base64;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.StringUtils;
 import org.apache.cxf.common.util.Base64Utility;
 import org.apache.cxf.jaxrs.ext.MessageContext;
@@ -35,7 +37,6 @@ import com.evolveum.midpoint.model.impl.security.RestAuthenticationMethod;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.AuthorizationException;
@@ -57,12 +58,20 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
  */
 public class RestServiceUtil {
 
+	private static final Trace LOGGER = TraceManager.getTrace(RestServiceUtil.class);
+
 	public static final String MESSAGE_PROPERTY_TASK_NAME = "task";
 	private static final String QUERY_PARAMETER_OPTIONS = "options";
 	public static final String OPERATION_RESULT_STATUS = "OperationResultStatus";
 	public static final String OPERATION_RESULT_MESSAGE = "OperationResultMessage";
 
 	public static Response handleException(OperationResult result, Exception ex) {
+		LoggingUtils.logUnexpectedException(LOGGER, "Got exception while servicing REST request: {}", ex,
+				result != null ? result.getOperation() : "(null)");
+		return handleExceptionNoLog(result, ex);
+	}
+
+	public static Response handleExceptionNoLog(OperationResult result, Exception ex) {
 		return createErrorResponseBuilder(result, ex).build();
 	}
 

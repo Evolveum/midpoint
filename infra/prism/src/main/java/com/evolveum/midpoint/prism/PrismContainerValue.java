@@ -911,7 +911,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
     		Item<?,?> item = itemsIterator.next();
             if (subName.equals(item.getElementName())) {
             	if (!rest.isEmpty() && item instanceof PrismContainer) {
-            		((PrismContainer<?>)item).removeItem(propPath, itemType);
+            		((PrismContainer<?>)item).removeItem(rest, itemType);
             		return;
             	} else {
             		if (itemType.isAssignableFrom(item.getClass())) {
@@ -951,7 +951,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 	public void accept(Visitor visitor) {
 		super.accept(visitor);
 		if (items != null) {
-			for (Item<?,?> item : getItems()) {
+			for (Item<?,?> item : new ArrayList<>(items)) {     // to allow modifying item list via the acceptor
 				item.accept(visitor);
 			}
 		}
@@ -1765,5 +1765,28 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 			rv.addAll(prismValue.getAllValues(rest));
 		}
 		return rv;
+	}
+
+	public void removeItems(List<ItemPath> itemsToRemove) {
+		for (ItemPath itemToRemove : itemsToRemove) {
+			Item item = findItem(itemToRemove);		// reduce to "removeItem" after fixing that method implementation
+			if (item != null) {
+				removeItem(item.getPath(), Item.class);
+			}
+		}
+	}
+
+	public void removeOperationalItems() {
+		accept(visitable -> {
+			if (visitable instanceof Item) {
+				Item item = ((Item) visitable);
+				if (item.getDefinition() != null && item.getDefinition().isOperational()) {
+					PrismValue parent = item.getParent();
+					if (parent instanceof PrismContainerValue) {    // should be the case
+						((PrismContainerValue) parent).remove(item);
+					}
+				}
+			}
+		});
 	}
 }

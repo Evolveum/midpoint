@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<role oid="bbd19b9a-d511-11e7-8bf7-cfecde275e59"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
+    <name>Space Ship</name>
+    <description>MID-4504</description>
+    <inducement>
+    	<construction >
+    		<resourceRef oid="399f5308-0447-11e8-91e9-a7f9c4100ffb" type="c:ResourceType"/>
+    		<kind>account</kind>
+    		<attribute>
+                <ref>ri:ship</ref>
+				<outbound>
+					<strength>strong</strength>
+                	<expression>
+                		<script>
+                			<code>
+                				log.info("####BEFORE calling get on non existent linked shadow")
+                				log.info("###FOCUS " + focus)
+                				shadow = midpoint.getLinkedShadow(focus, "399f5308-0447-11e8-91e9-a7f9c4100ffb") //shadow does not not exist
+                				log.info("####AFTER calling get on non existent linked shadow")
+                				log.info("###SHADOW: " + shadow)
+                				return "ship"
+                			</code>
+                		</script>
+					</expression>
+				</outbound>
+            </attribute>
+    	</construction>
+    </inducement>
+</role>

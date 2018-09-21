@@ -19,6 +19,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -35,6 +37,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
  */
 @Component
 public class ResourceCache {
+
+	private static final Trace LOGGER = TraceManager.getTrace(ResourceCache.class);
 
 	private Map<String,PrismObject<ResourceType>> cache;
 
@@ -94,7 +98,14 @@ public class ResourceCache {
 		}
 
 		if (GetOperationOptions.isReadOnly(options)) {
-			cachedResource.checkImmutability();
+			try {	// MID-4574
+				cachedResource.checkImmutability();
+			} catch (IllegalStateException ex) {
+				LOGGER.error("Failed immutability test", ex);
+				cache.remove(oid);
+
+				return null;
+			}
 			return cachedResource;
 		} else {
 			return cachedResource.clone();

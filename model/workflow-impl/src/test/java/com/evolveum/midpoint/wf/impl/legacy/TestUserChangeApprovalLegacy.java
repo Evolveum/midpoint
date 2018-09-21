@@ -161,6 +161,8 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
                 return decideOnRoleApproval(executionId);
             }
         });
+        displayAllNotifications();
+        checkDummyTransportMessages("simpleWorkflowNotifier-Processes", 2);       // start + end
 	}
 
     protected void assertWfContextAfterClockworkRun(Task rootTask, List<Task> subtasks, OperationResult result, String... processNames) throws Exception {
@@ -774,6 +776,8 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
         });
+        displayAllNotifications();
+        checkDummyTransportMessages("simpleWorkflowNotifier-Processes", 2);       // start + end
     }
 
     @Test(enabled = true)
@@ -838,6 +842,8 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
         });
+        displayAllNotifications();
+        checkDummyTransportMessages("simpleWorkflowNotifier-Processes", 2);       // start + end
     }
 
     @Test
