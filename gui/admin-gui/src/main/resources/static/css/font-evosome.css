@@ -1,0 +1,41 @@
+@font-face {
+  font-family: 'font-evosome';
+  src:  url('../fonts/font-evosome.eot?8leql6');
+  src:  url('../fonts/font-evosome.eot?8leql6#iefix') format('embedded-opentype'),
+    url('../fonts/font-evosome.ttf?8leql6') format('truetype'),
+    url('../fonts/font-evosome.woff?8leql6') format('woff'),
+    url('../fonts/font-evosome.svg?8leql6#font-evosome') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+
+.fe {
+  display: inline-block;
+  font: normal normal normal 14px/1 font-evosome !important;
+  font-size: inherit;
+  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.fe-assignment:before {
+  content: "\e900";
+}
+.fe-midpoint-shorter-lines:before {
+  content: "\e901";
+}
+.fe-midpoint-wheel:before {
+  content: "\e902";
+}
+.fe-midpoint-with-lines:before {
+  content: "\e903";
+}
+.fe-role-hat:before {
+  content: "\e904";
+}
+.fe-role-tie:before {
+  content: "\e905";
+}
+.fe-role-top-hat:before {
+  content: "\e906";
+}

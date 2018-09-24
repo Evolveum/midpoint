@@ -118,7 +118,7 @@ th.cog, td.cog {
 }
 
 .sidebar-menu .treeview-menu > li > span > .fa,
-.sidebar-menu .treeview-menu > li > span > .fm,
+.sidebar-menu .treeview-menu > li > span > .fe,
 .sidebar-menu .treeview-menu > li > span > .glyphicon,
 .sidebar-menu .treeview-menu > li > span > .ion {
   width: 20px;
@@ -129,7 +129,7 @@ th.cog, td.cog {
 	white-space: normal !important;
 }
 
-.sidebar-menu > li > a > .fm {
+.sidebar-menu > li > a > .fe {
 	width: 20px;
 }
 
@@ -137,7 +137,7 @@ th.cog, td.cog {
 	padding: 10px 20px 10px 15px;
 	text-transform: uppercase;
 
-	& i.fa, & i.fm {
+	& i.fa, & i.fe {
 		margin-top: 2px;
 	}
 }
@@ -765,7 +765,7 @@ body .treeview-menu > li > span:hover {
     text-decoration: none;
     display: inline-block;
 
-    > .fa, > .glyphicon, > .ion, > .fm {
+    > .fa, > .glyphicon, > .ion, > .fe {
       margin-right: 5px;
     }
   }
@@ -1404,4 +1404,10 @@ th.countLabel{
 
 .table-striped {
 	table-layout: fixed; // fix for text in cells
+}
+
+@-moz-document url-prefix() {
+.shopping-cart-icon > .badge { //fix for bug in firefox
+    margin-left: -10px !important;
+}
 }
