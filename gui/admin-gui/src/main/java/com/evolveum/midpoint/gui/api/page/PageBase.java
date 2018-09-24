@@ -974,7 +974,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
             @Override
             public String getObject() {
-                return logoModel.getObject() != null ? "background-color: " + GuiStyleConstants.DEFAULT_BG_COLOR + "; !important;" : null;
+                return logoModel.getObject() != null ? "background-color: " + GuiStyleConstants.DEFAULT_BG_COLOR + " !important;" : null;
             }
         }));
 
@@ -1084,11 +1084,12 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                     return null;
                 }
 
-                if (checkSkinUsage && StringUtils.isEmpty(info.getSkin())) {
-                    return null;
-                }
+//                TODO fix for MID-4897
+//                if (checkSkinUsage && StringUtils.isEmpty(info.getSkin())) {  
+//                    return null;
+//                }
 
-                return "background-color: " + info.getHeaderColor() + "; !important;";
+                return "background-color: " + info.getHeaderColor() + " !important;";
             }
         });
     }

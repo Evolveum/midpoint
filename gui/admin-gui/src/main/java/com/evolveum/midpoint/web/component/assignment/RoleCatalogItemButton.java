@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -35,10 +36,7 @@ import com.evolveum.midpoint.web.page.admin.services.PageService;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.page.self.PageAssignmentDetails;
 import com.evolveum.midpoint.web.session.RoleCatalogStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -204,7 +202,8 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
     }
 
     private String getBackgroundClass(AssignmentEditorDto dto){
-        if (!isMultiUserRequest() && !canAssign(dto)){
+        ActivationStatusType activation = getItemEffectiveStatusType(dto.getOldValue());
+        if (!isMultiUserRequest() && !canAssign(dto) || ActivationStatusType.ARCHIVED.equals(activation) || ActivationStatusType.DISABLED.equals(activation)){
             return GuiStyleConstants.CLASS_DISABLED_OBJECT_ROLE_BG;
         } else if (AssignmentEditorDtoType.ROLE.equals(dto.getType())){
             return GuiStyleConstants.CLASS_OBJECT_ROLE_BG;
@@ -215,6 +214,18 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
         } else {
             return "";
         }
+    }
+
+    private ActivationStatusType getItemEffectiveStatusType(PrismContainerValue<AssignmentType> assignmentValue){
+        if (assignmentValue == null || assignmentValue.asContainerable() == null){
+            return null;
+        }
+        AssignmentType assignment = assignmentValue.asContainerable();
+        if (assignment.getTarget() == null || !(assignment.getTarget() instanceof AbstractRoleType)){
+            return null;
+        }
+        ActivationType activation = ((AbstractRoleType)assignment.getTarget()).getActivation();
+        return activation != null ? activation.getEffectiveStatus() : null;
     }
 
     private IModel<String> getAlreadyAssignedIconTitleModel(AssignmentEditorDto dto) {
@@ -258,6 +269,7 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
         if (!plusIconClicked) {
             assignment.setMinimized(false);
             assignment.setSimpleView(true);
+            assignment.getTargetRef().setRelation(getNewAssignmentRelation());
             getPageBase().navigateToNext(new PageAssignmentDetails(Model.of(assignment)));
         } else {
             plusIconClicked = false;
