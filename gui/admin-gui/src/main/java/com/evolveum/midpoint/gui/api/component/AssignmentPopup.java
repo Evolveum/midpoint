@@ -18,6 +18,7 @@ package com.evolveum.midpoint.gui.api.component;
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
@@ -133,6 +134,11 @@ public class AssignmentPopup extends BasePanel implements Popupable{
                             protected ObjectTypes getObjectType(){
                                 return ObjectTypes.ROLE;
                             }
+                            
+                            @Override
+                            protected <O extends FocusType> PrismObject<O> getTargetedAssignemntObject() {
+                            	return AssignmentPopup.this.getTargetedObject();
+                            }
                         };
                     }
 
@@ -168,6 +174,11 @@ public class AssignmentPopup extends BasePanel implements Popupable{
                             protected List<OrgType> getPreselectedObjects(){
                                 return selectedOrgsList;
                             }
+                            
+                            @Override
+                            protected <O extends FocusType> PrismObject<O> getTargetedAssignemntObject() {
+                            	return AssignmentPopup.this.getTargetedObject();
+                            }
                         };
                     }
 
@@ -198,6 +209,11 @@ public class AssignmentPopup extends BasePanel implements Popupable{
                     protected List<OrgType> getPreselectedObjects(){
                         return selectedOrgsList;
                     }
+                    
+                    @Override
+                    protected <O extends FocusType> PrismObject<O> getTargetedAssignemntObject() {
+                    	return AssignmentPopup.this.getTargetedObject();
+                    }
                 };
             }
 
@@ -226,6 +242,11 @@ public class AssignmentPopup extends BasePanel implements Popupable{
                             @Override
                             protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<ServiceType>> rowModel){
                                 tabLabelPanelUpdate(target);
+                            }
+                            
+                            @Override
+                            protected <O extends FocusType> PrismObject<O> getTargetedAssignemntObject() {
+                            	return AssignmentPopup.this.getTargetedObject();
                             }
 
                         };
@@ -265,6 +286,10 @@ public class AssignmentPopup extends BasePanel implements Popupable{
         return tabs;
     }
 
+    protected <F extends FocusType> PrismObject<F> getTargetedObject(){
+    	return null;
+    }
+    
     private boolean isTabVisible(ObjectTypes objectType){
         List<ObjectTypes> availableObjectTypesList = getAvailableObjectTypesList();
         return availableObjectTypesList == null || availableObjectTypesList.size() == 0 || availableObjectTypesList.contains(objectType);
