@@ -258,6 +258,7 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
         if (!plusIconClicked) {
             assignment.setMinimized(false);
             assignment.setSimpleView(true);
+            assignment.getTargetRef().setRelation(getNewAssignmentRelation());
             getPageBase().navigateToNext(new PageAssignmentDetails(Model.of(assignment)));
         } else {
             plusIconClicked = false;
