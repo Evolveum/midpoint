@@ -127,26 +127,18 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
     public void setupApplication() throws ServletException {
     	
     	display("PostContruct");
-    	Set<String> applicationKeys = Application.getApplicationKeys();
     	for (String key: Application.getApplicationKeys()) {
     		display("App "+key, Application.get(key));
     	}
-    	
-//    	application = (MidPointApplication) Application.get("midpoint");
-//    	if (application == null) {
-    		application = createInitializedMidPointApplication();
-//    	}
+    	initializeMidPointApplication();
     }
     
-    private MidPointApplication createInitializedMidPointApplication() throws ServletException {
-//		MidPointApplication application = new MidPointApplication();
-//		application.setApplicationContext(appContext);
+    private void initializeMidPointApplication() throws ServletException {
     	WicketFilter wicketFilter = new WicketFilter(application);
     	MockServletContext servletContext = new MockServletContext();
     	WebApplicationContext wac = new MockWebApplicationContext(appContext, servletContext);
     	servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, wac);
     	MockFilterConfig filterConfig = new MockFilterConfig(servletContext, "midpoint");
-    	filterConfig.addInitParameter("applicationClassName", MidPointApplication.class.getName());
 		wicketFilter.init(filterConfig);
 		application.setWicketFilter(wicketFilter);
 		application.setServletContext(servletContext);
@@ -154,7 +146,6 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
     	ThreadContext.setApplication(application);
     	application.initApplication();
     	ThreadContext.setApplication(null);
-    	return application;
 	}
     
     @BeforeMethod
@@ -165,6 +156,7 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
     @AfterMethod
     public void afterMethodApplication() {
     	ThreadContext.setApplication(null);
+    	application.internalDestroy();
     }
 
 	@BeforeClass
