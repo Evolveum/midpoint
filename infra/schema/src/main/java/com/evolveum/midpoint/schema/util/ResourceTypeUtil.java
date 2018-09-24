@@ -330,11 +330,15 @@ public class ResourceTypeUtil {
 	}
 
 	public static boolean isPasswordCapabilityEnabled(ResourceType resource){
-		return getEffectivePasswordCapability(resource) != null;
+		return isPasswordCapabilityEnabled(resource, null);
 	}
 
-	public static PasswordCapabilityType getEffectivePasswordCapability(ResourceType resource) {
-		CredentialsCapabilityType cct = getEffectiveCapability(resource, CredentialsCapabilityType.class);
+	public static boolean isPasswordCapabilityEnabled(ResourceType resource, ResourceObjectTypeDefinitionType def){
+		return getEffectivePasswordCapability(resource, def) != null;
+	}
+
+	public static PasswordCapabilityType getEffectivePasswordCapability(ResourceType resource, ResourceObjectTypeDefinitionType def) {
+		CredentialsCapabilityType cct = getEffectiveCapability(resource, def, CredentialsCapabilityType.class);
 		if (cct == null || cct.getPassword() == null || Boolean.FALSE.equals(cct.getPassword().isEnabled())) {
 			return null;
 		} else {

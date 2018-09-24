@@ -2575,7 +2575,8 @@ public final class WebComponentUtil {
 		}
 		
 		if (SchemaConstants.PATH_PASSWORD.equivalent(itemWrapper.getPath())) {
-			if (ResourceTypeUtil.isPasswordCapabilityEnabled(resource)) {
+			if (ResourceTypeUtil.isPasswordCapabilityEnabled(resource, ResourceTypeUtil.findObjectTypeDefinition(resource.asPrismObject(),
+					shadow.asObjectable().getKind(), shadow.asObjectable().getIntent()))) {
 				return ItemVisibility.AUTO;
 			} else {
 				return ItemVisibility.HIDDEN;
