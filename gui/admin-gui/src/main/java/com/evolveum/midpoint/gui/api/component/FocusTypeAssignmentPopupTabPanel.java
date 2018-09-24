@@ -18,12 +18,15 @@ package com.evolveum.midpoint.gui.api.component;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -100,7 +103,7 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
         try {
             ModelInteractionService mis = getPageBase().getModelInteractionService();
             RoleSelectionSpecification roleSpec =
-                    mis.getAssignableRoleSpecification(SecurityUtils.getPrincipalUser().getUser().asPrismObject(), task, result);
+                    mis.getAssignableRoleSpecification(getTargetedAssignemntObject(), task, result);
             filter = roleSpec.getFilter();
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load available roles", ex);
@@ -111,11 +114,16 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
         if (!result.isSuccess() && !result.isHandledError()) {
             getPageBase().showResult(result);
         }
+        
         if (query == null){
             query = new ObjectQuery();
         }
         query.addFilter(filter);
         return query;
+    }
+    
+    protected <O extends FocusType> PrismObject<O> getTargetedAssignemntObject() {
+    	return null;
     }
 
     @Override
