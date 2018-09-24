@@ -18,6 +18,9 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.fe-assignment-thicker:before {
+  content: "\e907";
+}
 .fe-assignment:before {
   content: "\e900";
 }
@@ -39,3 +42,4 @@
 .fe-role-top-hat:before {
   content: "\e906";
 }
+

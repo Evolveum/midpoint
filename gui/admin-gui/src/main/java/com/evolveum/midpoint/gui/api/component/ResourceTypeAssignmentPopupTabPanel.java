@@ -54,8 +54,8 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
     private static final String ID_INTENT = "intent";
 
     private LoadableModel<List<String>> intentValues;
-    private String intentValue;
-    private ShadowKindType kindValue;
+//    private String intentValue;
+//    private ShadowKindType kindValue;
 
     private static final String DOT_CLASS = ResourceTypeAssignmentPopupTabPanel.class.getName();
     private static final Trace LOGGER = TraceManager.getTrace(ResourceTypeAssignmentPopupTabPanel.class);
@@ -107,7 +107,7 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
 
             @Override
             public boolean isEnabled(){
-                return getSelectedObjectsList() != null && getSelectedObjectsList().size() > 0;
+                return getKindValue() != null && getSelectedObjectsList() != null && getSelectedObjectsList().size() > 0;
             }
         });
         intentSelector.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
@@ -142,9 +142,9 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
                     }
 
                 }
-                if (availableIntentValues.size() > 0){
-                    intentValue = availableIntentValues.get(0);
-                }
+//                if (availableIntentValues.size() > 0){
+//                    intentValue = availableIntentValues.get(0);
+//                }
                 return availableIntentValues;
             }
         };
@@ -191,6 +191,8 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
     @Override
     protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<ResourceType>> rowModel){
         target.add(getObjectListPanel());
+        target.add(getKindDropDown());
+        target.add(getIntentDropDown());
     }
 
     @Override
