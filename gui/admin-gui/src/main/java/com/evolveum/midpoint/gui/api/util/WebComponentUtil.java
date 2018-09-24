@@ -2837,7 +2837,7 @@ public final class WebComponentUtil {
             	return null;
             }
         }
-
-        return PageBase.createStringResourceStatic(panel, doc).getString();
+        
+        return PageBase.createStringResourceStatic(panel, doc).getString().replaceAll("\\s{2,}", " ").trim();
     }
 }

@@ -490,8 +490,8 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 		SearchResultList<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
 
 		// THEN
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		displayThen(TEST_NAME);
+		assertSuccess(result);
 
         assertEquals("Unexpected search result: "+shadows, 1, shadows.size());
 
@@ -521,6 +521,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
 		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
 		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
+		long startOfTestMsTimestamp = AdUtils.getWin32Filetime(System.currentTimeMillis());
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -528,8 +529,8 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
 		// THEN
         displayThen(TEST_NAME);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		assertSuccess(result);
+		
         display("Shadow", shadow);
         assertAccountShadow(shadow, toAccountDn(ACCOUNT_JACK_SAM_ACCOUNT_NAME, ACCOUNT_JACK_FULL_NAME));
         jackAccountOid = shadow.getOid();
@@ -541,7 +542,11 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertAttribute(shadow, "sn", "Sparrow");
         assertAttribute(shadow, "description", "The best pirate the world has ever seen");
         assertAttribute(shadow, "sAMAccountName", ACCOUNT_JACK_SAM_ACCOUNT_NAME);
-        assertAttribute(shadow, "lastLogon", 0L);
+        List<Long> lastLogonValues = ShadowUtil.getAttributeValues(shadow, new QName(getResourceNamespace(),"lastLogon"));
+        assertEquals("Wrong number of lastLong values: "+lastLogonValues, 1, lastLogonValues.size());
+        if (lastLogonValues.get(0) > startOfTestMsTimestamp) {
+        	fail("Wrong lastLogon, expected it to be less than "+startOfTestMsTimestamp+", but was "+lastLogonValues.get(0));
+        }
 
         assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
         assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
@@ -1037,6 +1042,8 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertPartialError(result);
 
         assertBarbossaEnabled();
+        assertUserAfter(USER_BARBOSSA_OID)
+			.assertPassword(newPassword);
         
         assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, oldPassword);
 

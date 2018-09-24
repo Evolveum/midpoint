@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -44,6 +45,7 @@ import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -285,6 +287,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
     protected void onSavePerformed(AjaxRequestTarget target) {
         List<PasswordAccountDto> selectedAccounts = getSelectedAccountsList();
 
+        ProtectedStringType oldPassword = null;
         if (isCheckOldPassword()) {
             LOGGER.debug("Check old password");
             if (model.getObject().getOldPassword() == null
@@ -296,7 +299,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
                 OperationResult checkPasswordResult = new OperationResult(OPERATION_CHECK_PASSWORD);
                 Task checkPasswordTask = createSimpleTask(OPERATION_CHECK_PASSWORD);
                 try {
-                    ProtectedStringType oldPassword = new ProtectedStringType();
+                    oldPassword = new ProtectedStringType();
                     oldPassword.setClearValue(model.getObject().getOldPassword());
                     boolean isCorrectPassword = getModelInteractionService().checkPassword(user.getOid(), oldPassword,
                             checkPasswordTask, checkPasswordResult);
@@ -344,13 +347,16 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
                             registry.findObjectDefinitionByCompileTimeClass(UserType.class) :
                             registry.findObjectDefinitionByCompileTimeClass(ShadowType.class);
 
-                    PropertyDelta delta = PropertyDelta.createModificationReplaceProperty(valuePath, objDef, password);
+                    PropertyDelta<ProtectedStringType> delta = PropertyDelta.createModificationReplaceProperty(valuePath, objDef, password);
+                    if (oldPassword != null) {
+                    	delta.addEstimatedOldValue(new PrismPropertyValue<>(oldPassword));
+                    }
 
                     Class<? extends ObjectType> type = accDto.isMidpoint() ? UserType.class : ShadowType.class;
 
                     deltas.add(ObjectDelta.createModifyDelta(accDto.getOid(), delta, type, getPrismContext()));
             }
-            getModelService().executeChanges(deltas, null, createSimpleTask(OPERATION_SAVE_PASSWORD), result);
+            getModelService().executeChanges(deltas, null, createSimpleTask(OPERATION_SAVE_PASSWORD, SchemaConstants.CHANNEL_GUI_SELF_SERVICE_URI), result);
 
             result.computeStatus();
         } catch (Exception ex) {

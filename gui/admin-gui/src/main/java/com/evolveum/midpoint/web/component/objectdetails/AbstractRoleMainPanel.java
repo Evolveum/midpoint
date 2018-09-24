@@ -127,7 +127,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 			public void onClick(AjaxRequestTarget target) {
 				AssignmentEditorDto dto = AssignmentEditorDto.createDtoFromObject(getObject().asObjectable(), UserDtoStatus.ADD, parentPage);
 				storage.getAssignmentShoppingCart().add(dto);
-				parentPage.reloadShoppingCartIcon(target);
+				parentPage.redirectBack();
 			}
 		};
 		addToCartButton.add(AttributeAppender.append("class", new LoadableModel<String>() {

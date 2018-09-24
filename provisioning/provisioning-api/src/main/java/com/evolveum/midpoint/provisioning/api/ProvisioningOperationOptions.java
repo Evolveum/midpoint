@@ -248,12 +248,15 @@ public class ProvisioningOperationOptions implements Serializable, ShortDumpable
     	if (runAsAccountOid != null) {
     		sb.append("runAsAccountOid=").append(runAsAccountOid).append(",");
     	}
-    	if (sb.charAt(sb.length() - 1) == ',') {
+    	if (isEmpty()) {
+    		sb.append("(empty)");
+    	} else {
 			sb.deleteCharAt(sb.length() - 1);
 		}
-    	if (sb.length() == 0) {
-    		sb.append("(empty)");
-    	}
+	}
+
+	private boolean isEmpty() {
+		return raw == null && completePostponed == null && force == null && postpone == null && doNotDiscovery == null && overwrite == null && runAsAccountOid == null;
 	}
 	
 }
