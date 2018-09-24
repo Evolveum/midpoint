@@ -1402,3 +1402,9 @@ th.countLabel{
 .table-striped {
 	table-layout: fixed; // fix for text in cells
 }
+
+@-moz-document url-prefix() {
+.shopping-cart-icon > .badge { //fix for bug in firefox
+    margin-left: -10px !important;
+}
+}
