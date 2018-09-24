@@ -280,6 +280,11 @@
                 <version>${logback.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.codehaus.janino</groupId>
+                <artifactId>janino</artifactId>
+                <version>3.0.10</version>
+            </dependency>
+            <dependency>
                 <groupId>com.sleepycat</groupId>
                 <artifactId>je</artifactId>
                 <version>5.0.103</version>
