@@ -160,6 +160,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	protected static final String USER_BARBOSSA_PASSWORD_2 = "hereThereBeMonsters";
 	protected static final String USER_BARBOSSA_PASSWORD_AD_1 = "There.Be.Monsters.111";
 	protected static final String USER_BARBOSSA_PASSWORD_AD_2 = "There.Be.Monsters.222";
+	protected static final String USER_BARBOSSA_PASSWORD_AD_3 = "There.Be.Monsters.333";
 
 	// Barbossa after rename
 	protected static final String USER_CPTBARBOSSA_USERNAME = "cptbarbossa";

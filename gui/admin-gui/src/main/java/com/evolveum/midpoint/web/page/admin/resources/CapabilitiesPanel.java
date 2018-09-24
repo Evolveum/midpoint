@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ public class CapabilitiesPanel extends BasePanel<CapabilitiesDto> {
 	private static final String ID_DELETE = "delete";
 	private static final String ID_READ = "read";
 	private static final String ID_CONNECTOR_SCRIPT = "script";
+	private static final String ID_RUN_AS = "runAs";
 
 	private static final long serialVersionUID = 1L;
 
@@ -72,6 +73,7 @@ public class CapabilitiesPanel extends BasePanel<CapabilitiesDto> {
 		createCapabilityButton(ID_ACTIVATION_STATUS);
 		createCapabilityButton(ID_ACTIVATION_LOCKOUT_STATUS);
 		createCapabilityButton(ID_COUNT_OBJECTS);
+		createCapabilityButton(ID_RUN_AS);
 
 	}
 

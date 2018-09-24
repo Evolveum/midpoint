@@ -349,6 +349,10 @@ public class ResourceTypeUtil {
 	public static boolean isScriptCapabilityEnabled(ResourceType resource) {
 		return getEffectiveCapability(resource, ScriptCapabilityType.class) != null;
 	}
+	
+	public static <C extends CapabilityType> boolean isCapabilityEnabled(ResourceType resource, Class<C> type) {
+		return getEffectiveCapability(resource, type) != null;
+	}
 
 	public static boolean isTestConnectionCapabilityEnabled(ResourceType resource) {
 		return getEffectiveCapability(resource, TestConnectionCapabilityType.class) != null;

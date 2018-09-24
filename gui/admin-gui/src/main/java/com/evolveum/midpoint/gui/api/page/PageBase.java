@@ -645,11 +645,15 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     public Task createSimpleTask(String operation) {
+        return createSimpleTask(operation, null);
+    }
+    
+    public Task createSimpleTask(String operation, String channel) {
         MidPointPrincipal user = SecurityUtils.getPrincipalUser();
         if (user == null) {
             throw new RestartResponseException(PageLogin.class);
         }
-        return WebModelServiceUtils.createSimpleTask(operation, user.getUser().asPrismObject(), getTaskManager());
+        return WebModelServiceUtils.createSimpleTask(operation, channel, user.getUser().asPrismObject(), getTaskManager());
     }
 
     public MidpointConfiguration getMidpointConfiguration() {
