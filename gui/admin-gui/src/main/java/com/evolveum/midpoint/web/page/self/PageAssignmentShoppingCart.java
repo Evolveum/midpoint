@@ -26,24 +26,20 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.assignment.*;
 import com.evolveum.midpoint.web.component.input.RelationDropDownChoicePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.self.dto.AssignmentViewType;
 import com.evolveum.midpoint.web.session.RoleCatalogStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 
 import javax.xml.namespace.QName;
 import java.util.*;
@@ -72,6 +68,7 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
     private static final String OPERATION_GET_ASSIGNMENT_VIEW_LIST = DOT_CLASS + "getRoleCatalogViewsList";
     private static final String OPERATION_LOAD_RELATION_DEFINITIONS = DOT_CLASS + "loadRelationDefinitions";
     private static final String OPERATION_LOAD_ASSIGNMENTS_LIMIT = DOT_CLASS + "loadAssignmentsLimit";
+    private static final String OPERATION_LOAD_DEFAULT_VIEW_TYPE = DOT_CLASS + "loadDefaultViewType";
     private static final Trace LOGGER = TraceManager.getTrace(PageAssignmentShoppingCart.class);
 
    private IModel<RoleManagementConfigurationType> roleManagementConfigModel;
@@ -91,8 +88,24 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
         Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
         add(mainForm);
 
-        TabbedPanel tabbedPanel = WebComponentUtil.createTabPanel(ID_VIEWS_TAB_PANEL, PageAssignmentShoppingCart.this, getTabsList(), null);
+        List<ITab> tabs = getTabsList();
+        TabbedPanel tabbedPanel = new TabbedPanel<ITab>(ID_VIEWS_TAB_PANEL, tabs) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onTabChange(int index) {
+                getRoleCatalogStorage().setDefaultTabIndex(index);
+            }
+        };
         tabbedPanel.setOutputMarkupId(true);
+
+        int defaultSelectedTabIndex  = getDefaultViewTypeIndex();
+        if (getRoleCatalogStorage().getDefaultTabIndex() > 0 && getRoleCatalogStorage().getDefaultTabIndex() < tabs.size()){
+            tabbedPanel.setSelectedTab(getRoleCatalogStorage().getDefaultTabIndex());
+        } else if (defaultSelectedTabIndex < tabs.size()){
+            tabbedPanel.setSelectedTab(defaultSelectedTabIndex);
+        }
         mainForm.add(tabbedPanel);
 
         WebMarkupContainer parametersPanel = new WebMarkupContainer(ID_PARAMETERS_PANEL);
@@ -122,6 +135,21 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
             }
         };
 
+    }
+
+    private int getDefaultViewTypeIndex(){
+        RoleManagementConfigurationType roleConfig = roleManagementConfigModel.getObject();
+
+        if (roleConfig == null || roleConfig.getDefaultCollection() == null || roleConfig.getDefaultCollection().getCollectionUri() == null){
+            return 0;
+        }
+        List<AssignmentViewType> viewTypes = Arrays.asList(AssignmentViewType.values());
+        for (AssignmentViewType viewType : viewTypes){
+            if (viewType.getUri().equals(roleConfig.getDefaultCollection().getCollectionUri())){
+                return viewTypes.indexOf(viewType);
+            }
+        }
+        return 0;
     }
 
     private List<ITab> getTabsList(){
