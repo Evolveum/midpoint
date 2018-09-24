@@ -50,6 +50,7 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
     private SelectableBean<OrgType> collapsedItem = null;                 //collapsed tree item
     private List<AssignmentEditorDto> assignmentShoppingCart;   //  a list of assignments in the shopping cart
     private AssignmentViewType viewType = null;      //the current view type
+    private int defaultTabIndex = -1;
     private List<UserType> targetUserList = new ArrayList<>();
     private UserType assignmentsUserOwner = null;
     private List<ConflictDto> conflictsList;
@@ -163,6 +164,14 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
 
     public void setViewType(AssignmentViewType viewType) {
         this.viewType = viewType;
+    }
+
+    public int getDefaultTabIndex() {
+        return defaultTabIndex;
+    }
+
+    public void setDefaultTabIndex(int defaultTabIndex) {
+        this.defaultTabIndex = defaultTabIndex;
     }
 
     public String getSelectedOid() {
