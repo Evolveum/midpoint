@@ -42,6 +42,7 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
+import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueWrapper;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
@@ -157,6 +158,16 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
                protected List<ObjectTypes> getAvailableObjectTypesList(){
                    return getObjectTypesList();
                }
+               
+               @Override
+            protected <F extends FocusType> PrismObject<F> getTargetedObject() {
+				ObjectWrapper<F> w = AbstractRoleAssignmentPanel.this.getModelObject().getObjectWrapper();
+				if (w == null) {
+					return null;
+				}
+            	return w.getObject();
+            }
+               
            };
            popupPanel.setOutputMarkupId(true);
            getPageBase().showMainPopup(popupPanel, target);
