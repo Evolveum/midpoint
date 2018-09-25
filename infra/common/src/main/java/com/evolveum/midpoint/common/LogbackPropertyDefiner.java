@@ -36,11 +36,29 @@ import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
  *
  * @author mederly
  */
-public class LogbackPropertyDefinerForConsolePrefix extends PropertyDefinerBase {
+public class LogbackPropertyDefiner extends PropertyDefinerBase {
+
+	private String propertyName;
+	private String defaultValue;
+
+	public void setPropertyName(String propertyName) {
+		this.propertyName = propertyName;
+	}
+
+	public void setDefaultValue(String defaultValue) {
+		this.defaultValue = defaultValue;
+	}
+
+	protected String getDefaultValue() {
+		return defaultValue != null ? defaultValue : "";
+	}
 
 	@Override
 	public String getPropertyValue() {
-		String value = System.getProperty(MidpointConfiguration.MIDPOINT_LOGGING_CONSOLE_PREFIX_PROPERTY);
-		return value != null ? value : "";
+		if (propertyName == null) {
+			throw new IllegalStateException("propertyName is null");
+		}
+		String value = System.getProperty(propertyName);
+		return value != null ? value : getDefaultValue();
 	}
 }

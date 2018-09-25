@@ -16,20 +16,15 @@
 
 package com.evolveum.midpoint.common;
 
-import ch.qos.logback.core.PropertyDefinerBase;
-import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-
 import java.util.TimeZone;
 
 /**
- * @see LogbackPropertyDefinerForConsolePrefix
- *
  * @author mederly
  */
-public class LogbackPropertyDefinerForConsoleTimezone extends PropertyDefinerBase {
+public class LogbackPropertyDefinerForTimezone extends LogbackPropertyDefiner {
+
 	@Override
-	public String getPropertyValue() {
-		String value = System.getProperty(MidpointConfiguration.MIDPOINT_LOGGING_CONSOLE_TIMEZONE_PROPERTY);
-		return value != null ? value : TimeZone.getDefault().getID();
+	protected String getDefaultValue() {
+		return TimeZone.getDefault().getID();
 	}
 }
