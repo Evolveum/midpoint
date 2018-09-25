@@ -224,32 +224,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 			
 			@Override
 			protected WebMarkupContainer createButtonToolbar(String id) {
-				AjaxIconButton newObjectIcon = new AjaxIconButton(id, new Model<>("fa fa-plus"),
-						getNewObjectButtonTitleModel()) {
-
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						newItemPerformed(target);
-					}
-				};
-
-				newObjectIcon.add(new VisibleEnableBehaviour() {
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public boolean isVisible() {
-						return enableActionNewObject();
-					}
-
-					@Override
-					public boolean isEnabled() {
-						return isNewObjectButtonEnabled();
-					}
-				});
-				newObjectIcon.add(AttributeModifier.append("class", createStyleClassModelForNewObjectIcon()));
-				return newObjectIcon;
+				return initButtonToolbar(id);
 			}
 
 		};
@@ -257,6 +232,39 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 		itemTable.setCurrentPage(pageStorage.getPaging());
 		return itemTable;
 
+	}
+	
+	protected WebMarkupContainer initButtonToolbar(String id) {
+		return getNewItemButton(id);
+	}
+	
+	public AjaxIconButton getNewItemButton(String id) {
+		AjaxIconButton newObjectIcon = new AjaxIconButton(id, new Model<>("fa fa-plus"),
+				getNewObjectButtonTitleModel()) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				newItemPerformed(target);
+			}
+		};
+
+		newObjectIcon.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isVisible() {
+				return enableActionNewObject();
+			}
+
+			@Override
+			public boolean isEnabled() {
+				return isNewObjectButtonEnabled();
+			}
+		});
+		newObjectIcon.add(AttributeModifier.append("class", createStyleClassModelForNewObjectIcon()));
+		return newObjectIcon;
 	}
 
 	protected boolean isNewObjectButtonEnabled(){
