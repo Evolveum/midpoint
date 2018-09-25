@@ -24,7 +24,26 @@ $(window).load(function() {
         console.error("Ajax call failure:\n" + JSON.stringify(attrs.target.location)
             + "\nStatus:\n" + JSON.stringify(textStatus));
     });
+
+    fixContentHeight();
+    $(window, ".wrapper").resize(function () {
+        fixContentHeight();
+    });
 });
+
+// I'm not sure why sidebar has 15px padding -> and why I had to use 10px constant here [lazyman]
+function fixContentHeight() {
+    if ($(".main-footer").length > 0) {
+        return;
+    }
+
+    var window_height = $(window).height();
+    var sidebar_height = $(".sidebar").height() || 0;
+
+    if (window_height < sidebar_height) {
+        $(".content-wrapper, .right-side").css('min-height', sidebar_height + 10); // footer size
+    }
+}
 
 function clickFuncWicket6(eventData) {
     var clickedElement = (window.event) ? event.srcElement : eventData.target;
