@@ -19,6 +19,7 @@ import javax.servlet.Servlet;
 
 import org.apache.catalina.connector.Connector;
 import org.apache.catalina.startup.Tomcat;
+import org.apache.coyote.UpgradeProtocol;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -51,7 +52,7 @@ public class EmbeddedTomcatAutoConfiguration {
 	private static final Trace LOGGER = TraceManager.getTrace(EmbeddedTomcatAutoConfiguration.class);
 	
 	@Configuration
-	@ConditionalOnClass({ Servlet.class, Tomcat.class })
+	@ConditionalOnClass({ Servlet.class, Tomcat.class, UpgradeProtocol.class })
 	@ConditionalOnMissingBean(value = TomcatServletWebServerFactory.class, search = SearchStrategy.CURRENT)
 	public static class EmbeddedTomcat {
 		
