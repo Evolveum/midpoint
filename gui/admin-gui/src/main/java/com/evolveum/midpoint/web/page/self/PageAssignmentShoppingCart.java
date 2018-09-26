@@ -94,8 +94,9 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void onTabChange(int index) {
+            public TabbedPanel<ITab> setSelectedTab(int index) {
                 getRoleCatalogStorage().setDefaultTabIndex(index);
+                return super.setSelectedTab(index);
             }
         };
         tabbedPanel.setOutputMarkupId(true);
