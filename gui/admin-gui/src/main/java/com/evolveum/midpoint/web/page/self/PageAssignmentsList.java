@@ -260,15 +260,8 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             SessionStorage storage = getSessionStorage();
             storage.getRoleCatalog().getAssignmentShoppingCart().clear();
         } catch (Exception e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Could not save assignments ", e);
             result.recordFatalError(e);
-            if (e instanceof CommonException){
-                error(createStringResource("PageAssignmentsList.saveAssignmentsError").getString() +
-                        ((CommonException) e).getLocalizedUserFriendlyMessage());
-            } else {
-                error(createStringResource("PageAssignmentsList.saveAssignmentsError").getString() + e.getLocalizedMessage());
-            }
-            target.add(getFeedbackPanel());
+            LoggingUtils.logUnexpectedException(LOGGER, "Could not save assignments ", e);
         } finally {
             result.recomputeStatus();
         }
