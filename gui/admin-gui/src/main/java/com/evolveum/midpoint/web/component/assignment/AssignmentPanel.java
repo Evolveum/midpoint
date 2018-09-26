@@ -187,11 +187,24 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 			protected List<SearchItemDefinition> initSearchableItems(PrismContainerDefinition<AssignmentType> containerDef) {
 				return createSearchableItems(containerDef);
 			}
+			
+			@Override
+			protected WebMarkupContainer initButtonToolbar(String id) {
+				WebMarkupContainer buttonToolbar = initCustomButtonToolbar(id);
+				if(buttonToolbar == null) {
+					return super.initButtonToolbar(id);
+				}
+				return initCustomButtonToolbar(id);
+			}
 		
 		};
 		add(multivalueContainerListPanel);
 		
 		setOutputMarkupId(true);
+	}
+	
+	protected WebMarkupContainer initCustomButtonToolbar(String id) {
+		return null;
 	}
 	
 	protected abstract List<SearchItemDefinition> createSearchableItems(PrismContainerDefinition<AssignmentType> containerDe);

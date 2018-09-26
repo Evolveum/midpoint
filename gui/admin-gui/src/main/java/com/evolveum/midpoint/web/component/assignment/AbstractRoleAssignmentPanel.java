@@ -39,6 +39,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
@@ -55,6 +56,7 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -94,7 +96,9 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AssignmentPanel.class);
 
+	private static final String ID_NEW_ITEM_BUTTON = "newItemButton";
     private static final String ID_SHOW_ALL_ASSIGNMENTS_BUTTON = "showAllAssignmentsButton";
+    private static final String ID_BUTTON_TOOLBAR_FRAGMENT = "buttonToolbarFragment";
 
     protected static final String DOT_CLASS = AbstractRoleAssignmentPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_TARGET_REF_OBJECT = DOT_CLASS + "loadAssignmentTargetRefObject";
@@ -103,10 +107,13 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
     	super(id, assignmentContainerWrapperModel);
     }
 
-    protected Fragment getCustomSearchPanel(String contentAreaId){
-    	Fragment searchContainer = new Fragment(contentAreaId, AssignmentPanel.ID_SEARCH_FRAGMENT, this);
+    protected Fragment initCustomButtonToolbar(String contentAreaId){
+    	Fragment searchContainer = new Fragment(contentAreaId, ID_BUTTON_TOOLBAR_FRAGMENT, this);
+    	
+    	AjaxIconButton newObjectIcon = getMultivalueContainerListPanel().getNewItemButton(ID_NEW_ITEM_BUTTON);
+    	searchContainer.add(newObjectIcon);
 
-        AjaxButton showAllAssignmentsButton = new AjaxButton(ID_SHOW_ALL_ASSIGNMENTS_BUTTON,
+    	AjaxIconButton showAllAssignmentsButton = new AjaxIconButton(ID_SHOW_ALL_ASSIGNMENTS_BUTTON, new Model<>("fa fa-address-card"),
                 createStringResource("AssignmentTablePanel.menu.showAllAssignments")) {
 
         	private static final long serialVersionUID = 1L;

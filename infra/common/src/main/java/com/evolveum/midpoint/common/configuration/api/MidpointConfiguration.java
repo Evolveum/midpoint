@@ -27,9 +27,7 @@ public interface MidpointConfiguration {
 	// Names of system properties. Note that they are also copied into config.xml-loaded configuration.
 	String MIDPOINT_SILENT_PROPERTY = "midpoint.silent";
 	String MIDPOINT_HOME_PROPERTY = "midpoint.home";
-	String MIDPOINT_LOGGING_CONSOLE_ENABLED_PROPERTY = "midpoint.logging.console.enabled";
-	String MIDPOINT_LOGGING_CONSOLE_PREFIX_PROPERTY = "midpoint.logging.console.prefix";
-	String MIDPOINT_LOGGING_CONSOLE_TIMEZONE_PROPERTY = "midpoint.logging.console.timezone";
+	String MIDPOINT_LOGGING_ALT_ENABLED_PROPERTY = "midpoint.logging.alt.enabled";
 
 	// TODO read these from the MidpointConfiguration instead of system properties.
 	// It will provide greater flexibility, as the administrator will be able to set them permanently in config.xml.

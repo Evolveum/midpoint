@@ -1009,17 +1009,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         add(sidebarMenu);
 
         WebMarkupContainer footerContainer = new WebMarkupContainer(ID_FOOTER_CONTAINER);
-        footerContainer.add(new VisibleBehaviour(() -> !isErrorPage()));
-        footerContainer.setOutputMarkupId(true);
-        footerContainer.add(AttributeAppender.append("class", new AbstractReadOnlyModel<String>() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public String getObject() {
-                return isFooterVisible() ? "main-footer" : "main-footer-invisible";
-            }
-        }));
+        footerContainer.add(new VisibleBehaviour(() -> !isErrorPage() && isFooterVisible()));
         add(footerContainer);
 
         WebMarkupContainer version = new WebMarkupContainer(ID_VERSION) {

@@ -293,6 +293,11 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 				loggerEditPerformed(target, rowModel, null);
 			}
 			
+			@Override
+			public String getCssClass() {
+				return " col-md-5 ";
+			}
+			
 		});
 		
 		columns.add(new EditablePropertyWrapperColumn<ClassLoggerConfigurationType, String>(createStringResource("LoggingConfigurationTabPanel.loggers.level"), ClassLoggerConfigurationType.F_LEVEL, getPageBase()));
@@ -300,7 +305,13 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 		columns.add(new EditablePropertyWrapperColumn<ClassLoggerConfigurationType, String>(createStringResource("LoggingConfigurationTabPanel.loggers.appender"), ClassLoggerConfigurationType.F_APPENDER, getPageBase()));
 		
 		List<InlineMenuItem> menuActionsList = getLoggersMultivalueContainerListPanel().getDefaultMenuActions();
-		columns.add(new InlineMenuButtonColumn<>(menuActionsList, getPageBase()));
+		columns.add(new InlineMenuButtonColumn(menuActionsList, getPageBase()) {
+			
+			@Override
+			public String getCssClass() {
+				return " col-md-1 ";
+			}
+		});
 		
         return columns;
 	}

@@ -56,7 +56,7 @@ public class LoggingConfigurationManager {
     private static final String PROFILING_ASPECT_LOGGER = "com.evolveum.midpoint.util.aspect.ProfilingDataManager";
     private static final String IDM_PROFILE_APPENDER = "IDM_LOG";
     
-	private static final String LOGBACK_CONSOLE_XML_RESOURCE = "logback-console.xml";
+	private static final String LOGBACK_ALT_XML_RESOURCE = "logback-alt.xml";
 
 	private static String currentlyUsedVersion = null;
 
@@ -193,9 +193,9 @@ public class LoggingConfigurationManager {
 			prepareAppenderConfiguration(sb, appender, config);
 		}
 
-		boolean defaultConsoleAppender = "true".equals(System.getProperty(MidpointConfiguration.MIDPOINT_LOGGING_CONSOLE_ENABLED_PROPERTY));
-		if (defaultConsoleAppender) {
-			prepareDefaultConsoleAppender(sb);
+		boolean defaultAltAppender = "true".equals(System.getProperty(MidpointConfiguration.MIDPOINT_LOGGING_ALT_ENABLED_PROPERTY));
+		if (defaultAltAppender) {
+			prepareDefaultAltAppender(sb);
 		}
 
 		//define root appender if defined
@@ -206,8 +206,8 @@ public class LoggingConfigurationManager {
 			sb.append("\t\t<appender-ref ref=\"");
 			sb.append(config.getRootLoggerAppender());
 			sb.append("\" />\n");
-			if (defaultConsoleAppender) {
-				sb.append("\t\t<appender-ref ref=\"DEFAULT_CONSOLE\"/>");
+			if (defaultAltAppender) {
+				sb.append("\t\t<appender-ref ref=\"ALT_LOG\"/>");
 			}
 			sb.append("\t</root>\n");
 		}
@@ -255,10 +255,10 @@ public class LoggingConfigurationManager {
 		return sb.toString();
 	}
 
-	private static void prepareDefaultConsoleAppender(StringBuilder sb) {
-    	// We expect this to be used only when logback-console.xml is present, i.e. only during regular "GUI" execution.
-		// For other scenarios (e.g. tests) please avoid setting midpoint.logging.console.enabled to true.
-	    sb.append("<include resource=\"" + LOGBACK_CONSOLE_XML_RESOURCE + "\" />\n");
+	private static void prepareDefaultAltAppender(StringBuilder sb) {
+    	// We expect this to be used only when logback-alt.xml is present, i.e. only during regular "GUI" execution.
+		// For other scenarios (e.g. tests) please avoid setting midpoint.logging.alt.enabled to true.
+	    sb.append("<include resource=\"" + LOGBACK_ALT_XML_RESOURCE + "\" />\n");
 	}
 
 	private static void prepareAppenderConfiguration(StringBuilder sb, AppenderConfigurationType appender, LoggingConfigurationType config) throws SchemaException {

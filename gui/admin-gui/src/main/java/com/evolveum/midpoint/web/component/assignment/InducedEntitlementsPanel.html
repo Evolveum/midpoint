@@ -19,11 +19,6 @@
 	<wicket:panel>
 		<div wicket:id="assignments">
 		</div>
-		<wicket:fragment wicket:id="searchFragment">
-            <div class="col-xs-3 pull-right">
-                <div class="btn btn-default pull-right" wicket:id="showAllAssignmentsButton" />
-            </div>
-    	</wicket:fragment>
     	<wicket:fragment wicket:id="specificContainersFragment">
     		<div class="top-level-prism-container" wicket:id="specificContainers" />
     		<div class="top-level-prism-container">
@@ -36,6 +31,11 @@
     			</div>
     		</div>
            <div class="top-level-prism-container" wicket:id="activationPanel" />
+    	</wicket:fragment>
+    	
+    	<wicket:fragment wicket:id="buttonToolbarFragment">
+           	<div wicket:id="newItemButton" />
+            <div class="btn btn-default btn-sm" wicket:id="showAllAssignmentsButton" />
     	</wicket:fragment>
 	</wicket:panel>
 
