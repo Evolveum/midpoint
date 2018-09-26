@@ -66,6 +66,11 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
 	
 	protected static final String ORG_GUILD_OID = "00000000-8888-6666-a001-000000000000";
 	
+	protected static final File ORG_JUNCTION_FILE = new File(TEST_DIR, "org-junction.xml");
+	protected static final String ORG_JUNCTION_OID = "00000000-8888-6666-a001-000000000001";
+	protected static final String ORG_JUNCTION_NAME = "Junction";
+	protected static final String ORG_JUNCTION_DISPLAY_NAME = "Plannet Junction";
+	
 	protected static final String ROLE_GUILD_BROKEN_ADMIN_OID = "00000000-8888-6666-a001-100000000001";
 	
 	protected static final String USER_EDRIC_OID = "00000000-8888-6666-a001-200000000000";
@@ -85,6 +90,10 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
 	
 	protected static final String ORG_CORRINO_OID = "00000000-8888-6666-a100-000000000000";
 	
+	protected static final String ORG_KAITAIN_OID = "00000000-8888-6666-a100-000000000001";
+	
+	protected static final String ORG_IMPERIAL_PALACE_OID = "00000000-8888-6666-a100-000000000002";
+	
 	protected static final String ROLE_CORRINO_ADMIN_OID = "00000000-8888-6666-a100-100000000000";
 	
 	protected static final String USER_SHADDAM_CORRINO_OID = "00000000-8888-6666-a100-200000000000";
@@ -95,6 +104,18 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
 	// ===[ House Atreides ]===
 	
 	protected static final String ORG_ATREIDES_OID = "00000000-8888-6666-a200-000000000000";
+	
+	protected static final String ORG_CALADAN_OID = "00000000-8888-6666-a200-000000000001";
+	
+	protected static final File ORG_ARRAKIS_FILE = new File(TEST_DIR, "org-arrakis.xml");
+	protected static final String ORG_ARRAKIS_OID = "00000000-8888-6666-a200-000000000002";
+	protected static final String ORG_ARRAKIS_NAME = "Arrakis";
+	protected static final String ORG_ARRAKIS_DISPLAY_NAME = "Planet Arrakis";
+	
+	protected static final File ORG_CASTLE_CALADAN_FILE = new File(TEST_DIR, "org-castle-caladan.xml");
+	protected static final String ORG_CASTLE_CALADAN_OID = "00000000-8888-6666-a200-000000000003";
+	protected static final String ORG_CASTLE_CALADAN_NAME = "Castle Caladan";
+	protected static final String ORG_CASTLE_CALADAN_DISPLAY_NAME = "Castle Caladan";
 	
 	protected static final String ROLE_ATREIDES_ADMIN_OID = "00000000-8888-6666-a200-100000000000";
 	
@@ -117,6 +138,11 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
 	// ===[ House Harkonnen ]===
 	
 	protected static final String ORG_HARKONNEN_OID = "00000000-8888-6666-a300-000000000000";
+	
+	protected static final File ORG_GIEDI_PRIME_FILE = new File(TEST_DIR, "org-giedi-prime.xml");
+	protected static final String ORG_GIEDI_PRIME_OID = "00000000-8888-6666-a300-000000000001";
+	protected static final String ORG_GIEDI_PRIME_NAME = "Geidi Prime";
+	protected static final String ORG_GIEDI_PRIME_DISPLAY_NAME = "Plannet Geidi Prime";
 	
 	protected static final String ROLE_HARKONNEN_ADMIN_OID = "00000000-8888-6666-a300-100000000000";
 	
@@ -210,6 +236,8 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
 
         dumpOrgTree();
         
+        // House Atreides
+        
         assertOrgAfter(ORG_ATREIDES_OID)
         	.assertIsTenant()
         	.assertTenantRef(ORG_ATREIDES_OID)
@@ -220,6 +248,17 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         		.end()
         	.assertLinks(0)
         	.assertParentOrgRefs(ORG_ROOT_OID);
+        
+        assertOrgAfter(ORG_CALADAN_OID)
+	    	.assertTenant(null)
+	    	.assertTenantRef(ORG_ATREIDES_OID)
+	    	.assignments()
+	    		.single()
+	    			.assertTargetOid(ORG_ATREIDES_OID)
+	    			.end()
+	    		.end()
+	    	.assertLinks(0)
+	    	.assertParentOrgRefs(ORG_ATREIDES_OID);
         
         assertRoleAfter(ROLE_ATREIDES_ADMIN_OID)
         	.assertTenantRef(ORG_ATREIDES_OID)
@@ -247,6 +286,8 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
 	    	.assertParentOrgRefs(ORG_ATREIDES_OID)
 	    	.assertLinks(0);
         
+        // Spacing Guild
+        
         assertOrgAfter(ORG_GUILD_OID)
         	.assertTenant(null)
         	.assertTenantRef(null)
@@ -268,6 +309,41 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
 			.assertTenantRef(null)
 	    	.assertParentOrgRefs(ORG_GUILD_OID)
 	    	.assertLinks(0);
+        
+        // House Corrino
+        
+        assertOrgAfter(ORG_CORRINO_OID)
+        	.assertIsTenant()
+        	.assertTenantRef(ORG_CORRINO_OID)
+        	.assignments()
+        		.single()
+        			.assertTargetOid(ORG_ROOT_OID)
+        			.end()
+        		.end()
+        	.assertLinks(0)
+        	.assertParentOrgRefs(ORG_ROOT_OID);
+        
+        assertOrgAfter(ORG_KAITAIN_OID)
+	    	.assertTenant(null)
+	    	.assertTenantRef(ORG_CORRINO_OID)
+	    	.assignments()
+	    		.single()
+	    			.assertTargetOid(ORG_CORRINO_OID)
+	    			.end()
+	    		.end()
+	    	.assertLinks(0)
+	    	.assertParentOrgRefs(ORG_CORRINO_OID);
+        
+        assertOrgAfter(ORG_IMPERIAL_PALACE_OID)
+	    	.assertTenant(null)
+	    	.assertTenantRef(ORG_CORRINO_OID)
+	    	.assignments()
+	    		.single()
+	    			.assertTargetOid(ORG_KAITAIN_OID)
+	    			.end()
+	    		.end()
+	    	.assertLinks(0)
+	    	.assertParentOrgRefs(ORG_KAITAIN_OID);
 
         assertGlobalStateUntouched();
 	}
@@ -308,7 +384,7 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         
         assertSearch(UserType.class, null, USER_LETO_ATREIDES_OID, USER_PAUL_ATREIDES_OID);
         assertSearch(RoleType.class, null, ROLE_ATREIDES_ADMIN_OID);
-        assertSearch(OrgType.class, null, ORG_ATREIDES_OID);
+        assertSearch(OrgType.class, null, ORG_ATREIDES_OID, ORG_CALADAN_OID);
         
         // THEN
         displayThen(TEST_NAME);
@@ -461,6 +537,62 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         
         // THEN
         displayThen(TEST_NAME);
+        
+        assertGlobalStateUntouched();
+	}
+	
+	/**
+	 * MID-4882
+	 */
+	@Test
+    public void test110AutzLetoAddOrgs() throws Exception {
+		final String TEST_NAME = "test110AutzLetoAddOrgs";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(null);
+
+        login(USER_LETO_ATREIDES_NAME);
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        // Matching tenant
+        assertAddAllow(ORG_ARRAKIS_FILE);
+        display("HEREHERE");
+        assertAddAllow(ORG_CASTLE_CALADAN_FILE);
+        
+        // Wrong tenant
+        assertAddDeny(ORG_GIEDI_PRIME_FILE);
+        
+        // No tenant
+        assertAddDeny(ORG_JUNCTION_FILE);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        
+        login(USER_ADMINISTRATOR_USERNAME);
+        
+        assertOrgAfter(ORG_ARRAKIS_OID)
+        	.assertName(ORG_ARRAKIS_NAME)
+        	.assertDisplayName(ORG_ARRAKIS_DISPLAY_NAME)
+        	.assignments()
+	    		.assertOrg(ORG_ATREIDES_OID)
+	    		.assertNoRole()
+	    		.end()
+			.assertTenantRef(ORG_ATREIDES_OID)
+	    	.assertParentOrgRefs(ORG_ATREIDES_OID)
+	    	.assertLinks(0);
+        
+        assertOrgAfter(ORG_CASTLE_CALADAN_OID)
+	    	.assertName(ORG_CASTLE_CALADAN_NAME)
+	    	.assertDisplayName(ORG_CASTLE_CALADAN_DISPLAY_NAME)
+	    	.assignments()
+	    		.assertOrg(ORG_CALADAN_OID)
+	    		.assertNoRole()
+	    		.end()
+			.assertTenantRef(ORG_ATREIDES_OID)
+	    	.assertParentOrgRefs(ORG_CALADAN_OID)
+	    	.assertLinks(0);
         
         assertGlobalStateUntouched();
 	}

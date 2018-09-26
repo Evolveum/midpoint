@@ -39,6 +39,7 @@
 	    	<object>
 	    		<tenant>
 	    			<sameAsSubject>true</sameAsSubject>
+	    			<includeTenantOrg>true</includeTenantOrg>
 	    		</tenant>
 	    	</object>
 	    </authorization>
@@ -227,6 +228,7 @@
 	    	<object>
 	    		<tenant>
 	    			<sameAsSubject>true</sameAsSubject>
+	    			<includeTenantOrg>true</includeTenantOrg>
 	    		</tenant>
 	    	</object>
 	    </authorization>
@@ -252,12 +254,60 @@
 	    	<object>
 	    		<tenant>
 	    			<sameAsSubject>true</sameAsSubject>
+	    			<includeTenantOrg>false</includeTenantOrg>
 	    		</tenant>
 	    	</object>
 	    	<exceptItem>tenant</exceptItem>
 	    	<exceptItem>tenantRef</exceptItem>
+	    	<!-- We do not want tenant admins to create roles with explicit authorizations. That may circumvent tenant isolation.
+	    	     E.g. tenant admin could create role that can allow access to all objects.
+	    	     Therefore all roles that require authorizations need to be create on top level (no tenant).
+	    	     And then tenants will only create inducements to them. -->
+	    	<exceptItem>authorization</exceptItem>
+	    	<!-- We do not want tenants to create any assignment/inducement to any role. Otherwise the tenant admin
+	    	     can create inducement to Superuser role and that may circumvent tenant isolation. -->
+	    	<exceptItem>assignment</exceptItem>
+	    	<exceptItem>inducement</exceptItem>
 	    </authorization>
-	    
+	    <authorization>
+	    	<name>tenant admin assign tenant</name>
+	    	<description>Hotel California of Tenancy. Tenant admin can only assign object to a tenant. Cannot unassign it.
+	    	             Tenant objects can never leave. They can only be deleted.</description>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign</action>
+	    	<object>
+	    		<tenant>
+	    			<sameAsSubject>true</sameAsSubject>
+	    			<includeTenantOrg>false</includeTenantOrg>
+	    		</tenant>
+	    	</object>
+	    	<target>
+		    	<type>OrgType</type>
+	    		<tenant>
+	    			<sameAsSubject>true</sameAsSubject>
+	    			<includeTenantOrg>true</includeTenantOrg>
+	    		</tenant>
+	    	</target>
+	    </authorization>
+	    <authorization>
+	    	<name>tenant admin assign local roles</name>
+	    	<description>Assign only roles/orgs/services that are local to the tenant.</description>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign</action>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#unassign</action>
+	    	<object>
+	    		<type>UserType</type>
+	    		<tenant>
+	    			<sameAsSubject>true</sameAsSubject>
+	    			<includeTenantOrg>false</includeTenantOrg>
+	    		</tenant>
+	    	</object>
+	    	<target>
+		    	<type>AbstractRoleType</type>
+	    		<tenant>
+	    			<sameAsSubject>true</sameAsSubject>
+	    			<includeTenantOrg>false</includeTenantOrg>
+	    		</tenant>
+	    	</target>
+	    </authorization>
 	    
 	    <!-- Common admin authorizations -->
         <authorization>
