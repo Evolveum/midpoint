@@ -832,25 +832,6 @@ public class AssignmentProcessor {
 				}
 			}
 			
-			if (tenantOid == null && (objectNew.canRepresent(ResourceType.class) || objectNew.canRepresent(TaskType.class))) {
-				// This is somehow "future legacy" code. It will be removed later when we have better support for organizational structure
-				// membership in resources and tasks.
-				String desc = "parentOrgRef in "+objectNew;
-				for (ObjectReferenceType parentOrgRef: objectNew.asObjectable().getParentOrgRef()) {
-					OrgType parentOrg = objectResolver.resolve(parentOrgRef, OrgType.class, null, desc, task, result);
-					ObjectReferenceType parentTenantRef = parentOrg.getTenantRef();
-					if (parentTenantRef == null || parentTenantRef.getOid() == null) {
-						continue;
-					}
-					if (tenantOid == null) {
-						tenantOid = parentTenantRef.getOid();
-					} else {
-						if (!parentTenantRef.getOid().equals(tenantOid)) {
-							throw new PolicyViolationException("Two different tenants ("+tenantOid+", "+parentTenantRef.getOid()+") applicable to "+context.getFocusContext().getHumanReadableName());
-						}
-					}
-				}
-			}
 		}
 		
 		addTenantRefDelta(context, objectNew, tenantOid);

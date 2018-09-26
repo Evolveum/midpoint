@@ -12503,6 +12503,15 @@
                    </xsd:documentation>
                </xsd:annotation>
            </xsd:element>
+           <xsd:element name="includeTenantOrg" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				If set to true then the tenant org (the one which the objects belongs to) is included
+        				in the scope.
+        				If set to false then the tenant org is excluded from the scope. 
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
 			<!-- allow empty tenant? -->
 			<!-- TODO: add explicit tenantRef? -->
         </xsd:sequence>
