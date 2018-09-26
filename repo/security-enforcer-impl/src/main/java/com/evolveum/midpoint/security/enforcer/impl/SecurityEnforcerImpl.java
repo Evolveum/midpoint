@@ -100,6 +100,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgRelationObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgScopeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OwnedObjectSelectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleRelationObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SpecialObjectSpecificationType;
@@ -721,6 +722,16 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 						LOGGER.trace("    {}: tenant object spec not applicable for {}, object OID {} because of tenant mismatch",
 								autzHumanReadableDesc, desc, object.getOid());
 						return false;
+					}
+					if (!BooleanUtils.isTrue(tenantSpec.isIncludeTenantOrg())) {
+						O objectType = object.asObjectable();
+						if (objectType instanceof OrgType) {
+							if (BooleanUtils.isTrue(((OrgType)objectType).isTenant())) {
+								LOGGER.trace("    {}: tenant object spec not applicable for {}, object OID {} because it is a tenant org and it is not included",
+										autzHumanReadableDesc, desc, object.getOid());
+								return false;
+							}
+						}
 					}
 				} else {
 					LOGGER.trace("    {}: tenant object spec not applicable for {}, object OID {} because there is a strange tenant specificaiton in authorization",
@@ -1562,8 +1573,16 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 				tenantFilter = QueryBuilder.queryFor(ObjectType.class, prismContext)
 					.item(ObjectType.F_TENANT_REF).ref(subjectTenantRef.getOid())
 					.buildFilter();
-				LOGGER.trace("    applying tenant filter {}", tenantFilter);
 			}
+			if (!BooleanUtils.isTrue(specTenant.isIncludeTenantOrg())) {
+				ObjectFilter notTenantFilter = QueryBuilder.queryFor(ObjectType.class, prismContext)
+						.not()
+							.type(OrgType.class)
+								.item(OrgType.F_TENANT).eq(true)
+						.buildFilter();
+				tenantFilter = ObjectQueryUtil.filterAnd(tenantFilter, notTenantFilter);
+			}
+			LOGGER.trace("    applying tenant filter {}", tenantFilter);
 		} else {
 			tenantFilter = NoneFilter.createNone();
 			LOGGER.trace("    tenant authorization empty (none filter)");
