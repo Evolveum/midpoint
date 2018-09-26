@@ -989,7 +989,17 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		QName assignmentRelation = getModelObject().getTargetRef() != null ? getModelObject().getTargetRef().getRelation() : null;
 		
 		RelationDropDownChoicePanel relationDropDown = new RelationDropDownChoicePanel(ID_RELATION,
-				assignmentRelation != null ? assignmentRelation : WebComponentUtil.getDefaultRelationOrFail(), getSupportedRelations(), false);		relationDropDown.setEnabled(getModel().getObject().isEditable());
+				assignmentRelation != null ? assignmentRelation : WebComponentUtil.getDefaultRelationOrFail(), getSupportedRelations(), false){
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void onValueChanged(AjaxRequestTarget target){
+				ObjectReferenceType ref = AssignmentEditorPanel.this.getModelObject().getTargetRef();
+				if (ref != null){
+					ref.setRelation(getRelationValue());
+				}
+			}
+		};		relationDropDown.setEnabled(getModel().getObject().isEditable());
 		relationDropDown.add(new VisibleEnableBehaviour() {
 
 			private static final long serialVersionUID = 1L;
