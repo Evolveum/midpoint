@@ -18,6 +18,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -268,7 +269,13 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             storage.getRoleCatalog().getAssignmentShoppingCart().clear();
         } catch (Exception e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Could not save assignments ", e);
-            error(createStringResource("PageAssignmentsList.saveAssignmentsError").getString() + e.getLocalizedMessage());
+            result.recordFatalError(e);
+            if (e instanceof CommonException){
+                error(createStringResource("PageAssignmentsList.saveAssignmentsError").getString() +
+                        ((CommonException) e).getLocalizedUserFriendlyMessage());
+            } else {
+                error(createStringResource("PageAssignmentsList.saveAssignmentsError").getString() + e.getLocalizedMessage());
+            }
             target.add(getFeedbackPanel());
         } finally {
             result.recomputeStatus();
@@ -458,7 +465,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                     .getEvaluatedAssignmentTriple();
             Collection<? extends EvaluatedAssignment> addedAssignments = evaluatedAssignmentTriple.getPlusSet();
             for (EvaluatedAssignment<UserType> evaluatedAssignment : addedAssignments) {
-            	
+
                 for (EvaluatedPolicyRule policyRule : evaluatedAssignment.getAllTargetsPolicyRules()) {
                     if (!policyRule.containsEnabledAction()) {
                         continue;
