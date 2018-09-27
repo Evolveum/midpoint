@@ -152,7 +152,7 @@ public class Visualizer {
 		List<SceneImpl> rv = new ArrayList<>(deltas.size());
 		for (ObjectDelta<? extends ObjectType> delta : deltas) {
 			if (!delta.isEmpty()) {
-				final SceneImpl scene = visualizeDelta(delta, null, context, task, result);
+				final SceneImpl scene = visualizeDelta(delta, null, null, context, task, result);
 				if (!scene.isEmpty()) {
 					rv.add(scene);
 				}
@@ -163,10 +163,15 @@ public class Visualizer {
 
 	@NotNull
 	public SceneImpl visualizeDelta(ObjectDelta<? extends ObjectType> objectDelta, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException {
+		return visualizeDelta(objectDelta, null, task, parentResult);
+	}
+
+	@NotNull
+	public SceneImpl visualizeDelta(ObjectDelta<? extends ObjectType> objectDelta, ObjectReferenceType objectRef, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException {
 		OperationResult result = parentResult.createSubresult(CLASS_DOT + "visualizeDelta");
 		try {
 			resolver.resolve(objectDelta, task, result);
-			return visualizeDelta(objectDelta, null, new VisualizationContext(), task, result);
+			return visualizeDelta(objectDelta, null, objectRef, new VisualizationContext(), task, result);
 		} catch (RuntimeException | Error | SchemaException | ExpressionEvaluationException e) {
 			result.recordFatalError("Couldn't visualize the data structure: " + e.getMessage(), e);
 			throw e;
@@ -175,7 +180,8 @@ public class Visualizer {
 		}
 	}
 
-	private SceneImpl visualizeDelta(ObjectDelta<? extends ObjectType> objectDelta, SceneImpl owner, VisualizationContext context, Task task, OperationResult result)
+	private SceneImpl visualizeDelta(ObjectDelta<? extends ObjectType> objectDelta, SceneImpl owner, ObjectReferenceType objectRef,
+									 VisualizationContext context, Task task, OperationResult result)
 			throws SchemaException {
 		SceneImpl scene = new SceneImpl(owner);
 		scene.setChangeType(objectDelta.getChangeType());
@@ -196,7 +202,7 @@ public class Visualizer {
 			scene.setSourceValue(object.getValue());
 			scene.setSourceDefinition(object.getDefinition());
 		} else {
-			scene.setName(createSceneName(objectDelta.getOid()));
+			scene.setName(createSceneName(objectDelta.getOid(), objectRef));
 		}
 		if (objectDelta.isAdd()) {
 			if (object == null) {
@@ -865,9 +871,15 @@ public class Visualizer {
 		return name;
 	}
 
-	private NameImpl createSceneName(String oid) {
+	private NameImpl createSceneName(String oid, ObjectReferenceType objectRef) {
 		NameImpl nv = new NameImpl(oid);
 		nv.setId(oid);
+		if (objectRef != null && objectRef.asReferenceValue() != null && objectRef.asReferenceValue().getObject() != null){
+			PrismObject<ObjectType> object = objectRef.asReferenceValue().getObject();
+			if (object.asObjectable().getName() != null){
+				nv.setDisplayName(object.asObjectable().getName().getOrig());
+			}
+		}
 		nv.setNamesAreResourceKeys(false);
 		return nv;
 	}

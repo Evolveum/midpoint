@@ -857,6 +857,12 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	}
 
 	@Override
+	@NotNull
+	public Scene visualizeDelta(ObjectDelta<? extends ObjectType> delta, ObjectReferenceType objectRef, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
+		return visualizer.visualizeDelta(delta, objectRef, task, result);
+	}
+
+	@Override
 	public List<ConnectorOperationalStatus> getConnectorOperationalStatus(String resourceOid, Task task, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		OperationResult result = parentResult.createMinorSubresult(GET_CONNECTOR_OPERATIONAL_STATUS);
