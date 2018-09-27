@@ -31,18 +31,97 @@
 		<name>Tenant Admin Role</name>
 		<!-- No tenant assignment here -->
 		<authorization>
-	    	<name>tenant admin autz</name>
+	    	<name>tenant admin autz read</name>
 	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
-	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
-	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delete</action>
 	    	<object>
 	    		<tenant>
 	    			<sameAsSubject>true</sameAsSubject>
+	    			<includeTenantOrg>true</includeTenantOrg>
+	    		</tenant>
+	    	</object>
+	    </authorization>
+	    <authorization>
+	    	<name>tenant admin autz read root</name>
+	    	<description>Read permission for org root. Otherwise we couldn't browse our own tenant</description>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+	    	<object>
+	    		<type>OrgType</type>
+	    		<filter>
+	    			<q:equal>
+	    				<q:path>subtype</q:path>
+	    				<q:value>root</q:value>
+	    			</q:equal>
+	    		</filter>
+	    	</object>
+	    </authorization>
+	    <authorization>
+	    	<name>tenant admin autz write req</name>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+	    	<phase>request</phase>
+	    	<object>
+	    		<tenant>
+	    			<sameAsSubject>true</sameAsSubject>
+	    			<includeTenantOrg>false</includeTenantOrg>
 	    		</tenant>
 	    	</object>
 	    	<exceptItem>tenant</exceptItem>
 	    	<exceptItem>tenantRef</exceptItem>
+	    	<!-- We do not want tenant admins to create roles with explicit authorizations. That may circumvent tenant isolation.
+	    	     E.g. tenant admin could create role that can allow access to all objects.
+	    	     Therefore all roles that require authorizations need to be create on top level (no tenant).
+	    	     And then tenants will only create inducements to them. -->
+	    	<exceptItem>authorization</exceptItem>
+	    	<!-- We do not want tenants to create any assignment/inducement to any role. Otherwise the tenant admin
+	    	     can create inducement to Superuser role and that may circumvent tenant isolation. -->
+	    	<exceptItem>assignment</exceptItem>
+	    	<exceptItem>inducement</exceptItem>
+	    </authorization>
+	    <authorization>
+	    	<name>tenant admin autz write exec</name>
+	    	<description>
+	    		Assging and unassign authorizations apply only in request phase. We need to allow all assignments here.
+	    	    But we do not worry here. The assignments were already checked in request phase.
+	    	</description>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+	    	<phase>execution</phase>
+	    	<object>
+	    		<tenant>
+	    			<sameAsSubject>true</sameAsSubject>
+	    			<includeTenantOrg>false</includeTenantOrg>
+	    		</tenant>
+	    	</object>
+	    </authorization>
+	    <authorization>
+	    	<name>tenant admin autz delete</name>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delete</action>
+	    	<object>
+	    		<tenant>
+	    			<sameAsSubject>true</sameAsSubject>
+	    			<includeTenantOrg>false</includeTenantOrg>
+	    		</tenant>
+	    	</object>
+	    </authorization>
+	    <authorization>
+	    	<name>tenant admin assign local roles</name>
+	    	<description>Assign only roles/orgs/services that are local to the tenant.</description>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign</action>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#unassign</action>
+	    	<object>
+	    		<type>FocusType</type>
+	    		<tenant>
+	    			<sameAsSubject>true</sameAsSubject>
+	    			<includeTenantOrg>false</includeTenantOrg>
+	    		</tenant>
+	    	</object>
+	    	<target>
+		    	<type>AbstractRoleType</type>
+	    		<tenant>
+	    			<sameAsSubject>true</sameAsSubject>
+	    			<includeTenantOrg>true</includeTenantOrg>
+	    		</tenant>
+	    	</target>
 	    </authorization>
 	</role>
 	

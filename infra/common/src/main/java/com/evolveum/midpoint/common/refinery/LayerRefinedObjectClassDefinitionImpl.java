@@ -692,4 +692,9 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	public Integer getInstantiationOrder() {
 		return null;
 	}
+
+	@Override
+	public boolean canRepresent(QName specTypeQName) {
+		return refinedObjectClassDefinition.canRepresent(specTypeQName);
+	}
 }

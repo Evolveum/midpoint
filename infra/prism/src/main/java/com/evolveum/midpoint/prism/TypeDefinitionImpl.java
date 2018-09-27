@@ -18,6 +18,8 @@ package com.evolveum.midpoint.prism;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.util.QNameUtil;
+
 import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.HashSet;
@@ -79,6 +81,18 @@ public abstract class TypeDefinitionImpl extends DefinitionImpl implements TypeD
 		super.copyDefinitionData(clone);
 		clone.superType = this.superType;
 		clone.compileTimeClass = this.compileTimeClass;
+	}
+	
+	@Override
+	public boolean canRepresent(QName specTypeQName) {
+		if (QNameUtil.match(specTypeQName, getTypeName())) {
+			return true;
+		}
+		if (superType != null) {
+			ComplexTypeDefinition supertypeDef = getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByType(superType);
+			return supertypeDef.canRepresent(specTypeQName);
+		}
+		return false;
 	}
 
 	@Override

@@ -325,6 +325,12 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 		}
 		return schemaHandlingObjectTypeDefinitionType.getProjection();
 	}
+	
+	@Override
+	public boolean canRepresent(QName specTypeQName) {
+		return originalObjectClassDefinition.canRepresent(specTypeQName);
+	}
+	
 	//endregion
 
 	//region Generating and matching artifacts ========================================================

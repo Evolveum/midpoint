@@ -71,6 +71,9 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
 	protected static final String ORG_JUNCTION_NAME = "Junction";
 	protected static final String ORG_JUNCTION_DISPLAY_NAME = "Plannet Junction";
 	
+	protected static final File ORG_GUILD_SUBTENANT_FILE = new File(TEST_DIR, "org-guild-subtenant.xml");
+	protected static final String ORG_GUILD_SUBTENANT_OID = "00000000-8888-6666-a001-000000000fff";
+	
 	protected static final String ROLE_GUILD_BROKEN_ADMIN_OID = "00000000-8888-6666-a001-100000000001";
 	
 	protected static final String USER_EDRIC_OID = "00000000-8888-6666-a001-200000000000";
@@ -117,7 +120,13 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
 	protected static final String ORG_CASTLE_CALADAN_NAME = "Castle Caladan";
 	protected static final String ORG_CASTLE_CALADAN_DISPLAY_NAME = "Castle Caladan";
 	
+	protected static final File ORG_ATREIDES_SUBTENANT_FILE = new File(TEST_DIR, "org-atreides-subtenant.xml");
+	protected static final String ORG_ATREIDES_SUBTENANT_OID = "00000000-8888-6666-a200-000000000fff";
+	
 	protected static final String ROLE_ATREIDES_ADMIN_OID = "00000000-8888-6666-a200-100000000000";
+	
+	protected static final String ROLE_ATREIDES_GUARD_OID = "00000000-8888-6666-a200-100000000002";
+	protected static final File ROLE_ATREIDES_GUARD_FILE = new File(TEST_DIR, "role-atreides-guard.xml");
 	
 	protected static final String USER_LETO_ATREIDES_OID = "00000000-8888-6666-a200-200000000000";
 	protected static final String USER_LETO_ATREIDES_NAME = "leto";
@@ -143,7 +152,10 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
 	protected static final String ORG_GIEDI_PRIME_OID = "00000000-8888-6666-a300-000000000001";
 	protected static final String ORG_GIEDI_PRIME_NAME = "Geidi Prime";
 	protected static final String ORG_GIEDI_PRIME_DISPLAY_NAME = "Plannet Geidi Prime";
-	
+
+	protected static final File ORG_HARKONNEN_SUBTENANT_FILE = new File(TEST_DIR, "org-harkonnen-subtenant.xml");
+	protected static final String ORG_HARKONNEN_SUBTENANT_OID = "00000000-8888-6666-a300-000000000fff";
+
 	protected static final String ROLE_HARKONNEN_ADMIN_OID = "00000000-8888-6666-a300-100000000000";
 	
 	protected static final String USER_VLADIMIR_HARKONNEN_OID = "00000000-8888-6666-a300-200000000000";
@@ -435,6 +447,8 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         assertGlobalStateUntouched();
 	}
 	
+	// TODO: add role with authorizations
+	
 	/**
 	 * MID-4882
 	 */
@@ -464,6 +478,8 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         
         assertGlobalStateUntouched();
 	}
+	
+	// TODO: add authorizations to existing role
 	
 	/**
 	 * MID-4882
@@ -540,7 +556,7 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         
         assertGlobalStateUntouched();
 	}
-	
+
 	/**
 	 * MID-4882
 	 */
@@ -558,7 +574,6 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
 
         // Matching tenant
         assertAddAllow(ORG_ARRAKIS_FILE);
-        display("HEREHERE");
         assertAddAllow(ORG_CASTLE_CALADAN_FILE);
         
         // Wrong tenant
@@ -593,6 +608,118 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
 			.assertTenantRef(ORG_ATREIDES_OID)
 	    	.assertParentOrgRefs(ORG_CALADAN_OID)
 	    	.assertLinks(0);
+        
+        assertGlobalStateUntouched();
+	}
+	
+	/**
+	 * Tenant admin must not be able to add, modify or delete a tenant.
+	 */
+	@Test
+    public void test112AutzLetoProtectTenant() throws Exception {
+		final String TEST_NAME = "test112AutzLetoProtectTenant";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(null);
+
+        login(USER_LETO_ATREIDES_NAME);
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        
+        // Matching tenant
+        assertAddDeny(ORG_ATREIDES_SUBTENANT_FILE);
+        assertModifyDeny(OrgType.class, ORG_ATREIDES_OID, OrgType.F_LOCALITY, createPolyString("Arrakis"));
+        assertModifyDeny(OrgType.class, ORG_ATREIDES_OID, OrgType.F_TENANT, false);
+        assertModifyDeny(OrgType.class, ORG_ATREIDES_OID, OrgType.F_TENANT /* no value */);
+        // Attempt to "move" tenant, make it a root node
+        assertDeny("unassign root", 
+        		(task, result) -> unassignOrg(OrgType.class, ORG_ATREIDES_OID, ORG_ROOT_OID, task, result));
+        // Attempt to assign new org to tenant. Target of new assignment is org that we control.
+        assertDeny("assign caladan", 
+        		(task, result) -> assignOrg(OrgType.class, ORG_ATREIDES_OID, ORG_CALADAN_OID, task, result));
+        // Attempt to assign new org to tenant. Target of new assignment is org that we do not control.
+        assertDeny("assign kaitain", 
+        		(task, result) -> assignOrg(OrgType.class, ORG_ATREIDES_OID, ORG_KAITAIN_OID, task, result));
+        assertDeleteDeny(OrgType.class, ORG_ATREIDES_OID);
+        
+        // Wrong tenant
+        assertAddDeny(ORG_HARKONNEN_SUBTENANT_FILE);
+        assertModifyDeny(OrgType.class, ORG_HARKONNEN_OID, OrgType.F_LOCALITY, createPolyString("Arrakis"));
+        assertModifyDeny(OrgType.class, ORG_HARKONNEN_OID, OrgType.F_TENANT, false);
+        assertModifyDeny(OrgType.class, ORG_HARKONNEN_OID, OrgType.F_TENANT /* no value */);
+        // Attempt to "move" tenant, make it a root node
+        assertDeny("unassign root", 
+        		(task, result) -> unassignOrg(OrgType.class, ORG_HARKONNEN_OID, ORG_ROOT_OID, task, result));
+        // Attempt to assign new org to tenant. Target of new assignment is org that we control.
+        assertDeny("assign caladan", 
+        		(task, result) -> assignOrg(OrgType.class, ORG_HARKONNEN_OID, ORG_CALADAN_OID, task, result));
+        // Attempt to assign new org to tenant. Target of new assignment is org that we do not control.
+        assertDeny("unassign root", 
+        		(task, result) -> assignOrg(OrgType.class, ORG_HARKONNEN_OID, ORG_KAITAIN_OID, task, result));
+        assertDeleteDeny(OrgType.class, ORG_HARKONNEN_OID);
+        
+        // No tenant
+        assertAddDeny(ORG_GUILD_SUBTENANT_FILE);
+        assertModifyDeny(OrgType.class, ORG_GUILD_OID, OrgType.F_LOCALITY, createPolyString("Arrakis"));
+        assertModifyDeny(OrgType.class, ORG_GUILD_OID, OrgType.F_TENANT, false);
+        assertModifyDeny(OrgType.class, ORG_GUILD_OID, OrgType.F_TENANT /* no value */);
+        // Attempt to "move" tenant, make it a root node
+        assertDeny("unassign root", 
+        		(task, result) -> unassignOrg(OrgType.class, ORG_GUILD_OID, ORG_ROOT_OID, task, result));
+        // Attempt to assign new org to tenant. Target of new assignment is org that we control.
+        assertDeny("assign caladan", 
+        		(task, result) -> assignOrg(OrgType.class, ORG_GUILD_OID, ORG_CALADAN_OID, task, result));
+        // Attempt to assign new org to tenant. Target of new assignment is org that we do not control.
+        assertDeny("unassign root", 
+        		(task, result) -> assignOrg(OrgType.class, ORG_GUILD_OID, ORG_KAITAIN_OID, task, result));
+        assertDeleteDeny(OrgType.class, ORG_GUILD_OID);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        
+        assertGlobalStateUntouched();
+	}
+	
+	/**
+	 * Make sure that tenant admin cannot break tenant isolation.
+	 * E.g. that cannot move object outside of his domain of control.
+	 */
+	@Test
+    public void test114AutzLetoKeepWithinTenant() throws Exception {
+		final String TEST_NAME = "test114AutzLetoKeepWithinTenant";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(null);
+
+        login(USER_LETO_ATREIDES_NAME);
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        
+        assertAddAllow(ROLE_ATREIDES_GUARD_FILE);
+        
+        assertAllow("assign guard to arrakis", 
+        		(task, result) -> assignOrg(RoleType.class, ROLE_ATREIDES_GUARD_OID, ORG_ARRAKIS_OID, task, result));
+        
+        assertRoleAfter(ROLE_ATREIDES_GUARD_OID)
+        	.assertTenantRef(ORG_ATREIDES_OID);
+        
+        // Guard role is still in the same tenant, so this should go well.
+        assertAllow("unassign guard from caladan", 
+        		(task, result) -> unassignOrg(RoleType.class, ROLE_ATREIDES_GUARD_OID, ORG_CALADAN_OID, task, result));
+        
+        assertRoleAfter(ROLE_ATREIDES_GUARD_OID)
+        	.assertTenantRef(ORG_ATREIDES_OID);
+
+        // WORK IN PROGRESS
+//        display("HEREHERE");
+//        // This would make Castle Caladan a root object - outside out tenant zone of control.
+//        assertDeny("unassign caladan castle from caladan", 
+//        		(task, result) -> unassignOrg(OrgType.class, ORG_CASTLE_CALADAN_OID, ORG_CALADAN_OID, task, result));
+        
+        // THEN
+        displayThen(TEST_NAME);
         
         assertGlobalStateUntouched();
 	}
@@ -638,6 +765,7 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         assertGlobalStateUntouched();
 	}	
 	
+
 
 	
 }
