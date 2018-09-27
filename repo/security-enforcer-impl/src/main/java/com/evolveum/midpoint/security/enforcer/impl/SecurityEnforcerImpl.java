@@ -562,6 +562,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			MidPointPrincipal principal, OwnerResolver ownerResolver, String desc, String autzHumanReadableDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ObjectFilterExpressionEvaluator filterExpressionEvaluator = createFilterEvaluator(principal, desc, autzHumanReadableDesc, task, result);
 		if (!repositoryService.selectorMatches(objectSelector, object, filterExpressionEvaluator, LOGGER, "    " + autzHumanReadableDesc + " not applicable for " + desc + " because of")) {
+			// No need to log inapplicability here. It should be logged inside repositoryService.selectorMatches()
 			return false;
 		}
 
@@ -593,6 +594,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 					throw new SchemaException("Unsupported special "+desc+" specification specified in "+autzHumanReadableDesc+": "+special);
 				}
 			}
+			LOGGER.trace("    {}: special authorization not applicable for {}", autzHumanReadableDesc, desc);
 			return false;
 		} else {
 			LOGGER.trace("    {}: specials empty: {}", autzHumanReadableDesc, specSpecial);
