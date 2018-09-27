@@ -1068,8 +1068,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		PrismObjectDefinition<O> objectDefinition = object.getDefinition();
 
 		// Type
-		if (specTypeQName != null && !QNameUtil.match(specTypeQName, objectDefinition.getTypeName())) {
-			if (LOGGER.isTraceEnabled()) {
+		if (specTypeQName != null && !object.canRepresent(specTypeQName)) {
+			if (logger.isTraceEnabled()) {
 				logger.trace("{} type mismatch, expected {}, was {}", 
 						logMessagePrefix, PrettyPrinter.prettyPrint(specTypeQName), PrettyPrinter.prettyPrint(objectDefinition.getTypeName()));
 			}
@@ -1110,7 +1110,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		// Org
 		if (specOrgRef != null) {
 			if (!isDescendant(object, specOrgRef.getOid())) {
-				LOGGER.trace("{} object OID {} (org={})",
+				logger.trace("{} object OID {} (org={})",
 						logMessagePrefix, object.getOid(), specOrgRef.getOid());
 				return false;
 			}

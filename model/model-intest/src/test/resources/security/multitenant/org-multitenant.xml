@@ -104,31 +104,12 @@
 	    	</object>
 	    </authorization>
 	    <authorization>
-	    	<name>tenant admin assign tenant</name>
-	    	<description>Hotel California of Tenancy. Tenant admin can only assign object to a tenant. Cannot unassign it.
-	    	             Tenant objects can never leave. They can only be deleted.</description>
-	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign</action>
-	    	<object>
-	    		<tenant>
-	    			<sameAsSubject>true</sameAsSubject>
-	    			<includeTenantOrg>false</includeTenantOrg>
-	    		</tenant>
-	    	</object>
-	    	<target>
-		    	<type>OrgType</type>
-	    		<tenant>
-	    			<sameAsSubject>true</sameAsSubject>
-	    			<includeTenantOrg>true</includeTenantOrg>
-	    		</tenant>
-	    	</target>
-	    </authorization>
-	    <authorization>
 	    	<name>tenant admin assign local roles</name>
 	    	<description>Assign only roles/orgs/services that are local to the tenant.</description>
 	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign</action>
 	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#unassign</action>
 	    	<object>
-	    		<type>UserType</type>
+	    		<type>FocusType</type>
 	    		<tenant>
 	    			<sameAsSubject>true</sameAsSubject>
 	    			<includeTenantOrg>false</includeTenantOrg>
@@ -138,7 +119,7 @@
 		    	<type>AbstractRoleType</type>
 	    		<tenant>
 	    			<sameAsSubject>true</sameAsSubject>
-	    			<includeTenantOrg>false</includeTenantOrg>
+	    			<includeTenantOrg>true</includeTenantOrg>
 	    		</tenant>
 	    	</target>
 	    </authorization>
