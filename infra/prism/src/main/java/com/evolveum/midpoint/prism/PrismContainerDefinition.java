@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,4 +57,6 @@ public interface PrismContainerDefinition<C extends Containerable> extends ItemD
 	PrismContainerValue<C> createValue();
 
 	boolean isEmpty();
+
+	boolean canRepresent(QName type);
 }

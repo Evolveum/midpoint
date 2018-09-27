@@ -483,6 +483,11 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 			return true;
 		}
 	}
+	
+	@Override
+	public boolean canRepresent(QName specTypeQName) {
+		return complexTypeDefinition.canRepresent(specTypeQName);
+	}
 
 	@Override
 	public PrismContainerValue<C> createValue() {

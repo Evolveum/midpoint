@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,7 +51,8 @@ import static java.util.Collections.emptySet;
  *
  */
 public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefinedObjectClassDefinition {
-
+	private static final long serialVersionUID = 1L;
+	
 	@NotNull private final RefinedObjectClassDefinition structuralObjectClassDefinition;
 	@NotNull private final Collection<RefinedObjectClassDefinition> auxiliaryObjectClassDefinitions;
 
@@ -777,5 +778,18 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	@Override
 	public Integer getInstantiationOrder() {
 		return null;
+	}
+
+	@Override
+	public boolean canRepresent(QName specTypeQName) {
+		if (structuralObjectClassDefinition.canRepresent(specTypeQName)) {
+			return true;
+		}
+		for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition : auxiliaryObjectClassDefinitions) {
+			if (auxiliaryObjectClassDefinition.canRepresent(specTypeQName)) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

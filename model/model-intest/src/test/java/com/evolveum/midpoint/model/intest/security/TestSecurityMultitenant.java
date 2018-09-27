@@ -125,6 +125,9 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
 	
 	protected static final String ROLE_ATREIDES_ADMIN_OID = "00000000-8888-6666-a200-100000000000";
 	
+	protected static final String ROLE_ATREIDES_GUARD_OID = "00000000-8888-6666-a200-100000000002";
+	protected static final File ROLE_ATREIDES_GUARD_FILE = new File(TEST_DIR, "role-atreides-guard.xml");
+	
 	protected static final String USER_LETO_ATREIDES_OID = "00000000-8888-6666-a200-200000000000";
 	protected static final String USER_LETO_ATREIDES_NAME = "leto";
 	protected static final String USER_LETO_ATREIDES_FULL_NAME = "Duke Leto Atreides";
@@ -611,7 +614,6 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
 	
 	/**
 	 * Tenant admin must not be able to add, modify or delete a tenant.
-	 * @throws Exception
 	 */
 	@Test
     public void test112AutzLetoProtectTenant() throws Exception {
@@ -672,6 +674,49 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         assertDeny("unassign root", 
         		(task, result) -> assignOrg(OrgType.class, ORG_GUILD_OID, ORG_KAITAIN_OID, task, result));
         assertDeleteDeny(OrgType.class, ORG_GUILD_OID);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        
+        assertGlobalStateUntouched();
+	}
+	
+	/**
+	 * Make sure that tenant admin cannot break tenant isolation.
+	 * E.g. that cannot move object outside of his domain of control.
+	 */
+	@Test
+    public void test114AutzLetoKeepWithinTenant() throws Exception {
+		final String TEST_NAME = "test114AutzLetoKeepWithinTenant";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(null);
+
+        login(USER_LETO_ATREIDES_NAME);
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        
+        assertAddAllow(ROLE_ATREIDES_GUARD_FILE);
+        
+        assertAllow("assign guard to arrakis", 
+        		(task, result) -> assignOrg(RoleType.class, ROLE_ATREIDES_GUARD_OID, ORG_ARRAKIS_OID, task, result));
+        
+        assertRoleAfter(ROLE_ATREIDES_GUARD_OID)
+        	.assertTenantRef(ORG_ATREIDES_OID);
+        
+        // Guard role is still in the same tenant, so this should go well.
+        assertAllow("unassign guard from caladan", 
+        		(task, result) -> unassignOrg(RoleType.class, ROLE_ATREIDES_GUARD_OID, ORG_CALADAN_OID, task, result));
+        
+        assertRoleAfter(ROLE_ATREIDES_GUARD_OID)
+        	.assertTenantRef(ORG_ATREIDES_OID);
+
+        // WORK IN PROGRESS
+//        display("HEREHERE");
+//        // This would make Castle Caladan a root object - outside out tenant zone of control.
+//        assertDeny("unassign caladan castle from caladan", 
+//        		(task, result) -> unassignOrg(OrgType.class, ORG_CASTLE_CALADAN_OID, ORG_CALADAN_OID, task, result));
         
         // THEN
         displayThen(TEST_NAME);
