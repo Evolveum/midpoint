@@ -487,7 +487,7 @@ public class EncodingTest extends BaseSQLRepoTest {
     private static final String USER_GIVEN_NAME = "P\u00f3lic\u00edja, p\u00f3lic\u00edja, S\u00e1la\u0161\u00e1ry, pr\u00e1va Jova. Z c\u00e9sty pr\u00edva, z c\u00e9sty pr\u00e1va, s\u00fdmpatika, korpora. Popul\u00e1ry, Karpatula. Juv\u00e1 svorno polic\u00e1na. Kerl\u00e9\u0161 na strach, polic\u00edja. Bumtar\u00e1ra, bumtar\u00e1ra, bum. ";//"Fëľïx";
     private static final String USER_FAMILY_NAME = "ŢæĺêkéčišćeľščťžýáíéäöåøřĺąćęłńóśźżrůāēīūŗļķņģšžčāäǟḑēīļņōȯȱõȭŗšțūžÇĞIİÖŞÜáàâéèêíìîóòôúùûáâãçéêíóôõúÁáĄąÄäÉéĘęĚěÍíÓóÔôÚúŮůÝýČčĎďŤťĽľĹĺŇňŔŕŘřŠšŽž";
     private static final String[] USER_ORGANIZATION = {"COMITATVS NOBILITVS HVNGARIÆ", "Salsa Verde ğomorula prïvatûła"};
-    private static final String[] USER_EMPLOYEE_TYPE = {"Ģŗąfųŀą", "CANTATOR"};
+    private static final String[] USER_SUBTYPE = {"Ģŗąfųŀą", "CANTATOR"};
     private static final String INSANE_NATIONAL_STRING = "Pørúga ném nå väšȍm apârátula";
 
     private RandomString randomString;
@@ -527,8 +527,8 @@ public class EncodingTest extends BaseSQLRepoTest {
         userType.setGivenName(toPolyStringType(USER_GIVEN_NAME));
         userType.setFamilyName(toPolyStringType(USER_FAMILY_NAME));
         userType.setTitle(toPolyStringType(INSANE_NATIONAL_STRING));
-        userType.getEmployeeType().add(USER_EMPLOYEE_TYPE[0]);
-        userType.getEmployeeType().add(USER_EMPLOYEE_TYPE[1]);
+        userType.getSubtype().add(USER_SUBTYPE[0]);
+        userType.getSubtype().add(USER_SUBTYPE[1]);
         userType.getOrganization().add(toPolyStringType(USER_ORGANIZATION[0]));
         userType.getOrganization().add(toPolyStringType(USER_ORGANIZATION[1]));
 
@@ -604,7 +604,7 @@ public class EncodingTest extends BaseSQLRepoTest {
         checkUserPropertyPolyString(userRetrieved, UserType.F_GIVEN_NAME, subresult, USER_GIVEN_NAME);
         checkUserPropertyPolyString(userRetrieved, UserType.F_FAMILY_NAME, subresult, USER_FAMILY_NAME);
         checkUserPropertyPolyString(userRetrieved, UserType.F_TITLE, subresult, INSANE_NATIONAL_STRING);
-        checkUserProperty(userRetrieved, UserType.F_EMPLOYEE_TYPE, subresult, USER_EMPLOYEE_TYPE);
+        checkUserProperty(userRetrieved, UserType.F_SUBTYPE, subresult, USER_SUBTYPE);
         checkUserPropertyPolyString(userRetrieved, UserType.F_ORGANIZATION, subresult, USER_ORGANIZATION);
         checkUserProperty(userRetrieved, UserType.F_DESCRIPTION, subresult, POLICIJA);
     }

@@ -425,8 +425,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 								}
 								PrismObject<? extends ObjectType> objectToAdd = delta.getObjectToAdd();
 								if (!preAuthorized) {
-									securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), null, AuthorizationParameters.Builder.buildObject(objectToAdd), null, task, result1);
-									securityEnforcer.authorize(ModelAuthorizationAction.ADD.getUrl(), null, AuthorizationParameters.Builder.buildObject(objectToAdd), null, task, result1);
+									securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), null, AuthorizationParameters.Builder.buildObjectAdd(objectToAdd), null, task, result1);
+									securityEnforcer.authorize(ModelAuthorizationAction.ADD.getUrl(), null, AuthorizationParameters.Builder.buildObjectAdd(objectToAdd), null, task, result1);
 								}
 								String oid;
 								try {
@@ -453,8 +453,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 										}
 									}
 									if (!preAuthorized) {
-										securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), null, AuthorizationParameters.Builder.buildObject(existingObject), null, task, result1);
-										securityEnforcer.authorize(ModelAuthorizationAction.DELETE.getUrl(), null, AuthorizationParameters.Builder.buildObject(existingObject), null, task, result1);
+										securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), null, AuthorizationParameters.Builder.buildObjectDelete(existingObject), null, task, result1);
+										securityEnforcer.authorize(ModelAuthorizationAction.DELETE.getUrl(), null, AuthorizationParameters.Builder.buildObjectDelete(existingObject), null, task, result1);
 									}
 									try {
 										if (ObjectTypes.isClassManagedByProvisioning(delta.getObjectTypeClass())) {
@@ -479,8 +479,9 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 									PrismObject existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result1);
 									objectToDetermineDetailsForAudit = existingObject;
 									if (!preAuthorized) {
-										securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), null, AuthorizationParameters.Builder.buildObject(existingObject), null, task, result1);
-										securityEnforcer.authorize(ModelAuthorizationAction.MODIFY.getUrl(), null, AuthorizationParameters.Builder.buildObjectDelta(existingObject, delta), null, task, result1);
+										AuthorizationParameters autzParams = AuthorizationParameters.Builder.buildObjectDelta(existingObject, delta);
+										securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), null, autzParams, null, task, result1);
+										securityEnforcer.authorize(ModelAuthorizationAction.MODIFY.getUrl(), null, autzParams, null, task, result1);
 									}
 									try {
 										cacheRepositoryService.modifyObject(delta.getObjectTypeClass(), delta.getOid(),

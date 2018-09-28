@@ -38,14 +38,14 @@
     		<type>UserType</type>
     		<filter>
 	            <q:equal>
-	               <q:path>employeeType</q:path>
-	               <q:value>CAPTAIN</q:value>
+	               <q:path>subtype</q:path>
+	               <q:value>captain</q:value>
 	            </q:equal>
 	        </filter>
     	</object>
     	<item>name</item>
     	<item>fullName</item>
-    	<!-- We need to specify employeeType explicitly here. See MID-4859 -->
-    	<item>employeeType</item>
+    	<!-- We need to specify subtype explicitly here. See MID-4859 -->
+    	<item>subtype</item>
     </authorization>
 </role>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.repo.common.expression;
+package com.evolveum.midpoint.prism.util;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,16 +32,21 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
- * @author semancik
- *
+ * A class defining old item state (before change), delta (change) and new item state (after change).
+ * This is a useful class used to describe how the item has changed without the need to re-apply the delta
+ * several times. The delta can be applied once, and then all the rest of the code will have all the data
+ * available. This is mostly just a convenience class that groups those three things together.
+ * There is only a very little logic on top of that.
+ * 
+ * @author Radovan Semancik
  */
 public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implements DebugDumpable {
 
-	Item<V,D> itemOld;
-	ItemDelta<V,D> delta;
-	Item<V,D> itemNew;
-	ItemPath resolvePath = ItemPath.EMPTY_PATH;
-	ItemPath residualPath = null;
+	private Item<V,D> itemOld;
+	private ItemDelta<V,D> delta;
+	private Item<V,D> itemNew;
+	private ItemPath resolvePath = ItemPath.EMPTY_PATH;
+	private ItemPath residualPath = null;
 
 	// The deltas in sub-items. E.g. if this object represents "ContainerDeltaContainer"
 	// this property contains property deltas that may exist inside the container.

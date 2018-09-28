@@ -111,6 +111,12 @@ public class OrgAsserter<RA> extends FocusAsserter<OrgType,RA> {
 	}
 	
 	@Override
+	public OrgAsserter<RA> assertSubtype(String... expected) {
+		super.assertSubtype(expected);
+		return this;
+	}
+	
+	@Override
 	public OrgAsserter<RA> assertTenantRef(String expectedOid) {
 		super.assertTenantRef(expectedOid);
 		return this;

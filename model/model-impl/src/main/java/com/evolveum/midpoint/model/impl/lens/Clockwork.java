@@ -51,6 +51,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -1361,6 +1362,7 @@ public class Clockwork {
 				currentObject = elementContext.getObjectOld();
 			}
 			primaryDelta = primaryDelta.clone();
+			ObjectDeltaObject<O> odo = elementContext.getObjectDeltaObject();
 			PrismObject<O> object = elementContext.getObjectCurrent();
 			if (object == null) {
 				// This may happen when object is being added.
@@ -1544,7 +1546,7 @@ public class Clockwork {
 				relation = prismContext.getDefaultRelation();
 			}
 			AuthorizationParameters<O,ObjectType> autzParams = new AuthorizationParameters.Builder<O,ObjectType>()
-					.object(object)
+					.oldObject(object)
 					.delta(assignmentObjectDelta)
 					.target(target)
 					.relation(relation)

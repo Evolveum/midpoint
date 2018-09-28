@@ -59,7 +59,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 
-		modifyUserAdd(USER_GUYBRUSH_OID, UserType.F_EMPLOYEE_TYPE, initTask, initResult,
+		modifyUserAdd(USER_GUYBRUSH_OID, UserType.F_SUBTYPE, initTask, initResult,
 				"SAILOR", "PIRATE WANNABE");
 		modifyUserAdd(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, initTask, initResult,
 				createPolyString("Pirate Wannabes"), createPolyString("Sailors"), createPolyString("Rum Club"), createPolyString("Lovers"));
@@ -143,7 +143,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertPropertyReplace(leftObjectdelta, UserType.F_ADDITIONAL_NAME);
         PrismAsserts.assertPropertyReplace(leftObjectdelta, UserType.F_LOCALITY,
         		createPolyString(USER_GUYBRUSH_LOCALITY));
-        PrismAsserts.assertPropertyAdd(leftObjectdelta, UserType.F_EMPLOYEE_TYPE,
+        PrismAsserts.assertPropertyAdd(leftObjectdelta, UserType.F_SUBTYPE,
         		"SAILOR", "PIRATE WANNABE");
         PrismAsserts.assertPropertyAdd(leftObjectdelta, UserType.F_ORGANIZATION,
         		createPolyString("Pirate Wannabes"), createPolyString("Lovers"));
@@ -202,7 +202,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertPropertyValue(object,
         		UserType.F_LOCALITY, createPolyString(USER_GUYBRUSH_LOCALITY));
         PrismAsserts.assertPropertyValue(object,
-        		UserType.F_EMPLOYEE_TYPE, USER_JACK_EMPLOYEE_TYPE, "SAILOR", "PIRATE WANNABE");
+        		UserType.F_SUBTYPE, USER_JACK_SUBTYPE, "SAILOR", "PIRATE WANNABE");
         PrismAsserts.assertPropertyValue(object,
         		UserType.F_ORGANIZATION,
         		createPolyString("Pirate Brethren"), createPolyString("Sailors"), createPolyString("Rum Club"),
@@ -259,8 +259,8 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         		createPolyString(USER_JACK_ADDITIONAL_NAME));
         PrismAsserts.assertPropertyReplace(delta, UserType.F_LOCALITY,
         		createPolyString(USER_JACK_LOCALITY));
-        PrismAsserts.assertPropertyAdd(delta, UserType.F_EMPLOYEE_TYPE,
-        		USER_JACK_EMPLOYEE_TYPE);
+        PrismAsserts.assertPropertyAdd(delta, UserType.F_SUBTYPE,
+        		USER_JACK_SUBTYPE);
         PrismAsserts.assertPropertyAdd(delta, UserType.F_ORGANIZATION,
         		createPolyString("Pirate Brethren"), createPolyString("Drinkers"));
         PrismAsserts.assertNoItemDelta(delta, UserType.F_ACTIVATION);
@@ -319,7 +319,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertPropertyValue(object,
         		UserType.F_LOCALITY, createPolyString(USER_JACK_LOCALITY));
         PrismAsserts.assertPropertyValue(object,
-        		UserType.F_EMPLOYEE_TYPE, USER_JACK_EMPLOYEE_TYPE, "SAILOR", "PIRATE WANNABE");
+        		UserType.F_SUBTYPE, USER_JACK_SUBTYPE, "SAILOR", "PIRATE WANNABE");
         PrismAsserts.assertPropertyValue(object,
         		UserType.F_ORGANIZATION,
         		createPolyString("Pirate Brethren"), createPolyString("Sailors"), createPolyString("Rum Club"),
@@ -368,7 +368,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertNoItemDelta(delta, UserType.F_FAMILY_NAME);
         PrismAsserts.assertNoItemDelta(delta, UserType.F_FULL_NAME);
         PrismAsserts.assertNoItemDelta(delta, UserType.F_ADDITIONAL_NAME);
-        PrismAsserts.assertPropertyAdd(delta, UserType.F_EMPLOYEE_TYPE,
+        PrismAsserts.assertPropertyAdd(delta, UserType.F_SUBTYPE,
         		"SAILOR");
         PrismAsserts.assertPropertyAdd(delta, UserType.F_ORGANIZATION,
         		createPolyString("Pirate Wannabes"));
@@ -422,7 +422,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertPropertyValue(object,
         		UserType.F_LOCALITY, createPolyString(USER_JACK_LOCALITY));
         PrismAsserts.assertPropertyValue(object,
-        		UserType.F_EMPLOYEE_TYPE, USER_JACK_EMPLOYEE_TYPE, "SAILOR");
+        		UserType.F_SUBTYPE, USER_JACK_SUBTYPE, "SAILOR");
         PrismAsserts.assertPropertyValue(object,
         		UserType.F_ORGANIZATION,
         		createPolyString("Pirate Brethren"), createPolyString("Rum Club"),
@@ -476,7 +476,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertPropertyReplace(leftObjectdelta, UserType.F_ADDITIONAL_NAME);
         PrismAsserts.assertPropertyReplace(leftObjectdelta, UserType.F_LOCALITY,
         		createPolyString(USER_GUYBRUSH_LOCALITY));
-        PrismAsserts.assertPropertyAdd(leftObjectdelta, UserType.F_EMPLOYEE_TYPE,
+        PrismAsserts.assertPropertyAdd(leftObjectdelta, UserType.F_SUBTYPE,
         		"SAILOR", "PIRATE WANNABE");
         PrismAsserts.assertPropertyAdd(leftObjectdelta, UserType.F_ORGANIZATION,
         		createPolyString("Pirate Wannabes"), createPolyString("Lovers"));
@@ -535,7 +535,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertPropertyValue(object,
         		UserType.F_LOCALITY, createPolyString(USER_GUYBRUSH_LOCALITY));
         PrismAsserts.assertPropertyValue(object,
-        		UserType.F_EMPLOYEE_TYPE, USER_JACK_EMPLOYEE_TYPE, "SAILOR", "PIRATE WANNABE");
+        		UserType.F_SUBTYPE, USER_JACK_SUBTYPE, "SAILOR", "PIRATE WANNABE");
 
         assertAssignedRoles(object, ROLE_SAILOR_OID, ROLE_RED_SAILOR_OID, ROLE_CYAN_SAILOR_OID,
         		ROLE_EMPTY_OID, ROLE_THIEF_OID, ROLE_PIRATE_OID, ROLE_NICE_PIRATE_OID);

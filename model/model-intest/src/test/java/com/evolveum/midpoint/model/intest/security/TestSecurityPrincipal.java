@@ -165,7 +165,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_EMPLOYEE_TYPE, task, result, "special");
+        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_SUBTYPE, task, result, "special");
 
         resetAuthentication();
 

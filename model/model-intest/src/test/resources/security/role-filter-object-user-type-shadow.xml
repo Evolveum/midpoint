@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2014 Evolveum
+  ~ Copyright (c) 2014-2018 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -29,15 +29,15 @@
             <filter xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
                <q:or>
                   <q:equal>
-                     <q:path>employeeType</q:path>
+                     <q:path>subtype</q:path>
                      <q:value>type1</q:value>
                   </q:equal>
                   <q:equal>
-                     <q:path>employeeType</q:path>
+                     <q:path>subtype</q:path>
                      <q:value>type2</q:value>
                   </q:equal>
                   <q:equal>
-                     <q:path>employeeType</q:path>
+                     <q:path>subtype</q:path>
                      <q:value>type3</q:value>
                   </q:equal>
                </q:or>

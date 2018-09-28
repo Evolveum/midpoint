@@ -711,12 +711,11 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         
         assertRoleAfter(ROLE_ATREIDES_GUARD_OID)
         	.assertTenantRef(ORG_ATREIDES_OID);
-
-        // WORK IN PROGRESS
-//        display("HEREHERE");
-//        // This would make Castle Caladan a root object - outside out tenant zone of control.
-//        assertDeny("unassign caladan castle from caladan", 
-//        		(task, result) -> unassignOrg(OrgType.class, ORG_CASTLE_CALADAN_OID, ORG_CALADAN_OID, task, result));
+        
+        display("HEREHERE");
+        // This would make Castle Caladan a root object - outside out tenant zone of control.
+        assertDeny("unassign caladan castle from caladan", 
+        		(task, result) -> unassignOrg(OrgType.class, ORG_CASTLE_CALADAN_OID, ORG_CALADAN_OID, task, result));
         
         // THEN
         displayThen(TEST_NAME);

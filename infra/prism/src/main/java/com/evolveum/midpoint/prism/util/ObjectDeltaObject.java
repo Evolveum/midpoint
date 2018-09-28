@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.repo.common.expression;
+package com.evolveum.midpoint.prism.util;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -25,21 +25,23 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
-import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 
 /**
- * A DTO class defining old object state (before change), delta (change) and new object state (after change).
+ * A class defining old object state (before change), delta (change) and new object state (after change).
+ * This is a useful class used to describe how the object has changed without the need to re-apply the delta
+ * several times. The delta can be applied once, and then all the rest of the code will have all the data
+ * available. This is mostly just a convenience class that groups those three things together.
+ * There is only a very little logic on top of that.
  *
  * @author Radovan Semancik
  *
  */
-public class ObjectDeltaObject<O extends ObjectType> extends ItemDeltaItem<PrismContainerValue<O>,PrismObjectDefinition<O>> implements DebugDumpable {
+public class ObjectDeltaObject<O extends Objectable> extends ItemDeltaItem<PrismContainerValue<O>,PrismObjectDefinition<O>> implements DebugDumpable {
 
 	private PrismObject<O> oldObject;
 	private ObjectDelta<O> delta;
@@ -62,6 +64,10 @@ public class ObjectDeltaObject<O extends ObjectType> extends ItemDeltaItem<Prism
 
 	public PrismObject<O> getNewObject() {
 		return newObject;
+	}
+	
+	public boolean hasAnyObject() {
+		return oldObject != null || newObject != null;
 	}
 
 	// FIXME fragile!!! better don't use if you don't have to
@@ -185,6 +191,7 @@ public class ObjectDeltaObject<O extends ObjectType> extends ItemDeltaItem<Prism
 
 	public void recompute() throws SchemaException {
 		if (delta == null) {
+			// TODO: do we need clone() here? new object may be read-only
 			newObject = oldObject.clone();
 			return;
 		}
@@ -194,6 +201,7 @@ public class ObjectDeltaObject<O extends ObjectType> extends ItemDeltaItem<Prism
 		}
 		if (delta.isDelete()) {
 			newObject = null;
+			return;
 		}
 		if (oldObject == null) {
 			return;
@@ -201,14 +209,45 @@ public class ObjectDeltaObject<O extends ObjectType> extends ItemDeltaItem<Prism
 		newObject = oldObject.clone();
 		delta.applyTo(newObject);
 	}
+	
+	public void recomputeIfNeeded(boolean deep) throws SchemaException {
+		if (delta == null) {
+			if (newObject == null) {
+				if (deep) {
+					// TODO: do we need clone() here? new object may be read-only
+					newObject = oldObject.clone();
+				} else {
+					newObject = oldObject;
+				}
+			}
+			return;
+		}
+		if (delta.isAdd()) {
+			if (newObject == null) {
+				newObject = delta.getObjectToAdd();
+			}
+			return;
+		}
+		if (delta.isDelete()) {
+			newObject = null;
+			return;
+		}
+		if (oldObject == null) {
+			return;
+		}
+		if (newObject == null) {
+			newObject = oldObject.clone();
+			delta.applyTo(newObject);
+		}
+	}
 
-	public static <T extends ObjectType> ObjectDeltaObject<T> create(PrismObject<T> oldObject, ObjectDelta<T> delta) throws SchemaException {
+	public static <T extends Objectable> ObjectDeltaObject<T> create(PrismObject<T> oldObject, ObjectDelta<T> delta) throws SchemaException {
 		PrismObject<T> newObject = oldObject.clone();
 		delta.applyTo(newObject);
 		return new ObjectDeltaObject<>(oldObject, delta, newObject);
 	}
 
-	public static <T extends ObjectType> ObjectDeltaObject<T> create(PrismObject<T> oldObject, ItemDelta<?,?>... itemDeltas) throws SchemaException {
+	public static <T extends Objectable> ObjectDeltaObject<T> create(PrismObject<T> oldObject, ItemDelta<?,?>... itemDeltas) throws SchemaException {
 		ObjectDelta<T> objectDelta = oldObject.createDelta(ChangeType.MODIFY);
 		objectDelta.addModifications(itemDeltas);
 		return create(oldObject, objectDelta);
@@ -249,11 +288,6 @@ public class ObjectDeltaObject<O extends ObjectType> extends ItemDeltaItem<Prism
 		} else if (!oldObject.equals(other.oldObject))
 			return false;
 		return true;
-	}
-
-	@Override
-	public String debugDump() {
-		return debugDump(0);
 	}
 
 	@Override

@@ -1602,8 +1602,8 @@ public class TestRbac extends AbstractRbacTest {
 	 * Modify employeeType. This triggers a condition in Wannabe role.
 	 */
 	@Test
-    public void test542JackModifyEmployeeTypeWannabe() throws Exception {
-		final String TEST_NAME = "test542JackModifyEmployeeTypeWannabe";
+    public void test542JackModifySubtypeWannabe() throws Exception {
+		final String TEST_NAME = "test542JackModifySubtypeWannabe";
         displayTestTitle(TEST_NAME);
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -1612,7 +1612,7 @@ public class TestRbac extends AbstractRbacTest {
 
         // WHEN
 		displayWhen(TEST_NAME);
-		modifyUserReplace(USER_JACK_OID, UserType.F_EMPLOYEE_TYPE, getDefaultOptions(), task, result, "wannabe");
+		modifyUserReplace(USER_JACK_OID, UserType.F_SUBTYPE, getDefaultOptions(), task, result, "wannabe");
 
         // THEN
         displayThen(TEST_NAME);

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2018 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@
 		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
 		xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
     <name>largo</name>
+    <subtype>PIRATE</subtype>
     <assignment>
         <construction>
             <resourceRef oid="10000000-0000-0000-0000-00000000f104"/>
@@ -30,7 +31,6 @@
 	<fullName>Largo LaGrande</fullName>
     <givenName>Largo</givenName>
     <familyName>LaGrande</familyName>
-	<employeeType>PIRATE</employeeType>
 	<activation>
 		<validFrom>1777-05-30T14:15:00Z</validFrom>
 		<validTo>2222-02-22T08:30:42Z</validTo>

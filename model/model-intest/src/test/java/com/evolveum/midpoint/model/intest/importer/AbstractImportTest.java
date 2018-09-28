@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -333,7 +333,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
 			if (userType.getName().toString().equals("will")) {
 				// OID should be the same, and there should be an employee type
 				assertEquals(USER_WILL_OID,userType.getOid());
-				assertTrue("Wrong Will's employee type", userType.getEmployeeType().contains("legendary"));
+				assertTrue("Wrong Will's employee type", userType.getSubtype().contains("legendary"));
 			}
 			if (userType.getName().toString().equals("guybrush")) {
 				// OID may be different, there should be a locality attribute
@@ -398,7 +398,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
 			if (userType.getName().toString().equals("will")) {
 				// OID should be the same, and there should be an employee type
 				assertEquals(USER_WILL_OID,userType.getOid());
-				assertTrue("Wrong Will's employee type", userType.getEmployeeType().contains("legendary"));
+				assertTrue("Wrong Will's employee type", userType.getSubtype().contains("legendary"));
 			}
 			if (userType.getName().toString().equals("guybrush")) {
 				// OID should be the same, there should be a locality attribute

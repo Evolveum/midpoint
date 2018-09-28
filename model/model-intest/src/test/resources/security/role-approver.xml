@@ -80,7 +80,7 @@
         <item>givenName</item>
         <item>familyName</item>
         <item>fullName</item>
-        <item>employeeType</item>
+        <item>subtype</item>
         <item>employeeNumber</item>
     </authorization>
     <authorization>

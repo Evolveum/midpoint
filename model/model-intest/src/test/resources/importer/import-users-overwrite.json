@@ -7,7 +7,7 @@
       "fullName" : "Will Turner",
       "givenName" : "William",
       "familyName" : "Turner",
-      "employeeType" : "legendary"
+      "subtype" : "legendary"
     }
   }, {
     "user" : {

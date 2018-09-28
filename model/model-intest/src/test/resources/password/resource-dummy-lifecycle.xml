@@ -83,12 +83,12 @@
             		<outbound>
             			<name>lifecycle-lifecycle</name>
             			<source>
-            				<path>employeeType</path>
+            				<path>subtype</path>
             			</source>
             			<expression>
             				<script>
             					<code>
-            						if (employeeType == 'WRECK') {
+            						if (subtype == 'WRECK') {
             							return 'archived';
             						} else {
 	            						// default algorithm

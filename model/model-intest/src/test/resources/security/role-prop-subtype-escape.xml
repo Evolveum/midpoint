@@ -13,28 +13,26 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<role oid="00000000-0000-0000-0000-b0000000ae05"
+<role oid="bdf18bb2-c314-11e8-8e99-1709836f1462"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
-    <name>Prop Read All Modify Some User Partial</name>    
+    <name>Prop Subtype Escape</name>    
     <authorization>
-    	<name>read all</name>
+    	<name>read all subtype</name>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
     	<object>
     		<type>UserType</type>
-    		<filter>
-	            <q:equal>
-	               <q:path>subtype</q:path>
-	               <q:value>captain</q:value>
-	            </q:equal>
-	        </filter>
     	</object>
     </authorization>
     <authorization>
-    	<name>modify some</name>
+    	<name>write subtype req</name>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delete</action>
+    	<phase>request</phase>
+    	<zoneOfControl>allowEscape</zoneOfControl>
     	<object>
     		<type>UserType</type>
     		<filter>
@@ -44,11 +42,18 @@
 	            </q:equal>
 	        </filter>
     	</object>
-    	<item>fullName</item>
-    	<item>description</item>
+    	<!-- Note: subtype property is not excluded here. User could modify it ... -->
     </authorization>
     <authorization>
-    	<name>partial execution</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#partialExecution</action>
-   	</authorization>
+    	<name>write subtype exec</name>
+    	<description>
+    		Allow unlimited write for execution.
+    		This avoid false positive/negative with object template setting nickName value.
+    		It also complicates the setup a bit, so the test is not entirelly trivial.
+    	</description>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delete</action>
+    	<phase>execution</phase>
+    </authorization>
 </role>
