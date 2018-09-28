@@ -22,12 +22,11 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.web.security.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
-import org.springframework.boot.web.server.ErrorPageRegistrar;
 import org.springframework.context.annotation.*;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
-import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.cas.web.CasAuthenticationFilter;
@@ -176,8 +175,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         return new MidPointAccessDeniedHandler();
     }
 
-    @Profile("default")
-    @Conditional(DefaultProfileOnlyCondition.class)
+    @ConditionalOnMissingBean(name = "midPointAuthenticationProvider")
     @Bean
     public AuthenticationProvider midPointAuthenticationProvider() throws Exception {
         return new MidPointAuthenticationProvider();
@@ -241,20 +239,5 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 //
 //        return filter;
 //    }
-
-    private static class DefaultProfileOnlyCondition implements Condition {
-
-        @Override
-        public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-
-            if (context.getEnvironment() == null) {
-                return true;
-            }
-
-            String[] activeProfiles = context.getEnvironment().getActiveProfiles();
-
-            return !Arrays.stream(activeProfiles).anyMatch(p -> p.equalsIgnoreCase("cas") || p.equalsIgnoreCase("ldap"));
-        }
-    }
 }
 
