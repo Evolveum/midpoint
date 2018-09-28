@@ -1045,16 +1045,25 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class+".unassignOrg");
 		OperationResult result = task.getResult();
 		unassignOrg(userOid, orgOid, relation, task, result);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		assertSuccess(result);
 	}
-
 
 	protected void unassignOrg(String userOid, String orgOid, QName relation, Task task, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
 			CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 			PolicyViolationException, SecurityViolationException {
 		modifyUserAssignment(userOid, orgOid, OrgType.COMPLEX_TYPE, relation, task, (Consumer<AssignmentType>)null, false, result);
+	}
+	
+	protected <F extends FocusType> void unassignOrg(Class<F> type, String focusOid, String orgOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		unassignOrg(type, focusOid, orgOid, null, task, result);
+	}
+	
+	protected <F extends FocusType> void unassignOrg(Class<F> type, String focusOid, String orgOid, QName relation, Task task, OperationResult result)
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
+			CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+			PolicyViolationException, SecurityViolationException {
+		modifyFocusAssignment(type, focusOid, orgOid, OrgType.COMPLEX_TYPE, relation, task, (Consumer<AssignmentType>)null, false, result);
 	}
 
 	protected void modifyUserAssignment(String userOid, String roleOid, QName refType, QName relation, Task task,

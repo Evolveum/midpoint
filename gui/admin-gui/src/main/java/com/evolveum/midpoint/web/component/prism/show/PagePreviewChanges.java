@@ -70,8 +70,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static org.apache.commons.collections.CollectionUtils.addIgnoreNull;
-
 /**
  * @author mederly
  */
@@ -104,7 +102,11 @@ public class PagePreviewChanges<O extends ObjectType> extends PageAdmin {
 	public PagePreviewChanges(Map<PrismObject<O>, ModelContext<O>> modelContextMap, ModelInteractionService modelInteractionService) {
 		this.modelContextMap = modelContextMap;
 		this.modelInteractionService = modelInteractionService;
+	}
 
+	@Override
+	protected void onInitialize(){
+		super.onInitialize();
 		initLayout();
 	}
 

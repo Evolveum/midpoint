@@ -111,7 +111,8 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
         searchForm.setOutputMarkupId(true);
 
         SearchPanel search = new SearchPanel(ID_SEARCH,
-                Model.of(SearchFactory.createSearch((Class<R>)WebComponentUtil.qnameToClass(getPageBase().getPrismContext(), getQueryType()), getPageBase())),
+                Model.of(getRoleCatalogStorage().getSearch() != null ? getRoleCatalogStorage().getSearch() :
+                        SearchFactory.createSearch((Class<R>)WebComponentUtil.qnameToClass(getPageBase().getPrismContext(), getQueryType()), getPageBase())),
                 false) {
             private static final long serialVersionUID = 1L;
 
@@ -125,6 +126,7 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
     }
 
     protected void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
+        getRoleCatalogStorage().setSearch(getSearchPanel().getModelObject());
         target.add(AbstractShoppingCartTabPanel.this);
     }
 

@@ -817,6 +817,10 @@ public class AssignmentEvaluator<F extends FocusType> {
 			return;
 		}
 
+		if ((isNonNegative(relativeMode))) {
+			collectTenantRef(targetType, ctx);
+		}
+		
 		// We continue evaluation even if the relation is non-membership and non-delegation.
 		// Computation of isMatchingOrder will ensure that we won't collect any unwanted content.
 		
@@ -1092,14 +1096,16 @@ public class AssignmentEvaluator<F extends FocusType> {
 		refVal.setTargetName(targetType.getName().toPolyString());
 		
 		collectMembershipRefVal(refVal, targetType.getClass(), relation, targetType, ctx);
-		
+	}
+	
+	private void collectTenantRef(FocusType targetType, AssignmentEvaluator<F>.EvaluationContext ctx) {
 		if (targetType instanceof OrgType) {
 			if (BooleanUtils.isTrue(((OrgType)targetType).isTenant()) && ctx.evalAssignment.getTenantOid() == null) {
 				ctx.evalAssignment.setTenantOid(targetType.getOid());
 			}
 		}
 	}
-	
+
 	private void collectMembership(ObjectReferenceType targetRef, QName relation, EvaluationContext ctx) {
 		PrismReferenceValue refVal = new PrismReferenceValue();
 		refVal.setOid(targetRef.getOid());

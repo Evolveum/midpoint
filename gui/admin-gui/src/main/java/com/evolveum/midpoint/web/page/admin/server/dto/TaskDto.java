@@ -382,7 +382,8 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		WfContextType wfc = taskType.getWorkflowContext();
 		if (wfc != null && parentTaskType != null && (wfc.getProcessorSpecificState() instanceof WfPrimaryChangeProcessorStateType)) {
 			ChangesByState changesByState = workflowManager.getChangesByState(taskType, rootTask, modelInteractionService, prismContext, thisOpResult);
-			List<TaskChangesDto> changeCategories = computeChangesCategorizationList(changesByState, modelInteractionService, prismContext, opTask, thisOpResult);
+			List<TaskChangesDto> changeCategories = computeChangesCategorizationList(changesByState, wfc.getObjectRef(),
+					modelInteractionService, prismContext, opTask, thisOpResult);
 			if (changeCategories.size() > 1) {
 				throw new IllegalStateException("More than one task change category for task " + taskType + ": " + changeCategories);
 			} else if (changeCategories.size() == 1) {
@@ -401,44 +402,52 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		}
 
 		ChangesByState changesByState = workflowManager.getChangesByState(rootTask, modelInteractionService, prismContext, opTask, thisOpResult);
-		this.changesCategorizationList = computeChangesCategorizationList(changesByState, modelInteractionService, prismContext, opTask, thisOpResult);
+		this.changesCategorizationList = computeChangesCategorizationList(changesByState, wfc != null ? wfc.getObjectRef() : null,
+				modelInteractionService, prismContext, opTask, thisOpResult);
 	}
 
 	@NotNull
-	private List<TaskChangesDto> computeChangesCategorizationList(ChangesByState changesByState, ModelInteractionService modelInteractionService,
-			PrismContext prismContext, Task opTask,
+	private List<TaskChangesDto> computeChangesCategorizationList(ChangesByState changesByState, ObjectReferenceType objectRef,
+																  ModelInteractionService modelInteractionService, PrismContext prismContext, Task opTask,
 			OperationResult thisOpResult) throws SchemaException, ExpressionEvaluationException {
 		List<TaskChangesDto> changes = new ArrayList<>();
 		if (!changesByState.getApplied().isEmpty()) {
-			changes.add(createTaskChangesDto("TaskDto.changesApplied", "box-solid box-success", changesByState.getApplied(), modelInteractionService, prismContext, opTask, thisOpResult));
+			changes.add(createTaskChangesDto("TaskDto.changesApplied", "box-solid box-success", changesByState.getApplied(),
+					modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
 		}
 		if (!changesByState.getBeingApplied().isEmpty()) {
-			changes.add(createTaskChangesDto("TaskDto.changesBeingApplied", "box-solid box-info", changesByState.getBeingApplied(), modelInteractionService, prismContext, opTask, thisOpResult));
+			changes.add(createTaskChangesDto("TaskDto.changesBeingApplied", "box-solid box-info", changesByState.getBeingApplied(),
+					modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
 		}
 		if (!changesByState.getWaitingToBeApplied().isEmpty()) {
-			changes.add(createTaskChangesDto("TaskDto.changesWaitingToBeApplied", "box-solid box-warning", changesByState.getWaitingToBeApplied(), modelInteractionService, prismContext, opTask, thisOpResult));
+			changes.add(createTaskChangesDto("TaskDto.changesWaitingToBeApplied", "box-solid box-warning",
+					changesByState.getWaitingToBeApplied(), modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
 		}
 		if (!changesByState.getWaitingToBeApproved().isEmpty()) {
-			changes.add(createChangesToBeApproved(changesByState.getWaitingToBeApproved(), modelInteractionService, prismContext, opTask, thisOpResult));
+			changes.add(createChangesToBeApproved(changesByState.getWaitingToBeApproved(), modelInteractionService, prismContext, objectRef,
+					opTask, thisOpResult));
 		}
 		if (!changesByState.getRejected().isEmpty()) {
-			changes.add(createTaskChangesDto("TaskDto.changesRejected", "box-solid box-danger", changesByState.getRejected(), modelInteractionService, prismContext, opTask, thisOpResult));
+			changes.add(createTaskChangesDto("TaskDto.changesRejected", "box-solid box-danger", changesByState.getRejected(),
+					modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
 		}
 		if (!changesByState.getCanceled().isEmpty()) {
-			changes.add(createTaskChangesDto("TaskDto.changesCanceled", "box-solid box-danger", changesByState.getCanceled(), modelInteractionService, prismContext, opTask, thisOpResult));
+			changes.add(createTaskChangesDto("TaskDto.changesCanceled", "box-solid box-danger", changesByState.getCanceled(),
+					modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
 		}
 		return changes;
 	}
 
 	public static TaskChangesDto createChangesToBeApproved(ObjectTreeDeltas<?> deltas, ModelInteractionService modelInteractionService,
-			PrismContext prismContext, Task opTask, OperationResult thisOpResult) throws SchemaException, ExpressionEvaluationException {
-		return createTaskChangesDto("TaskDto.changesWaitingToBeApproved", "box-solid box-primary", deltas, modelInteractionService, prismContext, opTask, thisOpResult);
+			PrismContext prismContext, ObjectReferenceType objectRef, Task opTask, OperationResult thisOpResult) throws SchemaException, ExpressionEvaluationException {
+		return createTaskChangesDto("TaskDto.changesWaitingToBeApproved", "box-solid box-primary", deltas,
+				modelInteractionService, prismContext, objectRef, opTask, thisOpResult);
 	}
 
 	private static TaskChangesDto createTaskChangesDto(String titleKey, String boxClassOverride, ObjectTreeDeltas deltas, ModelInteractionService modelInteractionService,
-			PrismContext prismContext, Task opTask, OperationResult result) throws SchemaException, ExpressionEvaluationException {
+			PrismContext prismContext, ObjectReferenceType objectRef, Task opTask, OperationResult result) throws SchemaException, ExpressionEvaluationException {
 		ObjectTreeDeltasType deltasType = ObjectTreeDeltas.toObjectTreeDeltasType(deltas);
-		Scene scene = SceneUtil.visualizeObjectTreeDeltas(deltasType, titleKey, prismContext, modelInteractionService, opTask, result);
+		Scene scene = SceneUtil.visualizeObjectTreeDeltas(deltasType, titleKey, prismContext, modelInteractionService, objectRef, opTask, result);
 		SceneDto sceneDto = new SceneDto(scene);
 		sceneDto.setBoxClassOverride(boxClassOverride);
 		return new TaskChangesDto(sceneDto);
@@ -451,7 +460,8 @@ public class TaskDto extends Selectable implements InlineMenuable {
             return null;
         }
         WfPrimaryChangeProcessorStateType pcps = (WfPrimaryChangeProcessorStateType) wfc.getProcessorSpecificState();
-        return objectTreeDeltasToDeltaDtoList(pcps.getDeltasToProcess(), taskType.asPrismObject().getPrismContext(), modelInteractionService, opTask, thisOpResult);
+        return objectTreeDeltasToDeltaDtoList(pcps.getDeltasToProcess(), taskType.asPrismObject().getPrismContext(), modelInteractionService,
+				wfc.getObjectRef(), opTask, thisOpResult);
     }
 
 	private SceneDto retrieveDeltaToProcess(TaskType taskType, ModelInteractionService modelInteractionService, Task opTask,
@@ -462,17 +472,17 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		}
 		WfPrimaryChangeProcessorStateType pcps = (WfPrimaryChangeProcessorStateType) wfc.getProcessorSpecificState();
 		Scene scene = SceneUtil.visualizeObjectTreeDeltas(pcps.getDeltasToProcess(), "", taskType.asPrismObject().getPrismContext(),
-				modelInteractionService, opTask, thisOpResult);
+				modelInteractionService, wfc.getObjectRef(), opTask, thisOpResult);
 		return new SceneDto(scene);
 	}
 
-    private List<SceneDto> objectTreeDeltasToDeltaDtoList(ObjectTreeDeltasType deltas, PrismContext prismContext,
-			ModelInteractionService modelInteractionService, Task opTask, OperationResult thisOpResult) throws SchemaException, ExpressionEvaluationException {
+    private List<SceneDto> objectTreeDeltasToDeltaDtoList(ObjectTreeDeltasType deltas, PrismContext prismContext, ModelInteractionService modelInteractionService,
+						ObjectReferenceType objectRef, Task opTask, OperationResult thisOpResult) throws SchemaException, ExpressionEvaluationException {
         List<SceneDto> retval = new ArrayList<>();
 		if (deltas == null) {
 			return retval;
 		}
-		Scene wrapperScene = SceneUtil.visualizeObjectTreeDeltas(deltas, "", prismContext, modelInteractionService, opTask, thisOpResult);
+		Scene wrapperScene = SceneUtil.visualizeObjectTreeDeltas(deltas, "", prismContext, modelInteractionService, objectRef, opTask, thisOpResult);
 		for (Scene scene : wrapperScene.getPartialScenes()) {
 			retval.add(new SceneDto(scene));
 		}
@@ -486,8 +496,8 @@ public class TaskDto extends Selectable implements InlineMenuable {
             return null;
         }
         WfPrimaryChangeProcessorStateType pcps = (WfPrimaryChangeProcessorStateType) wfc.getProcessorSpecificState();
-        return objectTreeDeltasToDeltaDtoList(pcps.getResultingDeltas(), taskType.asPrismObject().getPrismContext(), modelInteractionService, opTask,
-				thisOpResult);
+        return objectTreeDeltasToDeltaDtoList(pcps.getResultingDeltas(), taskType.asPrismObject().getPrismContext(), modelInteractionService,
+				wfc.getObjectRef(), opTask, thisOpResult);
     }
 
     //endregion

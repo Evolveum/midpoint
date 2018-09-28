@@ -208,6 +208,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     public RequestHeaderAuthenticationFilter requestHeaderAuthenticationFilter() {
         RequestHeaderAuthenticationFilter filter = new RequestHeaderAuthenticationFilter();
         filter.setPrincipalRequestHeader(principalRequestHeader);
+        filter.setExceptionIfHeaderMissing(false);
         filter.setAuthenticationManager(authenticationManager);
 
         return filter;

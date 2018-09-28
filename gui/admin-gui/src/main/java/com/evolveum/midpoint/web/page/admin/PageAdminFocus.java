@@ -153,7 +153,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 
 		boolean canExitPage;
 		if (returningFromAsync) {
-			canExitPage = getProgressPanel().isAllSuccess();			// if there's at least a warning in the progress table, we would like to keep the table open
+			canExitPage = getProgressPanel().isAllSuccess() || result.isInProgress(); // if there's at least a warning in the progress table, we would like to keep the table open
 		} else {
 			canExitPage = !canContinueEditing;							// no point in staying on page if we cannot continue editing (in synchronous case i.e. no progress table present)
 		}

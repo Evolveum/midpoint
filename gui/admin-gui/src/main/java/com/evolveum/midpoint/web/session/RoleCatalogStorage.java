@@ -28,7 +28,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by honchar.
@@ -37,7 +39,7 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
     /**
      * DTO used for search in {@link PageAssignmentShoppingCart}
      */
-    private Search roleCatalogSearch;
+    private Map<Integer, Search> roleCatalogSearchMap = new HashMap<>();
 
     /**
      * Paging DTO used in table on page {@link PageAssignmentShoppingCart}
@@ -59,11 +61,16 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
     private int assignmentRequestLimit = -1;
 
     public Search getSearch() {
-        return roleCatalogSearch;
+        return roleCatalogSearchMap.get(getDefaultTabIndex() < 0 ? 0 : getDefaultTabIndex());
     }
 
-    public void setSearch(Search roleCatalog) {
-        this.roleCatalogSearch = roleCatalog;
+    public void setSearch(Search roleCatalogSearch) {
+        int selectedTab = getDefaultTabIndex() < 0 ? 0 : getDefaultTabIndex();
+        if (!roleCatalogSearchMap.containsKey(selectedTab)){
+            roleCatalogSearchMap.put(selectedTab, roleCatalogSearch);
+        } else {
+            roleCatalogSearchMap.replace(selectedTab, roleCatalogSearch);
+        }
     }
 
     @Override
@@ -94,7 +101,7 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
         sb.append("RoleCatalogStorage\n");
-        DebugUtil.debugDumpWithLabelLn(sb, "roleCatalogSearch", roleCatalogSearch, indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, "roleCatalogSearchMap", roleCatalogSearchMap, indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, "roleCatalogPaging", roleCatalogPaging, indent + 1);
         return sb.toString();
     }

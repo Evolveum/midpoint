@@ -135,13 +135,15 @@ public class WorkItemDto extends Selectable {
 		if (!(task.getWorkflowContext().getProcessorSpecificState() instanceof WfPrimaryChangeProcessorStateType)) {
 			return;
 		}
+		ObjectReferenceType objectRef = task.getWorkflowContext().getObjectRef();
 		WfPrimaryChangeProcessorStateType state = (WfPrimaryChangeProcessorStateType) task.getWorkflowContext().getProcessorSpecificState();
-		Scene deltasScene = SceneUtil.visualizeObjectTreeDeltas(state.getDeltasToProcess(), sceneNameKey, prismContext, modelInteractionService, opTask, result);
+		Scene deltasScene = SceneUtil.visualizeObjectTreeDeltas(state.getDeltasToProcess(), sceneNameKey, prismContext, modelInteractionService,
+				objectRef, opTask, result);
 		deltas = new SceneDto(deltasScene);
 
 		ObjectTreeDeltas deltas = ObjectTreeDeltas.fromObjectTreeDeltasType(state.getDeltasToProcess(), prismContext);
 		changes = TaskDto.createChangesToBeApproved(deltas, modelInteractionService,
-				prismContext, opTask, result);
+				prismContext, objectRef, opTask, result);
 	}
 
 	@Nullable

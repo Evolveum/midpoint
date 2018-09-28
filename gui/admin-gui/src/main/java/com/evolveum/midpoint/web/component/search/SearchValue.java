@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.search;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
@@ -64,27 +65,28 @@ public class SearchValue<T extends Serializable> implements DisplayableValue<T>,
 
     @Override
     public String getLabel() {
+        //the label for ObjectReferenceType should be reloaded according to the current attributes values
+        if (value instanceof ObjectReferenceType) {
+            String valueToShow = "";
+            ObjectReferenceType ort = (ObjectReferenceType) value;
+            if (ort.getOid() != null) {
+                valueToShow += "oid=" + ort.getOid() + "/";
+            }
+
+            if (ort.getType() != null) {
+                valueToShow += "type=" + ort.getType().getLocalPart() +"/";
+            }
+
+            if (ort.getRelation() != null && !ort.getRelation().equals(PrismConstants.Q_ANY)) {
+                valueToShow += "relation=" + ort.getRelation().getLocalPart();
+            }
+            return valueToShow;
+        }
         if (label == null){
         	if (displayName != null) {
         		return displayName;
         	} else if (value != null){
-        		if (value instanceof ObjectReferenceType) {
-        			String valueToShow = "";
-        			ObjectReferenceType ort = (ObjectReferenceType) value;
-        			if (ort.getOid() != null) {
-        				valueToShow += "oid=" + ort.getOid() + "/";
-        			}
-        			
-        			if (ort.getType() != null) {
-        				valueToShow += "type=" + ort.getType().getLocalPart() +"/";
-        			}
-        			
-        			if (ort.getRelation() != null) {
-        				valueToShow += "relation=" + ort.getRelation().getLocalPart();
-        			}
-        			return valueToShow;
-        		}
-            return value.toString();
+                return value.toString();
         	}
         }
 

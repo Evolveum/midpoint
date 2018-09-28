@@ -114,6 +114,14 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
 	public boolean canRepresent(Class<?> compileTimeClass) {
 		return (compileTimeClass.isAssignableFrom(getCompileTimeClass()));
 	}
+	
+	public boolean canRepresent(QName type) {
+		PrismContainerDefinition<C> definition = getDefinition();
+		if (definition == null) {
+			throw new IllegalStateException("No definition in "+this+", cannot evaluate type equivalence");
+		}
+		return definition.canRepresent(type);
+	}
 
 	@NotNull
     @Override
