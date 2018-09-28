@@ -16,3 +16,11 @@ ALTER TABLE IF EXISTS m_object_collection
 ALTER TABLE m_acc_cert_campaign ADD COLUMN iteration INT4 DEFAULT 1 NOT NULL;
 ALTER TABLE m_acc_cert_case ADD COLUMN iteration INT4 DEFAULT 1 NOT NULL;
 ALTER TABLE m_acc_cert_wi ADD COLUMN iteration INT4 DEFAULT 1 NOT NULL;
+
+CREATE TABLE m_global_metadata (
+  name  VARCHAR(255) NOT NULL,
+  value VARCHAR(255),
+  PRIMARY KEY (name)
+);
+
+INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '3.9');

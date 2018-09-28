@@ -16,3 +16,11 @@ ALTER TABLE m_object_collection
 ALTER TABLE m_acc_cert_campaign ADD iteration NUMBER(10, 0) DEFAULT 1 NOT NULL;
 ALTER TABLE m_acc_cert_case ADD iteration NUMBER(10, 0) DEFAULT 1 NOT NULL;
 ALTER TABLE m_acc_cert_wi ADD iteration NUMBER(10, 0) DEFAULT 1 NOT NULL;
+
+CREATE TABLE m_global_metadata (
+  name  VARCHAR2(255 CHAR) NOT NULL,
+  value VARCHAR2(255 CHAR),
+  PRIMARY KEY (name)
+) INITRANS 30;
+
+INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '3.9');

@@ -46,7 +46,12 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
  */
 public class SqlRepositoryConfiguration {
 
-    private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryConfiguration.class);
+	private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryConfiguration.class);
+
+	private static final String HBM2DDL_CREATE_DROP = "create-drop";
+	private static final String HBM2DDL_CREATE = "create";
+	private static final String HBM2DDL_UPDATE = "update";
+	private static final String HBM2DDL_VALIDATE = "validate";
 
 	public enum Database {
 
@@ -136,7 +141,6 @@ public class SqlRepositoryConfiguration {
 	 * What to do if the DB schema is missing.
 	 */
 	public enum MissingSchemaAction {
-
 		/**
 		 * This check is not carried out. Usually because hbm2ddl takes care of the schema.
 		 */
@@ -156,6 +160,10 @@ public class SqlRepositoryConfiguration {
 			this.value = value;
 		}
 
+		public String getValue() {
+			return value;
+		}
+
 		@NotNull
 		public static MissingSchemaAction fromValue(String text) {
 			if (StringUtils.isEmpty(text)) {
@@ -171,14 +179,50 @@ public class SqlRepositoryConfiguration {
 	}
 
 	/**
-	 * What to do if the DB schema is correct but outdated.
-	 * (Not implemented yet.) TODO.
+	 * What to do if the DB schema is outdated: it might be correct for its version but not for the current one.
+	 * We do NOT rely on hibernate schema validator here; we explicitly check m_global_metadata.databaseSchemaVersion.
 	 */
 	public enum OutdatedSchemaAction {
-		NONE,
-	    STOP,
-	    UPGRADE
-    }
+		/**
+		 * This check is carried out but the result is ignored. To be used only when hbm2ddl is update/create/create-drop.
+		 * Not recommended except for testing and demo purposes.
+		 */
+		NONE("none"),
+		/**
+		 * The problem is reported. Not much recommended.
+		 */
+	    WARN("warn"),
+		/**
+		 * The problem is reported and midPoint startup is cancelled. This is the default for hbm2ddl = validate or none.
+		 */
+	    STOP("stop"),
+		/**
+		 * An upgrade is attempted. NOT SUPPORTED YET.
+		 */
+	    UPGRADE("upgrade");
+
+		private String value;
+
+		OutdatedSchemaAction(String value) {
+			this.value = value;
+		}
+
+		public String getValue() {
+			return value;
+		}
+
+		public static OutdatedSchemaAction fromValue(String text) {
+			if (StringUtils.isEmpty(text)) {
+				return null;
+			}
+			for (OutdatedSchemaAction a : values()) {
+				if (text.equals(a.value)) {
+					return a;
+				}
+			}
+			throw new IllegalArgumentException("Unknown OutdatedSchemaAction: " + text);
+		}
+	}
 
 	/**
 	 * What to do if the DB schema is wrong.
@@ -240,6 +284,7 @@ public class SqlRepositoryConfiguration {
     public static final String PROPERTY_STOP_ON_ORG_CLOSURE_STARTUP_FAILURE = "stopOnOrgClosureStartupFailure";
 
 	public static final String PROPERTY_MISSING_SCHEMA_ACTION = "missingSchemaAction";
+	public static final String PROPERTY_OUTDATED_SCHEMA_ACTION = "outdatedSchemaAction";
 
 	public static final String PROPERTY_INITIALIZATION_FAIL_TIMEOUT = "initializationFailTimeout";
 
@@ -309,6 +354,7 @@ public class SqlRepositoryConfiguration {
     private final long initializationFailTimeout;
 
     @NotNull private final MissingSchemaAction missingSchemaAction;
+    @NotNull private final OutdatedSchemaAction outdatedSchemaAction;
 
 	/*
 	 * Notes:
@@ -410,8 +456,18 @@ public class SqlRepositoryConfiguration {
         stopOnOrgClosureStartupFailure = configuration.getBoolean(PROPERTY_STOP_ON_ORG_CLOSURE_STARTUP_FAILURE, true);
 
         missingSchemaAction = MissingSchemaAction.fromValue(configuration.getString(PROPERTY_MISSING_SCHEMA_ACTION));
-        initializationFailTimeout = configuration.getLong(PROPERTY_INITIALIZATION_FAIL_TIMEOUT, 1L);
+	    OutdatedSchemaAction configuredOutdatedSchemaAction = OutdatedSchemaAction
+			    .fromValue(configuration.getString(PROPERTY_OUTDATED_SCHEMA_ACTION));
+	    outdatedSchemaAction = configuredOutdatedSchemaAction != null ?
+			    configuredOutdatedSchemaAction : getDefaultOutdatedSchemaAction(hibernateHbm2ddl);
+	    initializationFailTimeout = configuration.getLong(PROPERTY_INITIALIZATION_FAIL_TIMEOUT, 1L);
     }
+
+	private OutdatedSchemaAction getDefaultOutdatedSchemaAction(String hbm2ddl) {
+		assert hbm2ddl != null;
+		boolean schemaAutoUpdate = HBM2DDL_UPDATE.equals(hbm2ddl) || HBM2DDL_CREATE.equals(hbm2ddl) || HBM2DDL_CREATE_DROP.equals(hbm2ddl);
+		return schemaAutoUpdate ? OutdatedSchemaAction.NONE : OutdatedSchemaAction.STOP;
+	}
 
 	private String readFile(String filename) throws IOException {
 		try (FileReader reader = new FileReader(filename)) {
@@ -507,7 +563,7 @@ public class SqlRepositoryConfiguration {
 	}
 
 	private static String getDefaultHibernateHbm2ddl(Database database) {
-		return database == H2 ? "update" : "validate";
+		return database == H2 ? HBM2DDL_UPDATE : HBM2DDL_VALIDATE;
 	}
 
     private void computeDefaultConcurrencyParameters() {
@@ -828,6 +884,11 @@ public class SqlRepositoryConfiguration {
     @NotNull
 	public MissingSchemaAction getMissingSchemaAction() {
 		return missingSchemaAction;
+	}
+
+	@NotNull
+	public OutdatedSchemaAction getOutdatedSchemaAction() {
+		return outdatedSchemaAction;
 	}
 
 	public long getInitializationFailTimeout() {
