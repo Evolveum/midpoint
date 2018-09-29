@@ -142,15 +142,15 @@ public class SqlRepositoryConfiguration {
 	 */
 	public enum MissingSchemaAction {
 		/**
-		 * This check is not carried out. Usually because hbm2ddl takes care of the schema.
+		 * The problem is reported and midPoint startup is cancelled. This is the default.
 		 */
-		NONE("none"),
+		STOP("stop"),
 		/**
-		 * The problem is reported and midPoint startup is cancelled.
+		 * The problem is reported but startup continues. Not recommended.
 		 */
-	    STOP("stop"),
+		WARN("warn"),
 		/**
-		 * MidPoint will attempt to create the schema using standard DB scripts, and then it will be verified using hibernate.
+		 * MidPoint will attempt to create the schema using standard DB scripts. Then it will validate the schema again.
 		 */
 	    CREATE("create");
 
@@ -164,10 +164,9 @@ public class SqlRepositoryConfiguration {
 			return value;
 		}
 
-		@NotNull
 		public static MissingSchemaAction fromValue(String text) {
 			if (StringUtils.isEmpty(text)) {
-				return NONE;
+				return null;
 			}
 			for (MissingSchemaAction a : values()) {
 				if (text.equals(a.value)) {
@@ -179,31 +178,25 @@ public class SqlRepositoryConfiguration {
 	}
 
 	/**
-	 * What to do if the DB schema is outdated: it might be correct for its version but not for the current one.
-	 * We do NOT rely on hibernate schema validator here; we explicitly check m_global_metadata.databaseSchemaVersion.
+	 * What to do if the DB schema is outdated and is upgradeable (either automatically or manually).
 	 */
-	public enum OutdatedSchemaAction {
+	public enum UpgradeableSchemaAction {
 		/**
-		 * This check is carried out but the result is ignored. To be used only when hbm2ddl is update/create/create-drop.
-		 * Not recommended except for testing and demo purposes.
+		 * The problem is reported and midPoint startup is cancelled. This is the default.
 		 */
-		NONE("none"),
+		STOP("stop"),
 		/**
-		 * The problem is reported. Not much recommended.
+		 * The problem is reported. Not recommended.
 		 */
 	    WARN("warn"),
 		/**
-		 * The problem is reported and midPoint startup is cancelled. This is the default for hbm2ddl = validate or none.
-		 */
-	    STOP("stop"),
-		/**
-		 * An upgrade is attempted. NOT SUPPORTED YET.
+		 * An automatic upgrade is attempted, if possible. (If not possible, the startup is cancelled.) NOT SUPPORTED YET.
 		 */
 	    UPGRADE("upgrade");
 
 		private String value;
 
-		OutdatedSchemaAction(String value) {
+		UpgradeableSchemaAction(String value) {
 			this.value = value;
 		}
 
@@ -211,26 +204,53 @@ public class SqlRepositoryConfiguration {
 			return value;
 		}
 
-		public static OutdatedSchemaAction fromValue(String text) {
+		public static UpgradeableSchemaAction fromValue(String text) {
 			if (StringUtils.isEmpty(text)) {
 				return null;
 			}
-			for (OutdatedSchemaAction a : values()) {
+			for (UpgradeableSchemaAction a : values()) {
 				if (text.equals(a.value)) {
 					return a;
 				}
 			}
-			throw new IllegalArgumentException("Unknown OutdatedSchemaAction: " + text);
+			throw new IllegalArgumentException("Unknown UpgradeableSchemaAction: " + text);
 		}
 	}
 
 	/**
-	 * What to do if the DB schema is wrong.
-	 * (Not implemented yet.) TODO.
+	 * What to do if the DB schema is incompatible (e.g. newer schema with older midPoint).
 	 */
-	public enum WrongSchemaAction {
-		NONE,
-		STOP
+	public enum IncompatibleSchemaAction {
+		/**
+		 * The problem is reported and midPoint startup is cancelled. This is the default.
+		 */
+		STOP("stop"),
+		/**
+		 * The problem is reported. Not recommended.
+		 */
+	    WARN("warn");
+
+		private String value;
+
+		IncompatibleSchemaAction(String value) {
+			this.value = value;
+		}
+
+		public String getValue() {
+			return value;
+		}
+
+		public static IncompatibleSchemaAction fromValue(String text) {
+			if (StringUtils.isEmpty(text)) {
+				return null;
+			}
+			for (IncompatibleSchemaAction a : values()) {
+				if (text.equals(a.value)) {
+					return a;
+				}
+			}
+			throw new IllegalArgumentException("Unknown IncompatibleSchemaAction: " + text);
+		}
 	}
 
 	private static final String DEFAULT_FILE_NAME = "midpoint";
@@ -283,8 +303,10 @@ public class SqlRepositoryConfiguration {
     public static final String PROPERTY_SKIP_ORG_CLOSURE_STRUCTURE_CHECK = "skipOrgClosureStructureCheck";
     public static final String PROPERTY_STOP_ON_ORG_CLOSURE_STARTUP_FAILURE = "stopOnOrgClosureStartupFailure";
 
+	public static final String PROPERTY_SKIP_EXPLICIT_SCHEMA_VALIDATION = "skipExplicitSchemaValidation";
 	public static final String PROPERTY_MISSING_SCHEMA_ACTION = "missingSchemaAction";
-	public static final String PROPERTY_OUTDATED_SCHEMA_ACTION = "outdatedSchemaAction";
+	public static final String PROPERTY_UPGRADEABLE_SCHEMA_ACTION = "upgradeableSchemaAction";
+	public static final String PROPERTY_INCOMPATIBLE_SCHEMA_ACTION = "incompatibleSchemaAction";
 
 	public static final String PROPERTY_INITIALIZATION_FAIL_TIMEOUT = "initializationFailTimeout";
 
@@ -353,8 +375,10 @@ public class SqlRepositoryConfiguration {
 
     private final long initializationFailTimeout;
 
+    private boolean skipExplicitSchemaValidation;
     @NotNull private final MissingSchemaAction missingSchemaAction;
-    @NotNull private final OutdatedSchemaAction outdatedSchemaAction;
+    @NotNull private final UpgradeableSchemaAction upgradeableSchemaAction;
+    @NotNull private final IncompatibleSchemaAction incompatibleSchemaAction;
 
 	/*
 	 * Notes:
@@ -455,18 +479,27 @@ public class SqlRepositoryConfiguration {
         skipOrgClosureStructureCheck = configuration.getBoolean(PROPERTY_SKIP_ORG_CLOSURE_STRUCTURE_CHECK, false);
         stopOnOrgClosureStartupFailure = configuration.getBoolean(PROPERTY_STOP_ON_ORG_CLOSURE_STARTUP_FAILURE, true);
 
-        missingSchemaAction = MissingSchemaAction.fromValue(configuration.getString(PROPERTY_MISSING_SCHEMA_ACTION));
-	    OutdatedSchemaAction configuredOutdatedSchemaAction = OutdatedSchemaAction
-			    .fromValue(configuration.getString(PROPERTY_OUTDATED_SCHEMA_ACTION));
-	    outdatedSchemaAction = configuredOutdatedSchemaAction != null ?
-			    configuredOutdatedSchemaAction : getDefaultOutdatedSchemaAction(hibernateHbm2ddl);
+        skipExplicitSchemaValidation = configuration.getBoolean(PROPERTY_SKIP_EXPLICIT_SCHEMA_VALIDATION,
+		        isAutoUpdate(hibernateHbm2ddl) || isValidate(hibernateHbm2ddl));
+
+        missingSchemaAction = defaultIfNull(MissingSchemaAction.fromValue(configuration.getString(PROPERTY_MISSING_SCHEMA_ACTION)),
+		        MissingSchemaAction.STOP);
+	    upgradeableSchemaAction = defaultIfNull(UpgradeableSchemaAction.fromValue(
+	    		configuration.getString(PROPERTY_UPGRADEABLE_SCHEMA_ACTION)), UpgradeableSchemaAction.STOP);
+	    incompatibleSchemaAction = defaultIfNull(IncompatibleSchemaAction
+			    .fromValue(configuration.getString(PROPERTY_INCOMPATIBLE_SCHEMA_ACTION)), IncompatibleSchemaAction.STOP);
+
 	    initializationFailTimeout = configuration.getLong(PROPERTY_INITIALIZATION_FAIL_TIMEOUT, 1L);
     }
 
-	private OutdatedSchemaAction getDefaultOutdatedSchemaAction(String hbm2ddl) {
+	private boolean isAutoUpdate(String hbm2ddl) {
 		assert hbm2ddl != null;
-		boolean schemaAutoUpdate = HBM2DDL_UPDATE.equals(hbm2ddl) || HBM2DDL_CREATE.equals(hbm2ddl) || HBM2DDL_CREATE_DROP.equals(hbm2ddl);
-		return schemaAutoUpdate ? OutdatedSchemaAction.NONE : OutdatedSchemaAction.STOP;
+		return HBM2DDL_UPDATE.equals(hbm2ddl) || HBM2DDL_CREATE.equals(hbm2ddl) || HBM2DDL_CREATE_DROP.equals(hbm2ddl);
+	}
+
+	private boolean isValidate(String hbm2ddl) {
+		assert hbm2ddl != null;
+		return HBM2DDL_VALIDATE.equals(hbm2ddl);
 	}
 
 	private String readFile(String filename) throws IOException {
@@ -887,8 +920,17 @@ public class SqlRepositoryConfiguration {
 	}
 
 	@NotNull
-	public OutdatedSchemaAction getOutdatedSchemaAction() {
-		return outdatedSchemaAction;
+	public UpgradeableSchemaAction getUpgradeableSchemaAction() {
+		return upgradeableSchemaAction;
+	}
+
+	@NotNull
+	public IncompatibleSchemaAction getIncompatibleSchemaAction() {
+		return incompatibleSchemaAction;
+	}
+
+	public boolean isSkipExplicitSchemaValidation() {
+		return skipExplicitSchemaValidation;
 	}
 
 	public long getInitializationFailTimeout() {
