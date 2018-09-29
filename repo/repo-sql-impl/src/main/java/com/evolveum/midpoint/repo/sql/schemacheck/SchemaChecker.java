@@ -131,7 +131,8 @@ public class SchemaChecker {
 				throw new IllegalStateException("More than one value of " + RGlobalMetadata.DATABASE_SCHEMA_VERSION + " present: " + result);
 			}
 		} catch (Throwable t) {
-			LOGGER.info("Database schema version could not be determined: {}", t.getMessage(), t);      // todo debug
+			LOGGER.warn("Database schema version could not be determined: {}", t.getMessage());
+			LOGGER.debug("Database schema version could not be determined: {}", t.getMessage(), t);
 			return new DeclaredVersion(DeclaredVersion.State.METADATA_TABLE_MISSING, null);
 		}
 	}
