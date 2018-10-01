@@ -59,7 +59,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.common.expression.ItemDeltaItem;
+import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.repo.common.expression.ValuePolicyResolver;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;

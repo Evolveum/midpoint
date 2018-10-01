@@ -414,7 +414,7 @@
     		<right>take</right>
     	</item>
     	<item>
-    		<ref>employeeType</ref>
+    		<ref>subtype</ref>
     		<left>take</left>
     		<right>take</right>
     	</item>
@@ -472,7 +472,7 @@
     		<right>take</right>
     	</item>
     	<item>
-    		<ref>employeeType</ref>
+    		<ref>subtype</ref>
     		<left>take</left>
     		<right>take</right>
     	</item>
@@ -561,7 +561,7 @@
     		<left>take</left>
     	</item>
     	<item>
-    		<ref>employeeType</ref>
+    		<ref>subtype</ref>
     		<left>take</left>
     		<right>expression</right>
     		<valueExpression>

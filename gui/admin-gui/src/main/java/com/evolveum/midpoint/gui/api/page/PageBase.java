@@ -583,7 +583,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                                                                              PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         Task task = getPageTask();
         AuthorizationParameters<O, T> params = new AuthorizationParameters.Builder<O, T>()
-                .object(object)
+                .oldObject(object)
                 .delta(delta)
                 .target(target)
                 .build();
@@ -598,7 +598,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                                                                        PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver, OperationResult result)
             throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         AuthorizationParameters<O, T> params = new AuthorizationParameters.Builder<O, T>()
-                .object(object)
+                .oldObject(object)
                 .delta(delta)
                 .target(target)
                 .build();
@@ -610,7 +610,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         Task task = getPageTask();
         AuthorizationParameters<O, T> params = new AuthorizationParameters.Builder<O, T>()
-                .object(object)
+                .oldObject(object)
                 .delta(delta)
                 .target(target)
                 .build();

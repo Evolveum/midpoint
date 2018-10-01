@@ -25,7 +25,6 @@ import com.evolveum.midpoint.util.exception.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.expression.ValuePolicyResolver;
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
@@ -47,6 +46,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;

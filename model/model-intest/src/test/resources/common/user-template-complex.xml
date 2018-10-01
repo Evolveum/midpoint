@@ -57,7 +57,7 @@
 	    	<authoritative>true</authoritative>
 	    	<strength>strong</strength>
 	    	<source>
-	    		<path>employeeType</path>
+	    		<path>subtype</path>
 	    	</source>
 	    	<expression>
 	            <value>B666</value>    	
@@ -65,7 +65,7 @@
 	    	<condition>
 	    		<script>
 	            	<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-	            	<code>employeeType == 'BUCCANEER'</code>
+	            	<code>subtype == 'BUCCANEER'</code>
 	            </script>
 			</condition>
 	    </mapping>
@@ -170,12 +170,12 @@
 		</mapping>
 	</item>
 
-	<!-- RB-RBAC functionality. The Pirate role is automatically assigned based on the value of employeeType property -->
+	<!-- RB-RBAC functionality. The Pirate role is automatically assigned based on the value of subtype property -->
     <mapping>
-		<name>assignment-from-employeeType</name>
+		<name>assignment-from-subtype</name>
     	<authoritative>true</authoritative>
     	<source>
-    		<path>employeeType</path>
+    		<path>subtype</path>
     	</source>
     	<expression>
             <value>
@@ -188,17 +188,17 @@
     	<condition>
     		<script>
             	<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-            	<code>employeeType == 'PIRATE'</code>
+            	<code>subtype == 'PIRATE'</code>
             </script>
 		</condition>
     </mapping>
     
     <!-- copied the same mapping twice to check that it won't cause problems -->
     <mapping>
-		<name>assignment-from-employeeType-2</name>
+		<name>assignment-from-subtype-2</name>
     	<authoritative>true</authoritative>
     	<source>
-    		<path>employeeType</path>
+    		<path>subtype</path>
     	</source>
     	<expression>
             <value>
@@ -211,18 +211,18 @@
     	<condition>
     		<script>
             	<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-            	<code>employeeType == 'PIRATE'</code>
+            	<code>subtype == 'PIRATE'</code>
             </script>
 		</condition>
     </mapping>
     
     <!-- similar mapping with assignmentTargetSearch and more sources -->
     <mapping>
-		<name>assignment-from-employeeType-thief</name>
+		<name>assignment-from-subtype-thief</name>
 		<trace>false</trace>
     	<authoritative>true</authoritative>
     	<source>
-    		<path>employeeType</path>
+    		<path>subtype</path>
     	</source>
     	<source>
     		<path>honorificPrefix</path>
@@ -245,7 +245,7 @@
     		<trace>false</trace>
     		<script>
     			<trace>false</trace>
-            	<code>employeeType == 'THIEF' &amp;&amp; basic.stringify(honorificPrefix) == 'Thf.'</code>
+            	<code>subtype == 'THIEF' &amp;&amp; basic.stringify(honorificPrefix) == 'Thf.'</code>
             </script>
 		</condition>
     </mapping>
@@ -254,10 +254,10 @@
          A single mapping with a condition that has an '||' operator internally will be more efficient.
          But this is using this way to check for situation in which the same value is added and removed at the same time. -->
     <mapping>
-		<name>assignment-from-employeeType-buccaneer</name>
+		<name>assignment-from-subtype-buccaneer</name>
     	<authoritative>true</authoritative>
     	<source>
-    		<path>employeeType</path>
+    		<path>subtype</path>
     	</source>
     	<expression>
             <value>
@@ -270,7 +270,7 @@
     	<condition>
     		<script>
             	<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-            	<code>employeeType == 'BUCCANEER'</code>
+            	<code>subtype == 'BUCCANEER'</code>
             </script>
 		</condition>
     </mapping>

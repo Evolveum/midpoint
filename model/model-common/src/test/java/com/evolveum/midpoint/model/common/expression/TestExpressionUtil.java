@@ -18,6 +18,8 @@ package com.evolveum.midpoint.model.common.expression;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 
+import com.evolveum.midpoint.prism.util.ItemDeltaItem;
+import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 
 import org.testng.annotations.Test;
@@ -32,8 +34,6 @@ import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.repo.common.expression.ItemDeltaItem;
-import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;

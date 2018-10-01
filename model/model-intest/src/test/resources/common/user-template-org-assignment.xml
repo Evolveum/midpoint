@@ -54,7 +54,7 @@
         <authoritative>true</authoritative>
         <trace>true</trace>
         <source>
-            <c:path>$user/employeeType</c:path>
+            <c:path>$user/subtype</c:path>
         </source>
         <expression>
         	<trace>true</trace>
@@ -67,7 +67,7 @@
                         	<trace>true</trace>
                             <script>
                             	<trace>true</trace>
-                            	<code>employeeType.substring(5,employeeType.length())</code>
+                            	<code>subtype.substring(5,subtype.length())</code>
                             </script>
                         </expression>
                     </q:equal>
@@ -81,7 +81,7 @@
         <condition>
         	<trace>true</trace>
         	<script>
-        		<code>employeeType?.startsWith('ROLE:')</code>
+        		<code>subtype?.startsWith('ROLE:')</code>
         	</script>
         </condition>
     </mapping>

@@ -109,6 +109,11 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
 		return this;
 	}
 	
+	public PrismObjectAsserter<O,RA> assertSubtype(String... expected) {
+		PrismAsserts.assertEqualsCollectionUnordered("Wrong subtype in "+desc(), getObject().asObjectable().getSubtype(), expected);
+		return this;
+	}
+	
 	public PrismObjectAsserter<O,RA> assertTenantRef(String expectedOid) {
 		ObjectReferenceType tenantRef = getObject().asObjectable().getTenantRef();
 		if (tenantRef == null && expectedOid == null) {

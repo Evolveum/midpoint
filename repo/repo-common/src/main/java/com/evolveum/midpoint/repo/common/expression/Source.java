@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -66,7 +67,7 @@ public class Source<V extends PrismValue,D extends ItemDefinition> extends ItemD
 	}
 
 	public String shortDebugDump() {
-		return PrettyPrinter.prettyPrint(name) + ": old=" + itemOld + ", delta=" + delta + ", new=" + itemNew;
+		return PrettyPrinter.prettyPrint(name) + ": old=" + getItemOld() + ", delta=" + getDelta() + ", new=" + getItemNew();
 	}
 
 	@Override
@@ -80,11 +81,11 @@ public class Source<V extends PrismValue,D extends ItemDefinition> extends ItemD
 		DebugUtil.indentDebugDump(sb, indent);
 		sb.append("Source ").append(PrettyPrinter.prettyPrint(name));
 		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "old", itemOld, indent +1);
+		DebugUtil.debugDumpWithLabel(sb, "old", getItemOld(), indent +1);
 		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "delta", delta, indent +1);
+		DebugUtil.debugDumpWithLabel(sb, "delta", getDelta(), indent +1);
 		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "new", itemNew, indent +1);
+		DebugUtil.debugDumpWithLabel(sb, "new", getItemNew(), indent +1);
 		return sb.toString();
 	}
 

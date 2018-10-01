@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2018 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -14,24 +14,24 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<c:user 
+<user 
+   xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-   xmlns:xsd='http://www.w3.org/2001/XMLSchema'
-   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
-    <c:name>angelika</c:name>
-    <c:fullName>angelika</c:fullName>
-    <c:givenName>angelika</c:givenName>
-    <c:familyName>angelika</c:familyName>
+   xmlns:xsd='http://www.w3.org/2001/XMLSchema'>
+    <name>angelika</name>
+    <subtype>type1</subtype>
+    <fullName>angelika</fullName>
+    <givenName>angelika</givenName>
+    <familyName>angelika</familyName>
     <locality>Caribbean</locality>
-    <employeeType>type1</employeeType>
     <assignment>
     	<targetRef oid="00000000-0000-0000-0000-00000000aad1" type="RoleType"/>
     </assignment>
-    <c:credentials>
-        <c:password>
-        	<c:value>
-	            <c:clearValue>deadmentellnotales</c:clearValue>
-            </c:value>
-        </c:password>
-    </c:credentials>
-</c:user>
+    <credentials>
+        <password>
+        	<value>
+	            <clearValue>deadmentellnotales</clearValue>
+            </value>
+        </password>
+    </credentials>
+</user>

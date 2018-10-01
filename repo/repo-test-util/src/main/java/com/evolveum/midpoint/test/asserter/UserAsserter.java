@@ -110,6 +110,12 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
 	}
 	
 	@Override
+	public UserAsserter<RA> assertSubtype(String... expected) {
+		super.assertSubtype(expected);
+		return this;
+	}
+	
+	@Override
 	public UserAsserter<RA> assertTenantRef(String expectedOid) {
 		super.assertTenantRef(expectedOid);
 		return this;

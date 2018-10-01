@@ -28,7 +28,6 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.impl.lens.projector.ComplexConstructionConsumer;
 import com.evolveum.midpoint.model.impl.lens.projector.ConstructionProcessor;
@@ -42,6 +41,7 @@ import com.evolveum.midpoint.prism.delta.DeltaMapTriple;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;

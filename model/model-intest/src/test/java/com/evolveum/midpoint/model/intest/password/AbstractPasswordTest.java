@@ -2943,8 +2943,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	}
 
 	@Test
-	public void test416UserRappEmployeeTypeWreck() throws Exception {
-		final String TEST_NAME = "test416UserRappEmployeeTypeWreck";
+	public void test416UserRappSubtypeWreck() throws Exception {
+		final String TEST_NAME = "test416UserRappSubtypeWreck";
 		displayTestTitle(TEST_NAME);
 
 		// GIVEN
@@ -2957,7 +2957,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		modifyUserReplace(USER_RAPP_OID, UserType.F_EMPLOYEE_TYPE, task, result, "WRECK");
+		modifyUserReplace(USER_RAPP_OID, UserType.F_SUBTYPE, task, result, "WRECK");
 
 		// THEN
 		displayThen(TEST_NAME);

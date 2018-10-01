@@ -108,7 +108,7 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
         assignRole(USER_JACK_OID, ROLE_GAMBLER_OID, task, result);
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         modifyUserReplace(USER_JACK_OID, UserType.F_LIFECYCLE_STATE, task, result, SchemaConstants.LIFECYCLE_DRAFT);
-        modifyUserReplace(USER_JACK_OID, UserType.F_EMPLOYEE_TYPE, task, result, SUBTYPE_EMPLOYEE);
+        modifyUserReplace(USER_JACK_OID, UserType.F_SUBTYPE, task, result, SUBTYPE_EMPLOYEE);
         modifyUserReplace(USER_JACK_OID, UserType.F_TELEPHONE_NUMBER, task, result, USER_JACK_TELEPHONE_NUMBER);
 
         // THEN

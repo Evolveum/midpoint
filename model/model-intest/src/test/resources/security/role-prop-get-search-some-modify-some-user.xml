@@ -28,8 +28,8 @@
     		<type>UserType</type>
     		<filter>
 	            <q:equal>
-	               <q:path>employeeType</q:path>
-	               <q:value>CAPTAIN</q:value>
+	               <q:path>subtype</q:path>
+	               <q:value>captain</q:value>
 	            </q:equal>
 	        </filter>
     	</object>
@@ -45,8 +45,8 @@
     		<type>UserType</type>
     		<filter>
 	            <q:equal>
-	               <q:path>employeeType</q:path>
-	               <q:value>CAPTAIN</q:value>
+	               <q:path>subtype</q:path>
+	               <q:value>captain</q:value>
 	            </q:equal>
 	        </filter>
     	</object>
@@ -64,8 +64,8 @@
     		<type>UserType</type>
     		<filter>
 	            <q:equal>
-	               <q:path>employeeType</q:path>
-	               <q:value>CAPTAIN</q:value>
+	               <q:path>subtype</q:path>
+	               <q:value>captain</q:value>
 	            </q:equal>
 	        </filter>
     	</object>

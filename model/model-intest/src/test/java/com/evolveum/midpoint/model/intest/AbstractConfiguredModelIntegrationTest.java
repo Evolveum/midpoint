@@ -304,7 +304,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	public static final String USER_JACK_FAMILY_NAME = "Sparrow";
 	public static final String USER_JACK_ADDITIONAL_NAME = "Jackie";
 	public static final String USER_JACK_DESCRIPTION = "Where's the rum?";
-	public static final String USER_JACK_EMPLOYEE_TYPE = "CAPTAIN";
+	public static final String USER_JACK_SUBTYPE = "captain";
 	public static final String USER_JACK_EMPLOYEE_NUMBER = "emp1234";
 	public static final String USER_JACK_LOCALITY = "Caribbean";
 	public static final String USER_JACK_PASSWORD = "deadmentellnotales";
@@ -824,4 +824,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 		return description + " -- " + fullName;
 	}
 
+	protected void loginAdministrator() throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+		login(userAdministrator);
+	}
 }

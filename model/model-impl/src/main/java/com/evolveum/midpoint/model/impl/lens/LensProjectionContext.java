@@ -41,7 +41,6 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.jvnet.jaxb2_commons.lang.Validate;
 
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
-import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -51,6 +50,7 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;

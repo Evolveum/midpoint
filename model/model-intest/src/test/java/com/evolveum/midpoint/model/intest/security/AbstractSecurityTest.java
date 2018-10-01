@@ -612,7 +612,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	}
 
 	protected void cleanupAutzTest(String userOid, int expectedAssignments) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException, IOException {
-		login(userAdministrator);
+		loginAdministrator();
 		if (userOid != null) {
 			unassignAllRoles(userOid);
 		}
@@ -634,11 +634,14 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, task, result /* no value */);
         modifyUserReplace(USER_JACK_OID, UserType.F_COST_CENTER, task, result /* no value */);
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, PrismTestUtil.createPolyString(USER_JACK_FULL_NAME));
-        modifyUserReplace(userRumRogersOid, UserType.F_TITLE, task, result);
-        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, task, result, PrismTestUtil.createPolyString("Wannabe"));
+        modifyUserReplace(USER_JACK_OID, UserType.F_SUBTYPE, task, result, USER_JACK_SUBTYPE);
         modifyUserReplace(USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_VALID_FROM, task, result  /* no value */);
         modifyUserReplace(USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_VALID_TO, task, result  /* no value */);
         modifyUserReplace(USER_JACK_OID, UserType.F_GIVEN_NAME, task, result, createPolyString(USER_JACK_GIVEN_NAME));
+
+        modifyUserReplace(userRumRogersOid, UserType.F_TITLE, task, result);
+        
+        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, task, result, PrismTestUtil.createPolyString("Wannabe"));
 
         unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null);
         unassignOrg(USER_JACK_OID, ORG_MINISTRY_OF_RUM_OID, SchemaConstants.ORG_MANAGER, task, result);

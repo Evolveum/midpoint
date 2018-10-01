@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2018 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -23,7 +23,8 @@
 		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
 		xmlns:xsd='http://www.w3.org/2001/XMLSchema'>
     <name>rogers</name>
-
+	<subtype>pirate</subtype>
+	
     <link>
         <resourceRef oid="10000000-0000-0000-0000-000000000004"/>
         <objectClass>ridummy:AccountObjectClass</objectClass>
@@ -48,7 +49,6 @@
     <fullName>Rum Rogers Sr.</fullName>
     <givenName>Rum</givenName>
     <familyName>Rogers</familyName>
-    <employeeType>pirate</employeeType>
 
     <credentials>
         <password>

@@ -11977,6 +11977,13 @@
         			</xsd:appinfo>
         		</xsd:annotation>
         	</xsd:element>
+        	<xsd:element name="zoneOfControl" type="tns:ZoneOfControlType" minOccurs="0" maxOccurs="1" default="keep">
+        		<xsd:annotation>
+        			<xsd:appinfo>
+        				<a:since>3.9</a:since>
+        			</xsd:appinfo>
+        		</xsd:annotation>
+        	</xsd:element>
         	<xsd:element name="object" type="tns:OwnedObjectSelectorType" minOccurs="0" maxOccurs="unbounded">
         		<xsd:annotation>
         			<xsd:documentation>
@@ -12169,6 +12176,54 @@
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="MAY_SKIP_ON_SEARCH"/>
                         <a:since>3.6</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
+    <xsd:simpleType name="ZoneOfControlType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Defines how zone of control should be maintained.
+        		Zone of control is the set of objects for that particular authorization. E.g. the set
+        		of objects that satisfy specified filter, objects that belog to the same tenant and so on.
+        		
+        		Zone of control is evaluated for each particular authorization separately. Therefore the
+        		default setting of "keep" will not allow operation if the object leaves zone of control
+        		of one authorization but it enters zone of control of another authorization.
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>3.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="keep">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Always keep object in the zone of control. Do not allow any modifications that could
+                		allow object to get out of zone of control of that particular authorization.
+                		E.g. modify authorization will not be able to make such object modification that would
+                		cause object to become unmodifiable.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="KEEP"/>
+                        <a:since>3.9</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="allowEscape">
+                <xsd:annotation>
+                	<xsd:documentation>
+                	    Allow object to "escape" from the zone of control. Allow any modifications that could
+                		allow object to get out of zone of control of that particular authorization.
+                		E.g. modify authorization will be able to make such object modification that would
+                		cause object to become unmodifiable.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ALLOW_ESCAPE"/>
+                        <a:since>3.9</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

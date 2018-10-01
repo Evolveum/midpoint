@@ -120,6 +120,12 @@ public class FocusAsserter<F extends FocusType,RA> extends PrismObjectAsserter<F
 	}
 	
 	@Override
+	public FocusAsserter<F,RA> assertSubtype(String... expected) {
+		super.assertSubtype(expected);
+		return this;
+	}
+	
+	@Override
 	public FocusAsserter<F,RA> assertTenantRef(String expectedOid) {
 		super.assertTenantRef(expectedOid);
 		return this;

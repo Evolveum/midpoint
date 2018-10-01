@@ -7,7 +7,7 @@ objects:
     fullName: "Will Turner"
     givenName: "William"
     familyName: "Turner"
-    employeeType: "legendary"
+    subtype: "legendary"
 - user:
     name: "guybrush"
     fullName: "Guybrush Threepwood"
