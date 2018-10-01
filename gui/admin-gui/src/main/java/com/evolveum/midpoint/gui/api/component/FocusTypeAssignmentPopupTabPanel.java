@@ -32,6 +32,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.input.RelationDropDownChoicePanel;
 import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -103,7 +104,7 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
         try {
             ModelInteractionService mis = getPageBase().getModelInteractionService();
             RoleSelectionSpecification roleSpec =
-                    mis.getAssignableRoleSpecification(getTargetedAssignemntObject(), task, result);
+                    mis.getAssignableRoleSpecification(getTargetedAssignemntObject(), (Class<AbstractRoleType>) getObjectType().getClassDefinition(), task, result);
             filter = roleSpec.getFilter();
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load available roles", ex);

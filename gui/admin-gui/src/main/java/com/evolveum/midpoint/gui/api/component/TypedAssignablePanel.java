@@ -449,7 +449,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
                     try {
                         ModelInteractionService mis = TypedAssignablePanel.this.getPageBase().getModelInteractionService();
                         RoleSelectionSpecification roleSpec =
-                                mis.getAssignableRoleSpecification(SecurityUtils.getPrincipalUser().getUser().asPrismObject(), task, result);
+                                mis.getAssignableRoleSpecification(SecurityUtils.getPrincipalUser().getUser().asPrismObject(), AbstractRoleType.class, task, result);
                         filter = roleSpec.getFilter();
                     } catch (Exception ex) {
                         LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load available roles", ex);
