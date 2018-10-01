@@ -24,8 +24,8 @@
 		xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
     <name>rapp</name>
 	<!-- No full name -->
+	<subtype>COOK</subtype>
     <givenName>Rapp</givenName>
     <familyName>Scallion</familyName>
     <employeeNumber>D3ADB33F</employeeNumber>
-	<employeeType>COOK</employeeType>
 </user>

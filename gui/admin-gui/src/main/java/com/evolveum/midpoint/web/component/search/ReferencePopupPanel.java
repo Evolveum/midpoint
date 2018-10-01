@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.DropDownChoice;
@@ -69,10 +70,17 @@ public class ReferencePopupPanel extends SearchPopupPanel<ObjectReferenceType> {
         });
         
         add(type);
-        
+
+        if (getModelObject().getValue() != null && getModelObject().getValue().getRelation() == null){
+        	getModelObject().getValue().setRelation(PrismConstants.Q_ANY);
+		}
+		List<QName> allowedRelations = getAllowedRelations();
+        if (!allowedRelations.contains(PrismConstants.Q_ANY)) {
+			allowedRelations.add(0, PrismConstants.Q_ANY);
+		}
         DropDownChoice<QName> relation = new DropDownChoice<>(ID_RELATION, new PropertyModel<QName>(getModel(), SearchValue.F_VALUE + ".relation"),
-				getAllowedRelations(), new QNameObjectTypeChoiceRenderer()); 
-        relation.setNullValid(true);
+				allowedRelations, new QNameObjectTypeChoiceRenderer());
+//        relation.setNullValid(true);
         relation.setOutputMarkupId(true);
         relation.add(new VisibleEnableBehaviour() {
         	

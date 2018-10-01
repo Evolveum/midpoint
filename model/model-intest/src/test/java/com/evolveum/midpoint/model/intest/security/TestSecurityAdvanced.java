@@ -137,6 +137,12 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 	protected static final File ROLE_PROP_EXCEPT_ADMINISTRATIVE_STATUS_FILE = new File(TEST_DIR, "role-prop-except-administrative-status.xml");
 	protected static final String ROLE_PROP_EXCEPT_ADMINISTRATIVE_STATUS_OID = "cc549256-02a5-11e8-994e-43c307e2a819";
 	
+	protected static final File ROLE_PROP_SUBTYPE_FILE = new File(TEST_DIR, "role-prop-subtype.xml");
+	protected static final String ROLE_PROP_SUBTYPE_OID = "0a841bcc-c255-11e8-bd03-d72f34cdd7f8";
+	
+	protected static final File ROLE_PROP_SUBTYPE_ESCAPE_FILE = new File(TEST_DIR, "role-prop-subtype-escape.xml");
+	protected static final String ROLE_PROP_SUBTYPE_ESCAPE_OID = "bdf18bb2-c314-11e8-8e99-1709836f1462";
+	
 	protected static final File ROLE_ASSIGN_ORG_FILE = new File(TEST_DIR, "role-assign-org.xml");
 	protected static final String ROLE_ASSIGN_ORG_OID = "be96f834-2dbb-11e8-b29d-7f5de07e7995";
 
@@ -157,13 +163,15 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		repoAddObjectFromFile(ROLE_MODIFY_DESCRIPTION_FILE, initResult);
 		repoAddObjectFromFile(ROLE_PROP_EXCEPT_ASSIGNMENT_FILE, initResult);
 		repoAddObjectFromFile(ROLE_PROP_EXCEPT_ADMINISTRATIVE_STATUS_FILE, initResult);
+		repoAddObjectFromFile(ROLE_PROP_SUBTYPE_FILE, initResult);
+		repoAddObjectFromFile(ROLE_PROP_SUBTYPE_ESCAPE_FILE, initResult);
 		repoAddObjectFromFile(ROLE_ASSIGN_ORG_FILE, initResult);
 		repoAddObjectFromFile(ROLE_END_USER_WITH_PRIVACY_FILE, initResult);
 
 		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_SECURITY_OID, initResult);
 	}
 	
-	protected static final int NUMBER_OF_IMPORTED_ROLES = 11;
+	protected static final int NUMBER_OF_IMPORTED_ROLES = 13;
 	
 	protected int getNumberOfRoles() {
 		return super.getNumberOfRoles() + NUMBER_OF_IMPORTED_ROLES;
@@ -2982,6 +2990,79 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 	}
 	
 	/**
+	 * User tries to get out of his zone of control. Allowed to modify only objects that
+	 * subtype=captain and tries to modify subtype to something else.
+	 */
+	@Test
+    public void test310AutzJackPropSubtypeDenyEscapingZoneOfControl() throws Exception {
+		final String TEST_NAME = "test310AutzJackPropSubtypeDenyEscapingZoneOfControl";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		cleanupAutzTest(USER_JACK_OID);
+		assignRole(USER_JACK_OID, ROLE_PROP_SUBTYPE_OID);
+		modifyJackValidTo();
+		login(USER_JACK_USERNAME);
+
+		assertUserBefore(USER_JACK_OID)
+			.assertName(USER_JACK_USERNAME)
+			.assertFullName(USER_JACK_FULL_NAME)
+			.assertSubtype(USER_JACK_SUBTYPE);
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		
+		assertModifyDeny(UserType.class, USER_JACK_OID, UserType.F_SUBTYPE, "escape");
+
+		// WHEN
+		displayThen(TEST_NAME);
+
+		assertUserAfter(USER_JACK_OID)
+			.assertName(USER_JACK_USERNAME)
+			.assertFullName(USER_JACK_FULL_NAME)
+			.assertSubtype(USER_JACK_SUBTYPE);
+		
+		assertGlobalStateUntouched();
+	}
+	
+	/**
+	 * User tries to get out of his zone of control. Allowed to modify only objects that
+	 * subtype=captain and tries to modify subtype to something else.
+	 * This time authorization explicitly allows escaping zone of control.
+	 */
+	@Test
+    public void test312AutzJackPropSubtypeAllowEscapingZoneOfControl() throws Exception {
+		final String TEST_NAME = "test312AutzJackPropSubtypeAllowEscapingZoneOfControl";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		cleanupAutzTest(USER_JACK_OID);
+		assignRole(USER_JACK_OID, ROLE_PROP_SUBTYPE_ESCAPE_OID);
+		modifyJackValidTo();
+		login(USER_JACK_USERNAME);
+
+		assertUserBefore(USER_JACK_OID)
+			.assertName(USER_JACK_USERNAME)
+			.assertFullName(USER_JACK_FULL_NAME)
+			.assertSubtype(USER_JACK_SUBTYPE);
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		
+		assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_SUBTYPE, "escape");
+		assertModifyDeny(UserType.class, USER_JACK_OID, UserType.F_SUBTYPE, "escape again");
+		assertModifyDeny(UserType.class, USER_JACK_OID, UserType.F_SUBTYPE, USER_JACK_SUBTYPE);
+
+		// WHEN
+		displayThen(TEST_NAME);
+		
+		assertUserAfter(USER_JACK_OID)
+			.assertName(USER_JACK_USERNAME)
+			.assertFullName(USER_JACK_FULL_NAME)
+			.assertSubtype("escape");
+		
+		assertGlobalStateUntouched();
+	}
+	
+	/**
 	 * MID-4304
 	 */
 	@Test
@@ -3054,7 +3135,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		PrismObject<UserType> userJack = assertGetAllow(UserType.class, USER_JACK_OID);
 		display("Jack", userJack);
 		// Access to employeeType is not allowed for get. Therefore is should not part of the result.
-		PrismAsserts.assertNoItem(userJack, UserType.F_EMPLOYEE_TYPE);
+		PrismAsserts.assertNoItem(userJack, UserType.F_SUBTYPE);
 		
 		// Direct get, should be allowed even though guybrush is not a CAPTAIN
 		PrismObject<UserType> userBuybrush = assertGetAllow(UserType.class, USER_GUYBRUSH_OID);

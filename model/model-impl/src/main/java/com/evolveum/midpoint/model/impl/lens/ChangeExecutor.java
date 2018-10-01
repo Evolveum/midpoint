@@ -1308,7 +1308,7 @@ public class ChangeExecutor {
 		OwnerResolver ownerResolver = createOwnerResolver(context, task, result);
 		try {
 			securityEnforcer.authorize(ModelAuthorizationAction.ADD.getUrl(),
-					AuthorizationPhaseType.EXECUTION, AuthorizationParameters.Builder.buildObject(objectToAdd), ownerResolver, task, result);
+					AuthorizationPhaseType.EXECUTION, AuthorizationParameters.Builder.buildObjectAdd(objectToAdd), ownerResolver, task, result);
 
 			T objectTypeToAdd = objectToAdd.asObjectable();
 
@@ -1378,7 +1378,7 @@ public class ChangeExecutor {
 		PrismObject<T> objectAfterModification = null;
 		try {
 			securityEnforcer.authorize(ModelAuthorizationAction.DELETE.getUrl(),
-					AuthorizationPhaseType.EXECUTION, AuthorizationParameters.Builder.buildObject(objectOld), ownerResolver, task, result);
+					AuthorizationPhaseType.EXECUTION, AuthorizationParameters.Builder.buildObjectDelete(objectOld), ownerResolver, task, result);
 
 			if (TaskType.class.isAssignableFrom(objectTypeClass)) {
 				taskManager.deleteTask(oid, result);

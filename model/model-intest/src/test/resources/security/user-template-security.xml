@@ -29,12 +29,12 @@
          <mapping>         	      
             <strength>strong</strength>
             <source>
-               <c:path>credentials/password/metadata</c:path>
+               <path>credentials/password/metadata</path>
             </source>
             <expression>
             	<runAsRef oid="00000000-0000-0000-0000-000000000002"/>
                <script>
-                  <code>basic.stringify(metadata?.creatorRef)</code>
+                  <code>'modifier:'+metadata?.creatorRef?.oid</code>
                </script>
             </expression>
          </mapping>

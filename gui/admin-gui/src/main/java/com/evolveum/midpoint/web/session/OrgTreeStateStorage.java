@@ -10,21 +10,23 @@ import java.util.Set;
  * Created by honchar
  */
 public interface OrgTreeStateStorage {
-    public Set<SelectableBean<OrgType>> getExpandedItems();
+    Set<SelectableBean<OrgType>> getExpandedItems();
 
-    public void setExpandedItems(TreeStateSet<SelectableBean<OrgType>> expandedItems);
+    void setExpandedItems(TreeStateSet<SelectableBean<OrgType>> expandedItems);
 
-    public SelectableBean<OrgType> getSelectedItem();
+    SelectableBean<OrgType> getSelectedItem();
 
-    public void setSelectedItem(SelectableBean<OrgType> selectedItem);
+    void setSelectedItem(SelectableBean<OrgType> selectedItem);
 
-    public int getSelectedTabId();
+    int getSelectedTabId();
 
-    public void setSelectedTabId(int selectedTabId);
+    void setSelectedTabId(int selectedTabId);
 
-    public SelectableBean<OrgType> getCollapsedItem();
+    SelectableBean<OrgType> getCollapsedItem();
 
-    public void setCollapsedItem(SelectableBean<OrgType> collapsedItem);
+    void setCollapsedItem(SelectableBean<OrgType> collapsedItem);
 
+    boolean isInverse();
 
+    void setInverse(boolean inverse);
 }

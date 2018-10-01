@@ -1012,7 +1012,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 			// This is set by red's outbound from user's organizationalUnit. If dependencies work this outbound is processed
 	        // after user's organizationUnit is set and it will have the same value as above.
 			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The crew of The Lost Souls")
-			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, "Jack Sparrow must be the best CAPTAIN the Caribbean has ever seen");
+			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, "Jack Sparrow must be the best captain the Caribbean has ever seen");
 
     	assertDummyAccountByUsername(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME)
 	    	.assertFullName(ACCOUNT_JACK_DUMMY_FULLNAME)
@@ -1074,7 +1074,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountAttribute(RESOURCE_DUMMY_LAVENDER_NAME, toName,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The crew of The Lost Souls");
         assertDummyAccountAttribute(RESOURCE_DUMMY_LAVENDER_NAME, toName,
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, toFullName +" must be the best CAPTAIN the Caribbean has ever seen");
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, toFullName +" must be the best captain the Caribbean has ever seen");
 
         assertDummyAccount(RESOURCE_DUMMY_IVORY_NAME, toName, toFullName, true);
         // This is set by red's outbound from user's organizationalUnit. If dependencies work this outbound is processed

@@ -24,13 +24,13 @@
     <name>User Template - Test Inbounds</name>
  
  
-	<!-- RB-RBAC functionality. The Pirate role is automatically assigned based on the value of employeeType property -->
+	<!-- RB-RBAC functionality. The Pirate role is automatically assigned based on the value of subtype property -->
     <mapping>
 		<name>pirate-assignment</name>
     	<authoritative>true</authoritative>
     	<strength>strong</strength>
     	<source>
-    		<path>employeeType</path>
+    		<path>subtype</path>
     	</source>
     	<expression>
             <value>
@@ -43,7 +43,7 @@
     	<condition>
     		<script>
             	<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-            	<code>employeeType == 'PIRATE'</code>
+            	<code>subtype == 'PIRATE'</code>
             </script>
 		</condition>
     </mapping>
@@ -55,7 +55,7 @@
 		<name>buccaneer-assignment</name>
 		<authoritative>true</authoritative>
     	<source>
-    		<path>employeeType</path>
+    		<path>subtype</path>
     	</source>
     	<expression>
             <value>
@@ -68,7 +68,7 @@
     	<condition>
     		<script>
             	<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-            	<code>employeeType == 'BUCCANEER'</code>
+            	<code>subtype == 'BUCCANEER'</code>
             </script>
 		</condition>
     </mapping>

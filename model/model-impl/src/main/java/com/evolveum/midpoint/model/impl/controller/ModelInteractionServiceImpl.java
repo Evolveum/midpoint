@@ -102,6 +102,8 @@ import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.util.ItemDeltaItem;
+import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -855,6 +857,12 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	@NotNull
 	public Scene visualizeDelta(ObjectDelta<? extends ObjectType> delta, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
 		return visualizer.visualizeDelta(delta, task, result);
+	}
+
+	@Override
+	@NotNull
+	public Scene visualizeDelta(ObjectDelta<? extends ObjectType> delta, ObjectReferenceType objectRef, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
+		return visualizer.visualizeDelta(delta, objectRef, task, result);
 	}
 
 	@Override

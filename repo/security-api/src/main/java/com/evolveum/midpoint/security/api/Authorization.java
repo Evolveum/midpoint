@@ -36,6 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationLimitat
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OwnedObjectSelectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ZoneOfControlType;
 
 /**
  * @author semancik
@@ -95,6 +96,11 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
 
 	public boolean maySkipOnSearch() {
 		return getEnforcementStrategy() == AuthorizationEnforcementStrategyType.MAY_SKIP_ON_SEARCH;
+	}
+	
+	public boolean keepZoneOfControl() {
+		ZoneOfControlType zoneOfControl = authorizationType.getZoneOfControl();
+		return zoneOfControl == null || zoneOfControl == ZoneOfControlType.KEEP;
 	}
 
 	public List<OwnedObjectSelectorType> getObject() {

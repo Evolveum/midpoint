@@ -279,6 +279,9 @@ public interface ModelInteractionService {
 	@NotNull
 	Scene visualizeDelta(ObjectDelta<? extends ObjectType> delta, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException;
 
+	@NotNull
+	Scene visualizeDelta(ObjectDelta<? extends ObjectType> delta, ObjectReferenceType objectRef, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException;
+
 	List<ConnectorOperationalStatus> getConnectorOperationalStatus(String resourceOid, Task task, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 

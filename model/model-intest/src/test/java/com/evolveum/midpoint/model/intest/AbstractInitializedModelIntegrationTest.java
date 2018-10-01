@@ -322,7 +322,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		assertEquals("Wrong jack emailAddress", "jack.sparrow@evolveum.com", userType.getEmailAddress());
 		assertEquals("Wrong jack telephoneNumber", "555-1234", userType.getTelephoneNumber());
 		assertEquals("Wrong jack employeeNumber", "emp1234", userType.getEmployeeNumber());
-		assertEquals("Wrong jack employeeType", "CAPTAIN", userType.getEmployeeType().get(0));
+		assertEquals("Wrong jack employeeType", USER_JACK_SUBTYPE, userType.getSubtype().get(0));
 		if (locality == null) {
 			assertNull("Locality sneaked to user jack", userType.getLocality());
 		} else {

@@ -1612,7 +1612,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         displayWhen(TEST_NAME);
-        modifyUserReplace(USER_JACK_OID, UserType.F_EMPLOYEE_TYPE, task, result, "ROLE:Pirate");
+        modifyUserReplace(USER_JACK_OID, UserType.F_SUBTYPE, task, result, "ROLE:Pirate");
 
         // THEN
         displayThen(TEST_NAME);
@@ -1640,7 +1640,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         display("user before", userBefore);
 
         // WHEN
-        modifyUserReplace(USER_JACK_OID, UserType.F_EMPLOYEE_TYPE, task, result, "ROLE:Captain");
+        modifyUserReplace(USER_JACK_OID, UserType.F_SUBTYPE, task, result, "ROLE:Captain");
 
         // THEN
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1667,7 +1667,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         display("user before", userBefore);
 
         // WHEN
-        modifyUserReplace(USER_JACK_OID, UserType.F_EMPLOYEE_TYPE, task, result, "ROLE:TheRoleThatDoesNotExist");
+        modifyUserReplace(USER_JACK_OID, UserType.F_SUBTYPE, task, result, "ROLE:TheRoleThatDoesNotExist");
 
         // THEN
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1695,7 +1695,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         display("user before", userBefore);
 
         // WHEN
-        modifyUserReplace(USER_JACK_OID, UserType.F_EMPLOYEE_TYPE, task, result);
+        modifyUserReplace(USER_JACK_OID, UserType.F_SUBTYPE, task, result);
 
         // THEN
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
