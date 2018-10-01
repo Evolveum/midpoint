@@ -61,6 +61,7 @@ import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import org.opensaml.xmlsec.signature.P;
 
 public class OrgTreePanel extends AbstractTreeTablePanel {
 	private static final long serialVersionUID = 1L;
@@ -275,7 +276,8 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 				super.onModelChanged();
 
 				TreeStateSet<SelectableBean<OrgType>> items = (TreeStateSet) getModelObject();
-				if (!items.isInverse()) {
+				boolean isInverse = getOrgTreeStateStorage() != null ? getOrgTreeStateStorage().isInverse() : items.isInverse();
+				if (isInverse) {
 					OrgTreePanel.this.setExpandedItems(items, getOrgTreeStateStorage());
 				}
 			}
@@ -299,13 +301,13 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 			this.panel = panel;
 			this.provider = provider;
 			this.storage = storage;
+			set.setInverse(storage != null ? storage.isInverse() : false);
 		}
 
 		@Override
 		public Set<SelectableBean<OrgType>> getObject() {
 			Set<SelectableBean<OrgType>> dtos = TreeStateModel.this.getExpandedItems();
 			SelectableBean<OrgType> collapsedItem = TreeStateModel.this.getCollapsedItem();
-			Iterator<SelectableBean<OrgType>> iterator = provider.getRoots();
 
 			if (collapsedItem != null) {
 				if (set.contains(collapsedItem)) {
@@ -321,6 +323,7 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 				}
 			}
 			// just to have root expanded at all time
+			Iterator<SelectableBean<OrgType>> iterator = provider.getRoots();
 			if (iterator.hasNext()) {
 				SelectableBean<OrgType> root = iterator.next();
 				if (set.isEmpty() || !set.contains(root)) {
@@ -419,6 +422,9 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 		TableTree<SelectableBean<OrgType>, String> tree = getTree();
 		TreeStateModel model = (TreeStateModel) tree.getDefaultModel();
 		model.collapseAll();
+		if (getOrgTreeStateStorage() != null){
+			getOrgTreeStateStorage().setInverse(false);
+		}
 
 		target.add(tree);
 	}
@@ -427,6 +433,10 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 		TableTree<SelectableBean<OrgType>, String> tree = getTree();
 		TreeStateModel model = (TreeStateModel) tree.getDefaultModel();
 		model.expandAll();
+
+		if (getOrgTreeStateStorage() != null){
+			getOrgTreeStateStorage().setInverse(true);
+		}
 
 		target.add(tree);
 	}

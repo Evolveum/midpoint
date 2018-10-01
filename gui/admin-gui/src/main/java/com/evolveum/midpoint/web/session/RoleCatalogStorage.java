@@ -59,6 +59,7 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
     private String requestDescription = "";
     private ObjectPaging roleCatalogPaging;
     private int assignmentRequestLimit = -1;
+    private boolean inverse = false;
 
     public Search getSearch() {
         return roleCatalogSearchMap.get(getDefaultTabIndex() < 0 ? 0 : getDefaultTabIndex());
@@ -219,5 +220,15 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
 
     public void setAssignmentRequestLimit(int assignmentRequestLimit) {
         this.assignmentRequestLimit = assignmentRequestLimit;
+    }
+
+    @Override
+    public boolean isInverse(){
+        return inverse;
+    }
+
+    @Override
+    public void setInverse(boolean inverse){
+        this.inverse = inverse;
     }
 }
