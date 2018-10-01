@@ -4690,7 +4690,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected <F extends FocusType> RoleSelectionSpecification getAssignableRoleSpecification(PrismObject<F> focus) throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class+".getAssignableRoleSpecification");
 		OperationResult result = task.getResult();
-		RoleSelectionSpecification spec = modelInteractionService.getAssignableRoleSpecification(focus, task, result);
+		RoleSelectionSpecification spec = modelInteractionService.getAssignableRoleSpecification(focus, AbstractRoleType.class, task, result);
 		assertSuccess(result);
 		return spec;
 	}
