@@ -176,6 +176,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	protected static final String USER_LECHUCK_FULL_NAME = "LeChuck";
 
 	protected static final String LDAP_INETORGPERSON_OBJECTCLASS = "inetOrgPerson";
+	protected static final String LDAP_ATTRIBUTE_ROOM_NUMBER = "roomNumber";
 
 	protected static final QName ASSOCIATION_GROUP_NAME = new QName(MidPointConstants.NS_RI, "group");
 
@@ -800,8 +801,13 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	}
 
 	protected Entry addLdapAccount(String uid, String cn, String givenName, String sn) throws LdapException, IOException, CursorException {
-		LdapNetworkConnection connection = ldapConnect();
 		Entry entry = createAccountEntry(uid, cn, givenName, sn);
+		addLdapEntry(entry);
+		return entry;
+	}
+	
+	protected void addLdapEntry(Entry entry) throws LdapException, IOException {
+		LdapNetworkConnection connection = ldapConnect();
 		try {
 			connection.add(entry);
 			display("Added LDAP account:\n"+entry);
@@ -811,7 +817,6 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 			throw e;
 		}
 		ldapDisconnect(connection);
-		return entry;
 	}
 
 	protected Entry createAccountEntry(String uid, String cn, String givenName, String sn) throws LdapException {
