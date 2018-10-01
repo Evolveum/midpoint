@@ -95,6 +95,12 @@
 	    </authorization>
 	    <authorization>
 	    	<name>tenant admin autz delete</name>
+	    	<description>
+	    		Separate delete authorization without an exception for assignment/inducement.
+	    		We want to be able to delete objects with assignments. All focal objects in tenant have at least one
+	    		assignment. If we do not do this we won't be able to delete them.
+	    		But we do not want to allow delete of the tenant org itself.
+	    	</description>
 	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delete</action>
 	    	<object>
 	    		<tenant>
