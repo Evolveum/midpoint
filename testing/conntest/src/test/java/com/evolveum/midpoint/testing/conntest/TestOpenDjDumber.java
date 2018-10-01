@@ -29,6 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * OpenDJ, but without permissive modify, shortcut attributes, with manual matching rules, etc.
+ * Also has additional search filter.
  *
  * @author semancik
  */
@@ -57,6 +58,10 @@ public class TestOpenDjDumber extends TestOpenDj {
 		return false;
 	}
 	
+	/**
+	 * Test for additional search filter.
+	 * MID-4925
+	 */
 	@Test
 	@Override
     public void test350SeachInvisibleAccount() throws Exception {
