@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.TypeFilter;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -313,7 +314,7 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
         try {
             ModelInteractionService mis = getPageBase().getModelInteractionService();
             RoleSelectionSpecification roleSpec =
-                    mis.getAssignableRoleSpecification(getTargetUser().asPrismObject(), task, result);
+                    mis.getAssignableRoleSpecification(getTargetUser().asPrismObject(), (Class) ObjectTypes.getObjectTypeClass(getQueryType()), task, result);
             filter = roleSpec.getFilter();
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load available roles", ex);

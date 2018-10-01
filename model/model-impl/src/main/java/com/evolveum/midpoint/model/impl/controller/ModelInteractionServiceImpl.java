@@ -93,6 +93,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AllFilter;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualFilter;
+import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -443,7 +444,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	}
 
 	@Override
-	public <F extends FocusType> RoleSelectionSpecification getAssignableRoleSpecification(PrismObject<F> focus, Task task, OperationResult parentResult)
+	public <F extends FocusType, R extends AbstractRoleType> RoleSelectionSpecification getAssignableRoleSpecification(PrismObject<F> focus, Class<R> targetType, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
 		OperationResult result = parentResult.createMinorSubresult(GET_ASSIGNABLE_ROLE_SPECIFICATION);
 
@@ -487,7 +488,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
 		try {
 			ObjectFilter filter = securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ASSIGN,
-					AuthorizationPhaseType.REQUEST, AbstractRoleType.class, focus, AllFilter.createAll(), null, task, result);
+					AuthorizationPhaseType.REQUEST, targetType, focus, AllFilter.createAll(), null, task, result);
 			LOGGER.trace("assignableRoleSpec filter: {}", filter);
 			spec.setFilter(filter);
 			if (filter instanceof NoneFilter) {
@@ -643,7 +644,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			Collection<RoleSelectionSpecEntry> subRoleSelectionSpec = getRoleSelectionSpecEntries(((NotFilter)filter).getFilter());
 			RoleSelectionSpecEntry.negate(subRoleSelectionSpec);
 			return subRoleSelectionSpec;
-		} else if (filter instanceof RefFilter) {
+		} else if (filter instanceof RefFilter || filter instanceof InOidFilter) {
 			return null;
 		} else {
 			throw new UnsupportedOperationException("Unexpected filter "+filter);
