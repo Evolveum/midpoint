@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql.schemacheck;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.MissingSchemaAction;
+import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.UpgradeableSchemaAction;
 import com.evolveum.midpoint.repo.sql.data.common.RGlobalMetadata;
 import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
@@ -26,18 +27,24 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
-import java.util.Locale;
-import java.util.PrimitiveIterator;
+import java.util.*;
 
 /**
- * Based on information about the database schema state (tables existence/non-existence, declared schema version)
- * and the repository configuration (namely actions for missing/upgradeable/incompatible schemas) determines what should
- * be done.
+ * Determines the action that should be done against the database (none, stop, warn, create, upgrade)
+ *
+ * Takes the following input:
+ * - information about the database schema state (tables existence/non-existence, declared schema version)
+ * - repository configuration (namely actions for missing/upgradeable/incompatible schemas)
+ *
+ * TODOs (issues to consider)
+ * 1) database schema version could differ from major midPoint version (e.g. 3.7.2 vs 3.7 - fortunately it's history)
+ * 2) check if db variant is applicable (e.g. upgrading "plain" mysql using "utf8mb4" variant and vice versa)
  *
  * @author mederly
  */
@@ -53,8 +60,13 @@ class SchemaActionComputer {
 	@Autowired private LocalizationService localizationService;
 	@Autowired private BaseHelper baseHelper;
 
+	@SuppressWarnings("ArraysAsListWithZeroOrOneArgument")
+	private static Set<Pair<String, String>> AUTOMATICALLY_UPGRADEABLE = new HashSet<>(
+			Arrays.asList(new ImmutablePair<>("3.8", "3.9"))
+	);
+
 	enum State {
-		COMPATIBLE, NO_TABLES, AUTOMATICALLY_UPGRADABLE, MANUALLY_UPGRADABLE, INCOMPATIBLE
+		COMPATIBLE, NO_TABLES, AUTOMATICALLY_UPGRADEABLE, MANUALLY_UPGRADEABLE, INCOMPATIBLE
 	}
 
 	@NotNull
@@ -66,10 +78,10 @@ class SchemaActionComputer {
 				return new SchemaAction.None();
 			case NO_TABLES:
 				return determineActionForNoTables(schemaState);
-			case AUTOMATICALLY_UPGRADABLE:
-				return determineActionForUpgradeableSchema(schemaState, true);
-			case MANUALLY_UPGRADABLE:
-				return determineActionForUpgradeableSchema(schemaState, false);
+			case AUTOMATICALLY_UPGRADEABLE:
+				return determineActionForAutomaticallyUpgradeableSchema(schemaState);
+			case MANUALLY_UPGRADEABLE:
+				return determineActionForManuallyUpgradeableSchema(schemaState);
 			case INCOMPATIBLE:
 				return determineActionForIncompatibleSchema(schemaState);
 			default: throw new AssertionError(state);
@@ -95,25 +107,42 @@ class SchemaActionComputer {
 	}
 
 	@NotNull
-	private SchemaAction determineActionForUpgradeableSchema(SchemaState state, boolean automaticallyUpgradeable) {
-		String message =
-				"Database schema is not compatible with the executing code; however, an upgrade path is available.\n"
-						+ getCurrentAndRequiredVersionInformation(state)
-						+ "For more information about the upgrade process please see "
-						+ RELEASE_NOTES_URL_PREFIX + getRequiredDatabaseSchemaVersion();
+	private SchemaAction determineActionForManuallyUpgradeableSchema(SchemaState state) {
+		String message = "Database schema is not compatible with the executing code; however, an upgrade path is available.\n"
+				+ getCurrentAndRequiredVersionInformation(state)
+				+ "For more information about the upgrade process please see "
+				+ RELEASE_NOTES_URL_PREFIX + getRequiredDatabaseSchemaVersion();
+		UpgradeableSchemaAction action = getUpgradeableSchemaAction();
+		switch (action) {
+			case WARN:
+				return new SchemaAction.Warn(message);
+			case STOP:
+			case UPGRADE:
+				return new SchemaAction.Stop(message, state.dataStructureCompliance.validationException);
+			default: throw new AssertionError(action);
+		}
+	}
 
-		SqlRepositoryConfiguration.UpgradeableSchemaAction action = getUpgradeableSchemaAction();
+	@NotNull
+	private SchemaAction determineActionForAutomaticallyUpgradeableSchema(SchemaState state) {
+		UpgradeableSchemaAction action = getUpgradeableSchemaAction();
+		if (action == UpgradeableSchemaAction.UPGRADE) {
+			String from = state.declaredVersion.version;
+			String to = getRequiredDatabaseSchemaVersion();
+			return new SchemaAction.UpgradeSchema(determineUpgradeScriptFileName(from, to), from, to);
+		}
+		String message = "Database schema is not compatible with the executing code; however, an upgrade path is available.\n"
+				+ getCurrentAndRequiredVersionInformation(state)
+				+ "For more information about the upgrade process please see "
+				+ RELEASE_NOTES_URL_PREFIX + getRequiredDatabaseSchemaVersion() + ".\n\n"
+				+ "You can even request automatic upgrade by setting '" + SqlRepositoryConfiguration.PROPERTY_UPGRADEABLE_SCHEMA_ACTION + "' "
+				+ "property to '" + UpgradeableSchemaAction.UPGRADE.getValue() + "'.";
+		//noinspection Duplicates
 		switch (action) {
 			case WARN:
 				return new SchemaAction.Warn(message);
 			case STOP:
 				return new SchemaAction.Stop(message, state.dataStructureCompliance.validationException);
-			case UPGRADE:
-				if (!automaticallyUpgradeable) {
-					return new SchemaAction.Stop(message, state.dataStructureCompliance.validationException);
-				} else {
-					throw new UnsupportedOperationException("Automatic upgrades are not yet supported");
-				}
 			default: throw new AssertionError(action);
 		}
 	}
@@ -133,6 +162,7 @@ class SchemaActionComputer {
 			}
 		}
 		SqlRepositoryConfiguration.IncompatibleSchemaAction action = getIncompatibleSchemaAction();
+		//noinspection Duplicates
 		switch (action) {
 			case WARN:
 				return new SchemaAction.Warn(message);
@@ -166,6 +196,7 @@ class SchemaActionComputer {
 	private State determineState(SchemaState schemaState) {
 		@NotNull String requiredVersion = getRequiredDatabaseSchemaVersion();
 		DataStructureCompliance.State dataComplianceState = schemaState.dataStructureCompliance.state;
+		DeclaredVersion.State versionState = schemaState.declaredVersion.state;
 		if (requiredVersion.equals(schemaState.declaredVersion.version)) {
 			switch (dataComplianceState) {
 				case COMPLIANT:
@@ -173,6 +204,7 @@ class SchemaActionComputer {
 				case NO_TABLES:
 					throw new AssertionError("No tables but schema version declared?");
 				case NOT_COMPLIANT:
+					LOGGER.warn("Strange: Declared version matches but the table structure is not compliant. Please investigate this.");
 					return State.INCOMPATIBLE;
 				default: throw new AssertionError(dataComplianceState);
 			}
@@ -181,54 +213,51 @@ class SchemaActionComputer {
 				case NO_TABLES:
 					return State.NO_TABLES;
 				case COMPLIANT:
-					return determineUpgradeability(schemaState.declaredVersion, requiredVersion, true);
+					if (versionState == DeclaredVersion.State.METADATA_TABLE_MISSING) {
+						LOGGER.warn("Strange: Data structure is compliant but metadata table is missing or inaccessible. Please investigate this.");
+						return State.INCOMPATIBLE;
+					} else if (versionState == DeclaredVersion.State.VERSION_VALUE_MISSING) {
+						LOGGER.warn("Data structure is compliant but version information is missing from the global metadata table. Please investigate and fix this.");
+						return State.COMPATIBLE;    // let's continue
+					}
+					return determineUpgradeability(schemaState.declaredVersion, requiredVersion);
 				case NOT_COMPLIANT:
-					return determineUpgradeability(schemaState.declaredVersion, requiredVersion, false);
+					if (versionState == DeclaredVersion.State.METADATA_TABLE_MISSING) {
+						return State.MANUALLY_UPGRADEABLE;           // this is currently true (any version can be upgraded to 3.9)
+					} else if (versionState == DeclaredVersion.State.VERSION_VALUE_MISSING) {
+						return State.INCOMPATIBLE;              // something strange happened; this does not seem to be an upgrade situation
+					}
+					return determineUpgradeability(schemaState.declaredVersion, requiredVersion);
 				default:
 					throw new AssertionError(dataComplianceState);
 			}
 		}
 	}
 
-	/**
-	 * This method will eventually contain migration logic.
-	 * Currently we simply state that:
-	 *  - declared < required ==> manually upgrade
-	 *  - declared > required ==> incompatible
-	 */
-	private State determineUpgradeability(DeclaredVersion declaredVersionInfo, String requiredVersion, boolean schemaCompliant) {
-		if (declaredVersionInfo.state == DeclaredVersion.State.METADATA_TABLE_MISSING) {
-			if (schemaCompliant) {
-				LOGGER.warn("Strange: Schema is OK but metadata table is inaccessible, please investigate this.");
-				return State.INCOMPATIBLE;
-			} else {
-				return State.MANUALLY_UPGRADABLE;           // this is currently true (any version can be upgraded to 3.9)
-			}
-		} else if (declaredVersionInfo.state == DeclaredVersion.State.VERSION_VALUE_MISSING) {
-			if (schemaCompliant) {
-				LOGGER.warn("Schema is OK but version information is missing from the global metadata table, please fix this.");
-				return State.COMPATIBLE;
-			} else {
-				return State.INCOMPATIBLE;              // something strange happened; this does not seem to be an upgrade situation
-			}
-		}
-
+	private State determineUpgradeability(DeclaredVersion declaredVersionInfo, String requiredVersion) {
 		String declaredVersion = declaredVersionInfo.version;
+		assert declaredVersion != null;
+		assert requiredVersion != null;
 		assert !requiredVersion.equals(declaredVersion);
 
 		int comparison = compareVersions(declaredVersion, requiredVersion);
 		if (comparison == 0) {
 			throw new AssertionError("Versions are different but comparison yields 0: " + declaredVersion + " vs " + requiredVersion);
-		} else if (comparison < 0) {
-			// declared < expected
-			return State.MANUALLY_UPGRADABLE;
-		} else {
+		} else if (comparison > 0) {
+			// declared > expected
 			return State.INCOMPATIBLE;
+		} else {
+			// declared < expected
+			if (AUTOMATICALLY_UPGRADEABLE.contains(new ImmutablePair<>(declaredVersion, requiredVersion))) {
+				return State.AUTOMATICALLY_UPGRADEABLE;
+			} else {
+				return State.MANUALLY_UPGRADEABLE;
+			}
 		}
 	}
 
 	@NotNull
-	private SqlRepositoryConfiguration.UpgradeableSchemaAction getUpgradeableSchemaAction() {
+	private UpgradeableSchemaAction getUpgradeableSchemaAction() {
 		return baseHelper.getConfiguration().getUpgradeableSchemaAction();
 	}
 
@@ -243,10 +272,19 @@ class SchemaActionComputer {
 	}
 
 	/**
-	 * Currently this is equal to midPoint major version.
+	 * Currently this is equal to midPoint major version. But, in general, there might be differences, e.g.
+	 * - no database change between major mP versions: e.g. if 5.7 would have the same db as 5.6, then req.schema version for 5.7 would be "5.6"
+	 * - database change between minor versions: e.g. 3.7 and 3.7.1 have version of "3.7", but 3.7.2 has version of "3.7.2"
+	 * (fortunately, at that time we didn't have repository versions!)
 	 */
 	@NotNull
 	private String getRequiredDatabaseSchemaVersion() {
+		// TODO adapt if major mp version != database schema version
+		return getMajorMidPointVersion();
+	}
+
+	@NotNull
+	private String getMajorMidPointVersion() {
 		String version = localizationService
 				.translate(LocalizableMessageBuilder.buildKey("midPointVersion"), Locale.getDefault());
 		String noSnapshot = StringUtils.removeEnd(version, "-SNAPSHOT");
@@ -262,17 +300,32 @@ class SchemaActionComputer {
 		}
 	}
 
+	private String determineUpgradeScriptFileName(@NotNull String from, @NotNull String to) {
+		SqlRepositoryConfiguration.Database database = getDatabase();
+		return database.name().toLowerCase() + "-upgrade-" + from + "-" + to + getVariantSuffix() + ".sql";
+	}
+
 	private String determineCreateScriptFileName() {
+		SqlRepositoryConfiguration.Database database = getDatabase();
+		String requiredVersion = getRequiredDatabaseSchemaVersion();
+		return database.name().toLowerCase() + "-" + requiredVersion + "-all" + getVariantSuffix() + ".sql";
+	}
+
+	private String getVariantSuffix() {
+		String variant = baseHelper.getConfiguration().getSchemaVariant();
+		return variant != null ? "-" + variant : "";
+	}
+
+	@NotNull
+	private SqlRepositoryConfiguration.Database getDatabase() {
 		SqlRepositoryConfiguration.Database database = baseHelper.getConfiguration().getDatabase();
 		if (database == null) {
-			throw new SystemException("Couldn't create DB schema because database kind is not known");
+			throw new SystemException("Couldn't create/upgrade DB schema because database kind is not known");
 		}
 		if (database == SqlRepositoryConfiguration.Database.MARIADB) {
 			database = SqlRepositoryConfiguration.Database.MYSQL;
 		}
-		String version = getRequiredDatabaseSchemaVersion();
-		return database.name().toLowerCase() + "-" + version + "-all.sql";
-
+		return database;
 	}
 
 	private int compareVersions(String version1, String version2) {

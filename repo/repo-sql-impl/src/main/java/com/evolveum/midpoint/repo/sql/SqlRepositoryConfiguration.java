@@ -52,6 +52,7 @@ public class SqlRepositoryConfiguration {
 	private static final String HBM2DDL_CREATE = "create";
 	private static final String HBM2DDL_UPDATE = "update";
 	private static final String HBM2DDL_VALIDATE = "validate";
+	private static final String HBM2DDL_NONE = "none";
 
 	public enum Database {
 
@@ -307,6 +308,9 @@ public class SqlRepositoryConfiguration {
 	public static final String PROPERTY_MISSING_SCHEMA_ACTION = "missingSchemaAction";
 	public static final String PROPERTY_UPGRADEABLE_SCHEMA_ACTION = "upgradeableSchemaAction";
 	public static final String PROPERTY_INCOMPATIBLE_SCHEMA_ACTION = "incompatibleSchemaAction";
+	public static final String PROPERTY_SCHEMA_VERSION_IF_MISSING = "schemaVersionIfMissing";
+	public static final String PROPERTY_SCHEMA_VERSION_OVERRIDE = "schemaVersionOverride";
+	public static final String PROPERTY_SCHEMA_VARIANT = "schemaVariant";
 
 	public static final String PROPERTY_INITIALIZATION_FAIL_TIMEOUT = "initializationFailTimeout";
 
@@ -379,6 +383,9 @@ public class SqlRepositoryConfiguration {
     @NotNull private final MissingSchemaAction missingSchemaAction;
     @NotNull private final UpgradeableSchemaAction upgradeableSchemaAction;
     @NotNull private final IncompatibleSchemaAction incompatibleSchemaAction;
+	private String schemaVersionIfMissing;
+	private String schemaVersionOverride;
+	private String schemaVariant;           // e.g. "utf8mb4" for MySQL/MariaDB
 
 	/*
 	 * Notes:
@@ -489,6 +496,10 @@ public class SqlRepositoryConfiguration {
 	    incompatibleSchemaAction = defaultIfNull(IncompatibleSchemaAction
 			    .fromValue(configuration.getString(PROPERTY_INCOMPATIBLE_SCHEMA_ACTION)), IncompatibleSchemaAction.STOP);
 
+	    schemaVersionIfMissing = configuration.getString(PROPERTY_SCHEMA_VERSION_IF_MISSING);
+	    schemaVersionOverride = configuration.getString(PROPERTY_SCHEMA_VERSION_OVERRIDE);
+	    schemaVariant = configuration.getString(PROPERTY_SCHEMA_VARIANT);
+
 	    initializationFailTimeout = configuration.getLong(PROPERTY_INITIALIZATION_FAIL_TIMEOUT, 1L);
     }
 
@@ -596,7 +607,7 @@ public class SqlRepositoryConfiguration {
 	}
 
 	private static String getDefaultHibernateHbm2ddl(Database database) {
-		return database == H2 ? HBM2DDL_UPDATE : HBM2DDL_VALIDATE;
+		return database == H2 ? HBM2DDL_UPDATE : HBM2DDL_NONE;
 	}
 
     private void computeDefaultConcurrencyParameters() {
@@ -931,6 +942,18 @@ public class SqlRepositoryConfiguration {
 
 	public boolean isSkipExplicitSchemaValidation() {
 		return skipExplicitSchemaValidation;
+	}
+
+	public String getSchemaVersionIfMissing() {
+		return schemaVersionIfMissing;
+	}
+
+	public String getSchemaVersionOverride() {
+		return schemaVersionOverride;
+	}
+
+	public String getSchemaVariant() {
+		return schemaVariant;
 	}
 
 	public long getInitializationFailTimeout() {

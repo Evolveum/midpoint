@@ -37,7 +37,11 @@ class DeclaredVersion {
 		/**
 		 * Everything is OK, version is present in the metadata.
 		 */
-		VERSION_VALUE_PRESENT
+		VERSION_VALUE_PRESENT,
+		/**
+		 * Version value was supplied externally (e.g. using configuration)
+		 */
+		VERSION_VALUE_EXTERNALLY_SUPPLIED
 	}
 
 	@NotNull final State state;

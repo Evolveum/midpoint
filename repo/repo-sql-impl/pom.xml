@@ -50,7 +50,7 @@
                                 <resource>
                                     <directory>${project.basedir}/../../config/sql/_all</directory>
                                     <includes>
-                                        <include>*-all.sql</include>
+                                        <include>*.sql</include>
                                     </includes>
                                 </resource>
                             </resources>

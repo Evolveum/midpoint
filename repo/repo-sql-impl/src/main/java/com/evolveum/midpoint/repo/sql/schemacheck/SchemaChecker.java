@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.schemacheck;
 
 import com.evolveum.midpoint.repo.sql.MetadataExtractorIntegrator;
+import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.data.common.RGlobalMetadata;
 import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -77,7 +78,9 @@ public class SchemaChecker {
 			logAndShowStopBanner(stop.message);
 			throw new SystemException("Database schema problem: " + stop.message.replace('\n', ';'), stop.cause);
 		} else if (action instanceof SchemaAction.CreateSchema) {
-			applyCreateScript(((SchemaAction.CreateSchema) action).script);
+			executeCreateAction((SchemaAction.CreateSchema) action);
+		} else if (action instanceof SchemaAction.UpgradeSchema) {
+			executeUpgradeAction((SchemaAction.UpgradeSchema) action);
 		} else {
 			throw new AssertionError(action);
 		}
@@ -118,13 +121,22 @@ public class SchemaChecker {
 	}
 
 	private DeclaredVersion determineDeclaredVersion() {
+		SqlRepositoryConfiguration cfg = baseHelper.getConfiguration();
+		if (cfg.getSchemaVersionOverride() != null) {
+			return new DeclaredVersion(DeclaredVersion.State.VERSION_VALUE_EXTERNALLY_SUPPLIED, cfg.getSchemaVersionOverride());
+		}
+
 		String entityName = RGlobalMetadata.class.getSimpleName();
 		try (Session session = baseHelper.beginReadOnlyTransaction()) {
 			//noinspection JpaQlInspection
 			List<?> result = session.createQuery("select value from " + entityName + " where name = '" +
 					RGlobalMetadata.DATABASE_SCHEMA_VERSION + "'").list();
 			if (result.isEmpty()) {
-				return new DeclaredVersion(DeclaredVersion.State.VERSION_VALUE_MISSING, null);
+				if (cfg.getSchemaVersionIfMissing() != null) {
+					return new DeclaredVersion(DeclaredVersion.State.VERSION_VALUE_EXTERNALLY_SUPPLIED, cfg.getSchemaVersionIfMissing());
+				} else {
+					return new DeclaredVersion(DeclaredVersion.State.VERSION_VALUE_MISSING, null);
+				}
 			} else if (result.size() == 1) {
 				return new DeclaredVersion(DeclaredVersion.State.VERSION_VALUE_PRESENT, (String) result.get(0));
 			} else {
@@ -133,29 +145,52 @@ public class SchemaChecker {
 		} catch (Throwable t) {
 			LOGGER.warn("Database schema version could not be determined: {}", t.getMessage());
 			LOGGER.debug("Database schema version could not be determined: {}", t.getMessage(), t);
-			return new DeclaredVersion(DeclaredVersion.State.METADATA_TABLE_MISSING, null);
+			if (cfg.getSchemaVersionIfMissing() != null) {
+				return new DeclaredVersion(DeclaredVersion.State.VERSION_VALUE_EXTERNALLY_SUPPLIED, cfg.getSchemaVersionIfMissing());
+			} else {
+				return new DeclaredVersion(DeclaredVersion.State.METADATA_TABLE_MISSING, null);
+			}
 		}
 	}
 
-	private void applyCreateScript(String createScript) {
-		createSchema(createScript);
+	private void executeCreateAction(SchemaAction.CreateSchema action) {
+		LOGGER.info("Attempting to create database tables from file '{}'.", action.script);
+		applyScript(action.script);
 		LOGGER.info("Validating database tables after creation.");
+		validateAfterScript("create");
+		LOGGER.info("Schema creation was successful.");
+	}
+
+	private void executeUpgradeAction(SchemaAction.UpgradeSchema action) {
+		LOGGER.info("Attempting to upgrade database tables using file '{}'.", action.script);
+		applyScript(action.script);
+		LOGGER.info("Validating database tables after upgrading.");
+		validateAfterScript("upgrade");
+		LOGGER.info("\n\n"
+				+ "***********************************************************************\n"
+				+ "***                                                                 ***\n"
+				+ "***            Database schema upgrade was successful               ***\n"
+				+ "***                                                                 ***\n"
+				+ "***********************************************************************\n\n"
+				+ "Schema was successfully upgraded from {} to {} using script '{}'.\n"
+				+ "Please verify everything works as expected.\n\n", action.from, action.to, action.script);
+	}
+
+	private void validateAfterScript(String type) {
 		try {
 			new SchemaValidator().validate(MetadataExtractorIntegrator.getMetadata());
-			LOGGER.info("Schema creation was successful.");
 		} catch (org.hibernate.tool.schema.spi.SchemaManagementException e) {
-			logAndShowStopBanner("The following problem is present even after running the create script: " + e.getMessage());
+			logAndShowStopBanner("The following problem is present even after running the " + type + " script: " + e.getMessage());
 			LOGGER.error("Exception details", e);
-			throw new SystemException("DB schema is not OK even after running the create script: " + e.getMessage(), e);
+			throw new SystemException("DB schema is not OK even after running the " + type + " script: " + e.getMessage(), e);
 		}
 	}
 
-	private void createSchema(String fileName) {
-		LOGGER.info("Attempting to create database tables from file '{}'.", fileName);
+	private void applyScript(String fileName) {
 		String filePath = "/sql/" + fileName;
 		InputStream stream = getClass().getResourceAsStream(filePath);
 		if (stream == null) {
-			throw new SystemException("DB schema (" + filePath + ") couldn't be found");
+			throw new SystemException("DB script (" + filePath + ") couldn't be found");
 		}
 		Reader reader = new BufferedReader(new InputStreamReader(stream));
 
@@ -172,7 +207,7 @@ public class SchemaChecker {
 					try {
 						scriptRunner.runScript(reader);
 					} catch (IOException e) {
-						throw new SystemException("Couldn't execute DB creation script " + filePath + ": " + e.getMessage(), e);
+						throw new SystemException("Couldn't execute DB script " + filePath + ": " + e.getMessage(), e);
 					}
 				} finally {
 					if (connection.getTransactionIsolation() != transactionIsolation) {

@@ -73,4 +73,21 @@ abstract class SchemaAction {
 			return "CreateSchema{script='" + script + '\'' + '}';
 		}
 	}
+
+	static class UpgradeSchema extends SchemaAction {
+		@NotNull final String script;
+		@NotNull final String from;
+		@NotNull final String to;
+
+		UpgradeSchema(@NotNull String script, @NotNull String from, @NotNull String to) {
+			this.script = script;
+			this.from = from;
+			this.to = to;
+		}
+
+		@Override
+		public String toString() {
+			return "UpgradeSchema{script='" + script + '\'' + '}';
+		}
+	}
 }
