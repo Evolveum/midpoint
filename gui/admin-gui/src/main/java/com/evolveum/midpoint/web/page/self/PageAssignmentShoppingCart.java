@@ -370,7 +370,15 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
         parametersPanel.add(relationContainer);
 
         List<QName> availableRelations = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.SELF_SERVICE, PageAssignmentShoppingCart.this);
-        relationContainer.add(new RelationDropDownChoicePanel(ID_RELATION, null, availableRelations, false));
+        relationContainer.add(new RelationDropDownChoicePanel(ID_RELATION, getRoleCatalogStorage().getSelectedRelation(),
+                availableRelations, false){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onValueChanged(AjaxRequestTarget target){
+                getRoleCatalogStorage().setSelectedRelation(getRelationValue());
+            }
+        });
     }
 
     private QName getRelationParameterValue(){

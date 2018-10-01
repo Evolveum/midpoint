@@ -27,6 +27,7 @@ import com.evolveum.midpoint.web.page.self.dto.ConflictDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -41,7 +42,7 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
      */
     private Map<Integer, Search> roleCatalogSearchMap = new HashMap<>();
 
-    /**
+    /**<
      * Paging DTO used in table on page {@link PageAssignmentShoppingCart}
      */
 
@@ -60,6 +61,7 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
     private ObjectPaging roleCatalogPaging;
     private int assignmentRequestLimit = -1;
     private boolean inverse = false;
+    private QName selectedRelation = null;
 
     public Search getSearch() {
         return roleCatalogSearchMap.get(getDefaultTabIndex() < 0 ? 0 : getDefaultTabIndex());
@@ -220,6 +222,14 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
 
     public void setAssignmentRequestLimit(int assignmentRequestLimit) {
         this.assignmentRequestLimit = assignmentRequestLimit;
+    }
+
+    public QName getSelectedRelation() {
+        return selectedRelation;
+    }
+
+    public void setSelectedRelation(QName selectedRelation) {
+        this.selectedRelation = selectedRelation;
     }
 
     @Override
