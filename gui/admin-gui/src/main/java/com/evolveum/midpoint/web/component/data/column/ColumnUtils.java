@@ -556,10 +556,8 @@ public class ColumnUtils {
 
 		String sortByDisplayName = null;
 		String sortByIdentifer = null;
-		if (OrgType.COMPLEX_TYPE.equals(type)) {
-			sortByDisplayName = AbstractRoleType.F_DISPLAY_NAME.getLocalPart();
-			sortByIdentifer = AbstractRoleType.F_IDENTIFIER.getLocalPart();
-		}
+		sortByDisplayName = AbstractRoleType.F_DISPLAY_NAME.getLocalPart();
+		sortByIdentifer = AbstractRoleType.F_IDENTIFIER.getLocalPart();
 		List<ColumnTypeDto<String>> columnsDefs = Arrays.asList(
 				new ColumnTypeDto<String>("AbstractRoleType.displayName",
 						sortByDisplayName,
