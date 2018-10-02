@@ -132,6 +132,7 @@ public class PendingOperationPanel extends BasePanel<List<PendingOperationType>>
 
                 buildStringItem(sb, "PendingOperationPanel.resultStatus", op.getResultStatus());
                 buildStringItem(sb, "PendingOperationPanel.executionStatus", op.getExecutionStatus());
+                buildStringItem(sb, "PendingOperationPanel.operationReference", op.getAsynchronousOperationReference());
                 buildStringItem(sb, "PendingOperationPanel.attempt", op.getAttemptNumber());
                 buildStringItem(sb, "PendingOperationPanel.pendingOperationType", op.getType());
                 buildStringItem(sb, "PendingOperationPanel.lastAttemptTimestamp", WebComponentUtil.formatDate(op.getLastAttemptTimestamp()));
