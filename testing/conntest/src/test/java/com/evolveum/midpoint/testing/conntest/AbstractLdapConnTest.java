@@ -1,6 +1,6 @@
 package com.evolveum.midpoint.testing.conntest;
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.apache.directory.api.ldap.model.entry.Entry;
+import org.apache.directory.api.ldap.model.exception.LdapException;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -130,7 +131,14 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
 	protected static final String GROUP_EVIL_CN = "evil";
 	protected static final String GROUP_EVIL_DESCRIPTION = "No pain no gain";
 
-	private static final String REGEXP_RESOURCE_OID_PLACEHOLDER = "%%%RESOURCE%%%";
+	protected static final String REGEXP_RESOURCE_OID_PLACEHOLDER = "%%%RESOURCE%%%";
+
+	protected static final String ROOM_NUMBER_INVISIBLE = "invisible";
+
+	protected static final String ACCOUNT_BILBO_UID = "bilbo";
+	protected static final String ACCOUNT_BILBO_CN = "Bilbo Baggins";
+	protected static final String ACCOUNT_BILBO_GIVENNAME = "Bilbo";
+	protected static final String ACCOUNT_BILBO_SN = "Baggins";
 
 	protected String account0Oid;
 	protected String accountBarbossaOid;
@@ -1423,6 +1431,53 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         assertAssociation(shadow, ASSOCIATION_GROUP_NAME, groupEvilShadowOid);
 
         assertLdapConnectorInstances(1, 2);
+	}
+	
+	@Test
+    public void test350SeachInvisibleAccount() throws Exception {
+		final String TEST_NAME = "test350SeachInvisibleAccount";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN        
+        createBilboEntry();
+
+        SearchResultList<PrismObject<ShadowType>> shadows = searchBilbo(TEST_NAME);
+        
+        assertEquals("Unexpected search result: "+shadows, 1, shadows.size());
+
+        PrismObject<ShadowType> shadow = shadows.get(0);
+        assertAccountShadow(shadow, toAccountDn(ACCOUNT_BILBO_UID));
+	}
+	
+	protected Entry createBilboEntry() throws LdapException, IOException {
+		Entry entry = createAccountEntry(ACCOUNT_BILBO_UID, ACCOUNT_BILBO_CN, ACCOUNT_BILBO_GIVENNAME, ACCOUNT_BILBO_SN);
+        entry.add(LDAP_ATTRIBUTE_ROOM_NUMBER, ROOM_NUMBER_INVISIBLE);
+		addLdapEntry(entry);
+		return entry;
+	}
+
+	protected SearchResultList<PrismObject<ShadowType>> searchBilbo(final String TEST_NAME) throws Exception {
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        ObjectQuery query = createUidQuery(ACCOUNT_BILBO_UID);
+
+		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
+		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+		SearchResultList<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		display("Bilbos", shadows);
+		
+		assertLdapConnectorInstances(1,2);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
+		
+		return shadows;
 	}
 
 	protected void assertConnectorOperationIncrement(int shortcutIncrement, int noShortcutIncrement) {
