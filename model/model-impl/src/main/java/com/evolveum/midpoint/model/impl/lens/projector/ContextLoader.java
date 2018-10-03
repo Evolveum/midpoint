@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -132,7 +133,7 @@ public class ContextLoader {
 	
 			LensFocusContext<F> focusContext = context.getFocusContext();
 	    	if (focusContext != null) {
-				loadObjectCurrent(context, result);
+				loadObjectCurrent(context, task, result);
 	
 				context.recomputeFocus();
 	
@@ -352,8 +353,8 @@ public class ContextLoader {
 		}
 	}
 
-	private <F extends ObjectType> void loadObjectCurrent(LensContext<F> context, OperationResult result) throws SchemaException, ObjectNotFoundException {
-		LensFocusContext<F> focusContext = context.getFocusContext();
+	private <O extends ObjectType> void loadObjectCurrent(LensContext<O> context, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+		LensFocusContext<O> focusContext = context.getFocusContext();
 		if (focusContext == null) {
 			// Nothing to load
 			return;
@@ -364,7 +365,7 @@ public class ContextLoader {
             // already loaded
             return;
         }
-        ObjectDelta<F> objectDelta = focusContext.getDelta();
+        ObjectDelta<O> objectDelta = focusContext.getDelta();
         if (objectDelta != null && objectDelta.isAdd() && focusContext.getExecutedDeltas().isEmpty()) {
             //we're adding the focal object. No need to load it, it is in the delta
         	focusContext.setFresh(true);
@@ -380,13 +381,20 @@ public class ContextLoader {
         if (StringUtils.isBlank(userOid)) {
         	throw new IllegalArgumentException("No OID in primary focus delta");
         }
+        
+        PrismObject<O> object = null;
+        if (ObjectTypes.isClassManagedByProvisioning(focusContext.getObjectTypeClass())) {
+        	object = provisioningService.getObject(focusContext.getObjectTypeClass(), userOid, SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), task, result);
+        } else {
 
-        // Always load a complete object here, including the not-returned-by-default properties.
-        // This is temporary measure to make sure that the mappings will have all they need.
-        // See MID-2635
-        Collection<SelectorOptions<GetOperationOptions>> options =
-        		SelectorOptions.createCollection(GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
-		PrismObject<F> object = cacheRepositoryService.getObject(focusContext.getObjectTypeClass(), userOid, options, result);
+	        // Always load a complete object here, including the not-returned-by-default properties.
+	        // This is temporary measure to make sure that the mappings will have all they need.
+	        // See MID-2635
+	        Collection<SelectorOptions<GetOperationOptions>> options =
+	        		SelectorOptions.createCollection(GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
+			object = cacheRepositoryService.getObject(focusContext.getObjectTypeClass(), userOid, options, result);
+        }
+        
         focusContext.setLoadedObject(object);
         focusContext.setFresh(true);
 		LOGGER.trace("Focal object loaded: {}", object);

@@ -756,6 +756,14 @@ CREATE TABLE m_generic_object (
   DEFAULT CHARACTER SET utf8mb4
   COLLATE utf8mb4_bin
   ENGINE = InnoDB;
+CREATE TABLE m_global_metadata (
+  name  VARCHAR(191) NOT NULL,
+  value VARCHAR(191),
+  PRIMARY KEY (name)
+)
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_bin
+  ENGINE = InnoDB;
 CREATE TABLE m_lookup_table (
   name_norm VARCHAR(191),
   name_orig VARCHAR(191),
@@ -1364,6 +1372,8 @@ ALTER TABLE m_user
   ADD CONSTRAINT fk_user FOREIGN KEY (oid) REFERENCES m_focus (oid);
 ALTER TABLE m_value_policy
   ADD CONSTRAINT fk_value_policy FOREIGN KEY (oid) REFERENCES m_object (oid);
+
+INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '3.9');
 
 # By: Ron Cordell - roncordell
 #  I didn't see this anywhere, so I thought I'd post it here. This is the script from Quartz to create the tables in a MySQL database, modified to use INNODB instead of MYISAM.
