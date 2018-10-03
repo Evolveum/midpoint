@@ -592,6 +592,11 @@ CREATE TABLE m_generic_object (
   oid        VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 );
+CREATE TABLE m_global_metadata (
+  name  VARCHAR(255) NOT NULL,
+  value VARCHAR(255),
+  PRIMARY KEY (name)
+);
 CREATE TABLE m_lookup_table (
   name_norm VARCHAR(255),
   name_orig VARCHAR(255),
@@ -1151,6 +1156,8 @@ ALTER TABLE IF EXISTS m_user
   ADD CONSTRAINT fk_user FOREIGN KEY (oid) REFERENCES m_focus;
 ALTER TABLE IF EXISTS m_value_policy
   ADD CONSTRAINT fk_value_policy FOREIGN KEY (oid) REFERENCES m_object;
+
+INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '3.9');
 
 -- Thanks to Patrick Lightbody for submitting this...
 --

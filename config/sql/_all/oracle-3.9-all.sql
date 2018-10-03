@@ -592,6 +592,11 @@ CREATE TABLE m_generic_object (
   oid        VARCHAR2(36 CHAR) NOT NULL,
   PRIMARY KEY (oid)
 ) INITRANS 30;
+CREATE TABLE m_global_metadata (
+  name  VARCHAR2(255 CHAR) NOT NULL,
+  value VARCHAR2(255 CHAR),
+  PRIMARY KEY (name)
+) INITRANS 30;
 CREATE TABLE m_lookup_table (
   name_norm VARCHAR2(255 CHAR),
   name_orig VARCHAR2(255 CHAR),
@@ -1151,6 +1156,8 @@ ALTER TABLE m_user
   ADD CONSTRAINT fk_user FOREIGN KEY (oid) REFERENCES m_focus;
 ALTER TABLE m_value_policy
   ADD CONSTRAINT fk_value_policy FOREIGN KEY (oid) REFERENCES m_object;
+
+INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '3.9');
 
 --
 -- A hint submitted by a user: Oracle DB MUST be created as "shared" and the
