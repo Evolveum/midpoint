@@ -82,6 +82,7 @@ public class TypeRestriction extends Restriction<TypeFilter> {
             case ABSTRACT_ROLE:
                 set.add(RObjectType.ROLE);
                 set.add(RObjectType.ORG);
+                set.add(RObjectType.SERVICE);
                 break;
             default:
         }

@@ -592,6 +592,11 @@ CREATE TABLE m_generic_object (
   oid        NVARCHAR(36) COLLATE database_default NOT NULL,
   PRIMARY KEY (oid)
 );
+CREATE TABLE m_global_metadata (
+  name  NVARCHAR(255) COLLATE database_default NOT NULL,
+  value NVARCHAR(255) COLLATE database_default,
+  PRIMARY KEY (name)
+);
 CREATE TABLE m_lookup_table (
   name_norm NVARCHAR(255) COLLATE database_default,
   name_orig NVARCHAR(255) COLLATE database_default,
@@ -1151,6 +1156,8 @@ ALTER TABLE m_user
   ADD CONSTRAINT fk_user FOREIGN KEY (oid) REFERENCES m_focus;
 ALTER TABLE m_value_policy
   ADD CONSTRAINT fk_value_policy FOREIGN KEY (oid) REFERENCES m_object;
+
+INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '3.9');
 
 --# thanks to George Papastamatopoulos for submitting this ... and Marko Lahma for
 --# updating it.

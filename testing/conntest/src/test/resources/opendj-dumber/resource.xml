@@ -52,6 +52,7 @@
  			<icfcldap:operationalAttributes>ds-pwp-account-disabled</icfcldap:operationalAttributes>
  			<icfcldap:operationalAttributes>createTimestamp</icfcldap:operationalAttributes>
  			<icfcldap:usePermissiveModify>never</icfcldap:usePermissiveModify>
+ 			<icfcldap:additionalSearchFilter>(!(roomNumber=invisible))</icfcldap:additionalSearchFilter>
 		</icfc:configurationProperties>
 		<icfc:resultsHandlerConfiguration>
 			<icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>

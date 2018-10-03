@@ -823,7 +823,7 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 					if (lookupTable != null) {
 
 						panel = new AutoCompleteTextPanel<String>(id, new LookupPropertyModel<>(getModel(),
-                            baseExpression, lookupTable == null ? null : lookupTable.asObjectable()), type) {
+                            baseExpression, lookupTable == null ? null : lookupTable.asObjectable()), String.class) {
 
 							@Override
 							public Iterator<String> getIterator(String input) {

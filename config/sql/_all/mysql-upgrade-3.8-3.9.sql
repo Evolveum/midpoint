@@ -19,3 +19,14 @@ ALTER TABLE m_object_collection
 ALTER TABLE m_acc_cert_campaign ADD COLUMN iteration INTEGER DEFAULT 1 NOT NULL;
 ALTER TABLE m_acc_cert_case ADD COLUMN iteration INTEGER DEFAULT 1 NOT NULL;
 ALTER TABLE m_acc_cert_wi ADD COLUMN iteration INTEGER DEFAULT 1 NOT NULL;
+
+CREATE TABLE m_global_metadata (
+  name  VARCHAR(255) NOT NULL,
+  value VARCHAR(255),
+  PRIMARY KEY (name)
+)
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_bin
+  ENGINE = InnoDB;
+
+INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '3.9');
