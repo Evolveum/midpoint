@@ -12059,6 +12059,7 @@
         			</xsd:appinfo>
         		</xsd:annotation>
     		</xsd:element>
+    		<!-- TODO: order? orderConstraint? assignment=order0, inducement=order1-inf. -->
         	<xsd:element name="limitations" type="tns:AuthorizationLimitationsType" minOccurs="0" maxOccurs="1">
         		<xsd:annotation>
         			<xsd:documentation>

@@ -61,6 +61,7 @@ public class UsersStorage implements PageStorage, DebugDumpable, OrgTreeStateSto
     private TreeStateSet<SelectableBean<OrgType>> expandedItems; //expanded tree items on the Org. structure page
     private int selectedTabId = -1;                 //selected tab id on the Org. structure page
     private SelectableBean<OrgType> collapsedItem = null;                 //selected tab id on the Org. structure page
+    private boolean inverse = false;
 
     @Override
     public ObjectPaging getPaging() {
@@ -136,6 +137,16 @@ public class UsersStorage implements PageStorage, DebugDumpable, OrgTreeStateSto
     @Override
     public void setCollapsedItem(SelectableBean<OrgType> collapsedItem) {
         this.collapsedItem = collapsedItem;
+    }
+
+    @Override
+    public boolean isInverse(){
+        return inverse;
+    }
+
+    @Override
+    public void setInverse(boolean inverse){
+        this.inverse = inverse;
     }
 
     @Override

@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -38,6 +39,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
@@ -127,6 +129,9 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
 	
 	protected static final String ROLE_ATREIDES_GUARD_OID = "00000000-8888-6666-a200-100000000002";
 	protected static final File ROLE_ATREIDES_GUARD_FILE = new File(TEST_DIR, "role-atreides-guard.xml");
+	
+	protected static final String ROLE_ATREIDES_HACKER_OID = "00000000-8888-6666-a200-100000000003";
+	protected static final File ROLE_ATREIDES_HACKER_FILE = new File(TEST_DIR, "role-atreides-hacker.xml");
 	
 	protected static final String USER_LETO_ATREIDES_OID = "00000000-8888-6666-a200-200000000000";
 	protected static final String USER_LETO_ATREIDES_NAME = "leto";
@@ -709,10 +714,32 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         assertAllow("unassign guard from caladan", 
         		(task, result) -> unassignOrg(RoleType.class, ROLE_ATREIDES_GUARD_OID, ORG_CALADAN_OID, task, result));
         
+        // Last assignment that keeps guard in atreides tenant. We cannot remove it.
+        assertDeny("unassign guard from arrakis", 
+        		(task, result) -> unassignOrg(RoleType.class, ROLE_ATREIDES_GUARD_OID, ORG_ARRAKIS_OID, task, result));
+
+        // Make sure direct assign and unassign of tenant works freely - as long as there is another assignment that keeps object within a tenant 
+        assertAllow("assign guard to house atreides", 
+        		(task, result) -> assignOrg(RoleType.class, ROLE_ATREIDES_GUARD_OID, ORG_ATREIDES_OID, task, result));
+        assertAllow("assign guard to house atreides", 
+        		(task, result) -> unassignOrg(RoleType.class, ROLE_ATREIDES_GUARD_OID, ORG_ATREIDES_OID, task, result));
+        
+        assertAllow("assign guard to house atreides", 
+        		(task, result) -> assignOrg(RoleType.class, ROLE_ATREIDES_GUARD_OID, ORG_ATREIDES_OID, task, result));
+        
+        // We can unassign arrakis now. Guard is directly under house Atreides
+        assertAllow("unassign guard from arrakis", 
+        		(task, result) -> unassignOrg(RoleType.class, ROLE_ATREIDES_GUARD_OID, ORG_ARRAKIS_OID, task, result));
+        
+        // But we cannot unassign tenant now. That would move guard outside of tenancy.
+        assertDeny("unassign guard from atreides", 
+        		(task, result) -> unassignOrg(RoleType.class, ROLE_ATREIDES_GUARD_OID, ORG_ATREIDES_OID, task, result));
+        
         assertRoleAfter(ROLE_ATREIDES_GUARD_OID)
         	.assertTenantRef(ORG_ATREIDES_OID);
         
-        display("HEREHERE");
+        assertDeleteAllow(RoleType.class, ROLE_ATREIDES_GUARD_OID);
+        
         // This would make Castle Caladan a root object - outside out tenant zone of control.
         assertDeny("unassign caladan castle from caladan", 
         		(task, result) -> unassignOrg(OrgType.class, ORG_CASTLE_CALADAN_OID, ORG_CALADAN_OID, task, result));
@@ -724,7 +751,47 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
 	}
 	
 	/**
-	 * Edric is part of Spacing Guld. But the Guild is not tenant.
+	 * Make sure that tenant admin cannot break tenant admin role.
+	 */
+	@Test
+    public void test116AutzLetoProtectTenantAdminRole() throws Exception {
+		final String TEST_NAME = "test114AutzLetoKeepWithinTenant";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(null);
+
+        login(USER_LETO_ATREIDES_NAME);
+                
+        // WHEN
+        displayWhen(TEST_NAME);
+        
+        assertAddDeny(ROLE_ATREIDES_HACKER_FILE);
+        
+        AuthorizationType superuserAuthorization = new AuthorizationType() 
+        		.action(AuthorizationConstants.AUTZ_ALL_URL);
+        assertDeny("add authorizations to atreides admin", 
+        		(task, result) -> modifyObjectAddContainer(RoleType.class, ROLE_ATREIDES_ADMIN_OID, 
+        				RoleType.F_AUTHORIZATION, task, result, superuserAuthorization));
+        
+        assertDeny("add dummy account", 
+        		(task, result) -> assignAccount(UserType.class, USER_PAUL_ATREIDES_OID, RESOURCE_DUMMY_OID, null, task, result));
+        
+        // TODO: add superuser inducement to atreides admin -> deny
+        
+        // THEN
+        displayThen(TEST_NAME);
+        
+        assertGlobalStateUntouched();
+	}
+	
+	// TODO: create tenant business role
+	// TODO: add role with authorizations
+	// TODO: add authorizations to existing role
+	// TODO: add policy exceptions to existing role
+	// TODO: add assignment/inducement with policy rule
+	
+	/**
+	 * Edric is part of Spacing Guild. But the Guild is not tenant.
 	 * Edric has a broken role that should work only for tenants.
 	 * Therefore the role should not work. Edric should not be
 	 * able to access anything.

@@ -207,6 +207,7 @@ public abstract class AbstractOrgTabPanel extends BasePanel {
                 selected.setValue(roots.get(index).asObjectable());
                 usersStorage.setSelectedItem(selected);
                 usersStorage.setSelectedTabId(index);
+                usersStorage.setInverse(false);
             }
         }
     }
