@@ -1379,10 +1379,10 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
 	private <O extends ObjectType> AbstractValuePolicyOriginResolver<O> getOriginResolver(PrismObject<O> object) {
 		if (object != null && UserType.class.equals(object.getCompileTimeClass())) {
-			new UserValuePolicyOriginResolver((PrismObject<UserType>) object, objectResolver);
+			return (AbstractValuePolicyOriginResolver) new UserValuePolicyOriginResolver((PrismObject<UserType>) object, objectResolver);
 		}
 		
-		//TODO not supported yet
+		//TODO not supported yet, throw exception instead of null???
 		return null;
 	}
 	
