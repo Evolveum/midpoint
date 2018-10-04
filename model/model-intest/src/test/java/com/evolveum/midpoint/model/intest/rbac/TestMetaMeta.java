@@ -343,7 +343,7 @@ public class TestMetaMeta extends AbstractRbacTest {
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> focusDelta = createAssignmentFocusDelta(UserType.class, USER_JACK_OID, getGroupRoleOid(GROUP_BETA_NAME), RoleType.COMPLEX_TYPE, null, (Consumer<AssignmentType>)null, false);
-        focusDelta.addModification(createAssignmentModification(getGroupRoleOid(GROUP_A_NAME), RoleType.COMPLEX_TYPE, null, null, false));
+        focusDelta.addModification(createAssignmentModification(getGroupRoleOid(GROUP_A_NAME), RoleType.COMPLEX_TYPE, null, null, null, false));
         
         // WHEN
 		modelService.executeChanges(MiscSchemaUtil.createCollection(focusDelta), null, task, result);
