@@ -155,6 +155,19 @@
         </xsd:annotation>
     </xsd:element>
 
+    <xsd:element name="useRepositoryDirectly" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+                Whether to use repository directly when searching for objects.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>Use repository directly</a:displayName>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
     <xsd:element name="objectType" type="xsd:QName">
         <xsd:annotation>
             <xsd:documentation>

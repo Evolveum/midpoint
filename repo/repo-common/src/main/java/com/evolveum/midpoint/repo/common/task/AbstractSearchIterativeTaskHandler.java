@@ -216,11 +216,22 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 			Class<? extends ObjectType> type = getType(localCoordinatorTask);
 			ObjectQuery query = prepareQuery(resultHandler, type, workBucket, localCoordinatorTask, runResult, opResult);
 			Collection<SelectorOptions<GetOperationOptions>> searchOptions = createSearchOptions(resultHandler, runResult, localCoordinatorTask, opResult);
-			boolean useRepository = useRepositoryDirectly(resultHandler, runResult, localCoordinatorTask, opResult);
 
 			LOGGER.trace("{}: searching {} with options {}, using query:\n{}", taskName, type, searchOptions, query.debugDumpLazily());
 
 			try {
+				boolean useRepository;
+				Boolean useRepositoryDirectlyExplicit = getUseRepositoryDirectlyFromTask(resultHandler, runResult, localCoordinatorTask, opResult);
+				if (useRepositoryDirectlyExplicit != null) {
+					// if we requested this mode explicitly we need to have appropriate authorization
+					if (useRepositoryDirectlyExplicit) {
+						checkRawAuthorization(localCoordinatorTask, opResult);
+					}
+					useRepository = useRepositoryDirectlyExplicit;
+				} else {
+					useRepository = requiresDirectRepositoryAccess(resultHandler, runResult, localCoordinatorTask, opResult);
+				}
+
 				// counting objects can be within try-catch block, because the handling is similar to handling errors within searchIterative
 				Long expectedTotal = computeExpectedTotalIfApplicable(type, query, searchOptions, useRepository, workBucket, localCoordinatorTask, opResult);
 
@@ -238,9 +249,10 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 				searchOptions = updateSearchOptionsWithIterationMethod(searchOptions, localCoordinatorTask);
 
 				resultHandler.createWorkerThreads(localCoordinatorTask, opResult);
-				if (!useRepository) {
+				if (!useRepository) {   // todo consider honoring useRepository=true within searchIterative itself
 					searchIterative((Class<O>) type, query, searchOptions, resultHandler, localCoordinatorTask, opResult);
 				} else {
+
 					repositoryService.searchObjectsIterative((Class<O>) type, query, resultHandler, searchOptions, true, opResult);
 				}
 				resultHandler.completeProcessing(localCoordinatorTask, opResult);
@@ -318,6 +330,12 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 		} catch (ExitWorkBucketHandlerException e) {
 			return e.getRunResult();
 		}
+	}
+
+	protected void checkRawAuthorization(Task task, OperationResult result)
+			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+			ConfigurationException, ExpressionEvaluationException {
+		// nothing to do here as we are in repo-common
 	}
 
 	protected String getDefaultChannel() {
@@ -507,7 +525,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 
 	// as provisioning service does not allow searches without specifying resource or objectclass/kind, we need to be able to contact repository directly
     // for some specific tasks
-    protected boolean useRepositoryDirectly(H resultHandler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
+    protected boolean requiresDirectRepositoryAccess(H resultHandler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
         return false;
     }
 
@@ -538,6 +556,11 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 			Task coordinatorTask, OperationResult opResult) {
 		SelectorQualifiedGetOptionsType opts = getRealValue(coordinatorTask.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_SEARCH_OPTIONS));
 		return MiscSchemaUtil.optionsTypeToOptions(opts);
+	}
+
+	protected Boolean getUseRepositoryDirectlyFromTask(H resultHandler, TaskRunResult runResult,
+			Task coordinatorTask, OperationResult opResult) {
+		return getRealValue(coordinatorTask.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_USE_REPOSITORY_DIRECTLY));
 	}
 
 	protected ObjectQuery createQueryFromTaskIfExists(H handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
