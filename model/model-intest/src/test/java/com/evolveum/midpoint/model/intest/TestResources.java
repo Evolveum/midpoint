@@ -959,7 +959,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     			getConfigurationPropertyPath(IntegrationTestTools.RESOURCE_DUMMY_CONFIGURATION_USELESS_STRING_ELEMENT_NAME),
     			"whatever wherever");
 
-    	assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
+    	assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 2);
     }
 
     @Test

@@ -26,7 +26,6 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -37,11 +36,9 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -132,6 +129,11 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
 	
 	protected static final String ROLE_ATREIDES_HACKER_OID = "00000000-8888-6666-a200-100000000003";
 	protected static final File ROLE_ATREIDES_HACKER_FILE = new File(TEST_DIR, "role-atreides-hacker.xml");
+	
+	protected static final String ROLE_ATREIDES_SOLDIER_OID = "00000000-8888-6666-a200-100000000004";
+	
+	protected static final String ROLE_ATREIDES_SWORDMASTER_OID = "00000000-8888-6666-a200-100000000005";
+	protected static final File ROLE_ATREIDES_SWORDMASTER_FILE = new File(TEST_DIR, "role-atreides-swordmaster.xml");
 	
 	protected static final String USER_LETO_ATREIDES_OID = "00000000-8888-6666-a200-200000000000";
 	protected static final String USER_LETO_ATREIDES_NAME = "leto";
@@ -399,8 +401,9 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         assertGetDeny(RoleType.class, ROLE_TENANT_ADMIN_OID);
         assertGetDeny(UserType.class, USER_EDRIC_OID);
         
+        // Search
         assertSearch(UserType.class, null, USER_LETO_ATREIDES_OID, USER_PAUL_ATREIDES_OID);
-        assertSearch(RoleType.class, null, ROLE_ATREIDES_ADMIN_OID);
+        assertSearch(RoleType.class, null, ROLE_ATREIDES_ADMIN_OID, ROLE_ATREIDES_SOLDIER_OID);
         assertSearch(OrgType.class, null, ORG_ATREIDES_OID, ORG_CALADAN_OID);
         
         // THEN
@@ -761,7 +764,7 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         cleanupAutzTest(null);
 
         login(USER_LETO_ATREIDES_NAME);
-                
+        
         // WHEN
         displayWhen(TEST_NAME);
         
@@ -773,10 +776,37 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         		(task, result) -> modifyObjectAddContainer(RoleType.class, ROLE_ATREIDES_ADMIN_OID, 
         				RoleType.F_AUTHORIZATION, task, result, superuserAuthorization));
         
+        assertDeny("induce superuser", 
+        		(task, result) -> induceRole(ROLE_ATREIDES_ADMIN_OID, ROLE_SUPERUSER_OID, task, result));
+        
         assertDeny("add dummy account", 
         		(task, result) -> assignAccount(UserType.class, USER_PAUL_ATREIDES_OID, RESOURCE_DUMMY_OID, null, task, result));
         
-        // TODO: add superuser inducement to atreides admin -> deny
+        // THEN
+        displayThen(TEST_NAME);
+        
+        assertGlobalStateUntouched();
+	}
+	
+	/**
+	 * Make sure that tenant admin can manage business roles.
+	 */
+	@Test(enabled=false) // WORK IN PROGRESS
+    public void test118AutzLetoBusinessRoles() throws Exception {
+		final String TEST_NAME = "test118AutzLetoBusinessRoles";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(null);
+
+        login(USER_LETO_ATREIDES_NAME);
+                
+        assertAddAllow(ROLE_ATREIDES_GUARD_FILE);
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        
+        assertAddAllow(ROLE_ATREIDES_SWORDMASTER_FILE);
+
         
         // THEN
         displayThen(TEST_NAME);
@@ -785,8 +815,6 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
 	}
 	
 	// TODO: create tenant business role
-	// TODO: add role with authorizations
-	// TODO: add authorizations to existing role
 	// TODO: add policy exceptions to existing role
 	// TODO: add assignment/inducement with policy rule
 	

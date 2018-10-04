@@ -12059,7 +12059,22 @@
         			</xsd:appinfo>
         		</xsd:annotation>
     		</xsd:element>
-    		<!-- TODO: order? orderConstraint? assignment=order0, inducement=order1-inf. -->
+    		<xsd:element name="orderConstraints" type="tns:OrderConstraintsType" minOccurs="0" maxOccurs="1">
+	   			<xsd:annotation>
+    				<xsd:documentation>
+    					Order constraints for cases when assignment/inducement is a matter of the authorization
+    					decision. Order constrain may limit the order of assignment/inducement being authorized.
+    					Order constraint of zero (default) means assignment. Order constraint of one or greater
+    					means inducement.
+    					Note: Partially implemented in midPoint 3.9. Only values of zero and one are supported.
+    					Only integer orders are supported.
+    					Assignments/inducements with complex orderConstraints are not supported.
+    				</xsd:documentation>
+        			<xsd:appinfo>
+        				<a:since>3.9</a:since>
+        			</xsd:appinfo>
+        		</xsd:annotation>
+    		</xsd:element>
         	<xsd:element name="limitations" type="tns:AuthorizationLimitationsType" minOccurs="0" maxOccurs="1">
         		<xsd:annotation>
         			<xsd:documentation>

@@ -799,8 +799,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class+".assignRole");
 		OperationResult result = task.getResult();
 		assignRole(userOid, roleOid, task, result);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		assertSuccess(result);
 	}
 
 	protected void assignRole(String userOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException,
@@ -992,6 +991,30 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			TestUtil.assertSuccess(result);
 		}
 	}
+	
+	protected <F extends FocusType> void induceRole(String focusRoleOid, String targetRoleOid, Task task, OperationResult result) throws ObjectNotFoundException,
+			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+			PolicyViolationException, SecurityViolationException {
+		induceRole(RoleType.class, focusRoleOid, targetRoleOid, task, result);
+	}
+	
+	protected <F extends FocusType> void induceRole(Class<F> focusType, String focusOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException,
+			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+			PolicyViolationException, SecurityViolationException {
+		modifyFocusAssignment(focusType, focusOid, AbstractRoleType.F_INDUCEMENT, roleOid, RoleType.COMPLEX_TYPE, null, task, null, true, null, result);
+	}
+
+	protected <F extends FocusType> void uninduceRole(Class<F> focusType, String focusOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException,
+			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+			PolicyViolationException, SecurityViolationException {
+		modifyFocusAssignment(focusType, focusOid, AbstractRoleType.F_INDUCEMENT, roleOid, RoleType.COMPLEX_TYPE, null, task, null, false, null, result);
+	}
+	
+	protected <F extends FocusType> void uninduceRole(String focusRoleOid, String targetRoleOid, Task task, OperationResult result) throws ObjectNotFoundException,
+			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+			PolicyViolationException, SecurityViolationException {
+		uninduceRole(RoleType.class, focusRoleOid, targetRoleOid, task, result);
+	}
 
 	protected void assignOrg(String userOid, String orgOid, Task task, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
@@ -1135,7 +1158,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected <F extends FocusType> void modifyFocusAssignment(Class<F> focusClass, String focusOid, String roleOid, QName refType, QName relation, Task task,
 			Consumer<AssignmentType> modificationBlock, boolean add, ModelExecuteOptions options, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
-		ObjectDelta<F> focusDelta = createAssignmentFocusDelta(focusClass, focusOid, roleOid, refType, relation, modificationBlock, add);
+		modifyFocusAssignment(focusClass, focusOid, FocusType.F_ASSIGNMENT, roleOid, refType, relation, task, modificationBlock, add, options, result);
+	}
+	
+	protected <F extends FocusType> void modifyFocusAssignment(Class<F> focusClass, String focusOid, QName elementName, String roleOid, QName refType, QName relation, Task task,
+			Consumer<AssignmentType> modificationBlock, boolean add, ModelExecuteOptions options, OperationResult result)
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		ObjectDelta<F> focusDelta = createAssignmentFocusDelta(focusClass, focusOid, elementName, roleOid, refType, relation, modificationBlock, add);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(focusDelta);
 		executeChanges(focusDelta, options, task, result);
 	}
@@ -1228,8 +1257,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
 	protected ContainerDelta<AssignmentType> createAssignmentModification(String roleOid, QName refType, QName relation,
 			PrismContainer<?> extension, ActivationType activationType, boolean add) throws SchemaException {
+		return createAssignmentModification(UserType.class, FocusType.F_ASSIGNMENT, roleOid, refType, relation, extension, activationType, add);
+	}
+	
+	protected <F extends FocusType> ContainerDelta<AssignmentType> createAssignmentModification(Class<F> type, QName elementName, String roleOid, QName refType, QName relation,
+			PrismContainer<?> extension, ActivationType activationType, boolean add) throws SchemaException {
 		try {
-			return createAssignmentModification(roleOid, refType, relation,
+			return createAssignmentModification(type, elementName, roleOid, refType, relation,
 					assignment -> {
 						if (extension != null) {
 							try {
@@ -1246,9 +1280,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 
-	protected ContainerDelta<AssignmentType> createAssignmentModification(String roleOid, QName refType, QName relation,
+	protected <F extends FocusType> ContainerDelta<AssignmentType> createAssignmentModification(Class<F> type, QName elementName, String roleOid, QName refType, QName relation,
 			Consumer<AssignmentType> modificationBlock, boolean add) throws SchemaException {
-		ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(UserType.F_ASSIGNMENT, getUserDefinition());
+		ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(elementName, getObjectDefinition(type));
 		PrismContainerValue<AssignmentType> cval = new PrismContainerValue<>(prismContext);
 		if (add) {
 			assignmentDelta.addValueToAdd(cval);
@@ -1329,11 +1363,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return createAssignmentFocusDelta(UserType.class, userOid, roleOid, refType, relation, modificationBlock, add);
 	}
 
-	protected <F extends FocusType> ObjectDelta<F> createAssignmentFocusDelta(Class<F> focusClass, String userOid, String roleOid, QName refType, QName relation,
+	protected <F extends FocusType> ObjectDelta<F> createAssignmentFocusDelta(Class<F> focusClass, String focusOid, String roleOid, QName refType, QName relation,
+			Consumer<AssignmentType> modificationBlock, boolean add) throws SchemaException {
+		return createAssignmentFocusDelta(focusClass, focusOid, FocusType.F_ASSIGNMENT, roleOid, refType, relation, modificationBlock, add);
+	}
+	
+	protected <F extends FocusType> ObjectDelta<F> createAssignmentFocusDelta(Class<F> focusClass, String focusOid, QName elementName, String roleOid, QName refType, QName relation,
 			Consumer<AssignmentType> modificationBlock, boolean add) throws SchemaException {
 		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
-		modifications.add((createAssignmentModification(roleOid, refType, relation, modificationBlock, add)));
-		return ObjectDelta.createModifyDelta(userOid, modifications, focusClass, prismContext);
+		modifications.add((createAssignmentModification(focusClass, elementName, roleOid, refType, relation, modificationBlock, add)));
+		return ObjectDelta.createModifyDelta(focusOid, modifications, focusClass, prismContext);
 	}
 
 	protected <F extends FocusType> ObjectDelta<F> createAssignmentFocusEmptyDeleteDelta(PrismObject<F> existingFocus, String roleOid, QName relation) throws SchemaException {

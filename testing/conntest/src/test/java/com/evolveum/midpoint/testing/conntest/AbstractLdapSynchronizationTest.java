@@ -177,7 +177,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 	@Test
     public void test800ImportSyncTask() throws Exception {
 		final String TEST_NAME = "test800ImportSyncTask";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -186,11 +186,11 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         long tsStart = System.currentTimeMillis();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         addObject(getSyncTaskFile(), task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -204,7 +204,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 	@Test
     public void test801SyncAddAccountHt() throws Exception {
 		final String TEST_NAME = "test801SyncAddAccountHt";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -213,14 +213,13 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         long tsStart = System.currentTimeMillis();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         addLdapAccount(ACCOUNT_HT_UID, ACCOUNT_HT_CN, ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN);
         waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         long tsEnd = System.currentTimeMillis();
 
@@ -237,7 +236,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 	@Test
     public void test802ModifyAccountHt() throws Exception {
 		final String TEST_NAME = "test802ModifyAccountHt";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -246,7 +245,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         long tsStart = System.currentTimeMillis();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         LdapNetworkConnection connection = ldapConnect();
         Modification modCn = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, "sn", ACCOUNT_HT_SN_MODIFIED);
         connection.modify(toAccountDn(ACCOUNT_HT_UID, ACCOUNT_HT_CN), modCn);
@@ -255,7 +254,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 		waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -272,7 +271,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 	@Test
     public void test810SyncAddGroupMonkeys() throws Exception {
 		final String TEST_NAME = "test810SyncAddGroupMonkeys";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -281,7 +280,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         long tsStart = System.currentTimeMillis();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         if (needsGroupFakeMemeberEntry()) {
         	addLdapGroup(GROUP_MONKEYS_CN, GROUP_MONKEYS_DESCRIPTION, "uid=fake,"+getPeopleLdapSuffix());
         } else {
@@ -290,7 +289,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -308,7 +307,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 	@Test
     public void test817RenameAccount() throws Exception {
 		final String TEST_NAME = "test817RenameAccount";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -317,7 +316,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         long tsStart = System.currentTimeMillis();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         LdapNetworkConnection connection = ldapConnect();
 
         ModifyDnRequest modDnRequest = new ModifyDnRequestImpl();
@@ -334,7 +333,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 		waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -360,7 +359,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 	@Test
     public void test818DeleteAccountHtm() throws Exception {
 		final String TEST_NAME = "test818DeleteAccountHtm";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -371,13 +370,13 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         long tsStart = System.currentTimeMillis();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         deleteLdapEntry(toAccountDn(ACCOUNT_HTM_UID, ACCOUNT_HTM_CN));
 
 		waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -400,18 +399,18 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 	@Test
     public void test819DeleteSyncTask() throws Exception {
 		final String TEST_NAME = "test819DeleteSyncTask";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         deleteObject(TaskType.class, getSyncTaskOid(), task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -421,7 +420,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 	@Test
     public void test820ImportSyncTaskInetOrgPerson() throws Exception {
 		final String TEST_NAME = "test820ImportSyncTaskInetOrgPerson";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -430,11 +429,11 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         long tsStart = System.currentTimeMillis();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         addObject(getSyncTaskInetOrgPersonFile(), task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -451,7 +450,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 	@Test
     public void test821SyncAddAccountHt() throws Exception {
 		final String TEST_NAME = "test821SyncAddAccountHt";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -460,12 +459,12 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         long tsStart = System.currentTimeMillis();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         addLdapAccount(ACCOUNT_HT_UID, ACCOUNT_HT_CN, ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN);
         waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -483,7 +482,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 	@Test
     public void test822ModifyAccountHt() throws Exception {
 		final String TEST_NAME = "test822ModifyAccountHt";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -492,7 +491,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         long tsStart = System.currentTimeMillis();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         LdapNetworkConnection connection = ldapConnect();
         Modification modCn = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, "sn", ACCOUNT_HT_SN_MODIFIED);
         connection.modify(toAccountDn(ACCOUNT_HT_UID, ACCOUNT_HT_CN), modCn);
@@ -501,7 +500,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 		waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -520,7 +519,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 	@Test
     public void test830AddGroupFools() throws Exception {
 		final String TEST_NAME = "test830AddGroupFools";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -529,14 +528,13 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         long tsStart = System.currentTimeMillis();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         addLdapGroup(GROUP_FOOLS_CN, GROUP_FOOLS_DESCRIPTION, toGroupDn("nobody"));
 		waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         long tsEnd = System.currentTimeMillis();
 
@@ -549,7 +547,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 	@Test
     public void test837RenameAccount() throws Exception {
 		final String TEST_NAME = "test837RenameAccount";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -558,7 +556,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         long tsStart = System.currentTimeMillis();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         LdapNetworkConnection connection = ldapConnect();
 
         ModifyDnRequest modDnRequest = new ModifyDnRequestImpl();
@@ -575,9 +573,8 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 		waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         long tsEnd = System.currentTimeMillis();
 
@@ -595,7 +592,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 	@Test
     public void test838DeleteAccountHtm() throws Exception {
 		final String TEST_NAME = "test838DeleteAccountHtm";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -606,15 +603,14 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         long tsStart = System.currentTimeMillis();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         deleteLdapEntry(toAccountDn(ACCOUNT_HTM_UID,ACCOUNT_HTM_CN));
 
 		waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         long tsEnd = System.currentTimeMillis();
 
@@ -632,20 +628,19 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 	@Test
     public void test839DeleteSyncTask() throws Exception {
 		final String TEST_NAME = "test839DeleteSyncTask";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         deleteObject(TaskType.class, getSyncTaskOid(), task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         assertNoObject(TaskType.class, getSyncTaskOid(), task, result);
 	}
