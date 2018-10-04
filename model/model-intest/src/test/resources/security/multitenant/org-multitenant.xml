@@ -264,6 +264,13 @@
 		</inducement>
 	</role>
 	
+	<role oid="00000000-8888-6666-a200-100000000004">
+		<name>Atreides Soldier</name>
+		<assignment id="1">
+			<targetRef oid="00000000-8888-6666-a200-000000000000" type="OrgType"/> <!-- House Atreides -->
+		</assignment>
+	</role>
+	
 	<user oid="00000000-8888-6666-a200-200000000000">
 		<name>leto</name>
 		<givenName>Leto</givenName>

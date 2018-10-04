@@ -35,6 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationEnforce
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationLimitationsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OwnedObjectSelectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ZoneOfControlType;
 
@@ -151,6 +152,10 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
 	
 	public List<QName> getRelation() {
 		return authorizationType.getRelation();
+	}
+	
+	public OrderConstraintsType getOrderConstraints() {
+		return authorizationType.getOrderConstraints();
 	}
 	
 	public AuthorizationLimitationsType getLimitations() {

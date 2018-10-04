@@ -419,9 +419,12 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 
 	private T parseRawElementToNewRealValue(PrismPropertyValue<T> prismPropertyValue, PrismPropertyDefinition<T> definition)
 				throws SchemaException {
-		PrismContext prismContext = definition.getPrismContext();
+		PrismContext prismCtx = definition.getPrismContext() != null ? definition.getPrismContext() : prismContext;
 		//noinspection UnnecessaryLocalVariable
-		T value = prismContext.parserFor(prismPropertyValue.rawElement.toRootXNode()).definition(definition).parseRealValue();
+		if (prismCtx == null) {
+			throw new SchemaException("Unexpected null prism context.");
+		}
+		T value = prismCtx.parserFor(prismPropertyValue.rawElement.toRootXNode()).definition(definition).parseRealValue();
 		return value;
 	}
 
