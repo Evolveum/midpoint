@@ -58,6 +58,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperation
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDependencyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
@@ -879,6 +880,13 @@ public class SchemaDebugUtil {
 		}
 		return "Java("+xml.getClazz()+","+xml.getToString()+")";
 	}
+	
+	public static String prettyPrint(OrderConstraintsType constraints) {
+		StringBuilder sb = new StringBuilder("OrderConstraintsType(");
+		shortDump(sb, constraints);
+		sb.append(")");
+		return sb.toString();
+	}
 
 //	public static String prettyPrint(OperationProvisioningScriptsType scriptsType) {
 //		if (scriptsType == null) {
@@ -953,7 +961,7 @@ public class SchemaDebugUtil {
 		return null;
 	}
 
-	public static String prettyPrint(ObjectQuery query){
+	public static String prettyPrint(ObjectQuery query) {
 		return query.toString();
 	}
 	
@@ -996,6 +1004,54 @@ public class SchemaDebugUtil {
 		} else {
 			sb.append(result.getStatus());
 		}
+	}
+	
+	public static void shortDump(StringBuilder sb, OrderConstraintsType constraints) {
+		if (constraints == null) {
+			sb.append("null");
+			return;
+		}
+		Integer order = constraints.getOrder();
+		if (order != null) {
+			sb.append(order);
+		}
+		String orderMin = constraints.getOrderMin();
+		String orderMax = constraints.getOrderMax();
+		if (orderMin != null || orderMax != null) {
+			sb.append("<").append(orderMin).append(",").append(orderMax).append(">");
+		}
+		QName relation = constraints.getRelation();
+		if (relation != null) {
+			sb.append(",relation=").append(prettyPrint(relation));
+		}
+		Integer resetOrder = constraints.getResetOrder();
+		if (resetOrder != null) {
+			sb.append(",resetOrder=").append(resetOrder);
+		}
+	}
+	
+	public static void shortDumpOrderConstraintsList(StringBuilder sb, List<OrderConstraintsType> orderConstraints) {
+		if (orderConstraints == null) {
+			sb.append("null");
+		} else {
+			sb.append("[");
+			Iterator<OrderConstraintsType> i = orderConstraints.iterator();
+			while (i.hasNext()) {
+				sb.append("(");
+				SchemaDebugUtil.shortDump(sb, i.next());
+				sb.append(")");
+				if (i.hasNext()) {
+					sb.append(",");
+				}
+			}
+			sb.append("]");
+		}
+	}
+	
+	public static String shortDumpOrderConstraintsList(List<OrderConstraintsType> orderConstraints) {
+		StringBuilder sb = new StringBuilder();
+		shortDumpOrderConstraintsList(sb, orderConstraints);
+		return sb.toString();
 	}
 
 	static {

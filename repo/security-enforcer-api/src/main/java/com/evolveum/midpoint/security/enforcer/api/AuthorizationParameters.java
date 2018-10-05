@@ -15,14 +15,19 @@
  */
 package com.evolveum.midpoint.security.enforcer.api;
 
+import java.util.Iterator;
+import java.util.List;
+
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
 
 /**
  * @author semancik
@@ -31,18 +36,20 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 public class AuthorizationParameters<O extends ObjectType, T extends ObjectType> implements ShortDumpable {
 	
 	@SuppressWarnings("rawtypes")
-	public static final AuthorizationParameters<ObjectType,ObjectType> EMPTY = new AuthorizationParameters<>(null, null, null);
+	public static final AuthorizationParameters<ObjectType,ObjectType> EMPTY = new AuthorizationParameters<>(null, null, null, null);
 	
 	// ODO specifies authorization object with delta
 	private final ObjectDeltaObject<O> odo;
 	private final PrismObject<T> target;
 	private final QName relation;
+	private final List<OrderConstraintsType> orderConstraints;
 	
-	private AuthorizationParameters(ObjectDeltaObject<O> odo, PrismObject<T> target, QName relation) {
+	private AuthorizationParameters(ObjectDeltaObject<O> odo, PrismObject<T> target, QName relation, List<OrderConstraintsType> orderConstraints) {
 		super();
 		this.odo = odo;
 		this.target = target;
 		this.relation = relation;
+		this.orderConstraints = orderConstraints;
 	}
 	
 	public ObjectDeltaObject<O> getOdo() {
@@ -93,10 +100,14 @@ public class AuthorizationParameters<O extends ObjectType, T extends ObjectType>
 		return relation;
 	}
 
+	public List<OrderConstraintsType> getOrderConstraints() {
+		return orderConstraints;
+	}
+
 	@Override
 	public String toString() {
 		return "AuthorizationParameters(odo=" + odo + ", target=" + target
-				+ ", relation=" + relation + ")";
+				+ ", relation=" + relation + ", orderConstraints=" + orderConstraints + ")";
 	}
 	
 	@Override
@@ -114,6 +125,11 @@ public class AuthorizationParameters<O extends ObjectType, T extends ObjectType>
 		sb.append(",");
 		shortDumpElement(sb, "target", target);
 		shortDumpElement(sb, "relation", relation);
+		if (orderConstraints != null) {
+			sb.append("orderConstraints=");
+			SchemaDebugUtil.shortDumpOrderConstraintsList(sb, orderConstraints);
+			sb.append(", ");
+		}
 		if (sb.length() > 1) {
 			sb.setLength(sb.length() - 2);
 		}
@@ -133,6 +149,7 @@ public class AuthorizationParameters<O extends ObjectType, T extends ObjectType>
 		private PrismObject<O> oldObject;
 		private PrismObject<T> target;
 		private QName relation;
+		private List<OrderConstraintsType> orderConstraints;
 		
 		public Builder<O,T> newObject(PrismObject<O> object) {
 			if (odo != null) {
@@ -182,30 +199,35 @@ public class AuthorizationParameters<O extends ObjectType, T extends ObjectType>
 			return this;
 		}
 		
+		public Builder<O,T> orderConstraints(List<OrderConstraintsType> orderConstraints) {
+			this.orderConstraints = orderConstraints;
+			return this;
+		}
+		
 		public AuthorizationParameters<O,T> build() throws SchemaException {
 			if (odo == null) {
 				if (oldObject == null && delta == null && newObject == null) {
-					return new AuthorizationParameters<>(null, target, relation);
+					return new AuthorizationParameters<>(null, target, relation, orderConstraints);
 				} else {
 					ObjectDeltaObject<O> odo = new ObjectDeltaObject<>(oldObject, delta, newObject);
 					odo.recomputeIfNeeded(false);
-					return new AuthorizationParameters<>(odo, target, relation);
+					return new AuthorizationParameters<>(odo, target, relation, orderConstraints);
 				}
 			} else {
-				return new AuthorizationParameters<>(odo, target, relation);
+				return new AuthorizationParameters<>(odo, target, relation, orderConstraints);
 			}
 		}
 		
 		public static <O extends ObjectType> AuthorizationParameters<O,ObjectType> buildObjectAdd(PrismObject<O> object) {
 			// TODO: Do we need to create delta here?
 			ObjectDeltaObject<O> odo = new ObjectDeltaObject<>(null, null, object);
-			return new AuthorizationParameters<>(odo, null, null);
+			return new AuthorizationParameters<>(odo, null, null, null);
 		}
 		
 		public static <O extends ObjectType> AuthorizationParameters<O,ObjectType> buildObjectDelete(PrismObject<O> object) {
 			// TODO: Do we need to create delta here?
 			ObjectDeltaObject<O> odo = new ObjectDeltaObject<>(object, null, null);
-			return new AuthorizationParameters<>(odo, null, null);
+			return new AuthorizationParameters<>(odo, null, null, null);
 		}
 		
 		public static <O extends ObjectType> AuthorizationParameters<O,ObjectType> buildObjectDelta(PrismObject<O> object, ObjectDelta<O> delta) throws SchemaException {
@@ -216,12 +238,12 @@ public class AuthorizationParameters<O extends ObjectType, T extends ObjectType>
 				odo = new ObjectDeltaObject<>(object, delta, null);
 				odo.recomputeIfNeeded(false);
 			}
-			return new AuthorizationParameters<>(odo, null, null);
+			return new AuthorizationParameters<>(odo, null, null, null);
 		}
 
 		public static <O extends ObjectType> AuthorizationParameters<O,ObjectType> buildObject(PrismObject<O> object) {
 			ObjectDeltaObject<O> odo = new ObjectDeltaObject<>(object, null, object);
-			return new AuthorizationParameters<>(odo, null, null);
+			return new AuthorizationParameters<>(odo, null, null, null);
 		}
 		
 	}

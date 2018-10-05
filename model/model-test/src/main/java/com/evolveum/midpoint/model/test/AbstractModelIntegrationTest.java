@@ -1003,6 +1003,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			PolicyViolationException, SecurityViolationException {
 		modifyFocusAssignment(focusType, focusOid, AbstractRoleType.F_INDUCEMENT, roleOid, RoleType.COMPLEX_TYPE, null, task, null, true, null, result);
 	}
+	
+	protected <F extends FocusType> void induceOrg(Class<F> focusType, String focusOid, String orgOid, Task task, OperationResult result) throws ObjectNotFoundException,
+			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+			PolicyViolationException, SecurityViolationException {
+		modifyFocusAssignment(focusType, focusOid, AbstractRoleType.F_INDUCEMENT, orgOid, OrgType.COMPLEX_TYPE, null, task, null, true, null, result);
+	}
 
 	protected <F extends FocusType> void uninduceRole(Class<F> focusType, String focusOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException,
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,

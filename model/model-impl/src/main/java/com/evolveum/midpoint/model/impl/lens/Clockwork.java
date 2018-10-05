@@ -451,9 +451,10 @@ public class Clockwork {
 
 			if (recompute) {
 				context.cleanup();
+				LOGGER.trace("Running projector with cleaned-up context for execution wave {}", context.getExecutionWave());
 				projector.project(context, "PROJECTOR ("+state+")", task, result);
 			} else if (context.getExecutionWave() == context.getProjectionWave()) {
-				LOGGER.trace("Running projector for current execution wave");
+				LOGGER.trace("Resuming projector for execution wave {}", context.getExecutionWave());
 				projector.resume(context, "PROJECTOR ("+state+")", task, result);
 			} else {
 				LOGGER.trace("Skipping projection because the context is fresh and projection for current wave has already run");

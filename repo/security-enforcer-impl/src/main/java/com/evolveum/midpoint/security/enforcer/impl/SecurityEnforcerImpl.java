@@ -58,6 +58,7 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
@@ -68,6 +69,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -99,6 +101,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseTy
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgRelationObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgScopeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
@@ -208,6 +211,14 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 					// relation
 					if (!isApplicableRelation(autz, params.getRelation())) {
 						LOGGER.trace("    {} not applicable for relation {}", autzHumanReadableDesc, params.getRelation());
+						continue;
+					}
+					
+					// orderConstraints
+					if (!isApplicableOrderConstraints(autz, params.getOrderConstraints())) {
+						if (LOGGER.isTraceEnabled()) {
+							LOGGER.trace("    {} not applicable for orderConstraints {}", autzHumanReadableDesc, SchemaDebugUtil.shortDumpOrderConstraintsList(params.getOrderConstraints()));
+						}
 						continue;
 					}
 
@@ -1548,6 +1559,108 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			return true;
 		}
 		return QNameUtil.contains(autzRelation, requestRelation);
+	}
+
+	private boolean isApplicableOrderConstraints(Authorization autz, List<OrderConstraintsType> paramOrderConstraints) {
+		if (autz.getAction().contains(AuthorizationConstants.AUTZ_ALL_URL)) {
+			// #all is always applicable
+			// Compatibility note: in fact, this not really correct. We should not make
+			// any special case for #all action - except for the fact that it applies to
+			// all actions. Even for #all, the object and target specification should
+			// still be processed. But orderConstraint is a bit different. For all other
+			// authorization clauses holds that empty clause means that everything is
+			// applicable. But it is different for orderConstraints. Due to compatibility
+			// with midPoint 3.8 empty orderConstraints means min=0,max=0, i.e. it applies
+			// only to assignment (not inducements). Therefore we need this exception for
+			// #all, otherwise #all won't be applicable to inducements.
+			return true;
+		}
+		OrderConstraintsType autzOrderConstraints = autz.getOrderConstraints();
+		if (paramOrderConstraints == null || paramOrderConstraints.isEmpty()) {
+			if (autzOrderConstraints == null) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+		for (OrderConstraintsType paramOrderConstraint : paramOrderConstraints) {
+			if (!isSubset(paramOrderConstraint, autzOrderConstraints)) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	private boolean isSubset(OrderConstraintsType paramOrderConstraint, OrderConstraintsType autzOrderConstraints) {
+		Integer autzOrderMin;
+		Integer autzOrderMax;
+		
+		if (autzOrderConstraints == null) {
+			autzOrderMin = 0;
+			autzOrderMax = 0;
+		} else {
+			if (autzOrderConstraints.getRelation() != null) {
+				throw new UnsupportedOperationException("Complex order constaints with relation not supported in authorizations");
+			}
+			if (autzOrderConstraints.getResetOrder() != null) {
+				throw new UnsupportedOperationException("Complex order constaints with resetOrder not supported in authorizations");
+			}
+			
+			Integer autzOrder = autzOrderConstraints.getOrder();
+			autzOrderMin = XsdTypeMapper.multiplicityToInteger(autzOrderConstraints.getOrderMin());
+			if (autzOrderMin == null) {
+				if (autzOrder == null) {
+					autzOrderMin = 0;
+				} else {
+					autzOrderMin = autzOrder;
+				}
+			}
+			autzOrderMax = XsdTypeMapper.multiplicityToInteger(autzOrderConstraints.getOrderMax());
+			if (autzOrderMax == null) {
+				if (autzOrder == null) {
+					autzOrderMax = 0;
+				} else {
+					autzOrderMax = autzOrder;
+				}
+			}
+		}
+
+		Integer paramOrder = paramOrderConstraint.getOrder();
+		Integer paramOrderMin = XsdTypeMapper.multiplicityToInteger(paramOrderConstraint.getOrderMin());
+		if (paramOrderMin == null) {
+			paramOrderMin = paramOrder;
+		}
+		Integer paramOrderMax = XsdTypeMapper.multiplicityToInteger(paramOrderConstraint.getOrderMax());
+		if (paramOrderMax == null) {
+			paramOrderMax = paramOrder;
+		}
+
+//		LOGGER.info("OOO: A:{}-{} P:{}-{}", autzOrderMin, autzOrderMax, paramOrderMin, paramOrderMax);
+		
+		if (autzOrderMin < 0 || paramOrderMin < 0) {
+			// minimum set to infinity, should not really happen
+			return false;
+		}
+		
+		if (paramOrderMin < autzOrderMin) {
+			return false;
+		}
+		
+		if (autzOrderMax < 0) {
+			// required maximum set to infinity, everything allowed
+			return true;
+		}
+		
+		if (paramOrderMax < 0) {
+			// parameter maximum set to infinity. You cannot pass now.
+			return false;
+		}
+		
+		if (paramOrderMax > autzOrderMax) {
+			return false;
+		}
+		
+		return true;
 	}
 
 	private void traceClassMatch(String message, Class<?> specObjectClass, Class<?> objectType) {

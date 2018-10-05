@@ -75,6 +75,8 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
 	
 	protected static final String ROLE_GUILD_BROKEN_ADMIN_OID = "00000000-8888-6666-a001-100000000001";
 	
+	protected static final String ROLE_GUILD_NAVIGATOR_OID = "00000000-8888-6666-a001-100000000002";
+	
 	protected static final String USER_EDRIC_OID = "00000000-8888-6666-a001-200000000000";
 	protected static final String USER_EDRIC_NAME = "edric";
 	protected static final String USER_EDRIC_FULL_NAME = "Navigator Edric";
@@ -97,6 +99,8 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
 	protected static final String ORG_IMPERIAL_PALACE_OID = "00000000-8888-6666-a100-000000000002";
 	
 	protected static final String ROLE_CORRINO_ADMIN_OID = "00000000-8888-6666-a100-100000000000";
+	
+	protected static final String ROLE_CORRINO_EMPEROR_OID = "00000000-8888-6666-a100-100000000001";
 	
 	protected static final String USER_SHADDAM_CORRINO_OID = "00000000-8888-6666-a100-200000000000";
 	protected static final String USER_SHADDAM_CORRINO_NAME = "shaddam";
@@ -123,6 +127,10 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
 	protected static final String ORG_ATREIDES_SUBTENANT_OID = "00000000-8888-6666-a200-000000000fff";
 	
 	protected static final String ROLE_ATREIDES_ADMIN_OID = "00000000-8888-6666-a200-100000000000";
+	
+	protected static final String ROLE_ATREIDES_END_USER_OID = "00000000-8888-6666-a200-100000000006";
+	
+	protected static final String ROLE_ATREIDES_ROLE_MANAGER_OID = "00000000-8888-6666-a200-100000000007";
 	
 	protected static final String ROLE_ATREIDES_GUARD_OID = "00000000-8888-6666-a200-100000000002";
 	protected static final File ROLE_ATREIDES_GUARD_FILE = new File(TEST_DIR, "role-atreides-guard.xml");
@@ -299,7 +307,7 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
 	    	.assertFullName(USER_PAUL_ATREIDES_FULL_NAME)
 	    	.assignments()
 	    		.assertOrg(ORG_ATREIDES_OID)
-	    		.assertNoRole()
+	    		.assertRole(ROLE_ATREIDES_END_USER_OID)
 	    		.end()
 			.assertTenantRef(ORG_ATREIDES_OID)
 	    	.assertParentOrgRefs(ORG_ATREIDES_OID)
@@ -403,7 +411,7 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         
         // Search
         assertSearch(UserType.class, null, USER_LETO_ATREIDES_OID, USER_PAUL_ATREIDES_OID);
-        assertSearch(RoleType.class, null, ROLE_ATREIDES_ADMIN_OID, ROLE_ATREIDES_SOLDIER_OID);
+        assertSearch(RoleType.class, null, ROLE_ATREIDES_ADMIN_OID, ROLE_ATREIDES_END_USER_OID, ROLE_ATREIDES_ROLE_MANAGER_OID, ROLE_ATREIDES_SOLDIER_OID);
         assertSearch(OrgType.class, null, ORG_ATREIDES_OID, ORG_CALADAN_OID);
         
         // THEN
@@ -791,7 +799,7 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
 	/**
 	 * Make sure that tenant admin can manage business roles.
 	 */
-	@Test(enabled=false) // WORK IN PROGRESS
+	@Test
     public void test118AutzLetoBusinessRoles() throws Exception {
 		final String TEST_NAME = "test118AutzLetoBusinessRoles";
         displayTestTitle(TEST_NAME);
@@ -806,7 +814,22 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         displayWhen(TEST_NAME);
         
         assertAddAllow(ROLE_ATREIDES_SWORDMASTER_FILE);
-
+        
+        assertDeny("induce superuser", 
+        		(task, result) -> induceRole(ROLE_ATREIDES_SWORDMASTER_OID, ROLE_SUPERUSER_OID, task, result));
+        
+        assertAllow("uninduce soldier from swordmaster", 
+        		(task, result) -> uninduceRole(ROLE_ATREIDES_SWORDMASTER_OID, ROLE_ATREIDES_SOLDIER_OID, task, result));
+        
+        assertAllow("induce soldier to swordmaster", 
+        		(task, result) -> induceRole(ROLE_ATREIDES_SWORDMASTER_OID, ROLE_ATREIDES_SOLDIER_OID, task, result));
+        
+        assertDeny("unassign swordmaster from atreides", 
+        		(task, result) -> unassignOrg(RoleType.class, ROLE_ATREIDES_SWORDMASTER_OID, ORG_ATREIDES_OID, task, result));
+       
+        // TODO: assignment allowed, but inducement not allowed
+        
+        // TODO: delete business role?
         
         // THEN
         displayThen(TEST_NAME);
@@ -814,7 +837,86 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         assertGlobalStateUntouched();
 	}
 	
-	// TODO: create tenant business role
+	/**
+	 * Make sure that Paul can use end-user priviliges.
+	 * In particular that he can assign requestable roles.
+	 */
+	@Test
+    public void test120AutzPaulEndUser() throws Exception {
+		final String TEST_NAME = "test120AutzPaulEndUser";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(null);
+
+        login(USER_PAUL_ATREIDES_NAME);
+                
+        // WHEN
+        displayWhen(TEST_NAME);
+        
+        // Requestable role
+        assertAllow("assign guard to paul", 
+        		(task, result) -> assignRole(USER_PAUL_ATREIDES_OID, ROLE_ATREIDES_GUARD_OID, task, result));
+        
+        // Non-requestable role
+        assertDeny("assign swordmaster to paul", 
+        		(task, result) -> assignRole(USER_PAUL_ATREIDES_OID, ROLE_ATREIDES_SWORDMASTER_OID, task, result));
+        
+        // Requestable role, no tenant
+        assertDeny("assign swordmaster to paul", 
+        		(task, result) -> assignRole(USER_PAUL_ATREIDES_OID, ROLE_GUILD_NAVIGATOR_OID, task, result));
+        
+        // Requestable role, wrong tenant
+        assertDeny("assign swordmaster to paul", 
+        		(task, result) -> assignRole(USER_PAUL_ATREIDES_OID, ROLE_CORRINO_EMPEROR_OID, task, result));
+
+        // THEN
+        displayThen(TEST_NAME);
+        
+        assertGlobalStateUntouched();
+	}
+	
+	@Test
+    public void test122AutzDuncanRoleManager() throws Exception {
+		final String TEST_NAME = "test122AutzDuncanRoleManager";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(null);
+
+        addObject(USER_DUNCAN_FILE);
+        assignRole(USER_DUNCAN_OID, ROLE_ATREIDES_ROLE_MANAGER_OID);
+        
+        login(USER_DUNCAN_NAME);
+                
+        // WHEN
+        displayWhen(TEST_NAME);
+        
+        assertDeny("assign guard to paul", 
+        		(task, result) -> assignRole(USER_PAUL_ATREIDES_OID, ROLE_ATREIDES_GUARD_OID, task, result));
+        
+        assertAllow("induce swordmaster end user", 
+        		(task, result) -> induceRole(ROLE_ATREIDES_SWORDMASTER_OID, ROLE_ATREIDES_END_USER_OID, task, result));
+
+        // Outside of tenant
+        assertDeny("induce superuser", 
+        		(task, result) -> induceRole(ROLE_ATREIDES_SWORDMASTER_OID, ROLE_SUPERUSER_OID, task, result));
+        
+        // Only role inducements are allowed, not assignments
+        assertDeny("assign swordmaster to admin", 
+        		(task, result) -> assignRole(RoleType.class, ROLE_ATREIDES_SWORDMASTER_OID, ROLE_ATREIDES_ADMIN_OID, task, result));
+        
+        assertAllow("assign swordmaster to castle caladan", 
+        		(task, result) -> assignOrg(RoleType.class, ROLE_ATREIDES_SWORDMASTER_OID, ORG_CASTLE_CALADAN_OID, task, result));
+
+        // Only role assignments are allowed, not inducements
+        assertDeny("induce caladan", 
+        		(task, result) -> induceOrg(RoleType.class, ROLE_ATREIDES_SWORDMASTER_OID, ORG_CALADAN_OID, task, result));
+
+        // THEN
+        displayThen(TEST_NAME);
+        
+        assertGlobalStateUntouched();
+	}
+	
 	// TODO: add policy exceptions to existing role
 	// TODO: add assignment/inducement with policy rule
 	
@@ -827,7 +929,7 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
 	 * MID-4882
 	 */
 	@Test
-    public void test120AutzEdricRead() throws Exception {
+    public void test130AutzEdricRead() throws Exception {
 		final String TEST_NAME = "test120AutzEdricRead";
         displayTestTitle(TEST_NAME);
         // GIVEN
