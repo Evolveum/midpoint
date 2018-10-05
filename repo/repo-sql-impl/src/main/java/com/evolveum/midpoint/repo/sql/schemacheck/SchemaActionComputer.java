@@ -71,7 +71,7 @@ class SchemaActionComputer {
 
 	@NotNull
 	SchemaAction determineSchemaAction(SchemaState schemaState) {
-		LOGGER.info("Determining action for state: {}", schemaState);   // todo debug
+		LOGGER.debug("Determining action for state: {}", schemaState);
 		State state = determineState(schemaState);
 		switch (state) {
 			case COMPATIBLE:

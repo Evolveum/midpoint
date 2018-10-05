@@ -67,7 +67,7 @@ public class SchemaChecker {
 
 		SchemaState schemaState = new SchemaState(determineDataStructureCompliance(), determineDeclaredVersion());
 		SchemaAction action = actionComputer.determineSchemaAction(schemaState);
-		LOGGER.info("Determined schema action: " + action);     // todo debug
+		LOGGER.debug("Determined schema action: {}", action);
 
 		if (action instanceof SchemaAction.None) {
 			// nothing to do

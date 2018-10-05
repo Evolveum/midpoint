@@ -178,7 +178,7 @@ public class LoggerAuditServiceImpl implements AuditService {
 	// This method is never used. It is here only for maven dependency plugin to properly detect common component usage.
 	@SuppressWarnings("unused")
 	private void fakeMethod() {
-		LoggingConfigurationManager.getCurrentlyUsedVersion();
+		LoggingConfigurationManager.dummy();
 	}
 
 	@Override
