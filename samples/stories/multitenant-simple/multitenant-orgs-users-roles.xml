@@ -247,10 +247,10 @@
 	    	</object>
 	    </authorization>
 	    <authorization>
-	    	<name>tenant admin autz write</name>
+	    	<name>tenant admin autz write req</name>
 	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
 	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
-	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delete</action>
+	    	<phase>request</phase>
 	    	<object>
 	    		<tenant>
 	    			<sameAsSubject>true</sameAsSubject>
@@ -268,25 +268,42 @@
 	    	     can create inducement to Superuser role and that may circumvent tenant isolation. -->
 	    	<exceptItem>assignment</exceptItem>
 	    	<exceptItem>inducement</exceptItem>
+	    	<exceptItem>policyException</exceptItem>
+	    	<!-- WARNING: Using exceptItem here may be dangerous! Do not use in real scenarios!
+	    	              It would be much better idea to enumerate individual items that admin can modify 
+	    	              (use "item" instead of "exceptItem") -->
 	    </authorization>
 	    <authorization>
-	    	<name>tenant admin assign tenant</name>
-	    	<description>Hotel California of Tenancy. Tenant admin can only assign object to a tenant. Cannot unassign it.
-	    	             Tenant objects can never leave. They can only be deleted.</description>
-	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign</action>
+	    	<name>tenant admin autz write exec</name>
+	    	<description>
+	    		Assging and unassign authorizations apply only in request phase. We need to allow all assignments here.
+	    	    But we do not worry here. The assignments were already checked in request phase.
+	    	</description>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+	    	<phase>execution</phase>
 	    	<object>
 	    		<tenant>
 	    			<sameAsSubject>true</sameAsSubject>
 	    			<includeTenantOrg>false</includeTenantOrg>
 	    		</tenant>
 	    	</object>
-	    	<target>
-		    	<type>OrgType</type>
+	    </authorization>
+	    <authorization>
+	    	<name>tenant admin autz delete</name>
+	    	<description>
+	    		Separate delete authorization without an exception for assignment/inducement.
+	    		We want to be able to delete objects with assignments. All focal objects in tenant have at least one
+	    		assignment. If we do not do this we won't be able to delete them.
+	    		But we do not want to allow delete of the tenant org itself.
+	    	</description>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delete</action>
+	    	<object>
 	    		<tenant>
 	    			<sameAsSubject>true</sameAsSubject>
-	    			<includeTenantOrg>true</includeTenantOrg>
+	    			<includeTenantOrg>false</includeTenantOrg>
 	    		</tenant>
-	    	</target>
+	    	</object>
 	    </authorization>
 	    <authorization>
 	    	<name>tenant admin assign local roles</name>
@@ -294,7 +311,7 @@
 	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign</action>
 	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#unassign</action>
 	    	<object>
-	    		<type>UserType</type>
+	    		<type>FocusType</type>
 	    		<tenant>
 	    			<sameAsSubject>true</sameAsSubject>
 	    			<includeTenantOrg>false</includeTenantOrg>
@@ -304,9 +321,13 @@
 		    	<type>AbstractRoleType</type>
 	    		<tenant>
 	    			<sameAsSubject>true</sameAsSubject>
-	    			<includeTenantOrg>false</includeTenantOrg>
+	    			<includeTenantOrg>true</includeTenantOrg>
 	    		</tenant>
 	    	</target>
+	    	<orderConstraints>
+	    		<orderMin>0</orderMin> <!-- order=0 means assignment -->
+	    		<orderMax>unbounded</orderMax> <!-- order=1,2,3... means inducements -->
+	    	</orderConstraints>
 	    </authorization>
 	    
 	    <!-- Common admin authorizations -->
