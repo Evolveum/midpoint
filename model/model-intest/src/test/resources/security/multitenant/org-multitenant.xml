@@ -262,6 +262,10 @@
 	    	     can create inducement to Superuser role and that may circumvent tenant isolation. -->
 	    	<exceptItem>assignment</exceptItem>
 	    	<exceptItem>inducement</exceptItem>
+	    	<exceptItem>policyException</exceptItem>
+	    	<!-- WARNING: Using exceptItem here may be dangerous! Do not use in real scenarios!
+	    	              It would be much better idea to enumerate individual items that admin can modify 
+	    	              (use "item" instead of "exceptItem") -->
 	    </authorization>
 	    <authorization>
 	    	<name>tenant admin autz write exec</name>

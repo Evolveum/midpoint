@@ -1616,6 +1616,19 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		modelService.executeChanges(deltas, null, task, result);
 	}
 
+	protected <F extends FocusType> void assignPolicyRule(Class<F> type, String focusOid, PolicyRuleType policyRule, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		AssignmentType assignmentType = new AssignmentType();
+		assignmentType.setPolicyRule(policyRule);
+		assign(type, focusOid, assignmentType, task, result);
+	}
+	
+	protected <F extends FocusType> void assign(Class<F> type, String focusOid, AssignmentType assignmentType, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
+		modifications.add(createAssignmentModification(assignmentType, true));
+		ObjectDelta<F> userDelta = ObjectDelta.createModifyDelta(focusOid, modifications, type, prismContext);
+		executeChanges(userDelta, null, task, result);
+	}
+	
 	protected PrismObject<UserType> getUser(String userOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".getUser");
         OperationResult result = task.getResult();

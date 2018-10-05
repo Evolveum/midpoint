@@ -37,9 +37,12 @@ import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyExceptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -790,6 +793,29 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         assertDeny("add dummy account", 
         		(task, result) -> assignAccount(UserType.class, USER_PAUL_ATREIDES_OID, RESOURCE_DUMMY_OID, null, task, result));
         
+        PolicyRuleType policyRule = new PolicyRuleType();
+        policyRule
+			.beginPolicyConstraints()
+				.beginMinAssignees()
+					.multiplicity("1");
+        
+        assertDeny("assign policy rule", 
+        		(task, result) -> assignPolicyRule(RoleType.class, ROLE_ATREIDES_ADMIN_OID, policyRule, task, result));
+        
+        AssignmentType policyExceptionAssignment = new AssignmentType();
+        policyExceptionAssignment
+        	.beginPolicyException()
+        		.ruleName("foobar");
+        
+        assertDeny("assign policy exception", 
+        		(task, result) -> assign(RoleType.class, ROLE_ATREIDES_ADMIN_OID, policyExceptionAssignment, task, result));
+        
+        PolicyExceptionType policyException = new PolicyExceptionType() 
+        		.ruleName("foofoo");
+        assertDeny("add policyException to atreides admin", 
+        		(task, result) -> modifyObjectAddContainer(RoleType.class, ROLE_ATREIDES_ADMIN_OID, 
+        				RoleType.F_POLICY_EXCEPTION, task, result, policyException));
+        
         // THEN
         displayThen(TEST_NAME);
         
@@ -827,9 +853,7 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         assertDeny("unassign swordmaster from atreides", 
         		(task, result) -> unassignOrg(RoleType.class, ROLE_ATREIDES_SWORDMASTER_OID, ORG_ATREIDES_OID, task, result));
        
-        // TODO: assignment allowed, but inducement not allowed
-        
-        // TODO: delete business role?
+        assertDeleteAllow(RoleType.class, ROLE_ATREIDES_SWORDMASTER_OID);
         
         // THEN
         displayThen(TEST_NAME);
@@ -847,6 +871,8 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(null);
+        
+        addObject(ROLE_ATREIDES_SWORDMASTER_FILE);
 
         login(USER_PAUL_ATREIDES_NAME);
                 
@@ -916,9 +942,6 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         
         assertGlobalStateUntouched();
 	}
-	
-	// TODO: add policy exceptions to existing role
-	// TODO: add assignment/inducement with policy rule
 	
 	/**
 	 * Edric is part of Spacing Guild. But the Guild is not tenant.
