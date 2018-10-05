@@ -106,6 +106,13 @@ public class StartupConfiguration implements MidpointConfiguration {
 	    return sub;
     }
 
+    @Override
+    public Configuration getConfiguration() {
+	    applyMidpointHome(config);
+	    dumpConfiguration("<root>", config);
+	    return config;
+    }
+
 	// TODO rewrite the following midpoint.home magic
 	private void applyMidpointHome(Configuration sub) {
 		// Insert replacement for relative path to midpoint.home else clean replace

@@ -19,23 +19,20 @@
 	<define name="altPrefix" class="com.evolveum.midpoint.common.LogbackPropertyDefiner">
 		<propertyName>midpoint.logging.alt.prefix</propertyName>
 	</define>
-	<define name="altTimezone" class="com.evolveum.midpoint.common.LogbackPropertyDefinerForTimezone">
-		<propertyName>midpoint.logging.alt.timezone</propertyName>
-	</define>
 
 	<if condition='isDefined("midpoint.logging.alt.filename")'>
 		<then>
 			<appender name="ALT_LOG" class="ch.qos.logback.core.FileAppender">
 				<file>${midpoint.logging.alt.filename}</file>
 				<layout class="ch.qos.logback.classic.PatternLayout">
-					<pattern>${altPrefix}%date{ISO8601, ${altTimezone}} [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</pattern>
+					<pattern>${altPrefix}%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</pattern>
 				</layout>
 			</appender>
 		</then>
 		<else>
 			<appender name="ALT_LOG" class="ch.qos.logback.core.ConsoleAppender">
 				<layout class="ch.qos.logback.classic.PatternLayout">
-					<pattern>${altPrefix}%date{ISO8601, ${altTimezone}} [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</pattern>
+					<pattern>${altPrefix}%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</pattern>
 				</layout>
 			</appender>
 		</else>
