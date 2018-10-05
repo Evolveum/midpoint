@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.model.impl.util;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -83,7 +82,7 @@ public class ReindexTaskHandler extends AbstractSearchIterativeModelTaskHandler<
     }
 
     @Override
-    protected boolean useRepositoryDirectly(ReindexResultHandler resultHandler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
+    protected boolean requiresDirectRepositoryAccess(ReindexResultHandler resultHandler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
         return true;
     }
 

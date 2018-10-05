@@ -23,6 +23,7 @@ import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
@@ -55,12 +56,12 @@ public class LoggingConfigurationManager {
     private static final String REQUEST_FILTER_LOGGER_CLASS_NAME = "com.evolveum.midpoint.web.util.MidPointProfilingServletFilter";
     private static final String PROFILING_ASPECT_LOGGER = "com.evolveum.midpoint.util.aspect.ProfilingDataManager";
     private static final String IDM_PROFILE_APPENDER = "IDM_LOG";
-    
-	private static final String LOGBACK_ALT_XML_RESOURCE = "logback-alt.xml";
+	private static final String ALT_APPENDER_NAME = "ALT_LOG";
 
 	private static String currentlyUsedVersion = null;
 
-    public static void configure(LoggingConfigurationType config, String version, OperationResult result) throws SchemaException {
+    public static void configure(LoggingConfigurationType config, String version,
+		    MidpointConfiguration midpointConfiguration, OperationResult result) throws SchemaException {
 
 		OperationResult res = result.createSubresult(LoggingConfigurationManager.class.getName()+".configure");
 		
@@ -92,7 +93,7 @@ public class LoggingConfigurationManager {
 		configurator.setContext(lc);
 
 		//Generate configuration file as string
-		String configXml = prepareConfiguration(config);
+		String configXml = prepareConfiguration(config, midpointConfiguration);
 
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("New logging configuration:");
@@ -151,7 +152,8 @@ public class LoggingConfigurationManager {
         SLF4JBridgeHandler.install();
 	}
 
-	private static String prepareConfiguration(LoggingConfigurationType config) throws SchemaException {
+	private static String prepareConfiguration(LoggingConfigurationType config, MidpointConfiguration midpointConfiguration)
+			throws SchemaException {
 
 		if (null == config) {
 			throw new IllegalArgumentException("Configuration can't be null");
@@ -188,26 +190,27 @@ public class LoggingConfigurationManager {
 			defineTurbo(sb, ss);
 		}
 
+		boolean rootAppenderDefined = StringUtils.isNotEmpty(config.getRootLoggerAppender());
+		boolean altAppenderEnabled = isAltAppenderEnabled(midpointConfiguration);
+		boolean altAppenderCreated = false;
+
 		//Generate appenders configuration
 		for (AppenderConfigurationType appender : config.getAppender()) {
-			prepareAppenderConfiguration(sb, appender, config);
-		}
-
-		boolean defaultAltAppender = "true".equals(System.getProperty(MidpointConfiguration.MIDPOINT_LOGGING_ALT_ENABLED_PROPERTY));
-		if (defaultAltAppender) {
-			prepareDefaultAltAppender(sb);
+			boolean createAlt = altAppenderEnabled && rootAppenderDefined && config.getRootLoggerAppender().equals(appender.getName());
+			prepareAppenderConfiguration(sb, appender, config, createAlt, midpointConfiguration);
+			altAppenderCreated = altAppenderCreated || createAlt;
 		}
 
 		//define root appender if defined
-		if (!StringUtils.isEmpty(config.getRootLoggerAppender())) {
+		if (rootAppenderDefined) {
 			sb.append("\t<root level=\"");
 			sb.append(config.getRootLoggerLevel());
 			sb.append("\">\n");
 			sb.append("\t\t<appender-ref ref=\"");
 			sb.append(config.getRootLoggerAppender());
 			sb.append("\" />\n");
-			if (defaultAltAppender) {
-				sb.append("\t\t<appender-ref ref=\"ALT_LOG\"/>");
+			if (altAppenderCreated) {
+				sb.append("\t\t<appender-ref ref=\"" + ALT_APPENDER_NAME + "\"/>");
 			}
 			sb.append("\t</root>\n");
 		}
@@ -255,13 +258,9 @@ public class LoggingConfigurationManager {
 		return sb.toString();
 	}
 
-	private static void prepareDefaultAltAppender(StringBuilder sb) {
-    	// We expect this to be used only when logback-alt.xml is present, i.e. only during regular "GUI" execution.
-		// For other scenarios (e.g. tests) please avoid setting midpoint.logging.alt.enabled to true.
-	    sb.append("<include resource=\"" + LOGBACK_ALT_XML_RESOURCE + "\" />\n");
-	}
-
-	private static void prepareAppenderConfiguration(StringBuilder sb, AppenderConfigurationType appender, LoggingConfigurationType config) throws SchemaException {
+	private static void prepareAppenderConfiguration(StringBuilder sb, AppenderConfigurationType appender,
+			LoggingConfigurationType config, boolean createAltForThisAppender,
+			MidpointConfiguration midpointConfiguration) throws SchemaException {
 		if (appender instanceof FileAppenderConfigurationType) {
 			prepareFileAppenderConfiguration(sb, (FileAppenderConfigurationType) appender, config);
 		} else if (appender instanceof SyslogAppenderConfigurationType) {
@@ -269,8 +268,46 @@ public class LoggingConfigurationManager {
 		} else {
 			throw new SchemaException("Unknown appender configuration "+appender);
 		}
+		if (createAltForThisAppender) {
+			prepareAltAppenderConfiguration(sb, appender, midpointConfiguration);
+		}
 	}
-	
+
+	private static void prepareAltAppenderConfiguration(StringBuilder sb, AppenderConfigurationType appender,
+			MidpointConfiguration midpointConfiguration) {
+		String altFilename = getAltAppenderFilename(midpointConfiguration);
+		String altPrefix = getAltAppenderPrefix(midpointConfiguration);
+		if (StringUtils.isNotEmpty(altFilename)) {
+			sb.append("<appender name=\"" + ALT_APPENDER_NAME + "\" class=\"ch.qos.logback.core.FileAppender\">\n")
+					.append("\t\t\t\t<file>").append(altFilename).append("</file>\n")
+					.append("\t\t\t\t<layout class=\"ch.qos.logback.classic.PatternLayout\">\n")
+					.append("\t\t\t\t\t<pattern>").append(altPrefix).append(appender.getPattern()).append("</pattern>\n")
+					.append("\t\t\t\t</layout>\n")
+					.append("\t\t\t</appender>");
+		} else {
+			sb.append("<appender name=\"" + ALT_APPENDER_NAME + "\" class=\"ch.qos.logback.core.ConsoleAppender\">\n")
+					.append("\t\t\t\t<layout class=\"ch.qos.logback.classic.PatternLayout\">\n")
+					.append("\t\t\t\t\t<pattern>").append(altPrefix).append(appender.getPattern()).append("</pattern>\n")
+					.append("\t\t\t\t</layout>\n")
+					.append("\t\t\t</appender>");
+		}
+	}
+
+	private static boolean isAltAppenderEnabled(MidpointConfiguration midpointConfiguration) {
+		Configuration config = midpointConfiguration.getConfiguration();
+		return config != null && "true".equals(config.getString(MidpointConfiguration.MIDPOINT_LOGGING_ALT_ENABLED_PROPERTY));
+	}
+
+	private static String getAltAppenderPrefix(MidpointConfiguration midpointConfiguration) {
+		Configuration config = midpointConfiguration.getConfiguration();
+		return config != null ? config.getString(MidpointConfiguration.MIDPOINT_LOGGING_ALT_PREFIX_PROPERTY, "") : "";
+	}
+
+	private static String getAltAppenderFilename(MidpointConfiguration midpointConfiguration) {
+		Configuration config = midpointConfiguration.getConfiguration();
+		return config != null ? config.getString(MidpointConfiguration.MIDPOINT_LOGGING_ALT_FILENAME_PROPERTY) : null;
+	}
+
 	private static void prepareFileAppenderConfiguration(StringBuilder sb, FileAppenderConfigurationType appender, LoggingConfigurationType config) {
 		String fileName = appender.getFileName();
 		String filePattern = appender.getFilePattern();
@@ -314,7 +351,7 @@ public class LoggingConfigurationManager {
 			sb.append("\t\t</rollingPolicy>\n");
 		}
 		
-		prepareCommonAppenderFooter(sb, appender, config);
+		prepareCommonAppenderFooter(sb, appender);
 
 	}
 	
@@ -329,7 +366,7 @@ public class LoggingConfigurationManager {
 		appendProp(sb, "stackTracePattern", appender.getStackTracePattern());
 		appendProp(sb, "throwableExcluded", appender.isThrowableExcluded());
 		
-		prepareCommonAppenderFooter(sb, appender, config);
+		prepareCommonAppenderFooter(sb, appender);
 
 	}
 
@@ -356,8 +393,7 @@ public class LoggingConfigurationManager {
         }
 	}
 	
-	private static void prepareCommonAppenderFooter(StringBuilder sb,
-			AppenderConfigurationType appender, LoggingConfigurationType config) {
+	private static void prepareCommonAppenderFooter(StringBuilder sb, AppenderConfigurationType appender) {
 		sb.append("\t\t<encoder>\n");
 		sb.append("\t\t\t<pattern>");
 		sb.append(appender.getPattern());
@@ -411,16 +447,7 @@ public class LoggingConfigurationManager {
         return ("\t<filter class=\"com.evolveum.midpoint.util.logging.ProfilingLogbackFilter\" />\n");
     }
 
-    public static String getCurrentlyUsedVersion() {
-        return currentlyUsedVersion;
+    public static void dummy() {
     }
-
-    public static void resetCurrentlyUsedVersion() {
-        currentlyUsedVersion = null;
-    }
-
-	public static void setCurrentlyUsedVersion(String version) {
-		currentlyUsedVersion = version;
-	}
 
 }

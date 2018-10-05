@@ -316,13 +316,6 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                 }
 
 				@Override
-				public IModel<String> getConfirmationMessageModel() {
-					return getMemberTable().getSelectedObjectsCount() > 0 ?
-							createStringResource("abstractRoleMemberPanel.unassignSelectedMembersConfirmationLabel")
-							: null;
-				}
-
-                @Override
                 public String getButtonIconCssClass() {
                     return GuiStyleConstants.CLASS_UNASSIGN;
                 }
@@ -392,12 +385,6 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                     };
                 }
 
-				@Override
-				public IModel<String> getConfirmationMessageModel() {
-					return getMemberTable().getSelectedObjectsCount() > 0 ?
-							createStringResource("abstractRoleMemberPanel.deleteSelectedMembersConfirmationLabel")
-							: null;
-				}
             });
         }
         return menu;
@@ -416,68 +403,66 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
 	private void unassignMembersPerformed(AjaxRequestTarget target) {
 		QueryScope scope = getQueryScope(false);
-		if (QueryScope.SELECTED.equals(scope)){
-			MemberOperationsHelper.unassignMembersPerformed(getPageBase(), getModelObject(), scope,
-					getActionQuery(scope, null), null, getSearchType().getTypeQName(), target);
+		
+		ChooseFocusTypeAndRelationDialogPanel chooseTypePopupContent = new ChooseFocusTypeAndRelationDialogPanel(getPageBase().getMainPopupBodyId(),
+				createStringResource("abstractRoleMemberPanel.unassignAllMembersConfirmationLabel")) {
+			private static final long serialVersionUID = 1L;
 
-		} else {
-			ChooseFocusTypeAndRelationDialogPanel chooseTypePopupContent = new ChooseFocusTypeAndRelationDialogPanel(getPageBase().getMainPopupBodyId(),
-					createStringResource("abstractRoleMemberPanel.unassignAllMembersConfirmationLabel")) {
-				private static final long serialVersionUID = 1L;
+			@Override
+			protected List<QName> getSupportedObjectTypes() {
+				return AbstractRoleMemberPanel.this.getSupportedObjectTypes();
+			}
 
-				@Override
-				protected List<QName> getSupportedObjectTypes() {
-					return AbstractRoleMemberPanel.this.getSupportedObjectTypes();
-				}
+			@Override
+			protected List<QName> getSupportedRelations() {
+				return AbstractRoleMemberPanel.this.getSupportedRelations();
+			}
+			
+			@Override
+			protected boolean isFocusTypeSelectorVisible() {
+				return !QueryScope.SELECTED.equals(scope);
+			}
 
-				@Override
-				protected List<QName> getSupportedRelations() {
-					return AbstractRoleMemberPanel.this.getSupportedRelations();
-				}
 
+			protected void okPerformed(QName type, Collection<QName> relations, AjaxRequestTarget target) {
+				unassignMembersPerformed(type, scope, relations, target);
 
-				protected void okPerformed(QName type, Collection<QName> relations, AjaxRequestTarget target) {
-					unassignMembersPerformed(type, scope, relations, target);
+			}
+		};
 
-				}
-
-				;
-			};
-
-			getPageBase().showMainPopup(chooseTypePopupContent, target);
-		}
+		getPageBase().showMainPopup(chooseTypePopupContent, target);
 	}
 	
 	private void deleteMembersPerformed(AjaxRequestTarget target) {
 		QueryScope scope = getQueryScope(false);
-		if (QueryScope.SELECTED.equals(scope)){
-			MemberOperationsHelper.deleteMembersPerformed(getPageBase(), scope, getActionQuery(scope, null),
-					getSearchType().getTypeQName(), target);
-		} else {
-			ChooseFocusTypeAndRelationDialogPanel chooseTypePopupContent = new ChooseFocusTypeAndRelationDialogPanel(getPageBase().getMainPopupBodyId(),
+		ChooseFocusTypeAndRelationDialogPanel chooseTypePopupContent = new ChooseFocusTypeAndRelationDialogPanel(getPageBase().getMainPopupBodyId(),
 					createStringResource("abstractRoleMemberPanel.deleteAllMembersConfirmationLabel")) {
-				private static final long serialVersionUID = 1L;
+			private static final long serialVersionUID = 1L;
 
-				@Override
-				protected List<QName> getSupportedObjectTypes() {
-					return AbstractRoleMemberPanel.this.getSupportedObjectTypes();
-				}
+			@Override
+			protected List<QName> getSupportedObjectTypes() {
+				return AbstractRoleMemberPanel.this.getSupportedObjectTypes();
+			}
 
-				@Override
-				protected List<QName> getSupportedRelations() {
-					return AbstractRoleMemberPanel.this.getSupportedRelations();
-				}
+			@Override
+			protected List<QName> getSupportedRelations() {
+				return AbstractRoleMemberPanel.this.getSupportedRelations();
+			}
 
-				protected void okPerformed(QName type, Collection<QName> relations, AjaxRequestTarget target) {
-					deleteMembersPerformed(type, scope, relations, target);
+			protected void okPerformed(QName type, Collection<QName> relations, AjaxRequestTarget target) {
+				deleteMembersPerformed(type, scope, relations, target);
 
-				}
+			}
 
-				;
-			};
+			@Override
+			protected boolean isFocusTypeSelectorVisible() {
+				return !QueryScope.SELECTED.equals(scope);
+			}
 
-			getPageBase().showMainPopup(chooseTypePopupContent, target);
-		}
+		};
+
+		getPageBase().showMainPopup(chooseTypePopupContent, target);
+		
 	}
 	
 	protected void createFocusMemberPerformed(AjaxRequestTarget target) {

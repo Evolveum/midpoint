@@ -424,7 +424,6 @@
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-cache</artifactId>
             <version>3.9-SNAPSHOT</version>
-            <scope>runtime</scope>
             <exclusions>
                 <exclusion>
                     <artifactId>jaxb-impl</artifactId>
@@ -893,11 +892,6 @@
             <artifactId>model-test</artifactId>
             <version>3.9-SNAPSHOT</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>repo-cache</artifactId>
-            <version>3.9-SNAPSHOT</version>
         </dependency>
     </dependencies>
 

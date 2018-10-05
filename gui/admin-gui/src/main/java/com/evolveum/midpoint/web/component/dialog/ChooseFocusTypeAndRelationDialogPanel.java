@@ -57,6 +57,7 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel implements 
 				"chooseFocusTypeAndRelationDialogPanel.tooltip.type", true, "col-md-4", "col-md-8", false);
 		type.getInput().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
 	    type.setOutputMarkupId(true);
+	    type.add(new VisibleBehaviour(() -> isFocusTypeSelectorVisible()));
 	    add(type);
 	    
 	    	IModel<Map<String, String>> options = new Model(null);
@@ -117,6 +118,10 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel implements 
 		return WebComponentUtil.getAllRelations(getPageBase());
 	}
 
+	protected boolean isFocusTypeSelectorVisible() {
+		return true;
+	}
+	
 	@Override
 	public int getWidth() {
 		return 400;
