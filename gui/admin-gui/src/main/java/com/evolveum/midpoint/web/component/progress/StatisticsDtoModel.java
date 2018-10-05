@@ -48,9 +48,11 @@ public class StatisticsDtoModel extends AbstractReadOnlyModel<StatisticsDto> {
 
     @Override
     public StatisticsDto getObject() {
-        if (cachedObject != null) {
-            return cachedObject;
-        }
+        //we can't use cache here probably because data on the panel
+        // should be updated all the time
+//        if (cachedObject != null) {
+//            return cachedObject;
+//        }
 
         StatisticsDto info = getObjectInternal();
         if (info != null) {
