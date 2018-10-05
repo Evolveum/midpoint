@@ -81,6 +81,14 @@ This resource definition contains also definition to enable synchronization.
         <!-- Resource namespace. This is important. All resource schema elements should be in this namespace. -->
         <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</namespace>
 
+        <schema>
+             <generationConstraints>
+                <generateObjectClass>ri:inetOrgPerson</generateObjectClass>
+                <generateObjectClass>ri:groupOfUniqueNames</generateObjectClass>
+                <generateObjectClass>ri:groupOfNames</generateObjectClass>
+                <generateObjectClass>ri:organizationalUnit</generateObjectClass>
+            </generationConstraints>
+        </schema>
         <!-- Resource Schema Handling definition.
              This part defines how the schema defined above will be used by
              OpenIDM. It defines expressions and limitations for individual

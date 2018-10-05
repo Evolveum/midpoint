@@ -17,6 +17,8 @@ package com.evolveum.midpoint.model.impl.util;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
+import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -177,5 +179,12 @@ public abstract class AbstractSearchIterativeModelTaskHandler<O extends ObjectTy
     protected ModelExecuteOptions getExecuteOptionsFromTask(Task task) {
 		PrismProperty<ModelExecuteOptionsType> property = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS);
 		return property != null ? ModelExecuteOptions.fromModelExecutionOptionsType(property.getRealValue()) : null;
+	}
+
+	@Override
+	protected void checkRawAuthorization(Task task, OperationResult result)
+			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+			ConfigurationException, ExpressionEvaluationException {
+		securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), null, AuthorizationParameters.EMPTY, null, task, result);
 	}
 }

@@ -73,7 +73,7 @@ public class ShadowRefreshTaskHandler extends AbstractScannerTaskHandler<ShadowT
 	}
 
 	@Override
-	protected boolean useRepositoryDirectly(AbstractScannerResultHandler<ShadowType> resultHandler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
+	protected boolean requiresDirectRepositoryAccess(AbstractScannerResultHandler<ShadowType> resultHandler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
         return true;
     }
 

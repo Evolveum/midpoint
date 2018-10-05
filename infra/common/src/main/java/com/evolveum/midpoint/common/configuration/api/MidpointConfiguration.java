@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.common.configuration.api;
 
 import org.apache.commons.configuration.Configuration;
-import org.w3c.dom.Document;
 
 /**
  * @author mamut
@@ -28,6 +27,8 @@ public interface MidpointConfiguration {
 	String MIDPOINT_SILENT_PROPERTY = "midpoint.silent";
 	String MIDPOINT_HOME_PROPERTY = "midpoint.home";
 	String MIDPOINT_LOGGING_ALT_ENABLED_PROPERTY = "midpoint.logging.alt.enabled";
+	String MIDPOINT_LOGGING_ALT_FILENAME_PROPERTY = "midpoint.logging.alt.filename";
+	String MIDPOINT_LOGGING_ALT_PREFIX_PROPERTY = "midpoint.logging.alt.prefix";
 
 	// TODO read these from the MidpointConfiguration instead of system properties.
 	// It will provide greater flexibility, as the administrator will be able to set them permanently in config.xml.
@@ -68,7 +69,9 @@ public interface MidpointConfiguration {
 	 */
 	Configuration getConfiguration(String component);
 
-    boolean isSafeMode();
+	Configuration getConfiguration();
+
+	boolean isSafeMode();
 
 	boolean isProfilingEnabled();
 }

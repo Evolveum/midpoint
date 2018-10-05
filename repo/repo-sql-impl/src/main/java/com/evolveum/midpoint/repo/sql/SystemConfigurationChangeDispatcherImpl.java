@@ -18,6 +18,7 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.common.ProfilingConfigurationManager;
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -57,6 +58,7 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
 	@Autowired private RepositoryService repositoryService;
 	@Autowired private PrismContext prismContext;
 	@Autowired private RelationRegistry relationRegistry;
+	@Autowired private MidpointConfiguration midpointConfiguration;
 
 	private static final Collection<SystemConfigurationChangeListener> listeners = new HashSet<>();
 
@@ -129,7 +131,7 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
 			LoggingConfigurationType loggingWithProfiling = ProfilingConfigurationManager
 					.checkSystemProfilingConfiguration(configuration);
 			if (loggingWithProfiling != null) {
-				LoggingConfigurationManager.configure(loggingWithProfiling, configuration.getVersion(), result);
+				LoggingConfigurationManager.configure(loggingWithProfiling, configuration.getVersion(), midpointConfiguration, result);
 			}
 		} catch (Throwable t) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply logging configuration", t);

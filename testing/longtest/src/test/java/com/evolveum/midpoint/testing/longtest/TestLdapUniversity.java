@@ -19,6 +19,7 @@ package com.evolveum.midpoint.testing.longtest;
 
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.common.ProfilingConfigurationManager;
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -90,8 +91,8 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
 	protected ResourceType resourceOpenDjType;
 	protected PrismObject<ResourceType> resourceOpenDj;
 
-    @Autowired
-    private ReconciliationTaskHandler reconciliationTaskHandler;
+    @Autowired private ReconciliationTaskHandler reconciliationTaskHandler;
+    @Autowired private MidpointConfiguration midpointConfiguration;
 
     @Override
     protected void startResources() throws Exception {
@@ -119,7 +120,7 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
 
         LoggingConfigurationManager.configure(
                 ProfilingConfigurationManager.checkSystemProfilingConfiguration(config),
-                config.asObjectable().getVersion(), initResult);
+                config.asObjectable().getVersion(), midpointConfiguration, initResult);
 
 		// administrator
 		PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);

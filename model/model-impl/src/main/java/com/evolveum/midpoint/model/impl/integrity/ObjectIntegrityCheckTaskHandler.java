@@ -100,7 +100,7 @@ public class ObjectIntegrityCheckTaskHandler extends AbstractSearchIterativeMode
 	}
 
 	@Override
-    protected boolean useRepositoryDirectly(ObjectIntegrityCheckResultHandler resultHandler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
+    protected boolean requiresDirectRepositoryAccess(ObjectIntegrityCheckResultHandler resultHandler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
         return true;
     }
 
