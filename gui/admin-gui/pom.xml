@@ -756,13 +756,7 @@
             <artifactId>spring-test</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>com.github.sommeri</groupId>
-            <artifactId>less4j</artifactId>
-            <version>1.17.2</version>
-            <scope>compile</scope>
-        </dependency>
-
+        
         <!-- Dependencies to connectors, just to add to good place in WAR -->
         <dependency>
 			<groupId>com.evolveum.polygon</groupId>
