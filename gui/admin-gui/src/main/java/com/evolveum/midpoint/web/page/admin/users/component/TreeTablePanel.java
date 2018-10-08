@@ -418,9 +418,6 @@ public class TreeTablePanel extends BasePanel<String> {
 	}
 
 	private void moveRootPerformed(final SelectableBean<OrgType> root, AjaxRequestTarget target) {
-//		if (root == null) {
-//			root = getTreePanel().getRootFromProvider();
-//		}
 
 		final SelectableBean<OrgType> orgToMove = root;
 

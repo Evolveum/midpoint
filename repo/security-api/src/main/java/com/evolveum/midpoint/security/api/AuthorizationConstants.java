@@ -473,11 +473,6 @@ public class AuthorizationConstants {
 	public static final QName AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminCSVexport");
 	public static final String AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_QNAME);
 
-	public static final QName AUTZ_UI_ADMIN_ORG_MAKE_ROOT_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminOrgMakeRoot");
-	public static final String AUTZ_UI_ADMIN_ORG_MAKE_ROOT_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_ORG_MAKE_ROOT_ACTION_QNAME);
-
-	public static final QName AUTZ_UI_ADMIN_ORG_MOVE_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminOrgMove");
-	public static final String AUTZ_UI_ADMIN_ORG_MOVE_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_ORG_MOVE_ACTION_QNAME);
 	/**
 	 * Those are the items that midPoint logic controls directly. They have exception from execution-phase
 	 * authorization enforcement. Their modification in execution phase is always allowed. If it was not
