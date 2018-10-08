@@ -223,6 +223,7 @@ public abstract class SchemaConstants {
 			ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS);
 	public static final ItemPath PATH_ATTRIBUTES = new ItemPath(C_ATTRIBUTES);
 	public static final ItemPath PATH_ASSIGNMENT = new ItemPath(FocusType.F_ASSIGNMENT);
+	public static final ItemPath PATH_INDUCEMENT = new ItemPath(AbstractRoleType.F_INDUCEMENT);
 	public static final ItemPath PATH_ASSIGNMENT_ACTIVATION = new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION);
 	public static final ItemPath PATH_ASSIGNMENT_ACTIVATION_EFFECTIVE_STATUS = new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS);
 	public static final ItemPath PATH_ASSIGNMENT_ACTIVATION_VALID_FROM = new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM);

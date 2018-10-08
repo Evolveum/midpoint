@@ -29,7 +29,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -41,8 +40,10 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
-import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerValueWrapperModel;
-import com.evolveum.midpoint.prism.DefaultReferencableImpl;
+import com.evolveum.midpoint.gui.impl.model.DefaultReferencableImplSingleValueContainerValueWrapperModel;
+import com.evolveum.midpoint.gui.impl.model.RealValueOfSingleValuePropertyAsStringFromContainerValueWrapperModel;
+import com.evolveum.midpoint.gui.impl.model.RealContainerValueFromParentOfSingleValueContainerValueWrapperModel;
+import com.evolveum.midpoint.gui.impl.model.RealContainerValueFromContainerValueWrapperModel;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -58,8 +59,6 @@ import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
@@ -95,7 +94,6 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
     		
     		PageParameters params = getPage().getPageParameters();
     		StringValue val = params.get(PageSystemConfiguration.SELECTED_TAB_INDEX);
-    		String value = null;
     		if (val != null && !val.isNull()) {
     			params.remove(params.getPosition(PageSystemConfiguration.SELECTED_TAB_INDEX));
     		} 
@@ -107,11 +105,10 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
     protected void initLayout() {
     	
     	TableId tableId = UserProfileStorage.TableId.OBJECT_POLICIES_TAB_TABLE;
-    	int itemPerPage = (int) ((PageBase)ObjectPolicyConfigurationTabPanel.this.getPage()).getItemsPerPage(UserProfileStorage.TableId.OBJECT_POLICIES_TAB_TABLE);
-    	PageStorage pageStorage = ((PageBase)ObjectPolicyConfigurationTabPanel.this.getPage()).getSessionStorage().getObjectPoliciesConfigurationTabStorage();
+    	PageStorage pageStorage = getPageBase().getSessionStorage().getObjectPoliciesConfigurationTabStorage();
     	
     	MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType> multivalueContainerListPanel = new MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType>(ID_OBJECTS_POLICY, getModel(),
-    			tableId, itemPerPage, pageStorage) {
+    			tableId, pageStorage) {
 			
 			private static final long serialVersionUID = 1L;
 			
@@ -188,16 +185,8 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
 
 			@Override
 			protected DisplayNamePanel<ObjectPolicyConfigurationType> createDisplayNamePanel(String displayNamePanelId) {
-				IModel<ObjectPolicyConfigurationType> displayNameModel = new AbstractReadOnlyModel<ObjectPolicyConfigurationType>() {
-
-		    		private static final long serialVersionUID = 1L;
-
-					@Override
-		    		public ObjectPolicyConfigurationType getObject() {
-		    			return item.getModelObject().getContainerValue().getValue();
-		    		}
-
-		    	};
+				RealContainerValueFromContainerValueWrapperModel<ObjectPolicyConfigurationType> displayNameModel = 
+						new RealContainerValueFromContainerValueWrapperModel<ObjectPolicyConfigurationType>(item.getModel());
 				return new DisplayNamePanel<ObjectPolicyConfigurationType>(displayNamePanelId, displayNameModel);
 			}
 		};
@@ -228,15 +217,7 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
 
 			@Override
 			protected IModel<String> createIconModel(IModel<ContainerValueWrapper<ObjectPolicyConfigurationType>> rowModel) {
-				return new AbstractReadOnlyModel<String>() {
-
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public String getObject() {
-						return WebComponentUtil.createDefaultBlackIcon(SystemConfigurationType.COMPLEX_TYPE);
-					}
-				};
+				return Model.of(WebComponentUtil.createDefaultBlackIcon(SystemConfigurationType.COMPLEX_TYPE));
 			}
 		});
 		
@@ -246,9 +227,17 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
             
 			@Override
 			public IModel<String> createLinkModel(IModel<ContainerValueWrapper<ObjectPolicyConfigurationType>> rowModel) {
-				PropertyWrapperFromContainerValueWrapperModel<QName, ObjectPolicyConfigurationType> propertyModel = new PropertyWrapperFromContainerValueWrapperModel(rowModel, ObjectPolicyConfigurationType.F_TYPE);
-				QName typeValue = propertyModel.getObject().getValues().get(0).getValue().getRealValue();
-				return Model.of(typeValue != null ? typeValue.getLocalPart() : "");
+				RealValueOfSingleValuePropertyAsStringFromContainerValueWrapperModel<QName, ObjectPolicyConfigurationType> typeValue = 
+						new RealValueOfSingleValuePropertyAsStringFromContainerValueWrapperModel<QName, ObjectPolicyConfigurationType>(rowModel, ObjectPolicyConfigurationType.F_TYPE){
+					
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					protected String objectToString(QName object) {
+						return object.getLocalPart();
+					}
+				};
+				return typeValue.getObject() != null ? typeValue : Model.of("");
 			}
 			
 			@Override
@@ -263,8 +252,8 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
 			@Override
 			public void populateItem(Item<ICellPopulator<ContainerValueWrapper<ObjectPolicyConfigurationType>>> item, String componentId,
 									 final IModel<ContainerValueWrapper<ObjectPolicyConfigurationType>> rowModel) {
-				PropertyWrapperFromContainerValueWrapperModel<String, ObjectPolicyConfigurationType> propertyModel = new PropertyWrapperFromContainerValueWrapperModel(rowModel, ObjectPolicyConfigurationType.F_SUBTYPE);
-				String subtypeValue = propertyModel.getObject().getValues().get(0).getValue().getRealValue();
+				RealValueOfSingleValuePropertyAsStringFromContainerValueWrapperModel<String, ObjectPolicyConfigurationType> subtypeValue = 
+						new RealValueOfSingleValuePropertyAsStringFromContainerValueWrapperModel<String, ObjectPolicyConfigurationType>(rowModel, ObjectPolicyConfigurationType.F_SUBTYPE);
 				item.add(new Label(componentId, Model.of(subtypeValue)));
 			}
         });
@@ -276,8 +265,9 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
 			public void populateItem(Item<ICellPopulator<ContainerValueWrapper<ObjectPolicyConfigurationType>>> item, String componentId,
 									 final IModel<ContainerValueWrapper<ObjectPolicyConfigurationType>> rowModel) {
 				
-				PropertyOrReferenceWrapper objectPolicyWrapper = (PropertyOrReferenceWrapper)rowModel.getObject().findPropertyWrapper(new ItemPath(rowModel.getObject().getPath(), ObjectPolicyConfigurationType.F_OBJECT_TEMPLATE_REF));
-				item.add(new Label(componentId, Model.of(WebComponentUtil.getReferencedObjectDisplayNamesAndNames((DefaultReferencableImpl)((ValueWrapper<DefaultReferencableImpl>)objectPolicyWrapper.getValues().get(0)).getValue().getRealValue(), false))));
+				DefaultReferencableImplSingleValueContainerValueWrapperModel<ObjectPolicyConfigurationType> defaultReferencableImpl = 
+						new DefaultReferencableImplSingleValueContainerValueWrapperModel<ObjectPolicyConfigurationType>(rowModel, ObjectPolicyConfigurationType.F_OBJECT_TEMPLATE_REF);
+				item.add(new Label(componentId, Model.of(WebComponentUtil.getReferencedObjectDisplayNamesAndNames(defaultReferencableImpl.getObject(), false))));
 			}
         });
 		
@@ -288,10 +278,11 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
 			public void populateItem(Item<ICellPopulator<ContainerValueWrapper<ObjectPolicyConfigurationType>>> item, String componentId,
 									 final IModel<ContainerValueWrapper<ObjectPolicyConfigurationType>> rowModel) {
 				
-				ContainerWrapper<LifecycleStateModelType> lifecycleState = rowModel.getObject().findContainerWrapper(new ItemPath(rowModel.getObject().getPath(), ObjectPolicyConfigurationType.F_LIFECYCLE_STATE_MODEL));
+				RealContainerValueFromParentOfSingleValueContainerValueWrapperModel<LifecycleStateModelType, ObjectPolicyConfigurationType> lifecycleStateModel = 
+						new RealContainerValueFromParentOfSingleValueContainerValueWrapperModel<LifecycleStateModelType, ObjectPolicyConfigurationType>(rowModel, new ItemPath(rowModel.getObject().getPath(), ObjectPolicyConfigurationType.F_LIFECYCLE_STATE_MODEL));
 				
-				if (lifecycleState == null || lifecycleState.getValues().get(0).getContainerValue().getValue().getState()==null ||
-						lifecycleState.getValues().get(0).getContainerValue().getValue().getState().isEmpty()) {
+				if (lifecycleStateModel == null || lifecycleStateModel.getObject() == null
+						|| lifecycleStateModel.getObject().getState() == null || lifecycleStateModel.getObject().getState().isEmpty()) {
 					item.add(new Label(componentId, createStringResource("ObjectPolicyConfigurationTabPanel.lifecycleState.value.no")));
 				} else {
 					item.add(new Label(componentId, createStringResource("ObjectPolicyConfigurationTabPanel.lifecycleState.value.yes")));

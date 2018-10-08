@@ -27,6 +27,192 @@
 		<identifier>000</identifier>
 	</org>
 	
+	<role oid="00000000-8888-6666-a000-100000000001">
+		<name>Tenant End User Role</name>
+		<!-- No tenant assignment here -->
+		
+		<!-- Tenant authorizations -->
+		<authorization>
+	    	<name>tenant enduser autz get</name>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#get</action>
+	    	<object>
+	    		<tenant>
+	    			<sameAsSubject>true</sameAsSubject>
+	    			<includeTenantOrg>true</includeTenantOrg>
+	    		</tenant>
+	    	</object>
+	    </authorization>
+	    <authorization>
+	    	<name>assign-requestable-roles</name>
+	    	<description>
+	    		Allow to assign requestable roles. This allows to request roles in a request-and-approve process.
+	    	    The requestable roles will be displayed in the role request dialog by default.
+	    	    Please note that the roles also need an approved definition to go through the approval process.
+	    	    Otherwise they will be assigned automatically wihout any approval. 
+	    	</description>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign</action>
+	    	<phase>request</phase>
+	    	<object>
+	    		<special>self</special>
+	    	</object>
+	    	<target>
+	    		<type>RoleType</type>
+	    		<filter>
+	    			<q:equal>
+	    				<q:path>requestable</q:path>
+	    				<q:value>true</q:value>
+	    			</q:equal>
+	    		</filter>
+	    		<tenant>
+	    			<sameAsSubject>true</sameAsSubject>
+	    		</tenant>
+	    	</target>
+	    </authorization>
+	    <authorization>
+	    	<name>assignment-target-read-task</name>
+	    	<description>
+	    		Authorization that allows to read workflow status of tasks. This is used to display requests
+	    		to the end users, especially in the "My Requests" box in user dashboard.
+	    		This authorization is a temporary solution. It will be replaced by a finer-grained
+	    		permissions in the future.
+	    	</description>
+	        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+	        <object>
+	            <type>TaskType</type>
+	        </object>
+	        <item>workflowContext</item>
+	    </authorization>
+	    
+	    <!-- Common end user authorizations -->
+	    <authorization>
+	    	<name>gui-self-service-access</name>
+	    	<description>
+	    		Allow access to all self-service operations in GUI.
+	    	</description>
+	        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfAll</action>
+	    </authorization>
+	    <authorization>
+	    	<name>self-read</name>
+	    	<description>
+	    		Allow to read all the properties of "self" object. I.e. every logged-in user can read
+	    		object that represent his own identity.
+	    	</description>
+	        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+	        <object>
+	            <special>self</special>
+	        </object>
+	    </authorization>
+	    <authorization>
+		    <name>self-shadow-read</name>
+	    	<description>
+	    		Allow to read all the properties of all the shadows that belong to "self" object. 
+	    		I.e. every logged-in user can read all his accounts.
+	    	</description>
+	        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+	        <object>
+	            <type>ShadowType</type>
+	            <owner>
+	                <special>self</special>
+	            </owner>
+	        </object>
+	    </authorization>
+	    <authorization>
+	    	<name>self-credentials-request</name>
+	    	<description>
+	    		Allow to modify user's own credentials.
+	    		Note that this is a request phase authorization. It also requires corresponding execution-phase authorization.
+	    	</description>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#changeCredentials</action>
+	    	<phase>request</phase>
+	    	<object>
+	    		<special>self</special>
+	    	</object>
+	    	<item>credentials</item>
+	    </authorization>
+	    <authorization>
+	    	<name>self-shadow-credentials-request</name>
+	    	<description>
+	    		Allow to modify credentials of all users accounts.
+	    		Note that this is a request phase authorization. It also requires corresponding execution-phase authorization.
+	    	</description>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#changeCredentials</action>
+	    	<phase>request</phase>
+	    	<object>
+	    		<type>ShadowType</type>
+	    		<owner>
+	    			<special>self</special>
+	    		</owner>
+	    	</object>
+	    	<item>credentials</item>
+	    </authorization>
+	    <authorization>
+	    	<name>self-execution-modify</name>
+	    	<description>
+	    		Authorization that allows to self-modification of some properties, but only in execution phase. 
+	    		The limitation real limitation of these operations is done in the request phase.
+	    		E.g. the modification of assignments is controlled in the request phase by using the #assign
+	    		authorization.
+	    	</description>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+	    	<phase>execution</phase>
+	    	<object>
+	    		<special>self</special>
+	    	</object>
+	    	<item>credentials</item>
+	    	<item>assignment</item>
+	    </authorization>
+	    <authorization>
+	    	<name>self-shadow-execution-add-modify-delete</name>
+	    	<description>
+	    		Authorization that allows to self-modification of user's accounts, but only in execution phase.
+	    		The real limitation of these operations is done in the request phase.
+	    	</description>
+			<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delete</action>
+	    	<phase>execution</phase>
+	    	<object>
+	    		<type>ShadowType</type>
+	    		<owner>
+	    			<special>self</special>
+	    		</owner>
+	    	</object>
+	    </authorization>
+	    <authorization>
+	    	<name>self-owned-task-read</name>
+	    	<description>
+	    		Authorization that allows to see all tasks owned by a currently logged-in user.
+	    	</description>
+	        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+	        <object>
+	            <type>TaskType</type>
+	    		<owner>
+	    			<special>self</special>
+	    		</owner>
+	        </object>
+	    </authorization>
+	    <authorization>
+	    	<name>self-owned-task-add-execute-changes</name>
+	    	<description>
+	    		Authorization to create a new 'execute changes' task owned by a currently logged-in user.
+	    		This is needed to execute asynchronous operations from the GUI.
+	    	</description>
+	        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
+	        <object>
+	            <type>TaskType</type>
+	            <filter>
+	    			<q:equal>
+	    				<q:path>handlerUri</q:path>
+	    				<q:value>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/execute/handler-3</q:value>
+	    			</q:equal>
+	    		</filter>
+	    		<owner>
+	    			<special>self</special>
+	    		</owner>
+	        </object>
+	    </authorization>
+	</role>
+	
 	<role oid="00000000-8888-6666-a000-100000000000">
 		<name>Tenant Admin Role</name>
 		<!-- No tenant assignment here -->
@@ -76,6 +262,10 @@
 	    	     can create inducement to Superuser role and that may circumvent tenant isolation. -->
 	    	<exceptItem>assignment</exceptItem>
 	    	<exceptItem>inducement</exceptItem>
+	    	<exceptItem>policyException</exceptItem>
+	    	<!-- WARNING: Using exceptItem here may be dangerous! Do not use in real scenarios!
+	    	              It would be much better idea to enumerate individual items that admin can modify 
+	    	              (use "item" instead of "exceptItem") -->
 	    </authorization>
 	    <authorization>
 	    	<name>tenant admin autz write exec</name>
@@ -128,6 +318,82 @@
 	    			<includeTenantOrg>true</includeTenantOrg>
 	    		</tenant>
 	    	</target>
+	    	<orderConstraints>
+	    		<orderMin>0</orderMin> <!-- order=0 means assignment -->
+	    		<orderMax>unbounded</orderMax> <!-- order=1,2,3... means inducements -->
+	    	</orderConstraints>
+	    </authorization>
+	</role>
+	
+	<role oid="00000000-8888-6666-a000-100000000002">
+		<name>Tenant Role Manager</name>
+		<description>Limited tenant administrator that can only compose roles.</description>
+		<!-- No tenant assignment here -->
+		<inducement>
+			<targetRef oid="00000000-8888-6666-a000-100000000001" type="RoleType"/> <!-- Tenant end user -->
+		</inducement>
+	    <authorization>
+	    	<name>tenant roleman induce roles</name>
+	    	<description>Allow to create role-role inducements within tenant</description>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign</action>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#unassign</action>
+	    	<object>
+	    		<type>RoleType</type>
+	    		<tenant>
+	    			<sameAsSubject>true</sameAsSubject>
+	    		</tenant>
+	    	</object>
+	    	<target>
+		    	<type>RoleType</type>
+	    		<tenant>
+	    			<sameAsSubject>true</sameAsSubject>
+	    		</tenant>
+	    	</target>
+	    	<orderConstraints>
+	    		<!-- assignments not allowed here -->
+	    		<order>1</order> <!-- order=1 means inducement -->
+	    	</orderConstraints>
+	    </authorization>
+	    <authorization>
+	    	<name>tenant roleman assign orgs</name>
+	    	<description>Allow to create role-role inducements within tenant</description>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign</action>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#unassign</action>
+	    	<object>
+	    		<type>RoleType</type>
+	    		<tenant>
+	    			<sameAsSubject>true</sameAsSubject>
+	    		</tenant>
+	    	</object>
+	    	<target>
+		    	<type>OrgType</type>
+	    		<tenant>
+	    			<sameAsSubject>true</sameAsSubject>
+	    			<includeTenantOrg>true</includeTenantOrg>
+	    		</tenant>
+	    	</target>
+	    	<orderConstraints>
+	    		<order>0</order> <!-- order=0 means assignment -->
+	    		<!-- inducements not allowed here -->
+	    	</orderConstraints>
+	    </authorization>
+	    <authorization>
+	    	<name>tenant roleman autz write exec</name>
+	    	<description>
+	    		Assging and unassign authorizations apply only in request phase. We need to allow all assignments here.
+	    	    But we do not worry here. The assignments were already checked in request phase.
+	    	</description>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+	    	<phase>execution</phase>
+	    	<object>
+	    		<tenant>
+	    			<sameAsSubject>true</sameAsSubject>
+	    			<includeTenantOrg>false</includeTenantOrg>
+	    		</tenant>
+	    	</object>
+	    	<item>assignment</item>
+	    	<item>inducement</item>
 	    </authorization>
 	</role>
 	
@@ -155,6 +421,14 @@
 			     We want to make sure that the tenant admin role won't give any authorizations. -->
 			<targetRef oid="00000000-8888-6666-a000-100000000000" type="RoleType"/> <!-- Tenant admin role -->
 		</inducement>
+	</role>
+	
+	<role oid="00000000-8888-6666-a001-100000000002">
+		<name>Spacing Guild Navigator</name>
+		<assignment id="1">
+			<targetRef oid="00000000-8888-6666-a001-000000000000" type="OrgType"/> <!-- Spacing Guild -->
+		</assignment>
+		<requestable>true</requestable>
 	</role>
 	
 	<user oid="00000000-8888-6666-a001-200000000000">
@@ -215,6 +489,14 @@
 		</inducement>
 	</role>
 	
+	<role oid="00000000-8888-6666-a100-100000000001">
+		<name>Emperor</name>
+		<assignment id="1">
+			<targetRef oid="00000000-8888-6666-a100-000000000000" type="OrgType"/> <!-- House Corrino -->
+		</assignment>
+		<requestable>true</requestable>
+	</role>
+	
 	<user oid="00000000-8888-6666-a100-200000000000">
 		<name>shaddam</name>
 		<givenName>Shaddam</givenName>
@@ -264,6 +546,26 @@
 		</inducement>
 	</role>
 	
+	<role oid="00000000-8888-6666-a200-100000000006">
+		<name>Atreides End User</name>
+		<assignment id="1">
+			<targetRef oid="00000000-8888-6666-a200-000000000000" type="OrgType"/>
+		</assignment>
+		<inducement>
+			<targetRef oid="00000000-8888-6666-a000-100000000001" type="RoleType"/> <!-- Tenant end user role -->
+		</inducement>
+	</role>
+	
+	<role oid="00000000-8888-6666-a200-100000000007">
+		<name>Atreides Role Manager</name>
+		<assignment id="1">
+			<targetRef oid="00000000-8888-6666-a200-000000000000" type="OrgType"/>
+		</assignment>
+		<inducement>
+			<targetRef oid="00000000-8888-6666-a000-100000000002" type="RoleType"/> <!-- Tenant role manager role -->
+		</inducement>
+	</role>
+	
 	<role oid="00000000-8888-6666-a200-100000000004">
 		<name>Atreides Soldier</name>
 		<assignment id="1">
@@ -292,6 +594,9 @@
 		<fullName>Paul Atreides</fullName>
 		<assignment id="1">
 			<targetRef oid="00000000-8888-6666-a200-000000000000" type="OrgType"/> <!-- House Atreides -->
+		</assignment>
+		<assignment id="2">
+			<targetRef oid="00000000-8888-6666-a200-100000000006" type="RoleType"/> <!-- Atreides End User -->
 		</assignment>
 	</user>
 	

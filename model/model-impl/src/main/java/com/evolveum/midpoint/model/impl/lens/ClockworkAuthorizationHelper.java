@@ -57,6 +57,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
@@ -64,6 +65,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -84,7 +86,7 @@ public class ClockworkAuthorizationHelper {
 	
 	public <F extends ObjectType> void authorizeContextRequest(LensContext<F> context, Task task, OperationResult parentResult) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		OperationResult result = parentResult.createMinorSubresult(Clockwork.class.getName()+".authorizeRequest");
-		LOGGER.trace("Authorizing request");
+		LOGGER.trace("Authorizing request for context");
 		try {
 
 			final LensFocusContext<F> focusContext = context.getFocusContext();
@@ -106,16 +108,24 @@ public class ClockworkAuthorizationHelper {
 		}
 	}
 	
-	private <F extends ObjectType, O extends ObjectType> ObjectSecurityConstraints authorizeElementContext(LensContext<F> context, LensElementContext<O> elementContext,
-			OwnerResolver ownerResolver, boolean isFocus, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-		ObjectDelta<O> primaryDelta = elementContext.getPrimaryDelta();
+	private <F extends ObjectType, O extends ObjectType> ObjectSecurityConstraints authorizeElementContext(
+			LensContext<F> context,
+			LensElementContext<O> elementContext,
+			OwnerResolver ownerResolver,
+			boolean isFocus,
+			Task task,
+			OperationResult result) 
+					throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Authorizing request for element context {}", elementContext.getHumanReadableName());
+		}
+		
+		ObjectDelta<O> origPrimaryDelta = elementContext.getPrimaryDelta();
 		// If there is no delta then there is no request to authorize
-		if (primaryDelta != null) {
-			PrismObject<O> currentObject = elementContext.getObjectCurrent();
-			if (currentObject == null) {
-				currentObject = elementContext.getObjectOld();
-			}
-			primaryDelta = primaryDelta.clone();
+		if (origPrimaryDelta != null) {
+			
+			ObjectDelta<O> primaryDeltaClone = origPrimaryDelta.clone();
 			ObjectDeltaObject<O> odo = elementContext.getObjectDeltaObject();
 			PrismObject<O> object = elementContext.getObjectCurrent();
 			if (object == null) {
@@ -124,60 +134,31 @@ public class ClockworkAuthorizationHelper {
 				// the same account in one operation
 				object = elementContext.getObjectNew();
 			}
-			String operationUrl = ModelImplUtils.getOperationUrlFromDelta(primaryDelta);
+			String operationUrl = ModelImplUtils.getOperationUrlFromDelta(primaryDeltaClone);
 			ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(object, ownerResolver, task, result);
 			if (securityConstraints == null) {
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Denied request for element context {}: null security constraints", elementContext.getHumanReadableName());
+				}
 				throw new AuthorizationException("Access denied");
 			}
 
 			if (isFocus) {
-				// Process assignments first. If the assignments are allowed then we
+				// Process assignments/inducements first. If the assignments/inducements are allowed then we
 				// have to ignore the assignment item in subsequent security checks
-				if (primaryDelta.hasItemOrSubitemDelta(SchemaConstants.PATH_ASSIGNMENT)) {
-					AccessDecision assignmentItemDecision = determineDecisionForAssignmentItems(securityConstraints, primaryDelta, currentObject, operationUrl, getRequestAuthorizationPhase(context));
-					LOGGER.trace("Security decision for assignment items: {}", assignmentItemDecision);
-					if (assignmentItemDecision == AccessDecision.ALLOW) {
-						// Nothing to do, operation is allowed for all values
-						LOGGER.debug("Allow assignment/unassignment to {} becasue access to assignment container/properties is explicitly allowed", object);
-					} else if (assignmentItemDecision == AccessDecision.DENY) {
-						LOGGER.debug("Deny assignment/unassignment to {} becasue access to assignment container/properties is explicitly denied", object);
-						throw new AuthorizationException("Access denied");
-					} else {
-						AuthorizationDecisionType allItemsDecision = securityConstraints.findAllItemsDecision(operationUrl, getRequestAuthorizationPhase(context));
-						if (allItemsDecision == AuthorizationDecisionType.ALLOW) {
-							// Nothing to do, operation is allowed for all values
-						} else if (allItemsDecision == AuthorizationDecisionType.DENY) {
-							throw new AuthorizationException("Access denied");
-						} else {
-							// No blank decision for assignment modification yet
-							// process each assignment individually
-							authorizeAssignmentRequest(context, operationUrl, ModelAuthorizationAction.ASSIGN.getUrl(),
-									object, ownerResolver, securityConstraints, PlusMinusZero.PLUS, true, task, result);
-
-							if (!primaryDelta.isAdd()) {
-								// We want to allow unassignment even if there are policies. Otherwise we would not be able to get
-								// rid of that assignment
-								authorizeAssignmentRequest(context, operationUrl, ModelAuthorizationAction.UNASSIGN.getUrl(),
-										object, ownerResolver, securityConstraints, PlusMinusZero.MINUS, false, task, result);
-							}
-						}
-					}
-					// assignments were authorized explicitly. Therefore we need to remove them from primary delta to avoid another
-					// authorization
-					if (primaryDelta.isAdd()) {
-						PrismObject<O> objectToAdd = primaryDelta.getObjectToAdd();
-						objectToAdd.removeContainer(FocusType.F_ASSIGNMENT);
-					} else if (primaryDelta.isModify()) {
-						primaryDelta.removeContainerModification(FocusType.F_ASSIGNMENT);
-					}
+				if (object.canRepresent(FocusType.class)) {
+					processAssignment(context, elementContext, primaryDeltaClone, operationUrl, FocusType.F_ASSIGNMENT, object, ownerResolver, securityConstraints, task, result);
+				}
+				if (object.canRepresent(AbstractRoleType.class)) {
+					processAssignment(context, elementContext, primaryDeltaClone, operationUrl, AbstractRoleType.F_INDUCEMENT, object, ownerResolver, securityConstraints, task, result);
 				}
 			}
 
 			// Process credential changes explicitly. There is a special authorization for that.
 
-			if (!primaryDelta.isDelete()) {
-				if (primaryDelta.isAdd()) {
-					PrismObject<O> objectToAdd = primaryDelta.getObjectToAdd();
+			if (!primaryDeltaClone.isDelete()) {
+				if (primaryDeltaClone.isAdd()) {
+					PrismObject<O> objectToAdd = primaryDeltaClone.getObjectToAdd();
 					PrismContainer<CredentialsType> credentialsContainer = objectToAdd.findContainer(UserType.F_CREDENTIALS);
 					if (credentialsContainer != null) {
 						List<ItemPath> pathsToRemove = new ArrayList<>();
@@ -190,6 +171,9 @@ public class ClockworkAuthorizationHelper {
 								// Remove it from primary delta, so it will not be evaluated later
 								pathsToRemove.add(item.getPath());
 							} else if (cdecision == AuthorizationDecisionType.DENY) {
+								if (LOGGER.isTraceEnabled()) {
+									LOGGER.trace("Denied request for element context {}: explicit credentials deny", elementContext.getHumanReadableName());
+								}
 								throw new AuthorizationException("Access denied");
 							} else {
 								// Do nothing. The access will be evaluated later in a normal way
@@ -201,14 +185,17 @@ public class ClockworkAuthorizationHelper {
 					}
 				} else {
 					// modify
-					Collection<? extends ItemDelta<?, ?>> credentialChanges = primaryDelta.findItemDeltasSubPath(new ItemPath(UserType.F_CREDENTIALS));
+					Collection<? extends ItemDelta<?, ?>> credentialChanges = primaryDeltaClone.findItemDeltasSubPath(new ItemPath(UserType.F_CREDENTIALS));
 					for (ItemDelta credentialChange: credentialChanges) {
 						AuthorizationDecisionType cdecision = evaluateCredentialDecision(context, securityConstraints, credentialChange);
 						LOGGER.trace("AUTZ: credential delta {} decision: {}", credentialChange.getPath(), cdecision);
 						if (cdecision == AuthorizationDecisionType.ALLOW) {
 							// Remove it from primary delta, so it will not be evaluated later
-							primaryDelta.removeModification(credentialChange);
+							primaryDeltaClone.removeModification(credentialChange);
 						} else if (cdecision == AuthorizationDecisionType.DENY) {
+							if (LOGGER.isTraceEnabled()) {
+								LOGGER.trace("Denied request for element context {}: explicit credentials deny", elementContext.getHumanReadableName());
+							}
 							throw new AuthorizationException("Access denied");
 						} else {
 							// Do nothing. The access will be evaluated later in a normal way
@@ -217,14 +204,87 @@ public class ClockworkAuthorizationHelper {
 				}
 			}
 
-			if (primaryDelta != null && !primaryDelta.isEmpty()) {
+			if (primaryDeltaClone != null && !primaryDeltaClone.isEmpty()) {
 				// TODO: optimize, avoid evaluating the constraints twice
-				securityEnforcer.authorize(operationUrl, getRequestAuthorizationPhase(context) , AuthorizationParameters.Builder.buildObjectDelta(object, primaryDelta), ownerResolver, task, result);
+				securityEnforcer.authorize(operationUrl, getRequestAuthorizationPhase(context) , AuthorizationParameters.Builder.buildObjectDelta(object, primaryDeltaClone), ownerResolver, task, result);
 			}
 
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Authorized request for element context {}, constraints:\n{}", elementContext.getHumanReadableName(), securityConstraints.debugDump(1));
+			}
+			
 			return securityConstraints;
 		} else {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Authorized request for element context {}, constraints=null", elementContext.getHumanReadableName());
+			}
 			return null;
+		}
+	}
+	
+	private <F extends ObjectType,O extends ObjectType> void processAssignment(
+			LensContext<F> context,
+			LensElementContext<O> elementContext,
+			ObjectDelta<O> primaryDeltaClone,
+			String operationUrl,
+			QName assignmentElementQName,
+			PrismObject<O> object,
+			OwnerResolver ownerResolver,
+			ObjectSecurityConstraints securityConstraints,
+			Task task, 
+			OperationResult result) 
+					throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		
+		PrismObject<O> currentObject = elementContext.getObjectCurrent();
+		if (currentObject == null) {
+			currentObject = elementContext.getObjectOld();
+		}
+		
+		if (primaryDeltaClone.hasItemOrSubitemDelta(new ItemPath(assignmentElementQName))) {
+			AccessDecision assignmentItemDecision = determineDecisionForAssignmentItems(securityConstraints, primaryDeltaClone, currentObject, operationUrl, getRequestAuthorizationPhase(context));
+			LOGGER.trace("Security decision for {} items: {}", assignmentElementQName.getLocalPart(), assignmentItemDecision);
+			if (assignmentItemDecision == AccessDecision.ALLOW) {
+				// Nothing to do, operation is allowed for all values
+				LOGGER.debug("Allow assignment/unassignment to {} becasue access to {} container/properties is explicitly allowed", assignmentElementQName.getLocalPart(), object);
+			} else if (assignmentItemDecision == AccessDecision.DENY) {
+				LOGGER.debug("Deny assignment/unassignment to {} becasue access to {} container/properties is explicitly denied", assignmentElementQName.getLocalPart(), object);
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Denied request for element context {}: access to {} container/properties is explicitly denied", elementContext.getHumanReadableName(), assignmentElementQName.getLocalPart());
+				}
+				throw new AuthorizationException("Access denied");
+			} else {
+				AuthorizationDecisionType allItemsDecision = securityConstraints.findAllItemsDecision(operationUrl, getRequestAuthorizationPhase(context));
+				if (allItemsDecision == AuthorizationDecisionType.ALLOW) {
+					// Nothing to do, operation is allowed for all values
+				} else if (allItemsDecision == AuthorizationDecisionType.DENY) {
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("Denied request for element context {}: access to {} items is explicitly denied", elementContext.getHumanReadableName(), assignmentElementQName.getLocalPart());
+					}
+					throw new AuthorizationException("Access denied");
+				} else {
+					// No blank decision for assignment modification yet
+					// process each assignment individually
+					authorizeAssignmentRequest(context, operationUrl, ModelAuthorizationAction.ASSIGN.getUrl(),
+							assignmentElementQName,
+							object, ownerResolver, securityConstraints, PlusMinusZero.PLUS, true, task, result);
+
+					if (!primaryDeltaClone.isAdd()) {
+						// We want to allow unassignment even if there are policies. Otherwise we would not be able to get
+						// rid of that assignment
+						authorizeAssignmentRequest(context, operationUrl, ModelAuthorizationAction.UNASSIGN.getUrl(),
+								assignmentElementQName,
+								object, ownerResolver, securityConstraints, PlusMinusZero.MINUS, false, task, result);
+					}
+				}
+			}
+			// assignments were authorized explicitly. Therefore we need to remove them from primary delta to avoid another
+			// authorization
+			if (primaryDeltaClone.isAdd()) {
+				PrismObject<O> objectToAdd = primaryDeltaClone.getObjectToAdd();
+				objectToAdd.removeContainer(assignmentElementQName);
+			} else if (primaryDeltaClone.isModify()) {
+				primaryDeltaClone.removeContainerModification(assignmentElementQName);
+			}
 		}
 	}
 
@@ -232,6 +292,7 @@ public class ClockworkAuthorizationHelper {
 			LensContext<F> context,
 			String operationUrl,
 			String assignActionUrl,
+			QName assignmentElementQName,
 			PrismObject<O> object,
 			OwnerResolver ownerResolver,
 			ObjectSecurityConstraints securityConstraints,
@@ -245,12 +306,12 @@ public class ClockworkAuthorizationHelper {
 		if (focusPrimaryDelta == null) {
 			return;
 		}
-		ContainerDelta<AssignmentType> focusAssignmentDelta = focusPrimaryDelta.findContainerDelta(FocusType.F_ASSIGNMENT);
+		ContainerDelta<AssignmentType> focusAssignmentDelta = focusPrimaryDelta.findContainerDelta(assignmentElementQName);
 		if (focusAssignmentDelta == null) {
 			return;
 		}
 		String operationDesc = assignActionUrl.substring(assignActionUrl.lastIndexOf('#') + 1);
-		Collection<PrismContainerValue<AssignmentType>> changedAssignmentValues = determineChangedAssignmentValues(context.getFocusContext(), focusAssignmentDelta, plusMinusZero);
+		Collection<PrismContainerValue<AssignmentType>> changedAssignmentValues = determineChangedAssignmentValues(context.getFocusContext(), assignmentElementQName, focusAssignmentDelta, plusMinusZero);
 		for (PrismContainerValue<AssignmentType> changedAssignmentValue: changedAssignmentValues) {
 			AssignmentType changedAssignment = changedAssignmentValue.getRealValue();
 			ObjectReferenceType targetRef = changedAssignment.getTargetRef();
@@ -262,29 +323,43 @@ public class ClockworkAuthorizationHelper {
 				AccessDecision subitemDecision = securityEnforcer.determineSubitemDecision(securityConstraints, changedAssignmentValue, operationUrl, 
 						getRequestAuthorizationPhase(context), null, plusMinusZero, operationDesc);
 				if (subitemDecision == AccessDecision.ALLOW) {
-					LOGGER.debug("{} of policy assignment to {} allowed with {} authorization", operationDesc, object, operationUrl);
+					LOGGER.debug("{} of policy {} to {} allowed with {} authorization", operationDesc, assignmentElementQName.getLocalPart(), object, operationUrl);
 					continue;
 				} else {
-					LOGGER.debug("{} of non-target assignment not allowed", operationDesc);
+					LOGGER.debug("{} of non-target {} not allowed", operationDesc, assignmentElementQName.getLocalPart());
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("Denied request for object {}: {} of non-target {} not allowed", object, operationDesc, assignmentElementQName.getLocalPart());
+					}
 					securityEnforcer.failAuthorization(operationDesc, getRequestAuthorizationPhase(context), AuthorizationParameters.Builder.buildObject(object), result);
 				}
 			}
-			// We do not worry about performance here too much. The target was already evaluated. This will be retrieved from repo cache anyway.
-			PrismObject<ObjectType> target = objectResolver.resolve(targetRef.asReferenceValue(), "resolving assignment target", task, result);
+			
+			PrismObject<ObjectType> target;
+			try {
+				// We do not worry about performance here too much. The target was already evaluated. This will be retrieved from repo cache anyway.
+				target = objectResolver.resolve(targetRef.asReferenceValue(), "resolving " + assignmentElementQName.getLocalPart() + " target", task, result);
+			} catch (ObjectNotFoundException e) {
+				LOGGER.warn("Object {} referenced as {} target in {} was not found", targetRef.asReferenceValue().getOid(), assignmentElementQName.getLocalPart(), object);
+				target = null;
+			}
 
 			ObjectDelta<O> assignmentObjectDelta = object.createModifyDelta();
-			ContainerDelta<AssignmentType> assignmentDelta = assignmentObjectDelta.createContainerModification(FocusType.F_ASSIGNMENT);
+			ContainerDelta<AssignmentType> assignmentDelta = assignmentObjectDelta.createContainerModification(assignmentElementQName);
 			// We do not care if this is add or delete. All that matters for authorization is that it is in a delta.
 			assignmentDelta.addValuesToAdd(changedAssignment.asPrismContainerValue().clone());
+			
 			QName relation = targetRef.getRelation();
 			if (relation == null) {
 				relation = prismContext.getDefaultRelation();
 			}
+			List<OrderConstraintsType> orderConstraints = deterimneOrderConstraints(assignmentElementQName, changedAssignment);
+			
 			AuthorizationParameters<O,ObjectType> autzParams = new AuthorizationParameters.Builder<O,ObjectType>()
 					.oldObject(object)
 					.delta(assignmentObjectDelta)
 					.target(target)
 					.relation(relation)
+					.orderConstraints(orderConstraints)
 					.build();
 			
 			if (prohibitPolicies) {
@@ -323,6 +398,27 @@ public class ClockworkAuthorizationHelper {
 		}
 	}
 
+	private List<OrderConstraintsType> deterimneOrderConstraints(QName assignmentElementQName, AssignmentType changedAssignment) {
+		OrderConstraintsType orderConstraints = new OrderConstraintsType();
+		if (FocusType.F_ASSIGNMENT.equals(assignmentElementQName)) {
+			orderConstraints.setOrder(0);
+		} else {
+			List<OrderConstraintsType> assignmentOrderConstraints = changedAssignment.getOrderConstraint();
+			if (!assignmentOrderConstraints.isEmpty()) {
+				return assignmentOrderConstraints;
+			}
+			Integer assignmentOrder = changedAssignment.getOrder();
+			if (assignmentOrder == null) {
+				orderConstraints.setOrder(1);
+			} else {
+				orderConstraints.setOrder(assignmentOrder);
+			}
+		}
+		List<OrderConstraintsType> orderConstraintsList = new ArrayList<>(1);
+		orderConstraintsList.add(orderConstraints);
+		return orderConstraintsList;
+	}
+
 	private <O extends ObjectType> AccessDecision determineDecisionForAssignmentItems(
 			ObjectSecurityConstraints securityConstraints, ObjectDelta<O> primaryDelta, PrismObject<O> currentObject, String operationUrl,
 			AuthorizationPhaseType requestAuthorizationPhase) {
@@ -343,15 +439,18 @@ public class ClockworkAuthorizationHelper {
 	}
 
 
-	private <F extends ObjectType> Collection<PrismContainerValue<AssignmentType>> determineChangedAssignmentValues(LensFocusContext<F> focusContext,
-			ContainerDelta<AssignmentType> assignmentDelta, PlusMinusZero plusMinusZero) {
+	private <F extends ObjectType> Collection<PrismContainerValue<AssignmentType>> determineChangedAssignmentValues(
+			LensFocusContext<F> focusContext,
+			QName assignmentElementQName,
+			ContainerDelta<AssignmentType> assignmentDelta,
+			PlusMinusZero plusMinusZero) {
 		Collection<PrismContainerValue<AssignmentType>> changedAssignmentValues = assignmentDelta.getValueChanges(plusMinusZero);
 		if (plusMinusZero == PlusMinusZero.PLUS) {
 			return changedAssignmentValues;
 		}
 		Collection<PrismContainerValue<AssignmentType>> processedChangedAssignmentValues = new ArrayList<>(changedAssignmentValues.size());
 		PrismObject<F> existingObject = focusContext.getObjectCurrentOrOld();
-		PrismContainer<AssignmentType> existingAssignmentContainer = existingObject.findContainer(FocusType.F_ASSIGNMENT);
+		PrismContainer<AssignmentType> existingAssignmentContainer = existingObject.findContainer(assignmentElementQName);
 		for (PrismContainerValue<AssignmentType> changedAssignmentValue : changedAssignmentValues) {
 			if (changedAssignmentValue.isIdOnly()) {
 				if (existingAssignmentContainer != null) {

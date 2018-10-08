@@ -104,7 +104,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 	private void initLayout() {
 		
 		MultivalueContainerListPanelWithDetailsPanel<AssignmentType> multivalueContainerListPanel = new MultivalueContainerListPanelWithDetailsPanel<AssignmentType>(ID_ASSIGNMENTS, getModel(), getTableId(),
-				getItemsPerPage(), getAssignmentsTabStorage()) {
+				getAssignmentsTabStorage()) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -559,8 +559,6 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 	}
 
 	protected abstract TableId getTableId();
-
-	protected abstract int getItemsPerPage();
 
 	protected WebMarkupContainer getAssignmentContainer() {
 		return getMultivalueContainerListPanel().getItemContainer();

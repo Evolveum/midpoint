@@ -1101,7 +1101,9 @@ public class AssignmentEvaluator<F extends FocusType> {
 	private void collectTenantRef(FocusType targetType, AssignmentEvaluator<F>.EvaluationContext ctx) {
 		if (targetType instanceof OrgType) {
 			if (BooleanUtils.isTrue(((OrgType)targetType).isTenant()) && ctx.evalAssignment.getTenantOid() == null) {
-				ctx.evalAssignment.setTenantOid(targetType.getOid());
+				if (ctx.assignmentPath.hasOnlyOrgs()) {
+					ctx.evalAssignment.setTenantOid(targetType.getOid());
+				}
 			}
 		}
 	}

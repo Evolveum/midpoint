@@ -76,6 +76,7 @@
  	<logger name="com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.lens.MetadataManager" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.lens.PersonaProcessor" level="DEBUG" />
+ 	<logger name="com.evolveum.midpoint.model.impl.lens.ClockworkAuthorizationHelper" level="TRACE" />
  	<logger name="com.evolveum.midpoint.model.impl.expr" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.util" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.impl.sync" level="DEBUG" />

@@ -57,8 +57,8 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
 	private List<ContainerValueWrapper<C>> detailsPanelItemsList = new ArrayList<>();
 	private boolean itemDetailsVisible;
 	
-	public MultivalueContainerListPanelWithDetailsPanel(String id, IModel<ContainerWrapper<C>> model, TableId tableId, int itemPerPage, PageStorage pageStorage) {
-		super(id, model, tableId, itemPerPage, pageStorage);
+	public MultivalueContainerListPanelWithDetailsPanel(String id, IModel<ContainerWrapper<C>> model, TableId tableId, PageStorage pageStorage) {
+		super(id, model, tableId, pageStorage);
 	}
 	
 	@Override

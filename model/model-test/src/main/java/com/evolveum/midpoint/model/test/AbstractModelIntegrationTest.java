@@ -1003,6 +1003,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			PolicyViolationException, SecurityViolationException {
 		modifyFocusAssignment(focusType, focusOid, AbstractRoleType.F_INDUCEMENT, roleOid, RoleType.COMPLEX_TYPE, null, task, null, true, null, result);
 	}
+	
+	protected <F extends FocusType> void induceOrg(Class<F> focusType, String focusOid, String orgOid, Task task, OperationResult result) throws ObjectNotFoundException,
+			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+			PolicyViolationException, SecurityViolationException {
+		modifyFocusAssignment(focusType, focusOid, AbstractRoleType.F_INDUCEMENT, orgOid, OrgType.COMPLEX_TYPE, null, task, null, true, null, result);
+	}
 
 	protected <F extends FocusType> void uninduceRole(Class<F> focusType, String focusOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException,
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
@@ -1610,6 +1616,19 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		modelService.executeChanges(deltas, null, task, result);
 	}
 
+	protected <F extends FocusType> void assignPolicyRule(Class<F> type, String focusOid, PolicyRuleType policyRule, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		AssignmentType assignmentType = new AssignmentType();
+		assignmentType.setPolicyRule(policyRule);
+		assign(type, focusOid, assignmentType, task, result);
+	}
+	
+	protected <F extends FocusType> void assign(Class<F> type, String focusOid, AssignmentType assignmentType, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
+		modifications.add(createAssignmentModification(assignmentType, true));
+		ObjectDelta<F> userDelta = ObjectDelta.createModifyDelta(focusOid, modifications, type, prismContext);
+		executeChanges(userDelta, null, task, result);
+	}
+	
 	protected PrismObject<UserType> getUser(String userOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".getUser");
         OperationResult result = task.getResult();

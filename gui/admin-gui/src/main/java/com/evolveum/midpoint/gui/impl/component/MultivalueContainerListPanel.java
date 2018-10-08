@@ -62,6 +62,7 @@ import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.component.util.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.PageStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 
 /**
@@ -81,15 +82,13 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 	private static final Trace LOGGER = TraceManager.getTrace(MultivalueContainerListPanel.class);
 
 	private TableId tableId;
-	private int itemPerPage;
 	private PageStorage pageStorage;
 	
 	private LoadableModel<Search> searchModel = null;
 	
-	public MultivalueContainerListPanel(String id, IModel<ContainerWrapper<C>> model, TableId tableId, int itemPerPage, PageStorage pageStorage) {
+	public MultivalueContainerListPanel(String id, IModel<ContainerWrapper<C>> model, TableId tableId, PageStorage pageStorage) {
 		super(id, model);
 		this.tableId = tableId;
-		this.itemPerPage = itemPerPage;
 		this.pageStorage = pageStorage;
 		
 		searchModel = new LoadableModel<Search>(false) {
@@ -192,6 +191,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 
 		List<IColumn<ContainerValueWrapper<C>, String>> columns = createColumns();
 
+		int itemPerPage = (int) getPageBase().getItemsPerPage(tableId);
 		BoxedTablePanel<ContainerValueWrapper<C>> itemTable = new BoxedTablePanel<ContainerValueWrapper<C>>(ID_ITEMS_TABLE,
 				containersProvider, columns, tableId, itemPerPage) {
 			private static final long serialVersionUID = 1L;

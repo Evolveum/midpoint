@@ -31,6 +31,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPathType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -150,6 +152,19 @@ public class AssignmentPathImpl implements AssignmentPath {
 		return protoRole;
 	}
 
+	public boolean hasOnlyOrgs() {
+		for (AssignmentPathSegmentImpl segment : segments) {
+			if (segment.getTarget() == null) {
+				return false;
+			}
+			if (!(segment.getTarget() instanceof OrgType)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	
 	@Override
 	public AssignmentPathImpl clone() {
 		return cloneFirst(size());
@@ -165,11 +180,6 @@ public class AssignmentPathImpl implements AssignmentPath {
 	@Override
 	public String toString() {
 		return "AssignmentPath(" + segments + ")";
-	}
-
-	@Override
-	public String debugDump() {
-		return debugDump(0);
 	}
 
 	@Override
@@ -274,4 +284,5 @@ public class AssignmentPathImpl implements AssignmentPath {
 		}
 		return true;
 	}
+
 }

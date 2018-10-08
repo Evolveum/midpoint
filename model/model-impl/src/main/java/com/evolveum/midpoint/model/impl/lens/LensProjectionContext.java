@@ -1176,6 +1176,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		}
 	}
 
+    @Override
 	public String getHumanReadableName() {
 		if (humanReadableName == null) {
 			StringBuilder sb = new StringBuilder();
