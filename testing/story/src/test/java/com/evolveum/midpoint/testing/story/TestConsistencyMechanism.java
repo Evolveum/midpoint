@@ -261,35 +261,34 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 	private static final String ACCOUNT_HERMAN_FILENAME = REPO_DIR_NAME + "account-herman.xml";
 	private static final String ACCOUNT_HERMAN_OID = "22220000-2200-0000-0000-333300003333";
 
-	private static final String REQUEST_USER_MODIFY_ASSIGN_ACCOUNT = "src/test/resources/request/user-modify-assign-account.xml";
-	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_DIRECTLY = "src/test/resources/request/user-modify-add-account-directly.xml";
-	private static final String REQUEST_USER_MODIFY_DELETE_ACCOUNT = "src/test/resources/request/user-modify-delete-account.xml";
-	private static final String REQUEST_USER_MODIFY_DELETE_ACCOUNT_COMMUNICATION_PROBLEM = "src/test/resources/request/user-modify-delete-account-communication-problem.xml";
-	private static final String REQUEST_USER_MODIFY_ASSIGN_ROLE_ADMINS = "src/test/resources/request/user-modify-assign-role-admin.xml";
+	private static final File REQUEST_USER_MODIFY_ASSIGN_ACCOUNT_FILE = new File(REQUEST_DIR_NAME, "user-modify-assign-account.xml");
+	private static final File REQUEST_USER_MODIFY_ADD_ACCOUNT_DIRECTLY_FILE = new File(REQUEST_DIR_NAME, "user-modify-add-account-directly.xml");
+	private static final File REQUEST_USER_MODIFY_DELETE_ACCOUNT_FILE = new File(REQUEST_DIR_NAME, "user-modify-delete-account.xml");
+	private static final File REQUEST_USER_MODIFY_DELETE_ACCOUNT_COMMUNICATION_PROBLEM_FILE = new File(REQUEST_DIR_NAME, "user-modify-delete-account-communication-problem.xml");
+	private static final File REQUEST_USER_MODIFY_ASSIGN_ROLE_ADMINS_FILE = new File(REQUEST_DIR_NAME, "user-modify-assign-role-admin.xml");
 	
-	private static final String REQUEST_ACCOUNT_MODIFY_NOT_FOUND_DELETE_ACCOUNT = "src/test/resources/request/account-guybrush-modify-attributes.xml";
-	private static final String REQUEST_ACCOUNT_MODIFY_COMMUNICATION_PROBLEM = "src/test/resources/request/account-modify-attrs-communication-problem.xml";
-	private static final String REQUEST_ADD_ACCOUNT_JACKIE = "src/test/resources/request/add-account-jack.xml";
-	private static final String REQUEST_USER_MODIFY_WEAK_MAPPING_COMMUNICATION_PROBLEM = "src/test/resources/request/user-modify-employeeType.xml";
-	private static final String REQUEST_USER_MODIFY_WEAK_STRONG_MAPPING_COMMUNICATION_PROBLEM = "src/test/resources/request/user-modify-employeeType-givenName.xml";
-	private static final String REQUEST_RESOURCE_MODIFY_RESOURCE_SCHEMA = "src/test/resources/request/resource-modify-resource-schema.xml";
-	private static final String REQUEST_RESOURCE_MODIFY_SYNCHRONIZATION = "src/test/resources/request/resource-modify-synchronization.xml";
-	private static final String REQUEST_USER_MODIFY_CHANGE_PASSWORD_1 = "src/test/resources/request/user-modify-change-password-1.xml";
-	private static final String REQUEST_USER_MODIFY_CHANGE_PASSWORD_2 = "src/test/resources/request/user-modify-change-password-2.xml";
+	private static final File REQUEST_ACCOUNT_MODIFY_NOT_FOUND_DELETE_ACCOUNT_FILE = new File(REQUEST_DIR_NAME, "account-guybrush-modify-attributes.xml");
+	private static final File REQUEST_ACCOUNT_MODIFY_COMMUNICATION_PROBLEM_FILE = new File(REQUEST_DIR_NAME, "account-modify-attrs-communication-problem.xml");
+	private static final File REQUEST_ADD_ACCOUNT_JACKIE_FILE = new File(REQUEST_DIR_NAME, "add-account-jack.xml");
+	private static final File REQUEST_USER_MODIFY_WEAK_MAPPING_COMMUNICATION_PROBLEM_FILE = new File(REQUEST_DIR_NAME, "user-modify-employeeType.xml");
+	private static final File REQUEST_USER_MODIFY_WEAK_STRONG_MAPPING_COMMUNICATION_PROBLEM_FILE = new File(REQUEST_DIR_NAME, "user-modify-employeeType-givenName.xml");
+	private static final File REQUEST_RESOURCE_MODIFY_RESOURCE_SCHEMA_FILE = new File(REQUEST_DIR_NAME, "resource-modify-resource-schema.xml");
+	private static final File REQUEST_RESOURCE_MODIFY_SYNCHRONIZATION_FILE = new File(REQUEST_DIR_NAME, "resource-modify-synchronization.xml");
+	private static final File REQUEST_USER_MODIFY_CHANGE_PASSWORD_1_FILE = new File(REQUEST_DIR_NAME, "user-modify-change-password-1.xml");
+	private static final File REQUEST_USER_MODIFY_CHANGE_PASSWORD_2_FILE = new File(REQUEST_DIR_NAME, "user-modify-change-password-2.xml");
 
-	private static final String TASK_OPENDJ_RECONCILIATION_FILENAME = "src/test/resources/repo/task-opendj-reconciliation.xml";
+	private static final File TASK_OPENDJ_RECONCILIATION_FILE = new File(REPO_DIR_NAME, "task-opendj-reconciliation.xml");
 	private static final String TASK_OPENDJ_RECONCILIATION_OID = "91919191-76e0-59e2-86d6-3d4f02d30000";
 
-	private static final String LDIF_WILL_FILENAME = "src/test/resources/request/will.ldif";
-	private static final String LDIF_ELAINE_FILENAME = "src/test/resources/request/elaine.ldif";
-	private static final String LDIF_MORGAN_FILENAME = "src/test/resources/request/morgan.ldif";
-	private static final String LDIF_DISCOVERY_FILENAME = "src/test/resources/request/discovery.ldif";
+	private static final File LDIF_WILL_FILE = new File(REQUEST_DIR_NAME, "will.ldif");
+	private static final File LDIF_ELAINE_FILE = new File(REQUEST_DIR_NAME, "elaine.ldif");
+	private static final File LDIF_MORGAN_FILE = new File(REQUEST_DIR_NAME, "morgan.ldif");
+	private static final File LDIF_DISCOVERY_FILE = new File(REQUEST_DIR_NAME, "discovery.ldif");
 	
-	private static final String LDIF_CREATE_USERS_OU_FILENAME = "src/test/resources/request/usersOu.ldif";
-	private static final String LDIF_CREATE_ADMINS_GROUP_FILENAME = "src/test/resources/request/adminsGroup.ldif";
+	private static final File LDIF_CREATE_USERS_OU_FILE = new File(REQUEST_DIR_NAME, "usersOu.ldif");
+	private static final File LDIF_CREATE_ADMINS_GROUP_FILE = new File(REQUEST_DIR_NAME, "adminsGroup.ldif");
 	
-	
-	private static final String LDIF_MODIFY_RENAME_FILENAME = "src/test/resources/request/modify-rename.ldif";
+	private static final File LDIF_MODIFY_RENAME_FILE = new File(REQUEST_DIR_NAME, "modify-rename.ldif");
 
 	private static final Trace LOGGER = TraceManager.getTrace(TestConsistencyMechanism.class);
 
@@ -464,20 +463,18 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		UserType userType = testAddUserToRepo(TEST_NAME, USER_JACK_FILENAME, USER_JACK_OID);
 
 		OperationResult repoResult = new OperationResult("getObject");
-		PropertyReferenceListType resolve = new PropertyReferenceListType();
 
-		PrismObject<UserType> uObject = repositoryService
-				.getObject(UserType.class, USER_JACK_OID, null, repoResult);
-		UserType repoUser = uObject.asObjectable();
+		// WHEN
+		displayWhen(TEST_NAME);
+		PrismObject<UserType> uObject = repositoryService.getObject(UserType.class, USER_JACK_OID, null, repoResult);
 
-		repoResult.computeStatus();
-		display("repository.getObject result", repoResult);
-		TestUtil.assertSuccess("getObject has failed", repoResult);
-		AssertJUnit.assertEquals(USER_JACK_OID, repoUser.getOid());
-		PrismAsserts.assertEqualsPolyString("User full name not equals as expected.", userType.getFullName(),
-				repoUser.getFullName());
-
-		// TODO: better checks
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(repoResult);
+		
+		assertUser(uObject,"repo")
+			.assertOid(USER_JACK_OID)
+			.assertFullName(userType.getFullName().getOrig());
 	}
 	
 
@@ -491,33 +488,26 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		displayTestTitle(TEST_NAME);
 		OperationResult parentResult = new OperationResult(TEST_NAME);
 
-		ShadowType jackeAccount = unmarshallValueFromFile(REQUEST_ADD_ACCOUNT_JACKIE,
-                ShadowType.class);
+		ShadowType jackeAccount = unmarshallValueFromFile(REQUEST_ADD_ACCOUNT_JACKIE_FILE, ShadowType.class);
 
 		Task task = taskManager.createTaskInstance();
 		String oid = provisioningService.addObject(jackeAccount.asPrismObject(), null, null, task, parentResult);
-		PrismObject<ShadowType> jackFromRepo = repositoryService.getObject(ShadowType.class,
-				oid, null, parentResult);
-		LOGGER.debug("account jack after provisioning: {}", jackFromRepo.debugDump());
+		PrismObject<ShadowType> jackFromRepo = repositoryService.getObject(ShadowType.class, oid, null, parentResult);
+		display("account jack after provisioning", jackFromRepo);
 
-		PrismObject<UserType> jackUser = repositoryService.getObject(UserType.class, USER_JACK_OID,
-				null, parentResult);
+		PrismObject<UserType> jackUser = repositoryService.getObject(UserType.class, USER_JACK_OID, null, parentResult);
 		ObjectReferenceType ort = new ObjectReferenceType();
 		ort.setOid(oid);
 		ort.setType(ShadowType.COMPLEX_TYPE);
 
 		jackUser.asObjectable().getLinkRef().add(ort);
 
-		PrismObject<UserType> jackUserRepo = repositoryService.getObject(UserType.class, USER_JACK_OID,
-				null, parentResult);
-		ObjectDelta delta = DiffUtil.diff(jackUserRepo, jackUser);
+		PrismObject<UserType> jackUserRepo = repositoryService.getObject(UserType.class, USER_JACK_OID, null, parentResult);
+		ObjectDelta<UserType> delta = DiffUtil.diff(jackUserRepo, jackUser);
 
 		repositoryService.modifyObject(UserType.class, USER_JACK_OID, delta.getModifications(), parentResult);
 
-		// GIVEN
-
 		OperationResult repoResult = new OperationResult("getObject");
-
 		
 		// Check if user object was modified in the repo
 		accountShadowOidOpendj = assertUserOneAccountRef(USER_JACK_OID);
@@ -527,11 +517,10 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
 		repoResult = new OperationResult("getObject");
 
-		PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class,
-				accountShadowOidOpendj, null, repoResult);
+		PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountShadowOidOpendj, null, repoResult);
 		ShadowType repoShadowType = repoShadow.asObjectable();
-		repoResult.computeStatus();
-		TestUtil.assertSuccess("getObject has failed", repoResult);
+		assertSuccess(repoResult);
+		
 		display("Shadow (repository)", repoShadow);
 		assertNotNull(repoShadowType);
 		assertEquals(RESOURCE_OPENDJ_OID, repoShadowType.getResourceRef().getOid());
@@ -618,7 +607,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		display("Jack's account: ", jackUserAccount.debugDump());
 					
 		// WHEN REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXISTS_LINKED_OPENDJ_FILENAME
-		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGN_ACCOUNT, USER_JACK2_OID, UserType.class, task, null, parentResult);
+		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGN_ACCOUNT_FILE, USER_JACK2_OID, UserType.class, task, null, parentResult);
 
 		// THEN		
 		//expected thet the dn and ri:uid will be jackie1 because jackie already exists and is liked to another user..
@@ -635,7 +624,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
 		// GIVEN
 		OperationResult parentResult = new OperationResult("Add account already exist unlinked.");
-		Entry entry = openDJController.addEntryFromLdifFile(LDIF_WILL_FILENAME);
+		Entry entry = openDJController.addEntryFromLdifFile(LDIF_WILL_FILE);
 		Entry searchResult = openDJController.searchByUid("wturner");
 		OpenDJController.assertAttribute(searchResult, "l", "Caribbean");
 		OpenDJController.assertAttribute(searchResult, "givenName", "Will");
@@ -655,7 +644,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		
 		//WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGN_ACCOUNT, USER_WILL_OID, UserType.class, task, null, parentResult);
+		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGN_ACCOUNT_FILE, USER_WILL_OID, UserType.class, task, null, parentResult);
 
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -694,11 +683,11 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 			ItemDefinition syncDef = resourceTypeOpenDjrepo.asPrismObject().getDefinition().findItemDefinition(ResourceType.F_SYNCHRONIZATION);
 			assertNotNull("null definition for sync delta", syncDef);
 
-			ObjectDeltaType omt = unmarshallValueFromFile(REQUEST_RESOURCE_MODIFY_SYNCHRONIZATION, ObjectDeltaType.class);
+			ObjectDeltaType omt = unmarshallValueFromFile(REQUEST_RESOURCE_MODIFY_SYNCHRONIZATION_FILE, ObjectDeltaType.class);
 			ObjectDelta objectDelta = DeltaConvertor.createObjectDelta(omt, prismContext);
 			
 			repositoryService.modifyObject(ResourceType.class, RESOURCE_OPENDJ_OID, objectDelta.getModifications(), parentResult);
-			requestToExecuteChanges(REQUEST_RESOURCE_MODIFY_RESOURCE_SCHEMA,
+			requestToExecuteChanges(REQUEST_RESOURCE_MODIFY_RESOURCE_SCHEMA_FILE,
 					RESOURCE_OPENDJ_OID, ResourceType.class, task, null,
 					parentResult);
 
@@ -710,7 +699,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
 			repoAddObjectFromFile(USER_ABOMBA_FILENAME,
 					parentResult);
-			requestToExecuteChanges(REQUEST_USER_MODIFY_ADD_ACCOUNT_DIRECTLY,
+			requestToExecuteChanges(REQUEST_USER_MODIFY_ADD_ACCOUNT_DIRECTLY_FILE,
 					USER_ABOMBA_OID, UserType.class, task, null, parentResult);
 
 			String abombaOid = assertUserOneAccountRef(USER_ABOMBA_OID);
@@ -723,7 +712,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
 			repoAddObjectFromFile(USER_ABOM_FILENAME,
 					parentResult);
-			requestToExecuteChanges(REQUEST_USER_MODIFY_ADD_ACCOUNT_DIRECTLY,
+			requestToExecuteChanges(REQUEST_USER_MODIFY_ADD_ACCOUNT_DIRECTLY_FILE,
 					USER_ABOM_OID, UserType.class, task, null, parentResult);
 
 			String abomOid = assertUserOneAccountRef(USER_ABOM_OID);
@@ -770,7 +759,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
 			LOGGER.info("starting second execution request for user abomba");
 			OperationResult result = new OperationResult("Add account already exist result.");
-			requestToExecuteChanges(REQUEST_USER_MODIFY_ADD_ACCOUNT_DIRECTLY,
+			requestToExecuteChanges(REQUEST_USER_MODIFY_ADD_ACCOUNT_DIRECTLY_FILE,
 					USER_ABOMBA_OID, UserType.class, task, null, result);
 
 			
@@ -817,7 +806,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		repoAddObjectFromFile(USER_GUYBRUSH_FILENAME, parentResult);
 		
 		Task task = taskManager.createTaskInstance();
-		requestToExecuteChanges(REQUEST_USER_MODIFY_DELETE_ACCOUNT, USER_GUYBRUSH_OID, UserType.class, task, null, parentResult);
+		requestToExecuteChanges(REQUEST_USER_MODIFY_DELETE_ACCOUNT_FILE, USER_GUYBRUSH_OID, UserType.class, task, null, parentResult);
 
 		// WHEN
 		ObjectDelta deleteDelta = ObjectDelta.createDeleteDelta(ShadowType.class, ACCOUNT_GUYBRUSH_OID, prismContext);
@@ -855,7 +844,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		Task task = taskManager.createTaskInstance();
 		
 		// WHEN
-		requestToExecuteChanges(REQUEST_ACCOUNT_MODIFY_NOT_FOUND_DELETE_ACCOUNT, ACCOUNT_GUYBRUSH_OID, ShadowType.class, task, null, result);
+		requestToExecuteChanges(REQUEST_ACCOUNT_MODIFY_NOT_FOUND_DELETE_ACCOUNT_FILE, ACCOUNT_GUYBRUSH_OID, ShadowType.class, task, null, result);
 
 		// THEN
 		try {
@@ -892,7 +881,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		
 		//WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		requestToExecuteChanges(REQUEST_ACCOUNT_MODIFY_NOT_FOUND_DELETE_ACCOUNT, ACCOUNT_GUYBRUSH_MODIFY_DELETE_OID, ShadowType.class, task, null, parentResult);
+		requestToExecuteChanges(REQUEST_ACCOUNT_MODIFY_NOT_FOUND_DELETE_ACCOUNT_FILE, ACCOUNT_GUYBRUSH_MODIFY_DELETE_OID, ShadowType.class, task, null, parentResult);
 
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -1089,7 +1078,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		assertUserNoAccountRef(USER_E_OID, parentResult);
 		
 		//REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM
-		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGN_ACCOUNT, USER_E_OID, UserType.class, task, null, parentResult);
+		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGN_ACCOUNT_FILE, USER_E_OID, UserType.class, task, null, parentResult);
 
 		parentResult.computeStatus();
 		display("add object communication problem result: ", parentResult);
@@ -1115,7 +1104,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		 
 		//WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		requestToExecuteChanges(REQUEST_ACCOUNT_MODIFY_COMMUNICATION_PROBLEM, accountOid, ShadowType.class, task, null, parentResult);
+		requestToExecuteChanges(REQUEST_ACCOUNT_MODIFY_COMMUNICATION_PROBLEM_FILE, accountOid, ShadowType.class, task, null, parentResult);
 		
 		//THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -1137,7 +1126,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		
 		//WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		requestToExecuteChanges(REQUEST_ACCOUNT_MODIFY_COMMUNICATION_PROBLEM, accountOid, ShadowType.class, task, null, parentResult);
+		requestToExecuteChanges(REQUEST_ACCOUNT_MODIFY_COMMUNICATION_PROBLEM_FILE, accountOid, ShadowType.class, task, null, parentResult);
 		
 		//THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -1157,7 +1146,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		String accountOid = assertUserOneAccountRef(USER_DENIELS_OID);
 		
 		//WHEN
-		requestToExecuteChanges(REQUEST_USER_MODIFY_DELETE_ACCOUNT_COMMUNICATION_PROBLEM, USER_DENIELS_OID, UserType.class, task, null, parentResult);
+		requestToExecuteChanges(REQUEST_USER_MODIFY_DELETE_ACCOUNT_COMMUNICATION_PROBLEM_FILE, USER_DENIELS_OID, UserType.class, task, null, parentResult);
 		
 		assertUserNoAccountRef(USER_DENIELS_OID, parentResult);
 		
@@ -1193,7 +1182,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		openDJController.assumeRunning();
 		OperationResult parentResult = new OperationResult(TEST_NAME);
 	
-		Entry entry = openDJController.addEntryFromLdifFile(LDIF_ELAINE_FILENAME);
+		Entry entry = openDJController.addEntryFromLdifFile(LDIF_ELAINE_FILE);
 		Entry searchResult = openDJController.searchByUid("elaine");
 		OpenDJController.assertAttribute(searchResult, "l", "Caribbean");
 		OpenDJController.assertAttribute(searchResult, "givenName", "Elaine");
@@ -1214,7 +1203,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		Task task = taskManager.createTaskInstance();
 		
 		//WHEN REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXISTS_COMMUNICATION_PROBLEM_OPENDJ_FILENAME
-		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGN_ACCOUNT, USER_ELAINE_OID, UserType.class, task, null, parentResult);
+		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGN_ACCOUNT_FILE, USER_ELAINE_OID, UserType.class, task, null, parentResult);
 
 		//THEN
 		String accountOid = assertUserOneAccountRef(USER_ELAINE_OID);
@@ -1314,7 +1303,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
 		//REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM
-		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGN_ACCOUNT, USER_ANGELIKA_OID, UserType.class, task, null, parentResult);
+		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGN_ACCOUNT_FILE, USER_ANGELIKA_OID, UserType.class, task, null, parentResult);
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -1354,7 +1343,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		//and add account to the user while resource is UP
 		
 		//REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM
-		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGN_ACCOUNT, USER_ALICE_OID, UserType.class, task, null, parentResult);
+		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGN_ACCOUNT_FILE, USER_ALICE_OID, UserType.class, task, null, parentResult);
 		
 		//then stop openDJ
 		openDJController.stop();
@@ -1362,7 +1351,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		String accountOid = assertUserOneAccountRef(USER_ALICE_OID);
 
 		//and make some modifications to the account while resource is DOWN
-		requestToExecuteChanges(REQUEST_ACCOUNT_MODIFY_COMMUNICATION_PROBLEM, accountOid, ShadowType.class, task, null, parentResult);
+		requestToExecuteChanges(REQUEST_ACCOUNT_MODIFY_COMMUNICATION_PROBLEM_FILE, accountOid, ShadowType.class, task, null, parentResult);
 
 		//check the state after execution
 		checkPostponedAccountBasic(accountOid, FailedOperationTypeType.MODIFY, true, parentResult);
@@ -1390,7 +1379,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		String accountOid = assertUserOneAccountRef(USER_ALICE_OID);
 		
 		// WHEN (down)
-		requestToExecuteChanges(REQUEST_USER_MODIFY_CHANGE_PASSWORD_1, USER_ALICE_OID, UserType.class, task, null, parentResult);
+		requestToExecuteChanges(REQUEST_USER_MODIFY_CHANGE_PASSWORD_1_FILE, USER_ALICE_OID, UserType.class, task, null, parentResult);
 
 		// THEN
 		//check the state after execution
@@ -1430,7 +1419,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		
 		// WHEN (down)
 		TestUtil.displayWhen(TEST_NAME);
-		requestToExecuteChanges(REQUEST_USER_MODIFY_CHANGE_PASSWORD_2, USER_ALICE_OID, UserType.class, task, null, result);
+		requestToExecuteChanges(REQUEST_USER_MODIFY_CHANGE_PASSWORD_2_FILE, USER_ALICE_OID, UserType.class, task, null, result);
 
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -1480,7 +1469,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		Task task = taskManager.createTaskInstance();
 		
 		//REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM
-		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGN_ACCOUNT, USER_BOB_NO_GIVEN_NAME_OID, UserType.class, task, null, parentResult);
+		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGN_ACCOUNT_FILE, USER_BOB_NO_GIVEN_NAME_OID, UserType.class, task, null, parentResult);
 		
 		parentResult.computeStatus();
 		display("add object communication problem result: ", parentResult);
@@ -1538,7 +1527,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		Task task = taskManager.createTaskInstance();
 		
 		//REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM
-		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGN_ACCOUNT, USER_JOHN_WEAK_OID, UserType.class, task, null, parentResult);
+		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGN_ACCOUNT_FILE, USER_JOHN_WEAK_OID, UserType.class, task, null, parentResult);
 		
 		parentResult.computeStatus();
 		display("add object communication problem result: ", parentResult);
@@ -1553,7 +1542,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		
 		LOGGER.info("start modifying user - account with weak mapping after stopping opendj.");
 		
-		requestToExecuteChanges(REQUEST_USER_MODIFY_WEAK_MAPPING_COMMUNICATION_PROBLEM, USER_JOHN_WEAK_OID, UserType.class, task, null, parentResult);
+		requestToExecuteChanges(REQUEST_USER_MODIFY_WEAK_MAPPING_COMMUNICATION_PROBLEM_FILE, USER_JOHN_WEAK_OID, UserType.class, task, null, parentResult);
 
 		// TODO: [RS] not 100% sure about this. But if you do not expect an error you should not set doNotDiscovery. Server is still not running.
 		checkNormalizedShadowBasic(accountOid, "john", true, null, task, parentResult);
@@ -1577,7 +1566,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		Task task = taskManager.createTaskInstance();
 		
 		//REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM
-		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGN_ACCOUNT, USER_DONALD_OID, UserType.class, task, null, parentResult);
+		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGN_ACCOUNT_FILE, USER_DONALD_OID, UserType.class, task, null, parentResult);
 		
 		parentResult.computeStatus();
 		display("add object communication problem result: ", parentResult);
@@ -1594,7 +1583,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		
 		LOGGER.info("start modifying user - account with weak mapping after stopping opendj.");
 		
-		requestToExecuteChanges(REQUEST_USER_MODIFY_WEAK_STRONG_MAPPING_COMMUNICATION_PROBLEM, USER_DONALD_OID, UserType.class, task, null, parentResult);
+		requestToExecuteChanges(REQUEST_USER_MODIFY_WEAK_STRONG_MAPPING_COMMUNICATION_PROBLEM_FILE, USER_DONALD_OID, UserType.class, task, null, parentResult);
 
 		johnAccountType = checkPostponedAccountBasic(accountOid, FailedOperationTypeType.MODIFY, true, parentResult);
 		ObjectDelta deltaInAccount = DeltaConvertor.createObjectDelta(johnAccountType.getObjectChange(), prismContext);
@@ -1649,7 +1638,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		Task task = taskManager.createTaskInstance();
 		OperationResult parentResult = new OperationResult(TEST_NAME);
 		// GIVEN
-		openDJController.addEntriesFromLdifFile(LDIF_CREATE_ADMINS_GROUP_FILENAME);
+		openDJController.addEntriesFromLdifFile(LDIF_CREATE_ADMINS_GROUP_FILE);
 		ObjectQuery filter = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_OPENDJ_OID, RESOURCE_OPENDJ_GROUP_OBJECTCLASS, prismContext);
 		SearchResultList<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, filter, null, task, parentResult);
 		
@@ -1664,7 +1653,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		String accountOid = assertUserOneAccountRef(USER_DONALD_OID);
 				
 		
-		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGN_ROLE_ADMINS, USER_DONALD_OID, UserType.class, task, null, parentResult);
+		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGN_ROLE_ADMINS_FILE, USER_DONALD_OID, UserType.class, task, null, parentResult);
 		
 	
 		// Get user's account with noFetch option - changes shouldn't be applied, bud should be still saved in shadow
@@ -1712,7 +1701,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		Task task = taskManager.createTaskInstance();
 		
 		//REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM
-		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGN_ACCOUNT, USER_DISCOVERY_OID, UserType.class, task, null, parentResult);
+		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGN_ACCOUNT_FILE, USER_DISCOVERY_OID, UserType.class, task, null, parentResult);
 		
 		parentResult.computeStatus();
 		display("add object communication problem result: ", parentResult);
@@ -1723,7 +1712,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		openDJController.start();
 		assertTrue(EmbeddedUtils.isRunning());
 		
-		Entry entry = openDJController.addEntryFromLdifFile(LDIF_DISCOVERY_FILENAME);
+		Entry entry = openDJController.addEntryFromLdifFile(LDIF_DISCOVERY_FILE);
 		Entry searchResult = openDJController.searchByUid("discovery");
 		OpenDJController.assertAttribute(searchResult, "l", "Caribbean");
 		OpenDJController.assertAttribute(searchResult, "givenName", "discovery");
@@ -1754,7 +1743,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         OperationResult result = task.getResult();
         dummyAuditService.clear();
         
-        Entry entry = openDJController.addEntryFromLdifFile(LDIF_MORGAN_FILENAME);
+        Entry entry = openDJController.addEntryFromLdifFile(LDIF_MORGAN_FILE);
         display("Entry from LDIF", entry);
         
         PrismObject<UserType> user = PrismTestUtil.parseObject(new File(USER_MORGAN_FILENAME));
@@ -1883,7 +1872,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         display("Adding user", user);
         
         //REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM
-        requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGN_ACCOUNT, USER_HERMAN_OID, UserType.class, task, null, result);
+        requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGN_ACCOUNT_FILE, USER_HERMAN_OID, UserType.class, task, null, result);
         
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -2001,7 +1990,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         dummyAuditService.clear();
         
         //prepare new OU in opendj
-        Entry entry = openDJController.addEntryFromLdifFile(LDIF_CREATE_USERS_OU_FILENAME);
+        Entry entry = openDJController.addEntryFromLdifFile(LDIF_CREATE_USERS_OU_FILE);
         
         PrismObject<UserType> user = repositoryService.getObject(UserType.class, USER_MORGAN_OID, null, result);
         display("User Morgan: ", user);
@@ -2102,7 +2091,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		//and add account to the user while resource is UP
 		
 		//REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM
-		requestToExecuteChanges(REQUEST_USER_MODIFY_ADD_ACCOUNT_DIRECTLY, USER_ALICE_OID, UserType.class, task, null, parentResult);
+		requestToExecuteChanges(REQUEST_USER_MODIFY_ADD_ACCOUNT_DIRECTLY_FILE, USER_ALICE_OID, UserType.class, task, null, parentResult);
 		
 		//then stop openDJ
 		openDJController.stop();
@@ -2110,7 +2099,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		String accountOid = assertUserOneAccountRef(USER_ALICE_OID);
 
 		//and make some modifications to the account while resource is DOWN
-		requestToExecuteChanges(REQUEST_ACCOUNT_MODIFY_COMMUNICATION_PROBLEM, accountOid, ShadowType.class, task, null, parentResult);
+		requestToExecuteChanges(REQUEST_ACCOUNT_MODIFY_COMMUNICATION_PROBLEM_FILE, accountOid, ShadowType.class, task, null, parentResult);
 
 		//check the state after execution
 		checkPostponedAccountBasic(accountOid, FailedOperationTypeType.MODIFY, true, parentResult);
@@ -2219,7 +2208,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
 		LOGGER.info("starting rename");
 		
-		openDJController.executeRenameChange(LDIF_MODIFY_RENAME_FILENAME);
+		openDJController.executeRenameChange(LDIF_MODIFY_RENAME_FILE);
 		LOGGER.info("rename ended");
 //		Entry res = openDJController.searchByUid("e");
 //		LOGGER.info("E OBJECT AFTER RENAME " + res.toString());
@@ -2558,21 +2547,20 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		return checkPostponedAccountBasic(faieldAccount, failedOperation, modify, parentResult);
 	}
 	
-	private void requestToExecuteChanges(String requestFilename, String objectOid,
+	private void requestToExecuteChanges(File requestFile, String objectOid,
 			Class type, Task task, ModelExecuteOptions options, OperationResult parentResult)
 			throws Exception {
-		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltas(type, requestFilename, objectOid);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltas(type, requestFile, objectOid);
 		display("Executing deltas", deltas);
 		
 		// WHEN
 		modelService.executeChanges(deltas, options, task, parentResult);
 	}
 	
-	private Collection<ObjectDelta<? extends ObjectType>> createDeltas(Class type, String requestFilename, String objectOid) throws IOException, SchemaException, JAXBException{
+	private Collection<ObjectDelta<? extends ObjectType>> createDeltas(Class type, File requestFile, String objectOid) throws IOException, SchemaException, JAXBException{
 		
 		try{
-			ObjectDeltaType objectChange = unmarshallValueFromFile(
-	                requestFilename, ObjectDeltaType.class);
+			ObjectDeltaType objectChange = unmarshallValueFromFile(requestFile, ObjectDeltaType.class);
 			objectChange.setOid(objectOid);
 	
 			ObjectDelta delta = DeltaConvertor.createObjectDelta(objectChange, prismContext);
