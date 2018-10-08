@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -216,16 +218,12 @@ public class TreeTablePanel extends BasePanel<String> {
 	private List<InlineMenuItem> createTreeChildrenMenu(OrgType org) {
 		List<InlineMenuItem> items = new ArrayList<>();
 		try {
-			boolean allowModify = org == null ||
-					parentPage.isAuthorized(ModelAuthorizationAction.MODIFY.getUrl(),
-							AuthorizationPhaseType.REQUEST, org.asPrismObject(),
-							null, null, null);
 			boolean allowRead = org == null ||
 					parentPage.isAuthorized(ModelAuthorizationAction.GET.getUrl(),
 							AuthorizationPhaseType.REQUEST, org.asPrismObject(),
 							null, null, null);
 			InlineMenuItem item;
-			if (allowModify) {
+			if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ORG_MOVE_ACTION_URI)) {
 				item = new InlineMenuItem(createStringResource("TreeTablePanel.move")) {
 					private static final long serialVersionUID = 1L;
 
@@ -242,7 +240,8 @@ public class TreeTablePanel extends BasePanel<String> {
 					}
 				};
 				items.add(item);
-
+			}
+			if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ORG_MAKE_ROOT_ACTION_URI)) {
 				item = new InlineMenuItem(createStringResource("TreeTablePanel.makeRoot")) {
 					private static final long serialVersionUID = 1L;
 
@@ -285,6 +284,10 @@ public class TreeTablePanel extends BasePanel<String> {
 				};
 				items.add(item);
 			}
+			boolean allowModify = org == null ||
+					parentPage.isAuthorized(ModelAuthorizationAction.MODIFY.getUrl(),
+							AuthorizationPhaseType.REQUEST, org.asPrismObject(),
+							null, null, null);
 			if (allowModify) {
 				item = new InlineMenuItem(createStringResource("TreeTablePanel.recompute")) {
 					private static final long serialVersionUID = 1L;
@@ -414,10 +417,10 @@ public class TreeTablePanel extends BasePanel<String> {
 		target.add(addOrReplace(createManagerPanel(selected.getValue())));
 	}
 
-	private void moveRootPerformed(SelectableBean<OrgType> root, AjaxRequestTarget target) {
-		if (root == null) {
-			root = getTreePanel().getRootFromProvider();
-		}
+	private void moveRootPerformed(final SelectableBean<OrgType> root, AjaxRequestTarget target) {
+//		if (root == null) {
+//			root = getTreePanel().getRootFromProvider();
+//		}
 
 		final SelectableBean<OrgType> orgToMove = root;
 
@@ -428,6 +431,11 @@ public class TreeTablePanel extends BasePanel<String> {
 			@Override
 			protected void onItemSelect(SelectableBean<OrgType> selected, AjaxRequestTarget target) {
 				moveConfirmPerformed(orgToMove, selected, target);
+			}
+
+			@Override
+			protected OrgType getAssignmentOwnerObject(){
+				return root.getValue();
 			}
 		};
 

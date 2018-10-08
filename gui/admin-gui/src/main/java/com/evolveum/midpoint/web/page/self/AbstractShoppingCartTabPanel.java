@@ -307,25 +307,10 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
     }
 
     private ObjectFilter getAssignableRolesFilter() {
-        ObjectFilter filter = null;
-        LOGGER.debug("Loading roles which the current user has right to assign");
         Task task = getPageBase().createSimpleTask(OPERATION_LOAD_ASSIGNABLE_ROLES);
         OperationResult result = task.getResult();
-        try {
-            ModelInteractionService mis = getPageBase().getModelInteractionService();
-            RoleSelectionSpecification roleSpec =
-                    mis.getAssignableRoleSpecification(getTargetUser().asPrismObject(), (Class) ObjectTypes.getObjectTypeClass(getQueryType()), task, result);
-            filter = roleSpec.getFilter();
-        } catch (Exception ex) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load available roles", ex);
-            result.recordFatalError("Couldn't load available roles", ex);
-        } finally {
-            result.recomputeStatus();
-        }
-        if (!result.isSuccess() && !result.isHandledError()) {
-            getPageBase().showResult(result);
-        }
-        return filter;
+        return WebComponentUtil.getAssignableRolesFilter(getTargetUser().asPrismObject(), (Class) ObjectTypes.getObjectTypeClass(getQueryType()),
+                result, task, getPageBase());
     }
 
     protected abstract QName getQueryType();

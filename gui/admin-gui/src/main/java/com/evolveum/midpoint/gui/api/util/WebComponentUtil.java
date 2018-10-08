@@ -47,6 +47,8 @@ import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.gui.api.SubscriptionType;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyValueModel;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.model.api.util.ResourceUtils;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
@@ -93,6 +95,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.apache.wicket.util.visit.IVisit;
 import org.apache.wicket.util.visit.IVisitor;
+import org.bouncycastle.asn1.ocsp.ServiceLocator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joda.time.format.DateTimeFormat;
@@ -2823,6 +2826,27 @@ public final class WebComponentUtil {
 
 	public static void setStaticallyProvidedRelationRegistry(RelationRegistry staticallyProvidedRelationRegistry) {
 		WebComponentUtil.staticallyProvidedRelationRegistry = staticallyProvidedRelationRegistry;
+	}
+
+	public static ObjectFilter getAssignableRolesFilter(PrismObject<? extends FocusType> focusObject, Class<? extends AbstractRoleType> type,
+														OperationResult result, Task task, PageBase pageBase) {
+		ObjectFilter filter = null;
+		LOGGER.debug("Loading objects which can be assigned");
+		try {
+			ModelInteractionService mis = pageBase.getModelInteractionService();
+			RoleSelectionSpecification roleSpec =
+					mis.getAssignableRoleSpecification(focusObject, type, task, result);
+			filter = roleSpec.getFilter();
+		} catch (Exception ex) {
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load available roles", ex);
+			result.recordFatalError("Couldn't load available roles", ex);
+		} finally {
+			result.recomputeStatus();
+		}
+		if (!result.isSuccess() && !result.isHandledError()) {
+			pageBase.showResult(result);
+		}
+		return filter;
 	}
 
 	public static <IW extends ItemWrapper> String loadHelpText(IModel<IW> model, Panel panel) {
