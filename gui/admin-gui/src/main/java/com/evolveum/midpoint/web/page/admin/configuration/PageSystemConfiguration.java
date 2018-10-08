@@ -61,8 +61,7 @@ import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
  */
 @PageDescriptor(
 		urls = {
-				@Url(mountUrl = "/admin/config/new", matchUrlForSecurity = "/admin/config/new"),
-				//@Url(mountUrl = "/admin/config/system/new"),
+				@Url(mountUrl = "/admin/config/system", matchUrlForSecurity = "/admin/config/system"),
 		},
 		action = {
 				@AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,

@@ -516,7 +516,7 @@ public class PageAbout extends PageAdminConfiguration {
 					return null;
 				}
 
-	    });
+			});
 
 
             InitialDataImport initialDataImport = new InitialDataImport();
@@ -526,9 +526,9 @@ public class PageAbout extends PageAdminConfiguration {
 			initialDataImport.setConfiguration(getMidpointConfiguration());
 			initialDataImport.init();
 
-    getModelService().postInit(result);
+			getModelService().postInit(result);
 
-} catch (Exception ex) {
+		} catch (Exception ex) {
         result.recomputeStatus();
         result.recordFatalError("Couldn't import initial objects.", ex);
 

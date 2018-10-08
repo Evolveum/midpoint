@@ -55,7 +55,7 @@ public class RealContainerValueFromSingleValueContainerWrapperModel<C extends Co
 	@Override
 	public C getObject() {
 		
-		if(model == null) {
+		if(model == null || model.getObject() == null || model.getObject().getItemDefinition() == null) {
 			return null;
 		}
 		

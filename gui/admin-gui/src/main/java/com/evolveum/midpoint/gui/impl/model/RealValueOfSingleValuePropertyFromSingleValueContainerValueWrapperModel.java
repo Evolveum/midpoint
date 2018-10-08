@@ -51,6 +51,10 @@ public class RealValueOfSingleValuePropertyFromSingleValueContainerValueWrapperM
 		
 		PropertyWrapperFromContainerValueWrapperModel<T,C> propertyModel = new PropertyWrapperFromContainerValueWrapperModel<T,C>(model, item);
 		
+		if(propertyModel == null || propertyModel.getObject() == null || propertyModel.getObject().getItemDefinition() == null) {
+			return null;
+		}
+		
 		if(propertyModel.getObject().getItemDefinition().isSingleValue()) {
 			if(propertyModel.getObject() == null || propertyModel.getObject().getValues() == null || propertyModel.getObject().getValues().get(0) == null
 					|| propertyModel.getObject().getValues().get(0).getValue() == null) {
