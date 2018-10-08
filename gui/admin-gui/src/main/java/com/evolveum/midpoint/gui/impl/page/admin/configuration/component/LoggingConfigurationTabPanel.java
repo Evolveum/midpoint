@@ -112,7 +112,6 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
     	
 
     	TableId tableIdLoggers = UserProfileStorage.TableId.LOGGING_TAB_LOGGER_TABLE;
-    	int itemPerPageLoggers = (int) getPageBase().getItemsPerPage(tableIdLoggers);
     	PageStorage pageStorageLoggers = getPageBase().getSessionStorage().getLoggingConfigurationTabLoggerTableStorage();
     	
 
@@ -121,7 +120,7 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 
     	
     	MultivalueContainerListPanel<ClassLoggerConfigurationType> loggersMultivalueContainerListPanel = new MultivalueContainerListPanel<ClassLoggerConfigurationType>(ID_LOGGERS, loggerModel,
-    			tableIdLoggers, itemPerPageLoggers, pageStorageLoggers) {
+    			tableIdLoggers, pageStorageLoggers) {
 			
 			private static final long serialVersionUID = 1L;
 
@@ -190,15 +189,14 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 		add(loggersMultivalueContainerListPanel);
 
 		TableId tableIdAppenders = UserProfileStorage.TableId.LOGGING_TAB_APPENDER_TABLE;
-    	int itemPerPageAppenders = (int) ((PageBase)LoggingConfigurationTabPanel.this.getPage()).getItemsPerPage(UserProfileStorage.TableId.LOGGING_TAB_APPENDER_TABLE);
-    	PageStorage pageStorageAppenders = ((PageBase)LoggingConfigurationTabPanel.this.getPage()).getSessionStorage().getLoggingConfigurationTabAppenderTableStorage();
+    	PageStorage pageStorageAppenders = getPageBase().getSessionStorage().getLoggingConfigurationTabAppenderTableStorage();
 
 
 		IModel<ContainerWrapper<AppenderConfigurationType>> appenderModel =
     			new ContainerWrapperFromObjectWrapperModel<AppenderConfigurationType, SystemConfigurationType>(Model.of(getModelObject().getObjectWrapper()), new ItemPath(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_APPENDER));
 
     	MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType> appendersMultivalueContainerListPanel = new MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType>(ID_APPENDERS, appenderModel,
-    			tableIdAppenders, itemPerPageAppenders, pageStorageAppenders) {
+    			tableIdAppenders, pageStorageAppenders) {
 			
 			private static final long serialVersionUID = 1L;
 

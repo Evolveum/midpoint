@@ -128,18 +128,13 @@ public class PolicyRulesPanel extends AssignmentPanel {
 
 	@Override
 	protected void initCustomPaging() {
-		getAssignmentsTabStorage().setPaging(ObjectPaging.createPaging(0, getItemsPerPage()));
+		getAssignmentsTabStorage().setPaging(ObjectPaging.createPaging(0, ((int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.POLICY_RULES_TAB_TABLE))));
 
 	}
 
 	@Override
 	protected TableId getTableId() {
 		return UserProfileStorage.TableId.POLICY_RULES_TAB_TABLE;
-	}
-
-	@Override
-	protected int getItemsPerPage() {
-		return (int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.POLICY_RULES_TAB_TABLE);
 	}
 
 	@Override

@@ -31,7 +31,9 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.data.column.EditableColumn;
 import com.evolveum.midpoint.gui.impl.component.form.TriStateFormGroup;
-
+import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerWrapperModel;
+import com.evolveum.midpoint.gui.impl.model.RealValueFromSingleValuePropertyWrapperModel;
+import com.evolveum.midpoint.gui.impl.model.RealValueOfSingleValuePropertyFromSingleValueContainerWrapperModel;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import org.apache.commons.lang3.StringUtils;
@@ -47,7 +49,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -139,30 +140,29 @@ public class NotificationConfigTabPanel extends BasePanel<ContainerWrapper<Notif
 
 	protected void initLayout() {
 		
-		ContainerValueWrapper<NotificationConfigurationType> value = getModel().getObject().getValues().get(0);
-		PropertyWrapper<MailConfigurationType> mailConfig = (PropertyWrapper<MailConfigurationType>)value.findPropertyWrapper(new ItemPath(value.getPath(), NotificationConfigurationType.F_MAIL));
+		PropertyWrapperFromContainerWrapperModel<MailConfigurationType, NotificationConfigurationType> mailConfig = 
+				new PropertyWrapperFromContainerWrapperModel<MailConfigurationType, NotificationConfigurationType>(getModel().getObject(), NotificationConfigurationType.F_MAIL);
 		
-		add(createHeader(ID_MAIL_CONFIG_HEADER, mailConfig.getItemDefinition().getTypeName().getLocalPart() + ".details"));
+		add(createHeader(ID_MAIL_CONFIG_HEADER, mailConfig.getObject().getItemDefinition().getTypeName().getLocalPart() + ".details"));
 		
 		Form form = new Form<>("form");
 		
 		
 		
-		mailConfigType = (MailConfigurationType)((PrismPropertyValue<MailConfigurationType>)mailConfig.getValues().get(0).getValue()).getValue();
+		mailConfigType = new RealValueFromSingleValuePropertyWrapperModel<MailConfigurationType>(mailConfig).getObject();
 		
 		if(mailConfigType == null) {
 			mailConfigType = new MailConfigurationType();
-//			((PrismPropertyValue<MailConfigurationType>)mailConfig.createAddedValue().getValue()).setValue(mailConfigType);
-			((PrismPropertyValue<MailConfigurationType>)mailConfig.getValues().get(0).getValue()).setValue(mailConfigType);;
+			((PrismPropertyValue<MailConfigurationType>)mailConfig.getObject().getValues().get(0).getValue()).setValue(mailConfigType);
     	}
 		
-		add(new TextFormGroup(ID_DEFAULT_FROM, new PropertyModel<String>(mailConfigType, "defaultFrom"), createStringResource(mailConfig.getItemDefinition().getTypeName().getLocalPart() + ".defaultFrom"), "", getInputCssClass(), false, true));
+		add(new TextFormGroup(ID_DEFAULT_FROM, new PropertyModel<String>(mailConfigType, "defaultFrom"), createStringResource(mailConfig.getObject().getItemDefinition().getTypeName().getLocalPart() + ".defaultFrom"), "", getInputCssClass(), false, true));
 		
-		add(new TextFormGroup(ID_REDIRECT_TO_FILE, new PropertyModel<String>(mailConfigType, "redirectToFile"), createStringResource(mailConfig.getItemDefinition().getTypeName().getLocalPart() + ".redirectToFile"), "", getInputCssClass(), false, true));
+		add(new TextFormGroup(ID_REDIRECT_TO_FILE, new PropertyModel<String>(mailConfigType, "redirectToFile"), createStringResource(mailConfig.getObject().getItemDefinition().getTypeName().getLocalPart() + ".redirectToFile"), "", getInputCssClass(), false, true));
 		
-		add(new TextFormGroup(ID_LOG_TO_FILE, new PropertyModel<String>(mailConfigType, "logToFile"), createStringResource(mailConfig.getItemDefinition().getTypeName().getLocalPart() + ".logToFile"), "", getInputCssClass(), false, true));
+		add(new TextFormGroup(ID_LOG_TO_FILE, new PropertyModel<String>(mailConfigType, "logToFile"), createStringResource(mailConfig.getObject().getItemDefinition().getTypeName().getLocalPart() + ".logToFile"), "", getInputCssClass(), false, true));
 		
-		add(new TriStateFormGroup(ID_DEBUG, new PropertyModel<Boolean>(mailConfigType, "debug"), createStringResource(mailConfig.getItemDefinition().getTypeName().getLocalPart() + ".debug"), "", getInputCssClass(), false, true));
+		add(new TriStateFormGroup(ID_DEBUG, new PropertyModel<Boolean>(mailConfigType, "debug"), createStringResource(mailConfig.getObject().getItemDefinition().getTypeName().getLocalPart() + ".debug"), "", getInputCssClass(), false, true));
 		
 		add(createHeader(ID_MAIL_SERVER_CONFIG_HEADER, MailServerConfigurationType.COMPLEX_TYPE.getLocalPart() + ".details"));
 		
@@ -170,7 +170,8 @@ public class NotificationConfigTabPanel extends BasePanel<ContainerWrapper<Notif
         
         add(createHeader(ID_FILE_CONFIG_HEADER, FileConfigurationType.COMPLEX_TYPE.getLocalPart() + ".details"));
         
-        PropertyWrapper<FileConfigurationType> fileConfig = (PropertyWrapper<FileConfigurationType>)value.findPropertyWrapper(new ItemPath(value.getPath(), NotificationConfigurationType.F_FILE));
+        PropertyWrapperFromContainerWrapperModel<FileConfigurationType, NotificationConfigurationType> fileConfig = 
+        		new PropertyWrapperFromContainerWrapperModel<FileConfigurationType, NotificationConfigurationType>(getModel().getObject(), NotificationConfigurationType.F_FILE);
         
         WebMarkupContainer files = new WebMarkupContainer(ID_FILE_CONFIG);
         files.setOutputMarkupId(true);
@@ -241,9 +242,9 @@ public class NotificationConfigTabPanel extends BasePanel<ContainerWrapper<Notif
 
             	@Override
             	public void onClick(AjaxRequestTarget target) {
-            		ValueWrapper<FileConfigurationType> newValue = fileConfig.createAddedValue();
+            		ValueWrapper<FileConfigurationType> newValue = fileConfig.getObject().createAddedValue();
             		((PrismPropertyValue<FileConfigurationType>)newValue.getValue()).setValue(new FileConfigurationType());
-            		fileConfig.getValues().add(newValue);
+            		fileConfig.getObject().getValues().add(newValue);
             		target.add(files);
             	}
             };
@@ -305,15 +306,7 @@ public class NotificationConfigTabPanel extends BasePanel<ContainerWrapper<Notif
 						newItemPerformed(target);
 					}
 				};
-				newObjectIcon.add(AttributeModifier.append("class", 
-						new AbstractReadOnlyModel<String>() {
-		        			private static final long serialVersionUID = 1L;
-
-		        			@Override
-		        			public String getObject() {
-		        				return "btn btn-success btn-sm";
-		        			}
-		        }));
+				newObjectIcon.add(AttributeModifier.append("class", Model.of("btn btn-success btn-sm")));
 				return newObjectIcon;
 			}
 		};
@@ -350,15 +343,7 @@ public class NotificationConfigTabPanel extends BasePanel<ContainerWrapper<Notif
 
 			@Override
 			protected IModel<String> createIconModel(IModel<MailServerConfiguration> rowModel) {
-				return new AbstractReadOnlyModel<String>() {
-
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public String getObject() {
-						return WebComponentUtil.createDefaultBlackIcon(SystemConfigurationType.COMPLEX_TYPE);
-					}
-				};
+				return Model.of(WebComponentUtil.createDefaultBlackIcon(SystemConfigurationType.COMPLEX_TYPE));
 			}
 
 		});
@@ -427,7 +412,7 @@ public class NotificationConfigTabPanel extends BasePanel<ContainerWrapper<Notif
 
 			@Override
         	protected Component createStaticPanel(String componentId, IModel<MailServerConfiguration> rowModel) {
-        		return new PasswordPanel(componentId, Model.of(rowModel.getObject().getValue().getPassword()), true);
+        		return new PasswordPanel(componentId, Model.of(rowModel.getObject().getValue().getPassword()), true, false);
         	}
         	
         	@Override
@@ -515,10 +500,10 @@ public class NotificationConfigTabPanel extends BasePanel<ContainerWrapper<Notif
 			return;
 		}
 		
-		ContainerValueWrapper<NotificationConfigurationType> notificationValue = getModel().getObject().getValues().get(0);
-		PropertyWrapper<MailConfigurationType> mailConfig = (PropertyWrapper<MailConfigurationType>)notificationValue.findPropertyWrapper(new ItemPath(notificationValue.getPath(), NotificationConfigurationType.F_MAIL));
-		MailConfigurationType mailConfigType = (MailConfigurationType)mailConfig.getValues().get(0).getValue().getRealValue();
-		List<MailServerConfigurationType> servers = mailConfigType.getServer();
+		
+		RealValueOfSingleValuePropertyFromSingleValueContainerWrapperModel<MailConfigurationType, NotificationConfigurationType> mailConfigType = 
+				new RealValueOfSingleValuePropertyFromSingleValueContainerWrapperModel<>(getModel(), NotificationConfigurationType.F_MAIL);
+		List<MailServerConfigurationType> servers = mailConfigType.getObject().getServer();
 		
 		toDelete.forEach(value -> {
 			servers.remove(value.getValue());

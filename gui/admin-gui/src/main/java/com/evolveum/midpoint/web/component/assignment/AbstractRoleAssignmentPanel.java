@@ -302,11 +302,6 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 		return UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE;
 	}
 
-	@Override
-	protected int getItemsPerPage() {
-		return (int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE);
-	}
-
     protected ObjectQuery createObjectQuery() {
 	    Collection<QName> delegationRelations = getParentPage().getRelationRegistry()
 			    .getAllRelationsFor(RelationKindType.DELEGATION);

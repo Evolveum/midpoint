@@ -26,7 +26,7 @@ auth:
     url: / # NOTE: This URL is relative to application root
 ## Example SSO header authentication configuration
 #  sso:
-#    header: SM_USER
+#    header: uid
 ## Example CAS SSO configuration
 #  cas:
 #    midpoint:

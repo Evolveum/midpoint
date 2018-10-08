@@ -51,6 +51,7 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
+import com.evolveum.midpoint.web.component.progress.ProgressPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
 
@@ -60,7 +61,8 @@ import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
  */
 @PageDescriptor(
 		urls = {
-				@Url(mountUrl = "/admin/config/system", matchUrlForSecurity = "/admin/config/system")
+				@Url(mountUrl = "/admin/config/new", matchUrlForSecurity = "/admin/config/new"),
+				//@Url(mountUrl = "/admin/config/system/new"),
 		},
 		action = {
 				@AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,
@@ -383,4 +385,20 @@ public class PageSystemConfiguration extends PageAdminObjectDetails<SystemConfig
             }
         });
 	}
+	
+//	@Override
+//	public void saveOrPreviewPerformed(AjaxRequestTarget target, OperationResult result, boolean previewOnly) {
+//		super.saveOrPreviewPerformed(target, result, previewOnly);
+//		
+//		ProgressPanel progressPanel = getProgressPanel();
+//		progressPanel.hide();
+//		this.redirectBack();
+////		OpResult opResult = OpResult.getOpResult(this, result);
+////		while(opResult.getStatus().equals(OperationResultStatus.IN_PROGRESS)) {
+////			opResult = OpResult.getOpResult(this, result);
+////		}
+//		showResult(result);
+//		target.add(getFeedbackPanel());
+//	}
+	
 }
