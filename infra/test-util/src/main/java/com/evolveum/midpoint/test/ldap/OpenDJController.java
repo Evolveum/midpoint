@@ -727,6 +727,10 @@ public class OpenDJController extends AbstractResourceController {
         return ldifEntry;
 	}
 
+	public List<Entry> addEntriesFromLdifFile(File file) throws IOException, LDIFException {
+		return addEntriesFromLdifFile(file.getPath());
+	}
+	
 	public List<Entry> addEntriesFromLdifFile(String filename) throws IOException, LDIFException {
 		List<Entry> retval = new ArrayList<>();
 		LDIFImportConfig importConfig = new LDIFImportConfig(filename);
@@ -757,6 +761,10 @@ public class OpenDJController extends AbstractResourceController {
 	    addEntry(ldifEntry);
 	}
 
+	public ChangeRecordEntry executeRenameChange(File file) throws LDIFException, IOException{
+		return executeRenameChange(file.getPath());
+	}
+	
 	public ChangeRecordEntry executeRenameChange(String filename) throws LDIFException, IOException{
 		LDIFImportConfig importConfig = new LDIFImportConfig(filename);
         LDIFReader ldifReader = new LDIFReader(importConfig);
