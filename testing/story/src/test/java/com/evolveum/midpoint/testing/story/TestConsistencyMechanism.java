@@ -2143,7 +2143,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		
 		LOGGER.info("start running task");
 		// WHEN
-		repoAddObjectFromFile(TASK_OPENDJ_RECONCILIATION_FILENAME, result);
+		repoAddObjectFromFile(TASK_OPENDJ_RECONCILIATION_FILE, result);
 		verbose = true;
 		long started = System.currentTimeMillis();
 		waitForTaskNextRunAssertSuccess(TASK_OPENDJ_RECONCILIATION_OID, false, 120000);
@@ -2216,7 +2216,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		LOGGER.info("start running task");
 		// WHEN
 		long started = System.currentTimeMillis();
-		repoAddObjectFromFile(TASK_OPENDJ_RECONCILIATION_FILENAME, result);
+		repoAddObjectFromFile(TASK_OPENDJ_RECONCILIATION_FILE, result);
 		waitForTaskFinish(TASK_OPENDJ_RECONCILIATION_OID, false, 120000);
 		LOGGER.info("Reconciliation task run took {} seconds", (System.currentTimeMillis()-started)/1000L);
 
