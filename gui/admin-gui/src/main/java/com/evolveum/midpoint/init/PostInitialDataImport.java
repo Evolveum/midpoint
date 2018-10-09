@@ -16,55 +16,30 @@
 
 package com.evolveum.midpoint.init;
 
-import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.ScriptExecutionResult;
 import com.evolveum.midpoint.model.api.ScriptingService;
 import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ReportTypeUtil;
-import com.evolveum.midpoint.security.api.Authorization;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.InternalsConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringNormalizerConfigurationType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
 import java.io.File;
 import java.util.*;
@@ -73,44 +48,13 @@ import java.util.*;
  * @author lazyman
  * @author skublik
  */
-public class PostInitialDataImport {
+public class PostInitialDataImport extends DataImport{
 
     private static final Trace LOGGER = TraceManager.getTrace(PostInitialDataImport.class);
 
-    private static final String MIDPOINT_HOME_PROPERTY = "midpoint.home";
     private static final String SUFFIX_FOR_IMPORTED_FILE = "done";
-    private static final String DOT_CLASS = PostInitialDataImport.class.getName() + ".";
-    private static final String OPERATION_INITIAL_OBJECTS_IMPORT = DOT_CLASS + "postInitialObjectsImport";
-    private static final String OPERATION_IMPORT_OBJECT = DOT_CLASS + "postImportObject";
 
-    @Autowired
-    private transient PrismContext prismContext;
-    private ModelService model;
-    private TaskManager taskManager;
     private ScriptingService scripting;
-    
-    @Autowired
-    private MidpointConfiguration configuration;
-    
-    public void setModel(ModelService model) {
-        Validate.notNull(model, "Model service must not be null.");
-        this.model = model;
-    }
-    
-    public void setPrismContext(PrismContext prismContext) {
-    	Validate.notNull(prismContext, "Prism context must not be null.");
-		this.prismContext = prismContext;
-	}
-
-    public void setTaskManager(TaskManager taskManager) {
-        Validate.notNull(taskManager, "Task manager must not be null.");
-        this.taskManager = taskManager;
-    }
-    
-    public void setConfiguration(MidpointConfiguration configuration) {
-    	Validate.notNull(configuration, "Midpoint configuration must not be null.");
-		this.configuration = configuration;
-	}
     
     public void setScripting(ScriptingService scripting) {
     	Validate.notNull(scripting, "Scripting service must not be null.");
@@ -130,22 +74,7 @@ public class PostInitialDataImport {
         File[] files = getPostInitialImportObjects();
         LOGGER.debug("Files to be imported: {}.", Arrays.toString(files));
 
-        // We need to provide a fake Spring security context here.
-        // We have to fake it because we do not have anything in the repository yet. And to get
-        // something to the repository we need a context. Chicken and egg. So we fake the egg.
-        SecurityContext securityContext = SecurityContextHolder.getContext();
-        UserType userAdministrator = new UserType();
-        prismContext.adopt(userAdministrator);
-        userAdministrator.setName(new PolyStringType(new PolyString("initAdmin", "initAdmin")));
-		MidPointPrincipal principal = new MidPointPrincipal(userAdministrator);
-		AuthorizationType superAutzType = new AuthorizationType();
-		prismContext.adopt(superAutzType, RoleType.class, new ItemPath(RoleType.F_AUTHORIZATION));
-		superAutzType.getAction().add(AuthorizationConstants.AUTZ_ALL_URL);
-		Authorization superAutz = new Authorization(superAutzType);
-		Collection<Authorization> authorities = principal.getAuthorities();
-		authorities.add(superAutz);
-        Authentication authentication = new PreAuthenticatedAuthenticationToken(principal, null);
-        securityContext.setAuthentication(authentication);
+        SecurityContext securityContext = provideFakeSecurityContext();
 
         for (File file : files) {
         	if(FilenameUtils.getExtension(file.getName()).equals(SUFFIX_FOR_IMPORTED_FILE)) {
@@ -160,7 +89,7 @@ public class PostInitialDataImport {
 			}
             if(item instanceof PrismObject) {
             	try {
-            		LOGGER.debug("Considering initial import of file {}.", file.getName());
+            		LOGGER.debug("Considering post-initial import of file {}.", file.getName());
             		PrismObject object = (PrismObject)item;
             		if (ReportType.class.equals(object.getCompileTimeClass())) {
             			ReportTypeUtil.applyDefinition(object, prismContext);
@@ -208,7 +137,6 @@ public class PostInitialDataImport {
      * @return true if it was success, otherwise false
      */
     private <O extends ObjectType> Boolean importObject(PrismObject<O> object, File file, Task task, OperationResult mainResult) {
-    	
         OperationResult result = mainResult.createSubresult(OPERATION_IMPORT_OBJECT);
         preImportUpdate(object);
 
@@ -231,29 +159,6 @@ public class PostInitialDataImport {
        	}
     }
 
-    private <O extends ObjectType> void preImportUpdate(PrismObject<O> object) {
-		if (object.canRepresent(SystemConfigurationType.class)) {
-			SystemConfigurationType systemConfigType = (SystemConfigurationType) object.asObjectable();
-			InternalsConfigurationType internals = systemConfigType.getInternals();
-			if (internals != null) {
-				PolyStringNormalizerConfigurationType normalizerConfig = internals.getPolyStringNormalizer();
-				if (normalizerConfig != null) {
-					try {
-						prismContext.configurePolyStringNormalizer(normalizerConfig);
-						LOGGER.debug("Applied PolyString normalizer configuration {}", DebugUtil.shortDumpLazily(normalizerConfig));
-					} catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
-						LOGGER.error("Error applying polystring normalizer configuration: "+e.getMessage(), e);
-						throw new SystemException("Error applying polystring normalizer configuration: "+e.getMessage(), e);
-					}
-					// PolyString normalizer configuration applied. But we need to re-normalize the imported object
-					// otherwise it would be normalized in a different way than other objects.
-					object.recomputeAllValues();
-				}
-			}
-		}
-		
-	}
-    
     /**
      * @param expression
      * @param file
@@ -262,7 +167,6 @@ public class PostInitialDataImport {
      * @return rue if it was success, otherwise false
      */
     private <O extends ObjectType> Boolean executeScript(PrismProperty<Object> expression, File file, Task task, OperationResult mainResult) {
-    	
         OperationResult result = mainResult.createSubresult(OPERATION_IMPORT_OBJECT);
 
         try {
@@ -286,27 +190,17 @@ public class PostInitialDataImport {
 
     private File[] getPostInitialImportObjects() {
     	File[] files = new File[0];
-    	String midpointHomePath= System.getProperty(MIDPOINT_HOME_PROPERTY);
+    	String midpointHomePath= configuration.getMidpointHome();
     	
     	if (checkDirectoryExistence(midpointHomePath)) {
-    	
     		if (!midpointHomePath.endsWith("/")) {
     			midpointHomePath = midpointHomePath + "/";
     		}
-    		
     		String postInitialObjectsPath = midpointHomePath + "post-initial-objects";
     		if (checkDirectoryExistence(postInitialObjectsPath)) {
     			File folder = new File(postInitialObjectsPath);
-
     			files = listFiles(folder);
-
-    			Arrays.sort(files, (o1, o2) -> {
-    				int n1 = getNumberFromName(o1);
-    				int n2 = getNumberFromName(o2);
-
-    				return n1 - n2;
-    			});
-
+    			sortFiles(files);
     		}
     		else {
         		LOGGER.debug("Directory " + postInitialObjectsPath + " does not exist.");
@@ -335,22 +229,12 @@ public class PostInitialDataImport {
             LOGGER.error(dir + " is file and NOT a directory.");
             throw new SystemException(dir + " is file and NOT a directory !!!");
         }
-
         if (d.isDirectory()) {
             LOGGER.info("Directory " + dir + " exists. Using it.");
             return true;
         } else {
             return false;
         }
-
     }
 
-    private int getNumberFromName(File file) {
-        String name = file.getName();
-        String number = StringUtils.left(name, 3);
-        if (number.matches("[\\d]+")) {
-            return Integer.parseInt(number);
-        }
-        return 0;
-    }
 }
