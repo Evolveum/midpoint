@@ -47,7 +47,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 public class ObjectReferenceAsserter<O extends ObjectType,R> extends AbstractAsserter<R> {
 	
 	final private PrismReferenceValue refVal;
-	private PrismObject<O> resolvedTarget = null;
+	private PrismObject<? extends O> resolvedTarget = null;
 	final private Class<O> defaultTargetTypeClass;
 
 	public ObjectReferenceAsserter(PrismReferenceValue refVal, Class<O> defaultTargetTypeClass) {
@@ -62,7 +62,7 @@ public class ObjectReferenceAsserter<O extends ObjectType,R> extends AbstractAss
 		this.defaultTargetTypeClass = defaultTargetTypeClass;
 	}
 	
-	public ObjectReferenceAsserter(PrismReferenceValue refVal, Class<O> defaultTargetTypeClass, PrismObject<O> resolvedTarget, R returnAsserter, String detail) {
+	public ObjectReferenceAsserter(PrismReferenceValue refVal, Class<O> defaultTargetTypeClass, PrismObject<? extends O> resolvedTarget, R returnAsserter, String detail) {
 		super(returnAsserter, detail);
 		this.refVal = refVal;
 		this.defaultTargetTypeClass = defaultTargetTypeClass;
@@ -100,14 +100,14 @@ public class ObjectReferenceAsserter<O extends ObjectType,R> extends AbstractAss
 		if (resolvedTarget == null) {
 			resolvedTarget = resolveTargetObject();
 		}
-		return resolvedTarget;
+		return (PrismObject<O>) resolvedTarget;
 	}
 	
-	public PrismObjectAsserter<O,ObjectReferenceAsserter<O,R>> target() throws ObjectNotFoundException, SchemaException {
+	public PrismObjectAsserter<O,? extends ObjectReferenceAsserter<O,R>> target() throws ObjectNotFoundException, SchemaException {
 		return new PrismObjectAsserter<>(getResolvedTarget(), this, "object resolved from "+desc());
 	}
 	
-	public PrismObjectAsserter<O,ObjectReferenceAsserter<O,R>> resolveTarget() throws ObjectNotFoundException, SchemaException {
+	public PrismObjectAsserter<O,? extends ObjectReferenceAsserter<O,R>> resolveTarget() throws ObjectNotFoundException, SchemaException {
 		PrismObject<O> object = resolveTargetObject();
 		return new PrismObjectAsserter<>(object, this, "object resolved from "+desc());
 	}

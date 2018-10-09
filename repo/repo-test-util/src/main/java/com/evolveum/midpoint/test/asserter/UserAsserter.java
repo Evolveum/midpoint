@@ -39,6 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -255,6 +256,19 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
 	@Override
 	public UserAsserter<RA> assertParentOrgRefs(String... expectedOids) {
 		super.assertParentOrgRefs(expectedOids);
+		return this;
+	}
+	
+	@Override
+	public RoleMembershipRefsAsserter<UserType, ? extends UserAsserter<RA>, RA> roleMembershipRefs() {
+		RoleMembershipRefsAsserter<UserType,UserAsserter<RA>,RA> asserter = new RoleMembershipRefsAsserter<>(this, getDetails());
+		copySetupTo(asserter);
+		return asserter;
+	}
+	
+	@Override
+	public UserAsserter<RA> assertRoleMemberhipRefs(int expected) {
+		super.assertRoleMemberhipRefs(expected);
 		return this;
 	}
 }

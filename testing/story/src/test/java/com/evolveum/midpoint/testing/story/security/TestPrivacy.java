@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.testing.story;
+package com.evolveum.midpoint.testing.story.security;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -60,6 +60,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
+import com.evolveum.midpoint.testing.story.AbstractStoryTest;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteCredentialResetRequestType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
@@ -89,7 +90,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestPrivacy extends AbstractStoryTest {
 	
-	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "privacy");
+	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "security/privacy");
 	
 	protected static final File USERS_FILE = new File(TEST_DIR, "users.xml");
 	
@@ -136,7 +137,6 @@ public class TestPrivacy extends AbstractStoryTest {
         assertGetAllow(UserType.class, USER_ELAINE_OID);
         assertGetAllow(UserType.class, USER_RAPP_OID);
 		
-        display("HEREHERE");
         assertSearch(UserType.class, null, 
         		USER_ADMINISTRATOR_OID, USER_GUYBRUSH_OID, USER_ELAINE_OID, USER_JACK_OID);
 		
@@ -144,6 +144,5 @@ public class TestPrivacy extends AbstractStoryTest {
 		displayThen(TEST_NAME);
 		
 	}
-	
-	
+
 }

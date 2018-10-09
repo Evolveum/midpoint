@@ -40,6 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -49,209 +50,200 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  * @author semancik
  *
  */
-public class OrgAsserter<RA> extends AbstractRoleAsserter<OrgType,RA> {
+public class RoleAsserter<RA> extends AbstractRoleAsserter<RoleType,RA> {
 	
-	public OrgAsserter(PrismObject<OrgType> focus) {
+	public RoleAsserter(PrismObject<RoleType> focus) {
 		super(focus);
 	}
 	
-	public OrgAsserter(PrismObject<OrgType> focus, String details) {
+	public RoleAsserter(PrismObject<RoleType> focus, String details) {
 		super(focus, details);
 	}
 	
-	public OrgAsserter(PrismObject<OrgType> focus, RA returnAsserter, String details) {
+	public RoleAsserter(PrismObject<RoleType> focus, RA returnAsserter, String details) {
 		super(focus, returnAsserter, details);
 	}
 	
-	public static OrgAsserter<Void> forOrg(PrismObject<OrgType> focus) {
-		return new OrgAsserter<>(focus);
+	public static RoleAsserter<Void> forRole(PrismObject<RoleType> focus) {
+		return new RoleAsserter<>(focus);
 	}
 	
-	public static OrgAsserter<Void> forOrg(PrismObject<OrgType> focus, String details) {
-		return new OrgAsserter<>(focus, details);
+	public static RoleAsserter<Void> forRole(PrismObject<RoleType> focus, String details) {
+		return new RoleAsserter<>(focus, details);
 	}
 	
 	// It is insane to override all those methods from superclass.
 	// But there is no better way to specify something like <SELF> type in Java.
 	// This is lesser evil.
 	@Override
-	public OrgAsserter<RA> assertOid() {
+	public RoleAsserter<RA> assertOid() {
 		super.assertOid();
 		return this;
 	}
 	
 	@Override
-	public OrgAsserter<RA> assertOid(String expected) {
+	public RoleAsserter<RA> assertOid(String expected) {
 		super.assertOid(expected);
 		return this;
 	}
 	
 	@Override
-	public OrgAsserter<RA> assertOidDifferentThan(String oid) {
+	public RoleAsserter<RA> assertOidDifferentThan(String oid) {
 		super.assertOidDifferentThan(oid);
 		return this;
 	}
 	
 	@Override
-	public OrgAsserter<RA> assertName() {
+	public RoleAsserter<RA> assertName() {
 		super.assertName();
 		return this;
 	}
 	
 	@Override
-	public OrgAsserter<RA> assertName(String expectedOrig) {
+	public RoleAsserter<RA> assertName(String expectedOrig) {
 		super.assertName(expectedOrig);
 		return this;
 	}
 	
 	@Override
-	public OrgAsserter<RA> assertDescription(String expected) {
+	public RoleAsserter<RA> assertDescription(String expected) {
 		super.assertDescription(expected);
 		return this;
 	}
 	
 	@Override
-	public OrgAsserter<RA> assertSubtype(String... expected) {
+	public RoleAsserter<RA> assertSubtype(String... expected) {
 		super.assertSubtype(expected);
 		return this;
 	}
 	
 	@Override
-	public OrgAsserter<RA> assertTenantRef(String expectedOid) {
+	public RoleAsserter<RA> assertTenantRef(String expectedOid) {
 		super.assertTenantRef(expectedOid);
 		return this;
 	}
 	
 	@Override
-	public OrgAsserter<RA> assertLifecycleState(String expected) {
+	public RoleAsserter<RA> assertLifecycleState(String expected) {
 		super.assertLifecycleState(expected);
 		return this;
 	}
 	
 	@Override
-	public OrgAsserter<RA> assertActiveLifecycleState() {
+	public RoleAsserter<RA> assertActiveLifecycleState() {
 		super.assertActiveLifecycleState();
 		return this;
 	}
 	
 	@Override
-	public OrgAsserter<RA> assertAdministrativeStatus(ActivationStatusType expected) {
+	public RoleAsserter<RA> assertAdministrativeStatus(ActivationStatusType expected) {
 		super.assertAdministrativeStatus(expected);
 		return this;
 	}
 		
 	@Override
-	public OrgAsserter<RA> display() {
+	public RoleAsserter<RA> display() {
 		super.display();
 		return this;
 	}
 	
 	@Override
-	public OrgAsserter<RA> display(String message) {
+	public RoleAsserter<RA> display(String message) {
 		super.display(message);
 		return this;
 	}
 	
 	@Override
-	public ActivationAsserter<OrgType, OrgAsserter<RA>, RA> activation() {
-		ActivationAsserter<OrgType, OrgAsserter<RA>, RA> asserter = new ActivationAsserter<>(this, getDetails());
+	public ActivationAsserter<RoleType, RoleAsserter<RA>, RA> activation() {
+		ActivationAsserter<RoleType, RoleAsserter<RA>, RA> asserter = new ActivationAsserter<>(this, getDetails());
 		copySetupTo(asserter);
 		return asserter;
 	}
 
 	@Override
-	public LinksAsserter<OrgType, OrgAsserter<RA>, RA> links() {
-		LinksAsserter<OrgType, OrgAsserter<RA>, RA> asserter = new LinksAsserter<>(this, getDetails());
+	public LinksAsserter<RoleType, RoleAsserter<RA>, RA> links() {
+		LinksAsserter<RoleType, RoleAsserter<RA>, RA> asserter = new LinksAsserter<>(this, getDetails());
 		copySetupTo(asserter);
 		return asserter;
 	}
 	
 	@Override
-	public OrgAsserter<RA> assertLinks(int expected) {
+	public RoleAsserter<RA> assertLinks(int expected) {
 		super.assertLinks(expected);
 		return this;
 	}
 	
 	@Override
-	public AssignmentsAsserter<OrgType, OrgAsserter<RA>, RA> assignments() {
-		AssignmentsAsserter<OrgType, OrgAsserter<RA>, RA> asserter = new AssignmentsAsserter<>(this, getDetails());
+	public AssignmentsAsserter<RoleType, RoleAsserter<RA>, RA> assignments() {
+		AssignmentsAsserter<RoleType, RoleAsserter<RA>, RA> asserter = new AssignmentsAsserter<>(this, getDetails());
 		copySetupTo(asserter);
 		return asserter;
 	}
 
 	@Override
-	public OrgAsserter<RA> assertDisplayName(String expectedOrig) {
+	public RoleAsserter<RA> assertDisplayName(String expectedOrig) {
 		super.assertDisplayName(expectedOrig);
 		return this;
 	}
 	
 	@Override
-	public OrgAsserter<RA> assertLocality(String expectedOrig) {
+	public RoleAsserter<RA> assertLocality(String expectedOrig) {
 		super.assertLocality(expectedOrig);
 		return this;
 	}
-	
-	public OrgAsserter<RA> assertTenant(Boolean expected) {
-		assertPropertyEquals(OrgType.F_TENANT, expected);
-		return this;
-	}
-	
-	public OrgAsserter<RA> assertIsTenant() {
-		assertPropertyEquals(OrgType.F_TENANT, true);
-		return this;
-	}
-	
+		
 	@Override
-	public OrgAsserter<RA> assertHasProjectionOnResource(String resourceOid) throws ObjectNotFoundException, SchemaException {
+	public RoleAsserter<RA> assertHasProjectionOnResource(String resourceOid) throws ObjectNotFoundException, SchemaException {
 		super.assertHasProjectionOnResource(resourceOid);
 		return this;
 	}
 	
 	@Override
-	public ShadowAsserter<OrgAsserter<RA>> projectionOnResource(String resourceOid) throws ObjectNotFoundException, SchemaException {
-		return (ShadowAsserter<OrgAsserter<RA>>) super.projectionOnResource(resourceOid);
+	public ShadowAsserter<RoleAsserter<RA>> projectionOnResource(String resourceOid) throws ObjectNotFoundException, SchemaException {
+		return (ShadowAsserter<RoleAsserter<RA>>) super.projectionOnResource(resourceOid);
 	}
 	
 	@Override
-	public OrgAsserter<RA> displayWithProjections() throws ObjectNotFoundException, SchemaException {
+	public RoleAsserter<RA> displayWithProjections() throws ObjectNotFoundException, SchemaException {
 		super.displayWithProjections();
 		return this;
 	}
 
 	@Override
-	public ShadowReferenceAsserter<OrgAsserter<RA>> singleLink() {
-		return (ShadowReferenceAsserter<OrgAsserter<RA>>) super.singleLink();
+	public ShadowReferenceAsserter<RoleAsserter<RA>> singleLink() {
+		return (ShadowReferenceAsserter<RoleAsserter<RA>>) super.singleLink();
 	}
 
 	@Override
-	public OrgAsserter<RA> assertAssignments(int expected) {
+	public RoleAsserter<RA> assertAssignments(int expected) {
 		super.assertAssignments(expected);
 		return this;
 	}
 	
 	@Override
-	public ParentOrgRefsAsserter<OrgType, OrgAsserter<RA>, RA> parentOrgRefs() {
-		ParentOrgRefsAsserter<OrgType, OrgAsserter<RA>, RA> asserter = new ParentOrgRefsAsserter<>(this, getDetails());
+	public ParentOrgRefsAsserter<RoleType, RoleAsserter<RA>, RA> parentOrgRefs() {
+		ParentOrgRefsAsserter<RoleType, RoleAsserter<RA>, RA> asserter = new ParentOrgRefsAsserter<>(this, getDetails());
 		copySetupTo(asserter);
 		return asserter;
 	}
 	
 	@Override
-	public OrgAsserter<RA> assertParentOrgRefs(String... expectedOids) {
+	public RoleAsserter<RA> assertParentOrgRefs(String... expectedOids) {
 		super.assertParentOrgRefs(expectedOids);
 		return this;
 	}
 	
 	@Override
-	public RoleMembershipRefsAsserter<OrgType, ? extends OrgAsserter<RA>, RA> roleMembershipRefs() {
-		RoleMembershipRefsAsserter<OrgType,OrgAsserter<RA>,RA> asserter = new RoleMembershipRefsAsserter<>(this, getDetails());
+	public RoleMembershipRefsAsserter<RoleType, ? extends RoleAsserter<RA>, RA> roleMembershipRefs() {
+		RoleMembershipRefsAsserter<RoleType,RoleAsserter<RA>,RA> asserter = new RoleMembershipRefsAsserter<>(this, getDetails());
 		copySetupTo(asserter);
 		return asserter;
 	}
 	
 	@Override
-	public OrgAsserter<RA> assertRoleMemberhipRefs(int expected) {
+	public RoleAsserter<RA> assertRoleMemberhipRefs(int expected) {
 		super.assertRoleMemberhipRefs(expected);
 		return this;
 	}
+	
 }

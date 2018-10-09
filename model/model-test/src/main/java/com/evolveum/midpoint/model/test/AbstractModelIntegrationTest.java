@@ -159,6 +159,7 @@ import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 import com.evolveum.midpoint.test.asserter.DummyAccountAsserter;
 import com.evolveum.midpoint.test.asserter.FocusAsserter;
 import com.evolveum.midpoint.test.asserter.OrgAsserter;
+import com.evolveum.midpoint.test.asserter.RoleAsserter;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.test.util.MidPointAsserts;
@@ -5467,7 +5468,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
 	protected UserAsserter<Void> assertUserAfter(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		UserAsserter<Void> asserter = assertUser(oid, "after");
-		asserter.display();
 		asserter.assertOid(oid);
 		return asserter;
 	}
@@ -5481,7 +5481,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected UserAsserter<Void> assertUserBefore(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		UserAsserter<Void> asserter = assertUser(oid, "before");
-		asserter.display();
 		asserter.assertOid(oid);
 		return asserter;
 	}
@@ -5501,6 +5500,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected UserAsserter<Void> assertUser(PrismObject<UserType> user, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		UserAsserter<Void> asserter = UserAsserter.forUser(user, message);
 		initializeAsserter(asserter);
+		asserter.display();
 		return asserter;
 	}
 	
@@ -5526,18 +5526,22 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return asserter;
 	}
 	
-	protected FocusAsserter<RoleType,Void> assertRole(String oid, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+	protected RoleAsserter<Void> assertRole(String oid, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		PrismObject<RoleType> role = getObject(RoleType.class, oid);
-		// TODO: change to ServiceAsserter later
-		FocusAsserter<RoleType,Void> asserter = FocusAsserter.forFocus(role, message);
-		initializeAsserter(asserter);
+		RoleAsserter<Void> asserter = assertRole(role, message);
 		asserter.assertOid(oid);
 		return asserter;
 	}
 	
-	protected FocusAsserter<RoleType,Void> assertRoleAfter(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		FocusAsserter<RoleType,Void> asserter = assertRole(oid, "after");
+	protected RoleAsserter<Void> assertRole(PrismObject<RoleType> role, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		RoleAsserter<Void> asserter = RoleAsserter.forRole(role, message);
+		initializeAsserter(asserter);
 		asserter.display();
+		return asserter;
+	}
+	
+	protected RoleAsserter<Void> assertRoleAfter(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		RoleAsserter<Void> asserter = assertRole(oid, "after");
 		asserter.assertOid(oid);
 		return asserter;
 	}
