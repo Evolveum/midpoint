@@ -146,7 +146,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 
 			@Override
 			protected IModel<String> getNewObjectButtonTitleModel(){
-				return getAssignmentsLimitReachedTitleModel();
+				return getAssignmentsLimitReachedTitleModel("MainObjectListPanel.newObject");
 			}
 
 			@Override
@@ -501,7 +501,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 					AuthorizationPhaseType.REQUEST, obj,
 					null, null, null);
 			if (isUnassignAuthorized) {
-				menuItems.add(new ButtonInlineMenuItem(getAssignmentsLimitReachedTitleModel()) {
+				menuItems.add(new ButtonInlineMenuItem(getAssignmentsLimitReachedTitleModel("pageAdminFocus.menu.unassign")) {
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -620,13 +620,13 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 
 	}
 
-	private IModel<String> getAssignmentsLimitReachedTitleModel() {
+	private IModel<String> getAssignmentsLimitReachedTitleModel(String defaultTitleKey) {
 		return new LoadableModel<String>(true) {
 			@Override
 			protected String load() {
 				return isAssignmentsLimitReached() ?
 						AssignmentPanel.this.getPageBase().createStringResource("RoleCatalogItemButton.assignmentsLimitReachedTitle",
-								assignmentsRequestsLimit).getString() : createStringResource("MainObjectListPanel.newObject").getString();
+								assignmentsRequestsLimit).getString() : createStringResource(defaultTitleKey).getString();
 			}
 		};
 	}
