@@ -38,4 +38,11 @@
     <bean name="modelInitialSetup" class="com.evolveum.midpoint.init.ModelInitialSetup" init-method="init">
         <property name="model" ref="modelController"/>
     </bean>
+    
+    <bean id="postInitialDataImport" class="com.evolveum.midpoint.init.PostInitialDataImport" init-method="init"
+          scope="singleton">
+        <property name="model" ref="modelController"/>
+        <property name="scripting" ref="modelController"/>
+        <property name="taskManager" ref="taskManager" />
+    </bean>
 </beans>
