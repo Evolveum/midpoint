@@ -765,7 +765,6 @@ public class ActivationProcessor {
 				}
 			}
 			
-			LensUtil.setDeltaOldValue(projCtx, targetItemDelta);
 			if (!targetItemDelta.isEmpty()) {
 				LOGGER.trace("Reconciliation delta:\n{}", targetItemDelta.debugDumpLazily(1));
 				projCtx.swallowToSecondaryDelta(targetItemDelta);
