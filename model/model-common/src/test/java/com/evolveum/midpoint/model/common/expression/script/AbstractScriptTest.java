@@ -27,6 +27,7 @@ import java.util.List;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationService;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeClass;
@@ -97,8 +98,9 @@ public abstract class AbstractScriptTest {
     	PrismContext prismContext = PrismTestUtil.getPrismContext();
     	ObjectResolver resolver = new DirectoryFileObjectResolver(OBJECTS_DIR);
     	Protector protector = new ProtectorImpl();
+    	Clock clock = new Clock();
         Collection<FunctionLibrary> functions = new ArrayList<>();
-        functions.add(FunctionLibraryUtil.createBasicFunctionLibrary(prismContext, protector));
+		functions.add(FunctionLibraryUtil.createBasicFunctionLibrary(prismContext, protector, clock));
 		scriptExpressionfactory = new ScriptExpressionFactory(prismContext, protector, null);
 		scriptExpressionfactory.setObjectResolver(resolver);
 		scriptExpressionfactory.setFunctions(functions);

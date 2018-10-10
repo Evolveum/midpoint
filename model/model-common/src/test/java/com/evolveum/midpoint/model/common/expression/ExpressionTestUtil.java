@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.common.expression;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import org.apache.commons.configuration.BaseConfiguration;
@@ -57,7 +58,7 @@ public class ExpressionTestUtil {
 	}
 
 	public static ExpressionFactory createInitializedExpressionFactory(ObjectResolver resolver, ProtectorImpl protector,
-			PrismContext prismContext, SecurityContextManager securityContextManager, RepositoryService repositoryService) {
+			PrismContext prismContext, Clock clock, SecurityContextManager securityContextManager, RepositoryService repositoryService) {
     	ExpressionFactory expressionFactory = new ExpressionFactory(securityContextManager, prismContext, LocalizationTestUtil.getLocalizationService());
     	expressionFactory.setObjectResolver(resolver);
 
@@ -92,7 +93,7 @@ public class ExpressionTestUtil {
 
     	// script
     	Collection<FunctionLibrary> functions = new ArrayList<>();
-        functions.add(FunctionLibraryUtil.createBasicFunctionLibrary(prismContext, protector));
+        functions.add(FunctionLibraryUtil.createBasicFunctionLibrary(prismContext, protector, clock));
         functions.add(FunctionLibraryUtil.createLogFunctionLibrary(prismContext));
         ScriptExpressionFactory scriptExpressionFactory = new ScriptExpressionFactory(prismContext, protector, repositoryService);
         scriptExpressionFactory.setObjectResolver(resolver);

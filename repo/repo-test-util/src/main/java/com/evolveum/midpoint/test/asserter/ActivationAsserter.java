@@ -97,6 +97,11 @@ public class ActivationAsserter<F extends FocusType, FA extends FocusAsserter<F,
 		assertEquals("Wrong validTo in " + desc(), XmlTypeConverter.createXMLGregorianCalendar(expected), getActivation().getValidTo());
 		return this;
 	}
+	
+	public ActivationAsserter<F, FA, RA> assertEffectiveStatus(ActivationStatusType expected) {
+		assertEquals("Wrong effective status in " + desc(), expected, getActivation().getEffectiveStatus());
+		return this;
+	}
 		
 	PrismObject<F> getFocus() {
 		return focusAsserter.getObject();

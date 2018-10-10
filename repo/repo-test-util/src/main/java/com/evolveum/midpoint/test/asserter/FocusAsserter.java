@@ -325,4 +325,11 @@ public class FocusAsserter<F extends FocusType,RA> extends PrismObjectAsserter<F
 		roleMembershipRefs().assertRoleMemberhipRefs(expected);
 		return this;
 	}
+	
+	@Override
+	public ExtensionAsserter<F, ? extends FocusAsserter<F,RA>, RA> extension() {
+		ExtensionAsserter<F, ? extends FocusAsserter<F,RA>, RA> asserter = new ExtensionAsserter<>(this, getDetails());
+		copySetupTo(asserter);
+		return asserter;
+	}
 }

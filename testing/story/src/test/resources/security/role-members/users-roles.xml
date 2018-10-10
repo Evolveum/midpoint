@@ -37,14 +37,34 @@
 	      </object>
 	    </authorization>    
 	    <authorization>
-	    	<name>autz-enduser-read-user</name>
-	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+	    	<name>autz-enduser-get-user</name>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#get</action>
 	    	<object>
 	    		<type>UserType</type>
 	    	</object>
 	    	<item>name</item>
+	    	<item>description</item>
 	    	<!-- No assignments read here -->
 	    	<item>fullName</item>
+	    	<!-- no roleMembershipRef here -->
+	    </authorization>
+	    <authorization>
+	    	<name>autz-enduser-search-user</name>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#search</action>
+	    	<object>
+	    		<type>UserType</type>
+	    		<filter>
+		            <q:equal>
+		                <q:path>activation/effectiveStatus</q:path>
+		                <q:value>enabled</q:value>
+		            </q:equal>
+		    	</filter>
+	    	</object>
+	    	<item>name</item>
+	    	<!-- No assignments read here -->
+	    	<item>fullName</item>
+	    	<item>givenName</item>
+	    	<item>familyName</item>
 	    	<!-- no roleMembershipRef here -->
 	    </authorization>
 	    <authorization>

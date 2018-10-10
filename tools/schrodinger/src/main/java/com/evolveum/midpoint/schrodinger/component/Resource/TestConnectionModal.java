@@ -92,7 +92,7 @@ public class TestConnectionModal<T> extends ModalBox<T> {
 
         for (SelenideElement element : detailBoxes) {
 
-            element.waitUntil(Condition.appears, MidPoint.TIMEOUT_LONG);
+            element.waitUntil(Condition.appears, MidPoint.TIMEOUT_LONG_1_M);
 
             String attr = element.attr("class");
 
@@ -120,7 +120,7 @@ public class TestConnectionModal<T> extends ModalBox<T> {
         ElementsCollection detailBoxes = $$(Schrodinger.byDataId("div", MODAL_FEEDBACK_BOX_ID));
 
         for (SelenideElement element : detailBoxes) {
-            element.waitUntil(Condition.appears, MidPoint.TIMEOUT_LONG);
+            element.waitUntil(Condition.appears, MidPoint.TIMEOUT_LONG_1_M);
 
             String attr = element.attr("class");
 
@@ -149,7 +149,7 @@ public class TestConnectionModal<T> extends ModalBox<T> {
     public T clickOk() {
 
         $(Schrodinger.byDataId("ok"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         return this.getParent();
     }
@@ -157,7 +157,7 @@ public class TestConnectionModal<T> extends ModalBox<T> {
     public T clickClose() {
 
         $(Schrodinger.byElementAttributeValue("a", "class", "w_close"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         return this.getParent();
     }

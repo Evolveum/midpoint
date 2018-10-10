@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.common.expression.script;
 
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -382,7 +383,8 @@ public class TestExpressionFunctions {
 	private BasicExpressionFunctions createBasicFunctions() throws SchemaException, SAXException, IOException {
 		PrismContext prismContext = PrismTestUtil.createInitializedPrismContext();
 		Protector protector = new ProtectorImpl();
-		return new BasicExpressionFunctions(prismContext, protector);
+		Clock clock = new Clock();
+		return new BasicExpressionFunctions(prismContext, protector, clock);
 	}
 
 	@Test

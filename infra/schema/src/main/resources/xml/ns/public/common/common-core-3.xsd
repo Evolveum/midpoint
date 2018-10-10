@@ -6703,11 +6703,32 @@
                         attribute in the resource schema that belongs to an
                         object class that is being described here.
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>ItemRefinedDefinitionType.ref</a:displayName>
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element ref="tns:displayName" minOccurs="0" maxOccurs="1"/>
-            <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="displayOrder" type="xsd:int" minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="tns:displayName" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>ItemRefinedDefinitionType.displayName</a:displayName>
+					</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>ItemRefinedDefinitionType.description</a:displayName>
+					</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="displayOrder" type="xsd:int" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>ItemRefinedDefinitionType.displayOrder</a:displayName>
+					</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="limitations" type="tns:PropertyLimitationsType" minOccurs="0" maxOccurs="unbounded">
             	<xsd:annotation>
             		<xsd:documentation>
@@ -6715,7 +6736,10 @@
             			The limitations may apply to several system layers, therefore this element may be repeated several times.
             			But it there may be only one instance for each layer.
             		</xsd:documentation>
-            	</xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>ItemRefinedDefinitionType.limitations</a:displayName>
+					</xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
             <xsd:element name="matchingRule" type="xsd:QName" minOccurs="0">
             	<xsd:annotation>
@@ -6725,6 +6749,9 @@
             			types and for case-sensitive strings. An alternative matching rule may be specified e.g.
             			for case insensitive strings.
             		</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>ItemRefinedDefinitionType.matchingRule</a:displayName>
+					</xsd:appinfo>
             	</xsd:annotation>
             </xsd:element>
             <xsd:element name="valueEnumerationRef" type="c:ObjectReferenceType" minOccurs="0">
@@ -6738,6 +6765,7 @@
 	                </xsd:documentation>
 	                <xsd:appinfo>
             			<a:objectReferenceTargetType>tns:LookupTableType</a:objectReferenceTargetType>
+						<a:displayName>ItemRefinedDefinitionType.valueEnumerationRef</a:displayName>
             		</xsd:appinfo>
 	            </xsd:annotation>
 	       	</xsd:element>
@@ -6753,6 +6781,9 @@
 
                         Support of non-tolerant items in object templates is currently EXPERIMENTAL.
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>ItemRefinedDefinitionType.tolerant</a:displayName>
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="tolerantValuePattern" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
@@ -6764,6 +6795,9 @@
                         This element is currently supported only in resource object type definitions.
                         Support in object templates is planned.
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>ItemRefinedDefinitionType.tolerantValuePattern</a:displayName>
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="intolerantValuePattern" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
@@ -6775,6 +6809,9 @@
                         This element is currently supported only in resource object type definitions.
                         Support in object templates is planned.
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>ItemRefinedDefinitionType.intolerantValuePattern</a:displayName>
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="emphasized" type="xsd:boolean" minOccurs="0">
@@ -6786,6 +6823,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                     	<a:since>3.4</a:since>
+						<a:displayName>ItemRefinedDefinitionType.emphasized</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -6800,6 +6838,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                     	<a:since>3.8</a:since>
+						<a:displayName>ItemRefinedDefinitionType.deprecated</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -6816,6 +6855,7 @@
                     <xsd:appinfo>
                     	<a:since>3.8</a:since>
                     	<a:experimental>true</a:experimental>
+						<a:displayName>ItemRefinedDefinitionType.experimental</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -6830,6 +6870,7 @@
                     <xsd:appinfo>
                     	<a:since>3.8</a:since>
                     	<a:experimental>true</a:experimental>
+						<a:displayName>ItemRefinedDefinitionType.validation</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -6862,6 +6903,9 @@
 		            			When set to true only strong values are used if there is at least one strong mapping.
 		            			Normal values are used if there is no strong mapping.
 		            		</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>ResourceItemDefinitionType.exclusiveStrong</a:displayName>
+							</xsd:appinfo>
 		            	</xsd:annotation>
 		            </xsd:element>
                     <xsd:element name="modificationPriority" type="xsd:int" minOccurs="0">
@@ -6879,6 +6923,9 @@
                                 used to create an object, and other attributes would be set via MODIFY operation, again,
                                 according to their priorities.)
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>ResourceItemDefinitionType.modificationPriority</a:displayName>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="readReplaceMode" type="xsd:boolean" minOccurs="0">
@@ -6892,6 +6939,9 @@
 	
                                 EXPERIMENTAL. May change in near future.
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>ResourceItemDefinitionType.readReplaceMode</a:displayName>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="secondaryIdentifier" type="xsd:boolean" minOccurs="0">
@@ -6901,6 +6951,9 @@
                                 this attribute is stored in repository and user for example by synchronization (correlation
                                 rule), consistency mechanism, etc.
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>ResourceItemDefinitionType.secondaryIdentifier</a:displayName>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="volatilityTrigger" type="xsd:boolean" minOccurs="0" default="false">
@@ -6913,6 +6966,7 @@
                             <xsd:appinfo>
 	                            <a:since>3.4</a:since>
 	                            <a:since>3.3.1</a:since>
+								<a:displayName>ResourceItemDefinitionType.volatilityTrigger</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -6922,10 +6976,19 @@
                                 Indicated if the content of this attribute should be used as a human-readable name when
                                 displaying resource objects of this type.
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>ResourceItemDefinitionType.displayNameAttribute</a:displayName>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
 	    		
-                    <xsd:element name="fetchStrategy" type="tns:AttributeFetchStrategyType" minOccurs="0"/>
+                    <xsd:element name="fetchStrategy" type="tns:AttributeFetchStrategyType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>ResourceItemDefinitionType.fetchStrategy</a:displayName>
+							</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="outbound" type="tns:MappingType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -6942,6 +7005,9 @@
                                 used to process all of that. E.g. a single processor may take into a
                                 consideration both schema handling and dynamic attributes set by roles.
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>ResourceItemDefinitionType.outbound</a:displayName>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="inbound" type="tns:MappingType" minOccurs="0" maxOccurs="unbounded">
@@ -6961,6 +7027,9 @@
                                 to
                                 generate correct relative change descriptions.
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>ResourceItemDefinitionType.inbound</a:displayName>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
@@ -7739,9 +7808,18 @@
 		                       This association is considered valid only if the resource object (subject)
 		                       has the specified auxiliary object class.
 		                   </xsd:documentation>
+						   <xsd:appinfo>
+								<a:displayName>ResourceObjectAssociationType.auxiliaryObjectClass</a:displayName>
+						   </xsd:appinfo>
 		               </xsd:annotation>
 					</xsd:element>
-		     		<xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0"></xsd:element>
+		     		<xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>ResourceObjectAssociationType.kind</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
 		     		<xsd:element name="intent" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -7756,6 +7834,9 @@
                                 type, attributes, matching rules, .... they must be equivalent in every aspect
                                 except for attribute mappings.
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>ResourceObjectAssociationType.intent</a:displayName>
+						   </xsd:appinfo>
                         </xsd:annotation>
 		     		</xsd:element>
 		     		<xsd:element name="direction" type="tns:ResourceObjectAssociationDirectionType"  minOccurs="0">
@@ -7764,6 +7845,9 @@
 		     					Specifies the direction of association, i.e. if the association point from object to
 		     					subject or the other way around. 
 		     				</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>ResourceObjectAssociationType.direction</a:displayName>
+						   </xsd:appinfo>
 		     			</xsd:annotation>
 		     		</xsd:element>
 		     		<xsd:element name="associationAttribute" type="xsd:QName"  minOccurs="0">
@@ -7776,6 +7860,9 @@
 		     					
 		     					Typical examples are: roles, privileges, member, uniqueMember 
 		     				</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>ResourceObjectAssociationType.associationAttribute</a:displayName>
+						   </xsd:appinfo>
 		     			</xsd:annotation>
 		     		</xsd:element>
 		     		<xsd:element name="valueAttribute" type="xsd:QName"  minOccurs="0">
@@ -7791,6 +7878,9 @@
 		     					This attribute usually contain identifiers.
 		     					Typical examples are: name, username, uid, id 
 		     				</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>ResourceObjectAssociationType.valueAttribute</a:displayName>
+						   </xsd:appinfo>
 		     			</xsd:annotation>	     		
 		     		</xsd:element>
 		     		<xsd:element name="shortcutAssociationAttribute" type="xsd:QName"  minOccurs="0">
@@ -7809,6 +7899,9 @@
 		     					
 		     					Typical examples are: memberOf, isMemberOf 
 		     				</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>ResourceObjectAssociationType.shortcutAssociationAttribute</a:displayName>
+						   </xsd:appinfo>
 		     			</xsd:annotation>
 		     		</xsd:element>
 		     		<xsd:element name="shortcutValueAttribute" type="xsd:QName"  minOccurs="0">
@@ -7828,6 +7921,9 @@
 		     					This attribute usually contain identifiers.
 		     					Typical examples are: name, username, uid, id 
 		     				</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>ResourceObjectAssociationType.shortcutValueAttribute</a:displayName>
+						   </xsd:appinfo>
 		     			</xsd:annotation>
 		     		</xsd:element>
 		     		<xsd:element name="explicitReferentialIntegrity" type="xsd:boolean"  minOccurs="0" default="true">
@@ -7840,6 +7936,9 @@
 
                                 For resources having referential integrity, e.g. for Active Directory, set this parameter to false.
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>ResourceObjectAssociationType.explicitReferentialIntegrity</a:displayName>
+						   </xsd:appinfo>
                         </xsd:annotation>
 		     		</xsd:element>
 		     	</xsd:sequence>
@@ -8348,6 +8447,7 @@
             </xsd:documentation>
             <xsd:appinfo>
             	<a:container/>
+				<a:displayName>MappingType.details</a:displayName>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -8356,10 +8456,25 @@
         			<xsd:documentation>
         				Short name of the mapping. Used for debugging purposes.
         			</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>MappingType.name</a:displayName>
+                    </xsd:appinfo>
         		</xsd:annotation>
         	</xsd:element>
-            <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
-            <xsd:element ref="tns:extension" minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>MappingType.description</a:displayName>
+                    </xsd:appinfo>
+        		</xsd:annotation>
+        	</xsd:element>
+            <xsd:element ref="tns:extension" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>MappingType.extension</a:displayName>
+                    </xsd:appinfo>
+        		</xsd:annotation>
+        	</xsd:element>
             <xsd:element name="trace" type="xsd:boolean" minOccurs="0" maxOccurs="1">
             	<xsd:annotation>
             		<xsd:documentation>
@@ -8367,6 +8482,9 @@
             			logged on INFO level if this property is set to true to make sure that it
             			will be visible in the logs. 
             		</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>MappingType.trace</a:displayName>
+                    </xsd:appinfo>
             	</xsd:annotation>
             </xsd:element>
             <xsd:element name="authoritative" minOccurs="0" type="xsd:boolean" default="true">
@@ -8392,6 +8510,9 @@
 							The default value for authoritative flag is true.
 						</p>
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>MappingType.authoritative</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="exclusive" minOccurs="0" type="xsd:boolean" default="false">
@@ -8406,6 +8527,9 @@
 							The default value for exclusive flag is false.
                         </p>
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>MappingType.exclusive</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="tolerant" type="xsd:boolean" minOccurs="0">
@@ -8446,6 +8570,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                     	<a:since>3.4</a:since>
+						<a:displayName>MappingType.tolerant</a:displayName>
                     </xsd:appinfo>                    
                 </xsd:annotation>
             </xsd:element>
@@ -8458,6 +8583,9 @@
                         	and the weakest mappings are applied only if nothing else can be applied.
                         </p>
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>MappingType.strength</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="channel" type="xsd:anyURI" minOccurs="0" maxOccurs="unbounded">
@@ -8467,6 +8595,9 @@
             			mapping will be applied. If it is not then it will not be applied.
             			If no channel is specified then no limitations apply and the mapping will be applied for all channels.
             		</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>MappingType.channel</a:displayName>
+                    </xsd:appinfo>
             	</xsd:annotation>
             </xsd:element>
             <xsd:element name="exceptChannel" type="xsd:anyURI" minOccurs="0" maxOccurs="unbounded">
@@ -8476,19 +8607,59 @@
             			mapping will be not applied in this channel. If it is not then it will be applied.
             			If no channel is specified then no limitations apply and the mapping will be applied for all channels.
             		</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>MappingType.exceptChannel</a:displayName>
+                    </xsd:appinfo>
             	</xsd:annotation>
             </xsd:element>
-            <xsd:element name="timeFrom" type="tns:MappingTimeDeclarationType" minOccurs="0"/>
-            <xsd:element name="timeTo" type="tns:MappingTimeDeclarationType" minOccurs="0"/>
-            <xsd:element name="source" type="tns:VariableBindingDefinitionType" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="target" type="tns:VariableBindingDefinitionType" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="condition" type="tns:ExpressionType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="timeFrom" type="tns:MappingTimeDeclarationType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>MappingType.timeFrom</a:displayName>
+                    </xsd:appinfo>
+        		</xsd:annotation>
+        	</xsd:element>
+            <xsd:element name="timeTo" type="tns:MappingTimeDeclarationType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>MappingType.timeTo</a:displayName>
+                    </xsd:appinfo>
+        		</xsd:annotation>
+        	</xsd:element>
+            <xsd:element name="source" type="tns:VariableBindingDefinitionType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>MappingType.source</a:displayName>
+                    </xsd:appinfo>
+        		</xsd:annotation>
+        	</xsd:element>
+            <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>MappingType.expression</a:displayName>
+                    </xsd:appinfo>
+        		</xsd:annotation>
+        	</xsd:element>
+            <xsd:element name="target" type="tns:VariableBindingDefinitionType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>MappingType.target</a:displayName>
+                    </xsd:appinfo>
+        		</xsd:annotation>
+        	</xsd:element>
+            <xsd:element name="condition" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>MappingType.condition</a:displayName>
+                    </xsd:appinfo>
+        		</xsd:annotation>
+        	</xsd:element>
 			<xsd:element name="inputFilter" type="tns:ValueFilterType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<a:deprecated>true</a:deprecated>
 						<a:plannedRemoval>4.0</a:plannedRemoval>
+						<a:displayName>MappingType.inputFilter</a:displayName>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -8497,6 +8668,7 @@
 					<xsd:appinfo>
 						<a:deprecated>true</a:deprecated>
 						<a:plannedRemoval>4.0</a:plannedRemoval>
+						<a:displayName>MappingType.outputFilter</a:displayName>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -8516,6 +8688,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                     	<a:deprecated>true</a:deprecated>
+						<a:displayName>MappingType.range</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -13033,9 +13206,18 @@
 					             When the role is assigned the attributes specified
 					             below should be assigned values specified below.
 					         </xsd:documentation>
+							 <xsd:appinfo>
+					            <a:displayName>ConstructionType.attribute</a:displayName>
+							</xsd:appinfo>
 					     </xsd:annotation>
 					 </xsd:element>
-					 <xsd:element name="association" type="tns:ResourceObjectAssociationType" minOccurs="0" maxOccurs="unbounded"/>
+					 <xsd:element name="association" type="tns:ResourceObjectAssociationType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+					        <xsd:appinfo>
+					            <a:displayName>ConstructionType.association</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					 </xsd:element>
 					 <xsd:element name="auxiliaryObjectClass" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
 					    <xsd:annotation>
 					        <xsd:documentation>

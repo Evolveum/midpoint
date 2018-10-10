@@ -34,6 +34,7 @@ import javax.naming.ldap.Rdn;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -83,13 +84,15 @@ public class BasicExpressionFunctions {
     private static String STRING_PATTERN_HONORIFIC_PREFIX_ENDS_WITH_DOT = "^(\\S+\\.)$";
     private static Pattern PATTERN_NICK_NAME = Pattern.compile("^([^\"]*)\"([^\"]+)\"([^\"]*)$");
 
-    private PrismContext prismContext;
-    private Protector protector;
+    private final PrismContext prismContext;
+    private final Protector protector;
+    private final Clock clock;
 
-    public BasicExpressionFunctions(PrismContext prismContext, Protector protector) {
+    public BasicExpressionFunctions(PrismContext prismContext, Protector protector, Clock clock) {
         super();
         this.prismContext = prismContext;
         this.protector = protector;
+        this.clock = clock;
     }
 
     /**
@@ -767,7 +770,7 @@ public class BasicExpressionFunctions {
     }
 
     public XMLGregorianCalendar currentDateTime() {
-        return XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
+        return clock.currentTimeXMLGregorianCalendar();
     }
 
     private ParsedFullName parseFullName(String fullName) {
