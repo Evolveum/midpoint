@@ -41,6 +41,8 @@ import org.testng.annotations.Test;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
+import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
+import com.evolveum.midpoint.model.impl.trigger.TriggerScannerTaskHandler;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -53,6 +55,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -65,6 +68,12 @@ import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.testing.story.AbstractStoryTest;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteCredentialResetRequestType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
@@ -80,6 +89,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskRecurrenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
@@ -142,6 +153,9 @@ public class TestDelayedEnable extends AbstractStoryTest {
 		importObjectFromFile(OBJECT_TEMPLATE_USER_FILE, initResult);
 		// subtype==employee: Make sure that this is not applied to administrator or other non-person accounts.
 		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, SUBTYPE_EMPLOYEE, OBJECT_TEMPLATE_USER_OID, initResult);
+		
+		modifyObjectReplaceProperty(TaskType.class, TASK_TRIGGER_SCANNER_OID, TaskType.F_RECURRENCE, null, initTask, initResult, TaskRecurrenceType.SINGLE);
+		rememberCounter(InternalCounters.TRIGGER_FIRED_COUNT);
 	}
 	
 	// Tests 1xx are basic tests, adding and modifying user directly.
@@ -167,29 +181,47 @@ public class TestDelayedEnable extends AbstractStoryTest {
 		
 		hrCreateTsEnd = clock.currentTimeXMLGregorianCalendar();
 		
-		assertUserAfter(USER_MANCOMB_OID)
-			.assertName(USER_MANCOMB_USERNAME)
-			.assertSubtype(SUBTYPE_EMPLOYEE)
-			.extension()
-				.assertPropertyValue(EXT_HR_STATUS_QNAME, EXT_HR_STATUS_ENABLED)
-				.assertTimestampBetween(EXT_HR_STATUS_CHANGE_TIMESTAMP_QNAME, hrCreateTsStart, hrCreateTsEnd)
-				.end()
-			.activation()
-				.assertEffectiveStatus(ActivationStatusType.DISABLED)
-				.assertAdministrativeStatus(ActivationStatusType.DISABLED);
+		runTriggerScanner();
+		
+		assertMancombCreated();
+		
+		assertCounterIncrement(InternalCounters.TRIGGER_FIRED_COUNT, 0);
 	}
 	
+	/**
+	 * Make sure that trigger scanner won't do anything bad when run one more time.
+	 */
+	@Test
+	public void test102UserMancombTriggerScannerAgain() throws Exception {
+		final String TEST_NAME = "test102UserMancombTriggerScannerAgain";
+		displayTestTitle(TEST_NAME);
+		displayCurrentTime();
+		
+		// WHEN
+        displayWhen(TEST_NAME);
+        
+        runTriggerScanner();
+
+		// THEN
+		displayThen(TEST_NAME);
+		
+		assertMancombCreated();
+		
+		assertCounterIncrement(InternalCounters.TRIGGER_FIRED_COUNT, 0);
+	}
+
 	/**
 	 * Make sure that recompute does not change anything.
 	 * Especially that the hrStatusChangeTimestamp is not moved.
 	 */
 	@Test
-	public void test102UserMancombRecompute() throws Exception {
-		final String TEST_NAME = "test102UserMancombRecompute";
+	public void test104UserMancombRecompute() throws Exception {
+		final String TEST_NAME = "test104UserMancombRecompute";
 		displayTestTitle(TEST_NAME);
 		
 		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
+        displayCurrentTime();
         
 		// WHEN
         displayWhen(TEST_NAME);
@@ -200,6 +232,12 @@ public class TestDelayedEnable extends AbstractStoryTest {
 		displayThen(TEST_NAME);
 		assertSuccess(result);
 		
+		assertMancombCreated();
+		
+		assertCounterIncrement(InternalCounters.TRIGGER_FIRED_COUNT, 0);
+	}
+	
+	private void assertMancombCreated() throws Exception {
 		assertUserAfter(USER_MANCOMB_OID)
 			.assertName(USER_MANCOMB_USERNAME)
 			.assertSubtype(SUBTYPE_EMPLOYEE)
@@ -209,7 +247,12 @@ public class TestDelayedEnable extends AbstractStoryTest {
 				.end()
 			.activation()
 				.assertEffectiveStatus(ActivationStatusType.DISABLED)
-				.assertAdministrativeStatus(ActivationStatusType.DISABLED);
+				.assertAdministrativeStatus(ActivationStatusType.DISABLED)
+				.end()
+			.triggers()
+				.single()
+					.assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
+					.assertTimestampBetween(addDuration(hrCreateTsStart,"P1D"), addDuration(hrCreateTsEnd,"P1D"));
 	}
 	
 	/**
@@ -217,8 +260,32 @@ public class TestDelayedEnable extends AbstractStoryTest {
 	 * prevail now and it should override administrative status.
 	 */
 	@Test
-	public void test110UserMancombRecomputeDay1() throws Exception {
-		final String TEST_NAME = "test110UserMancombRecomputeDay1";
+	public void test110UserMancombRunTriggerScannerDay1() throws Exception {
+		final String TEST_NAME = "test110UserMancombRunTriggerScannerDay1";
+		displayTestTitle(TEST_NAME);
+		
+        clockForward("P1D");
+        
+		// WHEN
+        displayWhen(TEST_NAME);
+        
+        runTriggerScanner();
+
+		// THEN
+		displayThen(TEST_NAME);
+		
+		assertMancombEnabled();
+		
+		assertCounterIncrement(InternalCounters.TRIGGER_FIRED_COUNT, 1);
+	}
+	
+	/**
+	 * Move time ahead. The time-constrained mapping in the object template should
+	 * prevail now and it should override administrative status.
+	 */
+	@Test
+	public void test112UserMancombRecomputeDay1() throws Exception {
+		final String TEST_NAME = "test112UserMancombRecomputeDay1";
 		displayTestTitle(TEST_NAME);
 		
 		Task task = createTask(TEST_NAME);
@@ -235,6 +302,12 @@ public class TestDelayedEnable extends AbstractStoryTest {
 		displayThen(TEST_NAME);
 		assertSuccess(result);
 		
+		assertMancombEnabled();
+		
+		assertCounterIncrement(InternalCounters.TRIGGER_FIRED_COUNT, 0);
+	}
+	
+	private void assertMancombEnabled() throws Exception {
 		assertUserAfter(USER_MANCOMB_OID)
 			.assertName(USER_MANCOMB_USERNAME)
 			.assertSubtype(SUBTYPE_EMPLOYEE)
@@ -244,15 +317,36 @@ public class TestDelayedEnable extends AbstractStoryTest {
 				.end()
 			.activation()
 				.assertEffectiveStatus(ActivationStatusType.ENABLED)
-				.assertAdministrativeStatus(ActivationStatusType.ENABLED);
+				.assertAdministrativeStatus(ActivationStatusType.ENABLED)
+				.end()
+			.triggers()
+				.assertNone();
+	}
+	
+	@Test
+	public void test114UserMancombRunTriggerScannerDay1Again() throws Exception {
+		final String TEST_NAME = "test114UserMancombRunTriggerScannerDay1Again";
+		displayTestTitle(TEST_NAME);
+		
+		// WHEN
+        displayWhen(TEST_NAME);
+        
+        runTriggerScanner();
+
+		// THEN
+		displayThen(TEST_NAME);
+		
+		assertMancombEnabled();
+		
+		assertCounterIncrement(InternalCounters.TRIGGER_FIRED_COUNT, 0);
 	}
 	
 	/**
 	 * Make sure recompute does not ruin anything.
 	 */
 	@Test
-	public void test112UserMancombRecomputeDay1Again() throws Exception {
-		final String TEST_NAME = "test112UserMancombRecomputeDay1Again";
+	public void test116UserMancombRecomputeDay1Again() throws Exception {
+		final String TEST_NAME = "test116UserMancombRecomputeDay1Again";
 		displayTestTitle(TEST_NAME);
 		
 		Task task = createTask(TEST_NAME);
@@ -267,16 +361,9 @@ public class TestDelayedEnable extends AbstractStoryTest {
 		displayThen(TEST_NAME);
 		assertSuccess(result);
 		
-		assertUserAfter(USER_MANCOMB_OID)
-			.assertName(USER_MANCOMB_USERNAME)
-			.assertSubtype(SUBTYPE_EMPLOYEE)
-			.extension()
-				.assertPropertyValue(EXT_HR_STATUS_QNAME, EXT_HR_STATUS_ENABLED)
-				.assertTimestampBetween(EXT_HR_STATUS_CHANGE_TIMESTAMP_QNAME, hrCreateTsStart, hrCreateTsEnd)
-				.end()
-			.activation()
-				.assertEffectiveStatus(ActivationStatusType.ENABLED)
-				.assertAdministrativeStatus(ActivationStatusType.ENABLED);
+		assertMancombEnabled();
+		
+		assertCounterIncrement(InternalCounters.TRIGGER_FIRED_COUNT, 0);
 	}
 	
 	/**
@@ -304,6 +391,12 @@ public class TestDelayedEnable extends AbstractStoryTest {
 		
 		hrModifyTsEnd = clock.currentTimeXMLGregorianCalendar();
 		
+		assertMancombHalfDisabled();
+		
+		assertCounterIncrement(InternalCounters.TRIGGER_FIRED_COUNT, 0);
+	}
+	
+	private void assertMancombHalfDisabled() throws Exception {
 		assertUserAfter(USER_MANCOMB_OID)
 			.assertName(USER_MANCOMB_USERNAME)
 			.assertSubtype(SUBTYPE_EMPLOYEE)
@@ -336,6 +429,62 @@ public class TestDelayedEnable extends AbstractStoryTest {
 		displayThen(TEST_NAME);
 		assertSuccess(result);
 		
+		assertMancombHalfDisabled();
+		
+		assertCounterIncrement(InternalCounters.TRIGGER_FIRED_COUNT, 0);
+	}
+	
+	@Test
+	public void test124UserMancombDay1TriggerScanner() throws Exception {
+		final String TEST_NAME = "test124UserMancombDay1TriggerScanner";
+		displayTestTitle(TEST_NAME);
+		
+		Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        displayWhen(TEST_NAME);
+        
+        runTriggerScanner();
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		assertMancombHalfDisabled();
+		
+		assertCounterIncrement(InternalCounters.TRIGGER_FIRED_COUNT, 0);
+	}
+	
+	/**
+	 * Move time ahead. The time-constrained mapping in the object template should
+	 * prevail now and it should override administrative status.
+	 */
+	@Test
+	public void test130UserMancombTriggerScannerDay2() throws Exception {
+		final String TEST_NAME = "test130UserMancombTriggerScannerDay2";
+		displayTestTitle(TEST_NAME);
+		
+		clockForward("P1D");
+		
+		Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        displayWhen(TEST_NAME);
+        
+        runTriggerScanner();
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		assertMancombDisabled();
+		
+		assertCounterIncrement(InternalCounters.TRIGGER_FIRED_COUNT, 1);
+	}
+	
+	private void assertMancombDisabled() throws Exception {
 		assertUserAfter(USER_MANCOMB_OID)
 			.assertName(USER_MANCOMB_USERNAME)
 			.assertSubtype(SUBTYPE_EMPLOYEE)
@@ -344,8 +493,8 @@ public class TestDelayedEnable extends AbstractStoryTest {
 				.assertTimestampBetween(EXT_HR_STATUS_CHANGE_TIMESTAMP_QNAME, hrModifyTsStart, hrModifyTsEnd)
 				.end()
 			.activation()
-				.assertEffectiveStatus(ActivationStatusType.ENABLED)
-				.assertAdministrativeStatus(ActivationStatusType.ENABLED);
+				.assertEffectiveStatus(ActivationStatusType.DISABLED)
+				.assertAdministrativeStatus(ActivationStatusType.DISABLED);
 	}
 	
 	/**
@@ -353,11 +502,9 @@ public class TestDelayedEnable extends AbstractStoryTest {
 	 * prevail now and it should override administrative status.
 	 */
 	@Test
-	public void test130UserMancombRecomputeDay2() throws Exception {
-		final String TEST_NAME = "test130UserMancombRecomputeDay2";
+	public void test132UserMancombRecomputeDay2() throws Exception {
+		final String TEST_NAME = "test132UserMancombRecomputeDay2";
 		displayTestTitle(TEST_NAME);
-		
-		clockForward("P1D");
 		
 		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -371,16 +518,9 @@ public class TestDelayedEnable extends AbstractStoryTest {
 		displayThen(TEST_NAME);
 		assertSuccess(result);
 		
-		assertUserAfter(USER_MANCOMB_OID)
-			.assertName(USER_MANCOMB_USERNAME)
-			.assertSubtype(SUBTYPE_EMPLOYEE)
-			.extension()
-				.assertPropertyValue(EXT_HR_STATUS_QNAME, EXT_HR_STATUS_DISABLED)
-				.assertTimestampBetween(EXT_HR_STATUS_CHANGE_TIMESTAMP_QNAME, hrModifyTsStart, hrModifyTsEnd)
-				.end()
-			.activation()
-				.assertEffectiveStatus(ActivationStatusType.DISABLED)
-				.assertAdministrativeStatus(ActivationStatusType.DISABLED);
+		assertMancombDisabled();
+		
+		assertCounterIncrement(InternalCounters.TRIGGER_FIRED_COUNT, 0);
 	}
 	
 	@Test
@@ -510,6 +650,11 @@ public class TestDelayedEnable extends AbstractStoryTest {
 	private void syncWithHr() throws Exception {
 		restartTask(TASK_DUMMY_HR_OID);		
 		waitForTaskNextRunAssertSuccess(TASK_DUMMY_HR_OID, true);
+	}
+	
+	private void runTriggerScanner() throws Exception {
+		restartTask(TASK_TRIGGER_SCANNER_OID);		
+		waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
 	}
 
 	private DummyResource getDummyResourceHr() {

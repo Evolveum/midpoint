@@ -30,6 +30,8 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
+import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -70,8 +72,7 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(TriggerScannerTaskHandler.class);
 
-	@Autowired
-	private TriggerHandlerRegistry triggerHandlerRegistry;
+	@Autowired private TriggerHandlerRegistry triggerHandlerRegistry;
 
 	public TriggerScannerTaskHandler() {
         super(ObjectType.class, "Trigger scan", OperationConstants.TRIGGER_SCAN);
@@ -218,6 +219,7 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 				return false;
 			} else {
 				try {
+					InternalMonitor.recordCount(InternalCounters.TRIGGER_FIRED_COUNT);
 					handler.handle(object, trigger, workerTask, result);
 					return true;
 					// Properly handle everything that the handler spits out. We do not want this task to die.

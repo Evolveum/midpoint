@@ -273,8 +273,15 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
 	}
 	
 	@Override
-	public ExtensionAsserter<UserType, ? extends  UserAsserter<RA>, RA> extension() {
-		ExtensionAsserter<UserType, ? extends  UserAsserter<RA>, RA> asserter = new ExtensionAsserter<>(this, getDetails());
+	public ExtensionAsserter<UserType, ? extends UserAsserter<RA>, RA> extension() {
+		ExtensionAsserter<UserType, ? extends UserAsserter<RA>, RA> asserter = new ExtensionAsserter<>(this, getDetails());
+		copySetupTo(asserter);
+		return asserter;
+	}
+	
+	@Override
+	public TriggersAsserter<UserType, ? extends UserAsserter<RA>, RA> triggers() {
+		TriggersAsserter<UserType, ? extends UserAsserter<RA>, RA> asserter = new TriggersAsserter<>(this, getDetails());
 		copySetupTo(asserter);
 		return asserter;
 	}
