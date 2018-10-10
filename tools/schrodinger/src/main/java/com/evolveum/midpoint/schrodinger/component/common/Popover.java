@@ -5,7 +5,6 @@ import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
-import org.openqa.selenium.By;
 
 import static com.codeborne.selenide.Selenide.$;
 
@@ -18,14 +17,14 @@ public class Popover<T> extends Component<T> {
     }
 
     public Popover<T> inputValue(String input) {
-        getParentElement().$(Schrodinger.byDataId("textInput")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).setValue(input);
+        getParentElement().$(Schrodinger.byDataId("textInput")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).setValue(input);
 
         return this;
     }
 
     public T updateSearch() {
         getParentElement().$(Schrodinger.byDataId("update")).click();
-        getParentElement().$(Schrodinger.byDataId("update")).waitUntil(Condition.disappears, MidPoint.TIMEOUT_DEFAULT);
+        getParentElement().$(Schrodinger.byDataId("update")).waitUntil(Condition.disappears, MidPoint.TIMEOUT_DEFAULT_2_S);
 
         return this.getParent();
     }

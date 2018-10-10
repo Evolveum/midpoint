@@ -1637,6 +1637,18 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	}
 
 	@Override
+	public void shutdown() {
+		
+		enterModelMethod();
+		
+		provisioning.shutdown();
+		
+//		taskManager.shutdown();
+		
+		exitModelMethod();
+	}
+	
+	@Override
 	public <T extends ObjectType> CompareResultType compareObject(PrismObject<T> provided,
 			Collection<SelectorOptions<GetOperationOptions>> rawReadOptions, ModelCompareOptions compareOptions,
 			@NotNull List<ItemPath> ignoreItems, Task task, OperationResult parentResult)

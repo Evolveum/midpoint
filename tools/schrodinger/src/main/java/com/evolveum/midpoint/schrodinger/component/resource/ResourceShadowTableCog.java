@@ -20,38 +20,38 @@ public class ResourceShadowTableCog<T> extends DropDown<T> {
 
     public T clickEnable() {
         $(Schrodinger.byDataResourceKey("pageContentAccounts.menu.enableAccounts"))
-                .parent().waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+                .parent().waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         return this.getParent();
     }
 
     public T clickDisable() {
         $(Schrodinger.byDataResourceKey("pageContentAccounts.menu.disableAccounts"))
-                .parent().waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+                .parent().waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         return this.getParent();
     }
 
     public ConfirmationModal<T> clickDelete() {
-        $(Schrodinger.byDataResourceKey("pageContentAccounts.menu.deleteAccounts"))
-                .parent().waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+        $(Schrodinger.byDataResourceKey("pageContentAccounts.menu.deleteAccount"))
+                .waitUntil(Condition.exist, MidPoint.TIMEOUT_DEFAULT_2_S).parent().click();
 
         SelenideElement modalBox = $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Confirm deletion"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT);
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
 
         return new ConfirmationModal<>(this.getParent(), modalBox);
     }
 
     public T clickImport() {
         $(Schrodinger.byDataResourceKey("pageContentAccounts.menu.importAccounts"))
-                .parent().waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+                .parent().waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         return this.getParent();
     }
 
     public T clickRemoveOwner() {
         $(Schrodinger.byDataResourceKey("pageContentAccounts.menu.removeOwners"))
-                .parent().waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+                .parent().waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         return this.getParent();
     }

@@ -1,3 +1,6 @@
 username,firstname,lastname,disabled,password
 user01,Firstname,Lastname,false,secret
 user02,Test,Lastname,false,secret
+titian,Tiziano,Vecelli,false,5ecr3t
+administrator,midPoint,Administrator,false,5ecr3t
+John,,,false,
