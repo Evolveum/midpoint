@@ -254,4 +254,11 @@ public class AbstractRoleAsserter<F extends AbstractRoleType, RA> extends FocusA
 		super.assertRoleMemberhipRefs(expected);
 		return this;
 	}
+	
+	@Override
+	public ExtensionAsserter<F, ? extends  AbstractRoleAsserter<F,RA>, RA> extension() {
+		ExtensionAsserter<F, ? extends AbstractRoleAsserter<F,RA>, RA> asserter = new ExtensionAsserter<>(this, getDetails());
+		copySetupTo(asserter);
+		return asserter;
+	}
 }

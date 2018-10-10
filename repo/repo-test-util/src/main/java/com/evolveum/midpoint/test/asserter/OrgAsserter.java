@@ -254,4 +254,11 @@ public class OrgAsserter<RA> extends AbstractRoleAsserter<OrgType,RA> {
 		super.assertRoleMemberhipRefs(expected);
 		return this;
 	}
+	
+	@Override
+	public ExtensionAsserter<OrgType, ? extends OrgAsserter<RA>, RA> extension() {
+		ExtensionAsserter<OrgType, ? extends OrgAsserter<RA>, RA> asserter = new ExtensionAsserter<>(this, getDetails());
+		copySetupTo(asserter);
+		return asserter;
+	}
 }

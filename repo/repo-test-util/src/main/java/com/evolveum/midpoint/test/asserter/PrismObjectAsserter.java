@@ -191,5 +191,11 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
 		}
 		return object;
 	}
+	
+	public ExtensionAsserter<O, ? extends PrismObjectAsserter<O,RA>, RA> extension() {
+		ExtensionAsserter<O, ? extends PrismObjectAsserter<O,RA>, RA> asserter = new ExtensionAsserter<>(this, getDetails());
+		copySetupTo(asserter);
+		return asserter;
+	}
 
 }

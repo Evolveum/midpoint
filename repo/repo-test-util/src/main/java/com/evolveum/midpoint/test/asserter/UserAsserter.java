@@ -271,4 +271,11 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
 		super.assertRoleMemberhipRefs(expected);
 		return this;
 	}
+	
+	@Override
+	public ExtensionAsserter<UserType, ? extends  UserAsserter<RA>, RA> extension() {
+		ExtensionAsserter<UserType, ? extends  UserAsserter<RA>, RA> asserter = new ExtensionAsserter<>(this, getDetails());
+		copySetupTo(asserter);
+		return asserter;
+	}
 }
