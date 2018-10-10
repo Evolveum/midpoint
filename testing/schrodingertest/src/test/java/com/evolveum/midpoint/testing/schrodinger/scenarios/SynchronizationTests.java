@@ -51,7 +51,7 @@ public class SynchronizationTests extends TestBase {
         importObject(OrganizationStructureTests.USER_TEST_RAPHAEL_FILE,true);
 
         changeResourceFilePath(RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME, AccountTests.CSV_SOURCE_OLDVALUE, CSV_TARGET_FILE.getAbsolutePath(), true);
-
+        refreshResourceSchema(RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME);
         ListResourcesPage listResourcesPage = basicPage.listResources();
         listResourcesPage
                 .table()

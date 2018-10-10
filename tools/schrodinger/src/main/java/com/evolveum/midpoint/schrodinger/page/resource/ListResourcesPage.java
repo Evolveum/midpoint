@@ -17,7 +17,7 @@ import static com.codeborne.selenide.Selenide.$;
 public class ListResourcesPage extends BasicPage {
 
     public ResourcesPageTable<ListResourcesPage> table() {
-        SelenideElement table = $(By.cssSelector(".box.boxed-table.object-resource-box")).waitUntil(Condition.exist, MidPoint.TIMEOUT_DEFAULT);
+        SelenideElement table = $(By.cssSelector(".box.boxed-table.object-resource-box")).waitUntil(Condition.exist, MidPoint.TIMEOUT_DEFAULT_2_S);
 
         return new ResourcesPageTable<>(this, table);
     }

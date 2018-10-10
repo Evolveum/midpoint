@@ -21,27 +21,27 @@ public class ResourceAccountsTab<T> extends Component<T> {
 
     public ResourceTaskQuickAccessDropDown<ResourceAccountsTab<T>> importTask() {
         $(Schrodinger.byElementAttributeValue("label", "data-s-id", "label", "Import"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         SelenideElement dropDownElement = $(Schrodinger.byElementAttributeValue("ul", "role", "menu"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT);
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
 
         return new ResourceTaskQuickAccessDropDown<>(this, dropDownElement);
     }
 
     public ResourceTaskQuickAccessDropDown<ResourceAccountsTab<T>> reconciliationTask() {
         $(Schrodinger.byElementAttributeValue("label", "data-s-id", "label", "Reconciliation"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         SelenideElement dropDownElement = $(Schrodinger.byElementAttributeValue("ul", "role", "menu"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT);
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
 
         return new ResourceTaskQuickAccessDropDown<>(this, dropDownElement);
     }
 
     public ResourceTaskQuickAccessDropDown<ResourceAccountsTab<T>> liveSyncTask() {
         $(Schrodinger.byElementValue("label", "data-s-id", "label", "Live Sync"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         ElementsCollection dropDownElement = $$(By.cssSelector(".dropdown-menu.pull-right"));
 
@@ -59,26 +59,26 @@ public class ResourceAccountsTab<T> extends Component<T> {
     public ResourceAccountsTab<T> clickSearchInRepository() {
 
         $(Schrodinger.byDataId("a", "repositorySearch"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         $(Schrodinger.byDataId("a", "repositorySearch"))
-                .waitUntil(Condition.enabled, MidPoint.TIMEOUT_DEFAULT);
+                .waitUntil(Condition.enabled, MidPoint.TIMEOUT_DEFAULT_2_S);
 
         return this;
     }
 
     public ResourceAccountsTab<T> clickSearchInResource() {
         $(Schrodinger.byDataId("a", "resourceSearch"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
         $(Schrodinger.byDataId("a", "resourceSearch"))
-                .waitUntil(Condition.enabled, MidPoint.TIMEOUT_DEFAULT);
+                .waitUntil(Condition.enabled, MidPoint.TIMEOUT_DEFAULT_2_S);
         return this;
     }
 
     public ResourceShadowTable<ResourceAccountsTab<T>> table() {
 
         SelenideElement element = $(By.cssSelector(".box.boxed-table.object-shadow-box"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT);
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
 
         return new ResourceShadowTable<>(this, element);
     }

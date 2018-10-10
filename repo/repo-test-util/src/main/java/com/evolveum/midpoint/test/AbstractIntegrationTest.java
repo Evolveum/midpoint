@@ -126,6 +126,7 @@ import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
+import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -2453,4 +2454,15 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         assertSuccess(result);
 	}
 	
+	protected XMLGregorianCalendar addDuration(XMLGregorianCalendar time, Duration duration) {
+		return XmlTypeConverter.addDuration(time, duration);
+	}
+	
+	protected XMLGregorianCalendar addDuration(XMLGregorianCalendar time, String duration) {
+		return XmlTypeConverter.addDuration(time, duration);
+	}
+	
+	protected void displayCurrentTime() {
+		display("Current time", clock.currentTimeXMLGregorianCalendar());
+	}
 }

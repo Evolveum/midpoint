@@ -33,6 +33,7 @@ import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.repo.common.expression.ValuePolicyResolver;
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.common.expression.ExpressionTestUtil;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.OriginType;
@@ -99,7 +100,8 @@ public class MappingTestEvaluator {
     	prismContext = PrismTestUtil.createInitializedPrismContext();
     	ObjectResolver resolver = new DirectoryFileObjectResolver(MidPointTestConstants.OBJECTS_DIR);
     	protector = ExpressionTestUtil.createInitializedProtector(prismContext);
-    	ExpressionFactory expressionFactory = ExpressionTestUtil.createInitializedExpressionFactory(resolver, protector, prismContext, null, null);
+    	Clock clock = new Clock();
+    	ExpressionFactory expressionFactory = ExpressionTestUtil.createInitializedExpressionFactory(resolver, protector, prismContext, clock, null, null);
 
         mappingFactory = new MappingFactory();
         mappingFactory.setExpressionFactory(expressionFactory);

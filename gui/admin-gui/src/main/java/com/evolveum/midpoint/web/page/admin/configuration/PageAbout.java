@@ -65,6 +65,7 @@ import com.evolveum.midpoint.web.page.login.PageSelfRegistration;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -518,6 +519,7 @@ public class PageAbout extends PageAdminConfiguration {
 
 			});
 
+			
 
             InitialDataImport initialDataImport = new InitialDataImport();
 			initialDataImport.setModel(getModelService());
@@ -525,8 +527,13 @@ public class PageAbout extends PageAdminConfiguration {
 			initialDataImport.setPrismContext(getPrismContext());
 			initialDataImport.setConfiguration(getMidpointConfiguration());
 			initialDataImport.init();
-
+			
+//			getModelInteractionService().refreshPrincipal(SystemObjectsType.USER_ADMINISTRATOR.value());
+			
+			getModelService().shutdown();
+			
 			getModelService().postInit(result);
+			
 
 		} catch (Exception ex) {
         result.recomputeStatus();

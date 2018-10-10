@@ -63,7 +63,9 @@ public enum InternalCounters {
 
 	ROLE_EVALUATION_SKIP_COUNT("roleEvaluationSkipCount", "role evaluation skip count", null),
 
-	PROJECTOR_RUN_COUNT("projectorRunCount", "projector run count", null);
+	PROJECTOR_RUN_COUNT("projectorRunCount", "projector run count", null),
+	
+	TRIGGER_FIRED_COUNT("triggerFiredCount", "trigger fired count", null);
 
 	// Used as localization key
 	private String key;

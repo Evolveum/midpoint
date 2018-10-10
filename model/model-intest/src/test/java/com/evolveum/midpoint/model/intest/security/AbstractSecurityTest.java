@@ -308,23 +308,11 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	protected static final File ROLE_PERSONA_MANAGEMENT_FILE = new File(TEST_DIR, "role-persona-management.xml");
 	protected static final String ROLE_PERSONA_MANAGEMENT_OID = "2f0246f8-30df-11e7-b35b-bbb92a001091";
 
-	protected static final File ROLE_APPROVER_UNASSIGN_ROLES_FILE = new File(TEST_DIR, "role-approver-unassign-roles.xml");
-	protected static final String ROLE_APPROVER_UNASSIGN_ROLES_OID = "5d9cead8-3a2e-11e7-8609-f762a755b58e";
-
 	protected static final File ROLE_ORDINARY_FILE = new File(TEST_DIR, "role-ordinary.xml");
 	protected static final String ROLE_ORDINARY_OID = "7a7ad698-3a37-11e7-9af7-6fd138dd9572";
 
 	protected static final File ROLE_UNINTERESTING_FILE = new File(TEST_DIR, "role-uninteresting.xml");
 	protected static final String ROLE_UNINTERESTING_OID = "2264afee-3ae4-11e7-a63c-8b53efadd642";
-
-	protected static final File ROLE_READ_ROLE_MEMBERS_FILE = new File(TEST_DIR, "role-read-role-members.xml");
-	protected static final String ROLE_READ_ROLE_MEMBERS_OID = "40df00e8-3efc-11e7-8d18-7b955ccb96a1";
-
-	protected static final File ROLE_READ_ROLE_MEMBERS_WRONG_FILE = new File(TEST_DIR, "role-read-role-members-wrong.xml");
-	protected static final String ROLE_READ_ROLE_MEMBERS_WRONG_OID = "8418e248-3efc-11e7-a546-931a90cb8ee3";
-
-	protected static final File ROLE_READ_ROLE_MEMBERS_NONE_FILE = new File(TEST_DIR, "role-read-role-members-none.xml");
-	protected static final String ROLE_READ_ROLE_MEMBERS_NONE_OID = "9e93dfb2-3eff-11e7-b56b-1b0e35f837fc";
 
 	protected static final File ROLE_READ_SELF_MODIFY_ORGUNIT_FILE = new File(TEST_DIR, "role-read-self-modify-orgunit.xml");
 	protected static final String ROLE_READ_SELF_MODIFY_ORGUNIT_OID = "97cc13ac-5660-11e7-8687-d76f3a88c78d";
@@ -352,6 +340,9 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 
 	protected static final File ROLE_END_USER_WITH_PRIVACY_FILE = new File(TEST_DIR, "role-end-user-with-privacy.xml");
 	protected static final String ROLE_END_USER_WITH_PRIVACY_OID = "2abaef72-af5b-11e8-ae9a-b33bc5b8cb74";
+	
+	protected static final File ROLE_APPROVER_UNASSIGN_ROLES_FILE = new File(TEST_DIR, "role-approver-unassign-roles.xml");
+	protected static final String ROLE_APPROVER_UNASSIGN_ROLES_OID = "5d9cead8-3a2e-11e7-8609-f762a755b58e";
 
 	protected static final File ORG_REQUESTABLE_FILE = new File(TEST_DIR,"org-requestable.xml");
 	protected static final String ORG_REQUESTABLE_OID = "8f2bd344-a46c-4c0b-aa34-db08b7d7f7f2";
@@ -387,7 +378,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	protected static final XMLGregorianCalendar JACK_VALID_TO_LONG_AGEAD = XmlTypeConverter.createXMLGregorianCalendar(10000000000000L);
 
 	protected static final int NUMBER_OF_ALL_USERS = 11;
-	protected static final int NUMBER_OF_IMPORTED_ROLES = 71;
+	protected static final int NUMBER_OF_IMPORTED_ROLES = 68;
 	protected static final int NUMBER_OF_ALL_ORGS = 11;
 
 	protected String userRumRogersOid;
@@ -459,12 +450,8 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		repoAddObjectFromFile(ROLE_PERSONA_MANAGEMENT_FILE, initResult);
 		repoAddObjectFromFile(ROLE_END_USER_REQUESTABLE_ABSTACTROLES_FILE, initResult);
 		repoAddObjectFromFile(ROLE_PERSONA_ADMIN_FILE, initResult);
-		repoAddObjectFromFile(ROLE_APPROVER_UNASSIGN_ROLES_FILE, initResult);
 		repoAddObjectFromFile(ROLE_ORDINARY_FILE, initResult);
 		repoAddObjectFromFile(ROLE_UNINTERESTING_FILE, initResult);
-		repoAddObjectFromFile(ROLE_READ_ROLE_MEMBERS_FILE, initResult);
-		repoAddObjectFromFile(ROLE_READ_ROLE_MEMBERS_WRONG_FILE, initResult);
-		repoAddObjectFromFile(ROLE_READ_ROLE_MEMBERS_NONE_FILE, initResult);
 		repoAddObjectFromFile(ROLE_READ_SELF_MODIFY_ORGUNIT_FILE, initResult);
 		repoAddObjectFromFile(ROLE_INDIRECT_PIRATE_FILE, initResult);
 		repoAddObjectFromFile(ROLE_EXPRESSION_READ_ROLES_FILE, initResult);
@@ -473,6 +460,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		repoAddObjectFromFile(ROLE_APPROVER_FILE, initResult);
 		repoAddObjectFromFile(ROLE_ASSIGN_SELF_REQUESTABLE_ANY_APPROVER_FILE, initResult);
 		repoAddObjectFromFile(ROLE_UNASSIGN_SELF_REQUESTABLE_FILE, initResult);
+		repoAddObjectFromFile(ROLE_APPROVER_UNASSIGN_ROLES_FILE, initResult);
 		
 		repoAddObjectFromFile(ORG_REQUESTABLE_FILE, initResult);
 		repoAddObjectFromFile(ORG_INDIRECT_PIRATE_FILE, initResult);

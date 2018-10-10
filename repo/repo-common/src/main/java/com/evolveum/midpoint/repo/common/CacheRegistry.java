@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
 import com.evolveum.midpoint.repo.api.CacheListener;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -48,16 +49,16 @@ public class CacheRegistry implements CacheListener {
 		return cacheableServices;
 	}
 	
-	public void clearAllCaches() {
-		for (Cacheable cacheableService : cacheableServices) {
-			cacheableService.clearCache();
+	@Override
+	public <O extends ObjectType> void invalidateCache(Class<O> type, String oid) {
+		if (FunctionLibraryType.class.equals(type) || SystemConfigurationType.class.equals(type) || ConnectorType.class.equals(type)) {
+			clearAllCaches();
 		}
 	}
 	
-	@Override
-	public <O extends ObjectType> void invalidateCache(Class<O> type, String oid) {
-		if (FunctionLibraryType.class.equals(type) || SystemConfigurationType.class.equals(type)) {
-			clearAllCaches();
+	public void clearAllCaches() {
+		for (Cacheable cacheableService : cacheableServices) {
+			cacheableService.clearCache();
 		}
 	}
 }

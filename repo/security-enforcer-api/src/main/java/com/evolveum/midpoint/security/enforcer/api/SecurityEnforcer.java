@@ -98,6 +98,8 @@ public interface SecurityEnforcer {
 			String limitAuthorizationAction, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
 
 	/**
+	 * Question: does object make any sense here? E.g. when searching role members, the role OID should be determined from the query.
+	 * 
 	 * @param includeSpecial include special authorizations such as "self"
 	 */
 	<T extends ObjectType, O extends ObjectType> boolean canSearch(String[] operationUrls, AuthorizationPhaseType phase,

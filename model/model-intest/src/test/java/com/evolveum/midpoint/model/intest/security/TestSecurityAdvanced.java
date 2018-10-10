@@ -85,9 +85,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyExceptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -109,6 +106,15 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 	
 	protected static final File ROLE_VAULT_DWELLER_FILE = new File(TEST_DIR, "role-vault-dweller.xml");
 	protected static final String ROLE_VAULT_DWELLER_OID = "8d8471f4-2906-11e8-9078-4f2b205aa01d";
+	
+	protected static final File ROLE_READ_ROLE_MEMBERS_FILE = new File(TEST_DIR, "role-read-role-members.xml");
+	protected static final String ROLE_READ_ROLE_MEMBERS_OID = "40df00e8-3efc-11e7-8d18-7b955ccb96a1";
+
+	protected static final File ROLE_READ_ROLE_MEMBERS_WRONG_FILE = new File(TEST_DIR, "role-read-role-members-wrong.xml");
+	protected static final String ROLE_READ_ROLE_MEMBERS_WRONG_OID = "8418e248-3efc-11e7-a546-931a90cb8ee3";
+
+	protected static final File ROLE_READ_ROLE_MEMBERS_NONE_FILE = new File(TEST_DIR, "role-read-role-members-none.xml");
+	protected static final String ROLE_READ_ROLE_MEMBERS_NONE_OID = "9e93dfb2-3eff-11e7-b56b-1b0e35f837fc";
 	
 	protected static final File ROLE_LIMITED_ROLE_ADMINISTRATOR_FILE = new File(TEST_DIR, "role-limited-role-administrator.xml");
 	protected static final String ROLE_LIMITED_ROLE_ADMINISTRATOR_OID = "ce67b472-e5a6-11e7-98c3-174355334559";
@@ -167,11 +173,14 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		repoAddObjectFromFile(ROLE_PROP_SUBTYPE_ESCAPE_FILE, initResult);
 		repoAddObjectFromFile(ROLE_ASSIGN_ORG_FILE, initResult);
 		repoAddObjectFromFile(ROLE_END_USER_WITH_PRIVACY_FILE, initResult);
+		repoAddObjectFromFile(ROLE_READ_ROLE_MEMBERS_FILE, initResult);
+		repoAddObjectFromFile(ROLE_READ_ROLE_MEMBERS_WRONG_FILE, initResult);
+		repoAddObjectFromFile(ROLE_READ_ROLE_MEMBERS_NONE_FILE, initResult);
 
 		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_SECURITY_OID, initResult);
 	}
 	
-	protected static final int NUMBER_OF_IMPORTED_ROLES = 13;
+	protected static final int NUMBER_OF_IMPORTED_ROLES = 16;
 	
 	protected int getNumberOfRoles() {
 		return super.getNumberOfRoles() + NUMBER_OF_IMPORTED_ROLES;

@@ -108,7 +108,55 @@ public class Schrodinger {
         return By.xpath("//" + element + "[@" + attr + "=\"" + attrValue + "\" and ancestor-or-self::*[@" + ancestorAttr + "=\"" + ancestorAttrValue + "\"]]");
     }
 
-    public static By byDescendantOrSelfElementAttributeValue(String element, String attr, String attrValue, String descendantAttr, String descendantAttrValue) {
+    public static By bySelfOrDescendantOfAncestorElementAttributeValue(String element, String attr, String attrValue, String ancestorAttr, String ancestorAttrValue, String ancestorsDescendantAttr, String ancestorsDescendantAttrValue) {
+        if (element == null) {
+            element = "*";
+        }
+        StringBuilder xpathBuilder = new StringBuilder("//").append(element).append("[");
+
+        if(attr!=null){
+            if(!attr.isEmpty()){
+                xpathBuilder.append("@").append(attr).append("=\"").append(attrValue).append("\"");
+            }else{
+
+                xpathBuilder.append("not(@*)");
+            }
+
+        }else{
+            xpathBuilder.append("@").append("*");
+
+        }
+        xpathBuilder.append(" and ancestor-or-self::*[");
+        if(ancestorAttr!=null){
+            if(!ancestorAttr.isEmpty()){
+                xpathBuilder.append("@").append(ancestorAttr).append("=\"").append(ancestorAttrValue).append("\"");
+            }else{
+
+                xpathBuilder.append("not(@*)");
+            }
+
+        }else{
+            xpathBuilder.append("@").append("*");
+
+        }
+        xpathBuilder.append(" and descendant-or-self::*[");
+
+        if(ancestorsDescendantAttr!=null){
+            if(!ancestorsDescendantAttr.isEmpty()){
+                xpathBuilder.append("@").append(ancestorsDescendantAttr).append("=\"").append(ancestorsDescendantAttrValue).append("\"");
+            }else{
+
+                xpathBuilder.append("not(@*)");
+            }
+
+        }else{
+            xpathBuilder.append("@").append("*");
+        }
+
+        return By.xpath(xpathBuilder.append("]]]").toString());
+    }
+
+    public static By bySelfOrDescendantElementAttributeValue(String element, String attr, String attrValue, String descendantAttr, String descendantAttrValue) {
         if (element == null) {
             element = "*";
         }
@@ -132,21 +180,30 @@ public class Schrodinger {
         StringBuilder xpathBuilder = new StringBuilder("//").append(element).append("[");
 
         if (attr != null) {
-            xpathBuilder.append("@").append(attr).append("=\"").append(attrValue).append("\" and preceding-sibling::*[");
+            if (!attr.isEmpty()){
+                xpathBuilder.append("@").append(attr).append("=\"").append(attrValue).append("\" and preceding-sibling::*[");
+
+            }else{
+                xpathBuilder.append("not(@*)").append(" and preceding-sibling::*[");
+            }
         } else {
-            xpathBuilder.append("not(@*)").append(" and preceding-sibling::*[");
+            xpathBuilder.append("@").append("*").append(" and preceding-sibling::*[");
         }
 
         if (siblingAttr != null) {
+            if (!siblingAttr.isEmpty()){
             xpathBuilder.append("@").append(siblingAttr).append("=\"").append(siblingAttrValue).append("\" and descendant-or-self::*[contains(.,\"" + siblingEnclosedText + "\")]]]");
+        }else{
+                xpathBuilder.append("not(@*)").append(" and descendant-or-self::*[contains(.,\"" + siblingEnclosedText + "\")]]]");
+        }
         } else {
-            xpathBuilder.append("not(@*)").append(" and descendant-or-self::*[contains(.,\"" + siblingEnclosedText + "\")]]]");
+            xpathBuilder.append("@").append("*").append(" and descendant-or-self::*[contains(.,\"" + siblingEnclosedText + "\")]]]");
         }
 
         return By.xpath(xpathBuilder.toString());
     }
 
-    public static By byAncestorPrecedingSiblingElementValue(String element, String attr, String attrValue, String ancestorAttr, String ancestorAttrValue, String ancestorEnclosedText) {
+    public static By byAncestorPrecedingSiblingDescendantOrSelfElementEnclosedValue(String element, String attr, String attrValue, String ancestorAttr, String ancestorAttrValue, String ancestorEnclosedText) {
         if (element == null) {
             element = "*";
         }
@@ -169,7 +226,7 @@ public class Schrodinger {
         return By.xpath(xpathBuilder.toString());
     }
 
-    public static By byAncestorFollowingSiblingElementValue(String element, String attr, String attrValue, String ancestorAttr, String ancestorAttrValue, String ancestorEnclosedText) {
+    public static By byAncestorFollowingSiblingDescendantOrSelfElementEnclosedValue(String element, String attr, String attrValue, String ancestorAttr, String ancestorAttrValue, String ancestorEnclosedText) {
         if (element == null) {
             element = "*";
         }

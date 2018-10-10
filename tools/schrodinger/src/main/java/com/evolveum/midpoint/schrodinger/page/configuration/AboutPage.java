@@ -5,8 +5,6 @@ import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.common.ConfirmationModal;
 import com.evolveum.midpoint.schrodinger.component.common.FeedbackBox;
-import com.evolveum.midpoint.schrodinger.component.common.ModalBox;
-import com.evolveum.midpoint.schrodinger.component.common.Popover;
 import com.evolveum.midpoint.schrodinger.component.common.table.ReadOnlyTable;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
 import com.evolveum.midpoint.schrodinger.page.LoginPage;
@@ -129,15 +127,15 @@ public class AboutPage extends BasicPage {
 
 
     public ConfirmationModal<LoginPage> clickSwitchToFactoryDefaults() {
-        $(Schrodinger.byDataResourceKey("PageAbout.button.factoryDefault")).waitUntil(Condition.visible,MidPoint.TIMEOUT_DEFAULT).click();
+        $(Schrodinger.byDataResourceKey("PageAbout.button.factoryDefault")).waitUntil(Condition.visible,MidPoint.TIMEOUT_DEFAULT_2_S).click();
         SelenideElement confirmBox =$(Schrodinger.byElementAttributeValue("div","aria-labelledby","Confirm deletion"))
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT);
+                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
 
         return new ConfirmationModal<>(new LoginPage(),confirmBox);
     }
 
     public String getSystemProperty(String propertyNameUserHome) {
-        SelenideElement propertiesTable = $(Schrodinger.byElementValue("h3","System properties")).waitUntil(Condition.appear,MidPoint.TIMEOUT_DEFAULT).parent().$(By.cssSelector(".table.table-striped"));
+        SelenideElement propertiesTable = $(Schrodinger.byElementValue("h3","System properties")).waitUntil(Condition.appear,MidPoint.TIMEOUT_DEFAULT_2_S).parent().$(By.cssSelector(".table.table-striped"));
 
         ReadOnlyTable readOnlyTable = new ReadOnlyTable(this,propertiesTable);
         return readOnlyTable.getParameterValue(propertyNameUserHome);

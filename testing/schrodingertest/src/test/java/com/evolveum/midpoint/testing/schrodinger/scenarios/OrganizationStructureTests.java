@@ -34,7 +34,7 @@ public class OrganizationStructureTests extends TestBase {
     private static final String NAME_ORG_UNIT_ASSIGN= "P0001";
     private static final String NAME_ORG_UNIT_UNASSIGN= "Save Elaine";
     private static final String NAME_ORG_UNIT_ASSIGN_AND_INDUCE= "testOrgUnit";
-
+    private static final String NAME_CSV_RESOURCE_ADVANCED_SYNC ="CSV (target with groups)";
     private static final String TYPE_SELECTOR_ORG= "Org";
 
     private static final String IMPORT_ORG_STRUCT_DEPENDENCY = "importOrgStructure";
@@ -66,7 +66,7 @@ public class OrganizationStructureTests extends TestBase {
         );
     }
 
-   // @Test (dependsOnMethods ={IMPORT_ORG_STRUCT_DEPENDENCY})
+    @Test (dependsOnMethods ={IMPORT_ORG_STRUCT_DEPENDENCY})
     public void assignOrgUnit(){
          ListUsersPage users = basicPage.listUsers();
             users
@@ -98,7 +98,7 @@ public class OrganizationStructureTests extends TestBase {
 
     }
 
-   // @Test (dependsOnMethods ={ASSIGN_ORG_UNIT_DEPENDENCY})
+    //@Test (dependsOnMethods ={ASSIGN_ORG_UNIT_DEPENDENCY})
     public void unassignOrgUnit(){
         ListUsersPage users = basicPage.listUsers();
             users
@@ -120,13 +120,17 @@ public class OrganizationStructureTests extends TestBase {
                     .isSuccess();
     }
 
-    @Test ///(dependsOnMethods ={ASSIGN_ORG_UNIT_DEPENDENCY})
+    @Test (dependsOnMethods ={ASSIGN_ORG_UNIT_DEPENDENCY})
     public void orgUnitAccountInducement(){
         importObject(CSV_RESOURCE_ADVANCED_SYNC,true);
         importObject(ORG_ACCOUNT_INDUCEMENT_FILE);
         importObject(USER_TEST_RAPHAEL_FILE);
 
+
+
        changeResourceFilePath();
+       refreshResourceSchema(NAME_CSV_RESOURCE_ADVANCED_SYNC);
+
 
          ListUsersPage users = basicPage.listUsers();
             users

@@ -43,6 +43,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -128,6 +129,11 @@ public class FocusAsserter<F extends FocusType,RA> extends PrismObjectAsserter<F
 	@Override
 	public FocusAsserter<F,RA> assertTenantRef(String expectedOid) {
 		super.assertTenantRef(expectedOid);
+		return this;
+	}
+	
+	public FocusAsserter<F,RA> assertLocality(String expectedOrig) {
+		assertPolyStringProperty(OrgType.F_LOCALITY, expectedOrig);
 		return this;
 	}
 	
@@ -307,5 +313,30 @@ public class FocusAsserter<F extends FocusType,RA> extends PrismObjectAsserter<F
 	public FocusAsserter<F,RA> assertAssignments(int expected) {
 		assignments().assertAssignments(expected);
 		return this;
+	}
+	
+	public RoleMembershipRefsAsserter<F, ? extends FocusAsserter<F,RA>, RA> roleMembershipRefs() {
+		RoleMembershipRefsAsserter<F,FocusAsserter<F,RA>,RA> asserter = new RoleMembershipRefsAsserter<>(this, getDetails());
+		copySetupTo(asserter);
+		return asserter;
+	}
+	
+	public FocusAsserter<F,RA> assertRoleMemberhipRefs(int expected) {
+		roleMembershipRefs().assertRoleMemberhipRefs(expected);
+		return this;
+	}
+	
+	@Override
+	public ExtensionAsserter<F, ? extends FocusAsserter<F,RA>, RA> extension() {
+		ExtensionAsserter<F, ? extends FocusAsserter<F,RA>, RA> asserter = new ExtensionAsserter<>(this, getDetails());
+		copySetupTo(asserter);
+		return asserter;
+	}
+	
+	@Override
+	public TriggersAsserter<F, ? extends FocusAsserter<F,RA>, RA> triggers() {
+		TriggersAsserter<F, ? extends FocusAsserter<F,RA>, RA> asserter = new TriggersAsserter<>(this, getDetails());
+		copySetupTo(asserter);
+		return asserter;
 	}
 }

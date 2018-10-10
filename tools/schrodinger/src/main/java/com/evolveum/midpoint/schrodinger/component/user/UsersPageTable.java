@@ -48,7 +48,7 @@ public class UsersPageTable<T> extends TableWithPageRedirect<T> {
     public UserPage clickByName(String name) {
 
         getParentElement().$(Schrodinger.byElementValue("span", "data-s-id", "label", name))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         return new UserPage();
     }
@@ -64,10 +64,10 @@ public class UsersPageTable<T> extends TableWithPageRedirect<T> {
     public ConfirmationModal<UsersPageTable<T>> clickEnable() {
 
         $(Schrodinger.bySelfOrAncestorElementAttributeValue("i", "class", "fa fa-user fa-fw", "data-s-id", "topToolbars"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         SelenideElement actualModal = $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Confirm action"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT);
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
 
         return new ConfirmationModal<>(this, actualModal);
     }
@@ -77,7 +77,7 @@ public class UsersPageTable<T> extends TableWithPageRedirect<T> {
     public UsersPageTable<T> selectAll() {
 
         $(Schrodinger.bySelfOrAncestorElementAttributeValue("input", "type", "checkbox", "data-s-id", "topToolbars"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         return this;
     }
@@ -85,10 +85,10 @@ public class UsersPageTable<T> extends TableWithPageRedirect<T> {
     public UsersTableDropDown<UsersPageTable<T>> clickActionDropDown() {
 
         $(Schrodinger.bySelfOrAncestorElementAttributeValue("button", "data-toggle", "dropdown", "class", "sortableLabel"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         SelenideElement dropDown = $(Schrodinger.byElementAttributeValue("ul", "class", "dropdown-menu pull-right"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT);
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
 
         return new UsersTableDropDown<>(this, dropDown);
 
