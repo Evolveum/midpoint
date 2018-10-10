@@ -29,11 +29,11 @@ public class ListResourcesPage extends BasicPage {
                 .inputValue(resourceName)
                 .updateSearch();
 
-        SelenideElement testConnectionIcon = $(By.cssSelector("fa fa-question fa-fw")).waitUntil(Condition.exist, MidPoint.TIMEOUT_DEFAULT);
+        SelenideElement testConnectionIcon = $(By.cssSelector("fa fa-question fa-fw")).waitUntil(Condition.exist, MidPoint.TIMEOUT_DEFAULT_2_S);
         testConnectionIcon.click();
         SelenideElement testModalBox = $(Schrodinger
                 .byElementAttributeValue("div", "aria-labelledby", "Test connection result(s)"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT);
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
 
         return new TestConnectionModal<>(this, testModalBox);
 
