@@ -39,7 +39,7 @@ public class UserProjectionsTab extends Component<UserPage> {
     public UserProjectionsCog<UserProjectionsTab> clickCog() {
 
         $(Schrodinger.byElementAttributeValue("a", "about", "dropdownMenu"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         SelenideElement dropDownMenu = $(Schrodinger.byElementAttributeValue("ul", "class", "dropdown-menu pull-right"));
 
@@ -55,10 +55,10 @@ public class UserProjectionsTab extends Component<UserPage> {
             public PrismForm<AbstractTable<UserProjectionsTab>> clickByName(String name) {
 
                 $(Schrodinger.byElementValue("span", "data-s-id", "name", name))
-                        .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+                        .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
                 SelenideElement prismElement = $(By.cssSelector(".container-fluid.prism-object"))
-                        .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT);
+                        .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
 
                 return new PrismForm<>(this, prismElement);
             }
@@ -67,7 +67,7 @@ public class UserProjectionsTab extends Component<UserPage> {
             public AbstractTable<UserProjectionsTab> selectCheckboxByName(String name) {
 
                 $(Schrodinger.byFollowingSiblingEnclosedValue("input", "type", "checkbox", "class", "check-table-label", name))
-                        .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+                        .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
                 return this;
             }

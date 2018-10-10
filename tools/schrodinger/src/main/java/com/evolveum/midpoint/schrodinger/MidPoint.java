@@ -18,9 +18,9 @@ public class MidPoint {
 
     private static EnvironmentConfiguration environment;
 
-    public static long TIMEOUT_DEFAULT = 2000;
-    public static long TIMEOUT_MEDIUM = 6000;
-    public static long TIMEOUT_LONG = 60000;
+    public static long TIMEOUT_DEFAULT_2_S = 2000;
+    public static long TIMEOUT_MEDIUM_6_S = 6000;
+    public static long TIMEOUT_LONG_1_M = 60000;
 
     private static final String SCHRODINGER_PROPERTIES = "../../testing/schrodingertest/src/test/resources/configuration/schrodinger.properties";
 
@@ -80,8 +80,6 @@ public class MidPoint {
             baseUrl = schrodingerProperties.getProperty("base_url");
 
             headless = Boolean.valueOf(schrodingerProperties.getProperty("headlessStart"));
-            System.out.println("The headlessStart prop: "+ schrodingerProperties.getProperty("headlessStart"));
-            System.out.println("Headless start ? :" + headless);
         } catch (IOException e) {
             throw new IOException("An exception was thrown during Schrodinger initialization " + e.getLocalizedMessage());
         }

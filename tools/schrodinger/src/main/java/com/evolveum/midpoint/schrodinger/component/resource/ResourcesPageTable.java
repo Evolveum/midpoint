@@ -27,7 +27,7 @@ public class ResourcesPageTable<T> extends TableWithPageRedirect<T> {
     @Override
     public ViewResourcePage clickByName(String name) {
         getParentElement().$(Schrodinger.byElementValue("span", "data-s-id", "label", name))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         return new ViewResourcePage();
     }

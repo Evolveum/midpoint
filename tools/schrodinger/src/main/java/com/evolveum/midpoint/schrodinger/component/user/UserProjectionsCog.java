@@ -21,35 +21,35 @@ public class UserProjectionsCog<T> extends DropDown<T> {
 
     public T enable() {
         $(Schrodinger.byDataResourceKey("pageAdminFocus.button.enable"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         return this.getParent();
     }
 
     public T disable() {
         $(Schrodinger.byDataResourceKey("pageAdminFocus.button.disable"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         return this.getParent();
     }
 
     public T unlink() {
         $(Schrodinger.byDataResourceKey("pageAdminFocus.button.unlink"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         return this.getParent();
     }
 
     public T unlock() {
         $(Schrodinger.byDataResourceKey("pageAdminFocus.button.unlock"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         return this.getParent();
     }
 
     public FocusSetProjectionModal<T> addProjection() {
         $(Schrodinger.byElementValue("a", "data-s-id", "menuItemLink", "\n" +
-                "        Add projection")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+                "        Add projection")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         SelenideElement actualModal = $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Choose object"));
 
@@ -58,10 +58,10 @@ public class UserProjectionsCog<T> extends DropDown<T> {
 
     public ConfirmationModal<UserProjectionsCog<T>> delete() {
         $(Schrodinger.byElementValue("a", "data-s-id", "menuItemLink", "\n" +
-                "        Delete")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+                "        Delete")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         SelenideElement actualModal = $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Confirm deletion"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT);
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
 
         return new ConfirmationModal<>(this, actualModal);
     }

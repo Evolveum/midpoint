@@ -15,21 +15,21 @@ public class QuickSearchDropDown<T> extends DropDown<T> {
     }
 
     public T clickUsers(){
-        $(Schrodinger.byElementAttributeValue("a","value","Users"))
+        $(Schrodinger.byElementValue("a","Users"))
                 .click();
 
         return this.getParent();
     }
 
     public T clickResources(){
-        $(Schrodinger.byElementAttributeValue("a","value","Resources"))
+        $(Schrodinger.byElementValue("a" ,"Resources"))
                 .click();
 
         return this.getParent();
     }
 
     public T clickTasks(){
-        $(Schrodinger.byElementAttributeValue("a","value","Tasks")).
+        $(Schrodinger.byElementValue("a" ,"Tasks")).
                 click();
 
         return this.getParent();

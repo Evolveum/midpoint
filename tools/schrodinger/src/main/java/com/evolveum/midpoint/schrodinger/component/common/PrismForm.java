@@ -56,7 +56,7 @@ public class PrismForm<T> extends Component<T> {
         SelenideElement property = findProperty(protectedAttributeName);
         ElementsCollection values = property.$$(By.xpath(".//input[contains(@class,\"form-control\")]"));
         for (SelenideElement valueElemen : values) {
-            valueElemen.setValue(value);
+            valueElemen.setValue(value).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
         }
 
         return this;
@@ -95,8 +95,8 @@ public class PrismForm<T> extends Component<T> {
     }
 
     public PrismForm<T> showEmptyAttributes(String containerName) {
-        $(Schrodinger.bySelfOrAncestorElementAttributeValue("button", "data-s-id", "showEmptyFields", "data-s-resource-key", containerName))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+        $(Schrodinger.byAncestorPrecedingSiblingDescendantOrSelfElementEnclosedValue("div", "data-s-id", "showEmptyButton", "class", "prism-properties", containerName))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         return this;
     }
@@ -178,11 +178,11 @@ public class PrismForm<T> extends Component<T> {
 
         if (doesElementAttrValueExist) {
             element = $(Schrodinger.byElementAttributeValue(null, "contains",
-                    Schrodinger.DATA_S_QNAME, "#" + name)).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT);
+                    Schrodinger.DATA_S_QNAME, "#" + name)).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
 
         } else {
-            element = $(By.xpath("//span[@data-s-id=\"label\"][contains(.,\"" + name + "\")]/..")).waitUntil(Condition.visible, MidPoint.TIMEOUT_MEDIUM)
-                    .parent().waitUntil(Condition.visible, MidPoint.TIMEOUT_MEDIUM);
+            element = $(By.xpath("//span[@data-s-id=\"label\"][contains(.,\"" + name + "\")]/..")).waitUntil(Condition.visible, MidPoint.TIMEOUT_MEDIUM_6_S)
+                    .parent().waitUntil(Condition.visible, MidPoint.TIMEOUT_MEDIUM_6_S);
         }
 
         return element;
@@ -198,7 +198,7 @@ public class PrismForm<T> extends Component<T> {
         SelenideElement property = findProperty(attributeName);
 
         property.$(By.xpath(".//select[contains(@class,\"form-control\")]"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).selectOption(option);
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).selectOption(option);
 
         return this;
     }
