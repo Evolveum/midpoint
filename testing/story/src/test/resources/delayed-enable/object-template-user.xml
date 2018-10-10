@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<objectTemplate oid="ef638872-cc69-11e8-8ee2-333f3bf7747f"
+   xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+   xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+   xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+   xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+   xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/orgsync/ext">
+    <name>User Template: employee</name>
+    
+	<item>
+		<ref>extension/hrStatusChangeTimestamp</ref>
+		<description>
+			We do not have any change timestamp from the source (HR). Therefore we have to create our own.
+		</description>
+		<mapping>
+	    	<name>usertemplate-hrStatusChangeTimestamp</name>
+	    	<strength>normal</strength>
+	    	<trace>true</trace>
+	    	<source>
+	    		<path>extension/hrStatus</path>
+	    	</source>
+	    	<expression>
+	    		<trace>false</trace>
+	            <script>
+	            	<!-- Normal mappings should be invoked only if the source are changed. But midPoint is not yet completely
+	            	     optimized for this. Therefore in practice we may need to make sure that the HR status has really changed
+	            	     before setting new timestamp. However, the normal mapping seems to work as expected now.
+	            	     If it breaks than this is very likely to tell us that there is a problem. -->
+	            	<code>
+	            		// Pretend that output for old value is null. 
+	            		// Otherwise the script can produce the same value for old and new inputs if those two exections were done
+	            		// during the same millisecond. That midPoint will interpret that as "unchanged" and it will not update the timestamp.
+	            		if (!midpoint.isEvaluateNew()) {
+   							return null;
+   						}
+	            		return basic.currentDateTime()
+	            	</code>
+	            </script>
+	    	</expression>
+	    </mapping>
+	</item>
+
+	<item>
+		<ref>activation/administrativeStatus</ref>
+		<mapping>
+	    	<name>usertemplate-activation-status-weak</name>
+	    	<description>
+	    		Used to set initial (default) value. We want to create users in midPoitn as disabled regardless of their hrStatus.
+	    	</description>
+	    	<strength>weak</strength>
+	    	<expression>
+	            <value>disabled</value>
+	    	</expression>
+	    </mapping>
+		<mapping>
+	    	<name>usertemplate-activation</name>
+	    	<description>
+	    		This is the real heart of the configuration. This mapping will force administrativeStatus value in accord with
+	    		hrStatus. But it is delayed by one day (based on hrStatusChangeTimestamp timestamp).
+	    	</description>
+	    	<strength>strong</strength>
+	    	<source>
+	    		<path>extension/hrStatus</path>
+	    	</source>
+	    	<source>
+	    		<path>extension/hrStatusChangeTimestamp</path>
+	    	</source>
+			<timeFrom>
+				<referenceTime>
+					<path>extension/hrStatusChangeTimestamp</path>
+				</referenceTime>
+				<offset>P1D</offset>
+			</timeFrom>
+	    	<expression>
+	            <script>
+	            	<code>
+	            		import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
+	            		import com.evolveum.midpoint.util.exception.SchemaException
+	            		
+	            		switch (hrStatus) {
+	            			case "enabled":
+	            				return ActivationStatusType.ENABLED
+	            			case "disabled":
+	            				return ActivationStatusType.DISABLED
+	            			case null:
+	            				// also applied for "old" value when adding new object 
+	            				return ActivationStatusType.ENABLED
+	            			default:
+	            				throw new SchemaException("Wrong HR status: "+hrStatus)
+	            		}
+	            	</code>
+	            </script>
+	    	</expression>
+	    </mapping>
+	</item>
+    
+</objectTemplate>

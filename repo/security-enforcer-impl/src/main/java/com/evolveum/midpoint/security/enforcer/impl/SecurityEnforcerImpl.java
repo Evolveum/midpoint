@@ -1121,6 +1121,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		return finalFilter;
 	}
 
+	/**
+	 * Question: does object make any sense here? E.g. when searching role members, the role OID should be determined from the query.
+	 */
 	@Override
 	public <T extends ObjectType, O extends ObjectType> boolean canSearch(String[] operationUrls,
 			AuthorizationPhaseType phase, Class<T> searchResultType, PrismObject<O> object, boolean includeSpecial, ObjectFilter filter, Task task, OperationResult result)

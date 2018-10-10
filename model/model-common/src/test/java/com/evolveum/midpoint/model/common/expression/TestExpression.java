@@ -27,6 +27,7 @@ import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.*;
 
 import org.testng.annotations.BeforeSuite;
@@ -77,7 +78,8 @@ public class TestExpression {
 		prismContext = PrismTestUtil.createInitializedPrismContext();
 		ObjectResolver resolver = new DirectoryFileObjectResolver(MidPointTestConstants.OBJECTS_DIR);
 		ProtectorImpl protector = ExpressionTestUtil.createInitializedProtector(prismContext);
-		expressionFactory = ExpressionTestUtil.createInitializedExpressionFactory(resolver, protector, prismContext, null, null);
+		Clock clock = new Clock();
+		expressionFactory = ExpressionTestUtil.createInitializedExpressionFactory(resolver, protector, prismContext, clock, null, null);
 	}
 
 	@Test
