@@ -30,6 +30,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.factory.GuiComponentRegistry;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.validator.ResourceValidator;
@@ -158,6 +159,7 @@ import org.apache.wicket.resource.CoreLibrariesContributor;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -300,6 +302,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     @SpringBean
     private MidpointFunctions midpointFunctions;
+    
+    @SpringBean private GuiComponentRegistry registry;
 
     private List<Breadcrumb> breadcrumbs;
 
@@ -542,6 +546,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     protected ModelDiagnosticService getModelDiagnosticService() {
         return modelDiagnosticService;
     }
+    
+    public GuiComponentRegistry getRegistry() {
+		return registry;
+	}
 
     public CacheDispatcher getCacheDispatcher() {
         return cacheDispatcher;

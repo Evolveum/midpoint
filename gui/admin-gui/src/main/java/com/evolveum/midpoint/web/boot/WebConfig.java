@@ -27,8 +27,14 @@ import org.springframework.boot.autoconfigure.web.servlet.WebMvcProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.evolveum.midpoint.gui.impl.factory.GuiComponentFactory;
+import com.evolveum.midpoint.gui.impl.factory.GuiComponentRegistry;
+import com.evolveum.midpoint.gui.impl.factory.GuiComponentRegistryImpl;
+import com.evolveum.midpoint.gui.impl.factory.LockoutStatusPanelFactory;
+import com.evolveum.midpoint.gui.impl.factory.TextAreaFactory;
 import com.evolveum.midpoint.web.application.AsyncWebProcessManager;
 import com.evolveum.midpoint.web.application.AsyncWebProcessManagerImpl;
+import com.evolveum.midpoint.web.component.prism.ValueWrapper;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
 import org.springframework.http.CacheControl;
@@ -52,6 +58,21 @@ public class WebConfig {
     @Bean
     public MidpointFormValidatorRegistry midpointFormValidatorRegistry() {
         return new MidpointFormValidatorRegistry();
+    }
+    
+    @Bean
+    public GuiComponentRegistry registry() {
+    	return new GuiComponentRegistryImpl();
+    }
+    
+    @Bean
+    public GuiComponentFactory textAreaFactory() {
+    	return new TextAreaFactory();
+    }
+    
+    @Bean
+    public GuiComponentFactory lockoutStatusFactory() {
+    	return new LockoutStatusPanelFactory();
     }
 
     @Bean

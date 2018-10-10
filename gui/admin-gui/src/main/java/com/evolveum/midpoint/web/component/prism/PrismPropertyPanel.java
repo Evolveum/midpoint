@@ -21,6 +21,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.factory.PrismValuePanel2;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -284,7 +285,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
                     panel = new ExpressionValuePanel("value", new PropertyModel(item.getModel(), "value.value"),
                             expressionWrapper.getConstruction(), pageBase);
                 } else {
-                    panel = new PrismValuePanel("value", item.getModel(), label, form, getValueCssClass(), getInputCssClass());
+                    panel = new PrismValuePanel2("value", item.getModel(), label, form, getValueCssClass(), getInputCssClass());
                 }
                 item.add(panel);
                 item.add(AttributeModifier.append("class", createStyleClassModel(item.getModel())));
