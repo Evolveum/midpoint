@@ -46,10 +46,10 @@ public class UserAssignmentsTab extends Component<UserPage> {
             public PrismFormWithActionButtons<AbstractTableWithPrismView<UserAssignmentsTab>> clickByName(String name) {
 
                 $(Schrodinger.byElementValue("span", "data-s-id", "label", name))
-                        .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+                        .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
                 SelenideElement prismElement = $(Schrodinger.byDataId("div", "assignmentsContainer"))
-                        .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT);
+                        .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
 
                 return new PrismFormWithActionButtons<>(this, prismElement);
             }
@@ -58,7 +58,7 @@ public class UserAssignmentsTab extends Component<UserPage> {
             public AbstractTableWithPrismView<UserAssignmentsTab> selectCheckboxByName(String name) {
 
                 $(Schrodinger.byFollowingSiblingEnclosedValue("td", "class", "check", "data-s-id", "3", name))
-                        .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+                        .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
                 return this;
             }
@@ -66,8 +66,8 @@ public class UserAssignmentsTab extends Component<UserPage> {
             @Override
             public AbstractTableWithPrismView<UserAssignmentsTab> unassignByName(String name) {
 
-                $(Schrodinger.byAncestorPrecedingSiblingElementValue("button", "title", "Unassign", null, null, name))
-                        .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+                $(Schrodinger.byAncestorPrecedingSiblingDescendantOrSelfElementEnclosedValue("button", "title", "Unassign", null, null, name))
+                        .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
                 return this;
             }
@@ -75,11 +75,11 @@ public class UserAssignmentsTab extends Component<UserPage> {
     }
 
     public FocusSetAssignmentsModal<UserAssignmentsTab> clickAddAssignemnt() {
-        $(Schrodinger.byDataId("div", "newAssignmentButton"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+        $(Schrodinger.byDataId("div", "newItemButton"))
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         SelenideElement modalElement = $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Select object(s)"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT);
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
 
         return new FocusSetAssignmentsModal<>(this, modalElement);
     }

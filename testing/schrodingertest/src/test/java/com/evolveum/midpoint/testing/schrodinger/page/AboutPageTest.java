@@ -92,11 +92,11 @@ public class AboutPageTest extends TestBase {
     public void checkReindexRepositoryObjectsDisplayName() {
         Assert.assertEquals(aboutPage
                         .reindexRepositoryObjects()
-                        .feedback()
-                        .clickShowTask()
-                        .and()
-                        .summary()
-                        .fetchDisplayName()
+                            .feedback()
+                                .clickShowTask()
+                                    .and()
+                                        .summary()
+                                        .fetchDisplayName()
                 , REINDEX_REPO_TASK_DISPLAY_NAME_EXPECTED);
     }
 

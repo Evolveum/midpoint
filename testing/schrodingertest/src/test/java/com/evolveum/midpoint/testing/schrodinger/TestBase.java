@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.testing.schrodinger;
 
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.testng.BrowserPerClass;
 import com.evolveum.midpoint.schrodinger.EnvironmentConfiguration;
 import com.evolveum.midpoint.schrodinger.MidPoint;
@@ -42,11 +43,6 @@ import java.lang.reflect.Method;
 @Listeners({BrowserPerClass.class})
 public abstract class TestBase {
 
-    //public static final String BASE_URL = "http://localhost:8080/midpoint";
-
-    //public static final String USERNAME = "administrator";
-    //public static final String PASSWORD = "5ecr3t";
-
     public static final String PROPERTY_NAME_MIDPOINT_HOME = "-Dmidpoint.home";
     public static final String PROPERTY_NAME_USER_HOME = "user.home";
     public static final String PROPERTY_NAME_FILE_SEPARATOR = "file.separator";
@@ -62,7 +58,6 @@ public abstract class TestBase {
     public void beforeClass() throws IOException {
         LOG.info("Starting tests in class {}", getClass().getName());
 
-        //config.baseUrl(BASE_URL);
 
         if (midPoint !=null){
 
@@ -83,10 +78,18 @@ public abstract class TestBase {
     @AfterClass
     public void afterClass() {
         LOG.info("Finished tests from class {}", getClass().getName());
+
+        Selenide.clearBrowserCookies();
+        Selenide.clearBrowserLocalStorage();
+        Selenide.close();
+
+        midPoint.login()
+                .login(midPoint.getUsername(),midPoint.getPassword());
+    System.out.println("After: Login name "+ midPoint.getUsername()+ " pass " +midPoint.getPassword());
         AboutPage aboutPage = basicPage.aboutPage();
                 aboutPage
-                        .clickSwitchToFactoryDefaults();
-                        //.clickYes();
+                        .clickSwitchToFactoryDefaults()
+                        .clickYes();
     }
 
     @BeforeMethod

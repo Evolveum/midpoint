@@ -53,7 +53,7 @@ public class Table<T> extends Component<T> {
     public Table<T> selectAll() {
 
         $(Schrodinger.bySelfOrAncestorElementAttributeValue("input", "type", "checkbox", "data-s-id", "topToolbars"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         return this;
     }
@@ -62,7 +62,7 @@ public class Table<T> extends Component<T> {
 
         // TODO replate catch Throwable with some less generic error
         try {
-            return $(Schrodinger.byElementValue("Span", name)).waitUntil(Condition.visible, MidPoint.TIMEOUT_MEDIUM).is(Condition.visible);
+            return $(Schrodinger.byElementValue("Span", name)).waitUntil(Condition.visible, MidPoint.TIMEOUT_MEDIUM_6_S).is(Condition.visible);
         } catch (Throwable t) {
             return false;
         }

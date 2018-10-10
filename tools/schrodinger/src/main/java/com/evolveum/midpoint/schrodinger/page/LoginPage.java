@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.schrodinger.page;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import org.apache.commons.lang3.Validate;
@@ -40,8 +41,9 @@ public class LoginPage {
 
     public BasicPage login(String username, String password) {
         open("/login");
-        $(By.name("username")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT).setValue(username);
-        $(By.name("password")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT).setValue(password);
+        Selenide.sleep(5000);
+        $(By.name("username")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).setValue(username);
+        $(By.name("password")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).setValue(password);
         $x("//input[@type='submit']").click();
 
         return new BasicPage();

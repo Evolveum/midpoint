@@ -1,11 +1,15 @@
 package com.evolveum.midpoint.schrodinger.page.user;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+import com.evolveum.midpoint.schrodinger.MidPoint;
+import com.evolveum.midpoint.schrodinger.component.common.SummaryPanel;
 import com.evolveum.midpoint.schrodinger.component.common.TabPanel;
 import com.evolveum.midpoint.schrodinger.component.user.*;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
 import com.evolveum.midpoint.schrodinger.page.PreviewPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+import org.openqa.selenium.By;
 
 import static com.codeborne.selenide.Selenide.$;
 import static com.evolveum.midpoint.schrodinger.util.Utils.setOptionChecked;
@@ -21,7 +25,7 @@ public class UserPage extends BasicPage {
     }
 
     public UserPage checkReconcile() {
-        setOptionChecked("executeOptions:reconcileLabel:reconcile", true);
+        setOptionChecked("executeOptions:reconcileContainer:container:check", true);
         return this;
     }
 
@@ -71,7 +75,7 @@ public class UserPage extends BasicPage {
     }
 
     private TabPanel findTabPanel() {
-        SelenideElement tabPanelElement = $(Schrodinger.byDataId("div","tabPanel"));
+        SelenideElement tabPanelElement = $(Schrodinger.byDataId("div", "tabPanel"));
         return new TabPanel<>(this, tabPanelElement);
     }
 
@@ -121,5 +125,23 @@ public class UserPage extends BasicPage {
         SelenideElement element = findTabPanel().clickTab("FocusType.delegatedToMe");
 
         return new UserDelegatedToMeTab(this, element);
+    }
+
+    public SummaryPanel<UserPage> summary() {
+
+        SelenideElement summaryPanel = $(By.cssSelector("div.info-box-content"));
+
+        return new SummaryPanel(this, summaryPanel);
+    }
+
+    public boolean isActivationState(String state) {
+
+        SelenideElement summaryPanel = $(Schrodinger.byDataId("span", "summaryTagLabel")).waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
+
+        if (state != null || !(state.isEmpty())) {
+            return state.equals(summaryPanel.getText());
+        } else {
+            return "".equals(summaryPanel.getText());
+        }
     }
 }
