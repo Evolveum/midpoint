@@ -430,13 +430,6 @@ public class ContextLoader {
             }
         }
 
-		if (context.getFocusTemplate() == null) {
-			PrismObject<ObjectTemplateType> focusTemplate = determineFocusTemplate(context, result);
-			if (focusTemplate != null) {
-				context.setFocusTemplate(focusTemplate.asObjectable());
-			}
-		}
-
 		if (context.getAccountSynchronizationSettings() == null) {
 		    ProjectionPolicyType globalAccountSynchronizationSettings = systemConfigurationType.getGlobalAccountSynchronizationSettings();
 		    LOGGER.trace("Applying globalAccountSynchronizationSettings to context: {}", globalAccountSynchronizationSettings);
@@ -445,29 +438,6 @@ public class ContextLoader {
 
 		loadSecurityPolicy(context, task, result);
 	}
-
-
-    // expects that object policy configuration is already set in focusContext
-	private <F extends ObjectType> PrismObject<ObjectTemplateType> determineFocusTemplate(LensContext<F> context, OperationResult result) throws ObjectNotFoundException, SchemaException, ConfigurationException {
-		LensFocusContext<F> focusContext = context.getFocusContext();
-		if (focusContext == null) {
-			return null;
-		}
-		ObjectPolicyConfigurationType policyConfigurationType = focusContext.getObjectPolicyConfigurationType();
-		if (policyConfigurationType == null) {
-			LOGGER.trace("No default object template (no policy)");
-			return null;
-		}
-		ObjectReferenceType templateRef = policyConfigurationType.getObjectTemplateRef();
-		if (templateRef == null) {
-			LOGGER.trace("No default object template (no templateRef)");
-			return null;
-		}
-
-		PrismObject<ObjectTemplateType> template = cacheRepositoryService.getObject(ObjectTemplateType.class, templateRef.getOid(), null, result);
-	    return template;
-	}
-
 
 	private <F extends FocusType> void loadLinkRefs(LensContext<F> context, Task task, OperationResult result) throws ObjectNotFoundException,
 			SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
