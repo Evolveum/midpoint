@@ -328,7 +328,7 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
 	@NotNull
 	protected LensContext<UserType> createContextForRoleAssignment(String userOid, String roleOid, QName relation,
 			Consumer<AssignmentType> modificationBlock, OperationResult result)
-			throws SchemaException, ObjectNotFoundException, JAXBException {
+			throws SchemaException, ObjectNotFoundException, JAXBException, ConfigurationException {
 		return createContextForAssignment(UserType.class, userOid, RoleType.class, roleOid, relation, modificationBlock, result);
 	}
 
@@ -336,7 +336,7 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
 	protected <F extends FocusType> LensContext<F> createContextForAssignment(Class<F> focusClass, String focusOid,
 			Class<? extends FocusType> targetClass, String targetOid, QName relation,
 			Consumer<AssignmentType> modificationBlock, OperationResult result)
-			throws SchemaException, ObjectNotFoundException, JAXBException {
+			throws SchemaException, ObjectNotFoundException, JAXBException, ConfigurationException {
 		LensContext<F> context = createLensContext(focusClass);
 		fillContextWithFocus(context, focusClass, focusOid, result);
 		QName targetType = prismContext.getSchemaRegistry().determineTypeForClass(targetClass);

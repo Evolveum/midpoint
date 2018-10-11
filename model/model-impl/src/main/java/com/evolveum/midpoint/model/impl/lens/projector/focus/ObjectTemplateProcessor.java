@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -97,6 +97,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocalAutoassignSpeci
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateItemDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingEvaluationPhaseType;
@@ -151,7 +152,7 @@ public class ObjectTemplateProcessor {
     		return;
     	}
 
-    	ObjectTemplateType objectTemplate = context.getFocusTemplate();
+    	ObjectTemplateType objectTemplate = determineFocusTemplate(context, result);
     	String objectTemplateDesc = "(no template)";
 		if (objectTemplate != null) {
 			objectTemplateDesc = objectTemplate.toString();
@@ -214,6 +215,37 @@ public class ObjectTemplateProcessor {
 			}
 		}
 
+	}
+	
+	// expects that object policy configuration is already set in focusContext
+	private <F extends ObjectType> ObjectTemplateType determineFocusTemplate(LensContext<F> context, OperationResult result) throws ObjectNotFoundException, SchemaException, ConfigurationException {
+		
+		if (context.getFocusTemplate() != null) {
+			return context.getFocusTemplate();
+		}
+		
+		LensFocusContext<F> focusContext = context.getFocusContext();
+		if (focusContext == null) {
+			return null;
+		}
+		ObjectPolicyConfigurationType policyConfigurationType = focusContext.getObjectPolicyConfigurationType();
+		if (policyConfigurationType == null) {
+			LOGGER.trace("No default object template (no policy)");
+			return null;
+		}
+		ObjectReferenceType templateRef = policyConfigurationType.getObjectTemplateRef();
+		if (templateRef == null) {
+			LOGGER.trace("No default object template (no templateRef)");
+			return null;
+		}
+
+		PrismObject<ObjectTemplateType> template = cacheRepositoryService.getObject(ObjectTemplateType.class, templateRef.getOid(), null, result);
+		
+		if (template != null) {
+			context.setFocusTemplate(template.asObjectable());
+		}
+		
+	    return template.asObjectable();
 	}
 
 	/**

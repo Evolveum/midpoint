@@ -520,7 +520,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		this.securityPolicy = securityPolicy;
 	}
 
-	public void recompute() throws SchemaException {
+	public void recompute() throws SchemaException, ConfigurationException {
 		PrismObject<O> base = getObjectCurrentOrOld();
     	ObjectDelta<O> delta = getDelta();
         if (delta == null) {
