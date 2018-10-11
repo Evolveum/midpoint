@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,11 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
+import com.evolveum.icf.dummy.resource.ConflictException;
+import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
@@ -37,6 +41,7 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -49,12 +54,14 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.MidPointAsserts;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -83,6 +90,11 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	
 	public static final File TEST_DIR = new File("src/test/resources/orgstruct");
 
+	// RED resource has STRONG mappings
+	protected static final File RESOURCE_DUMMY_ORGTARGET_FILE = new File(TEST_DIR, "resource-dummy-orgtarget.xml");
+	protected static final String RESOURCE_DUMMY_ORGTARGET_OID = "89cb4c72-cd61-11e8-a21b-27cbf58a8c0e";
+	protected static final String RESOURCE_DUMMY_ORGTARGET_NAME = "orgtarget";
+	
     public static final File ROLE_DEFENDER_FILE = new File(TEST_DIR, "role-defender.xml");
     public static final String ROLE_DEFENDER_OID = "12345111-1111-2222-1111-121212111567";
     
@@ -97,6 +109,9 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
     
     public static final File ROLE_META_DEFENDER_ADMIN_FILE = new File(TEST_DIR, "role-meta-defender-admin.xml");
     public static final String ROLE_META_DEFENDER_ADMIN_OID = "12345111-1111-2222-1111-121212111565";
+    
+    public static final File ROLE_END_PIRATE_FILE = new File(TEST_DIR, "role-end-pirate.xml");
+    public static final String ROLE_END_PIRATE_OID = "67780b58-cd69-11e8-b664-dbc7b09e163e";
 
     public static final File ORG_TEMP_FILE = new File(TEST_DIR, "org-temp.xml");
     public static final String ORG_TEMP_OID = "43214321-4311-0952-4762-854392584320";
@@ -112,9 +127,14 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         addObject(ROLE_META_DEFENDER_ADMIN_FILE);
         addObject(ROLE_OFFENDER_FILE);
         addObject(ROLE_OFFENDER_ADMIN_FILE);
+        addObject(ROLE_END_PIRATE_FILE);
         addObject(USER_HERMAN_FILE);
         setDefaultUserTemplate(USER_TEMPLATE_ORG_ASSIGNMENT_OID);       // used for tests 4xx
         //DebugUtil.setDetailedDebugDump(true);
+        
+        initDummyResourcePirate(RESOURCE_DUMMY_ORGTARGET_NAME, 
+        		RESOURCE_DUMMY_ORGTARGET_FILE, RESOURCE_DUMMY_ORGTARGET_OID, initTask, initResult);
+        
     }
 
     @Test
@@ -160,6 +180,32 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         assertMonkeyIslandOrgSanity();
 	}
 	
+	@Test
+    public void test100JackAssignOrgtarget() throws Exception {
+		final String TEST_NAME = "test100JackAssignOrgtarget";
+        displayTestTitle(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // Precondition
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_ORGTARGET_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        
+        // WHEN
+        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_ORGTARGET_OID, null, task, result);
+        
+        // THEN
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User jack after", userJack);
+        assertAccount(userJack, RESOURCE_DUMMY_ORGTARGET_OID);
+        
+        assertJackOrgtarget(null);
+        
+        // Postcondition
+        assertMonkeyIslandOrgSanity();
+	}
+
 	/**
 	 * Scumm bar org also acts as a role, assigning account on dummy resource.
 	 */
@@ -182,7 +228,9 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         display("User jack after", userJack);
         assertUserOrg(userJack, ORG_SCUMM_BAR_OID);
         
-        assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
+        assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_FULL_NAME, true);
+        
+        assertJackOrgtarget(null, ORG_SCUMM_BAR_NAME);
         
         // Postcondition
         assertMonkeyIslandOrgSanity();
@@ -203,6 +251,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User jack after", userJack);
         assertUserNoOrg(userJack);
+        
+        assertJackOrgtarget(null);
         
         // Postcondition
         assertMonkeyIslandOrgSanity();
@@ -234,6 +284,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         display("User jack after", userJack);
         assertUserOrg(userJack, ORG_SCUMM_BAR_OID, ORG_SAVE_ELAINE_OID);
         
+        assertJackOrgtarget(null, ORG_SCUMM_BAR_NAME);
+        
         // Postcondition
         assertMonkeyIslandOrgSanity();
 	}
@@ -257,6 +309,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         display("User jack after", userJack);
         assertUserOrg(userJack, ORG_SCUMM_BAR_OID, ORG_SAVE_ELAINE_OID, ORG_MINISTRY_OF_OFFENSE_OID);
         
+        assertJackOrgtarget(null, ORG_SCUMM_BAR_NAME, ORG_MINISTRY_OF_OFFENSE_NAME);
+        
         // Postcondition
         assertMonkeyIslandOrgSanity();
 	}
@@ -276,6 +330,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User jack after", userJack);
         assertUserOrg(userJack, ORG_SAVE_ELAINE_OID, ORG_MINISTRY_OF_OFFENSE_OID);
+        
+        assertJackOrgtarget(null, ORG_MINISTRY_OF_OFFENSE_NAME);
         
         // Postcondition
         assertMonkeyIslandOrgSanity();
@@ -301,6 +357,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         display("User jack after", userJack);
         assertUserNoOrg(userJack);
         
+        assertNoDummyAccount(RESOURCE_DUMMY_ORGTARGET_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        
         // Postcondition
         assertMonkeyIslandOrgSanity();
 	}
@@ -317,6 +375,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
         modifications.add(createAssignmentModification(ORG_MINISTRY_OF_OFFENSE_OID, OrgType.COMPLEX_TYPE, null, null, null, true));
         modifications.add(createAssignmentModification(ROLE_DEFENDER_OID, RoleType.COMPLEX_TYPE, null, null, null, true));
+        modifications.add(createAssignmentModification(RESOURCE_DUMMY_ORGTARGET_OID, ShadowKindType.ACCOUNT, null, true));
         ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
@@ -328,6 +387,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         display("User jack after", userJack);
         assertAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
         assertHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID, ORG_MINISTRY_OF_DEFENSE_OID);
+        
+        assertJackOrgtarget(null, ORG_MINISTRY_OF_OFFENSE_NAME, ORG_MINISTRY_OF_DEFENSE_NAME);
         
         // Postcondition
         assertMonkeyIslandOrgSanity();
@@ -354,6 +415,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, null);
         assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, null);
         assertHasOrg(userJack, ORG_MINISTRY_OF_DEFENSE_OID, null);
+        
+        assertJackOrgtarget(null, ORG_MINISTRY_OF_OFFENSE_NAME, ORG_MINISTRY_OF_DEFENSE_NAME);
 
         // Postcondition
         assertMonkeyIslandOrgSanity();
@@ -378,6 +441,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         assertHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID, ORG_MINISTRY_OF_DEFENSE_OID);
         assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, SchemaConstants.ORG_MANAGER);
         
+        assertJackOrgtarget(null, ORG_MINISTRY_OF_DEFENSE_NAME);
+        
         // Postcondition
         assertMonkeyIslandOrgSanity();
 	}
@@ -398,6 +463,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         display("User jack after", userJack);
         assertAssignedNoOrg(userJack);
         assertHasOrgs(userJack, ORG_MINISTRY_OF_DEFENSE_OID);
+        
+        assertJackOrgtarget(null, ORG_MINISTRY_OF_DEFENSE_NAME);
         
         // Postcondition
         assertMonkeyIslandOrgSanity();
@@ -421,6 +488,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         assertHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID, ORG_MINISTRY_OF_DEFENSE_OID);
         assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, null);
         assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, null);
+        
+        assertJackOrgtarget(null, ORG_MINISTRY_OF_OFFENSE_NAME, ORG_MINISTRY_OF_DEFENSE_NAME);
 
         // Postcondition
         assertMonkeyIslandOrgSanity();
@@ -453,6 +522,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         assertAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID, ORG_SCUMM_BAR_OID, ORG_SAVE_ELAINE_OID);
         assertHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID, ORG_SCUMM_BAR_OID, ORG_SAVE_ELAINE_OID, ORG_MINISTRY_OF_DEFENSE_OID);
 
+        assertJackOrgtarget(null, ORG_MINISTRY_OF_OFFENSE_NAME, ORG_MINISTRY_OF_DEFENSE_NAME, ORG_SCUMM_BAR_NAME);
+        
         // Postcondition
         assertMonkeyIslandOrgSanity();
     }
@@ -508,6 +579,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         assertHasOrg(userJack, ORG_SCUMM_BAR_OID, null);
         assertAssignedOrg(userJack, ORG_SAVE_ELAINE_OID, null);
         assertHasOrg(userJack, ORG_SAVE_ELAINE_OID, null);
+        
+        assertJackOrgtarget(null, ORG_MINISTRY_OF_DEFENSE_NAME, ORG_SCUMM_BAR_NAME);
 
         // Postcondition
         assertMonkeyIslandOrgSanity();
@@ -537,7 +610,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
         
         assertRefs23x();
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 2);
     }
     
     /**
@@ -568,8 +641,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
         
         assertRefs23x();
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
-        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 4);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 2);
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 5);
     }
     
     /**
@@ -1598,6 +1671,13 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         assertMonkeyIslandOrgSanity();
     }
     
+    
+    /**
+     *  Now let's test working with assignments when there is an object template that prescribes an org assignment
+     *  based on organizationalUnit property.
+     *
+     */
+    
     /**
      * MID-3545
      */
@@ -1709,17 +1789,82 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         assertMonkeyIslandOrgSanity();
     }
     
+    @Test
+    public void test500JackEndPirate() throws Exception {
+        final String TEST_NAME = "test500JackEndPirate";
+        displayTestTitle(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // preconditions
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User before", userBefore);
+        assertNoAssignments(userBefore);
+        assertLinks(userBefore, 0);
+
+        // WHEN
+        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_ORGTARGET_OID, null, task, result);
+        assignOrg(USER_JACK_OID, ORG_SCUMM_BAR_OID, task, result);
+        assignRole(USER_JACK_OID, ROLE_END_PIRATE_OID, task, result);
+
+        // THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User jack after", userJack);
+        assertAssignments(userJack, 3);
+        
+        assertJackOrgtarget(USER_ELAINE_USERNAME, ORG_SCUMM_BAR_NAME);
+
+        // Postcondition
+        assertMonkeyIslandOrgSanity();
+    }
+    
     /**
-     *  Now let's test working with assignments when there is an object template that prescribes an org assignment
-     *  based on organizationalUnit property.
-     *
+     * MID-4934
      */
+    @Test
+    public void test510JackEndPirate() throws Exception {
+        final String TEST_NAME = "test510JackEndPirate";
+        displayTestTitle(TEST_NAME);
+
+        login(USER_JACK_USERNAME);
+        
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        modifyUserChangePassword(USER_JACK_OID, "X.marks.the.SPOT", task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        login(USER_ADMINISTRATOR_USERNAME);
+        
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User jack after", userJack);
+        assertAssignments(userJack, 3);
+        
+        assertJackOrgtarget(USER_ELAINE_USERNAME, ORG_SCUMM_BAR_NAME);
+
+        // Postcondition
+        assertMonkeyIslandOrgSanity();
+    }
+    
+    
 
     @Test
     public void test799DeleteJack() throws Exception {
         final String TEST_NAME = "test799DeleteJack";
         displayTestTitle(TEST_NAME);
 
+        login(USER_ADMINISTRATOR_USERNAME);
+        
         executeDeleteJack(TEST_NAME);
     }
     
@@ -1738,7 +1883,6 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	protected void assertUserNoOrg(PrismObject<UserType> user) throws Exception {
 		assertAssignedNoOrg(user);
         assertHasNoOrg(user);
-        assertAssignments(user, 0);
         assertHasOrgs(user, 0);
 
 	}
@@ -1768,6 +1912,18 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 				}
 			}
 		}
+	}
+	
+	private void assertJackOrgtarget(String expectedShip, String... expectedTitleValues) throws Exception {
+		DummyAccount account = assertDummyAccount(RESOURCE_DUMMY_ORGTARGET_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_FULL_NAME, true);
+		display("orgtarget account", account);
+		String shipAccountValue = account.getAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
+		assertEquals("Jack's ship is wrong", expectedShip, shipAccountValue);
+		Set<String> titleAccountValues = account.getAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, String.class);
+		if (titleAccountValues == null && expectedTitleValues.length == 0) {
+			return;
+		}
+		PrismAsserts.assertEqualsCollectionUnordered("Jack's titles are wrong", titleAccountValues, expectedTitleValues);
 	}
 
 }
