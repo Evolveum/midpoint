@@ -261,4 +261,11 @@ public class OrgAsserter<RA> extends AbstractRoleAsserter<OrgType,RA> {
 		copySetupTo(asserter);
 		return asserter;
 	}
+	
+	@Override
+	public TriggersAsserter<OrgType, ? extends OrgAsserter<RA>, RA> triggers() {
+		TriggersAsserter<OrgType, ? extends OrgAsserter<RA>, RA> asserter = new TriggersAsserter<>(this, getDetails());
+		copySetupTo(asserter);
+		return asserter;
+	}
 }

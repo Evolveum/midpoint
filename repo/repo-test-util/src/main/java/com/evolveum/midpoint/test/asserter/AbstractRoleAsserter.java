@@ -261,4 +261,11 @@ public class AbstractRoleAsserter<F extends AbstractRoleType, RA> extends FocusA
 		copySetupTo(asserter);
 		return asserter;
 	}
+	
+	@Override
+	public TriggersAsserter<F, ? extends AbstractRoleAsserter<F,RA>, RA> triggers() {
+		TriggersAsserter<F, ? extends AbstractRoleAsserter<F,RA>, RA> asserter = new TriggersAsserter<>(this, getDetails());
+		copySetupTo(asserter);
+		return asserter;
+	}
 }

@@ -33,12 +33,6 @@ public class ViewResourcePage extends BasicPage {
         return new ResourceAccountsTab<>(this, tabContent);
     }
 
-    public FeedbackBox<ViewResourcePage> feedback() {
-        SelenideElement feedback = $(By.cssSelector("div.feedbackContainer"));
-
-        return new FeedbackBox<>(this, feedback);
-    }
-
     public ViewResourcePage refreshSchema() {
         $(Schrodinger.byDataResourceKey("a", "pageResource.button.refreshSchema")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 

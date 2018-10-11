@@ -14,9 +14,4 @@ import static com.codeborne.selenide.Selenide.$;
  */
 public class ProgressPage extends BasicPage {
 
-    public FeedbackBox<ProgressPage> feedback() {
-        SelenideElement feedback = $(By.cssSelector("div.feedbackContainer")).waitUntil(Condition.appears, MidPoint.TIMEOUT_LONG_1_M);
-
-        return new FeedbackBox<ProgressPage>(this, feedback);
-    }
 }

@@ -253,4 +253,10 @@ public class RoleAsserter<RA> extends AbstractRoleAsserter<RoleType,RA> {
 		return asserter;
 	}
 	
+	@Override
+	public TriggersAsserter<RoleType, ? extends RoleAsserter<RA>, RA> triggers() {
+		TriggersAsserter<RoleType, ? extends RoleAsserter<RA>, RA> asserter = new TriggersAsserter<>(this, getDetails());
+		copySetupTo(asserter);
+		return asserter;
+	}
 }

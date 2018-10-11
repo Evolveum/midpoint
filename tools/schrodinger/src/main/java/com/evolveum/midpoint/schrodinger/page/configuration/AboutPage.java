@@ -126,12 +126,6 @@ public class AboutPage extends BasicPage {
     }
 
 
-    public FeedbackBox<AboutPage> feedback() {
-        SelenideElement feedback = $(By.cssSelector("div.feedbackContainer"));
-
-        return new FeedbackBox<>(this, feedback);
-    }
-
     public ConfirmationModal<LoginPage> clickSwitchToFactoryDefaults() {
         $(Schrodinger.byDataResourceKey("PageAbout.button.factoryDefault")).waitUntil(Condition.visible,MidPoint.TIMEOUT_DEFAULT_2_S).click();
         SelenideElement confirmBox =$(Schrodinger.byElementAttributeValue("div","aria-labelledby","Confirm deletion"))

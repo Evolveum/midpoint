@@ -157,9 +157,6 @@ public class ImportObjectPage extends BasicPage {
         return this;
     }
 
-    public FeedbackBox<ImportObjectPage> feedback() {
-        SelenideElement feedback = $(By.cssSelector("div.feedbackContainer"));
 
-        return new FeedbackBox<>(this, feedback);
-    }
+
 }

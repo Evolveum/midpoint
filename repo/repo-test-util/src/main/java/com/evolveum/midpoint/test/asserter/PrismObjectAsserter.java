@@ -197,5 +197,11 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
 		copySetupTo(asserter);
 		return asserter;
 	}
+	
+	public TriggersAsserter<O, ? extends PrismObjectAsserter<O,RA>, RA> triggers() {
+		TriggersAsserter<O, ? extends PrismObjectAsserter<O,RA>, RA> asserter = new TriggersAsserter<>(this, getDetails());
+		copySetupTo(asserter);
+		return asserter;
+	}
 
 }
