@@ -23,6 +23,7 @@ import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -127,12 +128,10 @@ public class ContextLoader {
 	
 			if (consistencyChecks) context.checkConsistence();
 	
-			determineFocusContext((LensContext<? extends FocusType>)context, result);
+			determineFocusContext((LensContext<? extends FocusType>)context, task, result);
 	
 			LensFocusContext<F> focusContext = context.getFocusContext();
 	    	if (focusContext != null) {
-				loadObjectCurrent(context, result);
-	
 				context.recomputeFocus();
 	
 				loadFromSystemConfig(context, task, result);
@@ -314,45 +313,15 @@ public class ContextLoader {
 	}
 
 	/**
-	 * try to load focus context from the projections, e.g. by determining account owners
+	 * try to load focus context from oid, delta, projections (e.g. by determining account owners)
+	 * @throws ExpressionEvaluationException 
+	 * @throws SecurityViolationException 
+	 * @throws ConfigurationException 
+	 * @throws CommunicationException 
 	 */
-	public <F extends FocusType> void determineFocusContext(LensContext<F> context,
-			OperationResult result) throws ObjectNotFoundException, SchemaException {
-		if (context.getFocusContext() != null) {
-			// already done
-			return;
-		}
-		String focusOid = null;
-        PrismObject<F> focusObject = null;
-		LensProjectionContext projectionContextThatYeildedFocusOid = null;
-		for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
-			String projectionOid = projectionContext.getOid();
-			if (projectionOid != null) {
-                PrismObject<F> shadowOwner = cacheRepositoryService.searchShadowOwner(projectionOid,
-							SelectorOptions.createCollection(GetOperationOptions.createAllowNotFound()),
-							result);
-				if (shadowOwner != null) {
-					if (focusOid == null || focusOid.equals(shadowOwner.getOid())) {
-						focusOid = shadowOwner.getOid();
-                        focusObject = shadowOwner;
-						projectionContextThatYeildedFocusOid = projectionContext;
-					} else {
-						throw new IllegalArgumentException("The context does not have explicit focus. Attempt to determine focus failed because two " +
-								"projections points to different foci: "+projectionContextThatYeildedFocusOid+"->"+focusOid+"; "+
-								projectionContext+"->"+shadowOwner);
-					}
-				}
-			}
-		}
-		if (focusOid != null) {
-			LensFocusContext<F> focusContext = context.getOrCreateFocusContext(focusObject.getCompileTimeClass());
-			PrismObject<F> object = cacheRepositoryService.getObject(focusContext.getObjectTypeClass(), focusOid, null, result);
-	        focusContext.setLoadedObject(object);
-		}
-	}
 
-	private <F extends ObjectType> void loadObjectCurrent(LensContext<F> context, OperationResult result) throws SchemaException, ObjectNotFoundException {
-		LensFocusContext<F> focusContext = context.getFocusContext();
+	public <O extends ObjectType> void determineFocusContext(LensContext<O> context, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+		LensFocusContext<O> focusContext = context.getFocusContext();
 		if (focusContext == null) {
 			// Nothing to load
 			return;
@@ -363,7 +332,7 @@ public class ContextLoader {
             // already loaded
             return;
         }
-        ObjectDelta<F> objectDelta = focusContext.getDelta();
+        ObjectDelta<O> objectDelta = focusContext.getDelta();
         if (objectDelta != null && objectDelta.isAdd() && focusContext.getExecutedDeltas().isEmpty()) {
             //we're adding the focal object. No need to load it, it is in the delta
         	focusContext.setFresh(true);
@@ -375,21 +344,58 @@ public class ContextLoader {
             return;
         }
 
-        String userOid = focusContext.getOid();
-        if (StringUtils.isBlank(userOid)) {
-        	throw new IllegalArgumentException("No OID in primary focus delta");
+        String focusOid = focusContext.getOid();
+        if (StringUtils.isBlank(focusOid)) {
+        	if (focusContext.canRepresent(FocusType.class)) {
+	        	//try to load from projections
+        		focusOid = determineFocusOidFromProjections((LensContext) context, result);
+    		}
+        	//if still null, throw ex
+        	if (StringUtils.isBlank(focusOid)) {
+        		throw new IllegalArgumentException("No OID in primary focus delta");
+        	}
         }
+        PrismObject<O> object = null;
+        if (ObjectTypes.isClassManagedByProvisioning(focusContext.getObjectTypeClass())) {
+        	object = provisioningService.getObject(focusContext.getObjectTypeClass(), focusOid, SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), task, result);
+        } else {
 
-        // Always load a complete object here, including the not-returned-by-default properties.
-        // This is temporary measure to make sure that the mappings will have all they need.
-        // See MID-2635
-        Collection<SelectorOptions<GetOperationOptions>> options =
-        		SelectorOptions.createCollection(GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
-		PrismObject<F> object = cacheRepositoryService.getObject(focusContext.getObjectTypeClass(), userOid, options, result);
+	        // Always load a complete object here, including the not-returned-by-default properties.
+	        // This is temporary measure to make sure that the mappings will have all they need.
+	        // See MID-2635
+	        Collection<SelectorOptions<GetOperationOptions>> options =
+	        		SelectorOptions.createCollection(GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
+			object = cacheRepositoryService.getObject(focusContext.getObjectTypeClass(), focusOid, options, result);
+        }
+        
         focusContext.setLoadedObject(object);
         focusContext.setFresh(true);
 		LOGGER.trace("Focal object loaded: {}", object);
     }
+
+	private <O extends ObjectType> String determineFocusOidFromProjections(LensContext<O> context, OperationResult result) throws ObjectNotFoundException, SchemaException {
+		String focusOid = null;
+		LensProjectionContext projectionContextThatYeildedFocusOid = null;
+		for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
+			String projectionOid = projectionContext.getOid();
+			if (projectionOid != null) {
+                PrismObject<? extends FocusType> shadowOwner = cacheRepositoryService.searchShadowOwner(projectionOid,
+							SelectorOptions.createCollection(GetOperationOptions.createAllowNotFound()),
+							result);
+				if (shadowOwner != null) {
+					if (focusOid == null || focusOid.equals(shadowOwner.getOid())) {
+						focusOid = shadowOwner.getOid();
+						projectionContextThatYeildedFocusOid = projectionContext;
+					} else {
+						throw new IllegalArgumentException("The context does not have explicit focus. Attempt to determine focus failed because two " +
+								"projections points to different foci: "+projectionContextThatYeildedFocusOid+"->"+focusOid+"; "+
+								projectionContext+"->"+shadowOwner);
+					}
+				}
+			}
+		}
+		return focusOid;
+	}
 
 	private <O extends ObjectType> void setPrimaryDeltaOldValue(LensElementContext<O> ctx) throws SchemaException, ObjectNotFoundException {
 		if (ctx.getPrimaryDelta() != null && ctx.getObjectOld() != null && ctx.isModify()) {
