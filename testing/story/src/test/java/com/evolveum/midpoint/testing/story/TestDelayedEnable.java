@@ -141,6 +141,8 @@ public class TestDelayedEnable extends AbstractStoryTest {
 	XMLGregorianCalendar hrCreateTsEnd;
 	XMLGregorianCalendar hrModifyTsStart;
 	XMLGregorianCalendar hrModifyTsEnd;
+
+	private String userGuybrushOid;
 	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -252,7 +254,7 @@ public class TestDelayedEnable extends AbstractStoryTest {
 			.triggers()
 				.single()
 					.assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
-					.assertTimestampBetween(addDuration(hrCreateTsStart,"P1D"), addDuration(hrCreateTsEnd,"P1D"));
+					.assertTimestampFutureBetween(hrCreateTsStart, hrCreateTsEnd, "P1D");
 	}
 	
 	/**
@@ -624,7 +626,7 @@ public class TestDelayedEnable extends AbstractStoryTest {
 		
 		hrCreateTsEnd = clock.currentTimeXMLGregorianCalendar();
 		
-		assertUserAfterByUsername(ACCOUNT_GUYBRUSH_USERNAME)
+		userGuybrushOid = assertUserAfterByUsername(ACCOUNT_GUYBRUSH_USERNAME)
 			.assertSubtype(SUBTYPE_EMPLOYEE)
 			.extension()
 				.assertPropertyValue(EXT_HR_STATUS_QNAME, EXT_HR_STATUS_ENABLED)
@@ -632,7 +634,15 @@ public class TestDelayedEnable extends AbstractStoryTest {
 				.end()
 			.activation()
 				.assertEffectiveStatus(ActivationStatusType.DISABLED)
-				.assertAdministrativeStatus(ActivationStatusType.DISABLED);
+				.assertAdministrativeStatus(ActivationStatusType.DISABLED)
+				.end()
+			.triggers()
+				.single()
+					.assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
+					.assertTimestampFutureBetween(hrCreateTsStart, hrCreateTsEnd, "P1D")
+					.end()
+				.end()
+			.getOid();
 		
 		assertCounterIncrement(InternalCounters.TRIGGER_FIRED_COUNT, 0);
 	}
