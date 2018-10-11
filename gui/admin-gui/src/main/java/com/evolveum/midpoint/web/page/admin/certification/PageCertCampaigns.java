@@ -1022,15 +1022,14 @@ public class PageCertCampaigns extends PageAdminCertification {
 				getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task,
 						result);
 			} catch (Exception ex) {
-				result.recordPartialError("Couldn't delete campaign.", ex);
+				result.recordPartialError(createStringResource("PageCertCampaigns.message.deleteCampaignsPerformed.partialError").getString(), ex);
 				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete campaign", ex);
 			}
 		}
 
 		result.recomputeStatus();
 		if (result.isSuccess()) {
-			result.recordStatus(OperationResultStatus.SUCCESS,
-					"The campaign(s) have been successfully deleted.");     // todo i18n
+			result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("PageCertCampaigns.message.deleteCampaignsPerformed.success").getString());
 		}
 
 		Table campaignsTable = getCampaignsTable();
@@ -1074,7 +1073,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 						throw new IllegalStateException("Unknown action: " + operationName);
 				}
 			} catch (Exception ex) {
-				result.recordPartialError("Couldn't process campaign.", ex);
+				result.recordPartialError(createStringResource("PageCertCampaigns.message.actOnCampaignsPerformed.partialError").getString(), ex);
 				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't process campaign", ex);
 			}
 		}
@@ -1087,8 +1086,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 
 		result.recomputeStatus();
 		if (result.isSuccess()) {
-			result.recordStatus(OperationResultStatus.SUCCESS,
-					processed + " campaign(s) have been successfully processed.");      // todo i18n
+			result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("PageCertCampaigns.message.actOnCampaignsPerformed.success", processed).getString());
 		}
 		WebComponentUtil.safeResultCleanup(result, LOGGER);
 		showResult(result);
