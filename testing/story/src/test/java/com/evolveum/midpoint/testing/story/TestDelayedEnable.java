@@ -540,16 +540,9 @@ public class TestDelayedEnable extends AbstractStoryTest {
 		displayThen(TEST_NAME);
 		assertSuccess(result);
 		
-		assertUserAfter(USER_MANCOMB_OID)
-			.assertName(USER_MANCOMB_USERNAME)
-			.assertSubtype(SUBTYPE_EMPLOYEE)
-			.extension()
-				.assertPropertyValue(EXT_HR_STATUS_QNAME, EXT_HR_STATUS_DISABLED)
-				.assertTimestampBetween(EXT_HR_STATUS_CHANGE_TIMESTAMP_QNAME, hrModifyTsStart, hrModifyTsEnd)
-				.end()
-			.activation()
-				.assertEffectiveStatus(ActivationStatusType.DISABLED)
-				.assertAdministrativeStatus(ActivationStatusType.DISABLED);
+		assertMancombDisabled();
+		
+		assertCounterIncrement(InternalCounters.TRIGGER_FIRED_COUNT, 0);
 	}
 	
 	/**
@@ -575,16 +568,9 @@ public class TestDelayedEnable extends AbstractStoryTest {
 		displayThen(TEST_NAME);
 		assertSuccess(result);
 		
-		assertUserAfter(USER_MANCOMB_OID)
-			.assertName(USER_MANCOMB_USERNAME)
-			.assertSubtype(SUBTYPE_EMPLOYEE)
-			.extension()
-				.assertPropertyValue(EXT_HR_STATUS_QNAME, EXT_HR_STATUS_DISABLED)
-				.assertTimestampBetween(EXT_HR_STATUS_CHANGE_TIMESTAMP_QNAME, hrModifyTsStart, hrModifyTsEnd)
-				.end()
-			.activation()
-				.assertEffectiveStatus(ActivationStatusType.DISABLED)
-				.assertAdministrativeStatus(ActivationStatusType.DISABLED);
+		assertMancombDisabled();
+		
+		assertCounterIncrement(InternalCounters.TRIGGER_FIRED_COUNT, 0);
 	}
 	
 	// Tests 2xx are testing the whole synchronization stack. Changes are initiated in HR.
@@ -606,6 +592,8 @@ public class TestDelayedEnable extends AbstractStoryTest {
  		assertSuccess(result);
  		
  		waitForTaskStart(TASK_DUMMY_HR_OID, true);
+ 		
+ 		assertCounterIncrement(InternalCounters.TRIGGER_FIRED_COUNT, 0);
 	}
 	
 	@Test
@@ -645,6 +633,8 @@ public class TestDelayedEnable extends AbstractStoryTest {
 			.activation()
 				.assertEffectiveStatus(ActivationStatusType.DISABLED)
 				.assertAdministrativeStatus(ActivationStatusType.DISABLED);
+		
+		assertCounterIncrement(InternalCounters.TRIGGER_FIRED_COUNT, 0);
 	}
 
 	private void syncWithHr() throws Exception {
