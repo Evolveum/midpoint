@@ -73,8 +73,8 @@ public class ClusterCacheListener implements CacheListener {
 	@Override
 	public <O extends ObjectType> void invalidateCache(Class<O> type, String oid) {
 		
-		if (!FunctionLibraryType.class.equals(type) && !SystemConfigurationType.class.equals(type) && !ConnectorType.class.equals(type)) {
-			LOGGER.trace("Type {} not yet supported for cache clearance. Skipping.", type);
+		if (!isSupportedToBeCleared(type, oid)) {
+			LOGGER.trace("Type {} (oid={}) not yet supported for cache clearance. Skipping.", type, oid);
 			return;
 		}
 		

@@ -352,9 +352,7 @@ public interface ModelInteractionService {
 			ExecuteCredentialResetRequestType executeCredentialResetRequest, Task task, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
-	
-	void clearCaches();
-	
+
 	void refreshPrincipal(String oid) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 	
 	List<RelationDefinitionType> getRelationDefinitions();

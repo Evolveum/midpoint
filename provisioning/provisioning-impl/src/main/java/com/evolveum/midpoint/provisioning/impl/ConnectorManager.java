@@ -69,6 +69,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Class that manages the ConnectorType objects in repository.
@@ -620,4 +621,8 @@ public class ConnectorManager implements Cacheable {
 		connectorTypeCache = new ConcurrentHashMap<>();
 	}
 
+	@Override
+	public <O extends ObjectType> boolean supports(Class<O> type, String oid) {
+		return ConnectorType.class.equals(type) && StringUtils.isBlank(oid);
+	}
 }
