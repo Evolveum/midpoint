@@ -64,6 +64,7 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.testing.story.AbstractStoryTest;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -626,7 +627,110 @@ public class TestDelayedEnable extends AbstractStoryTest {
 		
 		hrCreateTsEnd = clock.currentTimeXMLGregorianCalendar();
 		
-		userGuybrushOid = assertUserAfterByUsername(ACCOUNT_GUYBRUSH_USERNAME)
+		userGuybrushOid = assertGuybrushCreated(assertUserAfterByUsername(ACCOUNT_GUYBRUSH_USERNAME))
+				.getOid();
+		
+		assertCounterIncrement(InternalCounters.TRIGGER_FIRED_COUNT, 0);
+	}
+	
+	@Test
+	public void test212HrUserGuybrushSyncAgain() throws Exception {
+		final String TEST_NAME = "test212HrUserGuybrushSyncAgain";
+		displayTestTitle(TEST_NAME);
+		
+		clockForward("PT1H");
+		
+		Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+		// WHEN
+        displayWhen(TEST_NAME);
+        
+        syncWithHr();
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		assertGuybrushCreated(assertUserAfter(userGuybrushOid));
+		
+		assertCounterIncrement(InternalCounters.TRIGGER_FIRED_COUNT, 0);
+	}
+	
+	@Test
+	public void test214HrUserGuybrushRunTriggers() throws Exception {
+		final String TEST_NAME = "test214HrUserGuybrushRunTriggers";
+		displayTestTitle(TEST_NAME);
+		
+		clockForward("PT1H");
+		
+		Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+		// WHEN
+        displayWhen(TEST_NAME);
+        
+        runTriggerScanner();
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		assertGuybrushCreated(assertUserAfter(userGuybrushOid));
+		
+		assertCounterIncrement(InternalCounters.TRIGGER_FIRED_COUNT, 0);
+	}
+	
+	@Test
+	public void test216HrUserGuybrushRecompute() throws Exception {
+		final String TEST_NAME = "test216HrUserGuybrushRecompute";
+		displayTestTitle(TEST_NAME);
+		
+		clockForward("PT1H");
+		
+		Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+		// WHEN
+        displayWhen(TEST_NAME);
+        
+        recomputeUser(userGuybrushOid, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		assertGuybrushCreated(assertUserAfter(userGuybrushOid));
+		
+		assertCounterIncrement(InternalCounters.TRIGGER_FIRED_COUNT, 0);
+	}
+	
+	@Test
+	public void test218HrUserGuybrushReconcile() throws Exception {
+		final String TEST_NAME = "test218HrUserGuybrushReconcile";
+		displayTestTitle(TEST_NAME);
+		
+		clockForward("PT1H");
+		
+		Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+		// WHEN
+        displayWhen(TEST_NAME);
+        
+        reconcileUser(userGuybrushOid, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		assertGuybrushCreated(assertUserAfter(userGuybrushOid));
+		
+		assertCounterIncrement(InternalCounters.TRIGGER_FIRED_COUNT, 0);
+	}
+	
+	private UserAsserter<Void> assertGuybrushCreated(UserAsserter<Void> userAsserter) throws Exception {
+		return userAsserter
 			.assertSubtype(SUBTYPE_EMPLOYEE)
 			.extension()
 				.assertPropertyValue(EXT_HR_STATUS_QNAME, EXT_HR_STATUS_ENABLED)
@@ -641,12 +745,356 @@ public class TestDelayedEnable extends AbstractStoryTest {
 					.assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
 					.assertTimestampFutureBetween(hrCreateTsStart, hrCreateTsEnd, "P1D")
 					.end()
-				.end()
-			.getOid();
+				.end();
+	}
+	
+	@Test
+	public void test220HrUserGuybrushDay1() throws Exception {
+		final String TEST_NAME = "test220HrUserGuybrushDay1";
+		displayTestTitle(TEST_NAME);
+		
+		clockForward("P1D");
+		
+		// WHEN
+        displayWhen(TEST_NAME);
+        
+        runTriggerScanner();
+
+		// THEN
+		displayThen(TEST_NAME);
+		
+		assertGuybrushEnabled();
+		
+		assertCounterIncrement(InternalCounters.TRIGGER_FIRED_COUNT, 1);
+	}
+	
+	@Test
+	public void test222HrUserGuybrushDay1SyncAgain() throws Exception {
+		final String TEST_NAME = "test222HrUserGuybrushDay1SyncAgain";
+		displayTestTitle(TEST_NAME);
+		
+		Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+		// WHEN
+        displayWhen(TEST_NAME);
+        
+        syncWithHr();
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		assertGuybrushEnabled();
 		
 		assertCounterIncrement(InternalCounters.TRIGGER_FIRED_COUNT, 0);
 	}
+	
+	@Test
+	public void test224HrUserGuybrushDay1TriggerScanAgain() throws Exception {
+		final String TEST_NAME = "test224HrUserGuybrushDay1TriggerScanAgain";
+		displayTestTitle(TEST_NAME);
+		
+		clockForward("PT1H");
+		
+		Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
 
+		// WHEN
+        displayWhen(TEST_NAME);
+        
+        runTriggerScanner();
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		assertGuybrushEnabled();
+		
+		assertCounterIncrement(InternalCounters.TRIGGER_FIRED_COUNT, 0);
+	}
+	
+	@Test
+	public void test226HrUserGuybrushDay1Recompute() throws Exception {
+		final String TEST_NAME = "test226HrUserGuybrushDay1Recompute";
+		displayTestTitle(TEST_NAME);
+		
+		Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+		// WHEN
+        displayWhen(TEST_NAME);
+        
+        recomputeUser(userGuybrushOid, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		assertGuybrushEnabled();
+		
+		assertCounterIncrement(InternalCounters.TRIGGER_FIRED_COUNT, 0);
+	}
+	
+	@Test
+	public void test228HrUserGuybrushDay1Reconcile() throws Exception {
+		final String TEST_NAME = "test228HrUserGuybrushDay1Reconcile";
+		displayTestTitle(TEST_NAME);
+		
+		Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+		// WHEN
+        displayWhen(TEST_NAME);
+        
+        reconcileUser(userGuybrushOid, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		assertGuybrushEnabled();
+		
+		assertCounterIncrement(InternalCounters.TRIGGER_FIRED_COUNT, 0);
+	}
+	
+	private void assertGuybrushEnabled() throws Exception {
+		assertUserAfter(userGuybrushOid)
+			.assertSubtype(SUBTYPE_EMPLOYEE)
+			.extension()
+				.assertPropertyValue(EXT_HR_STATUS_QNAME, EXT_HR_STATUS_ENABLED)
+				.assertTimestampBetween(EXT_HR_STATUS_CHANGE_TIMESTAMP_QNAME, hrCreateTsStart, hrCreateTsEnd)
+				.end()
+			.activation()
+				.assertEffectiveStatus(ActivationStatusType.ENABLED)
+				.assertAdministrativeStatus(ActivationStatusType.ENABLED)
+				.end()
+			.triggers()
+				.assertNone();
+	}
+
+	@Test
+	public void test230HrDisableGuybrush() throws Exception {
+		final String TEST_NAME = "test230HrDisableGuybrush";
+		displayTestTitle(TEST_NAME);
+		
+        getDummyResourceHr()
+        	.getAccountByUsername(ACCOUNT_GUYBRUSH_USERNAME)
+        		.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, EXT_HR_STATUS_DISABLED);
+        
+        hrModifyTsStart = clock.currentTimeXMLGregorianCalendar();
+
+		// WHEN
+        displayWhen(TEST_NAME);
+        
+        syncWithHr();
+
+		// THEN
+		displayThen(TEST_NAME);
+		
+		hrModifyTsEnd = clock.currentTimeXMLGregorianCalendar();
+		
+		assertGuybrushHalfDisabled();
+		
+		assertCounterIncrement(InternalCounters.TRIGGER_FIRED_COUNT, 0);
+	}
+	
+	@Test
+	public void test232GuybrushHrSyncAgain() throws Exception {
+		final String TEST_NAME = "test232GuybrushHrSyncAgain";
+		displayTestTitle(TEST_NAME);
+		
+		// WHEN
+        displayWhen(TEST_NAME);
+        
+        syncWithHr();
+
+		// THEN
+		displayThen(TEST_NAME);
+		
+		assertGuybrushHalfDisabled();
+		
+		assertCounterIncrement(InternalCounters.TRIGGER_FIRED_COUNT, 0);
+	}
+	
+	@Test
+	public void test234GuybrushRecompute() throws Exception {
+		final String TEST_NAME = "test232GuybrushHrSyncAgain";
+		displayTestTitle(TEST_NAME);
+		
+		Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        displayWhen(TEST_NAME);
+        
+        recomputeUser(userGuybrushOid, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		assertGuybrushHalfDisabled();
+		
+		assertCounterIncrement(InternalCounters.TRIGGER_FIRED_COUNT, 0);
+	}
+	
+	@Test
+	public void test236GuybrushReconcile() throws Exception {
+		final String TEST_NAME = "test236GuybrushReconcile";
+		displayTestTitle(TEST_NAME);
+		
+		Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        displayWhen(TEST_NAME);
+        
+        reconcileUser(userGuybrushOid, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		assertGuybrushHalfDisabled();
+		
+		assertCounterIncrement(InternalCounters.TRIGGER_FIRED_COUNT, 0);
+	}
+	
+	@Test
+	public void test238GuybrushrunTriggersAgain() throws Exception {
+		final String TEST_NAME = "test238GuybrushrunTriggersAgain";
+		displayTestTitle(TEST_NAME);
+		
+		clockForward("PT1H");
+        
+		// WHEN
+        displayWhen(TEST_NAME);
+        
+        runTriggerScanner();
+
+		// THEN
+		displayThen(TEST_NAME);
+		
+		assertGuybrushHalfDisabled();
+		
+		assertCounterIncrement(InternalCounters.TRIGGER_FIRED_COUNT, 0);
+	}
+	
+	private void assertGuybrushHalfDisabled() throws Exception {
+		assertUserAfter(userGuybrushOid)
+			.assertSubtype(SUBTYPE_EMPLOYEE)
+			.extension()
+				.assertPropertyValue(EXT_HR_STATUS_QNAME, EXT_HR_STATUS_DISABLED)
+				.assertTimestampBetween(EXT_HR_STATUS_CHANGE_TIMESTAMP_QNAME, hrModifyTsStart, hrModifyTsEnd)
+				.end()
+			.activation()
+				.assertEffectiveStatus(ActivationStatusType.ENABLED)
+				.assertAdministrativeStatus(ActivationStatusType.ENABLED)
+				.end()
+			.triggers()
+				.single()
+					.assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
+					.assertTimestampFutureBetween(hrModifyTsStart, hrModifyTsEnd, "P1D");
+	}
+	
+	@Test
+	public void test240HrUserGuybrushDay2() throws Exception {
+		final String TEST_NAME = "test240HrUserGuybrushDay2";
+		displayTestTitle(TEST_NAME);
+		
+		clockForward("P1D");
+		
+		// WHEN
+        displayWhen(TEST_NAME);
+        
+        runTriggerScanner();
+
+		// THEN
+		displayThen(TEST_NAME);
+		
+		assertGuybrushDisabled();
+		
+		assertCounterIncrement(InternalCounters.TRIGGER_FIRED_COUNT, 1);
+	}
+	
+	@Test
+	public void test242GuybrushRecompute() throws Exception {
+		final String TEST_NAME = "test242GuybrushRecompute";
+		displayTestTitle(TEST_NAME);
+		
+		Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        displayWhen(TEST_NAME);
+        
+        recomputeUser(userGuybrushOid, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		assertGuybrushDisabled();
+		
+		assertCounterIncrement(InternalCounters.TRIGGER_FIRED_COUNT, 0);
+	}
+	
+	@Test
+	public void test244GuybrushHrSyncAgain() throws Exception {
+		final String TEST_NAME = "test244GuybrushHrSyncAgain";
+		displayTestTitle(TEST_NAME);
+		
+		// WHEN
+        displayWhen(TEST_NAME);
+        
+        syncWithHr();
+
+		// THEN
+		displayThen(TEST_NAME);
+		
+		assertGuybrushDisabled();
+		
+		assertCounterIncrement(InternalCounters.TRIGGER_FIRED_COUNT, 0);
+	}
+	
+	@Test
+	public void test246GuybrushReconcile() throws Exception {
+		final String TEST_NAME = "test246GuybrushReconcile";
+		displayTestTitle(TEST_NAME);
+		
+		Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        displayWhen(TEST_NAME);
+        
+        reconcileUser(userGuybrushOid, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		assertGuybrushDisabled();
+		
+		assertCounterIncrement(InternalCounters.TRIGGER_FIRED_COUNT, 0);
+	}
+	
+	private void assertGuybrushDisabled() throws Exception {
+		assertUserAfter(userGuybrushOid)
+			.assertSubtype(SUBTYPE_EMPLOYEE)
+			.extension()
+				.assertPropertyValue(EXT_HR_STATUS_QNAME, EXT_HR_STATUS_DISABLED)
+				.assertTimestampBetween(EXT_HR_STATUS_CHANGE_TIMESTAMP_QNAME, hrModifyTsStart, hrModifyTsEnd)
+				.end()
+			.activation()
+				.assertEffectiveStatus(ActivationStatusType.DISABLED)
+				.assertAdministrativeStatus(ActivationStatusType.DISABLED)
+				.end()
+			.triggers()
+				.assertNone();
+	}
+	
 	private void syncWithHr() throws Exception {
 		restartTask(TASK_DUMMY_HR_OID);		
 		waitForTaskNextRunAssertSuccess(TASK_DUMMY_HR_OID, true);
