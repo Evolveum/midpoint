@@ -201,9 +201,15 @@ public class PostInitialDataImport extends DataImport{
     			File folder = new File(postInitialObjectsPath);
     			files = listFiles(folder);
     			sortFiles(files);
-    		}
-    		else {
-        		LOGGER.debug("Directory " + postInitialObjectsPath + " does not exist.");
+    		} else {
+        		LOGGER.info("Directory " + postInitialObjectsPath + " does not exist. Creating.");
+        		File dir = new File(postInitialObjectsPath);
+                if (!dir.exists() || !dir.isDirectory()) {
+                    boolean created = dir.mkdirs();
+                    if (!created) {
+                        LOGGER.error("Unable to create directory " + postInitialObjectsPath + " as user " + System.getProperty("user.name"));
+                    }
+                }
         	}
     	}
     	else {
