@@ -324,7 +324,7 @@ public class ContextLoader {
 		LensFocusContext<O> focusContext = context.getFocusContext();
 		if (focusContext == null) {
 			// Nothing to load
-			return;
+			focusContext = context.getOrCreateFocusContext(context.getFocusClass());
 		}
 		// Make sure that we RELOAD the user object if the context is not fresh
 		// the user may have changed in the meantime
@@ -394,6 +394,7 @@ public class ContextLoader {
 				}
 			}
 		}
+
 		return focusOid;
 	}
 
