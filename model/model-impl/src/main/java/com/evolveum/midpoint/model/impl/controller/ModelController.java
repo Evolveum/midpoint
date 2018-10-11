@@ -621,8 +621,9 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 				}
 			}
 			
+			//TODO do we still need this?
 			if (objectDelta.getObjectTypeClass() == FunctionLibraryType.class) {
-				cacheRegistry.clearAllCaches();
+				cacheRegistry.clearAllCaches(FunctionLibraryType.class, "");
 			}
 
 		}
@@ -1636,6 +1637,18 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		result.cleanupResult();
 	}
 
+	@Override
+	public void shutdown() {
+		
+		enterModelMethod();
+		
+		provisioning.shutdown();
+		
+//		taskManager.shutdown();
+		
+		exitModelMethod();
+	}
+	
 	@Override
 	public <T extends ObjectType> CompareResultType compareObject(PrismObject<T> provided,
 			Collection<SelectorOptions<GetOperationOptions>> rawReadOptions, ModelCompareOptions compareOptions,

@@ -4,6 +4,7 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.LoggedUser;
+import com.evolveum.midpoint.schrodinger.component.common.FeedbackBox;
 import com.evolveum.midpoint.schrodinger.component.configuration.*;
 import com.evolveum.midpoint.schrodinger.page.certification.*;
 import com.evolveum.midpoint.schrodinger.page.configuration.*;
@@ -289,6 +290,12 @@ public class BasicPage {
 
     private void clickConfigurationMenu(String mainMenuKey, String menuItemKey) {
         clickMenuItem("PageAdmin.menu.top.configuration", mainMenuKey, menuItemKey);
+    }
+
+    public FeedbackBox<? extends BasicPage> feedback() {
+        SelenideElement feedback = $(By.cssSelector("div.feedbackContainer")).waitUntil(Condition.appears, MidPoint.TIMEOUT_LONG_1_M);;
+
+        return new FeedbackBox<>(this, feedback);
     }
 
     private void clickMenuItem(String topLevelMenuKey, String mainMenuKey, String menuItemKey) {

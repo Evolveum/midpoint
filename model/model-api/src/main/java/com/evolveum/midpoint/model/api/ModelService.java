@@ -678,6 +678,11 @@ public interface ModelService {
 	 * up.
 	 */
 	void postInit(OperationResult parentResult);
+	
+	/**
+	 *  shutdown model and lower system components
+	 */
+	public void shutdown();
 
 	/**
 	 * TODO

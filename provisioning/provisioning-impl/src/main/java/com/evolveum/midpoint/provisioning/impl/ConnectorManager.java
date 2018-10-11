@@ -25,6 +25,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.annotation.PostConstruct;
+
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import org.apache.commons.lang.StringUtils;
@@ -43,6 +45,8 @@ import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.CacheRegistry;
+import com.evolveum.midpoint.repo.common.Cacheable;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -65,6 +69,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Class that manages the ConnectorType objects in repository.
@@ -76,7 +81,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
  *
  */
 @Component
-public class ConnectorManager {
+public class ConnectorManager implements Cacheable {
 
 	private static final String USER_DATA_KEY_PARSED_CONNECTOR_SCHEMA = ConnectorManager.class.getName()+".parsedSchema";
 
@@ -84,12 +89,15 @@ public class ConnectorManager {
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
 
-	@Autowired(required = true)
-    ApplicationContext springContext;
-
-	@Autowired(required = true)
-	private PrismContext prismContext;
-
+	@Autowired ApplicationContext springContext;
+	@Autowired private PrismContext prismContext;
+	@Autowired CacheRegistry cacheRegistry;
+	
+	@PostConstruct
+	public void register() {
+		cacheRegistry.registerCacheableService(this);
+	}
+	
 	private static final Trace LOGGER = TraceManager.getTrace(ConnectorManager.class);
 
 	private Collection<ConnectorFactory> connectorFactories;
@@ -582,10 +590,14 @@ public class ConnectorManager {
 		}
 	}
 
-	public void shutdown() {
+	public void dispose() {
 		for (Entry<ConfiguredConnectorCacheKey, ConfiguredConnectorInstanceEntry> connectorInstanceCacheEntry: connectorInstanceCache.entrySet()) {
 			connectorInstanceCacheEntry.getValue().connectorInstance.dispose();
 		}
+	}
+	
+	public void shutdown() {
+		dispose();
 		if (connectorFactories != null) {
 			// Skip this in the very rare case that we are shutting down before we were fully
 			// initialized. This should not happen under normal circumstances.
@@ -602,4 +614,15 @@ public class ConnectorManager {
 		void process(ConnectorFactory connectorFactory) throws CommunicationException;
 	}
 
+	@Override
+	public void clearCache() {
+		dispose();
+		connectorInstanceCache = new ConcurrentHashMap<>();
+		connectorTypeCache = new ConcurrentHashMap<>();
+	}
+
+	@Override
+	public <O extends ObjectType> boolean supports(Class<O> type, String oid) {
+		return ConnectorType.class.equals(type) && StringUtils.isBlank(oid);
+	}
 }

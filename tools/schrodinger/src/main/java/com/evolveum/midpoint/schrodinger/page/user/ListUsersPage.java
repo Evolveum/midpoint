@@ -18,10 +18,4 @@ public class ListUsersPage extends BasicPage {
 
         return new UsersPageTable<>(this, box);
     }
-
-    public FeedbackBox<ListUsersPage> feedback() {
-        SelenideElement feedback = $(By.cssSelector("div.feedbackContainer"));
-
-        return new FeedbackBox<>(this, feedback);
-    }
 }

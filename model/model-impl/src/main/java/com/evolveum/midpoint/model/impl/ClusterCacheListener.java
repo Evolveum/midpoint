@@ -48,6 +48,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -72,8 +73,8 @@ public class ClusterCacheListener implements CacheListener {
 	@Override
 	public <O extends ObjectType> void invalidateCache(Class<O> type, String oid) {
 		
-		if (!FunctionLibraryType.class.equals(type) && !SystemConfigurationType.class.equals(type)) {
-			LOGGER.trace("Type {} not yet supported for cache clearance. Skipping.", type);
+		if (!isSupportedToBeCleared(type, oid)) {
+			LOGGER.trace("Type {} (oid={}) not yet supported for cache clearance. Skipping.", type, oid);
 			return;
 		}
 		

@@ -332,4 +332,11 @@ public class FocusAsserter<F extends FocusType,RA> extends PrismObjectAsserter<F
 		copySetupTo(asserter);
 		return asserter;
 	}
+	
+	@Override
+	public TriggersAsserter<F, ? extends FocusAsserter<F,RA>, RA> triggers() {
+		TriggersAsserter<F, ? extends FocusAsserter<F,RA>, RA> asserter = new TriggersAsserter<>(this, getDetails());
+		copySetupTo(asserter);
+		return asserter;
+	}
 }

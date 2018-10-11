@@ -14,12 +14,6 @@ import static com.codeborne.selenide.Selenide.$;
  */
 public class ListTasksPage extends BasicPage {
 
-    public FeedbackBox<ListTasksPage> feedback() {
-        SelenideElement feedback = $(By.cssSelector("div.feedbackContainer"));
-
-        return new FeedbackBox<>(this, feedback);
-    }
-
     public TasksPageTable<ListTasksPage> table() {
         SelenideElement box = $(Schrodinger.byDataId("div", "taskTable"));
 

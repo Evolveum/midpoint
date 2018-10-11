@@ -651,13 +651,13 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		return rottenExecutedDeltas;
 	}
 
-	public void recompute() throws SchemaException {
+	public void recompute() throws SchemaException, ConfigurationException {
 		recomputeFocus();
 		recomputeProjections();
 	}
 
 	// mainly computes new state based on old state and delta(s)
-	public void recomputeFocus() throws SchemaException {
+	public void recomputeFocus() throws SchemaException, ConfigurationException {
 		if (focusContext != null) {
 			focusContext.recompute();
 		}
@@ -769,7 +769,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	 * Cleans up the contexts by removing some of the working state. The current
 	 * wave number is retained. Otherwise it ends up in endless loop.
 	 */
-	public void cleanup() throws SchemaException {
+	public void cleanup() throws SchemaException, ConfigurationException {
 		if (focusContext != null) {
 			focusContext.cleanup();
 		}

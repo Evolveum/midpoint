@@ -63,8 +63,11 @@ import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.page.login.PageSelfRegistration;
 import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -518,15 +521,19 @@ public class PageAbout extends PageAdminConfiguration {
 
 			});
 
-
-            InitialDataImport initialDataImport = new InitialDataImport();
+			InitialDataImport initialDataImport = new InitialDataImport();
 			initialDataImport.setModel(getModelService());
 			initialDataImport.setTaskManager(getTaskManager());
 			initialDataImport.setPrismContext(getPrismContext());
 			initialDataImport.setConfiguration(getMidpointConfiguration());
 			initialDataImport.init();
-
+			
+			getCacheDispatcher().dispatch(ConnectorType.class, "");
+			
+			getModelService().shutdown();
+			
 			getModelService().postInit(result);
+			
 
 		} catch (Exception ex) {
         result.recomputeStatus();
