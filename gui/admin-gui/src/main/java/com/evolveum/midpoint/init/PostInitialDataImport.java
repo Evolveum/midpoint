@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package com.evolveum.midpoint.init;
 import com.evolveum.midpoint.model.api.ScriptExecutionResult;
 import com.evolveum.midpoint.model.api.ScriptingService;
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -53,6 +54,7 @@ public class PostInitialDataImport extends DataImport{
     private static final Trace LOGGER = TraceManager.getTrace(PostInitialDataImport.class);
 
     private static final String SUFFIX_FOR_IMPORTED_FILE = "done";
+    private static final String XML_SUFFIX = "xml";
 
     private ScriptingService scripting;
     
@@ -68,16 +70,20 @@ public class PostInitialDataImport extends DataImport{
         Task task = taskManager.createTaskInstance(OPERATION_INITIAL_OBJECTS_IMPORT);
         task.setChannel(SchemaConstants.CHANNEL_GUI_INIT_URI);
 
-        int countImpotredObjects = 0;
-        int countExecutedScripts = 0;
-
         File[] files = getPostInitialImportObjects();
         LOGGER.debug("Files to be imported: {}.", Arrays.toString(files));
 
         SecurityContext securityContext = provideFakeSecurityContext();
 
+        int countImpotredObjects = 0;
+        int countExecutedScripts = 0;
+        
         for (File file : files) {
         	if(FilenameUtils.getExtension(file.getName()).equals(SUFFIX_FOR_IMPORTED_FILE)) {
+        		continue;
+        	}
+        	if(!FilenameUtils.getExtension(file.getName()).equals(XML_SUFFIX)) {
+        		LOGGER.warn("Post-initial import support only xml files. Actual file: " + file.getName());
         		continue;
         	}
         	Item item = null;
@@ -87,39 +93,34 @@ public class PostInitialDataImport extends DataImport{
 				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't parse file {}", ex, file.getName());
                 mainResult.recordFatalError("Couldn't parse file '" + file.getName() + "'", ex);
 			}
-            if(item instanceof PrismObject) {
-            	try {
-            		LOGGER.debug("Considering post-initial import of file {}.", file.getName());
-            		PrismObject object = (PrismObject)item;
-            		if (ReportType.class.equals(object.getCompileTimeClass())) {
-            			ReportTypeUtil.applyDefinition(object, prismContext);
-            		}
+			
+			if(item instanceof PrismProperty && (((PrismProperty)item).getRealValue() instanceof ScriptingExpressionType || ((PrismProperty)item).getRealValue() instanceof ExecuteScriptType)){
+	        	PrismProperty<Object> expression = (PrismProperty<Object>)item;
+	        	Boolean executeScript = executeScript(expression, file, task, mainResult);
+	        	if (executeScript) {
+	    			file.renameTo(new File(file.getPath() + "." + SUFFIX_FOR_IMPORTED_FILE));
+	    			countExecutedScripts++;
+	    		} else {
+	    			break;
+	    		}
+			} else {
+				try {
+	        		LOGGER.debug("Considering post-initial import of file {}.", file.getName());
 
-            		Boolean importObject = importObject(object, file, task, mainResult);
-            		if (importObject) {
-            			file.renameTo(new File(file.getPath() + "." + SUFFIX_FOR_IMPORTED_FILE));
-            			countImpotredObjects++;
-            		} else {
-            			break;
-            		}
-            	} catch (Exception ex) {
-            		LoggingUtils.logUnexpectedException(LOGGER, "Couldn't import file {}", ex, file.getName());
-            		mainResult.recordFatalError("Couldn't import file '" + file.getName() + "'", ex);
-            	}
-            } else if(item instanceof PrismProperty && (((PrismProperty)item).getRealValue() instanceof ScriptingExpressionType) || ((PrismProperty)item).getRealValue() instanceof ExecuteScriptType){
-            	PrismProperty<Object> expression = (PrismProperty<Object>)item;
-            	Boolean executeScript = executeScript(expression, file, task, mainResult);
-            	if (executeScript) {
-        			file.renameTo(new File(file.getPath() + "." + SUFFIX_FOR_IMPORTED_FILE));
-        			countExecutedScripts++;
-        		} else {
-        			break;
-        		}
-            } else {
-            	mainResult.recordFatalError("\"Provided file" + file.getName() +" is not a bulk action object or prism object.\"");
-            }
+	        		Boolean importObject = importObject(file, task, mainResult);
+	        		if (importObject) {
+	        			file.renameTo(new File(file.getPath() + "." + SUFFIX_FOR_IMPORTED_FILE));
+	        			countImpotredObjects++;
+	        		} else {
+	        			break;
+	        		}
+	        	} catch (Exception ex) {
+	        		LoggingUtils.logUnexpectedException(LOGGER, "Couldn't import file {}", ex, file.getName());
+	        		mainResult.recordFatalError("Couldn't import file '" + file.getName() + "'", ex);
+	        	}
+			}
         }
-
+        
         securityContext.setAuthentication(null);
 
         mainResult.recomputeStatus("Couldn't import objects.");
@@ -129,29 +130,24 @@ public class PostInitialDataImport extends DataImport{
             LOGGER.trace("Initialization status:\n" + mainResult.debugDump());
         }
     }
-
+    
     /**
      * @param object
      * @param task
      * @param mainResult
      * @return true if it was success, otherwise false
      */
-    private <O extends ObjectType> Boolean importObject(PrismObject<O> object, File file, Task task, OperationResult mainResult) {
+    private <O extends ObjectType> Boolean importObject(File file, Task task, OperationResult mainResult) {
         OperationResult result = mainResult.createSubresult(OPERATION_IMPORT_OBJECT);
-        preImportUpdate(object);
-
-        ObjectDelta delta = ObjectDelta.createAddDelta(object);
         try {
        		LOGGER.info("Starting post-initial import of file {}.", file.getName());
        		ImportOptionsType options = new ImportOptionsType();
        		options.overwrite(true);
        		model.importObjectsFromFile(file, options, task, result);
        		result.recordSuccess();
-       		LOGGER.info("Created {} as part of post-initial import", object);
        		return true;
        	} catch (Exception e) {
-       		LoggingUtils.logUnexpectedException(LOGGER, "Couldn't import {} from file {}: ", e, object,
-       				file.getName(), e.getMessage());
+       		LoggingUtils.logUnexpectedException(LOGGER, "Couldn't import object from file {}: ", e, file.getName(), e.getMessage());
        		result.recordFatalError(e);
 
        		LOGGER.info("\n" + result.debugDump());
@@ -201,9 +197,15 @@ public class PostInitialDataImport extends DataImport{
     			File folder = new File(postInitialObjectsPath);
     			files = listFiles(folder);
     			sortFiles(files);
-    		}
-    		else {
-        		LOGGER.debug("Directory " + postInitialObjectsPath + " does not exist.");
+    		} else {
+        		LOGGER.info("Directory " + postInitialObjectsPath + " does not exist. Creating.");
+        		File dir = new File(postInitialObjectsPath);
+                if (!dir.exists() || !dir.isDirectory()) {
+                    boolean created = dir.mkdirs();
+                    if (!created) {
+                        LOGGER.error("Unable to create directory " + postInitialObjectsPath + " as user " + System.getProperty("user.name"));
+                    }
+                }
         	}
     	}
     	else {
@@ -214,13 +216,18 @@ public class PostInitialDataImport extends DataImport{
     
     private File[] listFiles(File folder) {
     	File[] files = folder.listFiles();
+    	File[] retFiles =new File[0];
     	for(File file: files){
+    		if(file.isFile()){
+    			retFiles = (File[])ArrayUtils.add(retFiles, file);
+    			continue;
+    		}
     	    if(file.isDirectory()){
-    	    	files = (File[])ArrayUtils.removeElement(files, file);
-    	    	files = (File[])ArrayUtils.addAll(files, listFiles(file));
+    	    	
+    	    	retFiles = (File[])ArrayUtils.addAll(retFiles, listFiles(file));
     	    }
     	}
-    	return files;
+    	return retFiles;
     }
     
     private boolean checkDirectoryExistence(String dir) {
