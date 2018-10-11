@@ -15,7 +15,14 @@
  */
 package com.evolveum.midpoint.repo.common;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 public interface Cacheable {
 
 	void clearCache();
+	
+	default <O extends ObjectType> boolean supports(Class<O> type, String oid) {
+		return true;
+	}
+
 }

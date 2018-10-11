@@ -621,8 +621,9 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 				}
 			}
 			
+			//TODO do we still need this?
 			if (objectDelta.getObjectTypeClass() == FunctionLibraryType.class) {
-				cacheRegistry.clearAllCaches();
+				cacheRegistry.clearAllCaches(FunctionLibraryType.class, "");
 			}
 
 		}
