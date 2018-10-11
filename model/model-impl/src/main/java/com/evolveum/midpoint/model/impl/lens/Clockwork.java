@@ -425,7 +425,7 @@ public class Clockwork {
 			// We need to determine focus before auditing. Otherwise we will not know user
 			// for the accounts (unless there is a specific delta for it).
 			// This is ugly, but it is the easiest way now (TODO: cleanup).
-			contextLoader.determineFocusContext((LensContext<? extends FocusType>) context, result);
+			contextLoader.determineFocusContext((LensContext<? extends FocusType>) context, task, result);
 
 			ModelState state = context.getState();
 			if (state == ModelState.INITIAL) {
