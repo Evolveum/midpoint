@@ -101,6 +101,7 @@
 			</attribute>
 			<attribute>
 				<ref>ri:title</ref>
+				<tolerant>false</tolerant>
 				<outbound>
 					<strength>strong</strength>
 					<expression>
@@ -119,6 +120,7 @@
 			</attribute>
 			<attribute>
 				<ref>ri:ship</ref>
+				<tolerant>false</tolerant>
 				<outbound>
 					<name>orgtarget-ship</name>
 					<strength>strong</strength>
