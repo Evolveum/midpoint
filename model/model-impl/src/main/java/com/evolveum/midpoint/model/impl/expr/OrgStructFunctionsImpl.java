@@ -23,7 +23,9 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -345,7 +347,8 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
         if (preAuthorized) {
             prismObject = repositoryService.getObject(type, oid, null, getCurrentResult());
         } else {
-            prismObject = modelService.getObject(type, oid, null, getCurrentTask(), getCurrentResult());
+        	Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createExecutionPhase());
+			prismObject = modelService.getObject(type, oid, options, getCurrentTask(), getCurrentResult());
         }
         return prismObject.asObjectable();
     }
@@ -356,7 +359,8 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
             return repositoryService.searchObjects(clazz, query, null, result);
         } else {
             try {
-                return modelService.searchObjects(clazz, query, null, getCurrentTask(), result);
+            	Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createExecutionPhase());
+                return modelService.searchObjects(clazz, query, options, getCurrentTask(), result);
             } catch (ObjectNotFoundException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
                 throw new SystemException("Couldn't search objects: " + e.getMessage(), e);
             }

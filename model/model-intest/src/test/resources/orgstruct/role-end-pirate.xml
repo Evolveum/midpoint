@@ -185,7 +185,7 @@
             Authorization to read users in execution phase (paperless manager remove when changed password).
         </description>
       <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-      <!-- This needs to be both request and execution authorization in 3.6. -->
+      <phase>execution</phase> <!-- MID-4934 -->
       <object>
          <type>UserType</type>
       </object>

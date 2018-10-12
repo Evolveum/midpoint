@@ -791,15 +791,15 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         }
 		result.addArbitraryObjectAsParam("searchProvider", searchProvider);
 
-		query = preProcessQuerySecurity(type, query, task, result);
-		if (isFilterNone(query, result)) {
+		ObjectQuery processedQuery = preProcessQuerySecurity(type, query, rootOptions, task, result);
+		if (isFilterNone(processedQuery, result)) {
 			return new SearchResultList<>(new ArrayList<>());
 		}
 
 		SearchResultList<PrismObject<T>> list;
 		try {
 			enterModelMethod();
-			logQuery(query);
+			logQuery(processedQuery);
 
 			try {
                 if (GetOperationOptions.isRaw(rootOptions)) {       // MID-2218
@@ -807,16 +807,16 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                 }
                 switch (searchProvider) {
 	                case EMULATED: 
-	                	list = emulatedSearchProvider.searchObjects(type, query, options, result);
+	                	list = emulatedSearchProvider.searchObjects(type, processedQuery, options, result);
 	                	break;
                     case REPOSITORY: 
-                    	list = cacheRepositoryService.searchObjects(type, query, options, result);
+                    	list = cacheRepositoryService.searchObjects(type, processedQuery, options, result);
                     	break;
                     case PROVISIONING: 
-                    	list = provisioning.searchObjects(type, query, options, task, result); 
+                    	list = provisioning.searchObjects(type, processedQuery, options, task, result); 
                     	break;
                     case TASK_MANAGER:
-						list = taskManager.searchObjects(type, query, options, result);
+						list = taskManager.searchObjects(type, processedQuery, options, result);
 						if (workflowManager != null && TaskType.class.isAssignableFrom(type) && !GetOperationOptions.isRaw(rootOptions) && !GetOperationOptions.isNoFetch(rootOptions)) {
 							workflowManager.augmentTaskObjectList(list, options, task, result);
 						}
@@ -1133,7 +1133,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         }
 		result.addArbitraryObjectAsParam("searchProvider", searchProvider);
 		
-		ObjectQuery processedQuery = preProcessQuerySecurity(type, query, task, result);
+		ObjectQuery processedQuery = preProcessQuerySecurity(type, query, rootOptions, task, result);
 		if (isFilterNone(processedQuery, result)) {
 			LOGGER.trace("Skipping search because filter is NONE");
 			return null;
@@ -1224,18 +1224,18 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		OperationResult result = parentResult.createMinorSubresult(COUNT_OBJECTS);
 		result.addParam(OperationResult.PARAM_QUERY, query);
 
-		query = preProcessQuerySecurity(type, query, task, result);
-		if (isFilterNone(query, result)) {
-			LOGGER.trace("Skipping count because filter is NONE");
-			return 0;
-		}
-
 		Integer count;
 		try {
 			enterModelMethod();
 
 			Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, result);
 			GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+			
+			ObjectQuery processedQuery = preProcessQuerySecurity(type, query, rootOptions, task, result);
+			if (isFilterNone(processedQuery, result)) {
+				LOGGER.trace("Skipping count because filter is NONE");
+				return 0;
+			}
 
             ObjectTypes.ObjectManager objectManager = ObjectTypes.getObjectManagerForClass(type);
             if (GetOperationOptions.isRaw(rootOptions) || objectManager == null || objectManager == ObjectTypes.ObjectManager.MODEL) {
@@ -1243,13 +1243,13 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             }
             switch (objectManager) {
                 case PROVISIONING:
-                	count = provisioning.countObjects(type, query, options, task, parentResult);
+                	count = provisioning.countObjects(type, processedQuery, options, task, parentResult);
                 	break;
                 case REPOSITORY: 
-                	count = cacheRepositoryService.countObjects(type, query, options, parentResult);
+                	count = cacheRepositoryService.countObjects(type, processedQuery, options, parentResult);
                 	break;
                 case TASK_MANAGER:
-                	count = taskManager.countObjects(type, query, parentResult);
+                	count = taskManager.countObjects(type, processedQuery, parentResult);
                 	break;
                 default: throw new AssertionError("Unexpected objectManager: " + objectManager);
             }
@@ -1814,12 +1814,16 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		}
 	}
 
-	private <O extends ObjectType> ObjectQuery preProcessQuerySecurity(Class<O> objectType, ObjectQuery origQuery, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+	private <O extends ObjectType> ObjectQuery preProcessQuerySecurity(Class<O> objectType, ObjectQuery origQuery, GetOperationOptions rootOptions, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
     	ObjectFilter origFilter = null;
     	if (origQuery != null) {
     		origFilter = origQuery.getFilter();
     	}
-		ObjectFilter secFilter = securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.AUTZ_ACTIONS_URLS_SEARCH, null, objectType, null, origFilter, null, task, result);
+		AuthorizationPhaseType phase = null;
+		if (GetOperationOptions.isExecutionPhase(rootOptions)) {
+			phase = AuthorizationPhaseType.EXECUTION;
+		}
+		ObjectFilter secFilter = securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.AUTZ_ACTIONS_URLS_SEARCH, phase, objectType, null, origFilter, null, task, result);
 		return updateObjectQuery(origQuery, secFilter);
 	}
 	
