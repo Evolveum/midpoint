@@ -1,0 +1,204 @@
+<!--
+  ~ Copyright (c) 2018 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<role oid="67780b58-cd69-11e8-b664-dbc7b09e163e"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>End Pirate</name>
+    <description>Modified/simplified end user role</description>
+    <authorization id="0">
+      <name>admin-gui-self-home</name>
+      <description>
+            Allow access to self-service home in GUI.
+        </description>
+      <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfDashboard</action>
+   </authorization>
+   <authorization id="1">
+      <name>gui-self-service-access-credentials</name>
+      <description>
+            Allow access to self-service operation credentials in GUI.
+        </description>
+      <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfCredentials</action>
+   </authorization>
+   <authorization id="2">
+      <name>self-read</name>
+      <description>
+            Allow to read all the properties of "self" object. I.e. every logged-in user can read
+            object that represent his own identity.
+        </description>
+      <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+      <object>
+         <special>self</special>
+      </object>
+   </authorization>
+   <authorization id="3">
+      <name>self-shadow-read</name>
+      <description>
+            Allow to read all the properties of all the shadows that belong to "self" object.
+            I.e. every logged-in user can read all his accounts.
+        </description>
+      <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+      <object>
+         <type>ShadowType</type>
+         <owner>
+            <special>self</special>
+         </owner>
+      </object>
+   </authorization>
+   <authorization id="4">
+      <name>self-credentials-request</name>
+      <description>
+            Allow to modify user's own credentials.
+            Note that this is a request phase authorization. It also requires corresponding execution-phase authorization.
+        </description>
+      <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#changeCredentials</action>
+      <phase>request</phase>
+      <object>
+         <special>self</special>
+      </object>
+      <item>credentials</item>
+   </authorization>
+   <authorization id="5">
+      <name>self-shadow-credentials-request</name>
+      <description>
+            Allow to modify credentials of all users accounts.
+            Note that this is a request phase authorization. It also requires corresponding execution-phase authorization.
+        </description>
+      <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#changeCredentials</action>
+      <phase>request</phase>
+      <object>
+         <type>ShadowType</type>
+         <owner>
+            <special>self</special>
+         </owner>
+      </object>
+      <item>credentials</item>
+   </authorization>
+   <authorization id="7">
+      <name>self-execution-modify</name>
+      <description>
+            Authorization that allows to self-modification of some properties, but only in execution phase.
+            The limitation real limitation of these operations is done in the request phase.
+            E.g. the modification of assignments is controlled in the request phase by using the #assign
+            authorization.
+        </description>
+      <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+      <phase>execution</phase>
+      <object>
+         <special>self</special>
+      </object>
+      <item>credentials</item>
+      <item>assignment</item>
+      <item>parentOrgRef</item>
+      <item>roleMembershipRef</item>
+   </authorization>
+   <authorization id="8">
+      <name>self-shadow-execution-add-modify-delete</name>
+      <description>
+            Authorization that allows to self-modification of user's accounts, but only in execution phase.
+            The real limitation of these operations is done in the request phase.
+        </description>
+      <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
+      <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+      <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delete</action>
+      <phase>execution</phase>
+      <object>
+         <type>ShadowType</type>
+         <owner>
+            <special>self</special>
+         </owner>
+      </object>
+   </authorization>
+   <authorization id="9">
+      <name>assignment-target-read</name>
+      <description>
+            Authorization that allows to read all the object that are possible assignment targets. We want that
+            to display the targets in the selection windows.
+            Note that this authorization may be too broad for production use. Normally it should be limited to just
+            selected properties such as name and description.
+        </description>
+      <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+      <object>
+         <type>OrgType</type>
+      </object>
+      <object>
+         <type>ResourceType</type>
+      </object>
+      <object>
+         <type>RoleType</type>
+      </object>
+      <object>
+         <type>ServiceType</type>
+      </object>
+   </authorization>
+   <authorization id="6">
+      <name>self-persona-read</name>
+      <description>
+    		Allow to read all the personas of currently logged-in user.
+    	</description>
+      <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+      <object>
+         <type>UserType</type>
+         <owner>
+            <special>self</special>
+         </owner>
+      </object>
+   </authorization>
+   <authorization id="10">
+      <name>shadow-read</name>
+      <description>
+            workaround for reading cn=technicki_pouzivatelia,ou=Groups,o=XXXX in outbound mapping XXXXPrimaryOrgUnitUP (...getParentOrgs() ) in paperLess resource
+       </description>
+      <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+      <object>
+         <type>ShadowType</type>
+      </object>
+      <item>name</item>
+      <item>dn</item>
+      <item>resourceRef</item>
+   </authorization>
+   <authorization id="11">
+      <name>read-orgs-in-exection-phase</name>
+      <description>
+            Authorization to read org in execution phase.
+        </description>
+      <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+      <phase>execution</phase>
+      <object>
+         <type>OrgType</type>
+      </object>
+   </authorization>
+   <authorization id="12">
+      <name>read-users-in-exection-phase</name>
+      <description>
+            Authorization to read users in execution phase (paperless manager remove when changed password).
+        </description>
+      <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+      <phase>execution</phase> <!-- MID-4934 -->
+      <object>
+         <type>UserType</type>
+      </object>
+   </authorization>
+   <authorization id="13">
+      <name>read-shadows-in-exection-phase</name>
+      <description>
+            Authorization to read users in execution phase (paperless manager remove when changed password).
+        </description>
+      <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+      <phase>execution</phase>
+      <object>
+         <type>ShadowType</type>
+      </object>
+   </authorization>
+</role>

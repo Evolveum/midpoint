@@ -19,6 +19,7 @@ import java.util.*;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
+import com.evolveum.midpoint.model.api.util.ModelUtils;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
@@ -31,6 +32,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -286,6 +288,29 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 //		if (secondaryDeltas.get(getWave()) != null) {
 //			secondaryDeltas.remove(getWave());
 //		}
+	}
+    
+
+	@Override
+	public void recompute() throws SchemaException, ConfigurationException {
+		super.recompute();
+		updateObjectPolicy();
+	}
+
+	private void updateObjectPolicy() throws ConfigurationException {
+		PrismObject<SystemConfigurationType> systemConfiguration = getLensContext().getSystemConfiguration();
+		if (systemConfiguration == null) {
+			return;
+		}
+		PrismObject<O> object = getObjectAny();
+		ObjectPolicyConfigurationType policyConfigurationType = ModelUtils.determineObjectPolicyConfiguration(object, systemConfiguration.asObjectable());
+		if (policyConfigurationType != getObjectPolicyConfigurationType()) {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Changed policy configuration because of changed subtypes {}:\n{}", 
+						FocusTypeUtil.determineSubTypes(object), policyConfigurationType==null?null:policyConfigurationType.asPrismContainerValue().debugDump(1));
+			}
+			setObjectPolicyConfigurationType(policyConfigurationType);
+		}
 	}
 
 	@Override

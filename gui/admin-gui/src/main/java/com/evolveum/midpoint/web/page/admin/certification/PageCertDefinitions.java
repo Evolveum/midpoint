@@ -252,13 +252,13 @@ public class PageCertDefinitions extends PageAdminWorkItems {
 							getPrismContext());
 			getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task, result);
 		} catch (Exception ex) {
-			result.recordPartialError("Couldn't delete campaign definition.", ex);
+			result.recordPartialError(createStringResource("PageCertDefinitions.message.deleteDefinitionPerformed.partialError").getString(), ex);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete campaign definition", ex);
 		}
 
 		result.computeStatusIfUnknown();
 		if (result.isSuccess()) {
-			result.recordStatus(OperationResultStatus.SUCCESS, "The definition has been successfully deleted.");    // todo i18n
+			result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("PageCertDefinitions.message.deleteDefinitionPerformed.success").getString());
 		}
 
 		getDefinitionsTable().clearCache();

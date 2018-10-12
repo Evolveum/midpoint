@@ -27,6 +27,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.test.IntegrationTestTools;
@@ -91,6 +92,14 @@ public class TriggerAsserter<R> extends AbstractAsserter<R> {
 	
 	public TriggerAsserter<R> assertTimestampBetween(XMLGregorianCalendar start, XMLGregorianCalendar end) {
 		TestUtil.assertBetween("Wrong timestamp in "+desc(), start, end, trigger.getTimestamp());
+		return this;
+	}
+	
+	public TriggerAsserter<R> assertTimestampFutureBetween(XMLGregorianCalendar start, XMLGregorianCalendar end, String durationOffset) {
+		TestUtil.assertBetween("Wrong timestamp in "+desc(), 
+				XmlTypeConverter.addDuration(start, durationOffset),
+				XmlTypeConverter.addDuration(end, durationOffset),
+				trigger.getTimestamp());
 		return this;
 	}
 	
