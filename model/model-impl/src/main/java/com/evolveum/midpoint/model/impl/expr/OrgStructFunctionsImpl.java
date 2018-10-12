@@ -140,6 +140,7 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
                     }
                 }
                 Collection<UserType> managersOfOrg = getManagersOfOrg(orgOid, preAuthorized);
+                LOGGER.trace("managersOfOrg {}: {}", orgOid, managersOfOrg);
                 for (UserType managerOfOrg: managersOfOrg) {
                     if (allowSelf || !managerOfOrg.getOid().equals(user.getOid())) {
                         retval.add(managerOfOrg);

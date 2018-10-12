@@ -112,6 +112,8 @@ public interface ModelService {
 
 	static final String AUTZ_NAMESPACE = AuthorizationConstants.NS_AUTHORIZATION_MODEL;
 	
+	static final String OPERATION_LOGGGER_NAME = "com.evolveum.midpoint.model.api.op";
+	
 	/**
 	 * <p>
 	 * Returns object for provided OID. It retrieves the object from an appropriate source

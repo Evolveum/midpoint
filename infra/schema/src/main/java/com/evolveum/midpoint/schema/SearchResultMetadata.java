@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 Evolveum
+ * Copyright (c) 2014-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,14 @@ package com.evolveum.midpoint.schema;
 
 import java.io.Serializable;
 
+import com.evolveum.midpoint.util.ShortDumpable;
+
 /**
  * Objects of this type are considered READ ONLY.
  *
  * @author semancik
  */
-public class SearchResultMetadata implements Serializable {
+public class SearchResultMetadata implements Serializable, ShortDumpable {
 	
 	private String pagingCookie;
 	private Integer approxNumberOfAllResults;
@@ -118,8 +120,26 @@ public class SearchResultMetadata implements Serializable {
 
 	@Override
 	public String toString() {
-		return "SearchResultMetadata(pagingCookie=" + pagingCookie + ", approxNumberOfAllResults="
-				+ approxNumberOfAllResults + ", partialResults=" + partialResults + ")";
+		StringBuilder sb = new StringBuilder("SearchResultMetadata(");
+		shortDump(sb);
+		sb.append(")");
+		return sb.toString();
+	}
+
+	@Override
+	public void shortDump(StringBuilder sb) {
+		if (pagingCookie != null) {
+			sb.append("pagingCookie=").append(pagingCookie).append(",");
+		}
+		if (approxNumberOfAllResults != null) {
+			sb.append("approxNumberOfAllResults=").append(approxNumberOfAllResults).append(",");
+		}
+		if (partialResults) {
+			sb.append("partialResults=true,");
+		}
+		if (pagingCookie != null || approxNumberOfAllResults != null || partialResults) {
+			sb.setLength(sb.length() - 1);
+		}
 	}
 
 }
