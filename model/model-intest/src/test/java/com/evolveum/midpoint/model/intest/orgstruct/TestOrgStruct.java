@@ -190,7 +190,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         assertNoDummyAccount(RESOURCE_DUMMY_ORGTARGET_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         
         // WHEN
-        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_ORGTARGET_OID, null, task, result);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_ORGTARGET_OID, null, task, result);
         
         // THEN
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -1801,7 +1801,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         assertLinks(userBefore, 0);
 
         // WHEN
-        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_ORGTARGET_OID, null, task, result);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_ORGTARGET_OID, null, task, result);
         assignOrg(USER_JACK_OID, ORG_SCUMM_BAR_OID, task, result);
         assignRole(USER_JACK_OID, ROLE_END_PIRATE_OID, task, result);
 
