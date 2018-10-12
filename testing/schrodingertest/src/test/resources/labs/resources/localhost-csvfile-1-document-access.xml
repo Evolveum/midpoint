@@ -42,7 +42,7 @@ object.
             <!-- Configuration specific for the CSV connector -->
             <icfc:configurationProperties
 					xmlns:icfcsv="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector">
-                <icfcsv:filePath>/opt/training/midpoint-labs/flatfiles/csv-1.csv</icfcsv:filePath>
+                <icfcsv:filePath>/usr/midpoint/testing/schrodingertest/src/test/resources/labs/resources/csv-1.csv</icfcsv:filePath>
                 <icfcsv:encoding>utf-8</icfcsv:encoding>
                 <icfcsv:quoteMode>ALL</icfcsv:quoteMode>
                 <icfcsv:quote>"</icfcsv:quote>
