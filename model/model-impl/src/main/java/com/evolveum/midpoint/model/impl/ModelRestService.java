@@ -77,10 +77,11 @@ import java.util.List;
  * @author semancik
  */
 @Service
-@Produces({"application/xml", "application/json", "application/yaml"})
+@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
 public class ModelRestService {
 
 	public static final String CLASS_DOT = ModelRestService.class.getName() + ".";
+
 	public static final String OPERATION_REST_SERVICE = CLASS_DOT + "restService";
 	public static final String OPERATION_GET = CLASS_DOT + "get";
 	public static final String OPERATION_SELF = CLASS_DOT + "self";
@@ -91,6 +92,7 @@ public class ModelRestService {
 	public static final String OPERATION_FIND_SHADOW_OWNER = CLASS_DOT + "findShadowOwner";
 	public static final String OPERATION_SEARCH_OBJECTS = CLASS_DOT + "searchObjects";
 	public static final String OPERATION_IMPORT_FROM_RESOURCE = CLASS_DOT + "importFromResource";
+	public static final String OPERATION_IMPORT_SHADOW_FROM_RESOURCE = CLASS_DOT + "importShadowFromResource";
 	public static final String OPERATION_TEST_RESOURCE = CLASS_DOT + "testResource";
 	public static final String OPERATION_SUSPEND_TASKS = CLASS_DOT + "suspendTasks";
 	public static final String OPERATION_SUSPEND_AND_DELETE_TASKS = CLASS_DOT + "suspendAndDeleteTasks";
@@ -675,6 +677,29 @@ public class ModelRestService {
 			PrismObject<UserType> user = model.findShadowOwner(shadowOid, task, parentResult);
 //			response = Response.ok().entity(user).build();
 			response = RestServiceUtil.createResponse(Response.Status.NO_CONTENT, user, parentResult);
+		} catch (Exception ex) {
+			response = RestServiceUtil.handleException(parentResult, ex);
+		}
+
+		parentResult.computeStatus();
+		finishRequest(task);
+		return response;
+	}
+
+	@POST
+	@Path("/shadows/{oid}/import")
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
+	public Response importShadow(@PathParam("oid") String shadowOid, @Context MessageContext mc, @Context UriInfo uriInfo) {
+		LOGGER.debug("model rest service for import shadow from resource operation start");
+
+		Task task = RestServiceUtil.initRequest(mc);
+		OperationResult parentResult = task.getResult().createSubresult(OPERATION_IMPORT_SHADOW_FROM_RESOURCE);
+
+		Response response;
+		try {
+			modelService.importFromResource(shadowOid, task, parentResult);
+			response = RestServiceUtil.createResponse(Response.Status.SEE_OTHER, (uriInfo.getBaseUriBuilder().path(this.getClass(), "getObject")
+					.build(ObjectTypes.SHADOW.getRestType(), shadowOid)), parentResult);
 		} catch (Exception ex) {
 			response = RestServiceUtil.handleException(parentResult, ex);
 		}
