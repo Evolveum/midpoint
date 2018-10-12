@@ -49,11 +49,14 @@ import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.gui.api.SubscriptionType;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyValueModel;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.web.component.prism.*;
@@ -2431,7 +2434,28 @@ public final class WebComponentUtil {
 		return filter;
 	}
 
-	private static IModel<List<Boolean>> createChoices() {
+    public static ObjectFilter getAssignableRolesFilter(PrismObject<? extends FocusType> focusObject, Class<? extends AbstractRoleType> type,
+                                                        OperationResult result, Task task, PageBase pageBase) {
+        ObjectFilter filter = null;
+        LOGGER.debug("Loading objects which can be assigned");
+        try {
+            ModelInteractionService mis = pageBase.getModelInteractionService();
+            RoleSelectionSpecification roleSpec =
+                    mis.getAssignableRoleSpecification(focusObject, task, result);
+            filter = roleSpec.getFilter();
+        } catch (Exception ex) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load available roles", ex);
+            result.recordFatalError("Couldn't load available roles", ex);
+        } finally {
+            result.recomputeStatus();
+        }
+        if (!result.isSuccess() && !result.isHandledError()) {
+            pageBase.showResult(result);
+        }
+        return filter;
+    }
+
+    private static IModel<List<Boolean>> createChoices() {
 		return new AbstractReadOnlyModel<List<Boolean>>() {
 
 			@Override
