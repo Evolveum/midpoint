@@ -22,20 +22,18 @@ public class ListResourcesPage extends BasicPage {
         return new ResourcesPageTable<>(this, table);
     }
 
-    public TestConnectionModal<ListResourcesPage> testConnectionClick(String resourceName){
+    public ListResourcesPage testConnectionClick(String resourceName){
         table()
                 .search()
                 .byName()
                 .inputValue(resourceName)
                 .updateSearch();
 
-        SelenideElement testConnectionIcon = $(By.cssSelector("fa fa-question fa-fw")).waitUntil(Condition.exist, MidPoint.TIMEOUT_DEFAULT_2_S);
+        SelenideElement testConnectionIcon = $(Schrodinger
+                .byElementAttributeValue("i", "class","fa fa-question fa-fw")).waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
         testConnectionIcon.click();
-        SelenideElement testModalBox = $(Schrodinger
-                .byElementAttributeValue("div", "aria-labelledby", "Test connection result(s)"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
 
-        return new TestConnectionModal<>(this, testModalBox);
+        return this;
 
     }
 }

@@ -28,7 +28,7 @@ import java.io.File;
 /**
  * Created by honchar
  */
-public class ImportResource extends TestBase {
+public class ImportResourceTest extends TestBase {
 
     private static final File CSV_RESOURCE = new File("./src/test/resources/labs/resources/localhost-csvfile-1-document-access.xml");
     private static final String RESOURCE_NAME = "CSV-1 (Document Access)";
@@ -51,12 +51,10 @@ public class ImportResource extends TestBase {
 
         Assert.assertTrue(listResourcesPage
                 .testConnectionClick(RESOURCE_NAME)
-                .isTestSuccess());
+                .feedback()
+                .isSuccess());
     }
 
-    @Test
-    public void test002TestCsvResourceConnection(){
 
-    }
 }
 
