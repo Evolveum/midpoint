@@ -279,15 +279,14 @@ public class PageConnectorHosts extends PageAdminResources {
 							result);
 				}
 			} catch (Exception ex) {
-				result.recordPartialError("Couldn't delete host.", ex);
+				result.recordPartialError(createStringResource("PageConnectorHosts.message.deleteHostConfirmedPerformed.partialError").getString(), ex);
 				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete host", ex);
 			}
 		}
 
 		result.recomputeStatus();
 		if (result.isSuccess()) {
-			result.recordStatus(OperationResultStatus.SUCCESS,
-					"The resource(s) have been successfully deleted.");     // todo i18n
+			result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("PageConnectorHosts.message.deleteHostConfirmedPerformed.success").getString());
 		}
 
 		BaseSortableDataProvider provider = (BaseSortableDataProvider) hostTable.getDataTable()
@@ -317,8 +316,7 @@ public class PageConnectorHosts extends PageAdminResources {
 				try {
 					getModelService().discoverConnectors(host, task, result);
 				} catch (Exception ex) {
-					result.recordFatalError("Fail to discover connectors on host '" + host.getHostname() + ":"
-							+ host.getPort() + "'", ex);
+					result.recordFatalError(createStringResource("PageConnectorHosts.message.discoveryRemotePerformed.fatalError", host.getHostname(), host.getPort()).getString(), ex);
 				}
 			}
 		}

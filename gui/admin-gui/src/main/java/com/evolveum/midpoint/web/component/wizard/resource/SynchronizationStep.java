@@ -490,7 +490,7 @@ public class SynchronizationStep extends WizardStep {
 									sb.append(StringUtils.substringAfter(action.getHandlerUri(), "#"));
 								}
 							} else {
-								sb.append("sync");	// TODO i18n
+								sb.append(getString("SynchronizationStep.label.editorReaction"));
 							}
 						}
 						sb.append(")");

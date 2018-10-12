@@ -2798,7 +2798,7 @@ public final class WebComponentUtil {
 									result.recordInProgress(); // this should be probably have been done in submitTaskFromTemplate
 									result.setBackgroundTaskOid(executorTask.getOid());
 								} else {
-									result.recordWarning("There are no objects to execute the action on");  // TODO i18n
+									result.recordWarning(pageBase.createStringResource("webComponentUtil.message.createMenuItemsFromActions.warning").getString());
 								}
 							} catch (Exception ex) {
 								result.recordFatalError(result.getOperation(), ex);

@@ -180,7 +180,7 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
                 workflowService.stopProcessInstance(instance.getProcessInstanceId(),
                         WebComponentUtil.getOrigStringFromPoly(user.getName()), task, result);
             } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException ex) {
-                result.createSubresult(OPERATION_STOP_PROCESS_INSTANCE).recordPartialError("Couldn't stop process instance " + instance.getName(), ex);
+                result.createSubresult(OPERATION_STOP_PROCESS_INSTANCE).recordPartialError(createStringResource("pageProcessInstances.message.stopProcessInstancesPerformed.partialError", instance.getName()).getString(), ex);
             }
         }
 
@@ -189,7 +189,7 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
         }
 
         if (result.isSuccess()) {
-            result.recordStatus(OperationResultStatus.SUCCESS, "Selected process instance(s) have been successfully stopped."); // todo i18n
+            result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("pageProcessInstances.message.stopProcessInstancesPerformed.success").getString());
         }
 
         showResult(result);
@@ -229,7 +229,7 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
 		}
 
 		if (result.isSuccess()) {
-			result.recordStatus(OperationResultStatus.SUCCESS, "Selected process instance(s) have been successfully deleted."); // todo i18n
+			result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("pageProcessInstances.message.deleteProcessInstancesPerformed.success").getString());
 		}
 
 		showResult(result);
