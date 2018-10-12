@@ -250,7 +250,14 @@ public class ContainerWrapperFactory {
 	    	}
 	    	
 	    	container.getValues().forEach(pcv -> {
-	    		ContainerValueWrapper<C> containerValueWrapper = createContainerValueWrapper(cWrapper, pcv, cWrapper.getObjectStatus(), cWrapper.getStatus() == ContainerStatus.ADDING ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED, pcv.getPath(), task);
+	    		ValueStatus status = ValueStatus.NOT_CHANGED;
+	    		ItemPath pcvPath = pcv.getPath();
+	    		if (cWrapper.getStatus() == ContainerStatus.ADDING) {
+	    			status = ValueStatus.ADDED;
+	    			pcvPath = cWrapper.getPath();
+	    		}
+
+	    		ContainerValueWrapper<C> containerValueWrapper = createContainerValueWrapper(cWrapper, pcv, cWrapper.getObjectStatus(), status, pcvPath, task);
     			containerValueWrappers.add(containerValueWrapper);
 	    	});
 	    	
@@ -388,7 +395,7 @@ public class ContainerWrapperFactory {
 			PrismProperty<T> newProperty = def.instantiate();
 			// We cannot just get path from newProperty.getPath(). The property is not added to the container, so it does not know its path.
 			// Definitions are reusable, they do not have paths either.
-			ItemPath propPath = containerValue.getPath().subPath(newProperty.getElementName());
+			ItemPath propPath = cWrapper.getPath().subPath(newProperty.getElementName());
 			return new PropertyWrapper(cWrapper, newProperty, propertyIsReadOnly, ValueStatus.ADDED, propPath);
 		}
 		return new PropertyWrapper(cWrapper, property, propertyIsReadOnly, cWrapper.getStatus() == ValueStatus.ADDED ? ValueStatus.ADDED: ValueStatus.NOT_CHANGED, property.getPath());
@@ -420,9 +427,9 @@ public class ContainerWrapperFactory {
 	     if (QNameUtil.match(AbstractRoleType.F_APPROVER_REF, def.getName()) || QNameUtil.match(AbstractRoleType.F_APPROVER_REF, def.getName())) {
 	    	 refWrapper.setTargetTypes(Arrays.asList(FocusType.COMPLEX_TYPE, OrgType.COMPLEX_TYPE));
 	     } else {
-	    	 
+
 	    	 QName targetType = def.getTargetTypeName();
-	    	 
+
 	    	 if (targetType == null || ObjectType.COMPLEX_TYPE.equals(targetType)) {
 	    		 refWrapper.setTargetTypes(WebComponentUtil.createObjectTypeList());
 	    	 } else if (AbstractRoleType.COMPLEX_TYPE.equals(targetType)) {
