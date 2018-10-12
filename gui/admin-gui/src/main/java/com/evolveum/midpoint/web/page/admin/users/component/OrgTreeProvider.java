@@ -21,6 +21,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -112,6 +113,10 @@ public class OrgTreeProvider extends SortableTreeProvider<SelectableBean<OrgType
                         .isDirectChildOf(nodeOid)
                         .asc(ObjectType.F_NAME)
                         .build();
+                ObjectFilter customFilter = getCustomFilter();
+                if (customFilter != null){
+                    query.addFilter(customFilter);
+                }
                 Task task = getPageBase().createSimpleTask(LOAD_ORG_UNITS);
                 List<PrismObject<OrgType>> orgs = getModelService().searchObjects(OrgType.class, query, null, task, result);
                 LOGGER.debug("Found {} sub-orgs.", orgs.size());
@@ -136,6 +141,10 @@ public class OrgTreeProvider extends SortableTreeProvider<SelectableBean<OrgType
         LOGGER.debug("Finished getting children.");
         lastFetchOperation = System.currentTimeMillis();
         return children.iterator();
+    }
+
+    protected ObjectFilter getCustomFilter(){
+        return null;
     }
 
     private SelectableBean<OrgType> createObjectWrapper(SelectableBean<OrgType> parent, PrismObject<OrgType> unit) {

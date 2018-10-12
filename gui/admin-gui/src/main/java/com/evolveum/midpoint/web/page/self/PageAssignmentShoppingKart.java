@@ -16,10 +16,12 @@
 package com.evolveum.midpoint.web.page.self;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -513,25 +515,10 @@ public class PageAssignmentShoppingKart extends PageSelf {
     }
 
     private ObjectFilter getAssignableRolesFilter() {
-        ObjectFilter filter = null;
-        LOGGER.debug("Loading roles which the current user has right to assign");
         Task task = createSimpleTask(OPERATION_LOAD_ASSIGNABLE_ROLES);
         OperationResult result = task.getResult();
-        try {
-            ModelInteractionService mis = getModelInteractionService();
-            RoleSelectionSpecification roleSpec =
-                    mis.getAssignableRoleSpecification(getTargetUser().asPrismObject(), task, result);
-            filter = roleSpec.getFilter();
-        } catch (Exception ex) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load available roles", ex);
-            result.recordFatalError("Couldn't load available roles", ex);
-        } finally {
-            result.recomputeStatus();
-        }
-        if (!result.isSuccess() && !result.isHandledError()) {
-            showResult(result);
-        }
-        return filter;
+        return WebComponentUtil.getAssignableRolesFilter(getTargetUser().asPrismObject(), AbstractRoleType.class,
+                result, task, PageAssignmentShoppingKart.this);
     }
 
     private ObjectQuery addOrgMembersFilter(String oid, ObjectQuery query) {

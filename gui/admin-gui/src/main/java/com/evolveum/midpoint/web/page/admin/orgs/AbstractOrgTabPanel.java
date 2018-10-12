@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.orgs;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -56,6 +57,7 @@ public abstract class AbstractOrgTabPanel extends BasePanel {
 
     private static final String DOT_CLASS = OrgTreeAssignablePanel.class.getName() + ".";
     private static final String OPERATION_LOAD_ORG_UNIT = DOT_CLASS + "loadOrgUnit";
+    private static final String OPERATION_LOAD_ASSIGNABLE_ITEMS = DOT_CLASS + "loadAssignableOrgs";
 
     private String ID_TABS = "tabs";
     private List<PrismObject<OrgType>> roots;
@@ -169,6 +171,10 @@ public abstract class AbstractOrgTabPanel extends BasePanel {
         List<PrismObject<OrgType>> list = new ArrayList<>();
         try {
             ObjectQuery query = ObjectQueryUtil.createRootOrgQuery(getPageBase().getPrismContext());
+            ObjectFilter assignableItemsFilter = getAssignableItemsFilter();
+            if (assignableItemsFilter != null){
+                query.addFilter(assignableItemsFilter);
+            }
             list = getPageBase().getModelService().searchObjects(OrgType.class, query, null, task, result);
             // Sort org roots by displayOrder, if not set push the org to the end
             list.sort((o1, o2) -> (o1.getRealValue().getDisplayOrder() == null ? Integer.MAX_VALUE : o1.getRealValue().getDisplayOrder())
@@ -188,6 +194,10 @@ public abstract class AbstractOrgTabPanel extends BasePanel {
         	getPageBase().showResult(result);
         }
         return list;
+    }
+
+    protected ObjectFilter getAssignableItemsFilter(){
+        return null;
     }
 
     protected boolean isWarnMessageVisible(){
