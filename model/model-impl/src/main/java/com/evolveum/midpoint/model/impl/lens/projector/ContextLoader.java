@@ -323,9 +323,14 @@ public class ContextLoader {
 	public <O extends ObjectType> void determineFocusContext(LensContext<O> context, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		LensFocusContext<O> focusContext = context.getFocusContext();
 		if (focusContext == null) {
-			// Nothing to load
-			focusContext = context.getOrCreateFocusContext(context.getFocusClass());
+			focusContext = determineFocusContextFromProjections(context, result);
 		}
+		
+		if (focusContext == null) {
+			// Nothing to load
+			return;
+		}
+		
 		// Make sure that we RELOAD the user object if the context is not fresh
 		// the user may have changed in the meantime
         if (focusContext.getObjectCurrent() != null && focusContext.isFresh()) {
@@ -346,14 +351,7 @@ public class ContextLoader {
 
         String focusOid = focusContext.getOid();
         if (StringUtils.isBlank(focusOid)) {
-        	if (focusContext.canRepresent(FocusType.class)) {
-	        	//try to load from projections
-        		focusOid = determineFocusOidFromProjections((LensContext) context, result);
-    		}
-        	//if still null, throw ex
-        	if (StringUtils.isBlank(focusOid)) {
-        		throw new IllegalArgumentException("No OID in primary focus delta");
-        	}
+        	throw new IllegalArgumentException("No OID in primary focus delta");
         }
         PrismObject<O> object = null;
         if (ObjectTypes.isClassManagedByProvisioning(focusContext.getObjectTypeClass())) {
@@ -373,9 +371,10 @@ public class ContextLoader {
 		LOGGER.trace("Focal object loaded: {}", object);
     }
 
-	private <O extends ObjectType> String determineFocusOidFromProjections(LensContext<O> context, OperationResult result) throws ObjectNotFoundException, SchemaException {
+	private <O extends ObjectType> LensFocusContext<O> determineFocusContextFromProjections(LensContext<O> context, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		String focusOid = null;
 		LensProjectionContext projectionContextThatYeildedFocusOid = null;
+		PrismObject<O> focusOwner = null;
 		for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
 			String projectionOid = projectionContext.getOid();
 			if (projectionOid != null) {
@@ -385,6 +384,7 @@ public class ContextLoader {
 				if (shadowOwner != null) {
 					if (focusOid == null || focusOid.equals(shadowOwner.getOid())) {
 						focusOid = shadowOwner.getOid();
+						focusOwner = (PrismObject<O>) shadowOwner;
 						projectionContextThatYeildedFocusOid = projectionContext;
 					} else {
 						throw new IllegalArgumentException("The context does not have explicit focus. Attempt to determine focus failed because two " +
@@ -394,8 +394,14 @@ public class ContextLoader {
 				}
 			}
 		}
+		
+		if (focusOid != null) {
+			LensFocusContext<O> focusCtx = context.getOrCreateFocusContext(focusOwner.getCompileTimeClass());
+			focusCtx.setOid(focusOid);
+			return focusCtx;
+		}
 
-		return focusOid;
+		return null;
 	}
 
 	private <O extends ObjectType> void setPrimaryDeltaOldValue(LensElementContext<O> ctx) throws SchemaException, ObjectNotFoundException {
