@@ -136,8 +136,8 @@ public class ModelRestService {
 
 	@POST
 	@Path("/{type}/{oid}/generate")
-	@Consumes({"application/xml", "application/json", "application/yaml"})
-	@Produces({"application/xml", "application/json", "application/yaml"})
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
+	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
 	public <O extends ObjectType> Response generateValue(@PathParam("type") String type,
 			@PathParam("oid") String oid, PolicyItemsDefinitionType policyItemsDefinition,
 			@Context MessageContext mc) {
@@ -163,8 +163,8 @@ public class ModelRestService {
 	
 	@POST
 	@Path("/rpc/generate")
-	@Consumes({"application/xml", "application/json", "application/yaml"})
-	@Produces({"application/xml", "application/json", "application/yaml"})
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
+	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
 	public Response generateValue(PolicyItemsDefinitionType policyItemsDefinition,
 			@Context MessageContext mc) {
 
@@ -201,8 +201,8 @@ public class ModelRestService {
 
 	@POST
 	@Path("/{type}/{oid}/validate")
-	@Consumes({"application/xml", "application/json", "application/yaml"})
-	@Produces({"application/xml", "application/json", "application/yaml"})
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
+	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
 	public <O extends ObjectType> Response validateValue(@PathParam("type") String type, @PathParam("oid") String oid, PolicyItemsDefinitionType policyItemsDefinition, @Context MessageContext mc) {
 
 		Task task = RestServiceUtil.initRequest(mc);
@@ -224,8 +224,8 @@ public class ModelRestService {
 	
 	@POST
 	@Path("/rpc/validate")
-	@Consumes({"application/xml", "application/json", "application/yaml"})
-	@Produces({"application/xml", "application/json", "application/yaml"})
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
+	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
 	public Response validateValue(PolicyItemsDefinitionType policyItemsDefinition, @Context MessageContext mc) {
 
 		Task task = RestServiceUtil.initRequest(mc);
@@ -315,7 +315,7 @@ public class ModelRestService {
 
 	@GET
 	@Path("/{type}/{id}")
-	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
+	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
 	public <T extends ObjectType> Response getObject(@PathParam("type") String type, @PathParam("id") String id,
 			@QueryParam("options") List<String> options,
 			@QueryParam("include") List<String> include,
@@ -365,7 +365,7 @@ public class ModelRestService {
 
 	@GET
 	@Path("/self")
-	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
+	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
 	public Response getSelf(@Context MessageContext mc){
 		LOGGER.debug("model rest service for get operation start");
 
@@ -393,7 +393,7 @@ public class ModelRestService {
 
 	@POST
 	@Path("/{type}")
-	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
 	public <T extends ObjectType> Response addObject(@PathParam("type") String type, PrismObject<T> object,
 													 @QueryParam("options") List<String> options,
 			@Context UriInfo uriInfo, @Context MessageContext mc) {
@@ -446,7 +446,7 @@ public class ModelRestService {
 
 	@GET
 	@Path("/{type}")
-	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
+	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
 	public <T extends ObjectType> Response searchObjectsByType(@PathParam("type") String type, @QueryParam("options") List<String> options,
 			@QueryParam("include") List<String> include, @QueryParam("exclude") List<String> exclude,
 			@Context UriInfo uriInfo, @Context MessageContext mc) {
@@ -505,7 +505,7 @@ public class ModelRestService {
 
 	@PUT
 	@Path("/{type}/{id}")
-	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
 	public <T extends ObjectType> Response addObject(@PathParam("type") String type, @PathParam("id") String id,
 			PrismObject<T> object, @QueryParam("options") List<String> options, @Context UriInfo uriInfo,
 			@Context Request request, @Context MessageContext mc){
@@ -594,7 +594,7 @@ public class ModelRestService {
 
 	@POST
 	@Path("/{type}/{oid}")
-	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
 	public Response modifyObjectPost(@PathParam("type") String type, @PathParam("oid") String oid,
 			ObjectModificationType modificationType, @QueryParam("options") List<String> options, @Context MessageContext mc) {
 		return modifyObjectPatch(type, oid, modificationType, options, mc);
@@ -602,7 +602,7 @@ public class ModelRestService {
 
 	@PATCH
 	@Path("/{type}/{oid}")
-	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
 	public Response modifyObjectPatch(@PathParam("type") String type, @PathParam("oid") String oid,
 			ObjectModificationType modificationType, @QueryParam("options") List<String> options, @Context MessageContext mc) {
 
@@ -631,7 +631,7 @@ public class ModelRestService {
 
 	@POST
 	@Path("/notifyChange")
-	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
 	public Response notifyChange(ResourceObjectShadowChangeDescriptionType changeDescription,
 			@Context UriInfo uriInfo, @Context MessageContext mc) {
 		LOGGER.debug("model rest service for notify change operation start");
@@ -666,7 +666,7 @@ public class ModelRestService {
 
 	@GET
 	@Path("/shadows/{oid}/owner")
-	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
+	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
 	public Response findShadowOwner(@PathParam("oid") String shadowOid, @Context MessageContext mc){
 
 		Task task = RestServiceUtil.initRequest(mc);
@@ -711,8 +711,8 @@ public class ModelRestService {
 
 	@POST
 	@Path("/{type}/search")
-	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
-	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
+	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
 	public Response searchObjects(@PathParam("type") String type, QueryType queryType,
 			@QueryParam("options") List<String> options,
 			@QueryParam("include") List<String> include,
@@ -752,7 +752,7 @@ public class ModelRestService {
 
 	@POST
 	@Path("/resources/{resourceOid}/import/{objectClass}")
-	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
 	public Response importFromResource(@PathParam("resourceOid") String resourceOid, @PathParam("objectClass") String objectClass,
 			@Context MessageContext mc, @Context UriInfo uriInfo) {
 		LOGGER.debug("model rest service for import from resource operation start");
@@ -927,10 +927,9 @@ public class ModelRestService {
 
 	@POST
 	@Path("/rpc/executeScript")
-	//	@Produces({"text/html", "application/xml"})
-	@Consumes({"application/xml", MediaType.APPLICATION_JSON, "application/yaml" })
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
 	public Response executeScript(@Convertor(ExecuteScriptConvertor.class) ExecuteScriptType command,
-			@QueryParam("asynchronous") Boolean asynchronous, @Context UriInfo uriInfo, @Context MessageContext mc) {
+								  @QueryParam("asynchronous") Boolean asynchronous, @Context UriInfo uriInfo, @Context MessageContext mc) {
 
 		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult result = task.getResult().createSubresult(OPERATION_EXECUTE_SCRIPT);
@@ -1054,8 +1053,8 @@ public class ModelRestService {
 
 	@POST
 	@Path("/users/{oid}/credential")
-	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
-	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
+	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
 	public Response executeCredentialReset(@PathParam("oid") String oid, ExecuteCredentialResetRequestType executeCredentialResetRequest, @Context MessageContext mc) {
 		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult result = task.getResult().createSubresult(OPERATION_EXECUTE_CREDENTIAL_RESET);
@@ -1078,8 +1077,8 @@ public class ModelRestService {
 	
 	@POST
 	@Path("/event/{type}")
-	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
-	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
+	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
 	public Response executeClusterEvent(@PathParam("type") String type, @Context MessageContext mc) {
 		//TODO: task??
 		Task task = RestServiceUtil.initRequest(mc);
