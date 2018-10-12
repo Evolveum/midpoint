@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.orgs;
 import java.io.Serializable;
 import java.util.*;
 
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
 import com.evolveum.midpoint.web.session.OrgTreeStateStorage;
 import org.apache.commons.lang3.StringUtils;
@@ -146,6 +147,11 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 			protected List<InlineMenuItem> createInlineMenuItems(OrgType org) {
 				return createTreeChildrenMenu(org);
 			}
+
+			@Override
+			protected ObjectFilter getCustomFilter(){
+				return OrgTreePanel.this.getCustomFilter();
+			}
 		};
 		List<IColumn<SelectableBean<OrgType>, String>> columns = new ArrayList<>();
 
@@ -260,6 +266,10 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 		tree.add(new WindowsTheme());
 		// tree.add(AttributeModifier.replace("class", "tree-midpoint"));
 		treeContainer.add(tree);
+	}
+
+	protected ObjectFilter getCustomFilter(){
+		return null;
 	}
 
 	private static class TreeStateModel extends AbstractReadOnlyModel<Set<SelectableBean<OrgType>>> {

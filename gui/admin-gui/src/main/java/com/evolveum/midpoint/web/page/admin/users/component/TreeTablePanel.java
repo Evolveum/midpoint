@@ -149,12 +149,6 @@ public class TreeTablePanel extends BasePanel<String> {
 	private List<InlineMenuItem> createTreeChildrenMenu(OrgType org) {
 		List<InlineMenuItem> items = new ArrayList<>();
 		try {
-			boolean allowModify = org == null ||
-					// TODO: the modify authorization here is probably wrong.
-					// It is a model autz. UI autz should be here instead?
-					parentPage.isAuthorized(ModelAuthorizationAction.MODIFY.getUrl(),
-							AuthorizationPhaseType.REQUEST, org.asPrismObject(),
-							null, null, null);
 			boolean allowRead = org == null ||
 					// TODO: the authorization URI here is probably wrong.
 					// It is a model autz. UI autz should be here instead?
@@ -162,7 +156,7 @@ public class TreeTablePanel extends BasePanel<String> {
 							AuthorizationPhaseType.REQUEST, org.asPrismObject(),
 							null, null, null);
 			InlineMenuItem item;
-			if (allowModify) {
+			if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ORG_MOVE_ACTION_URI)) {
 				item = new InlineMenuItem(createStringResource("TreeTablePanel.move"),
 						new ColumnMenuAction<SelectableBean<OrgType>>() {
 							private static final long serialVersionUID = 1L;
@@ -173,7 +167,8 @@ public class TreeTablePanel extends BasePanel<String> {
 							}
 						});
 				items.add(item);
-
+			}
+			if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ORG_MAKE_ROOT_ACTION_URI)) {
 				item = new InlineMenuItem(createStringResource("TreeTablePanel.makeRoot"),
 						new ColumnMenuAction<SelectableBean<OrgType>>() {
 							private static final long serialVersionUID = 1L;
@@ -204,6 +199,12 @@ public class TreeTablePanel extends BasePanel<String> {
 						});
 				items.add(item);
 			}
+			boolean allowModify = org == null ||
+					// TODO: the modify authorization here is probably wrong.
+					// It is a model autz. UI autz should be here instead?
+					parentPage.isAuthorized(ModelAuthorizationAction.MODIFY.getUrl(),
+							AuthorizationPhaseType.REQUEST, org.asPrismObject(),
+							null, null, null);
 			if (allowModify) {
 				item = new InlineMenuItem(createStringResource("TreeTablePanel.recompute"),
 						new ColumnMenuAction<SelectableBean<OrgType>>() {
@@ -309,10 +310,6 @@ public class TreeTablePanel extends BasePanel<String> {
 	}
 
 	private void moveRootPerformed(SelectableBean<OrgType> root, AjaxRequestTarget target) {
-		if (root == null) {
-			root = getTreePanel().getRootFromProvider();
-		}
-
 		final SelectableBean<OrgType> orgToMove = root;
 
 		OrgTreeAssignablePanel orgAssignablePanel = new OrgTreeAssignablePanel(
@@ -323,6 +320,12 @@ public class TreeTablePanel extends BasePanel<String> {
 			protected void onItemSelect(SelectableBean<OrgType> selected, AjaxRequestTarget target) {
 				moveConfirmPerformed(orgToMove, selected, target);
 			}
+
+			@Override
+			protected OrgType getAssignmentOwnerObject(){
+				return root.getValue();
+			}
+
 		};
 
 		parentPage.showMainPopup(orgAssignablePanel, target);
