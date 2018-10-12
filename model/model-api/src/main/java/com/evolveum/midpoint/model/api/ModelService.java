@@ -112,7 +112,9 @@ public interface ModelService {
 	static final String MERGE_OBJECTS = CLASS_NAME_WITH_DOT + "mergeObjects";
 
 	static final String AUTZ_NAMESPACE = AuthorizationConstants.NS_AUTHORIZATION_MODEL;
-
+	
+	static final String OPERATION_LOGGGER_NAME = "com.evolveum.midpoint.model.api.op";
+	
 	/**
 	 * <p>
 	 * Returns object for provided OID. It retrieves the object from an appropriate source

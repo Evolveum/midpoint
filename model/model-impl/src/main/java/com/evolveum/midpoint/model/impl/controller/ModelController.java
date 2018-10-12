@@ -134,6 +134,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	private static final String RESOLVE_REFERENCE = CLASS_NAME_WITH_DOT + "resolveReference";
 
 	private static final Trace LOGGER = TraceManager.getTrace(ModelController.class);
+	
+	private static final Trace OP_LOGGER = TraceManager.getTrace(ModelService.OPERATION_LOGGGER_NAME);
 
 	@Autowired private Clockwork clockwork;
 	@Autowired private PrismContext prismContext;
@@ -200,11 +202,15 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         result.addParam("oid", oid);
         result.addArbitraryObjectCollectionAsParam("options", rawOptions);
         result.addParam("class", clazz);
+        
+        OP_LOGGER.trace("MODEL OP enter getObject({},{},{})", clazz.getSimpleName(), oid, rawOptions);
 
-		Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, parentResult);
-        GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+        GetOperationOptions rootOptions = null;
 
 		try {
+			Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, parentResult);
+	        rootOptions = SelectorOptions.findRootOptions(options);
+	        
             if (GetOperationOptions.isRaw(rootOptions)) {       // MID-2218
                 QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);
             }
@@ -227,9 +233,11 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			executeResolveOptions(object.asObjectable(), options, task, result);
 
 		} catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | Error e) {
+			OP_LOGGER.debug("MODEL OP error getObject({},{},{}): {}: {}", clazz.getSimpleName(), oid, rawOptions, e.getClass().getSimpleName(), e.getMessage());
 			ModelImplUtils.recordFatalError(result, e);
 			throw e;
 		} catch (ObjectNotFoundException e) {
+			OP_LOGGER.debug("MODEL OP error getObject({},{},{}): {}: {}", clazz.getSimpleName(), oid, rawOptions, e.getClass().getSimpleName(), e.getMessage());
 			if (GetOperationOptions.isAllowNotFound(rootOptions)){
 				result.getLastSubresult().setStatus(OperationResultStatus.HANDLED_ERROR);
 			} else {
@@ -243,6 +251,10 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 		result.cleanupResult();
 
+		OP_LOGGER.debug("MODEL OP exit getObject({},{},{}): {}", clazz.getSimpleName(), oid, rawOptions, object);
+		if (OP_LOGGER.isTraceEnabled()) {
+			OP_LOGGER.trace("MODEL OP exit getObject({},{},{}):\n{}", clazz.getSimpleName(), oid, rawOptions, object.debugDump(1));
+		}
 		return object;
 	}
 
@@ -763,6 +775,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		if (query != null) {
 			ModelImplUtils.validatePaging(query.getPaging());
 		}
+		
+		OP_LOGGER.trace("MODEL OP enter searchObjects({},{},{})", type.getSimpleName(), query, rawOptions);
 
 		OperationResult result = parentResult.createSubresult(SEARCH_OBJECTS);
 		result.addParam(OperationResult.PARAM_TYPE, type);
@@ -858,6 +872,16 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Final search returned {} results (after hooks, security and all other processing)", list.size());
+		}
+		
+		// TODO: log errors
+		
+		if (OP_LOGGER.isDebugEnabled()) {
+			OP_LOGGER.debug("MODEL OP exit searchObjects({},{},{}): {}", type.getSimpleName(), query, rawOptions, list.shortDump());
+		}
+		if (OP_LOGGER.isTraceEnabled()) {
+			OP_LOGGER.trace("MODEL OP exit searchObjects({},{},{}): {}\n{}", type.getSimpleName(), query, rawOptions, list.shortDump(),
+					DebugUtil.debugDump(list.getList(), 1));
 		}
 
 		return list;
@@ -1071,15 +1095,17 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		if (!LOGGER.isTraceEnabled()) {
 			return;
 		}
-		if (query != null){
+		if (query != null) {
             if (query.getPaging() == null) {
-                LOGGER.trace("Searching objects with null paging. Query:\n{}", query.debugDump(1));
+                LOGGER.trace("Searching objects with null paging. Processed query:\n{}", query.debugDump(1));
             } else {
-                LOGGER.trace("Searching objects from {} to {} ordered {} by {}. Query:\n{}",
+                LOGGER.trace("Searching objects from {} to {} ordered {} by {}. Processed query:\n{}",
 						query.getPaging().getOffset(), query.getPaging().getMaxSize(),
 						query.getPaging().getDirection(), query.getPaging().getOrderBy(),
 						query.debugDump(1));
             }
+        } else {
+        	LOGGER.trace("Searching objects with null paging and null (processed) query.");
         }
 	}
 
@@ -1093,6 +1119,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		if (query != null) {
 			ModelImplUtils.validatePaging(query.getPaging());
 		}
+		
+		OP_LOGGER.trace("MODEL OP enter searchObjectsIterative({},{},{})", type.getSimpleName(), query, rawOptions);
 
 		final OperationResult result = parentResult.createSubresult(SEARCH_OBJECTS);
 		result.addParam(OperationResult.PARAM_QUERY, query);
@@ -1104,9 +1132,9 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             searchProvider = ObjectTypes.ObjectManager.REPOSITORY;
         }
 		result.addArbitraryObjectAsParam("searchProvider", searchProvider);
-
-		query = preProcessQuerySecurity(type, query, task, result);
-		if (isFilterNone(query, result)) {
+		
+		ObjectQuery processedQuery = preProcessQuerySecurity(type, query, task, result);
+		if (isFilterNone(processedQuery, result)) {
 			LOGGER.trace("Skipping search because filter is NONE");
 			return null;
 		}
@@ -1130,19 +1158,24 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 				throw new SystemException(ex.getMessage(), ex);
 			}
 
+			OP_LOGGER.debug("MODEL OP handle searchObjects({},{},{}): {}", type.getSimpleName(), query, rawOptions, object);
+			if (OP_LOGGER.isTraceEnabled()) {
+				OP_LOGGER.trace("MODEL OP handle searchObjects({},{},{}):\n{}", type.getSimpleName(), query, rawOptions, object.debugDump(1));
+			}
+			
 			return handler.handle(object, parentResult1);
 		};
 
 		SearchResultMetadata metadata;
 		try {
 			enterModelMethod();
-			logQuery(query);
+			logQuery(processedQuery);
 
 			try {
                 switch (searchProvider) {
-                    case REPOSITORY: metadata = cacheRepositoryService.searchObjectsIterative(type, query, internalHandler, options, true, result); break;
-                    case PROVISIONING: metadata = provisioning.searchObjectsIterative(type, query, options, internalHandler, task, result); break;
-                    case TASK_MANAGER: metadata = taskManager.searchObjectsIterative(type, query, options, internalHandler, result); break;
+                    case REPOSITORY: metadata = cacheRepositoryService.searchObjectsIterative(type, processedQuery, internalHandler, options, true, result); break;
+                    case PROVISIONING: metadata = provisioning.searchObjectsIterative(type, processedQuery, options, internalHandler, task, result); break;
+                    case TASK_MANAGER: metadata = taskManager.searchObjectsIterative(type, processedQuery, options, internalHandler, result); break;
                     default: throw new AssertionError("Unexpected search provider: " + searchProvider);
                 }
 				result.computeStatusIfUnknown();
@@ -1158,7 +1191,13 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		} finally {
 			exitModelMethod();
 		}
-
+		
+		// TODO: log errors
+		
+		if (OP_LOGGER.isDebugEnabled()) {
+			OP_LOGGER.debug("MODEL OP exit searchObjects({},{},{}): {}", type.getSimpleName(), query, rawOptions, metadata);
+		}
+		
 		return metadata;
 	}
 
