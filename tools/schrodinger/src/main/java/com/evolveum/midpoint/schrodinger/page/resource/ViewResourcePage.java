@@ -22,6 +22,13 @@ public class ViewResourcePage extends BasicPage {
         return new ResourceConfigurationTab(new EditResourceConfigurationPage(), null);
     }
 
+    public ResourceWizardPage clickShowUsingWizard() {
+
+        $(Schrodinger.byDataResourceKey("a", "pageResource.button.wizardShow")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+
+        return new ResourceWizardPage();
+    }
+
     public ResourceAccountsTab<ViewResourcePage> clicAccountsTab() {
 
         $(Schrodinger.byDataResourceKey("schrodinger", "PageResource.tab.content.account")).parent()
