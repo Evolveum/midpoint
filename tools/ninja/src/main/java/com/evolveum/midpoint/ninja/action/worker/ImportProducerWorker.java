@@ -18,7 +18,7 @@ package com.evolveum.midpoint.ninja.action.worker;
 
 import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
-import com.evolveum.midpoint.common.validator.Validator;
+import com.evolveum.midpoint.common.validator.LegacyValidator;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
 import com.evolveum.midpoint.ninja.opts.ImportOptions;
@@ -166,7 +166,7 @@ public class ImportProducerWorker extends BaseWorker<ImportOptions, PrismObject>
             }
         };
 
-        Validator validator = new Validator(prismContext, handler);
+        LegacyValidator validator = new LegacyValidator(prismContext, handler);
         validator.setValidateSchema(false);
 
         OperationResult result = operation.getResult();

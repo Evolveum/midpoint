@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.prism.path;
 
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -29,7 +30,7 @@ import java.util.*;
  * @author semancik
  *
  */
-public class ItemPath implements Serializable, Cloneable {
+public class ItemPath implements Serializable, Cloneable, ShortDumpable {
 
 	@Deprecated	// use ItemPathType.COMPLEX_TYPE
 	public static final QName XSD_TYPE = ItemPathType.COMPLEX_TYPE;
@@ -791,6 +792,12 @@ public class ItemPath implements Serializable, Cloneable {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
+		shortDump(sb);
+		return sb.toString();
+	}
+	
+	@Override
+	public void shortDump(StringBuilder sb) {
 		Iterator<ItemPathSegment> iterator = segments.iterator();
 		while (iterator.hasNext()) {
 			sb.append(iterator.next());
@@ -798,7 +805,6 @@ public class ItemPath implements Serializable, Cloneable {
 				sb.append("/");
 			}
 		}
-		return sb.toString();
 	}
 
 	@Override
@@ -888,6 +894,5 @@ public class ItemPath implements Serializable, Cloneable {
 	public ItemPathType asItemPathType() {
 		return new ItemPathType(this);
 	}
-
 
 }

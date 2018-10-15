@@ -22,7 +22,7 @@ import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
-import com.evolveum.midpoint.common.validator.Validator;
+import com.evolveum.midpoint.common.validator.LegacyValidator;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.SubscriptionType;
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
@@ -1481,7 +1481,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             public void handleGlobalError(OperationResult currentResult) {
             }
         };
-        Validator validator = new Validator(getPrismContext(), handler);
+        LegacyValidator validator = new LegacyValidator(getPrismContext(), handler);
         validator.setVerbose(true);
         validator.setValidateSchema(validateSchema);
         validator.validate(lexicalRepresentation, result, OperationConstants.IMPORT_OBJECT);        // TODO the operation name

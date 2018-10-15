@@ -486,6 +486,11 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	}
     
     @Override
+	public String getPlannedRemoval() {
+		return refinedObjectClassDefinition.getPlannedRemoval();
+	}
+    
+    @Override
 	public boolean isElaborate() {
 		return refinedObjectClassDefinition.isElaborate();
 	}

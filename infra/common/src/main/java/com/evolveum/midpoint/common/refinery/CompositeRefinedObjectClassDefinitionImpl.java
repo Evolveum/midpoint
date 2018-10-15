@@ -151,6 +151,11 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	}
 	
 	@Override
+	public String getPlannedRemoval() {
+		return structuralObjectClassDefinition.getPlannedRemoval();
+	}
+	
+	@Override
 	public boolean isElaborate() {
 		return structuralObjectClassDefinition.isElaborate();
 	}
