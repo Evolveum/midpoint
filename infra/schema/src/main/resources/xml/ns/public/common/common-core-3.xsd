@@ -2641,6 +2641,7 @@
 							<xsd:appinfo>
 								<a:deprecated>true</a:deprecated>
 								<a:deprecatedSince>3.5</a:deprecatedSince>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
 							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -2764,6 +2765,7 @@
 					<xsd:appinfo>
 						<a:deprecated>true</a:deprecated>
 						<a:deprecatedSince>3.7</a:deprecatedSince>
+						<a:plannedRemoval>4.0</a:plannedRemoval>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -2776,6 +2778,7 @@
 					<xsd:appinfo>
 						<a:deprecated>true</a:deprecated>
 						<a:deprecatedSince>3.7</a:deprecatedSince>
+						<a:plannedRemoval>4.0</a:plannedRemoval>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -3033,6 +3036,7 @@
                     <xsd:appinfo>
 						<a:deprecated>true</a:deprecated>
 						<a:deprecatedSince>3.8</a:deprecatedSince>
+						<a:plannedRemoval>4.0</a:plannedRemoval>
                         <jaxb:typesafeEnumMember name="WORKFLOW"/>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -4283,6 +4287,7 @@
 							<xsd:appinfo>
 								<a:deprecated>true</a:deprecated>
 								<a:deprecatedSince>3.6</a:deprecatedSince>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
 							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -4920,6 +4925,7 @@
 						<a:deprecated>true</a:deprecated>
 						<a:deprecatedSince>3.7</a:deprecatedSince>
 						<a:operational>true</a:operational>
+						<a:plannedRemoval>4.0</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -5921,6 +5927,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:deprecated/>
+                        <a:plannedRemoval>4.0</a:plannedRemoval>
                         <a:rawType/>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -5944,7 +5951,6 @@
                         Object type related account synchronization settings.
                     </xsd:documentation>
                      <xsd:appinfo>
-                        <a:deprecated/>
                         <a:since>3.9</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -7631,6 +7637,7 @@
      				</xsd:documentation>
      				<xsd:appinfo>
      					<a:deprecated/>
+     					<a:plannedRemoval>4.0</a:plannedRemoval>
      				</xsd:appinfo>
      			</xsd:annotation>
      		</xsd:element>
@@ -7642,6 +7649,7 @@
      				</xsd:documentation>
      				<xsd:appinfo>
      					<a:deprecated/>
+     					<a:plannedRemoval>4.0</a:plannedRemoval>
      				</xsd:appinfo>
      			</xsd:annotation>
      		</xsd:element>
@@ -8571,6 +8579,9 @@
                     <xsd:appinfo>
                     	<a:since>3.4</a:since>
 						<a:displayName>MappingType.tolerant</a:displayName>
+						<a:experimental>true</a:experimental>
+						<a:deprecated>true</a:deprecated>
+						<a:plannedRemoval>4.0</a:plannedRemoval>
                     </xsd:appinfo>                    
                 </xsd:annotation>
             </xsd:element>
@@ -8689,6 +8700,7 @@
                     <xsd:appinfo>
                     	<a:deprecated>true</a:deprecated>
 						<a:displayName>MappingType.range</a:displayName>
+						<a:plannedRemoval>4.0</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -8894,6 +8906,7 @@
             </xsd:documentation>
             <xsd:appinfo>
             	<a:deprecated>true</a:deprecated>
+            	<a:plannedRemoval>4.0</a:plannedRemoval>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -9406,6 +9419,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                     	<a:deprecated>true</a:deprecated>
+                    	<a:plannedRemoval>4.0</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -9565,6 +9579,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:deprecated/>
+                                <a:plannedRemoval>4.0</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
 		        	</xsd:element>
@@ -9667,6 +9682,7 @@
 		        			<xsd:appinfo>
 		        				<a:deprecated>true</a:deprecated>
 		        				<a:deprecatedSince>3.7</a:deprecatedSince>
+		        				<a:plannedRemoval>4.0</a:plannedRemoval>
 		        			</xsd:appinfo>
 		        		</xsd:annotation>
 		        	</xsd:element>
@@ -9678,6 +9694,7 @@
 		        			<xsd:appinfo>
 		        				<a:deprecated>true</a:deprecated>
 		        				<a:deprecatedSince>3.7</a:deprecatedSince>
+		        				<a:plannedRemoval>4.0</a:plannedRemoval>
 		        			</xsd:appinfo>
 		        		</xsd:annotation>
 		        	</xsd:element>
@@ -10287,6 +10304,7 @@
         			<xsd:appinfo>
                     	<a:objectReferenceTargetType>tns:ObjectTemplateType</a:objectReferenceTargetType>
                     	<a:deprecated/>
+                    	<a:plannedRemoval>4.0</a:plannedRemoval>
                     </xsd:appinfo>
         		</xsd:annotation>
         	</xsd:element>
@@ -10298,6 +10316,7 @@
         			<xsd:appinfo>
                     	<a:objectReferenceTargetType>tns:ObjectTemplateType</a:objectReferenceTargetType>
                     	<a:deprecated/>
+                    	<a:plannedRemoval>4.0</a:plannedRemoval>
                     </xsd:appinfo>
         		</xsd:annotation>
         	</xsd:element>
@@ -10310,6 +10329,7 @@
                 </xsd:documentation>
                 <xsd:appinfo>
                 	<a:deprecated/>
+                	<a:plannedRemoval>4.0</a:plannedRemoval>
                 </xsd:appinfo>
             </xsd:annotation>
         </xsd:attribute>
@@ -10603,6 +10623,7 @@
 							</xsd:documentation>
 							<xsd:appinfo>
 								<a:deprecated>true</a:deprecated>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
 							</xsd:appinfo>
 						</xsd:annotation>
      				</xsd:element>
@@ -10615,6 +10636,7 @@
 							</xsd:documentation>
 							<xsd:appinfo>
 								<a:deprecated>true</a:deprecated>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
 							</xsd:appinfo>
 						</xsd:annotation>
      				</xsd:element>
@@ -10625,6 +10647,7 @@
 							</xsd:documentation>
 							<xsd:appinfo>
 								<a:deprecated>true</a:deprecated>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
 							</xsd:appinfo>
 						</xsd:annotation>
      				</xsd:element>
@@ -10638,6 +10661,7 @@
 							 <xsd:appinfo>
 		                    	<a:displayName>ShadowType.failedOperationType</a:displayName>
 								<a:deprecated>true</a:deprecated>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
 		                    </xsd:appinfo>
 						</xsd:annotation>
      				</xsd:element>
@@ -11504,6 +11528,7 @@
 							</xsd:documentation>
 							<xsd:appinfo>
 								<a:deprecated>true</a:deprecated>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
@@ -11533,6 +11558,7 @@
                                 <a:displayName>AbstractRoleType.owner</a:displayName>
                                 <a:deprecated>true</a:deprecated>
                                 <a:deprecatedSince>3.7</a:deprecatedSince>
+                                <a:plannedRemoval>4.0</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -11549,6 +11575,7 @@
                                 <a:displayName>AbstractRoleType.approver</a:displayName>
                                 <a:deprecated>true</a:deprecated>
                                 <a:deprecatedSince>3.7</a:deprecatedSince>
+                                <a:plannedRemoval>4.0</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -11564,6 +11591,7 @@
 							<xsd:appinfo>
 								<a:deprecated>true</a:deprecated>
 								<a:deprecatedSince>3.5</a:deprecatedSince>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
 							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -11578,6 +11606,7 @@
 							<xsd:appinfo>
 								<a:deprecated>true</a:deprecated>
 								<a:deprecatedSince>3.5</a:deprecatedSince>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
 							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -11599,6 +11628,7 @@
 							<xsd:appinfo>
 								<a:deprecated>true</a:deprecated>
 								<a:deprecatedSince>3.5</a:deprecatedSince>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
 							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -11613,6 +11643,7 @@
 							<xsd:appinfo>
 								<a:deprecated>true</a:deprecated>
 								<a:deprecatedSince>3.5</a:deprecatedSince>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
 							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -11642,6 +11673,7 @@
 								<a:since>3.1.1</a:since>
 								<a:deprecated>true</a:deprecated>
 								<a:deprecatedSince>3.5</a:deprecatedSince>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
@@ -13407,6 +13439,7 @@
 		<xsd:annotation>
 			<xsd:appinfo>
 				<a:deprecated>true</a:deprecated>
+				<a:plannedRemoval>4.0</a:plannedRemoval>
 			</xsd:appinfo>
 		</xsd:annotation>
 	</xsd:element>
@@ -13635,6 +13668,7 @@
                     			<a:displayName>OrgType.passwordPolicy</a:displayName>
                                 <a:displayOrder>240</a:displayOrder>
                                 <a:deprecated>true</a:deprecated>
+                                <a:plannedRemoval>4.0</a:plannedRemoval>
                     		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -13862,6 +13896,7 @@
                     		</xsd:documentation>
                     		<xsd:appinfo>
                     			<a:deprecated>true</a:deprecated>
+                    			<a:plannedRemoval>4.0</a:plannedRemoval>
                     		</xsd:appinfo>
                     	</xsd:annotation>
                     </xsd:element>
@@ -13885,6 +13920,7 @@
                     		</xsd:documentation>
                     		<xsd:appinfo>
                     			<a:deprecated>true</a:deprecated>
+                    			<a:plannedRemoval>4.0</a:plannedRemoval>
                     		</xsd:appinfo>
                     	</xsd:annotation>
                     </xsd:element>
@@ -13897,6 +13933,7 @@
                     		</xsd:documentation>
                     		<xsd:appinfo>
                     			<a:deprecated>true</a:deprecated>
+                    			<a:plannedRemoval>4.0</a:plannedRemoval>
                     		</xsd:appinfo>
                     	</xsd:annotation>
                     </xsd:element>
@@ -14660,6 +14697,7 @@
                             	<a:since>3.5</a:since>
 								<a:deprecated>true</a:deprecated>
 								<a:deprecatedSince>3.6</a:deprecatedSince>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -15459,6 +15497,7 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:deprecated>true</a:deprecated>
+						<a:plannedRemoval>4.0</a:plannedRemoval>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -17177,6 +17216,7 @@
                         <jaxb:typesafeEnumMember name="ASSIGNMENT"/>
 						<a:deprecated>true</a:deprecated>
 						<a:deprecatedSince>3.7</a:deprecatedSince>
+						<a:plannedRemoval>4.0</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -18073,6 +18113,7 @@
 					        <xsd:appinfo>
 								<a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType>
 								<a:deprecated>true</a:deprecated>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
 							</xsd:appinfo>
 					    </xsd:annotation>
 					</xsd:element>
@@ -18096,6 +18137,7 @@
 					        </xsd:documentation>
 					        <xsd:appinfo>
 					        	<a:deprecated>true</a:deprecated>
+					        	<a:plannedRemoval>4.0</a:plannedRemoval>
 					        </xsd:appinfo>
 					    </xsd:annotation>
 					</xsd:element>
@@ -19433,6 +19475,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:deprecated>true</a:deprecated>
+                        <a:plannedRemoval>4.0</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -20186,6 +20229,7 @@
            				</xsd:documentation>
            				<xsd:appinfo>
            					<a:deprecated>true</a:deprecated>
+           					<a:plannedRemoval>4.0</a:plannedRemoval>
            				</xsd:appinfo>
            			</xsd:annotation>
            		</xsd:element>
@@ -21260,6 +21304,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                     	<a:deprecated>true</a:deprecated>
+                    	<a:plannedRemoval>4.0</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
