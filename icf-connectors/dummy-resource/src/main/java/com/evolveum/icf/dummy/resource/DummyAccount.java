@@ -62,7 +62,7 @@ public class DummyAccount extends DummyObject {
 	}
 
 	@Override
-	protected DummyObjectClass getObjectClass() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	protected DummyObjectClass getObjectClass() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		return resource.getAccountObjectClass();
 	}
 

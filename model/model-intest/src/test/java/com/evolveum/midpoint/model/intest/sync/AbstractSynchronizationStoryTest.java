@@ -1087,12 +1087,12 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
 	}
 
 	private PrismObject<ShadowType> checkWallyAccount(PrismObject<ResourceType> resource, DummyResource dummy, String resourceDesc,
-			String expectedFullName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, ExpressionEvaluationException {
+			String expectedFullName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, ExpressionEvaluationException, InterruptedException {
 		return checkWallyAccount(resource, dummy, resourceDesc, expectedFullName, null, null);
 	}
 
 	private PrismObject<ShadowType> checkWallyAccount(PrismObject<ResourceType> resource, DummyResource dummy, String resourceDesc,
-			String expectedFullName, String shipName, String quote) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, ExpressionEvaluationException {
+			String expectedFullName, String shipName, String quote) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, ExpressionEvaluationException, InterruptedException {
 		PrismObject<ShadowType> accountShadowWally = findAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME, resource);
         display("Account shadow wally ("+resourceDesc+")", accountShadowWally);
         assertEquals("Wrong resourceRef in wally account ("+resourceDesc+")", resource.getOid(),

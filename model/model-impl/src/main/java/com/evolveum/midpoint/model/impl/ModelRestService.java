@@ -698,8 +698,8 @@ public class ModelRestService {
 		Response response;
 		try {
 			modelService.importFromResource(shadowOid, task, parentResult);
-			response = RestServiceUtil.createResponse(Response.Status.SEE_OTHER, (uriInfo.getBaseUriBuilder().path(this.getClass(), "getObject")
-					.build(ObjectTypes.SHADOW.getRestType(), shadowOid)), parentResult);
+
+			response = RestServiceUtil.createResponse(Response.Status.OK, parentResult, parentResult);
 		} catch (Exception ex) {
 			response = RestServiceUtil.handleException(parentResult, ex);
 		}

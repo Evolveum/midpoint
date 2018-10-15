@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -101,6 +101,7 @@ public class DummyResource implements DebugDumpable {
 	private int writeOperationCount = 0;
 	private int groupMembersReadCount = 0;
 	private Collection<String> forbiddenNames;
+	private int operationDelayOffset = 0;
 	private int operationDelayRange = 0;
 
 	/**
@@ -178,6 +179,7 @@ public class DummyResource implements DebugDumpable {
 		deltas.clear();
 		latestSyncToken = 0;
 		writeOperationCount = 0;
+		operationDelayOffset = 0;
 		operationDelayRange = 0;
 		resetBreakMode();
 	}
@@ -360,6 +362,14 @@ public class DummyResource implements DebugDumpable {
 		this.forbiddenNames = forbiddenNames;
 	}
 
+	public int getOperationDelayOffset() {
+		return operationDelayOffset;
+	}
+
+	public void setOperationDelayOffset(int operationDelayOffset) {
+		this.operationDelayOffset = operationDelayOffset;
+	}
+
 	public int getOperationDelayRange() {
 		return operationDelayRange;
 	}
@@ -413,7 +423,7 @@ public class DummyResource implements DebugDumpable {
 		traceOperation("groupMembersRead", groupMembersReadCount);
 	}
 
-	public DummyObjectClass getAccountObjectClass() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	public DummyObjectClass getAccountObjectClass() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		breakIt(schemaBreakMode, "schema");
 		delayOperation();
 		return accountObjectClass;
@@ -443,14 +453,14 @@ public class DummyResource implements DebugDumpable {
 		return 4 + auxiliaryObjectClassMap.size();
 	}
 
-	public Collection<DummyAccount> listAccounts() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	public Collection<DummyAccount> listAccounts() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		checkBlockOperations();
 		breakIt(getBreakMode, "get");
 		delayOperation();
 		return accounts.values();
 	}
 
-	private <T extends DummyObject> T getObjectByName(Map<String,T> map, String name, boolean checkBreak) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	private <T extends DummyObject> T getObjectByName(Map<String,T> map, String name, boolean checkBreak) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		if (!enforceUniqueName) {
 			throw new IllegalStateException("Attempt to search object by name while resource is in non-unique name mode");
 		}
@@ -462,39 +472,39 @@ public class DummyResource implements DebugDumpable {
 		return map.get(normalize(name));
 	}
 
-	public DummyAccount getAccountByUsername(String username) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	public DummyAccount getAccountByUsername(String username) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		return getObjectByName(accounts, username, true);
 	}
 
-	public DummyAccount getAccountByUsername(String username, boolean checkBreak) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	public DummyAccount getAccountByUsername(String username, boolean checkBreak) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		return getObjectByName(accounts, username, checkBreak);
 	}
 
-	public DummyGroup getGroupByName(String name) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	public DummyGroup getGroupByName(String name) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		return getObjectByName(groups, name, true);
 	}
 
-	public DummyGroup getGroupByName(String name, boolean checkBreak) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	public DummyGroup getGroupByName(String name, boolean checkBreak) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		return getObjectByName(groups, name, checkBreak);
 	}
 
-	public DummyPrivilege getPrivilegeByName(String name) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	public DummyPrivilege getPrivilegeByName(String name) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		return getObjectByName(privileges, name, true);
 	}
 
-	public DummyPrivilege getPrivilegeByName(String name, boolean checkBreak) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	public DummyPrivilege getPrivilegeByName(String name, boolean checkBreak) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		return getObjectByName(privileges, name, checkBreak);
 	}
 
-	public DummyOrg getOrgByName(String name) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	public DummyOrg getOrgByName(String name) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		return getObjectByName(orgs, name, true);
 	}
 
-	public DummyOrg getOrgByName(String name, boolean checkBreak) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	public DummyOrg getOrgByName(String name, boolean checkBreak) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		return getObjectByName(orgs, name, checkBreak);
 	}
 
-	private <T extends DummyObject> T getObjectById(Class<T> expectedClass, String id, boolean checkBreak) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	private <T extends DummyObject> T getObjectById(Class<T> expectedClass, String id, boolean checkBreak) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		checkBlockOperations();
 		if (checkBreak) {
 			breakIt(getBreakMode, "get");
@@ -510,60 +520,60 @@ public class DummyResource implements DebugDumpable {
 		return (T)dummyObject;
 	}
 
-	public DummyAccount getAccountById(String id) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	public DummyAccount getAccountById(String id) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		return getObjectById(DummyAccount.class, id, true);
 	}
 
-	public DummyAccount getAccountById(String id, boolean checkBreak) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	public DummyAccount getAccountById(String id, boolean checkBreak) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		return getObjectById(DummyAccount.class, id, checkBreak);
 	}
 
-	public DummyGroup getGroupById(String id) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	public DummyGroup getGroupById(String id) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		return getObjectById(DummyGroup.class, id, true);
 	}
 
-	public DummyGroup getGroupById(String id, boolean checkBreak) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	public DummyGroup getGroupById(String id, boolean checkBreak) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		return getObjectById(DummyGroup.class, id, checkBreak);
 	}
 
-	public DummyPrivilege getPrivilegeById(String id) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	public DummyPrivilege getPrivilegeById(String id) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		return getObjectById(DummyPrivilege.class, id, true);
 	}
 
-	public DummyPrivilege getPrivilegeById(String id, boolean checkBreak) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	public DummyPrivilege getPrivilegeById(String id, boolean checkBreak) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		return getObjectById(DummyPrivilege.class, id, checkBreak);
 	}
 
-	public DummyOrg getOrgById(String id) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	public DummyOrg getOrgById(String id) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		return getObjectById(DummyOrg.class, id, true);
 	}
 
-	public DummyOrg getOrgById(String id, boolean checkBreak) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	public DummyOrg getOrgById(String id, boolean checkBreak) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		return getObjectById(DummyOrg.class, id, checkBreak);
 	}
 
-	public Collection<DummyGroup> listGroups() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	public Collection<DummyGroup> listGroups() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		checkBlockOperations();
 		breakIt(getBreakMode, "get");
 		delayOperation();
 		return groups.values();
 	}
 
-	public Collection<DummyPrivilege> listPrivileges() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	public Collection<DummyPrivilege> listPrivileges() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		checkBlockOperations();
 		breakIt(getBreakMode, "get");
 		delayOperation();
 		return privileges.values();
 	}
 
-	public Collection<DummyOrg> listOrgs() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	public Collection<DummyOrg> listOrgs() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		checkBlockOperations();
 		breakIt(getBreakMode, "get");
 		delayOperation();
 		return orgs.values();
 	}
 
-	private synchronized <T extends DummyObject> String addObject(Map<String,T> map, T newObject) throws ObjectAlreadyExistsException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	private synchronized <T extends DummyObject> String addObject(Map<String,T> map, T newObject) throws ObjectAlreadyExistsException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		checkBlockOperations();
 		recordWriteOperation("add");
 		breakIt(addBreakMode, "add");
@@ -613,7 +623,7 @@ public class DummyResource implements DebugDumpable {
 	}
 
 
-	private synchronized <T extends DummyObject> void deleteObjectByName(Class<T> type, Map<String,T> map, String name) throws ObjectDoesNotExistException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	private synchronized <T extends DummyObject> void deleteObjectByName(Class<T> type, Map<String,T> map, String name) throws ObjectDoesNotExistException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		checkBlockOperations();
 		recordWriteOperation("delete");
 		breakIt(deleteBreakMode, "delete");
@@ -641,23 +651,23 @@ public class DummyResource implements DebugDumpable {
 		}
 	}
 
-	public void deleteAccountById(String id) throws ConnectException, FileNotFoundException, ObjectDoesNotExistException, SchemaViolationException, ConflictException {
+	public void deleteAccountById(String id) throws ConnectException, FileNotFoundException, ObjectDoesNotExistException, SchemaViolationException, ConflictException, InterruptedException {
 		deleteObjectById(DummyAccount.class, accounts, id);
 	}
 
-	public void deleteGroupById(String id) throws ConnectException, FileNotFoundException, ObjectDoesNotExistException, SchemaViolationException, ConflictException {
+	public void deleteGroupById(String id) throws ConnectException, FileNotFoundException, ObjectDoesNotExistException, SchemaViolationException, ConflictException, InterruptedException {
 		deleteObjectById(DummyGroup.class, groups, id);
 	}
 
-	public void deletePrivilegeById(String id) throws ConnectException, FileNotFoundException, ObjectDoesNotExistException, SchemaViolationException, ConflictException {
+	public void deletePrivilegeById(String id) throws ConnectException, FileNotFoundException, ObjectDoesNotExistException, SchemaViolationException, ConflictException, InterruptedException {
 		deleteObjectById(DummyPrivilege.class, privileges, id);
 	}
 
-	public void deleteOrgById(String id) throws ConnectException, FileNotFoundException, ObjectDoesNotExistException, SchemaViolationException, ConflictException {
+	public void deleteOrgById(String id) throws ConnectException, FileNotFoundException, ObjectDoesNotExistException, SchemaViolationException, ConflictException, InterruptedException {
 		deleteObjectById(DummyOrg.class, orgs, id);
 	}
 
-	private synchronized <T extends DummyObject> void deleteObjectById(Class<T> type, Map<String,T> map, String id) throws ObjectDoesNotExistException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	private synchronized <T extends DummyObject> void deleteObjectById(Class<T> type, Map<String,T> map, String id) throws ObjectDoesNotExistException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		checkBlockOperations();
 		recordWriteOperation("delete");
 		breakIt(deleteBreakMode, "delete");
@@ -695,7 +705,7 @@ public class DummyResource implements DebugDumpable {
 		}
 	}
 
-	private <T extends DummyObject> void renameObject(Class<T> type, Map<String,T> map, String id, String oldName, String newName) throws ObjectDoesNotExistException, ObjectAlreadyExistsException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	private <T extends DummyObject> void renameObject(Class<T> type, Map<String,T> map, String id, String oldName, String newName) throws ObjectDoesNotExistException, ObjectAlreadyExistsException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		checkBlockOperations();
 		recordWriteOperation("modify");
 		breakIt(modifyBreakMode, "modify");
@@ -723,18 +733,18 @@ public class DummyResource implements DebugDumpable {
 		}
 	}
 
-	public String addAccount(DummyAccount newAccount) throws ObjectAlreadyExistsException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	public String addAccount(DummyAccount newAccount) throws ObjectAlreadyExistsException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		if (generateAccountDescriptionOnCreate && newAccount.getAttributeValue(DummyAccount.ATTR_DESCRIPTION_NAME) == null) {
 			newAccount.addAttributeValue(DummyAccount.ATTR_DESCRIPTION_NAME, "Description of " + newAccount.getName());
 		}
 		return addObject(accounts, newAccount);
 	}
 
-	public void deleteAccountByName(String id) throws ObjectDoesNotExistException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	public void deleteAccountByName(String id) throws ObjectDoesNotExistException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		deleteObjectByName(DummyAccount.class, accounts, id);
 	}
 
-	public void renameAccount(String id, String oldUsername, String newUsername) throws ObjectDoesNotExistException, ObjectAlreadyExistsException, ConnectException, FileNotFoundException, SchemaViolationException, SchemaViolationException, ConflictException {
+	public void renameAccount(String id, String oldUsername, String newUsername) throws ObjectDoesNotExistException, ObjectAlreadyExistsException, ConnectException, FileNotFoundException, SchemaViolationException, SchemaViolationException, ConflictException, InterruptedException {
 		renameObject(DummyAccount.class, accounts, id, oldUsername, newUsername);
 		for (DummyGroup group : groups.values()) {
 			if (group.containsMember(oldUsername)) {
@@ -748,45 +758,45 @@ public class DummyResource implements DebugDumpable {
 		if (generateAccountDescriptionOnCreate) {
 			try {
 				account.replaceAttributeValue(DummyAccount.ATTR_DESCRIPTION_NAME, "Updated description of " + account.getName());
-			} catch (SchemaViolationException|ConnectException|FileNotFoundException e) {
+			} catch (SchemaViolationException|ConnectException|FileNotFoundException|InterruptedException e) {
 				throw new SystemException("Couldn't replace the 'description' attribute value", e);
 			}
 		}
 	}
 
-	public String addGroup(DummyGroup newGroup) throws ObjectAlreadyExistsException, ConnectException, FileNotFoundException, SchemaViolationException, SchemaViolationException, ConflictException {
+	public String addGroup(DummyGroup newGroup) throws ObjectAlreadyExistsException, ConnectException, FileNotFoundException, SchemaViolationException, SchemaViolationException, ConflictException, InterruptedException {
 		return addObject(groups, newGroup);
 	}
 
-	public void deleteGroupByName(String id) throws ObjectDoesNotExistException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	public void deleteGroupByName(String id) throws ObjectDoesNotExistException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		deleteObjectByName(DummyGroup.class, groups, id);
 	}
 
-	public void renameGroup(String id, String oldName, String newName) throws ObjectDoesNotExistException, ObjectAlreadyExistsException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	public void renameGroup(String id, String oldName, String newName) throws ObjectDoesNotExistException, ObjectAlreadyExistsException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		renameObject(DummyGroup.class, groups, id, oldName, newName);
 	}
 
-	public String addPrivilege(DummyPrivilege newGroup) throws ObjectAlreadyExistsException, ConnectException, FileNotFoundException, SchemaViolationException, SchemaViolationException, ConflictException {
+	public String addPrivilege(DummyPrivilege newGroup) throws ObjectAlreadyExistsException, ConnectException, FileNotFoundException, SchemaViolationException, SchemaViolationException, ConflictException, InterruptedException {
 		return addObject(privileges, newGroup);
 	}
 
-	public void deletePrivilegeByName(String id) throws ObjectDoesNotExistException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	public void deletePrivilegeByName(String id) throws ObjectDoesNotExistException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		deleteObjectByName(DummyPrivilege.class, privileges, id);
 	}
 
-	public void renamePrivilege(String id, String oldName, String newName) throws ObjectDoesNotExistException, ObjectAlreadyExistsException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	public void renamePrivilege(String id, String oldName, String newName) throws ObjectDoesNotExistException, ObjectAlreadyExistsException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		renameObject(DummyPrivilege.class, privileges, id, oldName, newName);
 	}
 
-	public String addOrg(DummyOrg newGroup) throws ObjectAlreadyExistsException, ConnectException, FileNotFoundException, SchemaViolationException, SchemaViolationException, ConflictException {
+	public String addOrg(DummyOrg newGroup) throws ObjectAlreadyExistsException, ConnectException, FileNotFoundException, SchemaViolationException, SchemaViolationException, ConflictException, InterruptedException {
 		return addObject(orgs, newGroup);
 	}
 
-	public void deleteOrgByName(String id) throws ObjectDoesNotExistException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	public void deleteOrgByName(String id) throws ObjectDoesNotExistException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		deleteObjectByName(DummyOrg.class, orgs, id);
 	}
 
-	public void renameOrg(String id, String oldName, String newName) throws ObjectDoesNotExistException, ObjectAlreadyExistsException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	public void renameOrg(String id, String oldName, String newName) throws ObjectDoesNotExistException, ObjectAlreadyExistsException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		renameObject(DummyOrg.class, orgs, id, oldName, newName);
 	}
 
@@ -918,17 +928,21 @@ public class DummyResource implements DebugDumpable {
 		}
 	}
 
-	void delayOperation() {
-		if (operationDelayRange == 0) {
+	void delayOperation() throws InterruptedException {
+		if (operationDelayOffset == 0 && operationDelayRange == 0) {
 			return;
 		}
-		int delay = RND.nextInt(operationDelayRange);
+		int delay = operationDelayOffset;
+		if (operationDelayRange > 0) {
+			delay += RND.nextInt(operationDelayRange);
+		}
 		LOGGER.debug("Delaying dummy {} operation for {} ms", instanceName, delay);
 		try {
 			Thread.sleep(delay);
 			LOGGER.debug("Operation delay on dummy {} wait done", instanceName);
 		} catch (InterruptedException e) {
 			LOGGER.debug("Operation delay on dummy {} interrupted: {}", instanceName, e.getMessage());
+			throw e;
 		}
 	}
 

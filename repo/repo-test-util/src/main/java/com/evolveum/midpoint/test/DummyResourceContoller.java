@@ -160,7 +160,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 	/**
 	 * Extend schema in piratey fashion. Arr! This is used in many tests. Lots of attributes, various combination of types, etc.
 	 */
-	public void extendSchemaPirate() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	public void extendSchemaPirate() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		populateWithDefaultSchema();
 		DummyObjectClass accountObjectClass = dummyResource.getAccountObjectClass();
 		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, String.class, false, true);
@@ -191,7 +191,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 	/**
 	 * Extend dummy schema to look like AD
 	 */
-	public void extendSchemaAd() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	public void extendSchemaAd() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		DummyObjectClass accountObjectClass = dummyResource.getAccountObjectClass();
 		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_AD_GIVEN_NAME_NAME, String.class, false, false);
 		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_AD_SN_NAME, String.class, false, false);
@@ -402,13 +402,13 @@ public class DummyResourceContoller extends AbstractResourceController {
         return new QName(ResourceTypeUtil.getResourceNamespace(getResourceType()), "GroupObjectClass");
     }
 
-	public DummyOrg addOrgTop() throws ConnectException, FileNotFoundException, ObjectAlreadyExistsException, SchemaViolationException, ConflictException {
+	public DummyOrg addOrgTop() throws ConnectException, FileNotFoundException, ObjectAlreadyExistsException, SchemaViolationException, ConflictException, InterruptedException {
 		DummyOrg org = new DummyOrg(ORG_TOP_NAME);
 		dummyResource.addOrg(org);
 		return org;
 	}
 
-	public DummyAccount addAccount(String userId, String fullName) throws ObjectAlreadyExistsException, SchemaViolationException, ConnectException, FileNotFoundException, ConflictException {
+	public DummyAccount addAccount(String userId, String fullName) throws ObjectAlreadyExistsException, SchemaViolationException, ConnectException, FileNotFoundException, ConflictException, InterruptedException {
 		DummyAccount account = new DummyAccount(userId);
 		account.setEnabled(true);
 		account.addAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, fullName);
@@ -416,7 +416,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 		return account;
 	}
 
-	public void addAccount(String userId, String fullName, String location) throws ObjectAlreadyExistsException, SchemaViolationException, ConnectException, FileNotFoundException, ConflictException {
+	public void addAccount(String userId, String fullName, String location) throws ObjectAlreadyExistsException, SchemaViolationException, ConnectException, FileNotFoundException, ConflictException, InterruptedException {
 		assertExtendedSchema();
 		DummyAccount account = new DummyAccount(userId);
 		account.setEnabled(true);
@@ -425,14 +425,14 @@ public class DummyResourceContoller extends AbstractResourceController {
 		dummyResource.addAccount(account);
 	}
 
-	public void addGroup(String name) throws ObjectAlreadyExistsException, SchemaViolationException, ConnectException, FileNotFoundException, ConflictException {
+	public void addGroup(String name) throws ObjectAlreadyExistsException, SchemaViolationException, ConnectException, FileNotFoundException, ConflictException, InterruptedException {
 		assertExtendedSchema();
 		DummyGroup group = new DummyGroup(name);
 		group.setEnabled(true);
 		dummyResource.addGroup(group);
 	}
 	
-	public void deleteAccount(String name) throws ConnectException, FileNotFoundException, ObjectDoesNotExistException, SchemaViolationException, ConflictException {
+	public void deleteAccount(String name) throws ConnectException, FileNotFoundException, ObjectDoesNotExistException, SchemaViolationException, ConflictException, InterruptedException {
 		dummyResource.deleteAccountByName(name);
 	}
 
@@ -453,13 +453,13 @@ public class DummyResourceContoller extends AbstractResourceController {
 		dummyResource.unblockAll();
 	}
 	
-	public DummyAccountAsserter<Void> assertAccountByUsername(String username) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	public DummyAccountAsserter<Void> assertAccountByUsername(String username) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		DummyAccount account = dummyResource.getAccountByUsername(username);
 		assertNotNull("Account "+username+" does not exist on dummy resource "+getName(), account);
 		return assertAccount(account);
 	}
 	
-	public DummyAccountAsserter<Void> assertAccountById(String id) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	public DummyAccountAsserter<Void> assertAccountById(String id) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		DummyAccount account = dummyResource.getAccountById(id);
 		assertNotNull("Account id="+id+" does not exist on dummy resource "+getName());
 		return assertAccount(account);
@@ -469,7 +469,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 		return new DummyAccountAsserter<>(account, getName());
 	}
 
-	public void assertNoAccountByUsername(String username) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	public void assertNoAccountByUsername(String username) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		DummyAccount account = dummyResource.getAccountByUsername(username);
 		assertNull("Unexpected account "+username+" on dummy resource "+getName(), account);
 	}

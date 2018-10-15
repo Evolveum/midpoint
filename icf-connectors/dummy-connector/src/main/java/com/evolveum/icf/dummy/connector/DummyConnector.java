@@ -24,6 +24,7 @@ import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
 import org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException;
 import org.identityconnectors.framework.common.exceptions.InvalidPasswordException;
+import org.identityconnectors.framework.common.exceptions.OperationTimeoutException;
 import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.*;
 
@@ -342,6 +343,9 @@ public class DummyConnector extends AbstractDummyConnector implements PoolableCo
 		} catch (ConflictException e) {
 			log.info("update::exception "+e);
 			throw new AlreadyExistsException(e);
+		} catch (InterruptedException e) {
+			log.info("update::exception "+e);
+			throw new OperationTimeoutException(e);
 		}
 
         log.info("update::end {0}", instanceName);
@@ -390,7 +394,9 @@ public class DummyConnector extends AbstractDummyConnector implements PoolableCo
 		} catch (SchemaViolationException e) {
 			// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
 			// The framework should deal with it ... somehow
-			throw new InvalidAttributeValueException(e.getMessage(),e);
+			throw new InvalidAttributeValueException(e.getMessage(), e);
+		} catch (InterruptedException e) {
+			throw new OperationTimeoutException(e.getMessage(), e);
 		}
 		
 	}

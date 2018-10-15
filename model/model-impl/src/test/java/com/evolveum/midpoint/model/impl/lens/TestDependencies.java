@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -97,7 +97,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
 		initDummy("z", initTask, initResult); // depends on X (circular)
 	}
 
-	private void initDummy(String name, Task initTask, OperationResult initResult) throws FileNotFoundException, ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ConnectException, SchemaViolationException, ConflictException, ExpressionEvaluationException {
+	private void initDummy(String name, Task initTask, OperationResult initResult) throws FileNotFoundException, ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ConnectException, SchemaViolationException, ConflictException, ExpressionEvaluationException, InterruptedException {
 		String resourceOid = getDummyOid(name);
 		DummyResourceContoller resourceCtl = DummyResourceContoller.create(name.toUpperCase());
 		resourceCtl.extendSchemaPirate();

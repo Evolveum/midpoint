@@ -2483,14 +2483,14 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertSteadyResources();
 	}
 
-	private void assertJackClean() throws SchemaViolationException, ConflictException, ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+	private void assertJackClean() throws SchemaViolationException, ConflictException, ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, InterruptedException {
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User before", userBefore);
         assertAssignments(userBefore, 0);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
 
-	private void assertJackJustAccount() throws SchemaViolationException, ConflictException, ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, ConnectException, FileNotFoundException {
+	private void assertJackJustAccount() throws SchemaViolationException, ConflictException, ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, ConnectException, FileNotFoundException, InterruptedException {
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User before", userBefore);
         assertAssignments(userBefore, 1);
@@ -2502,7 +2502,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 	/**
 	 * Account: yes, group: yes
 	 */
-    private void assertJackAccountSwashbuckler() throws SchemaViolationException, ConflictException, ConnectException, FileNotFoundException {
+    private void assertJackAccountSwashbuckler() throws SchemaViolationException, ConflictException, ConnectException, FileNotFoundException, InterruptedException {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
         assertNotNull("No group on dummy resource", dummyGroup);
@@ -2515,7 +2515,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 	/**
 	 * Account: yes, group: no
 	 */
- 	private void assertJackAccountNoSwashbuckler() throws SchemaViolationException, ConflictException, ConnectException, FileNotFoundException {
+ 	private void assertJackAccountNoSwashbuckler() throws SchemaViolationException, ConflictException, ConnectException, FileNotFoundException, InterruptedException {
  		assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
  		DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
 		assertNotNull("No group on dummy resource", dummyGroup);
@@ -2528,7 +2528,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 	/**
 	 * Account: no, group: no
 	 */
-	private void assertJackNoAccountNoSwashbuckler() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	private void assertJackNoAccountNoSwashbuckler() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
         assertNotNull("No group on dummy resource", dummyGroup);
         display("Group", dummyGroup);
@@ -2578,7 +2578,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
 	@SuppressWarnings("unused")
 	private void dumpAccountAndGroups(PrismObject<UserType> user, String dummyResourceName)
-			throws ConflictException, SchemaViolationException, FileNotFoundException, ConnectException {
+			throws ConflictException, SchemaViolationException, FileNotFoundException, ConnectException, InterruptedException {
 		String userName = user.getName().getOrig();
 		DummyAccount dummyAccount = getDummyAccount(dummyResourceName, userName);
 		display("dummy account: " + dummyResourceName, dummyAccount);
@@ -2587,7 +2587,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 	}
 
 	private List<DummyGroup> getGroupsForUser(String dummyResourceName, String userName)
-			throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+			throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		return DummyResource.getInstance(dummyResourceName).listGroups().stream()
 				.filter(g -> g.containsMember(userName))
 				.collect(Collectors.toList());
@@ -2622,7 +2622,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 	}
 
 	private void assertGroupMember(String groupName, String accountName, DummyResource dummyResource)
-			throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+			throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		DummyGroup dummyGroup = dummyResource.getGroupByName(groupName);
 		assertNotNull("No group " + dummyGroup + " on " + dummyResource, dummyGroup);
 		display("group", dummyGroup);
@@ -2630,7 +2630,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 	}
 
 	private void assertNoGroupMember(String groupName, String accountName, DummyResource dummyResource)
-			throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+			throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		DummyGroup dummyGroup = dummyResource.getGroupByName(groupName);
 		assertNotNull("No group " + dummyGroup + " on " + dummyResource, dummyGroup);
 		display("group", dummyGroup);
