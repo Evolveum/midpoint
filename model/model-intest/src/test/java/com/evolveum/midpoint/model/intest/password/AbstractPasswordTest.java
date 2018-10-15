@@ -3742,23 +3742,23 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         return shadowDelta;
 	}
 
-	protected void assertDummyPassword(String userId, String expectedClearPassword) throws SchemaViolationException, ConflictException {
+	protected void assertDummyPassword(String userId, String expectedClearPassword) throws SchemaViolationException, ConflictException, InterruptedException {
 		assertDummyPassword(null, userId, expectedClearPassword);
 	}
 
-	protected void assertDummyPasswordConditional(String userId, String expectedClearPassword) throws SchemaViolationException, ConflictException {
+	protected void assertDummyPasswordConditional(String userId, String expectedClearPassword) throws SchemaViolationException, ConflictException, InterruptedException {
 		if (isPasswordEncryption()) {
 			assertDummyPassword(null, userId, expectedClearPassword);
 		}
 	}
 
-	protected void assertDummyPasswordConditional(String instance, String userId, String expectedClearPassword) throws SchemaViolationException, ConflictException {
+	protected void assertDummyPasswordConditional(String instance, String userId, String expectedClearPassword) throws SchemaViolationException, ConflictException, InterruptedException {
 		if (isPasswordEncryption()) {
 			super.assertDummyPassword(instance, userId, expectedClearPassword);
 		}
 	}
 
-	protected void assertDummyPasswordConditionalGenerated(String instance, String userId, String expectedClearPassword) throws SchemaViolationException, ConflictException {
+	protected void assertDummyPasswordConditionalGenerated(String instance, String userId, String expectedClearPassword) throws SchemaViolationException, ConflictException, InterruptedException {
 		if (isPasswordEncryption()) {
 			super.assertDummyPassword(instance, userId, expectedClearPassword);
 		} else {

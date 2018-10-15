@@ -711,7 +711,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		cleanUpJupiter(TEST_NAME);
 	}
 
-	protected void cleanUpJupiter(String TEST_NAME) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, SchemaViolationException, ConflictException {
+	protected void cleanUpJupiter(String TEST_NAME) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, SchemaViolationException, ConflictException, InterruptedException {
 		displayTestTitle(TEST_NAME);
 
 		// GIVEN

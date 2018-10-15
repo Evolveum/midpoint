@@ -24,6 +24,7 @@ import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
 import org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException;
 import org.identityconnectors.framework.common.exceptions.InvalidPasswordException;
+import org.identityconnectors.framework.common.exceptions.OperationTimeoutException;
 import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.*;
 
@@ -291,6 +292,8 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
 			throw new InvalidAttributeValueException(e);
 		} catch (ConflictException e) {
 			throw new AlreadyExistsException(e);
+		} catch (InterruptedException e) {
+			throw new OperationTimeoutException(e);
 		}
 
         String id;
@@ -377,6 +380,9 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
 		} catch (ConflictException e) {
 			log.info("delete::exception "+e);
 			throw new AlreadyExistsException(e);
+		} catch (InterruptedException e) {
+			log.info("delete::exception "+e);
+			throw new OperationTimeoutException(e);
 		}
 
         log.info("delete::end");
@@ -492,6 +498,8 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
 			throw new ConnectorIOException(e.getMessage(), e);
 		} catch (IllegalArgumentException e) {
 			throw new ConnectorException(e.getMessage(), e);
+		} catch (InterruptedException e) {
+			throw new OperationTimeoutException(e);
 		} // DO NOT catch IllegalStateException, let it pass
 
 		ObjectClassInfoBuilder objClassBuilder = createCommonObjectClassBuilder(getAccountObjectClassName(), dummyAccountObjectClass, supportsActivation);
@@ -680,13 +688,16 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
 		} catch (ConflictException e) {
 			log.info("executeQuery::exception "+e);
 			throw new AlreadyExistsException(e);
+		} catch (InterruptedException e) {
+			log.info("executeQuery::exception "+e);
+			throw new OperationTimeoutException(e);
 		}
 
         log.info("executeQuery::end");
     }
 
     private <T extends DummyObject> void search(ObjectClass objectClass, Filter query, ResultsHandler handler, OperationOptions options,
-    		Lister<T> lister, Getter<T> nameGetter, Getter<T> idGetter, Converter<T> converter, Consumer<T> recorder) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+    		Lister<T> lister, Getter<T> nameGetter, Getter<T> idGetter, Converter<T> converter, Consumer<T> recorder) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
     	Collection<String> attributesToGet = getAttrsToGet(options);
         log.ok("attributesToGet={0}", attributesToGet);
 
@@ -846,12 +857,12 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
 
     @FunctionalInterface
     interface Lister<T> {
-    	Collection<T> list() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException;
+    	Collection<T> list() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException;
     }
 
     @FunctionalInterface
     interface Getter<T> {
-    	T get(String id) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException;
+    	T get(String id) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException;
     }
 
     @FunctionalInterface
@@ -1110,6 +1121,9 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
 		} catch (ConflictException e) {
 			log.info("sync::exception "+e);
 			throw new AlreadyExistsException(e);
+		} catch (InterruptedException e) {
+			log.info("sync::exception "+e);
+			throw new OperationTimeoutException(e);
 		}
 
         log.info("sync::end");
@@ -1281,6 +1295,9 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
 		} catch (ConflictException e) {
 			log.error(e, e.getMessage());
 			throw new AlreadyExistsException(e);
+		} catch (InterruptedException e) {
+			log.error(e, e.getMessage());
+			throw new OperationTimeoutException(e);
 		}
 
 		ConnectorObjectBuilder builder = createConnectorObjectBuilderCommon(account, objectClass, attributesToGet, true);
@@ -1332,7 +1349,7 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
         return builder.build();
 	}
 
-	private DummyAccount convertToAccount(Set<Attribute> createAttributes) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	private DummyAccount convertToAccount(Set<Attribute> createAttributes) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		log.ok("Create attributes: {0}", createAttributes);
 		String userName = Utils.getMandatoryStringAttribute(createAttributes, Name.NAME);
 		if (configuration.getUpCaseName()) {
@@ -1399,7 +1416,7 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
 		return newAccount;
 	}
 
-	private DummyGroup convertToGroup(Set<Attribute> createAttributes) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	private DummyGroup convertToGroup(Set<Attribute> createAttributes) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		String icfName = Utils.getMandatoryStringAttribute(createAttributes,Name.NAME);
 		if (configuration.getUpCaseName()) {
 			icfName = StringUtils.upperCase(icfName);
@@ -1474,6 +1491,8 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
 					newPriv.replaceAttributeValues(name,attr.getValue());
 				} catch (SchemaViolationException e) {
 					throw new InvalidAttributeValueException(e.getMessage(),e);
+				} catch (InterruptedException e) {
+					throw new OperationTimeoutException(e.getMessage(),e);
 				}
 			}
 		}
@@ -1507,6 +1526,8 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
 					newOrg.replaceAttributeValues(name,attr.getValue());
 				} catch (SchemaViolationException e) {
 					throw new IllegalArgumentException(e.getMessage(),e);
+				} catch (InterruptedException e) {
+					throw new OperationTimeoutException(e.getMessage(),e);
 				}
 			}
 		}
@@ -1623,7 +1644,7 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
 		return attributesToGet.contains(attrName);
 	}
 	
-	protected void applyModifyMetadata(DummyObject object, OperationOptions options) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	protected void applyModifyMetadata(DummyObject object, OperationOptions options) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		String runAsUser = options.getRunAsUser();
 		if (runAsUser != null) {
 			if (!configuration.getSupportRunAs()) {

@@ -2872,29 +2872,29 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	}
 
 
-	private void assertDummyActivationEnabledState(String userId, Boolean expectedEnabled) throws SchemaViolationException, ConflictException {
+	private void assertDummyActivationEnabledState(String userId, Boolean expectedEnabled) throws SchemaViolationException, ConflictException, InterruptedException {
 		assertDummyActivationEnabledState(null, userId, expectedEnabled);
 	}
 
-	private void assertDummyActivationEnabledState(String instance, String userId, Boolean expectedEnabled) throws SchemaViolationException, ConflictException {
+	private void assertDummyActivationEnabledState(String instance, String userId, Boolean expectedEnabled) throws SchemaViolationException, ConflictException, InterruptedException {
 		DummyAccount account = getDummyAccount(instance, userId);
 		assertNotNull("No dummy account "+userId, account);
 		assertEquals("Wrong enabled flag in dummy '"+instance+"' account "+userId, expectedEnabled, account.isEnabled());
 	}
 
-	private void assertDummyEnabled(String userId) throws SchemaViolationException, ConflictException {
+	private void assertDummyEnabled(String userId) throws SchemaViolationException, ConflictException, InterruptedException {
 		assertDummyActivationEnabledState(userId, true);
 	}
 
-	private void assertDummyDisabled(String userId) throws SchemaViolationException, ConflictException {
+	private void assertDummyDisabled(String userId) throws SchemaViolationException, ConflictException, InterruptedException {
 		assertDummyActivationEnabledState(userId, false);
 	}
 
-	private void assertDummyEnabled(String instance, String userId) throws SchemaViolationException, ConflictException {
+	private void assertDummyEnabled(String instance, String userId) throws SchemaViolationException, ConflictException, InterruptedException {
 		assertDummyActivationEnabledState(instance, userId, true);
 	}
 
-	private void assertDummyDisabled(String instance, String userId) throws SchemaViolationException, ConflictException {
+	private void assertDummyDisabled(String instance, String userId) throws SchemaViolationException, ConflictException, InterruptedException {
 		assertDummyActivationEnabledState(instance, userId, false);
 	}
 
