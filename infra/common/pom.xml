@@ -115,5 +115,10 @@
 			<version>3.8.1-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.santuario</groupId>
+			<artifactId>xmlsec</artifactId>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 </project>
