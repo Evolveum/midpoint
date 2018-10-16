@@ -37,6 +37,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -89,6 +90,7 @@ public class CryptoUtil {
 		};
 	}
 
+	// todo refactor - align with the other 2 variants of this method
 	private static void encryptValue(Protector protector, PrismPropertyValue<?> pval) throws EncryptionException{
     	Itemable item = pval.getParent();
     	if (item == null) {
@@ -99,6 +101,8 @@ public class CryptoUtil {
     		return;
     	}
 
+    	// todo what about ProtectedByteArrayType?
+		// todo shouldn't we check the actual value instead of declared one?
     	if (itemDef.getTypeName().equals(ProtectedStringType.COMPLEX_TYPE)) {
             QName propName = item.getElementName();
             @SuppressWarnings("unchecked")
@@ -186,6 +190,8 @@ public class CryptoUtil {
     	if (itemDef == null) {
     		return;
     	}
+		// todo what about ProtectedByteArrayType?
+		// todo shouldn't we check the actual value instead of declared one?
     	if (itemDef.getTypeName().equals(ProtectedStringType.COMPLEX_TYPE)) {
             QName propName = item.getElementName();
 		    @SuppressWarnings("unchecked")
@@ -233,7 +239,6 @@ public class CryptoUtil {
 			} catch (IllegalStateException e) {
 				throw new IllegalStateException(e.getMessage() + " in modification " + delta, e);
 			}
-
 		}
 	}
 
@@ -278,6 +283,105 @@ public class CryptoUtil {
 		}
 
 		result.computeStatus();
+	}
+
+	/**
+	 * Re-encrypts all encryptable values in the object.
+	 */
+	public static <T extends ObjectType> int reencryptValues(Protector protector, PrismObject<T> object) throws EncryptionException {
+		try {
+			Holder<Integer> modCountHolder = new Holder<>(0);
+			object.accept(createReencryptingVisitor(protector, modCountHolder));
+			return modCountHolder.getValue();
+		} catch (TunnelException e) {
+			throw (EncryptionException) e.getCause();
+		}
+	}
+
+	@NotNull
+	private static Visitor createReencryptingVisitor(Protector protector, Holder<Integer> modCountHolder) {
+		return visitable -> {
+			if (!(visitable instanceof PrismPropertyValue)) {
+				return;
+			}
+			PrismPropertyValue<?> pval = (PrismPropertyValue<?>)visitable;
+			try {
+				reencryptValue(protector, pval, modCountHolder);
+			} catch (EncryptionException e) {
+				throw new TunnelException(e);
+			}
+		};
+	}
+
+	private static void reencryptValue(Protector protector, PrismPropertyValue<?> pval, Holder<Integer> modCountHolder)
+			throws EncryptionException {
+		Itemable item = pval.getParent();
+		if (item == null) {
+			return;
+		}
+		ItemDefinition itemDef = item.getDefinition();
+		if (itemDef == null) {
+			return;
+		}
+
+		// todo what about ProtectedByteArrayType?
+		// todo shouldn't we check the actual value instead of declared one?
+		if (itemDef.getTypeName().equals(ProtectedStringType.COMPLEX_TYPE)) {
+			QName propName = item.getElementName();
+			@SuppressWarnings("unchecked")
+			PrismPropertyValue<ProtectedStringType> psPval = (PrismPropertyValue<ProtectedStringType>) pval;
+			ProtectedStringType ps = psPval.getValue();
+			reencryptProtectedStringType(protector, ps, propName.getLocalPart(), modCountHolder);
+			if (pval.getParent() == null) {
+				pval.setParent(item);       // todo ??? if the parent is null we wouldn't get here
+			}
+		} else if (itemDef.getTypeName().equals(MailConfigurationType.COMPLEX_TYPE)) {
+			// todo fix this hack (it's because MailConfigurationType is not a container)
+			@SuppressWarnings("unchecked")
+			MailConfigurationType mailCfg = ((PrismPropertyValue<MailConfigurationType>) pval).getValue();
+			if (mailCfg != null) {
+				for (MailServerConfigurationType serverCfg : mailCfg.getServer()) {
+					reencryptProtectedStringType(protector, serverCfg.getPassword(), "mail server password", modCountHolder);
+				}
+			}
+		} else if (itemDef.getTypeName().equals(SmsConfigurationType.COMPLEX_TYPE)) {
+			// todo fix this hack (it's because SmsConfigurationType is not a container)
+			@SuppressWarnings("unchecked")
+			SmsConfigurationType smsCfg = ((PrismPropertyValue<SmsConfigurationType>) pval).getValue();
+			if (smsCfg != null) {
+				for (SmsGatewayConfigurationType gwCfg : smsCfg.getGateway()) {
+					reencryptProtectedStringType(protector, gwCfg.getPassword(), "sms gateway password", modCountHolder);
+				}
+			}
+		}
+	}
+
+	private static void reencryptProtectedStringType(Protector protector, ProtectedStringType ps, String propName,
+			Holder<Integer> modCountHolder) throws EncryptionException {
+		if (ps == null) {
+			// nothing to do here
+		} else if (ps.isHashed()) {
+			// nothing to do here
+		} else if (ps.getClearValue() != null) {
+			try {
+				protector.encrypt(ps);
+				increment(modCountHolder);
+			} catch (EncryptionException e) {
+				throw new EncryptionException("Failed to encrypt value for field " + propName + ": " + e.getMessage(), e);
+			}
+		} else if (ps.getEncryptedDataType() != null) {
+			if (!protector.isEncryptedByCurrentKey(ps.getEncryptedDataType())) {
+				ProtectedStringType reencrypted = protector.encryptString(protector.decryptString(ps));
+				ps.setEncryptedData(reencrypted.getEncryptedDataType());
+				increment(modCountHolder);
+			}
+		} else {
+			// no clear nor encrypted value
+		}
+	}
+
+	private static void increment(Holder<Integer> countHolder) {
+		countHolder.setValue(countHolder.getValue() + 1);
 	}
 
 	private static void securitySelfTestAlgorithm(String algorithmName, String transformationName,
