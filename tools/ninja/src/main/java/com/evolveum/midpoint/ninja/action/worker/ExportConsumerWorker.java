@@ -25,6 +25,8 @@ import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismSerializer;
 import com.evolveum.midpoint.prism.SerializationOptions;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -34,70 +36,36 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ExportConsumerWorker extends BaseWorker<ExportOptions, PrismObject> {
+public class ExportConsumerWorker extends AbstractWriterConsumerWorker<ExportOptions> {
+	
+	private PrismSerializer<String> serializer;
 
     public ExportConsumerWorker(NinjaContext context, ExportOptions options, BlockingQueue<PrismObject> queue,
                                 OperationStatus operation) {
         super(context, options, queue, operation);
     }
+    
+    @Override
+	protected void init() {
+    	serializer = context.getPrismContext()
+            .xmlSerializer()
+            .options(SerializationOptions.createSerializeForExport());
+	}
+
+	@Override
+	protected String getProlog() {
+		return NinjaUtils.XML_OBJECTS_PREFIX;
+	}
 
     @Override
-    public void run() {
-        Log log = context.getLog();
+	protected <O extends ObjectType> void write(Writer writer, PrismObject<O> object) throws SchemaException, IOException {
+    	String xml = serializer.serialize(object);
+        writer.write(xml);
+	}
+	
+    @Override
+	protected String getEpilog() {
+		return NinjaUtils.XML_OBJECTS_SUFFIX;
+	}
 
-        // todo handle split option
-
-        PrismSerializer<String> serializer = context.getPrismContext()
-                .xmlSerializer()
-                .options(SerializationOptions.createSerializeForExport());
-
-        try (Writer writer = createWriter()) {
-            while (!shouldConsumerStop()) {
-                PrismObject object = null;
-                try {
-                    object = queue.poll(CONSUMER_POLL_TIMEOUT, TimeUnit.SECONDS);
-                    if (object == null) {
-                        continue;
-                    }
-
-                    String xml = serializer.serialize(object);
-                    writer.write(xml);
-                    writer.flush();
-
-                    operation.incrementTotal();
-                } catch (Exception ex) {
-                    log.error("Couldn't store object {}, reason: {}", ex, object, ex.getMessage());
-                    operation.incrementError();
-                }
-            }
-
-            finalizeWriter(writer);
-        } catch (IOException ex) {
-            log.error("Unexpected exception, reason: {}", ex, ex.getMessage());
-        } catch (NinjaException ex) {
-            log.error(ex.getMessage(), ex);
-        } finally {
-            markDone();
-
-            if (isWorkersDone()) {
-                operation.finish();
-            }
-        }
-    }
-
-    private Writer createWriter() throws IOException {
-        Writer writer = NinjaUtils.createWriter(options.getOutput(), context.getCharset(), options.isZip());
-        writer.write(NinjaUtils.XML_OBJECTS_PREFIX);
-
-        return writer;
-    }
-
-    private void finalizeWriter(Writer writer) throws IOException {
-        if (writer == null) {
-            return;
-        }
-
-        writer.write(NinjaUtils.XML_OBJECTS_SUFFIX);
-        writer.flush();
-    }
 }
