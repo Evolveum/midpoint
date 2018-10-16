@@ -231,8 +231,6 @@ public class AssignmentsUtil {
     public static String getName(ContainerValueWrapper<AssignmentType> assignmentValueWrapper, PageBase pageBase) {
     	AssignmentType assignment = assignmentValueWrapper.getContainerValue().asContainerable();
     	
-    	LOGGER.info("XXXXXXXXXXXXXXXXXXXXXXXX ass :" + assignment);
-    	
 		if (assignment == null) {
 			return null;
 		}

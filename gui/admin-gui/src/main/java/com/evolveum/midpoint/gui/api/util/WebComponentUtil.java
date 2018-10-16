@@ -1179,13 +1179,13 @@ public final class WebComponentUtil {
 		}
 		if (prismContainerValue.canRepresent(ResourceItemDefinitionType.class)){
 			ResourceItemDefinitionType resourceItemDefinition = (ResourceItemDefinitionType) prismContainerValue.asContainerable();
-			if(!resourceItemDefinition.getDisplayName().isEmpty()) {
+			if(resourceItemDefinition.getDisplayName() != null && !resourceItemDefinition.getDisplayName().isEmpty()) {
 				return resourceItemDefinition.getDisplayName();
 			}
 		}
 		if (prismContainerValue.canRepresent(MappingType.class)){
 			MappingType mapping = (MappingType) prismContainerValue.asContainerable();
-			if(!mapping.getName().isEmpty()) {
+			if(mapping.getName() != null && !mapping.getName().isEmpty()) {
 				String name = mapping.getName();
 				String description = mapping.getDescription();
 				return name + (StringUtils.isNotEmpty(description) ? (" - " + description) : "");

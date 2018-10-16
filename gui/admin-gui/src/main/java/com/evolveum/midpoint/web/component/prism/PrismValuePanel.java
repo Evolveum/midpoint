@@ -21,9 +21,12 @@ import java.io.InputStream;
 import java.util.*;
 
 import javax.xml.datatype.Duration;
-import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.web.component.input.*;
@@ -41,13 +44,11 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteTextField;
 import org.apache.wicket.extensions.yui.calendar.DateTimeField;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
@@ -77,8 +78,8 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -98,6 +99,7 @@ import com.evolveum.midpoint.web.util.ExpressionValidator;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.wicket.util.visit.IVisit;
 import org.apache.wicket.util.visit.IVisitor;
@@ -733,6 +735,90 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
                     }
                 }, 10);
 			} else if (ItemPathType.COMPLEX_TYPE.equals(valueType)) {
+				
+				if((getModelObject().getItem().getParent() != null && getModelObject().getItem().getParent().getPath() != null) 
+						&& (getModelObject().getItem().getParent().getPath().removeIdentifiers().equivalent(
+						new ItemPath(AbstractRoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_ATTRIBUTE))
+						|| getModelObject().getItem().getParent().getPath().removeIdentifiers().equivalent(
+						new ItemPath(AbstractRoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION)))
+						&& (getModelObject().getItem().getParent().getItem() != null
+						&& getModelObject().getItem().getParent().getItem().getParent() != null)){
+					
+					Class type = XsdTypeMapper.getXsdToJavaMapping(valueType);
+					if (type != null && type.isPrimitive()) {
+						type = ClassUtils.primitiveToWrapper(type);
+
+					}
+					
+					PrismContainerValue reference = (PrismContainerValue)getModelObject().getItem().getParent().getItem().getParent();
+					
+					ResourceType resource = ((ConstructionType)reference.getValue()).getResource();
+					if(resource == null) {
+						ObjectReferenceType resourceRef = ((ConstructionType)reference.getValue()).getResourceRef();
+						OperationResult result = new OperationResult("load_resource");
+						Task task = getPageBase().createSimpleTask("load_resource");
+						resource = (ResourceType)WebModelServiceUtils.resolveReferenceNoFetch(resourceRef, getPageBase(), task, result).getRealValue();
+					}
+					
+		    		RefinedResourceSchema schema = null;
+		            try {
+		            	schema = RefinedResourceSchemaImpl.getRefinedSchema(resource, getPageBase().getPrismContext());
+					} catch (SchemaException ex) {
+						LoggingUtils.logUnexpectedException(LOGGER, "Couldn't parse resource schema.", ex);
+				        getSession().error(getString("SchemaListPanel.message.couldntParseSchema") + " " + ex.getMessage());
+					}
+		                
+		            LookupTableType lookupTable = new LookupTableType();
+				    List<LookupTableRowType> list = lookupTable.createRowList();
+			        	
+		            for(RefinedObjectClassDefinition schemaDefinition: schema.getRefinedDefinitions()){
+		            	if(getModelObject().getItem().getParent().getPath().removeIdentifiers().equivalent(
+								new ItemPath(AbstractRoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_ATTRIBUTE))) { 
+		            		for (ResourceAttributeDefinition def : schemaDefinition.getAttributeDefinitions()) {
+		            			LookupTableRowType row = new LookupTableRowType();
+		            			row.setKey(def.getName().toString());
+		            			row.setValue(def.getName().toString());
+		            			row.setLabel(new PolyStringType(def.getName().getLocalPart()));
+		            			list.add(row);
+		            		}
+		            	} else {
+		            		for (RefinedAssociationDefinition def : schemaDefinition.getAssociationDefinitions()) {
+		            			LookupTableRowType row = new LookupTableRowType();
+		            			row.setKey(def.getName().toString());
+		            			row.setValue(def.getName().toString());
+		            			row.setLabel(new PolyStringType(def.getName().getLocalPart()));
+		            			list.add(row);
+		            		}
+		            	}
+		            }
+		            LookupPropertyModel inputValue = new LookupPropertyModel<>(Model.of(getModel()), baseExpression, lookupTable, true);
+					return new AutoCompleteTextPanel<String>(id, inputValue, String.class) {
+
+								private static final long serialVersionUID = 1L;
+
+								@Override
+								public Iterator<String> getIterator(String input) {
+									return prepareAutoCompleteList(input, lookupTable.asPrismObject()).iterator();
+								}
+								
+								@Override
+								public void checkInputValue(AutoCompleteTextField input, AjaxRequestTarget target, LookupPropertyModel model){
+									model.setObject(input.getInput());
+									for(LookupTableRowType row : lookupTable.getRow()) {
+										if(row.getLabel().toString().equalsIgnoreCase(input.getInput())) {
+											String namespace = row.getValue().substring(row.getValue().indexOf("{") + 1);
+											namespace = namespace.substring(0, namespace.indexOf("}"));
+											((PrismPropertyValue<ItemPathType>) PrismValuePanel.this.getModelObject().getValue()).setValue(new ItemPathType(new ItemPath(new QName(namespace, row.getLabel().toString()))));
+											break;
+										}
+									}
+									
+							    }
+								
+								
+						};
+				}
+				
 				return new ItemPathPanel(id, (ItemPathType) getModelObject().getValue().getRealValue()) {
 				
 					private static final long serialVersionUID = 1L;
