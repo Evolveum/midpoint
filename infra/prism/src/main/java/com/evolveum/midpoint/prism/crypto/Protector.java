@@ -21,9 +21,11 @@ import java.util.List;
 
 import javax.net.ssl.TrustManager;
 
+import com.evolveum.prism.xml.ns._public.types_3.EncryptedDataType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import com.evolveum.midpoint.util.exception.SchemaException;
+import org.jetbrains.annotations.NotNull;
 
 public interface Protector {
 	
@@ -74,4 +76,5 @@ public interface Protector {
 	
 	boolean compare(ProtectedStringType a, ProtectedStringType b) throws EncryptionException, SchemaException;
 
+	boolean isEncryptedByCurrentKey(@NotNull EncryptedDataType data) throws EncryptionException;
 }

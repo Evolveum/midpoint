@@ -21,19 +21,14 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.prism.xml.ns._public.types_3.CipherDataType;
-import com.evolveum.prism.xml.ns._public.types_3.DigestMethodType;
-import com.evolveum.prism.xml.ns._public.types_3.EncryptedDataType;
-import com.evolveum.prism.xml.ns._public.types_3.EncryptionMethodType;
-import com.evolveum.prism.xml.ns._public.types_3.HashedDataType;
-import com.evolveum.prism.xml.ns._public.types_3.KeyInfoType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import com.evolveum.prism.xml.ns._public.types_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.xml.security.Init;
 import org.apache.xml.security.algorithms.JCEMapper;
 import org.apache.xml.security.encryption.XMLCipher;
 import org.apache.xml.security.utils.Base64;
+import org.jetbrains.annotations.NotNull;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -510,7 +505,7 @@ public class ProtectorImpl extends BaseProtector {
         switch (algorithmNamespace) {
             case PrismConstants.NS_CRYPTO_ALGORITHM_PBKD:
                 if (!protectedData.canSupportType(String.class)) {
-                    throw new SchemaException("Non-string proteted data");
+                    throw new SchemaException("Non-string protected data");
                 }
                 hashedDataType = hashPbkd((ProtectedData<String>) protectedData, algorithmUri, algorithmQName.getLocalPart());
                 break;
@@ -660,5 +655,15 @@ public class ProtectorImpl extends BaseProtector {
         return Arrays.equals(digestValue, hashBytes);
     }
 
+    @Override
+    public boolean isEncryptedByCurrentKey(@NotNull EncryptedDataType data) throws EncryptionException {
+        String encryptedUsingKeyName = data.getKeyInfo().getKeyName();
+        if (encryptedUsingKeyName == null) {
+            throw new IllegalStateException("No key name in encrypted data: " + data);
+        }
+        SecretKey encryptedUsingKey = getSecretKeyByDigest(encryptedUsingKeyName);
+        SecretKey currentKey = getSecretKeyByAlias(getEncryptionKeyAlias());
+        return currentKey.equals(encryptedUsingKey);
+    }
 
 }

@@ -26,9 +26,8 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.xml.security.encryption.XMLCipher;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Listeners;
@@ -37,10 +36,14 @@ import org.xml.sax.SAXException;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_DIR;
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_PATH;
 import static org.testng.Assert.fail;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
 
 /**
  * @author mederly
@@ -126,6 +129,63 @@ public class TestCryptoUtil {
 		CryptoUtil.checkEncrypted(config);
 	}
 
+	// MID-4942
+	@Test
+	public void test300Reencryption() throws Exception {
+		final String TEST_NAME = "test300Reencryption";
+		TestUtil.displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		PrismObject<UserType> jack = prismContext.parserFor(FILE_USER_JACK).xml().parse();
+		PrismObject<SystemConfigurationType> config = prismContext.parserFor(FILE_SYSTEM_CONFIGURATION).xml().parse();
+		Protector compromisedProtector = createCompromisedProtector();
+
+		// WHEN
+		CryptoUtil.encryptValues(compromisedProtector, jack);
+		CryptoUtil.encryptValues(compromisedProtector, config);
+		System.out.println("jack compromised:\n" + prismContext.xmlSerializer().serialize(jack));
+		System.out.println("sysconfig compromised:\n" + prismContext.xmlSerializer().serialize(config));
+		CryptoUtil.checkEncrypted(jack);
+		CryptoUtil.checkEncrypted(config);
+		MailConfigurationType mail = config.asObjectable().getNotificationConfiguration().getMail();
+		SmsConfigurationType sms1 = config.asObjectable().getNotificationConfiguration().getSms().get(0);
+		SmsConfigurationType sms2 = config.asObjectable().getNotificationConfiguration().getSms().get(1);
+		String compromisedKeyName = getKeyName(
+				jack.asObjectable().getCredentials().getPassword().getValue(),
+				mail.getServer().get(0).getPassword(),
+				sms1.getGateway().get(0).getPassword(),
+				sms2.getGateway().get(0).getPassword());
+		System.out.println("Compromised key name: " + compromisedKeyName);
+
+		// THEN
+		int reencryptJackOld = CryptoUtil.reencryptValues(compromisedProtector, jack);
+		int reencryptJackNew = CryptoUtil.reencryptValues(protector, jack);
+		int reencryptConfigNew = CryptoUtil.reencryptValues(protector, config);
+
+		assertEquals("Wrong # of reencrypted passwords (jack old)", 0, reencryptJackOld);
+		assertEquals("Wrong # of reencrypted passwords (jack new)", 1, reencryptJackNew);
+		assertEquals("Wrong # of reencrypted passwords (sysconfig new)", 3, reencryptConfigNew);
+		System.out.println("jack reencrypted:\n" + prismContext.xmlSerializer().serialize(jack));
+		System.out.println("sysconfig reencrypted:\n" + prismContext.xmlSerializer().serialize(config));
+		String newKeyName = getKeyName(
+				jack.asObjectable().getCredentials().getPassword().getValue(),
+				mail.getServer().get(0).getPassword(),
+				sms1.getGateway().get(0).getPassword(),
+				sms2.getGateway().get(0).getPassword());
+		System.out.println("New key name: " + newKeyName);
+		assertFalse("New and compromised key names are NOT different", compromisedKeyName.equals(newKeyName));
+	}
+
+	private String getKeyName(ProtectedStringType... values) {
+		Set<String> names = new HashSet<>();
+		for (ProtectedStringType value : values) {
+			names.add(value.getEncryptedDataType().getKeyInfo().getKeyName());
+		}
+		assertEquals("Wrong # of different key names: " + names, 1, names.size());
+		return names.iterator().next();
+	}
+
 	private void checkEncryptedObject(PrismObject<? extends ObjectType> object) {
 		try {
 			CryptoUtil.checkEncrypted(object);
@@ -140,6 +200,16 @@ public class TestCryptoUtil {
 		ProtectorImpl protector = new ProtectorImpl();
 		protector.setKeyStorePassword(KEYSTORE_PASSWORD);
 		protector.setKeyStorePath(KEYSTORE_PATH);
+		protector.setEncryptionAlgorithm(XMLCipher.AES_256);
+		protector.init();
+		return protector;
+	}
+
+	private Protector createCompromisedProtector() {
+		ProtectorImpl protector = new ProtectorImpl();
+		protector.setKeyStorePassword(KEYSTORE_PASSWORD);
+		protector.setKeyStorePath(KEYSTORE_PATH);
+		protector.setEncryptionKeyAlias("compromised");
 		protector.setEncryptionAlgorithm(XMLCipher.AES_256);
 		protector.init();
 		return protector;
