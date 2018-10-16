@@ -390,6 +390,7 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <a:deprecated>true</a:deprecated>
+                        <a:plannedRemoval>4.0</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -496,6 +497,7 @@
 			<xsd:appinfo>
 				<jaxb:typesafeEnumClass/>
 				<a:deprecated>true</a:deprecated>
+				<a:plannedRemoval>4.0</a:plannedRemoval>
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:restriction base="xsd:string">
@@ -541,6 +543,7 @@
 			<xsd:appinfo>
 				<jaxb:typesafeEnumClass/>
 				<a:deprecated>true</a:deprecated>
+				<a:plannedRemoval>4.0</a:plannedRemoval>
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:restriction base="xsd:string">
@@ -683,6 +686,7 @@
                             <xsd:appinfo>
                                 <a:deprecated>true</a:deprecated>
 								<a:displayName>ExclusionPolicyConstraintType.policy</a:displayName>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -877,6 +881,7 @@
 				<a:since>3.5</a:since>
 				<a:deprecated>true</a:deprecated>
 				<a:deprecatedSince>3.7</a:deprecatedSince>
+				<a:plannedRemoval>4.0</a:plannedRemoval>
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:complexContent>
@@ -1185,6 +1190,7 @@
             <xsd:appinfo>
                 <jaxb:typesafeEnumClass/>
                 <a:deprecated>true</a:deprecated>
+                <a:plannedRemoval>4.0</a:plannedRemoval>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
@@ -1233,6 +1239,7 @@
             <xsd:appinfo>
                 <jaxb:typesafeEnumClass/>
                 <a:deprecated>true</a:deprecated>
+                <a:plannedRemoval>4.0</a:plannedRemoval>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
@@ -1618,6 +1625,7 @@
                             <xsd:appinfo>
                                 <a:deprecated>true</a:deprecated>
                                 <a:deprecatedSince>3.6</a:deprecatedSince>
+                                <a:plannedRemoval>4.0</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

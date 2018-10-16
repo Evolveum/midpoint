@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -353,6 +353,21 @@ public class DebugUtil {
 
 	public static void debugDumpWithLabelToStringLn(StringBuilder sb, String label, Object object, int indent) {
 		debugDumpWithLabelToString(sb, label, object, indent);
+		sb.append("\n");
+	}
+	
+	public static void debugDumpWithLabelShortDump(StringBuilder sb, String label, ShortDumpable object, int indent) {
+		debugDumpLabel(sb, label, indent);
+		if (object == null) {
+			sb.append(" null");
+		} else {
+			sb.append(" ");
+			object.shortDump(sb);
+		}
+	}
+	
+	public static void debugDumpWithLabelShortDumpLn(StringBuilder sb, String label, ShortDumpable object, int indent) {
+		debugDumpWithLabelShortDump(sb, label, object, indent);
 		sb.append("\n");
 	}
 

@@ -593,6 +593,11 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 	}
 	
 	@Override
+	public String getPlannedRemoval() {
+		return refinedAttributeDefinition.getPlannedRemoval();
+	}
+	
+	@Override
 	public boolean isElaborate() {
 		return refinedAttributeDefinition.isElaborate();
 	}

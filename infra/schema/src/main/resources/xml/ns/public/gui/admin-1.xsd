@@ -21,6 +21,7 @@
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
             xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
             elementFormDefault="qualified"
             jaxb:extensionBindingPrefixes="xjc"
             jaxb:version="2.0">
@@ -31,6 +32,9 @@
                 todo
             </p>
         </xsd:documentation>
+        <xsd:appinfo>
+        	<a:plannedRemoval>4.0</a:plannedRemoval>
+        </xsd:appinfo>
     </xsd:annotation>
 
     <xsd:element name="descriptor" type="tns:DescriptorType"/>

@@ -75,6 +75,7 @@
 					<xsd:appinfo>
 						<a:deprecated>true</a:deprecated>
 						<a:deprecatedSince>3.6</a:deprecatedSince>
+						<a:plannedRemoval>4.0</a:plannedRemoval>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -111,6 +112,7 @@
 						<a:deprecated>true</a:deprecated>
 						<a:deprecatedSince>3.6</a:deprecatedSince>
 						<a:displayName>ApprovalStageDefinitionType.order</a:displayName>
+						<a:plannedRemoval>4.0</a:plannedRemoval>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -255,6 +257,7 @@
 						<a:deprecated>true</a:deprecated>
 						<a:deprecatedSince>3.6</a:deprecatedSince>
 						<a:displayName>ApprovalStageDefinitionType.automaticallyApproved</a:displayName>
+						<a:plannedRemoval>4.0</a:plannedRemoval>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>

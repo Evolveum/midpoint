@@ -19,7 +19,7 @@ import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
-import com.evolveum.midpoint.common.validator.Validator;
+import com.evolveum.midpoint.common.validator.LegacyValidator;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.impl.migrator.Migrator;
@@ -170,7 +170,7 @@ public class ObjectImporter {
 			    }
 		    };
 
-		    Validator validator = new Validator(prismContext, handler);
+		    LegacyValidator validator = new LegacyValidator(prismContext, handler);
 		    validator.setVerbose(true);
 		    if (options != null) {
 			    validator.setValidateSchema(isTrue(options.isValidateStaticSchema()));

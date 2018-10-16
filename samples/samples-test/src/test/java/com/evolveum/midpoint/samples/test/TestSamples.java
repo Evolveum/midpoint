@@ -35,7 +35,7 @@ import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
-import com.evolveum.midpoint.common.validator.Validator;
+import com.evolveum.midpoint.common.validator.LegacyValidator;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -130,7 +130,7 @@ public class TestSamples {
 
 		};
 
-		Validator validator = new Validator(PrismTestUtil.getPrismContext());
+		LegacyValidator validator = new LegacyValidator(PrismTestUtil.getPrismContext());
 		validator.setVerbose(false);
 		validator.setAllowAnyType(true);
 		validator.setHandler(handler);
