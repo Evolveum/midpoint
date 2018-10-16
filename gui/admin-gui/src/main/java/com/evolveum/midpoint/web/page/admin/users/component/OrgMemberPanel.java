@@ -203,17 +203,6 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		form.addOrReplace(managerContainer);
 	}
 
-	@Override
-	protected void initMemberRelationObjectsModel(){
-		memberRelationObjectsModel = new LoadableModel<List<String>>(false) {
-			@Override
-			protected List<String> load() {
-				OperationResult result = new OperationResult(OPERATION_LOAD_MEMBER_RELATION_OBJECTS);
-				return getObjectOidsList(loadMemberObjectsByRelation(result, RelationTypes.MEMBER.getRelation()));
-			}
-		};
-	}
-
 	private WebMarkupContainer createManagerContainer(ModelServiceLocator serviceLocator) {
 		WebMarkupContainer managerContainer = new WebMarkupContainer(ID_CONTAINER_MANAGER);
 		managerContainer.setOutputMarkupId(true);
