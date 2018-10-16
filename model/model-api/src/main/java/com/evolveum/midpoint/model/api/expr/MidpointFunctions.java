@@ -1163,4 +1163,8 @@ public interface MidpointFunctions {
 	PrismContext getPrismContext();
 
 	RelationRegistry getRelationRegistry();
+
+	<T extends ObjectType> void applyDefinition(T object)
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+			ExpressionEvaluationException;
 }

@@ -1801,4 +1801,13 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			SchemaException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 		return modelInteractionService.previewChanges(deltas, options, getCurrentTask(), getCurrentResult());
 	}
+
+	@Override
+	public <T extends ObjectType> void applyDefinition(T object)
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+			ExpressionEvaluationException {
+		if (object instanceof ShadowType || object instanceof ResourceType) {
+			provisioningService.applyDefinition(object.asPrismObject(), getCurrentTask(), getCurrentResult());
+		}
+	}
 }

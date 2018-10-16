@@ -18,8 +18,11 @@ package com.evolveum.midpoint.common;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.crypto.ProtectorImpl;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -36,14 +39,15 @@ import org.xml.sax.SAXException;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_DIR;
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_PATH;
+import static java.util.Collections.singleton;
 import static org.testng.Assert.fail;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.*;
 
 /**
  * @author mederly
@@ -130,6 +134,7 @@ public class TestCryptoUtil {
 	}
 
 	// MID-4942
+	@SuppressWarnings("SimplifiedTestNGAssertion")
 	@Test
 	public void test300Reencryption() throws Exception {
 		final String TEST_NAME = "test300Reencryption";
@@ -157,15 +162,26 @@ public class TestCryptoUtil {
 				sms1.getGateway().get(0).getPassword(),
 				sms2.getGateway().get(0).getPassword());
 		System.out.println("Compromised key name: " + compromisedKeyName);
+		PrismAsserts.assertSets("Wrong key names in jack", singleton(compromisedKeyName), CryptoUtil.getEncryptionKeyNames(jack));
+		PrismAsserts.assertSets("Wrong key names in sysconfig", singleton(compromisedKeyName), CryptoUtil.getEncryptionKeyNames(config));
 
 		// THEN
-		int reencryptJackOld = CryptoUtil.reencryptValues(compromisedProtector, jack);
-		int reencryptJackNew = CryptoUtil.reencryptValues(protector, jack);
-		int reencryptConfigNew = CryptoUtil.reencryptValues(protector, config);
+		PrismObject<UserType> jackOld = jack.clone();
+		PrismObject<SystemConfigurationType> configOld = config.clone();
+		Collection<? extends ItemDelta<?, ?>> reencryptJackOldMods = CryptoUtil.computeReencryptModifications(compromisedProtector, jack);
+		Collection<? extends ItemDelta<?, ?>> reencryptJackNewMods = CryptoUtil.computeReencryptModifications(protector, jack);
+		Collection<? extends ItemDelta<?, ?>> reencryptConfigNewMods = CryptoUtil.computeReencryptModifications(protector, config);
+		int reencryptJackOldCount = CryptoUtil.reencryptValues(compromisedProtector, jack);
+		int reencryptJackNewCount = CryptoUtil.reencryptValues(protector, jack);
+		int reencryptConfigNewCount = CryptoUtil.reencryptValues(protector, config);
 
-		assertEquals("Wrong # of reencrypted passwords (jack old)", 0, reencryptJackOld);
-		assertEquals("Wrong # of reencrypted passwords (jack new)", 1, reencryptJackNew);
-		assertEquals("Wrong # of reencrypted passwords (sysconfig new)", 3, reencryptConfigNew);
+		assertTrue("Unexpected reencrypt delta (jack old): " + reencryptJackNewMods, reencryptJackOldMods.isEmpty());
+		assertReencryptDelta("jack new", reencryptJackNewMods, 1, jackOld, protector);
+		assertReencryptDelta("config new", reencryptConfigNewMods, 2, configOld, protector);   // mail + sms
+
+		assertEquals("Wrong # of reencrypted passwords (jack old)", 0, reencryptJackOldCount);
+		assertEquals("Wrong # of reencrypted passwords (jack new)", 1, reencryptJackNewCount);
+		assertEquals("Wrong # of reencrypted passwords (sysconfig new)", 3, reencryptConfigNewCount);
 		System.out.println("jack reencrypted:\n" + prismContext.xmlSerializer().serialize(jack));
 		System.out.println("sysconfig reencrypted:\n" + prismContext.xmlSerializer().serialize(config));
 		String newKeyName = getKeyName(
@@ -174,7 +190,19 @@ public class TestCryptoUtil {
 				sms1.getGateway().get(0).getPassword(),
 				sms2.getGateway().get(0).getPassword());
 		System.out.println("New key name: " + newKeyName);
+		PrismAsserts.assertSets("Wrong key names in jack (new)", singleton(newKeyName), CryptoUtil.getEncryptionKeyNames(jack));
+		PrismAsserts.assertSets("Wrong key names in sysconfig (new)", singleton(newKeyName), CryptoUtil.getEncryptionKeyNames(config));
 		assertFalse("New and compromised key names are NOT different", compromisedKeyName.equals(newKeyName));
+	}
+
+	private <T extends ObjectType> void assertReencryptDelta(String label, Collection<? extends ItemDelta<?, ?>> modifications,
+			int expectedModificationsCount, PrismObject<T> oldObject, Protector protector) throws SchemaException, EncryptionException {
+		System.out.println("Modifications for " + label + ":\n" + modifications);
+		assertEquals("Delta has wrong # of modifications: " + label, expectedModificationsCount, modifications.size());
+		PrismObject<T> patchedObject = oldObject.clone();
+		ItemDelta.applyTo(modifications, patchedObject);
+		int fixes = CryptoUtil.reencryptValues(protector, patchedObject);
+		assertEquals("Wrong # of re-encryption fixes on reencrypted object: " + label, 0, fixes);
 	}
 
 	private String getKeyName(ProtectedStringType... values) {

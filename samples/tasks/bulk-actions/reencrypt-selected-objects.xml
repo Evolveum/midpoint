@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+      oid="172b3d9f-66f8-4731-b023-0e2d8ca5cd6f">
+    <name>Reencrypt selected objects</name>
+    <extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
+               xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3">
+        <scext:executeScript>
+            <s:pipeline>
+                <s:action>
+                    <s:type>apply-definition</s:type>   <!-- needed for ResourceType and ShadowType objects -->
+                </s:action>
+                <s:action>
+                    <s:type>reencrypt</s:type>
+                    <!-- remove the following or set to false to execute the reencryption -->
+                    <s:parameter>
+                        <s:name>dryRun</s:name>
+                        <value>true</value>
+                    </s:parameter>
+                </s:action>
+            </s:pipeline>
+        </scext:executeScript>
+        <mext:useRepositoryDirectly>true</mext:useRepositoryDirectly>
+        <!--    <mext:objectType>UserType</mext:objectType>
+				<mext:objectQuery>
+					<q:filter>
+						<q:equal>
+							<q:path>name</q:path>
+							<q:value>administrator</q:value>
+						</q:equal>
+					</q:filter>
+				</mext:objectQuery>  -->
+    </extension>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionStatus>runnable</executionStatus>
+    <category>BulkActions</category>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/iterative-scripting/handler-3</handlerUri>
+    <recurrence>single</recurrence>
+</task>
