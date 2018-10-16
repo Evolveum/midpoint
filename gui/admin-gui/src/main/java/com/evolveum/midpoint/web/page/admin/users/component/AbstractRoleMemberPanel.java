@@ -30,9 +30,12 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.TaskCategory;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.component.assignment.RelationTypes;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
+import com.evolveum.midpoint.web.page.admin.roles.RoleGovernanceRelationsPanel;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -113,11 +116,6 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 	protected List<RelationTypes> relations = new ArrayList<>();
 	private TableId tableId;
 
-	private LoadableModel<List<String>> approverRelationObjectsModel;
-	private LoadableModel<List<String>> ownerRelationObjectsModel;
-	private LoadableModel<List<String>> managerRelationObjectsModel;
-	protected LoadableModel<List<String>> memberRelationObjectsModel;
-
 	private boolean areModelsInitialized = false;
 
 	public AbstractRoleMemberPanel(String id, TableId tableId, IModel<T> model) {
@@ -144,7 +142,6 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 
 		initSearch(form);
 
-		loadAllRelationModels();
 		initMemberTable(form);
 
 		initCustomLayout(form, getPageBase());
@@ -663,68 +660,6 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		return (Form) get(ID_FORM);
 	}
 
-	protected void loadAllRelationModels(){
-		if (approverRelationObjectsModel != null) {
-			approverRelationObjectsModel.reset();
-		} else {
-			initApproverRelationObjectsModel();
-		}
-		if (managerRelationObjectsModel != null) {
-			managerRelationObjectsModel.reset();
-		} else {
-			initManagerRelationObjectsModel();
-		}
-		if (ownerRelationObjectsModel != null) {
-			ownerRelationObjectsModel.reset();
-		} else {
-			initOwnerRelationObjectsModel();
-		}
-		if (memberRelationObjectsModel != null) {
-			memberRelationObjectsModel.reset();
-		} else {
-			initMemberRelationObjectsModel();
-		}
-	}
-
-	private void initApproverRelationObjectsModel(){
-		approverRelationObjectsModel = new LoadableModel<List<String>>(false) {
-			@Override
-			protected List<String> load() {
-				OperationResult result = new OperationResult(OPERATION_LOAD_APPROVER_RELATION_OBJECTS);
-				return getObjectOidsList(loadMemberObjectsByRelation(result, RelationTypes.APPROVER.getRelation()));
-			}
-		};
-	}
-
-	private void initOwnerRelationObjectsModel(){
-		ownerRelationObjectsModel = new LoadableModel<List<String>>(false) {
-			@Override
-			protected List<String> load() {
-				OperationResult result = new OperationResult(OPERATION_LOAD_OWNER_RELATION_OBJECTS);
-				return getObjectOidsList(loadMemberObjectsByRelation(result, RelationTypes.OWNER.getRelation()));
-			}
-		};
-	}
-
-	private void initManagerRelationObjectsModel(){
-		managerRelationObjectsModel = new LoadableModel<List<String>>(false) {
-			@Override
-			protected List<String> load() {
-				OperationResult result = new OperationResult(OPERATION_LOAD_MANAGER_RELATION_OBJECTS);
-				return getObjectOidsList(loadMemberObjectsByRelation(result, RelationTypes.MANAGER.getRelation()));
-			}
-		};
-	}
-
-	protected void initMemberRelationObjectsModel(){
-		memberRelationObjectsModel = new LoadableModel<List<String>>(false) {
-			@Override
-			protected List<String> load() {
-				return new ArrayList<>();
-			}
-		};
-	}
-
 	protected List<PrismObject<FocusType>> loadMemberObjectsByRelation(OperationResult result, QName relation){
 		PrismReferenceValue rv = new PrismReferenceValue(getModelObject().getOid());
 		rv.setRelation(relation);
@@ -741,28 +676,30 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 	}
 
 	private String getRelationValue(FocusType focusObject){
-		StringBuilder relations = new StringBuilder();
-		if (focusObject == null){
-			return "";
+		String relation = "";
+		if (FocusType.class.isAssignableFrom(focusObject.getClass())) {
+			for (AssignmentType assignmentType : ((FocusType) focusObject).getAssignment()) {
+				relation = buildRelation(assignmentType, relation);
+			}
 		}
-
-		if (approverRelationObjectsModel.getObject().contains(focusObject.getOid())){
-			relations.append(createStringResource("RelationTypes.APPROVER").getString());
-		}
-		if (ownerRelationObjectsModel.getObject().contains(focusObject.getOid())){
-			relations.append(relations.length() > 0 ? ", " : "");
-			relations.append(createStringResource("RelationTypes.OWNER").getString());
-		}
-		if (managerRelationObjectsModel.getObject().contains(focusObject.getOid())){
-			relations.append(relations.length() > 0 ? ", " : "");
-			relations.append(createStringResource("RelationTypes.MANAGER").getString());
-		}
-		if (memberRelationObjectsModel.getObject().contains(focusObject.getOid())){
-			relations.append(relations.length() > 0 ? ", " : "");
-			relations.append(createStringResource("RelationTypes.MEMBER").getString());
-		}
-		return relations.toString();
+		return relation;
 	}
+
+	private String buildRelation(AssignmentType assignment, String relation) {
+		if (assignment.getTargetRef() != null && assignment.getTargetRef().getOid().equals(getModelObject().getOid())) {
+			QName assignmentRelation = assignment.getTargetRef().getRelation();
+			for (RelationTypes relationType : RelationTypes.values()) {
+				if (QNameUtil.match(relationType.getRelation(), assignmentRelation)) {
+					if (!StringUtils.isBlank(relation)) {
+						relation += ",";
+					}
+					relation += assignmentRelation.getLocalPart();
+				}
+			}
+		}
+		return relation;
+	}
+
 
 	protected List<String> getObjectOidsList(List<PrismObject<FocusType>> objectList){
 		List<String> oidsList = new ArrayList<>();
