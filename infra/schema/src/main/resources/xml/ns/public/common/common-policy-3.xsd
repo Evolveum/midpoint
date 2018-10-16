@@ -542,8 +542,7 @@
 			</xsd:documentation>
 			<xsd:appinfo>
 				<jaxb:typesafeEnumClass/>
-				<a:deprecated>true</a:deprecated>
-				<a:plannedRemoval>4.0</a:plannedRemoval>
+				<a:experimental>true</a:experimental>
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:restriction base="xsd:string">
