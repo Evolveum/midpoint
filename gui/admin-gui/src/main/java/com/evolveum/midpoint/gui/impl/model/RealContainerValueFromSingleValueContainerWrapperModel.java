@@ -27,6 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import javax.xml.namespace.QName;
 
@@ -46,6 +47,10 @@ public class RealContainerValueFromSingleValueContainerWrapperModel<C extends Co
 
     public RealContainerValueFromSingleValueContainerWrapperModel(IModel<ContainerWrapper<C>> model) {
     	this.model = model;
+    }
+    
+    public RealContainerValueFromSingleValueContainerWrapperModel(ContainerWrapper<C> wrapper) {
+    	this.model = Model.of(wrapper);
     }
 
 	@Override
