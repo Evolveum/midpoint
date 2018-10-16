@@ -23,6 +23,7 @@ import java.util.Map;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.LocalizableMessage;
@@ -498,7 +499,7 @@ public interface MidpointFunctions {
 	 * user. Forward association is implemented by property "account" of user
 	 * object.
 	 * </p>
-	 * 
+	 *
 	 * @param accountOid
 	 *            OID of the account to look for an owner
 	 * @return owner of the account or null
@@ -884,8 +885,8 @@ public interface MidpointFunctions {
 	 *             wrong OID format
 	 */
 	OperationResult testResource(String resourceOid) throws ObjectNotFoundException;
-	
-	
+
+
 
     List<String> toList(String... s);
 
@@ -1145,4 +1146,10 @@ public interface MidpointFunctions {
 	 */
 	@NotNull
 	Collection<PrismValue> collectAssignedFocusMappingsResults(@NotNull ItemPath path) throws SchemaException;
+
+	PrismContext getPrismContext();
+
+	<T extends ObjectType> void applyDefinition(T object)
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+			ExpressionEvaluationException;
 }

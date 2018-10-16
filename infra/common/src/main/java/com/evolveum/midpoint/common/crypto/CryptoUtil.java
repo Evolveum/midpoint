@@ -19,6 +19,9 @@ import java.io.ByteArrayOutputStream;
 import java.security.Provider;
 import java.security.Security;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
@@ -90,7 +93,7 @@ public class CryptoUtil {
 		};
 	}
 
-	// todo refactor - align with the other 2 variants of this method
+	// todo refactor - use the generic processEncryptablePrismPropertyValue method
 	private static void encryptValue(Protector protector, PrismPropertyValue<?> pval) throws EncryptionException{
     	Itemable item = pval.getParent();
     	if (item == null) {
@@ -285,13 +288,27 @@ public class CryptoUtil {
 		result.computeStatus();
 	}
 
+	public static <T extends ObjectType> Collection<? extends ItemDelta<?, ?>> computeReencryptModifications(Protector protector,
+			PrismObject<T> object) throws EncryptionException {
+		PrismObject<T> reencrypted = object.clone();
+		int changes = reencryptValues(protector, reencrypted);
+		if (changes == 0) {
+			return Collections.emptySet();
+		}
+		ObjectDelta<T> diff = object.diff(reencrypted, false, true);
+		if (!diff.isModify()) {
+			throw new AssertionError("Expected MODIFY delta, got " + diff);
+		}
+		return diff.getModifications();
+	}
+
 	/**
 	 * Re-encrypts all encryptable values in the object.
 	 */
 	public static <T extends ObjectType> int reencryptValues(Protector protector, PrismObject<T> object) throws EncryptionException {
 		try {
 			Holder<Integer> modCountHolder = new Holder<>(0);
-			object.accept(createReencryptingVisitor(protector, modCountHolder));
+			object.accept(createVisitor((ps, propName) -> reencryptProtectedStringType(ps, propName, modCountHolder, protector)));
 			return modCountHolder.getValue();
 		} catch (TunnelException e) {
 			throw (EncryptionException) e.getCause();
@@ -299,65 +316,74 @@ public class CryptoUtil {
 	}
 
 	@NotNull
-	private static Visitor createReencryptingVisitor(Protector protector, Holder<Integer> modCountHolder) {
-		return visitable -> {
-			if (!(visitable instanceof PrismPropertyValue)) {
-				return;
+	public static <T extends ObjectType> Collection<String> getEncryptionKeyNames(PrismObject<T> object) {
+		Set<String> keys = new HashSet<>();
+		object.accept(createVisitor((ps, propName) -> {
+			if (ps.getEncryptedDataType() != null && ps.getEncryptedDataType().getKeyInfo() != null) {
+				keys.add(ps.getEncryptedDataType().getKeyInfo().getKeyName());
 			}
-			PrismPropertyValue<?> pval = (PrismPropertyValue<?>)visitable;
-			try {
-				reencryptValue(protector, pval, modCountHolder);
-			} catch (EncryptionException e) {
-				throw new TunnelException(e);
+		}));
+		return keys;
+	}
+
+	public static <T extends ObjectType> boolean containsCleartext(PrismObject<T> object) {
+		Holder<Boolean> result = new Holder<>(false);
+		object.accept(createVisitor((ps, propName) -> {
+			if (ps.getClearValue() != null) {
+				result.setValue(true);
+			}
+		}));
+		return result.getValue();
+	}
+
+	public static <T extends ObjectType> boolean containsHashedData(PrismObject<T> object) {
+		Holder<Boolean> result = new Holder<>(false);
+		object.accept(createVisitor((ps, propName) -> {
+			if (ps.getHashedDataType() != null) {
+				result.setValue(true);
+			}
+		}));
+		return result.getValue();
+	}
+
+	@FunctionalInterface
+	interface ProtectedStringProcessor {
+		void apply(ProtectedStringType protectedString, String propertyName);
+	}
+
+	@NotNull
+	private static Visitor createVisitor(ProtectedStringProcessor processor) {
+		return visitable -> {
+			if (visitable instanceof PrismPropertyValue) {
+				processEncryptablePrismPropertyValue((PrismPropertyValue<?>) visitable, processor);
 			}
 		};
 	}
 
-	private static void reencryptValue(Protector protector, PrismPropertyValue<?> pval, Holder<Integer> modCountHolder)
-			throws EncryptionException {
-		Itemable item = pval.getParent();
-		if (item == null) {
-			return;
-		}
-		ItemDefinition itemDef = item.getDefinition();
-		if (itemDef == null) {
-			return;
-		}
-
-		// todo what about ProtectedByteArrayType?
-		// todo shouldn't we check the actual value instead of declared one?
-		if (itemDef.getTypeName().equals(ProtectedStringType.COMPLEX_TYPE)) {
-			QName propName = item.getElementName();
-			@SuppressWarnings("unchecked")
-			PrismPropertyValue<ProtectedStringType> psPval = (PrismPropertyValue<ProtectedStringType>) pval;
-			ProtectedStringType ps = psPval.getValue();
-			reencryptProtectedStringType(protector, ps, propName.getLocalPart(), modCountHolder);
-			if (pval.getParent() == null) {
-				pval.setParent(item);       // todo ??? if the parent is null we wouldn't get here
-			}
-		} else if (itemDef.getTypeName().equals(MailConfigurationType.COMPLEX_TYPE)) {
+	private static void processEncryptablePrismPropertyValue(PrismPropertyValue<?> pval, ProtectedStringProcessor processor) {
+		Object realValue = pval.getRealValue();
+		if (realValue instanceof ProtectedStringType) {
+			processor.apply((ProtectedStringType) realValue, determinePropName(pval));
+		} else if (realValue instanceof MailConfigurationType) {
 			// todo fix this hack (it's because MailConfigurationType is not a container)
-			@SuppressWarnings("unchecked")
-			MailConfigurationType mailCfg = ((PrismPropertyValue<MailConfigurationType>) pval).getValue();
-			if (mailCfg != null) {
-				for (MailServerConfigurationType serverCfg : mailCfg.getServer()) {
-					reencryptProtectedStringType(protector, serverCfg.getPassword(), "mail server password", modCountHolder);
-				}
+			for (MailServerConfigurationType serverCfg : ((MailConfigurationType) realValue).getServer()) {
+				processor.apply(serverCfg.getPassword(), "mail server password");
 			}
-		} else if (itemDef.getTypeName().equals(SmsConfigurationType.COMPLEX_TYPE)) {
+		} else if (realValue instanceof SmsConfigurationType) {
 			// todo fix this hack (it's because SmsConfigurationType is not a container)
-			@SuppressWarnings("unchecked")
-			SmsConfigurationType smsCfg = ((PrismPropertyValue<SmsConfigurationType>) pval).getValue();
-			if (smsCfg != null) {
-				for (SmsGatewayConfigurationType gwCfg : smsCfg.getGateway()) {
-					reencryptProtectedStringType(protector, gwCfg.getPassword(), "sms gateway password", modCountHolder);
-				}
+			for (SmsGatewayConfigurationType gwCfg : ((SmsConfigurationType) realValue).getGateway()) {
+				processor.apply(gwCfg.getPassword(), "sms gateway password");
 			}
 		}
 	}
 
-	private static void reencryptProtectedStringType(Protector protector, ProtectedStringType ps, String propName,
-			Holder<Integer> modCountHolder) throws EncryptionException {
+	private static String determinePropName(PrismPropertyValue<?> value) {
+		Itemable item = value.getParent();
+		return item != null && item.getElementName() != null ? item.getElementName().getLocalPart() : "";
+	}
+
+	private static void reencryptProtectedStringType(ProtectedStringType ps, String propName, Holder<Integer> modCountHolder,
+			Protector protector) {
 		if (ps == null) {
 			// nothing to do here
 		} else if (ps.isHashed()) {
@@ -367,13 +393,17 @@ public class CryptoUtil {
 				protector.encrypt(ps);
 				increment(modCountHolder);
 			} catch (EncryptionException e) {
-				throw new EncryptionException("Failed to encrypt value for field " + propName + ": " + e.getMessage(), e);
+				throw new TunnelException(new EncryptionException("Failed to encrypt value for field " + propName + ": " + e.getMessage(), e));
 			}
 		} else if (ps.getEncryptedDataType() != null) {
-			if (!protector.isEncryptedByCurrentKey(ps.getEncryptedDataType())) {
-				ProtectedStringType reencrypted = protector.encryptString(protector.decryptString(ps));
-				ps.setEncryptedData(reencrypted.getEncryptedDataType());
-				increment(modCountHolder);
+			try {
+				if (!protector.isEncryptedByCurrentKey(ps.getEncryptedDataType())) {
+					ProtectedStringType reencrypted = protector.encryptString(protector.decryptString(ps));
+					ps.setEncryptedData(reencrypted.getEncryptedDataType());
+					increment(modCountHolder);
+				}
+			} catch (EncryptionException e) {
+				throw new TunnelException(new EncryptionException("Failed to check/reencrypt value for field " + propName + ": " + e.getMessage(), e));
 			}
 		} else {
 			// no clear nor encrypted value

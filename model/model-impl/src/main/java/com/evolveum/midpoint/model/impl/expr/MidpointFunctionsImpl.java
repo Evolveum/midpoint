@@ -1754,4 +1754,13 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	private Collection<SelectorOptions<GetOperationOptions>> getDefaultGetOptionCollection() {
 		return SelectorOptions.createCollection(GetOperationOptions.createExecutionPhase());
 	}
+
+	@Override
+	public <T extends ObjectType> void applyDefinition(T object)
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+			ExpressionEvaluationException {
+		if (object instanceof ShadowType || object instanceof ResourceType) {
+			provisioningService.applyDefinition(object.asPrismObject(), getCurrentTask(), getCurrentResult());
+		}
+	}
 }
