@@ -89,7 +89,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageCertCampaigns.class);
 
-	private static final String DOT_CLASS = "PageCertCampaigns" + ".";
+	private static final String DOT_CLASS = PageCertCampaigns.class.getName() + ".";
 	private static final String OPERATION_DELETE_CAMPAIGNS = DOT_CLASS + "deleteCampaigns";
 	private static final String OPERATION_OPEN_NEXT_STAGE = DOT_CLASS + "openNextStage";
 	private static final String OPERATION_CLOSE_STAGE = DOT_CLASS + "closeStage";
@@ -100,11 +100,11 @@ public class PageCertCampaigns extends PageAdminCertification {
 
 	private static final String ID_MAIN_FORM = "mainForm";
 	private static final String ID_CAMPAIGNS_TABLE = "campaignsTable";
-	public static final String OP_START_CAMPAIGN = "PageCertCampaigns.button.startCampaign";
-	public static final String OP_CLOSE_CAMPAIGN = "PageCertCampaigns.button.closeCampaign";
-	public static final String OP_CLOSE_STAGE = "PageCertCampaigns.button.closeStage";
-	public static final String OP_OPEN_NEXT_STAGE = "PageCertCampaigns.button.openNextStage";
-	public static final String OP_START_REMEDIATION = "PageCertCampaigns.button.startRemediation";
+	static final String OP_START_CAMPAIGN = "PageCertCampaigns.button.startCampaign";
+	static final String OP_CLOSE_CAMPAIGN = "PageCertCampaigns.button.closeCampaign";
+	static final String OP_CLOSE_STAGE = "PageCertCampaigns.button.closeStage";
+	static final String OP_OPEN_NEXT_STAGE = "PageCertCampaigns.button.openNextStage";
+	static final String OP_START_REMEDIATION = "PageCertCampaigns.button.startRemediation";
 
 	private static final String ID_TABLE_HEADER = "tableHeader";
 	private static final String ID_SEARCH_FORM = "searchForm";
@@ -1040,8 +1040,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 		target.add(getFeedbackPanel(), (Component) campaignsTable);
 	}
 
-	private void actOnCampaignsPerformed(AjaxRequestTarget target, String operationName,
-			List<CertCampaignListItemDto> items) {
+	private void actOnCampaignsPerformed(AjaxRequestTarget target, String operationName, List<CertCampaignListItemDto> items) {
 		int processed = 0;
 		AccessCertificationService acs = getCertificationService();
 
@@ -1050,27 +1049,23 @@ public class PageCertCampaigns extends PageAdminCertification {
 			try {
 				AccessCertificationCampaignType campaign = item.getCampaign();
 				Task task = createSimpleTask(operationName);
-				switch (operationName) {
-					case OPERATION_START_CAMPAIGN:
-						if (campaign.getState() == AccessCertificationCampaignStateType.CREATED) {
-							acs.openNextStage(campaign.getOid(), task, result);
-							processed++;
-						}
-						break;
-					case OPERATION_CLOSE_CAMPAIGN:
-						if (campaign.getState() != AccessCertificationCampaignStateType.CLOSED) {
-							acs.closeCampaign(campaign.getOid(), task, result);
-							processed++;
-						}
-						break;
-					case OPERATION_REITERATE_CAMPAIGN:
-						if (item.isReiterable()) {
-							acs.reiterateCampaign(campaign.getOid(), task, result);
-							processed++;
-						}
-						break;
-					default:
-						throw new IllegalStateException("Unknown action: " + operationName);
+				if (OPERATION_START_CAMPAIGN.equals(operationName)) {
+					if (campaign.getState() == AccessCertificationCampaignStateType.CREATED) {
+						acs.openNextStage(campaign.getOid(), task, result);
+						processed++;
+					}
+				} else if (OPERATION_CLOSE_CAMPAIGN.equals(operationName)) {
+					if (campaign.getState() != AccessCertificationCampaignStateType.CLOSED) {
+						acs.closeCampaign(campaign.getOid(), task, result);
+						processed++;
+					}
+				} else if (OPERATION_REITERATE_CAMPAIGN.equals(operationName)) {
+					if (item.isReiterable()) {
+						acs.reiterateCampaign(campaign.getOid(), task, result);
+						processed++;
+					}
+				} else {
+					throw new IllegalStateException("Unknown action: " + operationName);
 				}
 			} catch (Exception ex) {
 				result.recordPartialError(createStringResource("PageCertCampaigns.message.actOnCampaignsPerformed.partialError").getString(), ex);

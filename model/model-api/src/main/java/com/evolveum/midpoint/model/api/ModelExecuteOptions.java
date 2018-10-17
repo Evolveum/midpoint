@@ -667,7 +667,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
     			retVal.setIsImport(true);
     		}
     		if (ModelExecuteOptionsType.F_LIMIT_PROPAGATION.getLocalPart().equals(option)){
-    			retVal.setIsImport(true);
+    			retVal.setLimitPropagation(true);
     		}
 			if (ModelExecuteOptionsType.F_REEVALUATE_SEARCH_FILTERS.getLocalPart().equals(option)){
 				retVal.setReevaluateSearchFilters(true);
