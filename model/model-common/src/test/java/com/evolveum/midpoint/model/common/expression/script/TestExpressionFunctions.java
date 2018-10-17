@@ -531,6 +531,7 @@ public class TestExpressionFunctions {
 		String hash1 = basic.hashLdapPassword("whatever", "SSHA");
 		
 		// THEN
+		System.out.println("HASH: "+hash1);
 		assertNotNull("Null hash", hash1);
 		assertTrue("Wrong hash prefix, expected {SSHA}, was "+hash1, hash1.startsWith("{SSHA}"));
 		assertEquals("Wrong hash length", 46, hash1.length());

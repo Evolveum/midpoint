@@ -1033,13 +1033,19 @@ public class BasicExpressionFunctions {
         return composeDn(components);
     }
     
+    /**
+     * Hashes cleartext password in an (unofficial) LDAP password format. Supported algorithms: SSHA, SHA and MD5.
+     */
     public String hashLdapPassword(String clearString, String alg) throws NoSuchAlgorithmException {
     	if (clearString == null) {
     		return null;
     	}
     	return hashLdapPassword(clearString.getBytes(UTF8_CHARSET), alg);
     }
-    
+
+    /**
+     * Hashes cleartext password in an (unofficial) LDAP password format. Supported algorithms: SSHA, SHA and MD5.
+     */
     public String hashLdapPassword(byte[] clearBytes, String alg) throws NoSuchAlgorithmException {
     	if (clearBytes == null) {
     		return null;
