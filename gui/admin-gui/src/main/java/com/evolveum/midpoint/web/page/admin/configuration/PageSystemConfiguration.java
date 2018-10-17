@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
@@ -43,7 +44,10 @@ import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.SystemC
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
@@ -385,19 +389,30 @@ public class PageSystemConfiguration extends PageAdminObjectDetails<SystemConfig
         });
 	}
 	
-//	@Override
-//	public void saveOrPreviewPerformed(AjaxRequestTarget target, OperationResult result, boolean previewOnly) {
-//		super.saveOrPreviewPerformed(target, result, previewOnly);
-//		
-//		ProgressPanel progressPanel = getProgressPanel();
-//		progressPanel.hide();
-//		this.redirectBack();
-////		OpResult opResult = OpResult.getOpResult(this, result);
-////		while(opResult.getStatus().equals(OperationResultStatus.IN_PROGRESS)) {
-////			opResult = OpResult.getOpResult(this, result);
-////		}
-//		showResult(result);
-//		target.add(getFeedbackPanel());
-//	}
+	@Override
+	public void saveOrPreviewPerformed(AjaxRequestTarget target, OperationResult result, boolean previewOnly) {
+		
+		ProgressPanel progressPanel = getProgressPanel();
+		progressPanel.hide();
+		Task task = createSimpleTask(OPERATION_SEND_TO_SUBMIT);
+		super.saveOrPreviewPerformed(target, result, previewOnly, task);
+		
+		try {
+			TimeUnit.SECONDS.sleep(1);
+			while(task.isClosed()) {TimeUnit.SECONDS.sleep(1);}
+		} catch ( InterruptedException ex) {
+			result.recomputeStatus();
+	        result.recordFatalError("Couldn't use sleep", ex);
+
+	        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't use sleep", ex);
+		}
+		result.recomputeStatus();
+		target.add(getFeedbackPanel());
+		
+		if(result.getStatus().equals(OperationResultStatus.SUCCESS)) {
+			showResult(result);
+			redirectBack();
+		}
+	}
 	
 }

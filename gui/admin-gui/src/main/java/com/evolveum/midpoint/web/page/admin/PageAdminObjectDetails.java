@@ -445,8 +445,12 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		previewRequested = true;
 		saveOrPreviewPerformed(target, result, true);
 	}
-
+	
 	public void saveOrPreviewPerformed(AjaxRequestTarget target, OperationResult result, boolean previewOnly) {
+		saveOrPreviewPerformed(target, result, previewOnly, null);
+	}
+
+	public void saveOrPreviewPerformed(AjaxRequestTarget target, OperationResult result, boolean previewOnly, Task task) {
 		boolean delegationChangesExist = processDeputyAssignments(previewOnly);
 
 		ObjectWrapper<O> objectWrapper = getObjectWrapper();
@@ -459,7 +463,9 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		// (error message is still displayed)
 		delta = null;
 
-		Task task = createSimpleTask(OPERATION_SEND_TO_SUBMIT);
+		if(task == null) {
+		task = createSimpleTask(OPERATION_SEND_TO_SUBMIT);
+		}
 
 		ModelExecuteOptions options = getOptions(previewOnly);
 
