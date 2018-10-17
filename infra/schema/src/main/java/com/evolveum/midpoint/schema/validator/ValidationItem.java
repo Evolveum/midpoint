@@ -20,12 +20,13 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.ShortDumpable;
 
 /**
  * @author semancik
  *
  */
-public class ValidationItem implements DebugDumpable {
+public class ValidationItem implements DebugDumpable, ShortDumpable {
 
 	private OperationResultStatus status;
 	private LocalizableMessage message;
@@ -64,5 +65,30 @@ public class ValidationItem implements DebugDumpable {
 		DebugUtil.debugDumpWithLabelShortDump(sb, "itemPath", itemPath, indent + 1);
 		return sb.toString();
 	}
+
+	@Override
+	public void shortDump(StringBuilder sb) {
+		if (status != null) {
+			sb.append(status);
+			sb.append(" ");
+		}
+		if (itemPath != null) {
+			sb.append(itemPath);
+			sb.append(" ");
+		}
+		if (message != null) {
+			sb.append(message.getFallbackMessage());
+		}
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder("ValidationItem(");
+		shortDump(sb);
+		sb.append(")");
+		return sb.toString();
+	}
+	
+	
 	
 }
