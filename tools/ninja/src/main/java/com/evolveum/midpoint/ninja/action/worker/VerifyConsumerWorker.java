@@ -88,6 +88,12 @@ public class VerifyConsumerWorker extends AbstractWriterConsumerWorker<VerifyOpt
 	}
 
 	private <O extends ObjectType> void writeValidationItem(Writer writer, PrismObject<O> object, ValidationItem validationItem) throws IOException {
+		if (validationItem.getStatus() != null) {
+			writer.append(validationItem.getStatus().toString());
+			writer.append(" ");
+		} else {
+			writer.append("INFO ");
+		}
 		writer.append(object.toString());
 		writer.append(" ");
 		if (validationItem.getItemPath() != null) {
