@@ -44,6 +44,8 @@ import java.util.*;
 import java.util.concurrent.*;
 
 /**
+ * Abstract action for all search-based operations, such as export and verify.
+ * 
  * @author Viliam Repan (lazyman)
  */
 public abstract class AbstractRepositorySearchAction<OP extends ExportOptions> extends RepositoryAction<OP> {
@@ -145,6 +147,11 @@ public abstract class AbstractRepositorySearchAction<OP extends ExportOptions> e
         return producers;
     }
 
+    /**
+     * The idea is to split shadow per resource. We will get more producer workers in this way, therefore we can
+     * run in more threads. No extra special processing is done for shadows. Just to split them to workers for
+     * performance reasons. 
+     */
     private List<SearchProducerWorker> createProducersForShadows(BlockingQueue<PrismObject> queue,
                                                                  OperationStatus operation,
                                                                  List<SearchProducerWorker> producers,
