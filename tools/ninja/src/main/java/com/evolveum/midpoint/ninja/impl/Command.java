@@ -15,6 +15,8 @@ public enum Command {
     DELETE("delete", DeleteOptions.class, DeleteRepositoryAction.class, null),
 
     COUNT("count", CountOptions.class, CountRepositoryAction.class, null),
+    
+    VERIFY("verify", VerifyOptions.class, VerifyRepositoryAction.class, null),
 
 //    PASSWORD_RESET("password", PasswordResetOptions.class, PasswordResetRepositoryAction.class, null),
 //

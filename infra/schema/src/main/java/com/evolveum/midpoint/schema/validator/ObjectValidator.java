@@ -84,6 +84,11 @@ public class ObjectValidator {
 		this.warnPlannedRemovalVersion = warnPlannedRemovalVersion;
 	}
 
+	public void setAllWarnings() {
+		this.warnDeprecated = true;
+		this.warnPlannedRemoval = true;
+	}
+	
 	public <O extends ObjectType> ValidationResult validate(PrismObject<O> object) {
 		ValidationResult result = new ValidationResult();
 		object.accept(visitable -> visit(visitable, result));

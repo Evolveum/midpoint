@@ -37,15 +37,17 @@ import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
 /**
+ * Producer worker for all search-based operations, such as export and verify.
+ * 
  * Created by Viliam Repan (lazyman).
  */
-public class ExportProducerWorker extends BaseWorker<ExportOptions, PrismObject> {
+public class SearchProducerWorker extends BaseWorker<ExportOptions, PrismObject> {
 
     private ObjectTypes type;
     private ObjectQuery query;
 
-    public ExportProducerWorker(NinjaContext context, ExportOptions options, BlockingQueue<PrismObject> queue,
-                                OperationStatus operation, List<ExportProducerWorker> producers,
+    public SearchProducerWorker(NinjaContext context, ExportOptions options, BlockingQueue<PrismObject> queue,
+                                OperationStatus operation, List<SearchProducerWorker> producers,
                                 ObjectTypes type, ObjectQuery query) {
         super(context, options, queue, operation, producers);
 

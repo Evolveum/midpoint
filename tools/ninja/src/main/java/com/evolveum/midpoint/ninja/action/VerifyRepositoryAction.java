@@ -17,25 +17,24 @@ package com.evolveum.midpoint.ninja.action;
 
 import java.util.concurrent.BlockingQueue;
 
-import com.evolveum.midpoint.ninja.action.worker.ExportConsumerWorker;
-import com.evolveum.midpoint.ninja.impl.NinjaContext;
-import com.evolveum.midpoint.ninja.opts.ExportOptions;
+import com.evolveum.midpoint.ninja.action.worker.VerifyConsumerWorker;
+import com.evolveum.midpoint.ninja.opts.VerifyOptions;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.PrismObject;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ExportRepositoryAction extends AbstractRepositorySearchAction<ExportOptions> {
+public class VerifyRepositoryAction extends AbstractRepositorySearchAction<VerifyOptions> {
 
     @Override
 	protected String getOperationShortName() {
-		return "export";
+		return "verify";
 	}
 
 	@Override
 	protected Runnable createConsumer(BlockingQueue<PrismObject> queue, OperationStatus operation) {
-		return new ExportConsumerWorker(context, options, queue, operation);
+		return new VerifyConsumerWorker(context, options, queue, operation);
 	}
 
 }
