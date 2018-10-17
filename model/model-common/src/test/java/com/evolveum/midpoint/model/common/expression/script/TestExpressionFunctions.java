@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -516,6 +516,30 @@ public class TestExpressionFunctions {
 		assertEquals("Semančík", basic.parseFamilyName("Ing. Radovan Semančík, PhD."));
 		assertEquals("Ing.", basic.parseHonorificPrefix("Ing. Radovan Semančík, PhD."));
 		assertEquals("PhD.", basic.parseHonorificSuffix("Ing. Radovan Semančík, PhD."));
+	}
+	
+	/**
+	 * MID-4946
+	 */
+	@Test
+	public void testHashLdapPasswordSsha() throws Exception {
+		final String TEST_NAME = "testHashLdapPasswordSsha";
+		TestUtil.displayTestTitle(TEST_NAME);
+		BasicExpressionFunctions basic = createBasicFunctions();
+
+		// WHEN
+		String hash1 = basic.hashLdapPassword("whatever", "SSHA");
+		
+		// THEN
+		System.out.println("HASH: "+hash1);
+		assertNotNull("Null hash", hash1);
+		assertTrue("Wrong hash prefix, expected {SSHA}, was "+hash1, hash1.startsWith("{SSHA}"));
+		assertEquals("Wrong hash length", 46, hash1.length());
+		
+		String hash2 = basic.hashLdapPassword("whatever", "SSHA");
+		
+		assertNotNull("Null hash2", hash2);
+		assertFalse("Same hash generated twice: "+hash1, hash1.equals(hash2));
 	}
 
 }

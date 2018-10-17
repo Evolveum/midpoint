@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,10 @@ package com.evolveum.midpoint.model.common.expression.functions;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.text.Normalizer;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -77,6 +81,7 @@ import static java.util.Collections.emptyList;
 public class BasicExpressionFunctions {
 
     public static final String NAME_SEPARATOR = " ";
+    private final Charset UTF8_CHARSET = Charset.forName("UTF-8");
 
     public static final Trace LOGGER = TraceManager.getTrace(BasicExpressionFunctions.class);
 
@@ -87,12 +92,14 @@ public class BasicExpressionFunctions {
     private final PrismContext prismContext;
     private final Protector protector;
     private final Clock clock;
+    private final SecureRandom secureRandom;
 
     public BasicExpressionFunctions(PrismContext prismContext, Protector protector, Clock clock) {
         super();
         this.prismContext = prismContext;
         this.protector = protector;
         this.clock = clock;
+        this.secureRandom = new SecureRandom();
     }
 
     /**
@@ -1024,6 +1031,64 @@ public class BasicExpressionFunctions {
         }
         components[components.length - 1] = suffix;
         return composeDn(components);
+    }
+    
+    /**
+     * Hashes cleartext password in an (unofficial) LDAP password format. Supported algorithms: SSHA, SHA and MD5.
+     */
+    public String hashLdapPassword(String clearString, String alg) throws NoSuchAlgorithmException {
+    	if (clearString == null) {
+    		return null;
+    	}
+    	return hashLdapPassword(clearString.getBytes(UTF8_CHARSET), alg);
+    }
+
+    /**
+     * Hashes cleartext password in an (unofficial) LDAP password format. Supported algorithms: SSHA, SHA and MD5.
+     */
+    public String hashLdapPassword(byte[] clearBytes, String alg) throws NoSuchAlgorithmException {
+    	if (clearBytes == null) {
+    		return null;
+    	}
+    	
+        MessageDigest md = null;
+        
+    	try {
+            if (alg.equalsIgnoreCase("SSHA") || alg.equalsIgnoreCase("SHA")) {
+            		md = MessageDigest.getInstance("SHA-1");
+            } else if ( alg.equalsIgnoreCase("SMD5") || alg.equalsIgnoreCase("MD5") ) {
+                md = MessageDigest.getInstance("MD5");
+            }
+    	} catch (NoSuchAlgorithmException e) {
+            throw new NoSuchAlgorithmException("Could not find MessageDigest algorithm: "+alg, e);
+        }
+        
+        if (md == null) {
+            throw new NoSuchAlgorithmException("Unsupported MessageDigest algorithm: " + alg);
+        }
+
+        byte[] salt = {};
+        if (alg.equalsIgnoreCase("SSHA") || alg.equalsIgnoreCase("SMD5")) {
+            salt = new byte[8];
+            secureRandom.nextBytes(salt);
+        }
+
+        md.reset();
+        md.update(clearBytes);
+        md.update(salt);
+        byte[] hash = md.digest();
+
+        byte[] hashAndSalt = new byte[hash.length + salt.length];
+        System.arraycopy(hash, 0, hashAndSalt, 0, hash.length);
+        System.arraycopy(salt, 0, hashAndSalt, hash.length, salt.length);
+
+        StringBuilder resSb = new StringBuilder(alg.length() + hashAndSalt.length);
+        resSb.append('{');
+        resSb.append(alg);
+        resSb.append('}');
+        resSb.append(Base64.getEncoder().encodeToString(hashAndSalt));
+
+        return resSb.toString();
     }
 
     public static String debugDump(Object o) {
