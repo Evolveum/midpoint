@@ -162,8 +162,8 @@ public class TestCryptoUtil {
 				sms1.getGateway().get(0).getPassword(),
 				sms2.getGateway().get(0).getPassword());
 		System.out.println("Compromised key name: " + compromisedKeyName);
-		PrismAsserts.assertSets("Wrong key names in jack", singleton(compromisedKeyName), CryptoUtil.getEncryptionKeyNames(jack));
-		PrismAsserts.assertSets("Wrong key names in sysconfig", singleton(compromisedKeyName), CryptoUtil.getEncryptionKeyNames(config));
+		PrismAsserts.assertSets("Wrong key names in jack", CryptoUtil.getEncryptionKeyNames(jack), singleton(compromisedKeyName));
+		PrismAsserts.assertSets("Wrong key names in sysconfig", CryptoUtil.getEncryptionKeyNames(config), singleton(compromisedKeyName));
 
 		// THEN
 		PrismObject<UserType> jackOld = jack.clone();
@@ -177,7 +177,7 @@ public class TestCryptoUtil {
 
 		assertTrue("Unexpected reencrypt delta (jack old): " + reencryptJackNewMods, reencryptJackOldMods.isEmpty());
 		assertReencryptDelta("jack new", reencryptJackNewMods, 1, jackOld, protector);
-		assertReencryptDelta("config new", reencryptConfigNewMods, 2, configOld, protector);   // mail + sms
+		assertReencryptDelta("config new", reencryptConfigNewMods, 1, configOld, protector);   // notification config
 
 		assertEquals("Wrong # of reencrypted passwords (jack old)", 0, reencryptJackOldCount);
 		assertEquals("Wrong # of reencrypted passwords (jack new)", 1, reencryptJackNewCount);

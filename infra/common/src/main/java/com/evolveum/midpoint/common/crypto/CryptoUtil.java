@@ -115,22 +115,19 @@ public class CryptoUtil {
             if (pval.getParent() == null) {
                 pval.setParent(item);       // todo ??? if the parent is null we wouldn't get here
             }
-    	} else if (itemDef.getTypeName().equals(MailConfigurationType.COMPLEX_TYPE)) {
-		    // todo fix this hack (it's because MailConfigurationType is not a container)
-		    @SuppressWarnings("unchecked")
-		    MailConfigurationType mailCfg = ((PrismPropertyValue<MailConfigurationType>) pval).getValue();
-		    if (mailCfg != null) {
-			    for (MailServerConfigurationType serverCfg : mailCfg.getServer()) {
-				    encryptProtectedStringType(protector, serverCfg.getPassword(), "mail server password");
+    	} else if (itemDef.getTypeName().equals(NotificationConfigurationType.COMPLEX_TYPE)) {
+            // this is really ugly hack needed because currently it is not possible to break NotificationConfigurationType into prism item [pm]
+            NotificationConfigurationType ncfg = ((PrismPropertyValue<NotificationConfigurationType>) pval).getValue();
+            if (ncfg.getMail() != null) {
+                for (MailServerConfigurationType mscfg : ncfg.getMail().getServer()) {
+                    encryptProtectedStringType(protector, mscfg.getPassword(), "mail server password");
 			    }
 		    }
-	    } else if (itemDef.getTypeName().equals(SmsConfigurationType.COMPLEX_TYPE)) {
-		    // todo fix this hack (it's because SmsConfigurationType is not a container)
-		    @SuppressWarnings("unchecked")
-		    SmsConfigurationType smsCfg = ((PrismPropertyValue<SmsConfigurationType>) pval).getValue();
-            if (smsCfg != null) {
-	            for (SmsGatewayConfigurationType gwCfg : smsCfg.getGateway()) {
-		            encryptProtectedStringType(protector, gwCfg.getPassword(), "sms gateway password");
+            if (ncfg.getSms() != null) {
+                for (SmsConfigurationType smscfg : ncfg.getSms()) {
+                    for (SmsGatewayConfigurationType gwcfg : smscfg.getGateway()) {
+                        encryptProtectedStringType(protector, gwcfg.getPassword(), "sms gateway password");
+                    }
 	            }
             }
         }
@@ -203,30 +200,27 @@ public class CryptoUtil {
             if (ps.getClearValue() != null) {
                 throw new IllegalStateException("Unencrypted value in field " + propName);
             }
-        } else if (itemDef.getTypeName().equals(MailConfigurationType.COMPLEX_TYPE)) {
-		    // todo fix this hack (it's because MailConfigurationType is not a container)
-		    @SuppressWarnings("unchecked")
-		    MailConfigurationType mailCfg = ((PrismPropertyValue<MailConfigurationType>) pval).getValue();
-		    if (mailCfg != null) {
-			    for (MailServerConfigurationType serverCfg : mailCfg.getServer()) {
-				    if (serverCfg.getPassword() != null && serverCfg.getPassword().getClearValue() != null) {
+	    } else if (itemDef.getTypeName().equals(NotificationConfigurationType.COMPLEX_TYPE)) {
+		    // this is really ugly hack needed because currently it is not possible to break NotificationConfigurationType into prism item [pm]
+		    NotificationConfigurationType ncfg = ((PrismPropertyValue<NotificationConfigurationType>) pval).getValue();
+		    if (ncfg.getMail() != null) {
+			    for (MailServerConfigurationType mscfg : ncfg.getMail().getServer()) {
+				    if (mscfg.getPassword() != null && mscfg.getPassword().getClearValue() != null) {
 					    throw new IllegalStateException("Unencrypted value in mail server config password entry");
 				    }
 			    }
 		    }
-	    } else if (itemDef.getTypeName().equals(SmsConfigurationType.COMPLEX_TYPE)) {
-		    // todo fix this hack (it's because SmsConfigurationType is not a container)
-		    @SuppressWarnings("unchecked")
-		    SmsConfigurationType smsCfg = ((PrismPropertyValue<SmsConfigurationType>) pval).getValue();
-		    if (smsCfg != null) {
-			    for (SmsGatewayConfigurationType gwCfg : smsCfg.getGateway()) {
-				    if (gwCfg.getPassword() != null && gwCfg.getPassword().getClearValue() != null) {
-					    throw new IllegalStateException("Unencrypted value in SMS gateway config password entry");
+		    if (ncfg.getSms() != null) {
+			    for (SmsConfigurationType smscfg : ncfg.getSms()) {
+				    for (SmsGatewayConfigurationType gwcfg : smscfg.getGateway()) {
+					    if (gwcfg.getPassword() != null && gwcfg.getPassword().getClearValue() != null) {
+						    throw new IllegalStateException("Unencrypted value in SMS gateway config password entry");
+					    }
 				    }
 			    }
 		    }
 	    }
-    }
+	}
 
 	public static void checkEncrypted(Collection<? extends ItemDelta> modifications) {
 		Visitor visitor = visitable -> {
@@ -364,15 +358,20 @@ public class CryptoUtil {
 		Object realValue = pval.getRealValue();
 		if (realValue instanceof ProtectedStringType) {
 			processor.apply((ProtectedStringType) realValue, determinePropName(pval));
-		} else if (realValue instanceof MailConfigurationType) {
+		} else if (realValue instanceof NotificationConfigurationType) {
 			// todo fix this hack (it's because MailConfigurationType is not a container)
-			for (MailServerConfigurationType serverCfg : ((MailConfigurationType) realValue).getServer()) {
-				processor.apply(serverCfg.getPassword(), "mail server password");
+			NotificationConfigurationType ncfg = (NotificationConfigurationType) realValue;
+			if (ncfg.getMail() != null) {
+				for (MailServerConfigurationType serverCfg : ncfg.getMail().getServer()) {
+					processor.apply(serverCfg.getPassword(), "mail server password");
+				}
 			}
-		} else if (realValue instanceof SmsConfigurationType) {
-			// todo fix this hack (it's because SmsConfigurationType is not a container)
-			for (SmsGatewayConfigurationType gwCfg : ((SmsConfigurationType) realValue).getGateway()) {
-				processor.apply(gwCfg.getPassword(), "sms gateway password");
+			if (ncfg.getSms() != null) {
+				for (SmsConfigurationType smsCfg : ncfg.getSms()) {
+					for (SmsGatewayConfigurationType gwCfg : smsCfg.getGateway()) {
+						processor.apply(gwCfg.getPassword(), "sms gateway password");
+					}
+				}
 			}
 		}
 	}
