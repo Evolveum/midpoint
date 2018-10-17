@@ -1018,6 +1018,11 @@
 				<artifactId>jackson-annotations</artifactId>
 				<version>${jackson.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>com.fasterxml.jackson.jaxrs</groupId>
+				<artifactId>jackson-jaxrs-base</artifactId>
+				<version>${jackson.version}</version>
+			</dependency>
             <dependency>
                 <groupId>org.yaml</groupId>
                 <artifactId>snakeyaml</artifactId>
@@ -1236,7 +1241,15 @@
                 <artifactId>jcommander</artifactId>
                 <version>${jcommander.version}</version>
             </dependency>
+            
+            <dependency>
+				<groupId>org.eclipse.jetty</groupId>
+		       	<artifactId>jetty-server</artifactId>
+		       	<version>9.4.11.v20180605</version>
+			</dependency>
+            
         </dependencies>
+        
     </dependencyManagement>
 
     <organization>
