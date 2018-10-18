@@ -26,6 +26,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -133,6 +134,16 @@ public class TestRoleMembers extends AbstractStoryTest {
         	.assertRoleMemberhipRefs(0);
         
         assertCanSearchPirateMembers(false);
+        
+        // Even though canSearch returns false, we can still try the search.
+        // The authorization is enforcementStrategy=maySkipOnSearch. And it
+        // really gets skipped on search. Therefore we will see mancomb as role
+        // member. But we cannot read roleMembershipRef, therefore it won't be
+        // in the object.
+        SearchResultList<PrismObject<UserType>> members = searchPirateMembers(1);
+        assertUser(members.get(0), "pirate role member")
+	        .assertName(USER_MANCOMB_USERNAME)
+	        .assertRoleMemberhipRefs(0);
 		
 		// THEN
 		displayThen(TEST_NAME);
@@ -159,14 +170,22 @@ public class TestRoleMembers extends AbstractStoryTest {
         		.assertRole(ROLE_PIRATE_OID)
         		.assertRoleMemberhipRefs(1);
         
-        display("HEREHERE");
         assertCanSearchPirateMembers(true);
+        
+        SearchResultList<PrismObject<UserType>> members = searchPirateMembers(1);
+        assertUser(members.get(0), "pirate role member")
+	        .assertName(USER_MANCOMB_USERNAME)
+			.roleMembershipRefs()
+	    		.assertRole(ROLE_PIRATE_OID, SchemaConstants.ORG_DEFAULT)
+	    		.assertRoleMemberhipRefs(1);
 		
 		// THEN
 		displayThen(TEST_NAME);
 		
 	}
 	
+
+
 	private void assertCanSearchPirateMembers(boolean expected) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		assertEquals("Wrong canSearch on pirate members", expected, canSearchPirateMembers());
 	}
@@ -174,12 +193,20 @@ public class TestRoleMembers extends AbstractStoryTest {
 	private boolean canSearchPirateMembers() throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		Task task = taskManager.createTaskInstance(TestRoleMembers.class.getName() + ".canSearchPirateMembers");
         OperationResult result = task.getResult();
-		ObjectQuery query = queryFor(UserType.class)
-				.item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(ROLE_PIRATE_OID).build();
+		ObjectQuery query = createMembersQuery(ROLE_PIRATE_OID);
 		// Object is null here by purpose. Maybe the object does not really makes any sense in canSearch() ?
         boolean canSearch = modelInteractionService.canSearch(UserType.class, null, null, false, query, task, result);
         assertSuccess(result);
 		return canSearch;
+	}
+	
+	private SearchResultList<PrismObject<UserType>> searchPirateMembers(int expectedResults) throws Exception {
+		return assertSearch(UserType.class, createMembersQuery(ROLE_PIRATE_OID), expectedResults);
+	}
+	
+	private ObjectQuery createMembersQuery(String roleOid) {
+		return queryFor(UserType.class)
+				.item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(roleOid).build();
 	}
 	
 }

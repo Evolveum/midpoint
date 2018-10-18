@@ -5689,8 +5689,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertSearch(type, ObjectQuery.createObjectQuery(filter), null, expectedResults);
 	}
 	
-	protected <O extends ObjectType> void assertSearch(Class<O> type, ObjectQuery query, int expectedResults) throws Exception {
-		assertSearch(type, query, null, expectedResults);
+	protected <O extends ObjectType> SearchResultList<PrismObject<O>> assertSearch(Class<O> type, ObjectQuery query, int expectedResults) throws Exception {
+		return assertSearch(type, query, null, expectedResults);
 	}
 	
 	protected <O extends ObjectType> void assertSearchRaw(Class<O> type, ObjectQuery query, int expectedResults) throws Exception {
@@ -5708,9 +5708,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	
-	protected <O extends ObjectType> void assertSearch(Class<O> type, ObjectQuery query,
+	protected <O extends ObjectType> SearchResultList<PrismObject<O>> assertSearch(Class<O> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, int expectedResults) throws Exception {
-		assertSearch(type, query, options, 
+		return assertSearch(type, query, options, 
 				new SearchAssertion<O>() {
 
 					@Override
@@ -5770,13 +5770,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			});
 	}
 	
-	protected <O extends ObjectType> void assertSearch(Class<O> type, ObjectQuery query,
+	protected <O extends ObjectType> SearchResultList<PrismObject<O>> assertSearch(Class<O> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, SearchAssertion<O> assertion) throws Exception {
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".assertSearchObjects");
         OperationResult result = task.getResult();
+        SearchResultList<PrismObject<O>> objects;
 		try {
 			logAttempt("search", type, query);
-			List<PrismObject<O>> objects = modelService.searchObjects(type, query, options, task, result);
+			objects = modelService.searchObjects(type, query, options, task, result);
 			display("Search returned", objects.toString());
 			assertion.assertObjects("search", objects);
 			assertSuccess(result);
@@ -5785,29 +5786,31 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			result.computeStatus();
 			TestUtil.assertFailure(result);
 			failAllow("search", type, query, e);
+			return null; // not reached
 		}
 
 		task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".assertSearchObjectsIterative");
         result = task.getResult();
 		try {
 			logAttempt("searchIterative", type, query);
-			final List<PrismObject<O>> objects = new ArrayList<>();
+			final List<PrismObject<O>> iterativeObjects = new ArrayList<>();
 			ResultHandler<O> handler = new ResultHandler<O>() {
 				@Override
 				public boolean handle(PrismObject<O> object, OperationResult parentResult) {
-					objects.add(object);
+					iterativeObjects.add(object);
 					return true;
 				}
 			};
 			modelService.searchObjectsIterative(type, query, handler, options, task, result);
-			display("Search iterative returned", objects.toString());
-			assertion.assertObjects("searchIterative", objects);
+			display("Search iterative returned", iterativeObjects.toString());
+			assertion.assertObjects("searchIterative", iterativeObjects);
 			assertSuccess(result);
 		} catch (SecurityViolationException e) {
 			// this should not happen
 			result.computeStatus();
 			TestUtil.assertFailure(result);
 			failAllow("searchIterative", type, query, e);
+			return null; // not reached
 		}
 
 		task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".assertSearchObjects.count");
@@ -5823,7 +5826,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			result.computeStatus();
 			TestUtil.assertFailure(result);
 			failAllow("search", type, query, e);
+			return null; // not reached
 		}
+		
+		return objects;
 	}
 
 	
