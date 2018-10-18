@@ -107,6 +107,10 @@ public class ConfigurationStep extends WizardStep {
 
 		List<ContainerWrapper> containerWrappers = new ArrayList<>();
 
+		if(parentPage.isNewResource()) {
+			return containerWrappers;
+		}
+		
 		if (configuration == null) {
 			PrismObject<ConnectorType> connector = ResourceTypeUtil.getConnectorIfPresent(resource);
 			if (connector == null) {
@@ -165,10 +169,10 @@ public class ConfigurationStep extends WizardStep {
 		return relevantDefinitions;
 	}
 
-//	@Override
-//	protected void onConfigure() {
-//		updateConfigurationTabs();
-//	}
+//     @Override
+//     protected void onConfigure() {
+//             updateConfigurationTabs();
+//     }
 
 	private void initLayout() {
     	com.evolveum.midpoint.web.component.form.Form form = new com.evolveum.midpoint.web.component.form.Form<>(ID_MAIN, true);
