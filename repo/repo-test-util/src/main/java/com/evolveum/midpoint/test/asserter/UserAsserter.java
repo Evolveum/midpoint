@@ -208,6 +208,31 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
 		return this;
 	}
 	
+	public UserAsserter<RA> assertNoFullName() {
+		assertNoItem(UserType.F_FULL_NAME);
+		return this;
+	}
+	
+	public UserAsserter<RA> assertGivenName(String expectedOrig) {
+		assertPolyStringProperty(UserType.F_GIVEN_NAME, expectedOrig);
+		return this;
+	}
+	
+	public UserAsserter<RA> assertNoGivenName() {
+		assertNoItem(UserType.F_GIVEN_NAME);
+		return this;
+	}
+	
+	public UserAsserter<RA> assertFamilyName(String expectedOrig) {
+		assertPolyStringProperty(UserType.F_FAMILY_NAME, expectedOrig);
+		return this;
+	}
+	
+	public UserAsserter<RA> assertNoFamilyName() {
+		assertNoItem(UserType.F_FAMILY_NAME);
+		return this;
+	}
+	
 	public UserAsserter<RA> assertLocality(String expectedOrig) {
 		assertPolyStringProperty(UserType.F_LOCALITY, expectedOrig);
 		return this;

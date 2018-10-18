@@ -27,8 +27,12 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -166,6 +170,16 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
 		T realValue = prop.getRealValue();
 		assertNotNull("No value in "+propName.getLocalPart()+" in "+desc(), realValue);
 		assertEquals("Wrong "+propName.getLocalPart()+" in "+desc(), expected, realValue);
+	}
+	
+	protected void assertNoItem(QName itemName) {
+		Item<PrismValue, ItemDefinition> item = getObject().findItem(itemName);
+		assertNull("Unexpected item "+itemName+" in "+desc(), item);
+	}
+	
+	protected void assertNoItem(ItemPath itemPath) {
+		Item<PrismValue, ItemDefinition> item = getObject().findItem(itemPath);
+		assertNull("Unexpected item "+itemPath+" in "+desc(), item);
 	}
 	
 	public String getOid() {

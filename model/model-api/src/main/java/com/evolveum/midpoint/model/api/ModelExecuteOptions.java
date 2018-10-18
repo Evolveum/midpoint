@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.api;
 
 
 import com.evolveum.midpoint.schema.AbstractOptions;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConflictResolutionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationBusinessContextType;
@@ -765,5 +766,14 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 			partialProcessing = new PartialProcessingOptionsType();
 		}
 		return partialProcessing;
+	}
+
+	public static GetOperationOptions toGetOperationOptions(ModelExecuteOptions modelOptions) {
+		if (modelOptions == null) {
+			return null;
+		}
+		GetOperationOptions getOptions = new GetOperationOptions();
+		getOptions.setRaw(modelOptions.getRaw());
+		return getOptions;
 	}
 }

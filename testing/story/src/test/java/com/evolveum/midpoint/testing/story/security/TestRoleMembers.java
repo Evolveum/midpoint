@@ -15,16 +15,24 @@
  */
 package com.evolveum.midpoint.testing.story.security;
 
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
+import java.util.Collections;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -35,10 +43,13 @@ import com.evolveum.midpoint.testing.story.AbstractStoryTest;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -63,6 +74,8 @@ public class TestRoleMembers extends AbstractStoryTest {
 	
 	protected static final String USER_MANCOMB_OID = "f034084e-cafc-11e8-a31f-f7b3274f7480";
 	protected static final String USER_MANCOMB_USERNAME = "mancomb";
+	protected static final String USER_MANCOMB_GIVEN_NAME = "Mancomb";
+	protected static final String USER_MANCOMB_FULL_NAME = "Mancomb Seepgood";
 
 	protected static final String ROLE_END_USER_OID = "c057bbd0-cafb-11e8-9525-cbcb025548f7";
 	
@@ -104,11 +117,22 @@ public class TestRoleMembers extends AbstractStoryTest {
         
         assertUserBefore(USER_MANCOMB_OID)
 			.assertName(USER_MANCOMB_USERNAME)
+			.assertFullName(USER_MANCOMB_FULL_NAME)
+			.assertGivenName(USER_MANCOMB_GIVEN_NAME)
+			.assignments()
+				.assertAssignments(1)
+				.assertRole(ROLE_PIRATE_OID)
+				.end()
 			.roleMembershipRefs()
 	    		.assertRole(ROLE_PIRATE_OID, SchemaConstants.ORG_DEFAULT)
 	    		.assertRoleMemberhipRefs(1);
 		
         assertCanSearchPirateMembers(true);
+        
+        ModelContext<UserType> previewContext = previewUser(USER_MANCOMB_OID);
+        DeltaSetTriple<? extends EvaluatedAssignment<?>> evaluatedAssignmentTriple = previewContext.getEvaluatedAssignmentTriple();
+        assertNotNull("Preview evaluated assignment triple is null", evaluatedAssignmentTriple);
+        assertFalse("Preview evaluated assignment triple is empty", evaluatedAssignmentTriple.isEmpty());
         
 		// THEN
 		displayThen(TEST_NAME);
@@ -116,7 +140,7 @@ public class TestRoleMembers extends AbstractStoryTest {
 	}
 
 	/**
-	 * MID-4893
+	 * MID-4893, MID-4947
 	 */
 	@Test
 	public void test100AutzGuybrushNoMembers() throws Exception {
@@ -131,6 +155,7 @@ public class TestRoleMembers extends AbstractStoryTest {
         PrismObject<UserType> userMancomb = assertGetAllow(UserType.class, USER_MANCOMB_OID);
         assertUser(userMancomb, "mancomb")
         	.assertName(USER_MANCOMB_USERNAME)
+        	.assertAssignments(0)
         	.assertRoleMemberhipRefs(0);
         
         assertCanSearchPirateMembers(false);
@@ -143,11 +168,31 @@ public class TestRoleMembers extends AbstractStoryTest {
         SearchResultList<PrismObject<UserType>> members = searchPirateMembers(1);
         assertUser(members.get(0), "pirate role member")
 	        .assertName(USER_MANCOMB_USERNAME)
+	        .assertFullName(USER_MANCOMB_FULL_NAME)
+	        .assertNoGivenName()
 	        .assertRoleMemberhipRefs(0);
+        
+        ModelContext<UserType> previewContext = previewUser(USER_MANCOMB_OID);
+        assertUser(previewContext.getFocusContext().getObjectOld(), "preview user old")
+        	.assertName(USER_MANCOMB_USERNAME)
+        	.assertFullName(USER_MANCOMB_FULL_NAME)
+        	.assertNoGivenName();
+        DeltaSetTriple<? extends EvaluatedAssignment<?>> evaluatedAssignmentTriple = previewContext.getEvaluatedAssignmentTriple();
+        assertNull("Preview evaluated assignment triple sneaked in", evaluatedAssignmentTriple);
 		
 		// THEN
 		displayThen(TEST_NAME);
 		
+	}
+	
+	private ModelContext<UserType> previewUser(String userOid) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+		Task task = createTask("previewUser");
+        OperationResult result = task.getResult();
+        ObjectDelta<UserType> emptyMancombDelta = deltaFor(UserType.class).asObjectDelta(userOid);
+        ModelContext<UserType> previewContext = modelInteractionService.previewChanges(Collections.singleton(emptyMancombDelta), null, task, result);
+        display("Preview context", previewContext);
+        assertSuccess(result);
+        return previewContext;
 	}
 	
 	/**
@@ -166,6 +211,7 @@ public class TestRoleMembers extends AbstractStoryTest {
         PrismObject<UserType> userMancomb = assertGetAllow(UserType.class, USER_MANCOMB_OID);
         assertUser(userMancomb, "mancomb")
     		.assertName(USER_MANCOMB_USERNAME)
+    		.assertAssignments(0)
     		.roleMembershipRefs()
         		.assertRole(ROLE_PIRATE_OID)
         		.assertRoleMemberhipRefs(1);

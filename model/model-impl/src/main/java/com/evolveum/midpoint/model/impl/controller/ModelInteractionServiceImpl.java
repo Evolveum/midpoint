@@ -251,6 +251,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 					hook.invokePreview(context, task, result);
 				}
 			}
+			
+			schemaTransformer.applySchemasAndSecurity(context, null, task, result);
 
 		} catch (ConfigurationException | SecurityViolationException | ObjectNotFoundException | SchemaException |
 				CommunicationException | PolicyViolationException | RuntimeException | ObjectAlreadyExistsException |
