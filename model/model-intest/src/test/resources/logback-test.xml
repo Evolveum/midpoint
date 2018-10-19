@@ -45,10 +45,9 @@
     <!-- "TRACE" is just too much info, "DEBUG" should be enough for the following talkative components ... 
          if any of the following is set to "TRACE" then it was changed by mistake and should be changed back -->
     <logger name="com.evolveum.midpoint.model.api.op" level="TRACE" />
-    <logger name="com.evolveum.midpoint.model.impl.expr.OrgStructFunctionsImpl" level="TRACE" />
 	<logger name="com.evolveum.midpoint.model.impl.lens.Clockwork" level="TRACE" />
 	<logger name="com.evolveum.midpoint.model.impl.lens.projector" level="DEBUG" />
- 	<logger name="com.evolveum.midpoint.model.impl.lens.projector.Projector" level="DEBUG" />
+ 	<logger name="com.evolveum.midpoint.model.impl.lens.projector.Projector" level="TRACE" />
  	<logger name="com.evolveum.midpoint.model.impl.lens.projector.ContextLoader" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.PasswordPolicyProcessor" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.ConstructionProcessor" level="DEBUG" />
@@ -78,7 +77,8 @@
  	<logger name="com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.lens.MetadataManager" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.lens.PersonaProcessor" level="DEBUG" />
- 	<logger name="com.evolveum.midpoint.model.impl.lens.ClockworkAuthorizationHelper" level="TRACE" />
+ 	<logger name="com.evolveum.midpoint.model.impl.lens.ClockworkAuthorizationHelper" level="DEBUG" />
+ 	<logger name="com.evolveum.midpoint.model.impl.expr.OrgStructFunctionsImpl" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.expr" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.util" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.impl.sync" level="DEBUG" />
