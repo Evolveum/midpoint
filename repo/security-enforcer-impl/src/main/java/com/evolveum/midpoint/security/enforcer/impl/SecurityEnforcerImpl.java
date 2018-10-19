@@ -1698,7 +1698,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 					throw new UnsupportedOperationException("Inefficient roleRelation search (includeMembers=true without role in the original query) is not supported yet");
 				}
 			} else {
-				QName subjectRelation = specRoleRelation.getSubjectRelation();
+				List<QName> subjectRelation = specRoleRelation.getSubjectRelation();
 				boolean isRoleOidOk = false;
 				for (ObjectReferenceType subjectRoleMembershipRef: principal.getUser().getRoleMembershipRef()) {
 					if (!prismContext.relationMatches(subjectRelation, subjectRoleMembershipRef.getRelation())) {

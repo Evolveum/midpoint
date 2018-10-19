@@ -142,8 +142,8 @@ public class FocusTabVisibleBehavior<O extends ObjectType> extends VisibleEnable
     	}
     	RoleRelationObjectSpecificationType roleRelation = form.getRoleRelation();
     	if (roleRelation != null) {
-    		QName subjectRelation = roleRelation.getSubjectRelation();
-    		if (!pageBase.hasSubjectRoleRelation(object.getOid(), subjectRelation)) {
+    		List<QName> subjectRelations = roleRelation.getSubjectRelation();
+    		if (!pageBase.hasSubjectRoleRelation(object.getOid(), subjectRelations)) {
     			return false;
     		}
     	}

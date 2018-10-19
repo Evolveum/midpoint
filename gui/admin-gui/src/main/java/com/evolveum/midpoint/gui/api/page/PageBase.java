@@ -635,13 +635,14 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return principal.getUser();
     }
     
-    public boolean hasSubjectRoleRelation(String oid, QName relation) {
+    public boolean hasSubjectRoleRelation(String oid, List<QName> subjectRelations) {
     	UserType userType = getPrincipalUser();
     	if (userType == null) {
     		return false;
     	}
     	for (ObjectReferenceType roleMembershipRef : userType.getRoleMembershipRef()) {
-    		if (oid.equals(roleMembershipRef.getOid()) && QNameUtil.match(relation, roleMembershipRef.getRelation())) {
+    		if (oid.equals(roleMembershipRef.getOid()) && 
+    				getPrismContext().relationMatches(subjectRelations, roleMembershipRef.getRelation())) {
     			return true;
     		}
     	}

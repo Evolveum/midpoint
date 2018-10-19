@@ -94,6 +94,7 @@
 	    		<type>UserType</type>
 	    		<roleRelation>
 					<subjectRelation>org:owner</subjectRelation>
+					<subjectRelation>org:approver</subjectRelation>
 					<objectRelation>org:default</objectRelation>
 				</roleRelation>
 	    	</object>

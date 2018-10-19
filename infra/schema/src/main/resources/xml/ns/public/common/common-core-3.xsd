@@ -12910,7 +12910,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-        	<xsd:element name="subjectRelation" minOccurs="0" type="xsd:QName">
+        	<xsd:element name="subjectRelation" minOccurs="0" type="xsd:QName" maxOccurs="unbounded">
         		<xsd:annotation>
         			<xsd:documentation>
         				Specifies the relation that the subject needs to have to the role for this condition to
