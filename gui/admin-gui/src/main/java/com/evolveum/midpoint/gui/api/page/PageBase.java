@@ -164,6 +164,7 @@ import org.w3c.dom.Node;
 import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
+import javax.xml.namespace.QName;
 
 import java.io.Serializable;
 import java.net.URI;
@@ -624,6 +625,27 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     public MidPointPrincipal getPrincipal() {
         return SecurityUtils.getPrincipalUser();
+    }
+    
+    public UserType getPrincipalUser() {
+        MidPointPrincipal principal = getPrincipal();
+        if (principal == null) {
+        	return null;
+        }
+        return principal.getUser();
+    }
+    
+    public boolean hasSubjectRoleRelation(String oid, QName relation) {
+    	UserType userType = getPrincipalUser();
+    	if (userType == null) {
+    		return false;
+    	}
+    	for (ObjectReferenceType roleMembershipRef : userType.getRoleMembershipRef()) {
+    		if (oid.equals(roleMembershipRef.getOid()) && QNameUtil.match(relation, roleMembershipRef.getRelation())) {
+    			return true;
+    		}
+    	}
+    	return false;
     }
 
     public static StringResourceModel createStringResourceStatic(Component component, Enum<?> e) {

@@ -191,7 +191,7 @@ public class PageUser extends PageAdminFocus<UserType> {
             @Override
             protected void addSpecificTabs(final PageAdminObjectDetails<UserType> parentPage, List<ITab> tabs) {
                 FocusTabVisibleBehavior<UserType> authorization;
-                authorization = new FocusTabVisibleBehavior<>(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_PERSONAS_URL, false, isFocusHistoryPage());
+                authorization = new FocusTabVisibleBehavior<>(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_PERSONAS_URL, false, isFocusHistoryPage(), PageUser.this);
                 tabs.add(
                         new PanelTab(parentPage.createStringResource("pageAdminFocus.personas"), authorization){
 
@@ -205,7 +205,7 @@ public class PageUser extends PageAdminFocus<UserType> {
                         });
 
                 authorization = new FocusTabVisibleBehavior<>(unwrapModel(),
-                        ComponentConstants.UI_FOCUS_TAB_DELEGATIONS_URL, false, isFocusHistoryPage());
+                        ComponentConstants.UI_FOCUS_TAB_DELEGATIONS_URL, false, isFocusHistoryPage(), PageUser.this);
                 tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.delegations"), authorization)
                 {
                     private static final long serialVersionUID = 1L;
@@ -225,7 +225,7 @@ public class PageUser extends PageAdminFocus<UserType> {
                 });
 
                 authorization = new FocusTabVisibleBehavior<UserType>(unwrapModel(),
-                        ComponentConstants.UI_FOCUS_TAB_DELEGATED_TO_ME_URL, true, isFocusHistoryPage());
+                        ComponentConstants.UI_FOCUS_TAB_DELEGATED_TO_ME_URL, true, isFocusHistoryPage(), PageUser.this);
                 tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.delegatedToMe"), authorization)
                 {
                     private static final long serialVersionUID = 1L;

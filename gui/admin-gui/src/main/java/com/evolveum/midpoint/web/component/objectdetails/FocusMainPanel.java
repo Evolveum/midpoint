@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015-2016 Evolveum
+ * Copyright (c) 2015-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -250,7 +250,7 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 
     protected void addDefaultTabs(final PageAdminObjectDetails<F> parentPage, List<ITab> tabs) {
 		FocusTabVisibleBehavior<F> authorization = new FocusTabVisibleBehavior<F>(unwrapModel(),
-				ComponentConstants.UI_FOCUS_TAB_BASIC_URL, true, isFocusHistoryPage());
+				ComponentConstants.UI_FOCUS_TAB_BASIC_URL, true, isFocusHistoryPage(), parentPage);
 
 		tabs.add(
 				new PanelTab(parentPage.createStringResource("pageAdminFocus.basic"), authorization){
@@ -263,7 +263,7 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 					}
 				});
 
-		authorization = new FocusTabVisibleBehavior<>(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_PROJECTIONS_URL, false, isFocusHistoryPage());
+		authorization = new FocusTabVisibleBehavior<>(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_PROJECTIONS_URL, false, isFocusHistoryPage(), parentPage);
 		tabs.add(
                 new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.projections"), authorization){
 
@@ -280,7 +280,7 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 					}
 				});
 
-		authorization = new FocusTabVisibleBehavior<F>(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_ASSIGNMENTS_URL, true, isFocusHistoryPage());
+		authorization = new FocusTabVisibleBehavior<F>(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_ASSIGNMENTS_URL, true, isFocusHistoryPage(), parentPage);
 		tabs.add(
 				new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.assignments"), authorization) {
 
@@ -297,7 +297,7 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 					}
 				});
 		
-		authorization = new FocusTabVisibleBehavior<>(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_ASSIGNMENTS_URL, false, isFocusHistoryPage());
+		authorization = new FocusTabVisibleBehavior<>(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_ASSIGNMENTS_URL, false, isFocusHistoryPage(), parentPage);
 		
 		if (WebModelServiceUtils.isEnableExperimentalFeature(parentPage)) {
 			tabs.add(new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.dataProtection"), authorization) {
@@ -337,7 +337,7 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 		}
 
 		if (WebComponentUtil.isAuthorized(ModelAuthorizationAction.AUDIT_READ.getUrl()) && getObjectWrapper().getStatus() != ContainerStatus.ADDING){
-			authorization = new FocusTabVisibleBehavior<>(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_OBJECT_HISTORY_URL, false, isFocusHistoryPage());
+			authorization = new FocusTabVisibleBehavior<>(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_OBJECT_HISTORY_URL, false, isFocusHistoryPage(), parentPage);
 			tabs.add(
 					new PanelTab(parentPage.createStringResource("pageAdminFocus.objectHistory"), authorization) {
 
@@ -350,7 +350,7 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 					});
 		}
 
-		authorization = new FocusTabVisibleBehavior<>(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_TASKS_URL, false, isFocusHistoryPage());
+		authorization = new FocusTabVisibleBehavior<>(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_TASKS_URL, false, isFocusHistoryPage(), parentPage);
 		tabs.add(
 				new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.tasks"), authorization) {
 
