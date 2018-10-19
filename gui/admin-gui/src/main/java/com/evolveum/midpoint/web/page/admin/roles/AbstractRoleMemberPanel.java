@@ -876,8 +876,12 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 	private String getRelationValue(ObjectType focusObject){
 		String relation = "";
 		if (FocusType.class.isAssignableFrom(focusObject.getClass())) {
-			for (AssignmentType assignmentType : ((FocusType) focusObject).getAssignment()) {
-				relation = buildRelation(assignmentType, relation);
+			// Do NOT take relation from an assignment. Use roleMembershipRef instead. Reasons:
+			// 1. Authorizations (MID-4893). User may be authorized just for roleMemberhsipRef and not for assignment
+			//    Authorization for roleMembershipRef is enough to display member panel.
+			// 2. There may be assignments that are not valid. We do not want to display relation for those.
+			for (ObjectReferenceType roleMembershipRef : ((FocusType) focusObject).getRoleMembershipRef()) {
+				relation = buildRelation(roleMembershipRef, relation);
 			}
 			
 		} 
@@ -885,9 +889,9 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 				
 	}
 	
-	private String buildRelation(AssignmentType assignment, String relation) {
-		if (assignment.getTargetRef() != null && assignment.getTargetRef().getOid().equals(getModelObject().getOid())) {
-			QName assignmentRelation = assignment.getTargetRef().getRelation();
+	private String buildRelation(ObjectReferenceType roleMembershipRef, String relation) {
+		if (roleMembershipRef.getOid().equals(getModelObject().getOid())) {
+			QName assignmentRelation = roleMembershipRef.getRelation();
 			if (getSupportedRelations().stream().anyMatch(r -> QNameUtil.match(r, assignmentRelation))) {
 				if (!StringUtils.isBlank(relation)) {
 					relation += ",";
