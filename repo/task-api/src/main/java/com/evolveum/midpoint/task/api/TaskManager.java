@@ -384,18 +384,34 @@ public interface TaskManager {
      *                 DO_NOT_STOP means do not try to stop the task execution. Tasks will only be put into SUSPENDED state, and
      *                  their executions (if any) will be left as they are. Use this option only when you know what you're doing.
      * @return true if all the tasks were stopped, false if some tasks continue to run or if stopping was not requested (DO_NOT_STOP option)
+     *
+     * On error conditions does NOT throw an exception.
      */
     boolean suspendTasks(Collection<String> taskOids, long waitForStop, OperationResult parentResult);
 
-    /**
-	 * Suspend a task. The same as above - stops one-member set.
+	/**
+	 * Suspends a task. The same as above.
 	 */
-	boolean suspendTask(Task task, long waitTime, OperationResult parentResult);
+	boolean suspendTaskQuietly(Task task, long waitTime, OperationResult parentResult)
+			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException;
+
+	/**
+	 * Suspends a task. The same as above except that on error condition it DOES throw appropriate exception.
+	 */
+	boolean suspendTask(Task task, long waitTime, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException;
+
+	/**
+	 * Suspends a task. The same as above except that on error condition it DOES throw appropriate exception.
+	 */
+	boolean suspendTask(String taskOid, long waitTime, OperationResult parentResult)
+			throws SchemaException, ObjectNotFoundException;
 
 	/**
 	 * After stopping a task puts it into CLOSED state (not SUSPENDED one).
 	 */
-	boolean suspendAndCloseTask(Task task, long waitTime, OperationResult parentResult);
+	@SuppressWarnings("UnusedReturnValue")
+	boolean suspendAndCloseTaskQuietly(Task task, long waitTime, OperationResult parentResult);
 
     /**
      * Suspends tasks and deletes them.
@@ -406,12 +422,20 @@ public interface TaskManager {
      */
     void suspendAndDeleteTasks(Collection<String> taskOidList, long suspendTimeout, boolean alsoSubtasks, OperationResult parentResult);
 
+	/**
+	 * The same as above, but limited to a single task and throws the first exception encountered.
+	 */
+    void suspendAndDeleteTask(String taskOid, long suspendTimeout, boolean alsoSubtasks, OperationResult parentResult)
+		    throws SchemaException, ObjectNotFoundException;
+
     /**
 	 * Resume suspended task.
 	 *
 	 * @param task task instance to be resumed.
 	 */
     void resumeTask(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+
+    void resumeTask(String taskOid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
     /**
      * Resume suspended tasks.
@@ -461,22 +485,32 @@ public interface TaskManager {
      */
     void switchToBackground(Task task, OperationResult parentResult);
 
-    /**
+	/**
+	 * Schedules RUNNABLE/CLOSED tasks to be run immediately. (If a task will really start immediately,
+	 * depends e.g. on whether a scheduler is started, whether there are available threads, and so on.)
+	 *
+	 * @param taskOids a collection of OIDs of tasks that have to be scheduled
+	 *
+	 * Proceeds quietly - i.e. on exception it simply logs it.
+	 */
+	void scheduleTasksNow(Collection<String> taskOids, OperationResult parentResult);
+
+	/**
      * Schedules a RUNNABLE task or CLOSED single-run task to be run immediately. (If the task will really start immediately,
      * depends e.g. on whether a scheduler is started, whether there are available threads, and so on.)
+	 *
+	 * Throws appropriate exceptions.
      */
     void scheduleTaskNow(Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
 
-    /**
-     * Schedules a RUNNABLE/CLOSED tasks to be run immediately. (If a task will really start immediately,
-     * depends e.g. on whether a scheduler is started, whether there are available threads, and so on.)
-     *
-     * @param taskOids a collection of OIDs of tasks that have to be scheduled
-     */
-    void scheduleTasksNow(Collection<String> taskOids, OperationResult parentResult);
+	/**
+	 * The same as above.
+	 */
+    void scheduleTaskNow(String taskOid, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
+
     //endregion
 
-    //region Working with nodes (searching, mananging)
+    //region Working with nodes (searching, managing)
     // ==================================================== Working with nodes (searching, mananging)
 
 

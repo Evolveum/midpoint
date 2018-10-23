@@ -1716,6 +1716,145 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 		assertTrue(BooleanUtils.isTrue(passwordType.isForceChange()));
 	}
 
+	@Test // MID-4928
+	public void test650SuspendNonExistingTask() {
+		final String TEST_NAME = "test650SuspendNonExistingTask";
+		displayTestTitle(this, TEST_NAME);
+
+		WebClient client = prepareClient();
+		client.path("/tasks/123456/suspend");
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.post(null);
+
+		TestUtil.displayThen(TEST_NAME);
+		displayResponse(response);
+
+		assertEquals("Expected 404 but got " + response.getStatus(), 404, response.getStatus());
+	}
+
+	@Test // MID-4928
+	public void test652SuspendWrongObject() {
+		final String TEST_NAME = "test652SuspendWrongObject";
+		displayTestTitle(this, TEST_NAME);
+
+		WebClient client = prepareClient();
+		client.path("/tasks/00000000-0000-0000-0000-000000000002/suspend");
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.post(null);
+
+		TestUtil.displayThen(TEST_NAME);
+		displayResponse(response);
+
+		assertEquals("Expected 400 but got " + response.getStatus(), 400, response.getStatus());
+	}
+
+	@Test // MID-4928
+	public void test660ResumeNonExistingTask() {
+		final String TEST_NAME = "test660ResumeNonExistingTask";
+		displayTestTitle(this, TEST_NAME);
+
+		WebClient client = prepareClient();
+		client.path("/tasks/123456/resume");
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.post(null);
+
+		TestUtil.displayThen(TEST_NAME);
+		displayResponse(response);
+
+		assertEquals("Expected 404 but got " + response.getStatus(), 404, response.getStatus());
+	}
+
+	@Test // MID-4928
+	public void test662ResumeWrongObject() {
+		final String TEST_NAME = "test662ResumeWrongObject";
+		displayTestTitle(this, TEST_NAME);
+
+		WebClient client = prepareClient();
+		client.path("/tasks/00000000-0000-0000-0000-000000000002/resume");
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.post(null);
+
+		TestUtil.displayThen(TEST_NAME);
+		displayResponse(response);
+
+		assertEquals("Expected 400 but got " + response.getStatus(), 400, response.getStatus());
+	}
+
+	@Test // MID-4928
+	public void test670ScheduleNonExistingTask() {
+		final String TEST_NAME = "test670ScheduleNonExistingTask";
+		displayTestTitle(this, TEST_NAME);
+
+		WebClient client = prepareClient();
+		client.path("/tasks/123456/run");
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.post(null);
+
+		TestUtil.displayThen(TEST_NAME);
+		displayResponse(response);
+
+		assertEquals("Expected 404 but got " + response.getStatus(), 404, response.getStatus());
+	}
+
+	@Test // MID-4928
+	public void test672ScheduleWrongObject() {
+		final String TEST_NAME = "test672ScheduleWrongObject";
+		displayTestTitle(this, TEST_NAME);
+
+		WebClient client = prepareClient();
+		client.path("/tasks/00000000-0000-0000-0000-000000000002/run");
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.post(null);
+
+		TestUtil.displayThen(TEST_NAME);
+		displayResponse(response);
+
+		assertEquals("Expected 400 but got " + response.getStatus(), 400, response.getStatus());
+	}
+
+	@Test // MID-4928
+	public void test680DeleteNonExistingTask() {
+		final String TEST_NAME = "test680DeleteNonExistingTask";
+		displayTestTitle(this, TEST_NAME);
+
+		WebClient client = prepareClient();
+		client.path("/tasks/123456");
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.delete();
+
+		TestUtil.displayThen(TEST_NAME);
+		displayResponse(response);
+
+		assertEquals("Expected 404 but got " + response.getStatus(), 404, response.getStatus());
+	}
+
+	@Test // MID-4928
+	public void test682DeleteWrongObject() {
+		final String TEST_NAME = "test682DeleteWrongObject";
+		displayTestTitle(this, TEST_NAME);
+
+		WebClient client = prepareClient();
+		client.path("/tasks/00000000-0000-0000-0000-000000000002");
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.delete();
+
+		TestUtil.displayThen(TEST_NAME);
+		displayResponse(response);
+
+		assertEquals("Expected 400 but got " + response.getStatus(), 400, response.getStatus());
+	}
+
+
+
+
 	private WebClient prepareClient() {
 		return prepareClient(USER_ADMINISTRATOR_USERNAME, USER_ADMINISTRATOR_PASSWORD);
 	}

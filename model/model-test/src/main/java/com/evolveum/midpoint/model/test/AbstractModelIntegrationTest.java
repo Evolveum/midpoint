@@ -3326,7 +3326,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		final OperationResult result = new OperationResult(AbstractIntegrationTest.class+".suspendTask");
 		Task task = taskManager.getTaskWithResult(taskOid, result);
 		LOGGER.info("Suspending task {}", taskOid);
-		taskManager.suspendTask(task, 3000, result);
+		taskManager.suspendTaskQuietly(task, 3000, result);
 	}
 	
 	protected void assertTaskExecutionStatus(String taskOid, TaskExecutionStatus expectedExecutionStatus) throws ObjectNotFoundException, SchemaException {
