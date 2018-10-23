@@ -232,7 +232,6 @@ public class ContainerWrapperFactory {
 		List<ContainerValueWrapper<C>> containerValues = createContainerValues(cWrapper, path, task);
         cWrapper.setProperties(containerValues);
         cWrapper.computeStripes();
-
         
 		return cWrapper;
 	}
@@ -244,11 +243,13 @@ public class ContainerWrapperFactory {
 	    	if (container.getValues().isEmpty() && container.isSingleValue()) {
 	    		PrismContainerValue<C> pcv = container.createNewValue();
 	    		 ContainerValueWrapper<C> containerValueWrapper = createContainerValueWrapper(cWrapper, pcv, cWrapper.getObjectStatus(), ValueStatus.ADDED, cWrapper.getPath(), task);
-	    		
+				if (cWrapper.isReadonly()) {
+					containerValueWrapper.setReadonly(cWrapper.isReadonly(), true);
+				}
 	    		containerValueWrappers.add(containerValueWrapper);
 	    		return containerValueWrappers;
 	    	}
-	    	
+
 	    	container.getValues().forEach(pcv -> {
 	    		ValueStatus status = ValueStatus.NOT_CHANGED;
 	    		ItemPath pcvPath = pcv.getPath();
@@ -256,11 +257,14 @@ public class ContainerWrapperFactory {
 	    			status = ValueStatus.ADDED;
 	    			pcvPath = cWrapper.getPath();
 	    		}
-	    		 
+
 	    		ContainerValueWrapper<C> containerValueWrapper = createContainerValueWrapper(cWrapper, pcv, cWrapper.getObjectStatus(), status, pcvPath, task);
+	    		if (cWrapper.isReadonly()) {
+					containerValueWrapper.setReadonly(cWrapper.isReadonly(), true);
+				}
     			containerValueWrappers.add(containerValueWrapper);
 	    	});
-	    	
+
 	    	
 	    	return containerValueWrappers;
 	    }
