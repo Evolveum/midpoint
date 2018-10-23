@@ -127,7 +127,7 @@ public class WorkersManager {
 		for (Task worker : workers) {
 			if (worker.getExecutionStatus() != TaskExecutionStatus.CLOSED) {
 				LOGGER.info("Closing worker because the work is done: {}", worker);
-				taskManager.suspendAndCloseTask(worker, TaskManager.DO_NOT_WAIT, result);
+				taskManager.suspendAndCloseTaskQuietly(worker, TaskManager.DO_NOT_WAIT, result);
 				count++;
 			}
 		}
@@ -191,7 +191,7 @@ public class WorkersManager {
 		for (Task worker : new ArrayList<>(currentWorkers)) {
 			if (worker.getExecutionStatus() == TaskExecutionStatus.RUNNABLE && worker.getNodeAsObserved() != null) {
 				LOGGER.info("Suspending misplaced worker task {}", worker);
-				taskManager.suspendAndCloseTask(worker, TaskManager.DO_NOT_WAIT, result);
+				taskManager.suspendAndCloseTaskQuietly(worker, TaskManager.DO_NOT_WAIT, result);
 				currentWorkers.remove(worker);
 				count++;
 			}
@@ -226,7 +226,7 @@ public class WorkersManager {
 			} else {
 				if (worker.getExecutionStatus() != TaskExecutionStatus.CLOSED) {
 					LOGGER.info("Closing superfluous worker task {}", worker);
-					taskManager.suspendAndCloseTask(worker, TaskManager.DO_NOT_WAIT, result);
+					taskManager.suspendAndCloseTaskQuietly(worker, TaskManager.DO_NOT_WAIT, result);
 					closed++;
 				}
 			}

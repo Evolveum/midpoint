@@ -580,7 +580,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         assertSuccess(task);
 
         // Suspend the task (in order to keep logs clean), without much waiting
-        taskManager.suspendTask(task, 100, result);
+        taskManager.suspendTaskQuietly(task, 100, result);
 
     }
 
@@ -699,7 +699,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         assertSuccessOrInProgress(task);
 
         // Suspend the task (in order to keep logs clean), without much waiting
-        taskManager.suspendTask(task, 100, result);
+        taskManager.suspendTaskQuietly(task, 100, result);
     }
 
     @Test
@@ -737,7 +737,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         assertSuccessOrInProgress(task);
 
         // Suspend the task (in order to keep logs clean), without much waiting
-        taskManager.suspendTask(task, 100, result);
+        taskManager.suspendTaskQuietly(task, 100, result);
     }
 
     @Test
@@ -834,7 +834,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
         // Now suspend the task
 
-        boolean stopped = taskManager.suspendTask(task, 0, result);
+        boolean stopped = taskManager.suspendTaskQuietly(task, 0, result);
 
         task.refresh(result);
         System.out.println("After suspend and refresh: " + task.debugDump());
@@ -890,7 +890,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
         // now let us suspend it (occurs during wait cycle, so we can put short timeout here)
 
-        boolean stopped = taskManager.suspendTask(task, 300, result);
+        boolean stopped = taskManager.suspendTaskQuietly(task, 300, result);
 
         task.refresh(result);
 
@@ -935,7 +935,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
         // now let us suspend it, without long waiting
 
-        boolean stopped = taskManager.suspendTask(task, 1000, result);
+        boolean stopped = taskManager.suspendTaskQuietly(task, 1000, result);
 
         task.refresh(result);
 
@@ -951,7 +951,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
         // now let us wait for the finish
 
-        stopped = taskManager.suspendTask(task, 0, result);
+        stopped = taskManager.suspendTaskQuietly(task, 0, result);
 
         task.refresh(result);
 
@@ -1294,7 +1294,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
         // now let us suspend it (occurs during wait cycle, so we can put short timeout here)
 
-        boolean stopped = taskManager.suspendTask(task, 10000L, result);
+        boolean stopped = taskManager.suspendTaskQuietly(task, 10000L, result);
         task.refresh(result);
         AssertJUnit.assertTrue("Task is not stopped", stopped);
         AssertJUnit.assertEquals("Task is not suspended", TaskExecutionStatus.SUSPENDED, task.getExecutionStatus());
@@ -1357,7 +1357,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
         // now let us suspend it - the handler should stop, as well as the subtasks
 
-        boolean stopped = taskManager.suspendTask(task, 10000L, result);
+        boolean stopped = taskManager.suspendTaskQuietly(task, 10000L, result);
         task.refresh(result);
         AssertJUnit.assertTrue("Task is not stopped", stopped);
         AssertJUnit.assertEquals("Task is not suspended", TaskExecutionStatus.SUSPENDED, task.getExecutionStatus());

@@ -1098,7 +1098,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		ObjectDelta<F> focusDelta = ObjectDelta.createModifyDelta(focusOid, modifications, focusClass, prismContext);
 		executeChanges(focusDelta, options, task, result);
 	}
-	
+
 	/**
 	 * Executes unassign delta by removing each assignment individually by id.
 	 */
@@ -3965,7 +3965,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			return null; // not reached
 		}
 	}
-	
+
 	protected void assertAuthenticated() {
 		SecurityContext securityContext = SecurityContextHolder.getContext();
 		Authentication authentication = securityContext.getAuthentication();

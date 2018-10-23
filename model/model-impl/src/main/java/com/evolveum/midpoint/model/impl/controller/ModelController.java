@@ -1809,6 +1809,12 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     }
 
     @Override
+    public boolean suspendTask(String taskOid, long waitForStop, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		authorizeTaskOperation(ModelAuthorizationAction.SUSPEND_TASK, taskOid, operationTask, parentResult);
+        return taskManager.suspendTask(taskOid, waitForStop, parentResult);
+    }
+
+    @Override
     public boolean suspendTaskTree(String taskOid, long waitForStop, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 	    authorizeTaskCollectionOperation(ModelAuthorizationAction.SUSPEND_TASK, singleton(taskOid), operationTask, parentResult);
 	    return taskManager.suspendTaskTree(taskOid, waitForStop, parentResult);
@@ -1820,6 +1826,12 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         taskManager.suspendAndDeleteTasks(taskOids, waitForStop, alsoSubtasks, parentResult);
     }
 
+	@Override
+    public void suspendAndDeleteTask(String taskOid, long waitForStop, boolean alsoSubtasks, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		authorizeTaskOperation(ModelAuthorizationAction.DELETE, taskOid, operationTask, parentResult);
+        taskManager.suspendAndDeleteTask(taskOid, waitForStop, alsoSubtasks, parentResult);
+    }
+
     @Override
     public void resumeTasks(Collection<String> taskOids, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		authorizeTaskCollectionOperation(ModelAuthorizationAction.RESUME_TASK, taskOids, operationTask, parentResult);
@@ -1827,8 +1839,14 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     }
 
     @Override
+    public void resumeTask(String taskOid, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		authorizeTaskOperation(ModelAuthorizationAction.RESUME_TASK, taskOid, operationTask, parentResult);
+        taskManager.resumeTask(taskOid, parentResult);
+    }
+
+    @Override
     public void resumeTaskTree(String coordinatorOid, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-		authorizeTaskCollectionOperation(ModelAuthorizationAction.RESUME_TASK, singleton(coordinatorOid), operationTask, parentResult);
+		authorizeTaskOperation(ModelAuthorizationAction.RESUME_TASK, coordinatorOid, operationTask, parentResult);
         taskManager.resumeTaskTree(coordinatorOid, parentResult);
     }
 
@@ -1836,6 +1854,12 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     public void scheduleTasksNow(Collection<String> taskOids, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		authorizeTaskCollectionOperation(ModelAuthorizationAction.RUN_TASK_IMMEDIATELY, taskOids, operationTask, parentResult);
         taskManager.scheduleTasksNow(taskOids, parentResult);
+    }
+
+    @Override
+    public void scheduleTaskNow(String taskOid, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		authorizeTaskOperation(ModelAuthorizationAction.RUN_TASK_IMMEDIATELY, taskOid, operationTask, parentResult);
+        taskManager.scheduleTaskNow(taskOid, parentResult);
     }
 
     @Override
@@ -1920,6 +1944,10 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     public String getHandlerUriForCategory(String category) {
         return taskManager.getHandlerUriForCategory(category);
     }
+
+	private void authorizeTaskOperation(ModelAuthorizationAction action, String oid, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		authorizeTaskCollectionOperation(action, singleton(oid), task, parentResult);
+	}
 
 	private void authorizeTaskCollectionOperation(ModelAuthorizationAction action, Collection<String> oids, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		if (securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, task, parentResult)) {

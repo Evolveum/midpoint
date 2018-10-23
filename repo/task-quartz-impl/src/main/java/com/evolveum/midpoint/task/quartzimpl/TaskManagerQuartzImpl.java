@@ -355,19 +355,32 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         }
     }
 
-    @Override
-    public boolean suspendTask(Task task, long waitTime, OperationResult parentResult) {
-        return suspendTasksResolved(singleton(task), waitTime, false, parentResult);
+	@Override
+	public boolean suspendTask(String taskOid, long waitTime, OperationResult parentResult)
+			throws SchemaException, ObjectNotFoundException {
+		return suspendTask(getTask(taskOid, parentResult), waitTime, parentResult);
+	}
+
+	@Override
+    public boolean suspendTask(Task task, long waitTime, OperationResult parentResult)
+		    throws ObjectNotFoundException, SchemaException {
+        suspendTaskInternal(task, parentResult);
+        return waitForTasksToStopInternal(singleton(task), waitTime, parentResult);
+    }
+
+	@SuppressWarnings("UnusedReturnValue")
+    public boolean suspendTaskQuietly(Task task, long waitTime, OperationResult parentResult) {
+        return suspendTasksInternalQuietly(singleton(task), waitTime, false, parentResult);
     }
 
 	@Override
-	public boolean suspendAndCloseTask(Task task, long waitTime, OperationResult parentResult) {
-		return suspendTasksResolved(singleton(task), waitTime, true, parentResult);
+	public boolean suspendAndCloseTaskQuietly(Task task, long waitTime, OperationResult parentResult) {
+		return suspendTasksInternalQuietly(singleton(task), waitTime, true, parentResult);
 	}
 
 	@Override
     public boolean suspendTasks(Collection<String> taskOids, long waitForStop, OperationResult parentResult) {
-        return suspendTasksResolved(resolveTaskOids(taskOids, parentResult), waitForStop, false, parentResult);
+        return suspendTasksInternalQuietly(resolveTaskOids(taskOids, parentResult), waitForStop, false, parentResult);
     }
 
     @Override
@@ -491,7 +504,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		}
 	}
 
-	private boolean suspendTasksResolved(Collection<Task> tasks, long waitForStop, boolean closeTasks, OperationResult parentResult) {
+	private boolean suspendTasksInternalQuietly(Collection<Task> tasks, long waitForStop, boolean closeTasks, OperationResult parentResult) {
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "suspendTasks");
         result.addArbitraryObjectCollectionAsParam("tasks", tasks);
         result.addParam("waitForStop", waitingInfo(waitForStop));
@@ -500,39 +513,18 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         LOGGER.info("{} tasks {}; {}.", closeTasks ? "Closing" : "Suspending", tasks, waitingInfo(waitForStop));
 
         for (Task task : tasks) {
-
-            if (task.getOid() == null) {
-                // this should not occur; so we can treat it in such a brutal way
-                throw new IllegalArgumentException("Only persistent tasks can be suspended/closed (for now); task " + task + " is transient.");
-            } else {
-	            if (task.getExecutionStatus() == TaskExecutionStatus.WAITING || task.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
-		            try {
-			            List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(TaskType.class, prismContext)
-					            .item(TaskType.F_EXECUTION_STATUS).replace(TaskExecutionStatusType.SUSPENDED)
-					            .item(TaskType.F_STATE_BEFORE_SUSPEND).replace(task.getExecutionStatus().toTaskType())
-					            .asItemDeltas();
-			            ((TaskQuartzImpl) task).applyDeltasImmediate(itemDeltas, result);
-		            } catch (ObjectNotFoundException e) {
-			            String message = "Cannot suspend task because it does not exist; task = " + task;
-			            LoggingUtils.logException(LOGGER, message, e);
-		            } catch (SchemaException | ObjectAlreadyExistsException e) {
-			            String message = "Cannot suspend task because of an unexpected exception; task = " + task;
-			            LoggingUtils.logUnexpectedException(LOGGER, message, e);
-		            }
-	            }
-
-                executionManager.pauseTaskJob(task, result);
-                // even if this will not succeed, by setting the execution status to SUSPENDED we hope the task
-                // thread will exit on next iteration (does not apply to single-run tasks, of course)
-            }
+        	try {
+		        suspendTaskInternal(task, result);
+			} catch (ObjectNotFoundException e) {
+		        String message = "Cannot suspend task because it does not exist; task = " + task;
+		        LoggingUtils.logException(LOGGER, message, e);
+	        } catch (SchemaException | RuntimeException e) {
+		        String message = "Cannot suspend task because of an unexpected exception; task = " + task;
+		        LoggingUtils.logUnexpectedException(LOGGER, message, e);
+	        }
         }
-
-        boolean stopped = false;
-        if (waitForStop != DO_NOT_STOP) {
-            stopped = executionManager.stopTasksRunAndWait(tasks, null, waitForStop, true, result);
-        }
-
-        if (closeTasks) {
+		boolean stopped = waitForTasksToStopInternal(tasks, waitForStop, result);
+		if (closeTasks) {
 	        for (Task task : tasks) {
 	        	try {
 			        closeTask(task, result);
@@ -546,7 +538,39 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         return stopped;
     }
 
-    private String waitingInfo(long waitForStop) {
+	private boolean waitForTasksToStopInternal(Collection<Task> tasks, long waitForStop, OperationResult result) {
+		//noinspection SimplifiableIfStatement
+		if (waitForStop != DO_NOT_STOP) {
+		    return executionManager.stopTasksRunAndWait(tasks, null, waitForStop, true, result);
+		} else {
+			return false;
+		}
+	}
+
+	private void suspendTaskInternal(Task task, OperationResult result)
+			throws SchemaException, ObjectNotFoundException {
+		if (task.getOid() == null) {
+		    // this should not occur; so we can treat it in such a brutal way
+		    throw new IllegalArgumentException("Only persistent tasks can be suspended/closed (for now); task " + task + " is transient.");
+		} else {
+			if (task.getExecutionStatus() == TaskExecutionStatus.WAITING || task.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
+				try {
+					List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(TaskType.class, prismContext)
+							.item(TaskType.F_EXECUTION_STATUS).replace(TaskExecutionStatusType.SUSPENDED)
+							.item(TaskType.F_STATE_BEFORE_SUSPEND).replace(task.getExecutionStatus().toTaskType())
+							.asItemDeltas();
+					((TaskQuartzImpl) task).applyDeltasImmediate(itemDeltas, result);
+				} catch (ObjectAlreadyExistsException e) {
+					throw new SystemException("Unexpected ObjectAlreadyExistsException while suspending a task: " + e.getMessage(), e);
+				}
+			}
+		    executionManager.pauseTaskJob(task, result);
+		    // even if this will not succeed, by setting the execution status to SUSPENDED we hope the task
+		    // thread will exit on next iteration (does not apply to single-run tasks, of course)
+		}
+	}
+
+	private String waitingInfo(long waitForStop) {
         if (waitForStop == WAIT_INDEFINITELY) {
             return "stop tasks, and wait for their completion (if necessary)";
         } else if (waitForStop == DO_NOT_WAIT) {
@@ -668,11 +692,16 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
                 resumeTask(getTask(oid, result), result);
             } catch (ObjectNotFoundException e) {           // result is already updated
                 LoggingUtils.logException(LOGGER, "Couldn't resume task with OID {}", e, oid);
-            } catch (SchemaException e) {
+            } catch (SchemaException | RuntimeException e) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't resume task with OID {}", e, oid);
             }
         }
         result.computeStatus();
+    }
+
+    @Override
+    public void resumeTask(String taskOid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+	    resumeTask(getTask(taskOid, parentResult), parentResult);
     }
 
     @Override
@@ -965,7 +994,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
         // now suspend the tasks before deletion
         if (!tasksToBeSuspended.isEmpty()) {
-            suspendTasksResolved(tasksToBeSuspended, suspendTimeout, false, result);
+            suspendTasksInternalQuietly(tasksToBeSuspended, suspendTimeout, false, result);
         }
 
         // delete them
@@ -977,6 +1006,64 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             } catch (SchemaException | RuntimeException e) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Error when deleting task {}", e, task);
             }
+		}
+
+        if (result.isUnknown()) {
+            result.computeStatus();
+        }
+    }
+
+    @Override
+    public void suspendAndDeleteTask(String taskOid, long suspendTimeout, boolean alsoSubtasks, OperationResult parentResult)
+		    throws SchemaException, ObjectNotFoundException {
+
+        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "suspendAndDeleteTask");
+        result.addParam("taskOid", taskOid);
+
+        List<Task> tasksToBeDeleted = new ArrayList<>();
+	    Task thisTask = getTask(taskOid, result);
+	    tasksToBeDeleted.add(thisTask);
+	    if (alsoSubtasks) {
+		    tasksToBeDeleted.addAll(thisTask.listSubtasksDeeply(true, result));
+	    }
+
+        List<Task> tasksToBeSuspended = new ArrayList<>();
+        for (Task task : tasksToBeDeleted) {
+            if (task.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
+                tasksToBeSuspended.add(task);
+            }
+        }
+
+        // now suspend the tasks before deletion
+        if (!tasksToBeSuspended.isEmpty()) {
+            suspendTasksInternalQuietly(tasksToBeSuspended, suspendTimeout, false, result);
+        }
+
+        // delete them, using delayed exception throwing
+	    SchemaException schemaException = null;
+        ObjectNotFoundException objectNotFoundException = null;
+        RuntimeException runtimeException = null;
+        for (Task task : tasksToBeDeleted) {
+            try {
+                deleteTask(task.getOid(), result);
+            } catch (ObjectNotFoundException e) {   // in all cases (even RuntimeException) the error is already put into result
+                LoggingUtils.logException(LOGGER, "Error when deleting task {}", e, task);
+                objectNotFoundException = e;
+            } catch (SchemaException e) {
+                LoggingUtils.logUnexpectedException(LOGGER, "Error when deleting task {}", e, task);
+                schemaException = e;
+            } catch (RuntimeException e) {
+                LoggingUtils.logUnexpectedException(LOGGER, "Error when deleting task {}", e, task);
+                runtimeException = e;
+            }
+		}
+
+		if (schemaException != null) {
+			throw schemaException;
+		} else if (objectNotFoundException != null) {
+			throw objectNotFoundException;
+		} else if (runtimeException != null) {
+			throw runtimeException;
 		}
 
         if (result.isUnknown()) {
@@ -1817,7 +1904,12 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         clusterManager.deleteNode(nodeOid, result);
     }
 
-    @Override
+	@Override
+	public void scheduleTaskNow(String taskOid, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+		scheduleTaskNow(getTask(taskOid, parentResult), parentResult);
+	}
+
+	@Override
     public void scheduleTaskNow(Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
         /*
          *  Note: we clear task operation result because this is what a user would generally expect when re-running a task
@@ -1863,7 +1955,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
                 scheduleTaskNow(getTask(oid, result), result);
             } catch (ObjectNotFoundException e) {
                 LoggingUtils.logException(LOGGER, "Couldn't schedule task with OID {}", e, oid);
-            } catch (SchemaException e) {
+            } catch (SchemaException | RuntimeException e) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't schedule task with OID {}", e, oid);
             }
         }

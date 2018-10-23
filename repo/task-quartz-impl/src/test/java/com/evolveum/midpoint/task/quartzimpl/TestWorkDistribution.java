@@ -622,7 +622,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 					task.storeOperationStats();         // to store operational stats for this task
 					display("Going to suspend " + task);
 					new Thread(() -> {
-						taskManager.suspendTask(task, TaskManager.DO_NOT_WAIT, new OperationResult("suspend"));
+						taskManager.suspendTaskQuietly(task, TaskManager.DO_NOT_WAIT, new OperationResult("suspend"));
 						display("Suspended " + task);
 						suspensionVictim.setValue(task);
 					}).start();

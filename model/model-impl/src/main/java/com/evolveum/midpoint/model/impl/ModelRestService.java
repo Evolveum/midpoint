@@ -72,7 +72,6 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.xml.namespace.QName;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -97,10 +96,10 @@ public class ModelRestService {
 	public static final String OPERATION_SEARCH_OBJECTS = CLASS_DOT + "searchObjects";
 	public static final String OPERATION_IMPORT_FROM_RESOURCE = CLASS_DOT + "importFromResource";
 	public static final String OPERATION_TEST_RESOURCE = CLASS_DOT + "testResource";
-	public static final String OPERATION_SUSPEND_TASKS = CLASS_DOT + "suspendTasks";
-	public static final String OPERATION_SUSPEND_AND_DELETE_TASKS = CLASS_DOT + "suspendAndDeleteTasks";
-	public static final String OPERATION_RESUME_TASKS = CLASS_DOT + "resumeTasks";
-	public static final String OPERATION_SCHEDULE_TASKS_NOW = CLASS_DOT + "scheduleTasksNow";
+	public static final String OPERATION_SUSPEND_TASK = CLASS_DOT + "suspendTask";
+	public static final String OPERATION_SUSPEND_AND_DELETE_TASK = CLASS_DOT + "suspendAndDeleteTask";
+	public static final String OPERATION_RESUME_TASK = CLASS_DOT + "resumeTask";
+	public static final String OPERATION_SCHEDULE_TASK_NOW = CLASS_DOT + "scheduleTaskNow";
 	public static final String OPERATION_EXECUTE_SCRIPT = CLASS_DOT + "executeScript";
 	public static final String OPERATION_COMPARE = CLASS_DOT + "compare";
 	public static final String OPERATION_GET_LOG_FILE_CONTENT = CLASS_DOT + "getLogFileContent";
@@ -141,18 +140,18 @@ public class ModelRestService {
 	@Path("/{type}/{oid}/generate")
 	@Consumes({"application/xml", "application/json", "application/yaml"})
 	@Produces({"application/xml", "application/json", "application/yaml"})
-	public <O extends ObjectType> Response generateValue(@PathParam("type") String type,
+	public Response generateValue(@PathParam("type") String type,
 			@PathParam("oid") String oid, PolicyItemsDefinitionType policyItemsDefinition,
 			@Context MessageContext mc) {
 
 		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_GENERATE_VALUE);
 
-		Class<O> clazz = ObjectTypes.getClassFromRestType(type);
+		Class<? extends ObjectType> clazz = ObjectTypes.getClassFromRestType(type);
 
 		Response response = null;
 		try {
-			PrismObject<O> object = model.getObject(clazz, oid, null, task, parentResult);
+			PrismObject<? extends ObjectType> object = model.getObject(clazz, oid, null, task, parentResult);
 			response = generateValue(object, policyItemsDefinition, task, parentResult);
 		} catch (Exception ex) {
 			parentResult.computeStatus();
@@ -207,15 +206,15 @@ public class ModelRestService {
 	@Path("/{type}/{oid}/validate")
 	@Consumes({"application/xml", "application/json", "application/yaml"})
 	@Produces({"application/xml", "application/json", "application/yaml"})
-	public <O extends ObjectType> Response validateValue(@PathParam("type") String type, @PathParam("oid") String oid, PolicyItemsDefinitionType policyItemsDefinition, @Context MessageContext mc) {
+	public Response validateValue(@PathParam("type") String type, @PathParam("oid") String oid, PolicyItemsDefinitionType policyItemsDefinition, @Context MessageContext mc) {
 
 		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_VALIDATE_VALUE);
 
-		Class<O> clazz = ObjectTypes.getClassFromRestType(type);
+		Class<? extends ObjectType> clazz = ObjectTypes.getClassFromRestType(type);
 		Response response = null;
 		try {
-			PrismObject<O> object = model.getObject(clazz, oid, null, task, parentResult);
+			PrismObject<? extends ObjectType> object = model.getObject(clazz, oid, null, task, parentResult);
 			response = validateValue(object, policyItemsDefinition, task, parentResult);
 		} catch (Exception ex) {
 			parentResult.computeStatus();
@@ -320,7 +319,7 @@ public class ModelRestService {
 	@GET
 	@Path("/{type}/{id}")
 	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
-	public <T extends ObjectType> Response getObject(@PathParam("type") String type, @PathParam("id") String id,
+	public Response getObject(@PathParam("type") String type, @PathParam("id") String id,
 			@QueryParam("options") List<String> options,
 			@QueryParam("include") List<String> include,
 			@QueryParam("exclude") List<String> exclude,
@@ -330,12 +329,12 @@ public class ModelRestService {
 		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_GET);
 
-		Class<T> clazz = ObjectTypes.getClassFromRestType(type);
+		Class<? extends ObjectType> clazz = ObjectTypes.getClassFromRestType(type);
 		Collection<SelectorOptions<GetOperationOptions>> getOptions = GetOperationOptions.fromRestOptions(options, include, exclude, DefinitionProcessingOption.ONLY_IF_EXISTS);
 		Response response;
 
 		try {
-			PrismObject<T> object;
+			PrismObject<? extends ObjectType> object;
 			if (NodeType.class.equals(clazz) && CURRENT.equals(id)) {
 				String nodeId = taskManager.getNodeId();
 				ObjectQuery query = QueryBuilder.queryFor(NodeType.class, prismContext)
@@ -347,7 +346,7 @@ public class ModelRestService {
 				} else if (objects.size() > 1) {
 					throw new IllegalStateException("More than one 'current' node (id " + nodeId + ") found.");
 				} else {
-					object = (PrismObject<T>) objects.get(0);
+					object = objects.get(0);
 				}
 			} else {
 				object = model.getObject(clazz, id, getOptions, task, parentResult);
@@ -456,22 +455,23 @@ public class ModelRestService {
 		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_SEARCH_OBJECTS);
 
-		Class<T> clazz = ObjectTypes.getClassFromRestType(type);
+		//noinspection unchecked
+		Class<T> clazz = (Class<T>) ObjectTypes.getClassFromRestType(type);
 		Response response;
 		try {
 
 			Collection<SelectorOptions<GetOperationOptions>> searchOptions = GetOperationOptions.fromRestOptions(options, null, null, DefinitionProcessingOption.ONLY_IF_EXISTS);
-			
-			
+
+
 			List<T> objects = new ArrayList<>();
 			ResultHandler<T> handler = new ResultHandler<T>() {
-				
+
 				@Override
 				public boolean handle(PrismObject<T> object, OperationResult parentResult) {
 					return objects.add(object.asObjectable());
 				}
 			};
-			
+
 			SearchResultMetadata searchMetadata = modelService.searchObjectsIterative(clazz, null, handler, searchOptions, task, parentResult);
 
 			ObjectListType listType = new ObjectListType();
@@ -574,25 +574,22 @@ public class ModelRestService {
 		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_DELETE_OBJECT);
 
-		Class clazz = ObjectTypes.getClassFromRestType(type);
+		Class<? extends ObjectType> clazz = ObjectTypes.getClassFromRestType(type);
 		Response response;
 		try {
-			if (clazz.isAssignableFrom(TaskType.class)){
-				model.suspendAndDeleteTasks(MiscUtil.createCollection(id), WAIT_FOR_TASK_STOP, true, task, parentResult);
+			if (clazz.isAssignableFrom(TaskType.class)) {
+				model.suspendAndDeleteTask(id, WAIT_FOR_TASK_STOP, true, task, parentResult);
 				parentResult.computeStatus();
 				finishRequest(task);
-				if (parentResult.isSuccess()){
+				if (parentResult.isSuccess()) {
 					return Response.noContent().build();
 				}
-
 				return Response.serverError().entity(parentResult.getMessage()).build();
-
 			}
 
 			ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options);
 
 			model.deleteObject(clazz, id, modelExecuteOptions, task, parentResult);
-//			response = Response.noContent().build();
 			response = RestServiceUtil.createResponse(Response.Status.NO_CONTENT, parentResult);
 		} catch (Exception ex) {
 			response = RestServiceUtil.handleException(parentResult, ex);
@@ -794,22 +791,16 @@ public class ModelRestService {
 
 	@POST
 	@Path("/tasks/{oid}/suspend")
-    public Response suspendTasks(@PathParam("oid") String taskOid, @Context MessageContext mc) {
+    public Response suspendTask(@PathParam("oid") String taskOid, @Context MessageContext mc) {
 
 		Task task = RestServiceUtil.initRequest(mc);
-		OperationResult parentResult = task.getResult().createSubresult(OPERATION_SUSPEND_TASKS);
+		OperationResult parentResult = task.getResult().createSubresult(OPERATION_SUSPEND_TASK);
 
 		Response response;
-		Collection<String> taskOids = MiscUtil.createCollection(taskOid);
 		try {
-			model.suspendTasks(taskOids, WAIT_FOR_TASK_STOP, task, parentResult);
+			model.suspendTask(taskOid, WAIT_FOR_TASK_STOP, task, parentResult);
 			parentResult.computeStatus();
 			response = RestServiceUtil.createResponse(Response.Status.NO_CONTENT, task, parentResult);
-//			if (parentResult.isSuccess()){
-//				response = Response.noContent().build();
-//			} else {
-//				response = Response.status(Status.INTERNAL_SERVER_ERROR).entity(parentResult.getMessage()).build();
-//			}
 		} catch (Exception ex) {
 			response = RestServiceUtil.handleException(parentResult, ex);
 		}
@@ -820,7 +811,7 @@ public class ModelRestService {
 
 //	@DELETE
 //	@Path("tasks/{oid}/suspend")
-//    public Response suspendAndDeleteTasks(@PathParam("oid") String taskOid, @Context MessageContext mc) {
+//    public Response suspendAndDeleteTask(@PathParam("oid") String taskOid, @Context MessageContext mc) {
 //
 //    	Task task = RestServiceUtil.initRequest(mc);
 //		OperationResult parentResult = task.getResult().createSubresult(OPERATION_SUSPEND_AND_DELETE_TASKS);
@@ -828,7 +819,7 @@ public class ModelRestService {
 //		Response response;
 //		Collection<String> taskOids = MiscUtil.createCollection(taskOid);
 //		try {
-//			model.suspendAndDeleteTasks(taskOids, WAIT_FOR_TASK_STOP, true, parentResult);
+//			model.suspendAndDeleteTask(taskOids, WAIT_FOR_TASK_STOP, true, parentResult);
 //
 //			parentResult.computeStatus();
 //			if (parentResult.isSuccess()) {
@@ -846,23 +837,16 @@ public class ModelRestService {
 
 	@POST
 	@Path("/tasks/{oid}/resume")
-    public Response resumeTasks(@PathParam("oid") String taskOid, @Context MessageContext mc) {
+    public Response resumeTask(@PathParam("oid") String taskOid, @Context MessageContext mc) {
 
 		Task task = RestServiceUtil.initRequest(mc);
-		OperationResult parentResult = task.getResult().createSubresult(OPERATION_RESUME_TASKS);
+		OperationResult parentResult = task.getResult().createSubresult(OPERATION_RESUME_TASK);
 
 		Response response;
-		Collection<String> taskOids = MiscUtil.createCollection(taskOid);
 		try {
-			model.resumeTasks(taskOids, task, parentResult);
-
+			model.resumeTask(taskOid, task, parentResult);
 			parentResult.computeStatus();
 			response = RestServiceUtil.createResponse(Response.Status.ACCEPTED, parentResult);
-//			if (parentResult.isSuccess()) {
-//				response = Response.accepted().build();
-//			} else {
-//				response = Response.status(Status.INTERNAL_SERVER_ERROR).entity(parentResult.getMessage()).build();
-//			}
 		} catch (Exception ex) {
 			response = RestServiceUtil.handleException(parentResult, ex);
 		}
@@ -874,25 +858,16 @@ public class ModelRestService {
 
 	@POST
 	@Path("tasks/{oid}/run")
-    public Response scheduleTasksNow(@PathParam("oid") String taskOid, @Context MessageContext mc) {
+    public Response scheduleTaskNow(@PathParam("oid") String taskOid, @Context MessageContext mc) {
 
 		Task task = RestServiceUtil.initRequest(mc);
-		OperationResult parentResult = task.getResult().createSubresult(OPERATION_SCHEDULE_TASKS_NOW);
-
-		Collection<String> taskOids = MiscUtil.createCollection(taskOid);
+		OperationResult parentResult = task.getResult().createSubresult(OPERATION_SCHEDULE_TASK_NOW);
 
 		Response response;
 		try {
-			model.scheduleTasksNow(taskOids, task, parentResult);
-
+			model.scheduleTaskNow(taskOid, task, parentResult);
 			parentResult.computeStatus();
-
 			response = RestServiceUtil.createResponse(Response.Status.NO_CONTENT, parentResult);
-//			if (parentResult.isSuccess()) {
-//				response = Response.accepted().build();
-//			} else {
-//				response = Response.status(Status.INTERNAL_SERVER_ERROR).entity(parentResult.getMessage()).build();
-//			}
 		} catch (Exception ex) {
 			response = RestServiceUtil.handleException(parentResult, ex);
 		}
