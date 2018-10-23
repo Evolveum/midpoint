@@ -50,6 +50,7 @@ object.
                 <icfcsv:multivalueDelimiter>;</icfcsv:multivalueDelimiter>
                 <icfcsv:uniqueAttribute>login</icfcsv:uniqueAttribute>
                 <icfcsv:passwordAttribute>password</icfcsv:passwordAttribute>
+                <icfcsv:nameAttribute>login</icfcsv:nameAttribute>
             </icfc:configurationProperties>
 
             <!-- Generic ICF configuration -->

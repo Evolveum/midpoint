@@ -24,6 +24,8 @@ import com.evolveum.midpoint.schrodinger.page.resource.ListResourcesPage;
 import com.evolveum.midpoint.schrodinger.page.resource.ResourceWizardPage;
 import com.evolveum.midpoint.schrodinger.page.resource.ViewResourcePage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+import com.evolveum.midpoint.testing.schrodinger.scenarios.AccountTests;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import org.openqa.selenium.By;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -31,6 +33,7 @@ import com.evolveum.midpoint.testing.schrodinger.TestBase;
 
 import java.io.File;
 
+import static com.codeborne.selenide.Selectors.byText;
 import static com.codeborne.selenide.Selenide.$;
 
 
@@ -45,6 +48,8 @@ public class ImportResourceTest extends TestBase {
     private static final String PASSWORD_ATTRIBUTE_NAME = "password";
     private static final String PASSWORD_ATTRIBUTE_RESOURCE_KEY = "User password attribute name";
     private static final String UNIQUE_ATTRIBUTE_RESOURCE_KEY = "Unique attribute name";
+    private static final String RESOURCE_WIZARD_READONLY_LABEL = "Resource is in read-only mode";
+    private static final String ACCOUNT_OBJECT_CLASS_LINK = "AccountObjectClass (Default Account)";
 
     @Test
     public void test001ImportCsvResource() {
@@ -100,13 +105,36 @@ public class ImportResourceTest extends TestBase {
 
     @Test(dependsOnMethods = {"test001ImportCsvResource"}, priority = 2)
     public void test003showUsingWizard(){
-        navigateToViewResourcePage()
+        ResourceWizardPage resourceWizard = navigateToViewResourcePage()
                 .clickShowUsingWizard();
 
+        //wizard should appear
         Assert.assertTrue($(By.className("wizard"))
                 .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S)
                 .exists());
 
+        Assert.assertTrue($(Schrodinger.byDataId("readOnlyNote"))
+                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S)
+                .exists());
+
+        //Configuration tab
+        resourceWizard.clickOnWizardTab("Configuration");
+        Assert.assertTrue($(Schrodinger.byDataId("configuration"))
+                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S)
+                .exists());
+
+        //TODO UI_CSV_NAME_ATTRIBUTE
+        //Schema tab
+        resourceWizard.clickOnWizardTab("Schema");
+        Assert.assertTrue($(Schrodinger.byDataResourceKey("SchemaStep.schema"))
+                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S)
+                .exists());
+        $(By.linkText(ACCOUNT_OBJECT_CLASS_LINK))
+                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S)
+                .click();
+        Assert.assertTrue($(Schrodinger.byDataId("objectClassInfoColumn"))
+                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S)
+                .exists());
         //TODO finish navigating through tabs
     }
 
