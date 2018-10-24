@@ -331,7 +331,7 @@ public enum ObjectTypes {
         return null;
     }
 
-    public static Class getClassFromRestType(String restType) {
+    public static Class<? extends ObjectType> getClassFromRestType(String restType) {
         Validate.notNull(restType, "Rest type must not be null.");
 
         for (ObjectTypes type : ObjectTypes.values()) {

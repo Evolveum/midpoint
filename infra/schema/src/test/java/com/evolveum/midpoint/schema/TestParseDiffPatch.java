@@ -931,7 +931,7 @@ public class TestParseDiffPatch {
         assertNull(prismObject.findContainer(TaskType.F_MODEL_OPERATION_CONTEXT));
     }
 
-	@Test(enabled = false)
+	@Test
 	public void testDiffSameValues() throws Exception {
 		PrismObject<ResourceType> before = PrismTestUtil.parseObject(new File(TEST_DIR, "resource-white-before.xml"));
 		PrismObject<ResourceType> after = PrismTestUtil.parseObject(new File(TEST_DIR, "resource-white-after.xml"));
