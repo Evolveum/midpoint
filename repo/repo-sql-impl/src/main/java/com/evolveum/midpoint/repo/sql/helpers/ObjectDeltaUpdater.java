@@ -389,21 +389,27 @@ public class ObjectDeltaUpdater {
     }
 
     private <T extends ObjectType> void handleObjectTextInfoChanges(Class<T> type, Collection<? extends ItemDelta> modifications,
-                                                                    PrismObject prismObject, RObject object) {
+            PrismObject prismObject, RObject<T> object) {
         // update object text info if necessary
         if (!isObjectTextInfoRecomputationNeeded(type, modifications)) {
             return;
         }
 
-        Set<RObjectTextInfo> infos = RObjectTextInfo.createItemsSet((ObjectType) prismObject.asObjectable(), object,
+        Set<RObjectTextInfo> newInfos = RObjectTextInfo.createItemsSet((ObjectType) prismObject.asObjectable(), object,
                 new RepositoryContext(repositoryService, prismContext, extItemDictionary));
 
-        if (infos == null || infos.isEmpty()) {
+        if (newInfos == null || newInfos.isEmpty()) {
             object.getTextInfoItems().clear();
         } else {
-            // todo improve this replace
-            object.getTextInfoItems().clear();
-            object.getTextInfoItems().addAll(infos);
+            Set<String> existingTexts = object.getTextInfoItems().stream().map(info -> info.getText()).collect(Collectors.toSet());
+            Set<String> newTexts = newInfos.stream().map(info -> info.getText()).collect(Collectors.toSet());
+
+            object.getTextInfoItems().removeIf(existingInfo -> !newTexts.contains(existingInfo.getText()));
+            for (RObjectTextInfo newInfo : newInfos) {
+                if (!existingTexts.contains(newInfo.getText())) {
+                    object.getTextInfoItems().add(newInfo);
+                }
+            }
         }
     }
 
