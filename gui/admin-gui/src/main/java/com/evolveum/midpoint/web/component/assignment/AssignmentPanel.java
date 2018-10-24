@@ -480,7 +480,8 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
     			if (assignment.getTargetRef() != null) {
     				Task task = getPageBase().createSimpleTask("Load target");
     				com.evolveum.midpoint.schema.result.OperationResult result = task.getResult();
-    				return (C) WebModelServiceUtils.loadObject(assignment.getTargetRef(), getPageBase(), task, result).asObjectable();
+    				PrismObject<ObjectType> targetObject = WebModelServiceUtils.loadObject(assignment.getTargetRef(), getPageBase(), task, result);
+    				return targetObject != null ? (C) targetObject.asObjectable() : null;
     			}
     			if (assignment.getConstruction() != null && assignment.getConstruction().getResourceRef() != null) {
 					Task task = getPageBase().createSimpleTask("Load resource");
