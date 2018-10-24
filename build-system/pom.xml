@@ -464,11 +464,6 @@
                 <version>2.1</version>
             </dependency>
             <dependency>
-                <groupId>net.sf.saxon</groupId>
-                <artifactId>Saxon-HE</artifactId>
-                <version>9.5.1-6</version>
-            </dependency>
-            <dependency>
 	            <!-- In LDAP/AD connector we use custom build of HTTP client with CredSSP support.
                   	 As AD/LDAP connector is bundled then this triggers a conflict in dependency convergence.
 	                 Therefore explicitly use the custom version. -->
@@ -649,17 +644,6 @@
                     <exclusion> <!-- conflict with jasper -->
                         <groupId>org.bouncycastle</groupId>
                         <artifactId>bcprov-jdk15on</artifactId>
-                    </exclusion>
-                </exclusions>
-	        </dependency>
-	        <dependency>
-	            <groupId>org.cryptacular</groupId>
-	            <artifactId>cryptacular</artifactId>
-	            <version>1.0</version>
-	            <exclusions>
-	            	<exclusion> <!-- conflicted inside the opensaml-security-api dependency of WSS4J -->
-                        <groupId>org.bouncycastle</groupId>
-	            		<artifactId>bcprov-jdk15on</artifactId>
                     </exclusion>
                 </exclusions>
 	        </dependency>
