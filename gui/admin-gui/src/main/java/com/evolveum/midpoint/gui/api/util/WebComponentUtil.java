@@ -2532,11 +2532,14 @@ public final class WebComponentUtil {
 			}
 		}
 		String members = atLeastOneWithMembers ? ".members" : "";
+		ObjectTypes objectType = ObjectTypes.getObjectType(abstractRoleTable.getType());
+		String propertyKeyPrefix = ObjectTypes.SERVICE.equals(objectType) ? "pageServices" : "pageRoles";
+
 		if (action.getRowModel() == null) {
-			return pageBase.createStringResource("pageRoles.message.confirmationMessageForMultipleObject" + members,
-					actionName, abstractRoleTable.getSelectedObjectsCount() );
+			return pageBase.createStringResource(propertyKeyPrefix + ".message.confirmationMessageForMultipleObject" + members,
+					actionName, abstractRoleTable.getSelectedObjectsCount());
 		} else {
-			return pageBase.createStringResource("pageRoles.message.confirmationMessageForSingleObject" + members,
+			return pageBase.createStringResource(propertyKeyPrefix + ".message.confirmationMessageForSingleObject" + members,
 					actionName, ((ObjectType)((SelectableBean)action.getRowModel().getObject()).getValue()).getName());
 		}
 	}
