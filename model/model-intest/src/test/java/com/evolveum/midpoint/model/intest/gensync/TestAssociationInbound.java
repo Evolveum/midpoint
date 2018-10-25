@@ -40,7 +40,7 @@ public class TestAssociationInbound extends AbstractGenericSyncTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(TestAssociationInbound.class);
 
-    public static final File RESOURCE_DUMMY_PURPLE_FILE = new File(COMMON_DIR, "resource-dummy-purple.xml");
+    public static final File RESOURCE_DUMMY_PURPLE_FILE = new File(TEST_DIR, "resource-dummy-purple.xml");
     public static final String RESOURCE_DUMMY_PURPLE_OID = "10000000-0000-0000-0000-000000001105";
     public static final String RESOURCE_DUMMY_PURPLE_NAME = "purple";
 
