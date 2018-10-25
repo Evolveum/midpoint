@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<functionLibrary oid="03eadaea-d82a-11e8-866b-9bd3716fdfc1" 
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'>
+
+	<name>Hello</name>
+
+	<function>
+        <name>hello</name>
+        <parameter>
+            <name>value</name>
+            <type>xsd:string</type>
+        </parameter>
+        <returnType>t:PolyStringType</returnType>
+        <script>
+            <code><![CDATA[
+                if (!value) {
+                  return null;
+                };
+
+                return "Hello " + value;]]></code>
+        </script>
+    </function>
+
+</functionLibrary>
