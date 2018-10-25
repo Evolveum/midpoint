@@ -74,6 +74,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -208,7 +209,7 @@ public class ShadowCache {
 		if (shouldRefreshOnRead(resource, rootOptions)) {
 			LOGGER.trace("Refreshing shadow {} before reading", repositoryShadow);
 			repositoryShadow = refreshShadow(repositoryShadow, task, parentResult);
-			LOGGER.trace("Refreshed repository shadow:\n{}", repositoryShadow.debugDumpLazily(1));
+			LOGGER.trace("Refreshed repository shadow:\n{}", DebugUtil.debugDumpLazily(repositoryShadow,1));
 		}
 		if (repositoryShadow == null) {
 			// Dead shadow was just removed
@@ -1285,6 +1286,7 @@ public class ShadowCache {
 	}
 		
 
+	@Nullable
 	public PrismObject<ShadowType> refreshShadow(PrismObject<ShadowType> repoShadow, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, EncryptionException {
 		ShadowType shadowType = repoShadow.asObjectable();
 		List<PendingOperationType> pendingOperations = shadowType.getPendingOperation();
