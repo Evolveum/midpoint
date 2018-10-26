@@ -34,6 +34,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -62,11 +63,20 @@ public class TestExpressionFunctions {
 	public static final File RESOURCE_OPENDJ_FILE = new File(TEST_DIR, "resource-opendj.xml");
 	private static final String ATTR_FULLNAME_LOCAL_PART = "fullname";
 	private static final String ATTR_WEAPON_LOCAL_PART = "weapon";
+	
+	private ProtectorImpl protector;
+	private Clock clock;
 
     @BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
 		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
+		
+		protector = new ProtectorImpl();
+		protector.setKeyStorePath("src/test/resources/keystore.jceks");
+		protector.setKeyStorePassword("changeit");
+		protector.init();
+		clock = new Clock();
 	}
 
     @Test
@@ -382,8 +392,6 @@ public class TestExpressionFunctions {
 
 	private BasicExpressionFunctions createBasicFunctions() throws SchemaException, SAXException, IOException {
 		PrismContext prismContext = PrismTestUtil.createInitializedPrismContext();
-		Protector protector = new ProtectorImpl();
-		Clock clock = new Clock();
 		return new BasicExpressionFunctions(prismContext, protector, clock);
 	}
 
@@ -531,15 +539,68 @@ public class TestExpressionFunctions {
 		String hash1 = basic.hashLdapPassword("whatever", "SSHA");
 		
 		// THEN
-		System.out.println("HASH: "+hash1);
-		assertNotNull("Null hash", hash1);
-		assertTrue("Wrong hash prefix, expected {SSHA}, was "+hash1, hash1.startsWith("{SSHA}"));
-		assertEquals("Wrong hash length", 46, hash1.length());
+		assertLdapHash(hash1);
 		
 		String hash2 = basic.hashLdapPassword("whatever", "SSHA");
 		
 		assertNotNull("Null hash2", hash2);
 		assertFalse("Same hash generated twice: "+hash1, hash1.equals(hash2));
 	}
+	
+	/**
+	 * MID-4946
+	 */
+	@Test
+	public void testHashLdapPasswordSshaProtectedStringClear() throws Exception {
+		final String TEST_NAME = "testHashLdapPasswordSshaProtectedStringClear";
+		TestUtil.displayTestTitle(TEST_NAME);
+		BasicExpressionFunctions basic = createBasicFunctions();
+		
+		ProtectedStringType protectedString = new ProtectedStringType();
+		protectedString.setClearValue("whatever");
 
+		// WHEN
+		String hash1 = basic.hashLdapPassword(protectedString, "SSHA");
+		
+		// THEN
+		assertLdapHash(hash1);
+		
+		String hash2 = basic.hashLdapPassword(protectedString, "SSHA");
+		
+		assertNotNull("Null hash2", hash2);
+		assertFalse("Same hash generated twice: "+hash1, hash1.equals(hash2));
+	}
+	
+	/**
+	 * MID-4946
+	 */
+	@Test
+	public void testHashLdapPasswordSshaProtectedStringEncrypted() throws Exception {
+		final String TEST_NAME = "testHashLdapPasswordSshaProtectedStringEncrypted";
+		TestUtil.displayTestTitle(TEST_NAME);
+		BasicExpressionFunctions basic = createBasicFunctions();
+		
+		ProtectedStringType protectedString = new ProtectedStringType();
+		protectedString.setClearValue("whatever");
+		protector.encrypt(protectedString);
+		assertTrue(protectedString.isEncrypted());
+
+		// WHEN
+		String hash1 = basic.hashLdapPassword(protectedString, "SSHA");
+		
+		// THEN
+		assertLdapHash(hash1);
+		
+		String hash2 = basic.hashLdapPassword(protectedString, "SSHA");
+		
+		assertNotNull("Null hash2", hash2);
+		assertFalse("Same hash generated twice: "+hash1, hash1.equals(hash2));
+	}
+
+	private void assertLdapHash(String hash) {
+		System.out.println("HASH: "+hash);
+		assertNotNull("Null hash", hash);
+		assertTrue("Wrong hash prefix, expected {SSHA}, was "+hash, hash.startsWith("{SSHA}"));
+		assertEquals("Wrong hash length", 46, hash.length());
+	}
 }
