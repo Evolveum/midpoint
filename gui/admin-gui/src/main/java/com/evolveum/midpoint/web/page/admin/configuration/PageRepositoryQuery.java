@@ -46,6 +46,7 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.form.CheckFormGroup;
 import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
@@ -112,6 +113,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
     private static final String ID_RESULT_TEXT = "resultText";
 	private static final String ID_QUERY_SAMPLE = "querySample";
 	private static final String ID_OBJECT_TYPE = "objectType";
+	private static final String ID_DISTINCT = "distinct";
 	private static final String ID_HIBERNATE_PARAMETERS_NOTE = "hibernateParametersNote";
 	private static final String ID_INCOMPLETE_RESULTS_NOTE = "incompleteResultsNote";
 
@@ -189,6 +191,9 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 			}
 		});
 		mainForm.add(objectTypeChoice);
+		
+		CheckFormGroup distinctCheck = new CheckFormGroup(ID_DISTINCT, new PropertyModel<>(model, RepoQueryDto.F_DISTINCT), createStringResource("PageRepositoryQuery.checkBox.distinct"), "col-xs-3", "col-xs-1");
+		mainForm.add(distinctCheck);
 
 		AceEditor editorMidPoint = new AceEditor(ID_EDITOR_MIDPOINT, new PropertyModel<>(model, RepoQueryDto.F_MIDPOINT_QUERY));
 		editorMidPoint.setHeight(400);

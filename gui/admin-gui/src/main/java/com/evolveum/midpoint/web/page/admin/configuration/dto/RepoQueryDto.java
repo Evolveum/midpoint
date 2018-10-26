@@ -30,6 +30,7 @@ public class RepoQueryDto implements Serializable {
     public static final String F_HIBERNATE_PARAMETERS = "hibernateParameters";
     public static final String F_QUERY_RESULT_TEXT = "queryResultText";
     public static final String F_QUERY_RESULT_OBJECT = "queryResultObject";
+    public static final String F_DISTINCT = "distinct";
 
 	private static final String EMPTY_RESULT = null;
 
