@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBElement;
@@ -46,7 +47,7 @@ public class PrettyPrinter {
 
 	private static String defaultNamespacePrefix = null;
 
-	private static List<Class<?>> prettyPrinters = new ArrayList<>();
+	private static List<Class<?>> prettyPrinters = new CopyOnWriteArrayList<>();
 
 	public static void setDefaultNamespacePrefix(String prefix) {
 		defaultNamespacePrefix = prefix;

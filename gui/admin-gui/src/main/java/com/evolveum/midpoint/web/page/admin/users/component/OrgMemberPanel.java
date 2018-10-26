@@ -23,6 +23,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.web.session.MemberPanelStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -37,13 +38,6 @@ import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleMemberPanel;
 import com.evolveum.midpoint.web.page.admin.roles.MemberOperationsHelper;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
@@ -148,5 +142,14 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 			}
 		}
 		return (MemberPanelStorage) storage;
+	}
+
+	@Override
+	protected GuiObjectListPanelConfigurationType getAdditionalPanelConfig(){
+		GuiObjectListViewType orgViewType = WebComponentUtil.getViewTypeConfig(OrgType.COMPLEX_TYPE, getPageBase());
+		if (orgViewType == null || orgViewType.getAdditionalPanels() == null){
+			return null;
+		}
+		return orgViewType.getAdditionalPanels().getMemberPanel();
 	}
 }
