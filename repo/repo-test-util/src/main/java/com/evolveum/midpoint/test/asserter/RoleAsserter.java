@@ -191,6 +191,12 @@ public class RoleAsserter<RA> extends AbstractRoleAsserter<RoleType,RA> {
 		super.assertLocality(expectedOrig);
 		return this;
 	}
+	
+	@Override
+	public RoleAsserter<RA> assertIdentifier(String expectedOrig) {
+		super.assertIdentifier(expectedOrig);
+		return this;
+	}
 		
 	@Override
 	public RoleAsserter<RA> assertHasProjectionOnResource(String resourceOid) throws ObjectNotFoundException, SchemaException {

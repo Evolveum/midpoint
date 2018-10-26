@@ -57,6 +57,7 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.test.asserter.DummyAccountAsserter;
+import com.evolveum.midpoint.test.asserter.DummyGroupAsserter;
 import com.evolveum.midpoint.test.ldap.AbstractResourceController;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -472,5 +473,15 @@ public class DummyResourceContoller extends AbstractResourceController {
 	public void assertNoAccountByUsername(String username) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		DummyAccount account = dummyResource.getAccountByUsername(username);
 		assertNull("Unexpected account "+username+" on dummy resource "+getName(), account);
+	}
+	
+	public DummyGroupAsserter<Void> assertGroupByName(String name) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+		DummyGroup group = dummyResource.getGroupByName(name);
+		assertNotNull("Group "+name+" does not exist on dummy resource "+getName(), group);
+		return assertGroup(group);
+	}
+
+	private DummyGroupAsserter<Void> assertGroup(DummyGroup group) {
+		return new DummyGroupAsserter<>(group, getName());
 	}
 }
