@@ -190,6 +190,11 @@ public class AbstractRoleAsserter<F extends AbstractRoleType, RA> extends FocusA
 		assertPolyStringProperty(OrgType.F_DISPLAY_NAME, expectedOrig);
 		return this;
 	}
+	
+	public AbstractRoleAsserter<F,RA> assertIdentifier(String expectedOrig) {
+		assertPropertyEquals(OrgType.F_IDENTIFIER, expectedOrig);
+		return this;
+	}
 		
 	public AbstractRoleAsserter<F,RA> assertTenant(Boolean expected) {
 		assertPropertyEquals(OrgType.F_TENANT, expected);
