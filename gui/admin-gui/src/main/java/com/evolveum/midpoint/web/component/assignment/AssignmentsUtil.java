@@ -278,8 +278,8 @@ public class AssignmentsUtil {
 		
 		if(sb.toString().isEmpty() && assignment.getFocusMappings() != null) {
 			for(MappingType mapping : assignment.getFocusMappings().getMapping()) {
-				String name = mapping.getName();
-				String description = mapping.getDescription();
+				String name = mapping.getName() == null ? "" : mapping.getName();
+				String description = mapping.getDescription() == null ? "" : mapping.getDescription();
 				if(name.isEmpty()) {
 					sb.append(!description.isEmpty() ? "Mapping - " + description + "\n": "");
 				} else {

@@ -191,6 +191,12 @@ public class OrgAsserter<RA> extends AbstractRoleAsserter<OrgType,RA> {
 		return this;
 	}
 	
+	@Override
+	public OrgAsserter<RA> assertIdentifier(String expectedOrig) {
+		super.assertIdentifier(expectedOrig);
+		return this;
+	}
+	
 	public OrgAsserter<RA> assertTenant(Boolean expected) {
 		assertPropertyEquals(OrgType.F_TENANT, expected);
 		return this;

@@ -20236,77 +20236,17 @@
            	</xsd:sequence>	
     </xsd:complexType>
 
-	<!-- Note: ObjectListType already defined in API types -->
-    <xsd:complexType name="GuiObjectListViewType">
+    <xsd:complexType name="GuiObjectListPanelConfigurationType">
         <xsd:annotation>
         	<xsd:documentation>
-        		Specifies the page used to list specific object type or object collection.
+        		Specifies the configuration of a generic table listing various things (usually objects).
         	</xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
-                <a:since>3.6</a:since>
+                <a:since>3.9</a:since>
             </xsd:appinfo>
         </xsd:annotation>
        		<xsd:sequence>
-       			<!-- TODO: now we support only default object lists (all user, all role). But later we will need to
-       			           add name, label (display name) and menu label for this list.
-       			           We will also need a reference to which menu section we want to display it. E.g. We would
-       			           like to display role catalog under "roles", even though it is in fact org tree. -->
-       			<xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1">
-       				<xsd:annotation>
-       					<xsd:documentation>
-       						Symbolic name for this view. It is not really used by the GUI code. It is mostly used for
-       						diagnostics, logging and so on. It may be later used to detect whether a particular view is overriden,
-       						e.g. if view defined in system configuraiton is overridden in the role.
-       					</xsd:documentation>
-       					<xsd:appinfo>
-       						<a:since>3.9</a:since>
-							<a:displayName>GuiObjectListViewType.name</a:displayName>
-       					</xsd:appinfo>
-       				</xsd:annotation>
-       			</xsd:element>
-       			<xsd:element name="type" type="xsd:QName" minOccurs="0" maxOccurs="1">
-       				<xsd:annotation>
-       					<xsd:documentation>
-       						Type of displayed objects. It may not be present in case that the type is defined in a referenced object colleciton.
-       					</xsd:documentation>
-						<xsd:appinfo>
-							<a:displayName>GuiObjectListViewType.type</a:displayName>
-						</xsd:appinfo>
-       				</xsd:annotation>
-       			</xsd:element>
-       			<xsd:element name="collectionRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
-       				<xsd:annotation>
-       					<xsd:documentation>
-       						Reference to object collection that will be used to select objects in this view.
-       						If no collection is specified then it is assumed that all objects of a particular
-       						type has to be displayed (type element above is mandatory in that case).
-       					</xsd:documentation>
-       					<xsd:appinfo>
-       						<a:since>3.9</a:since>
-       						<!-- Reference target type defeinition is NOT here by purpose. Later on we might want
-       						     archetypes (meta-roles), services and orgs to work as implicit collections. Therefore
-       						     this reference may point to various object types. By NOT specifying default ObjectCollectionType
-       						     here we will force everybody to specify it explicitly. So their configuraiton will work in
-       						     future versions when we add support for implicit collections. -->
-							<a:displayName>GuiObjectListViewType.collectionRef</a:displayName>
-       					</xsd:appinfo>
-       				</xsd:annotation>
-       			</xsd:element>
-       			<xsd:element name="display" type="tns:DisplayType" minOccurs="0" maxOccurs="1">
-       				<xsd:annotation>
-       					<xsd:documentation>
-       						Display properties of the view. It is used to display the link in the menu and so on.
-       						Only label is used now. E.g. the CSS properties are ignored.
-       					</xsd:documentation>
-       					<!-- This might be determined from the collection in future midPoint versions.
-       					     In fact the entire definition of a view may be just a reference to collection. -->
-       					<xsd:appinfo>
-       						<a:since>3.9</a:since>
-							<a:displayName>GuiObjectListViewType.display</a:displayName>
-       					</xsd:appinfo>
-       				</xsd:annotation>
-       			</xsd:element>
            		<xsd:element name="searchBoxConfiguration" type="tns:SearchBoxConfigurationType" minOccurs="0" maxOccurs="1">
 					<xsd:annotation>
        					<xsd:appinfo>
@@ -20335,21 +20275,135 @@
        					</xsd:appinfo>
        				</xsd:annotation>
        			</xsd:element>
-       			<xsd:element name="action" type="tns:GuiActionType" minOccurs="0" maxOccurs="unbounded">
-       				<xsd:annotation>
-       					<xsd:documentation>
-       						List of actions for this view. Actions are special things that can be done
-       						with particular object or list of objects.
-       					</xsd:documentation>
-       					<xsd:appinfo>
-       						<a:since>3.9</a:since>
-							<a:displayName>GuiObjectListViewType.action</a:displayName>
-       					</xsd:appinfo>
-       				</xsd:annotation>
-       			</xsd:element>
            		<!-- TODO: number of results per page (MID-1931) -->
            		<!-- TODO: later: export settings (GuiExportSettingsType) -->
            	</xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="GuiObjectListViewType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Specifies the page used to list specific object type or object collection.
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+        	<xsd:extension base="tns:GuiObjectListPanelConfigurationType">
+	       		<xsd:sequence>
+	       			<!-- TODO: now we support only default object lists (all user, all role). But later we will need to
+	       			           add name, label (display name) and menu label for this list.
+	       			           We will also need a reference to which menu section we want to display it. E.g. We would
+	       			           like to display role catalog under "roles", even though it is in fact org tree. -->
+	       			<xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1">
+	       				<xsd:annotation>
+	       					<xsd:documentation>
+	       						Symbolic name for this view. It is not really used by the GUI code. It is mostly used for
+	       						diagnostics, logging and so on. It may be later used to detect whether a particular view is overriden,
+	       						e.g. if view defined in system configuraiton is overridden in the role.
+	       					</xsd:documentation>
+	       					<xsd:appinfo>
+	       						<a:since>3.9</a:since>
+								<a:displayName>GuiObjectListViewType.name</a:displayName>
+	       					</xsd:appinfo>
+	       				</xsd:annotation>
+	       			</xsd:element>
+	       			<xsd:element name="type" type="xsd:QName" minOccurs="0" maxOccurs="1">
+	       				<xsd:annotation>
+	       					<xsd:documentation>
+	       						Type of displayed objects. It may not be present in case that the type is defined in a referenced object colleciton.
+	       					</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>GuiObjectListViewType.type</a:displayName>
+							</xsd:appinfo>
+	       				</xsd:annotation>
+	       			</xsd:element>
+	       			<xsd:element name="collectionRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+	       				<xsd:annotation>
+	       					<xsd:documentation>
+	       						Reference to object collection that will be used to select objects in this view.
+	       						If no collection is specified then it is assumed that all objects of a particular
+	       						type has to be displayed (type element above is mandatory in that case).
+	       					</xsd:documentation>
+	       					<xsd:appinfo>
+	       						<a:since>3.9</a:since>
+	       						<!-- Reference target type defeinition is NOT here by purpose. Later on we might want
+	       						     archetypes (meta-roles), services and orgs to work as implicit collections. Therefore
+	       						     this reference may point to various object types. By NOT specifying default ObjectCollectionType
+	       						     here we will force everybody to specify it explicitly. So their configuraiton will work in
+	       						     future versions when we add support for implicit collections. -->
+								<a:displayName>GuiObjectListViewType.collectionRef</a:displayName>
+	       					</xsd:appinfo>
+	       				</xsd:annotation>
+	       			</xsd:element>
+	       			<xsd:element name="display" type="tns:DisplayType" minOccurs="0" maxOccurs="1">
+	       				<xsd:annotation>
+	       					<xsd:documentation>
+	       						Display properties of the view. It is used to display the link in the menu and so on.
+	       						Only label is used now. E.g. the CSS properties are ignored.
+	       					</xsd:documentation>
+	       					<!-- This might be determined from the collection in future midPoint versions.
+	       					     In fact the entire definition of a view may be just a reference to collection. -->
+	       					<xsd:appinfo>
+	       						<a:since>3.9</a:since>
+								<a:displayName>GuiObjectListViewType.display</a:displayName>
+	       					</xsd:appinfo>
+	       				</xsd:annotation>
+	       			</xsd:element>
+	       			<xsd:element name="action" type="tns:GuiActionType" minOccurs="0" maxOccurs="unbounded">
+	       				<xsd:annotation>
+	       					<xsd:documentation>
+	       						List of actions for this view. Actions are special things that can be done
+	       						with particular object or list of objects.
+	       					</xsd:documentation>
+	       					<xsd:appinfo>
+	       						<a:since>3.9</a:since>
+								<a:displayName>GuiObjectListViewType.action</a:displayName>
+	       					</xsd:appinfo>
+	       				</xsd:annotation>
+	       			</xsd:element>
+	           		<xsd:element name="additionalPanels" type="tns:GuiObjectListViewAdditionalPanelsType" minOccurs="0" maxOccurs="1">
+	       				<xsd:annotation>
+	       					<xsd:documentation>
+	       						Configuration of additional panels that can be present in some view types.
+	       						E.g. configuration of "managers" and "members" panels in orgstruct views.
+	       					</xsd:documentation>
+	       					<xsd:appinfo>
+	       						<a:since>3.9</a:since>
+								<a:displayName>GuiObjectListViewType.additionalPanels</a:displayName>
+								<a:experimental>true</a:experimental>
+	       					</xsd:appinfo>
+	       				</xsd:annotation>
+	       			</xsd:element>
+	           	</xsd:sequence>
+         	</xsd:extension>
+       	</xsd:complexContent>
+    </xsd:complexType>
+    
+    <xsd:complexType name="GuiObjectListViewAdditionalPanelsType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Configuration of additional panels that can be present in some view types.
+				E.g. configuration of "managers" and "members" panels in orgstruct views.
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.9</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+		<xsd:sequence>
+			<!-- TODO: manager panel -->
+			<xsd:element name="memberPanel" type="tns:GuiObjectListPanelConfigurationType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>GuiObjectListViewAdditionalPanelsType.memberPanel</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
     </xsd:complexType>
     
     <xsd:complexType name="SearchBoxConfigurationType">

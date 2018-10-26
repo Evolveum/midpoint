@@ -385,9 +385,13 @@ public class IntegrationTestTools {
     }
 
 	public static void waitFor(String message, Checker checker, long timeoutInterval, long sleepInterval) throws CommonException {
+		long startTime = System.currentTimeMillis();
+		waitFor(message, checker, startTime, timeoutInterval, sleepInterval);
+	}
+	
+	public static void waitFor(String message, Checker checker, long startTime, long timeoutInterval, long sleepInterval) throws CommonException {
 		System.out.println(message);
 		LOGGER.debug(LOG_MESSAGE_PREFIX + message);
-		long startTime = System.currentTimeMillis();
 		while (System.currentTimeMillis() < startTime + timeoutInterval) {
 			boolean done = checker.check();
 			if (done) {

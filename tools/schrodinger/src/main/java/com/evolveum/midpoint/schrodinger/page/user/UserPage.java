@@ -80,7 +80,8 @@ public class UserPage extends BasicPage {
     }
 
     public UserBasicTab selectTabBasic() {
-        SelenideElement element = findTabPanel().clickTab("pageAdminFocus.basic");
+        SelenideElement element = findTabPanel().clickTab("pageAdminFocus.basic")
+                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
 
         return new UserBasicTab(this, element);
     }

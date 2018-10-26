@@ -31,6 +31,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.session.MemberPanelStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
@@ -87,15 +88,6 @@ import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.security.GuiAuthorizationConstants;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.StringResourceChoiceRenderer;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.isAuthorized;
 
@@ -261,6 +253,11 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
                 return ObjectQuery.createObjectQuery(AndFilter.createAnd(filters));
             }
+
+            @Override
+			protected GuiObjectListPanelConfigurationType getAdditionalPanelConfig(){
+				return AbstractRoleMemberPanel.this.getAdditionalPanelConfig();
+			}
         };
         childrenListPanel.setOutputMarkupId(true);
         memberContainer.add(childrenListPanel);
@@ -391,7 +388,11 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 	}
 	
 	protected abstract List<QName> getSupportedRelations();
-	
+
+	protected GuiObjectListPanelConfigurationType getAdditionalPanelConfig(){
+		return null;
+	}
+
 	private boolean isAuthorized(String action) {
 		Map<String, String> memeberAuthz = getAuthorizations(getComplexTypeQName());
 		return WebComponentUtil.isAuthorized(memeberAuthz.get(action));

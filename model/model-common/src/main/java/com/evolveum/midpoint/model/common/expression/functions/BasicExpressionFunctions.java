@@ -1036,6 +1036,20 @@ public class BasicExpressionFunctions {
     /**
      * Hashes cleartext password in an (unofficial) LDAP password format. Supported algorithms: SSHA, SHA and MD5.
      */
+    public String hashLdapPassword(ProtectedStringType protectedString, String alg) throws NoSuchAlgorithmException, EncryptionException {
+    	if (protectedString == null) {
+    		return null;
+    	}
+    	String clearString = protector.decryptString(protectedString);
+    	if (clearString == null) {
+    		return null;
+    	}
+    	return hashLdapPassword(clearString.getBytes(UTF8_CHARSET), alg);
+    }
+    
+    /**
+     * Hashes cleartext password in an (unofficial) LDAP password format. Supported algorithms: SSHA, SHA and MD5.
+     */
     public String hashLdapPassword(String clearString, String alg) throws NoSuchAlgorithmException {
     	if (clearString == null) {
     		return null;

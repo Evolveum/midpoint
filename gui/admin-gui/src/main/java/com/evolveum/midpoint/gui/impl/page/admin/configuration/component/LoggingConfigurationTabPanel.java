@@ -39,6 +39,8 @@ import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWith
 import com.evolveum.midpoint.gui.impl.component.data.column.EditableLinkPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.EditablePropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerValueWrapperModel;
+import com.evolveum.midpoint.gui.impl.model.RealContainerValueFromContainerValueWrapperModel;
+import com.evolveum.midpoint.gui.impl.model.RealValueFromSingleValuePropertyWrapperModel;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -64,6 +66,7 @@ import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismContainerHeaderPanel;
 import com.evolveum.midpoint.web.component.prism.PrismContainerPanel;
+import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
@@ -298,9 +301,51 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 			
 		});
 		
-		columns.add(new EditablePropertyWrapperColumn<ClassLoggerConfigurationType, String>(createStringResource("LoggingConfigurationTabPanel.loggers.level"), ClassLoggerConfigurationType.F_LEVEL, getPageBase()));
+		columns.add(new EditableLinkPropertyWrapperColumn<ClassLoggerConfigurationType>(createStringResource("LoggingConfigurationTabPanel.loggers.level"), ClassLoggerConfigurationType.F_LEVEL, getPageBase()) {
+			@Override
+			public void onClick(AjaxRequestTarget target, IModel<ContainerValueWrapper<ClassLoggerConfigurationType>> rowModel) {
+				loggerEditPerformed(target, rowModel, null);
+			}
+		});
 		
-		columns.add(new EditablePropertyWrapperColumn<ClassLoggerConfigurationType, String>(createStringResource("LoggingConfigurationTabPanel.loggers.appender"), ClassLoggerConfigurationType.F_APPENDER, getPageBase()));
+//		columns.add(new EditablePropertyWrapperColumn<ClassLoggerConfigurationType, String>(createStringResource("LoggingConfigurationTabPanel.loggers.level"), ClassLoggerConfigurationType.F_LEVEL, getPageBase()));
+		
+		columns.add(new EditableLinkPropertyWrapperColumn<ClassLoggerConfigurationType>(createStringResource("LoggingConfigurationTabPanel.loggers.appender"), ClassLoggerConfigurationType.F_APPENDER, getPageBase()) {
+			@Override
+			public void onClick(AjaxRequestTarget target, IModel<ContainerValueWrapper<ClassLoggerConfigurationType>> rowModel) {
+				loggerEditPerformed(target, rowModel, null);
+			}
+			
+			@Override
+		    protected IModel createLinkModel(IModel<ContainerValueWrapper<ClassLoggerConfigurationType>> rowModel) {
+		    	PropertyWrapperFromContainerValueWrapperModel model = new PropertyWrapperFromContainerValueWrapperModel<>(rowModel, qNameOfProperty);
+		    	if(((PropertyWrapper<AppenderConfigurationType>)model.getObject()).isEmpty()){
+		            return createStringResource("LoggingConfigPanel.appenders.Inherit");
+		        } else{
+		            return new LoadableModel<String>() {
+		            	
+		            	private static final long serialVersionUID = 1L;
+
+		                @Override
+		                protected String load() {
+		                    StringBuilder builder = new StringBuilder();
+		                    RealContainerValueFromContainerValueWrapperModel<ClassLoggerConfigurationType> loggerModel = new RealContainerValueFromContainerValueWrapperModel<>(rowModel);
+		                    for (String appender : loggerModel.getObject().getAppender()) {
+		                        if (loggerModel.getObject().getAppender().indexOf(appender) != 0) {
+		                            builder.append(", ");
+		                        }
+		                        builder.append(appender);
+		                    }
+
+		                    return builder.toString();
+		                }
+		            };
+		        }
+
+			}
+		});
+		
+//		columns.add(new EditablePropertyWrapperColumn<ClassLoggerConfigurationType, String>(createStringResource("LoggingConfigurationTabPanel.loggers.appender"), ClassLoggerConfigurationType.F_APPENDER, getPageBase()));
 		
 		List<InlineMenuItem> menuActionsList = getLoggersMultivalueContainerListPanel().getDefaultMenuActions();
 		columns.add(new InlineMenuButtonColumn(menuActionsList, getPageBase()) {

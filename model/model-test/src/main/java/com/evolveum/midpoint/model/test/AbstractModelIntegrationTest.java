@@ -157,6 +157,7 @@ import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 import com.evolveum.midpoint.test.asserter.DummyAccountAsserter;
+import com.evolveum.midpoint.test.asserter.DummyGroupAsserter;
 import com.evolveum.midpoint.test.asserter.FocusAsserter;
 import com.evolveum.midpoint.test.asserter.OrgAsserter;
 import com.evolveum.midpoint.test.asserter.RoleAsserter;
@@ -377,6 +378,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected DummyAccountAsserter<Void> assertDummyAccountByUsername(String dummyResourceName, String username) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		return getDummyResourceController(dummyResourceName).assertAccountByUsername(username);
+	}
+	
+	protected DummyGroupAsserter<Void> assertDummyGroupByName(String dummyResourceName, String name) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+		return getDummyResourceController(dummyResourceName).assertGroupByName(name);
 	}
 
 	protected DummyResource getDummyResource(String name) {
@@ -740,7 +745,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				.asObjectDelta(oid);
 	}
 
-	protected void modifyUserChangePassword(String userOid, String newPassword, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+	protected void modifyUserChangePassword(String userOid, String newPassword) throws CommonException {
+		Task task = createTask("modifyUserChangePassword");
+        OperationResult result = task.getResult();
+		modifyUserChangePassword(userOid, newPassword, task, result);
+		assertSuccess(result);
+	}
+	
+	protected void modifyUserChangePassword(String userOid, String newPassword, Task task, OperationResult result) throws CommonException {
 		ProtectedStringType userPasswordPs = new ProtectedStringType();
         userPasswordPs.setClearValue(newPassword);
         modifyUserReplace(userOid, PASSWORD_VALUE_PATH, task,  result, userPasswordPs);
@@ -2979,11 +2991,18 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected Task waitForTaskFinish(final String taskOid, final boolean checkSubresult, final int timeout, final boolean errorOk) throws CommonException {
+		long startTime = System.currentTimeMillis();
+		return waitForTaskFinish(taskOid, checkSubresult, startTime, timeout, errorOk);
+	}
+	
+	protected Task waitForTaskFinish(final String taskOid, final boolean checkSubresult, long startTime, final int timeout, final boolean errorOk) throws CommonException {
 		final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForTaskFinish");
 		TaskFinishChecker checker = new TaskFinishChecker(taskOid, waitResult, checkSubresult, errorOk, timeout);
-		IntegrationTestTools.waitFor("Waiting for task " + taskOid + " finish", checker, timeout, DEFAULT_TASK_SLEEP_TIME);
+		IntegrationTestTools.waitFor("Waiting for task " + taskOid + " finish", checker, startTime, timeout, DEFAULT_TASK_SLEEP_TIME);
 		return checker.getLastTask();
 	}
+	
+	
 
 	private class TaskFinishChecker implements Checker {
 		private final String taskOid;
@@ -3327,6 +3346,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		Task task = taskManager.getTaskWithResult(taskOid, result);
 		LOGGER.info("Suspending task {}", taskOid);
 		taskManager.suspendTaskQuietly(task, 3000, result);
+	}
+	
+	/**
+	 * Restarts task and waits for finish.
+	 */
+	protected void rerunTask(String taskOid) throws CommonException {
+		long startTime = System.currentTimeMillis();
+		restartTask(taskOid);
+		waitForTaskFinish(taskOid, true, startTime, DEFAULT_TASK_WAIT_TIMEOUT, false);
 	}
 	
 	protected void assertTaskExecutionStatus(String taskOid, TaskExecutionStatus expectedExecutionStatus) throws ObjectNotFoundException, SchemaException {
@@ -5534,6 +5562,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return asserter;
 	}
 	
+	protected RoleAsserter<Void> assertRoleByName(String name, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		PrismObject<RoleType> role = findObjectByName(RoleType.class, name);
+		assertNotNull("No role with name '"+name+"'", role);
+		RoleAsserter<Void> asserter = assertRole(role, message);
+		asserter.assertName(name);
+		return asserter;
+	}
+	
 	protected RoleAsserter<Void> assertRole(PrismObject<RoleType> role, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		RoleAsserter<Void> asserter = RoleAsserter.forRole(role, message);
 		initializeAsserter(asserter);
@@ -5543,7 +5579,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected RoleAsserter<Void> assertRoleAfter(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		RoleAsserter<Void> asserter = assertRole(oid, "after");
-		asserter.assertOid(oid);
+		return asserter;
+	}
+	
+	protected RoleAsserter<Void> assertRoleAfterByName(String name) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		RoleAsserter<Void> asserter = assertRoleByName(name, "after");
 		return asserter;
 	}
 	
