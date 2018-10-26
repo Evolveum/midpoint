@@ -17264,32 +17264,115 @@
            	</xsd:sequence>	
     </xsd:complexType>
 
-	<!-- Note: ObjectListType already defined in API types -->
-    <xsd:complexType name="GuiObjectListType">
-        <xsd:annotation>
-        	<xsd:documentation>
-        		Specifies the page used to list specific object type or object collection.
-        	</xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
-                <a:since>3.6</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-       		<xsd:sequence>
-       			<!-- TODO: now we support only default object lists (all user, all role). But later we will need to
-       			           add name, label (display name) and menu label for this list.
-       			           We will also need a reference to which menu section we want to display it. E.g. We would
-       			           like to display role catalog under "roles", even though it is in fact org tree. -->
-       			<xsd:element name="type" type="xsd:QName" minOccurs="1" maxOccurs="1"/>
-       			<!-- TODO: refernce to object collection (MID-3517) -->
-           		<xsd:element name="searchBoxConfiguration" type="tns:SearchBoxConfigurationType" minOccurs="0" maxOccurs="1"/>
-           		<xsd:element name="column" type="tns:GuiObjectColumnType" minOccurs="0" maxOccurs="unbounded"/>
-           		<!-- TODO: number of results per page (MID-1931) -->
-           		<!-- TODO: later: export settings (GuiExportSettingsType) -->
-           	</xsd:sequence>
-    </xsd:complexType>
-    
-    <xsd:complexType name="SearchBoxConfigurationType">
+	<xsd:complexType name="GuiObjectListPanelConfigurationType">
+	<xsd:annotation>
+		<xsd:documentation>
+			Specifies the configuration of a generic table listing various things (usually objects).
+		</xsd:documentation>
+		<xsd:appinfo>
+			<a:container/>
+			<a:since>3.7</a:since>
+		</xsd:appinfo>
+	</xsd:annotation>
+	<xsd:sequence>
+	<xsd:element name="searchBoxConfiguration" type="tns:SearchBoxConfigurationType" minOccurs="0" maxOccurs="1">
+		<xsd:annotation>
+			<xsd:appinfo>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:element>
+		<!-- TODO: number of results per page (MID-1931) -->
+		<!-- TODO: later: export settings (GuiExportSettingsType) -->
+	</xsd:sequence>
+	</xsd:complexType>
+
+
+
+	<xsd:complexType name="GuiObjectListType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Specifies the page used to list specific object type or object collection.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+				<a:since>3.6</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:GuiObjectListPanelConfigurationType">
+				<xsd:sequence>
+					<!-- TODO: now we support only default object lists (all user, all role). But later we will need to
+                               add name, label (display name) and menu label for this list.
+                               We will also need a reference to which menu section we want to display it. E.g. We would
+                               like to display role catalog under "roles", even though it is in fact org tree. -->
+					<xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>
+								Symbolic name for this view. It is not really used by the GUI code. It is mostly used for
+								diagnostics, logging and so on. It may be later used to detect whether a particular view is overriden,
+								e.g. if view defined in system configuraiton is overridden in the role.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.7</a:since>
+								<a:displayName>GuiObjectListType.name</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="type" type="xsd:QName" minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>
+								Type of displayed objects. It may not be present in case that the type is defined in a referenced object colleciton.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>GuiObjectListType.type</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="column" type="tns:GuiObjectColumnType" minOccurs="0" maxOccurs="unbounded"/>
+					<xsd:element name="additionalPanels" type="tns:GuiObjectListViewAdditionalPanelsType" minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>
+								Configuration of additional panels that can be present in some view types.
+								E.g. configuration of "managers" and "members" panels in orgstruct views.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.7</a:since>
+								<a:displayName>GuiObjectListType.additionalPanels</a:displayName>
+								<a:experimental>true</a:experimental>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="GuiObjectListViewAdditionalPanelsType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configuration of additional panels that can be present in some view types.
+				E.g. configuration of "managers" and "members" panels in orgstruct views.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+				<a:since>3.9</a:since>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<!-- TODO: manager panel -->
+			<xsd:element name="memberPanel" type="tns:GuiObjectListPanelConfigurationType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>GuiObjectListViewAdditionalPanelsType.memberPanel</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+
+	<xsd:complexType name="SearchBoxConfigurationType">
         <xsd:annotation>
         	<xsd:documentation>
         		Configuration of the search box (the set of input fields that control definition of search query).
