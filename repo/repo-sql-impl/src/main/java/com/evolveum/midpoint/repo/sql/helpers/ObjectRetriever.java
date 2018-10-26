@@ -970,7 +970,7 @@ main:       for (;;) {
 			final boolean isMidpointQuery = request.getImplementationLevelQuery() == null;
 			if (isMidpointQuery) {
 				QueryEngine2 engine = new QueryEngine2(getConfiguration(), extItemDictionary, prismContext, relationRegistry);
-				RQueryImpl rQuery = (RQueryImpl) engine.interpret(request.getQuery(), request.getType(), null, false, session);
+				RQueryImpl rQuery = (RQueryImpl) engine.interpret(request.getQuery(), request.getType(), request.getOptions(), false, session);
 				query = rQuery.getQuery();
 				implementationLevelQuery = query.getQueryString();
 				implementationLevelQueryParameters = new HashMap<>();

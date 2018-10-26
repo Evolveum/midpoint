@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import java.io.Serializable;
+import java.util.Collection;
 
 /**
  * Query diagnostics request: contains query to be executed (or at least translated) and some options.
@@ -32,6 +33,7 @@ public class RepositoryQueryDiagRequest implements Serializable {
 
 	private Class<? extends ObjectType> type;
 	private ObjectQuery query;
+	private Collection<SelectorOptions<GetOperationOptions>> options;
 
 	private Serializable implementationLevelQuery;				// this is used if specified
 
@@ -51,6 +53,14 @@ public class RepositoryQueryDiagRequest implements Serializable {
 
 	public void setQuery(ObjectQuery query) {
 		this.query = query;
+	}
+
+	public Collection<SelectorOptions<GetOperationOptions>> getOptions() {
+		return options;
+	}
+
+	public void setOptions(Collection<SelectorOptions<GetOperationOptions>> options) {
+		this.options = options;
 	}
 
 	public Serializable getImplementationLevelQuery() {

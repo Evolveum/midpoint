@@ -745,7 +745,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				.asObjectDelta(oid);
 	}
 
-	protected void modifyUserChangePassword(String userOid, String newPassword, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+	protected void modifyUserChangePassword(String userOid, String newPassword) throws CommonException {
+		Task task = createTask("modifyUserChangePassword");
+        OperationResult result = task.getResult();
+		modifyUserChangePassword(userOid, newPassword, task, result);
+		assertSuccess(result);
+	}
+	
+	protected void modifyUserChangePassword(String userOid, String newPassword, Task task, OperationResult result) throws CommonException {
 		ProtectedStringType userPasswordPs = new ProtectedStringType();
         userPasswordPs.setClearValue(newPassword);
         modifyUserReplace(userOid, PASSWORD_VALUE_PATH, task,  result, userPasswordPs);
