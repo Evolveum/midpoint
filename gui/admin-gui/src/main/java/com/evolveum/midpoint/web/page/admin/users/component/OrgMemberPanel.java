@@ -402,6 +402,15 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	}
 
 	@Override
+	protected GuiObjectListPanelConfigurationType getAdditionalPanelConfig(){
+		GuiObjectListType orgViewType = WebComponentUtil.getViewTypeConfig(OrgType.COMPLEX_TYPE, getPageBase());
+		if (orgViewType == null || orgViewType.getAdditionalPanels() == null){
+			return null;
+		}
+		return orgViewType.getAdditionalPanels().getMemberPanel();
+	}
+
+	@Override
 	protected boolean isAuthorizedToUnassignMembers(){
 		return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_ORG_MEMBER_ACTION_URI);
 	}

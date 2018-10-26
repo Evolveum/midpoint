@@ -458,6 +458,23 @@ public final class WebComponentUtil {
 		}
 	}
 
+	public static GuiObjectListType getViewTypeConfig(QName type, PageBase pageBase){
+		AdminGuiConfigurationType config = pageBase.getPrincipal().getAdminGuiConfiguration();
+		if (config == null) {
+			return null;
+		}
+		GuiObjectListsType lists = config.getObjectLists();
+		if (lists == null) {
+			return null;
+		}
+		for (GuiObjectListType viewType : lists.getObjectList()){
+			if (QNameUtil.match(viewType.getType(), type)){
+				return viewType;
+			}
+		}
+		return null;
+	}
+
 	public enum Channel {
 		// TODO: move this to schema component
 		LIVE_SYNC(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI),

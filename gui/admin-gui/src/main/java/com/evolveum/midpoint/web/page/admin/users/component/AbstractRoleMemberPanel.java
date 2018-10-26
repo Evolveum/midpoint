@@ -36,6 +36,7 @@ import com.evolveum.midpoint.web.component.assignment.RelationTypes;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.page.admin.roles.RoleGovernanceRelationsPanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -77,16 +78,6 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.model.Model;
 
 public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extends BasePanel<T> {
@@ -231,9 +222,18 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 
 				return ObjectQuery.createObjectQuery(AndFilter.createAnd(filters));
 			}
+
+			@Override
+			protected GuiObjectListPanelConfigurationType getAdditionalPanelConfig(){
+				return AbstractRoleMemberPanel.this.getAdditionalPanelConfig();
+			}
 		};
 		childrenListPanel.setOutputMarkupId(true);
 		memberContainer.add(childrenListPanel);
+	}
+
+	protected GuiObjectListPanelConfigurationType getAdditionalPanelConfig(){
+		return null;
 	}
 
 	private List<InlineMenuItem> createMembersHeaderInlineMenu() {

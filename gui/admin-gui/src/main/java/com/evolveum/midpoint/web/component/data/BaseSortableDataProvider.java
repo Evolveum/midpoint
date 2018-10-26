@@ -34,6 +34,7 @@ import com.evolveum.midpoint.web.page.PageDialog;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListPanelConfigurationType;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -188,7 +189,11 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
     }
 
 	protected ObjectPaging createPaging(long offset, long pageSize) {
-		return ObjectPaging.createPaging(safeLongToInteger(offset), safeLongToInteger(pageSize), createObjectOrderings(getSort()));
+        List<ObjectOrdering> orderings = null;
+        if (!isOrderingDisabled()) {
+            orderings = createObjectOrderings(getSort());
+        }
+		return ObjectPaging.createPaging(safeLongToInteger(offset), safeLongToInteger(pageSize), orderings);
 	}
 
 	/**
@@ -205,6 +210,10 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
 			return Collections.emptyList();
 		}
 	}
+
+    public boolean isOrderingDisabled() {
+        return false;
+    }
 
 	public void clearCache() {
         cache.clear();
