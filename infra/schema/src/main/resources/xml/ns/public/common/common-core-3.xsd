@@ -20424,7 +20424,36 @@
        					</xsd:appinfo>
        				</xsd:annotation>
        			</xsd:element>
+       			<xsd:element name="defaultScope" type="tns:SearchBoxScopeType" minOccurs="0" maxOccurs="1" default="oneLevel">
+					<xsd:annotation>
+						<xsd:documentation>
+							The scope of the search box. Scope may not be applicable to all types of lists/views.
+							E.g. it does not make sense for flat searches. Therefore some views may not even display
+							scope selection at all.
+						</xsd:documentation>
+       					<xsd:appinfo>
+							<a:displayName>SearchBoxConfigurationType.defaultScope</a:displayName>
+							<a:since>3.9</a:since>
+       					</xsd:appinfo>
+       				</xsd:annotation>
+       			</xsd:element>
+       			<xsd:element name="defaultObjectType" type="xsd:QName" minOccurs="0" maxOccurs="1">
+					<xsd:annotation>
+						<xsd:documentation>
+							Default type of object for search boxes that support object type selection.
+							E.g. UserType or RoleType. Setting it to ObjectType should display all objects.
+							Type selection may not be applicable to all types of lists/views.
+							E.g. it does not make sense for lists that only contain objects of a single type.
+							Therefore some views may not even display object type selection at all.
+						</xsd:documentation>
+       					<xsd:appinfo>
+							<a:displayName>SearchBoxConfigurationType.defaultObjectType</a:displayName>
+							<a:since>3.9</a:since>
+       					</xsd:appinfo>
+       				</xsd:annotation>
+       			</xsd:element>
        			<!-- TODO: default items to display for basic search -->
+       			<!-- TODO: default relation (e.g. defalt, manager, all relations) -->
            	</xsd:sequence>
     </xsd:complexType>
 
@@ -20462,6 +20491,45 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="FULLTEXT"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+	
+	<xsd:simpleType name="SearchBoxScopeType">
+		<xsd:annotation>
+			<xsd:documentation>
+				The scope of the search box.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.9</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="oneLevel">
+				<xsd:annotation>
+					<xsd:documentation>
+						Search will only traverse flat, one-level part of the hierarchy.
+						This is ordinary search scope for non-hierarchical data.
+						But when used in organizational hieraries, then this search scope
+						will be limited only to a single organizational level.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="ONE_LEVEL"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="subtree">
+				<xsd:annotation>
+					<xsd:documentation>
+						Search will traverse entire subtree.
+						This scope makes no sense for non-hierarchical data.
+						But when used in organizational hieraries, then this search scope
+						will be span entire subtree with all sub-orgs.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="SUBTREE"/>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
