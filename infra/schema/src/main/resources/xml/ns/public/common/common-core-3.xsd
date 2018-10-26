@@ -17281,6 +17281,20 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 	</xsd:element>
+		<xsd:element name="column" type="tns:GuiObjectColumnType" minOccurs="0" maxOccurs="unbounded">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<a:displayName>GuiObjectListViewType.column</a:displayName>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:element>
+		<xsd:element name="disableSorting" type="xsd:boolean" default="false" minOccurs="0">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<a:displayName>GuiObjectListViewType.disableSorting</a:displayName>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:element>
 		<!-- TODO: number of results per page (MID-1931) -->
 		<!-- TODO: later: export settings (GuiExportSettingsType) -->
 	</xsd:sequence>
@@ -17328,7 +17342,6 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
-					<xsd:element name="column" type="tns:GuiObjectColumnType" minOccurs="0" maxOccurs="unbounded"/>
 					<xsd:element name="additionalPanels" type="tns:GuiObjectListViewAdditionalPanelsType" minOccurs="0" maxOccurs="1">
 						<xsd:annotation>
 							<xsd:documentation>
