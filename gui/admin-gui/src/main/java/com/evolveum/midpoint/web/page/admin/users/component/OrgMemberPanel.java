@@ -67,7 +67,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	@Override
 	protected ObjectQuery createMemberQuery(boolean indirect, Collection<QName> relations) {
 		ObjectTypes searchType = getSearchType();
-		if (SEARCH_SCOPE_ONE.equals(getOrgSearchScope())) {
+		if (SearchBoxScopeType.ONE_LEVEL.equals(getOrgSearchScope())) {
 			if (FocusType.class.isAssignableFrom(searchType.getClassDefinition())) {
 				return super.createMemberQuery(indirect, relations);
 			}
@@ -93,8 +93,8 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 	}
 
-	protected String getOrgSearchScope() {
-		DropDownFormGroup<String> searchorgScope = (DropDownFormGroup<String>) get(
+	protected SearchBoxScopeType getOrgSearchScope() {
+		DropDownFormGroup<SearchBoxScopeType> searchorgScope = (DropDownFormGroup<SearchBoxScopeType>) get(
 				createComponentPath(ID_FORM, ID_SEARCH_SCOPE));
 		return searchorgScope.getModelObject();
 	}

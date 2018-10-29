@@ -48,6 +48,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -119,12 +120,9 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 	private static final String ID_INDIRECT_MEMBERS = "indirectMembers";
 
 	protected static final String ID_SEARCH_SCOPE = "searchScope";
-	public static final String SEARCH_SCOPE_SUBTREE = "subtree";
-	protected static final String SEARCH_SCOPE_ONE = "one";
-	protected static final List<String> SEARCH_SCOPE_VALUES = Arrays.asList(SEARCH_SCOPE_SUBTREE,
-			SEARCH_SCOPE_ONE);
+	protected SearchBoxScopeType scopeDefaultValue = null;
+	protected QName objectTypeDefaultValue = null;
 
-	
 	protected static final String ID_SEARCH_BY_RELATION = "searchByRelation";
 
 	private static Map<QName, Map<String, String>> authorizations = new HashMap<>();
@@ -156,10 +154,33 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 		Form<?> form = new com.evolveum.midpoint.web.component.form.Form(ID_FORM);
 		form.setOutputMarkupId(true);
 		add(form);
+		initDefaultSearchParameters();
 		initSearch(form);
 		initMemberTable(form);
 		setOutputMarkupId(true);
 		
+	}
+
+	private void initDefaultSearchParameters(){
+		GuiObjectListViewType panelConfig = WebComponentUtil.getViewTypeConfig(getComplexTypeQName(), getPageBase());
+		if (panelConfig != null && panelConfig.getSearchBoxConfiguration() != null) {
+			scopeDefaultValue = panelConfig.getSearchBoxConfiguration().getDefaultScope();
+			objectTypeDefaultValue = panelConfig.getSearchBoxConfiguration().getDefaultObjectType();
+		}
+		if (scopeDefaultValue == null){
+			scopeDefaultValue = SearchBoxScopeType.SUBTREE;
+		}
+		if (objectTypeDefaultValue == null){
+			objectTypeDefaultValue = WebComponentUtil.classToQName(getPrismContext(), getDefaultObjectType());
+		}
+		if (getMemberPanelStorage() != null){
+			if (getMemberPanelStorage().getOrgSearchScope() == null){
+				getMemberPanelStorage().setOrgSearchScope(scopeDefaultValue);
+			}
+			if (getMemberPanelStorage().getType() == null){
+				getMemberPanelStorage().setType(ObjectTypes.getObjectType(objectTypeDefaultValue.getLocalPart()));
+			}
+		}
 	}
 
 	protected Form<?> getForm() {
@@ -541,16 +562,20 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 	}
 	
 	protected void initSearch(Form<?> form) {
-		
-		DropDownFormGroup<String> searchScrope = createDropDown(ID_SEARCH_SCOPE,
-	            Model.of(getMemberPanelStorage() != null ? getMemberPanelStorage().getOrgSearchScope() : SEARCH_SCOPE_SUBTREE),
-				SEARCH_SCOPE_VALUES,
-	            new StringResourceChoiceRenderer("TreeTablePanel.search.scope"), "abstractRoleMemberPanel.searchScope", "abstractRoleMemberPanel.searchScope.tooltip");
+
+		List<SearchBoxScopeType> scopeValues = Arrays.asList(SearchBoxScopeType.values());
+		DropDownFormGroup<SearchBoxScopeType> searchScrope = createDropDown(ID_SEARCH_SCOPE,
+				Model.of(getMemberPanelStorage() != null ? getMemberPanelStorage().getOrgSearchScope() : scopeDefaultValue),
+				scopeValues,
+				WebComponentUtil.getEnumChoiceRenderer(AbstractRoleMemberPanel.this),
+				"abstractRoleMemberPanel.searchScope", "abstractRoleMemberPanel.searchScope.tooltip");
 		searchScrope.add(new VisibleBehaviour(() -> getModelObject() instanceof OrgType));
 		form.add(searchScrope);
 		
-		DropDownFormGroup<QName> typeSelect = createDropDown(ID_OBJECT_TYPE, Model.of(WebComponentUtil.classToQName(getPrismContext(), getDefaultObjectType())), 
-				getSupportedObjectTypes(), new QNameObjectTypeChoiceRenderer(), "abstractRoleMemberPanel.type", "abstractRoleMemberPanel.type.tooltip");
+		DropDownFormGroup<QName> typeSelect = createDropDown(ID_OBJECT_TYPE,
+				Model.of(getMemberPanelStorage() != null ? getMemberPanelStorage().getType().getTypeQName() : WebComponentUtil.classToQName(getPrismContext(), getDefaultObjectType())),
+				getSupportedObjectTypes(), new QNameObjectTypeChoiceRenderer(),
+				"abstractRoleMemberPanel.type", "abstractRoleMemberPanel.type.tooltip");
 		form.add(typeSelect);
 
 		RelationDropDownChoicePanel relationSelector = new RelationDropDownChoicePanel(ID_SEARCH_BY_RELATION,
@@ -586,7 +611,8 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 			
 		});
 		
-		includeIndirectMembers.getCheck().add(new EnableBehaviour(() -> getSearchScopeValue().equals(SEARCH_SCOPE_ONE) || !searchScrope.isVisible()));
+		includeIndirectMembers.getCheck().add(new EnableBehaviour(() ->
+				getSearchScopeValue().equals(SearchBoxScopeType.ONE_LEVEL) || !searchScrope.isVisible()));
 		includeIndirectMembers.setOutputMarkupId(true);
 		form.add(includeIndirectMembers);
 
@@ -714,11 +740,11 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 		return relationDropDown.getRelationValue();
 	}
 
-	private String getSearchScopeValue(){
+	private SearchBoxScopeType getSearchScopeValue(){
 		if (getMemberPanelStorage() != null){
 			return getMemberPanelStorage().getOrgSearchScope();
 		}
-		DropDownFormGroup<String> searchScopeComponent = (DropDownFormGroup<String>)get(createComponentPath(ID_FORM, ID_SEARCH_SCOPE));
+		DropDownFormGroup<SearchBoxScopeType> searchScopeComponent = (DropDownFormGroup<SearchBoxScopeType>)get(createComponentPath(ID_FORM, ID_SEARCH_SCOPE));
 		return searchScopeComponent.getModelObject();
 	}
 	
@@ -920,7 +946,8 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 				storage.setIndirect(indirectPanel.getValue());
 			}
 
-			DropDownFormGroup<String> searchScopeComponent = (DropDownFormGroup<String>)get(createComponentPath(ID_FORM, ID_SEARCH_SCOPE));
+			DropDownFormGroup<SearchBoxScopeType> searchScopeComponent =
+					(DropDownFormGroup<SearchBoxScopeType>)get(createComponentPath(ID_FORM, ID_SEARCH_SCOPE));
 			storage.setOrgSearchScope(searchScopeComponent.getModelObject());
 		}
 	}
