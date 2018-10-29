@@ -175,10 +175,11 @@ public class TreeTablePanel extends BasePanel<String> {
 			RepeatingView view = new RepeatingView(ID_MANAGER_TABLE);
 			view.setOutputMarkupId(true);
 			ObjectQuery managersQuery = createManagerQuery(org);
-
+			
 			OperationResult searchManagersResult = new OperationResult(OPERATION_SEARCH_MANAGERS);
 			Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
 					FocusType.F_JPEG_PHOTO, GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
+			options.add(SelectorOptions.create(GetOperationOptions.createDistinct()));
 			List<PrismObject<FocusType>> managers = WebModelServiceUtils.searchObjects(FocusType.class,
 					managersQuery, options, searchManagersResult, getPageBase());
 			Task task = getPageBase().createSimpleTask(OPERATION_LOAD_MANAGERS);
