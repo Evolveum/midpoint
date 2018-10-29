@@ -422,7 +422,6 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 		List<ItemPath> pathsToHide = new ArrayList<>();
 		pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_RESOURCE_REF).removeIdentifiers());
 		pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_AUXILIARY_OBJECT_CLASS).removeIdentifiers());
-		pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_STRENGTH).removeIdentifiers());
 		if (PropertyOrReferenceWrapper.class.isAssignableFrom(itemWrapper.getClass()) && !WebComponentUtil.isItemVisible(pathsToHide, itemWrapper.getPath().removeIdentifiers())) {
 			return ItemVisibility.AUTO;
 		} else {
