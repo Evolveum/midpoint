@@ -103,13 +103,9 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	protected static final String ID_MANAGER_MENU = "managerMenu";
 	protected static final String ID_MANAGER_MENU_BODY = "managerMenuBody";
 
-	protected static final String SEARCH_SCOPE_SUBTREE = "subtree";
-	protected static final String SEARCH_SCOPE_ONE = "one";
-
 	protected static final ObjectTypes OBJECT_TYPES_DEFAULT = ObjectTypes.USER;
-
-	protected static final List<String> SEARCH_SCOPE_VALUES = Arrays.asList(SEARCH_SCOPE_SUBTREE,
-			SEARCH_SCOPE_ONE);
+	protected SearchBoxScopeType scopeDefaultValue = null;
+	protected QName objectTypeDefaultValue = null;
 
 	protected static final String DOT_CLASS = OrgMemberPanel.class.getName() + ".";
 	protected static final String OPERATION_SEARCH_MANAGERS = DOT_CLASS + "searchManagers";
@@ -126,6 +122,21 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	public OrgMemberPanel(String id, IModel<OrgType> model) {
 		super(id, TableId.ORG_MEMEBER_PANEL, model);
 		setOutputMarkupId(true);
+	}
+
+	@Override
+	protected void initDefaultSearchParameters(){
+		GuiObjectListType panelConfig = WebComponentUtil.getViewTypeConfig(OrgType.COMPLEX_TYPE, getPageBase());
+		if (panelConfig != null && panelConfig.getSearchBoxConfiguration() != null) {
+			scopeDefaultValue = panelConfig.getSearchBoxConfiguration().getDefaultScope();
+			objectTypeDefaultValue = panelConfig.getSearchBoxConfiguration().getDefaultObjectType();
+		}
+		if (scopeDefaultValue == null){
+			scopeDefaultValue = SearchBoxScopeType.ONE_LEVEL;
+		}
+		if (objectTypeDefaultValue == null){
+			objectTypeDefaultValue = OBJECT_TYPES_DEFAULT.getTypeQName();
+		}
 	}
 
 	@Override
@@ -151,7 +162,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		});
 
 		DropDownChoice<ObjectTypes> objectType = new DropDownChoice<ObjectTypes>(ID_SEARCH_BY_TYPE,
-				Model.of(OBJECT_TYPES_DEFAULT), objectTypes, new EnumChoiceRenderer<ObjectTypes>());
+				Model.of(ObjectTypes.getObjectType(objectTypeDefaultValue.getLocalPart())), objectTypes, new EnumChoiceRenderer<ObjectTypes>());
 		objectType.add(new OnChangeAjaxBehavior() {
 			private static final long serialVersionUID = 1L;
 
@@ -164,9 +175,9 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		objectType.setOutputMarkupId(true);
 		form.add(objectType);
 
-		DropDownChoice<String> seachScrope = new DropDownChoice<String>(ID_SEARCH_SCOPE,
-				Model.of(SEARCH_SCOPE_SUBTREE), SEARCH_SCOPE_VALUES,
-				new StringResourceChoiceRenderer("TreeTablePanel.search.scope"));
+		DropDownChoice<SearchBoxScopeType> seachScrope = new DropDownChoice<SearchBoxScopeType>(ID_SEARCH_SCOPE,
+				Model.of(scopeDefaultValue), Arrays.asList(SearchBoxScopeType.values()),
+				new EnumChoiceRenderer<>());
 		seachScrope.add(new OnChangeAjaxBehavior() {
 			private static final long serialVersionUID = 1L;
 
@@ -680,9 +691,9 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	protected ObjectQuery createContentQuery() {
 		String oid = getModelObject().getOid();
 
-		DropDownChoice<String> searchScopeChoice = (DropDownChoice<String>) get(
+		DropDownChoice<SearchBoxScopeType> searchScopeChoice = (DropDownChoice<SearchBoxScopeType>) get(
 				createComponentPath(ID_FORM, ID_SEARCH_SCOPE));
-		String scope = searchScopeChoice.getModelObject();
+		SearchBoxScopeType scope = searchScopeChoice.getModelObject();
 
 		ObjectTypes searchType = getSearchType();
 		S_FilterEntryOrEmpty q = QueryBuilder.queryFor(ObjectType.class, getPageBase().getPrismContext());
@@ -700,7 +711,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		PrismReferenceValue ref = new PrismReferenceValue(oid);
 		ref.setRelation(relationValue);
 		ObjectQuery query;
-		if (SEARCH_SCOPE_ONE.equals(scope)) {
+		if (SearchBoxScopeType.ONE_LEVEL.equals(scope)) {
 			query = q.isDirectChildOf(ref)
 					.build();
 		} else {

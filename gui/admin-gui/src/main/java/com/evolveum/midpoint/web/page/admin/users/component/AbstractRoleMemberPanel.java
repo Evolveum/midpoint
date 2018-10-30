@@ -132,6 +132,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		form.setOutputMarkupId(true);
 		add(form);
 
+		initDefaultSearchParameters();
 		initSearch(form);
 
 		initMemberTable(form);
@@ -140,6 +141,9 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 	}
 
 	protected abstract void initCustomLayout(Form form, ModelServiceLocator serviceLocator);
+
+	protected void initDefaultSearchParameters(){
+	}
 
 	protected abstract void initSearch(Form form);
 
