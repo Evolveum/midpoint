@@ -113,7 +113,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	}
 
 	@Override
-	protected List<QName> getSupportedObjectTypes() {
+	protected List<QName> getSupportedObjectTypes(boolean includeAbstractTypes) {
 		List<QName> objectTypes = WebComponentUtil.createObjectTypeList();
 		objectTypes.remove(ShadowType.COMPLEX_TYPE);
 		objectTypes.remove(ObjectType.COMPLEX_TYPE);
