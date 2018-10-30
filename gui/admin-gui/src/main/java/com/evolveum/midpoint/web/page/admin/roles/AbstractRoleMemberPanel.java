@@ -168,7 +168,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 			objectTypeDefaultValue = panelConfig.getSearchBoxConfiguration().getDefaultObjectType();
 		}
 		if (scopeDefaultValue == null){
-			scopeDefaultValue = SearchBoxScopeType.SUBTREE;
+			scopeDefaultValue = SearchBoxScopeType.ONE_LEVEL;
 		}
 		if (objectTypeDefaultValue == null){
 			objectTypeDefaultValue = WebComponentUtil.classToQName(getPrismContext(), getDefaultObjectType());
