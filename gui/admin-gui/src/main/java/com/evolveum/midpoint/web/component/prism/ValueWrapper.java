@@ -147,13 +147,24 @@ public class ValueWrapper<T> implements Serializable, DebugDumpable {
     public void normalize(PrismContext prismContext) {
 		if (value instanceof PrismPropertyValue) {
 			PrismPropertyValue ppVal = (PrismPropertyValue) value;
+			if (ppVal.getValue() instanceof String) {
+				String s = (String) ppVal.getValue();
+				if (hasValueChanged()) {
+					ppVal.setValue(s.trim());
+				}
+			}
 			if (ppVal.getValue() instanceof PolyString) {
 				PolyString poly = (PolyString) ppVal.getValue();
 				if (poly.getOrig() == null) {
 					ppVal.setValue((T) new PolyString(""));
 				}
+				
 				if (prismContext != null){
 					PrismUtil.recomputePrismPropertyValue(ppVal, prismContext);
+				}
+				
+				if (hasValueChanged()) {
+					ppVal.setValue(((PolyString) ppVal.getValue()).trim());
 				}
 
 			} else if (ppVal.getValue() instanceof DisplayableValue) {

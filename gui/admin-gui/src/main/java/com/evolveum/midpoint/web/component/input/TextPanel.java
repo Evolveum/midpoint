@@ -25,14 +25,28 @@ public class TextPanel<T> extends InputPanel {
 
     private static final String ID_INPUT = "input";
 
+    public TextPanel(String id, IModel<T> model, boolean shouldTrim) {
+        this(id, model, String.class, shouldTrim);
+    }
+    
     public TextPanel(String id, IModel<T> model) {
-        this(id, model, String.class);
+        this(id, model, String.class, true);
     }
 
     public TextPanel(String id, IModel<T> model, Class clazz) {
+    	this(id, model, clazz, true);
+    }    
+    
+    public TextPanel(String id, IModel<T> model, Class clazz, boolean shouldTrim) {
         super(id);
 
-        final TextField<T> text = new TextField<>(ID_INPUT, model);
+        final TextField<T> text = new TextField<T>(ID_INPUT, model) {
+        	
+        	@Override
+        	protected boolean shouldTrimInput() {
+        		return shouldTrim;
+        	}
+        };
         text.setType(clazz);
         add(text);
     }
