@@ -126,7 +126,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 	@Override
 	protected void initDefaultSearchParameters(){
-		GuiObjectListType panelConfig = WebComponentUtil.getViewTypeConfig(OrgType.COMPLEX_TYPE, getPageBase());
+		GuiObjectListPanelConfigurationType panelConfig = getAdditionalPanelConfig();
 		if (panelConfig != null && panelConfig.getSearchBoxConfiguration() != null) {
 			scopeDefaultValue = panelConfig.getSearchBoxConfiguration().getDefaultScope();
 			objectTypeDefaultValue = panelConfig.getSearchBoxConfiguration().getDefaultObjectType();
