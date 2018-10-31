@@ -177,6 +177,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		this.objectOld = objectOld;
 	}
 
+	@Override
 	public PrismObject<O> getObjectCurrent() {
 		return objectCurrent;
 	}
