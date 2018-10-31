@@ -209,8 +209,8 @@ public class ProgressPanel extends BasePanel {
                 ProgressReportActivityDto si = item.getModelObject();
                 if (si.getActivityType() == RESOURCE_OBJECT_OPERATION && si.getResourceShadowDiscriminator() != null) {
                     ResourceShadowDiscriminator rsd = si.getResourceShadowDiscriminator();
-                    return createStringResource(rsd.getKind()).getString()
-                            + " (" + rsd.getIntent() + ") on " + si.getResourceName();             // TODO correct i18n
+                    return createStringResource("ProgressPanel.populateStatusItem.resourceObjectActivity", createStringResource(rsd.getKind()).getString(),
+                            rsd.getIntent(),si.getResourceName()).getString();
                 } else {
                     return createStringResource(si.getActivityType()).getString();
                 }
@@ -233,11 +233,12 @@ public class ProgressPanel extends BasePanel {
 
                     @Override
                     public String getObject() {     // TODO why this does not work???
-                        OperationResultStatusType statusType = item.getModelObject().getStatus();       // TODO i18n
+                        OperationResultStatusType statusType = item.getModelObject().getStatus();
                         if (statusType == null) {
                             return null;
                         } else {
-                            return statusType.toString();
+                        	return getPageBase().createStringResource(
+                        			OperationResultStatusPresentationProperties.parseOperationalResultStatus(statusType).getStatusLabelKey()).getString();
                         }
                     }
                 }

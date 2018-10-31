@@ -194,7 +194,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 				if(buttonToolbar == null) {
 					return super.initButtonToolbar(id);
 				}
-				return initCustomButtonToolbar(id);
+				return buttonToolbar;
 			}
 		
 		};
