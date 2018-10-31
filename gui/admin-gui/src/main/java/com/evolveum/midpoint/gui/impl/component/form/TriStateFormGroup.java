@@ -137,7 +137,7 @@ public class TriStateFormGroup extends BasePanel<Boolean> {
         valueWrapper.add(feedback);
     }
 
-    public CheckBox getValue(){
-        return (CheckBox) get(ID_VALUE_WRAPPER + ":" + ID_VALUE);
+    public TriStateComboPanel getValue(){
+        return (TriStateComboPanel) get(createComponentPath(ID_PROPERTY_LABEL, ID_ROW, ID_VALUE_WRAPPER, ID_VALUE));
     }
 }
