@@ -193,6 +193,10 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 	protected WebMarkupContainer createFooter(String footerId) {
 		return new PagingFooter(footerId, ID_PAGING_FOOTER, this, this);
 	}
+	
+	public Component getFooterButtonToolbar() {
+		return ((PagingFooter) getFooter()).getFooterButtonToolbar();
+	}
 
 	public Component getFooterMenu() {
 		return ((PagingFooter) getFooter()).getFooterMenu();
@@ -276,6 +280,10 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 			};
 			footerContainer.add(menu);
 			add(footerContainer);
+		}
+		
+		public Component getFooterButtonToolbar() {
+			return get(ID_BUTTON_TOOLBAR);
 		}
 
 		public Component getFooterMenu() {

@@ -1617,9 +1617,8 @@ public final class WebComponentUtil {
 			return GuiStyleConstants.CLASS_OBJECT_SHADOW_ICON_COLORED;
 		} else if (QNameUtil.match(PolicyRuleType.COMPLEX_TYPE, objectType)) {
 			return GuiStyleConstants.CLASS_POLICY_RULES_ICON_COLORED;
-		} else if (QNameUtil.match(ObjectPolicyConfigurationType.COMPLEX_TYPE, objectType)) {
-			return GuiStyleConstants.CLASS_SYSTEM_CONFIGURATION_ICON_COLORED;
-		} else if (QNameUtil.match(GlobalPolicyRuleType.COMPLEX_TYPE, objectType)) {
+		} else if (QNameUtil.match(ObjectPolicyConfigurationType.COMPLEX_TYPE, objectType) || QNameUtil.match(GlobalPolicyRuleType.COMPLEX_TYPE, objectType)
+				|| QNameUtil.match(FileAppenderConfigurationType.COMPLEX_TYPE, objectType) || QNameUtil.match(SyslogAppenderConfigurationType.COMPLEX_TYPE, objectType)) {
 			return GuiStyleConstants.CLASS_SYSTEM_CONFIGURATION_ICON_COLORED;
 		} else {
 			return "";

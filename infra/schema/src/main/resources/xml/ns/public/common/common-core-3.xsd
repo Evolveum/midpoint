@@ -16335,8 +16335,19 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="pattern" type="xsd:string"/>
+            <xsd:element name="pattern" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>AppenderConfigurationType.pattern</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+			</xsd:element>
 			<xsd:element name="name" type="xsd:string" minOccurs="0">
+			<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>AppenderConfigurationType.name</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
     		</xsd:element>
         </xsd:sequence>
         <!-- <xsd:attribute name="name" type="xsd:string"/> -->
@@ -16346,21 +16357,55 @@
 		<xsd:annotation>
 			<xsd:appinfo>
             	<a:container>true</a:container>
+				<a:displayName>FileAppenderConfigurationType.details</a:displayName>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:AppenderConfigurationType">
                 <xsd:sequence>
-                    <xsd:element name="fileName" type="xsd:string" minOccurs="0"/>
-                    <xsd:element name="filePattern" type="xsd:string" minOccurs="0"/>
-                    <xsd:element name="maxHistory" type="xsd:int" minOccurs="0"/>
-                    <xsd:element name="maxFileSize" type="xsd:string" minOccurs="0"/>
-                    <xsd:element name="append" type="xsd:boolean" minOccurs="0"/>
+                    <xsd:element name="fileName" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>FileAppenderConfigurationType.fileName</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+                    <xsd:element name="filePattern" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>FileAppenderConfigurationType.filePattern</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+                    <xsd:element name="maxHistory" type="xsd:int" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>FileAppenderConfigurationType.maxHistory</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+                    <xsd:element name="maxFileSize" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>FileAppenderConfigurationType.maxFileSize</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+                    <xsd:element name="append" type="xsd:boolean" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>FileAppenderConfigurationType.append</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
                     <xsd:element name="prudent" type="xsd:boolean" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Prudent mode allows remote and shared file destinations (see https://logback.qos.ch/manual/appenders.html#prudentWithRolling )
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>FileAppenderConfigurationType.prudent</a:displayName>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
@@ -16372,17 +16417,54 @@
 		<xsd:annotation>
 			<xsd:appinfo>
             	<a:container>true</a:container>
+				<a:displayName>SyslogAppenderConfigurationType.details</a:displayName>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:AppenderConfigurationType">
                 <xsd:sequence>
-                    <xsd:element name="syslogHost" type="xsd:string" minOccurs="0"/>
-                    <xsd:element name="port" type="xsd:string" minOccurs="0"/>
-                    <xsd:element name="facility" type="xsd:string" minOccurs="0"/>
-                    <xsd:element name="suffixPattern" type="xsd:string" minOccurs="0"/>
-                    <xsd:element name="stackTracePattern" type="xsd:string" minOccurs="0"/>
-                    <xsd:element name="throwableExcluded" type="xsd:boolean" minOccurs="0"/>
+                    <xsd:element name="syslogHost" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>SyslogAppenderConfigurationType.syslogHost</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+                    <xsd:element name="port" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>SyslogAppenderConfigurationType.port</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+                    <xsd:element name="facility" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>SyslogAppenderConfigurationType.facility</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+                    <xsd:element name="suffixPattern" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>SyslogAppenderConfigurationType.suffixPattern</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+                    <xsd:element name="stackTracePattern" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>SyslogAppenderConfigurationType.stackTracePattern</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+                    <xsd:element name="throwableExcluded" type="xsd:boolean" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>SyslogAppenderConfigurationType.throwableExcluded</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>

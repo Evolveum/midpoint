@@ -22,6 +22,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.model.RealContainerValueFromContainerValueWrapperModel;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
@@ -297,8 +298,17 @@ public class ContainerWrapperFactory {
 					new Object[] { containerWrapper.getItem().getElementName() });
 			return properties;
 		}
-
 		Collection<? extends ItemDefinition> propertyDefinitions = definition.getDefinitions();
+		
+		if(containerWrapper.getPath().equals(new ItemPath(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_APPENDER))) {
+			RealContainerValueFromContainerValueWrapperModel value = new RealContainerValueFromContainerValueWrapperModel(cWrapper);
+			if(value != null || value.getObject() != null || value.getObject().asPrismContainerValue()!= null
+					|| value.getObject().asPrismContainerValue().getComplexTypeDefinition() != null
+					|| value.getObject().asPrismContainerValue().getComplexTypeDefinition().getDefinitions() != null) {
+				propertyDefinitions = value.getObject().asPrismContainerValue().getComplexTypeDefinition().getDefinitions();
+			}
+		}
+		
 		List<PropertyOrReferenceWrapper> propertyOrReferenceWrappers = new ArrayList<>();
 		List<ContainerWrapper<C>> containerWrappers = new ArrayList<>();
 		propertyDefinitions.forEach(itemDef -> {
