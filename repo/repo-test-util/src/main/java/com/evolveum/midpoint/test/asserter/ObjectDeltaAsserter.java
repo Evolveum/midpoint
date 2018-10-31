@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
@@ -115,4 +116,13 @@ public class ObjectDeltaAsserter<O extends ObjectType,RA> extends AbstractAssert
 		return descWithDetails(delta);
 	}
 
+	public ObjectDeltaAsserter<O,RA> display() {
+		display(desc());
+		return this;
+	}
+	
+	public ObjectDeltaAsserter<O,RA> display(String message) {
+		IntegrationTestTools.display(message, delta);
+		return this;
+	}
 }

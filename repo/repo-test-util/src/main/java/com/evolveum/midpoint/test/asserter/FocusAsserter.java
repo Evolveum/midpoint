@@ -31,8 +31,12 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 import org.testng.AssertJUnit;
 
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.test.IntegrationTestTools;
@@ -338,5 +342,17 @@ public class FocusAsserter<F extends FocusType,RA> extends PrismObjectAsserter<F
 		TriggersAsserter<F, ? extends FocusAsserter<F,RA>, RA> asserter = new TriggersAsserter<>(this, getDetails());
 		copySetupTo(asserter);
 		return asserter;
+	}
+	
+	@Override
+	public FocusAsserter<F,RA> assertNoItem(QName itemName) {
+		super.assertNoItem(itemName);
+		return this;
+	}
+	
+	@Override
+	public FocusAsserter<F,RA> assertNoItem(ItemPath itemPath) {
+		super.assertNoItem(itemPath);
+		return this;
 	}
 }
