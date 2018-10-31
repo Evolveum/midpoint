@@ -17,24 +17,55 @@ package com.evolveum.midpoint.web.page.admin.resources;
 
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
+import com.evolveum.midpoint.web.component.prism.ContainerStatus;
+import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
+import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
+import com.evolveum.midpoint.web.component.util.SummaryTag;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 public class ResourceSummaryPanel extends ObjectSummaryPanel<ResourceType> {
 	private static final long serialVersionUID = 1L;
 
 	private static final String ID_UP_DOWN_TAG = "upDownTag";
+	private IModel<PrismObject<ResourceType>> model;
 
 	public ResourceSummaryPanel(String id, IModel<PrismObject<ResourceType>> model, ModelServiceLocator serviceLocator) {
 		super(id, ResourceType.class, model, serviceLocator);
 		initLayoutCommon(serviceLocator);
+		this.model = model;
+	}
+	
+	@Override
+	protected void onBeforeRender() {
+		super.onBeforeRender();
 		boolean down = ResourceTypeUtil.isDown(model.getObject().asObjectable());
-		Label summaryTag  = new Label(ID_UP_DOWN_TAG, down ? "DOWN" : "UP");
+		ObjectWrapper<ResourceType> objectWrapper = ObjectWrapperUtil.createObjectWrapper("resourceType", "", model.getObject(), ContainerStatus.MODIFYING,
+				getPageBase().createSimpleTask("createResourceObjectWrapper"), getPageBase());
+		SummaryTag<ResourceType> summaryTag = new SummaryTag<ResourceType>(ID_UP_DOWN_TAG, new Model(objectWrapper)) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void initialize(ObjectWrapper<ResourceType> wrapper) {
+				if (!down) {
+					setIconCssClass(GuiStyleConstants.CLASS_ICON_ACTIVATION_ACTIVE);
+					setLabel(getString("ResourceSummaryPanel.UP"));
+				} else {
+					setIconCssClass(GuiStyleConstants.CLASS_ICON_ACTIVATION_INACTIVE);
+					setLabel(getString("ResourceSummaryPanel.DOWN"));
+					setCssClass(GuiStyleConstants.CLASS_ICON_STYLE_DISABLED);
+				}
+			}
+		};
 		addTag(summaryTag);
 	}
 
