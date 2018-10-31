@@ -1136,15 +1136,8 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 			}
 			return new Date(time);
 
-		} else {
-			//todo why?
-			Long time = task.getCurrentRuntime();
-			if (time == null) {
-				return null;
-			}
-			//todo i18n
-			return null;
-		}
+		} 
+		return null;
 	}
 
 	private String getLastCheckInTime(IModel<NodeDto> nodeModel) {
