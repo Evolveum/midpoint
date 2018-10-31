@@ -432,7 +432,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
 			@Override
 			protected List<QName> getSupportedObjectTypes() {
-				return AbstractRoleMemberPanel.this.getSupportedObjectTypes();
+				return AbstractRoleMemberPanel.this.getSupportedObjectTypes(true);
 			}
 
 			@Override
@@ -463,7 +463,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
 			@Override
 			protected List<QName> getSupportedObjectTypes() {
-				return AbstractRoleMemberPanel.this.getSupportedObjectTypes();
+				return AbstractRoleMemberPanel.this.getSupportedObjectTypes(true);
 			}
 
 			@Override
@@ -495,7 +495,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 			
 			@Override
 			protected List<QName> getSupportedObjectTypes() {
-				return AbstractRoleMemberPanel.this.getSupportedObjectTypes();
+				return AbstractRoleMemberPanel.this.getSupportedObjectTypes(false);
 			}
 			
 			@Override
@@ -574,7 +574,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 		
 		DropDownFormGroup<QName> typeSelect = createDropDown(ID_OBJECT_TYPE,
 				Model.of(getMemberPanelStorage() != null ? getMemberPanelStorage().getType().getTypeQName() : WebComponentUtil.classToQName(getPrismContext(), getDefaultObjectType())),
-				getSupportedObjectTypes(), new QNameObjectTypeChoiceRenderer(),
+				getSupportedObjectTypes(true), new QNameObjectTypeChoiceRenderer(),
 				"abstractRoleMemberPanel.type", "abstractRoleMemberPanel.type.tooltip");
 		form.add(typeSelect);
 
@@ -618,8 +618,8 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
 	}
 	
-	protected List<QName> getSupportedObjectTypes() {
-		return WebComponentUtil.createFocusTypeList(true);
+	protected List<QName> getSupportedObjectTypes(boolean includeAbstractTypes) {
+		return WebComponentUtil.createFocusTypeList(includeAbstractTypes);
 	}
 	
 	private ChooseTypePanel<OrgType> createParameterPanel(String id, boolean isTenant) {

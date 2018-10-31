@@ -99,6 +99,7 @@
             <association>
             	<ref>ri:group</ref>
 				<inbound>
+					<trace>true</trace>
 					<authoritative>true</authoritative>
                		<tolerant>false</tolerant>
 					<strength>strong</strength>

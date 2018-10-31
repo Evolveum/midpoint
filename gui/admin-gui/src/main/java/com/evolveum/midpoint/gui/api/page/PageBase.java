@@ -640,6 +640,11 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     	if (userType == null) {
     		return false;
     	}
+    	
+    	if (oid == null) {
+    		return false;
+    	}
+    	
     	for (ObjectReferenceType roleMembershipRef : userType.getRoleMembershipRef()) {
     		if (oid.equals(roleMembershipRef.getOid()) && 
     				getPrismContext().relationMatches(subjectRelations, roleMembershipRef.getRelation())) {

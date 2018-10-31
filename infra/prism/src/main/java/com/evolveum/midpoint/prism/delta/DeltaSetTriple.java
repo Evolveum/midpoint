@@ -24,6 +24,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Foreachable;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.Processor;
+import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.util.Transformer;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,7 +45,7 @@ import java.util.stream.Stream;
  *
  * @author Radovan Semancik
  */
-public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVisitable<T>, Foreachable<T> {
+public class DeltaSetTriple<T> implements DebugDumpable, ShortDumpable, Serializable, SimpleVisitable<T>, Foreachable<T> {
 
     /**
      * Collection of values that were not changed.
@@ -471,6 +472,22 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
 				dumper.accept(val);
 			}
 		}
+	}
+	
+	@Override
+	public void shortDump(StringBuilder sb) {
+		shortDumpSet(sb, "zero", zeroSet);
+		shortDumpSet(sb, "plus", plusSet);
+		shortDumpSet(sb, "minus", minusSet);
+	}
+
+	private void shortDumpSet(StringBuilder sb, String label, Collection<T> set) {
+		if (set == null) {
+			return;
+		}
+		sb.append(label).append(": ");
+		sb.append(set);
+		sb.append("; ");
 	}
 
 	public String toHumanReadableString() {

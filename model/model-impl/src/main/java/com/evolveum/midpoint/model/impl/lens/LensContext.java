@@ -1056,10 +1056,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		for (EvaluatedAssignmentImpl<?> assignment : set) {
 			sb.append("\n");
 			DebugUtil.indentDebugDump(sb, indent + 1);
-			sb.append("-> ").append(assignment.getTarget());
-			if (!assignment.isValid()) {
-				sb.append(" invalid ");
-			}
+			sb.append("-> ");
+			assignment.shortDump(sb);
 			dumpRulesIfNotEmpty(sb, "- focus rules", indent + 3, assignment.getFocusPolicyRules());
 			dumpRulesIfNotEmpty(sb, "- this target rules", indent + 3, assignment.getThisTargetPolicyRules());
 			dumpRulesIfNotEmpty(sb, "- other targets rules", indent + 3, assignment.getOtherTargetsPolicyRules());

@@ -8,6 +8,8 @@ import java.util.Map;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
@@ -52,7 +54,7 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel implements 
 	
 	private void initLayout(){
 		
-		DropDownFormGroup<QName> type = new DropDownFormGroup<QName>(ID_OBJECT_TYPE, Model.of(FocusType.COMPLEX_TYPE), Model.ofList(getSupportedObjectTypes()), 
+		DropDownFormGroup<QName> type = new DropDownFormGroup<QName>(ID_OBJECT_TYPE, Model.of(getDefaultObjectType()), Model.ofList(getSupportedObjectTypes()), 
 				new QNameObjectTypeChoiceRenderer(), createStringResource("chooseFocusTypeAndRelationDialogPanel.type"), 
 				"chooseFocusTypeAndRelationDialogPanel.tooltip.type", true, "col-md-4", "col-md-8", false);
 		type.getInput().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
@@ -112,6 +114,16 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel implements 
 	
 	protected List<QName> getSupportedObjectTypes() {
 		return WebComponentUtil.createFocusTypeList(true);
+	}
+	
+	private QName getDefaultObjectType() {
+		List<QName> supportedObjectTypes = getSupportedObjectTypes();
+		if (CollectionUtils.isEmpty(supportedObjectTypes)) {
+			return FocusType.COMPLEX_TYPE;
+		}
+		
+		return supportedObjectTypes.iterator().next();
+		
 	}
 	
 	protected List<QName> getSupportedRelations() {

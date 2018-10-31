@@ -16,6 +16,10 @@
 package com.evolveum.midpoint.testing.story;
 
 import java.io.File;
+import java.util.Collection;
+import java.util.function.Consumer;
+
+import javax.xml.namespace.QName;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -25,12 +29,21 @@ import org.testng.annotations.Test;
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
+import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -68,6 +81,8 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
 	private static final String ACCOUNT_GUYBRUSH_FULLNAME = "Guybrush Threepwood";
 	
 	private static final String GROUP_PIRATES_NAME = "pirates";
+	
+	private static final QName ASSOCIATION_GROUP_QNAME = new QName(MidPointConstants.NS_RI, "group");
 
 	private String rolePiratesOid;
 	
@@ -342,6 +357,177 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
 			.assertNoMembers();
 	}
 	
+	@Test
+	public void test150AssignJackDirAccount() throws Exception {
+		final String TEST_NAME = "test150AssignJackDirAccount";
+		displayTestTitle(TEST_NAME);
+		
+		Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        displayWhen(TEST_NAME);
+        assignAccount(UserType.class, USER_JACK_OID, RESOURCE_DUMMY_DIR_OID, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		display("dir after", getDummyResourceDir());
+		
+		assertUserAfter(USER_JACK_OID)
+			.assignments()
+				.assertAssignments(1);
+		
+		assertDummyAccountByUsername(RESOURCE_DUMMY_DIR_NAME, USER_JACK_USERNAME)
+			.assertFullName(USER_JACK_FULL_NAME);
+		
+		assertDummyGroupByName(RESOURCE_DUMMY_DIR_NAME, GROUP_PIRATES_NAME)
+			.assertNoMembers();
+	}
+	
+	@Test
+	public void test152JackAssignRolePirates() throws Exception {
+		final String TEST_NAME = "test152JackAssignRolePirates";
+		displayTestTitle(TEST_NAME);
+		
+		Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+		
+		// WHEN
+        displayWhen(TEST_NAME);
+        assignRole(USER_JACK_OID, rolePiratesOid, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		display("dir after", getDummyResourceDir());
+		
+		assertUserAfter(USER_JACK_OID)
+			.assignments()
+				.assertAssignments(2)
+				.assertRole(rolePiratesOid);
+		
+		assertDummyAccountByUsername(RESOURCE_DUMMY_DIR_NAME, USER_JACK_USERNAME)
+			.assertFullName(USER_JACK_FULL_NAME);
+		
+		assertDummyAccountByUsername(RESOURCE_DUMMY_DIR_NAME, USER_JACK_USERNAME)
+		.assertFullName(USER_JACK_FULL_NAME);
+	
+		assertDummyGroupByName(RESOURCE_DUMMY_DIR_NAME, GROUP_PIRATES_NAME)
+			.assertMembers(USER_JACK_USERNAME);
+	}
+	
+	/**
+	 * MID-4948
+	 */
+	@Test
+	public void test153JackUnassignRolePiratesPreview() throws Exception {
+		final String TEST_NAME = "test153JackUnassignRolePiratesPreview";
+		displayTestTitle(TEST_NAME);
+		
+		Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+		
+        ObjectDelta<UserType> focusDelta = createAssignmentFocusDelta(
+        		UserType.class, USER_JACK_OID, 
+        		FocusType.F_ASSIGNMENT,
+        		rolePiratesOid, RoleType.COMPLEX_TYPE,
+        		null, (Consumer<AssignmentType>)null, false);
+        
+		// WHEN
+        displayWhen(TEST_NAME);
+		ModelContext<UserType> previewContext = previewChanges(focusDelta, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		assertPreviewContext(previewContext)
+			.projectionContexts()
+				.single()
+					.assertNoPrimaryDelta()
+					.secondaryDelta()
+						.assertModify()
+						.container(ShadowType.F_ASSOCIATION)
+							.assertNoValuesToAdd()
+							.assertNoValuesToReplace()
+							.valuesToDelete()
+								.single()
+									.assertPropertyEquals(ShadowAssociationType.F_NAME, ASSOCIATION_GROUP_QNAME)
+									.end()
+								.end()
+							.end()
+						.end()
+					.objectNew()
+						.display();
+		
+	}
+	
+	/**
+	 * MID-4948
+	 */
+	@Test
+	public void test154JackUnassignRolePirates() throws Exception {
+		final String TEST_NAME = "test154JackUnassignRolePirates";
+		displayTestTitle(TEST_NAME);
+		
+		Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+		
+		// WHEN
+        displayWhen(TEST_NAME);
+        unassignRole(USER_JACK_OID, rolePiratesOid, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		display("dir after", getDummyResourceDir());
+		
+		assertUserAfter(USER_JACK_OID)
+			.assignments()
+				.assertAssignments(1)
+				.assertNoRole(rolePiratesOid);
+		
+		assertDummyAccountByUsername(RESOURCE_DUMMY_DIR_NAME, USER_JACK_USERNAME)
+			.assertFullName(USER_JACK_FULL_NAME);
+		
+		assertDummyAccountByUsername(RESOURCE_DUMMY_DIR_NAME, USER_JACK_USERNAME)
+		.assertFullName(USER_JACK_FULL_NAME);
+	
+		assertDummyGroupByName(RESOURCE_DUMMY_DIR_NAME, GROUP_PIRATES_NAME)
+			.assertNoMembers();
+	}
+	
+	@Test
+	public void test159JackUnassignDirAccount() throws Exception {
+		final String TEST_NAME = "test159JackUnassignDirAccount";
+		displayTestTitle(TEST_NAME);
+		
+		Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+		
+		// WHEN
+        displayWhen(TEST_NAME);
+        unassignAccount(UserType.class, USER_JACK_OID, RESOURCE_DUMMY_DIR_OID, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		display("dir after", getDummyResourceDir());
+		
+		assertUserAfter(USER_JACK_OID)
+			.assignments()
+				.assertAssignments(0);
+	
+		assertNoDummyAccount(RESOURCE_DUMMY_DIR_NAME, USER_JACK_USERNAME);
+		
+		assertDummyGroupByName(RESOURCE_DUMMY_DIR_NAME, GROUP_PIRATES_NAME)
+			.assertNoMembers();
+	}
 
 	private String groupRoleName(String groupName) {
 		return "group:"+groupName;

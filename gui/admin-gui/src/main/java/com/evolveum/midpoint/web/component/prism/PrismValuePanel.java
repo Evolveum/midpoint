@@ -604,7 +604,7 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 					public void setObject(String object) {
 						model.setObject(XmlTypeConverter.createDuration(MiscUtil.nullIfEmpty(object)));
 					}
-				});
+				}, false);
 			} else if (DOMUtil.XSD_QNAME.equals(valueType)) {
 				DropDownChoicePanel<QName> panelDropDown = new DropDownChoicePanel<QName>(id, new PropertyModel(getModel(), baseExpression),
 						Model.ofList(WebComponentUtil.createObjectTypeList()), new QNameIChoiceRenderer(OBJECT_TYPE), true);
@@ -639,13 +639,13 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 
 					} else {
 						inputPanel = new TextPanel<>(id, new PropertyModel<String>(getModel(), baseExpression + ".orig"),
-								String.class);
+								String.class, false);
 					}
 
 				} else {
 
 					inputPanel = new TextPanel<>(id, new PropertyModel<String>(getModel(), baseExpression + ".orig"),
-							String.class);
+							String.class, false);
 				}
 
 				panel = inputPanel;
@@ -928,12 +928,12 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 
 					} else {
 
-						panel = new TextPanel<>(id, new PropertyModel<String>(getModel(), baseExpression), type);
+						panel = new TextPanel<>(id, new PropertyModel<String>(getModel(), baseExpression), type, false);
 
 					}
 
 				} else {
-					panel = new TextPanel<>(id, new PropertyModel<String>(getModel(), baseExpression), type);
+					panel = new TextPanel<>(id, new PropertyModel<String>(getModel(), baseExpression), type, false);
 				}
 			}
 		} else if (item instanceof PrismReference) {

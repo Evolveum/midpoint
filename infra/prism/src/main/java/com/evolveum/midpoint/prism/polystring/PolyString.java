@@ -157,7 +157,7 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 	}
 
 	public PolyString trim() {
-		return new PolyString(orig.trim(), norm.trim());
+		return new PolyString(orig.trim(), norm != null ? norm.trim() : norm);
 	}
 
 	public String substring(int from, int to) {
