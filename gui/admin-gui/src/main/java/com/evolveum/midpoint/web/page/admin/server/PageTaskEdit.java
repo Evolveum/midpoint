@@ -73,7 +73,8 @@ import java.util.*;
 
 public class PageTaskEdit extends PageAdmin implements Refreshable {
 
-	private static final int REFRESH_INTERVAL_IF_RUNNABLE = 2000;
+	private static final int REFRESH_INTERVAL_IF_RUNNING = 2000;
+	private static final int REFRESH_INTERVAL_IF_RUNNABLE = 60000;
 	private static final int REFRESH_INTERVAL_IF_SUSPENDED = 60000;
 	private static final int REFRESH_INTERVAL_IF_WAITING = 60000;
 	private static final int REFRESH_INTERVAL_IF_CLOSED = 60000;
@@ -232,10 +233,9 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 			return REFRESH_INTERVAL_IF_CLOSED;
 		}
 		switch (exec) {
-			case RUNNABLE:
 			case RUNNING:
-			case RUNNING_OR_RUNNABLE:
-			case SUSPENDING: return REFRESH_INTERVAL_IF_RUNNABLE;
+			case SUSPENDING: return REFRESH_INTERVAL_IF_RUNNING;
+			case RUNNABLE:return REFRESH_INTERVAL_IF_RUNNABLE;
 			case SUSPENDED: return REFRESH_INTERVAL_IF_SUSPENDED;
 			case WAITING: return REFRESH_INTERVAL_IF_WAITING;
 			case CLOSED: return REFRESH_INTERVAL_IF_CLOSED;
@@ -272,6 +272,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		} else {
 			LOGGER.info("Hard version of the page refreshing, tabsVisibilityNew: " + tabsVisibilityNew + "; \n tabsVisibilityOld: " + tabsVisibilityOld);
 			// hard version
+			target.add(getSummaryPanel());
 			target.add(mainPanel.getTabPanel());
 		}
 		target.add(getSummaryPanel());
