@@ -164,16 +164,18 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 		if (cvalues == null) {
 			return null;
 		}
+		boolean foundValuesOnPath = false;
 		Collection<PrismValue> subValues = new ArrayList<>();
 		for (PrismContainerValue<V> cvalue: cvalues) {
 			if (id == null || id == cvalue.getId()) {
 				Item<?,?> item = cvalue.findItem(path);
 				if (item != null) {
 					subValues.addAll(PrismValue.cloneCollection(item.getValues()));
+					foundValuesOnPath = true;
 				}
 			}
 		}
-		return subValues;
+		return foundValuesOnPath ? subValues : null;
 	}
 
 	/**
