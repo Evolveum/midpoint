@@ -27,11 +27,14 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -172,14 +175,16 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
 		assertEquals("Wrong "+propName.getLocalPart()+" in "+desc(), expected, realValue);
 	}
 	
-	protected void assertNoItem(QName itemName) {
+	public PrismObjectAsserter<O,RA> assertNoItem(QName itemName) {
 		Item<PrismValue, ItemDefinition> item = getObject().findItem(itemName);
 		assertNull("Unexpected item "+itemName+" in "+desc(), item);
+		return this;
 	}
 	
-	protected void assertNoItem(ItemPath itemPath) {
+	public PrismObjectAsserter<O,RA> assertNoItem(ItemPath itemPath) {
 		Item<PrismValue, ItemDefinition> item = getObject().findItem(itemPath);
 		assertNull("Unexpected item "+itemPath+" in "+desc(), item);
+		return this;
 	}
 	
 	public String getOid() {
@@ -217,5 +222,17 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
 		copySetupTo(asserter);
 		return asserter;
 	}
+	
+//	public <C extends Containerable> ContainerAsserter<C,PrismObjectAsserter<O,RA>> container(QName qname) {
+//		return container(new ItemPath(qname));
+//	}
+//	
+//	public <C extends Containerable> ContainerAsserter<C,PrismObjectAsserter<O,RA>> container(ItemPath path) {
+//		PrismContainer<C> container = getObject().findContainer(path);
+//		assertNotNull("No container for path "+path+" in "+desc(), container);
+//		ContainerAsserter<C,PrismObjectAsserter<O,RA>> containerAsserter = new ContainerAsserter<>(container, this, "container for "+path+" in "+desc());
+//		copySetupTo(containerAsserter);
+//		return containerAsserter;
+//	}
 
 }
