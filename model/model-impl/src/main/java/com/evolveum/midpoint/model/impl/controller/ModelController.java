@@ -1107,7 +1107,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 		SearchResultMetadata metadata;
 		try {
-			RepositoryCache.enter();
+			// Intentionally avoiding entering repo cache (MID-4959, MID-4615)
 			logQuery(query);
 
 			try {
@@ -1128,7 +1128,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 				}
 			}
 		} finally {
-			RepositoryCache.exit();
+			// Intentionally avoiding exiting repo cache
 		}
 
 		return metadata;
