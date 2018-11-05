@@ -21,6 +21,8 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
@@ -103,7 +105,15 @@ public abstract class PageWorkItems extends PageAdminWorkItems {
         add(mainForm);
 
         WorkItemsPanel panel = new WorkItemsPanel(ID_WORK_ITEMS_PANEL,
-                new WorkItemDtoProvider(PageWorkItems.this, workItemsType, donorModel),
+                new WorkItemDtoProvider(PageWorkItems.this, workItemsType, donorModel) {
+        	
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
+						getSessionStorage().getWorkItemStorage().setPaging(paging);
+					}
+        		},
                 UserProfileStorage.TableId.PAGE_WORK_ITEMS,
                 (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_WORK_ITEMS),
                 WorkItemsPanel.View.FULL_LIST);

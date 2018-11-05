@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
+import com.evolveum.midpoint.gui.impl.session.WorkItemsStorage;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -60,6 +61,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
     public static final String KEY_ROLE_MEMEBER_PANEL = "roleMemberPanel";
     public static final String KEY_ORG_MEMEBER_PANEL = "orgMemberPanel";
     public static final String KEY_SERVICE_MEMEBER_PANEL = "serviceMemberPanel";
+    public static final String KEY_WORK_ITEMS = "workItems";
 
     private static final String KEY_TASKS = "tasks";
     private static final String KEY_CERT_CAMPAIGNS = "certCampaigns";
@@ -220,6 +222,12 @@ public class SessionStorage implements Serializable, DebugDumpable {
 		}
     }
 
+    public WorkItemsStorage getWorkItemStorage() {
+    	if (pageStorageMap.get(KEY_WORK_ITEMS) == null) {
+            pageStorageMap.put(KEY_WORK_ITEMS, new WorkItemsStorage());
+        }
+        return (WorkItemsStorage)pageStorageMap.get(KEY_WORK_ITEMS);
+    }
 
     public TasksStorage getTasks() {
         if (pageStorageMap.get(KEY_TASKS) == null) {
