@@ -384,7 +384,7 @@ public class SearchPanel extends BasePanel<Search> {
         	
             @Override
             public String load() {
-                return basicSearchButton.isVisible() ? "margin-top: -20px;" : "display: table-cell; vertical-align: top;";
+                return basicSearchButton.isVisible() ? "" : "display: table-cell; vertical-align: top;";
             }
         }));
 
