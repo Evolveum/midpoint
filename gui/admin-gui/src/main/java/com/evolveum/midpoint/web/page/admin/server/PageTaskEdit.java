@@ -261,7 +261,6 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		}
 		if (tabsVisibilityNew.equals(tabsVisibilityOld)) {
 			// soft version
-			LOGGER.trace("Soft version of the page refreshing, tabsVisibilityNew: " + tabsVisibilityNew + "; \n tabsVisibilityOld: " + tabsVisibilityOld);
 			for (Component component : mainPanel.getTabPanel()) {
 				if (component instanceof TaskTabPanel) {
 					for (Component c : ((TaskTabPanel) component).getComponentsToUpdate()) {
@@ -270,7 +269,6 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 				}
 			}
 		} else {
-			LOGGER.trace("Hard version of the page refreshing, tabsVisibilityNew: " + tabsVisibilityNew + "; \n tabsVisibilityOld: " + tabsVisibilityOld);
 			// hard version
 			target.add(getSummaryPanel());
 			target.add(mainPanel.getTabPanel());
@@ -281,10 +279,8 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		refreshDto.recordRefreshed();
 
 		if (isEdit() || !refreshDto.isEnabled()) {
-			LOGGER.trace("Stop refreshing, interval=" + refreshDto.getInterval());
 			getRefreshPanel().stopRefreshing(this, target);
 		} else {
-			LOGGER.trace("Start refreshing, interval=" + refreshDto.getInterval());
 			getRefreshPanel().startRefreshing(this, target);
 		}
 	}
