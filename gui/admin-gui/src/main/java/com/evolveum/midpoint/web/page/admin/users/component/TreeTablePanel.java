@@ -50,6 +50,7 @@ import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.orgs.AbstractOrgTabPanel;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreeAssignablePanel;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreePanel;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
@@ -542,6 +543,10 @@ public class TreeTablePanel extends BasePanel<String> {
 
 		parentPage.showResult(result);
 		target.add(parentPage.getFeedbackPanel());
+		if(parentPage instanceof PageOrgTree && ((PageOrgTree) parentPage).getTabPanel() != null
+				&& ((PageOrgTree) parentPage).getTabPanel().getTabbedPanel() != null) {
+			((PageOrgTree) parentPage).getTabPanel().getTabbedPanel().setSelectedTab(0);
+		}
 		setResponsePage(PageOrgTree.class);
 
 	}
