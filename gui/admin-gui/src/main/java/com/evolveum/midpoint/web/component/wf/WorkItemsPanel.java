@@ -173,6 +173,7 @@ public class WorkItemsPanel extends BasePanel {
 			}
 		};
 		workItemsTable.setAdditionalBoxCssClasses("without-box-header-top-border");
+		workItemsTable.setCurrentPage(getSession().getSessionStorage().getWorkItemStorage().getPaging());
         add(workItemsTable);
     }
 
