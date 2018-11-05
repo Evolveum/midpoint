@@ -572,7 +572,7 @@ public class ResourceObjectConverter {
 			AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> modifyAsyncRet = null;
 			
 			//check identifier if it is not null
-			if (primaryIdentifiers.isEmpty() && repoShadow.asObjectable().getFailedOperationType()!= null){
+			if ((primaryIdentifiers == null || primaryIdentifiers.isEmpty()) && repoShadow.asObjectable().getFailedOperationType() != null){
 				GenericConnectorException e = new GenericConnectorException(
 						"Unable to modify object in the resource. Probably it has not been created yet because of previous unavailability of the resource.");
 				result.recordFatalError(e);

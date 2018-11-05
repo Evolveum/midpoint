@@ -1168,7 +1168,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 		SearchResultMetadata metadata;
 		try {
-			enterModelMethod();
+			enterModelMethodNoRepoCache();          // skip using cache to avoid potentially many objects there (MID-4615, MID-4959)
 			logQuery(processedQuery);
 
 			try {
@@ -1189,7 +1189,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 				}
 			}
 		} finally {
-			exitModelMethod();
+			exitModelMethodNoRepoCache();
 		}
 		
 		// TODO: log errors
@@ -2234,11 +2234,19 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	}
 	
 	private void enterModelMethod() {
-		clockworkMedic.enterModelMethod();
+		clockworkMedic.enterModelMethod(true);
 	}
 	
+	private void enterModelMethodNoRepoCache() {
+		clockworkMedic.enterModelMethod(false);
+	}
+
 	private void exitModelMethod() {
-		clockworkMedic.exitModelMethod();
+		clockworkMedic.exitModelMethod(true);
+	}
+
+	private void exitModelMethodNoRepoCache() {
+		clockworkMedic.exitModelMethod(false);
 	}
 
 	//region Case Management

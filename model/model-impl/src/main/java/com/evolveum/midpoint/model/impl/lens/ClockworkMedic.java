@@ -52,7 +52,7 @@ public class ClockworkMedic {
 		
 	private static final Trace LOGGER = TraceManager.getTrace(ClockworkMedic.class);
 	
-	public void enterModelMethod() {
+	public void enterModelMethod(boolean enterCache) {
 		if (InternalsConfig.isModelProfiling()) {
 			DiagnosticContextManager manager = getDiagnosticContextManager();
 			DiagnosticContext ctx;
@@ -64,12 +64,16 @@ public class ClockworkMedic {
 			}
 			DiagnosticContextHolder.push(ctx);
 		}
-		
-		RepositoryCache.enter();
+
+		if (enterCache) {
+			RepositoryCache.enter();
+		}
 	}
 	
-	public void exitModelMethod() {
-		RepositoryCache.exit();
+	public void exitModelMethod(boolean exitCache) {
+		if (exitCache) {
+			RepositoryCache.exit();
+		}
 		
 		DiagnosticContext ctx = DiagnosticContextHolder.pop();
 		if (ctx != null) {
