@@ -133,6 +133,32 @@ public class PrismForm<T> extends Component<T> {
         return this;
     }
 
+    public PrismForm<T> setPasswordFieldsValues(QName name, String value) {
+        SelenideElement property = findProperty(name);
+
+        ElementsCollection values = property.$$(By.className("prism-property-value"));
+        if (values.size() > 0) {
+            ElementsCollection passwordInputs = values.first().$$(By.tagName("input"));
+            if (passwordInputs != null){
+                passwordInputs.forEach(inputElement -> inputElement.setValue(value));
+            }
+        }
+        return this;
+    }
+
+    public PrismForm<T> setDropDownAttributeValue(QName name, String value) {
+        SelenideElement property = findProperty(name);
+
+        ElementsCollection values = property.$$(By.className("prism-property-value"));
+        if (values.size() > 0) {
+            SelenideElement dropDown = values.first().$(By.tagName("select"));
+            if (dropDown != null){
+                dropDown.selectOptionContainingText(value);
+            }
+        }
+        return this;
+    }
+
     public PrismForm<T> setAttributeValue(QName name, String value) {
         // todo implement
         return this;
