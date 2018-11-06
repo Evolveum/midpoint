@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.prism.lex.json.yaml;
 
+import com.fasterxml.jackson.core.Base64Variant;
 import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.core.io.IOContext;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
@@ -11,6 +12,7 @@ import org.yaml.snakeyaml.events.ScalarEvent;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Arrays;
 import java.util.Collections;
 
 public class MidpointYAMLGenerator extends YAMLGenerator {
@@ -62,4 +64,39 @@ public class MidpointYAMLGenerator extends YAMLGenerator {
 		_emitter.emit(new DocumentStartEvent(null, null, true, version, Collections.emptyMap()));
 	}
 
+	/*
+	 * UGLY HACK - working around YAML serialization problem
+	 * (https://github.com/FasterXML/jackson-dataformats-text/issues/90)
+	 *
+	 * TODO - after YAML problem is fixed, remove this code block (MID-4974)
+	 * TODO - if upgrading YAML library before that, make sure everything works (because this code is almost literally copied from YAMLGenerator class)
+	 */
+
+	@Override
+	public void writeBinary(Base64Variant b64variant, byte[] data, int offset, int len) throws IOException
+	{
+		if (data == null) {
+			writeNull();
+			return;
+		}
+		_verifyValueWrite("write Binary value");
+		if (offset > 0 || (offset+len) != data.length) {
+			data = Arrays.copyOfRange(data, offset, offset+len);
+		}
+		_writeScalarBinaryPatched(b64variant, data);
+	}
+
+	private final static ImplicitTuple EXPLICIT_TAGS = new ImplicitTuple(false, false);
+	private final static Character STYLE_LITERAL = '|';
+	private final static Character STYLE_BASE64 = STYLE_LITERAL;
+	private void _writeScalarBinaryPatched(Base64Variant b64variant, byte[] data) throws IOException
+	{
+		String encoded = b64variant.encode(data);
+		_emitter.emit(new ScalarEvent(null, TAG_BINARY, EXPLICIT_TAGS, encoded,
+				null, null, STYLE_BASE64));
+	}
+
+	/*
+	 *  END OF UGLY HACK
+	 */
 }

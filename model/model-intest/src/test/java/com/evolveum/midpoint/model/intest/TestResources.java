@@ -486,7 +486,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         assertFalse("Empty search return", resources.isEmpty());
         assertEquals("Unexpected number of resources found", 2, resources.size());
 
-        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  2);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  0);
 
         // No explicit get. Search is doing all the work.
         assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_READ_COUNT, 0);
@@ -539,7 +539,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         assertFalse("Empty search return", resources.isEmpty());
         assertEquals("Unexpected number of resources found", 2, resources.size());
 
-        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  2);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  0);
 
         // No explicit get. Search is doing all the work.
         assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_READ_COUNT, 0);

@@ -117,7 +117,7 @@ public class PageLogin extends PageBase {
                 	Task task = createAnonymousTask(OPERATION_LOAD_REGISTRATION_POLICY);
                 	registrationPolicies = getModelInteractionService().getFlowPolicy(null, task, parentResult);
 
-                	if (registrationPolicies != null && registrationPolicies.getSelfRegistration() == null) {
+                	if (registrationPolicies == null || registrationPolicies.getSelfRegistration() == null) {
                 		registrationPolicies = getModelInteractionService().getRegistrationPolicy(null, task, parentResult);
                 	}
                 	
