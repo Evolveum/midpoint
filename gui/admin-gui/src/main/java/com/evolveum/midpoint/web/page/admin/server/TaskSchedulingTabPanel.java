@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.DateInput;
+import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
@@ -134,7 +135,7 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 				if (dto.getLastRunStartTimestampLong() == null) {
 					return "-";
 				} else {
-					return WebComponentUtil.formatDate(new Date(dto.getLastRunStartTimestampLong()));
+					return WebComponentUtil.getLocalizedDate(new Date(dto.getLastRunStartTimestampLong()), DateLabelComponent.LONG_MEDIUM_STYLE);
 				}
 			}
 		});
@@ -165,7 +166,7 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 				if (dto.getLastRunFinishTimestampLong() == null) {
 					return "-";
 				} else {
-					return WebComponentUtil.formatDate(new Date(dto.getLastRunFinishTimestampLong()));
+					return WebComponentUtil.getLocalizedDate(new Date(dto.getLastRunFinishTimestampLong()), DateLabelComponent.LONG_MEDIUM_STYLE);
 				}
 			}
 		});

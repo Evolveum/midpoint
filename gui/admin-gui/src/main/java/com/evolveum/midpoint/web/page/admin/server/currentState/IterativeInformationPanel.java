@@ -17,10 +17,12 @@ package com.evolveum.midpoint.web.page.admin.server.currentState;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.progress.StatisticsDtoModel;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskCurrentStateDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
@@ -68,10 +70,10 @@ public class IterativeInformationPanel extends BasePanel<TaskCurrentStateDto> {
 
     public IterativeInformationPanel(String id, IModel<TaskCurrentStateDto> model, final PageBase pageBase) {
         super(id, model);
-		initLayout();
+		initLayout(pageBase);
     }
 
-    protected void initLayout() {
+    protected void initLayout(PageBase pageBase) {
 
 		Label executionTime = new Label(ID_EXECUTION_TIME, new AbstractReadOnlyModel<String>() {
 			@Override
@@ -177,8 +179,8 @@ public class IterativeInformationPanel extends BasePanel<TaskCurrentStateDto> {
                     if (showAgo(dto)) {
                         return getString("TaskStatePanel.message.timeInfoWithDurationAndAgo",
                                 formatDate(info.getLastSuccessEndTimestamp()),
-                                DurationFormatUtils.formatDurationWords(System.currentTimeMillis() -
-                                        XmlTypeConverter.toMillis(info.getLastSuccessEndTimestamp()), true, true),
+                                WebComponentUtil.formatDurationWordsForLocal(System.currentTimeMillis() -
+                                        XmlTypeConverter.toMillis(info.getLastSuccessEndTimestamp()), true, true, pageBase),
                                 info.getLastSuccessDuration());
                     } else {
                         return getString("TaskStatePanel.message.timeInfoWithDuration",
@@ -271,8 +273,8 @@ public class IterativeInformationPanel extends BasePanel<TaskCurrentStateDto> {
                     if (showAgo(dto)) {
                         return getString("TaskStatePanel.message.timeInfoWithDurationAndAgo",
                                 formatDate(info.getLastFailureEndTimestamp()),
-                                DurationFormatUtils.formatDurationWords(System.currentTimeMillis() -
-                                        XmlTypeConverter.toMillis(info.getLastFailureEndTimestamp()), true, true),
+                                WebComponentUtil.formatDurationWordsForLocal(System.currentTimeMillis() -
+                                        XmlTypeConverter.toMillis(info.getLastFailureEndTimestamp()), true, true, pageBase),
                                 info.getLastFailureDuration());
                     } else {
                         return getString("TaskStatePanel.message.timeInfoWithDuration",
@@ -332,8 +334,8 @@ public class IterativeInformationPanel extends BasePanel<TaskCurrentStateDto> {
                 } else {
                     return getString("TaskStatePanel.message.timeInfoWithAgo",
                             formatDate(info.getCurrentObjectStartTimestamp()),
-                            DurationFormatUtils.formatDurationWords(System.currentTimeMillis() -
-                                    XmlTypeConverter.toMillis(info.getCurrentObjectStartTimestamp()), true, true));
+                            WebComponentUtil.formatDurationWordsForLocal(System.currentTimeMillis() -
+                                    XmlTypeConverter.toMillis(info.getCurrentObjectStartTimestamp()), true, true, pageBase));
                 }
             }
         });
@@ -372,7 +374,7 @@ public class IterativeInformationPanel extends BasePanel<TaskCurrentStateDto> {
         if (date == null) {
             return null;
         }
-        return date.toLocaleString();
+        return WebComponentUtil.getLocalizedDate(date, DateLabelComponent.LONG_MEDIUM_STYLE);
     }
 
     protected boolean showAgo(TaskCurrentStateDto dto) {
