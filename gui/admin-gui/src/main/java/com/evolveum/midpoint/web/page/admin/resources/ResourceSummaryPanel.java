@@ -28,10 +28,13 @@ import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.SummaryTag;
+import com.evolveum.midpoint.web.component.util.SummaryTagSimple;
+import com.evolveum.midpoint.web.model.ContainerableFromPrismObjectModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 public class ResourceSummaryPanel extends ObjectSummaryPanel<ResourceType> {
 	private static final long serialVersionUID = 1L;
@@ -49,20 +52,18 @@ public class ResourceSummaryPanel extends ObjectSummaryPanel<ResourceType> {
 	protected void onBeforeRender() {
 		super.onBeforeRender();
 		boolean down = ResourceTypeUtil.isDown(model.getObject().asObjectable());
-		ObjectWrapper<ResourceType> objectWrapper = ObjectWrapperUtil.createObjectWrapper("resourceType", "", model.getObject(), ContainerStatus.MODIFYING,
-				getPageBase().createSimpleTask("createResourceObjectWrapper"), getPageBase());
-		SummaryTag<ResourceType> summaryTag = new SummaryTag<ResourceType>(ID_UP_DOWN_TAG, new Model(objectWrapper)) {
+		IModel<ResourceType> containerModel = new ContainerableFromPrismObjectModel<>(model);
+		SummaryTagSimple<ResourceType> summaryTag = new SummaryTagSimple<ResourceType>(ID_UP_DOWN_TAG, containerModel) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void initialize(ObjectWrapper<ResourceType> wrapper) {
+			protected void initialize(ResourceType object) {
 				if (!down) {
 					setIconCssClass(GuiStyleConstants.CLASS_ICON_ACTIVATION_ACTIVE);
 					setLabel(getString("ResourceSummaryPanel.UP"));
 				} else {
 					setIconCssClass(GuiStyleConstants.CLASS_ICON_ACTIVATION_INACTIVE);
 					setLabel(getString("ResourceSummaryPanel.DOWN"));
-					setCssClass(GuiStyleConstants.CLASS_ICON_STYLE_DISABLED);
 				}
 			}
 		};
