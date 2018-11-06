@@ -673,7 +673,7 @@ public class ModelRestService {
 		try {
 			PrismObject<UserType> user = model.findShadowOwner(shadowOid, task, parentResult);
 //			response = Response.ok().entity(user).build();
-			response = RestServiceUtil.createResponse(Response.Status.NO_CONTENT, user, parentResult);
+			response = RestServiceUtil.createResponse(Response.Status.OK, user, parentResult);
 		} catch (Exception ex) {
 			response = RestServiceUtil.handleException(parentResult, ex);
 		}
