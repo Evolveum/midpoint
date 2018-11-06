@@ -101,14 +101,35 @@ public class PrismForm<T> extends Component<T> {
         return this;
     }
 
-    public Boolean compareAttibuteValue(String name, String expectedValue) {
+    public Boolean compareInputAttributeValue(String name, String expectedValue) {
         SelenideElement property = findProperty(name);
         SelenideElement value = property.$(By.xpath(".//input[contains(@class,\"form-control\")]"));
-        String valueElemen = value.getValue();
+        String valueElement = value.getValue();
 
-        if (!valueElemen.isEmpty()) {
+        if (!valueElement.isEmpty()) {
 
-            return valueElemen.equals(expectedValue);
+            return valueElement.equals(expectedValue);
+
+        } else if (!expectedValue.isEmpty()) {
+
+            return false;
+
+        } else {
+
+            return true;
+
+        }
+
+    }
+
+    public Boolean compareSelectAttributeValue(String name, String expectedValue) {
+        SelenideElement property = findProperty(name);
+        SelenideElement value = property.$(By.xpath(".//select[contains(@class,\"form-control\")]"));
+        String selectedOptionText = value.getSelectedText();
+
+        if (!selectedOptionText.isEmpty()) {
+
+            return selectedOptionText.equals(expectedValue);
 
         } else if (!expectedValue.isEmpty()) {
 

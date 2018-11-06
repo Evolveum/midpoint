@@ -7,9 +7,7 @@ import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import com.evolveum.midpoint.testing.schrodinger.TestBase;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.openqa.selenium.By;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -69,31 +67,56 @@ public class BasicProvisioningTest  extends TestBase {
         Assert.assertTrue(userPage
                 .selectTabBasic()
                 .form()
-                .compareAttibuteValue(USER_NAME_ATTRIBUTE, USER_NAME));
+                .compareInputAttributeValue(USER_NAME_ATTRIBUTE, USER_NAME));
 
         //check given name attribute value
         Assert.assertTrue(userPage
                 .selectTabBasic()
                 .form()
-                .compareAttibuteValue(USER_GIVEN_NAME_ATTRIBUTE, USER_GIVEN_NAME));
+                .compareInputAttributeValue(USER_GIVEN_NAME_ATTRIBUTE, USER_GIVEN_NAME));
 
         //check family name attribute value
         Assert.assertTrue(userPage
                 .selectTabBasic()
                 .form()
-                .compareAttibuteValue(USER_FAMILY_NAME_ATTRIBUTE, USER_FAMILY_NAME));
+                .compareInputAttributeValue(USER_FAMILY_NAME_ATTRIBUTE, USER_FAMILY_NAME));
 
         //check password is set label
         Assert.assertTrue($(Schrodinger.byElementValue("span", PASSWORD_IS_SET_LABEL))
                 .shouldBe(Condition.visible)
                 .exists());
 
-        //TODO check status, and password is set
-        //check administrative status attribute value
-//        Assert.assertTrue(userPage
-//                .selectTabBasic()
-//                .form()
-//                .compareAttibuteValue(Schrodinger.qnameToString(ActivationType.F_ADMINISTRATIVE_STATUS), USER_ADMINISTRATIVE_STATUS));
+        //check Administrative status value
+        Assert.assertTrue(userPage
+                .selectTabBasic()
+                .form()
+                .compareSelectAttributeValue(USER_ADMINISTRATIVE_STATUS_ATTRIBUTE, USER_ADMINISTRATIVE_STATUS));
 
     }
+
+    @Test(groups={"lab_4_1"})
+    public void test002addProjectionToUserKirk() {
+        ListUsersPage users = basicPage.listUsers();
+        users
+                .table()
+                    .search()
+                    .byName()
+                    .inputValue(USER_NAME)
+                    .updateSearch()
+                .and()
+                    .clickByName(USER_NAME)
+                        .selectTabProjections()
+                            .clickCog()
+                                .addProjection()
+                                    .projectionsTable()
+                                        .selectCheckboxByName(ImportResourceTest.RESOURCE_NAME)
+                                .and()
+                            .clickAdd()
+                        .and()
+                    .clickSave()
+                .feedback()
+                .isSuccess();
+
+    }
+
 }
