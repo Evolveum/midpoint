@@ -898,18 +898,27 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 				} else if (def.getValueEnumerationRef() != null) {
 					PrismReferenceValue valueEnumerationRef = def.getValueEnumerationRef();
 					String lookupTableUid = valueEnumerationRef.getOid();
-					Task task = getPageBase().createSimpleTask("loadLookupTable");
-					OperationResult result = task.getResult();
-
-					Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
-							.createLookupTableRetrieveOptions();
-					final PrismObject<LookupTableType> lookupTable = WebModelServiceUtils.loadObject(LookupTableType.class,
-							lookupTableUid, options, getPageBase(), task, result);
-
+					
+					final PrismObject<LookupTableType> lookupTable = getPageBase().runPrivileged(
+							() -> {
+								Task task = getPageBase().createAnonymousTask("loadLookupTable");
+								OperationResult result = task.getResult();
+								Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
+										.createLookupTableRetrieveOptions();
+								return WebModelServiceUtils.loadObject(LookupTableType.class,
+										lookupTableUid, options, getPageBase(), task, result);
+							});
+//					Task task = getPageBase().createSimpleTask("loadLookupTable");
+//					OperationResult result = task.getResult();
+//
+//					Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
+//							.createLookupTableRetrieveOptions();
+//					final PrismObject<LookupTableType> lookupTable = WebModelServiceUtils.loadObject(LookupTableType.class,
+//							lookupTableUid, options, getPageBase(), task, result);
 					if (lookupTable != null) {
 
 						panel = new AutoCompleteTextPanel<String>(id, new LookupPropertyModel<>(getModel(),
-                            baseExpression, lookupTable == null ? null : lookupTable.asObjectable()), String.class) {
+                            baseExpression, lookupTable.asObjectable()), String.class) {
 
 							@Override
 							public Iterator<String> getIterator(String input) {
