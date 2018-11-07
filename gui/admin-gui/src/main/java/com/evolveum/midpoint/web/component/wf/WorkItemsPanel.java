@@ -173,6 +173,7 @@ public class WorkItemsPanel extends BasePanel {
 			}
 		};
 		workItemsTable.setAdditionalBoxCssClasses("without-box-header-top-border");
+		workItemsTable.setCurrentPage(getSession().getSessionStorage().getWorkItemStorage().getPaging());
         add(workItemsTable);
     }
 
@@ -257,7 +258,26 @@ public class WorkItemsPanel extends BasePanel {
 				WorkItemDto dto = rowModel.getObject();
 				dispatchToObjectDetailsPage(dto.getObjectRef(), getPageBase(), false);
 			}
+			
+			@Override
+			public void populateItem(Item<ICellPopulator<WorkItemDto>> cellItem, String componentId,
+									 final IModel<WorkItemDto> rowModel) {
+				super.populateItem(cellItem, componentId, rowModel);
+				Component c = cellItem.get(componentId);
+				c.add(new AttributeAppender("title", getObjectDescription(rowModel)));
+			}
 		};
+	}
+	
+	private String getObjectDescription(IModel<WorkItemDto> rowModel){
+		if (rowModel == null || rowModel.getObject() == null ||
+				rowModel.getObject().getObjectRef() == null) {
+			return "";
+		}
+		PrismReferenceValue refVal = rowModel.getObject().getObjectRef().asReferenceValue();
+		return refVal.getObject() != null ?
+				refVal.getObject().asObjectable().getDescription() : "";
+
 	}
 
 	@SuppressWarnings("SameParameterValue")

@@ -59,7 +59,6 @@ public class ShadowUtil {
 		return getPrimaryIdentifiers(shadowType.asPrismObject());
 	}
 
-	// TODO: rename to getPrimaryIdentifiers
 	public static Collection<ResourceAttribute<?>> getPrimaryIdentifiers(PrismObject<? extends ShadowType> shadow) {
 		ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);
 		if (attributesContainer == null) {

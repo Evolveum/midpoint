@@ -189,7 +189,7 @@ public class SynchronizationTests extends TestBase {
                     .clickByName(TEST_USER_DON_NAME)
                         .selectTabBasic()
                             .form()
-                                .compareAttibuteValue("Given name","Donato")
+                                .compareInputAttributeValue("Given name","Donato")
         );
     }
 

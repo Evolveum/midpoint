@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -189,11 +190,10 @@ public class CertCaseOrWorkItemDto extends Selectable {
                 delta = (delta / precision) * precision;
             }
 
-            //todo i18n
             if (delta > 0) {
-            	return PageBase.createStringResourceStatic(page, "PageCert.in", DurationFormatUtils.formatDurationWords(delta, true, true)).getString();
+            	return PageBase.createStringResourceStatic(page, "PageCert.in", WebComponentUtil.formatDurationWordsForLocal(delta, true, true, page)).getString();
             } else if (delta < 0) {
-            	return PageBase.createStringResourceStatic(page, "PageCert.ago", DurationFormatUtils.formatDurationWords(-delta, true, true)).getString();
+            	return PageBase.createStringResourceStatic(page, "PageCert.ago", WebComponentUtil.formatDurationWordsForLocal(-delta, true, true, page)).getString();
             } else {
                 return page.getString("PageCert.now");
             }

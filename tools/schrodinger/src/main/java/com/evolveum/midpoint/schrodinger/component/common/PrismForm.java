@@ -101,14 +101,35 @@ public class PrismForm<T> extends Component<T> {
         return this;
     }
 
-    public Boolean compareAttibuteValue(String name, String expectedValue) {
+    public Boolean compareInputAttributeValue(String name, String expectedValue) {
         SelenideElement property = findProperty(name);
         SelenideElement value = property.$(By.xpath(".//input[contains(@class,\"form-control\")]"));
-        String valueElemen = value.getValue();
+        String valueElement = value.getValue();
 
-        if (!valueElemen.isEmpty()) {
+        if (!valueElement.isEmpty()) {
 
-            return valueElemen.equals(expectedValue);
+            return valueElement.equals(expectedValue);
+
+        } else if (!expectedValue.isEmpty()) {
+
+            return false;
+
+        } else {
+
+            return true;
+
+        }
+
+    }
+
+    public Boolean compareSelectAttributeValue(String name, String expectedValue) {
+        SelenideElement property = findProperty(name);
+        SelenideElement value = property.$(By.xpath(".//select[contains(@class,\"form-control\")]"));
+        String selectedOptionText = value.getSelectedText();
+
+        if (!selectedOptionText.isEmpty()) {
+
+            return selectedOptionText.equals(expectedValue);
 
         } else if (!expectedValue.isEmpty()) {
 
@@ -130,6 +151,32 @@ public class PrismForm<T> extends Component<T> {
             values.first().$(By.className("form-control")).setValue(value);
         }
         // todo implement
+        return this;
+    }
+
+    public PrismForm<T> setPasswordFieldsValues(QName name, String value) {
+        SelenideElement property = findProperty(name);
+
+        ElementsCollection values = property.$$(By.className("prism-property-value"));
+        if (values.size() > 0) {
+            ElementsCollection passwordInputs = values.first().$$(By.tagName("input"));
+            if (passwordInputs != null){
+                passwordInputs.forEach(inputElement -> inputElement.setValue(value));
+            }
+        }
+        return this;
+    }
+
+    public PrismForm<T> setDropDownAttributeValue(QName name, String value) {
+        SelenideElement property = findProperty(name);
+
+        ElementsCollection values = property.$$(By.className("prism-property-value"));
+        if (values.size() > 0) {
+            SelenideElement dropDown = values.first().$(By.tagName("select"));
+            if (dropDown != null){
+                dropDown.selectOptionContainingText(value);
+            }
+        }
         return this;
     }
 

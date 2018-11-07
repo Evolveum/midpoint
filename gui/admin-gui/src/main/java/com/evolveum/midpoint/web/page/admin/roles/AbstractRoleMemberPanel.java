@@ -162,10 +162,10 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 	}
 
 	private void initDefaultSearchParameters(){
-		GuiObjectListViewType panelConfig = WebComponentUtil.getViewTypeConfig(getComplexTypeQName(), getPageBase());
-		if (panelConfig != null && panelConfig.getSearchBoxConfiguration() != null) {
-			scopeDefaultValue = panelConfig.getSearchBoxConfiguration().getDefaultScope();
-			objectTypeDefaultValue = panelConfig.getSearchBoxConfiguration().getDefaultObjectType();
+		GuiObjectListPanelConfigurationType additionalPanel = getAdditionalPanelConfig();
+		if (additionalPanel != null && additionalPanel.getSearchBoxConfiguration() != null) {
+			scopeDefaultValue = additionalPanel.getSearchBoxConfiguration().getDefaultScope();
+			objectTypeDefaultValue = additionalPanel.getSearchBoxConfiguration().getDefaultObjectType();
 		}
 		if (scopeDefaultValue == null){
 			scopeDefaultValue = SearchBoxScopeType.ONE_LEVEL;

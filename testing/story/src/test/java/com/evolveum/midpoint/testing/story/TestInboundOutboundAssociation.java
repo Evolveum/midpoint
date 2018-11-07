@@ -36,6 +36,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.asserter.RoleAsserter;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -85,6 +86,7 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
 	private static final QName ASSOCIATION_GROUP_QNAME = new QName(MidPointConstants.NS_RI, "group");
 
 	private String rolePiratesOid;
+	private String shadowGroupPiratesOid;
 	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -121,14 +123,21 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
 		
 		display("dir after", getDummyResourceDir());
 		
-		rolePiratesOid = assertRoleAfterByName(groupRoleName(GROUP_PIRATES_NAME))
+		RoleAsserter<Void> rolePiratesAsserter = assertRoleAfterByName(groupRoleName(GROUP_PIRATES_NAME));
+		rolePiratesAsserter
 			.assertSubtype(SUBTYPE_GROUP)
 			.assertIdentifier(GROUP_PIRATES_NAME)
 			.assignments()
 				.assertAssignments(1)
 				.assertRole(ROLE_META_GROUP_OID)
-				.end()
-			.getOid();
+				.end();
+		
+		rolePiratesOid = rolePiratesAsserter.getOid();
+		
+		shadowGroupPiratesOid = rolePiratesAsserter
+				.links()
+					.single()
+						.getOid();
 	}
 	
 	@Test
@@ -431,7 +440,7 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
         OperationResult result = task.getResult();
 		
         ObjectDelta<UserType> focusDelta = createAssignmentFocusDelta(
-        		UserType.class, USER_JACK_OID, 
+        		UserType.class, USER_JACK_OID,
         		FocusType.F_ASSIGNMENT,
         		rolePiratesOid, RoleType.COMPLEX_TYPE,
         		null, (Consumer<AssignmentType>)null, false);
@@ -449,6 +458,7 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
 				.single()
 					.assertNoPrimaryDelta()
 					.secondaryDelta()
+						.display()
 						.assertModify()
 						.container(ShadowType.F_ASSOCIATION)
 							.assertNoValuesToAdd()
@@ -456,12 +466,14 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
 							.valuesToDelete()
 								.single()
 									.assertPropertyEquals(ShadowAssociationType.F_NAME, ASSOCIATION_GROUP_QNAME)
+									.assertRefEquals(ShadowAssociationType.F_SHADOW_REF, shadowGroupPiratesOid)
 									.end()
 								.end()
 							.end()
 						.end()
 					.objectNew()
-						.display();
+						.display()
+						.assertNoItem(ShadowType.F_ASSOCIATION);
 		
 	}
 	

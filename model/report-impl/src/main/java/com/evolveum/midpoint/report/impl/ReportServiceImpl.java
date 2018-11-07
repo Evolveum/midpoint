@@ -26,8 +26,12 @@ import java.util.Set;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -85,6 +89,7 @@ public class ReportServiceImpl implements ReportService {
 	@Autowired private FunctionLibrary basicFunctionLibrary;
 	@Autowired private FunctionLibrary midpointFunctionLibrary;
 	@Autowired private LocalizationService localizationService;
+	@Autowired private SecurityEnforcer securityEnforcer;
 
 	@Override
 	public ObjectQuery parseQuery(String query, Map<QName, Object> parameters) throws SchemaException,
@@ -156,7 +161,11 @@ public class ReportServiceImpl implements ReportService {
 		// options.add(new
 		// SelectorOptions(GetOperationOptions.createResolveNames()));
 		GetOperationOptions getOptions = GetOperationOptions.createResolveNames();
-		getOptions.setRaw(Boolean.TRUE);
+		if (ShadowType.class.isAssignableFrom(clazz) && securityEnforcer.isAuthorized(ModelAuthorizationAction.RAW_OPERATION.getUrl(), null, AuthorizationParameters.EMPTY, null, task, parentResult)) {
+			getOptions.setRaw(Boolean.TRUE);        // shadows in non-raw mode require specifying resource OID and kind (at least) - todo research this further
+		} else {
+			getOptions.setNoFetch(Boolean.TRUE);
+		}
 		options = SelectorOptions.createCollection(getOptions);
 		List<PrismObject<? extends ObjectType>> results;
 		try {

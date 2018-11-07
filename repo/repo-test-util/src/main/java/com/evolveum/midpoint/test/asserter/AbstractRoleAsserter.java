@@ -28,6 +28,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -272,5 +273,17 @@ public class AbstractRoleAsserter<F extends AbstractRoleType, RA> extends FocusA
 		TriggersAsserter<F, ? extends AbstractRoleAsserter<F,RA>, RA> asserter = new TriggersAsserter<>(this, getDetails());
 		copySetupTo(asserter);
 		return asserter;
+	}
+	
+	@Override
+	public AbstractRoleAsserter<F,RA> assertNoItem(QName itemName) {
+		super.assertNoItem(itemName);
+		return this;
+	}
+	
+	@Override
+	public AbstractRoleAsserter<F,RA> assertNoItem(ItemPath itemPath) {
+		super.assertNoItem(itemPath);
+		return this;
 	}
 }

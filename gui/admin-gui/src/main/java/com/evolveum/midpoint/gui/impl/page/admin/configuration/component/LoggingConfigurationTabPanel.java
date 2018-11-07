@@ -20,13 +20,24 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.panel.Fragment;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
@@ -37,52 +48,43 @@ import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.EditableLinkPropertyWrapperColumn;
-import com.evolveum.midpoint.gui.impl.component.data.column.EditablePropertyWrapperColumn;
+import com.evolveum.midpoint.gui.impl.component.input.QNameIChoiceRenderer;
 import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerValueWrapperModel;
 import com.evolveum.midpoint.gui.impl.model.RealContainerValueFromContainerValueWrapperModel;
 import com.evolveum.midpoint.gui.impl.model.RealValueFromSingleValuePropertyWrapperModel;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.AllFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.TypeFilter;
-import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.prism.ContainerValuePanel;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapperFactory;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
-import com.evolveum.midpoint.web.component.prism.ItemWrapper;
-import com.evolveum.midpoint.web.component.prism.PrismContainerHeaderPanel;
 import com.evolveum.midpoint.web.component.prism.PrismContainerPanel;
 import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
-import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AppenderConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuditingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FileAppenderConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingComponentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SyslogAppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 /**
@@ -98,6 +100,11 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 	private static final String ID_APPENDERS = "appenders";
     private static final String ID_LOGGERS = "loggers";
     private static final String ID_AUDITING = "audit";
+	private static final String ID_NEW_ITEM_BUTTON = "newItemButton";
+    private static final String ID_BUTTON_TOOLBAR_FRAGMENT = "buttonToolbarFragment";
+	private static final String ID_APPENDERS_CHOICE = "appendersChoice";
+	private static final String ID_CHOICE_APPENDER_TYPE_FORM = "choiceAppenderTypeForm";
+	
 
     public LoggingConfigurationTabPanel(String id, IModel<ContainerWrapper<LoggingConfigurationType>> model) {
         super(id, model);
@@ -247,11 +254,55 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 				
 				return defs;
 			}
+			
+			@Override
+			protected WebMarkupContainer initButtonToolbar(String contentAreaId) {
+		    	Fragment searchContainer = new Fragment(contentAreaId, ID_BUTTON_TOOLBAR_FRAGMENT, LoggingConfigurationTabPanel.this);
+		    	
+		    	Form appenderTypeForm = new Form(ID_CHOICE_APPENDER_TYPE_FORM);
+		    	searchContainer.add(appenderTypeForm);
+		    	
+		    	AjaxSubmitButton newObjectIcon = new AjaxSubmitButton(ID_NEW_ITEM_BUTTON, new Model<>("<i class=\"fa fa-plus\"></i>")) {
+
+					private static final long serialVersionUID = 1L;
+					
+					@Override
+					protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
+						newItemPerformed(target);
+					}
+				};
+
+				newObjectIcon.add(new VisibleEnableBehaviour() {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public boolean isVisible() {
+						return enableActionNewObject();
+					}
+
+					@Override
+					public boolean isEnabled() {
+						return isNewObjectButtonEnabled();
+					}
+				});
+				newObjectIcon.add(AttributeModifier.append("class", createStyleClassModelForNewObjectIcon()));
+				appenderTypeForm.add(newObjectIcon);
+		    	List<QName> appendersChoicesList = new ArrayList<QName>();
+		    	appendersChoicesList.add(FileAppenderConfigurationType.COMPLEX_TYPE);
+		    	appendersChoicesList.add(SyslogAppenderConfigurationType.COMPLEX_TYPE);
+		    	DropDownChoicePanel<QName> appenderChoise =  new DropDownChoicePanel(ID_APPENDERS_CHOICE, new Model(FileAppenderConfigurationType.COMPLEX_TYPE), Model.of(appendersChoicesList),
+		    			new QNameIChoiceRenderer("LoggingConfigurationTabPanel." + ID_APPENDERS_CHOICE));
+		    	appenderChoise.setOutputMarkupId(true);
+		    	appenderTypeForm.addOrReplace(appenderChoise);
+		        return searchContainer;
+			}
+			
 		};
 		add(appendersMultivalueContainerListPanel);
 		
 		IModel<ContainerWrapper<AuditingConfigurationType>> auditModel =
-    			new ContainerWrapperFromObjectWrapperModel<AuditingConfigurationType, SystemConfigurationType>(Model.of(getModelObject().getObjectWrapper()), new ItemPath(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_AUDITING));
+    			new ContainerWrapperFromObjectWrapperModel<AuditingConfigurationType, SystemConfigurationType>(Model.of(getModelObject().getObjectWrapper()),
+    					new ItemPath(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_AUDITING));
 		PrismContainerPanel<AuditingConfigurationType> auditPanel = new PrismContainerPanel<AuditingConfigurationType>(ID_AUDITING, auditModel, true, new Form<>("form"), null, getPageBase());
     	add(auditPanel);
 		setOutputMarkupId(true);
@@ -375,7 +426,16 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
     
     protected void newAppendersClickPerformed(AjaxRequestTarget target) {
     	MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType> appenders = (MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType>) get(ID_APPENDERS);
-    	PrismContainerValue<AppenderConfigurationType> newObjectPolicy = appenders.getModelObject().getItem().createNewValue();
+    	DropDownChoicePanel<QName> appendersChoice = (DropDownChoicePanel<QName>) getAppendersMultivalueContainerListPanel().getItemTable().getFooterButtonToolbar().get(createComponentPath(ID_CHOICE_APPENDER_TYPE_FORM ,ID_APPENDERS_CHOICE));
+    	PrismContainerValue<AppenderConfigurationType> newObjectPolicy = null;
+    	if(QNameUtil.match(appendersChoice.getModel().getObject(), FileAppenderConfigurationType.COMPLEX_TYPE)){
+    		newObjectPolicy = new FileAppenderConfigurationType().asPrismContainerValue();
+    	} else {
+    		newObjectPolicy = new SyslogAppenderConfigurationType().asPrismContainerValue();
+    	}
+    	newObjectPolicy.setParent(appenders.getModelObject().getItem());
+    	newObjectPolicy.setPrismContext(getPageBase().getPrismContext());
+    	
         ContainerValueWrapper<AppenderConfigurationType> newAppenderContainerWrapper = getAppendersMultivalueContainerListPanel().createNewItemContainerValueWrapper(newObjectPolicy, appenders.getModel());
         newAppenderContainerWrapper.setShowEmpty(true, false);
         newAppenderContainerWrapper.computeStripes();
@@ -401,49 +461,36 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 		    	};
 				return new DisplayNamePanel<AppenderConfigurationType>(displayNamePanelId, displayNameModel);
 			}
-			
-			@Override
-			protected void addBasicContainerValuePanel(String idPanel) {
-				Form form = new Form<>("form");
-		    	ItemPath itemPath = getModelObject().getPath();
-		    	IModel<ContainerValueWrapper<AppenderConfigurationType>> model = getModel();
-		    	model.getObject().getContainer().setShowOnTopLevel(true);
-		    	ContainerValuePanel panel;
-		    	if(item.getModelObject().getContainerValue().getValue() instanceof FileAppenderConfigurationType) {
-
-		    		FileAppenderConfigurationType appender = (FileAppenderConfigurationType) item.getModelObject().getContainerValue().getValue();
-		    		ContainerWrapperFactory cwf = new ContainerWrapperFactory(getPageBase());
-		    		Task task = LoggingConfigurationTabPanel.this.getPageBase().createSimpleTask("create appender");
-		    		ContainerWrapper<FileAppenderConfigurationType> wrapper = cwf.createContainerWrapper(item.getModelObject().getContainer().getObjectWrapper(), (PrismContainer<FileAppenderConfigurationType>)appender.asPrismContainerValue().getContainer(), item.getModelObject().getObjectStatus(), 
-		    				new ItemPath(FileAppenderConfigurationType.COMPLEX_TYPE), task);
-		    		wrapper.setShowOnTopLevel(true);
-
-		    		ContainerValueWrapper<FileAppenderConfigurationType> value = cwf.createContainerValueWrapper(wrapper, (PrismContainerValue<FileAppenderConfigurationType>)appender.asPrismContainerValue(), item.getModelObject().getObjectStatus(), item.getModelObject().getStatus(), new ItemPath(FileAppenderConfigurationType.COMPLEX_TYPE), task);
-		    		IModel<ContainerValueWrapper<FileAppenderConfigurationType>> valueModel = new LoadableModel<ContainerValueWrapper<FileAppenderConfigurationType>>(false) {
-
-		    			private static final long serialVersionUID = 1L;
-
-		    			@Override
-		    			protected ContainerValueWrapper<FileAppenderConfigurationType> load() {
-		    				return value;
-		    			}
-		    		};
-		    		
-		    		panel = new ContainerValuePanel<FileAppenderConfigurationType>(idPanel, valueModel, true, form,
-		    				itemWrapper -> getBasicTabVisibity(itemWrapper, itemPath), getPageBase());
-		    	} else {
-		    		panel = new ContainerValuePanel<AppenderConfigurationType>(idPanel, getModel(), true, form,
-		    				itemWrapper -> getBasicTabVisibity(itemWrapper, itemPath), getPageBase());
-		    	}
-		    	add(panel);
-			}
-			
-			@Override
-			protected ItemVisibility getBasicTabVisibity(ItemWrapper itemWrapper, ItemPath parentPath) {
-				return ItemVisibility.VISIBLE;
-			}
 		};
 		return detailsPanel;
+	}
+    
+    private boolean isFileAppender(IModel<AppenderConfigurationType> appender) {
+    	if(appender == null || appender.getObject() == null) {
+    		return false;
+    	}
+    	return (appender.getObject() instanceof FileAppenderConfigurationType);
+    }
+    
+    private boolean isSyslogAppender(IModel<AppenderConfigurationType> appender) {
+    	if(appender == null || appender.getObject() == null) {
+    		return false;
+    	}
+    	return (appender.getObject() instanceof SyslogAppenderConfigurationType);
+    }
+    
+    private String getInputCssClass() {
+        return "col-xs-10";
+    }
+    
+    private Label createHeader(String id, String displayName) {
+	    if (StringUtils.isEmpty(displayName)) {
+	    	displayName = "displayName.not.set";
+	    }
+	    StringResourceModel headerLabelModel = createStringResource(displayName);
+	    Label header = new Label(id, headerLabelModel);
+	    header.add(AttributeAppender.prepend("class", "prism-title pull-left"));
+	    return header;
 	}
     
 	private MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType> getAppendersMultivalueContainerListPanel(){
@@ -484,17 +531,18 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 			}
 		});
 		
-		columns.add(new LinkColumn<ContainerValueWrapper<AppenderConfigurationType>>(createStringResource("PolicyRulesPanel.nameColumn")){
+		columns.add(new LinkColumn<ContainerValueWrapper<AppenderConfigurationType>>(createStringResource("LoggingConfigurationTabPanel.appender.nameColumn")){
             private static final long serialVersionUID = 1L;
 
             @Override
             protected IModel<String> createLinkModel(IModel<ContainerValueWrapper<AppenderConfigurationType>> rowModel) {
-            	AppenderConfigurationType appender = rowModel.getObject().getContainerValue().getValue();
-            	String name = appender.getName();
-           		if (StringUtils.isBlank(name)) {
+            	PropertyWrapperFromContainerValueWrapperModel<String, AppenderConfigurationType> property =
+            			new PropertyWrapperFromContainerValueWrapperModel<>(rowModel.getObject(), AppenderConfigurationType.F_NAME);
+            	RealValueFromSingleValuePropertyWrapperModel<String> name = new RealValueFromSingleValuePropertyWrapperModel<>(property);
+           		if (StringUtils.isBlank(name.getObject())) {
             		return createStringResource("AssignmentPanel.noName");
             	}
-            	return Model.of(name);
+            	return Model.of(name.getObject());
             }
 
             @Override
@@ -503,8 +551,49 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
             }
         });
 		
+		columns.add(new AbstractColumn<ContainerValueWrapper<AppenderConfigurationType>, String>(createStringResource("LoggingConfigurationTabPanel.appender.patternColumn")){
+            private static final long serialVersionUID = 1L;
+
+			@Override
+			public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AppenderConfigurationType>>> item, String componentId,
+									 final IModel<ContainerValueWrapper<AppenderConfigurationType>> rowModel) {
+				PropertyWrapperFromContainerValueWrapperModel<String, AppenderConfigurationType> property =
+            			new PropertyWrapperFromContainerValueWrapperModel<>(rowModel.getObject(), AppenderConfigurationType.F_PATTERN);
+            	RealValueFromSingleValuePropertyWrapperModel<String> pattern = new RealValueFromSingleValuePropertyWrapperModel<>(property);
+				item.add(new Label(componentId, Model.of(pattern.getObject())));
+			}
+			
+			@Override
+			public String getCssClass() {
+				return " col-md-5 ";
+			}
+        });
+		
+		columns.add(new AbstractColumn<ContainerValueWrapper<AppenderConfigurationType>, String>(createStringResource("LoggingConfigurationTabPanel.appender.typeColumn")){
+            private static final long serialVersionUID = 1L;
+
+			@Override
+			public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AppenderConfigurationType>>> item, String componentId,
+									 final IModel<ContainerValueWrapper<AppenderConfigurationType>> rowModel) {
+				RealContainerValueFromContainerValueWrapperModel<AppenderConfigurationType> appender = 
+            			new RealContainerValueFromContainerValueWrapperModel<>(rowModel);
+            	String type = "";
+            	if(appender != null && appender.getObject() instanceof FileAppenderConfigurationType) {
+            		type = "File appender";
+            	} else if(appender != null && appender.getObject() instanceof SyslogAppenderConfigurationType) {
+            		type = "Syslog appender";
+            	}
+				item.add(new Label(componentId, Model.of(type)));
+			}
+        });
+		
 		List<InlineMenuItem> menuActionsList = getAppendersMultivalueContainerListPanel().getDefaultMenuActions();
-		columns.add(new InlineMenuButtonColumn<>(menuActionsList, getPageBase()));
+		columns.add(new InlineMenuButtonColumn(menuActionsList, getPageBase()) {
+			@Override
+			public String getCssClass() {
+				return " col-md-1 ";
+			}
+		});
 		
         return columns;
 	}

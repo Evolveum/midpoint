@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
@@ -196,7 +197,7 @@ public class TaskBasicTabPanel extends AbstractObjectTabPanel<TaskType> implemen
 								@Override
 								public String getObject() {
 									if (taskDtoModel.getObject().getCompletionTimestamp() != null) {
-										return new Date(taskDtoModel.getObject().getCompletionTimestamp()).toLocaleString();   // todo correct formatting
+										return WebComponentUtil.getLocalizedDate(new Date(taskDtoModel.getObject().getCompletionTimestamp()), DateLabelComponent.LONG_MEDIUM_STYLE);
 									} else {
 										return "?";
 									}

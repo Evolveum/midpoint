@@ -46,7 +46,7 @@ import static com.codeborne.selenide.Selenide.$;
 public class ImportResourceTest extends TestBase {
 
     private static final File CSV_RESOURCE = new File("./src/test/resources/labs/resources/localhost-csvfile-1-document-access.xml");
-    private static final String RESOURCE_NAME = "CSV-1 (Document Access)";
+    public static final String RESOURCE_NAME = "CSV-1 (Document Access)";
     private static final String UNIQUE_ATTRIBUTE_NAME = "login";
     private static final String PASSWORD_ATTRIBUTE_NAME = "password";
     private static final String PASSWORD_ATTRIBUTE_RESOURCE_KEY = "User password attribute name";

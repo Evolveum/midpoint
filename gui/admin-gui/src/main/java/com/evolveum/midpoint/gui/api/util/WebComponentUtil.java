@@ -70,6 +70,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.math.NumberUtils;
+import org.apache.commons.lang.time.DurationFormatUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.validator.routines.checkdigit.VerhoeffCheckDigit;
 import org.apache.wicket.*;
@@ -1616,9 +1617,8 @@ public final class WebComponentUtil {
 			return GuiStyleConstants.CLASS_OBJECT_SHADOW_ICON_COLORED;
 		} else if (QNameUtil.match(PolicyRuleType.COMPLEX_TYPE, objectType)) {
 			return GuiStyleConstants.CLASS_POLICY_RULES_ICON_COLORED;
-		} else if (QNameUtil.match(ObjectPolicyConfigurationType.COMPLEX_TYPE, objectType)) {
-			return GuiStyleConstants.CLASS_SYSTEM_CONFIGURATION_ICON_COLORED;
-		} else if (QNameUtil.match(GlobalPolicyRuleType.COMPLEX_TYPE, objectType)) {
+		} else if (QNameUtil.match(ObjectPolicyConfigurationType.COMPLEX_TYPE, objectType) || QNameUtil.match(GlobalPolicyRuleType.COMPLEX_TYPE, objectType)
+				|| QNameUtil.match(FileAppenderConfigurationType.COMPLEX_TYPE, objectType) || QNameUtil.match(SyslogAppenderConfigurationType.COMPLEX_TYPE, objectType)) {
 			return GuiStyleConstants.CLASS_SYSTEM_CONFIGURATION_ICON_COLORED;
 		} else {
 			return "";
@@ -2899,4 +2899,21 @@ public final class WebComponentUtil {
         
         return PageBase.createStringResourceStatic(panel, doc).getString().replaceAll("\\s{2,}", " ").trim();
     }
+	
+	public static String formatDurationWordsForLocal(long durationMillis, boolean suppressLeadingZeroElements,
+	        boolean suppressTrailingZeroElements, PageBase pageBase){
+		
+		String duration = DurationFormatUtils.formatDurationWords(durationMillis, suppressLeadingZeroElements, suppressTrailingZeroElements);
+		
+		duration = StringUtils.replaceOnce(duration, "seconds", pageBase.createStringResource("WebComponentUtil.formatDurationWordsForLocal.seconds").getString());
+        duration = StringUtils.replaceOnce(duration, "minutes", pageBase.createStringResource("WebComponentUtil.formatDurationWordsForLocal.minutes").getString());
+        duration = StringUtils.replaceOnce(duration, "hours", pageBase.createStringResource("WebComponentUtil.formatDurationWordsForLocal.hours").getString());
+        duration = StringUtils.replaceOnce(duration, "days", pageBase.createStringResource("WebComponentUtil.formatDurationWordsForLocal.days").getString());
+        duration = StringUtils.replaceOnce(duration, "second", pageBase.createStringResource("WebComponentUtil.formatDurationWordsForLocal.second").getString());
+        duration = StringUtils.replaceOnce(duration, "minute", pageBase.createStringResource("WebComponentUtil.formatDurationWordsForLocal.minute").getString());
+        duration = StringUtils.replaceOnce(duration, "hour", pageBase.createStringResource("WebComponentUtil.formatDurationWordsForLocal.hour").getString());
+        duration = StringUtils.replaceOnce(duration, "day", pageBase.createStringResource("WebComponentUtil.formatDurationWordsForLocal.day").getString());
+		
+		return duration;
+	}
 }

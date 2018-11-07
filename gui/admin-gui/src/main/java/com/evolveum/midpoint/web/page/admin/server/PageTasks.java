@@ -614,10 +614,10 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 						Date date = getCurrentRuntime(rowModel);
 						TaskDto task = rowModel.getObject();
 						if (task.getRawExecutionStatus() == TaskExecutionStatus.CLOSED && date != null) {
-							((DateLabelComponent) item.get(componentId)).setBefore("closed at ");
+							((DateLabelComponent) item.get(componentId)).setBefore(createStringResource("pageTasks.task.closedAt").getString());
 						} else if (date != null) {
 							((DateLabelComponent) item.get(componentId))
-									.setBefore(DurationFormatUtils.formatDurationWords(date.getTime(), true, true));
+									.setBefore(WebComponentUtil.formatDurationWordsForLocal(date.getTime(), true, true, PageTasks.this));
 						}
 						return date;
 					}
@@ -633,9 +633,9 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 				if (date != null) {
 					if (task.getRawExecutionStatus() == TaskExecutionStatus.CLOSED) {
 						displayValue =
-								"closed at " + WebComponentUtil.getLocalizedDate(date, DateLabelComponent.LONG_MEDIUM_STYLE);
+								createStringResource("pageTasks.task.closedAt").getString() + WebComponentUtil.getLocalizedDate(date, DateLabelComponent.LONG_MEDIUM_STYLE);
 					} else {
-						displayValue = DurationFormatUtils.formatDurationWords(date.getTime(), true, true);
+						displayValue = WebComponentUtil.formatDurationWordsForLocal(date.getTime(), true, true, PageTasks.this);
 					}
 				}
 				return Model.of(displayValue);
@@ -1129,22 +1129,14 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 
 		if (task.getRawExecutionStatus() == TaskExecutionStatus.CLOSED) {
 
-			//todo i18n and proper date/time formatting
 			Long time = task.getCompletionTimestamp();
 			if (time == null) {
 				return null;
 			}
 			return new Date(time);
 
-		} else {
-			//todo why?
-			Long time = task.getCurrentRuntime();
-			if (time == null) {
-				return null;
-			}
-			//todo i18n
-			return null;
-		}
+		} 
+		return null;
 	}
 
 	private String getLastCheckInTime(IModel<NodeDto> nodeModel) {

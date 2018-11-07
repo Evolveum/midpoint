@@ -696,8 +696,8 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 			sb.append("\nStregth: ").append(strength);
 		}
 		for (Source<?,?> source: sources) {
-			sb.append("\nSource: ");
-			sb.append(source.shortDebugDump());
+			sb.append("\n");
+			source.mediumDump(sb);
 		}
 		sb.append("\nTarget: ").append(MiscUtil.toString(outputDefinition));
 		sb.append("\nExpression: ");
