@@ -34,6 +34,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurA
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.web.page.admin.reports.component.AceEditorPanel;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
+import com.evolveum.midpoint.web.page.login.PageSelfRegistration;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.lang.ClassUtils;
@@ -899,22 +900,28 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 					PrismReferenceValue valueEnumerationRef = def.getValueEnumerationRef();
 					String lookupTableUid = valueEnumerationRef.getOid();
 					
-					final PrismObject<LookupTableType> lookupTable = getPageBase().runPrivileged(
-							() -> {
-								Task task = getPageBase().createAnonymousTask("loadLookupTable");
-								OperationResult result = task.getResult();
-								Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
-										.createLookupTableRetrieveOptions();
-								return WebModelServiceUtils.loadObject(LookupTableType.class,
-										lookupTableUid, options, getPageBase(), task, result);
-							});
-//					Task task = getPageBase().createSimpleTask("loadLookupTable");
-//					OperationResult result = task.getResult();
-//
-//					Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
-//							.createLookupTableRetrieveOptions();
-//					final PrismObject<LookupTableType> lookupTable = WebModelServiceUtils.loadObject(LookupTableType.class,
-//							lookupTableUid, options, getPageBase(), task, result);
+					PrismObject<LookupTableType> lookupTable;
+					String operation = "loadLookupTable";
+					if(getPageBase() instanceof PageSelfRegistration) {
+						lookupTable = getPageBase().runPrivileged(
+								() -> {
+									Task task = getPageBase().createAnonymousTask(operation);
+									OperationResult result = task.getResult();
+									Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
+											.createLookupTableRetrieveOptions();
+									return WebModelServiceUtils.loadObject(LookupTableType.class,
+											lookupTableUid, options, getPageBase(), task, result);
+								});
+					} else {
+						Task task = getPageBase().createSimpleTask(operation);
+						OperationResult result = task.getResult();
+	
+						Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
+								.createLookupTableRetrieveOptions();
+						lookupTable = WebModelServiceUtils.loadObject(LookupTableType.class,
+								lookupTableUid, options, getPageBase(), task, result);
+					}
+					
 					if (lookupTable != null) {
 
 						panel = new AutoCompleteTextPanel<String>(id, new LookupPropertyModel<>(getModel(),
