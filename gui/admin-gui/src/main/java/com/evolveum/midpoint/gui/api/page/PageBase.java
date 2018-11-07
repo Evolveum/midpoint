@@ -331,6 +331,11 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         initializeModel();
 
+    }
+
+    @Override
+    protected void onInitialize(){
+        super.onInitialize();
         initLayout();
     }
 

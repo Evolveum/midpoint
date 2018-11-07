@@ -83,7 +83,7 @@ public class PageDebugView extends PageAdminConfiguration {
 
     public static final String PARAM_OBJECT_ID = "objectId";
     public static final String PARAM_OBJECT_TYPE = "objectType";
-    private String dataLanguage;
+    private String dataLanguage = null;
     
     private IModel<ObjectViewDto<?>> objectViewDtoModel;
     private DebugViewOptions debugViewConfiguration = new DebugViewOptions();
@@ -95,15 +95,25 @@ public class PageDebugView extends PageAdminConfiguration {
     @Override
     protected void onInitialize(){
         super.onInitialize();
-        dataLanguage = determineDataLanguage();
-        objectViewDtoModel = initObjectViewObject();
+        if (dataLanguage == null) {
+            dataLanguage = determineDataLanguage();
+        }
+        if (objectViewDtoModel == null){
+            objectViewDtoModel = initObjectViewObject();
+        }
         initLayout();
     }
 
     @Override
     protected IModel<String> createPageTitleModel() {
-    	return createStringResource("PageDebugView.title", getName());
-        
+        if (objectViewDtoModel == null){
+            objectViewDtoModel = initObjectViewObject();
+        }
+        if (dataLanguage == null) {
+            dataLanguage = determineDataLanguage();
+        }
+
+        return createStringResource("PageDebugView.title", getName());
     }
     
     private String getName() {
@@ -113,6 +123,7 @@ public class PageDebugView extends PageAdminConfiguration {
     	
     	return objectViewDtoModel.getObject().getName();
     }
+
     private LoadableModel<ObjectViewDto<?>> initObjectViewObject() {
         return new LoadableModel<ObjectViewDto<?>>(false) {
            
