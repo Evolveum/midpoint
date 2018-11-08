@@ -534,12 +534,26 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         columns.add(initiatorRefColumn);
 
         if (!isHistory) {
-            IColumn<AuditEventRecordType, String> eventStageColumn = new PropertyColumn<>(
-                createStringResource("PageAuditLogViewer.eventStageLabel"), "eventStage");
+            IColumn<AuditEventRecordType, String> eventStageColumn = new PropertyColumn<AuditEventRecordType, String>(
+                createStringResource("PageAuditLogViewer.eventStageLabel"), "eventStage"){
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public IModel<String> getDataModel(IModel<AuditEventRecordType> rowModel) {
+                    return WebComponentUtil.createLocalizedModelForEnum(rowModel.getObject().getEventStage(), AuditLogViewerPanel.this);
+                }
+            };
             columns.add(eventStageColumn);
         }
-        IColumn<AuditEventRecordType, String> eventTypeColumn = new PropertyColumn<>(
-            createStringResource("PageAuditLogViewer.eventTypeLabel"), "eventType");
+        IColumn<AuditEventRecordType, String> eventTypeColumn = new PropertyColumn<AuditEventRecordType, String>(
+            createStringResource("PageAuditLogViewer.eventTypeLabel"), "eventType"){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public IModel<String> getDataModel(IModel<AuditEventRecordType> rowModel) {
+                return WebComponentUtil.createLocalizedModelForEnum(rowModel.getObject().getEventType(), AuditLogViewerPanel.this);
+            }
+        };
         columns.add(eventTypeColumn);
 
         if (!isHistory) {
@@ -592,8 +606,15 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         };
         columns.add(channelColumn);
 
-        IColumn<AuditEventRecordType, String> outcomeColumn = new PropertyColumn<>(
-            createStringResource("PageAuditLogViewer.outcomeLabel"), "outcome");
+        IColumn<AuditEventRecordType, String> outcomeColumn = new PropertyColumn<AuditEventRecordType, String>(
+            createStringResource("PageAuditLogViewer.outcomeLabel"), "outcome"){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public IModel<String> getDataModel(IModel<AuditEventRecordType> rowModel) {
+                return WebComponentUtil.createLocalizedModelForEnum(rowModel.getObject().getOutcome(), AuditLogViewerPanel.this);
+            }
+        };
         columns.add(outcomeColumn);
 
         return columns;
