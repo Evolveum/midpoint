@@ -220,7 +220,7 @@ public class ConfigurationStep extends WizardStep {
 		return tabs;
 	}
 	
-	private void updateConfigurationTabs() {
+	public void updateConfigurationTabs() {
 		
 		TabbedPanel<ITab> tabbedPanel = getConfigurationTabbedPanel();
 		List<ITab> tabs = tabbedPanel.getTabs().getObject();
