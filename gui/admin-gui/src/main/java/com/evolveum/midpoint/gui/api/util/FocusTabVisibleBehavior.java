@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.gui.api.util;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -40,20 +41,23 @@ import java.util.List;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class FocusTabVisibleBehavior<T extends ObjectType> extends VisibleEnableBehaviour {
+public class FocusTabVisibleBehavior<O extends ObjectType> extends VisibleEnableBehaviour {
+	private static final long serialVersionUID = 1L;
 
-    private static final String OPERATION_LOAD_GUI_CONFIGURATION = FocusTabVisibleBehavior.class.getName() + ".loadGuiConfiguration";
+	private static final String OPERATION_LOAD_GUI_CONFIGURATION = FocusTabVisibleBehavior.class.getName() + ".loadGuiConfiguration";
 
-    private IModel<PrismObject<T>> objectModel;
+    private IModel<PrismObject<O>> objectModel;
     private String uiAuthorizationUrl;
     private boolean visibleOnHistoryPage = false;
     private boolean isHistoryPage = false;
+    private PageBase pageBase;
 
-    public FocusTabVisibleBehavior(IModel<PrismObject<T>> objectModel, String uiAuthorizationUrl, boolean visibleOnHistoryPage, boolean isHistoryPage) {
+    public FocusTabVisibleBehavior(IModel<PrismObject<O>> objectModel, String uiAuthorizationUrl, boolean visibleOnHistoryPage, boolean isHistoryPage, PageBase pageBase) {
         this.objectModel = objectModel;
         this.uiAuthorizationUrl = uiAuthorizationUrl;
         this.visibleOnHistoryPage = visibleOnHistoryPage;
         this.isHistoryPage = isHistoryPage;
+        this.pageBase = pageBase;
     }
 
     private ModelInteractionService getModelInteractionService() {
@@ -66,12 +70,10 @@ public class FocusTabVisibleBehavior<T extends ObjectType> extends VisibleEnable
 
     @Override
     public boolean isVisible() {
-        PrismObject obj = objectModel.getObject();
-        if (obj == null) {
+        PrismObject<O> object = objectModel.getObject();
+        if (object == null) {
             return true;
         }
-
-        QName type = obj.getDefinition().getTypeName();
 
         Task task = WebModelServiceUtils.createSimpleTask(OPERATION_LOAD_GUI_CONFIGURATION,
                 SecurityUtils.getPrincipalUser().getUser().asPrismObject(), getTaskManager());
@@ -85,7 +87,7 @@ public class FocusTabVisibleBehavior<T extends ObjectType> extends VisibleEnable
         }
 
         // find all object form definitions for specified type, if there is none we'll show all default tabs
-        List<ObjectFormType> forms = findObjectForm(config, type);
+        List<ObjectFormType> forms = findObjectForm(config, object);
         if (forms.isEmpty()) {
             return !isHistoryPage || visibleOnHistoryPage;
         }
@@ -111,7 +113,7 @@ public class FocusTabVisibleBehavior<T extends ObjectType> extends VisibleEnable
         return false;
     }
 
-    private List<ObjectFormType> findObjectForm(AdminGuiConfigurationType config, QName type) {
+    private List<ObjectFormType> findObjectForm(AdminGuiConfigurationType config, PrismObject<O> object) {
         List<ObjectFormType> result = new ArrayList<>();
 
         if (config == null || config.getObjectForms() == null) {
@@ -125,11 +127,27 @@ public class FocusTabVisibleBehavior<T extends ObjectType> extends VisibleEnable
         }
 
         for (ObjectFormType form : list) {
-            if (type.equals(form.getType())) {
+            if (isApplicable(form, object)) {
                 result.add(form);
             }
         }
 
         return result;
+    }
+    
+    private boolean isApplicable(ObjectFormType form, PrismObject<O> object) {
+    	QName objectType = object.getDefinition().getTypeName();
+    	if (!objectType.equals(form.getType())) {
+    		return false;
+    	}
+    	RoleRelationObjectSpecificationType roleRelation = form.getRoleRelation();
+    	if (roleRelation != null) {
+    		List<QName> subjectRelations = roleRelation.getSubjectRelation();
+    		if (!pageBase.hasSubjectRoleRelation(object.getOid(), subjectRelations)) {
+    			return false;
+    		}
+    	}
+    	// TODO: roleRelation
+    	return true;
     }
 }

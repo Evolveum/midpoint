@@ -92,6 +92,13 @@ public interface Definition extends Serializable, DebugDumpable, Revivable {
      * future release without any warning. Use at your own risk.
 	 */
 	boolean isExperimental();
+	
+	/**
+	 * Version of data model in which the item is likely to be removed.
+     * This annotation is used for deprecated item to indicate imminent incompatibility in future versions of data model.
+	 */
+	String getPlannedRemoval();
+	
 	/**
 	 * Elaborate items are complicated data structure that may deviate from
      * normal principles of the system. For example elaborate items may not
@@ -193,4 +200,5 @@ public interface Definition extends Serializable, DebugDumpable, Revivable {
 	default String debugDump(int indent, IdentityHashMap<Definition,Object> seen) {
 		return debugDump(indent);
 	}
+
 }

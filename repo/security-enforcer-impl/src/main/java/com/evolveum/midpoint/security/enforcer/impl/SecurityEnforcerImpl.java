@@ -1121,6 +1121,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		return finalFilter;
 	}
 
+	/**
+	 * Question: does object make any sense here? E.g. when searching role members, the role OID should be determined from the query.
+	 */
 	@Override
 	public <T extends ObjectType, O extends ObjectType> boolean canSearch(String[] operationUrls,
 			AuthorizationPhaseType phase, Class<T> searchResultType, PrismObject<O> object, boolean includeSpecial, ObjectFilter filter, Task task, OperationResult result)
@@ -1277,7 +1280,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 								} else if (TaskType.class.isAssignableFrom(objectType)) {
 									objSpecSecurityFilter = applyOwnerFilterOwnerRef(new ItemPath(TaskType.F_OWNER_REF), objSpecSecurityFilter,  principal, objectDefinition);
 								} else {
-									LOGGER.trace("    Authorization not applicable for object because it has owner specification (this is not applicable for search)");
+									LOGGER.trace("      Authorization not applicable for object because it has owner specification (this is not applicable for search)");
 									continue;
 								}
 							}
@@ -1285,7 +1288,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							// Delegator
 							if (objectSpecType.getDelegator() != null) {
 								// TODO: MID-3899
-								LOGGER.trace("    Authorization not applicable for object because it has delegator specification (this is not applicable for search)");
+								LOGGER.trace("      Authorization not applicable for object because it has delegator specification (this is not applicable for search)");
 								continue;
 							}
 
@@ -1295,7 +1298,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							List<SpecialObjectSpecificationType> specSpecial = objectSpecType.getSpecial();
 							if (specSpecial != null && !specSpecial.isEmpty()) {
 								if (!includeSpecial) {
-									LOGGER.trace("    Skipping authorization, because specials are present: {}", specSpecial);
+									LOGGER.trace("      Skipping authorization, because specials are present: {}", specSpecial);
 									applicable = false;
 								}
 								if (specFilterType != null || specOrgRef != null || specOrgRelation != null || specRoleRelation != null || specTenant != null) {
@@ -1313,7 +1316,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
                                 objSpecSecurityFilter = specTypeQName != null ?
                                         TypeFilter.createType(specTypeQName, specialFilter) : specialFilter;
 							} else {
-								LOGGER.trace("    specials empty: {}", specSpecial);
+								LOGGER.trace("      specials empty: {}", specSpecial);
 							}
 
 							// Filter
@@ -1326,10 +1329,10 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 									ObjectQueryUtil.assertNotRaw(specFilter, "Filter in authorization object has undefined items. Maybe a 'type' specification is missing in the authorization?");
 									ObjectQueryUtil.assertPropertyOnly(specFilter, "Filter in authorization object is not property-only filter");
 								}
-								LOGGER.trace("    applying property filter {}", specFilter);
+								LOGGER.trace("      applying property filter {}", specFilter);
 								objSpecSecurityFilter = ObjectQueryUtil.filterAnd(objSpecSecurityFilter, specFilter);
 							} else {
-								LOGGER.trace("    filter empty");
+								LOGGER.trace("      filter empty");
 							}
 
 							// Org
@@ -1337,9 +1340,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 								ObjectFilter orgFilter = QueryBuilder.queryFor(ObjectType.class, prismContext)
 										.isChildOf(specOrgRef.getOid()).buildFilter();
 								objSpecSecurityFilter = ObjectQueryUtil.filterAnd(objSpecSecurityFilter, orgFilter);
-								LOGGER.trace("    applying org filter {}", orgFilter);
+								LOGGER.trace("      applying org filter {}", orgFilter);
 							} else {
-								LOGGER.trace("    org empty");
+								LOGGER.trace("      org empty");
 							}
 
 							// orgRelation
@@ -1369,9 +1372,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 									objSpecOrgRelationFilter = NoneFilter.createNone();
 								}
 								objSpecSecurityFilter = ObjectQueryUtil.filterAnd(objSpecSecurityFilter, objSpecOrgRelationFilter);
-								LOGGER.trace("    applying orgRelation filter {}", objSpecOrgRelationFilter);
+								LOGGER.trace("      applying orgRelation filter {}", objSpecOrgRelationFilter);
 							} else {
-								LOGGER.trace("    orgRelation empty");
+								LOGGER.trace("      orgRelation empty");
 							}
 
 							// roleRelation
@@ -1379,7 +1382,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 								ObjectFilter objSpecRoleRelationFilter = processRoleRelationFilter(principal, autz, specRoleRelation, queryItemsSpec, origFilter);
 								if (objSpecRoleRelationFilter == null) {
 									if (autz.maySkipOnSearch()) {
-										LOGGER.trace("    not applying roleRelation filter {} because it is not efficient and maySkipOnSearch is set", objSpecRoleRelationFilter);
+										LOGGER.trace("      not applying roleRelation filter {} because it is not efficient and maySkipOnSearch is set", objSpecRoleRelationFilter);
 										applicable = false;
 									} else {
 										objSpecRoleRelationFilter = NoneFilter.createNone();
@@ -1387,10 +1390,10 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 								}
 								if (objSpecRoleRelationFilter != null) {
 									objSpecSecurityFilter = ObjectQueryUtil.filterAnd(objSpecSecurityFilter, objSpecRoleRelationFilter);
-									LOGGER.trace("  applying roleRelation filter {}", objSpecRoleRelationFilter);
+									LOGGER.trace("      applying roleRelation filter {}", objSpecRoleRelationFilter);
 								}
 							} else {
-								LOGGER.trace("    roleRelation empty");
+								LOGGER.trace("      roleRelation empty");
 							}
 
 							// tenant
@@ -1398,7 +1401,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 								ObjectFilter objSpecTenantFilter = processTenantFilter(principal, autz, specTenant, queryItemsSpec, origFilter);
 								if (objSpecTenantFilter == null) {
 									if (autz.maySkipOnSearch()) {
-										LOGGER.trace("    not applying tenant filter {} because it is not efficient and maySkipOnSearch is set", objSpecTenantFilter);
+										LOGGER.trace("      not applying tenant filter {} because it is not efficient and maySkipOnSearch is set", objSpecTenantFilter);
 										applicable = false;
 									} else {
 										objSpecTenantFilter = NoneFilter.createNone();
@@ -1406,10 +1409,10 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 								}
 								if (objSpecTenantFilter != null) {
 									objSpecSecurityFilter = ObjectQueryUtil.filterAnd(objSpecSecurityFilter, objSpecTenantFilter);
-									LOGGER.trace("  applying tenant filter {}", objSpecTenantFilter);
+									LOGGER.trace("      applying tenant filter {}", objSpecTenantFilter);
 								}
 							} else {
-								LOGGER.trace("    tenant empty");
+								LOGGER.trace("      tenant empty");
 							}
 
 							if (objSpecTypeFilter != null) {
@@ -1695,7 +1698,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 					throw new UnsupportedOperationException("Inefficient roleRelation search (includeMembers=true without role in the original query) is not supported yet");
 				}
 			} else {
-				QName subjectRelation = specRoleRelation.getSubjectRelation();
+				List<QName> subjectRelation = specRoleRelation.getSubjectRelation();
 				boolean isRoleOidOk = false;
 				for (ObjectReferenceType subjectRoleMembershipRef: principal.getUser().getRoleMembershipRef()) {
 					if (!prismContext.relationMatches(subjectRelation, subjectRoleMembershipRef.getRelation())) {

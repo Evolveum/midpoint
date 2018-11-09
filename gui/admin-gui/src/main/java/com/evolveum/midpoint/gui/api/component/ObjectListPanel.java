@@ -419,6 +419,16 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 				}
 				return super.createObjectOrderings(sortParam);
 			}
+
+			@Override
+			public boolean isOrderingDisabled() {
+				GuiObjectListPanelConfigurationType additionalPanelConfig = getAdditionalPanelConfig();
+				if (additionalPanelConfig != null && additionalPanelConfig.isDisableSorting() != null) {
+					return additionalPanelConfig.isDisableSorting();
+				} else {
+					return super.isOrderingDisabled();
+				}
+			}
 		};
 		if (options == null){
 			if (ResourceType.class.equals(type.getClassDefinition())) {
@@ -441,6 +451,15 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	}
 
 	protected List<ObjectOrdering> createCustomOrdering(SortParam<String> sortParam) {
+		return null;
+	}
+
+	/**
+	 * should be overrided in case when ObjectListPanel is used
+	 * for additional panel of some object type (e.g. members panel on the org tree page)
+	 * @return
+	 */
+	protected GuiObjectListPanelConfigurationType getAdditionalPanelConfig(){
 		return null;
 	}
 

@@ -100,6 +100,7 @@ import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.stringpolicy.UserValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
+import com.evolveum.midpoint.model.test.asserter.ModelContextAsserter;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -157,8 +158,10 @@ import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 import com.evolveum.midpoint.test.asserter.DummyAccountAsserter;
+import com.evolveum.midpoint.test.asserter.DummyGroupAsserter;
 import com.evolveum.midpoint.test.asserter.FocusAsserter;
 import com.evolveum.midpoint.test.asserter.OrgAsserter;
+import com.evolveum.midpoint.test.asserter.RoleAsserter;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.test.util.MidPointAsserts;
@@ -374,8 +377,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return getDummyResourceController(null);
 	}
 	
-	protected DummyAccountAsserter<Void> assertDummyAccountByUsername(String dummyResourceName, String username) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	protected DummyAccountAsserter<Void> assertDummyAccountByUsername(String dummyResourceName, String username) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		return getDummyResourceController(dummyResourceName).assertAccountByUsername(username);
+	}
+	
+	protected DummyGroupAsserter<Void> assertDummyGroupByName(String dummyResourceName, String name) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+		return getDummyResourceController(dummyResourceName).assertGroupByName(name);
 	}
 
 	protected DummyResource getDummyResource(String name) {
@@ -739,7 +746,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				.asObjectDelta(oid);
 	}
 
-	protected void modifyUserChangePassword(String userOid, String newPassword, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+	protected void modifyUserChangePassword(String userOid, String newPassword) throws CommonException {
+		Task task = createTask("modifyUserChangePassword");
+        OperationResult result = task.getResult();
+		modifyUserChangePassword(userOid, newPassword, task, result);
+		assertSuccess(result);
+	}
+	
+	protected void modifyUserChangePassword(String userOid, String newPassword, Task task, OperationResult result) throws CommonException {
 		ProtectedStringType userPasswordPs = new ProtectedStringType();
         userPasswordPs.setClearValue(newPassword);
         modifyUserReplace(userOid, PASSWORD_VALUE_PATH, task,  result, userPasswordPs);
@@ -1573,6 +1587,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		Collection<ObjectDeltaOperation<? extends ObjectType>> rv = executeChanges(objectDelta, options, task, result);
 		assertSuccess(result);
 		return rv;
+	}
+	
+	protected <O extends ObjectType> ModelContext<O> previewChanges(ObjectDelta<O> objectDelta, ModelExecuteOptions options, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		display("Preview changes for delta", objectDelta);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
+		return modelInteractionService.previewChanges(deltas, options, task, result);
 	}
 	
 	protected <F extends FocusType> void assignAccountToUser(String focusOid, String resourceOid, String intent) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
@@ -2978,11 +2998,18 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected Task waitForTaskFinish(final String taskOid, final boolean checkSubresult, final int timeout, final boolean errorOk) throws CommonException {
+		long startTime = System.currentTimeMillis();
+		return waitForTaskFinish(taskOid, checkSubresult, startTime, timeout, errorOk);
+	}
+	
+	protected Task waitForTaskFinish(final String taskOid, final boolean checkSubresult, long startTime, final int timeout, final boolean errorOk) throws CommonException {
 		final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForTaskFinish");
 		TaskFinishChecker checker = new TaskFinishChecker(taskOid, waitResult, checkSubresult, errorOk, timeout);
-		IntegrationTestTools.waitFor("Waiting for task " + taskOid + " finish", checker, timeout, DEFAULT_TASK_SLEEP_TIME);
+		IntegrationTestTools.waitFor("Waiting for task " + taskOid + " finish", checker, startTime, timeout, DEFAULT_TASK_SLEEP_TIME);
 		return checker.getLastTask();
 	}
+	
+	
 
 	private class TaskFinishChecker implements Checker {
 		private final String taskOid;
@@ -3325,7 +3352,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		final OperationResult result = new OperationResult(AbstractIntegrationTest.class+".suspendTask");
 		Task task = taskManager.getTaskWithResult(taskOid, result);
 		LOGGER.info("Suspending task {}", taskOid);
-		taskManager.suspendTask(task, 3000, result);
+		taskManager.suspendTaskQuietly(task, 3000, result);
+	}
+	
+	/**
+	 * Restarts task and waits for finish.
+	 */
+	protected void rerunTask(String taskOid) throws CommonException {
+		long startTime = System.currentTimeMillis();
+		restartTask(taskOid);
+		waitForTaskFinish(taskOid, true, startTime, DEFAULT_TASK_WAIT_TIMEOUT, false);
 	}
 	
 	protected void assertTaskExecutionStatus(String taskOid, TaskExecutionStatus expectedExecutionStatus) throws ObjectNotFoundException, SchemaException {
@@ -3785,7 +3821,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assertTrue("Number of messages recorded in dummy transport '" + name + "' (" + messages.size() + ") is not at least " + expectedCount, messages.size() >= expectedCount);
     }
 
-    protected DummyAccount getDummyAccount(String dummyInstanceName, String username) throws SchemaViolationException, ConflictException {
+    protected DummyAccount getDummyAccount(String dummyInstanceName, String username) throws SchemaViolationException, ConflictException, InterruptedException {
 		DummyResource dummyResource = DummyResource.getInstance(dummyInstanceName);
 		try {
 			return dummyResource.getAccountByUsername(username);
@@ -3796,7 +3832,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 	}
 
-    protected DummyAccount getDummyAccountById(String dummyInstanceName, String id) throws SchemaViolationException, ConflictException {
+    protected DummyAccount getDummyAccountById(String dummyInstanceName, String id) throws SchemaViolationException, ConflictException, InterruptedException {
 		DummyResource dummyResource = DummyResource.getInstance(dummyInstanceName);
 		try {
 			return dummyResource.getAccountById(id);
@@ -3807,11 +3843,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 	}
 
-	protected void assertDefaultDummyAccount(String username, String fullname, boolean active) throws SchemaViolationException, ConflictException {
+	protected void assertDefaultDummyAccount(String username, String fullname, boolean active) throws SchemaViolationException, ConflictException, InterruptedException {
 		assertDummyAccount(null, username, fullname, active);
 	}
 
-	protected DummyAccount assertDummyAccount(String dummyInstanceName, String username, String fullname, Boolean active) throws SchemaViolationException, ConflictException {
+	protected DummyAccount assertDummyAccount(String dummyInstanceName, String username, String fullname, Boolean active) throws SchemaViolationException, ConflictException, InterruptedException {
 		DummyAccount account = getDummyAccount(dummyInstanceName, username);
 		// display("account", account);
 		assertNotNull("No dummy("+dummyInstanceName+") account for username "+username, account);
@@ -3820,42 +3856,42 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return account;
 	}
 
-	protected DummyAccount assertDummyAccount(String dummyInstanceName, String username) throws SchemaViolationException, ConflictException {
+	protected DummyAccount assertDummyAccount(String dummyInstanceName, String username) throws SchemaViolationException, ConflictException, InterruptedException {
 		DummyAccount account = getDummyAccount(dummyInstanceName, username);
 		assertNotNull("No dummy(" + dummyInstanceName + ") account for username " + username, account);
 		return account;
 	}
 
-	protected void assertDummyAccountById(String dummyInstanceName, String id) throws SchemaViolationException, ConflictException {
+	protected void assertDummyAccountById(String dummyInstanceName, String id) throws SchemaViolationException, ConflictException, InterruptedException {
 		DummyAccount account = getDummyAccountById(dummyInstanceName, id);
 		assertNotNull("No dummy("+dummyInstanceName+") account for id "+id, account);
 	}
 
-	protected void assertNoDummyAccountById(String dummyInstanceName, String id) throws SchemaViolationException, ConflictException {
+	protected void assertNoDummyAccountById(String dummyInstanceName, String id) throws SchemaViolationException, ConflictException, InterruptedException {
 		DummyAccount account = getDummyAccountById(dummyInstanceName, id);
 		assertNull("Dummy(" + dummyInstanceName + ") account for id " + id + " exists while not expecting it", account);
 	}
 
-	protected void assertDummyAccountActivation(String dummyInstanceName, String username, Boolean active) throws SchemaViolationException, ConflictException {
+	protected void assertDummyAccountActivation(String dummyInstanceName, String username, Boolean active) throws SchemaViolationException, ConflictException, InterruptedException {
 		DummyAccount account = getDummyAccount(dummyInstanceName, username);
 		assertNotNull("No dummy("+dummyInstanceName+") account for username "+username, account);
 		assertEquals("Wrong activation for dummy(" + dummyInstanceName + ") account " + username, active, account.isEnabled());
 	}
 
-	protected void assertNoDummyAccount(String username) throws SchemaViolationException, ConflictException {
+	protected void assertNoDummyAccount(String username) throws SchemaViolationException, ConflictException, InterruptedException {
 		assertNoDummyAccount(null, username);
 	}
 
-	protected void assertNoDummyAccount(String dummyInstanceName, String username) throws SchemaViolationException, ConflictException {
+	protected void assertNoDummyAccount(String dummyInstanceName, String username) throws SchemaViolationException, ConflictException, InterruptedException {
 		DummyAccount account = getDummyAccount(dummyInstanceName, username);
 		assertNull("Dummy account for username " + username + " exists while not expecting it (" + dummyInstanceName + ")", account);
 	}
 
-	protected void assertDefaultDummyAccountAttribute(String username, String attributeName, Object... expectedAttributeValues) throws SchemaViolationException, ConflictException {
+	protected void assertDefaultDummyAccountAttribute(String username, String attributeName, Object... expectedAttributeValues) throws SchemaViolationException, ConflictException, InterruptedException {
 		assertDummyAccountAttribute(null, username, attributeName, expectedAttributeValues);
 	}
 
-	protected void assertDummyAccountAttribute(String dummyInstanceName, String username, String attributeName, Object... expectedAttributeValues) throws SchemaViolationException, ConflictException {
+	protected void assertDummyAccountAttribute(String dummyInstanceName, String username, String attributeName, Object... expectedAttributeValues) throws SchemaViolationException, ConflictException, InterruptedException {
 		DummyAccount account = getDummyAccount(dummyInstanceName, username);
 		assertNotNull("No dummy account for username "+username, account);
 		Set<Object> values = account.getAttributeValues(attributeName, Object.class);
@@ -3874,7 +3910,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 	}
 
-	protected void assertNoDummyAccountAttribute(String dummyInstanceName, String username, String attributeName) throws SchemaViolationException, ConflictException {
+	protected void assertNoDummyAccountAttribute(String dummyInstanceName, String username, String attributeName) throws SchemaViolationException, ConflictException, InterruptedException {
 		DummyAccount account = getDummyAccount(dummyInstanceName, username);
 		assertNotNull("No dummy "+dummyInstanceName+" account for username "+username, account);
 		Set<Object> values = account.getAttributeValues(attributeName, Object.class);
@@ -3885,7 +3921,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				". Values found: " + values);
 	}
 
-	protected void assertDummyAccountAttributeGenerated(String dummyInstanceName, String username) throws SchemaViolationException, ConflictException {
+	protected void assertDummyAccountAttributeGenerated(String dummyInstanceName, String username) throws SchemaViolationException, ConflictException, InterruptedException {
 		DummyAccount account = getDummyAccount(dummyInstanceName, username);
 		assertNotNull("No dummy account for username "+username, account);
 		Integer generated = account.getAttributeValue(DummyAccount.ATTR_INTERNAL_ID, Integer.class);
@@ -3894,7 +3930,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 	}
 
-	protected DummyGroup getDummyGroup(String dummyInstanceName, String name) throws SchemaViolationException, ConflictException {
+	protected DummyGroup getDummyGroup(String dummyInstanceName, String name) throws SchemaViolationException, ConflictException, InterruptedException {
 		DummyResource dummyResource = DummyResource.getInstance(dummyInstanceName);
 		try {
 			return dummyResource.getGroupByName(name);
@@ -3905,15 +3941,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 	}
 
-	protected void assertDummyGroup(String username, String description) throws SchemaViolationException, ConflictException {
+	protected void assertDummyGroup(String username, String description) throws SchemaViolationException, ConflictException, InterruptedException {
 		assertDummyGroup(null, username, description, null);
 	}
 
-	protected void assertDummyGroup(String username, String description, Boolean active) throws SchemaViolationException, ConflictException {
+	protected void assertDummyGroup(String username, String description, Boolean active) throws SchemaViolationException, ConflictException, InterruptedException {
 		assertDummyGroup(null, username, description, active);
 	}
 
-	protected void assertDummyGroup(String dummyInstanceName, String groupname, String description, Boolean active) throws SchemaViolationException, ConflictException {
+	protected void assertDummyGroup(String dummyInstanceName, String groupname, String description, Boolean active) throws SchemaViolationException, ConflictException, InterruptedException {
 		DummyGroup group = getDummyGroup(dummyInstanceName, groupname);
 		assertNotNull("No dummy("+dummyInstanceName+") group for name "+groupname, group);
 		assertEquals("Wrong fullname for dummy(" + dummyInstanceName + ") group " + groupname, description,
@@ -3923,16 +3959,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 	}
 
-	protected void assertNoDummyGroup(String groupname) throws SchemaViolationException, ConflictException {
+	protected void assertNoDummyGroup(String groupname) throws SchemaViolationException, ConflictException, InterruptedException {
 		assertNoDummyGroup(null, groupname);
 	}
 
-	protected void assertNoDummyGroup(String dummyInstanceName, String groupname) throws SchemaViolationException, ConflictException {
+	protected void assertNoDummyGroup(String dummyInstanceName, String groupname) throws SchemaViolationException, ConflictException, InterruptedException {
 		DummyGroup group = getDummyGroup(dummyInstanceName, groupname);
 		assertNull("Dummy group '" + groupname + "' exists while not expecting it (" + dummyInstanceName + ")", group);
     }
 
-    protected void assertDummyGroupAttribute(String dummyInstanceName, String groupname, String attributeName, Object... expectedAttributeValues) throws SchemaViolationException, ConflictException {
+    protected void assertDummyGroupAttribute(String dummyInstanceName, String groupname, String attributeName, Object... expectedAttributeValues) throws SchemaViolationException, ConflictException, InterruptedException {
         DummyGroup group = getDummyGroup(dummyInstanceName, groupname);
         assertNotNull("No dummy group for groupname "+groupname, group);
         Set<Object> values = group.getAttributeValues(attributeName, Object.class);
@@ -3949,28 +3985,28 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    protected void assertDummyGroupMember(String dummyInstanceName, String dummyGroupName, String accountId) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+    protected void assertDummyGroupMember(String dummyInstanceName, String dummyGroupName, String accountId) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
     	DummyResource dummyResource = DummyResource.getInstance(dummyInstanceName);
 		DummyGroup group = dummyResource.getGroupByName(dummyGroupName);
 		assertNotNull("No dummy group "+dummyGroupName, group);
 		IntegrationTestTools.assertGroupMember(group, accountId);
 	}
 
-	protected void assertDefaultDummyGroupMember(String dummyGroupName, String accountId) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	protected void assertDefaultDummyGroupMember(String dummyGroupName, String accountId) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		assertDummyGroupMember(null, dummyGroupName, accountId);
 	}
 
-	protected void assertNoDummyGroupMember(String dummyInstanceName, String dummyGroupName, String accountId) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	protected void assertNoDummyGroupMember(String dummyInstanceName, String dummyGroupName, String accountId) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		DummyResource dummyResource = DummyResource.getInstance(dummyInstanceName);
 		DummyGroup group = dummyResource.getGroupByName(dummyGroupName);
 		IntegrationTestTools.assertNoGroupMember(group, accountId);
 	}
 
-	protected void assertNoDefaultDummyGroupMember(String dummyGroupName, String accountId) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	protected void assertNoDefaultDummyGroupMember(String dummyGroupName, String accountId) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		assertNoDummyGroupMember(null, dummyGroupName, accountId);
 	}
 
-	protected void assertDummyAccountNoAttribute(String dummyInstanceName, String username, String attributeName) throws SchemaViolationException, ConflictException {
+	protected void assertDummyAccountNoAttribute(String dummyInstanceName, String username, String attributeName) throws SchemaViolationException, ConflictException, InterruptedException {
 		DummyAccount account = getDummyAccount(dummyInstanceName, username);
 		assertNotNull("No dummy account for username "+username, account);
 		Set<Object> values = account.getAttributeValues(attributeName, Object.class);
@@ -4852,13 +4888,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				defaultActor==null?null:defaultActor.getOid(), DEFAULT_CHANNEL);
 	}
 
-	protected void assertDummyPassword(String instance, String userId, String expectedClearPassword) throws SchemaViolationException, ConflictException {
+	protected void assertDummyPassword(String instance, String userId, String expectedClearPassword) throws SchemaViolationException, ConflictException, InterruptedException {
 		DummyAccount account = getDummyAccount(instance, userId);
 		assertNotNull("No dummy account "+userId, account);
 		assertEquals("Wrong password in dummy '"+instance+"' account "+userId, expectedClearPassword, account.getPassword());
 	}
 
-	protected void assertDummyPasswordNotEmpty(String instance, String userId) throws SchemaViolationException, ConflictException {
+	protected void assertDummyPasswordNotEmpty(String instance, String userId) throws SchemaViolationException, ConflictException, InterruptedException {
 		DummyAccount account = getDummyAccount(instance, userId);
 		assertNotNull("No dummy account "+userId, account);
 		String actualPassword = account.getPassword();
@@ -5467,7 +5503,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
 	protected UserAsserter<Void> assertUserAfter(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		UserAsserter<Void> asserter = assertUser(oid, "after");
-		asserter.display();
 		asserter.assertOid(oid);
 		return asserter;
 	}
@@ -5481,7 +5516,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected UserAsserter<Void> assertUserBefore(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		UserAsserter<Void> asserter = assertUser(oid, "before");
-		asserter.display();
 		asserter.assertOid(oid);
 		return asserter;
 	}
@@ -5501,11 +5535,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected UserAsserter<Void> assertUser(PrismObject<UserType> user, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		UserAsserter<Void> asserter = UserAsserter.forUser(user, message);
 		initializeAsserter(asserter);
+		asserter.display();
 		return asserter;
 	}
 	
 	protected UserAsserter<Void> assertUserByUsername(String username, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		PrismObject<UserType> user = findUserByUsername(username);
+		assertNotNull("User with username '"+username+"' was not found", user);
 		UserAsserter<Void> asserter = UserAsserter.forUser(user, message);
 		initializeAsserter(asserter);
 		return asserter;
@@ -5526,19 +5562,35 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return asserter;
 	}
 	
-	protected FocusAsserter<RoleType,Void> assertRole(String oid, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+	protected RoleAsserter<Void> assertRole(String oid, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		PrismObject<RoleType> role = getObject(RoleType.class, oid);
-		// TODO: change to ServiceAsserter later
-		FocusAsserter<RoleType,Void> asserter = FocusAsserter.forFocus(role, message);
-		initializeAsserter(asserter);
+		RoleAsserter<Void> asserter = assertRole(role, message);
 		asserter.assertOid(oid);
 		return asserter;
 	}
 	
-	protected FocusAsserter<RoleType,Void> assertRoleAfter(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		FocusAsserter<RoleType,Void> asserter = assertRole(oid, "after");
+	protected RoleAsserter<Void> assertRoleByName(String name, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		PrismObject<RoleType> role = findObjectByName(RoleType.class, name);
+		assertNotNull("No role with name '"+name+"'", role);
+		RoleAsserter<Void> asserter = assertRole(role, message);
+		asserter.assertName(name);
+		return asserter;
+	}
+	
+	protected RoleAsserter<Void> assertRole(PrismObject<RoleType> role, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		RoleAsserter<Void> asserter = RoleAsserter.forRole(role, message);
+		initializeAsserter(asserter);
 		asserter.display();
-		asserter.assertOid(oid);
+		return asserter;
+	}
+	
+	protected RoleAsserter<Void> assertRoleAfter(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		RoleAsserter<Void> asserter = assertRole(oid, "after");
+		return asserter;
+	}
+	
+	protected RoleAsserter<Void> assertRoleAfterByName(String name) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		RoleAsserter<Void> asserter = assertRoleByName(name, "after");
 		return asserter;
 	}
 	
@@ -5643,6 +5695,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 	}
 	
+	protected <O extends ObjectType> ModelContextAsserter<O,Void> assertPreviewContext(ModelContext<O> previewContext) {
+		ModelContextAsserter<O,Void> asserter = ModelContextAsserter.forContext(previewContext, "preview context");
+		initializeAsserter(asserter);
+		asserter.display();
+		return asserter;
+	}
+	
 	
 	// SECURITY
 	
@@ -5684,8 +5743,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertSearch(type, ObjectQuery.createObjectQuery(filter), null, expectedResults);
 	}
 	
-	protected <O extends ObjectType> void assertSearch(Class<O> type, ObjectQuery query, int expectedResults) throws Exception {
-		assertSearch(type, query, null, expectedResults);
+	protected <O extends ObjectType> SearchResultList<PrismObject<O>> assertSearch(Class<O> type, ObjectQuery query, int expectedResults) throws Exception {
+		return assertSearch(type, query, null, expectedResults);
 	}
 	
 	protected <O extends ObjectType> void assertSearchRaw(Class<O> type, ObjectQuery query, int expectedResults) throws Exception {
@@ -5703,9 +5762,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	
-	protected <O extends ObjectType> void assertSearch(Class<O> type, ObjectQuery query,
+	protected <O extends ObjectType> SearchResultList<PrismObject<O>> assertSearch(Class<O> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, int expectedResults) throws Exception {
-		assertSearch(type, query, options, 
+		return assertSearch(type, query, options, 
 				new SearchAssertion<O>() {
 
 					@Override
@@ -5765,13 +5824,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			});
 	}
 	
-	protected <O extends ObjectType> void assertSearch(Class<O> type, ObjectQuery query,
+	protected <O extends ObjectType> SearchResultList<PrismObject<O>> assertSearch(Class<O> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, SearchAssertion<O> assertion) throws Exception {
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".assertSearchObjects");
         OperationResult result = task.getResult();
+        SearchResultList<PrismObject<O>> objects;
 		try {
 			logAttempt("search", type, query);
-			List<PrismObject<O>> objects = modelService.searchObjects(type, query, options, task, result);
+			objects = modelService.searchObjects(type, query, options, task, result);
 			display("Search returned", objects.toString());
 			assertion.assertObjects("search", objects);
 			assertSuccess(result);
@@ -5780,29 +5840,31 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			result.computeStatus();
 			TestUtil.assertFailure(result);
 			failAllow("search", type, query, e);
+			return null; // not reached
 		}
 
 		task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".assertSearchObjectsIterative");
         result = task.getResult();
 		try {
 			logAttempt("searchIterative", type, query);
-			final List<PrismObject<O>> objects = new ArrayList<>();
+			final List<PrismObject<O>> iterativeObjects = new ArrayList<>();
 			ResultHandler<O> handler = new ResultHandler<O>() {
 				@Override
 				public boolean handle(PrismObject<O> object, OperationResult parentResult) {
-					objects.add(object);
+					iterativeObjects.add(object);
 					return true;
 				}
 			};
 			modelService.searchObjectsIterative(type, query, handler, options, task, result);
-			display("Search iterative returned", objects.toString());
-			assertion.assertObjects("searchIterative", objects);
+			display("Search iterative returned", iterativeObjects.toString());
+			assertion.assertObjects("searchIterative", iterativeObjects);
 			assertSuccess(result);
 		} catch (SecurityViolationException e) {
 			// this should not happen
 			result.computeStatus();
 			TestUtil.assertFailure(result);
 			failAllow("searchIterative", type, query, e);
+			return null; // not reached
 		}
 
 		task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".assertSearchObjects.count");
@@ -5818,7 +5880,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			result.computeStatus();
 			TestUtil.assertFailure(result);
 			failAllow("search", type, query, e);
+			return null; // not reached
 		}
+		
+		return objects;
 	}
 
 	

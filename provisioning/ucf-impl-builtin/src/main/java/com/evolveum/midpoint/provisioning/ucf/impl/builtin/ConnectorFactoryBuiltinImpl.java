@@ -88,6 +88,9 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
 	@Override
 	public Set<ConnectorType> listConnectors(ConnectorHostType host, OperationResult parentRestul)
 			throws CommunicationException {
+		if (host != null) {
+			return null;
+		}
 		if (connectorMap == null) {
 			discoverConnectors();
 		}

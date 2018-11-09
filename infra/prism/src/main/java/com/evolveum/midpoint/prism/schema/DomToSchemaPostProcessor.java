@@ -1065,6 +1065,12 @@ class DomToSchemaPostProcessor {
 			itemDef.setExperimental(experimental);
 		}
 		
+		// planned removal
+		Element plannedRemoval = SchemaProcessorUtil.getAnnotationElement(annotation, A_PLANNED_REMOVAL);
+		if (plannedRemoval != null) {
+			itemDef.setPlannedRemoval(plannedRemoval.getTextContent());
+		}
+		
 		// elaborate
 		Boolean elaborate = SchemaProcessorUtil.getAnnotationBooleanMarker(annotation, A_ELABORATE);
 		if (elaborate != null) {

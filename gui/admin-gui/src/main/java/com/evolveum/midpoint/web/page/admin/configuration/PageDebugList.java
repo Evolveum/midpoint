@@ -981,7 +981,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
 			DropDownChoice choice = new DropDownChoice(ID_CHOICE,
 					new PropertyModel(model, DebugSearchDto.F_TYPE), createChoiceModel(renderer), renderer);
-			choice.add(getDropDownStyleAppender());
+//			choice.add(getDropDownStyleAppender());
 			choiceContainer.add(choice);
 			choice.add(new OnChangeAjaxBehavior() {
 
@@ -995,7 +995,7 @@ public class PageDebugList extends PageAdminConfiguration {
 			DropDownChoice resource = new DropDownChoice(ID_RESOURCE,
 					new PropertyModel(model, DebugSearchDto.F_RESOURCE), resourcesModel,
 					createResourceRenderer());
-			resource.add(getDropDownStyleAppender());
+//			resource.add(getDropDownStyleAppender());
 			resource.setNullValid(true);
 			resource.add(new AjaxFormComponentUpdatingBehavior("blur") {
 

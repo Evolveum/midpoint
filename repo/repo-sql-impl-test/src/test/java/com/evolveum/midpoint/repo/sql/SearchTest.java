@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
@@ -59,6 +60,7 @@ import static org.testng.AssertJUnit.fail;
 public class SearchTest extends BaseSQLRepoTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(SearchTest.class);
+    private static final String DESCRIPTION_TO_FIND = "tralala";
 
     private String beforeConfigOid;
 
@@ -71,7 +73,7 @@ public class SearchTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("add objects");
         PrismObject<UserType> beforeConfig = prismContext.createObjectable(UserType.class)
                 .name("before-config")
-                .description("tralala")
+                .description(DESCRIPTION_TO_FIND)
                 .asPrismObject();
         beforeConfigOid = repositoryService.addObject(beforeConfig, null, result);
 
@@ -781,7 +783,24 @@ public class SearchTest extends BaseSQLRepoTest {
 						.maxSize(100)
 						.build(),
 				distinct, 1);
-	}
+    }
+
+    @Test // MID-4932
+    public void fullTextSearchModify() throws Exception {
+
+        OperationResult result = new OperationResult("fullTextSearchModify");
+        repositoryService.modifyObject(TaskType.class, "777",
+                DeltaBuilder.deltaFor(UserType.class, prismContext)
+                        .item(TaskType.F_NAME).replace(PolyString.fromOrig("TASK with no owner"))
+                        .asItemDeltas(),
+                result);
+
+        repositoryService.modifyObject(TaskType.class, "777",
+                DeltaBuilder.deltaFor(UserType.class, prismContext)
+                        .item(TaskType.F_NAME).replace(PolyString.fromOrig("Task with no owner"))
+                        .asItemDeltas(),
+                result);
+    }
 
     @Test
     public void reindex() throws Exception {
@@ -789,12 +808,12 @@ public class SearchTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("reindex");
 
         assertUsersFound(QueryBuilder.queryFor(UserType.class, prismContext)
-                        .fullText("tralala")
+                        .fullText(DESCRIPTION_TO_FIND)
                         .build(),
                 false, 0);
         repositoryService.modifyObject(UserType.class, beforeConfigOid, emptySet(), createExecuteIfNoChanges(), result);
         assertUsersFound(QueryBuilder.queryFor(UserType.class, prismContext)
-                        .fullText("tralala")
+                        .fullText(DESCRIPTION_TO_FIND)
                         .build(),
                 false, 1);
     }

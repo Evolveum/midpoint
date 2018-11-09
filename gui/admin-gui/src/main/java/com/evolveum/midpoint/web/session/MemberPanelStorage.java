@@ -20,11 +20,9 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxScopeType;
 
 import javax.xml.namespace.QName;
-
-import static com.evolveum.midpoint.web.page.admin.roles.AbstractRoleMemberPanel.SEARCH_SCOPE_SUBTREE;
-
 /**
  * Created by honchar
  */
@@ -34,16 +32,16 @@ public class MemberPanelStorage implements PageStorage{
     private ObjectPaging orgMemberPanelPaging;
 
     private Search search;
-    private String orgSearchScope = SEARCH_SCOPE_SUBTREE;
+    private SearchBoxScopeType orgSearchScope;
     private Boolean isIndirect = false;
     private QName relation = null;
     private ObjectTypes type = null;
 
-    public String getOrgSearchScope() {
+    public SearchBoxScopeType getOrgSearchScope() {
         return orgSearchScope;
     }
 
-    public void setOrgSearchScope(String orgSearchScope) {
+    public void setOrgSearchScope(SearchBoxScopeType orgSearchScope) {
         this.orgSearchScope = orgSearchScope;
     }
 

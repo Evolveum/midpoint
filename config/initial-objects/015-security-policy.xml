@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2014-2016 Evolveum
+  ~ Copyright (c) 2014-2018 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 	<name>Default Security Policy</name>
 	<credentials>
 		<password>
+			<minOccurs>0</minOccurs>
 			<lockoutMaxFailedAttempts>3</lockoutMaxFailedAttempts>
 			<lockoutFailedAttemptsDuration>PT3M</lockoutFailedAttemptsDuration>
 			<lockoutDuration>PT15M</lockoutDuration>

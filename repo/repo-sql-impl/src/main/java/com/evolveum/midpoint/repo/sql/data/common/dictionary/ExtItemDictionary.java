@@ -91,22 +91,22 @@ public class ExtItemDictionary {
         }
     }
 
-    @NotNull    // TODO synchronized (before release)
-    public RExtItem createOrFindItemDefinition(@NotNull ItemDefinition<?> definition, boolean throwExceptionAfterCreate) {
+    @NotNull
+    public synchronized RExtItem createOrFindItemDefinition(@NotNull ItemDefinition<?> definition, boolean throwExceptionAfterCreate) {
         return createOrFindItemByDefinitionInternal(definition, true, throwExceptionAfterCreate);
     }
 
-    @NotNull    // TODO synchronized (before release)
-    public RExtItem createOrFindItemDefinition(@NotNull ItemDefinition<?> definition) {
+    @NotNull
+    public synchronized RExtItem createOrFindItemDefinition(@NotNull ItemDefinition<?> definition) {
         return createOrFindItemByDefinitionInternal(definition, true, true);
     }
 
-    @Nullable   // TODO synchronized (before release)
-    public RExtItem findItemByDefinition(@NotNull ItemDefinition<?> definition) {
+    @Nullable
+    public synchronized RExtItem findItemByDefinition(@NotNull ItemDefinition<?> definition) {
         return createOrFindItemByDefinitionInternal(definition, false, true);
     }
 
-    @Contract("_, _, true -> !null")    // TODO synchronized (before release)
+    @Contract("_, _, true -> !null")
     private RExtItem createOrFindItemByDefinitionInternal(
             @NotNull ItemDefinition<?> definition, boolean create, boolean throwExceptionAfterCreate) {
 
@@ -173,8 +173,7 @@ public class ExtItemDictionary {
         }
     }
 
-    // TODO synchronized (before release)
-    public RExtItem getItemById(Integer extItemId) {
+    public synchronized RExtItem getItemById(Integer extItemId) {
         boolean fresh = fetchItemsIfNeeded();
         RExtItem extItem = itemsById.get(extItemId);
         if (extItem != null || fresh) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,12 @@
 package com.evolveum.midpoint.common.validator;
 
 /**
- *
+ * LEGACY: This is all very old code. And it is XML-only. It will be probably
+ * thrown away and re-written in a more reasonable way.
+ * 
  * @author semancik
  */
-public class ValidationMessage {
+public class LegacyValidationMessage {
 
 	public enum Type {
 		WARNING, ERROR
@@ -32,18 +34,18 @@ public class ValidationMessage {
 	public String message;
 	public String property;
 
-	public ValidationMessage() {
+	public LegacyValidationMessage() {
 	}
 
-	public ValidationMessage(Type type, String message) {
+	public LegacyValidationMessage(Type type, String message) {
 		this(type, message, null, null);
 	}
 
-	public ValidationMessage(Type type, String message, String oid, String name) {
+	public LegacyValidationMessage(Type type, String message, String oid, String name) {
 		this(type, message, oid, name, null);
 	}
 
-	public ValidationMessage(Type type, String message, String oid, String name, String property) {
+	public LegacyValidationMessage(Type type, String message, String oid, String name, String property) {
 		this.type = type;
 		this.message = message;
 		this.oid = oid;
@@ -168,7 +170,7 @@ public class ValidationMessage {
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		final ValidationMessage other = (ValidationMessage) obj;
+		final LegacyValidationMessage other = (LegacyValidationMessage) obj;
 		if (this.type != other.type) {
 			return false;
 		}

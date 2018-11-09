@@ -16,15 +16,34 @@
   -->
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
 <suite name="integration" parallel="false" verbose="1">
-    <test name="Schrodinger" preserve-order="true" parallel="false" verbose="10" enabled="true">
-                <classes>
-					<class name="com.evolveum.midpoint.testing.schrodinger.TestSuiteConfig"/>
-					<!--<class name="com.evolveum.midpoint.testing.schrodinger.scenarios.OrganizationStructureTests"/>-->
-					<!--<class name="com.evolveum.midpoint.testing.schrodinger.scenarios.UserAccountTests"/>
-					<class name="com.evolveum.midpoint.testing.schrodinger.scenarios.OrganizationStructureTests"/>
-					<class name="com.evolveum.midpoint.testing.schrodinger.scenarios.PolyStringTests"/>
-					<class name="com.evolveum.midpoint.testing.schrodinger.scenarios.SynchronizationTests"/>>-->
-					<class name="com.evolveum.midpoint.testing.schrodinger.scenarios.UserPhotoTests"/>
-                </classes>
-            </test>
+	<test name="Schrodinger.scenarios.UserPhotoTests" preserve-order="true" parallel="false" verbose="3" enabled="true">
+		<classes>
+			<class name="com.evolveum.midpoint.testing.schrodinger.scenarios.UserPhotoTests"/>
+		</classes>
+	</test>
+	<test name="Schrodinger.scenarios.OrganizationStructureTests" preserve-order="true" parallel="false" verbose="3" enabled="true">
+		<classes>
+			<class name="com.evolveum.midpoint.testing.schrodinger.scenarios.OrganizationStructureTests"/>
+		</classes>
+	</test>
+	<test name="Schrodinger.scenarios.UserAccountTests" preserve-order="true" parallel="false" verbose="3" enabled="true">
+		<classes>
+			<class name="com.evolveum.midpoint.testing.schrodinger.scenarios.UserAccountTests"/>
+		</classes>
+	</test>
+	<test name="Schrodinger.scenarios.PolyStringTests" preserve-order="true" parallel="false" verbose="3" enabled="true">
+		<classes>
+			<class name="com.evolveum.midpoint.testing.schrodinger.scenarios.PolyStringTests"/>
+		</classes>
+	</test>
+	<test name="Schrodinger.scenarios.PostAuthenticationTests" preserve-order="true" parallel="false" verbose="3" enabled="true">
+		<classes>
+			<class name="com.evolveum.midpoint.testing.schrodinger.scenarios.PostAuthenticationTests"/>
+		</classes>
+	</test>
+	<test name="Schrodinger.scenarios.SynchronizationTests" preserve-order="true" parallel="false" verbose="3" enabled="true">
+		<classes>
+			<class name="com.evolveum.midpoint.testing.schrodinger.scenarios.SynchronizationTests"/>
+		</classes>
+	</test>
 </suite>

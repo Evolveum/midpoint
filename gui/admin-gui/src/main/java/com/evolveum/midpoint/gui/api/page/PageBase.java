@@ -22,7 +22,7 @@ import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
-import com.evolveum.midpoint.common.validator.Validator;
+import com.evolveum.midpoint.common.validator.LegacyValidator;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.SubscriptionType;
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
@@ -166,6 +166,7 @@ import org.w3c.dom.Node;
 import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
+import javax.xml.namespace.QName;
 
 import java.io.Serializable;
 import java.net.URI;
@@ -334,6 +335,11 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         initializeModel();
 
+    }
+
+    @Override
+    protected void onInitialize(){
+        super.onInitialize();
         initLayout();
     }
 
@@ -632,6 +638,33 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     public MidPointPrincipal getPrincipal() {
         return SecurityUtils.getPrincipalUser();
+    }
+    
+    public UserType getPrincipalUser() {
+        MidPointPrincipal principal = getPrincipal();
+        if (principal == null) {
+        	return null;
+        }
+        return principal.getUser();
+    }
+    
+    public boolean hasSubjectRoleRelation(String oid, List<QName> subjectRelations) {
+    	UserType userType = getPrincipalUser();
+    	if (userType == null) {
+    		return false;
+    	}
+    	
+    	if (oid == null) {
+    		return false;
+    	}
+    	
+    	for (ObjectReferenceType roleMembershipRef : userType.getRoleMembershipRef()) {
+    		if (oid.equals(roleMembershipRef.getOid()) && 
+    				getPrismContext().relationMatches(subjectRelations, roleMembershipRef.getRelation())) {
+    			return true;
+    		}
+    	}
+    	return false;
     }
 
     public static StringResourceModel createStringResourceStatic(Component component, Enum<?> e) {
@@ -1489,7 +1522,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             public void handleGlobalError(OperationResult currentResult) {
             }
         };
-        Validator validator = new Validator(getPrismContext(), handler);
+        LegacyValidator validator = new LegacyValidator(getPrismContext(), handler);
         validator.setVerbose(true);
         validator.setValidateSchema(validateSchema);
         validator.validate(lexicalRepresentation, result, OperationConstants.IMPORT_OBJECT);        // TODO the operation name

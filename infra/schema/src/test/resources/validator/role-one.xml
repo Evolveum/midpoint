@@ -1,0 +1,45 @@
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<role oid="0d70504c-d094-11e8-b0cc-675c492577e7"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+      
+    <name>One</name> <!-- OK -->
+    <description>First role</description> <!-- OK -->
+    
+    <roleType>lab</roleType> <!-- deprecated, but not plannedRemoval -->
+    
+    <approverExpression> <!-- plannedRemoval=4.0 -->
+        <script>
+            <code>midpoint.oid2ort(user.getOid())</code>
+        </script>
+    </approverExpression>
+    
+    <policyConstraints> <!-- plannedRemoval=4.0 -->
+    	<minAssignees>
+    		<enforcement>report</enforcement>
+    		<multiplicity>2</multiplicity>
+    	</minAssignees>
+    	<minAssignees>
+    		<multiplicity>1</multiplicity>
+    	</minAssignees>
+    	<maxAssignees>
+    		<multiplicity>unbounded</multiplicity>
+    	</maxAssignees>
+    </policyConstraints>
+    
+</role>

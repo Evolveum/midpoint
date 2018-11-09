@@ -474,15 +474,14 @@ public class PageResources extends PageAdminResources {
 				getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task,
 						result);
 			} catch (Exception ex) {
-				result.recordPartialError("Couldn't delete resource.", ex);
+				result.recordPartialError(createStringResource("PageResources.message.deleteResourceConfirmedPerformed.partialError").getString(), ex);
 				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete resource", ex);
 			}
 		}
 
 		result.recomputeStatus();
 		if (result.isSuccess()) {
-			result.recordStatus(OperationResultStatus.SUCCESS,
-					"The resource(s) have been successfully deleted."); // todo i18n
+			result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("PageResources.message.deleteResourceConfirmedPerformed.success").getString());
 		}
 
 		getResourceTable().clearCache();
@@ -498,7 +497,7 @@ public class PageResources extends PageAdminResources {
 		// SelectableBean<ResourceType> dto = rowModel.getObject();
 		// ResourceType resourceType = dto.getValue();
 		if (StringUtils.isEmpty(resourceType.getOid())) {
-			result.recordFatalError("Resource oid not defined in request");
+			result.recordFatalError(createStringResource("PageResources.message.testResourcePerformed.partialError").getString());
 		}
 
 		Task task = createSimpleTask(OPERATION_TEST_RESOURCE);

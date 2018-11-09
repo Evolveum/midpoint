@@ -215,7 +215,7 @@ public class TestLimitedResources extends AbstractStoryTest {
 		assertAADWeapon(USER_JACK_USERNAME /* no values */);
 	}
 	
-	private void assertAADWeapon(String username, String... ous) throws SchemaViolationException, ConflictException {
+	private void assertAADWeapon(String username, String... ous) throws SchemaViolationException, ConflictException, InterruptedException {
 		assertDummyAccount(RESOURCE_DUMMY_NO_ATTRIBUTE_ADD_DELETE_NAME, username);
 		Object[] weapons = new String[ous.length];
 		for (int i=0; i<ous.length; i++) {

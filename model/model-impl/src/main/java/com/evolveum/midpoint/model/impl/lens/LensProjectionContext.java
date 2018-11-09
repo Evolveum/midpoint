@@ -280,6 +280,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 			secondaryDelta = new ObjectDelta<>(getObjectTypeClass(), ChangeType.MODIFY, getPrismContext());
 			secondaryDelta.setOid(getOid());
 		}
+		LensUtil.setDeltaOldValue(this, itemDelta);
 		secondaryDelta.swallow(itemDelta);
 	}
 

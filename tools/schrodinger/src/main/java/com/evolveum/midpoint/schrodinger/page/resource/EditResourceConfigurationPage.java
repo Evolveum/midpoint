@@ -5,6 +5,11 @@ import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.resource.*;
 import com.evolveum.midpoint.schrodinger.component.common.TabPanel;
+import com.evolveum.midpoint.schrodinger.component.resource.ResourceConfigurationTab;
+import com.evolveum.midpoint.schrodinger.component.resource.ResourceConnectorPoolTab;
+import com.evolveum.midpoint.schrodinger.component.resource.ResourceResultsHandlersTab;
+import com.evolveum.midpoint.schrodinger.component.resource.ResourceTimeoutsTab;
+import com.evolveum.midpoint.schrodinger.component.resource.TestConnectionModal;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
@@ -51,7 +56,7 @@ public class EditResourceConfigurationPage extends BasicPage {
         $(Schrodinger.byDataId("testConnection")).click();
         SelenideElement testModalBox = $(Schrodinger
                 .byElementAttributeValue("div", "aria-labelledby", "Test connection result(s)"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT);
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
 
         return new TestConnectionModal<>(this, testModalBox);
     }

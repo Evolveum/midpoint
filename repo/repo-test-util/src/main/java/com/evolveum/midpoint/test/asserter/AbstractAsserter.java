@@ -86,6 +86,13 @@ public abstract class AbstractAsserter<RA> {
 	}
 
 	protected String descWithDetails(Object o) {
+		if (o == null) {
+			if (details == null) {
+				return "null";
+			} else {
+				return "null("+details+")";
+			}
+		}
 		if (details == null) {
 			return o.toString();
 		} else {

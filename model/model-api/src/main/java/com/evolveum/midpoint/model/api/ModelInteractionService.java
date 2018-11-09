@@ -171,6 +171,7 @@ public interface ModelInteractionService {
     
     /**
      * TODO
+     * Question: does object make any sense here? E.g. when searching role members, the role OID should be determined from the query.
      *
      * @param includeSpecial include special authorizations, such as "self". If set to false those authorizations
      *                       will be ignored. This is a good way to avoid interference of "self" when checking for
@@ -351,9 +352,7 @@ public interface ModelInteractionService {
 			ExecuteCredentialResetRequestType executeCredentialResetRequest, Task task, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
-	
-	void clearCaches();
-	
+
 	void refreshPrincipal(String oid) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 	
 	List<RelationDefinitionType> getRelationDefinitions();

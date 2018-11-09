@@ -67,6 +67,7 @@ public class ScriptExecutor extends BaseActionExecutor {
 
     private static final String NAME = "execute-script";
     private static final String PARAM_SCRIPT = "script";
+    private static final String PARAM_QUIET = "quiet";                  // todo implement for other actions as well
     private static final String PARAM_OUTPUT_ITEM = "outputItem";		// item name or type (as URI!) -- EXPERIMENTAL
 	private static final String PARAM_FOR_WHOLE_INPUT = "forWholeInput";
 
@@ -85,6 +86,7 @@ public class ScriptExecutor extends BaseActionExecutor {
 		String outputItem = expressionHelper.getSingleArgumentValue(expression.getParameter(), PARAM_OUTPUT_ITEM, false, false,
 				NAME, input, context, String.class, globalResult);
 	    boolean forWholeInput = expressionHelper.getArgumentAsBoolean(expression.getParameter(), PARAM_FOR_WHOLE_INPUT, input, context, false, PARAM_FOR_WHOLE_INPUT, globalResult);
+	    boolean quiet = expressionHelper.getArgumentAsBoolean(expression.getParameter(), PARAM_QUIET, input, context, false, PARAM_QUIET, globalResult);
 
 		ItemDefinition<?> outputDefinition = getItemDefinition(outputItem);
 
@@ -115,8 +117,10 @@ public class ScriptExecutor extends BaseActionExecutor {
 			} catch (Throwable ex) {
 				exception = processActionException(ex, NAME, null, context);        // TODO value for error reporting (3rd parameter)
 			}
-			context.println((exception != null ? "Attempted to execute " : "Executed ")
-					+ "script on the pipeline" + exceptionSuffix(exception));
+			if (!quiet) {
+				context.println((exception != null ? "Attempted to execute " : "Executed ")
+						+ "script on the pipeline" + exceptionSuffix(exception));
+			}
 			operationsHelper.trimAndCloneResult(result, globalResult, context);
 		} else {
 			for (PipelineItem item : input.getData()) {
@@ -154,8 +158,10 @@ public class ScriptExecutor extends BaseActionExecutor {
 					}
 					exception = processActionException(ex, NAME, value, context);
 				}
-				context.println((exception != null ? "Attempted to execute " : "Executed ")
-						+ "script on " + valueDescription + exceptionSuffix(exception));
+				if (!quiet) {
+					context.println((exception != null ? "Attempted to execute " : "Executed ")
+							+ "script on " + valueDescription + exceptionSuffix(exception));
+				}
 				operationsHelper.trimAndCloneResult(result, globalResult, context);
 			}
 		}

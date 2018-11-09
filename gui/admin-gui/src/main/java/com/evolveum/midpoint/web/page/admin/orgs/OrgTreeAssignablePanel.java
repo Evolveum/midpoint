@@ -18,8 +18,13 @@ package com.evolveum.midpoint.web.page.admin.orgs;
 import java.util.*;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.session.OrgTreeStateStorage;
 import com.evolveum.midpoint.web.session.UsersStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -37,7 +42,7 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
-public class OrgTreeAssignablePanel extends BasePanel<OrgType> implements Popupable{
+public class OrgTreeAssignablePanel  extends BasePanel<OrgType> implements Popupable{
 
 	private static final long serialVersionUID = 1L;
 
@@ -46,6 +51,7 @@ public class OrgTreeAssignablePanel extends BasePanel<OrgType> implements Popupa
 	public static final String PARAM_ORG_RETURN = "org";
 
 	private static final String DOT_CLASS = OrgTreeAssignablePanel.class.getName() + ".";
+	private static final String OPERATION_LOAD_ASSIGNABLE_ITEMS = DOT_CLASS + "loadAssignableOrgs";
 
 	private static final String ID_ORG_TABS = "orgTabs";
 	private static final String ID_ASSIGN = "assign";
@@ -108,8 +114,19 @@ public class OrgTreeAssignablePanel extends BasePanel<OrgType> implements Popupa
 					}
 
 					@Override
+					protected void selectTreeItemPerformed(SelectableBean<OrgType> selected,
+														   AjaxRequestTarget target) {
+						onItemSelect(selected, target);
+					}
+
+					@Override
 					protected OrgTreeStateStorage getOrgTreeStateStorage(){
 						return null;
+					}
+
+					@Override
+					protected ObjectFilter getCustomFilter(){
+						return getAssignableItemsFilter();
 					}
 				};
 
@@ -120,6 +137,11 @@ public class OrgTreeAssignablePanel extends BasePanel<OrgType> implements Popupa
 			@Override
 			protected boolean isWarnMessageVisible(){
 				return false;
+			}
+
+			@Override
+			protected ObjectFilter getAssignableItemsFilter(){
+				return OrgTreeAssignablePanel.this.getAssignableItemsFilter();
 			}
 
 			@Override
@@ -169,6 +191,20 @@ public class OrgTreeAssignablePanel extends BasePanel<OrgType> implements Popupa
 
 	protected void onItemSelect(SelectableBean<OrgType> selected, AjaxRequestTarget target) {
 
+	}
+
+	private ObjectFilter getAssignableItemsFilter(){
+		if (getAssignmentOwnerObject() == null){
+			return null;
+		}
+		Task task = getPageBase().createSimpleTask(OPERATION_LOAD_ASSIGNABLE_ITEMS);
+		OperationResult result = task.getResult();
+		return WebComponentUtil.getAssignableRolesFilter(getAssignmentOwnerObject().asPrismObject(), OrgType.class,
+				result, task, getPageBase());
+	}
+
+	protected <F extends FocusType> F getAssignmentOwnerObject(){
+		return null;
 	}
 
 	protected List<OrgType> getPreselectedOrgsList(){

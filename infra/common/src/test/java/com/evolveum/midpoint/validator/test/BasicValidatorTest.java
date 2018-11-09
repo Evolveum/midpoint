@@ -39,7 +39,7 @@ import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
-import com.evolveum.midpoint.common.validator.Validator;
+import com.evolveum.midpoint.common.validator.LegacyValidator;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -215,7 +215,7 @@ public class BasicValidatorTest {
 
         OperationResult result = new OperationResult(this.getClass().getName()+".testStopOnErrors");
 
-        Validator validator = new Validator(PrismTestUtil.getPrismContext());
+        LegacyValidator validator = new LegacyValidator(PrismTestUtil.getPrismContext());
         validator.setVerbose(false);
         validator.setStopAfterErrors(2);
 
@@ -246,7 +246,7 @@ public class BasicValidatorTest {
     }
 
     private void validateFile(String filename,EventHandler handler, OperationResult result) throws FileNotFoundException {
-        Validator validator = new Validator(PrismTestUtil.getPrismContext());
+        LegacyValidator validator = new LegacyValidator(PrismTestUtil.getPrismContext());
         if (handler!=null) {
             validator.setHandler(handler);
         }
@@ -254,7 +254,7 @@ public class BasicValidatorTest {
         validateFile(filename, handler, validator, result);
     }
 
-    private void validateFile(String filename,EventHandler handler, Validator validator, OperationResult result) throws FileNotFoundException {
+    private void validateFile(String filename,EventHandler handler, LegacyValidator validator, OperationResult result) throws FileNotFoundException {
 
         String filepath = BASE_PATH + filename;
 

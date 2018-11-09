@@ -472,7 +472,7 @@ public class AuthorizationConstants {
 	//ui authorization for CSV export button (will be applied everywhere over mp)
 	public static final QName AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminCSVexport");
 	public static final String AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_QNAME);
-	
+
 	/**
 	 * Those are the items that midPoint logic controls directly. They have exception from execution-phase
 	 * authorization enforcement. Their modification in execution phase is always allowed. If it was not

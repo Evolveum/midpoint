@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,16 +56,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
- *
+ * Class to validate (and possible transform) large sets of objects.
+ * 
+ * LEGACY: This is all very old code. And it is XML-only. It will be probably
+ * thrown away and re-written in a more reasonable way.
  *
  * @author Radovan Semancik
  *
  */
-public class Validator {
+public class LegacyValidator {
 
-	private static final Trace LOGGER = TraceManager.getTrace(Validator.class);
+	private static final Trace LOGGER = TraceManager.getTrace(LegacyValidator.class);
 	private static final String INPUT_STREAM_CHARSET = "utf-8";
-	private static final String OPERATION_PREFIX = Validator.class.getName() + ".";
+	private static final String OPERATION_PREFIX = LegacyValidator.class.getName() + ".";
 	private static final String OPERATION_RESOURCE_NAMESPACE_CHECK = OPERATION_PREFIX + "resourceNamespaceCheck";
 	private static final String OPERATION_RESOURCE_BASICS_CHECK = OPERATION_PREFIX + "objectBasicsCheck";
 	private static final String START_LINE_NUMBER = "startLineNumber";
@@ -82,13 +85,13 @@ public class Validator {
 	private long errors = 0;
 	private long stopAfterErrors = 0;
 
-	public Validator(PrismContext prismContext) {
+	public LegacyValidator(PrismContext prismContext) {
 		this.prismContext = prismContext;
 		this.handler = null;
 		initialize();
 	}
 
-	public Validator(PrismContext prismContext, EventHandler handler) {
+	public LegacyValidator(PrismContext prismContext, EventHandler handler) {
 		this.prismContext = prismContext;
 		this.handler = handler;
 		initialize();
@@ -450,7 +453,7 @@ public class Validator {
 
     // this was made public to allow validation of pre-parsed non-prism documents
 	public Node validateSchema(Element objectDoc, OperationResult objectResult) {
-		OperationResult result = objectResult.createSubresult(Validator.class.getName() + ".validateSchema");
+		OperationResult result = objectResult.createSubresult(LegacyValidator.class.getName() + ".validateSchema");
 		DOMResult validationResult = new DOMResult();
 		try {
 			xsdValidator.validate(new DOMSource(objectDoc), validationResult);

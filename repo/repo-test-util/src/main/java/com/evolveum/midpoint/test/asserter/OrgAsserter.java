@@ -28,6 +28,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -49,7 +50,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  * @author semancik
  *
  */
-public class OrgAsserter<RA> extends FocusAsserter<OrgType,RA> {
+public class OrgAsserter<RA> extends AbstractRoleAsserter<OrgType,RA> {
 	
 	public OrgAsserter(PrismObject<OrgType> focus) {
 		super(focus);
@@ -134,28 +135,19 @@ public class OrgAsserter<RA> extends FocusAsserter<OrgType,RA> {
 		return this;
 	}
 	
+	@Override
 	public OrgAsserter<RA> assertAdministrativeStatus(ActivationStatusType expected) {
-		ActivationType activation = getActivation();
-		if (activation == null) {
-			if (expected == null) {
-				return this;
-			} else {
-				fail("No activation in "+desc());
-			}
-		}
-		assertEquals("Wrong activation administrativeStatus in "+desc(), expected, activation.getAdministrativeStatus());
+		super.assertAdministrativeStatus(expected);
 		return this;
 	}
-	
-	private ActivationType getActivation() {
-		return getObject().asObjectable().getActivation();
-	}
 		
+	@Override
 	public OrgAsserter<RA> display() {
 		super.display();
 		return this;
 	}
 	
+	@Override
 	public OrgAsserter<RA> display(String message) {
 		super.display(message);
 		return this;
@@ -188,13 +180,21 @@ public class OrgAsserter<RA> extends FocusAsserter<OrgType,RA> {
 		return asserter;
 	}
 
+	@Override
 	public OrgAsserter<RA> assertDisplayName(String expectedOrig) {
-		assertPolyStringProperty(OrgType.F_DISPLAY_NAME, expectedOrig);
+		super.assertDisplayName(expectedOrig);
 		return this;
 	}
 	
+	@Override
 	public OrgAsserter<RA> assertLocality(String expectedOrig) {
-		assertPolyStringProperty(OrgType.F_LOCALITY, expectedOrig);
+		super.assertLocality(expectedOrig);
+		return this;
+	}
+	
+	@Override
+	public OrgAsserter<RA> assertIdentifier(String expectedOrig) {
+		super.assertIdentifier(expectedOrig);
 		return this;
 	}
 	
@@ -216,7 +216,7 @@ public class OrgAsserter<RA> extends FocusAsserter<OrgType,RA> {
 	
 	@Override
 	public ShadowAsserter<OrgAsserter<RA>> projectionOnResource(String resourceOid) throws ObjectNotFoundException, SchemaException {
-		return super.projectionOnResource(resourceOid);
+		return (ShadowAsserter<OrgAsserter<RA>>) super.projectionOnResource(resourceOid);
 	}
 	
 	@Override
@@ -249,4 +249,42 @@ public class OrgAsserter<RA> extends FocusAsserter<OrgType,RA> {
 		return this;
 	}
 	
+	@Override
+	public RoleMembershipRefsAsserter<OrgType, ? extends OrgAsserter<RA>, RA> roleMembershipRefs() {
+		RoleMembershipRefsAsserter<OrgType,OrgAsserter<RA>,RA> asserter = new RoleMembershipRefsAsserter<>(this, getDetails());
+		copySetupTo(asserter);
+		return asserter;
+	}
+	
+	@Override
+	public OrgAsserter<RA> assertRoleMemberhipRefs(int expected) {
+		super.assertRoleMemberhipRefs(expected);
+		return this;
+	}
+	
+	@Override
+	public ExtensionAsserter<OrgType, ? extends OrgAsserter<RA>, RA> extension() {
+		ExtensionAsserter<OrgType, ? extends OrgAsserter<RA>, RA> asserter = new ExtensionAsserter<>(this, getDetails());
+		copySetupTo(asserter);
+		return asserter;
+	}
+	
+	@Override
+	public TriggersAsserter<OrgType, ? extends OrgAsserter<RA>, RA> triggers() {
+		TriggersAsserter<OrgType, ? extends OrgAsserter<RA>, RA> asserter = new TriggersAsserter<>(this, getDetails());
+		copySetupTo(asserter);
+		return asserter;
+	}
+	
+	@Override
+	public OrgAsserter<RA> assertNoItem(QName itemName) {
+		super.assertNoItem(itemName);
+		return this;
+	}
+	
+	@Override
+	public OrgAsserter<RA> assertNoItem(ItemPath itemPath) {
+		super.assertNoItem(itemPath);
+		return this;
+	}
 }

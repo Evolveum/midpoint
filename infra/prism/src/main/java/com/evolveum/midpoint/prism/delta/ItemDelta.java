@@ -1179,7 +1179,8 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 			}
 		}
 		
-		if (CollectionUtils.isNotEmpty(deltaToMerge.estimatedOldValues)) {
+		// merge old values only if anything present. Merge them just first time
+		if (deltaToMerge.estimatedOldValues != null) {
 			mergeOldValues(PrismValue.cloneValues(deltaToMerge.estimatedOldValues));
 		}
 		
@@ -1189,15 +1190,16 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 	}
 	
 	private void mergeOldValues(Collection<V> oldValues) {
-		if (estimatedOldValues == null) {
-			estimatedOldValues = newValueCollection();
+		// there are situations when we don't know old value when firstly create delta
+		// so if there estimatedOldValues are null we try to merge them from current delta
+		// if estimatedOldValues != null we don't do anything
+		if (estimatedOldValues != null) {
+			return;
 		}
 		
+		estimatedOldValues = newValueCollection();
+		
 		for (V oldValue : oldValues) {
-			if (containsEquivalentValue(estimatedOldValues, oldValue)) {
-				continue;
-			}
-			
 			estimatedOldValues.add(oldValue);
 		}
 	}

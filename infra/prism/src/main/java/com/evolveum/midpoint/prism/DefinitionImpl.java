@@ -61,6 +61,7 @@ public abstract class DefinitionImpl implements Definition {
     protected String documentation;
     protected boolean deprecated = false;
     protected String deprecatedSince;
+    protected String plannedRemoval;
     protected boolean experimental = false;
     protected boolean elaborate = false;
     private Map<QName,Object> annotations;
@@ -149,6 +150,15 @@ public abstract class DefinitionImpl implements Definition {
 
 	public void setExperimental(boolean experimental) {
 		this.experimental = experimental;
+	}
+	
+	@Override
+	public String getPlannedRemoval() {
+		return plannedRemoval;
+	}
+
+	public void setPlannedRemoval(String plannedRemoval) {
+		this.plannedRemoval = plannedRemoval;
 	}
 
 	@Override

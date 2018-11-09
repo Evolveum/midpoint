@@ -275,7 +275,19 @@ public class AssignmentsUtil {
 			sb.append(WebComponentUtil.getEffectiveName(assignment.getTargetRef(), OrgType.F_DISPLAY_NAME, pageBase, "loadTargetName"));
 		}
 		appendTenantAndOrgName(assignment, sb, pageBase);
-
+		
+		if(sb.toString().isEmpty() && assignment.getFocusMappings() != null) {
+			for(MappingType mapping : assignment.getFocusMappings().getMapping()) {
+				String name = mapping.getName() == null ? "" : mapping.getName();
+				String description = mapping.getDescription() == null ? "" : mapping.getDescription();
+				if(name.isEmpty()) {
+					sb.append(!description.isEmpty() ? "Mapping - " + description + "\n": "");
+				} else {
+					sb.append(name);
+					sb.append(!description.isEmpty() ? " - " + description + "\n" : "\n");
+				}
+			}
+		}
 		return sb.toString();
 	}
 

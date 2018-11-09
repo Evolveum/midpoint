@@ -431,6 +431,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String ORG_SCUMM_BAR_NAME = "F0006";
 	protected static final String ORG_SCUMM_BAR_DISPLAY_NAME = "Scumm Bar";
 	protected static final String ORG_MINISTRY_OF_OFFENSE_OID = "00000000-8888-6666-0000-100000000003";
+	protected static final String ORG_MINISTRY_OF_OFFENSE_NAME = "F0003";
     protected static final String ORG_MINISTRY_OF_DEFENSE_OID = "00000000-8888-6666-0000-100000000002";
     protected static final String ORG_MINISTRY_OF_DEFENSE_NAME = "F0002";
 	protected static final String ORG_MINISTRY_OF_RUM_OID = "00000000-8888-6666-0000-100000000004";
@@ -532,6 +533,8 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String AUTZ_GAMBLE_URL = QNameUtil.qNameToUri(AUTZ_GAMBLE_QNAME);
 	protected static final QName AUTZ_CROUPIER_QNAME = new QName(NS_TEST_AUTZ, "croupier");
 	protected static final String AUTZ_CROUPIER_URL = QNameUtil.qNameToUri(AUTZ_CROUPIER_QNAME);
+	protected static final QName AUTZ_PIT_BOSS_QNAME = new QName(NS_TEST_AUTZ, "pitBoss");
+	protected static final String AUTZ_PIT_BOSS_URL = QNameUtil.qNameToUri(AUTZ_PIT_BOSS_QNAME);
 
 	protected static final String NOTIFIER_ACCOUNT_PASSWORD_NAME = "accountPasswordNotifier";
 	protected static final String NOTIFIER_USER_PASSWORD_NAME = "userPasswordNotifier";

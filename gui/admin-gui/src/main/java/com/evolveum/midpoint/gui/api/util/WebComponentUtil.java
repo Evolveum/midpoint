@@ -47,6 +47,8 @@ import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.gui.api.SubscriptionType;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyValueModel;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.model.api.util.ResourceUtils;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
@@ -68,6 +70,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.math.NumberUtils;
+import org.apache.commons.lang.time.DurationFormatUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.validator.routines.checkdigit.VerhoeffCheckDigit;
 import org.apache.wicket.*;
@@ -93,6 +96,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.apache.wicket.util.visit.IVisit;
 import org.apache.wicket.util.visit.IVisitor;
+import org.bouncycastle.asn1.ocsp.ServiceLocator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joda.time.format.DateTimeFormat;
@@ -452,6 +456,23 @@ public final class WebComponentUtil {
 	        return null;
 	    }
 	    return lists.getDefault();
+	}
+
+	public static GuiObjectListViewType getViewTypeConfig(QName type, PageBase pageBase){
+		AdminGuiConfigurationType config = pageBase.getPrincipal().getAdminGuiConfiguration();
+		if (config == null) {
+			return null;
+		}
+		GuiObjectListViewsType lists = config.getObjectLists();
+		if (lists == null) {
+			return null;
+		}
+		for (GuiObjectListViewType viewType : lists.getObjectList()){
+			if (QNameUtil.match(viewType.getType(), type)){
+				return viewType;
+			}
+		}
+		return null;
 	}
 
 	public enum Channel {
@@ -1174,6 +1195,20 @@ public final class WebComponentUtil {
 				}
 			}
 		}
+		if (prismContainerValue.canRepresent(ResourceItemDefinitionType.class)){
+			ResourceItemDefinitionType resourceItemDefinition = (ResourceItemDefinitionType) prismContainerValue.asContainerable();
+			if(resourceItemDefinition.getDisplayName() != null && !resourceItemDefinition.getDisplayName().isEmpty()) {
+				return resourceItemDefinition.getDisplayName();
+			}
+		}
+		if (prismContainerValue.canRepresent(MappingType.class)){
+			MappingType mapping = (MappingType) prismContainerValue.asContainerable();
+			if(mapping.getName() != null && !mapping.getName().isEmpty()) {
+				String name = mapping.getName();
+				String description = mapping.getDescription();
+				return name + (StringUtils.isNotEmpty(description) ? (" - " + description) : "");
+			}
+		}
 		Class<C> cvalClass = prismContainerValue.getCompileTimeClass();
 		if (cvalClass != null){
 			return cvalClass.getSimpleName() + ".details";
@@ -1582,9 +1617,8 @@ public final class WebComponentUtil {
 			return GuiStyleConstants.CLASS_OBJECT_SHADOW_ICON_COLORED;
 		} else if (QNameUtil.match(PolicyRuleType.COMPLEX_TYPE, objectType)) {
 			return GuiStyleConstants.CLASS_POLICY_RULES_ICON_COLORED;
-		} else if (QNameUtil.match(ObjectPolicyConfigurationType.COMPLEX_TYPE, objectType)) {
-			return GuiStyleConstants.CLASS_SYSTEM_CONFIGURATION_ICON_COLORED;
-		} else if (QNameUtil.match(GlobalPolicyRuleType.COMPLEX_TYPE, objectType)) {
+		} else if (QNameUtil.match(ObjectPolicyConfigurationType.COMPLEX_TYPE, objectType) || QNameUtil.match(GlobalPolicyRuleType.COMPLEX_TYPE, objectType)
+				|| QNameUtil.match(FileAppenderConfigurationType.COMPLEX_TYPE, objectType) || QNameUtil.match(SyslogAppenderConfigurationType.COMPLEX_TYPE, objectType)) {
 			return GuiStyleConstants.CLASS_SYSTEM_CONFIGURATION_ICON_COLORED;
 		} else {
 			return "";
@@ -2515,11 +2549,14 @@ public final class WebComponentUtil {
 			}
 		}
 		String members = atLeastOneWithMembers ? ".members" : "";
+		ObjectTypes objectType = ObjectTypes.getObjectType(abstractRoleTable.getType());
+		String propertyKeyPrefix = ObjectTypes.SERVICE.equals(objectType) ? "pageServices" : "pageRoles";
+
 		if (action.getRowModel() == null) {
-			return pageBase.createStringResource("pageRoles.message.confirmationMessageForMultipleObject" + members,
-					actionName, abstractRoleTable.getSelectedObjectsCount() );
+			return pageBase.createStringResource(propertyKeyPrefix + ".message.confirmationMessageForMultipleObject" + members,
+					actionName, abstractRoleTable.getSelectedObjectsCount());
 		} else {
-			return pageBase.createStringResource("pageRoles.message.confirmationMessageForSingleObject" + members,
+			return pageBase.createStringResource(propertyKeyPrefix + ".message.confirmationMessageForSingleObject" + members,
 					actionName, ((ObjectType)((SelectableBean)action.getRowModel().getObject()).getValue()).getName());
 		}
 	}
@@ -2781,7 +2818,7 @@ public final class WebComponentUtil {
 									result.recordInProgress(); // this should be probably have been done in submitTaskFromTemplate
 									result.setBackgroundTaskOid(executorTask.getOid());
 								} else {
-									result.recordWarning("There are no objects to execute the action on");  // TODO i18n
+									result.recordWarning(pageBase.createStringResource("webComponentUtil.message.createMenuItemsFromActions.warning").getString());
 								}
 							} catch (Exception ex) {
 								result.recordFatalError(result.getOperation(), ex);
@@ -2825,6 +2862,27 @@ public final class WebComponentUtil {
 		WebComponentUtil.staticallyProvidedRelationRegistry = staticallyProvidedRelationRegistry;
 	}
 
+	public static ObjectFilter getAssignableRolesFilter(PrismObject<? extends FocusType> focusObject, Class<? extends AbstractRoleType> type,
+														OperationResult result, Task task, PageBase pageBase) {
+		ObjectFilter filter = null;
+		LOGGER.debug("Loading objects which can be assigned");
+		try {
+			ModelInteractionService mis = pageBase.getModelInteractionService();
+			RoleSelectionSpecification roleSpec =
+					mis.getAssignableRoleSpecification(focusObject, type, task, result);
+			filter = roleSpec.getFilter();
+		} catch (Exception ex) {
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load available roles", ex);
+			result.recordFatalError("Couldn't load available roles", ex);
+		} finally {
+			result.recomputeStatus();
+		}
+		if (!result.isSuccess() && !result.isHandledError()) {
+			pageBase.showResult(result);
+		}
+		return filter;
+	}
+
 	public static <IW extends ItemWrapper> String loadHelpText(IModel<IW> model, Panel panel) {
 		if(model == null || model.getObject() == null) {
 			return null;
@@ -2841,4 +2899,21 @@ public final class WebComponentUtil {
         
         return PageBase.createStringResourceStatic(panel, doc).getString().replaceAll("\\s{2,}", " ").trim();
     }
+	
+	public static String formatDurationWordsForLocal(long durationMillis, boolean suppressLeadingZeroElements,
+	        boolean suppressTrailingZeroElements, PageBase pageBase){
+		
+		String duration = DurationFormatUtils.formatDurationWords(durationMillis, suppressLeadingZeroElements, suppressTrailingZeroElements);
+		
+		duration = StringUtils.replaceOnce(duration, "seconds", pageBase.createStringResource("WebComponentUtil.formatDurationWordsForLocal.seconds").getString());
+        duration = StringUtils.replaceOnce(duration, "minutes", pageBase.createStringResource("WebComponentUtil.formatDurationWordsForLocal.minutes").getString());
+        duration = StringUtils.replaceOnce(duration, "hours", pageBase.createStringResource("WebComponentUtil.formatDurationWordsForLocal.hours").getString());
+        duration = StringUtils.replaceOnce(duration, "days", pageBase.createStringResource("WebComponentUtil.formatDurationWordsForLocal.days").getString());
+        duration = StringUtils.replaceOnce(duration, "second", pageBase.createStringResource("WebComponentUtil.formatDurationWordsForLocal.second").getString());
+        duration = StringUtils.replaceOnce(duration, "minute", pageBase.createStringResource("WebComponentUtil.formatDurationWordsForLocal.minute").getString());
+        duration = StringUtils.replaceOnce(duration, "hour", pageBase.createStringResource("WebComponentUtil.formatDurationWordsForLocal.hour").getString());
+        duration = StringUtils.replaceOnce(duration, "day", pageBase.createStringResource("WebComponentUtil.formatDurationWordsForLocal.day").getString());
+		
+		return duration;
+	}
 }

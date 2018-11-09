@@ -51,5 +51,4 @@
             <!-- 			</limit> -->
         </limitations>
     </stringPolicy>
-    <minOccurs>0</minOccurs>
 </valuePolicy>

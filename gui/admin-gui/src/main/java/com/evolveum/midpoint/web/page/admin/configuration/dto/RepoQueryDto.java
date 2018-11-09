@@ -30,6 +30,7 @@ public class RepoQueryDto implements Serializable {
     public static final String F_HIBERNATE_PARAMETERS = "hibernateParameters";
     public static final String F_QUERY_RESULT_TEXT = "queryResultText";
     public static final String F_QUERY_RESULT_OBJECT = "queryResultObject";
+    public static final String F_DISTINCT = "distinct";
 
 	private static final String EMPTY_RESULT = null;
 
@@ -39,6 +40,7 @@ public class RepoQueryDto implements Serializable {
     private String hibernateParameters = "";
     private String queryResultText = EMPTY_RESULT;
     private Object queryResultObject = null;
+    private boolean distinct;
 
 	public QName getObjectType() {
 		return objectType;
@@ -90,5 +92,13 @@ public class RepoQueryDto implements Serializable {
 
 	public void resetQueryResultText() {
 		setQueryResultText(EMPTY_RESULT);
+	}
+
+	public boolean isDistinct() {
+		return distinct;
+	}
+
+	public void setDistinct(boolean distinct) {
+		this.distinct = distinct;
 	}
 }

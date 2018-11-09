@@ -25,6 +25,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
@@ -120,6 +122,15 @@ public class AssignmentsAsserter<F extends FocusType, FA extends FocusAsserter<F
 		by()
 			.targetOid(roleOid)
 			.targetType(RoleType.COMPLEX_TYPE)
+			.find();
+		return this;
+	}
+	
+	public AssignmentsAsserter<F,FA,RA> assertRole(String roleOid, QName relation) throws ObjectNotFoundException, SchemaException {
+		by()
+			.targetOid(roleOid)
+			.targetType(RoleType.COMPLEX_TYPE)
+			.targetRelation(relation)
 			.find();
 		return this;
 	}

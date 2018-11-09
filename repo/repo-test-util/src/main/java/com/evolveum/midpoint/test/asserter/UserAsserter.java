@@ -28,6 +28,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -39,6 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -207,6 +209,31 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
 		return this;
 	}
 	
+	public UserAsserter<RA> assertNoFullName() {
+		assertNoItem(UserType.F_FULL_NAME);
+		return this;
+	}
+	
+	public UserAsserter<RA> assertGivenName(String expectedOrig) {
+		assertPolyStringProperty(UserType.F_GIVEN_NAME, expectedOrig);
+		return this;
+	}
+	
+	public UserAsserter<RA> assertNoGivenName() {
+		assertNoItem(UserType.F_GIVEN_NAME);
+		return this;
+	}
+	
+	public UserAsserter<RA> assertFamilyName(String expectedOrig) {
+		assertPolyStringProperty(UserType.F_FAMILY_NAME, expectedOrig);
+		return this;
+	}
+	
+	public UserAsserter<RA> assertNoFamilyName() {
+		assertNoItem(UserType.F_FAMILY_NAME);
+		return this;
+	}
+	
 	public UserAsserter<RA> assertLocality(String expectedOrig) {
 		assertPolyStringProperty(UserType.F_LOCALITY, expectedOrig);
 		return this;
@@ -255,6 +282,45 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
 	@Override
 	public UserAsserter<RA> assertParentOrgRefs(String... expectedOids) {
 		super.assertParentOrgRefs(expectedOids);
+		return this;
+	}
+	
+	@Override
+	public RoleMembershipRefsAsserter<UserType, ? extends UserAsserter<RA>, RA> roleMembershipRefs() {
+		RoleMembershipRefsAsserter<UserType,UserAsserter<RA>,RA> asserter = new RoleMembershipRefsAsserter<>(this, getDetails());
+		copySetupTo(asserter);
+		return asserter;
+	}
+	
+	@Override
+	public UserAsserter<RA> assertRoleMemberhipRefs(int expected) {
+		super.assertRoleMemberhipRefs(expected);
+		return this;
+	}
+	
+	@Override
+	public ExtensionAsserter<UserType, ? extends UserAsserter<RA>, RA> extension() {
+		ExtensionAsserter<UserType, ? extends UserAsserter<RA>, RA> asserter = new ExtensionAsserter<>(this, getDetails());
+		copySetupTo(asserter);
+		return asserter;
+	}
+	
+	@Override
+	public TriggersAsserter<UserType, ? extends UserAsserter<RA>, RA> triggers() {
+		TriggersAsserter<UserType, ? extends UserAsserter<RA>, RA> asserter = new TriggersAsserter<>(this, getDetails());
+		copySetupTo(asserter);
+		return asserter;
+	}
+	
+	@Override
+	public UserAsserter<RA> assertNoItem(QName itemName) {
+		super.assertNoItem(itemName);
+		return this;
+	}
+	
+	@Override
+	public UserAsserter<RA> assertNoItem(ItemPath itemPath) {
+		super.assertNoItem(itemPath);
 		return this;
 	}
 }

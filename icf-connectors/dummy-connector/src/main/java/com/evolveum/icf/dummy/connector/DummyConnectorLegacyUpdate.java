@@ -23,6 +23,7 @@ import org.identityconnectors.framework.common.exceptions.ConnectionFailedExcept
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
 import org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException;
+import org.identityconnectors.framework.common.exceptions.OperationTimeoutException;
 import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.*;
 
@@ -321,6 +322,9 @@ public class DummyConnectorLegacyUpdate extends AbstractDummyConnector implement
 		} catch (ConflictException e) {
 			log.info("update::exception "+e);
 			throw new AlreadyExistsException(e);
+		} catch (InterruptedException e) {
+			log.info("update::exception "+e);
+			throw new OperationTimeoutException(e);
 		}
 
         log.info("update::end");
@@ -518,6 +522,9 @@ public class DummyConnectorLegacyUpdate extends AbstractDummyConnector implement
 		} catch (ConflictException e) {
 			log.info("addAttributeValues::exception "+e);
 			throw new AlreadyExistsException(e);
+		} catch (InterruptedException e) {
+			log.info("addAttributeValues::exception "+e);
+			throw new OperationTimeoutException(e);
 		}
 
         return uid;
@@ -698,6 +705,9 @@ public class DummyConnectorLegacyUpdate extends AbstractDummyConnector implement
 		} catch (ConflictException e) {
 			log.info("removeAttributeValues::exception "+e);
 			throw new AlreadyExistsException(e);
+		} catch (InterruptedException e) {
+			log.info("removeAttributeValues::exception "+e);
+			throw new OperationTimeoutException(e);
 		}
 
         return uid;

@@ -31,8 +31,12 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 import org.testng.AssertJUnit;
 
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.test.IntegrationTestTools;
@@ -43,6 +47,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -128,6 +133,11 @@ public class FocusAsserter<F extends FocusType,RA> extends PrismObjectAsserter<F
 	@Override
 	public FocusAsserter<F,RA> assertTenantRef(String expectedOid) {
 		super.assertTenantRef(expectedOid);
+		return this;
+	}
+	
+	public FocusAsserter<F,RA> assertLocality(String expectedOrig) {
+		assertPolyStringProperty(OrgType.F_LOCALITY, expectedOrig);
 		return this;
 	}
 	
@@ -306,6 +316,43 @@ public class FocusAsserter<F extends FocusType,RA> extends PrismObjectAsserter<F
 	
 	public FocusAsserter<F,RA> assertAssignments(int expected) {
 		assignments().assertAssignments(expected);
+		return this;
+	}
+	
+	public RoleMembershipRefsAsserter<F, ? extends FocusAsserter<F,RA>, RA> roleMembershipRefs() {
+		RoleMembershipRefsAsserter<F,FocusAsserter<F,RA>,RA> asserter = new RoleMembershipRefsAsserter<>(this, getDetails());
+		copySetupTo(asserter);
+		return asserter;
+	}
+	
+	public FocusAsserter<F,RA> assertRoleMemberhipRefs(int expected) {
+		roleMembershipRefs().assertRoleMemberhipRefs(expected);
+		return this;
+	}
+	
+	@Override
+	public ExtensionAsserter<F, ? extends FocusAsserter<F,RA>, RA> extension() {
+		ExtensionAsserter<F, ? extends FocusAsserter<F,RA>, RA> asserter = new ExtensionAsserter<>(this, getDetails());
+		copySetupTo(asserter);
+		return asserter;
+	}
+	
+	@Override
+	public TriggersAsserter<F, ? extends FocusAsserter<F,RA>, RA> triggers() {
+		TriggersAsserter<F, ? extends FocusAsserter<F,RA>, RA> asserter = new TriggersAsserter<>(this, getDetails());
+		copySetupTo(asserter);
+		return asserter;
+	}
+	
+	@Override
+	public FocusAsserter<F,RA> assertNoItem(QName itemName) {
+		super.assertNoItem(itemName);
+		return this;
+	}
+	
+	@Override
+	public FocusAsserter<F,RA> assertNoItem(ItemPath itemPath) {
+		super.assertNoItem(itemPath);
 		return this;
 	}
 }

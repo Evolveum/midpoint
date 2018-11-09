@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.Objectable;
@@ -176,6 +177,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		this.objectOld = objectOld;
 	}
 
+	@Override
 	public PrismObject<O> getObjectCurrent() {
 		return objectCurrent;
 	}
@@ -520,7 +522,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		this.securityPolicy = securityPolicy;
 	}
 
-	public void recompute() throws SchemaException {
+	public void recompute() throws SchemaException, ConfigurationException {
 		PrismObject<O> base = getObjectCurrentOrOld();
     	ObjectDelta<O> delta = getDelta();
         if (delta == null) {
@@ -821,5 +823,17 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	
 	public S_ItemEntry deltaBuilder() throws SchemaException {
 		return DeltaBuilder.deltaFor(getObjectTypeClass(), getPrismContext());
+	}
+	
+	public void forEachObject(Consumer<PrismObject<O>> consumer) {
+		if (objectCurrent != null) {
+			consumer.accept(objectCurrent);
+		}
+		if (objectOld != null) {
+			consumer.accept(objectOld);
+		}
+		if (objectNew != null) {
+			consumer.accept(objectNew);
+		}
 	}
 }

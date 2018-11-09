@@ -123,19 +123,26 @@ public class SearchResultMetadata implements Serializable, DebugDumpable, ShortD
 
 	@Override
 	public String toString() {
-		return "SearchResultMetadata(pagingCookie=" + pagingCookie + ", approxNumberOfAllResults="
-				+ approxNumberOfAllResults + ", partialResults=" + partialResults + ")";
+		StringBuilder sb = new StringBuilder("SearchResultMetadata(");
+		shortDump(sb);
+		sb.append(")");
+		return sb.toString();
 	}
 
 	@Override
 	public void shortDump(StringBuilder sb) {
 		if (pagingCookie != null) {
-			sb.append("pagingCookie=").append(pagingCookie).append(", ");
+			sb.append("pagingCookie=").append(pagingCookie).append(",");
 		}
 		if (approxNumberOfAllResults != null) {
-			sb.append("approxNumberOfAllResults=").append(approxNumberOfAllResults).append(", ");
+			sb.append("approxNumberOfAllResults=").append(approxNumberOfAllResults).append(",");
 		}
-		sb.append("partialResults=").append(partialResults);
+		if (partialResults) {
+			sb.append("partialResults=true,");
+		}
+		if (pagingCookie != null || approxNumberOfAllResults != null || partialResults) {
+			sb.setLength(sb.length() - 1);
+		}
 	}
 
 	@Override

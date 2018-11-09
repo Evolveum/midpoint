@@ -125,6 +125,9 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	protected static final String USER_RAPP_EMAIL = "rapp.scallion@evolveum.com";
 
 	public static final String PASSWORD_HELLO_WORLD = "H3ll0w0rld";
+	
+	public static final int ORG_MINISTRY_OF_OFFENSE_PASSWORD_HISTORY_LENGTH = 3;
+	public static final int GLOBAL_POLICY_NEW_PASSWORD_HISTORY_LENGTH = 5;
 
 	protected String accountJackOid;
 	protected String accountJackRedOid;
@@ -3742,23 +3745,23 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         return shadowDelta;
 	}
 
-	protected void assertDummyPassword(String userId, String expectedClearPassword) throws SchemaViolationException, ConflictException {
+	protected void assertDummyPassword(String userId, String expectedClearPassword) throws SchemaViolationException, ConflictException, InterruptedException {
 		assertDummyPassword(null, userId, expectedClearPassword);
 	}
 
-	protected void assertDummyPasswordConditional(String userId, String expectedClearPassword) throws SchemaViolationException, ConflictException {
+	protected void assertDummyPasswordConditional(String userId, String expectedClearPassword) throws SchemaViolationException, ConflictException, InterruptedException {
 		if (isPasswordEncryption()) {
 			assertDummyPassword(null, userId, expectedClearPassword);
 		}
 	}
 
-	protected void assertDummyPasswordConditional(String instance, String userId, String expectedClearPassword) throws SchemaViolationException, ConflictException {
+	protected void assertDummyPasswordConditional(String instance, String userId, String expectedClearPassword) throws SchemaViolationException, ConflictException, InterruptedException {
 		if (isPasswordEncryption()) {
 			super.assertDummyPassword(instance, userId, expectedClearPassword);
 		}
 	}
 
-	protected void assertDummyPasswordConditionalGenerated(String instance, String userId, String expectedClearPassword) throws SchemaViolationException, ConflictException {
+	protected void assertDummyPasswordConditionalGenerated(String instance, String userId, String expectedClearPassword) throws SchemaViolationException, ConflictException, InterruptedException {
 		if (isPasswordEncryption()) {
 			super.assertDummyPassword(instance, userId, expectedClearPassword);
 		} else {
@@ -4273,7 +4276,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         	.name("Ministry security policy")
         	.beginCredentials()
         		.beginPassword()
-        			.valuePolicyRef(PASSWORD_POLICY_GLOBAL_OID, ValuePolicyType.COMPLEX_TYPE);
+        			.valuePolicyRef(PASSWORD_POLICY_GLOBAL_OID, ValuePolicyType.COMPLEX_TYPE)
+        			.historyLength(ORG_MINISTRY_OF_OFFENSE_PASSWORD_HISTORY_LENGTH);
         ministrySecurityPolicyOid = addObject(securityPolicy, task, result);
 
         PrismReferenceValue securityPolicyRef = new PrismReferenceValue();
@@ -4529,6 +4533,147 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertDummyAccount(RESOURCE_DUMMY_BLUE_NAME, USER_THREE_HEADED_MONKEY_NAME);
 	}
 	
+	/**
+	 * Apply global password policy again. Now we have both organizational and global policies.
+	 * And they have different password history lengths.
+	 * MID-4082
+	 */
+	@Test
+    public void test970ReapplyGlobalPasswordPolicy() throws Exception {
+		final String TEST_NAME = "test970ReapplyGlobalPasswordPolicy";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        prepareTest();
+        
+        // preconditions
+ 		assertUserBefore(USER_JACK_OID)
+ 			.displayWithProjections()
+ 			.assertLinks(4);
+
+ 		// Make sure that no global password policy is applied by setting some insane passwords
+		modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_LLL_CLEAR);
+		modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_A_CLEAR);
+ 		
+		// WHEN
+		displayWhen(TEST_NAME);
+		applyPasswordPolicy(PASSWORD_POLICY_GLOBAL_OID, getSecurityPolicyOid(), task, result);
+		modifyObjectReplaceProperty(SecurityPolicyType.class, getSecurityPolicyOid(),
+				new ItemPath(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_HISTORY_LENGTH),
+        		task, result, GLOBAL_POLICY_NEW_PASSWORD_HISTORY_LENGTH);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		PrismObject<SecurityPolicyType> securityPolicyAfter = getObject(SecurityPolicyType.class, getSecurityPolicyOid());
+		display("Security policy", securityPolicyAfter);
+
+		// Make sure that global password policy is applied by setting some insane passwords - and fail
+		modifyUserChangePasswordPolicyViolation(USER_JACK_OID, USER_PASSWORD_LLL_CLEAR);
+		modifyUserChangePasswordPolicyViolation(USER_JACK_OID, USER_PASSWORD_A_CLEAR);
+	}
+	
+	/**
+	 * Now we have both organizational and global policies. And they have different password history lengths.
+	 * Jack does not belong to ministry of offense. Therefore global password policy is applied.
+	 * Change Jack's password, try to fill out all password history places.
+	 * MID-4082
+	 */
+	@Test
+    public void test972ChangePasswordJack() throws Exception {
+		final String TEST_NAME = "test970ReapplyGlobalPasswordPolicy";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        prepareTest();
+ 		
+		// WHEN
+		displayWhen(TEST_NAME);
+		modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_VALID_1);
+		modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_VALID_2);
+		
+		// global password history applied, this should NOT work.
+		// but it won't work in both settings. So no difference yet. 
+		modifyUserChangePasswordPolicyViolation(USER_JACK_OID, USER_PASSWORD_VALID_1);
+		
+		modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_VALID_3);
+		modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_VALID_4);
+		
+		// global password history applied, this should NOT work (but would work in organizational history)
+		modifyUserChangePasswordPolicyViolation(USER_JACK_OID, USER_PASSWORD_VALID_1);
+		
+		modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_VALID_5);
+		modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_VALID_6);
+		
+		// Over password history length, this should work now
+		modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_VALID_1);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+	}
+	
+	/**
+	 * Now we have both organizational and global policies. And they have different password history lengths.
+	 * Monkey does belong to ministry of offense. Therefore organizational password policy is applied.
+	 * Change Monkey's password, try to fill out all password history places.
+	 * MID-4082
+	 */
+	@Test
+    public void test974ChangePasswordJack() throws Exception {
+		final String TEST_NAME = "test970ReapplyGlobalPasswordPolicy";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        prepareTest();
+ 		
+		// WHEN
+		displayWhen(TEST_NAME);
+		modifyUserChangePassword(USER_THREE_HEADED_MONKEY_OID, USER_PASSWORD_VALID_1);
+		modifyUserChangePassword(USER_THREE_HEADED_MONKEY_OID, USER_PASSWORD_VALID_2);
+		
+		// organizational password history applied, this should NOT work.
+		// but it won't work in both settings. So no difference yet. 
+		modifyUserChangePasswordPolicyViolation(USER_THREE_HEADED_MONKEY_OID, USER_PASSWORD_VALID_1);
+		
+		modifyUserChangePassword(USER_THREE_HEADED_MONKEY_OID, USER_PASSWORD_VALID_3);
+		modifyUserChangePassword(USER_THREE_HEADED_MONKEY_OID, USER_PASSWORD_VALID_4);
+		
+		// organizational password history applied, this should work as there is a shorter password history
+		modifyUserChangePassword(USER_THREE_HEADED_MONKEY_OID, USER_PASSWORD_VALID_1);
+		
+		modifyUserChangePassword(USER_THREE_HEADED_MONKEY_OID, USER_PASSWORD_VALID_5);
+		modifyUserChangePassword(USER_THREE_HEADED_MONKEY_OID, USER_PASSWORD_VALID_6);
+		
+		// Over password history length, this should work now
+		modifyUserChangePassword(USER_THREE_HEADED_MONKEY_OID, USER_PASSWORD_VALID_2);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+	}
+	
+	
+	private void modifyUserChangePasswordPolicyViolation(String userOid, String newPassword) throws CommonException {
+		Task task = createTask("modifyUserChangePasswordPolicyViolation");
+        OperationResult result = task.getResult();
+        try {
+        	modifyUserChangePassword(userOid, newPassword, task, result);
+        	fail("Change of password '"+newPassword+"' succeeded for user "+userOid+", expected failure");
+        } catch (PolicyViolationException e) {
+        	assertFailure(result);
+        }
+	}
+
 	protected void prepareTest() throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         prepareNotifications();

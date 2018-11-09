@@ -115,8 +115,8 @@ public class AccountTests extends TestBase {
     @Test(dependsOnMethods = {CREATE_MP_USER_DEPENDENCY,CHANGE_RESOURCE_FILE_PATH_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
     public void addAccount() {
         ListUsersPage users = basicPage.listUsers();
-
-        Assert.assertTrue(users
+        Assert.assertTrue(
+            users
                 .table()
                     .search()
                     .byName()

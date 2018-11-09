@@ -337,7 +337,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 	}
 
 	
-	private IModel<String> createStyleClassModelForNewObjectIcon() {
+	protected IModel<String> createStyleClassModelForNewObjectIcon() {
         return new AbstractReadOnlyModel<String>() {
         	private static final long serialVersionUID = 1L;
 

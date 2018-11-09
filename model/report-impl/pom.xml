@@ -83,6 +83,11 @@
 			<artifactId>repo-common</artifactId>
 			<version>3.9-SNAPSHOT</version>
 		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>security-enforcer-api</artifactId>
+			<version>3.9-SNAPSHOT</version>
+		</dependency>
         <dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>common</artifactId>

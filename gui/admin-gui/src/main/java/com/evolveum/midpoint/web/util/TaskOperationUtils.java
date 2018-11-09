@@ -48,13 +48,13 @@ public class TaskOperationUtils {
             result.computeStatus();
             if (result.isSuccess()) {
                 if (suspended) {
-                    result.recordStatus(OperationResultStatus.SUCCESS, "The task have been successfully suspended.");   // todo i18n
+                    result.recordStatus(OperationResultStatus.SUCCESS, pageBase.createStringResource("TaskOperationUtils.message.suspendPerformed.success").getString()); 
                 } else {
-                    result.recordWarning("Task suspension has been successfully requested; please check for its completion using task list.");  // todo i18n
+                    result.recordWarning(pageBase.createStringResource("TaskOperationUtils.message.suspendPerformed.warning").getString());
                 }
             }
         } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
-            result.recordFatalError("Couldn't suspend the task", e);
+            result.recordFatalError(pageBase.createStringResource("TaskOperationUtils.message.suspendPerformed.fatalError").getString(), e);
         }
 
         return result;
@@ -69,10 +69,10 @@ public class TaskOperationUtils {
             result.computeStatus();
 
             if (result.isSuccess()) {
-                result.recordStatus(OperationResultStatus.SUCCESS, "The task has been successfully resumed.");  // todo i18n
+                result.recordStatus(OperationResultStatus.SUCCESS, pageBase.createStringResource("TaskOperationUtils.message.resumePerformed.success").getString());
             }
         } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
-            result.recordFatalError("Couldn't resume the task", e);
+            result.recordFatalError(pageBase.createStringResource("TaskOperationUtils.message.resumePerformed.fatalError").getString(), e);
         }
 
         return result;
@@ -86,10 +86,10 @@ public class TaskOperationUtils {
             result.computeStatus();
 
             if (result.isSuccess()) {
-                result.recordStatus(OperationResultStatus.SUCCESS, "The task has been successfully scheduled to run."); // todo i18n
+                result.recordStatus(OperationResultStatus.SUCCESS, pageBase.createStringResource("TaskOperationUtils.message.runNowPerformed.success").getString());
             }
         } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
-            result.recordFatalError("Couldn't schedule the task", e);
+            result.recordFatalError(pageBase.createStringResource("TaskOperationUtils.message.runNowPerformed.fatalError").getString(), e);
         }
 
         return result;

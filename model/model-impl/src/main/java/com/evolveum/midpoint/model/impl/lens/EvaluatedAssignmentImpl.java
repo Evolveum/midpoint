@@ -35,6 +35,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -58,7 +59,7 @@ import static com.evolveum.midpoint.prism.delta.PlusMinusZero.ZERO;
  *
  * @author Radovan Semancik
  */
-public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAssignment<F> {
+public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAssignment<F>, ShortDumpable {
 
 	private static final Trace LOGGER = TraceManager.getTrace(EvaluatedAssignmentImpl.class);
 
@@ -570,6 +571,27 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 			return toString();
 		}
 	}
+	
+	@Override
+	public void shortDump(StringBuilder sb) {
+		if (target != null) {
+			sb.append(target);
+		} else if (!constructionTriple.isEmpty()) {
+			sb.append("construction(");
+			constructionTriple.shortDump(sb);
+			sb.append(")");
+		} else if (!personaConstructionTriple.isEmpty()) {
+			sb.append("personaConstruction(");
+			personaConstructionTriple.shortDump(sb);
+			sb.append(")");
+		} else {
+			sb.append(toString());
+			return;
+		}
+		if (!isValid()) {
+			sb.append(" invalid ");
+		}
+	}
 
 	public List<EvaluatedAssignmentTargetImpl> getNonNegativeTargets() {
 		List<EvaluatedAssignmentTargetImpl> rv = new ArrayList<>();
@@ -591,4 +613,5 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 			return PLUS;
 		}
 	}
+	
 }

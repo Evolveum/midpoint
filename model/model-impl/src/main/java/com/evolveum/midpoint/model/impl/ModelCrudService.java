@@ -127,7 +127,7 @@ public class ModelCrudService {
 		String oldShadowOid = changeDescription.getOldShadowOid();
 		ResourceEventDescription eventDescription = new ResourceEventDescription();
 
-		PrismObject<ShadowType> oldShadow = null;
+		PrismObject<ShadowType> oldShadow;
 		LOGGER.trace("resolving old object");
 		if (!StringUtils.isEmpty(oldShadowOid)){
 			oldShadow = getObject(ShadowType.class, oldShadowOid, SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()), task, parentResult);
@@ -151,7 +151,7 @@ public class ModelCrudService {
 		ObjectDeltaType deltaType = changeDescription.getObjectDelta();
 		ObjectDelta delta = null;
 
-		PrismObject<ShadowType> shadowToAdd = null;
+		PrismObject<ShadowType> shadowToAdd;
 		if (deltaType != null){
 
 			delta = ObjectDelta.createEmptyDelta(ShadowType.class, deltaType.getOid(), prismContext, ChangeType.toChangeType(deltaType.getChangeType()));
@@ -245,6 +245,7 @@ public class ModelCrudService {
 	 *             unknown error from underlying layers or other unexpected
 	 *             state
 	 */
+	@SuppressWarnings("JavaDoc")
 	public <T extends ObjectType> String addObject(PrismObject<T> object, ModelExecuteOptions options, Task task,
 			OperationResult parentResult) throws ObjectAlreadyExistsException, ObjectNotFoundException,
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
@@ -313,9 +314,11 @@ public class ModelCrudService {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, described change is not applicable
 	 * @throws CommunicationException
+	 *             Communication problem was detected during processing of the object
 	 * @throws ConfigurationException
+	 *             Configuration problem was detected during processing of the object
 	 * @throws PolicyViolationException
-	 * 				Policy violation was detected during processing of the object
+	 * 			   Policy violation was detected during processing of the object
 	 * @throws SystemException
 	 *             unknown error from underlying layers or other unexpected
 	 *             state
@@ -384,6 +387,7 @@ public class ModelCrudService {
 	 * @throws ExpressionEvaluationException
 	 * 				evaluation of expression associated with the object has failed
 	 * @throws CommunicationException
+	 *              Communication problem was detected during processing of the object
 	 * @throws ObjectAlreadyExistsException
 	 * 				If the account or another "secondary" object already exists and cannot be created
 	 * @throws PolicyViolationException
@@ -424,30 +428,17 @@ public class ModelCrudService {
 
 		try {
 
-			ObjectDelta<T> objectDelta = (ObjectDelta<T>) ObjectDelta.createModifyDelta(oid, modifications, type, prismContext);
+			ObjectDelta<T> objectDelta = ObjectDelta.createModifyDelta(oid, modifications, type, prismContext);
 			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 			modelService.executeChanges(deltas, options, task, result);
 
             result.computeStatus();
 
-        } catch (ExpressionEvaluationException ex) {
+        } catch (ExpressionEvaluationException | ObjectNotFoundException ex) {
 			LOGGER.error("model.modifyObject failed: {}", ex.getMessage(), ex);
 			result.recordFatalError(ex);
 			throw ex;
-		} catch (ObjectNotFoundException ex) {
-			LOGGER.error("model.modifyObject failed: {}", ex.getMessage(), ex);
-			result.recordFatalError(ex);
-			throw ex;
-		} catch (SchemaException ex) {
-			ModelImplUtils.recordFatalError(result, ex);
-			throw ex;
-		} catch (ConfigurationException ex) {
-			ModelImplUtils.recordFatalError(result, ex);
-			throw ex;
-		} catch (SecurityViolationException ex) {
-			ModelImplUtils.recordFatalError(result, ex);
-			throw ex;
-		} catch (RuntimeException ex) {
+		} catch (SchemaException | ConfigurationException | SecurityViolationException | RuntimeException ex) {
 			ModelImplUtils.recordFatalError(result, ex);
 			throw ex;
 		} finally {
@@ -477,22 +468,23 @@ public class ModelCrudService {
 
 
 	//TASK AREA
-    public boolean suspendTasks(Collection<String> taskOids, long waitForStop, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        return taskService.suspendTasks(taskOids, waitForStop, operationTask, parentResult);
+    public boolean suspendTask(String taskOid, long waitForStop, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        return taskService.suspendTask(taskOid, waitForStop, operationTask, parentResult);
     }
 
-    public void suspendAndDeleteTasks(Collection<String> taskOids, long waitForStop, boolean alsoSubtasks, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-		taskService.suspendAndDeleteTasks(taskOids, waitForStop, alsoSubtasks, operationTask, parentResult);
+    public void suspendAndDeleteTask(String taskOid, long waitForStop, boolean alsoSubtasks, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		taskService.suspendAndDeleteTask(taskOid, waitForStop, alsoSubtasks, operationTask, parentResult);
     }
 
-    public void resumeTasks(Collection<String> taskOids, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-		taskService.resumeTasks(taskOids, operationTask, parentResult);
+    public void resumeTask(String taskOid, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		taskService.resumeTask(taskOid, operationTask, parentResult);
     }
 
-    public void scheduleTasksNow(Collection<String> taskOids, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-		taskService.scheduleTasksNow(taskOids, operationTask, parentResult);
+    public void scheduleTaskNow(String taskOid, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		taskService.scheduleTaskNow(taskOid, operationTask, parentResult);
     }
 
+    @SuppressWarnings("unused")
     public PrismObject<TaskType> getTaskByIdentifier(String identifier, Collection<SelectorOptions<GetOperationOptions>> options, Task operationTask, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException, CommunicationException {
         return taskService.getTaskByIdentifier(identifier, options, operationTask, parentResult);
     }
@@ -505,6 +497,7 @@ public class ModelCrudService {
 		taskService.reactivateServiceThreads(operationTask, parentResult);
     }
 
+    @SuppressWarnings("unused")
     public boolean getServiceThreadsActivationState() {
         return taskService.getServiceThreadsActivationState();
     }
@@ -525,6 +518,7 @@ public class ModelCrudService {
 		taskService.synchronizeTasks(operationTask, parentResult);
     }
 
+    @SuppressWarnings("unused")
     public List<String> getAllTaskCategories() {
         return taskService.getAllTaskCategories();
     }

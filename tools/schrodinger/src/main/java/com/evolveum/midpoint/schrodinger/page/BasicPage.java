@@ -2,7 +2,9 @@ package com.evolveum.midpoint.schrodinger.page;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.LoggedUser;
+import com.evolveum.midpoint.schrodinger.component.common.FeedbackBox;
 import com.evolveum.midpoint.schrodinger.component.configuration.*;
 import com.evolveum.midpoint.schrodinger.page.certification.*;
 import com.evolveum.midpoint.schrodinger.page.configuration.*;
@@ -26,6 +28,7 @@ import com.evolveum.midpoint.schrodinger.page.service.ListServicesPage;
 import com.evolveum.midpoint.schrodinger.page.service.NewServicePage;
 import com.evolveum.midpoint.schrodinger.page.task.ListTasksPage;
 import com.evolveum.midpoint.schrodinger.page.task.NewTaskPage;
+import com.evolveum.midpoint.schrodinger.page.user.FormSubmitablePage;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.page.workitems.*;
@@ -218,8 +221,8 @@ public class BasicPage {
         return new ListConnectorHostsPage();
     }
 
-    public AboutPage aboutPage(){
-        clickConfigurationMenu("PageAdmin.menu.top.configuration.about",null);
+    public AboutPage aboutPage() {
+        clickConfigurationMenu("PageAdmin.menu.top.configuration.about", null);
         return new AboutPage();
     }
 
@@ -273,6 +276,10 @@ public class BasicPage {
         return new QueryPlaygroundPage();
     }
 
+    public FormSubmitablePage dynamicForm() {
+        return new FormSubmitablePage();
+    }
+
     private void clickSelfServiceMenu(String mainMenuKey, String menuItemKey) {
         clickMenuItem("PageAdmin.menu.selfService", mainMenuKey, menuItemKey);
     }
@@ -285,6 +292,12 @@ public class BasicPage {
         clickMenuItem("PageAdmin.menu.top.configuration", mainMenuKey, menuItemKey);
     }
 
+    public FeedbackBox<? extends BasicPage> feedback() {
+        SelenideElement feedback = $(By.cssSelector("div.feedbackContainer")).waitUntil(Condition.appears, MidPoint.TIMEOUT_LONG_1_M);;
+
+        return new FeedbackBox<>(this, feedback);
+    }
+
     private void clickMenuItem(String topLevelMenuKey, String mainMenuKey, String menuItemKey) {
         SelenideElement topLevelMenu = $(Schrodinger.byDataResourceKey(topLevelMenuKey));
         topLevelMenu.shouldBe(Condition.visible);
@@ -292,7 +305,7 @@ public class BasicPage {
         SelenideElement topLevelMenuChevron = topLevelMenu.parent().$(By.tagName("i"));
         if (!topLevelMenuChevron.has(Condition.cssClass("fa-chevron-down"))) {
             topLevelMenu.click();
-            topLevelMenuChevron.shouldHave(Condition.cssClass("fa-chevron-down"));
+            topLevelMenuChevron.shouldHave(Condition.cssClass("fa-chevron-down")).waitUntil(Condition.cssClass("fa-chevron-down"), MidPoint.TIMEOUT_DEFAULT_2_S);
         }
 
         SelenideElement mainMenu = topLevelMenu.$(Schrodinger.byDataResourceKey(mainMenuKey));

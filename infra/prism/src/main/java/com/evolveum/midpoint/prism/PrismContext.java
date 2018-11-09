@@ -282,6 +282,9 @@ public interface PrismContext {
 
 	boolean relationMatches(QName relationQuery, QName relation);
 
+	/**
+	 * Returns true of any of the relation in the relationQuery list matches specified relation.
+	 */
 	boolean relationMatches(@NotNull List<QName> relationQuery, QName relation);
 
 }

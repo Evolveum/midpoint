@@ -87,6 +87,7 @@ public class PageResourceWizard extends PageAdminResources {
 
 	private final boolean configurationOnly;
 	private boolean readOnly;
+	private ConfigurationStep configurationStep;
 
     public PageResourceWizard(@NotNull PageParameters parameters) {
         getPageParameters().overwriteWith(parameters);						// to be available in the methods called within this constructor as well
@@ -174,7 +175,8 @@ public class PageResourceWizard extends PageAdminResources {
 		if (!configurationOnly) {
 			wizardModel.add(new NameStep(modelRaw, this));
 		}
-        wizardModel.add(new ConfigurationStep(modelNoFetch, this));
+		configurationStep = new ConfigurationStep(modelNoFetch, this);
+        wizardModel.add(configurationStep);
 		if (!configurationOnly) {
 			wizardModel.add(new SchemaStep(modelFull, this));
 			wizardModel.add(new SchemaHandlingStep(modelFull, this));
@@ -195,6 +197,10 @@ public class PageResourceWizard extends PageAdminResources {
 			target.add(wizard.getSteps());
 			target.add(wizard.getButtons());
 		}
+	}
+	
+	public ConfigurationStep getConfigurationStep() {
+		return configurationStep;
 	}
 
 	@NotNull public ResourceWizardIssuesModel getIssuesModel() {

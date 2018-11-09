@@ -16,16 +16,16 @@ public class NewTaskPage extends BasicPage {
 
     public InputTable<NewTaskPage> basicTable() {
 
-        SelenideElement tableElement = $(Schrodinger.byPrecedingSiblingEnclosedValue("table", "class", "table table-condensed table-striped", null, null, "Basic"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT);
+        SelenideElement tableElement = $(Schrodinger.byPrecedingSiblingEnclosedValue("table", "class", "table table-condensed table-striped", "", "", "Basic"))
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
 
         return new InputTable<>(this, tableElement);
     }
 
     public InputTable<NewTaskPage> schedulingTable() {
 
-        SelenideElement tableElement = $(Schrodinger.byPrecedingSiblingEnclosedValue("table", "class", "table table-condensed table-striped", null, null, "Scheduling"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT);
+        SelenideElement tableElement = $(Schrodinger.byPrecedingSiblingEnclosedValue("table", "class", "table table-condensed table-striped", "", "", "Scheduling"))
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
 
         return new InputTable<>(this, tableElement);
     }
@@ -33,7 +33,7 @@ public class NewTaskPage extends BasicPage {
     public ListTasksPage clickSave() {
 
         $(Schrodinger.byDataId("saveButton"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         return new ListTasksPage();
     }

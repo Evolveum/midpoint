@@ -614,10 +614,10 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 						Date date = getCurrentRuntime(rowModel);
 						TaskDto task = rowModel.getObject();
 						if (task.getRawExecutionStatus() == TaskExecutionStatus.CLOSED && date != null) {
-							((DateLabelComponent) item.get(componentId)).setBefore("closed at ");
+							((DateLabelComponent) item.get(componentId)).setBefore(createStringResource("pageTasks.task.closedAt").getString());
 						} else if (date != null) {
 							((DateLabelComponent) item.get(componentId))
-									.setBefore(DurationFormatUtils.formatDurationWords(date.getTime(), true, true));
+									.setBefore(WebComponentUtil.formatDurationWordsForLocal(date.getTime(), true, true, PageTasks.this));
 						}
 						return date;
 					}
@@ -633,9 +633,9 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 				if (date != null) {
 					if (task.getRawExecutionStatus() == TaskExecutionStatus.CLOSED) {
 						displayValue =
-								"closed at " + WebComponentUtil.getLocalizedDate(date, DateLabelComponent.LONG_MEDIUM_STYLE);
+								createStringResource("pageTasks.task.closedAt").getString() + WebComponentUtil.getLocalizedDate(date, DateLabelComponent.LONG_MEDIUM_STYLE);
 					} else {
-						displayValue = DurationFormatUtils.formatDurationWords(date.getTime(), true, true);
+						displayValue = WebComponentUtil.formatDurationWordsForLocal(date.getTime(), true, true, PageTasks.this);
 					}
 				}
 				return Model.of(displayValue);
@@ -1120,7 +1120,6 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 			key = "pageTasks.inForNotRunningTasks";
 		}
 
-		//todo i18n
 		return PageBase.createStringResourceStatic(this, key, DurationFormatUtils.formatDurationWords(displayTime, true, true))
 				.getString();
 	}
@@ -1130,21 +1129,14 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 
 		if (task.getRawExecutionStatus() == TaskExecutionStatus.CLOSED) {
 
-			//todo i18n and proper date/time formatting
 			Long time = task.getCompletionTimestamp();
 			if (time == null) {
 				return null;
 			}
 			return new Date(time);
 
-		} else {
-			Long time = task.getCurrentRuntime();
-			if (time == null) {
-				return null;
-			}
-			//todo i18n
-			return null;
-		}
+		} 
+		return null;
 	}
 
 	private String getLastCheckInTime(IModel<NodeDto> nodeModel) {
@@ -1154,9 +1146,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 			return "";
 		}
 
-		//todo i18n
-		return DurationFormatUtils.formatDurationWords(System.currentTimeMillis() - time, true, true)
-				+ " ago";
+		return createStringResource("pageTasks.message.getLastCheckInTime", DurationFormatUtils.formatDurationWords(System.currentTimeMillis() - time, true, true)).getString();
 	}
 
 	private void initDiagnosticButtons() {
@@ -1252,15 +1242,13 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 			result.computeStatus();
 			if (result.isSuccess()) {
 				if (suspendedPlain && suspendedCoordinators) {
-					result.recordStatus(OperationResultStatus.SUCCESS,
-							"The task(s) have been successfully suspended.");    // todo i18n
+					result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("pageTasks.message.suspendTasksPerformed.success").getString());
 				} else {
-					result.recordWarning(
-							"Task(s) suspension has been successfully requested; please check for its completion using task list.");   // todo i18n
+					result.recordWarning( createStringResource("pageTasks.message.suspendTasksPerformed.warning").getString());
 				}
 			}
 		} catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
-			result.recordFatalError("Couldn't suspend the task(s)", e);
+			result.recordFatalError(createStringResource("pageTasks.message.suspendTasksPerformed.fatalError").getString(), e);
 		}
 		showResult(result);
 
@@ -1349,10 +1337,10 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             getTaskService().scheduleTasksNow(oids, opTask, result);
             result.computeStatus();
             if (result.isSuccess()) {
-                result.recordStatus(OperationResultStatus.SUCCESS, "The task(s) have been successfully scheduled.");    // todo i18n
+                result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("pageTasks.message.scheduleTasksPerformed.success").getString());
             }
         } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
-            result.recordFatalError("Couldn't schedule the task(s)", e);        // todo i18n
+            result.recordFatalError(createStringResource("pageTasks.message.scheduleTasksPerformed.fatalError").getString(), e);
         }
         showResult(result);
 
@@ -1387,18 +1375,13 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             result.computeStatus();
             if (result.isSuccess()) {
                 if (suspended) {
-                    // todo i18n
-                    result.recordStatus(OperationResultStatus.SUCCESS, "Selected node scheduler(s) have been " +
-                            "successfully stopped, including tasks that were running on them.");
+                    result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("pageTasks.message.stopSchedulersAndTasksPerformed.success").getString());
                 } else {
-                    // todo i18n
-                    result.recordWarning("Selected node scheduler(s) have been successfully paused; however, " +
-                            "some of the tasks they were executing are still running on them. Please check " +
-                            "their completion using task list.");
+                    result.recordWarning(createStringResource("pageTasks.message.stopSchedulersAndTasksPerformed.warning").getString());
                 }
             }
         } catch (SecurityViolationException | ObjectNotFoundException | SchemaException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
-            result.recordFatalError("Couldn't stop schedulers due", e);
+            result.recordFatalError(createStringResource("pageTasks.message.stopSchedulersAndTasksPerformed.fatalError").getString(), e);
         }
         showResult(result);
 
@@ -1427,10 +1410,10 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             getTaskService().startSchedulers(identifiers, opTask, result);
             result.computeStatus();
             if (result.isSuccess()) {
-                result.recordStatus(OperationResultStatus.SUCCESS, "Selected node scheduler(s) have been successfully started.");   // todo i18n
+                result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("pageTasks.message.startSchedulersPerformed.success").getString());
             }
         } catch (SecurityViolationException | ObjectNotFoundException | SchemaException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
-            result.recordFatalError("Couldn't start the scheduler(s)", e);
+            result.recordFatalError(createStringResource("pageTasks.message.startSchedulersPerformed.fatalError").getString(), e);
         }
 
         showResult(result);
@@ -1459,10 +1442,10 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             getTaskService().stopSchedulers(identifiers, opTask, result);
             result.computeStatus();
             if (result.isSuccess()) {
-                result.recordStatus(OperationResultStatus.SUCCESS, "Selected node scheduler(s) have been successfully stopped.");   // todo i18n
+                result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("pageTasks.message.stopSchedulersPerformed.success").getString());
             }
         } catch (SecurityViolationException | ObjectNotFoundException | SchemaException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
-            result.recordFatalError("Couldn't stop the scheduler(s)", e);   // todo i18n
+            result.recordFatalError(createStringResource("pageTasks.message.stopSchedulersPerformed.fatalError").getString(), e);
         }
         showResult(result);
 
@@ -1494,13 +1477,13 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             try {
                 getModelService().executeChanges(deltas, null, task, result);
             } catch (Exception e) {     // until java 7 we do it in this way
-                result.recordFatalError("Couldn't delete the node " + nodeDto.getNodeIdentifier(), e);
+                result.recordFatalError(createStringResource("pageTasks.message.deleteNodesPerformed.fatalError").getString() + nodeDto.getNodeIdentifier(), e);
             }
         }
 
         result.computeStatus();
         if (result.isSuccess()) {
-            result.recordStatus(OperationResultStatus.SUCCESS, "Selected node(s) have been successfully deleted."); // todo i18n
+            result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("pageTasks.message.deleteNodesPerformed.success").getString());
         }
         showResult(result);
 
@@ -1535,14 +1518,13 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             result.computeStatus();
             if (result.isSuccess()) {
                 if (stopped) {
-                    result.recordStatus(OperationResultStatus.SUCCESS, "Service threads on local node have been successfully deactivated.");    // todo i18n
+                    result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("pageTasks.message.deactivateServiceThreadsPerformed.success").getString());
                 } else {
-                    // todo i18n
-                    result.recordWarning("Deactivation of service threads on local node have been successfully requested; however, some of the tasks are still running. Please check their completion using task list.");
+                    result.recordWarning(createStringResource("pageTasks.message.deactivateServiceThreadsPerformed.warning").getString());
                 }
             }
         } catch (RuntimeException | SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
-            result.recordFatalError("Couldn't deactivate service threads on this node", e);
+            result.recordFatalError(createStringResource("pageTasks.message.deactivateServiceThreadsPerformed.fatalError").getString(), e);
         }
         showResult(result);
 
@@ -1558,10 +1540,10 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             getTaskService().reactivateServiceThreads(opTask, result);
             result.computeStatus();
             if (result.isSuccess()) {
-                result.recordStatus(OperationResultStatus.SUCCESS, "Service threads on local node have been successfully reactivated.");    // todo i18n
+                result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("pageTasks.message.reactivateServiceThreadsPerformed.success").getString());
             }
         } catch (RuntimeException | SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
-            result.recordFatalError("Couldn't reactivate service threads on local node", e);    // todo i18n
+            result.recordFatalError(createStringResource("pageTasks.message.reactivateServiceThreadsPerformed.fatalError").getString(), e);
         }
         showResult(result);
 
@@ -1722,10 +1704,10 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             getTaskService().suspendAndDeleteTasks(TaskDto.getOids(taskDtoList), WAIT_FOR_TASK_STOP, true, opTask, result);
             result.computeStatus();
             if (result.isSuccess()) {
-                result.recordStatus(OperationResultStatus.SUCCESS, "The task(s) have been successfully deleted."); // todo i18n
+                result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("pageTasks.message.deleteTaskConfirmedPerformed.success").getString());
             }
         } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
-            result.recordFatalError("Couldn't delete the task(s)", e);  // todo i18n
+            result.recordFatalError(createStringResource("pageTasks.message.deleteTaskConfirmedPerformed.fatalError").getString(), e);
         }
         showResult(result);
 
@@ -1746,7 +1728,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             	result.setMessage(result.getSubresults().get(0).getMessage());
             }
         } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
-            result.recordFatalError("Couldn't reconcile the workers", e);  // todo i18n
+            result.recordFatalError(createStringResource("pageTasks.message.reconcileWorkersConfirmedPerformed.fatalError").getString(), e);
         }
 	    showResult(result);
 
@@ -1765,7 +1747,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 	        // TODO check whether the suspension was complete
             result.computeStatus();
         } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
-            result.recordFatalError("Couldn't suspend the coordinator", e);  // todo i18n
+            result.recordFatalError(createStringResource("pageTasks.message.suspendCoordinatorOnly.fatalError").getString(), e);
         }
 	    showResult(result);
 
@@ -1781,7 +1763,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             getTaskService().resumeTasks(Collections.singleton(task.getOid()), opTask, result);
             result.computeStatus();
         } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
-            result.recordFatalError("Couldn't resume the coordinator", e);  // todo i18n
+            result.recordFatalError(createStringResource("pageTasks.message.resumeCoordinatorOnly.fatalError").getString(), e);
         }
 	    showResult(result);
 
@@ -1797,7 +1779,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             getTaskService().deleteWorkersAndWorkState(task.getOid(), WAIT_FOR_TASK_STOP, opTask, result);
             result.computeStatus();
         } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
-            result.recordFatalError("Couldn't delete workers and the work state of the coordinator", e);  // todo i18n
+            result.recordFatalError(createStringResource("pageTasks.message.deleteWorkersAndWorkState.fatalError").getString(), e);
         }
 	    showResult(result);
 

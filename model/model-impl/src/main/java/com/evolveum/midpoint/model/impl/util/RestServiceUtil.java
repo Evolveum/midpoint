@@ -65,6 +65,8 @@ public class RestServiceUtil {
 	public static final String OPERATION_RESULT_STATUS = "OperationResultStatus";
 	public static final String OPERATION_RESULT_MESSAGE = "OperationResultMessage";
 
+	public static final String APPLICATION_YAML = "application/yaml";
+
 	public static Response handleException(OperationResult result, Exception ex) {
 		LoggingUtils.logUnexpectedException(LOGGER, "Got exception while servicing REST request: {}", ex,
 				result != null ? result.getOperation() : "(null)");

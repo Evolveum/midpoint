@@ -22,10 +22,15 @@ import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
@@ -37,7 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * @author semancik
  *
  */
-public class ObjectDeltaAsserter<O extends ObjectType,R> extends AbstractAsserter<R> {
+public class ObjectDeltaAsserter<O extends ObjectType,RA> extends AbstractAsserter<RA> {
 	
 	private ObjectDelta<O> delta;
 
@@ -51,7 +56,7 @@ public class ObjectDeltaAsserter<O extends ObjectType,R> extends AbstractAsserte
 		this.delta = delta;
 	}
 	
-	public ObjectDeltaAsserter(ObjectDelta<O> delta, R returnAsserter, String detail) {
+	public ObjectDeltaAsserter(ObjectDelta<O> delta, RA returnAsserter, String detail) {
 		super(returnAsserter, detail);
 		this.delta = delta;
 	}
@@ -60,43 +65,64 @@ public class ObjectDeltaAsserter<O extends ObjectType,R> extends AbstractAsserte
 		return new ObjectDeltaAsserter<>(delta);
 	}
 	
-	public ObjectDeltaAsserter<O,R> assertAdd() {
+	public ObjectDeltaAsserter<O,RA> assertAdd() {
 		assertChangeType(ChangeType.ADD);
 		return this;
 	}
 	
-	public ObjectDeltaAsserter<O,R> assertModify() {
+	public ObjectDeltaAsserter<O,RA> assertModify() {
 		assertChangeType(ChangeType.MODIFY);
 		return this;
 	}
 	
-	public ObjectDeltaAsserter<O,R> assertDelete() {
+	public ObjectDeltaAsserter<O,RA> assertDelete() {
 		assertChangeType(ChangeType.DELETE);
 		return this;
 	}
 	
-	public ObjectDeltaAsserter<O,R> assertChangeType(ChangeType expected) {
+	public ObjectDeltaAsserter<O,RA> assertChangeType(ChangeType expected) {
 		assertEquals("Wrong change type in "+desc(), expected, delta.getChangeType());
 		return this;
 	}
 
-	public ObjectDeltaAsserter<O,R> assertObjectTypeClass(Class<ShadowType> expected) {
+	public ObjectDeltaAsserter<O,RA> assertObjectTypeClass(Class<ShadowType> expected) {
 		assertEquals("Wrong object type class in "+desc(), expected, delta.getObjectTypeClass());
 		return this;
 	}
 
-	public ObjectDeltaAsserter<O,R> assertOid(String expected) {
+	public ObjectDeltaAsserter<O,RA> assertOid(String expected) {
 		assertEquals("Wrong OID in "+desc(), expected, delta.getOid());
 		return this;
 	}
 
-	public ObjectDeltaAsserter<O,R> assertOid() {
+	public ObjectDeltaAsserter<O,RA> assertOid() {
 		assertNotNull("No OID in "+desc(), delta.getOid());
 		return this;
+	}
+	
+	public <C extends Containerable> ContainerDeltaAsserter<C,ObjectDeltaAsserter<O,RA>> container(QName qname) {
+		return container(new ItemPath(qname));
+	}
+	
+	public <C extends Containerable> ContainerDeltaAsserter<C,ObjectDeltaAsserter<O,RA>> container(ItemPath path) {
+		ContainerDelta<C> containerDelta = delta.findContainerDelta(path);
+		assertNotNull("No container delta for path "+path+" in "+desc(), containerDelta);
+		ContainerDeltaAsserter<C,ObjectDeltaAsserter<O,RA>> containerDeltaAsserter = new ContainerDeltaAsserter<>(containerDelta, this, "container delta for "+path+" in "+desc());
+		copySetupTo(containerDeltaAsserter);
+		return containerDeltaAsserter;
 	}
 	
 	protected String desc() {
 		return descWithDetails(delta);
 	}
 
+	public ObjectDeltaAsserter<O,RA> display() {
+		display(desc());
+		return this;
+	}
+	
+	public ObjectDeltaAsserter<O,RA> display(String message) {
+		IntegrationTestTools.display(message, delta);
+		return this;
+	}
 }

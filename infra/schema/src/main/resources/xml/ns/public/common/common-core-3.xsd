@@ -2641,6 +2641,7 @@
 							<xsd:appinfo>
 								<a:deprecated>true</a:deprecated>
 								<a:deprecatedSince>3.5</a:deprecatedSince>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
 							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -2764,6 +2765,7 @@
 					<xsd:appinfo>
 						<a:deprecated>true</a:deprecated>
 						<a:deprecatedSince>3.7</a:deprecatedSince>
+						<a:plannedRemoval>4.0</a:plannedRemoval>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -2776,6 +2778,7 @@
 					<xsd:appinfo>
 						<a:deprecated>true</a:deprecated>
 						<a:deprecatedSince>3.7</a:deprecatedSince>
+						<a:plannedRemoval>4.0</a:plannedRemoval>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -3033,6 +3036,7 @@
                     <xsd:appinfo>
 						<a:deprecated>true</a:deprecated>
 						<a:deprecatedSince>3.8</a:deprecatedSince>
+						<a:plannedRemoval>4.0</a:plannedRemoval>
                         <jaxb:typesafeEnumMember name="WORKFLOW"/>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -4283,6 +4287,7 @@
 							<xsd:appinfo>
 								<a:deprecated>true</a:deprecated>
 								<a:deprecatedSince>3.6</a:deprecatedSince>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
 							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -4920,6 +4925,7 @@
 						<a:deprecated>true</a:deprecated>
 						<a:deprecatedSince>3.7</a:deprecatedSince>
 						<a:operational>true</a:operational>
+						<a:plannedRemoval>4.0</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -5921,6 +5927,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:deprecated/>
+                        <a:plannedRemoval>4.0</a:plannedRemoval>
                         <a:rawType/>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -5944,7 +5951,6 @@
                         Object type related account synchronization settings.
                     </xsd:documentation>
                      <xsd:appinfo>
-                        <a:deprecated/>
                         <a:since>3.9</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -6703,11 +6709,32 @@
                         attribute in the resource schema that belongs to an
                         object class that is being described here.
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>ItemRefinedDefinitionType.ref</a:displayName>
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element ref="tns:displayName" minOccurs="0" maxOccurs="1"/>
-            <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="displayOrder" type="xsd:int" minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="tns:displayName" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>ItemRefinedDefinitionType.displayName</a:displayName>
+					</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>ItemRefinedDefinitionType.description</a:displayName>
+					</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="displayOrder" type="xsd:int" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>ItemRefinedDefinitionType.displayOrder</a:displayName>
+					</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="limitations" type="tns:PropertyLimitationsType" minOccurs="0" maxOccurs="unbounded">
             	<xsd:annotation>
             		<xsd:documentation>
@@ -6715,7 +6742,10 @@
             			The limitations may apply to several system layers, therefore this element may be repeated several times.
             			But it there may be only one instance for each layer.
             		</xsd:documentation>
-            	</xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>ItemRefinedDefinitionType.limitations</a:displayName>
+					</xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
             <xsd:element name="matchingRule" type="xsd:QName" minOccurs="0">
             	<xsd:annotation>
@@ -6725,6 +6755,9 @@
             			types and for case-sensitive strings. An alternative matching rule may be specified e.g.
             			for case insensitive strings.
             		</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>ItemRefinedDefinitionType.matchingRule</a:displayName>
+					</xsd:appinfo>
             	</xsd:annotation>
             </xsd:element>
             <xsd:element name="valueEnumerationRef" type="c:ObjectReferenceType" minOccurs="0">
@@ -6738,6 +6771,7 @@
 	                </xsd:documentation>
 	                <xsd:appinfo>
             			<a:objectReferenceTargetType>tns:LookupTableType</a:objectReferenceTargetType>
+						<a:displayName>ItemRefinedDefinitionType.valueEnumerationRef</a:displayName>
             		</xsd:appinfo>
 	            </xsd:annotation>
 	       	</xsd:element>
@@ -6753,6 +6787,9 @@
 
                         Support of non-tolerant items in object templates is currently EXPERIMENTAL.
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>ItemRefinedDefinitionType.tolerant</a:displayName>
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="tolerantValuePattern" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
@@ -6764,6 +6801,9 @@
                         This element is currently supported only in resource object type definitions.
                         Support in object templates is planned.
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>ItemRefinedDefinitionType.tolerantValuePattern</a:displayName>
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="intolerantValuePattern" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
@@ -6775,6 +6815,9 @@
                         This element is currently supported only in resource object type definitions.
                         Support in object templates is planned.
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>ItemRefinedDefinitionType.intolerantValuePattern</a:displayName>
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="emphasized" type="xsd:boolean" minOccurs="0">
@@ -6786,6 +6829,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                     	<a:since>3.4</a:since>
+						<a:displayName>ItemRefinedDefinitionType.emphasized</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -6800,6 +6844,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                     	<a:since>3.8</a:since>
+						<a:displayName>ItemRefinedDefinitionType.deprecated</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -6816,6 +6861,7 @@
                     <xsd:appinfo>
                     	<a:since>3.8</a:since>
                     	<a:experimental>true</a:experimental>
+						<a:displayName>ItemRefinedDefinitionType.experimental</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -6830,6 +6876,7 @@
                     <xsd:appinfo>
                     	<a:since>3.8</a:since>
                     	<a:experimental>true</a:experimental>
+						<a:displayName>ItemRefinedDefinitionType.validation</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -6862,6 +6909,9 @@
 		            			When set to true only strong values are used if there is at least one strong mapping.
 		            			Normal values are used if there is no strong mapping.
 		            		</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>ResourceItemDefinitionType.exclusiveStrong</a:displayName>
+							</xsd:appinfo>
 		            	</xsd:annotation>
 		            </xsd:element>
                     <xsd:element name="modificationPriority" type="xsd:int" minOccurs="0">
@@ -6879,6 +6929,9 @@
                                 used to create an object, and other attributes would be set via MODIFY operation, again,
                                 according to their priorities.)
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>ResourceItemDefinitionType.modificationPriority</a:displayName>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="readReplaceMode" type="xsd:boolean" minOccurs="0">
@@ -6892,6 +6945,9 @@
 	
                                 EXPERIMENTAL. May change in near future.
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>ResourceItemDefinitionType.readReplaceMode</a:displayName>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="secondaryIdentifier" type="xsd:boolean" minOccurs="0">
@@ -6901,6 +6957,9 @@
                                 this attribute is stored in repository and user for example by synchronization (correlation
                                 rule), consistency mechanism, etc.
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>ResourceItemDefinitionType.secondaryIdentifier</a:displayName>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="volatilityTrigger" type="xsd:boolean" minOccurs="0" default="false">
@@ -6913,6 +6972,7 @@
                             <xsd:appinfo>
 	                            <a:since>3.4</a:since>
 	                            <a:since>3.3.1</a:since>
+								<a:displayName>ResourceItemDefinitionType.volatilityTrigger</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -6922,10 +6982,19 @@
                                 Indicated if the content of this attribute should be used as a human-readable name when
                                 displaying resource objects of this type.
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>ResourceItemDefinitionType.displayNameAttribute</a:displayName>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
 	    		
-                    <xsd:element name="fetchStrategy" type="tns:AttributeFetchStrategyType" minOccurs="0"/>
+                    <xsd:element name="fetchStrategy" type="tns:AttributeFetchStrategyType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>ResourceItemDefinitionType.fetchStrategy</a:displayName>
+							</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="outbound" type="tns:MappingType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -6942,6 +7011,9 @@
                                 used to process all of that. E.g. a single processor may take into a
                                 consideration both schema handling and dynamic attributes set by roles.
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>ResourceItemDefinitionType.outbound</a:displayName>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="inbound" type="tns:MappingType" minOccurs="0" maxOccurs="unbounded">
@@ -6961,6 +7033,9 @@
                                 to
                                 generate correct relative change descriptions.
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>ResourceItemDefinitionType.inbound</a:displayName>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
@@ -7562,6 +7637,7 @@
      				</xsd:documentation>
      				<xsd:appinfo>
      					<a:deprecated/>
+     					<a:plannedRemoval>4.0</a:plannedRemoval>
      				</xsd:appinfo>
      			</xsd:annotation>
      		</xsd:element>
@@ -7573,6 +7649,7 @@
      				</xsd:documentation>
      				<xsd:appinfo>
      					<a:deprecated/>
+     					<a:plannedRemoval>4.0</a:plannedRemoval>
      				</xsd:appinfo>
      			</xsd:annotation>
      		</xsd:element>
@@ -7739,9 +7816,18 @@
 		                       This association is considered valid only if the resource object (subject)
 		                       has the specified auxiliary object class.
 		                   </xsd:documentation>
+						   <xsd:appinfo>
+								<a:displayName>ResourceObjectAssociationType.auxiliaryObjectClass</a:displayName>
+						   </xsd:appinfo>
 		               </xsd:annotation>
 					</xsd:element>
-		     		<xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0"></xsd:element>
+		     		<xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>ResourceObjectAssociationType.kind</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
 		     		<xsd:element name="intent" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -7756,6 +7842,9 @@
                                 type, attributes, matching rules, .... they must be equivalent in every aspect
                                 except for attribute mappings.
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>ResourceObjectAssociationType.intent</a:displayName>
+						   </xsd:appinfo>
                         </xsd:annotation>
 		     		</xsd:element>
 		     		<xsd:element name="direction" type="tns:ResourceObjectAssociationDirectionType"  minOccurs="0">
@@ -7764,6 +7853,9 @@
 		     					Specifies the direction of association, i.e. if the association point from object to
 		     					subject or the other way around. 
 		     				</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>ResourceObjectAssociationType.direction</a:displayName>
+						   </xsd:appinfo>
 		     			</xsd:annotation>
 		     		</xsd:element>
 		     		<xsd:element name="associationAttribute" type="xsd:QName"  minOccurs="0">
@@ -7776,6 +7868,9 @@
 		     					
 		     					Typical examples are: roles, privileges, member, uniqueMember 
 		     				</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>ResourceObjectAssociationType.associationAttribute</a:displayName>
+						   </xsd:appinfo>
 		     			</xsd:annotation>
 		     		</xsd:element>
 		     		<xsd:element name="valueAttribute" type="xsd:QName"  minOccurs="0">
@@ -7791,6 +7886,9 @@
 		     					This attribute usually contain identifiers.
 		     					Typical examples are: name, username, uid, id 
 		     				</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>ResourceObjectAssociationType.valueAttribute</a:displayName>
+						   </xsd:appinfo>
 		     			</xsd:annotation>	     		
 		     		</xsd:element>
 		     		<xsd:element name="shortcutAssociationAttribute" type="xsd:QName"  minOccurs="0">
@@ -7809,6 +7907,9 @@
 		     					
 		     					Typical examples are: memberOf, isMemberOf 
 		     				</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>ResourceObjectAssociationType.shortcutAssociationAttribute</a:displayName>
+						   </xsd:appinfo>
 		     			</xsd:annotation>
 		     		</xsd:element>
 		     		<xsd:element name="shortcutValueAttribute" type="xsd:QName"  minOccurs="0">
@@ -7828,6 +7929,9 @@
 		     					This attribute usually contain identifiers.
 		     					Typical examples are: name, username, uid, id 
 		     				</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>ResourceObjectAssociationType.shortcutValueAttribute</a:displayName>
+						   </xsd:appinfo>
 		     			</xsd:annotation>
 		     		</xsd:element>
 		     		<xsd:element name="explicitReferentialIntegrity" type="xsd:boolean"  minOccurs="0" default="true">
@@ -7840,6 +7944,9 @@
 
                                 For resources having referential integrity, e.g. for Active Directory, set this parameter to false.
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>ResourceObjectAssociationType.explicitReferentialIntegrity</a:displayName>
+						   </xsd:appinfo>
                         </xsd:annotation>
 		     		</xsd:element>
 		     	</xsd:sequence>
@@ -8348,6 +8455,7 @@
             </xsd:documentation>
             <xsd:appinfo>
             	<a:container/>
+				<a:displayName>MappingType.details</a:displayName>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -8356,10 +8464,25 @@
         			<xsd:documentation>
         				Short name of the mapping. Used for debugging purposes.
         			</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>MappingType.name</a:displayName>
+                    </xsd:appinfo>
         		</xsd:annotation>
         	</xsd:element>
-            <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
-            <xsd:element ref="tns:extension" minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>MappingType.description</a:displayName>
+                    </xsd:appinfo>
+        		</xsd:annotation>
+        	</xsd:element>
+            <xsd:element ref="tns:extension" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>MappingType.extension</a:displayName>
+                    </xsd:appinfo>
+        		</xsd:annotation>
+        	</xsd:element>
             <xsd:element name="trace" type="xsd:boolean" minOccurs="0" maxOccurs="1">
             	<xsd:annotation>
             		<xsd:documentation>
@@ -8367,6 +8490,9 @@
             			logged on INFO level if this property is set to true to make sure that it
             			will be visible in the logs. 
             		</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>MappingType.trace</a:displayName>
+                    </xsd:appinfo>
             	</xsd:annotation>
             </xsd:element>
             <xsd:element name="authoritative" minOccurs="0" type="xsd:boolean" default="true">
@@ -8392,6 +8518,9 @@
 							The default value for authoritative flag is true.
 						</p>
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>MappingType.authoritative</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="exclusive" minOccurs="0" type="xsd:boolean" default="false">
@@ -8406,6 +8535,9 @@
 							The default value for exclusive flag is false.
                         </p>
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>MappingType.exclusive</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="tolerant" type="xsd:boolean" minOccurs="0">
@@ -8446,6 +8578,10 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                     	<a:since>3.4</a:since>
+						<a:displayName>MappingType.tolerant</a:displayName>
+						<a:experimental>true</a:experimental>
+						<a:deprecated>true</a:deprecated>
+						<a:plannedRemoval>4.0</a:plannedRemoval>
                     </xsd:appinfo>                    
                 </xsd:annotation>
             </xsd:element>
@@ -8458,6 +8594,9 @@
                         	and the weakest mappings are applied only if nothing else can be applied.
                         </p>
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>MappingType.strength</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="channel" type="xsd:anyURI" minOccurs="0" maxOccurs="unbounded">
@@ -8467,6 +8606,9 @@
             			mapping will be applied. If it is not then it will not be applied.
             			If no channel is specified then no limitations apply and the mapping will be applied for all channels.
             		</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>MappingType.channel</a:displayName>
+                    </xsd:appinfo>
             	</xsd:annotation>
             </xsd:element>
             <xsd:element name="exceptChannel" type="xsd:anyURI" minOccurs="0" maxOccurs="unbounded">
@@ -8476,19 +8618,59 @@
             			mapping will be not applied in this channel. If it is not then it will be applied.
             			If no channel is specified then no limitations apply and the mapping will be applied for all channels.
             		</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>MappingType.exceptChannel</a:displayName>
+                    </xsd:appinfo>
             	</xsd:annotation>
             </xsd:element>
-            <xsd:element name="timeFrom" type="tns:MappingTimeDeclarationType" minOccurs="0"/>
-            <xsd:element name="timeTo" type="tns:MappingTimeDeclarationType" minOccurs="0"/>
-            <xsd:element name="source" type="tns:VariableBindingDefinitionType" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="target" type="tns:VariableBindingDefinitionType" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="condition" type="tns:ExpressionType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="timeFrom" type="tns:MappingTimeDeclarationType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>MappingType.timeFrom</a:displayName>
+                    </xsd:appinfo>
+        		</xsd:annotation>
+        	</xsd:element>
+            <xsd:element name="timeTo" type="tns:MappingTimeDeclarationType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>MappingType.timeTo</a:displayName>
+                    </xsd:appinfo>
+        		</xsd:annotation>
+        	</xsd:element>
+            <xsd:element name="source" type="tns:VariableBindingDefinitionType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>MappingType.source</a:displayName>
+                    </xsd:appinfo>
+        		</xsd:annotation>
+        	</xsd:element>
+            <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>MappingType.expression</a:displayName>
+                    </xsd:appinfo>
+        		</xsd:annotation>
+        	</xsd:element>
+            <xsd:element name="target" type="tns:VariableBindingDefinitionType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>MappingType.target</a:displayName>
+                    </xsd:appinfo>
+        		</xsd:annotation>
+        	</xsd:element>
+            <xsd:element name="condition" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>MappingType.condition</a:displayName>
+                    </xsd:appinfo>
+        		</xsd:annotation>
+        	</xsd:element>
 			<xsd:element name="inputFilter" type="tns:ValueFilterType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<a:deprecated>true</a:deprecated>
 						<a:plannedRemoval>4.0</a:plannedRemoval>
+						<a:displayName>MappingType.inputFilter</a:displayName>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -8497,6 +8679,7 @@
 					<xsd:appinfo>
 						<a:deprecated>true</a:deprecated>
 						<a:plannedRemoval>4.0</a:plannedRemoval>
+						<a:displayName>MappingType.outputFilter</a:displayName>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -8516,6 +8699,8 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                     	<a:deprecated>true</a:deprecated>
+						<a:displayName>MappingType.range</a:displayName>
+						<a:plannedRemoval>4.0</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -8721,6 +8906,7 @@
             </xsd:documentation>
             <xsd:appinfo>
             	<a:deprecated>true</a:deprecated>
+            	<a:plannedRemoval>4.0</a:plannedRemoval>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -9233,6 +9419,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                     	<a:deprecated>true</a:deprecated>
+                    	<a:plannedRemoval>4.0</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -9392,6 +9579,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:deprecated/>
+                                <a:plannedRemoval>4.0</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
 		        	</xsd:element>
@@ -9494,6 +9682,7 @@
 		        			<xsd:appinfo>
 		        				<a:deprecated>true</a:deprecated>
 		        				<a:deprecatedSince>3.7</a:deprecatedSince>
+		        				<a:plannedRemoval>4.0</a:plannedRemoval>
 		        			</xsd:appinfo>
 		        		</xsd:annotation>
 		        	</xsd:element>
@@ -9505,6 +9694,7 @@
 		        			<xsd:appinfo>
 		        				<a:deprecated>true</a:deprecated>
 		        				<a:deprecatedSince>3.7</a:deprecatedSince>
+		        				<a:plannedRemoval>4.0</a:plannedRemoval>
 		        			</xsd:appinfo>
 		        		</xsd:annotation>
 		        	</xsd:element>
@@ -10114,6 +10304,7 @@
         			<xsd:appinfo>
                     	<a:objectReferenceTargetType>tns:ObjectTemplateType</a:objectReferenceTargetType>
                     	<a:deprecated/>
+                    	<a:plannedRemoval>4.0</a:plannedRemoval>
                     </xsd:appinfo>
         		</xsd:annotation>
         	</xsd:element>
@@ -10125,6 +10316,7 @@
         			<xsd:appinfo>
                     	<a:objectReferenceTargetType>tns:ObjectTemplateType</a:objectReferenceTargetType>
                     	<a:deprecated/>
+                    	<a:plannedRemoval>4.0</a:plannedRemoval>
                     </xsd:appinfo>
         		</xsd:annotation>
         	</xsd:element>
@@ -10137,6 +10329,7 @@
                 </xsd:documentation>
                 <xsd:appinfo>
                 	<a:deprecated/>
+                	<a:plannedRemoval>4.0</a:plannedRemoval>
                 </xsd:appinfo>
             </xsd:annotation>
         </xsd:attribute>
@@ -10430,6 +10623,7 @@
 							</xsd:documentation>
 							<xsd:appinfo>
 								<a:deprecated>true</a:deprecated>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
 							</xsd:appinfo>
 						</xsd:annotation>
      				</xsd:element>
@@ -10442,6 +10636,7 @@
 							</xsd:documentation>
 							<xsd:appinfo>
 								<a:deprecated>true</a:deprecated>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
 							</xsd:appinfo>
 						</xsd:annotation>
      				</xsd:element>
@@ -10452,6 +10647,7 @@
 							</xsd:documentation>
 							<xsd:appinfo>
 								<a:deprecated>true</a:deprecated>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
 							</xsd:appinfo>
 						</xsd:annotation>
      				</xsd:element>
@@ -10465,6 +10661,7 @@
 							 <xsd:appinfo>
 		                    	<a:displayName>ShadowType.failedOperationType</a:displayName>
 								<a:deprecated>true</a:deprecated>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
 		                    </xsd:appinfo>
 						</xsd:annotation>
      				</xsd:element>
@@ -11331,6 +11528,7 @@
 							</xsd:documentation>
 							<xsd:appinfo>
 								<a:deprecated>true</a:deprecated>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
@@ -11360,6 +11558,7 @@
                                 <a:displayName>AbstractRoleType.owner</a:displayName>
                                 <a:deprecated>true</a:deprecated>
                                 <a:deprecatedSince>3.7</a:deprecatedSince>
+                                <a:plannedRemoval>4.0</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -11376,6 +11575,7 @@
                                 <a:displayName>AbstractRoleType.approver</a:displayName>
                                 <a:deprecated>true</a:deprecated>
                                 <a:deprecatedSince>3.7</a:deprecatedSince>
+                                <a:plannedRemoval>4.0</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -11391,6 +11591,7 @@
 							<xsd:appinfo>
 								<a:deprecated>true</a:deprecated>
 								<a:deprecatedSince>3.5</a:deprecatedSince>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
 							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -11405,6 +11606,7 @@
 							<xsd:appinfo>
 								<a:deprecated>true</a:deprecated>
 								<a:deprecatedSince>3.5</a:deprecatedSince>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
 							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -11426,6 +11628,7 @@
 							<xsd:appinfo>
 								<a:deprecated>true</a:deprecated>
 								<a:deprecatedSince>3.5</a:deprecatedSince>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
 							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -11440,6 +11643,7 @@
 							<xsd:appinfo>
 								<a:deprecated>true</a:deprecated>
 								<a:deprecatedSince>3.5</a:deprecatedSince>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
 							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -11469,6 +11673,7 @@
 								<a:since>3.1.1</a:since>
 								<a:deprecated>true</a:deprecated>
 								<a:deprecatedSince>3.5</a:deprecatedSince>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
@@ -12705,7 +12910,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-        	<xsd:element name="subjectRelation" minOccurs="0" type="xsd:QName">
+        	<xsd:element name="subjectRelation" minOccurs="0" type="xsd:QName" maxOccurs="unbounded">
         		<xsd:annotation>
         			<xsd:documentation>
         				Specifies the relation that the subject needs to have to the role for this condition to
@@ -13033,9 +13238,18 @@
 					             When the role is assigned the attributes specified
 					             below should be assigned values specified below.
 					         </xsd:documentation>
+							 <xsd:appinfo>
+					            <a:displayName>ConstructionType.attribute</a:displayName>
+							</xsd:appinfo>
 					     </xsd:annotation>
 					 </xsd:element>
-					 <xsd:element name="association" type="tns:ResourceObjectAssociationType" minOccurs="0" maxOccurs="unbounded"/>
+					 <xsd:element name="association" type="tns:ResourceObjectAssociationType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+					        <xsd:appinfo>
+					            <a:displayName>ConstructionType.association</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					 </xsd:element>
 					 <xsd:element name="auxiliaryObjectClass" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
 					    <xsd:annotation>
 					        <xsd:documentation>
@@ -13225,6 +13439,7 @@
 		<xsd:annotation>
 			<xsd:appinfo>
 				<a:deprecated>true</a:deprecated>
+				<a:plannedRemoval>4.0</a:plannedRemoval>
 			</xsd:appinfo>
 		</xsd:annotation>
 	</xsd:element>
@@ -13453,6 +13668,7 @@
                     			<a:displayName>OrgType.passwordPolicy</a:displayName>
                                 <a:displayOrder>240</a:displayOrder>
                                 <a:deprecated>true</a:deprecated>
+                                <a:plannedRemoval>4.0</a:plannedRemoval>
                     		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -13680,6 +13896,7 @@
                     		</xsd:documentation>
                     		<xsd:appinfo>
                     			<a:deprecated>true</a:deprecated>
+                    			<a:plannedRemoval>4.0</a:plannedRemoval>
                     		</xsd:appinfo>
                     	</xsd:annotation>
                     </xsd:element>
@@ -13703,6 +13920,7 @@
                     		</xsd:documentation>
                     		<xsd:appinfo>
                     			<a:deprecated>true</a:deprecated>
+                    			<a:plannedRemoval>4.0</a:plannedRemoval>
                     		</xsd:appinfo>
                     	</xsd:annotation>
                     </xsd:element>
@@ -13715,6 +13933,7 @@
                     		</xsd:documentation>
                     		<xsd:appinfo>
                     			<a:deprecated>true</a:deprecated>
+                    			<a:plannedRemoval>4.0</a:plannedRemoval>
                     		</xsd:appinfo>
                     	</xsd:annotation>
                     </xsd:element>
@@ -14478,6 +14697,7 @@
                             	<a:since>3.5</a:since>
 								<a:deprecated>true</a:deprecated>
 								<a:deprecatedSince>3.6</a:deprecatedSince>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -15277,6 +15497,7 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:deprecated>true</a:deprecated>
+						<a:plannedRemoval>4.0</a:plannedRemoval>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -16114,8 +16335,19 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="pattern" type="xsd:string"/>
+            <xsd:element name="pattern" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>AppenderConfigurationType.pattern</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+			</xsd:element>
 			<xsd:element name="name" type="xsd:string" minOccurs="0">
+			<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>AppenderConfigurationType.name</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
     		</xsd:element>
         </xsd:sequence>
         <!-- <xsd:attribute name="name" type="xsd:string"/> -->
@@ -16125,21 +16357,55 @@
 		<xsd:annotation>
 			<xsd:appinfo>
             	<a:container>true</a:container>
+				<a:displayName>FileAppenderConfigurationType.details</a:displayName>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:AppenderConfigurationType">
                 <xsd:sequence>
-                    <xsd:element name="fileName" type="xsd:string" minOccurs="0"/>
-                    <xsd:element name="filePattern" type="xsd:string" minOccurs="0"/>
-                    <xsd:element name="maxHistory" type="xsd:int" minOccurs="0"/>
-                    <xsd:element name="maxFileSize" type="xsd:string" minOccurs="0"/>
-                    <xsd:element name="append" type="xsd:boolean" minOccurs="0"/>
+                    <xsd:element name="fileName" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>FileAppenderConfigurationType.fileName</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+                    <xsd:element name="filePattern" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>FileAppenderConfigurationType.filePattern</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+                    <xsd:element name="maxHistory" type="xsd:int" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>FileAppenderConfigurationType.maxHistory</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+                    <xsd:element name="maxFileSize" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>FileAppenderConfigurationType.maxFileSize</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+                    <xsd:element name="append" type="xsd:boolean" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>FileAppenderConfigurationType.append</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
                     <xsd:element name="prudent" type="xsd:boolean" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Prudent mode allows remote and shared file destinations (see https://logback.qos.ch/manual/appenders.html#prudentWithRolling )
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>FileAppenderConfigurationType.prudent</a:displayName>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
@@ -16151,17 +16417,54 @@
 		<xsd:annotation>
 			<xsd:appinfo>
             	<a:container>true</a:container>
+				<a:displayName>SyslogAppenderConfigurationType.details</a:displayName>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:AppenderConfigurationType">
                 <xsd:sequence>
-                    <xsd:element name="syslogHost" type="xsd:string" minOccurs="0"/>
-                    <xsd:element name="port" type="xsd:string" minOccurs="0"/>
-                    <xsd:element name="facility" type="xsd:string" minOccurs="0"/>
-                    <xsd:element name="suffixPattern" type="xsd:string" minOccurs="0"/>
-                    <xsd:element name="stackTracePattern" type="xsd:string" minOccurs="0"/>
-                    <xsd:element name="throwableExcluded" type="xsd:boolean" minOccurs="0"/>
+                    <xsd:element name="syslogHost" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>SyslogAppenderConfigurationType.syslogHost</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+                    <xsd:element name="port" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>SyslogAppenderConfigurationType.port</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+                    <xsd:element name="facility" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>SyslogAppenderConfigurationType.facility</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+                    <xsd:element name="suffixPattern" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>SyslogAppenderConfigurationType.suffixPattern</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+                    <xsd:element name="stackTracePattern" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>SyslogAppenderConfigurationType.stackTracePattern</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+                    <xsd:element name="throwableExcluded" type="xsd:boolean" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>SyslogAppenderConfigurationType.throwableExcluded</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -16995,6 +17298,7 @@
                         <jaxb:typesafeEnumMember name="ASSIGNMENT"/>
 						<a:deprecated>true</a:deprecated>
 						<a:deprecatedSince>3.7</a:deprecatedSince>
+						<a:plannedRemoval>4.0</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -17891,6 +18195,7 @@
 					        <xsd:appinfo>
 								<a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType>
 								<a:deprecated>true</a:deprecated>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
 							</xsd:appinfo>
 					    </xsd:annotation>
 					</xsd:element>
@@ -17914,6 +18219,7 @@
 					        </xsd:documentation>
 					        <xsd:appinfo>
 					        	<a:deprecated>true</a:deprecated>
+					        	<a:plannedRemoval>4.0</a:plannedRemoval>
 					        </xsd:appinfo>
 					    </xsd:annotation>
 					</xsd:element>
@@ -19251,6 +19557,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:deprecated>true</a:deprecated>
+                        <a:plannedRemoval>4.0</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -20004,83 +20311,24 @@
            				</xsd:documentation>
            				<xsd:appinfo>
            					<a:deprecated>true</a:deprecated>
+           					<a:plannedRemoval>4.0</a:plannedRemoval>
            				</xsd:appinfo>
            			</xsd:annotation>
            		</xsd:element>
            	</xsd:sequence>	
     </xsd:complexType>
 
-	<!-- Note: ObjectListType already defined in API types -->
-    <xsd:complexType name="GuiObjectListViewType">
+    <xsd:complexType name="GuiObjectListPanelConfigurationType">
         <xsd:annotation>
         	<xsd:documentation>
-        		Specifies the page used to list specific object type or object collection.
+        		Specifies the configuration of a generic table listing various things (usually objects).
         	</xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
-                <a:since>3.6</a:since>
+                <a:since>3.9</a:since>
             </xsd:appinfo>
         </xsd:annotation>
        		<xsd:sequence>
-       			<!-- TODO: now we support only default object lists (all user, all role). But later we will need to
-       			           add name, label (display name) and menu label for this list.
-       			           We will also need a reference to which menu section we want to display it. E.g. We would
-       			           like to display role catalog under "roles", even though it is in fact org tree. -->
-       			<xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1">
-       				<xsd:annotation>
-       					<xsd:documentation>
-       						Symbolic name for this view. It is not really used by the GUI code. It is mostly used for
-       						diagnostics, logging and so on. It may be later used to detect whether a particular view is overriden,
-       						e.g. if view defined in system configuraiton is overridden in the role.
-       					</xsd:documentation>
-       					<xsd:appinfo>
-       						<a:since>3.9</a:since>
-							<a:displayName>GuiObjectListViewType.name</a:displayName>
-       					</xsd:appinfo>
-       				</xsd:annotation>
-       			</xsd:element>
-       			<xsd:element name="type" type="xsd:QName" minOccurs="0" maxOccurs="1">
-       				<xsd:annotation>
-       					<xsd:documentation>
-       						Type of displayed objects. It may not be present in case that the type is defined in a referenced object colleciton.
-       					</xsd:documentation>
-						<xsd:appinfo>
-							<a:displayName>GuiObjectListViewType.type</a:displayName>
-						</xsd:appinfo>
-       				</xsd:annotation>
-       			</xsd:element>
-       			<xsd:element name="collectionRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
-       				<xsd:annotation>
-       					<xsd:documentation>
-       						Reference to object collection that will be used to select objects in this view.
-       						If no collection is specified then it is assumed that all objects of a particular
-       						type has to be displayed (type element above is mandatory in that case).
-       					</xsd:documentation>
-       					<xsd:appinfo>
-       						<a:since>3.9</a:since>
-       						<!-- Reference target type defeinition is NOT here by purpose. Later on we might want
-       						     archetypes (meta-roles), services and orgs to work as implicit collections. Therefore
-       						     this reference may point to various object types. By NOT specifying default ObjectCollectionType
-       						     here we will force everybody to specify it explicitly. So their configuraiton will work in
-       						     future versions when we add support for implicit collections. -->
-							<a:displayName>GuiObjectListViewType.collectionRef</a:displayName>
-       					</xsd:appinfo>
-       				</xsd:annotation>
-       			</xsd:element>
-       			<xsd:element name="display" type="tns:DisplayType" minOccurs="0" maxOccurs="1">
-       				<xsd:annotation>
-       					<xsd:documentation>
-       						Display properties of the view. It is used to display the link in the menu and so on.
-       						Only label is used now. E.g. the CSS properties are ignored.
-       					</xsd:documentation>
-       					<!-- This might be determined from the collection in future midPoint versions.
-       					     In fact the entire definition of a view may be just a reference to collection. -->
-       					<xsd:appinfo>
-       						<a:since>3.9</a:since>
-							<a:displayName>GuiObjectListViewType.display</a:displayName>
-       					</xsd:appinfo>
-       				</xsd:annotation>
-       			</xsd:element>
            		<xsd:element name="searchBoxConfiguration" type="tns:SearchBoxConfigurationType" minOccurs="0" maxOccurs="1">
 					<xsd:annotation>
        					<xsd:appinfo>
@@ -20109,21 +20357,135 @@
        					</xsd:appinfo>
        				</xsd:annotation>
        			</xsd:element>
-       			<xsd:element name="action" type="tns:GuiActionType" minOccurs="0" maxOccurs="unbounded">
-       				<xsd:annotation>
-       					<xsd:documentation>
-       						List of actions for this view. Actions are special things that can be done
-       						with particular object or list of objects.
-       					</xsd:documentation>
-       					<xsd:appinfo>
-       						<a:since>3.9</a:since>
-							<a:displayName>GuiObjectListViewType.action</a:displayName>
-       					</xsd:appinfo>
-       				</xsd:annotation>
-       			</xsd:element>
            		<!-- TODO: number of results per page (MID-1931) -->
            		<!-- TODO: later: export settings (GuiExportSettingsType) -->
            	</xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="GuiObjectListViewType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Specifies the page used to list specific object type or object collection.
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+        	<xsd:extension base="tns:GuiObjectListPanelConfigurationType">
+	       		<xsd:sequence>
+	       			<!-- TODO: now we support only default object lists (all user, all role). But later we will need to
+	       			           add name, label (display name) and menu label for this list.
+	       			           We will also need a reference to which menu section we want to display it. E.g. We would
+	       			           like to display role catalog under "roles", even though it is in fact org tree. -->
+	       			<xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1">
+	       				<xsd:annotation>
+	       					<xsd:documentation>
+	       						Symbolic name for this view. It is not really used by the GUI code. It is mostly used for
+	       						diagnostics, logging and so on. It may be later used to detect whether a particular view is overriden,
+	       						e.g. if view defined in system configuraiton is overridden in the role.
+	       					</xsd:documentation>
+	       					<xsd:appinfo>
+	       						<a:since>3.9</a:since>
+								<a:displayName>GuiObjectListViewType.name</a:displayName>
+	       					</xsd:appinfo>
+	       				</xsd:annotation>
+	       			</xsd:element>
+	       			<xsd:element name="type" type="xsd:QName" minOccurs="0" maxOccurs="1">
+	       				<xsd:annotation>
+	       					<xsd:documentation>
+	       						Type of displayed objects. It may not be present in case that the type is defined in a referenced object colleciton.
+	       					</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>GuiObjectListViewType.type</a:displayName>
+							</xsd:appinfo>
+	       				</xsd:annotation>
+	       			</xsd:element>
+	       			<xsd:element name="collectionRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+	       				<xsd:annotation>
+	       					<xsd:documentation>
+	       						Reference to object collection that will be used to select objects in this view.
+	       						If no collection is specified then it is assumed that all objects of a particular
+	       						type has to be displayed (type element above is mandatory in that case).
+	       					</xsd:documentation>
+	       					<xsd:appinfo>
+	       						<a:since>3.9</a:since>
+	       						<!-- Reference target type defeinition is NOT here by purpose. Later on we might want
+	       						     archetypes (meta-roles), services and orgs to work as implicit collections. Therefore
+	       						     this reference may point to various object types. By NOT specifying default ObjectCollectionType
+	       						     here we will force everybody to specify it explicitly. So their configuraiton will work in
+	       						     future versions when we add support for implicit collections. -->
+								<a:displayName>GuiObjectListViewType.collectionRef</a:displayName>
+	       					</xsd:appinfo>
+	       				</xsd:annotation>
+	       			</xsd:element>
+	       			<xsd:element name="display" type="tns:DisplayType" minOccurs="0" maxOccurs="1">
+	       				<xsd:annotation>
+	       					<xsd:documentation>
+	       						Display properties of the view. It is used to display the link in the menu and so on.
+	       						Only label is used now. E.g. the CSS properties are ignored.
+	       					</xsd:documentation>
+	       					<!-- This might be determined from the collection in future midPoint versions.
+	       					     In fact the entire definition of a view may be just a reference to collection. -->
+	       					<xsd:appinfo>
+	       						<a:since>3.9</a:since>
+								<a:displayName>GuiObjectListViewType.display</a:displayName>
+	       					</xsd:appinfo>
+	       				</xsd:annotation>
+	       			</xsd:element>
+	       			<xsd:element name="action" type="tns:GuiActionType" minOccurs="0" maxOccurs="unbounded">
+	       				<xsd:annotation>
+	       					<xsd:documentation>
+	       						List of actions for this view. Actions are special things that can be done
+	       						with particular object or list of objects.
+	       					</xsd:documentation>
+	       					<xsd:appinfo>
+	       						<a:since>3.9</a:since>
+								<a:displayName>GuiObjectListViewType.action</a:displayName>
+	       					</xsd:appinfo>
+	       				</xsd:annotation>
+	       			</xsd:element>
+	           		<xsd:element name="additionalPanels" type="tns:GuiObjectListViewAdditionalPanelsType" minOccurs="0" maxOccurs="1">
+	       				<xsd:annotation>
+	       					<xsd:documentation>
+	       						Configuration of additional panels that can be present in some view types.
+	       						E.g. configuration of "managers" and "members" panels in orgstruct views.
+	       					</xsd:documentation>
+	       					<xsd:appinfo>
+	       						<a:since>3.9</a:since>
+								<a:displayName>GuiObjectListViewType.additionalPanels</a:displayName>
+								<a:experimental>true</a:experimental>
+	       					</xsd:appinfo>
+	       				</xsd:annotation>
+	       			</xsd:element>
+	           	</xsd:sequence>
+         	</xsd:extension>
+       	</xsd:complexContent>
+    </xsd:complexType>
+    
+    <xsd:complexType name="GuiObjectListViewAdditionalPanelsType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Configuration of additional panels that can be present in some view types.
+				E.g. configuration of "managers" and "members" panels in orgstruct views.
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.9</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+		<xsd:sequence>
+			<!-- TODO: manager panel -->
+			<xsd:element name="memberPanel" type="tns:GuiObjectListPanelConfigurationType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>GuiObjectListViewAdditionalPanelsType.memberPanel</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
     </xsd:complexType>
     
     <xsd:complexType name="SearchBoxConfigurationType">
@@ -20144,7 +20506,36 @@
        					</xsd:appinfo>
        				</xsd:annotation>
        			</xsd:element>
+       			<xsd:element name="defaultScope" type="tns:SearchBoxScopeType" minOccurs="0" maxOccurs="1" default="oneLevel">
+					<xsd:annotation>
+						<xsd:documentation>
+							The scope of the search box. Scope may not be applicable to all types of lists/views.
+							E.g. it does not make sense for flat searches. Therefore some views may not even display
+							scope selection at all.
+						</xsd:documentation>
+       					<xsd:appinfo>
+							<a:displayName>SearchBoxConfigurationType.defaultScope</a:displayName>
+							<a:since>3.9</a:since>
+       					</xsd:appinfo>
+       				</xsd:annotation>
+       			</xsd:element>
+       			<xsd:element name="defaultObjectType" type="xsd:QName" minOccurs="0" maxOccurs="1">
+					<xsd:annotation>
+						<xsd:documentation>
+							Default type of object for search boxes that support object type selection.
+							E.g. UserType or RoleType. Setting it to ObjectType should display all objects.
+							Type selection may not be applicable to all types of lists/views.
+							E.g. it does not make sense for lists that only contain objects of a single type.
+							Therefore some views may not even display object type selection at all.
+						</xsd:documentation>
+       					<xsd:appinfo>
+							<a:displayName>SearchBoxConfigurationType.defaultObjectType</a:displayName>
+							<a:since>3.9</a:since>
+       					</xsd:appinfo>
+       				</xsd:annotation>
+       			</xsd:element>
        			<!-- TODO: default items to display for basic search -->
+       			<!-- TODO: default relation (e.g. defalt, manager, all relations) -->
            	</xsd:sequence>
     </xsd:complexType>
 
@@ -20182,6 +20573,45 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="FULLTEXT"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+	
+	<xsd:simpleType name="SearchBoxScopeType">
+		<xsd:annotation>
+			<xsd:documentation>
+				The scope of the search box.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.9</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="oneLevel">
+				<xsd:annotation>
+					<xsd:documentation>
+						Search will only traverse flat, one-level part of the hierarchy.
+						This is ordinary search scope for non-hierarchical data.
+						But when used in organizational hieraries, then this search scope
+						will be limited only to a single organizational level.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="ONE_LEVEL"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="subtree">
+				<xsd:annotation>
+					<xsd:documentation>
+						Search will traverse entire subtree.
+						This scope makes no sense for non-hierarchical data.
+						But when used in organizational hieraries, then this search scope
+						will be span entire subtree with all sub-orgs.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="SUBTREE"/>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
@@ -20450,12 +20880,29 @@
        		<xsd:sequence>
        			<xsd:element name="type" type="xsd:QName" minOccurs="1" maxOccurs="1">
 					<xsd:annotation>
-							<xsd:appinfo>
-								<a:displayName>AbstractObjectTypeConfigurationType.type</a:displayName>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
-           	</xsd:sequence>	
+						<xsd:appinfo>
+							<a:displayName>AbstractObjectTypeConfigurationType.type</a:displayName>
+						</xsd:appinfo>
+					</xsd:annotation>
+				</xsd:element>
+	           	<xsd:element name="roleRelation" type="tns:RoleRelationObjectSpecificationType" minOccurs="0" maxOccurs="1">
+	        		<xsd:annotation>
+	        			<xsd:documentation>
+	        				<p>
+	                        	Definition of object with respect to subject relation to a role.
+	                        	Used to specify role approvers, owners and so on.
+	                        </p>
+	                        <p>
+	                        	EXPERIMENTAL. Use at your own risk.
+	                        </p>
+	        			</xsd:documentation>
+	        			<xsd:appinfo>
+	        				<a:since>3.9</a:since>
+	        			</xsd:appinfo>
+	        		</xsd:annotation>
+	        	</xsd:element>
+	           	<!-- TODO: object filter -->
+           	</xsd:sequence>
     </xsd:complexType>
     
     <xsd:complexType name="GuiObjectDetailsPageType">
@@ -21078,6 +21525,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                     	<a:deprecated>true</a:deprecated>
+                    	<a:plannedRemoval>4.0</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

@@ -146,7 +146,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 
 			@Override
 			protected IModel<String> getNewObjectButtonTitleModel(){
-				return getAssignmentsLimitReachedTitleModel();
+				return getAssignmentsLimitReachedTitleModel("MainObjectListPanel.newObject");
 			}
 
 			@Override
@@ -194,7 +194,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 				if(buttonToolbar == null) {
 					return super.initButtonToolbar(id);
 				}
-				return initCustomButtonToolbar(id);
+				return buttonToolbar;
 			}
 		
 		};
@@ -412,14 +412,17 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 	}
 	
 	protected ItemVisibility getSpecificContainersItemsVisibility(ItemWrapper itemWrapper, ItemPath parentAssignmentPath) {
+		if(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_ATTRIBUTE).append(ResourceAttributeDefinitionType.F_INBOUND).removeIdentifiers().isSubPathOrEquivalent(itemWrapper.getPath().removeIdentifiers())
+				|| parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_ASSOCIATION).append(ResourceAttributeDefinitionType.F_INBOUND).removeIdentifiers().isSubPathOrEquivalent(itemWrapper.getPath().removeIdentifiers())) {
+			return ItemVisibility.HIDDEN;
+		}
 		if (ContainerWrapper.class.isAssignableFrom(itemWrapper.getClass())){
 			return ItemVisibility.AUTO;
 		}
 		List<ItemPath> pathsToHide = new ArrayList<>();
-		pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_RESOURCE_REF));
-		pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_AUXILIARY_OBJECT_CLASS));
-		pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_STRENGTH));
-		if (PropertyOrReferenceWrapper.class.isAssignableFrom(itemWrapper.getClass()) && !WebComponentUtil.isItemVisible(pathsToHide, itemWrapper.getPath())) {
+		pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_RESOURCE_REF).removeIdentifiers());
+		pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_AUXILIARY_OBJECT_CLASS).removeIdentifiers());
+		if (PropertyOrReferenceWrapper.class.isAssignableFrom(itemWrapper.getClass()) && !WebComponentUtil.isItemVisible(pathsToHide, itemWrapper.getPath().removeIdentifiers())) {
 			return ItemVisibility.AUTO;
 		} else {
 			return ItemVisibility.HIDDEN;
@@ -474,7 +477,8 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
     			if (assignment.getTargetRef() != null) {
     				Task task = getPageBase().createSimpleTask("Load target");
     				com.evolveum.midpoint.schema.result.OperationResult result = task.getResult();
-    				return (C) WebModelServiceUtils.loadObject(assignment.getTargetRef(), getPageBase(), task, result).asObjectable();
+    				PrismObject<ObjectType> targetObject = WebModelServiceUtils.loadObject(assignment.getTargetRef(), getPageBase(), task, result);
+    				return targetObject != null ? (C) targetObject.asObjectable() : null;
     			}
     			if (assignment.getConstruction() != null && assignment.getConstruction().getResourceRef() != null) {
 					Task task = getPageBase().createSimpleTask("Load resource");
@@ -501,7 +505,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 					AuthorizationPhaseType.REQUEST, obj,
 					null, null, null);
 			if (isUnassignAuthorized) {
-				menuItems.add(new ButtonInlineMenuItem(getAssignmentsLimitReachedTitleModel()) {
+				menuItems.add(new ButtonInlineMenuItem(getAssignmentsLimitReachedTitleModel("pageAdminFocus.menu.unassign")) {
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -620,13 +624,13 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 
 	}
 
-	private IModel<String> getAssignmentsLimitReachedTitleModel() {
+	private IModel<String> getAssignmentsLimitReachedTitleModel(String defaultTitleKey) {
 		return new LoadableModel<String>(true) {
 			@Override
 			protected String load() {
 				return isAssignmentsLimitReached() ?
 						AssignmentPanel.this.getPageBase().createStringResource("RoleCatalogItemButton.assignmentsLimitReachedTitle",
-								assignmentsRequestsLimit).getString() : createStringResource("MainObjectListPanel.newObject").getString();
+								assignmentsRequestsLimit).getString() : createStringResource(defaultTitleKey).getString();
 			}
 		};
 	}

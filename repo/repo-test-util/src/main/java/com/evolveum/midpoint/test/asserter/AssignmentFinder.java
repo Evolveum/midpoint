@@ -38,6 +38,7 @@ public class AssignmentFinder<F extends FocusType, FA extends FocusAsserter<F, R
 	private final AssignmentsAsserter<F,FA,RA> assignmentsAsserter;
 	private String targetOid;
 	private QName targetType;
+	private QName targetRelation;
 	
 	public AssignmentFinder(AssignmentsAsserter<F,FA,RA> assignmentsAsserter) {
 		this.assignmentsAsserter = assignmentsAsserter;
@@ -45,6 +46,11 @@ public class AssignmentFinder<F extends FocusType, FA extends FocusAsserter<F, R
 	
 	public AssignmentFinder<F,FA,RA> targetOid(String targetOid) {
 		this.targetOid = targetOid;
+		return this;
+	}
+	
+	public AssignmentFinder<F,FA,RA> targetRelation(QName targetRelation) {
+		this.targetRelation = targetRelation;
 		return this;
 	}
 	
@@ -120,7 +126,13 @@ public class AssignmentFinder<F extends FocusType, FA extends FocusAsserter<F, R
 			if (targetRef == null || !QNameUtil.match(targetType, targetRef.getType())) {
 				return false;
 			}
-		}		
+		}
+		
+		if (targetRelation != null) {
+			if (targetRef == null || !QNameUtil.match(targetRelation, targetRef.getRelation())) {
+				return false;
+			}
+		}
 		
 		// TODO: more criteria
 		return true;

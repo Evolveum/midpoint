@@ -294,7 +294,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 		dummyResourceCtl.assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType, true);
 	}
 
-	protected DummyAccount getDummyAccount(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	protected DummyAccount getDummyAccount(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		if (isIcfNameUidSame()) {
 			return dummyResource.getAccountByUsername(icfName);
 		} else {
@@ -302,7 +302,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 		}
 	}
 
-	protected DummyAccount getDummyAccountAssert(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	protected DummyAccount getDummyAccountAssert(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		if (isIcfNameUidSame()) {
 			return dummyResource.getAccountByUsername(icfName);
 		} else {
@@ -313,7 +313,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 		}
 	}
 	
-	protected DummyAccountAsserter assertDummyAccount(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	protected DummyAccountAsserter assertDummyAccount(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		if (isIcfNameUidSame()) {
 			return dummyResourceCtl.assertAccountByUsername(icfName);
 		} else {
@@ -321,7 +321,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 		}
 	}
 
-	protected void assertNoDummyAccount(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	protected void assertNoDummyAccount(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		DummyAccount account;
 		if (isIcfNameUidSame()) {
 			account = dummyResource.getAccountByUsername(icfName);
@@ -331,7 +331,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 		assertNull("Unexpected dummy account with ICF UID "+icfUid+" (name "+icfName+")", account);
 	}
 
-	protected DummyGroup getDummyGroup(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	protected DummyGroup getDummyGroup(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 //		if (isNameUnique()) {
 		if (isIcfNameUidSame()) {
 			return dummyResource.getGroupByName(icfName);
@@ -340,7 +340,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 		}
 	}
 
-	protected DummyGroup getDummyGroupAssert(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	protected DummyGroup getDummyGroupAssert(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 //		if (isNameUnique()) {
 		if (isIcfNameUidSame()) {
 			return dummyResource.getGroupByName(icfName);
@@ -352,7 +352,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 		}
 	}
 
-	protected DummyPrivilege getDummyPrivilege(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	protected DummyPrivilege getDummyPrivilege(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 //		if (isNameUnique()) {
 		if (isIcfNameUidSame()) {
 			return dummyResource.getPrivilegeByName(icfName);
@@ -361,7 +361,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 		}
 	}
 
-	protected DummyPrivilege getDummyPrivilegeAssert(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	protected DummyPrivilege getDummyPrivilegeAssert(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 //		if (isNameUnique()) {
 		if (isIcfNameUidSame()) {
 			return dummyResource.getPrivilegeByName(icfName);
@@ -373,7 +373,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 		}
 	}
 
-	protected <T> void assertDummyAccountAttributeValues(String accountName, String accountUid, String attributeName, T... expectedValues) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	protected <T> void assertDummyAccountAttributeValues(String accountName, String accountUid, String attributeName, T... expectedValues) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		DummyAccount dummyAccount = getDummyAccountAssert(accountName, accountUid);
 		assertNotNull("No account '"+accountName+"'", dummyAccount);
 		assertDummyAttributeValues(dummyAccount, attributeName, expectedValues);

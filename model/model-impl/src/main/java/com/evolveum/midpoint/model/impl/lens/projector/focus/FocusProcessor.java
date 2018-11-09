@@ -24,6 +24,7 @@ import java.util.Map;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.model.api.context.ModelState;
+import com.evolveum.midpoint.model.api.util.ModelUtils;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEnforcer;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
@@ -60,6 +61,7 @@ import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.OidUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -377,7 +379,7 @@ public class FocusProcessor {
 	}
 
 	private <O extends ObjectType> void checkItemsLimitations(LensFocusContext<O> focusContext)
-			throws SchemaException {
+			throws SchemaException, ConfigurationException {
 		Map<ItemPath, ObjectTemplateItemDefinitionType> itemDefinitionsMap = focusContext.getItemDefinitionsMap();
 		PrismObject<O> objectNew = null;                    // lazily evaluated
 		for (Map.Entry<ItemPath, ObjectTemplateItemDefinitionType> entry : itemDefinitionsMap.entrySet()) {
@@ -426,7 +428,7 @@ public class FocusProcessor {
 
 
 
-	private <F extends FocusType> void applyObjectPolicyConstraints(LensFocusContext<F> focusContext, ObjectPolicyConfigurationType objectPolicyConfigurationType) throws SchemaException {
+	private <F extends FocusType> void applyObjectPolicyConstraints(LensFocusContext<F> focusContext, ObjectPolicyConfigurationType objectPolicyConfigurationType) throws SchemaException, ConfigurationException {
 		if (objectPolicyConfigurationType == null) {
 			return;
 		}
@@ -508,9 +510,9 @@ public class FocusProcessor {
 	}
 
 	/**
-	 * Remove the intermediate results of values processing such as secondary deltas.
+	 * Remove the intermediate results of values processing such as secondary deltas. 
 	 */
-	private <F extends FocusType> void cleanupContext(LensFocusContext<F> focusContext) throws SchemaException {
+	private <F extends FocusType> void cleanupContext(LensFocusContext<F> focusContext) throws SchemaException, ConfigurationException {
 		// We must NOT clean up activation computation. This has happened before, it will not happen again
 		// and it does not depend on iteration
 		LOGGER.trace("Cleaning up focus context");

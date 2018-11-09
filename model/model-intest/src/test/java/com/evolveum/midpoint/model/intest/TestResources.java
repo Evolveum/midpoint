@@ -40,7 +40,7 @@ import org.w3c.dom.Node;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
-import com.evolveum.midpoint.common.validator.Validator;
+import com.evolveum.midpoint.common.validator.LegacyValidator;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -486,7 +486,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         assertFalse("Empty search return", resources.isEmpty());
         assertEquals("Unexpected number of resources found", 2, resources.size());
 
-        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  2);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  0);
 
         // No explicit get. Search is doing all the work.
         assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_READ_COUNT, 0);
@@ -539,7 +539,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         assertFalse("Empty search return", resources.isEmpty());
         assertEquals("Unexpected number of resources found", 2, resources.size());
 
-        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  2);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  0);
 
         // No explicit get. Search is doing all the work.
         assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_READ_COUNT, 0);
@@ -1023,7 +1023,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 				public void handleGlobalError(OperationResult currentResult) {
 				}
 			};
-			Validator validator = new Validator(prismContext, handler);
+			LegacyValidator validator = new LegacyValidator(prismContext, handler);
 			validator.setVerbose(true);
 			validator.setValidateSchema(false);
 			OperationResult result = new OperationResult("validator");

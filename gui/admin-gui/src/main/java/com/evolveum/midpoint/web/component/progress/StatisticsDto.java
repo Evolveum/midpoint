@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.progress;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.statistics.EnvironmentalPerformanceInformation;
 import com.evolveum.midpoint.schema.statistics.StatusMessage;
@@ -30,7 +31,9 @@ import java.util.List;
  */
 public class StatisticsDto implements Serializable {
 
-    public static final String F_PROVISIONING_LINES = "provisioningLines";
+	private static final long serialVersionUID = 1L;
+	
+	public static final String F_PROVISIONING_LINES = "provisioningLines";
     public static final String F_MAPPINGS_LINES = "mappingsLines";
     public static final String F_NOTIFICATIONS_LINES = "notificationsLines";
     public static final String F_LAST_MESSAGE = "lastMessage";
@@ -93,7 +96,7 @@ public class StatisticsDto implements Serializable {
     }
 
     public String getLastMessage() {
-        return lastMessage != null ? lastMessage : "(none)";        // i18n
+        return lastMessage != null ? lastMessage : "(" + PageBase.createStringResourceStatic(null, "StatisticsDto.getLastMessage.none").getString() + ")";
     }
 
     public void setLastMessage(String lastMessage) {

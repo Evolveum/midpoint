@@ -195,7 +195,6 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	@Autowired private HookRegistry hookRegistry;
 	@Autowired UserProfileService userProfileService;
 	@Autowired private ExpressionFactory expressionFactory;
-	@Autowired private CacheRegistry cacheRegistry;
 	@Autowired private OperationalDataManager metadataManager;
 
 	private static final String OPERATION_GENERATE_VALUE = ModelInteractionService.class.getName() +  ".generateValue";
@@ -252,6 +251,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 					hook.invokePreview(context, task, result);
 				}
 			}
+			
+			schemaTransformer.applySchemasAndSecurity(context, null, task, result);
 
 		} catch (ConfigurationException | SecurityViolationException | ObjectNotFoundException | SchemaException |
 				CommunicationException | PolicyViolationException | RuntimeException | ObjectAlreadyExistsException |
@@ -1669,9 +1670,6 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		return response;
 	}
 	
-	public void clearCaches() {
-		cacheRegistry.clearAllCaches();
-	}
 	
 	@Override
 	public void refreshPrincipal(String oid) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {

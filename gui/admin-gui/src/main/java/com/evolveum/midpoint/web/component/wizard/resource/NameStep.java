@@ -499,5 +499,7 @@ public class NameStep extends WizardStep {
 		if (parentPage.showSaveResultInPage(saved, result)) {
             parentPage.showResult(result);
         }
+		
+		parentPage.getConfigurationStep().updateConfigurationTabs();
     }
 }
