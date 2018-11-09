@@ -5,7 +5,7 @@
     <parent>
         <artifactId>testing</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>3.9-SNAPSHOT</version>
+        <version>3.9</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -32,7 +32,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>schrodinger</artifactId>
-            <version>3.9-SNAPSHOT</version>
+            <version>3.9</version>
         </dependency>
         <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
