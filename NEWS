@@ -1,55 +1,63 @@
-midPoint 3.8 "Watt"
+midPoint 3.9 "Galileo"
 ----------------------------------
 
-Release 3.8 is a twenty sixth midPoint release code-named Watt. 
-The 3.8 release brings major performance and scalability improvements. 
-There are also provisioning, security and user interface improvements.
+Release 3.9 is a twenty seventh midPoint release code-named Galileo.
+The 3.9 release brings broad assortment of improvements and new features in
+almost all areas of midPoint functionality.
 
-Release date: 13th June 2018
+Release date: 9th November 2018
 
-Changes with respect to version 3.7:
+Changes with respect to version 3.8:
     User interface improvements
-        User-friendly policy selection
-        User-friendly entitlement association management
-        GUI support for more complex data in object extension (containers), improved GUI customization (experimental)
-        Simple GUI pages for cases (internal midPoint tickets) contributed by Exclamation Labs
-        Support for custom static web content in midpoint home directory
-        Support for experimental annotation
-        Ability to override experimental and deprecated annotations
-        Minor user experience improvements
-    Data model improvements
-        Full implementation of subType property
-        Properties locality, costCenter, preferredLanguage, locale, timezone, emailAddress and telephoneNumber moved up from UserType to FocusType.
-        Customizable PolyString normalization
+        Improved assignment/inducement target selection popup
+        Additional registration form based on object lifecycle
+        Form validation expressions
+        New system configuration page
+        Custom actions for object lists ("user" tasks that can be launched from GUI)
+        Custom pre-registration form
+        Shopping cart improvements
+        Organization tree page performance improvements
+        Miscellaneous user experience improvements
+    Governance improvements
+        Certification campaigns can be run only for non-decided cases
+        Improved certification and workitems reports
+    Customization Improvements
+        Relation Configuration
+        Service Account Management
+        Minor expression evaluation improvements
+        Support for subtype in assignment and inducement
+        Minor improvements to midPoint script libraries
     Security improvements
-        Password Policy: prohibited projection values
-        Negative item enumeration in authorizations (exceptItem)
-        Expression code requires just execution-phase authorizations, it does not need request-phase authorizations any more
-        Improved password metadata
+        Separate authorizations for get and search operations.
+        Multitenancy authorizations improvements
+        Authorization zone of control
+        Authorization improvements to handle assignments and inducements
+        Minor security questions improvement.
     Provisioning
-        Provisioning Propagation
-        Ad-hoc provisioning script execution
-        Improved error handling, especially criticality of ITSM errors
-        Provisioning dependencies may use filter in dependency specification
-    Performance and scalability improvements
-        Optimized database schema for better performance and scalability
-        Autoincrement field for audit record storage
-        Multi-node, partitioned and stateful tasks
-        Audit delta and operation result compression
-        Repository layer cache
-    Miscellaneous improvements
-        Improved handling of function library updates
-        Minor mapping improvements
-        Basic data protection features (experimental)
-        Improved SMS gateway support (HTTP POST method)
-        Support for configuration variable in inbound mappings
-        Start scripts for ninja tool (ninja.sh, ninja.bat)
-        Improved documentation
+        Full use of improved ConnId framework (1.5.0.0)
+        Minor improvements to connector paging support
+        Full support for capabilities per object type
+        Major update of consistency mechanism
     Connectors
-        CSV connector supports script execution
-        Active Directory connector supports CredSSP version 5 and 6 (see CVE-2018-0886)
+        Support for native timestamps in ConnId framework, LDAP and Active Directory connectors.
+        Full support for ConnId updateDelta() operation in LDAP and AD connectors.
+        Additional search filter support in LDAP and AD connectors.
+        Active directory connector may use user's own identity when changing password
+        Support for connector instance name (InstanceNameAware)
+        Minor improvements to CSV connector (contributed)
+    Miscellaneous improvements
+        Improved documentation
+        Error criticality handling improvement
+        Legacy support for XPath2 was removed, expression processing code was cleaned up.
+        Improved Maven overlay support
+        Run bulk action from policy rules.
+        Docker containerization improvements.
+        User interface testing framework (a.k.a. "Schroedinger")
+        Automatic detection of database schema version and compatibility
+        Support for listing of object items that are deprecated or planned for removal
+        Minor improvements to REST interface
 
-Oracle database 11g is no longer supported. It is replaced by Oracle 12c database support.
-Support for PostgreSQL 9.4 and earlier is deprecated. PostgreSQL 8.4.x and earlier is no longer supported.
-MySQL 5.6 and earlier is no longer supported.
-Microsoft SQL 2008 and 2008 R2 are no longer supported. Microsoft SQL Server 2012 support is deprecated.
+PostgreSQL 9.4 and earlier is no longer supported.
+Microsoft SQL Server 2012 is no longer supported.
+Tomcat 8.0.x is no longer supported (Tomcat 8.0.x is EOL).
+XPath2 is no longer supported. Please migrate your XPath2 scripts to Groovy, JavaScript or Python.
