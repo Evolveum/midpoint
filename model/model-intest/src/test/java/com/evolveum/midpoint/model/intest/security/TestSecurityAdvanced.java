@@ -3187,8 +3187,11 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		
 		assignRole(USER_JACK_OID, ROLE_SUPERUSER_OID);
 		assignRole(USER_JACK_OID, ROLE_READ_ORG_EXEC_OID);
-				
+		
+		// preconditions
 		assertSearch(UserType.class, createOrgSubtreeQuery(ORG_MINISTRY_OF_OFFENSE_OID), USER_LECHUCK_OID, USER_GUYBRUSH_OID, userCobbOid, USER_ESTEVAN_OID);
+		assertSearch(UserType.class, createOrgSubtreeAndNameQuery(ORG_MINISTRY_OF_OFFENSE_OID, USER_GUYBRUSH_USERNAME), USER_GUYBRUSH_OID);
+		assertSearch(ObjectType.class, createOrgSubtreeAndNameQuery(ORG_MINISTRY_OF_OFFENSE_OID, USER_GUYBRUSH_USERNAME), USER_GUYBRUSH_OID);
 		
 		login(USER_JACK_USERNAME);
 
@@ -3196,10 +3199,20 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		displayWhen(TEST_NAME);
 
 		assertSearch(UserType.class, createOrgSubtreeQuery(ORG_MINISTRY_OF_OFFENSE_OID), USER_LECHUCK_OID, USER_GUYBRUSH_OID, userCobbOid, USER_ESTEVAN_OID);
+		assertSearch(UserType.class, createOrgSubtreeAndNameQuery(ORG_MINISTRY_OF_OFFENSE_OID, USER_GUYBRUSH_USERNAME), USER_GUYBRUSH_OID);
+		assertSearch(ObjectType.class, createOrgSubtreeAndNameQuery(ORG_MINISTRY_OF_OFFENSE_OID, USER_GUYBRUSH_USERNAME), USER_GUYBRUSH_OID);
 		
 		assertSuperuserAccess(NUMBER_OF_ALL_USERS);
 		
 		assertGlobalStateUntouched();
+	}
+	
+	private ObjectQuery createOrgSubtreeAndNameQuery(String orgOid, String name) {
+		return queryFor(ObjectType.class)
+				.isChildOf(orgOid)
+				.and()
+				.item(ObjectType.F_NAME).eqPoly(name)
+				.build();
 	}
 	
     private void modifyJackValidTo() throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
