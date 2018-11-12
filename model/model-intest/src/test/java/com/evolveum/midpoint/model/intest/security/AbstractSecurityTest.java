@@ -313,6 +313,9 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	protected static final File ROLE_INDIRECT_PIRATE_FILE = new File(TEST_DIR, "role-indirect-pirate.xml");
 	protected static final String ROLE_INDIRECT_PIRATE_OID = "67680a40-582c-11e7-b5b1-abcfbb047b34";
 	
+	protected static final File ROLE_READ_ORG_EXEC_FILE = new File(TEST_DIR, "role-read-org-exec.xml");
+	protected static final String ROLE_READ_ORG_EXEC_OID = "1ac39d34-e675-11e8-a1ec-37748272d526";
+	
 	protected static final File ORG_REQUESTABLE_FILE = new File(TEST_DIR,"org-requestable.xml");
 	protected static final String ORG_REQUESTABLE_OID = "8f2bd344-a46c-4c0b-aa34-db08b7d7f7f2";
 	
@@ -351,7 +354,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	protected static final XMLGregorianCalendar JACK_VALID_FROM_LONG_AGO = XmlTypeConverter.createXMLGregorianCalendar(10000L);
 
 	protected static final int NUMBER_OF_ALL_USERS = 11;
-	protected static final int NUMBER_OF_IMPORTED_ROLES = 62;
+	protected static final int NUMBER_OF_IMPORTED_ROLES = 63;
 	protected static final int NUMBER_OF_ALL_ORGS = 11;
 	
 	protected String userRumRogersOid;
@@ -428,6 +431,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		repoAddObjectFromFile(ROLE_READ_ROLE_MEMBERS_NONE_FILE, initResult);
 		repoAddObjectFromFile(ROLE_READ_SELF_MODIFY_ORGUNIT_FILE, initResult);
 		repoAddObjectFromFile(ROLE_INDIRECT_PIRATE_FILE, initResult);
+		repoAddObjectFromFile(ROLE_READ_ORG_EXEC_FILE, initResult);
 		
 		repoAddObjectFromFile(ORG_REQUESTABLE_FILE, initResult);
 		repoAddObjectFromFile(ORG_INDIRECT_PIRATE_FILE, initResult);
