@@ -174,6 +174,12 @@ public class ObjectQueryUtil {
 				.build();
 	}
 	
+	public static ObjectQuery createOrgSubtreeQuery(PrismContext prismContext, String orgOid) throws SchemaException {
+		return QueryBuilder.queryFor(ObjectType.class, prismContext)
+				.isChildOf(orgOid)
+				.build();
+	}
+	
 	public static ObjectQuery createRootOrgQuery(PrismContext prismContext) throws SchemaException {
 		return QueryBuilder.queryFor(ObjectType.class, prismContext).isRoot().build();
 	}

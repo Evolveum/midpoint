@@ -64,10 +64,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestSecurityAdvanced extends AbstractSecurityTest {
 	
+	protected static final File ROLE_READ_ORG_EXEC_FILE = new File(TEST_DIR, "role-read-org-exec.xml");
+	protected static final String ROLE_READ_ORG_EXEC_OID = "1ac39d34-e675-11e8-a1ec-37748272d526";
+
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 		
+		repoAddObjectFromFile(ROLE_READ_ORG_EXEC_FILE, initResult);
+
 		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_SECURITY_OID, initResult);
 	}
 
@@ -1175,6 +1181,37 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assertNotAssignedRole(user, ROLE_BUSINESS_1_OID);
         
         assertGlobalStateUntouched();
+	}
+	
+	/**
+	 * Superuser role should allow everything. Adding another role with any (allow)
+	 * authorizations should not limit superuser. Not even if those authorizations
+	 * are completely loony.
+	 * 
+	 * MID-4931
+	 */
+	@Test
+    public void test340AutzJackSuperUserAndExecRead() throws Exception {
+		final String TEST_NAME = "test340AutzJackSuperUserAndExecRead";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		cleanupAutzTest(USER_JACK_OID);
+		
+		assignRole(USER_JACK_OID, ROLE_SUPERUSER_OID);
+		assignRole(USER_JACK_OID, ROLE_READ_ORG_EXEC_OID);
+				
+		assertSearch(UserType.class, createOrgSubtreeQuery(ORG_MINISTRY_OF_OFFENSE_OID), USER_LECHUCK_OID, USER_GUYBRUSH_OID, userCobbOid, USER_ESTEVAN_OID);
+		
+		login(USER_JACK_USERNAME);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+
+		assertSearch(UserType.class, createOrgSubtreeQuery(ORG_MINISTRY_OF_OFFENSE_OID), USER_LECHUCK_OID, USER_GUYBRUSH_OID, userCobbOid, USER_ESTEVAN_OID);
+		
+		assertSuperuserAccess(NUMBER_OF_ALL_USERS);
+		
+		assertGlobalStateUntouched();
 	}
     
     @Override
