@@ -96,12 +96,6 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
         initLayout();
     }
 
-//    @Override
-//    protected void onInitialize(){
-//        super.onInitialize();
-//        initLayout();
-//    }
-
     private void initLayout(){
         setOutputMarkupId(true);
 
