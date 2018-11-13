@@ -619,13 +619,7 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 				if (def.getValueEnumerationRef() != null) {
 					PrismReferenceValue valueEnumerationRef = def.getValueEnumerationRef();
 					String lookupTableUid = valueEnumerationRef.getOid();
-					Task task = getPageBase().createSimpleTask("loadLookupTable");
-					OperationResult result = task.getResult();
-
-					Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
-							.createLookupTableRetrieveOptions();
-					final PrismObject<LookupTableType> lookupTable = WebModelServiceUtils.loadObject(LookupTableType.class,
-							lookupTableUid, options, getPageBase(), task, result);
+					PrismObject<LookupTableType> lookupTable = getLookupTable(lookupTableUid);
 
 					if (lookupTable != null) {
 
@@ -899,28 +893,7 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 				} else if (def.getValueEnumerationRef() != null) {
 					PrismReferenceValue valueEnumerationRef = def.getValueEnumerationRef();
 					String lookupTableUid = valueEnumerationRef.getOid();
-					
-					PrismObject<LookupTableType> lookupTable;
-					String operation = "loadLookupTable";
-					if(getPageBase() instanceof PageSelfRegistration) {
-						lookupTable = getPageBase().runPrivileged(
-								() -> {
-									Task task = getPageBase().createAnonymousTask(operation);
-									OperationResult result = task.getResult();
-									Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
-											.createLookupTableRetrieveOptions();
-									return WebModelServiceUtils.loadObject(LookupTableType.class,
-											lookupTableUid, options, getPageBase(), task, result);
-								});
-					} else {
-						Task task = getPageBase().createSimpleTask(operation);
-						OperationResult result = task.getResult();
-	
-						Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
-								.createLookupTableRetrieveOptions();
-						lookupTable = WebModelServiceUtils.loadObject(LookupTableType.class,
-								lookupTableUid, options, getPageBase(), task, result);
-					}
+					PrismObject<LookupTableType> lookupTable = getLookupTable(lookupTableUid);
 					
 					if (lookupTable != null) {
 
@@ -994,6 +967,32 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 		}
 
 		return panel;
+	}
+	
+	private PrismObject<LookupTableType> getLookupTable(String lookupTableUid) {
+		PrismObject<LookupTableType> lookupTable;
+		String operation = "loadLookupTable";
+		if(getPageBase() instanceof PageSelfRegistration) {
+			lookupTable = getPageBase().runPrivileged(
+					() -> {
+						Task task = getPageBase().createAnonymousTask(operation);
+						OperationResult result = task.getResult();
+						Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
+								.createLookupTableRetrieveOptions();
+						return WebModelServiceUtils.loadObject(LookupTableType.class,
+								lookupTableUid, options, getPageBase(), task, result);
+					});
+		} else {
+			Task task = getPageBase().createSimpleTask(operation);
+			OperationResult result = task.getResult();
+
+			Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
+					.createLookupTableRetrieveOptions();
+			lookupTable = WebModelServiceUtils.loadObject(LookupTableType.class,
+					lookupTableUid, options, getPageBase(), task, result);
+		}
+		
+		return lookupTable;
 	}
 
 	private List<String> prepareAutoCompleteList(String input, PrismObject<LookupTableType> lookupTable) {
