@@ -172,7 +172,7 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 		boolean foundValuesOnPath = false;
 		Collection<PrismValue> subValues = new ArrayList<>();
 		for (PrismContainerValue<V> cvalue: cvalues) {
-			if (id == null || id == cvalue.getId()) {
+			if (id == null || id.equals(cvalue.getId())) {
 				Item<?,?> item = cvalue.findItem(path);
 				if (item != null) {
 					subValues.addAll(PrismValue.cloneCollection(item.getValues()));
