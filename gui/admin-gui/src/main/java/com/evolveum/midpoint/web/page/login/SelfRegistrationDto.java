@@ -20,7 +20,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SmsAuthenticationPol
 public class SelfRegistrationDto implements Serializable {
 
 	enum AuthenticationPolicy {
-		MAIL, SMS, NONE;
+		MAIL, SMS, NONE
 	}
 
 	private static final long serialVersionUID = 1L;

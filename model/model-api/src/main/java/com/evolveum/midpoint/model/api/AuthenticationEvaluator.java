@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.api;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.AuthenticationServiceException;
@@ -40,6 +41,7 @@ public interface AuthenticationEvaluator<T extends AbstractAuthenticationContext
 			throws BadCredentialsException, AuthenticationCredentialsNotFoundException, DisabledException, LockedException,
 			CredentialsExpiredException, AuthenticationServiceException, AccessDeniedException, UsernameNotFoundException;
 
+	@NotNull
 	UserType checkCredentials(ConnectionEnvironment connEnv, T authnCtx)
 			throws BadCredentialsException, AuthenticationCredentialsNotFoundException, DisabledException, LockedException,
 			CredentialsExpiredException, AuthenticationServiceException, AccessDeniedException, UsernameNotFoundException;

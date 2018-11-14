@@ -1018,7 +1018,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			return null;
 		}
 		if (!(principal instanceof MidPointPrincipal)) {
-			if (authentication.getPrincipal() instanceof String && "anonymousUser".equals(principal)){
+			if (authentication.getPrincipal() instanceof String && AuthorizationConstants.ANONYMOUS_USER_PRINCIPAL.equals(principal)) {
 				return null;
 			}
 			LOGGER.warn("Unknown principal type {}", principal.getClass());

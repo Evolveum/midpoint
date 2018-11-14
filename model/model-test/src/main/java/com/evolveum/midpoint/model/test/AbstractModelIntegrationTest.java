@@ -4177,7 +4177,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
 	protected void loginAnonymous() {
 		Authentication authentication = new AnonymousAuthenticationToken("foo",
-				"anonymousUser", AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
+				AuthorizationConstants.ANONYMOUS_USER_PRINCIPAL, AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
 		SecurityContextHolder.getContext().setAuthentication(authentication);
 	}
 

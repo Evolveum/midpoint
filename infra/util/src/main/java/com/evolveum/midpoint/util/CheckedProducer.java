@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2016-2017 Evolveum
+/*
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,15 @@
  */
 package com.evolveum.midpoint.util;
 
+import com.evolveum.midpoint.util.exception.CommonException;
+
 import java.io.Serializable;
 
 /**
- * Almost the same as java.util.function.Supplier, but this one is Serializable.
- * That is very useful especially in use in Wicket models.
- *
- * @author Radovan Semancik
+ * Almost the same as Producer but this one can throw CommonException.
+ * EXPERIMENTAL
  */
 @FunctionalInterface
-public interface Producer<T> extends Serializable {
-
-	T run();        // todo shouldn't be 'get'?
-
+public interface CheckedProducer<T> extends Serializable {
+	T get() throws CommonException;
 }

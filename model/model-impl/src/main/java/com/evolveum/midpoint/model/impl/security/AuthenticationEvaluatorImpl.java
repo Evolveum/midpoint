@@ -116,6 +116,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 	}
 
 	@Override
+	@NotNull
 	public UserType checkCredentials(ConnectionEnvironment connEnv, T authnCtx)
 			throws BadCredentialsException, AuthenticationCredentialsNotFoundException, DisabledException, LockedException,
 			CredentialsExpiredException, AuthenticationServiceException, AccessDeniedException, UsernameNotFoundException {
