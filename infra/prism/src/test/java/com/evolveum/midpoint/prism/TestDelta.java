@@ -1187,7 +1187,7 @@ public class TestDelta extends AbstractPrismTest {
 //				((PropertyDelta)itemDelta).getValuesToReplace(), Boolean.TRUE);
 	}
 
-	@Test(enabled = false)      // MID-4689
+	@Test // MID-4689
     public void testObjectDeltaFindItemDeltaModifyNonExistentPropertyInReplacedContainer() throws Exception {
 		final String TEST_NAME="testObjectDeltaFindItemDeltaModifyNonExistentPropertyInReplacedContainer";
 		displayTestTitle(TEST_NAME);
