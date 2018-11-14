@@ -651,6 +651,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 	private String createDeleteQuery(String objectTable, String tempTable, String idColumnName) {
 		if (getConfiguration().isUsingMySqlCompatible()) {
 			return createDeleteQueryAsJoin(objectTable, tempTable, idColumnName);
+		} else if (getConfiguration().isUsingPostgreSQL()) {
+			return createDeleteQueryAsJoinPostgreSQL(objectTable, tempTable, idColumnName);
 		} else {
 			// todo consider using join for other databases as well
 			return createDeleteQueryAsSubquery(objectTable, tempTable, idColumnName);
@@ -660,6 +662,10 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 	private String createDeleteQueryAsJoin(String objectTable, String tempTable, String idColumnName) {
 		return "DELETE FROM main, temp USING " + objectTable + " AS main INNER JOIN " + tempTable + " as temp "
 				+ "WHERE main." + idColumnName + " = temp.id";
+	}
+
+	private String createDeleteQueryAsJoinPostgreSQL(String objectTable, String tempTable, String idColumnName) {
+		return "delete from " + objectTable + " main using " + tempTable + " temp where main." + idColumnName + " = temp.id";
 	}
 
 	private String createDeleteQueryAsSubquery(String objectTable, String tempTable, String idColumnName) {
