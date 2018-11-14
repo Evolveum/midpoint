@@ -171,7 +171,7 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 		}
 		Collection<PrismValue> subValues = new ArrayList<PrismValue>();
 		for (PrismContainerValue<V> cvalue: cvalues) {
-			if (id == null || id == cvalue.getId()) {
+			if (id == null || id.equals(cvalue.getId())) {
 				Item<?,?> item = cvalue.findItem(path);
 				if (item != null) {
 					subValues.addAll(PrismValue.cloneCollection(item.getValues()));
