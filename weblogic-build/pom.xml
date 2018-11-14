@@ -56,17 +56,6 @@
 		</exclusions>
 	</dependency>
 	<dependency>
-		<groupId>org.glassfish.jersey.media</groupId>
-		<artifactId>jersey-media-sse</artifactId>
-		<version>2.27</version>
-		<exclusions>
-			<exclusion>
-				<groupId>*</groupId>
-				<artifactId>*</artifactId>
-			</exclusion>
-		</exclusions>
-	</dependency>
-	<dependency>
     <groupId>org.apache.abdera</groupId>
 		<artifactId>abdera-i18n</artifactId>
 		<version>1.1.1</version>
@@ -188,11 +177,6 @@
 								<jarModule>
 									<groupId>org.jsr107.ri</groupId>
 									<artifactId>cache-ri-impl</artifactId>
-									<bundleDir>/APP-INF/lib/</bundleDir>
-								</jarModule>
-								<jarModule>
-									<groupId>org.glassfish.jersey.media</groupId>
-									<artifactId>jersey-media-sse</artifactId>
 									<bundleDir>/APP-INF/lib/</bundleDir>
 								</jarModule>
 							</modules>
