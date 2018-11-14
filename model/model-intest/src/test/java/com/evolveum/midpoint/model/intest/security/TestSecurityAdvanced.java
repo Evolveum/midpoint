@@ -151,6 +151,9 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 	
 	protected static final File ROLE_ASSIGN_ORG_FILE = new File(TEST_DIR, "role-assign-org.xml");
 	protected static final String ROLE_ASSIGN_ORG_OID = "be96f834-2dbb-11e8-b29d-7f5de07e7995";
+	
+	protected static final File ROLE_READ_ORG_EXEC_FILE = new File(TEST_DIR, "role-read-org-exec.xml");
+	protected static final String ROLE_READ_ORG_EXEC_OID = "1ac39d34-e675-11e8-a1ec-37748272d526";
 
 
 	@Override
@@ -176,11 +179,12 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		repoAddObjectFromFile(ROLE_READ_ROLE_MEMBERS_FILE, initResult);
 		repoAddObjectFromFile(ROLE_READ_ROLE_MEMBERS_WRONG_FILE, initResult);
 		repoAddObjectFromFile(ROLE_READ_ROLE_MEMBERS_NONE_FILE, initResult);
+		repoAddObjectFromFile(ROLE_READ_ORG_EXEC_FILE, initResult);
 
 		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_SECURITY_OID, initResult);
 	}
 	
-	protected static final int NUMBER_OF_IMPORTED_ROLES = 16;
+	protected static final int NUMBER_OF_IMPORTED_ROLES = 17;
 	
 	protected int getNumberOfRoles() {
 		return super.getNumberOfRoles() + NUMBER_OF_IMPORTED_ROLES;
@@ -3165,6 +3169,50 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		assertDeleteDeny();
 		
 		assertGlobalStateUntouched();
+	}
+	
+	/**
+	 * Superuser role should allow everything. Adding another role with any (allow)
+	 * authorizations should not limit superuser. Not even if those authorizations
+	 * are completely loony.
+	 * 
+	 * MID-4931
+	 */
+	@Test
+    public void test340AutzJackSuperUserAndExecRead() throws Exception {
+		final String TEST_NAME = "test340AutzJackSuperUserAndExecRead";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		cleanupAutzTest(USER_JACK_OID);
+		
+		assignRole(USER_JACK_OID, ROLE_SUPERUSER_OID);
+		assignRole(USER_JACK_OID, ROLE_READ_ORG_EXEC_OID);
+		
+		// preconditions
+		assertSearch(UserType.class, createOrgSubtreeQuery(ORG_MINISTRY_OF_OFFENSE_OID), USER_LECHUCK_OID, USER_GUYBRUSH_OID, userCobbOid, USER_ESTEVAN_OID);
+		assertSearch(UserType.class, createOrgSubtreeAndNameQuery(ORG_MINISTRY_OF_OFFENSE_OID, USER_GUYBRUSH_USERNAME), USER_GUYBRUSH_OID);
+		assertSearch(ObjectType.class, createOrgSubtreeAndNameQuery(ORG_MINISTRY_OF_OFFENSE_OID, USER_GUYBRUSH_USERNAME), USER_GUYBRUSH_OID);
+		
+		login(USER_JACK_USERNAME);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+
+		assertSearch(UserType.class, createOrgSubtreeQuery(ORG_MINISTRY_OF_OFFENSE_OID), USER_LECHUCK_OID, USER_GUYBRUSH_OID, userCobbOid, USER_ESTEVAN_OID);
+		assertSearch(UserType.class, createOrgSubtreeAndNameQuery(ORG_MINISTRY_OF_OFFENSE_OID, USER_GUYBRUSH_USERNAME), USER_GUYBRUSH_OID);
+		assertSearch(ObjectType.class, createOrgSubtreeAndNameQuery(ORG_MINISTRY_OF_OFFENSE_OID, USER_GUYBRUSH_USERNAME), USER_GUYBRUSH_OID);
+		
+		assertSuperuserAccess(NUMBER_OF_ALL_USERS);
+		
+		assertGlobalStateUntouched();
+	}
+	
+	private ObjectQuery createOrgSubtreeAndNameQuery(String orgOid, String name) {
+		return queryFor(ObjectType.class)
+				.isChildOf(orgOid)
+				.and()
+				.item(ObjectType.F_NAME).eqPoly(name)
+				.build();
 	}
 	
     private void modifyJackValidTo() throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {

@@ -96,12 +96,6 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
         initLayout();
     }
 
-//    @Override
-//    protected void onInitialize(){
-//        super.onInitialize();
-//        initLayout();
-//    }
-
     private void initLayout(){
         setOutputMarkupId(true);
 
@@ -396,7 +390,12 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
                                  }
                              };
                          }
-                     });
+
+                         @Override
+                         public IModel<Boolean> getVisible() {
+                             return Model.of(isAssociationExpression());
+                         }
+        });
         menuList.add(new InlineMenuItem(createStringResource("ExpressionValuePanel.addValueButtonTargetSearchTitle")) {
             private static final long serialVersionUID = 1L;
 
@@ -417,6 +416,11 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
                     }
                 };
             }
+
+            @Override
+            public IModel<Boolean> getVisible() {
+                return Model.of(isAssociationExpression());
+            }
         });
         menuList.add(new InlineMenuItem(createStringResource("ExpressionValuePanel.addLiteralValueButton")) {
             private static final long serialVersionUID = 1L;
@@ -436,6 +440,11 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
 
                     }
                 };
+            }
+
+            @Override
+            public IModel<Boolean> getVisible() {
+                return Model.of(!isAssociationExpression());
             }
         });
         return  menuList;
@@ -460,5 +469,9 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
             LOGGER.error("Couldn't get literal expression value: {}", ex.getLocalizedMessage());
         }
         return literalValueList;
+    }
+
+    protected boolean isAssociationExpression(){
+        return false;
     }
 }

@@ -33,7 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationTyp
  * @author katkav
  *
  */
-public class ShadowAssociationWrapper extends AbstractAssociationWrapper<ShadowAssociationType> {
+public class ShadowAssociationWrapper extends ContainerWrapper<ShadowAssociationType> {
 
 	private static transient Trace LOGGER = TraceManager.getTrace(ShadowAssociationWrapper.class);
 	

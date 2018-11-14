@@ -282,7 +282,14 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
                         itemWrapper.getPath().containsName(MappingType.F_EXPRESSION)){
                     ExpressionWrapper expressionWrapper = (ExpressionWrapper)item.getModelObject().getItem();
                     panel = new ExpressionValuePanel("value", new PropertyModel(item.getModel(), "value.value"),
-                            expressionWrapper.getConstruction(), pageBase);
+                            expressionWrapper.getConstruction(), pageBase){
+                        private static final long serialVersionUID = 1L;
+
+                        @Override
+                        protected boolean isAssociationExpression(){
+                            return itemWrapper.getPath().containsName(ConstructionType.F_ASSOCIATION);
+                        }
+                    };
                 } else {
                     panel = new PrismValuePanel("value", item.getModel(), label, form, getValueCssClass(), getInputCssClass());
                 }

@@ -1097,9 +1097,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		if (origFilter == null) {
 			origFilter = AllFilter.createAll();
 		}
-		ObjectFilter finalFilter;
+		ObjectFilter securityFilter;
 		if (phase != null) {
-			finalFilter = preProcessObjectFilterInternal(principal, operationUrls, phase,
+			securityFilter = preProcessObjectFilterInternal(principal, operationUrls, phase,
 					true, searchResultType, object, true, origFilter, limitAuthorizationAction, "search pre-process", task, result);
 		} else {
 			ObjectFilter filterBoth = preProcessObjectFilterInternal(principal, operationUrls, null,
@@ -1108,8 +1108,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 					false, searchResultType, object, true, origFilter, limitAuthorizationAction, "search pre-process", task, result);
 			ObjectFilter filterExecution = preProcessObjectFilterInternal(principal, operationUrls, AuthorizationPhaseType.EXECUTION,
 					false, searchResultType, object, true, origFilter, limitAuthorizationAction, "search pre-process", task, result);
-			finalFilter = ObjectQueryUtil.filterOr(filterBoth, ObjectQueryUtil.filterAnd(filterRequest, filterExecution));
+			securityFilter = ObjectQueryUtil.filterOr(filterBoth, ObjectQueryUtil.filterAnd(filterRequest, filterExecution));
 		}
+		ObjectFilter finalFilter = ObjectQueryUtil.filterAnd(origFilter, securityFilter);
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("AUTZ: evaluated search pre-process principal={}, objectType={}: {}", 
 				getUsername(principal), getObjectType(searchResultType), finalFilter);
@@ -1126,29 +1127,30 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	 */
 	@Override
 	public <T extends ObjectType, O extends ObjectType> boolean canSearch(String[] operationUrls,
-			AuthorizationPhaseType phase, Class<T> searchResultType, PrismObject<O> object, boolean includeSpecial, ObjectFilter filter, Task task, OperationResult result)
+			AuthorizationPhaseType phase, Class<T> searchResultType, PrismObject<O> object, boolean includeSpecial, ObjectFilter origFilter, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		MidPointPrincipal principal = getMidPointPrincipal();
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("AUTZ: evaluating search permission principal={}, searchResultType={}, object={}: filter {}",
-				getUsername(principal), searchResultType, object, filter);
+				getUsername(principal), searchResultType, object, origFilter);
 		}
-		if (filter == null) {
+		if (origFilter == null) {
 			return true;
 		}
-		ObjectFilter finalFilter;
+		ObjectFilter securityFilter;
 		if (phase != null) {
-			finalFilter = preProcessObjectFilterInternal(principal, operationUrls, phase,
-					true, searchResultType, object, includeSpecial, filter, null, "search permission", task, result);
+			securityFilter = preProcessObjectFilterInternal(principal, operationUrls, phase,
+					true, searchResultType, object, includeSpecial, origFilter, null, "search permission", task, result);
 		} else {
 			ObjectFilter filterBoth = preProcessObjectFilterInternal(principal, operationUrls, null,
-					false, searchResultType, object, includeSpecial, filter, null, "search permission", task, result);
+					false, searchResultType, object, includeSpecial, origFilter, null, "search permission", task, result);
 			ObjectFilter filterRequest = preProcessObjectFilterInternal(principal, operationUrls, AuthorizationPhaseType.REQUEST,
-					false, searchResultType, object, includeSpecial, filter, null, "search permission", task, result);
+					false, searchResultType, object, includeSpecial, origFilter, null, "search permission", task, result);
 			ObjectFilter filterExecution = preProcessObjectFilterInternal(principal, operationUrls, AuthorizationPhaseType.EXECUTION,
-					false, searchResultType, object, includeSpecial, filter, null, "search permission", task, result);
-			finalFilter = ObjectQueryUtil.filterOr(filterBoth, ObjectQueryUtil.filterAnd(filterRequest, filterExecution));
+					false, searchResultType, object, includeSpecial, origFilter, null, "search permission", task, result);
+			securityFilter = ObjectQueryUtil.filterOr(filterBoth, ObjectQueryUtil.filterAnd(filterRequest, filterExecution));
 		}
+		ObjectFilter finalFilter = ObjectQueryUtil.filterAnd(origFilter, securityFilter);
 		finalFilter = ObjectQueryUtil.simplify(finalFilter);
 		boolean decision = !(finalFilter instanceof NoneFilter);
 		if (LOGGER.isTraceEnabled()) {
@@ -1158,6 +1160,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		return decision;
 	}
 
+	/**
+	 * @return additional security filter. This filter is supposed to be added (operation "AND") to the original filter.
+	 */
 	private <T extends ObjectType, O extends ObjectType> ObjectFilter preProcessObjectFilterInternal(MidPointPrincipal principal, String[] operationUrls,
 			AuthorizationPhaseType phase, boolean includeNullPhase,
 			Class<T> objectType, PrismObject<O> object, boolean includeSpecial, ObjectFilter origFilter, String limitAuthorizationAction, String desc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -1492,9 +1497,8 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			return secFilter;
 		}
 
-		ObjectFilter origWithAllowFilter;
 		if (hasAllowAll) {
-			origWithAllowFilter = origFilter;
+			securityFilterAllow = AllFilter.createAll();
 		} else if (securityFilterAllow == null) {
 			// Nothing has been allowed. This means default deny.
 			if (LOGGER.isTraceEnabled()) {
@@ -1504,20 +1508,18 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			NoneFilter secFilter = NoneFilter.createNone();
 			traceFilter("secFilter", null, secFilter);
 			return secFilter;
-		} else {
-			origWithAllowFilter = ObjectQueryUtil.filterAnd(origFilter, securityFilterAllow);
 		}
 
 		if (securityFilterDeny == null) {
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("  phase={} done: principal={}, operation={}, {}: allow\n  Filter:\n{}", 
 						phase, getUsername(principal), prettyActionUrl(operationUrls), desc, 
-						origWithAllowFilter==null?"null":origWithAllowFilter.debugDump(2));
+						securityFilterAllow==null?"null":securityFilterAllow.debugDump(2));
 			}
-			traceFilter("origWithAllowFilter", null, origWithAllowFilter);
-			return origWithAllowFilter;
+			traceFilter("securityFilterAllow", null, securityFilterAllow);
+			return securityFilterAllow;
 		} else {
-			ObjectFilter secFilter = ObjectQueryUtil.filterAnd(origWithAllowFilter, NotFilter.createNot(securityFilterDeny));
+			ObjectFilter secFilter = ObjectQueryUtil.filterAnd(securityFilterAllow, NotFilter.createNot(securityFilterDeny));
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("  phase={} done: principal={}, operation={}, {}: allow (with deny clauses)\n  Filter:\n{}", 
 						phase, getUsername(principal), prettyActionUrl(operationUrls), desc,

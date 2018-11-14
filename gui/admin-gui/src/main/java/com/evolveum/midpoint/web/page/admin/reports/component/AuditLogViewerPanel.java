@@ -53,6 +53,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
 import com.evolveum.midpoint.gui.api.component.path.ItemPathPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil.Channel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.path.CanonicalItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -247,11 +248,12 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
                 channelQnameList.add(channelQName);
             }
         }
-        ListModel<QName> channelListModel = new ListModel<>(channelQnameList);
-        PropertyModel<QName> channelModel = new PropertyModel<>(getModel(),
+//        ListModel<QName> channelListModel = new ListModel<>(channelQnameList);
+        PropertyModel<Channel> channelModel = new PropertyModel<>(getModel(),
             AuditSearchDto.F_CHANNEL);
-        DropDownChoicePanel<QName> channel = new DropDownChoicePanel<>(ID_CHANNEL, channelModel,
-            channelListModel, new QNameChoiceRenderer(), true);
+        DropDownChoicePanel<Channel> channel = new DropDownChoicePanel<>(ID_CHANNEL, channelModel,
+            Model.ofList(Arrays.asList(Channel.values())),
+                new EnumChoiceRenderer<>(), true);
         channel.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         channel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         channel.setOutputMarkupId(true);
@@ -377,7 +379,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         parameters.put(AuditEventRecordProvider.PARAMETER_TO, search.getTo());
 
         if (search.getChannel() != null) {
-            parameters.put(AuditEventRecordProvider.PARAMETER_CHANNEL, QNameUtil.qNameToUri(search.getChannel()));
+            parameters.put(AuditEventRecordProvider.PARAMETER_CHANNEL, search.getChannel().getChannel());
         }
         parameters.put(AuditEventRecordProvider.PARAMETER_HOST_IDENTIFIER, search.getHostIdentifier());
 
@@ -534,12 +536,26 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         columns.add(initiatorRefColumn);
 
         if (!isHistory) {
-            IColumn<AuditEventRecordType, String> eventStageColumn = new PropertyColumn<>(
-                createStringResource("PageAuditLogViewer.eventStageLabel"), "eventStage");
+            IColumn<AuditEventRecordType, String> eventStageColumn = new PropertyColumn<AuditEventRecordType, String>(
+                createStringResource("PageAuditLogViewer.eventStageLabel"), "eventStage"){
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public IModel<String> getDataModel(IModel<AuditEventRecordType> rowModel) {
+                    return WebComponentUtil.createLocalizedModelForEnum(rowModel.getObject().getEventStage(), AuditLogViewerPanel.this);
+                }
+            };
             columns.add(eventStageColumn);
         }
-        IColumn<AuditEventRecordType, String> eventTypeColumn = new PropertyColumn<>(
-            createStringResource("PageAuditLogViewer.eventTypeLabel"), "eventType");
+        IColumn<AuditEventRecordType, String> eventTypeColumn = new PropertyColumn<AuditEventRecordType, String>(
+            createStringResource("PageAuditLogViewer.eventTypeLabel"), "eventType"){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public IModel<String> getDataModel(IModel<AuditEventRecordType> rowModel) {
+                return WebComponentUtil.createLocalizedModelForEnum(rowModel.getObject().getEventType(), AuditLogViewerPanel.this);
+            }
+        };
         columns.add(eventTypeColumn);
 
         if (!isHistory) {
@@ -580,10 +596,15 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
                                      IModel<AuditEventRecordType> rowModel) {
                 AuditEventRecordType auditEventRecordType = (AuditEventRecordType) rowModel.getObject();
                 String channel = auditEventRecordType.getChannel();
-                if (channel != null) {
-                    QName channelQName = QNameUtil.uriToQName(channel);
-                    String return_ = channelQName.getLocalPart();
-                    item.add(new Label(componentId, return_));
+                Channel channelValue = null;
+                for (Channel chan : Channel.values()) {
+                    if (chan.getChannel().equals(channel)) {
+                        channelValue = chan;
+                        break;
+                    }
+                }
+                if (channelValue != null) {
+                    item.add(new Label(componentId, WebComponentUtil.createLocalizedModelForEnum(channelValue, AuditLogViewerPanel.this)));
                 } else {
                     item.add(new Label(componentId, ""));
                 }
@@ -592,8 +613,15 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         };
         columns.add(channelColumn);
 
-        IColumn<AuditEventRecordType, String> outcomeColumn = new PropertyColumn<>(
-            createStringResource("PageAuditLogViewer.outcomeLabel"), "outcome");
+        IColumn<AuditEventRecordType, String> outcomeColumn = new PropertyColumn<AuditEventRecordType, String>(
+            createStringResource("PageAuditLogViewer.outcomeLabel"), "outcome"){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public IModel<String> getDataModel(IModel<AuditEventRecordType> rowModel) {
+                return WebComponentUtil.createLocalizedModelForEnum(rowModel.getObject().getOutcome(), AuditLogViewerPanel.this);
+            }
+        };
         columns.add(outcomeColumn);
 
         return columns;
