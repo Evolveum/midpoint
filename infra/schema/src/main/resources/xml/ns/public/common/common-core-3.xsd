@@ -15114,6 +15114,19 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="displayFormats" type="tns:AdminGuiConfigurationDisplayFormatsType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							Default display formats for various UI elements.
+						</p>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+						<a:displayName>AdminGuiConfigurationType.displayFormats</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -15145,7 +15158,60 @@
 			</xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-
+    
+        <xsd:complexType name="AdminGuiConfigurationDisplayFormatsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Default display formats for various UI elements.
+            </xsd:documentation>
+            <xsd:appinfo>
+				<a:container/>
+				<a:since>4.0</a:since>
+			</xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+			<xsd:element name="shortDateTimeFormat" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							Pattern used to display date-time values in short notation, used in places where the
+							space is limited (e.g. in dense table columns).
+							The pattern is a two character code. The first character is the date style, and the second
+							character is the time style. Specify a character of 'S' for short style, 'M' for medium,
+							'L' for long, and 'F' for full. A date or time may be ommitted by specifying a style character '-'.
+							The actual presentation of days, months, hours and so on are specified by localization settings.
+						</p>
+					</xsd:documentation>
+					<!-- Note: this may be later extended to accept also more specific pattern, e.g. HH:MM:SS  -->
+					<xsd:appinfo>
+						<a:displayName>AdminGuiConfigurationRoleManagementType.assignmentApprovalRequestLimit</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="longDateTimeFormat" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							Pattern used to display date-time values in long notation, used in places where space is no
+							concern (e.g. full-screen forms).
+							The pattern is a two character code. The first character is the date style, and the second
+							character is the time style. Specify a character of 'S' for short style, 'M' for medium,
+							'L' for long, and 'F' for full. A date or time may be ommitted by specifying a style character '-'.
+							The actual presentation of days, months, hours and so on are specified by localization settings.
+						</p>
+					</xsd:documentation>
+					<!-- Note: this may be later extended to accept also more specific pattern, e.g. HH:MM:SS  -->
+					<xsd:appinfo>
+						<a:displayName>AdminGuiConfigurationRoleManagementType.assignmentApprovalRequestLimit</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<!-- Note: more display settings may come here later, e.g.:
+						precision (ronuding) of floating-point values
+						deafault boolean presentation (checkbox, on/off switch, dropdown) -->
+        </xsd:sequence>
+    </xsd:complexType>
+    
 	<xsd:complexType name="FeedbackMessagesHookType">
 		<xsd:annotation>
 			<xsd:appinfo>
