@@ -29,6 +29,7 @@ import java.util.Random;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -1087,7 +1088,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     	ItemPath propPath = getConfigurationPropertyPath(elementQName);
 		PrismPropertyDefinition<String> propDef = new PrismPropertyDefinitionImpl<>(IntegrationTestTools.RESOURCE_DUMMY_CONFIGURATION_USELESS_STRING_ELEMENT_NAME,
 				DOMUtil.XSD_STRING, prismContext);
-		PropertyDelta<String> propDelta = PropertyDelta.createModificationReplaceProperty(propPath, propDef, newValue);
+		PropertyDelta<String> propDelta = PropertyDeltaImpl.createModificationReplaceProperty(propPath, propDef, newValue);
     	ObjectDelta<ResourceType> resourceDelta = ObjectDelta.createModifyDelta(RESOURCE_DUMMY_OID, propDelta, ResourceType.class, prismContext);
     	display("Resource delta", resourceDelta);
     	return resourceDelta;

@@ -52,13 +52,13 @@ public class TestDelta extends AbstractPrismTest {
 
 		PrismPropertyDefinition<String> descDefinition = new PrismPropertyDefinitionImpl<>(UserType.F_DESCRIPTION,
 				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
-		PropertyDelta<String> delta1 = new PropertyDelta<>(descDefinition, PrismTestUtil.getPrismContext());
+		PropertyDelta<String> delta1 = new PropertyDeltaImpl<>(descDefinition, PrismTestUtil.getPrismContext());
 		delta1.addRealValuesToAdd("add1");
 		assertPath(delta1, new ItemPath(UserType.F_DESCRIPTION));
 
 		PrismReferenceDefinitionImpl referenceDefinition = new PrismReferenceDefinitionImpl(UserType.F_PARENT_ORG_REF,
                 OBJECT_REFERENCE_TYPE_QNAME, PrismTestUtil.getPrismContext());
-        ReferenceDelta delta2 = new ReferenceDelta(referenceDefinition, PrismTestUtil.getPrismContext());
+        ReferenceDelta delta2 = new ReferenceDeltaImpl(referenceDefinition, PrismTestUtil.getPrismContext());
         delta2.addValueToAdd(new PrismReferenceValueImpl("oid1"));
         assertPath(delta2, new ItemPath(UserType.F_PARENT_ORG_REF));
 
@@ -81,14 +81,14 @@ public class TestDelta extends AbstractPrismTest {
 		PrismPropertyDefinition<String> assDescDefinition = new PrismPropertyDefinitionImpl<>(AssignmentType.F_DESCRIPTION,
 				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 		ItemPath itemPathAssDescNoId = new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_DESCRIPTION);
-		PropertyDelta<String> propDelta2 = new PropertyDelta<>(itemPathAssDescNoId, descDefinition, PrismTestUtil.getPrismContext());
+		PropertyDelta<String> propDelta2 = new PropertyDeltaImpl<>(itemPathAssDescNoId, descDefinition, PrismTestUtil.getPrismContext());
 		assertPath(propDelta2, itemPathAssDescNoId);
 
 		ItemPath itemPathAssDesc1Id = new ItemPath(
 				new NameItemPathSegment(UserType.F_ASSIGNMENT),
 				new IdItemPathSegment(USER_ASSIGNMENT_1_ID),
 				new NameItemPathSegment(AssignmentType.F_DESCRIPTION));
-		PropertyDelta<String> propDelta3 = new PropertyDelta<>(itemPathAssDesc1Id, descDefinition, PrismTestUtil.getPrismContext());
+		PropertyDelta<String> propDelta3 = new PropertyDeltaImpl<>(itemPathAssDesc1Id, descDefinition, PrismTestUtil.getPrismContext());
 		assertPath(propDelta3, itemPathAssDesc1Id);
 
 	}
@@ -106,10 +106,10 @@ public class TestDelta extends AbstractPrismTest {
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION,
 				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
-		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
+		PropertyDelta<String> delta1 = new PropertyDeltaImpl<String>(propertyDefinition, PrismTestUtil.getPrismContext());
 		delta1.addRealValuesToAdd("add1");
 
-		PropertyDelta<String> delta2 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
+		PropertyDelta<String> delta2 = new PropertyDeltaImpl<String>(propertyDefinition, PrismTestUtil.getPrismContext());
 		delta2.addRealValuesToAdd("add2");
 
 		// WHEN
@@ -133,10 +133,10 @@ public class TestDelta extends AbstractPrismTest {
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION,
 				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
-		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
+		PropertyDelta<String> delta1 = new PropertyDeltaImpl<String>(propertyDefinition, PrismTestUtil.getPrismContext());
 		delta1.addRealValuesToDelete("del1");
 
-		PropertyDelta<String> delta2 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
+		PropertyDelta<String> delta2 = new PropertyDeltaImpl<String>(propertyDefinition, PrismTestUtil.getPrismContext());
 		delta2.addRealValuesToDelete("del2");
 
 		// WHEN
@@ -160,11 +160,11 @@ public class TestDelta extends AbstractPrismTest {
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION,
 				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
-		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
+		PropertyDelta<String> delta1 = new PropertyDeltaImpl<String>(propertyDefinition, PrismTestUtil.getPrismContext());
 		delta1.addRealValuesToAdd("add1");
 		delta1.addRealValuesToDelete("del1");
 
-		PropertyDelta<String> delta2 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
+		PropertyDelta<String> delta2 = new PropertyDeltaImpl<String>(propertyDefinition, PrismTestUtil.getPrismContext());
 		delta2.addRealValuesToAdd("add2");
 		delta2.addRealValuesToDelete("del2");
 
@@ -189,11 +189,11 @@ public class TestDelta extends AbstractPrismTest {
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION,
 				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
-		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
+		PropertyDelta<String> delta1 = new PropertyDeltaImpl<String>(propertyDefinition, PrismTestUtil.getPrismContext());
 		delta1.addRealValuesToAdd("add1");
 		delta1.addRealValuesToDelete("del1");
 
-		PropertyDelta<String> delta2 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
+		PropertyDelta<String> delta2 = new PropertyDeltaImpl<String>(propertyDefinition, PrismTestUtil.getPrismContext());
 		delta2.addRealValuesToAdd("add2");
 		delta2.addRealValuesToDelete("add1");
 
@@ -218,10 +218,10 @@ public class TestDelta extends AbstractPrismTest {
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION,
 				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
-		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
+		PropertyDelta<String> delta1 = new PropertyDeltaImpl<String>(propertyDefinition, PrismTestUtil.getPrismContext());
 		delta1.addRealValuesToAdd("add1");
 
-		PropertyDelta<String> delta2 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
+		PropertyDelta<String> delta2 = new PropertyDeltaImpl<String>(propertyDefinition, PrismTestUtil.getPrismContext());
 		delta2.addRealValuesToAdd("add2");
 		delta2.addRealValuesToDelete("add1");
 
@@ -246,11 +246,11 @@ public class TestDelta extends AbstractPrismTest {
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION,
 				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
-		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
+		PropertyDelta<String> delta1 = new PropertyDeltaImpl<String>(propertyDefinition, PrismTestUtil.getPrismContext());
 		delta1.addRealValuesToAdd("add1");
 		delta1.addRealValuesToDelete("del1");
 
-		PropertyDelta<String> delta2 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
+		PropertyDelta<String> delta2 = new PropertyDeltaImpl<String>(propertyDefinition, PrismTestUtil.getPrismContext());
 		delta2.addRealValuesToAdd("del1");
 
 		// WHEN
@@ -274,10 +274,10 @@ public class TestDelta extends AbstractPrismTest {
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION,
 				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
-		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
+		PropertyDelta<String> delta1 = new PropertyDeltaImpl<String>(propertyDefinition, PrismTestUtil.getPrismContext());
 		delta1.setRealValuesToReplace("r1x", "r1y");
 
-		PropertyDelta<String> delta2 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
+		PropertyDelta<String> delta2 = new PropertyDeltaImpl<String>(propertyDefinition, PrismTestUtil.getPrismContext());
 		delta2.addRealValuesToAdd("add2");
 
 		// WHEN
@@ -301,10 +301,10 @@ public class TestDelta extends AbstractPrismTest {
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION,
 				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
-		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
+		PropertyDelta<String> delta1 = new PropertyDeltaImpl<String>(propertyDefinition, PrismTestUtil.getPrismContext());
 		delta1.setRealValuesToReplace("r1x", "r1y");
 
-		PropertyDelta<String> delta2 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
+		PropertyDelta<String> delta2 = new PropertyDeltaImpl<String>(propertyDefinition, PrismTestUtil.getPrismContext());
 		delta2.addRealValuesToAdd("add2");
 		delta2.addRealValuesToDelete("r1y");
 
@@ -329,10 +329,10 @@ public class TestDelta extends AbstractPrismTest {
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION,
 				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
-		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
+		PropertyDelta<String> delta1 = new PropertyDeltaImpl<String>(propertyDefinition, PrismTestUtil.getPrismContext());
 		delta1.setRealValuesToReplace("r1x", "r1y");
 
-		PropertyDelta<String> delta2 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
+		PropertyDelta<String> delta2 = new PropertyDeltaImpl<String>(propertyDefinition, PrismTestUtil.getPrismContext());
 		delta2.addRealValuesToAdd("add2");
 		delta2.addRealValuesToDelete("del2");
 
@@ -357,10 +357,10 @@ public class TestDelta extends AbstractPrismTest {
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION,
 				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
-		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
+		PropertyDelta<String> delta1 = new PropertyDeltaImpl<String>(propertyDefinition, PrismTestUtil.getPrismContext());
 		delta1.setRealValuesToReplace("r1x");
 
-		PropertyDelta<String> delta2 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
+		PropertyDelta<String> delta2 = new PropertyDeltaImpl<String>(propertyDefinition, PrismTestUtil.getPrismContext());
 		delta2.addRealValuesToDelete("r1x");
 
 		// WHEN
@@ -384,11 +384,11 @@ public class TestDelta extends AbstractPrismTest {
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION,
 				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
-		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
+		PropertyDelta<String> delta1 = new PropertyDeltaImpl<String>(propertyDefinition, PrismTestUtil.getPrismContext());
 		delta1.addRealValuesToAdd("add1");
 		delta1.addRealValuesToDelete("del1");
 
-		PropertyDelta<String> delta2 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
+		PropertyDelta<String> delta2 = new PropertyDeltaImpl<String>(propertyDefinition, PrismTestUtil.getPrismContext());
 		delta2.setRealValuesToReplace("r2x", "r2y");
 
 		// WHEN
@@ -412,13 +412,13 @@ public class TestDelta extends AbstractPrismTest {
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION,
 				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
-		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
+		PropertyDelta<String> delta1 = new PropertyDeltaImpl<String>(propertyDefinition, PrismTestUtil.getPrismContext());
 		delta1.addRealValuesToAdd("add1");
 		ObjectDelta<UserType> objectDelta = new ObjectDelta<>(UserType.class, ChangeType.MODIFY,
             PrismTestUtil.getPrismContext());
 		objectDelta.addModification(delta1);
 
-		PropertyDelta<String> delta2 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
+		PropertyDelta<String> delta2 = new PropertyDeltaImpl<String>(propertyDefinition, PrismTestUtil.getPrismContext());
 		delta2.addRealValuesToAdd("add2");
 
 		// WHEN
@@ -444,13 +444,13 @@ public class TestDelta extends AbstractPrismTest {
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION,
 				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
-		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
+		PropertyDelta<String> delta1 = new PropertyDeltaImpl<String>(propertyDefinition, PrismTestUtil.getPrismContext());
 		delta1.addRealValuesToAdd("add1");
 		ObjectDelta<UserType> objectDelta1 = new ObjectDelta<>(UserType.class, ChangeType.MODIFY,
             PrismTestUtil.getPrismContext());
 		objectDelta1.addModification(delta1);
 
-		PropertyDelta<String> delta2 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
+		PropertyDelta<String> delta2 = new PropertyDeltaImpl<String>(propertyDefinition, PrismTestUtil.getPrismContext());
 		delta2.addRealValuesToAdd("add2");
 		ObjectDelta<UserType> objectDelta2 = new ObjectDelta<>(UserType.class, ChangeType.MODIFY,
             PrismTestUtil.getPrismContext());
@@ -479,13 +479,13 @@ public class TestDelta extends AbstractPrismTest {
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION,
 				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
-		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
+		PropertyDelta<String> delta1 = new PropertyDeltaImpl<String>(propertyDefinition, PrismTestUtil.getPrismContext());
 		delta1.addRealValuesToDelete("del1");
 		ObjectDelta<UserType> objectDelta1 = new ObjectDelta<>(UserType.class, ChangeType.MODIFY,
             PrismTestUtil.getPrismContext());
 		objectDelta1.addModification(delta1);
 
-		PropertyDelta<String> delta2 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
+		PropertyDelta<String> delta2 = new PropertyDeltaImpl<String>(propertyDefinition, PrismTestUtil.getPrismContext());
 		delta2.addRealValuesToDelete("del2");
 		ObjectDelta<UserType> objectDelta2 = new ObjectDelta<>(UserType.class, ChangeType.MODIFY,
             PrismTestUtil.getPrismContext());
@@ -514,14 +514,14 @@ public class TestDelta extends AbstractPrismTest {
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION,
 				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
-		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
+		PropertyDelta<String> delta1 = new PropertyDeltaImpl<String>(propertyDefinition, PrismTestUtil.getPrismContext());
 		// Let's complicate the things a bit with origin. This should work even though origins do not match.
 		delta1.addValueToAdd(new PrismPropertyValueImpl<>("add1", OriginType.OUTBOUND, null));
 		ObjectDelta<UserType> objectDelta1 = new ObjectDelta<>(UserType.class, ChangeType.MODIFY,
             PrismTestUtil.getPrismContext());
 		objectDelta1.addModification(delta1);
 
-		PropertyDelta<String> delta2 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
+		PropertyDelta<String> delta2 = new PropertyDeltaImpl<String>(propertyDefinition, PrismTestUtil.getPrismContext());
 		delta2.addRealValuesToAdd("add2");
 		delta2.addRealValuesToDelete("add1");
 		ObjectDelta<UserType> objectDelta2 = new ObjectDelta<>(UserType.class, ChangeType.MODIFY,
@@ -551,13 +551,13 @@ public class TestDelta extends AbstractPrismTest {
         PrismReferenceDefinition referenceDefinition = new PrismReferenceDefinitionImpl(UserType.F_PARENT_ORG_REF,
                 OBJECT_REFERENCE_TYPE_QNAME, PrismTestUtil.getPrismContext());
 
-        ReferenceDelta delta1 = new ReferenceDelta(referenceDefinition, PrismTestUtil.getPrismContext());
+        ReferenceDelta delta1 = new ReferenceDeltaImpl(referenceDefinition, PrismTestUtil.getPrismContext());
         delta1.addValueToAdd(new PrismReferenceValueImpl("oid1"));
         ObjectDelta<UserType> objectDelta1 = new ObjectDelta<>(UserType.class, ChangeType.MODIFY,
             PrismTestUtil.getPrismContext());
         objectDelta1.addModification(delta1);
 
-        ReferenceDelta delta2 = new ReferenceDelta(referenceDefinition, PrismTestUtil.getPrismContext());
+        ReferenceDelta delta2 = new ReferenceDeltaImpl(referenceDefinition, PrismTestUtil.getPrismContext());
         delta2.addValueToAdd(new PrismReferenceValueImpl("oid1"));                    // here we add the same value
         ObjectDelta<UserType> objectDelta2 = new ObjectDelta<>(UserType.class, ChangeType.MODIFY,
             PrismTestUtil.getPrismContext());
@@ -649,7 +649,7 @@ public class TestDelta extends AbstractPrismTest {
     	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValueImpl<>(PrismTestUtil.getPrismContext());
     	// The value id is null
     	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, ASSIGNMENT_PATLAMA_DESCRIPTION, PrismTestUtil.getPrismContext());
-    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT,getUserTypeDefinition());
+    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDeltaImpl.createDelta(UserType.F_ASSIGNMENT,getUserTypeDefinition());
     	containerDelta2.addValueToAdd(assignmentValue2);
 
 		// WHEN
@@ -686,7 +686,7 @@ public class TestDelta extends AbstractPrismTest {
     	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValueImpl<>(PrismTestUtil.getPrismContext());
     	// The value id is null
     	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, ASSIGNMENT_ABRAKADABRA_DESCRIPTION, PrismTestUtil.getPrismContext());
-    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT,getUserTypeDefinition());
+    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDeltaImpl.createDelta(UserType.F_ASSIGNMENT,getUserTypeDefinition());
     	containerDelta2.addValueToAdd(assignmentValue2);
 
 		// WHEN
@@ -724,7 +724,7 @@ public class TestDelta extends AbstractPrismTest {
     	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValueImpl<>(PrismTestUtil.getPrismContext());
     	// The value id is null
     	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, ASSIGNMENT_ABRAKADABRA_DESCRIPTION, PrismTestUtil.getPrismContext());
-    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT, getUserTypeDefinition());
+    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDeltaImpl.createDelta(UserType.F_ASSIGNMENT, getUserTypeDefinition());
     	containerDelta2.addValueToAdd(assignmentValue2);
 
 		// WHEN
@@ -762,7 +762,7 @@ public class TestDelta extends AbstractPrismTest {
     	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValueImpl<>(PrismTestUtil.getPrismContext());
     	assignmentValue2.setId(USER_ASSIGNMENT_2_ID);
     	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, ASSIGNMENT_ABRAKADABRA_DESCRIPTION, PrismTestUtil.getPrismContext());
-    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT,getUserTypeDefinition());
+    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDeltaImpl.createDelta(UserType.F_ASSIGNMENT,getUserTypeDefinition());
     	containerDelta2.addValueToAdd(assignmentValue2);
 
 		// WHEN
@@ -800,7 +800,7 @@ public class TestDelta extends AbstractPrismTest {
     	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValueImpl<>(PrismTestUtil.getPrismContext());
     	assignmentValue2.setId(USER_ASSIGNMENT_2_ID);
     	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, ASSIGNMENT_ABRAKADABRA_DESCRIPTION, PrismTestUtil.getPrismContext());
-    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT,getUserTypeDefinition());
+    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDeltaImpl.createDelta(UserType.F_ASSIGNMENT,getUserTypeDefinition());
     	containerDelta2.addValueToAdd(assignmentValue2);
 
 		// WHEN
@@ -838,7 +838,7 @@ public class TestDelta extends AbstractPrismTest {
     	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValueImpl<>(PrismTestUtil.getPrismContext());
     	assignmentValue2.setId(USER_ASSIGNMENT_1_ID);
     	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, ASSIGNMENT_PATLAMA_DESCRIPTION, PrismTestUtil.getPrismContext());
-    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT,getUserTypeDefinition());
+    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDeltaImpl.createDelta(UserType.F_ASSIGNMENT,getUserTypeDefinition());
     	containerDelta2.addValueToAdd(assignmentValue2);
 
 		// WHEN
@@ -876,7 +876,7 @@ public class TestDelta extends AbstractPrismTest {
     	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValueImpl<>(PrismTestUtil.getPrismContext());
     	assignmentValue2.setId(USER_ASSIGNMENT_1_ID);
     	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, ASSIGNMENT_ABRAKADABRA_DESCRIPTION, PrismTestUtil.getPrismContext());
-    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT, getUserTypeDefinition());
+    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDeltaImpl.createDelta(UserType.F_ASSIGNMENT, getUserTypeDefinition());
     	containerDelta2.addValueToAdd(assignmentValue2);
 
 		// WHEN
@@ -899,7 +899,7 @@ public class TestDelta extends AbstractPrismTest {
     	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValueImpl<>(PrismTestUtil.getPrismContext());
     	// null container ID
     	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, ASSIGNMENT_ABRAKADABRA_DESCRIPTION, PrismTestUtil.getPrismContext());
-    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT,getUserTypeDefinition());
+    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDeltaImpl.createDelta(UserType.F_ASSIGNMENT,getUserTypeDefinition());
     	containerDelta2.addValueToAdd(assignmentValue2);
 
 		// WHEN
@@ -936,7 +936,7 @@ public class TestDelta extends AbstractPrismTest {
     	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValueImpl<>(PrismTestUtil.getPrismContext());
     	// null container ID
     	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, ASSIGNMENT_ABRAKADABRA_DESCRIPTION, PrismTestUtil.getPrismContext());
-    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT,getUserTypeDefinition());
+    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDeltaImpl.createDelta(UserType.F_ASSIGNMENT,getUserTypeDefinition());
     	containerDelta2.addValueToAdd(assignmentValue2);
 
 		// WHEN
@@ -969,7 +969,7 @@ public class TestDelta extends AbstractPrismTest {
     	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValueImpl<>(PrismTestUtil.getPrismContext());
     	assignmentValue2.setId(USER_ASSIGNMENT_2_ID);
     	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, ASSIGNMENT_ABRAKADABRA_DESCRIPTION, PrismTestUtil.getPrismContext());
-    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT,getUserTypeDefinition());
+    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDeltaImpl.createDelta(UserType.F_ASSIGNMENT,getUserTypeDefinition());
     	containerDelta2.addValueToAdd(assignmentValue2);
 
 		// WHEN
@@ -1264,7 +1264,7 @@ public class TestDelta extends AbstractPrismTest {
     			UserType.F_FULL_NAME, PrismTestUtil.getPrismContext(), PrismTestUtil.createPolyString("baz"));
 
 
-    	PropertyDelta<PolyString> fullNameDelta2 = PropertyDelta.createDelta(UserType.F_FULL_NAME, UserType.class,
+    	PropertyDelta<PolyString> fullNameDelta2 = PropertyDeltaImpl.createDelta(UserType.F_FULL_NAME, UserType.class,
     			PrismTestUtil.getPrismContext());
     	PrismPropertyValue<PolyString> fullNameValue2 = new PrismPropertyValueImpl<>(PrismTestUtil.createPolyString("baz"));
     	// Set some metadata to spoil usual equals
@@ -1557,7 +1557,7 @@ public class TestDelta extends AbstractPrismTest {
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION,
 				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
-		PropertyDelta<String> delta = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
+		PropertyDelta<String> delta = new PropertyDeltaImpl<String>(propertyDefinition, PrismTestUtil.getPrismContext());
 		delta.addRealValuesToAdd("blabla");
 		delta.addRealValuesToAdd("bubu");
 
@@ -1584,7 +1584,7 @@ public class TestDelta extends AbstractPrismTest {
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION,
 				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
-		PropertyDelta<String> delta = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
+		PropertyDelta<String> delta = new PropertyDeltaImpl<String>(propertyDefinition, PrismTestUtil.getPrismContext());
 		delta.addRealValuesToAdd("blabla");
 		delta.addRealValuesToAdd("bubu");
 
@@ -1612,7 +1612,7 @@ public class TestDelta extends AbstractPrismTest {
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION,
 				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
-		PropertyDelta<String> delta = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
+		PropertyDelta<String> delta = new PropertyDeltaImpl<String>(propertyDefinition, PrismTestUtil.getPrismContext());
 		delta.addRealValuesToAdd("bubu");
 
 		PrismObject<UserType> user = createUserFoo();

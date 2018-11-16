@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
@@ -52,11 +53,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -940,7 +936,8 @@ public class ContextLoader {
 			// nothing to mark
 			return;
 		}
-		Collection<? extends ItemDelta<?, ?>> modifications = MiscSchemaUtil.createCollection(PropertyDelta.createReplaceDelta(prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class),
+		Collection<? extends ItemDelta<?, ?>> modifications = MiscSchemaUtil.createCollection(
+				PropertyDeltaImpl.createReplaceDelta(prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class),
 				ShadowType.F_DEAD, true));
 		try {
 			cacheRepositoryService.modifyObject(ShadowType.class, oid, modifications, result);
@@ -1356,7 +1353,7 @@ public class ContextLoader {
 							// Maybe some strange race condition? Anyway, we want a robust behavior and this linkeRef should NOT be there.
 							// So simple remove it.
 							LOGGER.warn("The OID "+projCtx.getOid()+" of deleted shadow still exists in the linkRef after discovery ("+focusCurrent+"), removing it");
-							ReferenceDelta unlinkDelta = ReferenceDelta.createModificationDelete(
+							ReferenceDelta unlinkDelta = ReferenceDeltaImpl.createModificationDelete(
 					        		FocusType.F_LINK_REF, focusContext.getObjectDefinition(), linkRef.asReferenceValue().clone());
 							focusContext.swallowToSecondaryDelta(unlinkDelta);
 							continue;

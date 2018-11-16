@@ -58,7 +58,7 @@ import java.util.Date;
 import java.util.List;
 
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
-import static com.evolveum.midpoint.prism.delta.PropertyDelta.createModificationReplaceProperty;
+import static com.evolveum.midpoint.prism.delta.PropertyDeltaImpl.createModificationReplaceProperty;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createDistinct;
 import static com.evolveum.midpoint.schema.RetrieveOption.INCLUDE;
 import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;

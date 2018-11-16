@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.ContainerDeltaImpl;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
@@ -280,7 +281,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 
     @Override
 	public ContainerDelta<C> createEmptyDelta(ItemPath path) {
-		return new ContainerDelta(path, this, prismContext);
+		return new ContainerDeltaImpl<>(path, this, prismContext);
 	}
 
     @Override

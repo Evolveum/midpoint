@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import com.evolveum.midpoint.prism.PrismReferenceValueImpl;
+import com.evolveum.midpoint.prism.delta.ReferenceDeltaImpl;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
@@ -109,7 +110,8 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
         PrismReferenceValue accountRefVal = new PrismReferenceValueImpl();
 		accountRefVal.setObject(account);
-		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
+		ReferenceDelta accountDelta = ReferenceDeltaImpl
+				.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
 		modifications.add(accountDelta);
 
 		// WHEN
@@ -155,7 +157,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
         PrismReferenceValue accountRefVal = new PrismReferenceValueImpl();
 		accountRefVal.setObject(account);
-		ReferenceDelta accountDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), account);
+		ReferenceDelta accountDelta = ReferenceDeltaImpl.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), account);
 		modifications.add(accountDelta);
 
 		// WHEN
@@ -223,7 +225,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
-		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountOid);
+		ReferenceDelta accountDelta = ReferenceDeltaImpl.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountOid);
 		modifications.add(accountDelta);
 
 		// WHEN
@@ -263,7 +265,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
         PrismReferenceValue accountRefVal = new PrismReferenceValueImpl();
 		accountRefVal.setObject(account);
-		ReferenceDelta accountDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), accountOid);
+		ReferenceDelta accountDelta = ReferenceDeltaImpl.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), accountOid);
 		modifications.add(accountDelta);
 
 		// WHEN

@@ -21,10 +21,7 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -265,7 +262,7 @@ public abstract class AddAssignmentAspect<T extends ObjectType, F extends FocusT
         PrismObject<FocusType> focus = (PrismObject<FocusType>) modelContext.getFocusContext().getObjectNew();
         PrismContainerDefinition<AssignmentType> prismContainerDefinition = focus.getDefinition().findContainerDefinition(FocusType.F_ASSIGNMENT);
 
-        ItemDelta<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> addRoleDelta = new ContainerDelta<>(ItemPath.EMPTY_PATH, FocusType.F_ASSIGNMENT, prismContainerDefinition, prismContext);
+        ItemDelta<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> addRoleDelta = new ContainerDeltaImpl<>(ItemPath.EMPTY_PATH, FocusType.F_ASSIGNMENT, prismContainerDefinition, prismContext);
         PrismContainerValue<AssignmentType> assignmentValue = assignmentType.asPrismContainerValue().clone();
         addRoleDelta.addValueToAdd(assignmentValue);
 

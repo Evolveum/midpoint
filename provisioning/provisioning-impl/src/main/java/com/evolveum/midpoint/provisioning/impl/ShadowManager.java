@@ -25,6 +25,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.*;
 import org.apache.commons.lang.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -36,11 +37,6 @@ import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
@@ -1063,7 +1059,7 @@ public class ShadowManager {
 		for (PendingOperationType pendingOperation: opState.getPendingOperations()) {
 			if (pendingOperation.asPrismContainerValue().getId() == null) {
 				// This must be a new operation
-				ContainerDelta<PendingOperationType> cdelta = new ContainerDelta<>(new ItemPath(ShadowType.F_PENDING_OPERATION), containerDefinition, prismContext);
+				ContainerDelta<PendingOperationType> cdelta = new ContainerDeltaImpl<>(new ItemPath(ShadowType.F_PENDING_OPERATION), containerDefinition, prismContext);
 				cdelta.addValuesToAdd(pendingOperation.asPrismContainerValue());
 				shadowChanges.add(cdelta);
 			} else {
@@ -1127,7 +1123,7 @@ public class ShadowManager {
 	
 	private <T> PropertyDelta<T> createPendingOperationDelta(PrismContainerDefinition<PendingOperationType> containerDefinition, ItemPath containerPath, QName propName, T valueToReplace) {
 		PrismPropertyDefinition<T> propDef = containerDefinition.findPropertyDefinition(propName);
-		PropertyDelta<T> propDelta = new PropertyDelta<>(containerPath.subPath(propName), propDef, prismContext);
+		PropertyDelta<T> propDelta = new PropertyDeltaImpl<>(containerPath.subPath(propName), propDef, prismContext);
 		if (valueToReplace == null) {
 			propDelta.setValueToReplace();
 		} else {
@@ -1316,7 +1312,7 @@ public class ShadowManager {
 		}
 		
 		Collection repoDeltas = new ArrayList<>(1);
-		ContainerDelta<PendingOperationType> cdelta = ContainerDelta.createDelta(ShadowType.F_PENDING_OPERATION, shadow.getDefinition());
+		ContainerDelta<PendingOperationType> cdelta = ContainerDeltaImpl.createDelta(ShadowType.F_PENDING_OPERATION, shadow.getDefinition());
 		cdelta.addValuesToAdd(pendingOperation.asPrismContainerValue());
 		repoDeltas.add(cdelta);
 		
@@ -1393,9 +1389,9 @@ public class ShadowManager {
 		ItemPath propPath = containerPath.subPath(propertyName);
 		PropertyDelta<T> delta;
 		if (propertyValue == null) {
-			delta = PropertyDelta.createModificationReplaceProperty(propPath, shadowDef /* no value */);
+			delta = PropertyDeltaImpl.createModificationReplaceProperty(propPath, shadowDef /* no value */);
 		} else {
-			delta = PropertyDelta.createModificationReplaceProperty(propPath, shadowDef,
+			delta = PropertyDeltaImpl.createModificationReplaceProperty(propPath, shadowDef,
 				propertyValue);
 		}
 		repoDeltas.add(delta);
@@ -1639,7 +1635,7 @@ public class ShadowManager {
 					} else if (itemDelta.getValuesToAdd() != null && !itemDelta.getValuesToAdd().isEmpty()) {
 						newName = ((PrismPropertyValue)itemDelta.getValuesToAdd().iterator().next()).getValue().toString();
 					}
-					PropertyDelta<PolyString> nameDelta = PropertyDelta.createReplaceDelta(shadow.getDefinition(), ShadowType.F_NAME, new PolyString(newName));
+					PropertyDelta<PolyString> nameDelta = PropertyDeltaImpl.createReplaceDelta(shadow.getDefinition(), ShadowType.F_NAME, new PolyString(newName));
 					repoChanges.add(nameDelta);
 				}
 				if (!ProvisioningUtil.shouldStoreAtributeInShadow(objectClassDefinition, attrName, cachingStrategy)) {
@@ -1850,7 +1846,7 @@ public class ShadowManager {
 		PolyString currentShadowName = ShadowUtil.determineShadowName(currentResourceShadow);
 		PolyString oldRepoShadowName = oldRepoShadow.getName();
 		if (!currentShadowName.equalsOriginalValue(oldRepoShadowName)) {			
-			PropertyDelta<?> shadowNameDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_NAME, 
+			PropertyDelta<?> shadowNameDelta = PropertyDeltaImpl.createModificationReplaceProperty(ShadowType.F_NAME,
 					oldRepoShadow.getDefinition(),currentShadowName);
 			shadowDelta.addModification(shadowNameDelta);
 		}

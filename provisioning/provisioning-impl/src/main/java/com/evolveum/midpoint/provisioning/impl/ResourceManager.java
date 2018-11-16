@@ -27,6 +27,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.schema.PrismSchemaImpl;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
@@ -39,12 +40,6 @@ import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -405,7 +400,7 @@ public class ResourceManager {
 				if (schemaCachingMetadata == null) {
 					schemaCachingMetadata = MiscSchemaUtil.generateCachingMetadata();
 					modifications.add(
-							PropertyDelta.createModificationReplaceProperty(
+							PropertyDeltaImpl.createModificationReplaceProperty(
 								new ItemPath(ResourceType.F_SCHEMA, CapabilitiesType.F_CACHING_METADATA), 
 								resource.getDefinition(),
 								schemaCachingMetadata)
@@ -466,7 +461,7 @@ public class ResourceManager {
 				if (cachingMetadata == null) {
 					cachingMetadata = MiscSchemaUtil.generateCachingMetadata();
 					modifications.add(
-							PropertyDelta.createModificationReplaceProperty(
+							PropertyDeltaImpl.createModificationReplaceProperty(
 								new ItemPath(ResourceType.F_CAPABILITIES, CapabilitiesType.F_CACHING_METADATA), 
 								connectorSpec.getResource().getDefinition(),
 								cachingMetadata)
@@ -524,7 +519,7 @@ public class ResourceManager {
 		}
 		CachingMetadataType cachingMetadata = MiscSchemaUtil.generateCachingMetadata();
 
-		ContainerDelta<XmlSchemaType> schemaContainerDelta = ContainerDelta.createDelta(
+		ContainerDelta<XmlSchemaType> schemaContainerDelta = ContainerDeltaImpl.createDelta(
 				ResourceType.F_SCHEMA, ResourceType.class, prismContext);
 		PrismContainerValue<XmlSchemaType> cval = new PrismContainerValueImpl<>(prismContext);
 		schemaContainerDelta.setValueToReplace(cval);
@@ -1008,7 +1003,7 @@ public class ResourceManager {
 		}
 	
 	private PropertyDelta<AvailabilityStatusType> createResourceAvailabilityStatusDelta(PrismObject<ResourceType> resource, AvailabilityStatusType status) {
-		return PropertyDelta.createModificationReplaceProperty(SchemaConstants.PATH_OPERATIONAL_STATE_LAST_AVAILABILITY_STATUS, resource.getDefinition(), status);
+		return PropertyDeltaImpl.createModificationReplaceProperty(SchemaConstants.PATH_OPERATIONAL_STATE_LAST_AVAILABILITY_STATUS, resource.getDefinition(), status);
 	}
 
 	/**
@@ -1131,7 +1126,7 @@ public class ResourceManager {
         
         //ItemDelta.findItemDelta(delta.getModifications(), ResourceType.F_SCHEMA, ContainerDelta.class) == null || 
        
-        ReferenceDelta connectorRefDelta = ReferenceDelta.findReferenceModification(delta.getModifications(), ResourceType.F_CONNECTOR_REF);
+        ReferenceDelta connectorRefDelta = ReferenceDeltaImpl.findReferenceModification(delta.getModifications(), ResourceType.F_CONNECTOR_REF);
         if (connectorRefDelta != null){
         	Item<PrismReferenceValue,PrismReferenceDefinition> connectorRefNew = connectorRefDelta.getItemNewMatchingPath(null);
         	if (connectorRefNew.getValues().size() == 1){

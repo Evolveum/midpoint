@@ -22,6 +22,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -60,15 +61,15 @@ public class SynchronizationUtils {
 		
 		if (situation == null) {
 			SynchronizationSituationType oldValue = shadow.asObjectable().getSynchronizationSituation();
-			return PropertyDelta.createModificationDeleteProperty(new ItemPath(ShadowType.F_SYNCHRONIZATION_SITUATION), shadow.getDefinition(), oldValue);
+			return PropertyDeltaImpl.createModificationDeleteProperty(new ItemPath(ShadowType.F_SYNCHRONIZATION_SITUATION), shadow.getDefinition(), oldValue);
 		}
 
-		return PropertyDelta.createModificationReplaceProperty(ShadowType.F_SYNCHRONIZATION_SITUATION, shadow.getDefinition(), situation);
+		return PropertyDeltaImpl.createModificationReplaceProperty(ShadowType.F_SYNCHRONIZATION_SITUATION, shadow.getDefinition(), situation);
 	}
 
 	private static PropertyDelta<XMLGregorianCalendar> createSynchronizationTimestampDelta(PrismObject<ShadowType> object,
 			QName propName, XMLGregorianCalendar timestamp) {
-		PropertyDelta<XMLGregorianCalendar> syncSituationDelta = PropertyDelta
+		PropertyDelta<XMLGregorianCalendar> syncSituationDelta = PropertyDeltaImpl
 				.createReplaceDelta(object.getDefinition(), propName, timestamp);
 		return syncSituationDelta;
 	}

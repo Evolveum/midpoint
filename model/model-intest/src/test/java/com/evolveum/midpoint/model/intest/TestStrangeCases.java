@@ -18,10 +18,7 @@ package com.evolveum.midpoint.model.intest;
 import com.evolveum.icf.dummy.resource.BreakMode;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -248,7 +245,8 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_GUYBRUSH_OID, prismContext);
         PrismReferenceValue accountRefVal = new PrismReferenceValueImpl();
 		accountRefVal.setObject(account);
-		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
+		ReferenceDelta accountDelta = ReferenceDeltaImpl
+				.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountDelta);
 		
 		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
@@ -1561,7 +1559,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	private void addBrokenAccountRef(String userOid) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		OperationResult result = new OperationResult(TestStrangeCases.class.getName() + ".addBrokenAccountRef");
 
-		Collection<? extends ItemDelta> modifications = ReferenceDelta.createModificationAddCollection(UserType.class,
+		Collection<? extends ItemDelta> modifications = ReferenceDeltaImpl.createModificationAddCollection(UserType.class,
 				UserType.F_LINK_REF, prismContext, NON_EXISTENT_ACCOUNT_OID);
 		repositoryService.modifyObject(UserType.class, userOid, modifications , result);
 

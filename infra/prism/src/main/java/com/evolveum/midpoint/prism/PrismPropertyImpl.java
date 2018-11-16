@@ -18,6 +18,7 @@ package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
 import com.evolveum.midpoint.prism.xnode.ListXNode;
@@ -370,12 +371,12 @@ public class PrismPropertyImpl<T> extends ItemImpl<PrismPropertyValue<T>,PrismPr
 
     @Override
 	public PropertyDelta<T> createDelta() {
-		return new PropertyDelta<>(getPath(), getDefinition(), prismContext);
+		return new PropertyDeltaImpl<>(getPath(), getDefinition(), prismContext);
 	}
 
     @Override
 	public PropertyDelta<T> createDelta(ItemPath path) {
-		return new PropertyDelta<>(path, getDefinition(), prismContext);
+		return new PropertyDeltaImpl<>(path, getDefinition(), prismContext);
 	}
 
     @Override

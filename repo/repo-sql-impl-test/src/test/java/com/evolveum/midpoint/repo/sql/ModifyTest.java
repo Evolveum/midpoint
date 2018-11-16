@@ -36,6 +36,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.schema.SearchResultList;
 import org.hibernate.Session;
@@ -48,10 +49,6 @@ import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.common.SynchronizationUtils;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -188,7 +185,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         repositoryService.modifyObject(UserType.class, oid, deltas, getModifyOptions(), result);
 
-        PropertyDelta.applyTo(deltas, userOld);
+        PropertyDeltaImpl.applyTo(deltas, userOld);
 
         PrismObject<UserType> userNew = repositoryService.getObject(UserType.class, oid, null, result);
         ObjectDelta<UserType> delta = userOld.diff(userNew);
@@ -228,7 +225,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         // WHEN
         repositoryService.modifyObject(UserType.class, oid, deltas, getModifyOptions(), result);
 
-        PropertyDelta.applyTo(deltas, userOld);
+        PropertyDeltaImpl.applyTo(deltas, userOld);
 
         PrismObject<UserType> userNew = repositoryService.getObject(UserType.class, oid, null, result);
         ObjectDelta<UserType> delta = userOld.diff(userNew);
@@ -266,7 +263,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         PrismReferenceDefinition def = objectDef.findReferenceDefinition(TaskType.F_OBJECT_REF);
         System.out.println("MODIFY");
         ObjectReferenceType objectRef = null;
-        ReferenceDelta delta = new ReferenceDelta(def, prismContext);
+        ReferenceDelta delta = new ReferenceDeltaImpl(def, prismContext);
         delta.addValueToAdd(new PrismReferenceValueImpl("1", ResourceType.COMPLEX_TYPE));
         modifications.add(delta);
         repositoryService.modifyObject(TaskType.class, taskOid, modifications, getModifyOptions(), result);
@@ -282,7 +279,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         checkReference(taskOid);
         System.out.println("MODIFY");
         modifications.clear();
-        delta = new ReferenceDelta(def, prismContext);
+        delta = new ReferenceDeltaImpl(def, prismContext);
         delta.addValueToDelete(new PrismReferenceValueImpl("1", ResourceType.COMPLEX_TYPE));
         delta.addValueToAdd(new PrismReferenceValueImpl("2", ResourceType.COMPLEX_TYPE));
         modifications.add(delta);
@@ -300,7 +297,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         lastVersion = getTask.getVersion();
 
         modifications.clear();
-        delta = new ReferenceDelta(def, prismContext);
+        delta = new ReferenceDeltaImpl(def, prismContext);
         delta.addValueToDelete(new PrismReferenceValueImpl("2", ResourceType.COMPLEX_TYPE));
         delta.addValueToAdd(new PrismReferenceValueImpl("1", ResourceType.COMPLEX_TYPE));
         modifications.add(delta);
@@ -472,13 +469,13 @@ public class ModifyTest extends BaseSQLRepoTest {
         PrismObjectDefinition<ShadowType> accountDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
 
         Collection<ItemDelta> modifications = new ArrayList<>();
-        PropertyDelta pdelta = PropertyDelta.createModificationReplaceProperty(
+        PropertyDelta pdelta = PropertyDeltaImpl.createModificationReplaceProperty(
         		(new ItemPath(ObjectType.F_METADATA, MetadataType.F_MODIFY_CHANNEL)), accountDefinition, "channel");
         modifications.add(pdelta);
 
         XMLGregorianCalendar modifyTimestampBefore = XmlTypeConverter
                 .createXMLGregorianCalendar(System.currentTimeMillis());
-		pdelta = PropertyDelta.createModificationReplaceProperty((new ItemPath(ObjectType.F_METADATA,
+		pdelta = PropertyDeltaImpl.createModificationReplaceProperty((new ItemPath(ObjectType.F_METADATA,
                 MetadataType.F_MODIFY_TIMESTAMP)), accountDefinition, modifyTimestampBefore);
         modifications.add(pdelta);
 
@@ -541,7 +538,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         Collection<ItemDelta> modifications = new ArrayList<>();
         ItemPath path = new ItemPath(UserType.F_EXTENSION, QNAME_LOOT);
         PrismProperty loot = user.findProperty(path);
-        PropertyDelta lootDelta = new PropertyDelta(path, loot.getDefinition(), prismContext);
+        PropertyDelta lootDelta = new PropertyDeltaImpl(path, loot.getDefinition(), prismContext);
         lootDelta.setRealValuesToReplace(456);
         modifications.add(lootDelta);
 

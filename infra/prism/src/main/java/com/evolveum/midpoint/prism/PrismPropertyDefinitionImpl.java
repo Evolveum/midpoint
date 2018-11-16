@@ -21,6 +21,7 @@ import java.util.Collection;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DisplayableValue;
 
@@ -147,7 +148,7 @@ public class PrismPropertyDefinitionImpl<T> extends ItemDefinitionImpl<PrismProp
 
     @Override
 	public PropertyDelta<T> createEmptyDelta(ItemPath path) {
-		return new PropertyDelta<>(path, this, prismContext);
+		return new PropertyDeltaImpl<>(path, this, prismContext);
 	}
 
 	@Override

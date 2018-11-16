@@ -18,9 +18,7 @@ package com.evolveum.midpoint.repo.sql;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValueImpl;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -175,7 +173,7 @@ public class ModifyUser extends BaseSQLRepoTest {
     @Test
     public void test050ModifyBigUser() throws Exception {
         PrismObjectDefinition def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-        PropertyDelta delta = PropertyDelta.createModificationReplaceProperty(ObjectType.F_DESCRIPTION, def,
+        PropertyDelta delta = PropertyDeltaImpl.createModificationReplaceProperty(ObjectType.F_DESCRIPTION, def,
                 "new description");
 
         repositoryService.modifyObject(UserType.class, userBigOid, Arrays.asList(delta), new OperationResult("asdf"));
@@ -199,11 +197,11 @@ public class ModifyUser extends BaseSQLRepoTest {
     @Test
     public void test100ModifyUserApproverMetadata() throws Exception {
         PrismObjectDefinition userDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-        ReferenceDelta delta1 = ReferenceDelta.createModificationAdd(
+        ReferenceDelta delta1 = ReferenceDeltaImpl.createModificationAdd(
                 new ItemPath(UserType.F_METADATA, MetadataType.F_CREATE_APPROVER_REF),
                 userDefinition,
                 new PrismReferenceValueImpl("target-oid-1", UserType.COMPLEX_TYPE));
-        ReferenceDelta delta2 = ReferenceDelta.createModificationAdd(
+        ReferenceDelta delta2 = ReferenceDeltaImpl.createModificationAdd(
                 new ItemPath(UserType.F_METADATA, MetadataType.F_MODIFY_APPROVER_REF),
                 userDefinition,
                 new PrismReferenceValueImpl("target-oid-1", UserType.COMPLEX_TYPE));            // the same as in delta1

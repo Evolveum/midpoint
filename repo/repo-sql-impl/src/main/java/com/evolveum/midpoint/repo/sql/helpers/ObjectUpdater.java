@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.*;
@@ -223,7 +224,7 @@ public class ObjectUpdater {
         }
 
         PrismObjectDefinition def = object.getDefinition();
-        ReferenceDelta delta = ReferenceDelta.createModificationAdd(new ItemPath(ObjectType.F_PARENT_ORG_REF),
+        ReferenceDelta delta = ReferenceDeltaImpl.createModificationAdd(new ItemPath(ObjectType.F_PARENT_ORG_REF),
                 def, parentOrgRef.getClonedValues());
 
         return Arrays.asList(delta);

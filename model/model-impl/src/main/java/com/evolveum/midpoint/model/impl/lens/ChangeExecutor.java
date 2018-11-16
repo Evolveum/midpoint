@@ -501,7 +501,7 @@ public class ChangeExecutor {
 			
 		} else if (focusDelta.isModify()) {
 			
-			PropertyDelta<XMLGregorianCalendar> provTimestampDelta = PropertyDelta.createModificationReplaceProperty(
+			PropertyDelta<XMLGregorianCalendar> provTimestampDelta = PropertyDeltaImpl.createModificationReplaceProperty(
 					new ItemPath(ObjectType.F_METADATA, MetadataType.F_LAST_PROVISIONING_TIMESTAMP), 
 					context.getFocusContext().getObjectDefinition(), 
 					clock.currentTimeXMLGregorianCalendar());
@@ -742,7 +742,7 @@ public class ChangeExecutor {
 		PrismReferenceValue linkRef = new PrismReferenceValueImpl();
 		linkRef.setOid(shadowOid);
 		linkRef.setTargetType(ShadowType.COMPLEX_TYPE);
-		Collection<? extends ItemDelta> linkRefDeltas = ReferenceDelta
+		Collection<? extends ItemDelta> linkRefDeltas = ReferenceDeltaImpl
 				.createModificationAddCollection(FocusType.F_LINK_REF, getUserDefinition(), linkRef);
 
 		try {
@@ -785,7 +785,7 @@ public class ChangeExecutor {
 
 		LOGGER.debug("Unlinking shadow " + accountRef.getOid() + " from focus " + focusOid);
 		OperationResult result = parentResult.createSubresult(OPERATION_UNLINK_ACCOUNT);
-		Collection<? extends ItemDelta> accountRefDeltas = ReferenceDelta.createModificationDeleteCollection(
+		Collection<? extends ItemDelta> accountRefDeltas = ReferenceDeltaImpl.createModificationDeleteCollection(
 				FocusType.F_LINK_REF, getUserDefinition(), accountRef.clone());
 
 		try {

@@ -100,11 +100,11 @@ public class DeltaBuilder<T extends Containerable> implements S_ItemEntry, S_May
     public S_ValuesEntry item(ItemPath path, ItemDefinition definition) {
         ItemDelta newDelta;
         if (definition instanceof PrismPropertyDefinition) {
-            newDelta = new PropertyDelta(path, (PrismPropertyDefinition) definition, prismContext);
+            newDelta = new PropertyDeltaImpl(path, (PrismPropertyDefinition) definition, prismContext);
         } else if (definition instanceof PrismContainerDefinition) {
-            newDelta = new ContainerDelta(path, (PrismContainerDefinition) definition, prismContext);
+            newDelta = new ContainerDeltaImpl(path, (PrismContainerDefinition) definition, prismContext);
         } else if (definition instanceof PrismReferenceDefinition) {
-            newDelta = new ReferenceDelta(path, (PrismReferenceDefinition) definition, prismContext);
+            newDelta = new ReferenceDeltaImpl(path, (PrismReferenceDefinition) definition, prismContext);
         } else {
             throw new IllegalStateException("Unsupported definition type: " + definition);
         }

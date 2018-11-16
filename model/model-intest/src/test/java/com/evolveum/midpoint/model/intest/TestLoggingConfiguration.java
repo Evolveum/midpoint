@@ -20,6 +20,7 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.*;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
 
@@ -33,10 +34,6 @@ import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -126,7 +123,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 
 		PrismObjectDefinition<SystemConfigurationType> systemConfigurationTypeDefinition =
 			prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(SystemConfigurationType.class);
-		Collection<? extends ItemDelta> modifications =	ContainerDelta.createModificationReplaceContainerCollection(SystemConfigurationType.F_LOGGING,
+		Collection<? extends ItemDelta> modifications =	ContainerDeltaImpl.createModificationReplaceContainerCollection(SystemConfigurationType.F_LOGGING,
 					systemConfigurationTypeDefinition, logging.asPrismContainerValue().clone());
 		
 		// Modify directly in repository, so the logging code in model will not notice the change

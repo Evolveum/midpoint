@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -124,7 +125,7 @@ public class AccCertCaseOperationsHelper {
     // TODO temporary implementation - should be done somehow in batches in order to improve performance
 	void markCaseAsRemedied(@NotNull String campaignOid, long caseId, Task task, OperationResult parentResult)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
-        PropertyDelta<XMLGregorianCalendar> remediedDelta = PropertyDelta.createModificationReplaceProperty(
+        PropertyDelta<XMLGregorianCalendar> remediedDelta = PropertyDeltaImpl.createModificationReplaceProperty(
                 new ItemPath(
                         new NameItemPathSegment(F_CASE),
                         new IdItemPathSegment(caseId),

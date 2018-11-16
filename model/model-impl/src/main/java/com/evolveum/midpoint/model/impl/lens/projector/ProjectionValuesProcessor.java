@@ -24,6 +24,7 @@ import com.evolveum.midpoint.model.impl.sync.SynchronizationService;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -643,13 +644,13 @@ public class ProjectionValuesProcessor {
 
 		PrismPropertyValue<Integer> iterationVal = new PrismPropertyValueImpl<>(accountContext.getIteration());
 		iterationVal.setOriginType(OriginType.OUTBOUND);
-		PropertyDelta<Integer> iterationDelta = PropertyDelta.createReplaceDelta(shadowDef,
+		PropertyDelta<Integer> iterationDelta = PropertyDeltaImpl.createReplaceDelta(shadowDef,
 				ShadowType.F_ITERATION, iterationVal);
 		accountContext.swallowToSecondaryDelta(iterationDelta);
 
 		PrismPropertyValue<String> iterationTokenVal = new PrismPropertyValueImpl<>(accountContext.getIterationToken());
 		iterationTokenVal.setOriginType(OriginType.OUTBOUND);
-		PropertyDelta<String> iterationTokenDelta = PropertyDelta.createReplaceDelta(shadowDef,
+		PropertyDelta<String> iterationTokenDelta = PropertyDeltaImpl.createReplaceDelta(shadowDef,
 				ShadowType.F_ITERATION_TOKEN, iterationTokenVal);
 		accountContext.swallowToSecondaryDelta(iterationTokenDelta);
 

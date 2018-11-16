@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -202,12 +203,12 @@ public class PrismReferenceImpl extends ItemImpl<PrismReferenceValue,PrismRefere
 
 	@Override
 	public ReferenceDelta createDelta() {
-    	return new ReferenceDelta(getPath(), getDefinition(), prismContext);
+    	return new ReferenceDeltaImpl(getPath(), getDefinition(), prismContext);
 	}
 
 	@Override
 	public ReferenceDelta createDelta(ItemPath path) {
-    	return new ReferenceDelta(path, getDefinition(), prismContext);
+    	return new ReferenceDeltaImpl(path, getDefinition(), prismContext);
 	}
 
 	@Override

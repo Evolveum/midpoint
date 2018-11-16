@@ -27,6 +27,7 @@ import java.util.Map;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -54,10 +55,6 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
@@ -329,12 +326,12 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			List<PropertyDelta<?>> modifications = SynchronizationUtils.createSynchronizationTimestampsDelta(applicableShadow);
 			ShadowType applicableShadowType = applicableShadow.asObjectable();
 			if (applicableShadowType.getIntent() == null) {
-				PropertyDelta<String> intentDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_INTENT,
+				PropertyDelta<String> intentDelta = PropertyDeltaImpl.createModificationReplaceProperty(ShadowType.F_INTENT,
 						syncCtx.getApplicableShadow().getDefinition(), syncCtx.getIntent());
 				modifications.add(intentDelta);
 			}
 			if (applicableShadowType.getKind() == null) {
-				PropertyDelta<ShadowKindType> intentDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_KIND,
+				PropertyDelta<ShadowKindType> intentDelta = PropertyDeltaImpl.createModificationReplaceProperty(ShadowType.F_KIND,
 						syncCtx.getApplicableShadow().getDefinition(), syncCtx.getKind());
 				modifications.add(intentDelta);
 			}
@@ -407,7 +404,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		Validate.notNull(syncCtx.getApplicableShadow(), "No current nor old shadow present: ");
 		List<PropertyDelta<?>> modifications = SynchronizationUtils.createSynchronizationTimestampsDelta(syncCtx.getApplicableShadow());
 		if (saveIntent && StringUtils.isNotBlank(syncCtx.getIntent())) {
-			PropertyDelta<String> intentDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_INTENT,
+			PropertyDelta<String> intentDelta = PropertyDeltaImpl.createModificationReplaceProperty(ShadowType.F_INTENT,
 					syncCtx.getApplicableShadow().getDefinition(), syncCtx.getIntent());
 			modifications.add(intentDelta);
 		}
@@ -995,13 +992,13 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 							change.getSourceChannel(), true, now);
 
 			if (shadowType.getKind() == null) {
-				PropertyDelta<ShadowKindType> kindDelta = PropertyDelta.createReplaceDelta(shadow.getDefinition(),
+				PropertyDelta<ShadowKindType> kindDelta = PropertyDeltaImpl.createReplaceDelta(shadow.getDefinition(),
 						ShadowType.F_KIND, syncCtx.getKind());
 				deltas.add(kindDelta);
 			}
 
 			if (isNullIntentOrIsForceIntent(syncCtx)) {
-				PropertyDelta<String> intentDelta = PropertyDelta.createReplaceDelta(shadow.getDefinition(),
+				PropertyDelta<String> intentDelta = PropertyDeltaImpl.createReplaceDelta(shadow.getDefinition(),
 						ShadowType.F_INTENT, syncCtx.getIntent());
 				deltas.add(intentDelta);
 			}

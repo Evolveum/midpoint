@@ -29,6 +29,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEnforcer
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.schema.SchemaProcessorUtil;
 import com.evolveum.midpoint.util.exception.NoFocusNameSchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -49,10 +50,6 @@ import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.OperationalDataManager;
 import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsProcessor;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
@@ -814,13 +811,13 @@ public class FocusProcessor {
 
 		PrismPropertyValue<Integer> iterationVal = new PrismPropertyValueImpl<>(iteration);
 		iterationVal.setOriginType(OriginType.USER_POLICY);
-		PropertyDelta<Integer> iterationDelta = PropertyDelta.createReplaceDelta(objDef,
+		PropertyDelta<Integer> iterationDelta = PropertyDeltaImpl.createReplaceDelta(objDef,
 				FocusType.F_ITERATION, iterationVal);
 		focusContext.swallowToSecondaryDelta(iterationDelta);
 
 		PrismPropertyValue<String> iterationTokenVal = new PrismPropertyValueImpl<>(iterationToken);
 		iterationTokenVal.setOriginType(OriginType.USER_POLICY);
-		PropertyDelta<String> iterationTokenDelta = PropertyDelta.createReplaceDelta(objDef,
+		PropertyDelta<String> iterationTokenDelta = PropertyDeltaImpl.createReplaceDelta(objDef,
 				FocusType.F_ITERATION_TOKEN, iterationTokenVal);
 		focusContext.swallowToSecondaryDelta(iterationTokenDelta);
 

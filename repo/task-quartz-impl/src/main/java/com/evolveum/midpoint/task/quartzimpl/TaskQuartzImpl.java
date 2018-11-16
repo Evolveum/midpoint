@@ -16,11 +16,7 @@
 package com.evolveum.midpoint.task.quartzimpl;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -452,7 +448,7 @@ public class TaskQuartzImpl implements Task {
 
 	@Nullable
 	private PropertyDelta<?> createProgressDelta(long value) {
-		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
+		return isPersistent() ? PropertyDeltaImpl.createReplaceDeltaOrEmptyDelta(
 				taskManager.getTaskObjectDefinition(), TaskType.F_PROGRESS, value) : null;
 	}
 
@@ -476,7 +472,7 @@ public class TaskQuartzImpl implements Task {
 
 	private PropertyDelta<?> setOperationStatsAndPrepareDelta(OperationStatsType value) {
 		setOperationStatsTransient(value);
-		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
+		return isPersistent() ? PropertyDeltaImpl.createReplaceDeltaOrEmptyDelta(
 				taskManager.getTaskObjectDefinition(), TaskType.F_OPERATION_STATS, value) : null;
 	}
 
@@ -517,7 +513,7 @@ public class TaskQuartzImpl implements Task {
 
 	@Nullable
 	private PropertyDelta<?> createExpectedTotalDelta(Long value) {
-		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
+		return isPersistent() ? PropertyDeltaImpl.createReplaceDeltaOrEmptyDelta(
 				taskManager.getTaskObjectDefinition(), TaskType.F_EXPECTED_TOTAL, value) : null;
 	}
 
@@ -562,7 +558,7 @@ public class TaskQuartzImpl implements Task {
 	private PropertyDelta<?> setResultAndPrepareDelta(OperationResult result) {
 		setResultTransient(result);
 		if (isPersistent()) {
-			return PropertyDelta.createReplaceDeltaOrEmptyDelta(taskManager.getTaskObjectDefinition(),
+			return PropertyDeltaImpl.createReplaceDeltaOrEmptyDelta(taskManager.getTaskObjectDefinition(),
 					TaskType.F_RESULT, result != null ? result.createOperationResultType() : null);
 		} else {
 			return null;
@@ -609,7 +605,7 @@ public class TaskQuartzImpl implements Task {
 	private PropertyDelta<?> setResultStatusTypeAndPrepareDelta(OperationResultStatusType value) {
 		setResultStatusTypeTransient(value);
 		if (isPersistent()) {
-			return PropertyDelta.createReplaceDeltaOrEmptyDelta(taskManager.getTaskObjectDefinition(),
+			return PropertyDeltaImpl.createReplaceDeltaOrEmptyDelta(taskManager.getTaskObjectDefinition(),
 					TaskType.F_RESULT_STATUS, value);
 		} else {
 			return null;
@@ -651,7 +647,7 @@ public class TaskQuartzImpl implements Task {
 
 	private PropertyDelta<?> setHandlerUriAndPrepareDelta(String value) {
 		setHandlerUriTransient(value);
-		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
+		return isPersistent() ? PropertyDeltaImpl.createReplaceDeltaOrEmptyDelta(
 				taskManager.getTaskObjectDefinition(), TaskType.F_HANDLER_URI, value) : null;
 	}
 
@@ -693,7 +689,7 @@ public class TaskQuartzImpl implements Task {
 
 	private PropertyDelta<?> setOtherHandlersUriStackAndPrepareDelta(UriStack value) {
 		setOtherHandlersUriStackTransient(value);
-		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
+		return isPersistent() ? PropertyDeltaImpl.createReplaceDeltaOrEmptyDelta(
 				taskManager.getTaskObjectDefinition(), TaskType.F_OTHER_HANDLERS_URI_STACK, value) : null;
 	}
 
@@ -795,7 +791,7 @@ public class TaskQuartzImpl implements Task {
 		property.setRealValue(realValue);
 		//        PropertyDelta propertyDelta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, property.getElementName()), definition);
 		//        propertyDelta.setValuesToReplace(PrismValue.cloneCollection(property.getValues()));
-		return PropertyDelta.createModificationReplaceProperty(new ItemPath(TaskType.F_EXTENSION, property.getElementName()), definition, realValue);
+		return PropertyDeltaImpl.createModificationReplaceProperty(new ItemPath(TaskType.F_EXTENSION, property.getElementName()), definition, realValue);
 	}
 
 	private void storeExtensionDeltas(List<ItemDeltaType> result, Collection<ItemDelta<?, ?>> extensionDeltas) {
@@ -1065,7 +1061,7 @@ public class TaskQuartzImpl implements Task {
 
 	private PropertyDelta<?> setExecutionStatusAndPrepareDelta(TaskExecutionStatus value) {
 		setExecutionStatusTransient(value);
-		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
+		return isPersistent() ? PropertyDeltaImpl.createReplaceDeltaOrEmptyDelta(
 				taskManager.getTaskObjectDefinition(), TaskType.F_EXECUTION_STATUS, value.toTaskType()) : null;
 	}
 
@@ -1133,7 +1129,7 @@ public class TaskQuartzImpl implements Task {
 
 	private PropertyDelta<?> setWaitingReasonAndPrepareDelta(TaskWaitingReason value) {
 		setWaitingReasonTransient(value);
-		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
+		return isPersistent() ? PropertyDeltaImpl.createReplaceDeltaOrEmptyDelta(
 				taskManager.getTaskObjectDefinition(), TaskType.F_WAITING_REASON, value.toTaskType()) : null;
 	}
 
@@ -1147,7 +1143,7 @@ public class TaskQuartzImpl implements Task {
 
 	private PropertyDelta<?> setUnpauseActionAndPrepareDelta(TaskUnpauseActionType value) {
 		setUnpauseActionTransient(value);
-		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
+		return isPersistent() ? PropertyDeltaImpl.createReplaceDeltaOrEmptyDelta(
 				taskManager.getTaskObjectDefinition(), TaskType.F_UNPAUSE_ACTION, value) : null;
 	}
 
@@ -1210,7 +1206,7 @@ public class TaskQuartzImpl implements Task {
 
 	private PropertyDelta<?> setRecurrenceStatusAndPrepareDelta(TaskRecurrence value) {
 		setRecurrenceStatusTransient(value);
-		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
+		return isPersistent() ? PropertyDeltaImpl.createReplaceDeltaOrEmptyDelta(
 				taskManager.getTaskObjectDefinition(), TaskType.F_RECURRENCE, value.toTaskType()) : null;
 	}
 
@@ -1316,7 +1312,7 @@ public class TaskQuartzImpl implements Task {
 
 	private PropertyDelta<?> setScheduleAndPrepareDelta(ScheduleType value) {
 		setScheduleTransient(value);
-		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
+		return isPersistent() ? PropertyDeltaImpl.createReplaceDeltaOrEmptyDelta(
 				taskManager.getTaskObjectDefinition(), TaskType.F_SCHEDULE, value) : null;
 	}
 
@@ -1349,7 +1345,7 @@ public class TaskQuartzImpl implements Task {
 
 	private PropertyDelta<?> setThreadStopActionAndPrepareDelta(ThreadStopActionType value) {
 		setThreadStopActionTransient(value);
-		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
+		return isPersistent() ? PropertyDeltaImpl.createReplaceDeltaOrEmptyDelta(
 				taskManager.getTaskObjectDefinition(), TaskType.F_THREAD_STOP_ACTION, value) : null;
 	}
 
@@ -1408,7 +1404,7 @@ public class TaskQuartzImpl implements Task {
 
 	private PropertyDelta<?> setBindingAndPrepareDelta(TaskBinding value) {
 		setBindingTransient(value);
-		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
+		return isPersistent() ? PropertyDeltaImpl.createReplaceDeltaOrEmptyDelta(
 				taskManager.getTaskObjectDefinition(), TaskType.F_BINDING, value.toTaskType()) : null;
 	}
 
@@ -1483,7 +1479,7 @@ public class TaskQuartzImpl implements Task {
 
 	private PropertyDelta<?> setChannelAndPrepareDelta(String value) {
 		setChannelTransient(value);
-		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
+		return isPersistent() ? PropertyDeltaImpl.createReplaceDeltaOrEmptyDelta(
 				taskManager.getTaskObjectDefinition(), TaskType.F_CHANNEL, value) : null;
 	}
 
@@ -1542,7 +1538,7 @@ public class TaskQuartzImpl implements Task {
 
 	private ReferenceDelta setObjectRefAndPrepareDelta(ObjectReferenceType value) {
 		setObjectRefTransient(value);
-		return isPersistent() ? ReferenceDelta.createModificationReplace(TaskType.F_OBJECT_REF,
+		return isPersistent() ? ReferenceDeltaImpl.createModificationReplace(TaskType.F_OBJECT_REF,
 				taskManager.getTaskObjectDefinition(), value.clone().asReferenceValue()) : null;
 	}
 
@@ -1642,7 +1638,7 @@ public class TaskQuartzImpl implements Task {
 
 	private PropertyDelta<?> setNameAndPrepareDelta(PolyStringType value) {
 		setNameTransient(value);
-		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
+		return isPersistent() ? PropertyDeltaImpl.createReplaceDeltaOrEmptyDelta(
 				taskManager.getTaskObjectDefinition(), TaskType.F_NAME, value.toPolyString()) : null;
 	}
 
@@ -1676,7 +1672,7 @@ public class TaskQuartzImpl implements Task {
 
 	private PropertyDelta<?> setDescriptionAndPrepareDelta(String value) {
 		setDescriptionTransient(value);
-		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
+		return isPersistent() ? PropertyDeltaImpl.createReplaceDeltaOrEmptyDelta(
 				taskManager.getTaskObjectDefinition(), TaskType.F_DESCRIPTION, value) : null;
 	}
 
@@ -1727,7 +1723,7 @@ public class TaskQuartzImpl implements Task {
 
 	private PropertyDelta<?> setParentAndPrepareDelta(String value) {
 		setParentTransient(value);
-		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
+		return isPersistent() ? PropertyDeltaImpl.createReplaceDeltaOrEmptyDelta(
 				taskManager.getTaskObjectDefinition(), TaskType.F_PARENT, value) : null;
 	}
 
@@ -1773,7 +1769,7 @@ public class TaskQuartzImpl implements Task {
 
 	private PropertyDelta<?> addDependentAndPrepareDelta(String value) {
 		addDependentTransient(value);
-		return isPersistent() ? PropertyDelta.createAddDelta(
+		return isPersistent() ? PropertyDeltaImpl.createAddDelta(
 				taskManager.getTaskObjectDefinition(), TaskType.F_DEPENDENT, value) : null;
 	}
 
@@ -1788,7 +1784,7 @@ public class TaskQuartzImpl implements Task {
 
 	private PropertyDelta<?> deleteDependentAndPrepareDelta(String value) {
 		deleteDependentTransient(value);
-		return isPersistent() ? PropertyDelta.createDeleteDelta(
+		return isPersistent() ? PropertyDeltaImpl.createDeleteDelta(
 				taskManager.getTaskObjectDefinition(), TaskType.F_DEPENDENT, value) : null;
 	}
 
@@ -1926,12 +1922,12 @@ public class TaskQuartzImpl implements Task {
 		if (value != null) {
 			values.add(new PrismPropertyValueImpl<>(value));
 		}
-		ItemDelta delta = new PropertyDelta<>(new ItemPath(TaskType.F_EXTENSION, propertyName), propertyDef, getPrismContext());
+		ItemDelta delta = new PropertyDeltaImpl<>(new ItemPath(TaskType.F_EXTENSION, propertyName), propertyDef, getPrismContext());
 		delta.setValuesToReplace(values);
 
 		Collection<ItemDelta<?, ?>> modifications = new ArrayList<>(1);
 		modifications.add(delta);
-		PropertyDelta.applyTo(modifications, taskPrism);
+		PropertyDeltaImpl.applyTo(modifications, taskPrism);
 	}
 
 	// use this method to avoid cloning the value
@@ -1984,25 +1980,25 @@ public class TaskQuartzImpl implements Task {
 
 	private ItemDelta<?, ?> setExtensionPropertyAndPrepareDelta(QName itemName, PrismPropertyDefinition definition,
 			Collection<? extends PrismPropertyValue> values) throws SchemaException {
-		ItemDelta delta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
+		ItemDelta delta = new PropertyDeltaImpl(new ItemPath(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
 		return setExtensionItemAndPrepareDeltaCommon(delta, values);
 	}
 
 	private ItemDelta<?, ?> setExtensionReferenceAndPrepareDelta(QName itemName, PrismReferenceDefinition definition,
 			Collection<? extends PrismReferenceValue> values) throws SchemaException {
-		ItemDelta delta = new ReferenceDelta(new ItemPath(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
+		ItemDelta delta = new ReferenceDeltaImpl(new ItemPath(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
 		return setExtensionItemAndPrepareDeltaCommon(delta, values);
 	}
 
 	private ItemDelta<?, ?> addExtensionReferenceAndPrepareDelta(QName itemName, PrismReferenceDefinition definition,
 			Collection<? extends PrismReferenceValue> values) throws SchemaException {
-		ItemDelta delta = new ReferenceDelta(new ItemPath(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
+		ItemDelta delta = new ReferenceDeltaImpl(new ItemPath(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
 		return addExtensionItemAndPrepareDeltaCommon(delta, values);
 	}
 
 	private ItemDelta<?, ?> setExtensionContainerAndPrepareDelta(QName itemName, PrismContainerDefinition definition,
 			Collection<? extends PrismContainerValue> values) throws SchemaException {
-		ItemDelta delta = new ContainerDelta(new ItemPath(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
+		ItemDelta delta = new ContainerDeltaImpl(new ItemPath(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
 		return setExtensionItemAndPrepareDeltaCommon(delta, values);
 	}
 
@@ -2014,7 +2010,7 @@ public class TaskQuartzImpl implements Task {
 
 		Collection<ItemDelta<?, ?>> modifications = new ArrayList<>(1);
 		modifications.add(delta);
-		PropertyDelta.applyTo(modifications, taskPrism);        // i.e. here we apply changes only locally (in memory)
+		PropertyDeltaImpl.applyTo(modifications, taskPrism);        // i.e. here we apply changes only locally (in memory)
 
 		return isPersistent() ? delta : null;
 	}
@@ -2027,7 +2023,7 @@ public class TaskQuartzImpl implements Task {
 
 		Collection<ItemDelta<?, ?>> modifications = new ArrayList<>(1);
 		modifications.add(delta);
-		PropertyDelta.applyTo(modifications, taskPrism);        // i.e. here we apply changes only locally (in memory)
+		PropertyDeltaImpl.applyTo(modifications, taskPrism);        // i.e. here we apply changes only locally (in memory)
 
 		return isPersistent() ? delta : null;
 	}
@@ -2036,33 +2032,33 @@ public class TaskQuartzImpl implements Task {
 
 		Collection<ItemDelta<?, ?>> modifications = new ArrayList<>(1);
 		modifications.add(delta);
-		PropertyDelta.applyTo(modifications, taskPrism);        // i.e. here we apply changes only locally (in memory)
+		PropertyDeltaImpl.applyTo(modifications, taskPrism);        // i.e. here we apply changes only locally (in memory)
 
 		return isPersistent() ? delta : null;
 	}
 
 	private ItemDelta<?, ?> addExtensionPropertyAndPrepareDelta(QName itemName, PrismPropertyDefinition definition,
 			Collection<? extends PrismPropertyValue> values) throws SchemaException {
-		ItemDelta delta = new PropertyDelta<>(new ItemPath(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
+		ItemDelta delta = new PropertyDeltaImpl<>(new ItemPath(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
 
 		delta.addValuesToAdd(values);
 
 		Collection<ItemDelta<?, ?>> modifications = new ArrayList<>(1);
 		modifications.add(delta);
-		PropertyDelta.applyTo(modifications, taskPrism);        // i.e. here we apply changes only locally (in memory)
+		PropertyDeltaImpl.applyTo(modifications, taskPrism);        // i.e. here we apply changes only locally (in memory)
 
 		return isPersistent() ? delta : null;
 	}
 
 	private ItemDelta<?, ?> deleteExtensionPropertyAndPrepareDelta(QName itemName, PrismPropertyDefinition definition,
 			Collection<? extends PrismPropertyValue> values) throws SchemaException {
-		ItemDelta delta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
+		ItemDelta delta = new PropertyDeltaImpl(new ItemPath(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
 
 		delta.addValuesToDelete(values);
 
 		Collection<ItemDelta<?, ?>> modifications = new ArrayList<>(1);
 		modifications.add(delta);
-		PropertyDelta.applyTo(modifications, taskPrism);        // i.e. here we apply changes only locally (in memory)
+		PropertyDeltaImpl.applyTo(modifications, taskPrism);        // i.e. here we apply changes only locally (in memory)
 
 		return isPersistent() ? delta : null;
 	}
@@ -2265,7 +2261,7 @@ public class TaskQuartzImpl implements Task {
 
 	private PropertyDelta<?> setNodeAndPrepareDelta(String value) {
 		setNodeTransient(value);
-		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
+		return isPersistent() ? PropertyDeltaImpl.createReplaceDeltaOrEmptyDelta(
 				taskManager.getTaskObjectDefinition(), TaskType.F_NODE, value) : null;
 	}
 
@@ -2298,7 +2294,7 @@ public class TaskQuartzImpl implements Task {
 
 	private PropertyDelta<?> setLastRunStartTimestampAndPrepareDelta(Long value) {
 		setLastRunStartTimestampTransient(value);
-		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
+		return isPersistent() ? PropertyDeltaImpl.createReplaceDeltaOrEmptyDelta(
 				taskManager.getTaskObjectDefinition(),
 				TaskType.F_LAST_RUN_START_TIMESTAMP,
 				taskPrism.asObjectable().getLastRunStartTimestamp())
@@ -2335,7 +2331,7 @@ public class TaskQuartzImpl implements Task {
 
 	private PropertyDelta<?> setLastRunFinishTimestampAndPrepareDelta(Long value) {
 		setLastRunFinishTimestampTransient(value);
-		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
+		return isPersistent() ? PropertyDeltaImpl.createReplaceDeltaOrEmptyDelta(
 				taskManager.getTaskObjectDefinition(),
 				TaskType.F_LAST_RUN_FINISH_TIMESTAMP,
 				taskPrism.asObjectable().getLastRunFinishTimestamp())
@@ -2372,7 +2368,7 @@ public class TaskQuartzImpl implements Task {
 
 	private PropertyDelta<?> setCompletionTimestampAndPrepareDelta(Long value) {
 		setCompletionTimestampTransient(value);
-		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
+		return isPersistent() ? PropertyDeltaImpl.createReplaceDeltaOrEmptyDelta(
 				taskManager.getTaskObjectDefinition(),
 				TaskType.F_COMPLETION_TIMESTAMP,
 				taskPrism.asObjectable().getCompletionTimestamp())
@@ -2438,7 +2434,7 @@ public class TaskQuartzImpl implements Task {
 
 	private PropertyDelta<?> setCategoryAndPrepareDelta(String value) {
 		setCategoryTransient(value);
-		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
+		return isPersistent() ? PropertyDeltaImpl.createReplaceDeltaOrEmptyDelta(
 				taskManager.getTaskObjectDefinition(), TaskType.F_CATEGORY, value) : null;
 	}
 

@@ -27,6 +27,7 @@ import java.util.Locale;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.ReferenceDeltaImpl;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.Nullable;
@@ -520,7 +521,7 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 
 	private ReferenceDelta computeReferenceDeltas(ReferenceWrapper referenceWrapper, ItemPath containerPath) {
 		PrismReferenceDefinition propertyDef = referenceWrapper.getItemDefinition();
-		ReferenceDelta pDelta = new ReferenceDelta(referenceWrapper.getPath(), propertyDef,
+		ReferenceDelta pDelta = new ReferenceDeltaImpl(referenceWrapper.getPath(), propertyDef,
 				propertyDef.getPrismContext());
 		addItemDelta(referenceWrapper, pDelta, propertyDef, containerPath.subPath(propertyDef.getName()));
 		return pDelta;

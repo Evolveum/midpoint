@@ -19,11 +19,7 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -1026,7 +1022,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
         Long assignmentId = jack.getAssignment().get(0).getId();
         PrismPropertyDefinition<XMLGregorianCalendar> validFromDef = activationDef.findPropertyDefinition(ActivationType.F_VALID_FROM);
-        PropertyDelta<XMLGregorianCalendar> validFromDelta = new PropertyDelta<>(
+        PropertyDelta<XMLGregorianCalendar> validFromDelta = new PropertyDeltaImpl<>(
                 new ItemPath(new NameItemPathSegment(UserType.F_ASSIGNMENT),
                         new IdItemPathSegment(assignmentId),
                         new NameItemPathSegment(AssignmentType.F_ACTIVATION),
@@ -1034,7 +1030,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
                         validFromDef, prismContext);
         validFromDelta.setRealValuesToReplace(validFrom);
         PrismPropertyDefinition<XMLGregorianCalendar> validToDef = activationDef.findPropertyDefinition(ActivationType.F_VALID_TO);
-        PropertyDelta<XMLGregorianCalendar> validToDelta = new PropertyDelta<>(
+        PropertyDelta<XMLGregorianCalendar> validToDelta = new PropertyDeltaImpl<>(
                 new ItemPath(new NameItemPathSegment(UserType.F_ASSIGNMENT),
                         new IdItemPathSegment(assignmentId),
                         new NameItemPathSegment(AssignmentType.F_ACTIVATION),
@@ -1221,7 +1217,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         assertNotNull("no attributeDef", attributeDef);
 
         Long assignmentId = jack.getAssignment().get(0).getId();
-        ContainerDelta<ResourceAttributeDefinitionType> attributeDelta = new ContainerDelta<>(
+        ContainerDelta<ResourceAttributeDefinitionType> attributeDelta = new ContainerDeltaImpl<>(
             new ItemPath(new NameItemPathSegment(UserType.F_ASSIGNMENT),
                 new IdItemPathSegment(assignmentId),
                 new NameItemPathSegment(AssignmentType.F_CONSTRUCTION),

@@ -29,6 +29,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -54,14 +55,6 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.DeltaMapTriple;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -719,7 +712,7 @@ public class AssignmentProcessor {
 
 	private <F extends FocusType> void createAssignmentDelta(LensContext<F> context, LensProjectionContext accountContext) throws SchemaException{
         Class<F> focusClass = context.getFocusClass();
-        ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(FocusType.F_ASSIGNMENT, focusClass, prismContext);
+        ContainerDelta<AssignmentType> assignmentDelta = ContainerDeltaImpl.createDelta(FocusType.F_ASSIGNMENT, focusClass, prismContext);
 		AssignmentType assignment = new AssignmentType();
 		ConstructionType constructionType = new ConstructionType();
 		constructionType.setResourceRef(ObjectTypeUtil.createObjectRef(accountContext.getResource(), prismContext));
@@ -871,18 +864,19 @@ public class AssignmentProcessor {
 				return;
 			} else {
 				LOGGER.trace("Setting tenantRef to {}", tenantOid);
-				ReferenceDelta tenantRefDelta = ReferenceDelta.createModificationReplace(ObjectType.F_TENANT_REF, focusContext.getObjectDefinition(), tenantOid);
+				ReferenceDelta tenantRefDelta = ReferenceDeltaImpl
+						.createModificationReplace(ObjectType.F_TENANT_REF, focusContext.getObjectDefinition(), tenantOid);
 				focusContext.swallowToProjectionWaveSecondaryDelta(tenantRefDelta);
 			}
 		} else {
 			if (tenantOid == null) {
 				LOGGER.trace("Clearing tenantRef");
-				ReferenceDelta tenantRefDelta = ReferenceDelta.createModificationReplace(ObjectType.F_TENANT_REF, focusContext.getObjectDefinition(), (PrismReferenceValue)null);
+				ReferenceDelta tenantRefDelta = ReferenceDeltaImpl.createModificationReplace(ObjectType.F_TENANT_REF, focusContext.getObjectDefinition(), (PrismReferenceValue)null);
 				focusContext.swallowToProjectionWaveSecondaryDelta(tenantRefDelta);
 			} else {
 				if (!tenantOid.equals(currentTenantRef.getOid())) {
 					LOGGER.trace("Changing tenantRef to {}", tenantOid);
-					ReferenceDelta tenantRefDelta = ReferenceDelta.createModificationReplace(ObjectType.F_TENANT_REF, focusContext.getObjectDefinition(), tenantOid);
+					ReferenceDelta tenantRefDelta = ReferenceDeltaImpl.createModificationReplace(ObjectType.F_TENANT_REF, focusContext.getObjectDefinition(), tenantOid);
 					focusContext.swallowToProjectionWaveSecondaryDelta(tenantRefDelta);
 				}
 			}
@@ -1057,7 +1051,7 @@ public class AssignmentProcessor {
 		}
 
 		PrismReferenceDefinition itemDef = focusContext.getObjectDefinition().findItemDefinition(itemName, PrismReferenceDefinition.class);
-		ReferenceDelta itemDelta = new ReferenceDelta(itemName, itemDef, focusContext.getObjectDefinition().getPrismContext());
+		ReferenceDelta itemDelta = new ReferenceDeltaImpl(itemName, itemDef, focusContext.getObjectDefinition().getPrismContext());
 		itemDelta.setValuesToReplace(targetState);
 		focusContext.swallowToSecondaryDelta(itemDelta);
 	}

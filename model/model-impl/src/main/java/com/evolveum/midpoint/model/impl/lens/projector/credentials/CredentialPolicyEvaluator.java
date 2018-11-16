@@ -44,11 +44,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PartiallyResolvedDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityUtil;
@@ -426,7 +422,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 		if (hasValueChange(cVal)) {
 			if (!hasMetadata(cVal)) {
 				MetadataType metadataType = metadataManager.createCreateMetadata(context, now, task);
-				ContainerDelta<MetadataType> metadataDelta = ContainerDelta.createModificationAdd(
+				ContainerDelta<MetadataType> metadataDelta = ContainerDeltaImpl.createModificationAdd(
 						getCredentialsContainerPath().subPath(AbstractCredentialType.F_METADATA), UserType.class, prismContext,
 						metadataType);
 				context.getFocusContext().swallowToSecondaryDelta(metadataDelta);
@@ -541,7 +537,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 		entryType.setMetadata(oldCredentialMetadata==null?null:oldCredentialMetadata.clone());
 		entryType.setChangeTimestamp(now);
 	
-		ContainerDelta<PasswordHistoryEntryType> addHistoryDelta = ContainerDelta
+		ContainerDelta<PasswordHistoryEntryType> addHistoryDelta = ContainerDeltaImpl
 				.createModificationAdd(new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_HISTORY_ENTRY), UserType.class, prismContext, entryType.clone());
 		context.getFocusContext().swallowToSecondaryDelta(addHistoryDelta);
 		
@@ -566,7 +562,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 		
 		int i = 0;
 		while (historyEntryIterator.hasNext() && i < numberOfHistoryEntriesToDelete) {
-			ContainerDelta<PasswordHistoryEntryType> deleteHistoryDelta = ContainerDelta
+			ContainerDelta<PasswordHistoryEntryType> deleteHistoryDelta = ContainerDeltaImpl
 					.createModificationDelete(
 							new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD,
 									PasswordType.F_HISTORY_ENTRY),

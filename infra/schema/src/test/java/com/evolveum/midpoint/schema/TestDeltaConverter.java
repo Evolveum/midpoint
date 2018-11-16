@@ -23,11 +23,7 @@ import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -367,7 +363,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
 
     	// GIVEN
     	PrismObjectDefinition<UserType> userDef = getUserDefinition();
-    	PropertyDelta<String> deltaBefore = PropertyDelta.createReplaceEmptyDelta(userDef, UserType.F_COST_CENTER);
+    	PropertyDelta<String> deltaBefore = PropertyDeltaImpl.createReplaceEmptyDelta(userDef, UserType.F_COST_CENTER);
     	deltaBefore.setRealValuesToReplace("foo");
 
 		// WHEN
@@ -395,7 +391,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
 
     	// GIVEN
     	PrismObjectDefinition<UserType> userDef = getUserDefinition();
-    	PropertyDelta<String> deltaBefore = PropertyDelta.createReplaceEmptyDelta(userDef, UserType.F_COST_CENTER);
+    	PropertyDelta<String> deltaBefore = PropertyDeltaImpl.createReplaceEmptyDelta(userDef, UserType.F_COST_CENTER);
     	deltaBefore.setRealValuesToReplace("foo");
     	deltaBefore.addEstimatedOldValue(new PrismPropertyValueImpl<>("BAR"));
 
@@ -425,7 +421,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
 
     	// GIVEN
     	PrismObjectDefinition<UserType> userDef = getUserDefinition();
-    	PropertyDelta<String> deltaBefore = PropertyDelta.createReplaceEmptyDelta(userDef, UserType.F_COST_CENTER);
+    	PropertyDelta<String> deltaBefore = PropertyDeltaImpl.createReplaceEmptyDelta(userDef, UserType.F_COST_CENTER);
 //    	deltaBefore.setValueToReplace(new PrismPropertyValue<String>(""));
 
 		// WHEN
@@ -451,7 +447,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
 
     	// GIVEN
     	PrismObjectDefinition<UserType> userDef = getUserDefinition();
-    	PropertyDelta<String> deltaBefore = PropertyDelta.createReplaceEmptyDelta(userDef, UserType.F_COST_CENTER);
+    	PropertyDelta<String> deltaBefore = PropertyDeltaImpl.createReplaceEmptyDelta(userDef, UserType.F_COST_CENTER);
     	// The delta remains empty
 
 		// WHEN

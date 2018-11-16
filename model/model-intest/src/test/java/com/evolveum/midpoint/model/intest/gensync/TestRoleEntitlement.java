@@ -25,8 +25,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ReferenceDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -46,8 +46,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
@@ -114,7 +112,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         ObjectDelta<RoleType> roleDelta = ObjectDelta.createEmptyModifyDelta(RoleType.class, ROLE_PIRATE_OID, prismContext);
         PrismReferenceValue linkRefVal = new PrismReferenceValueImpl();
 		linkRefVal.setObject(group);
-		ReferenceDelta groupDelta = ReferenceDelta.createModificationAdd(RoleType.F_LINK_REF, getRoleDefinition(), linkRefVal);
+		ReferenceDelta groupDelta = ReferenceDeltaImpl.createModificationAdd(RoleType.F_LINK_REF, getRoleDefinition(), linkRefVal);
 		roleDelta.addModification(groupDelta);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscUtil.createCollection(roleDelta);
 
@@ -261,7 +259,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         ObjectDelta<RoleType> roleDelta = ObjectDelta.createEmptyModifyDelta(RoleType.class, ROLE_PIRATE_OID, prismContext);
         PrismReferenceValue linkRefVal = new PrismReferenceValueImpl();
         linkRefVal.setObject(group);
-        ReferenceDelta groupDelta = ReferenceDelta.createModificationAdd(RoleType.F_LINK_REF, getRoleDefinition(), linkRefVal);
+        ReferenceDelta groupDelta = ReferenceDeltaImpl.createModificationAdd(RoleType.F_LINK_REF, getRoleDefinition(), linkRefVal);
         roleDelta.addModification(groupDelta);
         Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(roleDelta);
 
@@ -399,7 +397,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         group.setOid(groupOid);
 
         ObjectDelta<RoleType> roleDelta = ObjectDelta.createEmptyModifyDelta(RoleType.class, ROLE_PIRATE_OID, prismContext);
-        ReferenceDelta linkDelta = ReferenceDelta.createModificationDelete(RoleType.F_LINK_REF, getUserDefinition(), group);
+        ReferenceDelta linkDelta = ReferenceDeltaImpl.createModificationDelete(RoleType.F_LINK_REF, getUserDefinition(), group);
         roleDelta.addModification(linkDelta);
         Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(roleDelta);
 
@@ -510,7 +508,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         prepareNotifications();
 
         ObjectDelta<RoleType> roleDelta = ObjectDelta.createEmptyModifyDelta(RoleType.class, ROLE_PIRATE_OID, prismContext);
-        ReferenceDelta linkDelta = ReferenceDelta.createModificationAdd(RoleType.F_LINK_REF, getUserDefinition(), groupOid);
+        ReferenceDelta linkDelta = ReferenceDeltaImpl.createModificationAdd(RoleType.F_LINK_REF, getUserDefinition(), groupOid);
 		roleDelta.addModification(linkDelta);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(roleDelta);
 
@@ -564,7 +562,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         ObjectDelta<RoleType> roleDelta = ObjectDelta.createEmptyModifyDelta(RoleType.class, ROLE_PIRATE_OID, prismContext);
         PrismReferenceValue accountRefVal = new PrismReferenceValueImpl();
 		accountRefVal.setObject(group);
-		ReferenceDelta linkDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), groupOid);
+		ReferenceDelta linkDelta = ReferenceDeltaImpl.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), groupOid);
 		roleDelta.addModification(linkDelta);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(roleDelta);
 

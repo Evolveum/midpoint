@@ -31,11 +31,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.match.MatchingRule;
@@ -591,7 +587,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		ProjectionPolicyType syncSettings = new ProjectionPolicyType();
         syncSettings.setAssignmentPolicyEnforcement(policy);
         syncSettings.setLegalize(Boolean.valueOf(legalize));
-		ContainerDelta<ProjectionPolicyType> deleteAssigmentEnforcement = ContainerDelta
+		ContainerDelta<ProjectionPolicyType> deleteAssigmentEnforcement = ContainerDeltaImpl
 				.createModificationDelete(new ItemPath(ResourceType.F_PROJECTION), ResourceType.class, prismContext,
 						syncSettings.clone());
 
@@ -620,7 +616,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		PrismObjectDefinition<?> objectDefinition = prismContext.getSchemaRegistry()
 				.findObjectDefinitionByCompileTimeClass(clazz);
 
-		Collection<? extends ItemDelta> modifications = ContainerDelta
+		Collection<? extends ItemDelta> modifications = ContainerDeltaImpl
 				.createModificationReplaceContainerCollection(
 						path,
 						objectDefinition, syncSettings.asPrismContainerValue());
@@ -2269,7 +2265,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		if (attributeDefinition == null) {
 			throw new SchemaException("No definition for attribute "+ attributeQName+ " in " + resource);
 		}
-		return PropertyDelta.createModificationReplaceProperty(new ItemPath(ShadowType.F_ATTRIBUTES, attributeQName),
+		return PropertyDeltaImpl.createModificationReplaceProperty(new ItemPath(ShadowType.F_ATTRIBUTES, attributeQName),
 				attributeDefinition, newRealValue);
 	}
 
@@ -2282,7 +2278,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		if (attributeDefinition == null) {
 			throw new SchemaException("No definition for attribute "+ attributeQName+ " in " + resource);
 		}
-		return PropertyDelta.createModificationAddProperty(new ItemPath(ShadowType.F_ATTRIBUTES, attributeQName),
+		return PropertyDeltaImpl.createModificationAddProperty(new ItemPath(ShadowType.F_ATTRIBUTES, attributeQName),
 				attributeDefinition, newRealValue);
 	}
 
@@ -2295,7 +2291,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		if (attributeDefinition == null) {
 			throw new SchemaException("No definition for attribute "+ attributeQName+ " in " + resource);
 		}
-		return PropertyDelta.createModificationDeleteProperty(new ItemPath(ShadowType.F_ATTRIBUTES, attributeQName),
+		return PropertyDeltaImpl.createModificationDeleteProperty(new ItemPath(ShadowType.F_ATTRIBUTES, attributeQName),
 				attributeDefinition, newRealValue);
 	}
 

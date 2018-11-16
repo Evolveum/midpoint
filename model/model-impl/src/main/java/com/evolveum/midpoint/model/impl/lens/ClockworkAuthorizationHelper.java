@@ -21,6 +21,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -33,10 +34,6 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.RelationRegistry;
@@ -163,7 +160,7 @@ public class ClockworkAuthorizationHelper {
 					if (credentialsContainer != null) {
 						List<ItemPath> pathsToRemove = new ArrayList<>();
 						for (Item<?,?> item: credentialsContainer.getValue().getItems()) {
-							ContainerDelta<?> cdelta = new ContainerDelta(item.getPath(), (PrismContainerDefinition)item.getDefinition(), prismContext);
+							ContainerDelta<?> cdelta = new ContainerDeltaImpl(item.getPath(), (PrismContainerDefinition)item.getDefinition(), prismContext);
 							cdelta.addValuesToAdd(((PrismContainer)item).getValue().clone());
 							AuthorizationDecisionType cdecision = evaluateCredentialDecision(context, securityConstraints, cdelta);
 							LOGGER.trace("AUTZ: credential add {} decision: {}", item.getPath(), cdecision);

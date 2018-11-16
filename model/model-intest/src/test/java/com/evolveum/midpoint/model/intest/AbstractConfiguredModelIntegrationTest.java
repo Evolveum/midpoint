@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.ucf.impl.builtin.ManualConnectorInstance;
@@ -726,10 +727,10 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected void clearUserOrgAndRoleRefs(String userOid) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
     	OperationResult result = new OperationResult("clearUserOrgAndRoleRefs");
     	Collection modifications = new ArrayList<>();
-    	ReferenceDelta parentOrgRefDelta = ReferenceDelta.createModificationReplace(
+    	ReferenceDelta parentOrgRefDelta = ReferenceDeltaImpl.createModificationReplace(
     			UserType.F_PARENT_ORG_REF, getUserDefinition(), (PrismReferenceValue)null);
     	modifications.add(parentOrgRefDelta);
-    	ReferenceDelta roleMembershipRefDelta = ReferenceDelta.createModificationReplace(
+    	ReferenceDelta roleMembershipRefDelta = ReferenceDeltaImpl.createModificationReplace(
     			UserType.F_ROLE_MEMBERSHIP_REF, getUserDefinition(), (PrismReferenceValue)null);
     	modifications.add(roleMembershipRefDelta);
 		repositoryService.modifyObject(UserType.class, userOid, modifications, result);

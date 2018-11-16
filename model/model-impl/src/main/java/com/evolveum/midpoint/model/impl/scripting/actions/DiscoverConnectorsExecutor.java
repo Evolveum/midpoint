@@ -23,6 +23,7 @@ import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDeltaImpl;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -133,7 +134,8 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
                 if (newOid != null) {
                     String msg = "resource " + resource + " from connector " + connectorOid + " to new one: " + newOid;
                     LOGGER.info("Rebinding " + msg);
-                    ReferenceDelta refDelta = ReferenceDelta.createModificationReplace(ResourceType.F_CONNECTOR_REF, resource.getDefinition(), newOid);
+                    ReferenceDelta refDelta = ReferenceDeltaImpl
+                            .createModificationReplace(ResourceType.F_CONNECTOR_REF, resource.getDefinition(), newOid);
                     ObjectDelta<ResourceType> objDelta = ObjectDelta.createModifyDelta(resource.getOid(), refDelta, ResourceType.class, prismContext);
                     operationsHelper.applyDelta(objDelta, context, result);
                     context.println("Rebound " + msg);

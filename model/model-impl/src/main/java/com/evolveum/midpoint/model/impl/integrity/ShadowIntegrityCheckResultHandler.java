@@ -24,10 +24,7 @@ import com.evolveum.midpoint.model.impl.sync.SynchronizationContext;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationService;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -527,7 +524,8 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
         }
         if (syncCtx.hasApplicablePolicy()) {
             if (syncCtx.getIntent() != null) {
-                PropertyDelta<String> delta = PropertyDelta.createReplaceDelta(fullShadow.getDefinition(), ShadowType.F_INTENT, syncCtx.getIntent());
+                PropertyDelta<String> delta = PropertyDeltaImpl
+                        .createReplaceDelta(fullShadow.getDefinition(), ShadowType.F_INTENT, syncCtx.getIntent());
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Intent fix delta (not executed now) = \n{}", delta.debugDump());
                 }
@@ -769,11 +767,11 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
 
             for (PrismObject owner : owners) {
                 List<ItemDelta> modifications = new ArrayList<>(2);
-                ReferenceDelta deleteDelta = ReferenceDelta.createModificationDelete(FocusType.F_LINK_REF, owner.getDefinition(),
+                ReferenceDelta deleteDelta = ReferenceDeltaImpl.createModificationDelete(FocusType.F_LINK_REF, owner.getDefinition(),
                         new PrismReferenceValueImpl(oid, ShadowType.COMPLEX_TYPE));
                 modifications.add(deleteDelta);
                 if (shadowOidToReplaceDeleted != null) {
-                    ReferenceDelta addDelta = ReferenceDelta.createModificationAdd(FocusType.F_LINK_REF, owner.getDefinition(),
+                    ReferenceDelta addDelta = ReferenceDeltaImpl.createModificationAdd(FocusType.F_LINK_REF, owner.getDefinition(),
                             new PrismReferenceValueImpl(shadowOidToReplaceDeleted, ShadowType.COMPLEX_TYPE));
                     modifications.add(addDelta);
                 }
@@ -850,7 +848,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
         }
         checkResult.recordWarning(ShadowStatistics.EXTRA_ACTIVATION_DATA, "Unexpected activation item: " + property);
         if (fixExtraData) {
-            PropertyDelta delta = PropertyDelta.createReplaceEmptyDelta(shadow.getDefinition(), new ItemPath(ShadowType.F_ACTIVATION, itemName));
+            PropertyDelta delta = PropertyDeltaImpl.createReplaceEmptyDelta(shadow.getDefinition(), new ItemPath(ShadowType.F_ACTIVATION, itemName));
             checkResult.addFixDelta(delta, ShadowStatistics.EXTRA_ACTIVATION_DATA);
         }
     }

@@ -32,7 +32,9 @@ import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismReferenceValueImpl;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDeltaImpl;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
@@ -1446,7 +1448,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         PrismReferenceDefinition referenceDefinition = getUserDefinition()
                 .findItemDefinition(
                         new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF), PrismReferenceDefinition.class);
-        ReferenceDelta referenceDelta = new ReferenceDelta(
+        ReferenceDelta referenceDelta = new ReferenceDeltaImpl(
                 new ItemPath(
                         new NameItemPathSegment(UserType.F_ASSIGNMENT),
                         new IdItemPathSegment(id),

@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
 import com.evolveum.midpoint.repo.common.expression.*;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -1088,7 +1089,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			return;
 		}
 		if (object != null) {
-			PropertyDelta<?> propertyDelta = PropertyDelta.createModificationReplaceProperty(path, object.getDefinition(), value);
+			PropertyDelta<?> propertyDelta = PropertyDeltaImpl
+					.createModificationReplaceProperty(path, object.getDefinition(), value);
 			propertyDelta.applyTo(object); // in bulk actions we need to modify original objects - hope that REST is OK with this
 			if (BooleanUtils.isTrue(policyItemDefinition.isExecute())) {
 				deltasToExecute.add(propertyDelta);

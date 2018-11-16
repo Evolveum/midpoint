@@ -22,6 +22,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.ContainerDeltaImpl;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 
@@ -359,7 +360,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends AbstractAssignme
 
 	public ContainerDelta handleAssignmentDeltas(ObjectDelta<T> userDelta, PrismContainerDefinition def,
 			QName assignmentPath) throws SchemaException {
-		ContainerDelta assDelta = new ContainerDelta(ItemPath.EMPTY_PATH, assignmentPath, def,
+		ContainerDelta assDelta = new ContainerDeltaImpl(ItemPath.EMPTY_PATH, assignmentPath, def,
 				def.getPrismContext()); // hoping that def contains a prism
 										// context!
 

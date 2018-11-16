@@ -38,6 +38,7 @@ import java.util.Set;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.*;
 import org.apache.commons.lang.ArrayUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -56,10 +57,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.NoneFilter;
@@ -1762,7 +1759,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_VALID_TO, prismContext,
 				XmlTypeConverter.createXMLGregorianCalendar(VALID_TO_MILLIS));
 		PrismObjectDefinition<ShadowType> def = accountType.asPrismObject().getDefinition();
-		PropertyDelta<XMLGregorianCalendar> validFromDelta = PropertyDelta.createModificationDeleteProperty(
+		PropertyDelta<XMLGregorianCalendar> validFromDelta = PropertyDeltaImpl.createModificationDeleteProperty(
 				SchemaConstants.PATH_ACTIVATION_VALID_FROM,
 				def.findPropertyDefinition(SchemaConstants.PATH_ACTIVATION_VALID_FROM),
 				XmlTypeConverter.createXMLGregorianCalendar(VALID_FROM_MILLIS));

@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -587,7 +588,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 	}
 
 	private PropertyDelta<String> createUselessStringDelta(String newVal) {
-		PropertyDelta<String> uselessStringDelta = PropertyDelta.createModificationReplaceProperty(
+		PropertyDelta<String> uselessStringDelta = PropertyDeltaImpl.createModificationReplaceProperty(
 				new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION,
 							 SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME,
 							 DummyResourceContoller.CONNECTOR_DUMMY_USELESS_STRING_QNAME),

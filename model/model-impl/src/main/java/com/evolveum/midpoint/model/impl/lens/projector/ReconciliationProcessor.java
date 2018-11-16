@@ -27,7 +27,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.task.api.Task;
@@ -49,10 +49,6 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -931,7 +927,7 @@ public class ReconciliationProcessor {
 					PrettyPrinter.prettyPrint(attrDef.getName()), value, reason);
 		}
 
-		PropertyDelta<T> attrDelta = new PropertyDelta<>(parentPath, attrDef.getName(),
+		PropertyDelta<T> attrDelta = new PropertyDeltaImpl<>(parentPath, attrDef.getName(),
 				attrDef, prismContext);
 		PrismPropertyValue<T> pValue = new PrismPropertyValueImpl<>(value, OriginType.RECONCILIATION,
 				originObject);
@@ -974,7 +970,7 @@ public class ReconciliationProcessor {
         PrismContainerDefinition<ShadowAssociationType> associationDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class)
                 .findContainerDefinition(ShadowType.F_ASSOCIATION);
 
-        ContainerDelta assocDelta = new ContainerDelta(SchemaConstants.PATH_ASSOCIATION, associationDefinition, prismContext);
+        ContainerDelta assocDelta = new ContainerDeltaImpl(SchemaConstants.PATH_ASSOCIATION, associationDefinition, prismContext);
 
         PrismContainerValue cValue = value.asPrismContainerValue().clone();
         cValue.setOriginType(OriginType.RECONCILIATION);

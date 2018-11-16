@@ -25,6 +25,7 @@ import java.util.Collection;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -34,10 +35,6 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -1681,7 +1678,8 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_RED_FILE);
         account.setOid(accountRedOid);
         ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
-		ReferenceDelta accountDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), account);
+		ReferenceDelta accountDelta = ReferenceDeltaImpl
+				.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), account);
 		userDelta.addModification(accountDelta);
 		executeChanges(userDelta, null, task, task.getResult());
 		
@@ -2204,7 +2202,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertDeny("assign application role to jack",
         	(task, result) ->  {
 				Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
-				ContainerDelta<AssignmentType> assignmentDelta1 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT, getUserDefinition());
+				ContainerDelta<AssignmentType> assignmentDelta1 = ContainerDeltaImpl.createDelta(UserType.F_ASSIGNMENT, getUserDefinition());
 				PrismContainerValue<AssignmentType> cval = new PrismContainerValueImpl<>(prismContext);
 				assignmentDelta1.addValueToAdd(cval);
 				PrismReference targetRef = cval.findOrCreateReference(AssignmentType.F_TARGET_REF);

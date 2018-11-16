@@ -19,6 +19,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -193,7 +194,8 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
 		PrismObject<TaskType> task = getTask(TASK_RECON_DUMMY_OID);
 		OperationResult parentResult = new OperationResult(TEST_NAME);
 
-		PropertyDelta dryRunDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_DRY_RUN), task.getDefinition(), true);
+		PropertyDelta dryRunDelta = PropertyDeltaImpl
+				.createModificationReplaceProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_DRY_RUN), task.getDefinition(), true);
 		Collection<PropertyDelta> modifications = new ArrayList<>();
 		modifications.add(dryRunDelta);
 
@@ -225,7 +227,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
 		PrismObject<TaskType> task = getTask(TASK_RECON_DUMMY_OID);
 		OperationResult parentResult = new OperationResult(TEST_NAME);
 
-		PropertyDelta<Boolean> dryRunDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_DRY_RUN), task.getDefinition(), false);
+		PropertyDelta<Boolean> dryRunDelta = PropertyDeltaImpl.createModificationReplaceProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_DRY_RUN), task.getDefinition(), false);
 		Collection<PropertyDelta> modifications = new ArrayList<>();
 		modifications.add(dryRunDelta);
 

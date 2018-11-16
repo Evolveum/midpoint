@@ -20,6 +20,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -92,7 +93,7 @@ public abstract class AbstractScannerTaskHandler<O extends ObjectType, H extends
 			PrismPropertyDefinition<XMLGregorianCalendar> lastScanTimestampDef = new PrismPropertyDefinitionImpl<>(
 					SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME,
 					DOMUtil.XSD_DATETIME, prismContext);
-			PropertyDelta<XMLGregorianCalendar> lastScanTimestampDelta = new PropertyDelta<>(
+			PropertyDelta<XMLGregorianCalendar> lastScanTimestampDelta = new PropertyDeltaImpl<>(
 					new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME),
 					lastScanTimestampDef, prismContext);
 			lastScanTimestampDelta.setValueToReplace(new PrismPropertyValueImpl<>(handler.getThisScanTimestamp()));

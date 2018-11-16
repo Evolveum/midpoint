@@ -27,6 +27,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismReferenceValueImpl;
+import com.evolveum.midpoint.prism.delta.*;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -37,9 +38,6 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -80,7 +78,8 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
         ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
         PrismReferenceValue accountRefVal = new PrismReferenceValueImpl();
 		accountRefVal.setObject(account);
-		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
+		ReferenceDelta accountDelta = ReferenceDeltaImpl
+				.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountDelta);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
 
@@ -141,7 +140,7 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
         ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
-        PropertyDelta propertyDelta = PropertyDelta.createModificationAddProperty(
+        PropertyDelta propertyDelta = PropertyDeltaImpl.createModificationAddProperty(
         		new ItemPath(UserType.F_DESCRIPTION), getUserDefinition().findPropertyDefinition(UserType.F_DESCRIPTION), 
         		"This value will be not added");
 		userDelta.addModification(propertyDelta);
@@ -186,7 +185,7 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
 	        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
 	        ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
-	        PropertyDelta propertyDelta = PropertyDelta.createModificationAddProperty(new ItemPath(UserType.F_DESCRIPTION), getUserDefinition().findPropertyDefinition(UserType.F_DESCRIPTION), "res-thiIsOk");
+	        PropertyDelta propertyDelta = PropertyDeltaImpl.createModificationAddProperty(new ItemPath(UserType.F_DESCRIPTION), getUserDefinition().findPropertyDefinition(UserType.F_DESCRIPTION), "res-thiIsOk");
 			userDelta.addModification(propertyDelta);
 			Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
 
@@ -232,7 +231,7 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
 	        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
 	        ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
-	        PropertyDelta propertyDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(UserType.F_EMPLOYEE_NUMBER), getUserDefinition(), "gossip-thiIsNotOk");
+	        PropertyDelta propertyDelta = PropertyDeltaImpl.createModificationReplaceProperty(new ItemPath(UserType.F_EMPLOYEE_NUMBER), getUserDefinition(), "gossip-thiIsNotOk");
 			userDelta.addModification(propertyDelta);
 			Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
 
@@ -279,7 +278,7 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
 
 	        ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
 	        ItemPath drinkItemPath = new ItemPath(new QName(getDummyResourceType(RESOURCE_DUMMY_BLACK_NAME).getNamespace(), "drink"));
-	        PropertyDelta propertyDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(UserType.F_EMPLOYEE_NUMBER), getUserDefinition(), "thiIsOk");
+	        PropertyDelta propertyDelta = PropertyDeltaImpl.createModificationReplaceProperty(new ItemPath(UserType.F_EMPLOYEE_NUMBER), getUserDefinition(), "thiIsOk");
 			userDelta.addModification(propertyDelta);
 			Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
 
@@ -329,7 +328,7 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
 
         ItemPath drinkItemPath = new ItemPath(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_DUMMY_BLACK_NAMESPACE, "drink"));
         assertNotNull("null definition for drink attribute ", accountDefinition.findPropertyDefinition(drinkItemPath));
-        PropertyDelta propertyDelta = PropertyDelta.createModificationAddProperty(drinkItemPath, accountDefinition.findPropertyDefinition(drinkItemPath), "This should be ignored");
+        PropertyDelta propertyDelta = PropertyDeltaImpl.createModificationAddProperty(drinkItemPath, accountDefinition.findPropertyDefinition(drinkItemPath), "This should be ignored");
 		userDelta.addModification(propertyDelta);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
 

@@ -23,6 +23,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.PendingOperationPanel;
+import com.evolveum.midpoint.prism.delta.ReferenceDeltaImpl;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -1131,7 +1132,7 @@ public abstract class ResourceContentPanel extends Panel {
 					modifications = new ArrayList<>();
 					FocusType owner = loadShadowOwner(shadow.getOid());
 					if (owner != null) {
-						delta = ReferenceDelta.createModificationDelete(FocusType.F_LINK_REF,
+						delta = ReferenceDeltaImpl.createModificationDelete(FocusType.F_LINK_REF,
 								getFocusDefinition(),
 								ObjectTypeUtil.createObjectRef(shadow, getPageBase().getPrismContext()).asReferenceValue());
 
@@ -1148,7 +1149,7 @@ public abstract class ResourceContentPanel extends Panel {
 				ShadowType shadow = selectedShadow.iterator().next();
 				FocusType owner = loadShadowOwner(shadow.getOid());
 				if (owner != null) {
-					delta = ReferenceDelta.createModificationDelete(FocusType.F_LINK_REF,
+					delta = ReferenceDeltaImpl.createModificationDelete(FocusType.F_LINK_REF,
 							getFocusDefinition(), ObjectTypeUtil.createObjectRef(shadow, getPageBase().getPrismContext()).asReferenceValue());
 
 					((Collection) modifications).add(delta);
@@ -1156,7 +1157,7 @@ public abstract class ResourceContentPanel extends Panel {
 				}
 				modifications = new ArrayList<>();
 
-				delta = ReferenceDelta.createModificationAdd(FocusType.F_LINK_REF, getFocusDefinition(),
+				delta = ReferenceDeltaImpl.createModificationAdd(FocusType.F_LINK_REF, getFocusDefinition(),
 						ObjectTypeUtil.createObjectRef(shadow, getPageBase().getPrismContext()).asReferenceValue());
 				((Collection) modifications).add(delta);
 				changeOwnerInternal(ownerToChange.getOid(), modifications, target);

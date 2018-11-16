@@ -24,15 +24,13 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Random;
 
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -56,7 +54,7 @@ public class ResourceCarefulAntUtil {
 		ants.add(new CarefulAnt<ResourceType>() {
 			@Override
 			public ItemDelta<?,?> createDelta(int iteration) {
-				return  PropertyDelta.createModificationReplaceProperty(ResourceType.F_DESCRIPTION,
+				return  PropertyDeltaImpl.createModificationReplaceProperty(ResourceType.F_DESCRIPTION,
 		    			resourceDef, "Blah "+iteration);
 			}
 
@@ -71,7 +69,7 @@ public class ResourceCarefulAntUtil {
 			@Override
 			public ItemDelta<?,?> createDelta(int iteration) throws SchemaException {
 				schemaHandling = createNewSchemaHandling(resourceFile, iteration, prismContext);
-				return ContainerDelta.createModificationReplace(ResourceType.F_SCHEMA_HANDLING,
+				return ContainerDeltaImpl.createModificationReplace(ResourceType.F_SCHEMA_HANDLING,
 						prismContext.getSchemaRegistry().findContainerDefinitionByCompileTimeClass(SchemaHandlingType.class),
 						schemaHandling.asPrismContainerValue().clone());
 			}
@@ -91,7 +89,7 @@ public class ResourceCarefulAntUtil {
 			@Override
 			public ItemDelta<?,?> createDelta(int iteration) throws SchemaException {
 				xmlSchemaDef = createNewXmlSchemaDef(resourceFile, iteration, prismContext);
-				return PropertyDelta.createModificationReplaceProperty(
+				return PropertyDeltaImpl.createModificationReplaceProperty(
 						new ItemPath(ResourceType.F_SCHEMA, XmlSchemaType.F_DEFINITION),
 						resourceDef, xmlSchemaDef);
 			}

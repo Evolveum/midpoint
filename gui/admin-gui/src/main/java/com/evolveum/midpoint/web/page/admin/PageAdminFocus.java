@@ -409,7 +409,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	protected ContainerDelta handleAssignmentDeltas(ObjectDelta<F> focusDelta,
 			List<AssignmentEditorDto> assignments, PrismContainerDefinition def,
 													boolean isDelegation) throws SchemaException {
-		ContainerDelta assDelta = new ContainerDelta(ItemPath.EMPTY_PATH, def.getName(), def, getPrismContext());
+		ContainerDelta assDelta = new ContainerDeltaImpl(ItemPath.EMPTY_PATH, def.getName(), def, getPrismContext());
 
 		for (AssignmentEditorDto assDto : assignments) {
 			PrismContainerValue newValue = assDto.getNewValue(getPrismContext());
@@ -460,7 +460,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	protected ContainerDelta<AssignmentType> handleAssignmentExperimentalDeltas(ObjectDelta<F> focusDelta,
 											List<ContainerValueWrapper<AssignmentType>> assignments, PrismContainerDefinition def,
 																				boolean isDelegation) throws SchemaException {
-		ContainerDelta<AssignmentType> assDelta = new ContainerDelta(ItemPath.EMPTY_PATH, def.getName(), def, getPrismContext());
+		ContainerDelta<AssignmentType> assDelta = new ContainerDeltaImpl(ItemPath.EMPTY_PATH, def.getName(), def, getPrismContext());
 
 
 		if (!assDelta.isEmpty()) {
@@ -529,12 +529,12 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 
 			if (accDto.getStatus() == UserDtoStatus.DELETE) {
 				ObjectWrapper accWrapper = accDto.getObject();
-				ReferenceDelta refDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF,
+				ReferenceDelta refDelta = ReferenceDeltaImpl.createModificationDelete(UserType.F_LINK_REF,
 						focusWrapper.getObject().getDefinition(), accWrapper.getObject());
 				refDeltas.add(refDelta);
 			} else if (accDto.getStatus() == UserDtoStatus.UNLINK) {
 				ObjectWrapper accWrapper = accDto.getObject();
-				ReferenceDelta refDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF,
+				ReferenceDelta refDelta = ReferenceDeltaImpl.createModificationDelete(UserType.F_LINK_REF,
 						focusWrapper.getObject().getDefinition(), accWrapper.getObject().getOid());
 				refDeltas.add(refDelta);
 			}
@@ -661,7 +661,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 
 	private ReferenceDelta prepareUserAccountsDeltaForModify(PrismReferenceDefinition refDef)
 			throws SchemaException {
-		ReferenceDelta refDelta = new ReferenceDelta(refDef, getPrismContext());
+		ReferenceDelta refDelta = new ReferenceDeltaImpl(refDef, getPrismContext());
 
 		List<FocusSubwrapperDto<ShadowType>> accounts = getFocusShadows();
 		for (FocusSubwrapperDto<ShadowType> accDto : accounts) {
@@ -714,7 +714,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 
 	private ReferenceDelta prepareUserOrgsDeltaForModify(PrismReferenceDefinition refDef)
 			throws SchemaException {
-		ReferenceDelta refDelta = new ReferenceDelta(refDef, getPrismContext());
+		ReferenceDelta refDelta = new ReferenceDeltaImpl(refDef, getPrismContext());
 
 		List<FocusSubwrapperDto<OrgType>> orgs = getParentOrgs();
 		for (FocusSubwrapperDto<OrgType> orgDto : orgs) {
