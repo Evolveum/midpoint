@@ -19,6 +19,7 @@ import java.io.File;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.PrismReferenceValueImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -154,7 +155,7 @@ public class TestPasswordDeprecated extends AbstractInitializedModelIntegrationT
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-		PrismReferenceValue passPolicyRef = new PrismReferenceValue(PASSWORD_POLICY_DEPRECATED_OID, ValuePolicyType.COMPLEX_TYPE);
+		PrismReferenceValue passPolicyRef = new PrismReferenceValueImpl(PASSWORD_POLICY_DEPRECATED_OID, ValuePolicyType.COMPLEX_TYPE);
 
 		// WHEN
 		modifyObjectReplaceReference(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),

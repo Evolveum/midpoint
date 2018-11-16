@@ -1864,7 +1864,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
         try {
             ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
-                    .isDirectChildOf(new PrismReferenceValue("some oid").relation(SchemaConstants.ORG_DEFAULT))
+                    .isDirectChildOf(new PrismReferenceValueImpl("some oid").relation(SchemaConstants.ORG_DEFAULT))
                     .build();
 
 	        RQueryImpl rQuery = (RQueryImpl) getInterpretedQuery2Whole(session, UserType.class, query, false, null);
@@ -1902,7 +1902,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
         try {
             ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
-                    .isDirectChildOf(new PrismReferenceValue("some oid").relation(SchemaConstants.ORG_MANAGER))
+                    .isDirectChildOf(new PrismReferenceValueImpl("some oid").relation(SchemaConstants.ORG_MANAGER))
                     .build();
 
 	        RQueryImpl rQuery = (RQueryImpl) getInterpretedQuery2Whole(session, UserType.class, query, false, null);
@@ -1942,7 +1942,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
         try {
             ObjectQuery query = QueryBuilder.queryFor(OrgType.class, prismContext)
-                    .isChildOf(new PrismReferenceValue("123"))
+                    .isChildOf(new PrismReferenceValueImpl("123"))
                     .asc(F_NAME)
                     .build();
 
@@ -1977,7 +1977,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
 		try {
 			ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
-					.isChildOf(new PrismReferenceValue("some oid").relation(SchemaConstants.ORG_DEFAULT))
+					.isChildOf(new PrismReferenceValueImpl("some oid").relation(SchemaConstants.ORG_DEFAULT))
 					.build();
 
 			RQueryImpl rQuery = (RQueryImpl) getInterpretedQuery2Whole(session, UserType.class, query, false, null);
@@ -2014,7 +2014,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
 		try {
 			ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
-					.isChildOf(new PrismReferenceValue("some oid").relation(SchemaConstants.ORG_MANAGER))
+					.isChildOf(new PrismReferenceValueImpl("some oid").relation(SchemaConstants.ORG_MANAGER))
 					.build();
 
 			RQueryImpl rQuery = (RQueryImpl) getInterpretedQuery2Whole(session, UserType.class, query, false, null);
@@ -2056,7 +2056,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
         try {
             ObjectQuery query = QueryBuilder.queryFor(OrgType.class, prismContext)
-                    .isChildOf(new PrismReferenceValue("123"))
+                    .isChildOf(new PrismReferenceValueImpl("123"))
                     .build();
 
             String real = getInterpretedQuery2(session, OrgType.class, query, true, distinct());

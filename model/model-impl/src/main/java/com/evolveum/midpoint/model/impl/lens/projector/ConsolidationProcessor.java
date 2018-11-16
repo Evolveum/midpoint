@@ -25,16 +25,7 @@ import com.evolveum.midpoint.model.impl.lens.IvwoConsolidator;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.StrengthSelector;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
@@ -764,7 +755,7 @@ public class ConsolidationProcessor {
 						PrismValueDeltaSetTriple<PrismPropertyValue<QName>> triple = new PrismValueDeltaSetTriple<>();
 						if (construction.getAuxiliaryObjectClassDefinitions() != null) {
 							for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition: construction.getAuxiliaryObjectClassDefinitions()) {
-								triple.addToZeroSet(new PrismPropertyValue<>(auxiliaryObjectClassDefinition.getTypeName()));
+								triple.addToZeroSet(new PrismPropertyValueImpl<>(auxiliaryObjectClassDefinition.getTypeName()));
 							}
 						}
 						return triple;

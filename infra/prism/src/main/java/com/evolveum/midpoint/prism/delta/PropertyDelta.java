@@ -22,15 +22,7 @@ import java.util.Comparator;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -151,7 +143,7 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
 		if (valuesToReplace == null)
 			valuesToReplace = new ArrayList<>(realValues.length);
 		for (T realVal: realValues) {
-			valuesToReplace.add(new PrismPropertyValue<>(realVal));
+			valuesToReplace.add(new PrismPropertyValueImpl<>(realVal));
 		}
 		delta.setValuesToReplace(valuesToReplace);
 		return delta;
@@ -180,7 +172,7 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
         }
         PropertyDelta delta = new PropertyDelta(propertyName, propertyDefinition, containerDefinition.getPrismContext());       // hoping the prismContext is there
         for (Object realVal: realValues) {
-            delta.addValueToAdd(new PrismPropertyValue(realVal));
+            delta.addValueToAdd(new PrismPropertyValueImpl<>(realVal));
         }
         return delta;
     }
@@ -193,7 +185,7 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
         }
         PropertyDelta delta = new PropertyDelta(propertyName, propertyDefinition, containerDefinition.getPrismContext());       // hoping the prismContext is there
         for (Object realVal: realValues) {
-            delta.addValueToDelete(new PrismPropertyValue(realVal));
+            delta.addValueToDelete(new PrismPropertyValueImpl<>(realVal));
         }
         return delta;
     }
@@ -337,7 +329,7 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
     	PropertyDelta<T> propertyDelta = new PropertyDelta<T>(propertyPath, propDef, objectDefinition.getPrismContext());              // hoping the prismContext is there
     	Collection<PrismPropertyValue<T>> pValues = new ArrayList<>(propertyValues.length);
     	for (T val: propertyValues) {
-    		pValues.add(new PrismPropertyValue<>(val));
+    		pValues.add(new PrismPropertyValueImpl<>(val));
     	}
 		propertyDelta.setValuesToReplace(pValues);
     	return propertyDelta;
@@ -349,7 +341,7 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
 		PropertyDelta<T> propertyDelta = new PropertyDelta<T>(propertyPath, propDef, objectDefinition.getPrismContext());              // hoping the prismContext is there
 		Collection<PrismPropertyValue<T>> pValues = new ArrayList<>(propertyValues.size());
 		for (T val: propertyValues) {
-			pValues.add(new PrismPropertyValue<>(val));
+			pValues.add(new PrismPropertyValueImpl<>(val));
 		}
 		propertyDelta.setValuesToReplace(pValues);
 		return propertyDelta;
@@ -360,7 +352,7 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
     	PropertyDelta<T> propertyDelta = new PropertyDelta<T>(propertyPath, propertyDefinition, propertyDefinition.getPrismContext());             // hoping the prismContext is there
     	Collection<PrismPropertyValue<T>> pValues = new ArrayList<>(propertyValues.length);
     	for (T val: propertyValues) {
-    		pValues.add(new PrismPropertyValue<>(val));
+    		pValues.add(new PrismPropertyValueImpl<>(val));
     	}
 		propertyDelta.setValuesToReplace(pValues);
     	return propertyDelta;
@@ -371,7 +363,7 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
     	PropertyDelta<T> propertyDelta = new PropertyDelta<T>(propertyPath, propertyDefinition, propertyDefinition.getPrismContext());         // hoping the prismContext is there
     	Collection<PrismPropertyValue<T>> pValues = new ArrayList<>(propertyValues.length);
     	for (T val: propertyValues) {
-    		pValues.add(new PrismPropertyValue<>(val));
+    		pValues.add(new PrismPropertyValueImpl<>(val));
     	}
 		propertyDelta.addValuesToAdd(pValues);
     	return propertyDelta;
@@ -388,7 +380,7 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
     	PropertyDelta<T> propertyDelta = new PropertyDelta<T>(propertyPath, propertyDefinition, propertyDefinition.getPrismContext());             // hoping the prismContext is there
     	Collection<PrismPropertyValue<T>> pValues = new ArrayList<>(propertyValues.length);
     	for (T val: propertyValues) {
-    		pValues.add(new PrismPropertyValue<>(val));
+    		pValues.add(new PrismPropertyValueImpl<>(val));
     	}
 		propertyDelta.addValuesToDelete(pValues);
     	return propertyDelta;
@@ -431,4 +423,27 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
     	return null;
     }
 
+    // convenience method
+	@SafeVarargs
+	public final void setRealValuesToReplace(T... newValues) {
+		super.setValuesToReplace(PrismPropertyValueImpl.wrap(newValues));
+	}
+
+	@SafeVarargs
+	public final void addRealValuesToAdd(T... newValues) {
+		super.addValuesToAdd(PrismPropertyValueImpl.wrap(newValues));
+	}
+
+	@SafeVarargs
+	public final void addRealValuesToDelete(T... newValues) {
+		super.addValuesToDelete(PrismPropertyValueImpl.wrap(newValues));
+	}
+
+	public final void addRealValuesToAdd(Collection<T> newValues) {
+		super.addValuesToAdd(PrismPropertyValueImpl.wrap(newValues));
+	}
+
+	public final void addRealValuesToDelete(Collection<T> values) {
+		super.addValuesToDelete(PrismPropertyValueImpl.wrap(values));
+	}
 }

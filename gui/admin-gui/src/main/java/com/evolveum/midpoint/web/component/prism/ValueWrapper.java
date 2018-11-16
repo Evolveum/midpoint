@@ -18,12 +18,9 @@ package com.evolveum.midpoint.web.component.prism;
 
 import java.io.Serializable;
 
+import com.evolveum.midpoint.prism.*;
 import org.apache.commons.lang.Validate;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.PrismUtil;
@@ -71,7 +68,7 @@ public class ValueWrapper<T> implements Serializable, DebugDumpable {
 				T val = ((PrismPropertyValue<T>) value).getValue();
 				if (val instanceof PolyString) {
 					PolyString poly = (PolyString) val;
-					this.value = new PrismPropertyValue<>(new PolyString(poly.getOrig(), poly.getNorm()),
+					this.value = new PrismPropertyValueImpl<>(new PolyString(poly.getOrig(), poly.getNorm()),
                         value.getOriginType(), value.getOriginObject());
 				} else if (val instanceof ProtectedStringType) {
 					this.value = value.clone();
@@ -89,11 +86,11 @@ public class ValueWrapper<T> implements Serializable, DebugDumpable {
 		}
 
 		if (oldValue == null && value instanceof PrismPropertyValue && ValueStatus.ADDED == propertyWrapper.getStatus()) {
-			oldValue = new PrismPropertyValue<T>(null);
+			oldValue = new PrismPropertyValueImpl<>(null);
 		}
 		
 		if (oldValue == null && value instanceof PrismReferenceValue && ValueStatus.ADDED == propertyWrapper.getStatus()) {
-			oldValue = new PrismReferenceValue();
+			oldValue = new PrismReferenceValueImpl();
 		}
 		
 		if (oldValue == null && value instanceof PrismReferenceValue && ValueStatus.ADDED != propertyWrapper.getStatus()) {
@@ -106,7 +103,7 @@ public class ValueWrapper<T> implements Serializable, DebugDumpable {
                 PolyString poly = (PolyString)val;
                 val = (T) new PolyString(poly.getOrig(), poly.getNorm());
             }
-            oldValue = new PrismPropertyValue<>(CloneUtil.clone(val), this.value.getOriginType(), this.value.getOriginObject());
+            oldValue = new PrismPropertyValueImpl<>(CloneUtil.clone(val), this.value.getOriginType(), this.value.getOriginObject());
         }
 
         this.oldValue = oldValue;

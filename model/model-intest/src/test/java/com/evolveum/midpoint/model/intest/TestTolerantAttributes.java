@@ -26,6 +26,7 @@ import java.util.Collection;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismReferenceValueImpl;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -77,7 +78,7 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_BLACK_FILENAME));
 
         ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
-        PrismReferenceValue accountRefVal = new PrismReferenceValue();
+        PrismReferenceValue accountRefVal = new PrismReferenceValueImpl();
 		accountRefVal.setObject(account);
 		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountDelta);

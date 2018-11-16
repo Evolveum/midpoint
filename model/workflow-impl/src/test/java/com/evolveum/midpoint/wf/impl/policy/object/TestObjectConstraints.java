@@ -22,6 +22,7 @@ import com.evolveum.midpoint.model.impl.util.RecordingProgressListener;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismReferenceValueImpl;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -176,7 +177,7 @@ public class TestObjectConstraints extends AbstractWfTestPolicy {
 
 		roleEmployeeOid = searchObjectByName(RoleType.class, "employee").getOid();
 
-		PrismReferenceValue employeeOwner = new PrismReferenceValue(roleEmployeeOid, RoleType.COMPLEX_TYPE).relation(SchemaConstants.ORG_OWNER);
+		PrismReferenceValue employeeOwner = new PrismReferenceValueImpl(roleEmployeeOid, RoleType.COMPLEX_TYPE).relation(SchemaConstants.ORG_OWNER);
 		executeChanges(DeltaBuilder.deltaFor(UserType.class, prismContext)
 				.item(UserType.F_ASSIGNMENT).add(ObjectTypeUtil.createAssignmentTo(employeeOwner, prismContext))
 				.asObjectDelta(userEmployeeOwnerOid),

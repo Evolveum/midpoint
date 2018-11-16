@@ -309,7 +309,7 @@ public class MiscSchemaUtil {
 		if (refType == null) {
 			return null;
 		}
-		PrismReferenceValue rval = new PrismReferenceValue();
+		PrismReferenceValue rval = new PrismReferenceValueImpl();
 		rval.setOid(refType.getOid());
 		rval.setDescription(refType.getDescription());
 		rval.setFilter(refType.getFilter());

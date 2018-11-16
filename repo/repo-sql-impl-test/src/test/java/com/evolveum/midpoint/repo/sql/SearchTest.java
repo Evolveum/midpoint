@@ -16,10 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -203,7 +200,7 @@ public class SearchTest extends BaseSQLRepoTest {
 
     @Test
     public void roleMembershipSearchTest() throws Exception {
-        PrismReferenceValue r456 = new PrismReferenceValue("r456", RoleType.COMPLEX_TYPE);
+        PrismReferenceValue r456 = new PrismReferenceValueImpl("r456", RoleType.COMPLEX_TYPE);
         r456.setRelation(SchemaConstants.ORG_DEFAULT);
         ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
                 .item(UserType.F_ROLE_MEMBERSHIP_REF).ref(r456)
@@ -215,7 +212,7 @@ public class SearchTest extends BaseSQLRepoTest {
         assertEquals("Should find one user", 1, users.size());
         assertEquals("Wrong user name", "atestuserX00003", users.get(0).getName().getOrig());
 
-        PrismReferenceValue r123 = new PrismReferenceValue("r123", RoleType.COMPLEX_TYPE);
+        PrismReferenceValue r123 = new PrismReferenceValueImpl("r123", RoleType.COMPLEX_TYPE);
         query = QueryBuilder.queryFor(UserType.class, prismContext)
                 .item(UserType.F_ROLE_MEMBERSHIP_REF).ref(r123)
                 .build();
@@ -224,7 +221,7 @@ public class SearchTest extends BaseSQLRepoTest {
         assertTrue(result.isSuccess());
         assertEquals("Should find two users", 2, users.size());
 
-        PrismReferenceValue r123approver = new PrismReferenceValue("r123", RoleType.COMPLEX_TYPE);
+        PrismReferenceValue r123approver = new PrismReferenceValueImpl("r123", RoleType.COMPLEX_TYPE);
         r123approver.setRelation(SchemaConstants.ORG_APPROVER);
         query = QueryBuilder.queryFor(UserType.class, prismContext)
                 .item(UserType.F_ROLE_MEMBERSHIP_REF).ref(r123approver)
@@ -237,7 +234,7 @@ public class SearchTest extends BaseSQLRepoTest {
 
     @Test
     public void delegatedSearchTest() throws Exception {
-        PrismReferenceValue r789 = new PrismReferenceValue("r789", RoleType.COMPLEX_TYPE);
+        PrismReferenceValue r789 = new PrismReferenceValueImpl("r789", RoleType.COMPLEX_TYPE);
         // intentionally without relation (meaning "member")
         ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
                 .item(UserType.F_DELEGATED_REF).ref(r789)
@@ -249,7 +246,7 @@ public class SearchTest extends BaseSQLRepoTest {
         assertEquals("Should find one user", 1, users.size());
         assertEquals("Wrong user name", "atestuserX00003", users.get(0).getName().getOrig());
 
-        PrismReferenceValue r123 = new PrismReferenceValue("r123", RoleType.COMPLEX_TYPE);
+        PrismReferenceValue r123 = new PrismReferenceValueImpl("r123", RoleType.COMPLEX_TYPE);
         query = QueryBuilder.queryFor(UserType.class, prismContext)
                 .item(UserType.F_DELEGATED_REF).ref(r123)
                 .build();
@@ -261,7 +258,7 @@ public class SearchTest extends BaseSQLRepoTest {
 
     @Test
     public void personaSearchTest() throws Exception {
-        PrismReferenceValue u000 = new PrismReferenceValue("u000", UserType.COMPLEX_TYPE);
+        PrismReferenceValue u000 = new PrismReferenceValueImpl("u000", UserType.COMPLEX_TYPE);
         ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
                 .item(UserType.F_PERSONA_REF).ref(u000)
                 .build();
@@ -272,7 +269,7 @@ public class SearchTest extends BaseSQLRepoTest {
         assertEquals("Should find one user", 1, users.size());
         assertEquals("Wrong user name", "atestuserX00003", users.get(0).getName().getOrig());
 
-		PrismReferenceValue r789 = new PrismReferenceValue("r789", RoleType.COMPLEX_TYPE);
+		PrismReferenceValue r789 = new PrismReferenceValueImpl("r789", RoleType.COMPLEX_TYPE);
         query = QueryBuilder.queryFor(UserType.class, prismContext)
                 .item(UserType.F_PERSONA_REF).ref(r789)
                 .build();
@@ -284,7 +281,7 @@ public class SearchTest extends BaseSQLRepoTest {
 
     @Test
     public void assignmentOrgRefSearchTest() throws Exception {
-        PrismReferenceValue o123456 = new PrismReferenceValue("o123456", OrgType.COMPLEX_TYPE);
+        PrismReferenceValue o123456 = new PrismReferenceValueImpl("o123456", OrgType.COMPLEX_TYPE);
         ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
                 .item(UserType.F_ASSIGNMENT, AssignmentType.F_ORG_REF).ref(o123456)
                 .build();
@@ -296,7 +293,7 @@ public class SearchTest extends BaseSQLRepoTest {
         assertEquals("Should find one user", 1, users.size());
         assertEquals("Wrong user name", "atestuserX00002", users.get(0).getName().getOrig());
 
-        PrismReferenceValue o999 = new PrismReferenceValue("o999", RoleType.COMPLEX_TYPE);
+        PrismReferenceValue o999 = new PrismReferenceValueImpl("o999", RoleType.COMPLEX_TYPE);
         query = QueryBuilder.queryFor(UserType.class, prismContext)
                 .item(UserType.F_ASSIGNMENT, AssignmentType.F_ORG_REF).ref(o999)
                 .build();
@@ -309,7 +306,7 @@ public class SearchTest extends BaseSQLRepoTest {
 
     @Test
     public void assignmentResourceRefSearchTest() throws Exception {
-        PrismReferenceValue resourceRef = new PrismReferenceValue("10000000-0000-0000-0000-000000000004", ResourceType.COMPLEX_TYPE);
+        PrismReferenceValue resourceRef = new PrismReferenceValueImpl("10000000-0000-0000-0000-000000000004", ResourceType.COMPLEX_TYPE);
         ObjectQuery query = QueryBuilder.queryFor(RoleType.class, prismContext)
                 .item(RoleType.F_ASSIGNMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF).ref(resourceRef)
                 .build();
@@ -321,7 +318,7 @@ public class SearchTest extends BaseSQLRepoTest {
         assertEquals("Should find one role", 1, roles.size());
         assertEquals("Wrong role name", "Judge", roles.get(0).getName().getOrig());
 
-        PrismReferenceValue resourceRef2 = new PrismReferenceValue("FFFFFFFF-0000-0000-0000-000000000004", ResourceType.COMPLEX_TYPE);
+        PrismReferenceValue resourceRef2 = new PrismReferenceValueImpl("FFFFFFFF-0000-0000-0000-000000000004", ResourceType.COMPLEX_TYPE);
         query = QueryBuilder.queryFor(RoleType.class, prismContext)
                 .item(RoleType.F_ASSIGNMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF).ref(resourceRef2)
                 .build();
@@ -333,7 +330,7 @@ public class SearchTest extends BaseSQLRepoTest {
 
     @Test
     public void roleAssignmentSearchTest() throws Exception {
-        PrismReferenceValue r456 = new PrismReferenceValue("r123", RoleType.COMPLEX_TYPE);
+        PrismReferenceValue r456 = new PrismReferenceValueImpl("r123", RoleType.COMPLEX_TYPE);
         ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
                 .item(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(r456)
                 .build();
@@ -348,7 +345,7 @@ public class SearchTest extends BaseSQLRepoTest {
 
     @Test
     public void orgAssignmentSearchTest() throws Exception {
-        PrismReferenceValue org = new PrismReferenceValue("00000000-8888-6666-0000-100000000085", OrgType.COMPLEX_TYPE);
+        PrismReferenceValue org = new PrismReferenceValueImpl("00000000-8888-6666-0000-100000000085", OrgType.COMPLEX_TYPE);
         ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
                 .item(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(org)
                 .build();
@@ -363,7 +360,7 @@ public class SearchTest extends BaseSQLRepoTest {
 
     @Test
     public void orgAssignmentSearchTestNoTargetType() throws Exception {
-        PrismReferenceValue org = new PrismReferenceValue("00000000-8888-6666-0000-100000000085", null);
+        PrismReferenceValue org = new PrismReferenceValueImpl("00000000-8888-6666-0000-100000000085", null);
         ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
                 .item(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(org)
                 .build();
@@ -391,8 +388,8 @@ public class SearchTest extends BaseSQLRepoTest {
 
     @Test
     public void roleAndOrgAssignmentSearchTest() throws Exception {
-        PrismReferenceValue r123 = new PrismReferenceValue("r123", RoleType.COMPLEX_TYPE);
-        PrismReferenceValue org = new PrismReferenceValue("00000000-8888-6666-0000-100000000085", OrgType.COMPLEX_TYPE);
+        PrismReferenceValue r123 = new PrismReferenceValueImpl("r123", RoleType.COMPLEX_TYPE);
+        PrismReferenceValue org = new PrismReferenceValueImpl("00000000-8888-6666-0000-100000000085", OrgType.COMPLEX_TYPE);
         ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
                 .item(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(r123)
                 .and().item(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(org)

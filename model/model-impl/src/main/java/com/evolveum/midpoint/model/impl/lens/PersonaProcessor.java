@@ -22,6 +22,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -32,11 +33,6 @@ import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.impl.lens.projector.ComplexConstructionConsumer;
 import com.evolveum.midpoint.model.impl.lens.projector.ConstructionProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.ObjectTemplateProcessor;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.DeltaMapTriple;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -351,7 +347,7 @@ public class PersonaProcessor {
 
 	private <F extends FocusType>  void link(LensContext<F> context, FocusType persona, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		ObjectDelta<F> delta = context.getFocusContext().getObjectNew().createModifyDelta();
-		PrismReferenceValue refValue = new PrismReferenceValue();
+		PrismReferenceValue refValue = new PrismReferenceValueImpl();
 		refValue.setOid(persona.getOid());
 		refValue.setTargetType(persona.asPrismObject().getDefinition().getTypeName());
 		delta.addModificationAddReference(FocusType.F_PERSONA_REF, refValue);
@@ -361,7 +357,7 @@ public class PersonaProcessor {
 
 	private <F extends FocusType>  void unlink(LensContext<F> context, FocusType persona, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		ObjectDelta<F> delta = context.getFocusContext().getObjectNew().createModifyDelta();
-		PrismReferenceValue refValue = new PrismReferenceValue();
+		PrismReferenceValue refValue = new PrismReferenceValueImpl();
 		refValue.setOid(persona.getOid());
 		refValue.setTargetType(persona.asPrismObject().getDefinition().getTypeName());
 		delta.addModificationDeleteReference(FocusType.F_PERSONA_REF, refValue);

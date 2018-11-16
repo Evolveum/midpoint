@@ -19,6 +19,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.evolveum.midpoint.prism.PrismReferenceValueImpl;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
@@ -106,7 +107,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_FILE);
 
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
-        PrismReferenceValue accountRefVal = new PrismReferenceValue();
+        PrismReferenceValue accountRefVal = new PrismReferenceValueImpl();
 		accountRefVal.setObject(account);
 		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
 		modifications.add(accountDelta);
@@ -152,7 +153,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         account.setOid(accountOid);
 
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
-        PrismReferenceValue accountRefVal = new PrismReferenceValue();
+        PrismReferenceValue accountRefVal = new PrismReferenceValueImpl();
 		accountRefVal.setObject(account);
 		ReferenceDelta accountDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), account);
 		modifications.add(accountDelta);
@@ -260,7 +261,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_FILE);
 
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
-        PrismReferenceValue accountRefVal = new PrismReferenceValue();
+        PrismReferenceValue accountRefVal = new PrismReferenceValueImpl();
 		accountRefVal.setObject(account);
 		ReferenceDelta accountDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), accountOid);
 		modifications.add(accountDelta);

@@ -21,6 +21,7 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismReferenceValueImpl;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -163,7 +164,7 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 		PrismObject<RoleType> judgeAfter = searchObjectByName(RoleType.class, "judge");
 		roleJudgeOid = judgeAfter.getOid();
 
-		PrismReferenceValue judgeOwner = new PrismReferenceValue(roleJudgeOid, RoleType.COMPLEX_TYPE);
+		PrismReferenceValue judgeOwner = new PrismReferenceValueImpl(roleJudgeOid, RoleType.COMPLEX_TYPE);
 		judgeOwner.setRelation(SchemaConstants.ORG_OWNER);
 		executeChanges(DeltaBuilder.deltaFor(UserType.class, prismContext)
 						.item(UserType.F_ASSIGNMENT).add(ObjectTypeUtil.createAssignmentTo(judgeAfter, SchemaConstants.ORG_OWNER))

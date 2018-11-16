@@ -334,7 +334,7 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 		for (PrismPropertyValue<Structured> structuredPVal: set) {
 			Structured structured = structuredPVal.getValue();
 			X outputRval = (X) structured.resolve(resolvePath);
-			outputSet.add(new PrismPropertyValue<>(outputRval));
+			outputSet.add(new PrismPropertyValueImpl<>(outputRval));
 		}
 		return outputSet;
 	}

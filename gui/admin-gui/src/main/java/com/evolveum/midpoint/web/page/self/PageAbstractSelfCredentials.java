@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.prism.xml.ns._public.types_3.EncryptedDataType;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -33,11 +34,6 @@ import org.apache.wicket.model.Model;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -349,7 +345,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
 
                     PropertyDelta<ProtectedStringType> delta = PropertyDelta.createModificationReplaceProperty(valuePath, objDef, password);
                     if (oldPassword != null) {
-                    	delta.addEstimatedOldValue(new PrismPropertyValue<>(oldPassword));
+                    	delta.addEstimatedOldValue(new PrismPropertyValueImpl<>(oldPassword));
                     }
 
                     Class<? extends ObjectType> type = accDto.isMidpoint() ? UserType.class : ShadowType.class;

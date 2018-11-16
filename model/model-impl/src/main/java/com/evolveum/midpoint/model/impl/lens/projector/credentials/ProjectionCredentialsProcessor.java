@@ -22,6 +22,7 @@ import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -41,15 +42,6 @@ import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.MappingInitializer;
 import com.evolveum.midpoint.model.impl.lens.projector.MappingOutputProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.MappingTimeEval;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.OriginType;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -265,7 +257,7 @@ public class ProjectionCredentialsProcessor {
 								try {
 									if (oldUserPassword.canGetCleartext() && protector.compare(oldUserPassword, oldProjectionPassword)) {
 										outputTriple.clearMinusSet();
-										outputTriple.addToMinusSet(new PrismPropertyValue<>(oldUserPassword));
+										outputTriple.addToMinusSet(new PrismPropertyValueImpl<>(oldUserPassword));
 									}
 								} catch (EncryptionException e) {
 									throw new SystemException(e.getMessage(), e);

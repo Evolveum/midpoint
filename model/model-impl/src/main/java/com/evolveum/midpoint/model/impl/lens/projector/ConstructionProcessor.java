@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.function.Function;
 
+import com.evolveum.midpoint.prism.PrismPropertyValueImpl;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.impl.lens.AbstractConstruction;
@@ -26,7 +27,6 @@ import com.evolveum.midpoint.model.impl.lens.ConstructionPack;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.FailableLensFunction;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.DeltaMapTriple;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
@@ -251,7 +251,7 @@ public class ConstructionProcessor {
                 constructionMap.put(key, constructionPack);
             }
 
-            constructionPack.add(new PrismPropertyValue<>(construction));
+            constructionPack.add(new PrismPropertyValueImpl<>(construction));
             if (evaluatedAssignment.isValid()) {
             	constructionPack.setHasValidAssignment(true);
             }

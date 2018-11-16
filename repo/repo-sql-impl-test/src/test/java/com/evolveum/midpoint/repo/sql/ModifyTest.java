@@ -35,6 +35,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.schema.SearchResultList;
 import org.hibernate.Session;
@@ -47,20 +48,6 @@ import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.common.SynchronizationUtils;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -280,7 +267,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         System.out.println("MODIFY");
         ObjectReferenceType objectRef = null;
         ReferenceDelta delta = new ReferenceDelta(def, prismContext);
-        delta.addValueToAdd(new PrismReferenceValue("1", ResourceType.COMPLEX_TYPE));
+        delta.addValueToAdd(new PrismReferenceValueImpl("1", ResourceType.COMPLEX_TYPE));
         modifications.add(delta);
         repositoryService.modifyObject(TaskType.class, taskOid, modifications, getModifyOptions(), result);
         System.out.println("GET");
@@ -296,8 +283,8 @@ public class ModifyTest extends BaseSQLRepoTest {
         System.out.println("MODIFY");
         modifications.clear();
         delta = new ReferenceDelta(def, prismContext);
-        delta.addValueToDelete(new PrismReferenceValue("1", ResourceType.COMPLEX_TYPE));
-        delta.addValueToAdd(new PrismReferenceValue("2", ResourceType.COMPLEX_TYPE));
+        delta.addValueToDelete(new PrismReferenceValueImpl("1", ResourceType.COMPLEX_TYPE));
+        delta.addValueToAdd(new PrismReferenceValueImpl("2", ResourceType.COMPLEX_TYPE));
         modifications.add(delta);
         repositoryService.modifyObject(TaskType.class, taskOid, modifications, getModifyOptions(), result);
 
@@ -314,8 +301,8 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         modifications.clear();
         delta = new ReferenceDelta(def, prismContext);
-        delta.addValueToDelete(new PrismReferenceValue("2", ResourceType.COMPLEX_TYPE));
-        delta.addValueToAdd(new PrismReferenceValue("1", ResourceType.COMPLEX_TYPE));
+        delta.addValueToDelete(new PrismReferenceValueImpl("2", ResourceType.COMPLEX_TYPE));
+        delta.addValueToAdd(new PrismReferenceValueImpl("1", ResourceType.COMPLEX_TYPE));
         modifications.add(delta);
         repositoryService.modifyObject(TaskType.class, taskOid, modifications, getModifyOptions(), result);
 
@@ -448,7 +435,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         QName attrBazQName = new QName(MidPointConstants.NS_RI, "baz");
         PrismContainer<Containerable> attributesContainerBefore = shadowBefore.findContainer(ShadowType.F_ATTRIBUTES);
-        PrismProperty<String> attrBazBefore = new PrismProperty<>(new QName(MidPointConstants.NS_RI, "baz"), prismContext);
+        PrismProperty<String> attrBazBefore = new PrismPropertyImpl<>(new QName(MidPointConstants.NS_RI, "baz"), prismContext);
         PrismPropertyDefinitionImpl<String> attrBazDefBefore = new PrismPropertyDefinitionImpl<>(attrBazQName, DOMUtil.XSD_STRING, prismContext);
         attrBazDefBefore.setMaxOccurs(-1);
         // Unless marked as dynamic, the repo XML object will not have xsi:type (and so the repo will parse them as raw when
@@ -555,7 +542,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         ItemPath path = new ItemPath(UserType.F_EXTENSION, QNAME_LOOT);
         PrismProperty loot = user.findProperty(path);
         PropertyDelta lootDelta = new PropertyDelta(path, loot.getDefinition(), prismContext);
-        lootDelta.setValueToReplace(new PrismPropertyValue(456));
+        lootDelta.setRealValuesToReplace(456);
         modifications.add(lootDelta);
 
         repositoryService.modifyObject(UserType.class, oid, modifications, getModifyOptions(), result);
@@ -563,7 +550,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         //check read after modify operation
         user = prismContext.parseObject(userFile);
         loot = user.findProperty(new ItemPath(UserType.F_EXTENSION, QNAME_LOOT));
-        loot.setValue(new PrismPropertyValue(456));
+        loot.setRealValue(456);
 
         readUser = repositoryService.getObject(UserType.class, oid, null, result);
         AssertJUnit.assertTrue("User was not modified correctly", user.diff(readUser).isEmpty());

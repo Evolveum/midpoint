@@ -1124,7 +1124,7 @@ public class ObjectDelta<O extends Objectable> implements DebugDumpable, Visitab
     		ItemPath propertyPath, PrismContext prismContext, C... containerValues) throws SchemaException {
     	ObjectDelta<O> objectDelta = new ObjectDelta<>(type, ChangeType.MODIFY, prismContext);
     	objectDelta.setOid(oid);
-    	PrismContainerValue<C>[] containerPValues = new PrismContainerValue[containerValues.length];
+    	PrismContainerValue<C>[] containerPValues = new PrismContainerValueImpl[containerValues.length];
     	for (int i=0; i<containerValues.length; i++) {
     		C containerable = containerValues[i];
     		prismContext.adopt(containerable, type, propertyPath);
@@ -1157,7 +1157,7 @@ public class ObjectDelta<O extends Objectable> implements DebugDumpable, Visitab
     		ItemPath propertyPath, PrismContext prismContext, C... containerValues) throws SchemaException {
     	ObjectDelta<O> objectDelta = new ObjectDelta<>(type, ChangeType.MODIFY, prismContext);
     	objectDelta.setOid(oid);
-    	PrismContainerValue<C>[] containerPValues = new PrismContainerValue[containerValues.length];
+    	PrismContainerValue<C>[] containerPValues = new PrismContainerValueImpl[containerValues.length];
     	for (int i=0; i<containerValues.length; i++) {
     		C containerable = containerValues[i];
     		prismContext.adopt(containerable, type, propertyPath);
@@ -1250,7 +1250,7 @@ public class ObjectDelta<O extends Objectable> implements DebugDumpable, Visitab
     	Collection<PrismPropertyValue<X>> pvalues = new ArrayList<>(propertyValues.length);
     	for (X val: propertyValues) {
     		PrismUtil.recomputeRealValue(val, prismContext);
-    		PrismPropertyValue<X> pval = new PrismPropertyValue<>(val);
+    		PrismPropertyValue<X> pval = new PrismPropertyValueImpl<>(val);
     		pvalues.add(pval);
     	}
     	return pvalues;
@@ -1280,7 +1280,7 @@ public class ObjectDelta<O extends Objectable> implements DebugDumpable, Visitab
     	ReferenceDelta referenceDelta = objectDelta.createReferenceModification(propertyName, refDef);
     	Collection<PrismReferenceValue> valuesToReplace = new ArrayList<>(referenceObjects.length);
     	for (PrismObject<?> refObject: referenceObjects) {
-    		PrismReferenceValue refVal = new PrismReferenceValue();
+    		PrismReferenceValue refVal = new PrismReferenceValueImpl();
     		refVal.setObject(refObject);
     		valuesToReplace.add(refVal);
     	}
@@ -1292,7 +1292,7 @@ public class ObjectDelta<O extends Objectable> implements DebugDumpable, Visitab
     		PrismContext prismContext, String... targetOids) {
     	PrismReferenceValue[] referenceValues = new PrismReferenceValue[targetOids.length];
     	for(int i=0; i < targetOids.length; i++) {
-    		referenceValues[i] = new PrismReferenceValue(targetOids[i]);
+    		referenceValues[i] = new PrismReferenceValueImpl(targetOids[i]);
     	}
     	return createModificationAddReference(type, oid, propertyName, prismContext, referenceValues);
     }
@@ -1321,7 +1321,7 @@ public class ObjectDelta<O extends Objectable> implements DebugDumpable, Visitab
     		PrismContext prismContext, String... targetOids) {
     	PrismReferenceValue[] referenceValues = new PrismReferenceValue[targetOids.length];
     	for(int i=0; i < targetOids.length; i++) {
-    		referenceValues[i] = new PrismReferenceValue(targetOids[i]);
+    		referenceValues[i] = new PrismReferenceValueImpl(targetOids[i]);
     	}
     	return createModificationDeleteReference(type, oid, propertyName, prismContext, referenceValues);
     }

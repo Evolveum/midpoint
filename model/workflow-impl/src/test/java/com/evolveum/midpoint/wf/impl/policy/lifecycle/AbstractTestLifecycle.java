@@ -17,6 +17,7 @@ package com.evolveum.midpoint.wf.impl.policy.lifecycle;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismReferenceValueImpl;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -101,7 +102,7 @@ public abstract class AbstractTestLifecycle extends AbstractWfTestPolicy {
 			rolePirateOid = pirate.getOid();
 		}
 
-		PrismReferenceValue pirateOwner = new PrismReferenceValue(rolePirateOid, RoleType.COMPLEX_TYPE);
+		PrismReferenceValue pirateOwner = new PrismReferenceValueImpl(rolePirateOid, RoleType.COMPLEX_TYPE);
 		pirateOwner.setRelation(SchemaConstants.ORG_OWNER);
 		executeChanges(DeltaBuilder.deltaFor(UserType.class, prismContext)
 				.item(UserType.F_ASSIGNMENT).add(ObjectTypeUtil.createAssignmentTo(pirateOwner, prismContext))

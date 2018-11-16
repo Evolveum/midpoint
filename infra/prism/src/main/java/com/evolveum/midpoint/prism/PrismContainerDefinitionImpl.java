@@ -275,7 +275,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 			throw new SchemaException("Cannot instantiate abstract definition "+this);
 		}
         elementName = addNamespaceIfApplicable(elementName);
-        return new PrismContainer<>(elementName, this, prismContext);
+        return new PrismContainerImpl<>(elementName, this, prismContext);
     }
 
     @Override
@@ -491,7 +491,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 
 	@Override
 	public PrismContainerValue<C> createValue() {
-		return new PrismContainerValue<>(prismContext);
+		return new PrismContainerValueImpl<>(prismContext);
 	}
 
     @Override

@@ -16,16 +16,6 @@
 
 package com.evolveum.midpoint.prism;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
-
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -33,6 +23,12 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
+
+import javax.xml.namespace.QName;
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * Common supertype for all identity objects. Defines basic properties that each
@@ -54,69 +50,30 @@ import org.jetbrains.annotations.NotNull;
  * When making this object immutable and there's no value, we create one; in order
  * to prevent exceptions on later getValue calls.
  */
-public class PrismObject<O extends Objectable> extends PrismContainer<O> {
+public interface PrismObject<O extends Objectable> extends PrismContainer<O> {
 
-    private static final long serialVersionUID = 7321429132391159949L;
+//	public PrismObject(QName name, Class<O> compileTimeClass) {
+//		super(name, compileTimeClass);
+//	}
+//
+//    public PrismObject(QName name, Class<O> compileTimeClass, PrismContext prismContext) {
+//        super(name, compileTimeClass, prismContext);
+//    }
+//
+//    public PrismObject(QName name, PrismObjectDefinition<O> definition, PrismContext prismContext) {
+//		super(name, definition, prismContext);
+//	}
 
-	public PrismObject(QName name, Class<O> compileTimeClass) {
-		super(name, compileTimeClass);
-	}
-
-    public PrismObject(QName name, Class<O> compileTimeClass, PrismContext prismContext) {
-        super(name, compileTimeClass, prismContext);
-    }
-
-    public PrismObject(QName name, PrismObjectDefinition<O> definition, PrismContext prismContext) {
-		super(name, definition, prismContext);
-	}
-
-	public PrismObjectValue<O> createNewValue() {
-		checkMutability();
-		PrismObjectValue<O> newValue = new PrismObjectValue<>(prismContext);
-		try {
-			add(newValue, false);
-			return newValue;
-		} catch (SchemaException e) {
-			// This should not happen
-			throw new SystemException("Internal Error: " + e.getMessage(), e);
-		}
-	}
+	PrismObjectValue<O> createNewValue();
 
 	@NotNull
-	public PrismObjectValue<O> getValue() {
-		if (values.isEmpty()) {
-			return createNewValue();
-		} else if (values.size() > 1) {
-			throw new IllegalStateException("PrismObject with more than one value: " + values);
-		}
-		return (PrismObjectValue<O>) values.get(0);
-	}
+	PrismObjectValue<O> getValue();
 
 	@Override
-	public void setValue(@NotNull PrismContainerValue<O> value) throws SchemaException {
-		clear();
-		add(value, false);
-	}
+	void setValue(@NotNull PrismContainerValue<O> value) throws SchemaException;
 
 	@Override
-	public boolean add(@NotNull PrismContainerValue newValue, boolean checkUniqueness) throws SchemaException {
-		if (!(newValue instanceof PrismObjectValue)) {
-			throw new IllegalArgumentException("Couldn't add non-PrismObjectValue to a PrismObject: value = "
-					+ newValue + ", object = " + this);
-		}
-		if (values.size() > 1) {
-			throw new IllegalStateException("PrismObject with more than one value: " + this);
-		} else if (values.size() == 1) {
-			PrismObjectValue<O> value = (PrismObjectValue<O>) values.get(0);
-			if (value.isEmpty() && value.getOid() == null) {
-				clear();
-			} else {
-				throw new IllegalStateException("PrismObject cannot have more than one value. New value = " + newValue
-						+ ", object = " + this);
-			}
-		}
-		return super.add(newValue, checkUniqueness);
-	}
+	boolean add(@NotNull PrismContainerValue newValue, boolean checkUniqueness) throws SchemaException;
 
 	/**
 	 * Returns Object ID (OID).
@@ -125,249 +82,87 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 	 *
 	 * @return Object ID (OID)
 	 */
-	public String getOid() {
-		return getValue().getOid();
-	}
+	String getOid();
 
-	public void setOid(String oid) {
-		checkMutability();
-		getValue().setOid(oid);
-	}
+	void setOid(String oid);
 
-	public String getVersion() {
-		return getValue().getVersion();
-	}
+	String getVersion();
 
-	public void setVersion(String version) {
-		checkMutability();
-		getValue().setVersion(version);
-	}
+	void setVersion(String version);
 
 	@Override
-	public PrismObjectDefinition<O> getDefinition() {
-		return (PrismObjectDefinition<O>) super.getDefinition();
-	}
+	PrismObjectDefinition<O> getDefinition();
 
 	@NotNull
-	public O asObjectable() {
-		return getValue().asObjectable();
-	}
+	O asObjectable();
 
-	public PolyString getName() {
-		PrismProperty<PolyString> nameProperty = getValue().findProperty(getNamePropertyElementName());
-		if (nameProperty == null) {
-			return null;
-		}
-		return nameProperty.getRealValue();
-	}
+	PolyString getName();
 
-	private QName getNamePropertyElementName() {
-		return new QName(getElementName().getNamespaceURI(), PrismConstants.NAME_LOCAL_NAME);
-	}
+	PrismContainer<?> getExtension();
 
-	public PrismContainer<?> getExtension() {
-		//noinspection unchecked
-		return (PrismContainer<?>) getValue().findItem(getExtensionContainerElementName(), PrismContainer.class);
-	}
+	PrismContainerValue<?> getExtensionContainerValue();
 
-	public PrismContainerValue<?> getExtensionContainerValue() {
-		PrismContainer<?> extension = getExtension();
-		if (extension == null || extension.getValues().isEmpty()) {
-			return null;
-		} else {
-			return extension.getValue();
-		}
-	}
+	<I extends Item> I findExtensionItem(String elementLocalName);
 
-	public <I extends Item> I findExtensionItem(String elementLocalName) {
-		return findExtensionItem(new QName(null, elementLocalName));
-	}
-	
-	public <I extends Item> I findExtensionItem(QName elementName) {
-		PrismContainer<?> extension = getExtension();
-		if (extension == null) {
-			return null;
-		}
-		//noinspection unchecked
-		return (I) extension.findItem(elementName);
-	}
+	<I extends Item> I findExtensionItem(QName elementName);
 
-	public <I extends Item> void addExtensionItem(I item) throws SchemaException {
-		PrismContainer<?> extension = getExtension();
-		if (extension == null) {
-			extension = createExtension();
-		}
-		extension.add(item);
-	}
+	<I extends Item> void addExtensionItem(I item) throws SchemaException;
 
-	public PrismContainer<?> createExtension() throws SchemaException {
-		PrismObjectDefinition<O> objeDef = getDefinition();
-		PrismContainerDefinition<Containerable> extensionDef = objeDef.findContainerDefinition(getExtensionContainerElementName());
-		PrismContainer<?> extensionContainer = extensionDef.instantiate();
-		getValue().add(extensionContainer);
-		return extensionContainer;
-	}
-
-	private QName getExtensionContainerElementName() {
-		return new QName(getElementName().getNamespaceURI(), PrismConstants.EXTENSION_LOCAL_NAME);
-	}
+	PrismContainer<?> createExtension() throws SchemaException;
 
 	@Override
-	public void applyDefinition(PrismContainerDefinition<O> definition) throws SchemaException {
-    	if (!(definition instanceof PrismObjectDefinition)) {
-    		throw new IllegalArgumentException("Cannot apply "+definition+" to object");
-    	}
-    	super.applyDefinition(definition);
-	}
+	void applyDefinition(PrismContainerDefinition<O> definition) throws SchemaException;
 
 	@Override
-	public <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> void removeItem(ItemPath path, Class<I> itemType) {
-		// Objects are only a single-valued containers. The path of the object itself is "empty".
-		// Fix this special behavior here.
-		getValue().removeItem(path, itemType);
-	}
+	<IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> void removeItem(ItemPath path, Class<I> itemType);
 
-	public void addReplaceExisting(Item<?,?> item) throws SchemaException {
-		getValue().addReplaceExisting(item);
-	}
+	void addReplaceExisting(Item<?, ?> item) throws SchemaException;
 
 	@Override
-	public PrismObject<O> clone() {
-		return cloneComplex(CloneStrategy.LITERAL);
-	}
-	
+	PrismObject<O> clone();
+
 	@Override
-	public PrismObject<O> cloneComplex(CloneStrategy strategy) {
-		if (prismContext != null && prismContext.getMonitor() != null) {
-			prismContext.getMonitor().beforeObjectClone(this);
-		}
+	PrismObject<O> cloneComplex(CloneStrategy strategy);
 
-		PrismObject<O> clone = new PrismObject<>(getElementName(), getDefinition(), prismContext);
-		copyValues(strategy, clone);
-
-		if (prismContext != null && prismContext.getMonitor() != null) {
-			prismContext.getMonitor().afterObjectClone(this, clone);
-		}
-
-		return clone;
-	}
-
-	protected void copyValues(CloneStrategy strategy, PrismObject<O> clone) {
-		super.copyValues(strategy, clone);
-	}
-
-	public PrismObjectDefinition<O> deepCloneDefinition(boolean ultraDeep, Consumer<ItemDefinition> postCloneAction) {
-		return (PrismObjectDefinition<O>) super.deepCloneDefinition(ultraDeep, postCloneAction);
-	}
+	PrismObjectDefinition<O> deepCloneDefinition(boolean ultraDeep, Consumer<ItemDefinition> postCloneAction);
 
 	@NotNull
-	public ObjectDelta<O> diff(PrismObject<O> other) {
-		return diff(other, true, false);
-	}
+	ObjectDelta<O> diff(PrismObject<O> other);
 
 	@NotNull
-	public ObjectDelta<O> diff(PrismObject<O> other, boolean ignoreMetadata, boolean isLiteral) {
-		if (other == null) {
-			ObjectDelta<O> objectDelta = new ObjectDelta<>(getCompileTimeClass(), ChangeType.DELETE, getPrismContext());
-			objectDelta.setOid(getOid());
-			return objectDelta;
-		}
-		// This must be a modify
-		ObjectDelta<O> objectDelta = new ObjectDelta<>(getCompileTimeClass(), ChangeType.MODIFY, getPrismContext());
-		objectDelta.setOid(getOid());
-
-		Collection<? extends ItemDelta> itemDeltas = new ArrayList<>();
-		diffInternal(other, itemDeltas, ignoreMetadata, isLiteral);
-		objectDelta.addModifications(itemDeltas);
-
-		return objectDelta;
-	}
+	ObjectDelta<O> diff(PrismObject<O> other, boolean ignoreMetadata, boolean isLiteral);
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public Collection<? extends ItemDelta<?,?>> narrowModifications(Collection<? extends ItemDelta<?,?>> modifications) {
-		if (modifications == null) {
-    		return null;
-    	}
-    	Collection narrowedModifications = new ArrayList<>(modifications.size());
-    	for (ItemDelta<?, ?> modification: modifications) {
-    		ItemDelta<?, ?> narrowedModifiacation = modification.narrow(this);
-    		if (narrowedModifiacation != null && !narrowedModifiacation.isEmpty()) {
-    			narrowedModifications.add(narrowedModifiacation);
-    		}
-    	}
-    	return narrowedModifications;
-	}
-	
-	public ObjectDelta<O> createDelta(ChangeType changeType) {
-		ObjectDelta<O> delta = new ObjectDelta<>(getCompileTimeClass(), changeType, getPrismContext());
-		delta.setOid(getOid());
-		return delta;
-	}
+	Collection<? extends ItemDelta<?,?>> narrowModifications(Collection<? extends ItemDelta<?, ?>> modifications);
 
-	public ObjectDelta<O> createAddDelta() {
-		ObjectDelta<O> delta = createDelta(ChangeType.ADD);
-		// TODO: clone?
-		delta.setObjectToAdd(this);
-		return delta;
-	}
+	ObjectDelta<O> createDelta(ChangeType changeType);
 
-	public ObjectDelta<O> createModifyDelta() {
-		ObjectDelta<O> delta = createDelta(ChangeType.MODIFY);
-		delta.setOid(this.getOid());
-		return delta;
-	}
+	ObjectDelta<O> createAddDelta();
 
-	public ObjectDelta<O> createDeleteDelta() {
-		ObjectDelta<O> delta = createDelta(ChangeType.DELETE);
-		delta.setOid(this.getOid());
-		return delta;
-	}
+	ObjectDelta<O> createModifyDelta();
+
+	ObjectDelta<O> createDeleteDelta();
 
 	@Override
-	public void setParent(PrismValue parentValue) {
-		throw new IllegalStateException("Cannot set parent for an object");
-	}
+	void setParent(PrismValue parentValue);
 
 	@Override
-	public PrismValue getParent() {
-		return null;
-	}
+	PrismValue getParent();
 
 	@Override
-	public ItemPath getPath() {
-		return ItemPath.EMPTY_PATH;
-	}
+	ItemPath getPath();
 
 	@Override
-	public boolean equals(Object obj) {
-		if (prismContext != null && prismContext.getMonitor() != null) {
-			prismContext.getMonitor().recordPrismObjectCompareCount(this, obj);
-		}
-		return super.equals(obj);
-	}
+	boolean equals(Object obj);
 
 	/**
 	 * this method ignores some part of the object during comparison (e.g. source demarcation in values)
 	 * These methods compare the "meaningful" parts of the objects.
 	 */
-	public boolean equivalent(Object obj) {
-		if (prismContext != null && prismContext.getMonitor() != null) {
-			prismContext.getMonitor().recordPrismObjectCompareCount(this, obj);
-		}
-		if (this == obj)
-			return true;
-		if (getClass() != obj.getClass())
-			return false;
-		PrismObject other = (PrismObject) obj;
-		//noinspection unchecked
-		ObjectDelta<O> delta = diff(other, true, false);
-		return delta.isEmpty();
-	}
+	boolean equivalent(Object obj);
 
 	@Override
-	public String toString() {
-		return toDebugName();
-	}
+	String toString();
 
 	/**
 	 * Returns short string representing identity of this object.
@@ -375,27 +170,7 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 	 * in a form suitable for log and diagnostic messages (understandable for
 	 * system administrator).
 	 */
-	public String toDebugName() {
-		return toDebugType()+":"+getOid()+"("+getNamePropertyStringValue()+")";
-	}
-
-	private PrismProperty<PolyString> getNameProperty() {
-		QName elementName = getElementName();
-		String myNamespace = elementName.getNamespaceURI();
-		return findProperty(new QName(myNamespace, PrismConstants.NAME_LOCAL_NAME));
-	}
-
-	private String getNamePropertyStringValue() {
-		PrismProperty<PolyString> nameProperty = getNameProperty();
-		if (nameProperty == null) {
-			return null;
-		}
-		PolyString realValue = nameProperty.getRealValue();
-		if (realValue == null) {
-			return null;
-		}
-		return realValue.getOrig();
-	}
+	String toDebugName();
 
 	/**
 	 * Returns short string identification of object type. It should be in a form
@@ -403,82 +178,36 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 	 * but it rather has to be compact. E.g. short element names are preferred to long
 	 * QNames or URIs.
 	 */
-	public String toDebugType() {
-		QName elementName = getElementName();
-		if (elementName == null) {
-			return "(unknown)";
-		}
-		return elementName.getLocalPart();
-	}
-
-	/**
-	 * Return a human readable name of this class suitable for logs.
-	 */
-	@Override
-	protected String getDebugDumpClassName() {
-		return "PO";
-	}
-
-	@Override
-	protected void appendDebugDumpSuffix(StringBuilder sb) {
-		sb.append("(").append(getOid());
-		if (getVersion() != null) {
-			sb.append(", v").append(getVersion());
-		}
-		PrismObjectDefinition<O> def = getDefinition();
-		if (def != null) {
-			sb.append(", ").append(DebugUtil.formatElementName(def.getTypeName()));
-		}
-		sb.append(")");
-	}
+	String toDebugType();
 
     /**
 	 * Return display name intended for business users of midPoint
 	 */
-    public String getBusinessDisplayName() {
-        return getNamePropertyStringValue();
-    }
+    String getBusinessDisplayName();
 
 	@Override
-	public void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw,
-			ConsistencyCheckScope scope) {
-		super.checkConsistenceInternal(rootItem, requireDefinitions, prohibitRaw, scope);
-		if (size() > 1) {
-			throw new IllegalStateException("PrismObject holding more than one value: " + size() + ": " + this);
-		}
-		getValue();			// checks the type by casting to POV
-	}
+	void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw,
+			ConsistencyCheckScope scope);
 
 	@Override
-	public void setImmutable(boolean immutable) {
-		if (!this.immutable && immutable && values.isEmpty()) {
-			createNewValue();
-		}
-		super.setImmutable(immutable);
-	}
+	void setImmutable(boolean immutable);
 
-	public PrismObject<O> cloneIfImmutable() {
-        return isImmutable() ? clone() : this;
-	}
+	PrismObject<O> cloneIfImmutable();
 
-	public PrismObject<O> createImmutableClone() {
-		PrismObject<O> clone = clone();
-		clone.setImmutable(true);
-		return clone;
-	}
+	PrismObject<O> createImmutableClone();
 
 	@NotNull
-	public static <T extends Objectable> List<T> asObjectableList(@NotNull List<PrismObject<T>> objects) {
+	static <T extends Objectable> List<T> asObjectableList(@NotNull List<PrismObject<T>> objects) {
 		return objects.stream()
 				.map(o -> o.asObjectable())
 				.collect(Collectors.toList());
 	}
 
-	public static PrismObject<?> asPrismObject(Objectable o) {
+	static PrismObject<?> asPrismObject(Objectable o) {
 		return o != null ? o.asPrismObject() : null;
 	}
 
-	public static Objectable asObjectable(PrismObject<?> object) {
+	static Objectable asObjectable(PrismObject<?> object) {
 		return object != null ? object.asObjectable() : null;
 	}
 }

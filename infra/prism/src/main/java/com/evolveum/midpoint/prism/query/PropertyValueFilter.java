@@ -100,7 +100,7 @@ public abstract class PropertyValueFilter<T> extends ValueFilter<PrismPropertyVa
 				pVal = pVal.clone();
 			}
 		} else {
-			pVal = new PrismPropertyValue<>(value);
+			pVal = new PrismPropertyValueImpl<>(value);
 		}
 		PrismUtil.recomputePrismPropertyValue(pVal, prismContext);
 		pVals.add(pVal);
@@ -126,7 +126,7 @@ public abstract class PropertyValueFilter<T> extends ValueFilter<PrismPropertyVa
 //
 //		} else {
 //			PrismUtil.recomputeRealValue(realValue, itemDefinition.getPrismContext());
-//			pVals.add(new PrismPropertyValue<T>(realValue));
+//			pVals.add(new PrismPropertyValueImpl<T>(realValue));
 //		}
 //		return pVals;
 //	}

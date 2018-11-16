@@ -18,6 +18,7 @@ package com.evolveum.midpoint.prism.query;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismReferenceValueImpl;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -47,7 +48,7 @@ public class OrgFilter extends ObjectFilter {
     }
 
     public static OrgFilter createOrg(String baseOrgOid, Scope scope) {
-        return new OrgFilter(new PrismReferenceValue(baseOrgOid), scope);
+        return new OrgFilter(new PrismReferenceValueImpl(baseOrgOid), scope);
     }
 
     public static OrgFilter createRootOrg() {

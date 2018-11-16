@@ -3784,7 +3784,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         ShadowType anglicaAccount = parseObjectType(new File(ACCOUNT_ANGELIKA_FILENAME), ShadowType.class);
         PrismProperty<String> prop = anglicaAccount.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES).getValue().createProperty(
         		new PrismPropertyDefinitionImpl<>(getOpenDjPrimaryIdentifierQName(), DOMUtil.XSD_STRING, prismContext));
-    	prop.setValue(new PrismPropertyValue<>(entryUuid));
+    	prop.setRealValue(entryUuid);
     	anglicaAccount.setResourceRef(ObjectTypeUtil.createObjectRef(RESOURCE_OPENDJ_OID, ObjectTypes.RESOURCE));
 
     	display("Angelica shadow: ", anglicaAccount.asPrismObject().debugDump());

@@ -460,9 +460,9 @@ public class FocusProcessor {
 					}
 					PropertyDelta<Object> propDelta = propDef.createEmptyDelta(itemPath);
 					if (String.class.isAssignableFrom(propDef.getTypeClass())) {
-						propDelta.setValueToReplace(new PrismPropertyValue<>(newValue, OriginType.USER_POLICY, null));
+						propDelta.setValueToReplace(new PrismPropertyValueImpl<>(newValue, OriginType.USER_POLICY, null));
 					} else if (PolyString.class.isAssignableFrom(propDef.getTypeClass())) {
-						propDelta.setValueToReplace(new PrismPropertyValue<>(new PolyString(newValue), OriginType.USER_POLICY, null));
+						propDelta.setValueToReplace(new PrismPropertyValueImpl<>(new PolyString(newValue), OriginType.USER_POLICY, null));
 					} else {
 						throw new SchemaException("Unsupported type "+propDef.getTypeName()+" for property "+itemPath+" in "+focusDefinition+" as specified in object policy, only string and polystring properties are supported for OID-bound mode");
 					}
@@ -485,7 +485,7 @@ public class FocusProcessor {
 				PrismObjectDefinition<F> focusDefinition = focusContext.getObjectDefinition();
 				PrismPropertyDefinition<PolyString> focusNameDef = focusDefinition.findPropertyDefinition(FocusType.F_NAME);
 				PropertyDelta<PolyString> nameDelta = focusNameDef.createEmptyDelta(new ItemPath(FocusType.F_NAME));
-				nameDelta.setValueToReplace(new PrismPropertyValue<>(new PolyString(newValue), OriginType.USER_POLICY, null));
+				nameDelta.setValueToReplace(new PrismPropertyValueImpl<>(new PolyString(newValue), OriginType.USER_POLICY, null));
 				focusContext.swallowToSecondaryDelta(nameDelta);
 				focusContext.recompute();
 			}
@@ -715,7 +715,7 @@ public class FocusProcessor {
 			if (failedLogins != null && failedLogins != 0) {
 				PrismPropertyDefinition<Integer> failedLoginsDef = getFailedLoginsDefinition();
 				PropertyDelta<Integer> failedLoginsDelta = failedLoginsDef.createEmptyDelta(path);
-				failedLoginsDelta.setValueToReplace(new PrismPropertyValue<>(0, OriginType.USER_POLICY, null));
+				failedLoginsDelta.setValueToReplace(new PrismPropertyValueImpl<>(0, OriginType.USER_POLICY, null));
 				focusContext.swallowToProjectionWaveSecondaryDelta(failedLoginsDelta);
 			}
 		}
@@ -731,14 +731,14 @@ public class FocusProcessor {
 		if (validityStatusNew == null) {
 			validityStatusDelta.setValueToReplace();
 		} else {
-			validityStatusDelta.setValueToReplace(new PrismPropertyValue<>(validityStatusNew, OriginType.USER_POLICY, null));
+			validityStatusDelta.setValueToReplace(new PrismPropertyValueImpl<>(validityStatusNew, OriginType.USER_POLICY, null));
 		}
 		focusContext.swallowToProjectionWaveSecondaryDelta(validityStatusDelta);
 
 		PrismPropertyDefinition<XMLGregorianCalendar> validityChangeTimestampDef = activationDefinition.findPropertyDefinition(ActivationType.F_VALIDITY_CHANGE_TIMESTAMP);
 		PropertyDelta<XMLGregorianCalendar> validityChangeTimestampDelta
 				= validityChangeTimestampDef.createEmptyDelta(new ItemPath(UserType.F_ACTIVATION, ActivationType.F_VALIDITY_CHANGE_TIMESTAMP));
-		validityChangeTimestampDelta.setValueToReplace(new PrismPropertyValue<>(now, OriginType.USER_POLICY, null));
+		validityChangeTimestampDelta.setValueToReplace(new PrismPropertyValueImpl<>(now, OriginType.USER_POLICY, null));
 		focusContext.swallowToProjectionWaveSecondaryDelta(validityChangeTimestampDelta);
 	}
 
@@ -755,7 +755,7 @@ public class FocusProcessor {
 		PrismPropertyDefinition<ActivationStatusType> effectiveStatusDef = activationDefinition.findPropertyDefinition(ActivationType.F_EFFECTIVE_STATUS);
 		PropertyDelta<ActivationStatusType> effectiveStatusDelta
 				= effectiveStatusDef.createEmptyDelta(new ItemPath(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
-		effectiveStatusDelta.setValueToReplace(new PrismPropertyValue<>(effectiveStatusNew, OriginType.USER_POLICY, null));
+		effectiveStatusDelta.setValueToReplace(new PrismPropertyValueImpl<>(effectiveStatusNew, OriginType.USER_POLICY, null));
 		if (!focusContext.alreadyHasDelta(effectiveStatusDelta)){
 			focusContext.swallowToProjectionWaveSecondaryDelta(effectiveStatusDelta);
 		}
@@ -812,13 +812,13 @@ public class FocusProcessor {
 		}
 		PrismObjectDefinition<F> objDef = focusContext.getObjectDefinition();
 
-		PrismPropertyValue<Integer> iterationVal = new PrismPropertyValue<>(iteration);
+		PrismPropertyValue<Integer> iterationVal = new PrismPropertyValueImpl<>(iteration);
 		iterationVal.setOriginType(OriginType.USER_POLICY);
 		PropertyDelta<Integer> iterationDelta = PropertyDelta.createReplaceDelta(objDef,
 				FocusType.F_ITERATION, iterationVal);
 		focusContext.swallowToSecondaryDelta(iterationDelta);
 
-		PrismPropertyValue<String> iterationTokenVal = new PrismPropertyValue<>(iterationToken);
+		PrismPropertyValue<String> iterationTokenVal = new PrismPropertyValueImpl<>(iterationToken);
 		iterationTokenVal.setOriginType(OriginType.USER_POLICY);
 		PropertyDelta<String> iterationTokenDelta = PropertyDelta.createReplaceDelta(objDef,
 				FocusType.F_ITERATION_TOKEN, iterationTokenVal);
@@ -869,7 +869,7 @@ public class FocusProcessor {
 								new NameItemPathSegment(AssignmentType.F_ACTIVATION),
 								new NameItemPathSegment(ActivationType.F_EFFECTIVE_STATUS)
 							));
-					effectiveStatusDelta.setValueToReplace(new PrismPropertyValue<>(expectedEffectiveStatus));
+					effectiveStatusDelta.setValueToReplace(new PrismPropertyValueImpl<>(expectedEffectiveStatus));
 					focusContext.swallowToSecondaryDelta(effectiveStatusDelta);
 				}
 			}

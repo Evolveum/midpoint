@@ -152,7 +152,7 @@ public class ACAttributeDto implements Serializable {
                 continue;
             }
 
-            property.add(new PrismPropertyValue(dto.getValue()));
+            property.addRealValue(dto.getValue());
         }
 
         List evaluators = expression.getExpressionEvaluator();

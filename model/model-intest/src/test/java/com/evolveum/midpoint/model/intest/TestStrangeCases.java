@@ -246,7 +246,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         display("New account", account);
 
         ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_GUYBRUSH_OID, prismContext);
-        PrismReferenceValue accountRefVal = new PrismReferenceValue();
+        PrismReferenceValue accountRefVal = new PrismReferenceValueImpl();
 		accountRefVal.setObject(account);
 		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountDelta);

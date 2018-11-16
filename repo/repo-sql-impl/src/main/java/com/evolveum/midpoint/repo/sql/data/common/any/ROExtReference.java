@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismReferenceValueImpl;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.id.ROExtReferenceId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
@@ -122,7 +123,7 @@ public class ROExtReference extends ROExtBase {
     }
 
     public static PrismReferenceValue createReference(ROExtReference repo) {
-        PrismReferenceValue value = new PrismReferenceValue();
+        PrismReferenceValue value = new PrismReferenceValueImpl();
         value.setOid(repo.getValue());
         value.setRelation(RUtil.stringToQName(repo.getRelation()));
         value.setTargetType(ClassMapper.getQNameForHQLType(repo.getTargetType()));

@@ -241,7 +241,7 @@ public class LensUtil {
 		PrismPropertyDefinition<XMLGregorianCalendar> timestampDef = activationDefinition.findPropertyDefinition(timestampPropertyName);
 		PropertyDelta<XMLGregorianCalendar> timestampDelta
 				= timestampDef.createEmptyDelta(new ItemPath(FocusType.F_ACTIVATION, timestampPropertyName));
-		timestampDelta.setValueToReplace(new PrismPropertyValue<>(now, origin, null));
+		timestampDelta.setValueToReplace(new PrismPropertyValueImpl<>(now, origin, null));
 		return timestampDelta;
     }
 
@@ -276,7 +276,7 @@ public class LensUtil {
 		PrismProperty<Integer> propOld = propDef.instantiate();
 		propOld.setRealValue(iterationOld);
 		PropertyDelta<Integer> propDelta = propDef.createEmptyDelta(new ItemPath(ExpressionConstants.VAR_ITERATION));
-		propDelta.setValueToReplace(new PrismPropertyValue<>(accCtx.getIteration()));
+		propDelta.setValueToReplace(new PrismPropertyValueImpl<>(accCtx.getIteration()));
 		PrismProperty<Integer> propNew = propDef.instantiate();
 		propNew.setRealValue(accCtx.getIteration());
 		ItemDeltaItem<PrismPropertyValue<Integer>,PrismPropertyDefinition<Integer>> idi = new ItemDeltaItem<>(propOld, propDelta, propNew);
@@ -297,7 +297,7 @@ public class LensUtil {
 		PrismProperty<String> propOld = propDef.instantiate();
 		propOld.setRealValue(iterationTokenOld);
 		PropertyDelta<String> propDelta = propDef.createEmptyDelta(new ItemPath(ExpressionConstants.VAR_ITERATION_TOKEN));
-		propDelta.setValueToReplace(new PrismPropertyValue<>(accCtx.getIterationToken()));
+		propDelta.setValueToReplace(new PrismPropertyValueImpl<>(accCtx.getIterationToken()));
 		PrismProperty<String> propNew = propDef.instantiate();
 		propNew.setRealValue(accCtx.getIterationToken());
 		ItemDeltaItem<PrismPropertyValue<String>,PrismPropertyDefinition<String>> idi = new ItemDeltaItem<>(propOld, propDelta, propNew);
@@ -481,7 +481,7 @@ public class LensUtil {
 				DOMUtil.XSD_INT, context.getPrismContext());
 		inputDefinition.setMaxOccurs(1);
 		PrismProperty<Integer> input = inputDefinition.instantiate();
-		input.add(new PrismPropertyValue<>(iteration));
+		input.add(new PrismPropertyValueImpl<>(iteration));
 		ItemDeltaItem<PrismPropertyValue<Integer>,PrismPropertyDefinition<Integer>> idi = new ItemDeltaItem<>(input);
 		Source<PrismPropertyValue<Integer>,PrismPropertyDefinition<Integer>> iterationSource = new Source<>(idi, ExpressionConstants.VAR_ITERATION);
 		sources.add(iterationSource);

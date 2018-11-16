@@ -3505,7 +3505,7 @@ public class TestMapping extends AbstractMappingTest {
 		displayWhen(TEST_NAME);
 		AssignmentType orgAssignment = findAssignment(jim, ORG_SAVE_ELAINE_OID, SchemaConstants.ORG_DEFAULT);
 		assertNotNull("org assignment not found", orgAssignment);
-		PrismContainerValue<Containerable> orgAssignmentPcv = new PrismContainerValue<>(prismContext);
+		PrismContainerValue<Containerable> orgAssignmentPcv = new PrismContainerValueImpl<>(prismContext);
 		orgAssignmentPcv.setId(orgAssignment.getId());
 		ObjectDelta<UserType> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
 				.item(UserType.F_ASSIGNMENT).delete(orgAssignmentPcv)

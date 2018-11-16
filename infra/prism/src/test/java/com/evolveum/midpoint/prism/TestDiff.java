@@ -118,7 +118,7 @@ public class TestDiff {
 		PrismProperty<PolyString> user2NameProp = user2.findProperty(UserType.F_NAME);
 
 		// WHEN
-        PropertyDelta<PolyString> delta = PrismProperty.diff(user1NameProp, user2NameProp);
+        PropertyDelta<PolyString> delta = PrismPropertyImpl.diff(user1NameProp, user2NameProp);
 
         // THEN
         assertNull(delta);
@@ -193,7 +193,7 @@ public class TestDiff {
 		PrismProperty<PolyString> user2NameProp = user2.findProperty(UserType.F_NAME);
 
 		// WHEN
-		PropertyDelta<PolyString> delta = PrismProperty.diff(user1NameProp, user2NameProp);
+		PropertyDelta<PolyString> delta = PrismPropertyImpl.diff(user1NameProp, user2NameProp);
 
         // THEN
         assertNotNull(delta);
@@ -277,7 +277,7 @@ public class TestDiff {
 		additionalNamesProp2.addRealValue("bar");
 
 		// WHEN
-        PropertyDelta<String> delta = PrismProperty.diff(additionalNamesProp1, additionalNamesProp2);
+        PropertyDelta<String> delta = PrismPropertyImpl.diff(additionalNamesProp1, additionalNamesProp2);
 
         // THEN
         assertNull(delta);
@@ -366,7 +366,7 @@ public class TestDiff {
 		additionalNamesProp2.addRealValue("baz");
 
 		// WHEN
-		PropertyDelta<String> delta = PrismProperty.diff(additionalNamesProp1, additionalNamesProp2);
+		PropertyDelta<String> delta = PrismPropertyImpl.diff(additionalNamesProp1, additionalNamesProp2);
 
         // THEN
         assertNotNull(delta);
@@ -389,7 +389,7 @@ public class TestDiff {
 		additionalNamesProp2.addRealValue("bar");
 
 		// WHEN
-		PropertyDelta<String> delta = PrismProperty.diff(null, additionalNamesProp2);
+		PropertyDelta<String> delta = PrismPropertyImpl.diff(null, additionalNamesProp2);
 
         // THEN
         assertNotNull(delta);
@@ -412,7 +412,7 @@ public class TestDiff {
 		additionalNamesProp1.addRealValue("baz");
 
 		// WHEN
-		PropertyDelta<String> delta = PrismProperty.diff(additionalNamesProp1, null);
+		PropertyDelta<String> delta = PrismPropertyImpl.diff(additionalNamesProp1, null);
 
         // THEN
         assertNotNull(delta);

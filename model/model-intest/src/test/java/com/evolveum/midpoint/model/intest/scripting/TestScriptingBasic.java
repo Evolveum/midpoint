@@ -855,7 +855,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 		List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(SecurityPolicyType.class, prismContext)
 				.item(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD,
 						PasswordCredentialsPolicyType.F_PASSWORD_POLICY_REF)
-				.add(new PrismReferenceValue(PASSWORD_POLICY_GLOBAL_OID))
+				.add(new PrismReferenceValueImpl(PASSWORD_POLICY_GLOBAL_OID))
 				.asItemDeltas();
 		modifySystemObjectInRepo(SecurityPolicyType.class, SECURITY_POLICY_OID, itemDeltas, result);
 

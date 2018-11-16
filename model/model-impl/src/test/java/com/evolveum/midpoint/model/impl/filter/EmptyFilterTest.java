@@ -15,9 +15,9 @@
  */
 package com.evolveum.midpoint.model.impl.filter;
 
-import com.evolveum.midpoint.model.impl.filter.EmptyFilter;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 
+import com.evolveum.midpoint.prism.PrismPropertyValueImpl;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeMethod;
@@ -44,7 +44,7 @@ public class EmptyFilterTest {
     @Test
     public void testNode() {
         String input = "test content";
-        PrismPropertyValue<String> value = new PrismPropertyValue<>(input);
+        PrismPropertyValue<String> value = new PrismPropertyValueImpl<>(input);
         value = filter.apply(value);
 
         AssertJUnit.assertEquals(input, value.getValue());

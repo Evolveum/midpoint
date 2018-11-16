@@ -32,6 +32,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -61,12 +62,6 @@ import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleScriptEx
 import com.evolveum.midpoint.model.impl.migrator.Migrator;
 import com.evolveum.midpoint.model.impl.sync.RecomputeTaskHandler;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -1012,7 +1007,7 @@ public class Clockwork {
         // creating object query
         PrismPropertyDefinition propertyDef = prismContext.getSchemaRegistry()
                 .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
-        PrismReferenceValue referenceValue = new PrismReferenceValue(context.getFocusContext().getOid(), RoleType.COMPLEX_TYPE);
+        PrismReferenceValue referenceValue = new PrismReferenceValueImpl(context.getFocusContext().getOid(), RoleType.COMPLEX_TYPE);
         ObjectFilter refFilter = QueryBuilder.queryFor(FocusType.class, prismContext)
 				.item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(referenceValue)
 				.buildFilter();

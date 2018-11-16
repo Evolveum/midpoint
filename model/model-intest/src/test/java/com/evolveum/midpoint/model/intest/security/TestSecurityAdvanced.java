@@ -27,6 +27,7 @@ import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -34,10 +35,6 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
@@ -3325,14 +3322,14 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 	}
     
 	private void assertDeputySearchDelegatorRef(String delegatorOid, String... expectedDeputyOids) throws Exception {
-		PrismReferenceValue rval = new PrismReferenceValue(delegatorOid, UserType.COMPLEX_TYPE);
+		PrismReferenceValue rval = new PrismReferenceValueImpl(delegatorOid, UserType.COMPLEX_TYPE);
 		rval.setRelation(SchemaConstants.ORG_DEPUTY);
 		ObjectQuery query = queryFor(UserType.class).item(UserType.F_DELEGATED_REF).ref(rval).build();
 		assertSearch(UserType.class, query, expectedDeputyOids);
 	}
 	
 	private void assertDeputySearchAssignmentTarget(String delegatorOid, String... expectedDeputyOids) throws Exception {
-		PrismReferenceValue rval = new PrismReferenceValue(delegatorOid, UserType.COMPLEX_TYPE);
+		PrismReferenceValue rval = new PrismReferenceValueImpl(delegatorOid, UserType.COMPLEX_TYPE);
 		rval.setRelation(SchemaConstants.ORG_DEPUTY);
 		ObjectQuery query = queryFor(UserType.class)
 				.item(new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)).ref(rval).build();

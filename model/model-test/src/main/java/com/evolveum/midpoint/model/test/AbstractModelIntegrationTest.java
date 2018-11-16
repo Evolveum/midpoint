@@ -780,7 +780,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		Task task = createTask("clearUserPassword");
 		OperationResult result = task.getResult();
 		List<ItemDelta<?,?>> itemDeltas = DeltaBuilder.deltaFor(UserType.class, prismContext)
-			.item(SchemaConstants.PATH_PASSWORD).replace(new PrismContainerValue[0])
+			.item(SchemaConstants.PATH_PASSWORD).replace(new PrismContainerValueImpl[0])        // todo
 			.asItemDeltas();
 		repositoryService.modifyObject(UserType.class, userOid, itemDeltas, result);
 		assertSuccess(result);
@@ -983,7 +983,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			if (targetRef != null) {
 				if (targetRef.getType().equals(RoleType.COMPLEX_TYPE)) {
 					ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(UserType.F_ASSIGNMENT, getUserDefinition());
-					PrismContainerValue<AssignmentType> cval = new PrismContainerValue<>(prismContext);
+					PrismContainerValue<AssignmentType> cval = new PrismContainerValueImpl<>(prismContext);
 					cval.setId(assignment.getId());
 					assignmentDelta.addValueToDelete(cval);
 					modifications.add(assignmentDelta);
@@ -1270,7 +1270,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 			PolicyViolationException, SecurityViolationException {
 		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceContainer(UserType.class, userOid,
-				UserType.F_ASSIGNMENT, prismContext, new PrismContainerValue[0]);
+				UserType.F_ASSIGNMENT, prismContext, new PrismContainerValueImpl[0]);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 		modelService.executeChanges(deltas, null, task, result);
 	}
@@ -1303,7 +1303,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected <F extends FocusType> ContainerDelta<AssignmentType> createAssignmentModification(Class<F> type, QName elementName, String roleOid, QName refType, QName relation,
 			Consumer<AssignmentType> modificationBlock, boolean add) throws SchemaException {
 		ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(elementName, getObjectDefinition(type));
-		PrismContainerValue<AssignmentType> cval = new PrismContainerValue<>(prismContext);
+		PrismContainerValue<AssignmentType> cval = new PrismContainerValueImpl<>(prismContext);
 		if (add) {
 			assignmentDelta.addValueToAdd(cval);
 		} else {
@@ -1321,7 +1321,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected ContainerDelta<AssignmentType> createAssignmentModification(long id, boolean add) throws SchemaException {
 		ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(UserType.F_ASSIGNMENT, getUserDefinition());
-		PrismContainerValue<AssignmentType> cval = new PrismContainerValue<>(prismContext);
+		PrismContainerValue<AssignmentType> cval = new PrismContainerValueImpl<>(prismContext);
 		cval.setId(id);
 		if (add) {
 			assignmentDelta.addValueToAdd(cval);
@@ -1460,7 +1460,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 
 		ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(UserType.F_ASSIGNMENT, getUserDefinition());
-		PrismContainerValue<AssignmentType> cval = new PrismContainerValue<>(prismContext);
+		PrismContainerValue<AssignmentType> cval = new PrismContainerValueImpl<>(prismContext);
 		if (adding) {
 			assignmentDelta.addValueToAdd(cval);
 		} else {
@@ -1524,7 +1524,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected int countAssignees(String targetOid, QName relation, OperationResult result) throws SchemaException {
-		PrismReferenceValue refVal = new PrismReferenceValue();
+		PrismReferenceValue refVal = new PrismReferenceValueImpl();
 		refVal.setOid(targetOid);
 		refVal.setRelation(relation);
 		ObjectQuery query = QueryBuilder.queryFor(FocusType.class, prismContext)
@@ -2784,7 +2784,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         	assignmentDeltaValue = assignmentDelta.getValuesToDelete().iterator().next();
         }
         PrismContainer<ActivationType> activationContainer = assignmentDeltaValue.findOrCreateContainer(AssignmentType.F_ACTIVATION);
-        PrismContainerValue<ActivationType> emptyValue = new PrismContainerValue<>(prismContext);
+        PrismContainerValue<ActivationType> emptyValue = new PrismContainerValueImpl<>(prismContext);
 		activationContainer.add(emptyValue);
 	}
 
@@ -2794,7 +2794,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         OperationResult result = task.getResult();
 
         ObjectDelta<ResourceType> resourceDelta = ObjectDelta.createModificationReplaceContainer(ResourceType.class,
-        		resourceOid, ResourceType.F_SCHEMA, prismContext, new PrismContainerValue[0]);
+        		resourceOid, ResourceType.F_SCHEMA, prismContext, new PrismContainerValueImpl[0]);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(resourceDelta);
 
         modelService.executeChanges(deltas, null, task, result);
@@ -2863,7 +2863,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		account.asObjectable().setObjectClass(refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT).getObjectClassDefinition().getTypeName());
 
 		ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, userOid, prismContext);
-        PrismReferenceValue accountRefVal = new PrismReferenceValue();
+        PrismReferenceValue accountRefVal = new PrismReferenceValueImpl();
 		accountRefVal.setObject(account);
 		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountDelta);
@@ -2884,7 +2884,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		PrismObject<ShadowType> account = getShadowModel(accountOid);
 
 		ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, userOid, prismContext);
-        PrismReferenceValue accountRefVal = new PrismReferenceValue();
+        PrismReferenceValue accountRefVal = new PrismReferenceValueImpl();
 		accountRefVal.setObject(account);
 		ReferenceDelta accountDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountDelta);
@@ -2896,7 +2896,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		String accountOid = getLinkRefOid(userOid, resource.getOid());
 
 		ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, userOid, prismContext);
-        PrismReferenceValue accountRefVal = new PrismReferenceValue();
+        PrismReferenceValue accountRefVal = new PrismReferenceValueImpl();
 		accountRefVal.setOid(accountOid);
 		ReferenceDelta accountDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountDelta);
@@ -4625,7 +4625,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		PrismObject<ShadowType> account = prismContext.parseObject(accountFile);
 
         ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, userOid, prismContext);
-        PrismReferenceValue accountRefVal = new PrismReferenceValue();
+        PrismReferenceValue accountRefVal = new PrismReferenceValueImpl();
 		accountRefVal.setObject(account);
 		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountDelta);
@@ -5247,7 +5247,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 					new ItemPath(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_VALUE_POLICY_REF),
 					task, result /* no value */);
 		} else {
-			PrismReferenceValue passPolicyRef = new PrismReferenceValue(passwordPolicyOid, ValuePolicyType.COMPLEX_TYPE);
+			PrismReferenceValue passPolicyRef = new PrismReferenceValueImpl(passwordPolicyOid, ValuePolicyType.COMPLEX_TYPE);
 			modifyObjectReplaceReference(SecurityPolicyType.class, securityPolicyOid,
 					new ItemPath(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_VALUE_POLICY_REF),
 	        		task, result, passPolicyRef);
@@ -5284,7 +5284,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
 			ConfigurationException, ExpressionEvaluationException {
 		ObjectQuery query = QueryBuilder.queryFor(TaskType.class, prismContext)
-				.item(TaskType.F_OBJECT_REF).ref(new PrismReferenceValue(oid, type))
+				.item(TaskType.F_OBJECT_REF).ref(new PrismReferenceValueImpl(oid, type))
 				.build();
 		return modelService.searchObjects(TaskType.class, query, options, task, result);
 	}

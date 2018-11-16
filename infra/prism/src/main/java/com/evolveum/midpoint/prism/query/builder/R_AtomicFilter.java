@@ -107,7 +107,7 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
 
     @Override
     public <T> S_MatchingRuleEntry eq(PrismProperty<T> property) {
-        List<PrismPropertyValue<T>> clonedValues = (List<PrismPropertyValue<T>>) PrismPropertyValue.cloneCollection(property.getValues());
+        List<PrismPropertyValue<T>> clonedValues = (List<PrismPropertyValue<T>>) PrismPropertyValueImpl.cloneCollection(property.getValues());
         PrismPropertyDefinition<T> definition =
                 this.propertyDefinition != null ?
                         this.propertyDefinition : property.getDefinition();
@@ -225,7 +225,7 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
     public S_AtomicFilterExit ref(QName... relations) {
         List<PrismReferenceValue> values = new ArrayList<>();
         for (QName relation : relations) {
-            PrismReferenceValue ref = new PrismReferenceValue();
+            PrismReferenceValue ref = new PrismReferenceValueImpl();
             ref.setRelation(relation);
             values.add(ref);
         }
@@ -263,14 +263,14 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
     		return ref(Collections.emptyList());
 		} else {
     	    // when OIDs are specified, we allow any type
-    		return ref(Arrays.stream(oids).map(oid -> new PrismReferenceValue(oid)).collect(Collectors.toList()), true);
+    		return ref(Arrays.stream(oids).map(oid -> new PrismReferenceValueImpl(oid)).collect(Collectors.toList()), true);
 		}
     }
 
     @Override
     public S_AtomicFilterExit ref(String oid, QName targetTypeName) {
         if (oid != null) {
-            return ref(new PrismReferenceValue(oid, targetTypeName));
+            return ref(new PrismReferenceValueImpl(oid, targetTypeName));
         } else {
             return ref(Collections.emptyList());
         }

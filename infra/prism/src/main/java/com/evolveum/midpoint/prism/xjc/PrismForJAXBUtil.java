@@ -109,7 +109,7 @@ public final class PrismForJAXBUtil {
 		try {
 			property = container.findProperty(name);
 			if (property == null) {
-				property = container.createDetachedSubItem(name, PrismProperty.class, null, container.isImmutable());
+				property = container.createDetachedSubItem(name, PrismPropertyImpl.class, null, container.isImmutable());
 			}
 		} catch (SchemaException e) {
 			// This should not happen. Code generator and compiler should take care of that.
@@ -137,7 +137,7 @@ public final class PrismForJAXBUtil {
 	    	if (propertyRealValue == null) {
 	    		container.removeProperty(name);
 	    	} else {
-	    		property.setValue(new PrismPropertyValue(propertyRealValue));
+	    		property.setValue(new PrismPropertyValueImpl(propertyRealValue));
 	    	}
         }
     }
@@ -167,7 +167,7 @@ public final class PrismForJAXBUtil {
 			if (container != null) {
 				return (T) container;
 			} else {
-				return (T) parentValue.createDetachedSubItem(name, PrismContainer.class, null, parentValue.isImmutable());
+				return (T) parentValue.createDetachedSubItem(name, PrismContainerImpl.class, null, parentValue.isImmutable());
 			}
         } catch (SchemaException ex) {
             throw new SystemException(ex.getMessage(),  ex);
@@ -210,7 +210,7 @@ public final class PrismForJAXBUtil {
 	        		// This value is already part of another prism. We need to clone it to add it here.
 	        		fieldContainerValue = fieldContainerValue.clone();
 	        	}
-	            fieldContainer = new PrismContainer<>(fieldName, parent.getPrismContext());
+	            fieldContainer = new PrismContainerImpl<>(fieldName, parent.getPrismContext());
 	            fieldContainer.add(fieldContainerValue);
                 parent.addReplaceExisting(fieldContainer);
 	        }
@@ -243,7 +243,7 @@ public final class PrismForJAXBUtil {
 
         PrismReference reference;
 		try {
-			reference = parentValue.findOrCreateItem(referenceName, PrismReference.class);
+			reference = parentValue.findOrCreateItem(referenceName, PrismReferenceImpl.class);
 		} catch (SchemaException e) {
 			// This should not happen. Code generator and compiler should take care of that.
 			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
@@ -300,7 +300,7 @@ public final class PrismForJAXBUtil {
                 return refValue;
             }
         }
-        PrismReferenceValue referenceValue = new PrismReferenceValue();
+        PrismReferenceValue referenceValue = new PrismReferenceValueImpl();
         referenceValue.setObject(object);
         return referenceValue;
     }
@@ -329,7 +329,7 @@ public final class PrismForJAXBUtil {
 			if (reference != null) {
 				return reference;
 			} else {
-				return (PrismReference) parent.createDetachedSubItem(fieldName, PrismReference.class, null, parent.isImmutable());
+				return (PrismReference) parent.createDetachedSubItem(fieldName, PrismReferenceImpl.class, null, parent.isImmutable());
 			}
 		} catch (SchemaException e) {
 			// This should not happen. Code generator and compiler should take care of that.

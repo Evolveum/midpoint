@@ -874,9 +874,9 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		display("Repo shadow", shadowRepo);
 		assertSinglePendingOperation(shadowRepo, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
 		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME,
-				new RawType(new PrismPropertyValue(USER_WILL_NAME), ATTR_USERNAME_QNAME, prismContext));
+				new RawType(new PrismPropertyValueImpl<>(USER_WILL_NAME), ATTR_USERNAME_QNAME, prismContext));
 		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME,
-				new RawType(new PrismPropertyValue(USER_WILL_FULL_NAME), ATTR_FULLNAME_QNAME, prismContext));
+				new RawType(new PrismPropertyValueImpl<>(USER_WILL_FULL_NAME), ATTR_FULLNAME_QNAME, prismContext));
 		assertNoAttribute(shadowRepo, ATTR_DESCRIPTION_QNAME);
 		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
 		assertNoShadowPassword(shadowRepo);
@@ -919,9 +919,9 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		display("Repo shadow", shadowRepo);
 		assertSinglePendingOperation(shadowRepo, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
 		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME,
-				new RawType(new PrismPropertyValue(USER_WILL_NAME), ATTR_USERNAME_QNAME, prismContext));
+				new RawType(new PrismPropertyValueImpl<>(USER_WILL_NAME), ATTR_USERNAME_QNAME, prismContext));
 		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME,
-				new RawType(new PrismPropertyValue(USER_WILL_FULL_NAME), ATTR_FULLNAME_QNAME, prismContext));
+				new RawType(new PrismPropertyValueImpl<>(USER_WILL_FULL_NAME), ATTR_FULLNAME_QNAME, prismContext));
 		assertNoAttribute(shadowRepo, ATTR_DESCRIPTION_QNAME);
 		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
 		assertNoShadowPassword(shadowRepo);
@@ -1232,9 +1232,9 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 				accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
 		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
 		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME,
-				new RawType(new PrismPropertyValue(USER_WILL_NAME), ATTR_USERNAME_QNAME, prismContext));
+				new RawType(new PrismPropertyValueImpl<>(USER_WILL_NAME), ATTR_USERNAME_QNAME, prismContext));
 		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME,
-				new RawType(new PrismPropertyValue(USER_WILL_FULL_NAME_PIRATE), ATTR_FULLNAME_QNAME, prismContext));
+				new RawType(new PrismPropertyValueImpl<>(USER_WILL_FULL_NAME_PIRATE), ATTR_FULLNAME_QNAME, prismContext));
 
 		PrismObject<ShadowType> shadowProvisioning = modelService.getObject(ShadowType.class,
 				accountWillOid, null, task, result);
@@ -2025,9 +2025,9 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		// Still old data in the repo. The operation is not completed yet.
 		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
 		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME,
-				new RawType(new PrismPropertyValue(USER_WILL_NAME), ATTR_USERNAME_QNAME, prismContext));
+				new RawType(new PrismPropertyValueImpl<>(USER_WILL_NAME), ATTR_USERNAME_QNAME, prismContext));
 		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME,
-				new RawType(new PrismPropertyValue(USER_WILL_FULL_NAME), ATTR_FULLNAME_QNAME, prismContext));
+				new RawType(new PrismPropertyValueImpl<>(USER_WILL_FULL_NAME), ATTR_FULLNAME_QNAME, prismContext));
 		PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
 				accountWillOid, null, task, result);
 
@@ -2217,9 +2217,9 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowRepo, accountJackReqestTimestampStart, accountJackReqestTimestampEnd);
 		assertNotNull("No ID in pending operation", pendingOperation.getId());
 		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME,
-				new RawType(new PrismPropertyValue(USER_JACK_USERNAME), ATTR_USERNAME_QNAME, prismContext));
+				new RawType(new PrismPropertyValueImpl<>(USER_JACK_USERNAME), ATTR_USERNAME_QNAME, prismContext));
 		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME,
-				new RawType(new PrismPropertyValue(USER_JACK_FULL_NAME), ATTR_FULLNAME_QNAME, prismContext));
+				new RawType(new PrismPropertyValueImpl<>(USER_JACK_FULL_NAME), ATTR_FULLNAME_QNAME, prismContext));
 		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
 		assertShadowExists(shadowRepo, false);
 		assertNoShadowPassword(shadowRepo);

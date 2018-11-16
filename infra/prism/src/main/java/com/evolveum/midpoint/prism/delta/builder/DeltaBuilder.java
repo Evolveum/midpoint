@@ -313,7 +313,7 @@ public class DeltaBuilder<T extends Containerable> implements S_ItemEntry, S_May
     private PrismValue toPrismValue(ItemDelta<?,?> currentDelta, @NotNull Object v) {
         ItemDefinition definition = currentDelta.getDefinition();
         if (definition instanceof PrismPropertyDefinition) {
-            return new PrismPropertyValue<>(v);
+            return new PrismPropertyValueImpl<>(v);
         } else if (definition instanceof PrismContainerDefinition) {
             return ((Containerable) v).asPrismContainerValue();
         } else if (definition instanceof PrismReferenceDefinition) {

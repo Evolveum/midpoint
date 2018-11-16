@@ -34,11 +34,7 @@ import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.script.ScriptEvaluator;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionUtil;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
@@ -154,7 +150,7 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 				}
 			}
 		} else if (evalRawResult instanceof PrismProperty<?>) {
-			pvals.addAll((Collection<? extends V>) PrismPropertyValue.cloneCollection(((PrismProperty<T>)evalRawResult).getValues()));
+			pvals.addAll((Collection<? extends V>) PrismPropertyValueImpl.cloneCollection(((PrismProperty<T>)evalRawResult).getValues()));
 		} else {
 			T evalResult = convertScalarResult(javaReturnType, additionalConvertor, evalRawResult, contextDescription);
 			if (allowEmptyValues || !ExpressionUtil.isEmpty(evalResult)) {

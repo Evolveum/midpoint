@@ -1063,7 +1063,7 @@ public class PrismAsserts {
 	public static <T> void assertEqualsFilterValue(EqualFilter filter, T value) {
 		List<? extends PrismValue> values = filter.getValues();
 		assertEquals("Wrong number of filter values", 1, values.size());
-		assertEquals("Wrong filter value class", PrismPropertyValue.class, values.get(0).getClass());
+		assertEquals("Wrong filter value class", PrismPropertyValueImpl.class, values.get(0).getClass());   // todo "Impl"
 		PrismPropertyValue val = (PrismPropertyValue) values.get(0);
 		assertEquals("Wrong filter value", value, val.getValue());
 	}

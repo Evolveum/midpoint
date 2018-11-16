@@ -16,11 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -550,7 +546,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
     public void test009modifyOrgStructRemoveUser() throws Exception {
         OperationResult opResult = new OperationResult("test009modifyOrgStructRemoveUser");
 
-        PrismReferenceValue prv = new PrismReferenceValue(MODIFY_USER_DELETE_REF_OID);
+        PrismReferenceValue prv = new PrismReferenceValueImpl(MODIFY_USER_DELETE_REF_OID);
         prv.setTargetType(OrgType.COMPLEX_TYPE);
         ObjectDelta<UserType> delta = ObjectDelta.createModificationDeleteReference(UserType.class, ELAINE_OID, UserType.F_PARENT_ORG_REF, prismContext, prv);
 
@@ -591,7 +587,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
         OperationResult opResult = new OperationResult(TEST_NAME);
 
         ObjectQuery query = QueryBuilder.queryFor(ObjectType.class, prismContext)
-                .item(ObjectType.F_PARENT_ORG_REF).ref(new PrismReferenceValue(ORG_F001_OID))
+                .item(ObjectType.F_PARENT_ORG_REF).ref(new PrismReferenceValueImpl(ORG_F001_OID))
                 .build();
 
         // WHEN
@@ -607,7 +603,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
     	TestUtil.displayTestTitle(TEST_NAME);
         OperationResult opResult = new OperationResult(TEST_NAME);
 
-        PrismReferenceValue refVal = new PrismReferenceValue(ORG_F001_OID);
+        PrismReferenceValue refVal = new PrismReferenceValueImpl(ORG_F001_OID);
         refVal.setRelation(SchemaConstants.ORG_MANAGER);
         ObjectQuery query = QueryBuilder.queryFor(ObjectType.class, prismContext)
                 .item(ObjectType.F_PARENT_ORG_REF).ref(refVal)
@@ -626,7 +622,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
     	TestUtil.displayTestTitle(TEST_NAME);
         OperationResult opResult = new OperationResult(TEST_NAME);
 
-        PrismReferenceValue refVal = new PrismReferenceValue(ORG_F001_OID);
+        PrismReferenceValue refVal = new PrismReferenceValueImpl(ORG_F001_OID);
         refVal.setRelation(PrismConstants.Q_ANY);
         ObjectQuery query = QueryBuilder.queryFor(ObjectType.class, prismContext)
                 .item(ObjectType.F_PARENT_ORG_REF).ref(refVal)

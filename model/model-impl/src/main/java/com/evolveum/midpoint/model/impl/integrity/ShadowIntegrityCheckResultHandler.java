@@ -243,7 +243,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
     }
 
     private boolean contains(PrismProperty<String> property, String keyword) {
-        return property.containsRealValue(new PrismPropertyValue<>(keyword));
+        return property.containsRealValue(new PrismPropertyValueImpl<>(keyword));
     }
 
     @Override
@@ -602,7 +602,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
 
         if (fixNormalization) {
             PropertyDelta delta = identifier.createEmptyDelta(new ItemPath(ShadowType.F_ATTRIBUTES, identifier.getName()));
-            delta.setValueToReplace(new PrismPropertyValue<>(normalizedStringValue));
+            delta.setValueToReplace(new PrismPropertyValueImpl<>(normalizedStringValue));
             checkResult.addFixDelta(delta, ShadowStatistics.NON_NORMALIZED_IDENTIFIER_VALUE);
         }
     }
@@ -770,11 +770,11 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
             for (PrismObject owner : owners) {
                 List<ItemDelta> modifications = new ArrayList<>(2);
                 ReferenceDelta deleteDelta = ReferenceDelta.createModificationDelete(FocusType.F_LINK_REF, owner.getDefinition(),
-                        new PrismReferenceValue(oid, ShadowType.COMPLEX_TYPE));
+                        new PrismReferenceValueImpl(oid, ShadowType.COMPLEX_TYPE));
                 modifications.add(deleteDelta);
                 if (shadowOidToReplaceDeleted != null) {
                     ReferenceDelta addDelta = ReferenceDelta.createModificationAdd(FocusType.F_LINK_REF, owner.getDefinition(),
-                            new PrismReferenceValue(shadowOidToReplaceDeleted, ShadowType.COMPLEX_TYPE));
+                            new PrismReferenceValueImpl(shadowOidToReplaceDeleted, ShadowType.COMPLEX_TYPE));
                     modifications.add(addDelta);
                 }
                 LOGGER.info("Executing modify delta{} for owner {}:\n{}", skippedForDryRun(), ObjectTypeUtil.toShortString(owner), DebugUtil.debugDump(modifications));

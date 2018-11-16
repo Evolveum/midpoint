@@ -15,40 +15,19 @@
  */
 package com.evolveum.midpoint.test.asserter;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteCredentialResetRequestType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
+
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+import java.util.Iterator;
+
+import static org.testng.AssertJUnit.*;
 
 /**
  * @author semancik
@@ -136,7 +115,7 @@ public class ExtensionAsserter<O extends ObjectType, OA extends PrismObjectAsser
 	private <T> RawType[] rawize(QName attrName, PrismContext prismContext, T[] expectedValues) {
 		RawType[] raws = new RawType[expectedValues.length];
 		for(int i = 0; i < expectedValues.length; i++) {
-			raws[i] = new RawType(new PrismPropertyValue<>(expectedValues[i]), attrName, prismContext);
+			raws[i] = new RawType(new PrismPropertyValueImpl<>(expectedValues[i]), attrName, prismContext);
 		}
 		return raws;
 	}

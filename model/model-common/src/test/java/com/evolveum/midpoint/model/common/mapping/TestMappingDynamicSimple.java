@@ -965,8 +965,8 @@ public class TestMappingDynamicSimple {
     	// GIVEN
     	ObjectDelta<UserType> delta = ObjectDelta.createEmptyModifyDelta(UserType.class, evaluator.USER_OLD_OID, evaluator.getPrismContext());
     	PropertyDelta<String> propDelta = delta.createPropertyModification(evaluator.toPath("employeeType"));
-    	propDelta.addValueToAdd(new PrismPropertyValue<>("CAPTAIN"));
-    	propDelta.addValueToDelete(new PrismPropertyValue<>("LANDLUBER"));
+    	propDelta.addRealValuesToAdd("CAPTAIN");
+    	propDelta.addRealValuesToDelete("LANDLUBER");
     	delta.addModification(propDelta);
 
 		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
@@ -1005,7 +1005,7 @@ public class TestMappingDynamicSimple {
     	// GIVEN
     	ObjectDelta<UserType> delta = ObjectDelta.createEmptyModifyDelta(UserType.class, evaluator.USER_OLD_OID, evaluator.getPrismContext());
     	PropertyDelta<String> propDelta = delta.createPropertyModification(evaluator.toPath("employeeType"));
-    	propDelta.addValueToReplace(new PrismPropertyValue<>("CAPTAIN"));
+    	propDelta.setRealValuesToReplace("CAPTAIN");
     	delta.addModification(propDelta);
 
 		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(

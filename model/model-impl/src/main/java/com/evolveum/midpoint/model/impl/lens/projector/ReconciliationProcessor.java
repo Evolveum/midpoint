@@ -294,7 +294,7 @@ public class ReconciliationProcessor {
 				return;
 			}
 			Collection<QName> auxOcsOld = auxOcPropOld.getRealValues();
-			Set<QName> auxOcsToReplace = PrismPropertyValue.getRealValuesOfCollection(auxOcDelta.getValuesToReplace());
+			Set<QName> auxOcsToReplace = PrismPropertyValueImpl.getRealValuesOfCollection(auxOcDelta.getValuesToReplace());
 			deletedAuxObjectClassNames = new ArrayList<>(auxOcsOld.size());
 			for (QName auxOcOld: auxOcsOld) {
 				if (!QNameUtil.contains(auxOcsToReplace, auxOcOld)) {
@@ -306,7 +306,7 @@ public class ReconciliationProcessor {
 			if (valuesToDelete == null || valuesToDelete.isEmpty()) {
 				return;
 			}
-			deletedAuxObjectClassNames = PrismPropertyValue.getRealValuesOfCollection(valuesToDelete);
+			deletedAuxObjectClassNames = PrismPropertyValueImpl.getRealValuesOfCollection(valuesToDelete);
 		}
 		LOGGER.trace("Deleted auxiliary object classes: {}", deletedAuxObjectClassNames);
 		if (deletedAuxObjectClassNames == null || deletedAuxObjectClassNames.isEmpty()) {
@@ -933,7 +933,7 @@ public class ReconciliationProcessor {
 
 		PropertyDelta<T> attrDelta = new PropertyDelta<>(parentPath, attrDef.getName(),
 				attrDef, prismContext);
-		PrismPropertyValue<T> pValue = new PrismPropertyValue<>(value, OriginType.RECONCILIATION,
+		PrismPropertyValue<T> pValue = new PrismPropertyValueImpl<>(value, OriginType.RECONCILIATION,
 				originObject);
 		if (changeType == ModificationType.ADD) {
 			attrDelta.addValueToAdd(pValue);

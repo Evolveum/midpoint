@@ -19,6 +19,7 @@ import java.util.*;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
@@ -28,11 +29,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.ActivationComputer;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -136,7 +132,7 @@ public class OperationalDataManager {
 		List<String> approverComments = new ArrayList<>();
 		if (workflowManager != null) {
 			for (ObjectReferenceType approverRef : workflowManager.getApprovedBy(task, result)) {
-				approverReferenceValues.add(new PrismReferenceValue(approverRef.getOid()));
+				approverReferenceValues.add(new PrismReferenceValueImpl(approverRef.getOid()));
 			}
 			approverComments.addAll(workflowManager.getApproverComments(task, result));
 		}

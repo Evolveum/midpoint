@@ -267,7 +267,7 @@ public abstract class TestPrismParsing {
 		PrismObject<UserType> userBarbossa = prismContext.parseObject(getFile(USER_BARBOSSA_FILE_BASENAME));
 		// Cosmetics to make sure the equivalence assert below works
 		userBarbossa.setElementName(EXTENSION_MELEE_CONTEXT_OPPONENT_ELEMENT);
-		PrismReferenceValue opponentRefValue = new PrismReferenceValue();
+		PrismReferenceValue opponentRefValue = new PrismReferenceValueImpl();
 		opponentRefValue.setObject(userBarbossa);
 		opponentRef.add(opponentRefValue);
 

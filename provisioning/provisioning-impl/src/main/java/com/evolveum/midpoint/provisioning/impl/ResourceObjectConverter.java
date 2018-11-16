@@ -1630,7 +1630,7 @@ public class ResourceObjectConverter {
 
 					Item existingSimulatedAttr = attributesContainer.findItem(newSimulatedAttr.getElementName());
 					if (!isBlank(newSimulatedAttrRealValue)) {
-						PrismPropertyValue newSimulatedAttrValue = new PrismPropertyValue(newSimulatedAttrRealValue);
+						PrismPropertyValue newSimulatedAttrValue = new PrismPropertyValueImpl(newSimulatedAttrRealValue);
 						if (existingSimulatedAttr == null) {
 							newSimulatedAttr.add(newSimulatedAttrValue);
 							attributesContainer.add(newSimulatedAttr);
@@ -1667,7 +1667,7 @@ public class ResourceObjectConverter {
 					}
 					Item existingAttribute = attributesContainer.findItem(activationSimulateAttribute.getElementName());
 					if (!StringUtils.isBlank(activationRealValue)) {
-						activationSimulateAttribute.add(new PrismPropertyValue(activationRealValue));
+						activationSimulateAttribute.add(new PrismPropertyValueImpl(activationRealValue));
 						if (attributesContainer.findItem(activationSimulateAttribute.getElementName()) == null){
 							attributesContainer.add(activationSimulateAttribute);
 						} else{

@@ -419,14 +419,14 @@ public class TestDiffEquals {
     	shadow2Type.getAuxiliaryObjectClass().add(new QName(NS_TEST_RI, "bar"));
     	PrismContainer<Containerable> shadow2Attrs = shadow2.findOrCreateContainer(ShadowType.F_ATTRIBUTES);
 
-    	PrismProperty<String> attrEntryUuid = new PrismProperty<>(new QName(NS_TEST_RI, "entryUuid"), prismContext);
+    	PrismProperty<String> attrEntryUuid = new PrismPropertyImpl<>(new QName(NS_TEST_RI, "entryUuid"), prismContext);
     	PrismPropertyDefinition<String> attrEntryUuidDef = new PrismPropertyDefinitionImpl<>(new QName(NS_TEST_RI, "entryUuid"),
     			DOMUtil.XSD_STRING, prismContext);
     	attrEntryUuid.setDefinition(attrEntryUuidDef);
 		shadow2Attrs.add(attrEntryUuid);
 		attrEntryUuid.addRealValue("1234-5678-8765-4321");
 
-		PrismProperty<String> attrDn = new PrismProperty<>(new QName(NS_TEST_RI, "dn"), prismContext);
+		PrismProperty<String> attrDn = new PrismPropertyImpl<>(new QName(NS_TEST_RI, "dn"), prismContext);
 		PrismPropertyDefinition<String> attrDnDef = new PrismPropertyDefinitionImpl<>(new QName(NS_TEST_RI, "dn"),
     			DOMUtil.XSD_STRING, prismContext);
 		attrDn.setDefinition(attrDnDef);

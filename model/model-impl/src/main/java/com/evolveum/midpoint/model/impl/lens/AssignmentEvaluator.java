@@ -1089,7 +1089,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	}
 
 	private void collectMembership(FocusType targetType, QName relation, EvaluationContext ctx) {
-		PrismReferenceValue refVal = new PrismReferenceValue();
+		PrismReferenceValue refVal = new PrismReferenceValueImpl();
 		refVal.setObject(targetType.asPrismObject());
 		refVal.setTargetType(ObjectTypes.getObjectType(targetType.getClass()).getTypeQName());
 		refVal.setRelation(relation);
@@ -1109,7 +1109,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	}
 
 	private void collectMembership(ObjectReferenceType targetRef, QName relation, EvaluationContext ctx) {
-		PrismReferenceValue refVal = new PrismReferenceValue();
+		PrismReferenceValue refVal = new PrismReferenceValueImpl();
 		refVal.setOid(targetRef.getOid());
 		refVal.setTargetType(targetRef.getType());
 		refVal.setRelation(relation);

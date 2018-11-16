@@ -578,7 +578,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             }
 
         }
-        return addContainerValues.toArray(new PrismContainerValue[addContainerValues.size()]);
+        return addContainerValues.toArray(new PrismContainerValueImpl[addContainerValues.size()]);
     }
 
     private PrismContainerValue[] getDeleteAssignmentContainerValues(UserType user) throws SchemaException {
@@ -586,7 +586,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         for (AssignmentEditorDto assDto : getAssignmentsToRemoveList(user)) {
             deleteAssignmentValues.add(assDto.getNewValue(getPrismContext()));
         }
-        return deleteAssignmentValues.toArray(new PrismContainerValue[deleteAssignmentValues.size()]);
+        return deleteAssignmentValues.toArray(new PrismContainerValueImpl[deleteAssignmentValues.size()]);
     }
 
     private List<AssignmentEditorDto> getAssignmentsToRemoveList(UserType user){

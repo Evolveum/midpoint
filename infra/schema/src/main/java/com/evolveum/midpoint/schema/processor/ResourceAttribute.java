@@ -20,7 +20,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.CloneStrategy;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyImpl;
 
 /**
  * Resource Object Attribute is a Property of Resource Object. All that applies
@@ -36,7 +36,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
  *
  * @author Radovan Semancik
  */
-public class ResourceAttribute<T> extends PrismProperty<T> {
+public class ResourceAttribute<T> extends PrismPropertyImpl<T> {
     private static final long serialVersionUID = -6149194956029296486L;
 
     public ResourceAttribute(QName name, ResourceAttributeDefinition<T> definition, PrismContext prismContext) {

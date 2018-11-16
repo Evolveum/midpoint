@@ -27,7 +27,7 @@ import java.lang.reflect.Method;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -36,10 +36,6 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -267,8 +263,8 @@ public class TestJaxbSanity {
 		System.out.println(resource2Type.hashCode());
 		assertTrue("Resource hashcode does not match", resource1Type.hashCode() == resource2Type.hashCode());
 
-		PrismPropertyValue<Object> pv1 = new PrismPropertyValue<>(resource1Type.getConnectorConfiguration());
-		PrismPropertyValue<Object> pv2 = new PrismPropertyValue<>(resource2Type.getConnectorConfiguration());
+		PrismPropertyValue<Object> pv1 = new PrismPropertyValueImpl<>(resource1Type.getConnectorConfiguration());
+		PrismPropertyValue<Object> pv2 = new PrismPropertyValueImpl<>(resource2Type.getConnectorConfiguration());
 
 		assertTrue("Real property values not equal",pv1.equalsRealValue(pv2));
 	}

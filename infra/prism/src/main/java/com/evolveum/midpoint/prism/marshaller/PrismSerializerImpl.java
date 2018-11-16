@@ -151,7 +151,7 @@ public class PrismSerializerImpl<T> implements PrismSerializer<T> {
 		} else if (realValue instanceof Containerable) {
 			prismValue = ((Containerable) realValue).asPrismContainerValue();
 		} else {
-			prismValue = new PrismPropertyValue<>(realValue);
+			prismValue = new PrismPropertyValueImpl<>(realValue);
 		}
 		return serialize(prismValue, itemName);
 	}

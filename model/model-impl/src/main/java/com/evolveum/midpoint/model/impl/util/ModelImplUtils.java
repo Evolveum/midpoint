@@ -31,14 +31,7 @@ import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.Visitor;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -791,7 +784,7 @@ public class ModelImplUtils {
 	}
 
 	public static PrismReferenceValue getAditTarget(ObjectDelta<? extends ObjectType> delta) {
-		PrismReferenceValue targetRef = new PrismReferenceValue(delta.getOid());
+		PrismReferenceValue targetRef = new PrismReferenceValueImpl(delta.getOid());
 		targetRef.setTargetType(ObjectTypes.getObjectType(delta.getObjectTypeClass()).getTypeQName());
 		if (delta.isAdd()) {
 			targetRef.setObject(delta.getObjectToAdd());

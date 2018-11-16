@@ -250,7 +250,7 @@ public class PrismUnmarshaller {
                     pc.warnOrThrow(LOGGER, "Unknown type " + map.getTypeQName() + " in " + map);
                 }
             }
-            cval = new PrismContainerValue<>(null, null, null, id, complexTypeDefinition, prismContext);
+            cval = new PrismContainerValueImpl<>(null, null, null, id, complexTypeDefinition, prismContext);
         }
         for (Entry<QName, XNode> entry : map.entrySet()) {
             QName itemName = entry.getKey();
@@ -312,7 +312,7 @@ public class PrismUnmarshaller {
 
         PrismProperty<T> property = itemDefinition != null ?
                 itemDefinition.instantiate() :
-                new PrismProperty<>(itemName, prismContext);
+                new PrismPropertyImpl<>(itemName, prismContext);
 
         if (node instanceof ListXNode && !node.isHeterogeneousList()) {
             ListXNode listNode = (ListXNode) node;
@@ -331,7 +331,7 @@ public class PrismUnmarshaller {
         } else if (node instanceof SchemaXNode) {
             SchemaDefinitionType schemaDefType = getBeanUnmarshaller().unmarshalSchemaDefinitionType((SchemaXNode) node);
             @SuppressWarnings("unchecked")
-            PrismPropertyValue<T> val = new PrismPropertyValue(schemaDefType);
+            PrismPropertyValue<T> val = new PrismPropertyValueImpl(schemaDefType);
 			addItemValueIfPossible(property, val, pc);
         } else {
             throw new IllegalArgumentException("Cannot parse property from " + node);
@@ -377,7 +377,7 @@ public class PrismUnmarshaller {
             	// Therefore parse expression only if there is no legal value.
             	ExpressionWrapper expression = PrismUtil.parseExpression(node, prismContext);
             	if (expression != null) {
-            		PrismPropertyValue<T> ppv = new PrismPropertyValue<>(null, prismContext, null, null, expression);
+            		PrismPropertyValue<T> ppv = new PrismPropertyValueImpl<>(null, prismContext, null, null, expression);
             		return ppv;
             	} else {
                     // There's no point in returning PPV(null) as it would soon fail on internal PP check.
@@ -385,7 +385,7 @@ public class PrismUnmarshaller {
             	    return null;
                 }
             }
-            PrismPropertyValue<T> ppv = new PrismPropertyValue<>(realValue);
+            PrismPropertyValue<T> ppv = new PrismPropertyValueImpl<>(realValue);
             ppv.setPrismContext(prismContext);
             return ppv;
         } else {
@@ -481,7 +481,7 @@ public class PrismUnmarshaller {
         MapXNode map = (MapXNode) xnode;
 
         String oid = map.getParsedPrimitiveValue(XNode.KEY_REFERENCE_OID, DOMUtil.XSD_STRING);
-        PrismReferenceValue refVal = new PrismReferenceValue(oid);
+        PrismReferenceValue refVal = new PrismReferenceValueImpl(oid);
 
         QName type = map.getParsedPrimitiveValue(XNode.KEY_REFERENCE_TYPE, DOMUtil.XSD_QNAME);
         if (type == null) {
@@ -595,7 +595,7 @@ public class PrismUnmarshaller {
                     + definition.getCompositeObjectElementName(), e);
         }
 
-        PrismReferenceValue refVal = new PrismReferenceValue();
+        PrismReferenceValue refVal = new PrismReferenceValueImpl();
         setReferenceObject(refVal, compositeObject);
         ((PrismReferenceDefinitionImpl) definition).setComposite(true);             // TODO why do we modify the definition? is that safe?
         return refVal;

@@ -548,8 +548,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 //                        new NameItemPathSegment(UserType.F_ASSIGNMENT),
 //                        new IdItemPathSegment(id),
 //                        new NameItemPathSegment(AssignmentType.F_TARGET_REF)), referenceDefinition, prismContext);
-//        PrismReferenceValue oldValue = new PrismReferenceValue(ORG_MINISTRY_OF_OFFENSE_OID, OrgType.COMPLEX_TYPE);
-//        PrismReferenceValue newValue = new PrismReferenceValue(ORG_MINISTRY_OF_OFFENSE_OID, OrgType.COMPLEX_TYPE);
+//        PrismReferenceValue oldValue = new PrismReferenceValueImpl(ORG_MINISTRY_OF_OFFENSE_OID, OrgType.COMPLEX_TYPE);
+//        PrismReferenceValue newValue = new PrismReferenceValueImpl(ORG_MINISTRY_OF_OFFENSE_OID, OrgType.COMPLEX_TYPE);
 //        newValue.setRelation(SchemaConstants.ORG_MANAGER);
 //
 //        referenceDelta.addValueToDelete(oldValue);
@@ -1451,8 +1451,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
                         new NameItemPathSegment(UserType.F_ASSIGNMENT),
                         new IdItemPathSegment(id),
                         new NameItemPathSegment(AssignmentType.F_TARGET_REF)), referenceDefinition, prismContext);
-        PrismReferenceValue oldValue = new PrismReferenceValue(ORG_MINISTRY_OF_OFFENSE_OID, OrgType.COMPLEX_TYPE);
-        PrismReferenceValue newValue = new PrismReferenceValue(ORG_MINISTRY_OF_OFFENSE_OID, OrgType.COMPLEX_TYPE);
+        PrismReferenceValue oldValue = new PrismReferenceValueImpl(ORG_MINISTRY_OF_OFFENSE_OID, OrgType.COMPLEX_TYPE);
+        PrismReferenceValue newValue = new PrismReferenceValueImpl(ORG_MINISTRY_OF_OFFENSE_OID, OrgType.COMPLEX_TYPE);
         newValue.setRelation(SchemaConstants.ORG_MANAGER);
 
         referenceDelta.addValueToDelete(oldValue);

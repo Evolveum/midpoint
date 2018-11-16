@@ -119,8 +119,8 @@ public class SubstringFilter<T> extends PropertyValueFilter<T> {
 		return false;
 	}
 
-	private Set<T> toRealValues(){
-		 return PrismPropertyValue.getRealValuesOfCollection(getValues());
+	private Set<T> toRealValues() {
+		 return PrismPropertyValueImpl.getRealValuesOfCollection(getValues());
 	}
 
 	@Override

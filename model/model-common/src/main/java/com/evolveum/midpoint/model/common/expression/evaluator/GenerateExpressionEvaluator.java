@@ -21,13 +21,7 @@ import com.evolveum.midpoint.model.common.stringpolicy.AbstractValuePolicyOrigin
 import com.evolveum.midpoint.model.common.stringpolicy.ShadowValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.UserValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
@@ -180,7 +174,7 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
 
 
 		if (output instanceof PrismProperty) {
-			PrismPropertyValue<Object> pValue = new PrismPropertyValue<>(value);
+			PrismPropertyValue<Object> pValue = new PrismPropertyValueImpl<>(value);
 			((PrismProperty<Object>) output).add(pValue);
 		} else {
 			throw new UnsupportedOperationException(

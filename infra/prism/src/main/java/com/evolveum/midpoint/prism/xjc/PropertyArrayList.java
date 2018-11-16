@@ -19,6 +19,7 @@ package com.evolveum.midpoint.prism.xjc;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismPropertyValueImpl;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import org.apache.commons.lang.Validate;
@@ -76,7 +77,7 @@ public class PropertyArrayList<T> extends AbstractList<T> implements Serializabl
 
 		for (T jaxbObject : ts) {
         	Object propertyRealValue = JaxbTypeConverter.mapJaxbToPropertyRealValue(jaxbObject);
-            property.addValue(new PrismPropertyValue<>(propertyRealValue, null, null));
+            property.addValue(new PrismPropertyValueImpl(propertyRealValue, null, null));
         }
 
         return true;

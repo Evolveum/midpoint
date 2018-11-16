@@ -333,7 +333,7 @@ public class TestQueryConvertor {
 	private void assertRefFilterValue(RefFilter filter, String oid) {
 		List<? extends PrismValue> values = filter.getValues();
 		assertEquals(1, values.size());
-		assertEquals(PrismReferenceValue.class, values.get(0).getClass());
+		assertEquals(PrismReferenceValueImpl.class, values.get(0).getClass());
 		PrismReferenceValue val = (PrismReferenceValue) values.get(0);
 
 		assertEquals(oid, val.getOid());
@@ -623,8 +623,8 @@ public class TestQueryConvertor {
 	public void test365RefTwoWay() throws Exception {
 		final String TEST_NAME = "test365RefTwoWay";
 		displayTestTitle(TEST_NAME);
-		PrismReferenceValue reference3 = new PrismReferenceValue("oid3", ResourceType.COMPLEX_TYPE).relation(new QName("test"));
-		PrismReferenceValue reference4 = new PrismReferenceValue("oid4", ResourceType.COMPLEX_TYPE).relation(new QName("test"));
+		PrismReferenceValue reference3 = new PrismReferenceValueImpl("oid3", ResourceType.COMPLEX_TYPE).relation(new QName("test"));
+		PrismReferenceValue reference4 = new PrismReferenceValueImpl("oid4", ResourceType.COMPLEX_TYPE).relation(new QName("test"));
 		ObjectQuery q = QueryBuilder.queryFor(ShadowType.class, getPrismContext())
 				.item(ShadowType.F_RESOURCE_REF).ref("oid1")
 				.or().item(ShadowType.F_RESOURCE_REF).ref("oid2", ResourceType.COMPLEX_TYPE)

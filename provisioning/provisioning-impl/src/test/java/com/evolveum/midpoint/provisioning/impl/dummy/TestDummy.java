@@ -3751,7 +3751,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		ResourceAttribute fullnameAttr = fullnameAttrDef.instantiate();
 		PropertyDelta fullnameDelta = fullnameAttr.createDelta(new ItemPath(ShadowType.F_ATTRIBUTES,
 				fullnameAttrDef.getName()));
-		fullnameDelta.setValueToReplace(new PrismPropertyValue<>("Good Daemon"));
+		fullnameDelta.setRealValuesToReplace("Good Daemon");
 		((Collection) modifications).add(fullnameDelta);
 
 		// WHEN

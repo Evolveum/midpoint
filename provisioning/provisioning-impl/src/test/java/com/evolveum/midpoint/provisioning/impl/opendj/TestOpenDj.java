@@ -1057,7 +1057,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		QName jpegPhotoQName = new QName(RESOURCE_OPENDJ_NS, "jpegPhoto");
 		PropertyDelta<byte[]> jpegPhotoDelta = new PropertyDelta<>(new ItemPath(ShadowType.F_ATTRIBUTES, jpegPhotoQName),
 				null , prismContext);
-		jpegPhotoDelta.setValueToReplace(new PrismPropertyValue<>(bytesIn));
+		jpegPhotoDelta.setRealValuesToReplace(bytesIn);
 
 		Collection<? extends ItemDelta> modifications = MiscSchemaUtil.createCollection(jpegPhotoDelta);
 
@@ -1111,14 +1111,14 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		PropertyDelta<String> givenNameDelta = new PropertyDelta<>(
 				new ItemPath(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_OPENDJ_NS, "givenName")),
 				null , prismContext);
-		givenNameDelta.addValueToAdd(new PrismPropertyValue<>("Jack"));
+		givenNameDelta.addRealValuesToAdd("Jack");
 
 		// Also make an ordinary non-conflicting modification. We need to make sure that
 		// the operation was not ignored as a whole
 		PropertyDelta<String> titleDelta = new PropertyDelta<>(
 				new ItemPath(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_OPENDJ_NS, "title")),
 				null , prismContext);
-		titleDelta.addValueToAdd(new PrismPropertyValue<>("Great Captain"));
+		titleDelta.addRealValuesToAdd("Great Captain");
 
 		Collection<? extends ItemDelta> modifications = MiscSchemaUtil.createCollection(givenNameDelta, titleDelta);
 

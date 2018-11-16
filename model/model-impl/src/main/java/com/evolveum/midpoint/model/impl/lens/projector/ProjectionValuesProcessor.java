@@ -23,6 +23,7 @@ import java.util.Iterator;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationService;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 
+import com.evolveum.midpoint.prism.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -38,11 +39,6 @@ import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentProcessor;
 import com.evolveum.midpoint.model.impl.sync.CorrelationConfirmationEvaluator;
-import com.evolveum.midpoint.prism.OriginType;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -645,13 +641,13 @@ public class ProjectionValuesProcessor {
 		}
 		PrismObjectDefinition<ShadowType> shadowDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
 
-		PrismPropertyValue<Integer> iterationVal = new PrismPropertyValue<>(accountContext.getIteration());
+		PrismPropertyValue<Integer> iterationVal = new PrismPropertyValueImpl<>(accountContext.getIteration());
 		iterationVal.setOriginType(OriginType.OUTBOUND);
 		PropertyDelta<Integer> iterationDelta = PropertyDelta.createReplaceDelta(shadowDef,
 				ShadowType.F_ITERATION, iterationVal);
 		accountContext.swallowToSecondaryDelta(iterationDelta);
 
-		PrismPropertyValue<String> iterationTokenVal = new PrismPropertyValue<>(accountContext.getIterationToken());
+		PrismPropertyValue<String> iterationTokenVal = new PrismPropertyValueImpl<>(accountContext.getIterationToken());
 		iterationTokenVal.setOriginType(OriginType.OUTBOUND);
 		PropertyDelta<String> iterationTokenDelta = PropertyDelta.createReplaceDelta(shadowDef,
 				ShadowType.F_ITERATION_TOKEN, iterationTokenVal);

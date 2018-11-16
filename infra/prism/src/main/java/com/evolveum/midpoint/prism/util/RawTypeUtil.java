@@ -52,7 +52,7 @@ public class RawTypeUtil {
         }
 
 		if (itemDefinition == null){
-			PrismProperty property = new PrismProperty(elementQName, prismContext);
+			PrismProperty property = new PrismPropertyImpl(elementQName, prismContext);
             property.addAll(PrismValue.cloneCollection(parsedValues));
             return property;
 		}
@@ -88,7 +88,7 @@ public class RawTypeUtil {
 									+ " is a Containerable but not Objectable: " + c);
 							}
 							Objectable o = (Objectable) c;
-							ref = new PrismReferenceValue();
+							ref = new PrismReferenceValueImpl();
 							ref.setObject(o.asPrismObject());
 						} else {
 							throw new IllegalStateException("Content of " + itemDefinition

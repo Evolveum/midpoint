@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.certification.impl;
 
+import com.evolveum.midpoint.prism.PrismReferenceValueImpl;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.api.expr.OrgStructFunctions;
 import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
@@ -228,7 +229,7 @@ public class AccCertReviewersHelper {
 		// TODO in theory, we could look for approvers/owners of UserType, right?
 		Collection<PrismReferenceValue> values = new ArrayList<>();
 		for (QName relation : relationRegistry.getAllRelationsFor(relationKind)) {
-			PrismReferenceValue ref = new PrismReferenceValue(role.getOid());
+			PrismReferenceValue ref = new PrismReferenceValueImpl(role.getOid());
 			ref.setRelation(relation);
 			values.add(ref);
 		}

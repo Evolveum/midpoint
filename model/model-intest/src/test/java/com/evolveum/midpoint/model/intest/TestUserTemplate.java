@@ -27,6 +27,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismPropertyValueImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -1019,7 +1020,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertNotNull("badLuck delta was not found", badLuckDelta);
         List<PrismValue> oldValues = (List<PrismValue>) badLuckDelta.getEstimatedOldValues();
         assertNotNull("badLuck delta has null estimatedOldValues field", oldValues);
-        PrismAsserts.assertEqualsCollectionUnordered("badLuck delta has wrong estimatedOldValues", oldValues, new PrismPropertyValue<>(123L), new PrismPropertyValue<>(456L));
+        PrismAsserts.assertEqualsCollectionUnordered("badLuck delta has wrong estimatedOldValues", oldValues, new PrismPropertyValueImpl<>(123L), new PrismPropertyValueImpl<>(456L));
     }
 
     @Test

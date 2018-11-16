@@ -35,6 +35,7 @@ import java.util.Locale;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -42,17 +43,6 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyGroup;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.ItemProcessing;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -826,7 +816,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 			PrismPropertyValue<String> pval = (PrismPropertyValue<String>) values.get(0).getValue();
 			pval.setValue(newValue);
 		} else if (values.isEmpty()) {
-			PrismPropertyValue<String> pval = new PrismPropertyValue<>(newValue);
+			PrismPropertyValue<String> pval = new PrismPropertyValueImpl<>(newValue);
 			ValueWrapper newValueWrapper = new ValueWrapper<>(propertyWrapper, pval);
 			values.add(newValueWrapper);
 			newValueWrapper.setStatus(ValueStatus.ADDED);

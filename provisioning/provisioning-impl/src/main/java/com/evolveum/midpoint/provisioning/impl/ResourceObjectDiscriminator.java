@@ -20,7 +20,7 @@ import java.util.Collection;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyImpl;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -54,7 +54,7 @@ public class ResourceObjectDiscriminator {
 			return false;
 		}
 		Collection<ResourceAttribute<?>> shadowIdentifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
-		return PrismProperty.compareCollectionRealValues(primaryIdentifiers, shadowIdentifiers);
+		return PrismPropertyImpl.compareCollectionRealValues(primaryIdentifiers, shadowIdentifiers);
 	}
 
 	@Override

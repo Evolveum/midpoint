@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.impl.filter;
 import com.evolveum.midpoint.common.filter.Filter;
 import com.evolveum.midpoint.model.impl.filter.PatternFilter;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismPropertyValueImpl;
 import com.evolveum.midpoint.util.DOMUtil;
 
 import org.testng.AssertJUnit;
@@ -52,14 +53,14 @@ public class PatternFilterTest {
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void testEmptyParameters() {
-        PrismPropertyValue<String> value = new PrismPropertyValue<>(input);
+        PrismPropertyValue<String> value = new PrismPropertyValueImpl<>(input);
         value = filter.apply(value);
         AssertJUnit.assertEquals(expected, value.getValue());
     }
 
     @Test
     public void testEmptyValue() {
-        PrismPropertyValue<String> value = new PrismPropertyValue<>("");
+        PrismPropertyValue<String> value = new PrismPropertyValueImpl<>("");
         value = filter.apply(value);
         AssertJUnit.assertEquals("", value.getValue());
     }
@@ -69,7 +70,7 @@ public class PatternFilterTest {
         List<Object> parameters = createGoodParameters();
         filter.setParameters(parameters);
 
-        PrismPropertyValue<String> value = new PrismPropertyValue<>(input);
+        PrismPropertyValue<String> value = new PrismPropertyValueImpl<>(input);
         value = filter.apply(value);
         AssertJUnit.assertEquals(expected, value.getValue());
     }
@@ -79,7 +80,7 @@ public class PatternFilterTest {
         List<Object> parameters = createBadParameters();
         filter.setParameters(parameters);
 
-        PrismPropertyValue<String> value = new PrismPropertyValue<>(input);
+        PrismPropertyValue<String> value = new PrismPropertyValueImpl<>(input);
         value = filter.apply(value);
         AssertJUnit.assertEquals(expected, value.getValue());
     }
@@ -89,7 +90,7 @@ public class PatternFilterTest {
         List<Object> parameters = createBadParameters2();
         filter.setParameters(parameters);
 
-        PrismPropertyValue<String> value = new PrismPropertyValue<>(input);
+        PrismPropertyValue<String> value = new PrismPropertyValueImpl<>(input);
         value = filter.apply(value);
         AssertJUnit.assertEquals(expected, value.getValue());
     }

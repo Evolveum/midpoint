@@ -1386,7 +1386,7 @@ public class ShadowCache {
 				
 			} else {
 				PropertyDelta<OperationResultStatusType> resultStatusDelta = shadowDelta.createPropertyModification(containerPath.subPath(PendingOperationType.F_RESULT_STATUS));
-				resultStatusDelta.setValuesToReplace(new PrismPropertyValue<>(newStatusType));
+				resultStatusDelta.setValuesToReplace(new PrismPropertyValueImpl<>(newStatusType));
 				shadowDelta.addModification(resultStatusDelta);
 			}
 	
@@ -1394,11 +1394,11 @@ public class ShadowCache {
 				// Operation completed
 				
 				PropertyDelta<PendingOperationExecutionStatusType> executionStatusDelta = shadowDelta.createPropertyModification(containerPath.subPath(PendingOperationType.F_EXECUTION_STATUS));
-				executionStatusDelta.setValuesToReplace(new PrismPropertyValue<>(PendingOperationExecutionStatusType.COMPLETED));
+				executionStatusDelta.setValuesToReplace(new PrismPropertyValueImpl<>(PendingOperationExecutionStatusType.COMPLETED));
 				shadowDelta.addModification(executionStatusDelta);
 				
 				PropertyDelta<XMLGregorianCalendar> completionTimestampDelta = shadowDelta.createPropertyModification(containerPath.subPath(PendingOperationType.F_COMPLETION_TIMESTAMP));
-				completionTimestampDelta.setValuesToReplace(new PrismPropertyValue<>(clock.currentTimeXMLGregorianCalendar()));
+				completionTimestampDelta.setValuesToReplace(new PrismPropertyValueImpl<>(clock.currentTimeXMLGregorianCalendar()));
 				shadowDelta.addModification(completionTimestampDelta);
 				
 				ObjectDeltaType pendingDeltaType = pendingOperation.getDelta();
@@ -1429,7 +1429,7 @@ public class ShadowCache {
 			// attributes. We need this to "allocate" the identifiers, so iteration mechanism in the
 			// model can find unique values while taking pending create operations into consideration.
 			PropertyDelta<Boolean> existsDelta = shadowDelta.createPropertyModification(new ItemPath(ShadowType.F_EXISTS));
-			existsDelta.setValuesToReplace(new PrismPropertyValue<>(true));
+			existsDelta.setValuesToReplace(new PrismPropertyValueImpl<>(true));
 			shadowDelta.addModification(existsDelta);
 		}
 		
@@ -1499,15 +1499,15 @@ public class ShadowCache {
 			
 			int attemptNumber = pendingOperation.getAttemptNumber() + 1;
 			PropertyDelta<Integer> attemptNumberDelta = shadowDelta.createPropertyModification(containerPath.subPath(PendingOperationType.F_ATTEMPT_NUMBER));
-			attemptNumberDelta.setValuesToReplace(new PrismPropertyValue<>(attemptNumber));
+			attemptNumberDelta.setValuesToReplace(new PrismPropertyValueImpl<>(attemptNumber));
 			shadowDelta.addModification(attemptNumberDelta);
 			
 			PropertyDelta<XMLGregorianCalendar> lastAttemptTimestampDelta = shadowDelta.createPropertyModification(containerPath.subPath(PendingOperationType.F_LAST_ATTEMPT_TIMESTAMP));
-			lastAttemptTimestampDelta.setValuesToReplace(new PrismPropertyValue<>(now));
+			lastAttemptTimestampDelta.setValuesToReplace(new PrismPropertyValueImpl<>(now));
 			shadowDelta.addModification(lastAttemptTimestampDelta);
 			
 			PropertyDelta<OperationResultStatusType> resultStatusDelta = shadowDelta.createPropertyModification(containerPath.subPath(PendingOperationType.F_RESULT_STATUS));
-			resultStatusDelta.setValuesToReplace(new PrismPropertyValue<>(OperationResultStatusType.IN_PROGRESS));
+			resultStatusDelta.setValuesToReplace(new PrismPropertyValueImpl<>(OperationResultStatusType.IN_PROGRESS));
 			shadowDelta.addModification(resultStatusDelta);
 			
 			shadowManager.modifyShadowAttributes(ctx, repoShadow, shadowDelta.getModifications(), parentResult);
@@ -1603,13 +1603,13 @@ public class ShadowCache {
 			}
 			ItemPath containerPath = pendingOperation.asPrismContainerValue().getPath();
 			PropertyDelta<PendingOperationExecutionStatusType> executionStatusDelta = shadowDelta.createPropertyModification(containerPath.subPath(PendingOperationType.F_EXECUTION_STATUS));
-			executionStatusDelta.setValuesToReplace(new PrismPropertyValue<>(PendingOperationExecutionStatusType.COMPLETED));
+			executionStatusDelta.setRealValuesToReplace(PendingOperationExecutionStatusType.COMPLETED);
 			shadowDelta.addModification(executionStatusDelta);
 			PropertyDelta<XMLGregorianCalendar> completionTimestampDelta = shadowDelta.createPropertyModification(containerPath.subPath(PendingOperationType.F_COMPLETION_TIMESTAMP));
-			completionTimestampDelta.setValuesToReplace(new PrismPropertyValue<>(now));
+			completionTimestampDelta.setRealValuesToReplace(now);
 			shadowDelta.addModification(completionTimestampDelta);
 			PropertyDelta<OperationResultStatusType> resultStatusDelta = shadowDelta.createPropertyModification(containerPath.subPath(PendingOperationType.F_RESULT_STATUS));
-			resultStatusDelta.setValuesToReplace(new PrismPropertyValue<>(OperationResultStatusType.NOT_APPLICABLE));
+			resultStatusDelta.setRealValuesToReplace(OperationResultStatusType.NOT_APPLICABLE);
 			shadowDelta.addModification(resultStatusDelta);
 		}
 		if (shadowDelta.isEmpty()) {
@@ -2726,7 +2726,7 @@ public class ShadowCache {
 		if (resourceAuxOcProp != null) {
 			PrismProperty<QName> resultAuxOcProp = resultShadow
 					.findOrCreateProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS);
-			resultAuxOcProp.addAll(PrismPropertyValue.cloneCollection(resourceAuxOcProp.getValues()));
+			resultAuxOcProp.addAll(PrismPropertyValueImpl.cloneCollection(resourceAuxOcProp.getValues()));
 			auxObjectClassQNames.addAll(resultAuxOcProp.getRealValues());
 		}
 

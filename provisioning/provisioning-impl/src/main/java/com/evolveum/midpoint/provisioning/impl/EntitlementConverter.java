@@ -22,18 +22,11 @@ import java.util.Map;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.*;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.prism.ModificationType;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
@@ -277,7 +270,7 @@ class EntitlementConverter {
 					ResourceAttributeContainer identifiersContainer = new ResourceAttributeContainer(
 							ShadowAssociationType.F_IDENTIFIERS, entitlementDef.toResourceAttributeContainerDefinition(), prismContext);
 					associationCVal.add(identifiersContainer);
-					identifiersContainer.getValue().addAll(ResourceAttribute.cloneCollection(entitlementIdentifiers));
+					identifiersContainer.getValue().addAll(Item.cloneCollection(entitlementIdentifiers));
 
 					// Remember the full shadow in user data. This is used later as an optimization to create the shadow in repo
 					identifiersContainer.setUserData(ResourceObjectConverter.FULL_SHADOW_KEY, entitlementShadow);
@@ -316,7 +309,7 @@ class EntitlementConverter {
 				assocAttrDef.getTypeName());
 		PrismPropertyValue<TA> converted = PrismUtil.convertPropertyValue(valueAttr.getValue(0), valueAttr.getDefinition(), assocAttrDef);
 		TA normalizedRealValue = matchingRule.normalize(converted.getValue());
-		PrismPropertyValue<TA> normalized = new PrismPropertyValue<>(normalizedRealValue);
+		PrismPropertyValue<TA> normalized = new PrismPropertyValueImpl<>(normalizedRealValue);
 		LOGGER.trace("Converted entitlement filter value: {} ({}) def={}", normalized, normalized.getValue().getClass(), assocAttrDef);
 		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
 				.item(new ItemPath(ShadowType.F_ATTRIBUTES, assocAttrDef.getName()), assocAttrDef).eq(normalized)

@@ -28,6 +28,7 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismReferenceValueImpl;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -327,7 +328,7 @@ public class PageUser extends PageAdminFocus<UserType> {
 
             Task task = createSimpleTask(OPERATION_LOAD_DELEGATED_BY_ME_ASSIGNMENTS);
 
-            PrismReferenceValue referenceValue = new PrismReferenceValue(getObjectWrapper().getOid(),
+            PrismReferenceValue referenceValue = new PrismReferenceValueImpl(getObjectWrapper().getOid(),
                     UserType.COMPLEX_TYPE);
             referenceValue.setRelation(WebComponentUtil.getDefaultRelationOrFail(RelationKindType.DELEGATION));
 

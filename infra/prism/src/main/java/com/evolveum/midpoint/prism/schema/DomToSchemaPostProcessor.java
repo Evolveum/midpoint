@@ -932,7 +932,7 @@ class DomToSchemaPostProcessor {
 			String oid = valueEnumerationRefElement.getAttribute(PrismConstants.ATTRIBUTE_OID_LOCAL_NAME);
 			if (oid != null) {
 				QName targetType = DOMUtil.getQNameAttribute(valueEnumerationRefElement, PrismConstants.ATTRIBUTE_REF_TYPE_LOCAL_NAME);
-				PrismReferenceValue valueEnumerationRef = new PrismReferenceValue(oid, targetType);
+				PrismReferenceValue valueEnumerationRef = new PrismReferenceValueImpl(oid, targetType);
 				propDef.setValueEnumerationRef(valueEnumerationRef);
 			}
 		}

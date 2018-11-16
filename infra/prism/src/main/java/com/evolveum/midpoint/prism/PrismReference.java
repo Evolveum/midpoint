@@ -42,254 +42,59 @@ import org.jetbrains.annotations.NotNull;
  * @author semancik
  *
  */
-public class PrismReference extends Item<PrismReferenceValue,PrismReferenceDefinition> {
-	private static final long serialVersionUID = 1872343401395762657L;
-
-	public PrismReference(QName name) {
-        super(name);
-    }
-
-	PrismReference(QName name, PrismReferenceDefinition definition, PrismContext prismContext) {
-		super(name, definition, prismContext);
-	}
+public interface PrismReference extends Item<PrismReferenceValue,PrismReferenceDefinition> {
+//	public PrismReference(QName name) {
+//        super(name);
+//    }
+//
+//	PrismReference(QName name, PrismReferenceDefinition definition, PrismContext prismContext) {
+//		super(name, definition, prismContext);
+//	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-    public PrismReferenceValue getValue() {
-		// I know of no reason why we should not return a value if it's only one (even for multivalued items) (see MID-3922)
-		// TODO reconsider this
-		if (getValues().size() == 1) {
-			return getValues().get(0);
-		}
-    	// We are not sure about multiplicity if there is no definition or the definition is dynamic
-    	if (getDefinition() != null && !getDefinition().isDynamic()) {
-    		if (getDefinition().isMultiValue()) {
-    			throw new IllegalStateException("Attempt to get single value from property " + elementName
-                        + " with multiple values");
-    		}
-    	}
-        if (getValues().size() > 1) {
-            throw new IllegalStateException("Attempt to get single value from property " + elementName
-                    + " with multiple values");
-        }
-        if (getValues().isEmpty()) {
-        	// Insert first empty value. This simulates empty single-valued reference. It the reference exists
-	        // it is clear that it has at least one value (and that value is empty).
-        	PrismReferenceValue rval = new PrismReferenceValue();
-            add(rval);
-            return rval;
-        }
-        return getValues().iterator().next();
-    }
-
-	private PrismReferenceValue getValue(String oid) {
-		// We need to tolerate null OIDs here. Because of JAXB.
-		for (PrismReferenceValue val: getValues()) {
-			if (MiscUtil.equals(oid, val.getOid())) {
-				return val;
-			}
-		}
-		return null;
-	}
+	PrismReferenceValue getValue();
 
 	@Override
-	public Referencable getRealValue() {
-		if (getValue() == null) {
-			return null;
-		}
-		return getValue().asReferencable();
-	}
+	Referencable getRealValue();
 
 	@NotNull
 	@Override
-	public Collection<Referencable> getRealValues() {
-		List<Referencable> realValues = new ArrayList<>(getValues().size());
-		for (PrismReferenceValue refVal : getValues()) {
-			realValues.add(refVal.asReferencable());
-		}
-		return realValues;
-	}
+	Collection<Referencable> getRealValues();
 
+	boolean add(@NotNull PrismReferenceValue value);
 
-    public boolean add(@NotNull PrismReferenceValue value) {
-    	value.setParent(this);
-    	return getValues().add(value);
-    }
+	boolean merge(PrismReferenceValue value);
 
-    public boolean merge(PrismReferenceValue value) {
-    	String newOid = value.getOid();
-    	// We need to tolerate null OIDs here. Because of JAXB.
-    	PrismReferenceValue existingValue = getValue(newOid);
-		if (existingValue == null) {
-			return add(value);
-		}
+	String getOid();
 
-		// if there is newValue containing object (instead of oid only) and also
-		// old value containing object (instead of oid only) we need to compare
-		// these two object if they are equals..this can avoid of bad resolving
-		// (e.g. creating user and adding two or more accounts at the same time)
-		if (value.getObject() != null && existingValue.getObject() != null && !value.equalsComplex(existingValue, false, false)){
-			return add(value);
-		}
+	PolyString getTargetName();
 
-		// in the value.getObject() is not null, it it probably only resolving
-		// of refenrence, so only change oid to object
-		if (value.getObject() != null) {
-			existingValue.setObject(value.getObject());
-			return true;
-		}
-
-		// in the case, if the existing value and new value are not equal, add
-		// also another reference alhtrough one with the same oid exist. It is
-		// needed for parent org refs, becasue there can exist more than one
-		// reference with the same oid, but they should be different (e.g. user
-		// is member and also manager of the org. unit.)
-		if (!value.equalsComplex(existingValue, false, false)) {
-			return add(value);
-		}
-
-		if (value.getTargetType() != null) {
-			existingValue.setTargetType(value.getTargetType());
-//			return true;
-		}
-    	// No need to copy OID as OIDs match
-    	return true;
-    }
-
-
-	public String getOid() {
-    	return getValue().getOid();
-    }
-
-	public PolyString getTargetName() {
-		return getValue().getTargetName();
-	}
-
-    public PrismReferenceValue findValueByOid(String oid) {
-    	for (PrismReferenceValue pval: getValues()) {
-    		if (oid.equals(pval.getOid())) {
-    			return pval;
-    		}
-    	}
-    	return null;
-    }
-
-    @Override
-	public Object find(ItemPath path) {
-    	if (path == null || path.isEmpty()) {
-			return this;
-		}
-		if (!isSingleValue()) {
-    		throw new IllegalStateException("Attempt to resolve sub-path '"+path+"' on multi-value reference " + getElementName());
-    	}
-		PrismReferenceValue value = getValue();
-		return value.find(path);
-	}
-
-
+	PrismReferenceValue findValueByOid(String oid);
 
 	@Override
-	public <IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path) {
-		if (path == null || path.isEmpty()) {
-			return new PartiallyResolvedItem<>((Item<IV, ID>) this, null);
-		}
-		if (!isSingleValue()) {
-    		throw new IllegalStateException("Attempt to resolve sub-path '"+path+"' on multi-value reference " + getElementName());
-    	}
-		PrismReferenceValue value = getValue();
-		return value.findPartial(path);
-	}
+	Object find(ItemPath path);
 
 	@Override
-	public ReferenceDelta createDelta() {
-    	return new ReferenceDelta(getPath(), getDefinition(), prismContext);
-	}
+	<IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path);
 
 	@Override
-	public ReferenceDelta createDelta(ItemPath path) {
-    	return new ReferenceDelta(path, getDefinition(), prismContext);
-	}
+	ReferenceDelta createDelta();
 
 	@Override
-	protected void checkDefinition(PrismReferenceDefinition def) {
-		if (!(def instanceof PrismReferenceDefinition)) {
-			throw new IllegalArgumentException("Cannot apply definition "+def+" to reference "+this);
-		}
-	}
+	ReferenceDelta createDelta(ItemPath path);
 
 	@Override
-    public PrismReference clone() {
-		return cloneComplex(CloneStrategy.LITERAL);
-    }
-	
-	@Override
-    public PrismReference cloneComplex(CloneStrategy strategy) {
-    	PrismReference clone = new PrismReference(getElementName(), getDefinition(), prismContext);
-        copyValues(strategy, clone);
-        return clone;
-    }
-
-    protected void copyValues(CloneStrategy strategy, PrismReference clone) {
-        super.copyValues(strategy, clone);
-        for (PrismReferenceValue value : getValues()) {
-            clone.add(value.cloneComplex(strategy));
-        }
-    }
+	PrismReference clone();
 
 	@Override
-    public String toString() {
-        return getClass().getSimpleName() + "(" + PrettyPrinter.prettyPrint(getElementName()) + "):" + getValues();
-    }
+	PrismReference cloneComplex(CloneStrategy strategy);
 
-    @Override
-    public String debugDump(int indent) {
-        StringBuilder sb = new StringBuilder();
-        DebugUtil.indentDebugDump(sb, indent);
-        PrismReferenceDefinition definition = getDefinition();
-        boolean multiline = true;
-        if (definition != null) {
-        	multiline = definition.isMultiValue() || definition.isComposite();
-        }
-        if (DebugUtil.isDetailedDebugDump()) {
-        	sb.append(getDebugDumpClassName()).append(": ");
-        }
-        sb.append(DebugUtil.formatElementName(getElementName()));
-        sb.append(": ");
-        List<PrismReferenceValue> values = getValues();
-        if (getValues() == null) {
-            sb.append("null");
-        } else if (values.isEmpty()) {
-        	sb.append("[ ]");
-        } else {
-            if (definition != null && DebugUtil.isDetailedDebugDump()) {
-                sb.append(" def ");
-            }
-            for (PrismReferenceValue value : values) {
-                if (multiline) {
-                	sb.append("\n");
-                	DebugUtil.indentDebugDump(sb, indent + 1);
-                }
-                if (DebugUtil.isDetailedDebugDump()) {
-                	if (multiline) {
-                		sb.append(value.debugDump(indent + 1, true));
-                	} else {
-                		sb.append(value.toString());
-                	}
-                } else {
-                	sb.append(value.toHumanReadableString());
-                }
-            }
-        }
+	@Override
+	String toString();
 
-        return sb.toString();
-    }
+	@Override
+	String debugDump(int indent);
 
-    /**
-     * Return a human readable name of this class suitable for logs.
-     */
-    @Override
-    protected String getDebugDumpClassName() {
-        return "PR";
-    }
 }

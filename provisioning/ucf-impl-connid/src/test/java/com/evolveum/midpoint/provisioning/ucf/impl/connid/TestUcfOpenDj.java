@@ -260,25 +260,25 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		ResourceAttributeDefinition<String> attributeDefinition = accountDefinition
 				.findAttributeDefinition(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME));
 		ResourceAttribute<String> attribute = attributeDefinition.instantiate();
-		attribute.setValue(new PrismPropertyValue<>("uid=" + name + ",ou=people,dc=example,dc=com"));
+		attribute.setRealValue("uid=" + name + ",ou=people,dc=example,dc=com");
 		resourceObject.add(attribute);
 
 		attributeDefinition = accountDefinition
 				.findAttributeDefinition(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "sn"));
 		attribute = attributeDefinition.instantiate();
-		attribute.setValue(new PrismPropertyValue(familyName));
+		attribute.setRealValue(familyName);
 		resourceObject.add(attribute);
 
 		attributeDefinition = accountDefinition
 				.findAttributeDefinition(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "cn"));
 		attribute = attributeDefinition.instantiate();
-		attribute.setValue(new PrismPropertyValue(givenName + " " + familyName));
+		attribute.setRealValue(givenName + " " + familyName);
 		resourceObject.add(attribute);
 
 		attributeDefinition = accountDefinition.findAttributeDefinition(new QName(ResourceTypeUtil.getResourceNamespace(resourceType),
 				"givenName"));
 		attribute = attributeDefinition.instantiate();
-		attribute.setValue(new PrismPropertyValue(givenName));
+		attribute.setRealValue(givenName);
 		resourceObject.add(attribute);
 
 		PrismObject<ShadowType> shadow = wrapInShadow(ShadowType.class, resourceObject);
@@ -412,7 +412,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		ResourceAttributeDefinition propertyDef = accountDefinition.findAttributeDefinition(new QName(
 				ResourceTypeUtil.getResourceNamespace(resourceType), propertyName));
 		ResourceAttribute property = propertyDef.instantiate();
-		property.setValue(new PrismPropertyValue(propertyValue));
+		property.setRealValue(propertyValue);
 		return property;
 	}
 
@@ -421,7 +421,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		ItemPath propertyPath = new ItemPath(ShadowType.F_ATTRIBUTES,
 				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), propertyName));
 		PropertyDelta delta = new PropertyDelta(propertyPath, property.getDefinition(), prismContext);
-		delta.setValueToReplace(new PrismPropertyValue(propertyValue));
+		delta.setRealValuesToReplace(propertyValue);
 		PropertyModificationOperation attributeModification = new PropertyModificationOperation(delta);
 		return attributeModification;
 	}
@@ -431,7 +431,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		ItemPath propertyPath = new ItemPath(ShadowType.F_ATTRIBUTES,
 				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), propertyName));
 		PropertyDelta delta = new PropertyDelta(propertyPath, property.getDefinition(), prismContext);
-		delta.addValueToAdd(new PrismPropertyValue(propertyValue));
+		delta.addRealValuesToAdd(propertyValue);
 		PropertyModificationOperation attributeModification = new PropertyModificationOperation(delta);
 		return attributeModification;
 	}
@@ -441,7 +441,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		ItemPath propertyPath = new ItemPath(ShadowType.F_ATTRIBUTES,
 				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), propertyName));
 		PropertyDelta delta = new PropertyDelta(propertyPath, property.getDefinition(), prismContext);
-		delta.addValueToDelete(new PrismPropertyValue(propertyValue));
+		delta.addRealValuesToDelete(propertyValue);
 		PropertyModificationOperation attributeModification = new PropertyModificationOperation(delta);
 		return attributeModification;
 	}
@@ -451,7 +451,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		PropertyDelta<ActivationStatusType> delta = PropertyDelta.createDelta(
 				new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
 				shadowDefinition);
-		delta.setValueToReplace(new PrismPropertyValue<>(status));
+		delta.setRealValuesToReplace(status);
 		return new PropertyModificationOperation(delta);
 	}
 
@@ -776,18 +776,18 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		ResourceAttributeDefinition road = accountDefinition.findAttributeDefinition(
 				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "sn"));
 		ResourceAttribute roa = road.instantiate();
-		roa.setValue(new PrismPropertyValue(sn));
+		roa.setRealValue(sn);
 		resourceObject.add(roa);
 
 		road = accountDefinition.findAttributeDefinition(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "cn"));
 		roa = road.instantiate();
-		roa.setValue(new PrismPropertyValue(cn));
+		roa.setRealValue(cn);
 		resourceObject.add(roa);
 
 		road = accountDefinition.findAttributeDefinition(
 				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME));
 		roa = road.instantiate();
-		roa.setValue(new PrismPropertyValue(dn));
+		roa.setRealValue(dn);
 		resourceObject.add(roa);
 
 		return resourceObject;

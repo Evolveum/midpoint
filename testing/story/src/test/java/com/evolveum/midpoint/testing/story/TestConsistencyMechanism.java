@@ -38,6 +38,7 @@ import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.prism.*;
 import org.apache.commons.lang.StringUtils;
 import org.opends.server.types.Entry;
 import org.opends.server.util.EmbeddedUtils;
@@ -51,17 +52,6 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.OriginType;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
@@ -726,7 +716,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 			ReferenceDelta abombaDeleteAccDelta = ReferenceDelta
 					.createModificationDelete(ShadowType.class,
 							UserType.F_LINK_REF, prismContext,
-							new PrismReferenceValue(abombaOid));
+							new PrismReferenceValueImpl(abombaOid));
 			ObjectDelta d = ObjectDelta.createModifyDelta(USER_ABOMBA_OID,
 					abombaDeleteAccDelta, UserType.class, prismContext);
 			modelService.executeChanges(MiscSchemaUtil.createCollection(d), null, task,
@@ -1227,7 +1217,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		PropertyDelta fullNameDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(UserType.F_FULL_NAME), getUserDefinition(), new PolyString("jackNew2"));
 		modifications.add(fullNameDelta);
 		
-		PrismPropertyValue<ActivationStatusType> enabledUserAction = new PrismPropertyValue<>(ActivationStatusType.ENABLED, OriginType.USER_ACTION, null);
+		PrismPropertyValue<ActivationStatusType> enabledUserAction = new PrismPropertyValueImpl<>(ActivationStatusType.ENABLED, OriginType.USER_ACTION, null);
 		PropertyDelta<ActivationStatusType> enabledDelta = PropertyDelta.createDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, getUserDefinition());
 		enabledDelta.addValueToAdd(enabledUserAction);
 		modifications.add(enabledDelta);
@@ -1257,7 +1247,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		PropertyDelta givenNameDeltaNew = PropertyDelta.createModificationReplaceProperty(new ItemPath(UserType.F_GIVEN_NAME), getUserDefinition(), new PolyString("jackNew2a"));
 		newModifications.add(givenNameDeltaNew);
 		
-		PrismPropertyValue<ActivationStatusType> enabledOutboundAction = new PrismPropertyValue<>(ActivationStatusType.ENABLED, OriginType.USER_ACTION, null);
+		PrismPropertyValue<ActivationStatusType> enabledOutboundAction = new PrismPropertyValueImpl<>(ActivationStatusType.ENABLED, OriginType.USER_ACTION, null);
 		PropertyDelta<ActivationStatusType> enabledDeltaNew = PropertyDelta.createDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, getUserDefinition());
 		enabledDeltaNew.addValueToAdd(enabledOutboundAction);
 		newModifications.add(enabledDeltaNew);

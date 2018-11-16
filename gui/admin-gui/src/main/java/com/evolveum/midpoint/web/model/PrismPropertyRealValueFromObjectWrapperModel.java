@@ -97,7 +97,7 @@ public class PrismPropertyRealValueFromObjectWrapperModel<T,O extends ObjectType
                     object = new PolyString((String) object);
                 }
 
-                property.setValue(new PrismPropertyValue(object, OriginType.USER_ACTION, null));
+                property.setValue(new PrismPropertyValueImpl(object, OriginType.USER_ACTION, null));
             } else {
                 PrismContainerValue parent = (PrismContainerValue) property.getParent();
                 parent.remove(property);

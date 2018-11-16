@@ -1032,7 +1032,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
                         new NameItemPathSegment(AssignmentType.F_ACTIVATION),
                         new NameItemPathSegment(ActivationType.F_VALID_FROM)),
                         validFromDef, prismContext);
-        validFromDelta.setValueToReplace(new PrismPropertyValue<>(validFrom));
+        validFromDelta.setRealValuesToReplace(validFrom);
         PrismPropertyDefinition<XMLGregorianCalendar> validToDef = activationDef.findPropertyDefinition(ActivationType.F_VALID_TO);
         PropertyDelta<XMLGregorianCalendar> validToDelta = new PropertyDelta<>(
                 new ItemPath(new NameItemPathSegment(UserType.F_ASSIGNMENT),
@@ -1040,7 +1040,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
                         new NameItemPathSegment(AssignmentType.F_ACTIVATION),
                         new NameItemPathSegment(ActivationType.F_VALID_TO)),
                         validToDef, prismContext);
-        validToDelta.setValueToReplace(new PrismPropertyValue<>(validTo));
+        validToDelta.setRealValuesToReplace(validTo);
 
         ObjectDelta<UserType> userDelta = new ObjectDelta<>(UserType.class, ChangeType.MODIFY, prismContext);
         userDelta.setOid(USER_JACK_OID);

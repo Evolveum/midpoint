@@ -18,14 +18,10 @@ package com.evolveum.midpoint.ninja.action;
 import com.evolveum.midpoint.ninja.action.worker.SearchProducerWorker;
 import com.evolveum.midpoint.ninja.action.worker.ProgressReporterWorker;
 import com.evolveum.midpoint.ninja.impl.LogTarget;
-import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.opts.ExportOptions;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -214,7 +210,7 @@ public abstract class AbstractRepositorySearchAction<OP extends ExportOptions> e
     private RefFilter createResourceRefFilter(String oid) throws SchemaException {
         List<PrismReferenceValue> values = new ArrayList<>();
         if (oid != null) {
-            values.add(new PrismReferenceValue(oid, ResourceType.COMPLEX_TYPE));
+            values.add(new PrismReferenceValueImpl(oid, ResourceType.COMPLEX_TYPE));
         }
 
         PrismContext prismContext = context.getPrismContext();

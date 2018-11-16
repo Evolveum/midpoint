@@ -15,21 +15,7 @@
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -1924,7 +1910,7 @@ public class TaskQuartzImpl implements Task {
 
 		ArrayList<PrismPropertyValue<T>> values = new ArrayList<>(1);
 		if (value != null) {
-			values.add(new PrismPropertyValue<>(value));
+			values.add(new PrismPropertyValueImpl<>(value));
 		}
 		processModificationBatched(setExtensionPropertyAndPrepareDelta(propertyName, propertyDef, values));
 	}
@@ -1938,7 +1924,7 @@ public class TaskQuartzImpl implements Task {
 		}
 		ArrayList<PrismPropertyValue<T>> values = new ArrayList<>(1);
 		if (value != null) {
-			values.add(new PrismPropertyValue<>(value));
+			values.add(new PrismPropertyValueImpl<>(value));
 		}
 		ItemDelta delta = new PropertyDelta<>(new ItemPath(TaskType.F_EXTENSION, propertyName), propertyDef, getPrismContext());
 		delta.setValuesToReplace(values);
@@ -2221,7 +2207,7 @@ public class TaskQuartzImpl implements Task {
 	//    @Override
 	//    public void setRequesteeRef(PrismObject<UserType> requestee) throws SchemaException {
 	//        Validate.notNull(requestee.getOid());
-	//        PrismReferenceValue value = new PrismReferenceValue(requestee.getOid());
+	//        PrismReferenceValue value = new PrismReferenceValueImpl(requestee.getOid());
 	//        value.setTargetType(UserType.COMPLEX_TYPE);
 	//        setRequesteeRef(value);
 	//    }

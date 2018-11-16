@@ -22,6 +22,7 @@ import java.util.*;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismReferenceValueImpl;
 import com.evolveum.midpoint.schema.DeltaConversionOptions;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
@@ -515,7 +516,7 @@ public class AuditEventRecord implements DebugDumpable {
     	if (refType == null) {
     		return null;
     	}
-    	PrismReferenceValue refVal = new PrismReferenceValue(refType.getOid());
+    	PrismReferenceValue refVal = new PrismReferenceValueImpl(refType.getOid());
     	refVal.setTargetType(refType.getType());
     	refVal.setTargetName(refType.getTargetName());
 		return refVal;

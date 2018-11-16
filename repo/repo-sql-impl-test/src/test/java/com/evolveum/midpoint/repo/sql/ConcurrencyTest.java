@@ -16,12 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -328,9 +323,9 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
             if (propertyDefinition1 == null) {
                 throw new IllegalArgumentException("No definition for " + attribute1 + " in " + userPrismDefinition);
             }
-            PropertyDelta<?> delta1 = new PropertyDelta<>(attribute1, propertyDefinition1, prismContext);
+            PropertyDelta<Object> delta1 = new PropertyDelta(attribute1, propertyDefinition1, prismContext);
             //noinspection unchecked
-            delta1.setValueToReplace(new PrismPropertyValue(poly ? new PolyString(dataWritten) : dataWritten));
+            delta1.setRealValuesToReplace(poly ? new PolyString(dataWritten) : dataWritten);
             List<ItemDelta> deltas = new ArrayList<>();
             deltas.add(delta1);
 
@@ -352,7 +347,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
                     act.setDescription(dataWritten);
                     delta2.setValueToReplace(act.asPrismContainerValue());
                 } else {
-                    delta2.setValueToReplace(new PrismPropertyValue(dataWritten));
+                    delta2.setValueToReplace(new PrismPropertyValueImpl<>(dataWritten));
                 }
                 deltas.add(delta2);
             }

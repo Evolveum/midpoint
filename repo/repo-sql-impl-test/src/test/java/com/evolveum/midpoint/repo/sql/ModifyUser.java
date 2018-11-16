@@ -17,7 +17,7 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismReferenceValueImpl;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
@@ -202,11 +202,11 @@ public class ModifyUser extends BaseSQLRepoTest {
         ReferenceDelta delta1 = ReferenceDelta.createModificationAdd(
                 new ItemPath(UserType.F_METADATA, MetadataType.F_CREATE_APPROVER_REF),
                 userDefinition,
-                new PrismReferenceValue("target-oid-1", UserType.COMPLEX_TYPE));
+                new PrismReferenceValueImpl("target-oid-1", UserType.COMPLEX_TYPE));
         ReferenceDelta delta2 = ReferenceDelta.createModificationAdd(
                 new ItemPath(UserType.F_METADATA, MetadataType.F_MODIFY_APPROVER_REF),
                 userDefinition,
-                new PrismReferenceValue("target-oid-1", UserType.COMPLEX_TYPE));            // the same as in delta1
+                new PrismReferenceValueImpl("target-oid-1", UserType.COMPLEX_TYPE));            // the same as in delta1
 
         repositoryService.modifyObject(UserType.class, userOid, Arrays.asList(delta1, delta2), new OperationResult("asdf"));
     }

@@ -58,7 +58,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 		PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_FILE);
 
 		//Delta
-    	PrismContainerValue<AssignmentType> assignmentValue = new PrismContainerValue<>(getPrismContext());
+    	PrismContainerValue<AssignmentType> assignmentValue = new PrismContainerValueImpl<>(getPrismContext());
     	// The value id is null
     	assignmentValue.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "jamalalicha patlama paprtala", getPrismContext());
 
@@ -87,7 +87,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 		PrismObject<RoleType> role = PrismTestUtil.parseObject(ROLE_CONSTRUCTION_FILE);
 
 		//Delta
-    	PrismContainerValue<AssignmentType> inducementValue = new PrismContainerValue<>(getPrismContext());
+    	PrismContainerValue<AssignmentType> inducementValue = new PrismContainerValueImpl<>(getPrismContext());
     	// The value id is null
     	inducementValue.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "jamalalicha patlama paprtala", getPrismContext());
 

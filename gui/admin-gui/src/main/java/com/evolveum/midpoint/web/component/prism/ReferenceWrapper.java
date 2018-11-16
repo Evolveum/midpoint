@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.prism;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismReferenceValueImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -83,7 +84,7 @@ public class ReferenceWrapper extends PropertyOrReferenceWrapper<PrismReference,
 	
 	@Override
 	public ValueWrapper createAddedValue() {
-		PrismReferenceValue prv = new PrismReferenceValue();
+		PrismReferenceValue prv = new PrismReferenceValueImpl();
 		return new ValueWrapper(this, prv, ValueStatus.ADDED);
 	}
 	

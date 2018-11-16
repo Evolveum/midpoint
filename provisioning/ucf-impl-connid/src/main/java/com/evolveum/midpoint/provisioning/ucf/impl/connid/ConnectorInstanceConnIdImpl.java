@@ -1756,17 +1756,17 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 					PropertyDelta<Object> delta = new PropertyDelta<Object>(new ItemPath(ShadowType.F_ATTRIBUTES, 
 							definition.getName()), definition, prismContext);
 					if(attrDeltaSideEffect.getValuesToReplace() != null){
-						delta.setValuesToReplace(new PrismPropertyValue<Object>(attrDeltaSideEffect.getValuesToReplace().get(0)));
+						delta.setRealValuesToReplace(attrDeltaSideEffect.getValuesToReplace().get(0));
 					} else {
 						if(attrDeltaSideEffect.getValuesToAdd() != null){
 							for(Object value : attrDeltaSideEffect.getValuesToAdd()){
-								delta.addValuesToAdd(new PrismPropertyValue<Object>(value));
+								delta.addRealValuesToAdd(value);
 							}
 							
 						}
 						if(attrDeltaSideEffect.getValuesToRemove() != null){
 							for(Object value : attrDeltaSideEffect.getValuesToRemove()){
-								delta.addValuesToDelete(new PrismPropertyValue<Object>(value));
+								delta.addRealValuesToDelete(value);
 							}
 						}
 					}
@@ -2035,26 +2035,28 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			// fallback, compatibility
 			for (ResourceAttribute<?> attr : identification.getAllIdentifiers()) {
 				if (attr.getElementName().equals(SchemaConstants.ICFS_NAME)) {
-					attr.setValue(new PrismPropertyValue(newName.getNameValue()));			// expecting the NAME property is of type String
+					// expecting the NAME property is of type String
+					//noinspection unchecked
+					((ResourceAttribute<String>) attr).setRealValue(newName.getNameValue());
 					return;
 				}
 			}
 			throw new IllegalStateException("No identifiers");
 		}
-		secondaryIdentifier.setValue(new PrismPropertyValue(newName.getNameValue()));
+		secondaryIdentifier.setRealValue(newName.getNameValue());
 	}
 
 	private PropertyDelta<String> createNameDelta(Name name, ResourceAttributeDefinition nameDefinition) {
 		PropertyDelta<String> uidDelta = new PropertyDelta<String>(new ItemPath(ShadowType.F_ATTRIBUTES, nameDefinition.getName()),
 				nameDefinition, prismContext);
-		uidDelta.setValueToReplace(new PrismPropertyValue<String>(name.getNameValue()));
+		uidDelta.setRealValuesToReplace(name.getNameValue());
 		return uidDelta;
 	}
 	
 	private PropertyDelta<String> createUidDelta(Uid uid, ResourceAttributeDefinition uidDefinition) {
 		PropertyDelta<String> uidDelta = new PropertyDelta<String>(new ItemPath(ShadowType.F_ATTRIBUTES, uidDefinition.getName()),
 				uidDefinition, prismContext);
-		uidDelta.setValueToReplace(new PrismPropertyValue<>(uid.getUidValue()));
+		uidDelta.setRealValuesToReplace(uid.getUidValue());
 		return uidDelta;
 	}
 
@@ -2836,13 +2838,15 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			Collection<? extends ResourceAttribute<?>> identifiers = identification.getAllIdentifiers();
 			for (ResourceAttribute<?> attr : identifiers) {
 				if (attr.getElementName().equals(SchemaConstants.ICFS_UID)) {
-					attr.setValue(new PrismPropertyValue(newUid.getUidValue()));			// expecting the UID property is of type String
+					// expecting the UID property is of type String
+					//noinspection unchecked
+					((ResourceAttribute<String>) attr).setRealValue(newUid.getUidValue());
 					return;
 				}
 			}
 			throw new IllegalStateException("No UID attribute in " + identifiers);
 		}
-		primaryIdentifier.setValue(new PrismPropertyValue(newUid.getUidValue()));
+		primaryIdentifier.setRealValue(newUid.getUidValue());
 	}
 
 	private ResourceAttributeDefinition getNameDefinition(ResourceObjectIdentification identification) throws SchemaException {
@@ -3002,15 +3006,13 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	private <T> PrismProperty<T> createTokenProperty(T object) {
 		QName type = XsdTypeMapper.toXsdType(object.getClass());
 
-		Set<PrismPropertyValue<T>> syncTokenValues = new HashSet<>();
-		syncTokenValues.add(new PrismPropertyValue<>(object));
-		PrismPropertyDefinitionImpl propDef = new PrismPropertyDefinitionImpl(SchemaConstants.SYNC_TOKEN,
-				type, prismContext);
+		//noinspection unchecked
+		PrismPropertyDefinitionImpl<T> propDef = new PrismPropertyDefinitionImpl(SchemaConstants.SYNC_TOKEN, type, prismContext);
 		propDef.setDynamic(true);
 		propDef.setMaxOccurs(1);
 		propDef.setIndexed(false);          // redundant, as dynamic extension items are not indexed by default
 		PrismProperty<T> property = propDef.instantiate();
-		property.addValues(syncTokenValues);
+		property.addRealValue(object);
 		return property;
 	}
 

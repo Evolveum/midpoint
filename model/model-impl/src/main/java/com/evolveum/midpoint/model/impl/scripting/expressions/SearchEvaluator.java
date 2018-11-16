@@ -23,6 +23,7 @@ import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.model.impl.scripting.helpers.ExpressionHelper;
 import com.evolveum.midpoint.model.impl.scripting.helpers.OperationsHelper;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContainerValueImpl;
 import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -78,7 +79,7 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
 	    List<PipelineItem> data = input.getData();
 	    if (data.isEmpty()) {
 	    	// TODO fix this brutal hack (with dummyValue)
-		    PrismContainerValue<ObjectType> dummyValue = new PrismContainerValue<>(prismContext);
+		    PrismContainerValue<ObjectType> dummyValue = new PrismContainerValueImpl<>(prismContext);
 		    PipelineItem dummyItem = new PipelineItem(dummyValue, PipelineData.newOperationResult(), context.getInitialVariables());
 		    data = Collections.singletonList(dummyItem);
 	    }

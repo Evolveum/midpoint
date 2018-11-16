@@ -41,7 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
  *
  */
 @SuppressWarnings("rawtypes")
-public final class ResourceAttributeContainer extends PrismContainer {
+public final class ResourceAttributeContainer extends PrismContainerImpl {      // todo
     private static final long serialVersionUID = 8878851067509560312L;
 
     /**

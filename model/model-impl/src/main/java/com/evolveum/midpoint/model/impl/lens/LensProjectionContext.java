@@ -821,7 +821,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             if (objectToAdd != null) {
                 PrismObjectDefinition<ShadowType> objectDefinition = objectToAdd.getDefinition();
                 // TODO: remove constructor, use some factory method instead
-                base = new PrismObject<>(objectToAdd.getElementName(), objectDefinition, getNotNullPrismContext());
+                base = new PrismObjectImpl<>(objectToAdd.getElementName(), objectDefinition, getNotNullPrismContext());
                 base = syncDelta.computeChangedObject(base);
             }
         }

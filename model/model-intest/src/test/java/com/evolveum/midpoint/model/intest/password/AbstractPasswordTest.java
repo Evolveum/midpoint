@@ -24,6 +24,7 @@ import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.PrismReferenceValueImpl;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
@@ -1474,7 +1475,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertEquals("Wrong # of parentOrgRefs", 2, jack.getParentOrgRef().size());
 
 		ObjectDelta<OrgType> orgDelta = DeltaBuilder.deltaFor(OrgType.class, prismContext)
-				.item(OrgType.F_PASSWORD_POLICY_REF).replace(new PrismReferenceValue(PASSWORD_POLICY_GLOBAL_OID))
+				.item(OrgType.F_PASSWORD_POLICY_REF).replace(new PrismReferenceValueImpl(PASSWORD_POLICY_GLOBAL_OID))
 				.asObjectDelta(ORG_GOVERNOR_OFFICE_OID);
 		executeChanges(orgDelta, null, task, result);
 
@@ -4280,7 +4281,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         			.historyLength(ORG_MINISTRY_OF_OFFENSE_PASSWORD_HISTORY_LENGTH);
         ministrySecurityPolicyOid = addObject(securityPolicy, task, result);
 
-        PrismReferenceValue securityPolicyRef = new PrismReferenceValue();
+        PrismReferenceValue securityPolicyRef = new PrismReferenceValueImpl();
         securityPolicyRef.setOid(ministrySecurityPolicyOid);
 		modifyObjectReplaceReference(OrgType.class, ORG_MINISTRY_OF_OFFENSE_OID,
         		OrgType.F_SECURITY_POLICY_REF, task, result, securityPolicyRef);
