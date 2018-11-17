@@ -45,7 +45,7 @@ import java.util.stream.Stream;
  *
  * @author Radovan Semancik
  */
-public class DeltaSetTriple<T> implements DebugDumpable, ShortDumpable, Serializable, SimpleVisitable<T>, Foreachable<T> {
+public class DeltaSetTripleImpl<T> implements DebugDumpable, ShortDumpable, Serializable, SimpleVisitable<T>, Foreachable<T> {
 
     /**
      * Collection of values that were not changed.
@@ -65,13 +65,13 @@ public class DeltaSetTriple<T> implements DebugDumpable, ShortDumpable, Serializ
 	@NotNull
 	final Collection<T> minusSet;
 
-    public DeltaSetTriple() {
+    public DeltaSetTripleImpl() {
         zeroSet = createSet();
         plusSet = createSet();
         minusSet = createSet();
     }
 
-    public DeltaSetTriple(@NotNull Collection<T> zeroSet, @NotNull Collection<T> plusSet, @NotNull Collection<T> minusSet) {
+    public DeltaSetTripleImpl(@NotNull Collection<T> zeroSet, @NotNull Collection<T> plusSet, @NotNull Collection<T> minusSet) {
         this.zeroSet = zeroSet;
         this.plusSet = plusSet;
         this.minusSet = minusSet;
