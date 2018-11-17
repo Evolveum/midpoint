@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 import com.evolveum.midpoint.prism.PrismPropertyValueImpl;
+import com.evolveum.midpoint.prism.delta.DeltaMapTripleImpl;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.impl.lens.AbstractConstruction;
@@ -60,7 +61,7 @@ public class ConstructionProcessor {
 
 		// We will be collecting the evaluated account constructions into these three maps.
         // It forms a kind of delta set triple for the account constructions.
-		DeltaMapTriple<K, ConstructionPack<T>> constructionMapTriple = new DeltaMapTriple<>();
+		DeltaMapTriple<K, ConstructionPack<T>> constructionMapTriple = new DeltaMapTripleImpl<>();
         collectToConstructionMaps(context, evaluatedAssignmentTriple, constructionMapTriple,
         		constructionTripleExtractor, keyGenerator,
         		task, result);

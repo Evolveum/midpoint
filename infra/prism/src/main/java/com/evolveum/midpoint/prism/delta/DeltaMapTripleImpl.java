@@ -15,14 +15,11 @@
  */
 package com.evolveum.midpoint.prism.delta;
 
-import com.evolveum.midpoint.prism.SimpleVisitable;
 import com.evolveum.midpoint.prism.SimpleVisitor;
 import com.evolveum.midpoint.util.Cloner;
-import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,7 +29,7 @@ import java.util.Map.Entry;
  *
  * @author Radovan Semancik
  */
-public class DeltaMapTripleImpl<K,V> implements DebugDumpable, Serializable, SimpleVisitable<Map.Entry<K, V>> {
+public class DeltaMapTripleImpl<K,V> implements DeltaMapTriple<K,V> {
 
     /**
      * Collection of values that were not changed.
@@ -49,13 +46,13 @@ public class DeltaMapTripleImpl<K,V> implements DebugDumpable, Serializable, Sim
      */
     protected Map<K,V> minusMap;
 
-    public DeltaMapTriple() {
+    public DeltaMapTripleImpl() {
         zeroMap = createMap();
         plusMap = createMap();
         minusMap = createMap();
     }
 
-    public DeltaMapTriple(Map<K,V> zeroMap, Map<K,V> plusMap, Map<K,V> minusMap) {
+    public DeltaMapTripleImpl(Map<K,V> zeroMap, Map<K,V> plusMap, Map<K,V> minusMap) {
         this.zeroMap = zeroMap;
         this.plusMap = plusMap;
         this.minusMap = minusMap;
@@ -189,9 +186,9 @@ public class DeltaMapTripleImpl<K,V> implements DebugDumpable, Serializable, Sim
 	}
 
 	public void merge(DeltaMapTriple<K,V> triple) {
-		addAllToZeroMap(triple.zeroMap);
-		addAllToPlusMap(triple.plusMap);
-		addAllToMinusMap(triple.minusMap);
+		addAllToZeroMap(triple.getZeroMap());
+		addAllToPlusMap(triple.getPlusMap());
+		addAllToMinusMap(triple.getMinusMap());
 	}
 
 	/**
@@ -202,12 +199,12 @@ public class DeltaMapTripleImpl<K,V> implements DebugDumpable, Serializable, Sim
     }
 
 	public DeltaMapTriple<K,V> clone(Cloner<Entry<K, V>> cloner) {
-		DeltaMapTriple<K,V> clone = new DeltaMapTriple<>();
+		DeltaMapTripleImpl<K,V> clone = new DeltaMapTripleImpl<>();
 		copyValues(clone, cloner);
 		return clone;
 	}
 
-	protected void copyValues(DeltaMapTriple<K,V> clone, Cloner<Entry<K, V>> cloner) {
+	protected void copyValues(DeltaMapTripleImpl<K,V> clone, Cloner<Entry<K, V>> cloner) {
 		clone.zeroMap = cloneSet(this.zeroMap, cloner);
 		clone.plusMap = cloneSet(this.plusMap, cloner);
 		clone.minusMap = cloneSet(this.minusMap, cloner);
