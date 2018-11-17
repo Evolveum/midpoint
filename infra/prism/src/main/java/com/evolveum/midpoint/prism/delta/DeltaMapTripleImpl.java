@@ -32,7 +32,7 @@ import java.util.Map.Entry;
  *
  * @author Radovan Semancik
  */
-public class DeltaMapTriple<K,V> implements DebugDumpable, Serializable, SimpleVisitable<Map.Entry<K, V>> {
+public class DeltaMapTripleImpl<K,V> implements DebugDumpable, Serializable, SimpleVisitable<Map.Entry<K, V>> {
 
     /**
      * Collection of values that were not changed.
