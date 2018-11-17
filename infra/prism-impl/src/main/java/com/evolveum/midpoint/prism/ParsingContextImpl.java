@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,27 @@ public class ParsingContextImpl implements ParsingContext {
 	private final List<String> warnings = new ArrayList<>();
 
 	ParsingContextImpl() {
+	}
+
+	static ParsingContext allowMissingRefTypes() {
+		ParsingContextImpl pc = new ParsingContextImpl();
+		pc.setAllowMissingRefTypes(true);
+		return pc;
+	}
+
+
+	public static ParsingContext createForCompatibilityMode() {
+		return forMode(XNodeProcessorEvaluationMode.COMPAT);
+	}
+
+	static ParsingContext forMode(XNodeProcessorEvaluationMode mode) {
+		ParsingContextImpl pc = new ParsingContextImpl();
+		pc.setEvaluationMode(mode);
+		return pc;
+	}
+
+	public static ParsingContext createDefault() {
+		return new ParsingContextImpl();
 	}
 
 	@SuppressWarnings("SameParameterValue")

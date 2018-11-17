@@ -16,11 +16,9 @@
 
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -29,24 +27,6 @@ import java.util.List;
 public interface ParsingContext extends Cloneable {
 
 	boolean isAllowMissingRefTypes();
-
-	XNodeProcessorEvaluationMode getEvaluationMode();
-
-	static ParsingContext forMode(XNodeProcessorEvaluationMode mode) {
-		ParsingContextImpl pc = new ParsingContextImpl();
-		pc.setEvaluationMode(mode);
-		return pc;
-	}
-
-	static ParsingContext allowMissingRefTypes() {
-		ParsingContextImpl pc = new ParsingContextImpl();
-		pc.setAllowMissingRefTypes(true);
-		return pc;
-	}
-
-	static ParsingContext createDefault() {
-		return new ParsingContextImpl();
-	}
 
 	boolean isCompat();
 

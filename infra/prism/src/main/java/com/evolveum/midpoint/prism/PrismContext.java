@@ -291,4 +291,9 @@ public interface PrismContext {
 	 */
 	boolean relationMatches(@NotNull List<QName> relationQuery, QName relation);
 
+	ParsingContext getDefaultParsingContext();
+
+	ParsingContext createParsingContextForAllowMissingRefTypes();
+
+	ParsingContext createParsingContextForCompatibilityMode();
 }

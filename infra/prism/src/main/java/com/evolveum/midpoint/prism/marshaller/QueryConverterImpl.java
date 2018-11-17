@@ -494,7 +494,7 @@ public class QueryConverterImpl implements QueryConverter {
 			Item<?,?> item = prismContext.parserFor(valueRoot)
 					.name(itemName)
 					.definition(itemDefinition)
-					.context(ParsingContext.allowMissingRefTypes())
+					.context(prismContext.createParsingContextForAllowMissingRefTypes())
 					.parseItem();
 			if (!(item instanceof PrismReference)) {
 				throw new IllegalStateException("Expected PrismReference, got " + item);
@@ -688,7 +688,7 @@ public class QueryConverterImpl implements QueryConverter {
 		item = prismContext.parserFor(root)
 				.name(itemName)
 				.definition(itemDefinition)
-				.context(ParsingContext.allowMissingRefTypes())
+				.context(prismContext.createParsingContextForAllowMissingRefTypes())
 				.parseItem();
 
 		if (item.getValues().size() < 1 ) {

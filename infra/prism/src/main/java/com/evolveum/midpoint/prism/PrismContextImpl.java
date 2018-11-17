@@ -510,4 +510,19 @@ public class PrismContextImpl implements PrismContext {
 	public boolean relationMatches(@NotNull List<QName> relationQuery, QName relation) {
 		return relationQuery.stream().anyMatch(rq -> relationMatches(rq, relation));
 	}
+
+	@Override
+	public ParsingContext getDefaultParsingContext() {
+		return ParsingContextImpl.createDefault();
+	}
+
+	@Override
+	public ParsingContext createParsingContextForAllowMissingRefTypes() {
+		return ParsingContextImpl.allowMissingRefTypes();
+	}
+
+	@Override
+	public ParsingContext createParsingContextForCompatibilityMode() {
+		return ParsingContextImpl.createForCompatibilityMode();
+	}
 }
