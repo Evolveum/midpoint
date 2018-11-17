@@ -35,7 +35,6 @@ import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
 import com.evolveum.midpoint.repo.sql.helpers.*;
@@ -52,7 +51,6 @@ import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -1088,7 +1086,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
 		// Filter
 		if (specFilterType != null) {
-			ObjectFilter specFilter = QueryJaxbConvertor.createObjectFilter(object.getCompileTimeClass(), specFilterType, object.getPrismContext());
+			ObjectFilter specFilter = object.getPrismContext().getQueryConverter().createObjectFilter(object.getCompileTimeClass(), specFilterType);
 			if (filterEvaluator != null) {
 				specFilter = filterEvaluator.evaluate(specFilter);
 			}

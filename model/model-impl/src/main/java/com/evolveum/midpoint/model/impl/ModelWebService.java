@@ -23,7 +23,6 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
@@ -113,7 +112,7 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 		try {
             Class objectClass = ObjectTypes.getObjectTypeFromTypeQName(objectType).getClassDefinition();
             Collection<SelectorOptions<GetOperationOptions>> options = MiscSchemaUtil.optionsTypeToOptions(optionsType);
-			ObjectQuery q = QueryJaxbConvertor.createObjectQuery(objectClass, query, prismContext);
+			ObjectQuery q = prismContext.getQueryConverter().createObjectQuery(objectClass, query);
 			List<PrismObject<? extends ObjectType>> list = (List)model.searchObjects(objectClass, q, options, task, operationResult);
 			handleOperationResult(operationResult, result);
 			ObjectListType listType = new ObjectListType();

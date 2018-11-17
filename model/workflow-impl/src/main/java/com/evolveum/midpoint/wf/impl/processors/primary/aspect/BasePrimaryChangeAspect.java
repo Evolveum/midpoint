@@ -29,7 +29,6 @@ import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -188,7 +187,7 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
 			PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
 			ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(getFocusObjectable(lensContext), null, null, systemConfiguration.asObjectable());
 
-			ObjectFilter origFilter = QueryConvertor.parseFilter(filter, clazz, prismContext);
+			ObjectFilter origFilter = prismContext.getQueryConverter().parseFilter(filter, clazz);
 			ObjectFilter evaluatedFilter = ExpressionUtil
 					.evaluateFilterExpressions(origFilter, variables, mappingFactory.getExpressionFactory(), prismContext, " evaluating approverRef filter expression ", task, result);
 

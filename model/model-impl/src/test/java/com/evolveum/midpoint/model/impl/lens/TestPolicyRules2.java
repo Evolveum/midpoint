@@ -20,7 +20,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
-import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -117,7 +116,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 				.focusSelector(new ObjectSelectorType(prismContext))
 				.targetSelector(new ObjectSelectorType(prismContext)
 						.type(RoleType.COMPLEX_TYPE)
-						.filter(QueryConvertor.createSearchFilterType(studentFilter, prismContext)))
+						.filter(prismContext.getQueryConverter().createSearchFilterType(studentFilter)))
 				.beginPolicyConstraints()
 					.beginHasAssignment()
 						.name("student-assignment-disabled")

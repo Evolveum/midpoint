@@ -38,6 +38,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.QueryConverter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
@@ -466,6 +467,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     public PrismContext getPrismContext() {
         return getMidpointApplication().getPrismContext();
+    }
+
+    public QueryConverter getQueryConverter() {
+        return getPrismContext().getQueryConverter();
     }
 
     public RelationRegistry getRelationRegistry() {

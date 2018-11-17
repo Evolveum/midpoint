@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.Revivable;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -43,7 +42,6 @@ public abstract class ObjectFilter implements DebugDumpable, Serializable, Reviv
 
 	@Override
 	public void revive(PrismContext prismContext) throws SchemaException {
-		QueryConvertor.revive(this, prismContext);
 		this.prismContext = prismContext;
 	}
 	

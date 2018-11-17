@@ -125,15 +125,13 @@ public abstract class AbstractRepositorySearchAction<OP extends ExportOptions> e
             return producers;
         }
 
-        ObjectFilter filter = NinjaUtils.createObjectFilter(options.getFilter(), context);
-        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-
         List<ObjectTypes> types = NinjaUtils.getTypes(options.getType());
         for (ObjectTypes type : types) {
+            ObjectFilter filter = NinjaUtils.createObjectFilter(options.getFilter(), context, type.getClassDefinition());
+            ObjectQuery query = ObjectQuery.createObjectQuery(filter);
             if (ObjectTypes.SHADOW.equals(type)) {
                 List<SearchProducerWorker> shadowProducers = createProducersForShadows(queue, operation, producers, filter);
                 producers.addAll(shadowProducers);
-
                 continue;
             }
 

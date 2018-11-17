@@ -162,7 +162,6 @@ public interface Definition extends Serializable, DebugDumpable, Revivable {
 	 */
 	String getDocumentationPreview();
 
-
 	PrismContext getPrismContext();
 
 	default SchemaRegistry getSchemaRegistry() {

@@ -51,7 +51,6 @@ import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -823,7 +822,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	
 	private <O extends ObjectType> ObjectFilter parseAndEvaluateFilter(MidPointPrincipal principal, PrismObjectDefinition<O> objectDefinition, 
 			SearchFilterType specFilterType, String objectTargetDesc, String autzHumanReadableDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-		ObjectFilter specFilter = QueryJaxbConvertor.createObjectFilter(objectDefinition, specFilterType, prismContext);
+		ObjectFilter specFilter = prismContext.getQueryConverter().createObjectFilter(objectDefinition, specFilterType);
 		if (specFilter == null) {
 			return null;
 		}

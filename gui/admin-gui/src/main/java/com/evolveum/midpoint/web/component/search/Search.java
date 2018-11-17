@@ -18,12 +18,8 @@ package com.evolveum.midpoint.web.component.search;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
@@ -37,7 +33,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.AndFilter;
@@ -367,7 +362,7 @@ public class Search implements Serializable, DebugDumpable {
         }
 
         SearchFilterType search = ctx.parserFor(advancedQuery).type(SearchFilterType.COMPLEX_TYPE).parseRealValue();
-        return QueryConvertor.parseFilter(search, (Class<? extends ObjectType>) type, ctx);
+        return ctx.getQueryConverter().parseFilter(search, type);
     }
 
     public boolean isAdvancedQueryValid(PrismContext ctx) {

@@ -41,7 +41,6 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.Expression;
@@ -169,7 +168,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 			if (filterType == null) {
 				throw new SchemaException("No filter in "+shortDebugDump());
 			}
-			query = QueryJaxbConvertor.createObjectQuery(targetTypeClass, filterType, prismContext);
+			query = prismContext.getQueryConverter().createObjectQuery(targetTypeClass, filterType);
 			if (LOGGER.isTraceEnabled()){
 				LOGGER.trace("XML query converted to: {}", query.debugDump());
 			}

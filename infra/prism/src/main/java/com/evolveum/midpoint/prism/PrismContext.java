@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.marshaller.JaxbDomHack;
 import com.evolveum.midpoint.prism.marshaller.ParsingMigrator;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
+import com.evolveum.midpoint.prism.query.QueryConverter;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismMonitor;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
@@ -72,6 +73,9 @@ public interface PrismContext {
 	 * Returns the default protector. (TODO)
 	 */
 	Protector getDefaultProtector();
+
+	@NotNull
+	QueryConverter getQueryConverter();
 
 	//region Parsing
 

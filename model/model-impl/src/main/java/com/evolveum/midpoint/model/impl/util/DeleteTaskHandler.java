@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.model.impl.util;
 
 import java.util.Collection;
-import java.util.List;
 
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
@@ -45,7 +44,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -139,7 +137,7 @@ public class DeleteTaskHandler implements TaskHandler {
 
         ObjectQuery query;
         try {
-        	 query = QueryJaxbConvertor.createObjectQuery(objectType, queryType, prismContext);
+        	 query = prismContext.getQueryConverter().createObjectQuery(objectType, queryType);
              if (LOGGER.isTraceEnabled()) {
                  LOGGER.trace("Using object query from the task: {}", query.debugDump());
              }

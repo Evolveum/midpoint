@@ -66,7 +66,6 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
-import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -1011,7 +1010,7 @@ public class Clockwork {
         ObjectFilter refFilter = QueryBuilder.queryFor(FocusType.class, prismContext)
 				.item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(referenceValue)
 				.buildFilter();
-        SearchFilterType filterType = QueryConvertor.createSearchFilterType(refFilter, prismContext);
+        SearchFilterType filterType = prismContext.getQueryConverter().createSearchFilterType(refFilter);
         QueryType queryType = new QueryType();
         queryType.setFilter(filterType);
         PrismProperty<QueryType> property = propertyDef.instantiate();

@@ -52,7 +52,6 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.TypeFilter;
@@ -104,7 +103,7 @@ public class ReportServiceImpl implements ReportService {
 			ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, task.getResult()));
 			SearchFilterType filter = prismContext.parserFor(query).parseRealValue(SearchFilterType.class);
 			LOGGER.trace("filter {}", filter);
-			ObjectFilter f = QueryConvertor.parseFilter(filter, UserType.class, prismContext);
+			ObjectFilter f = prismContext.getQueryConverter().parseFilter(filter, UserType.class);
 			LOGGER.trace("f {}", f.debugDump());
 			if (!(f instanceof TypeFilter)) {
 				throw new IllegalArgumentException(

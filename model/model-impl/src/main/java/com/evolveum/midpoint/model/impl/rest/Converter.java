@@ -16,19 +16,17 @@
 
 package com.evolveum.midpoint.model.impl.rest;
 
-import org.jetbrains.annotations.NotNull;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * @author mederly
  */
-@FunctionalInterface
-public interface ConvertorInterface {
+@Target({ ElementType.PARAMETER})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Converter {
 
-	/**
-	 * Converts incoming object into a form that is consumable by the REST service.
-	 *
-	 * @param input Object to be converted (coming as input)
-	 * @return Object to be passed to the REST service.
-	 */
-	Object convert(@NotNull Object input);
+	Class<? extends ConverterInterface> value();
 }

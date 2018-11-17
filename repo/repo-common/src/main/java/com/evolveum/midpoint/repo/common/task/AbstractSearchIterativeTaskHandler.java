@@ -38,7 +38,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.query.FilterUtils;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -569,7 +568,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 
         QueryType queryFromTask = getObjectQueryTypeFromTask(task);
         if (queryFromTask != null) {
-            ObjectQuery query = QueryJaxbConvertor.createObjectQuery(objectType, queryFromTask, prismContext);
+            ObjectQuery query = prismContext.getQueryConverter().createObjectQuery(objectType, queryFromTask);
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Using object query from the task:\n{}", query.debugDump(1));
             }

@@ -5104,14 +5104,18 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
 		ObjectQuery query = null;
 		try {
-			query = QueryJaxbConvertor.createObjectQuery(type, queryType, prismContext);        // TODO
+			query = getQueryConverter().createObjectQuery(type, queryType);        // TODO
 		} catch (Exception ex) {
 			LOGGER.info("error while converting query: " + ex.getMessage(), ex);
 		}
 		return query;
 	}
 
-	protected <T extends Containerable> String getInterpretedQuery2(Session session, Class<T> type, ObjectQuery query) throws Exception {
+    private QueryConverter getQueryConverter() {
+        return prismContext.getQueryConverter();
+    }
+
+    protected <T extends Containerable> String getInterpretedQuery2(Session session, Class<T> type, ObjectQuery query) throws Exception {
         return getInterpretedQuery2(session, type, query, false);
     }
 

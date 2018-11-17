@@ -41,6 +41,7 @@ import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.QueryConverter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -70,7 +71,6 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.SimpleObjectResolver;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.test.asserter.FocusAsserter;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.DerbyController;
@@ -87,7 +87,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
-import com.fasterxml.jackson.databind.util.RawValue;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
@@ -2452,5 +2451,9 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	
 	protected void displayCurrentTime() {
 		display("Current time", clock.currentTimeXMLGregorianCalendar());
+	}
+
+	protected QueryConverter getQueryConverter() {
+		return prismContext.getQueryConverter();
 	}
 }

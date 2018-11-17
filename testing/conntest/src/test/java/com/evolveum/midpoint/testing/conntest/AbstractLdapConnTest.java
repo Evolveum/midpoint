@@ -32,6 +32,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler;
+import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 
@@ -747,7 +748,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         ObjectDelta<ShadowType> delta = ObjectDelta.createEmptyModifyDelta(ShadowType.class, accountBarbossaOid, prismContext);
         QName attrQName = new QName(MidPointConstants.NS_RI, "title");
         ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
-        PropertyDelta<String> attrDelta = PropertyDelta.createModificationReplaceProperty(
+        PropertyDelta<String> attrDelta = PropertyDeltaImpl.createModificationReplaceProperty(
         		new ItemPath(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "Captain");
         delta.addModification(attrDelta);
 
@@ -786,7 +787,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         ObjectDelta<ShadowType> delta = ObjectDelta.createEmptyModifyDelta(ShadowType.class, accountBarbossaOid, prismContext);
         QName attrQName = new QName(MidPointConstants.NS_RI, "title");
         ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
-        PropertyDelta<String> attrDelta = PropertyDelta.createModificationAddProperty(
+        PropertyDelta<String> attrDelta = PropertyDeltaImpl.createModificationAddProperty(
         		new ItemPath(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "Captain");
         delta.addModification(attrDelta);
 
@@ -825,7 +826,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         ObjectDelta<ShadowType> delta = ObjectDelta.createEmptyModifyDelta(ShadowType.class, accountBarbossaOid, prismContext);
         QName attrQName = new QName(MidPointConstants.NS_RI, "title");
         ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
-        PropertyDelta<String> attrDelta = PropertyDelta.createModificationAddProperty(
+        PropertyDelta<String> attrDelta = PropertyDeltaImpl.createModificationAddProperty(
         		new ItemPath(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "CAPTAIN");
         delta.addModification(attrDelta);
 

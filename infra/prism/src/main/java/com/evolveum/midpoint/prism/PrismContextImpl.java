@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.polystring.AlphanumericPolyStringNormalizer;
 import com.evolveum.midpoint.prism.polystring.ConfigurableNormalizer;
+import com.evolveum.midpoint.prism.query.QueryConverter;
 import com.evolveum.midpoint.prism.schema.SchemaDefinitionFactory;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.schema.SchemaRegistryImpl;
@@ -61,6 +62,7 @@ public class PrismContextImpl implements PrismContext {
 	private static boolean extraValidation = false;										// TODO replace by something serious
 
 	@NotNull private final SchemaRegistryImpl schemaRegistry;
+	@NotNull private final QueryConverterImpl queryConverter;
 	@NotNull private final LexicalProcessorRegistry lexicalProcessorRegistry;
 	@NotNull private PolyStringNormalizer defaultPolyStringNormalizer;
 	@NotNull private final PrismUnmarshaller prismUnmarshaller;
@@ -90,6 +92,7 @@ public class PrismContextImpl implements PrismContext {
 	private PrismContextImpl(@NotNull SchemaRegistryImpl schemaRegistry) {
 		this.schemaRegistry = schemaRegistry;
 		schemaRegistry.setPrismContext(this);
+		this.queryConverter = new QueryConverterImpl(this);
 		this.lexicalProcessorRegistry = new LexicalProcessorRegistry(schemaRegistry);
 		this.prismUnmarshaller = new PrismUnmarshaller(this);
 		PrismBeanInspector inspector = new PrismBeanInspector(this);
@@ -256,7 +259,13 @@ public class PrismContextImpl implements PrismContext {
 		this.defaultProtector = defaultProtector;
 	}
 
-    @Override
+	@NotNull
+	@Override
+	public QueryConverter getQueryConverter() {
+		return queryConverter;
+	}
+
+	@Override
 	public PrismMonitor getMonitor() {
 		return monitor;
 	}

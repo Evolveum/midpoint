@@ -42,7 +42,6 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.ItemPathUtil;
@@ -244,8 +243,8 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 		ModelImplUtils.addAssignmentPathVariables(assignmentPathVariables, variables);
 		LOGGER.info("Expression variables for filter evaluation: {}", variables);
 
-		ObjectFilter origFilter = QueryConvertor.parseFilter(getConstructionType().getResourceRef().getFilter(),
-				ResourceType.class, getPrismContext());
+		ObjectFilter origFilter = getPrismContext().getQueryConverter().parseFilter(getConstructionType().getResourceRef().getFilter(),
+				ResourceType.class);
 		LOGGER.info("Orig filter {}", origFilter);
 		ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(origFilter, variables,
 				getMappingFactory().getExpressionFactory(), getPrismContext(),

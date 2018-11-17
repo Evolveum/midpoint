@@ -26,10 +26,10 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ContainerDeltaImpl;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
-import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.QueryConverter;
 import com.evolveum.midpoint.prism.query.TypedObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.CloneUtil;
@@ -168,7 +168,7 @@ public class AccCertOpenerHelper {
 		Class<? extends ObjectType> focusClass = focus.asObjectable().getClass();
 		scope.setObjectType(ObjectTypes.getObjectType(focusClass).getTypeQName());
 		ObjectFilter objectFilter = QueryBuilder.queryFor(focusClass, prismContext).id(focus.getOid()).buildFilter();
-		scope.setSearchFilter(QueryConvertor.createSearchFilterType(objectFilter, prismContext));
+		scope.setSearchFilter(getQueryConverter().createSearchFilterType(objectFilter));
 		return campaign;
 	}
 
@@ -369,7 +369,7 @@ public class AccCertOpenerHelper {
 		final SearchFilterType searchFilter = objectBasedScope != null ? objectBasedScope.getSearchFilter() : null;
 		ObjectQuery query = new ObjectQuery();
 		if (searchFilter != null) {
-			query.setFilter(QueryConvertor.parseFilter(searchFilter, objectClass, prismContext));
+			query.setFilter(getQueryConverter().parseFilter(searchFilter, objectClass));
 		}
 		return new TypedObjectQuery<>(objectClass, query);
 	}
@@ -637,6 +637,10 @@ public class AccCertOpenerHelper {
 		return DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
 				.item(F_STAGE).add(stage)
 				.asItemDelta();
+	}
+
+	private QueryConverter getQueryConverter() {
+		return prismContext.getQueryConverter();
 	}
 	//endregion
 }

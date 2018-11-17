@@ -20,7 +20,6 @@ import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -175,7 +174,7 @@ public class PipelineData implements DebugDumpable {
 			ExecutionContext context, OperationResult result)
 			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
 			SecurityViolationException, ExpressionEvaluationException {
-		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(type, queryBean, context.getPrismContext());
+		ObjectQuery query = context.getQueryConverter().createObjectQuery(type, queryBean);
 		SearchResultList<? extends PrismObject<? extends ObjectType>> objects = context.getModelService()
 				.searchObjects(type, query, null, context.getTask(), result);
 		return objects.stream().map(o -> ObjectTypeUtil.createObjectRef(o, context.getPrismContext())).collect(Collectors.toList());

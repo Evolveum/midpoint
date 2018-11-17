@@ -24,10 +24,8 @@ import com.evolveum.midpoint.model.impl.scripting.helpers.ExpressionHelper;
 import com.evolveum.midpoint.model.impl.scripting.helpers.OperationsHelper;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContainerValueImpl;
-import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
@@ -99,14 +97,14 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
 		    ObjectQuery unresolvedObjectQuery = null;
 		    if (searchExpression.getQuery() != null) {
 			    try {
-				    unresolvedObjectQuery = QueryJaxbConvertor.createObjectQuery(objectClass, searchExpression.getQuery(), prismContext);
+				    unresolvedObjectQuery = context.getQueryConverter().createObjectQuery(objectClass, searchExpression.getQuery());
 			    } catch (SchemaException e) {
 				    throw new ScriptExecutionException("Couldn't parse object query due to schema exception", e);
 			    }
 		    } else if (searchExpression.getSearchFilter() != null) {
 			    unresolvedObjectQuery = new ObjectQuery();
 			    try {
-				    ObjectFilter filter = QueryConvertor.parseFilter(searchExpression.getSearchFilter(), objectClass, prismContext);
+				    ObjectFilter filter = prismContext.getQueryConverter().parseFilter(searchExpression.getSearchFilter(), objectClass);
 				    unresolvedObjectQuery.setFilter(filter);
 			    } catch (SchemaException e) {
 				    throw new ScriptExecutionException("Couldn't parse object filter due to schema exception", e);

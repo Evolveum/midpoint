@@ -19,7 +19,6 @@ package com.evolveum.midpoint.web.util;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.xnode.*;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -410,7 +409,7 @@ public class ExpressionUtil {
         SearchObjectExpressionEvaluatorType associationTargetSearchType = new SearchObjectExpressionEvaluatorType();
         EqualFilter pathFilter = EqualFilter.createEqual(new ItemPath(newPath), null, null, prismContext, newValue);
 
-        SearchFilterType filterType = QueryJaxbConvertor.createSearchFilterType(pathFilter, prismContext);
+        SearchFilterType filterType = prismContext.getQueryConverter().createSearchFilterType(pathFilter);
         associationTargetSearchType.setFilter(filterType);
         JAXBElement<SearchObjectExpressionEvaluatorType> evaluator = new ObjectFactory().createAssociationTargetSearch(associationTargetSearchType);
 

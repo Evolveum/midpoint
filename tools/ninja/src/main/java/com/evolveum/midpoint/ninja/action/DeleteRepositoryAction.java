@@ -14,6 +14,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedReader;
@@ -44,8 +45,7 @@ public class DeleteRepositoryAction extends RepositoryAction<DeleteOptions> {
         if (oid != null) {
             deleteByOid();
         } else {
-            ObjectQuery query = NinjaUtils.createObjectQuery(options.getFilter(), context);
-
+            ObjectQuery query = NinjaUtils.createObjectQuery(options.getFilter(), context, ObjectType.class);
             deleteByFilter(query);
         }
     }

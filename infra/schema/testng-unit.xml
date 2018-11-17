@@ -129,7 +129,7 @@
             <class name="com.evolveum.midpoint.schema.TestJaxbConstruction"/>
             <class name="com.evolveum.midpoint.schema.TestParseDiffPatch"/>
             <class name="com.evolveum.midpoint.schema.TestDeltaConverter"/>
-            <class name="com.evolveum.midpoint.schema.TestQueryConvertor"/>
+            <class name="com.evolveum.midpoint.schema.TestQueryConverter"/>
             <class name="com.evolveum.midpoint.schema.TestDynamicSchema"/>
             <class name="com.evolveum.midpoint.schema.TestSchemaDelta"/>
             <class name="com.evolveum.midpoint.schema.TestSerialization"/>

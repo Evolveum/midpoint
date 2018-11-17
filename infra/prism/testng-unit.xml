@@ -49,7 +49,7 @@
 			<class name="com.evolveum.midpoint.prism.lex.TestYamlParser"/>
             <class name="com.evolveum.midpoint.prism.lex.TestProtectedString"/>
 			<class name="com.evolveum.midpoint.prism.query.TestObjectQuery"/>
-			<class name="com.evolveum.midpoint.prism.query.TestQueryConvertors"/>
+			<class name="com.evolveum.midpoint.prism.query.TestQueryConverters"/>
 			<class name="com.evolveum.midpoint.prism.query.TestQueryBuilder"/>
         </classes>
     </test>

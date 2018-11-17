@@ -17,7 +17,6 @@ package com.evolveum.midpoint.common.refinery;
 
 import com.evolveum.midpoint.common.ResourceObjectPattern;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -876,18 +875,20 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 		return rObjectClassDef;
 	}
 
-	private static void parseProtected(RefinedObjectClassDefinition rAccountDef, ResourceObjectTypeDefinitionType accountTypeDefType) throws SchemaException {
+	private static void parseProtected(RefinedObjectClassDefinition rAccountDef,
+			ResourceObjectTypeDefinitionType accountTypeDefType, PrismContext prismContext) throws SchemaException {
 		for (ResourceObjectPatternType protectedType: accountTypeDefType.getProtected()) {
-			ResourceObjectPattern protectedPattern = convertToPattern(protectedType, rAccountDef);
+			ResourceObjectPattern protectedPattern = convertToPattern(protectedType, rAccountDef, prismContext);
 			rAccountDef.getProtectedObjectPatterns().add(protectedPattern);
 		}
 	}
 
-	private static ResourceObjectPattern convertToPattern(ResourceObjectPatternType patternType, RefinedObjectClassDefinition rAccountDef) throws SchemaException {
+	private static ResourceObjectPattern convertToPattern(ResourceObjectPatternType patternType,
+			RefinedObjectClassDefinition rAccountDef, PrismContext prismContext) throws SchemaException {
 		ResourceObjectPattern resourceObjectPattern = new ResourceObjectPattern(rAccountDef);
 		SearchFilterType filterType = patternType.getFilter();
 		if (filterType != null) {
-			ObjectFilter filter = QueryConvertor.parseFilter(filterType, rAccountDef.getObjectDefinition());
+			ObjectFilter filter = prismContext.getQueryConverter().parseFilter(filterType, rAccountDef.getObjectDefinition());
 			resourceObjectPattern.addFilter(filter);
 			return resourceObjectPattern;
 		}
@@ -1044,7 +1045,7 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
             }
         }
 
-        parseProtected(this, schemaHandlingObjectTypeDefinitionType);
+        parseProtected(this, schemaHandlingObjectTypeDefinitionType, getPrismContext());
 	}
 
 	private void parseAttributesFrom(RefinedResourceSchema rSchema, ObjectClassComplexTypeDefinition ocDef, boolean auxiliary,

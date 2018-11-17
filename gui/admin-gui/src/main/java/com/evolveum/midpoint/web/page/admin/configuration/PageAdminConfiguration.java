@@ -21,7 +21,6 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -65,7 +64,7 @@ public class PageAdminConfiguration extends PageAdmin {
 			objectQuery = new ObjectQuery();
 		}
 
-		QueryType query = QueryJaxbConvertor.createQueryType(objectQuery, getPrismContext());
+		QueryType query = getQueryConverter().createQueryType(objectQuery);
 
 		PrismPropertyDefinition queryDef = new PrismPropertyDefinitionImpl(
 				SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY, QueryType.COMPLEX_TYPE, getPrismContext());

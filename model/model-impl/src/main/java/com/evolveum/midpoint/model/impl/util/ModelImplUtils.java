@@ -36,7 +36,6 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.query.FullTextFilter;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -427,7 +426,7 @@ public class ModelImplUtils {
 		ObjectFilter objFilter;
 		try{
 			PrismObjectDefinition objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
-			objFilter = QueryConvertor.parseFilter(filter, objDef);
+			objFilter = prismContext.getQueryConverter().parseFilter(filter, objDef);
 		} catch (SchemaException ex){
 			LOGGER.error("Failed to convert object filter from filter because of: "+ ex.getMessage() + "; filter: " + filter.debugDump(), ex);
 			throw new SystemException("Failed to convert object filter from filter. Reason: " + ex.getMessage(), ex);

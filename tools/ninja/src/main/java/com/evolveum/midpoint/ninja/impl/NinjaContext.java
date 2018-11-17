@@ -23,6 +23,7 @@ import com.evolveum.midpoint.ninja.util.InitializationBeanPostprocessor;
 import com.evolveum.midpoint.ninja.util.Log;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.query.QueryConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.GenericXmlApplicationContext;
@@ -191,5 +192,9 @@ public class NinjaContext {
 
     public Log getLog() {
         return log;
+    }
+
+    public QueryConverter getQueryConverter() {
+        return prismContext.getQueryConverter();
     }
 }

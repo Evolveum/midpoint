@@ -17,7 +17,6 @@ package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.JaxbTestUtil;
@@ -263,7 +262,7 @@ public class TestParseTask {
 				.item(ShadowType.F_KIND).eq(ShadowKindType.ACCOUNT)
 				.build();
 
-		QueryType queryType = QueryJaxbConvertor.createQueryType(query, getPrismContext());
+		QueryType queryType = getPrismContext().getQueryConverter().createQueryType(query);
 
 		PrismPropertyDefinition queryDef = new PrismPropertyDefinitionImpl(
 				SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY, QueryType.COMPLEX_TYPE, getPrismContext());

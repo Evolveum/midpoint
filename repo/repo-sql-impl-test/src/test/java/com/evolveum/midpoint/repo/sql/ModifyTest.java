@@ -54,7 +54,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -961,7 +960,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         ObjectFilter filter = QueryBuilder.queryFor(UserType.class, prismContext)
                 .item(UserType.F_COST_CENTER).eq("100")
                 .buildFilter();
-        SearchFilterType filterBean = QueryJaxbConvertor.createSearchFilterType(filter, prismContext);
+        SearchFilterType filterBean = prismContext.getQueryConverter().createSearchFilterType(filter);
 
         List<ItemDelta<?, ?>> deltas2 = DeltaBuilder.deltaFor(ObjectCollectionType.class, prismContext)
                 .item(ObjectCollectionType.F_DESCRIPTION).replace("description")
@@ -982,8 +981,8 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         SearchFilterType filterFromRepo = afterChange2.asObjectable().getFilter();
         SearchFilterType filterExpected = collection.getFilter();
-        ObjectFilter filterFromRepoParsed = QueryJaxbConvertor.createObjectFilter(UserType.class, filterFromRepo, prismContext);
-        ObjectFilter filterExpectedParsed = QueryJaxbConvertor.createObjectFilter(UserType.class, filterExpected, prismContext);
+        ObjectFilter filterFromRepoParsed = prismContext.getQueryConverter().createObjectFilter(UserType.class, filterFromRepo);
+        ObjectFilter filterExpectedParsed = prismContext.getQueryConverter().createObjectFilter(UserType.class, filterExpected);
         //noinspection ConstantConditions
         assertTrue("Filters differ", filterExpectedParsed.equals(filterFromRepoParsed, false));
     }

@@ -22,7 +22,6 @@ import java.util.Map;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -43,7 +42,7 @@ public abstract class SchemaConstants {
 
 	public static final String NS_ORG = "http://midpoint.evolveum.com/xml/ns/public/common/org-3";
 	public static final String PREFIX_NS_ORG = "org";
-	public static final String NS_QUERY = QueryConvertor.NS_QUERY;
+	public static final String NS_QUERY = PrismConstants.NS_QUERY;
 	public static final String NS_QUERY_PREFIX = "q";
 	public static final String NS_TYPES = PrismConstants.NS_TYPES;
 	public static final String NS_TYPES_PREFIX = "t";

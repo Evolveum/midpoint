@@ -19,9 +19,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
@@ -40,7 +38,6 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -378,7 +375,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
 			SearchObjectExpressionEvaluatorType associationTargetSearchType = new SearchObjectExpressionEvaluatorType();
 			EqualFilter<String> filter = EqualFilter.createEqual(nameAttributePath, null, null, prismContext, groupName);
 
-			SearchFilterType filterType = QueryJaxbConvertor.createSearchFilterType(filter, prismContext);
+			SearchFilterType filterType = prismContext.getQueryConverter().createSearchFilterType(filter);
 			associationTargetSearchType.setFilter(filterType);
 			associationTargetSearchType.setSearchStrategy(ObjectSearchStrategyType.IN_REPOSITORY);
 			JAXBElement<SearchObjectExpressionEvaluatorType> evaluator = objectFactory.createAssociationTargetSearch(associationTargetSearchType);

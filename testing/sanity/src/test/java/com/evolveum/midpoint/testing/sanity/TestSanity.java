@@ -21,7 +21,6 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.assertAttributeNot
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertNoRepoCache;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertNotEmpty;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayJaxb;
-import static com.evolveum.midpoint.test.IntegrationTestTools.getAttributeValue;
 import static com.evolveum.midpoint.test.IntegrationTestTools.getAttributeValues;
 import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
 import static org.testng.AssertJUnit.assertEquals;
@@ -79,7 +78,6 @@ import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
 import com.evolveum.midpoint.prism.marshaller.XNodeProcessorUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -1286,7 +1284,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         QName objectClass = refinedAccountDefinition.getObjectClassDefinition().getTypeName();
         ObjectQuery q = ObjectQueryUtil.createResourceAndObjectClassQuery(resourceTypeOpenDjrepo.getOid(), objectClass, prismContext);
-//        ObjectQuery q = QueryConvertor.createObjectQuery(ResourceObjectShadowType.class, query, prismContext);
 
         final Collection<ObjectType> objects = new HashSet<>();
         final MatchingRule caseIgnoreMatchingRule = matchingRuleRegistry.getMatchingRule(StringIgnoreCaseMatchingRule.NAME, DOMUtil.XSD_STRING);
@@ -4067,7 +4064,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 //        QueryType query = new QueryType();
 //        query.setFilter(filter);
     	ObjectQuery q = ObjectQueryUtil.createNameQuery(UserType.class, prismContext, name);
-    	QueryType query = QueryJaxbConvertor.createQueryType(q, prismContext);
+    	QueryType query = prismContext.getQueryConverter().createQueryType(q);
         OperationResultType resultType = new OperationResultType();
         Holder<OperationResultType> resultHolder = new Holder<>(resultType);
         Holder<ObjectListType> listHolder = new Holder<>();

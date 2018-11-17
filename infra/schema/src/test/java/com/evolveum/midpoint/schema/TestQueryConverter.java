@@ -56,11 +56,11 @@ import static com.evolveum.midpoint.prism.util.PrismTestUtil.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_OWNER_REF;
 import static org.testng.AssertJUnit.*;
 
-public class TestQueryConvertor {
+public class TestQueryConverter {
 
-	private static final Trace LOGGER = TraceManager.getTrace(TestQueryConvertor.class);
+	private static final Trace LOGGER = TraceManager.getTrace(TestQueryConverter.class);
 
-	private static final File TEST_DIR = new File("src/test/resources/queryconvertor");
+	private static final File TEST_DIR = new File("src/test/resources/queryconverter");
 
 	private static final String NS_EXTENSION = "http://midpoint.evolveum.com/xml/ns/test/extension";
 	private static final String NS_ICFS = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
@@ -246,7 +246,7 @@ public class TestQueryConvertor {
 		SearchFilterType filterType = PrismTestUtil.parseAtomicValue(FILTER_CONNECTOR_BY_TYPE_FILE, SearchFilterType.COMPLEX_TYPE);
 		ObjectQuery query;
 		try {
-			query = QueryJaxbConvertor.createObjectQuery(ConnectorType.class, filterType, getPrismContext());
+			query = getQueryConverter().createObjectQuery(ConnectorType.class, filterType);
 			displayQuery(query);
 
 			assertNotNull(query);
@@ -274,7 +274,7 @@ public class TestQueryConvertor {
 		SearchFilterType filterType = PrismTestUtil.parseAtomicValue(FILTER_BY_TYPE_FILE, SearchFilterType.COMPLEX_TYPE);
 		ObjectQuery query;
 		try {
-			query = QueryJaxbConvertor.createObjectQuery(ConnectorType.class, filterType, getPrismContext());
+			query = getQueryConverter().createObjectQuery(ConnectorType.class, filterType);
 			displayQuery(query);
 
 			assertNotNull(query);
@@ -342,17 +342,21 @@ public class TestQueryConvertor {
 	}
 
 	private ObjectQuery toObjectQuery(Class type, QueryType queryType) throws Exception {
-		return QueryJaxbConvertor.createObjectQuery(type, queryType,
-				getPrismContext());
+		return getQueryConverter().createObjectQuery(type, queryType
+		);
+	}
+
+	private QueryConverter getQueryConverter() {
+		return getPrismContext().getQueryConverter();
 	}
 
 	private ObjectQuery toObjectQuery(Class type, SearchFilterType filterType) throws Exception {
-		return QueryJaxbConvertor.createObjectQuery(type, filterType,
-				getPrismContext());
+		return getQueryConverter().createObjectQuery(type, filterType
+		);
 	}
 
 	private QueryType toQueryType(ObjectQuery query) throws Exception {
-		return QueryJaxbConvertor.createQueryType(query, getPrismContext());
+		return getQueryConverter().createQueryType(query);
 	}
 
 	private QueryType toQueryType(String xml) throws SchemaException {
@@ -415,14 +419,14 @@ public class TestQueryConvertor {
 			LOGGER.info("===[ query type parsed ]===");
 			ObjectQuery query;
 			try {
-				query = QueryJaxbConvertor.createObjectQuery(UserType.class, filterType, getPrismContext());
+				query = getQueryConverter().createObjectQuery(UserType.class, filterType);
 				LOGGER.info("query converted: ");
 
 				LOGGER.info("QUERY DUMP: {}", query.debugDump());
 				LOGGER.info("QUERY Pretty print: {}", query.toString());
 				System.out.println("QUERY Pretty print: " + query.toString());
 
-				QueryType convertedQueryType = QueryJaxbConvertor.createQueryType(query, getPrismContext());
+				QueryType convertedQueryType = getQueryConverter().createQueryType(query);
 				LOGGER.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter().getFilterClauseAsElement(getPrismContext())));
 			} catch (Exception ex) {
 				LOGGER.error("Error while converting query: {}", ex.getMessage(), ex);
@@ -434,7 +438,7 @@ public class TestQueryConvertor {
 	@Test
 	public void testConvertQueryNullFilter() throws Exception {
 		ObjectQuery query = ObjectQuery.createObjectQuery(ObjectPaging.createPaging(0, 10));
-		QueryType queryType = QueryJaxbConvertor.createQueryType(query, getPrismContext());
+		QueryType queryType = getQueryConverter().createQueryType(query);
 
 		assertNotNull(queryType);
 		assertNull(queryType.getFilter());

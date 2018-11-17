@@ -34,7 +34,6 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
@@ -116,7 +115,7 @@ public class ResourceObjectReferenceResolver {
 		subctx.setUseRefinedDefinition(false);
 		subctx.assertDefinition();
 
-		ObjectQuery refQuery = QueryJaxbConvertor.createObjectQuery(ShadowType.class, resourceObjectReference.getFilter(), prismContext);
+		ObjectQuery refQuery = prismContext.getQueryConverter().createObjectQuery(ShadowType.class, resourceObjectReference.getFilter());
 		// No variables. At least not now. We expect that mostly constants will be used here.
 		ExpressionVariables variables = new ExpressionVariables();
 		ObjectQuery evaluatedRefQuery = ExpressionUtil.evaluateQueryExpressions(refQuery, variables, expressionFactory, prismContext, desc, ctx.getTask(), result);

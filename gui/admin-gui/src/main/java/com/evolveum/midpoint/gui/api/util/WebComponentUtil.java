@@ -96,7 +96,6 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.apache.wicket.util.visit.IVisit;
 import org.apache.wicket.util.visit.IVisitor;
-import org.bouncycastle.asn1.ocsp.ServiceLocator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joda.time.format.DateTimeFormat;
@@ -564,7 +563,7 @@ public final class WebComponentUtil {
 		PrismObject<TaskType> prismTask = task.asPrismObject();
 		ItemPath path = new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
 		PrismProperty objectQuery = prismTask.findOrCreateProperty(path);
-		QueryType queryType = QueryJaxbConvertor.createQueryType(query, pageBase.getPrismContext());
+		QueryType queryType = pageBase.getQueryConverter().createQueryType(query);
 		objectQuery.addRealValue(queryType);
 
 		path = new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE);
@@ -2844,7 +2843,7 @@ public final class WebComponentUtil {
 					ObjectQuery objectQuery = QueryBuilder.queryFor(ObjectType.class, prismContext)
 							.id(oids.toArray(new String[0]))
 							.build();
-					QueryType queryBean = QueryJaxbConvertor.createQueryType(objectQuery, prismContext);
+					QueryType queryBean = pageBase.getQueryConverter().createQueryType(objectQuery);
 					extensionValues.put(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY, queryBean);
 					return extensionValues;
 				}

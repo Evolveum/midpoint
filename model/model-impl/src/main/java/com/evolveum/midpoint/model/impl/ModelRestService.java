@@ -20,8 +20,8 @@ import com.evolveum.midpoint.model.api.validator.ResourceValidator;
 import com.evolveum.midpoint.model.api.validator.Scope;
 import com.evolveum.midpoint.model.api.validator.ValidationResult;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
-import com.evolveum.midpoint.model.impl.rest.Convertor;
-import com.evolveum.midpoint.model.impl.rest.ConvertorInterface;
+import com.evolveum.midpoint.model.impl.rest.Converter;
+import com.evolveum.midpoint.model.impl.rest.ConverterInterface;
 import com.evolveum.midpoint.model.impl.rest.PATCH;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
@@ -32,7 +32,6 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
 import com.evolveum.midpoint.schema.*;
@@ -42,7 +41,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -722,7 +720,7 @@ public class ModelRestService {
 		Class clazz = ObjectTypes.getClassFromRestType(type);
 		Response response;
 		try {
-			ObjectQuery query = QueryJaxbConvertor.createObjectQuery(clazz, queryType, prismContext);
+			ObjectQuery query = prismContext.getQueryConverter().createObjectQuery(clazz, queryType);
 			Collection<SelectorOptions<GetOperationOptions>> searchOptions = GetOperationOptions.fromRestOptions(options, include, exclude, DefinitionProcessingOption.ONLY_IF_EXISTS);
 			List<PrismObject<? extends ObjectType>> objects = model.searchObjects(clazz, query, searchOptions, task, parentResult);
 
@@ -888,7 +886,7 @@ public class ModelRestService {
 		return response;
     }
 
-	public static class ExecuteScriptConvertor implements ConvertorInterface {
+	public static class ExecuteScriptConverter implements ConverterInterface {
 		public ExecuteScriptType convert(@NotNull Object input) {
 			if (input instanceof ExecuteScriptType) {
 				return (ExecuteScriptType) input;
@@ -903,7 +901,7 @@ public class ModelRestService {
 	@POST
 	@Path("/rpc/executeScript")
 	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
-	public Response executeScript(@Convertor(ExecuteScriptConvertor.class) ExecuteScriptType command,
+	public Response executeScript(@Converter(ExecuteScriptConverter.class) ExecuteScriptType command,
 			@QueryParam("asynchronous") Boolean asynchronous, @Context UriInfo uriInfo, @Context MessageContext mc) {
 
 		Task task = RestServiceUtil.initRequest(mc);

@@ -54,9 +54,9 @@ import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-public class TestQueryConvertors {
+public class TestQueryConverters {
 
-	private static final Trace LOGGER = TraceManager.getTrace(TestQueryConvertors.class);
+	private static final Trace LOGGER = TraceManager.getTrace(TestQueryConverters.class);
 
 	private static final File TEST_DIR = new File("src/test/resources/query");
 
@@ -266,19 +266,19 @@ public class TestQueryConvertors {
 	}
 
 	private ObjectQuery toObjectQuery(Class type, QueryType queryType) throws Exception {
-		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(type, queryType,
-				getPrismContext());
+		ObjectQuery query = getPrismContext().getQueryConverter().createObjectQuery(type, queryType
+		);
 		return query;
 	}
 
 	private ObjectQuery toObjectQuery(Class type, SearchFilterType filterType) throws Exception {
-		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(type, filterType,
-				getPrismContext());
+		ObjectQuery query = getPrismContext().getQueryConverter().createObjectQuery(type, filterType
+		);
 		return query;
 	}
 
 	private QueryType toQueryType(ObjectQuery query) throws Exception {
-		return QueryJaxbConvertor.createQueryType(query, getPrismContext());
+		return getPrismContext().getQueryConverter().createQueryType(query);
 	}
 
 }

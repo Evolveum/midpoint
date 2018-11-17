@@ -27,6 +27,7 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
 import org.apache.directory.api.ldap.model.cursor.CursorException;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.exception.LdapException;
@@ -492,7 +493,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         ObjectDelta<ShadowType> delta = ObjectDelta.createEmptyModifyDelta(ShadowType.class, accountBarbossaOid, prismContext);
         QName attrQName = new QName(MidPointConstants.NS_RI, "title");
         ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
-        PropertyDelta<String> attrDelta = PropertyDelta.createModificationReplaceProperty(
+        PropertyDelta<String> attrDelta = PropertyDeltaImpl.createModificationReplaceProperty(
         		new ItemPath(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "Captain");
         delta.addModification(attrDelta);
 
@@ -622,7 +623,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         ObjectDelta<ShadowType> delta = ObjectDelta.createEmptyModifyDelta(ShadowType.class, accountBarbossaOid, prismContext);
         QName attrQName = new QName(MidPointConstants.NS_RI, "passwordAllowChange");
         ResourceAttributeDefinition<Boolean> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
-        PropertyDelta<Boolean> attrDelta = PropertyDelta.createModificationReplaceProperty(
+        PropertyDelta<Boolean> attrDelta = PropertyDeltaImpl.createModificationReplaceProperty(
         		new ItemPath(ShadowType.F_ATTRIBUTES, attrQName), attrDef, Boolean.FALSE);
         delta.addModification(attrDelta);
 

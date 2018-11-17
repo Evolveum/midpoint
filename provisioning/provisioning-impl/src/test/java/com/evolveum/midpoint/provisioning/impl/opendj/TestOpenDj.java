@@ -38,6 +38,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.PrismContext;
 
 import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.processor.*;
 import org.apache.commons.lang.StringUtils;
 import org.opends.server.types.Entry;
@@ -60,7 +61,6 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -69,11 +69,6 @@ import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
 import com.evolveum.midpoint.prism.match.UuidMatchingRule;
 import com.evolveum.midpoint.prism.match.XmlMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectOrdering;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrderDirection;
-import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -1682,7 +1677,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		final List<ShadowType> objectTypeList = new ArrayList<>();
 
 		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
-		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+		ObjectQuery query = getQueryConverter().createObjectQuery(ShadowType.class, queryType);
 
 		provisioningService.searchObjectsIterative(ShadowType.class, query, null, new ResultHandler<ShadowType>() {
 
@@ -1721,7 +1716,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertEquals(ACCOUNT_SEARCH_OID, addedObjectOid);
 
 		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
-		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+		ObjectQuery query = getQueryConverter().createObjectQuery(ShadowType.class, queryType);
 
 		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
 		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
@@ -1753,7 +1748,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
 		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_COMPLEX_FILTER_FILE,
                 QueryType.COMPLEX_TYPE);
-		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+		ObjectQuery query = getQueryConverter().createObjectQuery(ShadowType.class, queryType);
 		provisioningService.applyDefinition(ShadowType.class, query, task, result);
 
 		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
@@ -1866,7 +1861,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		OperationResult result = task.getResult();
 
 		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
-		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+		ObjectQuery query = getQueryConverter().createObjectQuery(ShadowType.class, queryType);
 
 		ObjectPaging paging = ObjectPaging.createPaging(null, 3);
 		query.setPaging(paging);
@@ -1902,7 +1897,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		OperationResult result = task.getResult();
 
 		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
-		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+		ObjectQuery query = getQueryConverter().createObjectQuery(ShadowType.class, queryType);
 
 		ObjectPaging paging = ObjectPaging.createPaging(0, 4);
 		query.setPaging(paging);
@@ -1938,7 +1933,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		OperationResult result = task.getResult();
 
 		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
-		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+		ObjectQuery query = getQueryConverter().createObjectQuery(ShadowType.class, queryType);
 
 		ObjectPaging paging = ObjectPaging.createPaging(2, 5);
 		query.setPaging(paging);
@@ -1975,7 +1970,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		OperationResult result = task.getResult();
 
 		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
-		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+		ObjectQuery query = getQueryConverter().createObjectQuery(ShadowType.class, queryType);
 
 		ObjectPaging paging = ObjectPaging.createPaging(null, 4);
 		paging.setOrdering(ObjectOrdering.createOrdering(
@@ -2014,7 +2009,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		OperationResult result = task.getResult();
 
 		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
-		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+		ObjectQuery query = getQueryConverter().createObjectQuery(ShadowType.class, queryType);
 
 		ObjectPaging paging = ObjectPaging.createPaging(2, 4);
 		paging.setOrdering(ObjectOrdering.createOrdering(
@@ -2067,7 +2062,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		OperationResult result = task.getResult();
 
 		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
-		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+		ObjectQuery query = getQueryConverter().createObjectQuery(ShadowType.class, queryType);
 
 		// WHEN
 		displayWhen(TEST_NAME);
@@ -2094,7 +2089,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		OperationResult result = task.getResult();
 
 		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_LDAP_GROUPS_FILE, QueryType.COMPLEX_TYPE);
-		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+		ObjectQuery query = getQueryConverter().createObjectQuery(ShadowType.class, queryType);
 
 		// WHEN
 		displayWhen(TEST_NAME);
@@ -2322,7 +2317,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
 		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_VANHELGEN_FILE,
                 QueryType.COMPLEX_TYPE);
-		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+		ObjectQuery query = getQueryConverter().createObjectQuery(ShadowType.class, queryType);
 		provisioningService.applyDefinition(ShadowType.class, query, task, result);
 
 		Entry entry = openDJController.addEntryFromLdifFile(ACCOUNT_POSIX_VANHELGEN_LDIF_FILE);

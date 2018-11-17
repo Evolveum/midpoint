@@ -45,7 +45,6 @@ import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -714,7 +713,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 				ModelImplUtils.addAssignmentPathVariables(assignmentPathVariables, variables);
 			}
 			variables.addVariableDefinitions(getAssignmentEvaluationVariables());
-			ObjectFilter origFilter = QueryConvertor.parseFilter(filter, targetClass, prismContext);
+			ObjectFilter origFilter = prismContext.getQueryConverter().parseFilter(filter, targetClass);
 			ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(origFilter, variables, getMappingFactory().getExpressionFactory(), prismContext, " evaluating resource filter expression ", ctx.task, ctx.result);
 			if (evaluatedFilter == null) {
 				throw new SchemaException("The OID is null and filter could not be evaluated in assignment targetRef in "+segment.source);
