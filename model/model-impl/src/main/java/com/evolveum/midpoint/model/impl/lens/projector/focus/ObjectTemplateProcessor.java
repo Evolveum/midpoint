@@ -31,6 +31,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
+import com.evolveum.midpoint.prism.delta.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
@@ -59,11 +60,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -705,7 +701,7 @@ public class ObjectTemplateProcessor {
 			if (path.startsWithVariable()) {
 				continue;
 			}
-			DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>> triple = DeltaSetTriple.find(outputTripleMap, path);
+			DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>> triple = DeltaSetTripleImpl.find(outputTripleMap, path);
 			if (triple == null) {
 				continue;
 			}

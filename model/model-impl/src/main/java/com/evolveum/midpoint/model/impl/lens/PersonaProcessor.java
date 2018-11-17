@@ -23,6 +23,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -33,10 +34,6 @@ import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.impl.lens.projector.ComplexConstructionConsumer;
 import com.evolveum.midpoint.model.impl.lens.projector.ConstructionProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.ObjectTemplateProcessor;
-import com.evolveum.midpoint.prism.delta.DeltaMapTriple;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -135,7 +132,7 @@ public class PersonaProcessor {
 			return HookOperationMode.FOREGROUND;
 		}
 
-		DeltaSetTriple<PersonaKey> activePersonaKeyTriple = new DeltaSetTriple<>();
+		DeltaSetTriple<PersonaKey> activePersonaKeyTriple = new DeltaSetTripleImpl<>();
 
 		ComplexConstructionConsumer<PersonaKey,PersonaConstruction<F>> consumer = new ComplexConstructionConsumer<PersonaKey,PersonaConstruction<F>>() {
 

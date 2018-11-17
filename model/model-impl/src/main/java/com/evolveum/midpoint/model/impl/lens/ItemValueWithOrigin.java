@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.DeltaSetTripleImpl;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -116,7 +117,7 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
 		Collection<ItemValueWithOrigin<V,D>> zeroIvwoSet = convertSet(outputTriple.getZeroSet(), mapping);
 		Collection<ItemValueWithOrigin<V,D>> plusIvwoSet = convertSet(outputTriple.getPlusSet(), mapping);
 		Collection<ItemValueWithOrigin<V,D>> minusIvwoSet = convertSet(outputTriple.getMinusSet(), mapping);
-		DeltaSetTriple<ItemValueWithOrigin<V,D>> ivwoTriple = new DeltaSetTriple<>(zeroIvwoSet, plusIvwoSet, minusIvwoSet);
+		DeltaSetTriple<ItemValueWithOrigin<V,D>> ivwoTriple = new DeltaSetTripleImpl<>(zeroIvwoSet, plusIvwoSet, minusIvwoSet);
 		return ivwoTriple;
 	}
 

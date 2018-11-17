@@ -15,20 +15,11 @@
  */
 package com.evolveum.midpoint.prism.delta;
 
-import com.evolveum.midpoint.prism.SimpleVisitable;
 import com.evolveum.midpoint.prism.SimpleVisitor;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.Cloner;
-import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.Foreachable;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.Processor;
-import com.evolveum.midpoint.util.ShortDumpable;
-import com.evolveum.midpoint.util.Transformer;
+import com.evolveum.midpoint.util.*;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -45,7 +36,7 @@ import java.util.stream.Stream;
  *
  * @author Radovan Semancik
  */
-public class DeltaSetTripleImpl<T> implements DebugDumpable, ShortDumpable, Serializable, SimpleVisitable<T>, Foreachable<T> {
+public class DeltaSetTripleImpl<T> implements DeltaSetTriple<T> {
 
     /**
      * Collection of values that were not changed.
@@ -81,7 +72,7 @@ public class DeltaSetTripleImpl<T> implements DebugDumpable, ShortDumpable, Seri
      * Compares two (unordered) collections and creates a triple describing the differences.
      */
     public static <T> DeltaSetTriple<T> diff(Collection<T> valuesOld, Collection<T> valuesNew) {
-        DeltaSetTriple<T> triple = new DeltaSetTriple<>();
+        DeltaSetTriple<T> triple = new DeltaSetTripleImpl<>();
         diff(valuesOld, valuesNew, triple);
         return triple;
     }
@@ -323,18 +314,18 @@ public class DeltaSetTripleImpl<T> implements DebugDumpable, ShortDumpable, Seri
     }
 
 	public void merge(DeltaSetTriple<T> triple) {
-		zeroSet.addAll(triple.zeroSet);
-		plusSet.addAll(triple.plusSet);
-		minusSet.addAll(triple.minusSet);
+		zeroSet.addAll(triple.getZeroSet());
+		plusSet.addAll(triple.getPlusSet());
+		minusSet.addAll(triple.getMinusSet());
 	}
 
 	public DeltaSetTriple<T> clone(Cloner<T> cloner) {
-		DeltaSetTriple<T> clone = new DeltaSetTriple<>();
+		DeltaSetTripleImpl<T> clone = new DeltaSetTripleImpl<>();
 		copyValues(clone, cloner);
 		return clone;
 	}
 
-	protected void copyValues(DeltaSetTriple<T> clone, Cloner<T> cloner) {
+	protected void copyValues(DeltaSetTripleImpl<T> clone, Cloner<T> cloner) {
     	clone.zeroSet.clear();
 		clone.zeroSet.addAll(cloneSet(this.zeroSet, cloner));
 		clone.plusSet.clear();

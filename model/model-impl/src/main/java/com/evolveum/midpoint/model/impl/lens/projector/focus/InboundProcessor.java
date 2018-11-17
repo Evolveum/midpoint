@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -68,13 +69,6 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -823,7 +817,7 @@ public class InboundProcessor {
 			
 			List<MappingImpl<V, D>> mappings = mappingEntry.getValue();
 			Iterator<MappingImpl<V, D>> mappingIterator = mappings.iterator();
-			DeltaSetTriple<ItemValueWithOrigin<V, D>> allTriples = new DeltaSetTriple<>();
+			DeltaSetTriple<ItemValueWithOrigin<V, D>> allTriples = new DeltaSetTripleImpl<>();
 			while (mappingIterator.hasNext()) {
 				MappingImpl<V, D> mapping = mappingIterator.next();
 				mappingEvaluator.evaluateMapping(mapping, context, projectionCtx, task, result);
@@ -998,7 +992,7 @@ public class InboundProcessor {
 			}
 		}
 		
-		DeltaSetTriple<ItemValueWithOrigin<V, D>> consolidatedTriples = new DeltaSetTriple<>();
+		DeltaSetTriple<ItemValueWithOrigin<V, D>> consolidatedTriples = new DeltaSetTripleImpl<>();
 		consolidatedTriples.addAllToMinusSet(consolidatedMinusSet);
 		consolidatedTriples.addAllToPlusSet(consolidatedPlusSet);
 		consolidatedTriples.addAllToZeroSet(consolidatedZeroSet);

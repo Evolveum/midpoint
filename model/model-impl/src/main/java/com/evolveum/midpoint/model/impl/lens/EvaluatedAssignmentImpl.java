@@ -27,6 +27,7 @@ import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.DeltaSetTripleImpl;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
@@ -65,9 +66,9 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 
 	@NotNull private final ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi;
 	private final boolean evaluatedOld;
-	@NotNull private final DeltaSetTriple<Construction<F>> constructionTriple = new DeltaSetTriple<>();
-	@NotNull private final DeltaSetTriple<PersonaConstruction<F>> personaConstructionTriple = new DeltaSetTriple<>();
-	@NotNull private final DeltaSetTriple<EvaluatedAssignmentTargetImpl> roles = new DeltaSetTriple<>();
+	@NotNull private final DeltaSetTriple<Construction<F>> constructionTriple = new DeltaSetTripleImpl<>();
+	@NotNull private final DeltaSetTriple<PersonaConstruction<F>> personaConstructionTriple = new DeltaSetTripleImpl<>();
+	@NotNull private final DeltaSetTriple<EvaluatedAssignmentTargetImpl> roles = new DeltaSetTripleImpl<>();
 	@NotNull private final Collection<PrismReferenceValue> orgRefVals = new ArrayList<>();
 	@NotNull private final Collection<PrismReferenceValue> membershipRefVals = new ArrayList<>();
 	@NotNull private final Collection<PrismReferenceValue> delegationRefVals = new ArrayList<>();
@@ -158,7 +159,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	 */
 	@Override
 	public DeltaSetTriple<EvaluatedConstruction> getEvaluatedConstructions(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
-		DeltaSetTriple<EvaluatedConstruction> rv = new DeltaSetTriple<>();
+		DeltaSetTriple<EvaluatedConstruction> rv = new DeltaSetTripleImpl<>();
 		for (PlusMinusZero whichSet : PlusMinusZero.values()) {
 			Collection<Construction<F>> constructionSet = constructionTriple.getSet(whichSet);
 			if (constructionSet != null) {

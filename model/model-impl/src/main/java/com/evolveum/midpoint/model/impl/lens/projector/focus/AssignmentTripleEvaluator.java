@@ -189,7 +189,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
         // account type (intent). Therefore several constructions for the same resource and intent may appear in the resulting
         // sets. This is not good as we want only a single account for each resource/intent combination. But that will be
         // sorted out later.
-        DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple = new DeltaSetTriple<>();
+        DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple = new DeltaSetTripleImpl<>();
         for (SmartAssignmentElement assignmentElement : assignmentCollection) {
         	processAssignment(evaluatedAssignmentTriple, focusDelta, assignmentDelta, assignmentElement);
         }
