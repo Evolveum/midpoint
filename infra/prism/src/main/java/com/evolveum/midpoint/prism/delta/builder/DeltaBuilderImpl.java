@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,17 +36,17 @@ import java.util.*;
  *
  * @author mederly
  */
-public class DeltaBuilder<T extends Containerable> implements S_ItemEntry, S_MaybeDelete, S_ValuesEntry {
+public class DeltaBuilderImpl<T extends Containerable> implements DeltaBuilder<T> {
 
     final private Class<T> objectClass;
     final private ComplexTypeDefinition containerCTD;
     final private PrismContext prismContext;
 
     // BEWARE - although these are final, their content may (and does) vary. Not much clean.
-    final List<ItemDelta<?,?>> deltas;
-    final ItemDelta currentDelta;
+    private final List<ItemDelta<?,?>> deltas;
+    private final ItemDelta currentDelta;
 
-    private DeltaBuilder(Class<T> objectClass, PrismContext prismContext) throws SchemaException {
+    DeltaBuilderImpl(Class<T> objectClass, PrismContext prismContext) throws SchemaException {
         this.objectClass = objectClass;
         this.prismContext = prismContext;
         containerCTD = prismContext.getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(this.objectClass);
@@ -57,7 +57,7 @@ public class DeltaBuilder<T extends Containerable> implements S_ItemEntry, S_May
         currentDelta = null;
     }
 
-    public DeltaBuilder(Class<T> objectClass, ComplexTypeDefinition containerCTD, PrismContext prismContext, List<ItemDelta<?,?>> deltas, ItemDelta currentDelta) {
+    public DeltaBuilderImpl(Class<T> objectClass, ComplexTypeDefinition containerCTD, PrismContext prismContext, List<ItemDelta<?,?>> deltas, ItemDelta currentDelta) {
         this.objectClass = objectClass;
         this.containerCTD = containerCTD;
         this.prismContext = prismContext;
@@ -74,7 +74,7 @@ public class DeltaBuilder<T extends Containerable> implements S_ItemEntry, S_May
     }
 
     public static <C extends Containerable> S_ItemEntry deltaFor(Class<C> objectClass, PrismContext prismContext) throws SchemaException {
-        return new DeltaBuilder<>(objectClass, prismContext);
+        return new DeltaBuilderImpl<>(objectClass, prismContext);
     }
 
     @Override
@@ -112,7 +112,7 @@ public class DeltaBuilder<T extends Containerable> implements S_ItemEntry, S_May
         if (currentDelta != null) {
             newDeltas.add(currentDelta);
         }
-        return new DeltaBuilder(objectClass, containerCTD, prismContext, newDeltas, newDelta);
+        return new DeltaBuilderImpl(objectClass, containerCTD, prismContext, newDeltas, newDelta);
     }
 
     // TODO fix this after ObjectDelta is changed to accept Containerable
