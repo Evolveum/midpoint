@@ -30,6 +30,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ReferenceDeltaImpl;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -434,7 +435,8 @@ public class TestServiceAccounts extends AbstractStoryTest {
         ObjectDelta<ServiceType> delta = ObjectDelta.createEmptyModifyDelta(ServiceType.class, SERVICE_BARELLIUM_OID, prismContext);
         PrismReferenceValue accountRefVal = new PrismReferenceValueImpl();
 		accountRefVal.setObject(account);
-		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
+		ReferenceDelta accountDelta = ReferenceDeltaImpl
+				.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
 		delta.addModification(accountDelta);
 
 		try {

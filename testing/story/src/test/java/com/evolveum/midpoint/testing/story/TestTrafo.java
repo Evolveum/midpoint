@@ -25,6 +25,7 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -35,10 +36,6 @@ import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -1088,7 +1085,8 @@ public class TestTrafo extends AbstractStoryTest {
 		result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        Collection<? extends ItemDelta> fullNameModification = PropertyDelta.createModificationReplacePropertyCollection(UserType.F_FAMILY_NAME, userSmith.getDefinition(), new PolyString("Smither", "smither"));
+        Collection<? extends ItemDelta> fullNameModification = PropertyDeltaImpl
+		        .createModificationReplacePropertyCollection(UserType.F_FAMILY_NAME, userSmith.getDefinition(), new PolyString("Smither", "smither"));
         ObjectDelta.createModifyDelta(userSmith.getOid(), fullNameModification, UserType.class, prismContext);
 
 

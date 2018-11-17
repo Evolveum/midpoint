@@ -18,6 +18,7 @@ package com.evolveum.midpoint.testing.story;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceImpl;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
@@ -169,7 +170,7 @@ public class AbstractStoryTest extends AbstractModelIntegrationTest {
 	}
 
 	protected PrismReference ref(List<ObjectReferenceType> orts) {
-		PrismReference rv = new PrismReference(new QName("dummy"));
+		PrismReference rv = new PrismReferenceImpl(new QName("dummy"));
 		orts.forEach(ort -> rv.add(ort.asReferenceValue().clone()));
 		return rv;
 	}
