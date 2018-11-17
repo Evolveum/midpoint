@@ -22,14 +22,15 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTripleImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
- *
+ * todo prism-api
  */
-public class SourceTriple<V extends PrismValue,D extends ItemDefinition> extends PrismValueDeltaSetTriple<V> {
+public class SourceTriple<V extends PrismValue,D extends ItemDefinition> extends PrismValueDeltaSetTripleImpl<V> {
 
 	private Source<V,D> source;
 

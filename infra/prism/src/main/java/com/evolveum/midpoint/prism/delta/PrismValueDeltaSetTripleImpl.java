@@ -20,10 +20,8 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.OriginType;
-import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Processor;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -36,14 +34,13 @@ import java.util.Iterator;
  *
  * @author Radovan Semancik
  */
-public class PrismValueDeltaSetTriple<V extends PrismValue> extends DeltaSetTriple<V>
-				implements DebugDumpable, Visitable {
+public class PrismValueDeltaSetTripleImpl<V extends PrismValue> extends DeltaSetTripleImpl<V> implements PrismValueDeltaSetTriple<V> {
 
-    public PrismValueDeltaSetTriple() {
+    public PrismValueDeltaSetTripleImpl() {
     	super();
     }
 
-    public PrismValueDeltaSetTriple(Collection<V> zeroSet, Collection<V> plusSet, Collection<V> minusSet) {
+    public PrismValueDeltaSetTripleImpl(Collection<V> zeroSet, Collection<V> plusSet, Collection<V> minusSet) {
     	super(zeroSet, plusSet, minusSet);
     }
 
@@ -51,7 +48,7 @@ public class PrismValueDeltaSetTriple<V extends PrismValue> extends DeltaSetTrip
      * Compares two (unordered) collections and creates a triple describing the differences.
      */
     public static <V extends PrismValue> PrismValueDeltaSetTriple<V> diffPrismValueDeltaSetTriple(Collection<V> valuesOld, Collection<V> valuesNew) {
-    	PrismValueDeltaSetTriple<V> triple = new PrismValueDeltaSetTriple<>();
+    	PrismValueDeltaSetTriple<V> triple = new PrismValueDeltaSetTripleImpl<>();
         diff(valuesOld, valuesNew, triple);
         return triple;
     }
@@ -62,20 +59,23 @@ public class PrismValueDeltaSetTriple<V extends PrismValue> extends DeltaSetTrip
      * in zero set in this triple.
      */
     public <O extends PrismValue> void distributeAs(V myMember, PrismValueDeltaSetTriple<O> otherTriple, O otherMember) {
-        if (otherTriple.getZeroSet() != null && PrismValue.containsRealValue(otherTriple.getZeroSet(), otherMember)) {
+	    otherTriple.getZeroSet();
+	    if (PrismValue.containsRealValue(otherTriple.getZeroSet(), otherMember)) {
             zeroSet.add(myMember);
         }
-        if (otherTriple.getPlusSet() != null && PrismValue.containsRealValue(otherTriple.getPlusSet(), otherMember)) {
+	    otherTriple.getPlusSet();
+	    if (PrismValue.containsRealValue(otherTriple.getPlusSet(), otherMember)) {
             plusSet.add(myMember);
         }
-        if (otherTriple.getMinusSet() != null && PrismValue.containsRealValue(otherTriple.getMinusSet(), otherMember)) {
+	    otherTriple.getMinusSet();
+	    if (PrismValue.containsRealValue(otherTriple.getMinusSet(), otherMember)) {
             minusSet.add(myMember);
         }
     }
     
     @Override
     protected boolean presentInSet(Collection<V> set, V item) {
-    	return set != null && PrismValue.containsRealValue(set, item);
+    	return PrismValue.containsRealValue(set, item);
     }
 
 	public Class<V> getValueClass() {
@@ -206,12 +206,12 @@ public class PrismValueDeltaSetTriple<V extends PrismValue> extends DeltaSetTrip
 	}
 
 	public PrismValueDeltaSetTriple<V> clone() {
-		PrismValueDeltaSetTriple<V> clone = new PrismValueDeltaSetTriple<>();
+		PrismValueDeltaSetTripleImpl<V> clone = new PrismValueDeltaSetTripleImpl<>();
 		copyValues(clone);
 		return clone;
 	}
 
-	protected void copyValues(PrismValueDeltaSetTriple<V> clone) {
+	protected void copyValues(PrismValueDeltaSetTripleImpl<V> clone) {
 		super.copyValues(clone, original -> (V) original.clone());
 	}
 
@@ -219,7 +219,7 @@ public class PrismValueDeltaSetTriple<V extends PrismValue> extends DeltaSetTrip
 		Visitor visitor = visitable -> {
 			if (visitable instanceof PrismValue) {
 				if (((PrismValue)visitable).isEmpty()) {
-					throw new IllegalStateException("Empty value "+visitable+" in triple "+PrismValueDeltaSetTriple.this);
+					throw new IllegalStateException("Empty value "+visitable+" in triple "+PrismValueDeltaSetTripleImpl.this);
 				}
 			}
 		};
@@ -227,7 +227,7 @@ public class PrismValueDeltaSetTriple<V extends PrismValue> extends DeltaSetTrip
 
 		Processor<V> processor = pval -> {
 			if (pval.getParent() != null) {
-				throw new IllegalStateException("Value "+pval+" in triple "+PrismValueDeltaSetTriple.this+" has parent, looks like it was not cloned properly");
+				throw new IllegalStateException("Value "+pval+" in triple "+PrismValueDeltaSetTripleImpl.this+" has parent, looks like it was not cloned properly");
 			}
 		};
 		foreach(processor);

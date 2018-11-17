@@ -518,7 +518,7 @@ public interface ItemDelta<V extends PrismValue,D extends ItemDefinition> extend
 		}
 		if (oldValuesValid && !newValuesValid) {
 			// There were values but they no longer are -> everything to minus set
-			PrismValueDeltaSetTriple<IV> triple = new PrismValueDeltaSetTriple<>();
+			PrismValueDeltaSetTriple<IV> triple = new PrismValueDeltaSetTripleImpl<>();
 			if (item != null) {
 				triple.addAllToMinusSet(item.getValues());
 			}
@@ -528,7 +528,7 @@ public interface ItemDelta<V extends PrismValue,D extends ItemDefinition> extend
 			return delta.toDeltaSetTriple(item);
 		}
 		if (delta == null || (!oldValuesValid && newValuesValid)) {
-			PrismValueDeltaSetTriple<IV> triple = new PrismValueDeltaSetTriple<>();
+			PrismValueDeltaSetTriple<IV> triple = new PrismValueDeltaSetTripleImpl<>();
 			if (item != null) {
 				triple.addAllToZeroSet(item.getValues());
 			}
@@ -543,7 +543,7 @@ public interface ItemDelta<V extends PrismValue,D extends ItemDefinition> extend
 			return null;
 		}
 		if (delta == null) {
-			PrismValueDeltaSetTriple<IV> triple = new PrismValueDeltaSetTriple<>();
+			PrismValueDeltaSetTriple<IV> triple = new PrismValueDeltaSetTripleImpl<>();
 			triple.addAllToZeroSet(PrismValue.cloneCollection(item.getValues()));
 			return triple;
 		}

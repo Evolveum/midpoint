@@ -432,7 +432,7 @@ public class AssignmentProcessor {
 				public void after(ResourceShadowDiscriminator rat, String desc,
 						DeltaMapTriple<ResourceShadowDiscriminator, ConstructionPack<Construction<F>>> constructionMapTriple) {
 					PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> projectionConstructionDeltaSetTriple =
-							new PrismValueDeltaSetTriple<>(
+							new PrismValueDeltaSetTripleImpl<>(
 									getConstructions(constructionMapTriple.getZeroMap().get(rat), true),
 									getConstructions(constructionMapTriple.getPlusMap().get(rat), true),
 									getConstructions(constructionMapTriple.getMinusMap().get(rat), false));

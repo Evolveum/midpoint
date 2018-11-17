@@ -1570,7 +1570,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 		}
 		if (oldValuesValid && !newValuesValid) {
 			// There were values but they no longer are -> everything to minus set
-			PrismValueDeltaSetTriple<IV> triple = new PrismValueDeltaSetTriple<>();
+			PrismValueDeltaSetTriple<IV> triple = new PrismValueDeltaSetTripleImpl<>();
 			if (item != null) {
 				triple.addAllToMinusSet(item.getValues());
 			}
@@ -1580,7 +1580,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 			return delta.toDeltaSetTriple(item);
 		}
 		if (delta == null || (!oldValuesValid && newValuesValid)) {
-			PrismValueDeltaSetTriple<IV> triple = new PrismValueDeltaSetTriple<>();
+			PrismValueDeltaSetTriple<IV> triple = new PrismValueDeltaSetTripleImpl<>();
 			if (item != null) {
 				triple.addAllToZeroSet(item.getValues());
 			}
@@ -1594,7 +1594,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 			return null;
 		}
 		if (delta == null) {
-			PrismValueDeltaSetTriple<IV> triple = new PrismValueDeltaSetTriple<>();
+			PrismValueDeltaSetTriple<IV> triple = new PrismValueDeltaSetTripleImpl<>();
 			triple.addAllToZeroSet(PrismValue.cloneCollection(item.getValues()));
 			return triple;
 		}
@@ -1606,7 +1606,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	}
 
 	public PrismValueDeltaSetTriple<V> toDeltaSetTriple(Item<V,D> itemOld) {
-		PrismValueDeltaSetTriple<V> triple = new PrismValueDeltaSetTriple<>();
+		PrismValueDeltaSetTriple<V> triple = new PrismValueDeltaSetTripleImpl<>();
 		if (isReplace()) {
 			triple.getPlusSet().addAll(PrismValue.cloneCollection(getValuesToReplace()));
 			if (itemOld != null) {

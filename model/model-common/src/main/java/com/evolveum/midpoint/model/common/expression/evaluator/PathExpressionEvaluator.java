@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTripleImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
@@ -103,7 +104,7 @@ public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
         		resolveContext = ExpressionUtil.toItemDeltaItem(variableValue, objectResolver,
         				"path expression in "+ context.getContextDescription(), context.getResult());
     		} else if (variableValue instanceof PrismPropertyValue<?>){
-    			PrismValueDeltaSetTriple<V> outputTriple = new PrismValueDeltaSetTriple<>();
+    			PrismValueDeltaSetTriple<V> outputTriple = new PrismValueDeltaSetTripleImpl<>();
     			outputTriple.addToZeroSet((V) variableValue);
     			return ExpressionUtil.toOutputTriple(outputTriple, outputDefinition, context.getAdditionalConvertor(), null, protector, prismContext);
     		} else {

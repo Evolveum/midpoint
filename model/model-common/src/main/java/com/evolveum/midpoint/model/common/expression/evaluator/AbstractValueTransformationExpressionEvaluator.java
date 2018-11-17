@@ -22,10 +22,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
@@ -189,12 +186,12 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 				outputSetNew = evaluateScriptExpression(sources, variables, contextDescription, true, params, task, result);
 			}
 
-			outputTriple = PrismValueDeltaSetTriple.diffPrismValueDeltaSetTriple(outputSetOld, outputSetNew);
+			outputTriple = PrismValueDeltaSetTripleImpl.diffPrismValueDeltaSetTriple(outputSetOld, outputSetNew);
 
 		} else {
 			// No need to execute twice. There is no change.
 			Collection<V> outputSetNew = evaluateScriptExpression(sources, variables, contextDescription, true, params, task, result);
-			outputTriple = new PrismValueDeltaSetTriple<>();
+			outputTriple = new PrismValueDeltaSetTripleImpl<>();
 			outputTriple.addAllToZeroSet(outputSetNew);
 		}
 
@@ -335,7 +332,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 			valueCollections.add(values);
 		}
 
-		final PrismValueDeltaSetTriple<V> outputTriple = new PrismValueDeltaSetTriple<>();
+		final PrismValueDeltaSetTriple<V> outputTriple = new PrismValueDeltaSetTripleImpl<>();
 
 		Expression<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> conditionExpression;
 		if (expressionEvaluatorType.getCondition() != null) {
