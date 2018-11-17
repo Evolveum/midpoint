@@ -24,22 +24,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @author mederly
+ *
  */
-public class ParsingContext implements Cloneable {
+public class ParsingContextImpl implements ParsingContext {
 
 	private XNodeProcessorEvaluationMode evaluationMode = XNodeProcessorEvaluationMode.STRICT;
 	private boolean allowMissingRefTypes;
 	private final List<String> warnings = new ArrayList<>();
 
-	private ParsingContext() {
+	ParsingContextImpl() {
 	}
 
-	private void setAllowMissingRefTypes(boolean allowMissingRefTypes) {
+	@SuppressWarnings("SameParameterValue")
+	void setAllowMissingRefTypes(boolean allowMissingRefTypes) {
 		this.allowMissingRefTypes = allowMissingRefTypes;
 	}
 
-	private void setEvaluationMode(XNodeProcessorEvaluationMode evaluationMode) {
+	void setEvaluationMode(XNodeProcessorEvaluationMode evaluationMode) {
 		this.evaluationMode = evaluationMode;
 	}
 
@@ -49,22 +50,6 @@ public class ParsingContext implements Cloneable {
 
 	public XNodeProcessorEvaluationMode getEvaluationMode() {
 		return evaluationMode;
-	}
-
-	public static ParsingContext forMode(XNodeProcessorEvaluationMode mode) {
-		ParsingContext pc = new ParsingContext();
-		pc.setEvaluationMode(mode);
-		return pc;
-	}
-
-	public static ParsingContext allowMissingRefTypes() {
-		ParsingContext pc = new ParsingContext();
-		pc.setAllowMissingRefTypes(true);
-		return pc;
-	}
-
-	public static ParsingContext createDefault() {
-		return new ParsingContext();
 	}
 
 	public boolean isCompat() {
@@ -106,9 +91,9 @@ public class ParsingContext implements Cloneable {
 	}
 
 	public ParsingContext clone() {
-		ParsingContext clone;
+		ParsingContextImpl clone;
 		try {
-			clone = (ParsingContext) super.clone();
+			clone = (ParsingContextImpl) super.clone();
 		} catch (CloneNotSupportedException e) {
 			throw new IllegalStateException(e);
 		}
