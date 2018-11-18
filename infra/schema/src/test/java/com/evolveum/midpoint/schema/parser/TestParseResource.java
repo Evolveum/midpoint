@@ -50,6 +50,7 @@ import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.List;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.createDefaultParsingContext;
 import static com.evolveum.midpoint.schema.TestConstants.RESOURCE_FILE_BASENAME;
 import static com.evolveum.midpoint.schema.TestConstants.RESOURCE_FILE_SIMPLE_BASENAME;
 import static com.evolveum.midpoint.schema.util.SchemaTestConstants.ICFC_CONFIGURATION_PROPERTIES;
@@ -651,7 +652,7 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
 
 		// WHEN
 		DomLexicalProcessor parserDom = ((PrismContextImpl) prismContext).getParserDom();
-		RootXNode xnode = parserDom.read(new ParserFileSource(getFile(TestConstants.RESOURCE_FILE_BASENAME)), ParsingContext.createDefault());
+		RootXNode xnode = parserDom.read(new ParserFileSource(getFile(TestConstants.RESOURCE_FILE_BASENAME)), createDefaultParsingContext());
 		PrismObject<ResourceType> resource = prismContext.parserFor(xnode).parse();
 
 		// THEN

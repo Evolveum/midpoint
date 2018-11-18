@@ -17,6 +17,7 @@ package com.evolveum.midpoint.prism.lex;
 
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.USER_JACK_FILE_BASENAME;
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.displayTestTitle;
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.createDefaultParsingContext;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.IOException;
@@ -65,7 +66,7 @@ public class TestDomParser extends AbstractLexicalProcessorTest {
 		DomLexicalProcessor parser = createParser();
 
 		// WHEN
-		XNode xnode = parser.read(getFile(USER_JACK_FILE_BASENAME), ParsingContext.createDefault());
+		XNode xnode = parser.read(getFile(USER_JACK_FILE_BASENAME), createDefaultParsingContext());
 
 		// THEN
 		System.out.println("Parsed XNode:");

@@ -299,32 +299,32 @@ public class PrismContextImpl implements PrismContext {
 	@NotNull
 	@Override
 	public PrismParser parserFor(@NotNull File file) {
-		return new PrismParserImplIO(new ParserFileSource(file), null, ParsingContext.createDefault(), this, null, null, null, null);
+		return new PrismParserImplIO(new ParserFileSource(file), null, getDefaultParsingContext(), this, null, null, null, null);
 	}
 
 	@NotNull
 	@Override
 	public PrismParser parserFor(@NotNull InputStream stream) {
-		return new PrismParserImplIO(new ParserInputStreamSource(stream), null, ParsingContext.createDefault(), this, null, null, null, null);
+		return new PrismParserImplIO(new ParserInputStreamSource(stream), null, getDefaultParsingContext(), this, null, null, null, null);
 	}
 
 	@NotNull
 	@Override
 	public PrismParserNoIO parserFor(@NotNull String data) {
-		return new PrismParserImplNoIO(new ParserStringSource(data), null, ParsingContext.createDefault(), this, null, null, null, null);
+		return new PrismParserImplNoIO(new ParserStringSource(data), null, getDefaultParsingContext(), this, null, null, null, null);
 	}
 
 	@NotNull
 	@Override
 	public PrismParserNoIO parserFor(@NotNull RootXNode xnode) {
-		return new PrismParserImplNoIO(new ParserXNodeSource(xnode), null, ParsingContext.createDefault(), this, null, null, null, null);
+		return new PrismParserImplNoIO(new ParserXNodeSource(xnode), null, getDefaultParsingContext(), this, null, null, null, null);
 	}
 
 	@NotNull
 	@Deprecated
 	@Override
 	public PrismParserNoIO parserFor(@NotNull Element data) {
-		return new PrismParserImplNoIO(new ParserElementSource(data), null, ParsingContext.createDefault(), this, null, null, null, null);
+		return new PrismParserImplNoIO(new ParserElementSource(data), null, getDefaultParsingContext(), this, null, null, null, null);
 	}
 
 	@NotNull

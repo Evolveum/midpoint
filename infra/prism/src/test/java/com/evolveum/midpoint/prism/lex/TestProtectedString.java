@@ -36,6 +36,7 @@ import java.io.IOException;
 
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.DEFAULT_NAMESPACE_PREFIX;
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.displayTestTitle;
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.createDefaultParsingContext;
 import static org.testng.AssertJUnit.assertEquals;
 
 /**
@@ -68,7 +69,7 @@ public class TestProtectedString {
 
         // THEN
         ProtectedStringType unmarshalled = new ProtectedStringType();
-        XNodeProcessorUtil.parseProtectedType(unmarshalled, protectedStringTypeXNode, prismContext, ParsingContext.createDefault());
+        XNodeProcessorUtil.parseProtectedType(unmarshalled, protectedStringTypeXNode, prismContext, createDefaultParsingContext());
         System.out.println("Unmarshalled value: " + unmarshalled);
         assertEquals("Unmarshalled value differs from the original", protectedStringType, unmarshalled);
     }
@@ -93,7 +94,7 @@ public class TestProtectedString {
 
         // THEN
         ProtectedStringType unmarshalled = new ProtectedStringType();
-        XNodeProcessorUtil.parseProtectedType(unmarshalled, protectedStringTypeXNode, prismContext, ParsingContext.createDefault());
+        XNodeProcessorUtil.parseProtectedType(unmarshalled, protectedStringTypeXNode, prismContext, createDefaultParsingContext());
         System.out.println("Unmarshalled value: " + unmarshalled);
         assertEquals("Unmarshalled value differs from the original", protectedStringType, unmarshalled);
     }

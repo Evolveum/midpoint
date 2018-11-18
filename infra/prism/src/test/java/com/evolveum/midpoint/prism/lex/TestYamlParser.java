@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.displayTestTitle;
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.createDefaultParsingContext;
 import static org.testng.AssertJUnit.assertEquals;
 
 public class TestYamlParser extends AbstractJsonLexicalProcessorTest {
@@ -49,7 +50,7 @@ public class TestYamlParser extends AbstractJsonLexicalProcessorTest {
 
 		// WHEN (parse to xnode)
 		List<RootXNode> nodes = new ArrayList<>();
-		lexicalProcessor.readObjectsIteratively(getFileSource(OBJECTS_8_MULTI_DOCUMENT), ParsingContext.createDefault(),
+		lexicalProcessor.readObjectsIteratively(getFileSource(OBJECTS_8_MULTI_DOCUMENT), createDefaultParsingContext(),
 				node -> {
 					nodes.add(node);
 					return true;
@@ -69,7 +70,7 @@ public class TestYamlParser extends AbstractJsonLexicalProcessorTest {
 		assertEquals("Wrong namespace for node 4", "http://a/", i.next().getRootElementName().getNamespaceURI());
 
 		// WHEN+THEN (parse in standard way)
-		List<RootXNode> nodesStandard = lexicalProcessor.readObjects(getFileSource(OBJECTS_8_MULTI_DOCUMENT), ParsingContext.createDefault());
+		List<RootXNode> nodesStandard = lexicalProcessor.readObjects(getFileSource(OBJECTS_8_MULTI_DOCUMENT), createDefaultParsingContext());
 
 		System.out.println("Parsed objects (standard way):");
 		System.out.println(DebugUtil.debugDump(nodesStandard));

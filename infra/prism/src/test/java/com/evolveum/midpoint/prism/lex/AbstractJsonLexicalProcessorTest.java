@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.prism.lex;
 
-import com.evolveum.midpoint.prism.ParsingContext;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -53,7 +53,7 @@ public abstract class AbstractJsonLexicalProcessorTest extends AbstractLexicalPr
 		// WHEN (parse to xnode)
 		List<RootXNode> nodes = new ArrayList<>();
 		try {
-			lexicalProcessor.readObjectsIteratively(getFileSource(OBJECTS_2_WRONG), ParsingContext.createDefault(),
+			lexicalProcessor.readObjectsIteratively(getFileSource(OBJECTS_2_WRONG), PrismTestUtil.createDefaultParsingContext(),
 					node -> {
 						nodes.add(node);
 						return true;
@@ -75,7 +75,8 @@ public abstract class AbstractJsonLexicalProcessorTest extends AbstractLexicalPr
 		assertEquals("Wrong namespace for node 3", "", getFirstElementNS(nodes, 2));
 
 		// WHEN+THEN (parse in standard way)
-		List<RootXNode> nodesStandard = lexicalProcessor.readObjects(getFileSource(OBJECTS_2_WRONG), ParsingContext.createDefault());
+		List<RootXNode> nodesStandard = lexicalProcessor.readObjects(getFileSource(OBJECTS_2_WRONG), PrismTestUtil
+				.createDefaultParsingContext());
 
 		System.out.println("Parsed objects (standard way):");
 		System.out.println(DebugUtil.debugDump(nodesStandard));
@@ -95,7 +96,7 @@ public abstract class AbstractJsonLexicalProcessorTest extends AbstractLexicalPr
 		// WHEN (parse to xnode)
 		List<RootXNode> nodes = new ArrayList<>();
 		try {
-			lexicalProcessor.readObjectsIteratively(getFileSource(OBJECTS_2_WRONG_2), ParsingContext.createDefault(),
+			lexicalProcessor.readObjectsIteratively(getFileSource(OBJECTS_2_WRONG_2), PrismTestUtil.createDefaultParsingContext(),
 					node -> {
 						nodes.add(node);
 						return true;

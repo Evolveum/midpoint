@@ -290,4 +290,8 @@ public class PrismTestUtil {
         String dumpXml = prismContext.xmlSerializer().serialize(new RootXNode(new QName("filterClauseXNode"), mapXNode));
         System.out.println("filter clause xnode serialized:\n" + dumpXml + "\n");
 	}
+
+	public static ParsingContext createDefaultParsingContext() {
+		return getPrismContext().getDefaultParsingContext();
+	}
 }

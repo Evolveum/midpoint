@@ -53,7 +53,7 @@ public class XNodeProcessorUtil {
 //    }
 
 	public static <T> void parseProtectedType(ProtectedDataType<T> protectedType, MapXNode xmap, PrismContext prismContext) throws SchemaException {
-		parseProtectedType(protectedType, xmap, prismContext, ParsingContext.createDefault());
+		parseProtectedType(protectedType, xmap, prismContext, prismContext.getDefaultParsingContext());
 	}
 
 	public static <T> void parseProtectedType(ProtectedDataType<T> protectedType, MapXNode xmap, PrismContext prismContext, ParsingContext pc) throws SchemaException {
