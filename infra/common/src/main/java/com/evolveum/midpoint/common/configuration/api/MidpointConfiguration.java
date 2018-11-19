@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,7 @@ public interface MidpointConfiguration {
 	String DOT_CONFIGURATION = "midpoint.dot";
 	String WEB_APP_CONFIGURATION = "midpoint.webApplication";
 	String WORKFLOW_CONFIGURATION = "midpoint.workflow";
+	String INTERNALS_CONFIGURATION = "midpoint.internals";
 
 	String getMidpointHome();
 	

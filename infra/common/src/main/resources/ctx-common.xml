@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2018 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -43,5 +43,11 @@
 
     <bean id="messageSource" name="messageSource" class="com.evolveum.midpoint.common.LocalizationMessageSource">
         <constructor-arg ref="localizationService"/>
+    </bean>
+    
+    <bean id="internalsConfigController" class="com.evolveum.midpoint.common.InternalsConfigController">
+    	<property name="midpointConfiguration">
+            <ref bean="midpointConfiguration"/>
+        </property>
     </bean>
 </beans>
