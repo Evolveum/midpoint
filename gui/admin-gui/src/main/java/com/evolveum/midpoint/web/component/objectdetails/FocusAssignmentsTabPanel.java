@@ -20,7 +20,6 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.assignment.AbstractRoleAssignmentPanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentPanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.*;
@@ -64,7 +63,7 @@ public class FocusAssignmentsTabPanel<F extends FocusType> extends AbstractObjec
 	}
 	
 	protected AssignmentPanel createPanel(String panelId, ContainerWrapperFromObjectWrapperModel<AssignmentType, F> model) {
-		AbstractRoleAssignmentPanel panel = new AbstractRoleAssignmentPanel(panelId, model);
+		AssignmentPanel panel = new AssignmentPanel(panelId, model);
 		return panel;
 	}
 

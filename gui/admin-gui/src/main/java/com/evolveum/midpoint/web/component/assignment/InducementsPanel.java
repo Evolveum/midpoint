@@ -26,7 +26,7 @@ import org.apache.wicket.model.IModel;
 /**
  * Created by honchar
  */
-public class InducementsPanel extends AbstractRoleAssignmentPanel {
+public class InducementsPanel extends AssignmentPanel {
 
     private static final long serialVersionUID = 1L;
 

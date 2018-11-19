@@ -19,6 +19,9 @@ package com.evolveum.midpoint.gui.impl.session;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.session.PageStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author skublik
@@ -26,7 +29,8 @@ import com.evolveum.midpoint.web.session.PageStorage;
 public class ObjectTabStorage implements PageStorage{
 
 	private static final long serialVersionUID = 1L;
-	
+
+	private QName type = null;
 	private ObjectPaging objectPaging;
 
 
@@ -47,6 +51,14 @@ public class ObjectTabStorage implements PageStorage{
     @Override
     public void setPaging(ObjectPaging objectPaging) {
         this.objectPaging = objectPaging;
+    }
+
+    public QName getType() {
+        return type;
+    }
+
+    public void setType(QName type) {
+        this.type = type;
     }
 
     @Override

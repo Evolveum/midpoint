@@ -15,13 +15,28 @@
   -->
 
 <!DOCTYPE html>
-<html xmlns:wicket="http://wicket.apache.org">
+<html xmlns:wicket="http://wicket.apache.org" xmlns:div="http://wicket.apache.org">
 	<wicket:panel>
+		<div wicket:id="typeSwitchPanel" class="btn-group">
+			<div wicket:id="typeLink" class="btn btn-default" />
+		</div>
 		<div wicket:id="assignments"/>
-		<wicket:fragment wicket:id="searchFragment">
-    	</wicket:fragment>
-    	<wicket:fragment wicket:id="specificContainersFragment">
-    		<div wicket:id="activationPanel" />
-    	</wicket:fragment>
+		<wicket:child />
+
+		<wicket:fragment wicket:id="specificContainersFragment">
+			<div class="top-level-prism-container" wicket:id="activationPanel" />
+			<div class="top-level-prism-container" wicket:id="specificContainers" />
+		</wicket:fragment>
+
+		<wicket:fragment wicket:id="buttonToolbarFragment">
+			<div wicket:id="newItemButton" />
+			<div class="btn btn-default btn-sm" wicket:id="showAllAssignmentsButton" />
+		</wicket:fragment>
+
+		<!--<wicket:fragment wicket:id="searchFragment">-->
+    	<!--</wicket:fragment>-->
+    	<!--<wicket:fragment wicket:id="specificContainersFragment">-->
+    		<!--<div wicket:id="activationPanel" />-->
+    	<!--</wicket:fragment>-->
 	</wicket:panel>
 </html>
