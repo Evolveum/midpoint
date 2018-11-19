@@ -68,7 +68,7 @@ public class SecurityUtils {
         	return null;
         }
         LOGGER.debug("Principal user in security context holder is {} ({}) but not type of {}",
-                    new Object[]{principal, principal.getClass(), MidPointPrincipal.class.getName()});
+                principal, principal.getClass(), MidPointPrincipal.class.getName());
         return null;
     }
 

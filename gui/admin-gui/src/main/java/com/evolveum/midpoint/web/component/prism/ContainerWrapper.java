@@ -230,6 +230,11 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 		QName name = item.getElementName();
 		if (name != null) {
 			displayName = name.getLocalPart();
+
+			PrismValue val = item.getParent();
+			if (val != null && val.getTypeName() != null) {
+				displayName = val.getTypeName().getLocalPart() + "." + displayName;
+			}
 		} else {
 			displayName = item.getDefinition().getTypeName().getLocalPart();
 		}

@@ -341,7 +341,7 @@ public class SecurityUtil {
 		}
 		Object principalObject = authentication.getPrincipal();
 		if (!(principalObject instanceof MidPointPrincipal)) {
-			if (authentication.getPrincipal() instanceof String && "anonymousUser".equals(principalObject)) {
+			if (authentication.getPrincipal() instanceof String && AuthorizationConstants.ANONYMOUS_USER_PRINCIPAL.equals(principalObject)) {
 				return null;
 			} else {
 				throw new IllegalArgumentException("Expected that spring security principal will be of type "+

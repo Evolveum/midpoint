@@ -15,16 +15,14 @@
  */
 package com.evolveum.midpoint.security.api;
 
+import com.evolveum.midpoint.util.CheckedProducer;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.*;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.security.core.Authentication;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.Producer;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -52,9 +50,23 @@ public interface SecurityContextManager {
 	void setupPreAuthenticatedSecurityContext(PrismObject<UserType> user) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 	
 	<T> T runAs(Producer<T> producer, PrismObject<UserType> user) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
-	
+
+	/**
+	 * Convenience method to deal with producers that can throw CommonException.
+	 */
+	default <T> T runAsChecked(CheckedProducer<T> producer, PrismObject<UserType> user) throws CommonException {
+		return MiscUtil.runChecked((p) -> runAs(p, user), producer);
+	}
+
 	<T> T runPrivileged(Producer<T> producer);
-	
+
+	/**
+	 * Convenience method to deal with producers that can throw CommonException.
+	 */
+	default <T> T runPrivilegedChecked(CheckedProducer<T> producer) throws CommonException {
+		return MiscUtil.runChecked(this::runPrivileged, producer);
+	}
+
 	// runPrivileged method is in SecurityEnforcer. It needs to be there because it works with authorizations.
 
 	UserProfileService getUserProfileService();

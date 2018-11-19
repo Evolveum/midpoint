@@ -26,6 +26,6 @@ import java.io.Serializable;
 @FunctionalInterface
 public interface Producer<T> extends Serializable {
 
-	T run();
+	T run();        // todo shouldn't be 'get'?
 
 }

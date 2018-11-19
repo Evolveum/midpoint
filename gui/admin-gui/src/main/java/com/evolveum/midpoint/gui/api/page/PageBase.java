@@ -62,6 +62,7 @@ import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.CheckedProducer;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -2303,6 +2304,26 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     public <T> T runPrivileged(Producer<T> producer) {
         return securityContextManager.runPrivileged(producer);
+    }
+
+    public <T> T runAsChecked(CheckedProducer<T> producer, PrismObject<UserType> user) throws CommonException {
+        return securityContextManager.runAsChecked(producer, user);
+    }
+
+    @NotNull public PrismObject<UserType> getAdministratorPrivileged(OperationResult parentResult) throws CommonException {
+        OperationResult result = parentResult.createSubresult(OPERATION_LOAD_USER);
+        try {
+            return securityContextManager.runPrivilegedChecked(() -> {
+                Task task = createAnonymousTask(OPERATION_LOAD_USER);
+                return getModelService()
+                        .getObject(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), null, task, result);
+            });
+        } catch (Throwable t) {
+            result.recordFatalError("Couldn't get administrator user: " + t.getMessage(), t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
     }
 
     public void setBreadcrumbs(List<Breadcrumb> breadcrumbs) {

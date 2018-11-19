@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.web.page.admin.resources.dto;
+
+package com.evolveum.midpoint.util;
+
+import com.evolveum.midpoint.util.exception.CommonException;
+
+import java.io.Serializable;
 
 /**
- * @author lazyman
+ * Almost the same as Function but this one is Serializable and can throw CommonException.
+ * EXPERIMENTAL
  */
-public enum ResourceSyncStatus {
-
-    ENABLE("arrow_refresh.png"),
-
-    DISABLE("arrow_refresh_gray.png");
-
-    private String icon;
-
-    private ResourceSyncStatus(String icon) {
-        this.icon = icon;
-    }
-
-    public String getIcon() {
-        return icon;
-    }
+@FunctionalInterface
+public interface CheckedFunction<T, R> extends Serializable {
+	R apply(T argument) throws CommonException;
 }

@@ -34,13 +34,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.Producer;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.DescriptorLoader;
@@ -208,7 +202,7 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
         
 		Object principalObject = authentication.getPrincipal();
 		if (!(principalObject instanceof MidPointPrincipal)) {
-			if (authentication.getPrincipal() instanceof String && "anonymousUser".equals(principalObject)){
+			if (authentication.getPrincipal() instanceof String && AuthorizationConstants.ANONYMOUS_USER_PRINCIPAL.equals(principalObject)) {
 				SecurityUtil.logSecurityDeny(object, ": Not logged in");
 				LOGGER.trace("DECIDE: authentication={}, object={}, configAttributes={}: DENY (not logged in)",
             			authentication, object, configAttributes);
@@ -314,7 +308,6 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
 			CommunicationException, ConfigurationException, SecurityViolationException {
 		return securityEnforcer.createDonorPrincipal(attorneyPrincipal, attorneyAuthorizationAction, donor, task, result);
 	}
-
 
 	@Override
 	public <T> T runAs(Producer<T> producer, PrismObject<UserType> user) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
