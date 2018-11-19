@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.schema.internals;
 
+import org.apache.commons.configuration.Configuration;
+
 /**
  * @author semancik
  *
@@ -24,12 +26,12 @@ public class InternalsConfig {
 	/**
 	 * Checks for consistency of data structures (e.g. prism objects, containers, contexts).
 	 */
-	public static boolean consistencyChecks = true;
+	public static boolean consistencyChecks = false;
 
 	/**
 	 * Additional checks that method arguments make sense (e.g. deltas are not duplicated)
 	 */
-	private static boolean sanityChecks = true;
+	private static boolean sanityChecks = false;
 
 	public static boolean encryptionChecks = true;
 
@@ -146,9 +148,32 @@ public class InternalsConfig {
 	public static void resetTestingPaths() {
 		testingPaths = null;
 	}
+	
+	public static void set(Configuration internalsConfig) {
+		if (internalsConfig.containsKey("developmentMode")) {
+			boolean developmentMode = internalsConfig.getBoolean("developmentMode");
+			if (developmentMode) {
+				setDevelopmentMode();
+			} else {
+				reset();
+			}
+		}
+		
+		consistencyChecks = internalsConfig.getBoolean("consistencyChecks", consistencyChecks);
+		sanityChecks = internalsConfig.getBoolean("sanityChecks", sanityChecks);
+		encryptionChecks = internalsConfig.getBoolean("encryptionChecks", encryptionChecks);
+		readEncryptionChecks = internalsConfig.getBoolean("readEncryptionChecks", readEncryptionChecks);
+		avoidLoggingChange = internalsConfig.getBoolean("avoidLoggingChange", avoidLoggingChange);
+		allowClearDataLogging = internalsConfig.getBoolean("allowClearDataLogging", allowClearDataLogging);
+		prismMonitoring = internalsConfig.getBoolean("prismMonitoring", prismMonitoring);
+		modelProfiling = internalsConfig.getBoolean("modelProfiling", modelProfiling);
+		// TODO: testingPaths
+		detailedAuhotizationLog = internalsConfig.getBoolean("detailedAuhotizationLog", detailedAuhotizationLog);
+		
+	}
 
 	public static void reset() {
-		consistencyChecks = true;
+		consistencyChecks = false;
 		sanityChecks = false;
 		encryptionChecks = true;
 		readEncryptionChecks = false;
