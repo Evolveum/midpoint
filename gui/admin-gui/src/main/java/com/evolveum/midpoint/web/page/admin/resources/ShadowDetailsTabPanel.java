@@ -18,14 +18,18 @@ package com.evolveum.midpoint.web.page.admin.resources;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismPanel;
 import com.evolveum.midpoint.web.model.ContainerWrapperListFromObjectWrapperModel;
-import com.evolveum.midpoint.web.resource.img.ImgResources;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import org.apache.wicket.request.resource.PackageResourceReference;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -45,9 +49,18 @@ public class ShadowDetailsTabPanel extends AbstractObjectTabPanel<ShadowType> {
 	protected void onInitialize() {
 		super.onInitialize();
 
-		PrismPanel<ShadowType> panel = new PrismPanel<>(ID_ACCOUNT, new ContainerWrapperListFromObjectWrapperModel(getObjectWrapperModel(), null),
-				new PackageResourceReference(ImgResources.class, ImgResources.USER_PRISM), getMainForm(),
-				null, getPageBase());
+		PrismPanel<ShadowType> panel = new PrismPanel<>(ID_ACCOUNT,
+				new ContainerWrapperListFromObjectWrapperModel(getObjectWrapperModel(), getVisibleContainers()),
+				null, getMainForm(), null, getPageBase());
 		add(panel);
+	}
+
+	private List<ItemPath> getVisibleContainers() {
+		// todo maybe everything should be visible, but for now this should be fine
+		return Arrays.asList(
+				new ItemPath(ShadowType.F_ATTRIBUTES),
+				new ItemPath(ShadowType.F_CREDENTIALS, CredentialsType.F_PASSWORD),
+				new ItemPath(ShadowType.F_ACTIVATION)
+		);
 	}
 }

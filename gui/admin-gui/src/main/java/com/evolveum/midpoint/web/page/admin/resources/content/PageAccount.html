@@ -18,15 +18,14 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <form wicket:id="mainForm" autocomplete="off">
-        <div class="alert alert-warning" wicket:id="protectedMessage">
-            <wicket:message key="pageAccount.message.cantEditProtectedAccount"/></div>
+    <div class="alert alert-warning" wicket:id="protectedMessage">
+        <wicket:message key="pageAccount.message.cantEditProtectedAccount"/></div>
 
-        <div class="row">
-            <div class="col-md-12">
-                <div wicket:id="account"/>
-            </div>
-        </div>
+    <div wicket:id="summary" />
+
+    <form wicket:id="mainForm" autocomplete="off">
+
+        <div wicket:id="tabPanel" class="nav-tabs-custom" />
 
         <div class="main-button-bar">
             <span class="button-group">
