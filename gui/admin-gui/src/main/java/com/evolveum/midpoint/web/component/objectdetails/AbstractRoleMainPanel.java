@@ -163,21 +163,22 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 		List<ITab> tabs = super.createTabs(parentPage);
 
 		FocusTabVisibleBehavior<R> authorization = new FocusTabVisibleBehavior<>(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_POLICY_RULES_URL, false, isFocusHistoryPage(), parentPage);
-		tabs.add(
-				new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.policyRules"), authorization) {
-
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public WebMarkupContainer createPanel(String panelId) {
-						return createFocusPolicyRulesTabPanel(panelId, parentPage);
-					}
-
-					@Override
-					public String getCount() {
-						return Integer.toString(countPolicyRules());
-					}
-				});
+		//TODO remove after "switch assignment type" style is totally approved
+//		tabs.add(
+//				new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.policyRules"), authorization) {
+//
+//					private static final long serialVersionUID = 1L;
+//
+//					@Override
+//					public WebMarkupContainer createPanel(String panelId) {
+//						return createFocusPolicyRulesTabPanel(panelId, parentPage);
+//					}
+//
+//					@Override
+//					public String getCount() {
+//						return Integer.toString(countPolicyRules());
+//					}
+//				});
 
 		authorization = new FocusTabVisibleBehavior<>(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_APPLICABLE_POLICIES_URL, false, isFocusHistoryPage(), parentPage);
 		tabs.add(
@@ -200,13 +201,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 			@Override
 			public WebMarkupContainer createPanel(String panelId) {
 				SwitchAssignmentTypePanel panel = new SwitchAssignmentTypePanel(panelId,
-						new ContainerWrapperFromObjectWrapperModel<>(getObjectModel(), new ItemPath(AbstractRoleType.F_INDUCEMENT))){
-					private static final long serialVersionUID = 1L;
-
-					protected boolean isInducement(){
-						return true;
-					}
-				};
+						new ContainerWrapperFromObjectWrapperModel<>(getObjectModel(), new ItemPath(AbstractRoleType.F_INDUCEMENT)));
 				return panel;
 //				return new AbstractRoleInducementPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
 			}
@@ -350,9 +345,9 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
     }
 
 	
-	private WebMarkupContainer createFocusPolicyRulesTabPanel(String panelId, PageAdminObjectDetails<R> parentPage) {
-		return new FocusPolicyRulesTabPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
-	}
+//	private WebMarkupContainer createFocusPolicyRulesTabPanel(String panelId, PageAdminObjectDetails<R> parentPage) {
+//		return new FocusPolicyRulesTabPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
+//	}
 
 	private String getInducementsCount(){
 			PrismObject<R> focus = getObjectModel().getObject().getObject();

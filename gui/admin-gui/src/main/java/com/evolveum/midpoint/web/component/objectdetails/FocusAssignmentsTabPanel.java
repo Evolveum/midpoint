@@ -58,13 +58,7 @@ public class FocusAssignmentsTabPanel<F extends FocusType> extends AbstractObjec
 	}
 	
 	protected SwitchAssignmentTypePanel createPanel(String panelId, ContainerWrapperFromObjectWrapperModel<AssignmentType, F> model) {
-		SwitchAssignmentTypePanel panel = new SwitchAssignmentTypePanel(panelId, model){
-			private static final long serialVersionUID = 1L;
-
-			protected boolean isInducement(){
-				return false;
-			}
-		};
+		SwitchAssignmentTypePanel panel = new SwitchAssignmentTypePanel(panelId, model);
 		return panel;
 	}
 

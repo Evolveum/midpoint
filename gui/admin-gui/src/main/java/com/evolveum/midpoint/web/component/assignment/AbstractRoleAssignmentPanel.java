@@ -18,7 +18,6 @@ package com.evolveum.midpoint.web.component.assignment;
 
 import java.util.*;
 
-import com.evolveum.midpoint.gui.api.component.AssignmentPopup;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -27,25 +26,18 @@ import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueWrapper;
-import com.evolveum.midpoint.web.component.search.SearchFactory;
-import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.users.component.AllAssignmentsPreviewDialog;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -133,25 +125,27 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
             }
         });
 
-        columns.add(new AbstractColumn<ContainerValueWrapper<AssignmentType>, String>(createStringResource("AssignmentType.tenant")){
-            private static final long serialVersionUID = 1L;
+        if (!OrgType.COMPLEX_TYPE.equals(getAssignmentType())) {
+            columns.add(new AbstractColumn<ContainerValueWrapper<AssignmentType>, String>(createStringResource("AssignmentType.tenant")) {
+                private static final long serialVersionUID = 1L;
 
-            @Override
-            public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId,
-                                     final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
+                @Override
+                public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId,
+                                         final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
 
-                item.add(new Label(componentId, getTenantLabelModel(rowModel.getObject())));
-            }
-        });
-        columns.add(new AbstractColumn<ContainerValueWrapper<AssignmentType>, String>(createStringResource("AssignmentType.orgReferenceShorten")){
-            private static final long serialVersionUID = 1L;
+                    item.add(new Label(componentId, getTenantLabelModel(rowModel.getObject())));
+                }
+            });
+            columns.add(new AbstractColumn<ContainerValueWrapper<AssignmentType>, String>(createStringResource("AssignmentType.orgReferenceShorten")) {
+                private static final long serialVersionUID = 1L;
 
-            @Override
-            public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId,
-                                     final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-                item.add(new Label(componentId, getOrgRefLabelModel(rowModel.getObject())));
-            }
-        });
+                @Override
+                public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId,
+                                         final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
+                    item.add(new Label(componentId, getOrgRefLabelModel(rowModel.getObject())));
+                }
+            });
+        }
         columns.add(new AbstractColumn<ContainerValueWrapper<AssignmentType>, String>(createStringResource("AbstractRoleAssignmentPanel.identifierLabel")){
             private static final long serialVersionUID = 1L;
 

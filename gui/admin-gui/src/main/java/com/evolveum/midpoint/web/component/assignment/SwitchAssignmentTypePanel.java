@@ -20,6 +20,7 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
@@ -28,7 +29,7 @@ import javax.xml.namespace.QName;
 /**
  * Created by honchar
  */
-public abstract class SwitchAssignmentTypePanel extends BasePanel<ContainerWrapper<AssignmentType>> {
+public class SwitchAssignmentTypePanel extends BasePanel<ContainerWrapper<AssignmentType>> {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_ALL_ASSIGNMENTS = "allAssignments";
@@ -62,8 +63,7 @@ public abstract class SwitchAssignmentTypePanel extends BasePanel<ContainerWrapp
                 AssignmentPanel assignmentPanel =
                         new AssignmentPanel(ID_ASSIGNMENTS, SwitchAssignmentTypePanel.this.getModel());
                 assignmentPanel.setOutputMarkupId(true);
-                SwitchAssignmentTypePanel.this.addOrReplace(assignmentPanel);
-                target.add(SwitchAssignmentTypePanel.this);
+                switchAssignmentTypePerformed(target, assignmentPanel);
             }
         };
         allAssignmentsButton.setOutputMarkupId(true);
@@ -83,8 +83,7 @@ public abstract class SwitchAssignmentTypePanel extends BasePanel<ContainerWrapp
                             }
                         };
                 assignmentPanel.setOutputMarkupId(true);
-                SwitchAssignmentTypePanel.this.addOrReplace(assignmentPanel);
-                target.add(SwitchAssignmentTypePanel.this);
+                switchAssignmentTypePerformed(target, assignmentPanel);
             }
         };
         roleTypeAssignmentsButton.setOutputMarkupId(true);
@@ -104,8 +103,7 @@ public abstract class SwitchAssignmentTypePanel extends BasePanel<ContainerWrapp
                             }
                         };
                 assignmentPanel.setOutputMarkupId(true);
-                SwitchAssignmentTypePanel.this.addOrReplace(assignmentPanel);
-                target.add(SwitchAssignmentTypePanel.this);
+                switchAssignmentTypePerformed(target, assignmentPanel);
             }
         };
         orgTypeAssignmentsButton.setOutputMarkupId(true);
@@ -125,8 +123,8 @@ public abstract class SwitchAssignmentTypePanel extends BasePanel<ContainerWrapp
                             }
                         };
                 assignmentPanel.setOutputMarkupId(true);
-                SwitchAssignmentTypePanel.this.addOrReplace(assignmentPanel);
-                target.add(SwitchAssignmentTypePanel.this);
+                switchAssignmentTypePerformed(target, assignmentPanel);
+
             }
         };
         serviceTypeAssignmentsButton.setOutputMarkupId(true);
@@ -139,8 +137,7 @@ public abstract class SwitchAssignmentTypePanel extends BasePanel<ContainerWrapp
                 ConstructionAssignmentPanel constructionsPanel =
                         new ConstructionAssignmentPanel(ID_ASSIGNMENTS, SwitchAssignmentTypePanel.this.getModel());
                 constructionsPanel.setOutputMarkupId(true);
-                SwitchAssignmentTypePanel.this.addOrReplace(constructionsPanel);
-                target.add(SwitchAssignmentTypePanel.this);
+                switchAssignmentTypePerformed(target, constructionsPanel);
             }
         };
         resourceTypeAssignmentsButton.setOutputMarkupId(true);
@@ -153,12 +150,13 @@ public abstract class SwitchAssignmentTypePanel extends BasePanel<ContainerWrapp
                 PolicyRulesPanel policyRulesPanel =
                         new PolicyRulesPanel(ID_ASSIGNMENTS, SwitchAssignmentTypePanel.this.getModel()) ;
                 policyRulesPanel.setOutputMarkupId(true);
-                SwitchAssignmentTypePanel.this.addOrReplace(policyRulesPanel);
-                target.add(SwitchAssignmentTypePanel.this);
+                switchAssignmentTypePerformed(target, policyRulesPanel);
+
             }
         };
         policyRuleTypeAssignmentsButton.setOutputMarkupId(true);
-        policyRuleTypeAssignmentsButton.add(new VisibleBehaviour(()  -> isInducement()));
+        policyRuleTypeAssignmentsButton.add(new VisibleBehaviour(()  ->
+                getModelObject().getObjectWrapper().getObject().asObjectable() instanceof AbstractRoleType));
         add(policyRuleTypeAssignmentsButton);
 
         //GDPR feature.. temporary disabled MID-4281
@@ -177,7 +175,10 @@ public abstract class SwitchAssignmentTypePanel extends BasePanel<ContainerWrapp
 //        add(consentsButton);
     }
 
-    protected abstract boolean isInducement();
+    private void switchAssignmentTypePerformed(AjaxRequestTarget target, AssignmentPanel assignmentsPanel){
+        addOrReplace(assignmentsPanel);
+        target.add(SwitchAssignmentTypePanel.this);
+    }
 
     private void initAssignmentsPanel(){
         AssignmentPanel assignmentsPanel = new AssignmentPanel(ID_ASSIGNMENTS, getModel());
