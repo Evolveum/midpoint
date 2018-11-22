@@ -39,7 +39,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 
-public class GdprAssignmentPanel extends AssignmentPanel {
+public class GdprAssignmentPanel extends AbstractRoleAssignmentPanel {
 
 	private static final long serialVersionUID = 1L;
 

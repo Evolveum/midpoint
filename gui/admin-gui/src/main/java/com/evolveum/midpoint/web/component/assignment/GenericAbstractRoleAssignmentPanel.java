@@ -31,7 +31,9 @@ import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
-public class GenericAbstractRoleAssignmentPanel extends AssignmentPanel {
+import javax.xml.namespace.QName;
+
+public class GenericAbstractRoleAssignmentPanel extends AbstractRoleAssignmentPanel {
 
 	private static final long serialVersionUID = 1L;
 

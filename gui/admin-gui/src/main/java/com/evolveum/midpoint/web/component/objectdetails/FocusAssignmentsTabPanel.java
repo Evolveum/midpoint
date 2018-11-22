@@ -20,7 +20,9 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.assignment.AbstractRoleAssignmentPanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentPanel;
+import com.evolveum.midpoint.web.component.assignment.SwitchAssignmentTypePanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
@@ -39,13 +41,6 @@ public class FocusAssignmentsTabPanel<F extends FocusType> extends AbstractObjec
 	private static final String ID_ASSIGNMENTS = "assignmentsContainer";
 	private static final String ID_ASSIGNMENTS_PANEL = "assignmentsPanel";
 	private static final String DOT_CLASS = FocusAssignmentsTabPanel.class.getName() + ".";
-	private static final String OPERATION_GET_ADMIN_GUI_CONFIGURATION = DOT_CLASS + "getAdminGuiConfiguration";
-
-	private static final String MODAL_ID_ASSIGNMENTS_PREVIEW = "assignmentsPreviewPopup";
-
-	private static final Trace LOGGER = TraceManager.getTrace(FocusAssignmentsTabPanel.class);
-
-	private LoadableModel<List<AssignmentType>> assignmentsModel;
 
 	public FocusAssignmentsTabPanel(String id, Form<?> mainForm, LoadableModel<ObjectWrapper<F>> focusWrapperModel, PageBase page) {
 		super(id, mainForm, focusWrapperModel, page);
@@ -57,13 +52,19 @@ public class FocusAssignmentsTabPanel<F extends FocusType> extends AbstractObjec
 		assignments.setOutputMarkupId(true);
 		add(assignments);
 		ContainerWrapperFromObjectWrapperModel<AssignmentType, F> model = new ContainerWrapperFromObjectWrapperModel<>(getObjectWrapperModel(), new ItemPath(FocusType.F_ASSIGNMENT));
-		AssignmentPanel panel = createPanel(ID_ASSIGNMENTS_PANEL, model);
+		SwitchAssignmentTypePanel panel = createPanel(ID_ASSIGNMENTS_PANEL, model);
 
 		assignments.add(panel);
 	}
 	
-	protected AssignmentPanel createPanel(String panelId, ContainerWrapperFromObjectWrapperModel<AssignmentType, F> model) {
-		AssignmentPanel panel = new AssignmentPanel(panelId, model);
+	protected SwitchAssignmentTypePanel createPanel(String panelId, ContainerWrapperFromObjectWrapperModel<AssignmentType, F> model) {
+		SwitchAssignmentTypePanel panel = new SwitchAssignmentTypePanel(panelId, model){
+			private static final long serialVersionUID = 1L;
+
+			protected boolean isInducement(){
+				return false;
+			}
+		};
 		return panel;
 	}
 

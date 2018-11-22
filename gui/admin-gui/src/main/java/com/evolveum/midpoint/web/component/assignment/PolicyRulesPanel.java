@@ -48,8 +48,6 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 
-import javax.xml.namespace.QName;
-
 /**
  * Created by honchar.
  * @author katkav
@@ -184,15 +182,5 @@ public class PolicyRulesPanel extends AssignmentPanel {
 		
 		return defs;
 	}
-
-    protected List<QName> getAvailableTypesList(){
-        List<QName> typesList = new ArrayList<>();
-        typesList.add(null);
-        typesList.add(RoleType.COMPLEX_TYPE);
-        typesList.add(OrgType.COMPLEX_TYPE);
-        typesList.add(ServiceType.COMPLEX_TYPE);
-        typesList.add(PolicyRuleType.COMPLEX_TYPE);
-        return typesList;
-    }
 
 }

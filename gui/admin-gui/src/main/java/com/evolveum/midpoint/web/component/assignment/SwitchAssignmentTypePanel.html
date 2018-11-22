@@ -17,11 +17,15 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-	<div wicket:id="assignments"/>
-	<wicket:fragment wicket:id="searchFragment">
-	</wicket:fragment>
-	<wicket:fragment wicket:id="specificContainersFragment">
-		<div wicket:id="activationPanel" />
-	</wicket:fragment>
+    <div class="btn-group">
+        <div wicket:id="allAssignments" class="btn btn-default" />
+        <div wicket:id="roleTypeAssignments" class="btn btn-default" />
+        <div wicket:id="orgTypeAssignments" class="btn btn-default" />
+        <div wicket:id="serviceTypeAssignments" class="btn btn-default" />
+        <div wicket:id="resourceTypeAssignments" class="btn btn-default" />
+        <div wicket:id="policyRuleTypeAssignments" class="btn btn-default" />
+        <!--<div wicket:id="consentAssignments" class="btn btn-default" />-->
+    </div>
+    <div wicket:id="assignmentsPanel"/>
 </wicket:panel>
 </html>

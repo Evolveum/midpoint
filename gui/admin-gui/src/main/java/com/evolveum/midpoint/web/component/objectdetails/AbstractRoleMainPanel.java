@@ -20,6 +20,9 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.web.component.assignment.SwitchAssignmentTypePanel;
+import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
 import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
@@ -196,7 +199,16 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 
 			@Override
 			public WebMarkupContainer createPanel(String panelId) {
-				return new AbstractRoleInducementPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
+				SwitchAssignmentTypePanel panel = new SwitchAssignmentTypePanel(panelId,
+						new ContainerWrapperFromObjectWrapperModel<>(getObjectModel(), new ItemPath(AbstractRoleType.F_INDUCEMENT))){
+					private static final long serialVersionUID = 1L;
+
+					protected boolean isInducement(){
+						return true;
+					}
+				};
+				return panel;
+//				return new AbstractRoleInducementPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
 			}
 
 			@Override
