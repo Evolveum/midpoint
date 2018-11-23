@@ -42,7 +42,6 @@ import org.apache.wicket.markup.html.link.DownloadLink;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
@@ -99,7 +98,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 	private void initHeader(WebMarkupContainer box) {
 		WebMarkupContainer iconType = new WebMarkupContainer(ID_ICON_TYPE);
 		iconType.setOutputMarkupId(true);
-		iconType.add(new AttributeAppender("class", new AbstractReadOnlyModel<String>() {
+		iconType.add(new AttributeAppender("class", new IModel<String>() {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -225,7 +224,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 
 		box.add(close);
 
-		DownloadLink downloadXml = new DownloadLink("downloadXml", new AbstractReadOnlyModel<File>() {
+		DownloadLink downloadXml = new DownloadLink("downloadXml", new IModel<File>() {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -257,7 +256,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 	}
 
 	private Label createMessage() {
-		Label message = new Label(ID_MESSAGE_LABEL, new AbstractReadOnlyModel<String>() {
+		Label message = new Label(ID_MESSAGE_LABEL, new IModel<String>() {
 
 			@Override
 			public String getObject() {
@@ -578,7 +577,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 
 	private IModel<String> createHeaderCss() {
 
-		return new AbstractReadOnlyModel<String>() {
+		return new IModel<String>() {
 			private static final long serialVersionUID = 1L;
 
 			@Override

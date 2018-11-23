@@ -24,7 +24,6 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 
@@ -52,7 +51,7 @@ public class SimpleErrorPanel<O extends ObjectType> extends SimplePanel<FocusSub
         Label icon = new Label(ID_ICON);
         add(icon);
 
-        Label description = new Label(ID_DESCRIPTION, new AbstractReadOnlyModel<String>() {
+        Label description = new Label(ID_DESCRIPTION, new IModel<String>() {
 
             @Override
             public String getObject() {
@@ -70,7 +69,7 @@ public class SimpleErrorPanel<O extends ObjectType> extends SimplePanel<FocusSub
         };
         add(link);
 
-        Label showMore = new Label(ID_SHOW_MORE, new AbstractReadOnlyModel<String>() {
+        Label showMore = new Label(ID_SHOW_MORE, new IModel<String>() {
 
             @Override
             public String getObject() {

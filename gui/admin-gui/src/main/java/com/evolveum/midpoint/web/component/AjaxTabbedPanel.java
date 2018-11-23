@@ -23,6 +23,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Ajaxified version of the tabbed panel. Uses AjaxFallbackLink instead of regular wicket links so
@@ -78,17 +79,16 @@ public class AjaxTabbedPanel<T extends ITab> extends TabbedPanel<T>
             private static final long serialVersionUID = 1L;
 
             @Override
-            public void onClick(final AjaxRequestTarget target)
+            public void onClick(final Optional<AjaxRequestTarget> target)
             {
                 setSelectedTab(index);
                 onTabChange(index);
-                if (target != null)
+                if (target != null && target.get() != null)
                 {
-                    target.add(AjaxTabbedPanel.this);
+                    target.get().add(AjaxTabbedPanel.this);
                 }
-                onAjaxUpdate(target);
+                onAjaxUpdate(target.get());
             }
-
         };
     }
 

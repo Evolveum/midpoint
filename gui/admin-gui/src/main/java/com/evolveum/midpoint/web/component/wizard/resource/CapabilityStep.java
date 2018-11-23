@@ -62,7 +62,6 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -180,7 +179,7 @@ public class CapabilityStep extends WizardStep {
                         editCapabilityPerformed(target, dto);
                     }
                 };
-                Label label = new Label(ID_CAPABILITY_NAME, new AbstractReadOnlyModel<String>() {
+                Label label = new Label(ID_CAPABILITY_NAME, new IModel<String>() {
 					@Override
 					public String getObject() {
 						String rv = dto.getDisplayName();
@@ -218,7 +217,7 @@ public class CapabilityStep extends WizardStep {
 				});
                 name.add(deleteLink);
 
-                capabilityRow.add(AttributeModifier.replace("class", new AbstractReadOnlyModel<Object>() {
+                capabilityRow.add(AttributeModifier.replace("class", new IModel<Object>() {
 
                     @Override
                     public Object getObject() {

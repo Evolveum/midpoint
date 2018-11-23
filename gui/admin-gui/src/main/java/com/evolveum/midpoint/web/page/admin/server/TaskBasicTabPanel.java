@@ -43,7 +43,6 @@ import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -184,7 +183,7 @@ public class TaskBasicTabPanel extends AbstractObjectTabPanel<TaskType> implemen
 
 		// Execution
 		WebMarkupContainer executionContainer = new WebMarkupContainer(ID_EXECUTION_CONTAINER);
-		Label execution = new Label(ID_EXECUTION, new AbstractReadOnlyModel<String>() {
+		Label execution = new Label(ID_EXECUTION, new IModel<String>() {
 
 			@Override
 			public String getObject() {
@@ -193,7 +192,7 @@ public class TaskBasicTabPanel extends AbstractObjectTabPanel<TaskType> implemen
 					return getString(TaskDtoExecutionStatus.class.getSimpleName() + "." + executionStatus.name());
 				} else {
 					return getString(TaskDtoExecutionStatus.class.getSimpleName() + "." + executionStatus.name() + ".withTimestamp",
-							new AbstractReadOnlyModel<String>() {
+							new IModel<String>() {
 								@Override
 								public String getObject() {
 									if (taskDtoModel.getObject().getCompletionTimestamp() != null) {
@@ -207,7 +206,7 @@ public class TaskBasicTabPanel extends AbstractObjectTabPanel<TaskType> implemen
 			}
 		});
 		executionContainer.add(execution);
-		Label node = new Label(ID_NODE, new AbstractReadOnlyModel<String>() {
+		Label node = new Label(ID_NODE, new IModel<String>() {
 			@Override
 			public String getObject() {
 				TaskDto dto = taskDtoModel.getObject();

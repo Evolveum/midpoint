@@ -46,7 +46,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColu
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
@@ -147,7 +146,7 @@ public abstract class AssignmentsInfoDialog extends BasePanel<List<AssignmentInf
             columns.add(new AbstractColumn<AssignmentInfoDto, String>(createStringResource("Type")) {
                 @Override
                 public void populateItem(Item<ICellPopulator<AssignmentInfoDto>> cellItem, String componentId, final IModel<AssignmentInfoDto> rowModel) {
-                    cellItem.add(new Label(componentId, new AbstractReadOnlyModel<String>() {
+                    cellItem.add(new Label(componentId, new IModel<String>() {
 
                         @Override
                         public String getObject() {

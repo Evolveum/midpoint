@@ -24,7 +24,6 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -92,7 +91,7 @@ public class AutoRefreshPanel extends BasePanel<AutoRefreshDto> {
 		});
 		add(pauseRefreshing);
 
-		final Label status = new Label(ID_STATUS, new AbstractReadOnlyModel<String>() {
+		final Label status = new Label(ID_STATUS, new IModel<String>() {
 			@Override
 			public String getObject() {
 				AutoRefreshDto dto = getModelObject();

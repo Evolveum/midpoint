@@ -56,7 +56,6 @@ import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -217,7 +216,7 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 	}
 
 	private IModel<String> createHelpModel() {
-		return new AbstractReadOnlyModel<String>() {
+		return new IModel<String>() {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -680,7 +679,7 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 				};
 
 			} else if (ObjectDeltaType.COMPLEX_TYPE.equals(valueType)) {
-				panel = new ModificationsPanel(id, new AbstractReadOnlyModel<DeltaDto>() {
+				panel = new ModificationsPanel(id, new IModel<DeltaDto>() {
 					@Override
 					public DeltaDto getObject() {
 						if (getModel().getObject() == null || getModel().getObject().getValue() == null
@@ -700,7 +699,7 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 					}
 				});
 			} else if (QueryType.COMPLEX_TYPE.equals(valueType) || CleanupPoliciesType.COMPLEX_TYPE.equals(valueType)) {
-				return new TextAreaPanel<>(id, new AbstractReadOnlyModel<String>() {
+				return new TextAreaPanel<>(id, new IModel<String>() {
 
                     private static final long serialVersionUID = 1L;
 

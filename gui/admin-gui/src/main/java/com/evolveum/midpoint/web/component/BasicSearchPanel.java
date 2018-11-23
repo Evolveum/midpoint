@@ -56,12 +56,12 @@ public class BasicSearchPanel<T extends Serializable> extends SimplePanel<T> {
                 createStringResource("BasicSearchPanel.search")) {
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+            protected void onSubmit(AjaxRequestTarget target) {
                 searchPerformed(target);
             }
 
             @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
+            protected void onError(AjaxRequestTarget target) {
                 target.add(getFeedbackPanel());
             }
         };
@@ -70,12 +70,12 @@ public class BasicSearchPanel<T extends Serializable> extends SimplePanel<T> {
         AjaxSubmitButton clearButton = new AjaxSubmitButton(ID_CLEAR_SEARCH) {
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+            protected void onSubmit(AjaxRequestTarget target) {
                 clearSearchPerformed(target);
             }
 
             @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
+            protected void onError(AjaxRequestTarget target) {
                 target.add(getFeedbackPanel());
             }
         };

@@ -28,7 +28,6 @@ import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -155,7 +154,7 @@ public abstract class AbstractOrgTabPanel extends BasePanel {
 	protected abstract Panel createTreePanel(String id, Model<String> model, PageBase pageBase);
 
     private IModel<String> createTabTitle(final PrismObject<OrgType> org) {
-        return new AbstractReadOnlyModel<String>() {
+        return new IModel<String>() {
         	private static final long serialVersionUID = 1L;
 
             @Override

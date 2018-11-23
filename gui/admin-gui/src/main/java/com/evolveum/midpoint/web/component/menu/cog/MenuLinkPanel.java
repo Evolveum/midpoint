@@ -18,6 +18,9 @@ package com.evolveum.midpoint.web.component.menu.cog;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
+import org.apache.wicket.Component;
+import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -53,13 +56,13 @@ public class MenuLinkPanel extends Panel {
             a = new AjaxSubmitLink(ID_MENU_ITEM_LINK) {
 
                 @Override
-                protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                    MenuLinkPanel.this.onSubmit(target, form, dto.getAction(), item);
+                protected void onSubmit(AjaxRequestTarget target) {
+                    MenuLinkPanel.this.onSubmit(target, dto.getAction(), item);
                 }
 
                 @Override
-                protected void onError(AjaxRequestTarget target, Form<?> form) {
-                    MenuLinkPanel.this.onError(target, form, dto.getAction());
+                protected void onError(AjaxRequestTarget target) {
+                    MenuLinkPanel.this.onError(target, dto.getAction());
                 }
 
                 @Override
@@ -101,19 +104,19 @@ public class MenuLinkPanel extends Panel {
         a.add(span);
     }
 
-    protected void onSubmit(AjaxRequestTarget target, Form<?> form, InlineMenuItemAction action, IModel<InlineMenuItem> item) {
+    protected void onSubmit(AjaxRequestTarget target, InlineMenuItemAction action, IModel<InlineMenuItem> item) {
         if (action != null) {
             if (item.getObject().showConfirmationDialog() && item.getObject().getConfirmationMessageModel() != null) {
                 showConfirmationPopup(item.getObject(), target);
             } else {
-                action.onSubmit(target, form);
+                action.onSubmit(target);
             }
         }
     }
 
-    protected void onError(AjaxRequestTarget target, Form<?> form, InlineMenuItemAction action) {
+    protected void onError(AjaxRequestTarget target, InlineMenuItemAction action) {
         if (action != null) {
-            action.onError(target, form);
+            action.onError(target);
         }
     }
 

@@ -31,7 +31,6 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 import java.util.List;
@@ -63,12 +62,12 @@ public class WizardSteps extends BasePanel<List<WizardStepDto>> {
                 AjaxSubmitLink button = new AjaxSubmitLink(ID_LINK) {
 
                     @Override
-                    protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                    protected void onSubmit(AjaxRequestTarget target) {
                         changeStepPerformed(target, dto);
                     }
 
 					@Override
-					protected void onError(AjaxRequestTarget target, Form<?> form) {
+					protected void onError(AjaxRequestTarget target) {
 						target.add(getPageBase().getFeedbackPanel());
 					}
 				};
@@ -89,14 +88,14 @@ public class WizardSteps extends BasePanel<List<WizardStepDto>> {
                     }
                 });
 
-                button.add(AttributeModifier.replace("class", new AbstractReadOnlyModel<String>() {
+                button.add(AttributeModifier.replace("class", new IModel<String>() {
                     @Override
                     public String getObject() {
 						return dto.getWizardStep() == getActiveStep() ? "current" : null;
                     }
                 }));
 
-				button.add(AttributeModifier.replace("style", new AbstractReadOnlyModel<String>() {
+				button.add(AttributeModifier.replace("style", new IModel<String>() {
 					@Override
 					public String getObject() {
 						final boolean enabled = ((PageResourceWizard) getPageBase()).isCurrentStepComplete();
@@ -132,13 +131,13 @@ public class WizardSteps extends BasePanel<List<WizardStepDto>> {
         WizardHelpDialog window = (WizardHelpDialog)get(ID_HELP_MODAL);
 
         if(window != null){
-            AjaxRequestTarget target = getRequestCycle().find(AjaxRequestTarget.class);
+            AjaxRequestTarget target = getRequestCycle().find(AjaxRequestTarget.class).get();
             window.updateModal(target ,getActiveStep());
         }
     }
 
     private IModel<String> createLabelModel(final String key) {
-        return new AbstractReadOnlyModel<String>() {
+        return new IModel<String>() {
 
             @Override
             public String getObject() {

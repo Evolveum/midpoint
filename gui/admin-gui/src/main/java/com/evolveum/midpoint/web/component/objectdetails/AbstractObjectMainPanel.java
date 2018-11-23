@@ -155,14 +155,12 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void onSubmit(AjaxRequestTarget target,
-					org.apache.wicket.markup.html.form.Form<?> form) {
+			protected void onSubmit(AjaxRequestTarget target) {
 				getDetailsPage().savePerformed(target);
 			}
 
 			@Override
-			protected void onError(AjaxRequestTarget target,
-					org.apache.wicket.markup.html.form.Form<?> form) {
+			protected void onError(AjaxRequestTarget target) {
 				target.add(parentPage.getFeedbackPanel());
 			}
 		};
@@ -199,14 +197,12 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void onSubmit(AjaxRequestTarget target,
-					org.apache.wicket.markup.html.form.Form<?> form) {
+			protected void onSubmit(AjaxRequestTarget target) {
 				getDetailsPage().previewPerformed(target);
 			}
 
 			@Override
-			protected void onError(AjaxRequestTarget target,
-					org.apache.wicket.markup.html.form.Form<?> form) {
+			protected void onError(AjaxRequestTarget target) {
 				target.add(parentPage.getFeedbackPanel());
 			}
 		};

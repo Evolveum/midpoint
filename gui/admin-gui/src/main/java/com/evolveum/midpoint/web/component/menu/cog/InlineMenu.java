@@ -26,7 +26,6 @@ import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.web.component.util.SimplePanel;
@@ -117,7 +116,7 @@ public class InlineMenu extends SimplePanel<List<InlineMenuItem>> {
     private void initMenuItem(ListItem<InlineMenuItem> menuItem) {
         final InlineMenuItem item = menuItem.getModelObject();
 
-        menuItem.add(AttributeModifier.append("class", new AbstractReadOnlyModel<String>() {
+        menuItem.add(AttributeModifier.append("class", new IModel<String>() {
 
             @Override
             public String getObject() {

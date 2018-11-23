@@ -33,7 +33,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 import java.util.Collection;
@@ -41,7 +40,7 @@ import java.util.Collection;
 /**
  * @author Pavol Mederly
  */
-public class TaskCurrentStateDtoModel extends AbstractReadOnlyModel<TaskCurrentStateDto> {
+public class TaskCurrentStateDtoModel implements IModel<TaskCurrentStateDto> {
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskCurrentStateDtoModel.class);
 

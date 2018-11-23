@@ -44,7 +44,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.export.Abstr
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -159,7 +158,7 @@ public class ColumnUtils {
 
 			@Override
 			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
-				return new AbstractReadOnlyModel<String>() {
+				return new IModel<String>() {
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -176,7 +175,7 @@ public class ColumnUtils {
 
 			@Override
 			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
-				return new AbstractReadOnlyModel() {
+				return new IModel() {
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -191,7 +190,7 @@ public class ColumnUtils {
 			@Override
 			protected IModel<String> createTitleModel(final IModel<SelectableBean<T>> rowModel) {
 
-				return new AbstractReadOnlyModel<String>() {
+				return new IModel<String>() {
 
 					@Override
 					public String getObject() {
@@ -218,7 +217,7 @@ public class ColumnUtils {
 
 			@Override
 			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
-				return new AbstractReadOnlyModel<String>() {
+				return new IModel<String>() {
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -232,7 +231,7 @@ public class ColumnUtils {
             @Override
             protected IModel<String> createTitleModel(final IModel<SelectableBean<T>> rowModel) {
 
-                return new AbstractReadOnlyModel<String>() {
+                return new IModel<String>() {
 
                     @Override
                     public String getObject() {
@@ -260,7 +259,7 @@ public class ColumnUtils {
 
 			@Override
 			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
-				return new AbstractReadOnlyModel<String>() {
+				return new IModel<String>() {
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -307,7 +306,7 @@ public class ColumnUtils {
 
 			@Override
 			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
-				return new AbstractReadOnlyModel<String>() {
+				return new IModel<String>() {
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -326,7 +325,7 @@ public class ColumnUtils {
 
 			@Override
 			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
-				return new AbstractReadOnlyModel<String>() {
+				return new IModel<String>() {
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -349,7 +348,7 @@ public class ColumnUtils {
 
 			@Override
 			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
-				return new AbstractReadOnlyModel<String>() {
+				return new IModel<String>() {
 
 					/**
 					 *
@@ -372,7 +371,7 @@ public class ColumnUtils {
 
 			@Override
 			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
-				return new AbstractReadOnlyModel<String>() {
+				return new IModel<String>() {
 
 					private static final long serialVersionUID = 1L;
 
@@ -392,7 +391,7 @@ public class ColumnUtils {
 
 			@Override
 			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
-				return new AbstractReadOnlyModel<String>() {
+				return new IModel<String>() {
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -411,7 +410,7 @@ public class ColumnUtils {
 
 			@Override
 			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
-				return new AbstractReadOnlyModel<String>() {
+				return new IModel<String>() {
 					private static final long serialVersionUID = 1L;
 
 					@Override

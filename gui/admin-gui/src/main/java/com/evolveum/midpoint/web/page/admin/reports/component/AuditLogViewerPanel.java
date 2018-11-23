@@ -42,7 +42,6 @@ import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -310,13 +309,13 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+            protected void onSubmit(AjaxRequestTarget target) {
                 updateAuditSearchStorage(getModel().getObject());
                 searchUpdatePerformed(target);
             }
 
             @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form){
+            protected void onError(AjaxRequestTarget target){
                 target.add(getPageBase().getFeedbackPanel());
             }
         };
@@ -328,13 +327,13 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+            protected void onSubmit(AjaxRequestTarget target) {
             		resetAuditSearchStorage();
                 searchUpdatePerformed(target);
             }
 
             @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form){
+            protected void onError(AjaxRequestTarget target){
                 target.add(getPageBase().getFeedbackPanel());
             }
         };
@@ -498,7 +497,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
 
             @Override
             protected IModel<String> createLinkModel(final IModel<AuditEventRecordType> rowModel){
-                return new AbstractReadOnlyModel<String>() {
+                return new IModel<String>() {
 					private static final long serialVersionUID = 1L;
 
 					@Override

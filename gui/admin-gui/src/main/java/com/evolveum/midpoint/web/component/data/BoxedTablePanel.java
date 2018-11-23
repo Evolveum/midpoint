@@ -29,7 +29,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -82,7 +82,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 	private void initLayout(List<IColumn<T, String>> columns, ISortableDataProvider provider, int pageSize) {
         setOutputMarkupId(true);
 		WebMarkupContainer box = new WebMarkupContainer(ID_BOX);
-		box.add(new AttributeAppender("class", new AbstractReadOnlyModel<String>() {
+		box.add(new AttributeAppender("class", new IModel<String>() {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -241,7 +241,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 			WebMarkupContainer footerContainer = new WebMarkupContainer(ID_FOOTER_CONTAINER);
 			footerContainer.setOutputMarkupId(true);
 
-			final Label count = new Label(ID_COUNT, new AbstractReadOnlyModel<String>() {
+			final Label count = new Label(ID_COUNT, new IModel<String>() {
 
 				@Override
 				public String getObject() {

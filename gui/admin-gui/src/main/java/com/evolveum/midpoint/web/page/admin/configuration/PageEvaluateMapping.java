@@ -40,7 +40,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
@@ -108,12 +108,12 @@ public class PageEvaluateMapping extends PageAdminConfiguration {
 
 		AjaxSubmitButton evaluateMapping = new AjaxSubmitButton(ID_EXECUTE, createStringResource("PageEvaluateMapping.button.evaluateMapping")) {
             @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
+            protected void onError(AjaxRequestTarget target) {
                 target.add(getFeedbackPanel());
             }
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+            protected void onSubmit(AjaxRequestTarget target) {
                 executeMappingPerformed(target);
             }
         };
@@ -121,7 +121,7 @@ public class PageEvaluateMapping extends PageAdminConfiguration {
 
 		final DropDownChoice<String> sampleChoice = new DropDownChoice<>(ID_MAPPING_SAMPLE,
 				Model.of(""),
-				new AbstractReadOnlyModel<List<String>>() {
+				new IModel<List<String>>() {
 					@Override
 					public List<String> getObject() {
 						return SAMPLES;

@@ -29,7 +29,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
@@ -37,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author mederly
@@ -68,7 +68,7 @@ public class ActionsExecutedInformationPanel extends BasePanel<ActionsExecutedIn
 
 		WebMarkupContainer tableLinesContainer = new WebMarkupContainer(ID_OBJECTS_TABLE_LINES_CONTAINER);
         ListView tableLines = new ListView<ActionsExecutedObjectsTableLineDto>(ID_OBJECTS_TABLE_LINES,
-                new AbstractReadOnlyModel<List<ActionsExecutedObjectsTableLineDto>>() {
+                new IModel<List<ActionsExecutedObjectsTableLineDto>>() {
                     @Override
                     public List<ActionsExecutedObjectsTableLineDto> getObject() {
 						final ActionsExecutedInformationDto modelObject = getModelObject();
@@ -84,7 +84,7 @@ public class ActionsExecutedInformationPanel extends BasePanel<ActionsExecutedIn
                 }
         ) {
             protected void populateItem(final ListItem<ActionsExecutedObjectsTableLineDto> item) {
-                item.add(new Label(ID_OBJECT_TYPE, new AbstractReadOnlyModel<String>() {
+                item.add(new Label(ID_OBJECT_TYPE, new IModel<String>() {
                     @Override
                     public String getObject() {
                         String key = item.getModelObject().getObjectTypeLocalizationKey();
@@ -95,13 +95,13 @@ public class ActionsExecutedInformationPanel extends BasePanel<ActionsExecutedIn
                         }
                     }
                 }));
-                item.add(new Label(ID_OPERATION, new AbstractReadOnlyModel<String>() {
+                item.add(new Label(ID_OPERATION, new IModel<String>() {
                     @Override
                     public String getObject() {
                         return createStringResource(item.getModelObject().getOperation()).getString();
                     }
                 }));
-                item.add(new Label(ID_CHANNEL, new AbstractReadOnlyModel<String>() {
+                item.add(new Label(ID_CHANNEL, new IModel<String>() {
                     @Override
                     public String getObject() {
                         String channel = item.getModelObject().getChannel();
@@ -124,7 +124,7 @@ public class ActionsExecutedInformationPanel extends BasePanel<ActionsExecutedIn
 		tableLinesContainer.setOutputMarkupId(true);
 		add(tableLinesContainer);
 
-		final Label showResultingActionsOnlyLabel = new Label(ID_SHOW_RESULTING_ACTIONS_ONLY_LABEL, new AbstractReadOnlyModel<String>() {
+		final Label showResultingActionsOnlyLabel = new Label(ID_SHOW_RESULTING_ACTIONS_ONLY_LABEL, new IModel<String>() {
 			@Override
 			public String getObject() {
 				return showResultingActionsOnly ?
@@ -136,9 +136,9 @@ public class ActionsExecutedInformationPanel extends BasePanel<ActionsExecutedIn
 		add(showResultingActionsOnlyLabel);
         add(new AjaxFallbackLink<String>(ID_SHOW_RESULTING_ACTIONS_ONLY_LINK) {
             @Override
-            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+            public void onClick(Optional<AjaxRequestTarget> ajaxRequestTarget) {
                 showResultingActionsOnly = !showResultingActionsOnly;
-                ajaxRequestTarget.add(ActionsExecutedInformationPanel.this);
+                ajaxRequestTarget.get().add(ActionsExecutedInformationPanel.this);
             }
         });
 

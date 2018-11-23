@@ -62,14 +62,14 @@ public class PageSizePopover extends BasePanel {
         AjaxSubmitButton button = new AjaxSubmitButton(ID_BUTTON) {
 
             @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
-                super.onError(target, form);
+            protected void onError(AjaxRequestTarget target) {
+                super.onError(target);
                 target.add(getPageBase().getFeedbackPanel());
             }
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                super.onSubmit(target, form);
+            protected void onSubmit(AjaxRequestTarget target) {
+                super.onSubmit(target);
 
                 pageSizeChanged(target);
             }

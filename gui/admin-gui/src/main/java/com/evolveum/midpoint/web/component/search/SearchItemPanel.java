@@ -48,7 +48,6 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -183,7 +182,7 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
         	
             @Override
             protected void populateItem(final ListItem<DisplayableValue<T>> item) {
-                item.add(AttributeModifier.replace("style", new AbstractReadOnlyModel<String>() {
+                item.add(AttributeModifier.replace("style", new IModel<String>() {
 
                 	private static final long serialVersionUID = 1L;
                 	
@@ -205,7 +204,7 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
             private static final long serialVersionUID = 1L;
 
 			@Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+            protected void onSubmit(AjaxRequestTarget target) {
                 updateItemPerformed(target);
             }
         };
@@ -287,7 +286,7 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
 
     private IModel<List<DisplayableValue<Boolean>>> createBooleanChoices() {
     	
-        return new AbstractReadOnlyModel<List<DisplayableValue<Boolean>>>() {
+        return new IModel<List<DisplayableValue<Boolean>>>() {
 
            private static final long serialVersionUID = 1L;
 
@@ -303,7 +302,7 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
     }
 
     private IModel<String> createLabelModel() {
-        return new AbstractReadOnlyModel<String>() {
+        return new IModel<String>() {
 
         	private static final long serialVersionUID = 1L;
         	

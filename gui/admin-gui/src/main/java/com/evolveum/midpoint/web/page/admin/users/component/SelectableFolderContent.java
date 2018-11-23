@@ -16,10 +16,11 @@
 
 package com.evolveum.midpoint.web.page.admin.users.component;
 
+import java.util.Optional;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.tree.AbstractTree;
 import org.apache.wicket.extensions.markup.html.repeater.tree.content.Folder;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -45,7 +46,7 @@ public class SelectableFolderContent extends Folder<SelectableBean<OrgType>> {
 
     @Override
     protected IModel<?> newLabelModel(final IModel<SelectableBean<OrgType>> model) {
-        return new AbstractReadOnlyModel<String>() {
+        return new IModel<String>() {
         	private static final long serialVersionUID = 1L;
 
             @Override
@@ -58,14 +59,14 @@ public class SelectableFolderContent extends Folder<SelectableBean<OrgType>> {
     }
 
     @Override
-    protected void onClick(AjaxRequestTarget target) {
+    protected void onClick(Optional<AjaxRequestTarget> optionalTarget) {
         if (selected.getObject() != null) {
-            tree.updateNode(selected.getObject(), target);
+            tree.updateNode(selected.getObject(), optionalTarget.get());
         }
 
         SelectableBean<OrgType> dto = getModelObject();
         selected.setObject(dto);
-        tree.updateNode(dto, target);
+        tree.updateNode(dto, optionalTarget.get());
     }
 
     @Override

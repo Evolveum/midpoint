@@ -49,7 +49,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -133,7 +132,7 @@ public class PageCertDefinitions extends PageAdminWorkItems {
 	}
 
 	private IModel<String> createDeleteConfirmString() {
-		return new AbstractReadOnlyModel<String>() {
+		return new IModel<String>() {
 			@Override
 			public String getObject() {
 				if (singleDelete == null) {

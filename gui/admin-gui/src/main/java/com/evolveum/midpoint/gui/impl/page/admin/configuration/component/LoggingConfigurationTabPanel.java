@@ -34,7 +34,6 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
@@ -267,7 +266,7 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 					private static final long serialVersionUID = 1L;
 					
 					@Override
-					protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
+					protected void onSubmit(AjaxRequestTarget target) {
 						newItemPerformed(target);
 					}
 				};
@@ -327,7 +326,7 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 
 			@Override
 			protected IModel<String> createIconModel(IModel<ContainerValueWrapper<ClassLoggerConfigurationType>> rowModel) {
-				return new AbstractReadOnlyModel<String>() {
+				return new IModel<String>() {
 
 					private static final long serialVersionUID = 1L;
 
@@ -450,7 +449,7 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 
 			@Override
 			protected DisplayNamePanel<AppenderConfigurationType> createDisplayNamePanel(String displayNamePanelId) {
-				IModel<AppenderConfigurationType> displayNameModel = new AbstractReadOnlyModel<AppenderConfigurationType>() {
+				IModel<AppenderConfigurationType> displayNameModel = new IModel<AppenderConfigurationType>() {
 
 		    		private static final long serialVersionUID = 1L;
 
@@ -519,7 +518,7 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 
 			@Override
 			protected IModel<String> createIconModel(IModel<ContainerValueWrapper<AppenderConfigurationType>> rowModel) {
-				return new AbstractReadOnlyModel<String>() {
+				return new IModel<String>() {
 
 					private static final long serialVersionUID = 1L;
 

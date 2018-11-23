@@ -19,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author lazyman
@@ -110,11 +111,11 @@ public class Wizard extends BasePanel<IWizardModel> implements IWizardModelListe
 
 		readOnlyNote.add(new AjaxFallbackLink<String>(ID_READ_ONLY_SWITCH) {
 			@Override
-			public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+			public void onClick(Optional<AjaxRequestTarget> optionalTarget) {
 				PageResourceWizard wizardPage = (PageResourceWizard) getPageBase();
 				wizardPage.resetModels();			// e.g. to switch configuration models to read-write
 				wizardPage.setReadOnly(false);
-				ajaxRequestTarget.add(wizardPage);
+				optionalTarget.get().add(wizardPage);
 			}
 		});
 

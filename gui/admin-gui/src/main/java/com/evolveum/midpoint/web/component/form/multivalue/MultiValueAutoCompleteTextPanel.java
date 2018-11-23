@@ -31,7 +31,6 @@ import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteTe
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.util.string.Strings;
@@ -83,7 +82,7 @@ public class MultiValueAutoCompleteTextPanel<T extends Serializable> extends Bas
                 addValuePerformed(target);
             }
         };
-        placeholderAdd.add(new AttributeAppender("class", new AbstractReadOnlyModel<String>() {
+        placeholderAdd.add(new AttributeAppender("class", new IModel<String>() {
 
             @Override
             public String getObject() {

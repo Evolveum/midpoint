@@ -25,7 +25,6 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -65,7 +64,7 @@ public class CheckFormGroup extends BasePanel<Boolean> {
         labelContainer.add(l);
 
         Label tooltipLabel = new Label(ID_TOOLTIP, new Model<>());
-        tooltipLabel.add(new AttributeAppender("data-original-title", new AbstractReadOnlyModel<String>() {
+        tooltipLabel.add(new AttributeAppender("data-original-title", new IModel<String>() {
 
             @Override
             public String getObject() {

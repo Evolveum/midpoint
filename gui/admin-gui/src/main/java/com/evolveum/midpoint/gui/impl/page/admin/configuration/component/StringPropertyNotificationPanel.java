@@ -23,7 +23,6 @@ import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -91,7 +90,7 @@ public class StringPropertyNotificationPanel extends Panel {
 
 	        final IModel<String> label = name;
 	        Label displayName = new Label(ID_LABEL, label);
-	        displayName.add(new AttributeModifier("style", new AbstractReadOnlyModel<String>() {
+	        displayName.add(new AttributeModifier("style", new IModel<String>() {
 	        	
 	        	private static final long serialVersionUID = 1L;
 
@@ -123,7 +122,7 @@ public class StringPropertyNotificationPanel extends Panel {
 	        } else {
 	        	throw new IllegalStateException("Unsupported type " + getModel().getObject().getClass().getName() + " for Model");
 	        }
-	        panel.add(new AttributeModifier("class", new AbstractReadOnlyModel<String>() {
+	        panel.add(new AttributeModifier("class", new IModel<String>() {
 	    	    
 	        	private static final long serialVersionUID = 1L;
 

@@ -37,7 +37,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.ReuseIfModelsEqualStrategy;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -235,12 +234,12 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					protected void onClick(AjaxRequestTarget target) {
+					protected void onClick(Optional<AjaxRequestTarget> target) {
 						super.onClick(target);
 
 						OrgTreePanel.this.setSelectedItem(selected.getObject(), getOrgTreeStateStorage());
 
-						selectTreeItemPerformed(selected.getObject(), target);
+						selectTreeItemPerformed(selected.getObject(), target.get());
 					}
 				};
 			}
@@ -249,7 +248,7 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 			protected Item<SelectableBean<OrgType>> newRowItem(String id, int index,
 					final IModel<SelectableBean<OrgType>> model) {
 				Item<SelectableBean<OrgType>> item = super.newRowItem(id, index, model);
-				item.add(AttributeModifier.append("class", new AbstractReadOnlyModel<String>() {
+				item.add(AttributeModifier.append("class", new IModel<String>() {
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -295,7 +294,7 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 		treeContainer.add(tree);
 	}
 
-	private static class TreeStateModel extends AbstractReadOnlyModel<Set<SelectableBean<OrgType>>> {
+	private static class TreeStateModel implements IModel<Set<SelectableBean<OrgType>>> {
 		private static final long serialVersionUID = 1L;
 
 		private TreeStateSet<SelectableBean<OrgType>> set = new TreeStateSet<>();

@@ -743,7 +743,7 @@ public final class WebComponentUtil {
 	}
 
 	public static <T extends Enum> IModel<List<T>> createReadonlyModelFromEnum(final Class<T> type) {
-		return new AbstractReadOnlyModel<List<T>>() {
+		return new IModel<List<T>>() {
 
 			@Override
 			public List<T> getObject() {
@@ -796,7 +796,7 @@ public final class WebComponentUtil {
 
 	public static IModel<String> createCategoryNameModel(final Component component,
 			final IModel<String> categorySymbolModel) {
-		return new AbstractReadOnlyModel<String>() {
+		return new IModel<String>() {
 			@Override
 			public String getObject() {
 				return createStringResourceStatic(component,
@@ -894,7 +894,7 @@ public final class WebComponentUtil {
 		// final Class clazz = model.getObject().getClass();
 		final Object o = model.getObject();
 
-		final IModel<List<DisplayableValue>> enumModelValues = new AbstractReadOnlyModel<List<DisplayableValue>>() {
+		final IModel<List<DisplayableValue>> enumModelValues = new IModel<List<DisplayableValue>>() {
 
 			private static final long serialVersionUID = 1L;
 
@@ -2338,16 +2338,14 @@ public final class WebComponentUtil {
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					protected void onError(AjaxRequestTarget target,
-							org.apache.wicket.markup.html.form.Form<?> form) {
-						super.onError(target, form);
+					protected void onError(AjaxRequestTarget target) {
+						super.onError(target);
 						target.add(parentPage.getFeedbackPanel());
 					}
 
 					@Override
-					protected void onSubmit(AjaxRequestTarget target,
-							org.apache.wicket.markup.html.form.Form<?> form) {
-						super.onSubmit(target, form);
+					protected void onSubmit(AjaxRequestTarget target) {
+						super.onSubmit(target);
 
 						setSelectedTab(index);
 						if (target != null) {
@@ -2736,7 +2734,7 @@ public final class WebComponentUtil {
 	}
 
 	private static IModel<List<Boolean>> createChoices() {
-		return new AbstractReadOnlyModel<List<Boolean>>() {
+		return new IModel<List<Boolean>>() {
 
 			@Override
 			public List<Boolean> getObject() {

@@ -67,12 +67,12 @@ public class InternalsTracesPanel extends BasePanel<Map<String,Boolean>>{
 			private static final long serialVersionUID = 1L;
 
 			@Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+            protected void onSubmit(AjaxRequestTarget target) {
                 updateTraces(target);
             }
 
             @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
+            protected void onError(AjaxRequestTarget target) {
                 target.add(getPageBase().getFeedbackPanel());
             }
         };

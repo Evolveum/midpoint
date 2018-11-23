@@ -32,10 +32,11 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.repeater.data.IDataProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.util.iterator.ComponentHierarchyIterator;
 
 import java.io.Serializable;
+import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * @author lazyman
@@ -117,8 +118,9 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
             }
         }
 
-        ComponentHierarchyIterator iterator = table.visitChildren(SelectableDataTable.SelectableRowItem.class);
-
+        Stream<Component> stream = table.streamChildren();
+        Iterator<Component> iterator = stream.iterator();
+        
         while (iterator.hasNext()) {
             SelectableDataTable.SelectableRowItem row = (SelectableDataTable.SelectableRowItem) iterator.next();
             if (!row.getOutputMarkupId()) {
@@ -173,7 +175,8 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
 
     public IsolatedCheckBoxPanel findCheckBoxColumnHeader(DataTable table) {
         WebMarkupContainer topToolbars = table.getTopToolbars();
-        ComponentHierarchyIterator iterator = topToolbars.visitChildren(TableHeadersToolbar.class);
+        Stream<Component> stream = topToolbars.streamChildren();
+        Iterator<Component> iterator = stream.iterator();
         if (!iterator.hasNext()) {
             return null;
         }
@@ -182,7 +185,7 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
         // simple attempt to find checkbox which is header for our column
         // todo: this search will fail if there are more checkbox header columns (which is not supported now,
         // because Selectable.F_SELECTED is hardcoded all over the place...
-        iterator = toolbar.visitChildren(IsolatedCheckBoxPanel.class);
+        iterator = toolbar.streamChildren().iterator();
         while (iterator.hasNext()) {
             Component c = iterator.next();
             if (!c.getOutputMarkupId()) {

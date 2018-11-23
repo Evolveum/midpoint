@@ -24,7 +24,7 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
 
 import java.util.List;
 
@@ -62,11 +62,11 @@ public class MultiStateHorizontalButton extends BasePanel {
         for (String propertyKey : propertyKeysList){
             AjaxSubmitButton button = new AjaxSubmitButton(buttons.newChildId(), pageBase.createStringResource(propertyKey)) {
                 @Override
-                public void onSubmit(AjaxRequestTarget ajaxRequestTarget, Form form) {
+                public void onSubmit(AjaxRequestTarget ajaxRequestTarget) {
                     MultiStateHorizontalButton.this.onStateChanged(propertyKeysList.indexOf(propertyKey), ajaxRequestTarget);
                 }
                 @Override
-                public void onError(AjaxRequestTarget ajaxRequestTarget, Form form) {
+                public void onError(AjaxRequestTarget ajaxRequestTarget) {
                     MultiStateHorizontalButton.this.onStateChanged(propertyKeysList.indexOf(propertyKey), ajaxRequestTarget);
                 }
             };
@@ -78,7 +78,7 @@ public class MultiStateHorizontalButton extends BasePanel {
     }
 
    private AttributeAppender getActiveButtonClassAppender(final int index){
-        return new AttributeAppender("class", new AbstractReadOnlyModel<String>() {
+        return new AttributeAppender("class", new IModel<String>() {
 
             @Override
             public String getObject() {

@@ -26,7 +26,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.protocol.http.WebApplication;
 
@@ -133,7 +132,7 @@ public class LinksPanel extends SimplePanel<List<RichHyperlinkType>> {
                 }
             });
 
-            linkItem.add(new Label(ID_LABEL, new AbstractReadOnlyModel<String>() {
+            linkItem.add(new Label(ID_LABEL, new IModel<String>() {
 
                 @Override
                 public String getObject() {
@@ -145,7 +144,7 @@ public class LinksPanel extends SimplePanel<List<RichHyperlinkType>> {
                 }
             }));
 
-            Label description = new Label(ID_DESCRIPTION, new AbstractReadOnlyModel<String>() {
+            Label description = new Label(ID_DESCRIPTION, new IModel<String>() {
 
                 @Override
                 public String getObject() {

@@ -19,7 +19,6 @@ package com.evolveum.midpoint.web.component.assignment;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
@@ -50,7 +49,7 @@ public class ShoppingCartEditorPanel extends AssignmentEditorPanel {
         box.add(new AttributeModifier("class", BOX_CSS_CLASS + " " + getBoxAdditionalCssClass()));
 
         box.add(new Label(ID_DISPLAY_NAME, new PropertyModel<AssignmentEditorDto>(getModel(), AssignmentEditorDto.F_NAME)));
-        box.add(new Label(ID_DESCRIPTION, new AbstractReadOnlyModel<String>() {
+        box.add(new Label(ID_DESCRIPTION, new IModel<String>() {
             @Override
             public String getObject(){
                 return getModelObject().getTargetRef() != null
@@ -101,7 +100,7 @@ public class ShoppingCartEditorPanel extends AssignmentEditorPanel {
 
     @Override
     protected IModel<String> createHeaderClassModel(final IModel<AssignmentEditorDto> model) {
-        return new AbstractReadOnlyModel<String>() {
+        return new IModel<String>() {
             private static final long serialVersionUID = 1L;
 
             @Override

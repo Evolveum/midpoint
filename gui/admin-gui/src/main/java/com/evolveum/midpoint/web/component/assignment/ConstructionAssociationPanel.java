@@ -163,7 +163,7 @@ public class ConstructionAssociationPanel<C extends Containerable, IW extends It
 
                             @Override
                             protected IModel<String> createTextModel(final IModel<ObjectReferenceType> model) {
-                                return new AbstractReadOnlyModel<String>() {
+                                return new IModel<String>() {
                                     private static final long serialVersionUID = 1L;
                                     @Override
                                     public String getObject() {

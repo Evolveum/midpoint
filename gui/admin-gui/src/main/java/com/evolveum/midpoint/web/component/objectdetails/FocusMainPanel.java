@@ -53,7 +53,6 @@ import org.apache.commons.lang.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.string.StringValue;
 
@@ -237,7 +236,7 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 	}
 
 	protected IModel<PrismObject<F>> unwrapModel() {
-		return new AbstractReadOnlyModel<PrismObject<F>>() {
+		return new IModel<PrismObject<F>>() {
 
 				@Override
 			public PrismObject<F> getObject() {

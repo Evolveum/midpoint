@@ -23,13 +23,12 @@ import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EnvironmentalPerformanceInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 /**
  * @author Pavol Mederly
  */
-public class StatisticsDtoModel extends AbstractReadOnlyModel<StatisticsDto> {
+public class StatisticsDtoModel implements IModel<StatisticsDto> {
 
     private static final Trace LOGGER = TraceManager.getTrace(StatisticsDtoModel.class);
 

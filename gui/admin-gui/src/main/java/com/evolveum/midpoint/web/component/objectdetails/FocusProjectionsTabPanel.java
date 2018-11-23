@@ -29,7 +29,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -560,7 +559,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 
 	private Popupable getDeleteProjectionPopupContent() {
 		ConfirmationPanel dialog = new ConfirmationPanel(getPageBase().getMainPopupBodyId(),
-				new AbstractReadOnlyModel<String>() {
+				new IModel<String>() {
 					private static final long serialVersionUID = 1L;
 
 					@Override

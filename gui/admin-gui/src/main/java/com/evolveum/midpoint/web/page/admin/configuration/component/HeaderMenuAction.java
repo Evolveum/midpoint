@@ -36,7 +36,7 @@ public class HeaderMenuAction extends InlineMenuItemAction {
     }
 
     @Override
-    public void onError(AjaxRequestTarget target, Form<?> form) {
+    public void onError(AjaxRequestTarget target) {
         Page page = component.getPage();
 
         if (page instanceof PageBase) {

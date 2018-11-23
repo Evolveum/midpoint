@@ -22,7 +22,6 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
@@ -68,7 +67,7 @@ public class ObjectDeltaOperationPanel extends BasePanel<ObjectDeltaOperationTyp
 		WebMarkupContainer objectDeltaOperationMarkup = new WebMarkupContainer(ID_OBJECT_DELTA_OPERATION_MARKUP);
 		objectDeltaOperationMarkup.setOutputMarkupId(true);
 
-		objectDeltaOperationMarkup.add(AttributeModifier.append("class", new AbstractReadOnlyModel<String>() {
+		objectDeltaOperationMarkup.add(AttributeModifier.append("class", new IModel<String>() {
 
 			@Override
 			public String getObject() {
@@ -101,7 +100,7 @@ public class ObjectDeltaOperationPanel extends BasePanel<ObjectDeltaOperationTyp
 			parentPage.showResult(result);
 			throw parentPage.redirectBackViaRestartResponseException();
 		}
-		IModel<SceneDto> deltaModel = new AbstractReadOnlyModel<SceneDto>() {
+		IModel<SceneDto> deltaModel = new IModel<SceneDto>() {
 			private static final long serialVersionUID = 1L;
 
 			public SceneDto getObject() {

@@ -22,7 +22,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -113,7 +112,7 @@ public abstract class PageCases extends PageAdminCases {
         column = new AbstractColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.objectRef"), "objectRef"){
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> item, String componentId, IModel<SelectableBean<CaseType>> rowModel) {
-                item.add(new Label(componentId, new AbstractReadOnlyModel<String>() {
+                item.add(new Label(componentId, new IModel<String>() {
                     @Override
                     public String getObject() {
                         return getObjectRef(rowModel);
@@ -126,7 +125,7 @@ public abstract class PageCases extends PageAdminCases {
         column = new AbstractColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.actors")){
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> item, String componentId, IModel<SelectableBean<CaseType>> rowModel) {
-                item.add(new Label(componentId, new AbstractReadOnlyModel<String>() {
+                item.add(new Label(componentId, new IModel<String>() {
                     @Override
                     public String getObject() {
                         String actors = null;
@@ -172,7 +171,7 @@ public abstract class PageCases extends PageAdminCases {
                 } else {
                     created = null;
                 }
-                cellItem.add(new Label(componentId, new AbstractReadOnlyModel<String>() {
+                cellItem.add(new Label(componentId, new IModel<String>() {
                     @Override
                     public String getObject() {
                         return WebComponentUtil.getLocalizedDate(created, DateLabelComponent.LONG_MEDIUM_STYLE);
@@ -196,7 +195,7 @@ public abstract class PageCases extends PageAdminCases {
                 } else {
                     closed = null;
                 }
-                cellItem.add(new Label(componentId, new AbstractReadOnlyModel<String>() {
+                cellItem.add(new Label(componentId, new IModel<String>() {
                     @Override
                     public String getObject() {
                         return WebComponentUtil.getLocalizedDate(closed, DateLabelComponent.LONG_MEDIUM_STYLE);

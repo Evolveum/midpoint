@@ -26,7 +26,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageTy
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
@@ -47,7 +46,7 @@ public class InformationPanel extends BasePanel<InformationType> {
 	}
 
 	private void initLayout() {
-		Label titleLabel = new Label(ID_TITLE, new LocalizableMessageModel(new AbstractReadOnlyModel<LocalizableMessageType>() {
+		Label titleLabel = new Label(ID_TITLE, new LocalizableMessageModel(new IModel<LocalizableMessageType>() {
 			@Override
 			public LocalizableMessageType getObject() {
 				InformationType info = getModelObject();

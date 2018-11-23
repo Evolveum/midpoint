@@ -175,7 +175,7 @@ public class SynchronizationActionEditorDialog extends ModalWindow{
         AjaxSubmitLink save = new AjaxSubmitLink(ID_BUTTON_SAVE) {
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+            protected void onSubmit(AjaxRequestTarget target) {
                 savePerformed(target);
             }
         };

@@ -28,7 +28,6 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.GridView;
 import org.apache.wicket.markup.repeater.data.IDataProvider;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 import java.util.List;
@@ -103,7 +102,7 @@ public abstract class GridViewComponent<O extends Object> extends BasePanel<Obje
             }
         });
 
-        final Label count = new Label(ID_COUNT, new AbstractReadOnlyModel<String>() {
+        final Label count = new Label(ID_COUNT, new IModel<String>() {
 
             @Override
             public String getObject() {

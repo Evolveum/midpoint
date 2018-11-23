@@ -55,7 +55,6 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -284,7 +283,7 @@ public class PageDebugList extends PageAdminConfiguration {
 					final IModel<DebugObjectItem> rowModel) {
 
 				TwoValueLinkPanel panel = new TwoValueLinkPanel(componentId,
-						new AbstractReadOnlyModel<String>() {
+						new IModel<String>() {
 							@Override
 							public String getObject() {
 								DebugObjectItem object = rowModel.getObject();
@@ -386,7 +385,7 @@ public class PageDebugList extends PageAdminConfiguration {
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+					public void onSubmit(AjaxRequestTarget target) {
 						exportSelected(target, null);
 					}
 				};
@@ -403,7 +402,7 @@ public class PageDebugList extends PageAdminConfiguration {
 							private static final long serialVersionUID = 1L;
 
 							@Override
-							public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+							public void onSubmit(AjaxRequestTarget target) {
 								exportAllType(target);
 							}
 						};
@@ -443,7 +442,7 @@ public class PageDebugList extends PageAdminConfiguration {
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+					public void onSubmit(AjaxRequestTarget target) {
 						exportAll(target);
 					}
 				};
@@ -461,7 +460,7 @@ public class PageDebugList extends PageAdminConfiguration {
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+					public void onSubmit(AjaxRequestTarget target) {
 						deleteSelected(target, null);
 					}
 				};
@@ -478,7 +477,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
 
 					@Override
-					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+					public void onSubmit(AjaxRequestTarget target) {
 						deleteAllType(target);
 					}
 				};
@@ -518,7 +517,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
 
 					@Override
-					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+					public void onSubmit(AjaxRequestTarget target) {
 						deleteAllIdentities(target);
 					}
 				};
@@ -620,7 +619,7 @@ public class PageDebugList extends PageAdminConfiguration {
 	}
 
 	private IModel<String> createDeleteConfirmString() {
-		return new AbstractReadOnlyModel<String>() {
+		return new IModel<String>() {
 
 			@Override
 			public String getObject() {

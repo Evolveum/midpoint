@@ -27,7 +27,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -76,7 +75,7 @@ public class ProcessInstancesPanel extends BasePanel {
 			protected Item<ProcessInstanceDto> customizeNewRowItem(Item<ProcessInstanceDto> item,
 																   final IModel<ProcessInstanceDto> rowModel) {
 
-				item.add(new AttributeAppender("class", new AbstractReadOnlyModel<String>() {
+				item.add(new AttributeAppender("class", new IModel<String>() {
 
 					@Override
 					public String getObject() {
@@ -187,7 +186,7 @@ public class ProcessInstancesPanel extends BasePanel {
 		return new IconColumn<ProcessInstanceDto>(createStringResource("pageProcessInstances.item.result")) {
 			@Override
 			protected IModel<String> createIconModel(final IModel<ProcessInstanceDto> rowModel) {
-				return new AbstractReadOnlyModel<String>() {
+				return new IModel<String>() {
 					@Override
 					public String getObject() {
 						return choose(rowModel, null, ApprovalOutcomeIcon.IN_PROGRESS.getIcon(), ApprovalOutcomeIcon.APPROVED.getIcon(), ApprovalOutcomeIcon.REJECTED.getIcon());
@@ -197,7 +196,7 @@ public class ProcessInstancesPanel extends BasePanel {
 
 			@Override
 			protected IModel<String> createTitleModel(final IModel<ProcessInstanceDto> rowModel) {
-				return new AbstractReadOnlyModel<String>() {
+				return new IModel<String>() {
 					@Override
 					public String getObject() {
 						return choose(rowModel,

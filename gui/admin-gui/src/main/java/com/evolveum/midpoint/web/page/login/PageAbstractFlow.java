@@ -127,13 +127,11 @@ public abstract class PageAbstractFlow extends PageRegistrationBase {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void onError(AjaxRequestTarget target,
-					org.apache.wicket.markup.html.form.Form<?> form) {
+			protected void onError(AjaxRequestTarget target) {
 				showErrors(target);
 			}
 
-			protected void onSubmit(AjaxRequestTarget target,
-					org.apache.wicket.markup.html.form.Form<?> form) {
+			protected void onSubmit(AjaxRequestTarget target) {
 
 				doRegistration(target);
 

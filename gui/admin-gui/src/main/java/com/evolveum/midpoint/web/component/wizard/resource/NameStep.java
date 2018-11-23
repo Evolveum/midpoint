@@ -61,7 +61,6 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -162,7 +161,7 @@ public class NameStep extends WizardStep {
 		};
 		parentPage.registerDependentModel(selectedConnectorModel);
 
-		schemaChangeWarningModel = new AbstractReadOnlyModel<String>() {
+		schemaChangeWarningModel = new IModel<String>() {
 			@Override
 			public String getObject() {
 				PrismObject<ConnectorType> selectedConnector = getConnectorDropDown().getInput().getModel().getObject();

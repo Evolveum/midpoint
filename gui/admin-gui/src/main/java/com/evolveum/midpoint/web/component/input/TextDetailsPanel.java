@@ -22,7 +22,6 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 /**
@@ -45,7 +44,7 @@ public class TextDetailsPanel<T> extends InputPanel{
         add(text);
 
         Label details = new Label(ID_DETAILS);
-        details.add(AttributeModifier.replace("title", new AbstractReadOnlyModel<String>() {
+        details.add(AttributeModifier.replace("title", new IModel<String>() {
 
             @Override
             public String getObject() {

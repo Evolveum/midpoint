@@ -37,12 +37,12 @@ public class DefaultAjaxSubmitButton extends AjaxSubmitButton {
 	}
 
 	@Override
-	protected void onError(AjaxRequestTarget target, Form<?> form) {
+	protected void onError(AjaxRequestTarget target) {
 		target.add(pageBase.getFeedbackPanel());
 	}
 
 	@Override
-	protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-		onSubmit.accept(target, form);
+	protected void onSubmit(AjaxRequestTarget target) {
+		onSubmit.accept(target, getForm());
 	}
 }

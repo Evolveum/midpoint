@@ -52,7 +52,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -209,7 +208,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		refreshModel = new Model<>(new AutoRefreshDto());
 		refreshModel.getObject().setInterval(getRefreshInterval());
 
-		IModel<PrismObject<TaskType>> prismObjectModel = new AbstractReadOnlyModel<PrismObject<TaskType>>() {
+		IModel<PrismObject<TaskType>> prismObjectModel = new IModel<PrismObject<TaskType>>() {
 			@Override
 			public PrismObject<TaskType> getObject() {
 				return objectWrapperModel.getObject().getObject();

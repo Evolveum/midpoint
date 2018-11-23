@@ -11,7 +11,6 @@ import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Fragment;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -83,7 +82,7 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 				return PrismContainerValueHeaderPanel.this.getModelObject().isShowMetadata();
 			}
         };
-		showMetadataButton.add(new AttributeModifier("title", new AbstractReadOnlyModel() {
+		showMetadataButton.add(new AttributeModifier("title", new IModel() {
 
 			@Override
 			public Object getObject() {
