@@ -226,6 +226,11 @@ public class InducedEntitlementsPanel extends InducementsPanel{
     }
 
     @Override
+    protected boolean isEntitlementAssignment(){
+        return true;
+    }
+
+    @Override
     protected List<ContainerValueWrapper<AssignmentType>> customPostSearch(List<ContainerValueWrapper<AssignmentType>> assignments) {
         List<ContainerValueWrapper<AssignmentType>> filteredAssignments = new ArrayList<>();
         if (assignments == null){

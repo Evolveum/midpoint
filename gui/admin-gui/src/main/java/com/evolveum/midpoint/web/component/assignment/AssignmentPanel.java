@@ -352,6 +352,11 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 			}
 
 			@Override
+			protected boolean isEntitlementAssignment(){
+				return AssignmentPanel.this.isEntitlementAssignment();
+			}
+
+			@Override
 			protected <F extends FocusType> PrismObject<F> getTargetedObject() {
 				ObjectWrapper<F> w = AssignmentPanel.this.getModelObject().getObjectWrapper();
 				if (w == null) {
@@ -371,6 +376,10 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 		} else {
 			return Arrays.asList(ObjectTypes.getObjectTypeFromTypeQName(getAssignmentType()));
 		}
+	}
+
+	protected boolean isEntitlementAssignment(){
+		return false;
 	}
 
 	protected void addSelectedAssignmentsPerformed(AjaxRequestTarget target, List<AssignmentType> newAssignmentsList){

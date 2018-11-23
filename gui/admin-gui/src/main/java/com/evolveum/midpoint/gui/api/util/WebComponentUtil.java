@@ -44,6 +44,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.SubscriptionType;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyValueModel;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -2915,5 +2917,45 @@ public final class WebComponentUtil {
         duration = StringUtils.replaceOnce(duration, "day", pageBase.createStringResource("WebComponentUtil.formatDurationWordsForLocal.day").getString());
 		
 		return duration;
+	}
+
+	public static List<RefinedAssociationDefinition> getRefinedAssociationDefinition(ResourceType resource, ShadowKindType kind, String intent){
+		List<RefinedAssociationDefinition> associationDefinitions = new ArrayList<>();
+
+		try {
+
+			if (resource == null) {
+				return associationDefinitions;
+			}
+			RefinedResourceSchema refinedResourceSchema = RefinedResourceSchema.getRefinedSchema(resource.asPrismObject());
+			RefinedObjectClassDefinition oc = refinedResourceSchema.getRefinedDefinition(kind, intent);
+			if (oc == null) {
+				LOGGER.debug("Association for {}/{} not supported by resource {}", kind, intent, resource);
+				return associationDefinitions;
+			}
+			associationDefinitions.addAll(oc.getAssociationDefinitions());
+
+			if (CollectionUtils.isEmpty(associationDefinitions)) {
+				LOGGER.debug("Association for {}/{} not supported by resource {}", kind, intent, resource);
+				return associationDefinitions;
+			}
+		} catch (Exception ex) {
+			LOGGER.error("Association for {}/{} not supported by resource {}", kind, intent, resource, ex.getLocalizedMessage());
+		}
+		return associationDefinitions;
+	}
+
+	public static String getAssociationDisplayName(RefinedAssociationDefinition assocDef) {
+		if (assocDef == null){
+			return "";
+		}
+		StringBuilder sb = new StringBuilder();
+		if (assocDef.getDisplayName() != null) {
+			sb.append(assocDef.getDisplayName()).append(", ");
+		}
+		if (assocDef.getResourceObjectAssociationType() != null && assocDef.getResourceObjectAssociationType().getRef() != null) {
+			sb.append("ref: ").append(assocDef.getResourceObjectAssociationType().getRef().getItemPath().toString());
+		}
+		return sb.toString();
 	}
 }

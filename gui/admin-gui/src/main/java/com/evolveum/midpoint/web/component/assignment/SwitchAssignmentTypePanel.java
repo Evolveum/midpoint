@@ -38,6 +38,7 @@ public class SwitchAssignmentTypePanel extends BasePanel<ContainerWrapper<Assign
     private static final String ID_SERVICE_TYPE_ASSIGNMENTS = "serviceTypeAssignments";
     private static final String ID_RESOURCE_TYPE_ASSIGNMENTS = "resourceTypeAssignments";
     private static final String ID_POLICY_RULE_TYPE_ASSIGNMENTS = "policyRuleTypeAssignments";
+    private static final String ID_ENTITLEMENT_ASSIGNMENTS = "entitlementAssignments";
     private static final String ID_CONSENT_ASSIGNMENTS = "consentAssignments";
     private static final String ID_ASSIGNMENTS = "assignmentsPanel";
 
@@ -159,6 +160,22 @@ public class SwitchAssignmentTypePanel extends BasePanel<ContainerWrapper<Assign
                 getModelObject().getObjectWrapper().getObject().asObjectable() instanceof AbstractRoleType));
         add(policyRuleTypeAssignmentsButton);
 
+        AjaxButton entitlementAssignmentsButton = new AjaxButton(ID_ENTITLEMENT_ASSIGNMENTS, createStringResource("AbstractRoleMainPanel.inducedEntitlements")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                InducedEntitlementsPanel entitlementAssignments =
+                        new InducedEntitlementsPanel(ID_ASSIGNMENTS, SwitchAssignmentTypePanel.this.getModel()) ;
+                entitlementAssignments.setOutputMarkupId(true);
+                switchAssignmentTypePerformed(target, entitlementAssignments);
+
+            }
+        };
+        entitlementAssignmentsButton.setOutputMarkupId(true);
+        entitlementAssignmentsButton.add(new VisibleBehaviour(()  ->
+                (getModelObject().getObjectWrapper().getObject().asObjectable() instanceof AbstractRoleType) && isInducement()));
+        add(entitlementAssignmentsButton);
+
         //GDPR feature.. temporary disabled MID-4281
 //        AjaxButton consentsButton = new AjaxButton(ID_CONSENT_ASSIGNMENTS, createStringResource("FocusType.consents")) {
 //
@@ -184,5 +201,9 @@ public class SwitchAssignmentTypePanel extends BasePanel<ContainerWrapper<Assign
         AssignmentPanel assignmentsPanel = new AssignmentPanel(ID_ASSIGNMENTS, getModel());
         assignmentsPanel.setOutputMarkupId(true);
         add(assignmentsPanel);
+    }
+
+    protected boolean isInducement(){
+        return false;
     }
 }

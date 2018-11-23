@@ -274,6 +274,11 @@ public class AssignmentPopup extends BasePanel implements Popupable{
                                 super.onSelectionPerformed(target, rowModel);
                                 tabLabelPanelUpdate(target);
                             }
+
+                            @Override
+                            protected boolean isEntitlementAssignment(){
+                                return AssignmentPopup.this.isEntitlementAssignment();
+                            }
                         };
                     }
 
@@ -297,6 +302,10 @@ public class AssignmentPopup extends BasePanel implements Popupable{
 
     protected List<ObjectTypes> getAvailableObjectTypesList(){
         return WebComponentUtil.createAssignableTypesList();
+    }
+
+    protected boolean isEntitlementAssignment(){
+        return false;
     }
 
     private int getTabPanelSelectedCount(WebMarkupContainer panel){

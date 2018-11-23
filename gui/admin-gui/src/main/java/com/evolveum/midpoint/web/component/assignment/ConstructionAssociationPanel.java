@@ -109,31 +109,12 @@ public class ConstructionAssociationPanel<C extends Containerable, IW extends It
         refinedAssociationDefinitionsModel = new LoadableDetachableModel<List<RefinedAssociationDefinition>>() {
             @Override
             protected List<RefinedAssociationDefinition> load() {
-                List<RefinedAssociationDefinition> associationDefinitions = new ArrayList<>();
                 ConstructionType construction = getModelObject().getItem().getValue().asContainerable();
-                ShadowKindType kind = construction.getKind();
-                String intent = construction.getIntent();
-                try {
-                    PrismObject<ResourceType> resource = resourceModel.getObject();
-                    if (resource == null) {
-                        return associationDefinitions;
-                    }
-                    RefinedResourceSchema refinedResourceSchema = RefinedResourceSchema.getRefinedSchema(resource);
-                    RefinedObjectClassDefinition oc = refinedResourceSchema.getRefinedDefinition(kind, intent);
-                    if (oc == null) {
-                        LOGGER.debug("Association for {}/{} not supported by resource {}", kind, intent, resource);
-                        return associationDefinitions;
-                    }
-                    associationDefinitions.addAll(oc.getAssociationDefinitions());
-
-                    if (CollectionUtils.isEmpty(associationDefinitions)) {
-                        LOGGER.debug("Association for {}/{} not supported by resource {}", kind, intent, resource);
-                        return associationDefinitions;
-                    }
-                } catch (Exception ex) {
-                    LOGGER.error("Association for {}/{} not supported by resource {}", kind, intent, construction.getResourceRef(), ex.getLocalizedMessage());
+                if (construction == null){
+                    return new ArrayList<>();
                 }
-                return associationDefinitions;
+                return WebComponentUtil.getRefinedAssociationDefinition(resourceModel.getObject().asObjectable(), construction.getKind(),
+                        construction.getIntent());
             }
         };
     }
@@ -144,7 +125,9 @@ public class ConstructionAssociationPanel<C extends Containerable, IW extends It
                     @Override
                     protected void populateItem(ListItem<RefinedAssociationDefinition> item) {
                         GenericMultiValueLabelEditPanel associationReferencesPanel = new GenericMultiValueLabelEditPanel<ObjectReferenceType>(ID_ASSOCIATION_REFERENCE_PANEL,
-                                getShadowReferencesModel(item.getModelObject()), getAssociationDisplayNameModel(item.getModel()), ID_LABEL_SIZE, ID_INPUT_SIZE, true) {
+                                getShadowReferencesModel(item.getModelObject()),
+                                Model.of(WebComponentUtil.getAssociationDisplayName(item.getModelObject())),
+                                ID_LABEL_SIZE, ID_INPUT_SIZE, true) {
                             private static final long serialVersionUID = 1L;
 
                             @Override
@@ -209,17 +192,6 @@ public class ConstructionAssociationPanel<C extends Containerable, IW extends It
 
         associationsPanel.setOutputMarkupId(true);
         add(associationsPanel);
-    }
-
-    private IModel<String> getAssociationDisplayNameModel(IModel<RefinedAssociationDefinition> assocDef) {
-        StringBuilder sb = new StringBuilder();
-        if (assocDef.getObject().getDisplayName() != null) {
-            sb.append(assocDef.getObject().getDisplayName()).append(", ");
-        }
-        if (assocDef.getObject().getResourceObjectAssociationType() != null && assocDef.getObject().getResourceObjectAssociationType().getRef() != null) {
-            sb.append("ref: ").append(assocDef.getObject().getResourceObjectAssociationType().getRef().getItemPath().toString());
-        }
-        return Model.of(sb.toString());
     }
 
     private IModel<List<ObjectReferenceType>> getShadowReferencesModel(RefinedAssociationDefinition def) {
