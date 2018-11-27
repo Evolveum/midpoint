@@ -287,7 +287,8 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
             panel = new DatePanel(componentId, new PropertyModel<>(model, expression));
         } else if (param.getProperties() != null && param.getProperties().getTargetType() != null) { // render autocomplete box
         	LookupTableType lookup = new LookupTableType();
-            panel = new AutoCompleteTextPanel<String>(componentId, new LookupReportPropertyModel(model, expression, lookup, true), String.class) {
+        	//TODO: displayName
+            panel = new AutoCompleteTextPanel<String>(componentId, new PropertyModel<>(model, expression), String.class, true, lookup) {
 
             	private static final long serialVersionUID = 1L;
 
@@ -597,20 +598,20 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
 		return this;
 	}
 
-    static class LookupReportPropertyModel extends LookupPropertyModel<String> {
-
-		private static final long serialVersionUID = 1L;
-
-
-		public LookupReportPropertyModel(IModel<JasperReportValueDto> modelObject, String expression, LookupTableType lookupTable, boolean isStrict) {
-			super(modelObject, expression, lookupTable, isStrict);
-		}
-
-		@Override
-		public boolean isSupportsDisplayName() {
-			return true;
-		}
-
-	}
+//    static class LookupReportPropertyModel extends LookupPropertyModel<String> {
+//
+//		private static final long serialVersionUID = 1L;
+//
+//
+//		public LookupReportPropertyModel(IModel<JasperReportValueDto> modelObject, String expression, LookupTableType lookupTable, boolean isStrict) {
+//			super(modelObject, expression, lookupTable, isStrict);
+//		}
+//
+//		@Override
+//		public boolean isSupportsDisplayName() {
+//			return true;
+//		}
+//
+//	}
 
 }

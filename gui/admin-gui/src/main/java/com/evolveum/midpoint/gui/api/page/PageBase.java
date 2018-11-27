@@ -31,6 +31,7 @@ import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.factory.GuiComponentRegistry;
+import com.evolveum.midpoint.gui.impl.factory.GuiComponentRegistryImpl;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.validator.ResourceValidator;
@@ -304,7 +305,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     @SpringBean
     private MidpointFunctions midpointFunctions;
     
-    @SpringBean private GuiComponentRegistry registry;
+    @SpringBean private GuiComponentRegistryImpl registry;
 
     private List<Breadcrumb> breadcrumbs;
 
@@ -553,7 +554,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return modelDiagnosticService;
     }
     
-    public GuiComponentRegistry getRegistry() {
+    public GuiComponentRegistryImpl getRegistry() {
 		return registry;
 	}
 

@@ -629,14 +629,14 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 
 					if (lookupTable != null) {
 
-						inputPanel = new AutoCompleteTextPanel<String>(id, new LookupPropertyModel<>(getModel(),
-                            baseExpression + ".orig", lookupTable.asObjectable()), String.class) {
-
-							@Override
-							public Iterator<String> getIterator(String input) {
-								return prepareAutoCompleteList(input, lookupTable).iterator();
-							}
-						};
+//						inputPanel = new AutoCompleteTextPanel<String>(id, new LookupPropertyModel<>(getModel(),
+//                            baseExpression + ".orig", lookupTable.asObjectable()), String.class) {
+//
+//							@Override
+//							public Iterator<String> getIterator(String input) {
+//								return prepareAutoCompleteList(input, lookupTable).iterator();
+//							}
+//						};
 
 					} else {
 						inputPanel = new TextPanel<>(id, new PropertyModel<String>(getModel(), baseExpression + ".orig"),
@@ -649,7 +649,7 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 							String.class, false);
 				}
 
-				panel = inputPanel;
+//				panel = inputPanel;
 
 			} else if (DOMUtil.XSD_BASE64BINARY.equals(valueType)) {
 				panel = new UploadDownloadPanel(id, getModel().getObject().isReadonly()) {
@@ -792,32 +792,32 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 		            		}
 		            	}
 		            }
-		            LookupPropertyModel inputValue = new LookupPropertyModel<>(Model.of(getModel()), baseExpression, lookupTable, true);
-					return new AutoCompleteTextPanel<String>(id, inputValue, String.class) {
-
-								private static final long serialVersionUID = 1L;
-
-								@Override
-								public Iterator<String> getIterator(String input) {
-									return prepareAutoCompleteList(input, lookupTable.asPrismObject()).iterator();
-								}
-								
-								@Override
-								public void checkInputValue(AutoCompleteTextField input, AjaxRequestTarget target, LookupPropertyModel model){
-									model.setObject(input.getInput());
-									for(LookupTableRowType row : lookupTable.getRow()) {
-										if(row.getLabel().toString().equalsIgnoreCase(input.getInput())) {
-											String namespace = row.getValue().substring(row.getValue().indexOf("{") + 1);
-											namespace = namespace.substring(0, namespace.indexOf("}"));
-											((PrismPropertyValue<ItemPathType>) PrismValuePanel.this.getModelObject().getValue()).setValue(new ItemPathType(new ItemPath(new QName(namespace, row.getLabel().toString()))));
-											break;
-										}
-									}
-									
-							    }
-								
-								
-						};
+//		            LookupPropertyModel inputValue = new LookupPropertyModel<>(Model.of(getModel()), baseExpression, lookupTable, true);
+//					return new AutoCompleteTextPanel<String>(id, inputValue, String.class) {
+//
+//								private static final long serialVersionUID = 1L;
+//
+//								@Override
+//								public Iterator<String> getIterator(String input) {
+//									return prepareAutoCompleteList(input, lookupTable.asPrismObject()).iterator();
+//								}
+//								
+//								@Override
+//								public void checkInputValue(AutoCompleteTextField input, AjaxRequestTarget target, LookupPropertyModel model){
+//									model.setObject(input.getInput());
+//									for(LookupTableRowType row : lookupTable.getRow()) {
+//										if(row.getLabel().toString().equalsIgnoreCase(input.getInput())) {
+//											String namespace = row.getValue().substring(row.getValue().indexOf("{") + 1);
+//											namespace = namespace.substring(0, namespace.indexOf("}"));
+//											((PrismPropertyValue<ItemPathType>) PrismValuePanel.this.getModelObject().getValue()).setValue(new ItemPathType(new ItemPath(new QName(namespace, row.getLabel().toString()))));
+//											break;
+//										}
+//									}
+//									
+//							    }
+//								
+//								
+//						};
 				}
 				
 				return new ItemPathPanel(id, (ItemPathType) getModelObject().getValue().getRealValue()) {
@@ -878,23 +878,23 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 						isStrict = false;
 					}
 					
-					panel = new AutoCompleteTextPanel<String>(id, new LookupPropertyModel<>(getModel(),
-                            baseExpression, lookupTable, isStrict), type) {
-
-								private static final long serialVersionUID = 1L;
-
-								@Override
-								public Iterator<String> getIterator(String input) {
-									return prepareAutoCompleteList(input, lookupTable.asPrismObject()).iterator();
-								}
-								
-								@Override
-								public void checkInputValue(AutoCompleteTextField input, AjaxRequestTarget target, LookupPropertyModel model){
-									model.setObject(input.getInput());
-							    }
-								
-								
-						};
+//					panel = new AutoCompleteTextPanel<String>(id, new LookupPropertyModel<>(getModel(),
+//                            baseExpression, lookupTable, isStrict), type) {
+//
+//								private static final long serialVersionUID = 1L;
+//
+//								@Override
+//								public Iterator<String> getIterator(String input) {
+//									return prepareAutoCompleteList(input, lookupTable.asPrismObject()).iterator();
+//								}
+//								
+//								@Override
+//								public void checkInputValue(AutoCompleteTextField input, AjaxRequestTarget target, LookupPropertyModel model){
+//									model.setObject(input.getInput());
+//							    }
+//								
+//								
+//						};
 						
 				} else if (def.getValueEnumerationRef() != null) {
 					PrismReferenceValue valueEnumerationRef = def.getValueEnumerationRef();
@@ -922,38 +922,38 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 								lookupTableUid, options, getPageBase(), task, result);
 					}
 					
-					if (lookupTable != null) {
-
-						panel = new AutoCompleteTextPanel<String>(id, new LookupPropertyModel<>(getModel(),
-                            baseExpression, lookupTable.asObjectable()), String.class) {
-
-							@Override
-							public Iterator<String> getIterator(String input) {
-								return prepareAutoCompleteList(input, lookupTable).iterator();
-							}
-
-							@Override
-							protected void updateFeedbackPanel(AutoCompleteTextField input, boolean isError,
-									AjaxRequestTarget target) {
-								if (isError) {
-									input.error("Entered value doesn't match any of available values and will not be saved.");
-								}
-								target.add(PrismValuePanel.this.get(ID_FEEDBACK));
-							}
-						};
-
-					} else {
-
-						panel = new TextPanel<>(id, new PropertyModel<String>(getModel(), baseExpression), type, false);
-
-					}
+//					if (lookupTable != null) {
+//
+//						panel = new AutoCompleteTextPanel<String>(id, new LookupPropertyModel<>(getModel(),
+//                            baseExpression, lookupTable.asObjectable()), String.class) {
+//
+//							@Override
+//							public Iterator<String> getIterator(String input) {
+//								return prepareAutoCompleteList(input, lookupTable).iterator();
+//							}
+//
+//							@Override
+//							protected void updateFeedbackPanel(AutoCompleteTextField input, boolean isError,
+//									AjaxRequestTarget target) {
+//								if (isError) {
+//									input.error("Entered value doesn't match any of available values and will not be saved.");
+//								}
+//								target.add(PrismValuePanel.this.get(ID_FEEDBACK));
+//							}
+//						};
+//
+//					} else {
+//
+//						panel = new TextPanel<>(id, new PropertyModel<String>(getModel(), baseExpression), type, false);
+//
+//					}
 
 				} else {
 					panel = new TextPanel<>(id, new PropertyModel<String>(getModel(), baseExpression), type, false);
 				}
 			}
 		} else if (item instanceof PrismReference) {
-			panel = new ValueChoosePanel<PrismReferenceValue, ObjectType>(id, new PropertyModel<>(getModel(), "value")) {
+			panel = new ValueChoosePanel<ObjectType>(id, new PropertyModel<>(getModel(), "value.value")) {
 
 				private static final long serialVersionUID = 1L;
 				

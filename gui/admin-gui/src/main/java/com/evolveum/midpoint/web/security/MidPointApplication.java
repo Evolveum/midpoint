@@ -22,12 +22,15 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.MidPointApplicationConfiguration;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.factory.DurationConverter;
+import com.evolveum.midpoint.gui.impl.factory.PolyStringConverter;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeListener;
@@ -103,6 +106,8 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+
+import javax.xml.datatype.Duration;
 
 /**
  * @author lazyman
@@ -405,6 +410,15 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         return locales;
     }
 
+    @Override
+    protected IConverterLocator newConverterLocator() {
+    	ConverterLocator locator = new ConverterLocator();
+    	
+    	locator.set(PolyString.class, new PolyStringConverter());
+    	locator.set(Duration.class, new DurationConverter());
+    	return locator;
+    }
+    
     private URL buildMidpointHomeLocalizationFolderUrl() {
         String midpointHome = System.getProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY);
 

@@ -144,6 +144,10 @@ public class ValueWrapper<T> implements Serializable, DebugDumpable {
         this.status = status;
     }
 
+    public void setValue(PrismValue value) {
+		this.value = value;
+	}
+    
     public void normalize(PrismContext prismContext) {
 		if (value instanceof PrismPropertyValue) {
 			PrismPropertyValue ppVal = (PrismPropertyValue) value;

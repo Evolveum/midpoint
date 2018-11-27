@@ -36,6 +36,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -59,7 +60,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  *            common superclass for all the options of objects that this panel
  *            should choose
  */
-public class ValueChoosePanel<T, O extends ObjectType> extends BasePanel<T> {
+public class ValueChoosePanel<O extends ObjectType> extends BasePanel<ObjectReferenceType> {
 
 	private static final long serialVersionUID = 1L;
 
@@ -70,7 +71,7 @@ public class ValueChoosePanel<T, O extends ObjectType> extends BasePanel<T> {
 	private static final String ID_FEEDBACK = "feedback";
 	private static final String ID_EDIT = "edit";
 	
-	public ValueChoosePanel(String id, IModel<T> value) {
+	public ValueChoosePanel(String id, IModel<ObjectReferenceType> value) {
 		super(id, value);
 		setOutputMarkupId(true);		
 	}
@@ -129,7 +130,7 @@ public class ValueChoosePanel<T, O extends ObjectType> extends BasePanel<T> {
 
 	protected void replaceIfEmpty(ObjectType object) {
 		ObjectReferenceType ort = ObjectTypeUtil.createObjectRef(object, getPageBase().getPrismContext());
-		getModel().setObject((T) ort.asReferenceValue());
+		getModel().setObject(ort);
 
 	}
 
@@ -178,31 +179,31 @@ public class ValueChoosePanel<T, O extends ObjectType> extends BasePanel<T> {
 	}
 
 	protected IModel<String> createTextModel() {
-		final IModel<T> model = getModel();
+		final IModel<ObjectReferenceType> model = getModel();
 		return new AbstractReadOnlyModel<String>() {
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			public String getObject() {
-				T ort = (T) model.getObject();
+				Referencable prv = (Referencable) model.getObject();
 
-				if (ort instanceof PrismReferenceValue) {
-					PrismReferenceValue prv = (PrismReferenceValue) ort;
-					return prv == null ? null
-							: (prv.getTargetName() != null
-									? (prv.getTargetName().getOrig() + (prv.getTargetType() != null
-											? ": " + prv.getTargetType().getLocalPart() : ""))
-									: prv.getOid());
-				} else if (ort instanceof ObjectReferenceType) {
-					ObjectReferenceType prv = (ObjectReferenceType) ort;
+//				if (ort instanceof PrismReferenceValue) {
+//					PrismReferenceValue prv = (PrismReferenceValue) ort;
+//					return prv == null ? null
+//							: (prv.getTargetName() != null
+//									? (prv.getTargetName().getOrig() + (prv.getTargetType() != null
+//											? ": " + prv.getTargetType().getLocalPart() : ""))
+//									: prv.getOid());
+//				} else if (ort instanceof ObjectReferenceType) {
+//					Referencable prv = (Referencable) ort;
 					return prv == null ? null
 							: (prv.getTargetName() != null ? (prv.getTargetName().getOrig()
 									+ (prv.getType() != null ? ": " + prv.getType().getLocalPart() : ""))
 									: prv.getOid());
-				} else if (ort instanceof ObjectViewDto) {
-					return ((ObjectViewDto) ort).getName();
-				}
-				return ort != null ? ort.toString() : null;
+//				} else if (ort instanceof ObjectViewDto) {
+//					return ((ObjectViewDto) ort).getName();
+//				}
+//				return ort != null ? ort.toString() : null;
 
 			}
 		};
@@ -269,24 +270,24 @@ public class ValueChoosePanel<T, O extends ObjectType> extends BasePanel<T> {
 
     protected boolean isObjectUnique(O object) {
 
-		T modelObject = getModelObject();
-		if (modelObject instanceof PrismReferenceValue) {
-
-			PrismReferenceValue old = (PrismReferenceValue) modelObject;
-			if (old == null || old.isEmpty()) {
-				return true;
-			}
-
-			return !old.getOid().equals(object.getOid());
-		} else if (modelObject instanceof ObjectReferenceType) {
-			ObjectReferenceType old = (ObjectReferenceType) modelObject;
+		Referencable old = getModelObject();
+//		if (modelObject instanceof PrismReferenceValue) {
+//
+//			PrismReferenceValue old = (PrismReferenceValue) modelObject;
+//			if (old == null || old.isEmpty()) {
+//				return true;
+//			}
+//
+//			return !old.getOid().equals(object.getOid());
+//		} else if (modelObject instanceof ObjectReferenceType) {
+//			ObjectReferenceType old = (ObjectReferenceType) modelObject;
 			if (old == null) {
 				return true;
 			}
 			return !MiscUtil.equals(old.getOid(),object.getOid());
-		}
-
-		return true;
+//		}
+//
+//		return true;
 
 	}
 

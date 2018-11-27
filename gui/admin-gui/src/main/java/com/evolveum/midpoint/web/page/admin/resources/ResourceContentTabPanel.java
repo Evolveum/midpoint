@@ -133,7 +133,7 @@ public class ResourceContentTabPanel extends Panel {
 		add(mainForm);
 
 		AutoCompleteTextPanel<String> intent = new AutoCompleteTextPanel<String>(ID_INTENT,
-            new PropertyModel<>(resourceContentSearch, "intent"), String.class) {
+            new PropertyModel<>(resourceContentSearch, "intent"), String.class, false, null) {
 			private static final long serialVersionUID = 1L;
 
 			@Override

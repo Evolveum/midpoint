@@ -13,7 +13,7 @@ import com.evolveum.midpoint.web.component.prism.ValueWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 
 @Component
-public class LockoutStatusPanelFactory implements GuiComponentFactory {
+public class LockoutStatusPanelFactory extends AbstractGuiComponentFactory {
 
 	@Autowired GuiComponentRegistry registry;
 	
@@ -29,8 +29,8 @@ public class LockoutStatusPanelFactory implements GuiComponentFactory {
 	}
 
 	@Override
-	public <T> Panel createPanel(String id, IModel<ValueWrapper<T>> model, String baseExpression) {
-		return new LockoutStatusPanel(id, model.getObject(), new PropertyModel<>(model, baseExpression));
+	public <T> Panel createPanel(PanelContext<T> panelCtx) {
+		return new LockoutStatusPanel(panelCtx.getComponentId(), panelCtx.getBaseModel().getObject(), new PropertyModel<>(panelCtx.getBaseModel(), panelCtx.getBaseExpression()));
 	}
 
 }

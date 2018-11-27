@@ -38,7 +38,9 @@ import org.springframework.boot.actuate.autoconfigure.endpoint.web.servlet.WebMv
 import org.springframework.boot.actuate.autoconfigure.health.HealthEndpointAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.health.HealthIndicatorAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.web.servlet.ServletManagementContextAutoConfiguration;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.autoconfigure.http.HttpMessageConvertersAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAutoConfiguration;
@@ -61,12 +63,14 @@ import org.springframework.boot.web.servlet.server.Session;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextListener;
 import org.springframework.web.filter.DelegatingFilterProxy;
 
+import com.evolveum.midpoint.gui.impl.factory.TextAreaFactory;
 import com.evolveum.midpoint.gui.impl.util.ReportPeerQueryInterceptor;
 import com.evolveum.midpoint.init.StartupConfiguration;
 import com.evolveum.midpoint.model.api.authentication.NodeAuthenticationEvaluator;
@@ -122,6 +126,8 @@ import ro.isdc.wro.http.WroFilter;
         HealthIndicatorAutoConfiguration.class
 })
 @SpringBootConfiguration
+@ComponentScan(basePackages = {"com.evolveum.midpoint.gui"}, basePackageClasses = TextAreaFactory.class)
+//@EnableAutoConfiguration
 public class MidPointSpringApplication extends SpringBootServletInitializer {
 	
     private static final Trace LOGGER = TraceManager.getTrace(MidPointSpringApplication.class);
@@ -134,6 +140,8 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
     @Autowired NodeAuthenticationEvaluator nodeAuthenticator;
     
     public static void main(String[] args) {
+    	System.out.println("ClassPath: "+ System.getProperty("java.class.path"));
+    	
         System.setProperty("xml.catalog.className", CatalogImpl.class.getName());
         String mode = args != null && args.length > 0 ? args[0] : null;
         

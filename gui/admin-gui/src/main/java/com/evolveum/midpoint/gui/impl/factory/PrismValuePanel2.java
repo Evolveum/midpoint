@@ -54,10 +54,12 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
@@ -117,6 +119,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
@@ -368,20 +371,6 @@ public class PrismValuePanel2 extends BasePanel<ValueWrapper> {
 		
 		return true;
 
-//		PropertyOrReferenceWrapper propertyWrapper = (PropertyOrReferenceWrapper) valueWrapper.getItem();
-//		ItemDefinition definition = propertyWrapper.getItem().getDefinition();
-//		int min = definition.getMinOccurs();
-//
-//		int count = countNonDeletedValues(propertyWrapper);
-//		if (count <= 1 || count <= min) {
-//			return false;
-//		}
-//
-//		if (propertyWrapper.getParent() == null) {
-//			return true; // TODO
-//		}
-//
-//		return isAccessible(definition, getContainerStatus(propertyWrapper));
 	}
 
 	private ContainerStatus getContainerStatus(ItemWrapper propertyWrapper) {
@@ -439,9 +428,25 @@ public class PrismValuePanel2 extends BasePanel<ValueWrapper> {
 		final String baseExpression = "value.value"; 
 		
 		Panel component = null;
-		if (FocusType.F_DESCRIPTION.equals(definition.getName()) || ActivationType.F_LOCKOUT_STATUS.equals(definition.getName())) {
 		GuiComponentFactory componentFactory = getPageBase().getRegistry().findFactory(valueWrapper);
-			component = componentFactory.createPanel(id, (IModel) getModel(), baseExpression);
+		if (componentFactory != null) {
+			
+			PanelContext<T> panelCtx = new PanelContext<>();
+			panelCtx.setBaseExpression(getBaseExpression(definition));
+			panelCtx.setBaseModel((IModel) getModel());
+			panelCtx.setPageBase(getPageBase());
+			panelCtx.setItemDefinition(definition);
+			panelCtx.setComponentId(id);
+			
+			try {
+			component = componentFactory.createPanel(panelCtx);
+			} catch (Throwable e) {
+				LoggingUtils.logUnexpectedException(LOGGER, "Cannot create panel", e);
+				getSession().error("Cannot create panel");
+				throw new RuntimeException(e);
+			}
+		
+//			component = componentFactory.createPanel();
 		} else {
 			component = createTypedInputComponent(id);
 		}
@@ -531,6 +536,14 @@ public class PrismValuePanel2 extends BasePanel<ValueWrapper> {
 		
 	}
 
+	private String getBaseExpression(ItemDefinition def) {
+		if (def instanceof PrismReferenceDefinition) {
+			return "value.referencable";
+		}
+		
+		return "value.value";
+	}
+	
 	// normally this method returns an InputPanel;
 	// however, for some special readonly types (like ObjectDeltaType) it will
 	// return a Panel
@@ -545,65 +558,6 @@ public class PrismValuePanel2 extends BasePanel<ValueWrapper> {
 
 			// pointing to prism property real value
 			final String baseExpression = "value.value"; 
-
-			// fixing MID-1230, will be improved with some kind of annotation or
-			// something like that
-			// now it works only in description
-//			if (ObjectType.F_DESCRIPTION.equals(definition.getName())) {
-//				return new TextAreaPanel(id, new PropertyModel(getModel(), baseExpression), null);
-//			}
-//
-//			if (ActivationType.F_LOCKOUT_STATUS.equals(definition.getName())) {
-//				return new LockoutStatusPanel(id, getModel().getObject(),
-//                    new PropertyModel<>(getModel(), baseExpression));
-//			}
-//			
-			if (SearchFilterType.COMPLEX_TYPE.equals(definition.getTypeName())) {
-				return new AceEditorPanel(id, null, new IModel<String>() {
-				
-					@Override
-					public void setObject(String object) {
-						
-						if (StringUtils.isBlank(object)) {
-							return;
-						}
-						
-						try {
-							SearchFilterType filter = getPageBase().getPrismContext().parserFor(object).parseRealValue(SearchFilterType.class);
-							((PrismPropertyValue<SearchFilterType>) PrismValuePanel2.this.getModelObject().getValue()).setValue(filter);
-						} catch (SchemaException e) {
-							// TODO handle!!!!
-							LoggingUtils.logException(LOGGER, "Cannot parse filter", e);
-							getSession().error("Cannot parse filter");
-						}
-						
-					}
-					
-					@Override
-					public String getObject() {
-						try {
-							PrismValue value = getModelObject().getValue();
-							if (value == null || value.isEmpty()) {
-								return null;
-							}
-							
-							return getPageBase().getPrismContext().xmlSerializer().serialize(value);
-						} catch (SchemaException e) {
-							// TODO handle!!!!
-							LoggingUtils.logException(LOGGER, "Cannot serialize filter", e);
-							getSession().error("Cannot serialize filter");
-						}
-						return null;
-					}
-					
-					@Override
-					public void detach() {
-						// TODO Auto-generated method stub
-						
-					}
-				
-				});
-			}
 			
 			if (AssignmentType.F_FOCUS_TYPE.equals(definition.getName())){
 				List<QName> typesList = WebComponentUtil.createFocusTypeList();
@@ -627,94 +581,46 @@ public class PrismValuePanel2 extends BasePanel<ValueWrapper> {
 				
 			} else if (DOMUtil.XSD_BOOLEAN.equals(valueType)) {
 				panel = new TriStateComboPanel(id, new PropertyModel<>(getModel(), baseExpression));
-			} else if (DOMUtil.XSD_DURATION.equals(valueType)) {
-				panel = new TextPanel<>(id, new PropertyModel<String>(getModel(), baseExpression) {
-					
-					private IModel model =  new PropertyModel<Duration>(getModel(), baseExpression);
-					
-					@Override
-					public void setObject(String object) {
-						model.setObject(XmlTypeConverter.createDuration(MiscUtil.nullIfEmpty(object)));
-					}
-				});
 			} else if (DOMUtil.XSD_QNAME.equals(valueType)) {
 				DropDownChoicePanel<QName> panelDropDown = new DropDownChoicePanel<QName>(id, new PropertyModel(getModel(), baseExpression),
 						Model.ofList(WebComponentUtil.createObjectTypeList()), new QNameIChoiceRenderer(OBJECT_TYPE), true);
 				panelDropDown.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 				panelDropDown.setOutputMarkupId(true);
 				return panelDropDown;
-			} else if (SchemaConstants.T_POLY_STRING_TYPE.equals(valueType)) {
-				InputPanel inputPanel;
-				PrismPropertyDefinition def = property.getDefinition();
 
-				if (def.getValueEnumerationRef() != null) {
-					PrismReferenceValue valueEnumerationRef = def.getValueEnumerationRef();
-					String lookupTableUid = valueEnumerationRef.getOid();
-					Task task = getPageBase().createSimpleTask("loadLookupTable");
-					OperationResult result = task.getResult();
-
-					Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
-							.createLookupTableRetrieveOptions();
-					final PrismObject<LookupTableType> lookupTable = WebModelServiceUtils.loadObject(LookupTableType.class,
-							lookupTableUid, options, getPageBase(), task, result);
-
-					if (lookupTable != null) {
-
-						inputPanel = new AutoCompleteTextPanel<String>(id, new LookupPropertyModel<>(getModel(),
-                            baseExpression + ".orig", lookupTable.asObjectable()), String.class) {
-
-							@Override
-							public Iterator<String> getIterator(String input) {
-								return prepareAutoCompleteList(input, lookupTable).iterator();
-							}
-						};
-
-					} else {
-						inputPanel = new TextPanel<>(id, new PropertyModel<String>(getModel(), baseExpression + ".orig"),
-								String.class);
-					}
-
-				} else {
-
-					inputPanel = new TextPanel<>(id, new PropertyModel<String>(getModel(), baseExpression + ".orig"),
-							String.class);
-				}
-
-				panel = inputPanel;
-
-			} else if (DOMUtil.XSD_BASE64BINARY.equals(valueType)) {
-				panel = new UploadDownloadPanel(id, getModel().getObject().isReadonly()) {
-
-					@Override
-					public InputStream getStream() {
-						Object object = ((PrismPropertyValue) getModel().getObject().getValue()).getValue();
-						return object != null ? new ByteArrayInputStream((byte[]) object) : new ByteArrayInputStream(new byte[0]);
-					}
-
-					@Override
-					public void updateValue(byte[] file) {
-						((PrismPropertyValue) getModel().getObject().getValue()).setValue(file);
-					}
-
-					@Override
-					public void uploadFilePerformed(AjaxRequestTarget target) {
-						super.uploadFilePerformed(target);
-						target.add(PrismValuePanel2.this.get(ID_FEEDBACK));
-					}
-
-					@Override
-					public void removeFilePerformed(AjaxRequestTarget target) {
-						super.removeFilePerformed(target);
-						target.add(PrismValuePanel2.this.get(ID_FEEDBACK));
-					}
-
-					@Override
-					public void uploadFileFailed(AjaxRequestTarget target) {
-						super.uploadFileFailed(target);
-						target.add(PrismValuePanel2.this.get(ID_FEEDBACK));
-						target.add(((PageBase) getPage()).getFeedbackPanel());
-					}
-				};
+//			} else if (DOMUtil.XSD_BASE64BINARY.equals(valueType)) {
+//				panel = new UploadDownloadPanel(id, getModel().getObject().isReadonly()) {
+//
+//					@Override
+//					public InputStream getStream() {
+//						Object object = ((PrismPropertyValue) getModel().getObject().getValue()).getValue();
+//						return object != null ? new ByteArrayInputStream((byte[]) object) : new ByteArrayInputStream(new byte[0]);
+//					}
+//
+//					@Override
+//					public void updateValue(byte[] file) {
+//						((PrismPropertyValue) getModel().getObject().getValue()).setValue(file);
+//					}
+//
+//					@Override
+//					public void uploadFilePerformed(AjaxRequestTarget target) {
+//						super.uploadFilePerformed(target);
+//						target.add(PrismValuePanel2.this.get(ID_FEEDBACK));
+//					}
+//
+//					@Override
+//					public void removeFilePerformed(AjaxRequestTarget target) {
+//						super.removeFilePerformed(target);
+//						target.add(PrismValuePanel2.this.get(ID_FEEDBACK));
+//					}
+//
+//					@Override
+//					public void uploadFileFailed(AjaxRequestTarget target) {
+//						super.uploadFileFailed(target);
+//						target.add(PrismValuePanel2.this.get(ID_FEEDBACK));
+//						target.add(((PageBase) getPage()).getFeedbackPanel());
+//					}
+//				};
 
 			} else if (ObjectDeltaType.COMPLEX_TYPE.equals(valueType)) {
 				panel = new ModificationsPanel(id, new AbstractReadOnlyModel<DeltaDto>() {
@@ -779,195 +685,155 @@ public class PrismValuePanel2 extends BasePanel<ValueWrapper> {
 				};
 				
 			} else {
-				Class type = XsdTypeMapper.getXsdToJavaMapping(valueType);
-				if (type != null && type.isPrimitive()) {
-					type = ClassUtils.primitiveToWrapper(type);
-
-				}
-
-				if (isEnum(property)) {
-					Class clazz = getPageBase().getPrismContext().getSchemaRegistry().determineClassForType(definition.getTypeName());
-
-					if (clazz != null) {
-						return WebComponentUtil.createEnumPanel(clazz, id, new PropertyModel(getModel(), baseExpression),
-								this);
-					}
-
-					return WebComponentUtil.createEnumPanel(definition, id,
-							new PropertyModel<>(getModel(), baseExpression), this);
-				}
+//				Class type = XsdTypeMapper.getXsdToJavaMapping(valueType);
+//				if (type != null && type.isPrimitive()) {
+//					type = ClassUtils.primitiveToWrapper(type);
+//
+//				}
+//
+//				if (isEnum(property)) {
+//					Class clazz = getPageBase().getPrismContext().getSchemaRegistry().determineClassForType(definition.getTypeName());
+//
+//					if (clazz != null) {
+//						return WebComponentUtil.createEnumPanel(clazz, id, new PropertyModel(getModel(), baseExpression),
+//								this);
+//					}
+//
+//					return WebComponentUtil.createEnumPanel(definition, id,
+//							new PropertyModel<>(getModel(), baseExpression), this);
+//				}
 				// // default QName validation is a bit weird, so let's treat
 				// QNames as strings [TODO finish this - at the parsing side]
 				// if (type == QName.class) {
 				// type = String.class;
 				// }
 
-				PrismPropertyDefinition def = property.getDefinition();
+//				PrismPropertyDefinition def = property.getDefinition();
 				
-				if(getModelObject().getItem() instanceof PropertyWrapper && getModelObject().getItem().getPath().removeIdentifiers().equivalent(new ItemPath(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_AUDITING, AuditingConfigurationType.F_APPENDER))){
-					((PropertyWrapper)getModelObject().getItem()).setPredefinedValues(WebComponentUtil.createAppenderChoices(getPageBase()));
-				}
-
-				if(getModelObject().getItem() instanceof PropertyWrapper && ((PropertyWrapper)getModelObject().getItem()).getPredefinedValues() != null) {
-					LookupTableType lookupTable = ((PropertyWrapper)getModelObject().getItem()).getPredefinedValues();
-					
-					boolean isStrict = true;
-					if(getModelObject().getItem().getName().equals(ClassLoggerConfigurationType.F_PACKAGE)) {
-						isStrict = false;
-					}
-					
-					panel = new AutoCompleteTextPanel<String>(id, new LookupPropertyModel<>(getModel(),
-                            baseExpression, lookupTable, isStrict), type) {
-
-								private static final long serialVersionUID = 1L;
-
-								@Override
-								public Iterator<String> getIterator(String input) {
-									return prepareAutoCompleteList(input, lookupTable.asPrismObject()).iterator();
-								}
-								
-								@Override
-								public void checkInputValue(AutoCompleteTextField input, AjaxRequestTarget target, LookupPropertyModel model){
-									model.setObject(input.getInput());
-							    }
-								
-								
-						};
-						
-				} else if (def.getValueEnumerationRef() != null) {
-					PrismReferenceValue valueEnumerationRef = def.getValueEnumerationRef();
-					String lookupTableUid = valueEnumerationRef.getOid();
-					Task task = getPageBase().createSimpleTask("loadLookupTable");
-					OperationResult result = task.getResult();
-
-					Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
-							.createLookupTableRetrieveOptions();
-					final PrismObject<LookupTableType> lookupTable = WebModelServiceUtils.loadObject(LookupTableType.class,
-							lookupTableUid, options, getPageBase(), task, result);
-
-					if (lookupTable != null) {
-
-						panel = new AutoCompleteTextPanel<String>(id, new LookupPropertyModel<>(getModel(),
-                            baseExpression, lookupTable == null ? null : lookupTable.asObjectable()), String.class) {
-
-							@Override
-							public Iterator<String> getIterator(String input) {
-								return prepareAutoCompleteList(input, lookupTable).iterator();
-							}
-
-							@Override
-							protected void updateFeedbackPanel(AutoCompleteTextField input, boolean isError,
-									AjaxRequestTarget target) {
-								if (isError) {
-									input.error("Entered value doesn't match any of available values and will not be saved.");
-								}
-								target.add(PrismValuePanel2.this.get(ID_FEEDBACK));
-							}
-						};
-
-					} else {
-
-						panel = new TextPanel<>(id, new PropertyModel<String>(getModel(), baseExpression), type);
-
-					}
-
-				} else {
-					panel = new TextPanel<>(id, new PropertyModel<String>(getModel(), baseExpression), type);
-				}
+//				if(getModelObject().getItem() instanceof PropertyWrapper && getModelObject().getItem().getPath().removeIdentifiers().equivalent(new ItemPath(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_AUDITING, AuditingConfigurationType.F_APPENDER))){
+//					((PropertyWrapper)getModelObject().getItem()).setPredefinedValues(WebComponentUtil.createAppenderChoices(getPageBase()));
+//				}
+//
+//				if(getModelObject().getItem() instanceof PropertyWrapper && ((PropertyWrapper)getModelObject().getItem()).getPredefinedValues() != null) {
+//					LookupTableType lookupTable = ((PropertyWrapper)getModelObject().getItem()).getPredefinedValues();
+//					
+//					boolean isStrict = true;
+//					if(getModelObject().getItem().getName().equals(ClassLoggerConfigurationType.F_PACKAGE)) {
+//						isStrict = false;
+//					}
+//					
+//					panel = new AutoCompleteTextPanel<String>(id, new LookupPropertyModel<>(getModel(),
+//                            baseExpression, lookupTable, isStrict), type) {
+//
+//								private static final long serialVersionUID = 1L;
+//
+//								@Override
+//								public Iterator<String> getIterator(String input) {
+//									return prepareAutoCompleteList(input, lookupTable.asPrismObject()).iterator();
+//								}
+//								
+//								@Override
+//								public void checkInputValue(AutoCompleteTextField input, AjaxRequestTarget target, LookupPropertyModel model){
+//									model.setObject(input.getInput());
+//							    }
+//								
+//								
+//						};
+//						
+//				} else if (def.getValueEnumerationRef() != null) {
+//					PrismReferenceValue valueEnumerationRef = def.getValueEnumerationRef();
+//					String lookupTableUid = valueEnumerationRef.getOid();
+//					Task task = getPageBase().createSimpleTask("loadLookupTable");
+//					OperationResult result = task.getResult();
+//
+//					Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
+//							.createLookupTableRetrieveOptions();
+//					final PrismObject<LookupTableType> lookupTable = WebModelServiceUtils.loadObject(LookupTableType.class,
+//							lookupTableUid, options, getPageBase(), task, result);
+//
+//					if (lookupTable != null) {
+//
+//						panel = new AutoCompleteTextPanel<String>(id, new LookupPropertyModel<>(getModel(),
+//                            baseExpression, lookupTable == null ? null : lookupTable.asObjectable()), String.class) {
+//
+//							@Override
+//							public Iterator<String> getIterator(String input) {
+//								return prepareAutoCompleteList(input, lookupTable).iterator();
+//							}
+//
+//							@Override
+//							protected void updateFeedbackPanel(AutoCompleteTextField input, boolean isError,
+//									AjaxRequestTarget target) {
+//								if (isError) {
+//									input.error("Entered value doesn't match any of available values and will not be saved.");
+//								}
+//								target.add(PrismValuePanel2.this.get(ID_FEEDBACK));
+//							}
+//						};
+//
+//					} else {
+//
+//						panel = new TextPanel<>(id, new PropertyModel<String>(getModel(), baseExpression), type);
+//
+//					}
+//
+//				} else {
+//					panel = new TextPanel<>(id, new PropertyModel<String>(getModel(), baseExpression), type);
+//				}
 			}
-		} else if (item instanceof PrismReference) {
-			panel = new ValueChoosePanel<PrismReferenceValue, ObjectType>(id, new PropertyModel<>(getModel(), "value")) {
-
-				private static final long serialVersionUID = 1L;
-				
-				@Override
-				protected ObjectFilter createCustomFilter() {
-					ItemWrapper wrapper = PrismValuePanel2.this.getModel().getObject().getItem();
-					if (!(wrapper instanceof ReferenceWrapper)) {
-						return null;
-					}
-					return ((ReferenceWrapper) wrapper).getFilter();
-				}
-
-				@Override
-				protected boolean isEditButtonEnabled() {
-					return PrismValuePanel2.this.getModel().getObject().isEditEnabled();
-				}
-
-				@Override
-				public List<QName> getSupportedTypes() {
-					List<QName> targetTypeList = ((ReferenceWrapper) PrismValuePanel2.this.getModel().getObject().getItem()).getTargetTypes();
-					if (targetTypeList == null || WebComponentUtil.isAllNulls(targetTypeList)) {
-						return Arrays.asList(ObjectType.COMPLEX_TYPE);
-					}
-					return targetTypeList;
-				}
-
-				@Override
-				protected Class getDefaultType(List<QName> supportedTypes){
-					if (AbstractRoleType.COMPLEX_TYPE.equals(((PrismReference)item).getDefinition().getTargetTypeName())){
-						return RoleType.class;
-					} else {
-						return super.getDefaultType(supportedTypes);
-					}
-				}
-
-			};
-
-		}
-
+		} 
 		return panel;
 	}
 
-	private List<String> prepareAutoCompleteList(String input, PrismObject<LookupTableType> lookupTable) {
-		List<String> values = new ArrayList<>();
+//	private List<String> prepareAutoCompleteList(String input, PrismObject<LookupTableType> lookupTable) {
+//		List<String> values = new ArrayList<>();
+//
+//		if (lookupTable == null) {
+//			return values;
+//		}
+//
+//		List<LookupTableRowType> rows = lookupTable.asObjectable().getRow();
+//
+//		if (input == null || input.isEmpty()) {
+//			for (LookupTableRowType row : rows) {
+//				values.add(WebComponentUtil.getOrigStringFromPoly(row.getLabel()));
+//			}
+//		} else {
+//			for (LookupTableRowType row : rows) {
+//				if (WebComponentUtil.getOrigStringFromPoly(row.getLabel()) != null
+//						&& WebComponentUtil.getOrigStringFromPoly(row.getLabel()).toLowerCase().contains(input.toLowerCase())) {
+//					values.add(WebComponentUtil.getOrigStringFromPoly(row.getLabel()));
+//				}
+//			}
+//		}
+//
+//		return values;
+//	}
 
-		if (lookupTable == null) {
-			return values;
-		}
+//	private boolean isEnum(PrismProperty property) {
+//		PrismPropertyDefinition definition = property.getDefinition();
+//		if (definition == null) {
+//			return property.getValueClass().isEnum();
+//		}
+//		return (definition.getAllowedValues() != null && definition.getAllowedValues().size() > 0);
+//	}
 
-		List<LookupTableRowType> rows = lookupTable.asObjectable().getRow();
-
-		if (input == null || input.isEmpty()) {
-			for (LookupTableRowType row : rows) {
-				values.add(WebComponentUtil.getOrigStringFromPoly(row.getLabel()));
-			}
-		} else {
-			for (LookupTableRowType row : rows) {
-				if (WebComponentUtil.getOrigStringFromPoly(row.getLabel()) != null
-						&& WebComponentUtil.getOrigStringFromPoly(row.getLabel()).toLowerCase().contains(input.toLowerCase())) {
-					values.add(WebComponentUtil.getOrigStringFromPoly(row.getLabel()));
-				}
-			}
-		}
-
-		return values;
-	}
-
-	private boolean isEnum(PrismProperty property) {
-		PrismPropertyDefinition definition = property.getDefinition();
-		if (definition == null) {
-			return property.getValueClass().isEnum();
-		}
-		return (definition.getAllowedValues() != null && definition.getAllowedValues().size() > 0);
-	}
-
-	private String getAttributeName(ResourceAttribute<?> attr) {
-		if (attr.getDisplayName() != null) {
-			return attr.getDisplayName();
-		}
-
-		if (attr.getNativeAttributeName() != null) {
-			return attr.getNativeAttributeName();
-		}
-
-		if (attr.getElementName() != null) {
-			return attr.getElementName().getLocalPart();
-		}
-
-		return null; // TODO: is this ok?? or better is exception or some
-						// default name??
-	}
+//	private String getAttributeName(ResourceAttribute<?> attr) {
+//		if (attr.getDisplayName() != null) {
+//			return attr.getDisplayName();
+//		}
+//
+//		if (attr.getNativeAttributeName() != null) {
+//			return attr.getNativeAttributeName();
+//		}
+//
+//		if (attr.getElementName() != null) {
+//			return attr.getElementName().getLocalPart();
+//		}
+//
+//		return null; // TODO: is this ok?? or better is exception or some
+//						// default name??
+//	}
 
 	private void addValue(AjaxRequestTarget target) {
 		Component inputPanel = this.get(ID_VALUE_CONTAINER).get(ID_INPUT);

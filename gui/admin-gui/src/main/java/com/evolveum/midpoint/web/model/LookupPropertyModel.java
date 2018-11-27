@@ -31,24 +31,32 @@ import org.apache.wicket.model.AbstractPropertyModel;
  *
  */
 public class LookupPropertyModel<T> extends AbstractPropertyModel<T> {
+	/**
+	 * @param modelObject
+	 */
+	public LookupPropertyModel(Object modelObject) {
+		super(modelObject);
+		// TODO Auto-generated constructor stub
+	}
+
 	private static final long serialVersionUID = 1L;
 
-	protected final String expression;
-	protected final LookupTableType lookupTable;
+	protected final String expression = null;
+	protected final LookupTableType lookupTable = null;
 	protected boolean isStrict = true; // if true, allow only values found in lookupTable, false - allow also input that is not in the lookupTable
 
-    public LookupPropertyModel(Object modelObject, String expression, LookupTableType lookupTable) {
-        super(modelObject);
-        this.expression = expression;
-        this.lookupTable = lookupTable;
-    }
-
-    public LookupPropertyModel(Object modelObject, String expression, LookupTableType lookupTable, boolean isStrict) {
-        super(modelObject);
-        this.expression = expression;
-        this.lookupTable = lookupTable;
-        this.isStrict = isStrict;
-    }
+//    public LookupPropertyModel(Object modelObject, String expression, LookupTableType lookupTable) {
+//        super(modelObject);
+//        this.expression = expression;
+//        this.lookupTable = lookupTable;
+//    }
+//
+//    public LookupPropertyModel(Object modelObject, String expression, LookupTableType lookupTable, boolean isStrict) {
+//        super(modelObject);
+//        this.expression = expression;
+//        this.lookupTable = lookupTable;
+//        this.isStrict = isStrict;
+//    }
 
     public boolean isSupportsDisplayName() {
 		return false;

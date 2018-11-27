@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.component.prism;
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -29,6 +30,8 @@ import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -325,7 +328,7 @@ public class ContainerWrapperFactory {
 
 			LOGGER.trace("Creating wrapper for {}", itemDef);
 			try {
-				createPropertyOrReferenceWrapper(itemDef, cWrapper, propertyOrReferenceWrappers, onlyEmpty, cWrapper.getPath());
+				createPropertyOrReferenceWrapper(itemDef, cWrapper, propertyOrReferenceWrappers, onlyEmpty, cWrapper.getPath(), task);
 				createContainerWrapper(itemDef, cWrapper, containerWrappers, onlyEmpty, task);
 			} catch (Exception e) {
 				LoggingUtils.logUnexpectedException(LOGGER, "something strange happened: " + e.getMessage(), e);
@@ -348,10 +351,10 @@ public class ContainerWrapperFactory {
 	}
     
 
-    private <C extends Containerable> void createPropertyOrReferenceWrapper(ItemDefinition itemDef, ContainerValueWrapper<C> cWrapper, List<PropertyOrReferenceWrapper> properties, boolean onlyEmpty, ItemPath parentPath) {
+    private <C extends Containerable> void createPropertyOrReferenceWrapper(ItemDefinition itemDef, ContainerValueWrapper<C> cWrapper, List<PropertyOrReferenceWrapper> properties, boolean onlyEmpty, ItemPath parentPath, Task task) {
     	PropertyOrReferenceWrapper propertyOrReferenceWrapper = null;
         if (itemDef instanceof PrismPropertyDefinition) {
-        	propertyOrReferenceWrapper = createPropertyWrapper((PrismPropertyDefinition) itemDef, cWrapper, onlyEmpty);
+        	propertyOrReferenceWrapper = createPropertyWrapper((PrismPropertyDefinition) itemDef, cWrapper, onlyEmpty, task);
         	
         } else if (itemDef instanceof PrismReferenceDefinition) {
         	propertyOrReferenceWrapper = createReferenceWrapper((PrismReferenceDefinition) itemDef, cWrapper, onlyEmpty);
@@ -388,7 +391,7 @@ public class ContainerWrapperFactory {
     }
     
 	private <T, C extends Containerable> PropertyWrapper<T> createPropertyWrapper(
-			PrismPropertyDefinition<T> def, ContainerValueWrapper<C> cWrapper, boolean onlyEmpty) {
+			PrismPropertyDefinition<T> def, ContainerValueWrapper<C> cWrapper, boolean onlyEmpty, Task task) {
 		PrismContainerValue<C> containerValue = cWrapper.getContainerValue();
 
 		PrismProperty property = containerValue.findProperty(def.getName());
@@ -405,16 +408,47 @@ public class ContainerWrapperFactory {
 				return new ExpressionWrapper(cWrapper, property, propertyIsReadOnly, cWrapper.getStatus() == ValueStatus.ADDED ? ValueStatus.ADDED: ValueStatus.NOT_CHANGED, property.getPath());
 			}
 		}
+		
+		PropertyWrapper<T> propertyWrapper = null;
 		if (property == null) {
 			PrismProperty<T> newProperty = def.instantiate();
 			// We cannot just get path from newProperty.getPath(). The property is not added to the container, so it does not know its path.
 			// Definitions are reusable, they do not have paths either.
 			ItemPath propPath = cWrapper.getPath().subPath(newProperty.getElementName());
-			return new PropertyWrapper(cWrapper, newProperty, propertyIsReadOnly, ValueStatus.ADDED, propPath);
+			propertyWrapper = new PropertyWrapper(cWrapper, newProperty, propertyIsReadOnly, ValueStatus.ADDED, propPath);
+		} else {
+			propertyWrapper = new PropertyWrapper(cWrapper, property, propertyIsReadOnly, cWrapper.getStatus() == ValueStatus.ADDED ? ValueStatus.ADDED: ValueStatus.NOT_CHANGED, property.getPath());
 		}
-		return new PropertyWrapper(cWrapper, property, propertyIsReadOnly, cWrapper.getStatus() == ValueStatus.ADDED ? ValueStatus.ADDED: ValueStatus.NOT_CHANGED, property.getPath());
+		
+		LookupTableType lookupTable = loadLookupTable(def, task, result);
+		propertyWrapper.setPredefinedValues(lookupTable);
+		return propertyWrapper;
 	}
 
+	private <T> LookupTableType loadLookupTable(PrismPropertyDefinition<T> def, Task task, OperationResult result) {
+		PrismReferenceValue valueEnumerationRef = def.getValueEnumerationRef();
+		if (valueEnumerationRef != null) {
+
+			String lookupTableUid = valueEnumerationRef.getOid();
+
+			Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils.createLookupTableRetrieveOptions();
+			PrismObject<LookupTableType> lookupTable = WebModelServiceUtils.loadObject(LookupTableType.class, lookupTableUid,
+					options, (PageBase) modelServiceLocator, task, result);
+			if (lookupTable == null) {
+				return null;
+			}
+			
+			return lookupTable.asObjectable();
+		}
+		
+		if (QNameUtil.match(def.getName(), ClassLoggerConfigurationType.F_APPENDER)) {
+			return WebComponentUtil.createAppenderChoices((PageBase) modelServiceLocator);
+		}
+		
+		return null;
+
+	}
+	
 	private <C extends Containerable> ReferenceWrapper createReferenceWrapper(PrismReferenceDefinition def, ContainerValueWrapper<C> cWrapper, boolean onlyEmpty) {
 		
 		PrismContainerValue<C> containerValue = cWrapper.getContainerValue();

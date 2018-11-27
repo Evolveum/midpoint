@@ -889,6 +889,25 @@ public final class WebComponentUtil {
 		};
 	}
 
+	public static <T> DropDownChoicePanel createEnumPanel(final Collection<T> allowedValues, String id,
+			final IModel model, final Component component) {
+		// final Class clazz = model.getObject().getClass();
+		final Object o = model.getObject();
+
+		final IModel<List<DisplayableValue>> enumModelValues = new AbstractReadOnlyModel<List<DisplayableValue>>() {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public List<DisplayableValue> getObject() {
+				return getDisplayableValues(allowedValues);
+			}
+
+		};
+
+		return new DropDownChoicePanel(id, model, enumModelValues, new DisplayableValueChoiceRenderer(getDisplayableValues(allowedValues)), true);
+
+	}
 	public static DropDownChoicePanel createEnumPanel(final PrismPropertyDefinition def, String id,
 			final IModel model, final Component component) {
 		// final Class clazz = model.getObject().getClass();
@@ -900,12 +919,12 @@ public final class WebComponentUtil {
 
 			@Override
 			public List<DisplayableValue> getObject() {
-				return getDisplayableValues(def);
+				return getDisplayableValues(def.getAllowedValues());
 			}
 
 		};
 
-		return new DropDownChoicePanel(id, model, enumModelValues, new DisplayableValueChoiceRenderer(getDisplayableValues(def)), true);
+		return new DropDownChoicePanel(id, model, enumModelValues, new DisplayableValueChoiceRenderer(getDisplayableValues(def.getAllowedValues())), true);
 
 
 //		@Override
@@ -962,11 +981,11 @@ public final class WebComponentUtil {
 		return null;
 	}
 
-	private static List<DisplayableValue> getDisplayableValues(PrismPropertyDefinition def) {
+	private static <T> List<DisplayableValue> getDisplayableValues(Collection<T> allowedValues) {
 		List<DisplayableValue> values = null;
-		if (def.getAllowedValues() != null) {
-			values = new ArrayList<>(def.getAllowedValues().size());
-			for (Object v : def.getAllowedValues()) {
+		if (allowedValues != null) {
+			values = new ArrayList<>(allowedValues.size());
+			for (T v : allowedValues) {
 				if (v instanceof DisplayableValue) {
 					values.add(((DisplayableValue) v));
 				}

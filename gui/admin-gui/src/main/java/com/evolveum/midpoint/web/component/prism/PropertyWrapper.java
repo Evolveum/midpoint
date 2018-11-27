@@ -76,15 +76,15 @@ public class PropertyWrapper<T> extends PropertyOrReferenceWrapper<PrismProperty
         ItemDefinition definition = item.getDefinition();
 
         ValueWrapper wrapper;
-        if (SchemaConstants.T_POLY_STRING_TYPE.equals(definition.getTypeName())) {
-            wrapper = new ValueWrapper(this, new PrismPropertyValue<>(new PolyString("")),
-                    new PrismPropertyValue<>(new PolyString("")), ValueStatus.ADDED);
+//        if (SchemaConstants.T_POLY_STRING_TYPE.equals(definition.getTypeName())) {
+//            wrapper = new ValueWrapper(this, new PrismPropertyValue<>(new PolyString("")),
+//                    new PrismPropertyValue<>(new PolyString("")), ValueStatus.ADDED);
 //        } else if (isUser() && isThisPropertyActivationEnabled()) {
 //            wrapper = new ValueWrapper(this, new PrismPropertyValue(null),
 //                    new PrismPropertyValue(null), ValueStatus.ADDED);
-        } else {
+//        } else {
             wrapper = new ValueWrapper(this, new PrismPropertyValue<>(null), ValueStatus.ADDED);
-        }
+//        }
 
         return wrapper;
     }
