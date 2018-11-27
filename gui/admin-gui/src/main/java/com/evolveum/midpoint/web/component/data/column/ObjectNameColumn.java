@@ -22,7 +22,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColu
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.IExportableColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -57,7 +56,7 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractColumn<Selec
 	public void populateItem(final Item<ICellPopulator<SelectableBean<O>>> cellItem, String componentId,
 			final IModel<SelectableBean<O>> rowModel) {
 
-		IModel<String> labelModel = new AbstractReadOnlyModel<String>() {
+		IModel<String> labelModel = new IModel<String>() {
 			private static final long serialVersionUID = 1L;
 
 			@Override

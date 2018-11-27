@@ -34,7 +34,6 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -206,7 +205,7 @@ public class PrismContainerPanel<C extends Containerable> extends BasePanel<Cont
     }
 
     private IModel<String> createStyleClassModel(final IModel<ItemWrapper> wrapper) {
-        return new AbstractReadOnlyModel<String>() {
+        return new IModel<String>() {
         	private static final long serialVersionUID = 1L;
 
             @Override
@@ -238,7 +237,7 @@ public class PrismContainerPanel<C extends Containerable> extends BasePanel<Cont
                     
                     item.add(containerPanel);
                     item.setOutputMarkupId(true);
-                    containerPanel.add(AttributeModifier.append("class", new AbstractReadOnlyModel<String>() {
+                    containerPanel.add(AttributeModifier.append("class", new IModel<String>() {
     					
 						private static final long serialVersionUID = 1L;
 

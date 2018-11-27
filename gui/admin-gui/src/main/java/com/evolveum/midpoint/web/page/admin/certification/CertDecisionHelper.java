@@ -33,7 +33,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulato
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -120,7 +119,7 @@ public class CertDecisionHelper implements Serializable {
 
             @Override
             protected IModel<String> createIconModel(final IModel<CertCaseOrWorkItemDto> rowModel) {
-                return new AbstractReadOnlyModel<String>() {
+                return new IModel<String>() {
                     @Override
                     public String getObject() {
                         return "fa fa-fw fa-info-circle text-info";

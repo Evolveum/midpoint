@@ -28,7 +28,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 
@@ -89,7 +88,7 @@ public class MultiValueTextPanel<T extends Serializable> extends BasePanel<List<
             }
         };
 		placeholderAdd.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
-        placeholderAdd.add(new AttributeAppender("class", new AbstractReadOnlyModel<String>() {
+        placeholderAdd.add(new AttributeAppender("class", new IModel<String>() {
 
             @Override
             public String getObject() {

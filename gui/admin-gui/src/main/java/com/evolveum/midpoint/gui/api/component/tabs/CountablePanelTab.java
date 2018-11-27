@@ -17,7 +17,6 @@ package com.evolveum.midpoint.gui.api.component.tabs;
 
 import com.evolveum.midpoint.gui.api.model.CountModelProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 /**
@@ -43,7 +42,7 @@ public abstract class CountablePanelTab extends PanelTab implements CountModelPr
         // When we display the tab the panel does not exist yet.
         // The panel is created only when the tab is clicked.
 
-        return new AbstractReadOnlyModel<String>() {
+        return new IModel<String>() {
 
             private static final long serialVersionUID = 1L;
 

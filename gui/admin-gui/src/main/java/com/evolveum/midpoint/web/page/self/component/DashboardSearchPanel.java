@@ -94,7 +94,7 @@ public class DashboardSearchPanel extends BasePanel<T> {
 			};
 			
 			@Override
-			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+			protected void onSubmit(AjaxRequestTarget target) {
 				performSearch(getSearchText());
 			}
 		};

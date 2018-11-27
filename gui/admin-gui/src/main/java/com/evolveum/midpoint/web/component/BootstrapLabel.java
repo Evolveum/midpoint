@@ -18,7 +18,6 @@ package com.evolveum.midpoint.web.component;
 
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 /**
@@ -33,7 +32,7 @@ public class BootstrapLabel extends Label {
     public BootstrapLabel(String id, IModel<String> model, final IModel<State> state) {
         super(id, model);
 
-        add(AttributeAppender.append("class", new AbstractReadOnlyModel<String>() {
+        add(AttributeAppender.append("class", new IModel<String>() {
 
             @Override
             public String getObject() {

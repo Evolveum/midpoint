@@ -29,7 +29,6 @@ import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.list.Loop;
 import org.apache.wicket.markup.html.list.LoopItem;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.util.lang.Args;
@@ -102,7 +101,7 @@ public class TabbedPanel<T extends ITab> extends Panel {
 
         this.tabs = Args.notNull(tabs, "tabs");
 
-        final IModel<Integer> tabCount = new AbstractReadOnlyModel<Integer>() {
+        final IModel<Integer> tabCount = new IModel<Integer>() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -137,7 +136,7 @@ public class TabbedPanel<T extends ITab> extends Panel {
 				Label countLabel = new Label(ID_COUNT, countModel);
 				countLabel.setVisible(countModel != null);
 				countLabel.setOutputMarkupId(true);
-				countLabel.add(AttributeModifier.append("class", new AbstractReadOnlyModel<String>() {
+				countLabel.add(AttributeModifier.append("class", new IModel<String>() {
 					private static final long serialVersionUID = 1L;
 
 					@Override

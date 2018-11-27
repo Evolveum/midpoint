@@ -22,7 +22,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.WebPage;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -71,7 +70,7 @@ public class Breadcrumb implements Serializable, DebugDumpable {
 
     public IModel<String> getLabel() {
     	if (labelModel == null && label != null) {
-    		labelModel = new AbstractReadOnlyModel<String>() {
+    		labelModel = new IModel<String>() {
     			private static final long serialVersionUID = 1L;
     			@Override
                 public String getObject() {
@@ -88,7 +87,7 @@ public class Breadcrumb implements Serializable, DebugDumpable {
             return;
         }
 
-    	this.labelModel = new AbstractReadOnlyModel<String>() {
+    	this.labelModel = new IModel<String>() {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -103,7 +102,6 @@ public class Breadcrumb implements Serializable, DebugDumpable {
 
 			@Override
 			public void detach() {
-				super.detach();
 				Breadcrumb.this.label = label.getObject();
 				Breadcrumb.this.labelModel = null;
 			}
@@ -113,7 +111,7 @@ public class Breadcrumb implements Serializable, DebugDumpable {
 
     public IModel<String> getIcon() {
     	if (iconModel == null && icon != null) {
-    		iconModel = new AbstractReadOnlyModel<String>() {
+    		iconModel = new IModel<String>() {
     			private static final long serialVersionUID = 1L;
     			@Override
                 public String getObject() {
@@ -130,7 +128,7 @@ public class Breadcrumb implements Serializable, DebugDumpable {
             return;
         }
 
-    	this.iconModel = new AbstractReadOnlyModel<String>() {
+    	this.iconModel = new IModel<String>() {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -145,7 +143,6 @@ public class Breadcrumb implements Serializable, DebugDumpable {
 
 			@Override
 			public void detach() {
-				super.detach();
 				Breadcrumb.this.icon = icon.getObject();
 				Breadcrumb.this.iconModel = null;
 			}
@@ -182,7 +179,7 @@ public class Breadcrumb implements Serializable, DebugDumpable {
             return null;
         }
 
-        return new AbstractReadOnlyModel<T>() {
+        return new IModel<T>() {
 
             @Override
             public T getObject() {
@@ -196,7 +193,6 @@ public class Breadcrumb implements Serializable, DebugDumpable {
 
 			@Override
 			public void detach() {
-				super.detach();
 				model.getObject();
 			}
 

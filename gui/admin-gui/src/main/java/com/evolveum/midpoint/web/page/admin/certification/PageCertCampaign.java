@@ -58,7 +58,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -227,14 +226,14 @@ public class PageCertCampaign extends PageAdminCertification {
 		mainForm.add(new Label(ID_CAMPAIGN_NUMBER_OF_STAGES, new PropertyModel<>(campaignModel, CertCampaignDto.F_NUMBER_OF_STAGES)));
 		mainForm.add(new Label(ID_CAMPAIGN_ITERATION, new PropertyModel<>(campaignModel, CertCampaignDto.F_ITERATION)));
 		mainForm.add(new Label(ID_CAMPAIGN_CURRENT_STATE, new PropertyModel<>(campaignModel, CertCampaignDto.F_CURRENT_STATE)));
-		mainForm.add(new Label(ID_CAMPAIGN_TIME, new AbstractReadOnlyModel<String>() {
+		mainForm.add(new Label(ID_CAMPAIGN_TIME, new IModel<String>() {
 			@Override
 			public String getObject() {
 				CertCampaignDto dto = campaignModel.getObject();
 				return formatDuration(dto.getCampaignStart(), dto.getCampaignEnd());
 			}
 		}));
-		mainForm.add(new Label(ID_STAGE_TIME, new AbstractReadOnlyModel<String>() {
+		mainForm.add(new Label(ID_STAGE_TIME, new IModel<String>() {
 			@Override
 			public String getObject() {
 				CertCampaignDto dto = campaignModel.getObject();
@@ -402,7 +401,7 @@ public class PageCertCampaign extends PageAdminCertification {
 		AjaxSubmitButton startCampaignButton = new AjaxSubmitButton(ID_START_CAMPAIGN_BUTTON,
 				createStringResource("PageCertCampaign.button.startCampaign")) {
 			@Override
-			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+			protected void onSubmit(AjaxRequestTarget target) {
 				executeCampaignStateOperation(target, OP_OPEN_NEXT_STAGE);
 			}
 		};

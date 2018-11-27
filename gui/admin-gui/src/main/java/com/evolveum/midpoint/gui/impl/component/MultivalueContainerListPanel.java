@@ -27,7 +27,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -210,7 +209,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 			@Override
 			protected Item<ContainerValueWrapper<C>> customizeNewRowItem(Item<ContainerValueWrapper<C>> item,
 																					  IModel<ContainerValueWrapper<C>> model) {
-				item.add(AttributeModifier.append("class", new AbstractReadOnlyModel<String>() {
+				item.add(AttributeModifier.append("class", new IModel<String>() {
 					
 							private static final long serialVersionUID = 1L;
 
@@ -338,7 +337,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 
 	
 	protected IModel<String> createStyleClassModelForNewObjectIcon() {
-        return new AbstractReadOnlyModel<String>() {
+        return new IModel<String>() {
         	private static final long serialVersionUID = 1L;
 
             @Override

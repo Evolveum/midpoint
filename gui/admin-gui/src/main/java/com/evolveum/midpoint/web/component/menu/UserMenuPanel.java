@@ -45,7 +45,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.image.ContextImage;
 import org.apache.wicket.markup.html.image.NonCachingImage;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.AbstractResource;
@@ -117,7 +116,7 @@ public class UserMenuPanel extends BasePanel {
         WebMarkupContainer iconBox = new WebMarkupContainer(ID_ICON_BOX);
         add(iconBox);
 
-        NonCachingImage img = new NonCachingImage(ID_PHOTO, new AbstractReadOnlyModel<AbstractResource>() {
+        NonCachingImage img = new NonCachingImage(ID_PHOTO, new IModel<AbstractResource>() {
 
             @Override
             public AbstractResource getObject() {
@@ -153,7 +152,7 @@ public class UserMenuPanel extends BasePanel {
         });
         iconBox.add(icon);
 
-        Label usernameLink = new Label(ID_USERNAME_LINK, new AbstractReadOnlyModel<String>() {
+        Label usernameLink = new Label(ID_USERNAME_LINK, new IModel<String>() {
 
             @Override
             public String getObject() {
@@ -166,7 +165,7 @@ public class UserMenuPanel extends BasePanel {
         WebMarkupContainer panelIconBox = new WebMarkupContainer(ID_PANEL_ICON_BOX);
         add(panelIconBox);
 
-        NonCachingImage panelImg = new NonCachingImage(ID_PANEL_PHOTO, new AbstractReadOnlyModel<AbstractResource>() {
+        NonCachingImage panelImg = new NonCachingImage(ID_PANEL_PHOTO, new IModel<AbstractResource>() {
 
             @Override
             public AbstractResource getObject() {
@@ -200,7 +199,7 @@ public class UserMenuPanel extends BasePanel {
         });
         panelIconBox.add(panelIcon);
 
-        Label username = new Label(ID_USERNAME, new AbstractReadOnlyModel<String>() {
+        Label username = new Label(ID_USERNAME, new IModel<String>() {
 
             @Override
             public String getObject() {

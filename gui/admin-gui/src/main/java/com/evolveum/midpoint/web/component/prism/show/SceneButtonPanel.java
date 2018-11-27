@@ -22,7 +22,6 @@ import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -55,7 +54,7 @@ public class SceneButtonPanel extends Panel {
         add(minimize);
 
         Label icon = new Label(ID_ICON);
-        icon.add(AttributeModifier.append("class", new AbstractReadOnlyModel<String>() {
+        icon.add(AttributeModifier.append("class", new IModel<String>() {
         	private static final long serialVersionUID = 1L;
 
             @Override
@@ -70,7 +69,7 @@ public class SceneButtonPanel extends Panel {
         }));
         minimize.add(icon);
 
-        icon.add(new AttributeAppender("title", new AbstractReadOnlyModel<String>() {
+        icon.add(new AttributeAppender("title", new IModel<String>() {
         	private static final long serialVersionUID = 1L;
 
             @Override

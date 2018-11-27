@@ -14,11 +14,11 @@ public class InlineMenuItemAction implements Serializable {
 
     }
 
-    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+    public void onSubmit(AjaxRequestTarget target) {
 
     }
 
-    public void onError(AjaxRequestTarget target, Form<?> form) {
+    public void onError(AjaxRequestTarget target) {
 
     }
 }

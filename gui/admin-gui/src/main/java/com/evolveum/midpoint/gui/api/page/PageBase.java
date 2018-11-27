@@ -402,7 +402,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     protected void createBreadcrumb() {
-        BreadcrumbPageClass bc = new BreadcrumbPageClass(new AbstractReadOnlyModel<String>() {
+        BreadcrumbPageClass bc = new BreadcrumbPageClass(new IModel<String>() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -415,7 +415,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     protected void createInstanceBreadcrumb() {
-        BreadcrumbPageInstance bc = new BreadcrumbPageInstance(new AbstractReadOnlyModel<String>() {
+        BreadcrumbPageInstance bc = new BreadcrumbPageInstance(new IModel<String>() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -748,7 +748,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         WebMarkupContainer pageTitle = new WebMarkupContainer(ID_PAGE_TITLE);
         pageTitleContainer.add(pageTitle);
 
-        IModel<String> deploymentNameModel = new AbstractReadOnlyModel<String>() {
+        IModel<String> deploymentNameModel = new IModel<String>() {
 
             private static final long serialVersionUID = 1L;
 
@@ -772,7 +772,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         pageTitleReal.setRenderBodyOnly(true);
         pageTitle.add(pageTitleReal);
 
-        IModel<List<Breadcrumb>> breadcrumbsModel = new AbstractReadOnlyModel<List<Breadcrumb>>() {
+        IModel<List<Breadcrumb>> breadcrumbsModel = new IModel<List<Breadcrumb>>() {
 
             private static final long serialVersionUID = 1L;
 
@@ -880,7 +880,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         body.add(new AttributeAppender("class", "hold-transition ", " "));
         body.add(new AttributeAppender("class", "custom-hold-transition ", " "));
 
-        body.add(new AttributeAppender("class", new AbstractReadOnlyModel<String>() {
+        body.add(new AttributeAppender("class", new IModel<String>() {
 
             private static final long serialVersionUID = 1L;
 
@@ -951,7 +951,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         mainHeader.add(navigation);
 
 
-        IModel<IconType> logoModel = new AbstractReadOnlyModel<IconType>() {
+        IModel<IconType> logoModel = new IModel<IconType>() {
 
             private static final long serialVersionUID = 1L;
 
@@ -992,7 +992,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         WebMarkupContainer customLogoImgCss = new WebMarkupContainer(ID_CUSTOM_LOGO_IMG_CSS);
         customLogoImgCss.add(new VisibleBehaviour(() -> logoModel.getObject() != null && StringUtils.isNotEmpty(logoModel.getObject().getCssClass())));
-        customLogoImgCss.add(new AttributeAppender("class", new AbstractReadOnlyModel<String>() {
+        customLogoImgCss.add(new AttributeAppender("class", new IModel<String>() {
 
             private static final long serialVersionUID = 1L;
 
@@ -1002,7 +1002,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             }
         }));
 
-        mainHeader.add(new AttributeAppender("style", new AbstractReadOnlyModel<String>() {
+        mainHeader.add(new AttributeAppender("style", new IModel<String>() {
 
             private static final long serialVersionUID = 1L;
 
@@ -1064,7 +1064,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         footerContainer.add(copyrightMessage);
 
         Label subscriptionMessage = new Label(ID_SUBSCRIPTION_MESSAGE,
-                new AbstractReadOnlyModel<String>() {
+                new IModel<String>() {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -1097,7 +1097,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     private AttributeAppender createHeaderColorStyleModel(boolean checkSkinUsage) {
-        return new AttributeAppender("style", new AbstractReadOnlyModel<String>() {
+        return new AttributeAppender("style", new IModel<String>() {
 
             private static final long serialVersionUID = 1L;
 

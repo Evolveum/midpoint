@@ -37,7 +37,6 @@ import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.wicket.datetime.PatternDateConverter;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 import java.util.Date;
@@ -196,7 +195,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 
 	@Override
 	protected IModel<String> getTitleModel() {
-		return new AbstractReadOnlyModel<String>() {
+		return new IModel<String>() {
 			@Override
 			public String getObject() {
 				TaskDto taskDto = parentPage.getTaskDto();
@@ -228,7 +227,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 
 	@Override
 	protected IModel<String> getTitle2Model() {
-		return new AbstractReadOnlyModel<String>() {
+		return new IModel<String>() {
 			@Override
 			public String getObject() {
 				if (parentPage.getTaskDto().isWorkflow()) {
@@ -249,7 +248,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 
 	@Override
 	protected IModel<String> getTitle3Model() {
-		return new AbstractReadOnlyModel<String>() {
+		return new IModel<String>() {
 			@Override
 			public String getObject() {
 				if (parentPage.getTaskDto().isWorkflow()) {

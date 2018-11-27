@@ -35,7 +35,6 @@ import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -246,7 +245,7 @@ public class MappingEditorDialog extends ModalWindow {
 
 			@Override
 			protected IModel<List<String>> createChoiceList() {
-				return new AbstractReadOnlyModel<List<String>>() {
+				return new IModel<List<String>>() {
 
 					@Override
 					public List<String> getObject() {
@@ -273,7 +272,7 @@ public class MappingEditorDialog extends ModalWindow {
 
 			@Override
 			protected IModel<List<String>> createChoiceList() {
-				return new AbstractReadOnlyModel<List<String>>() {
+				return new IModel<List<String>>() {
 
 					@Override
 					public List<String> getObject() {
@@ -360,7 +359,7 @@ public class MappingEditorDialog extends ModalWindow {
 		DropDownFormGroup<ObjectReferenceType> expressionGeneratePolicy = new DropDownFormGroup<ObjectReferenceType>(
 				ID_EXPRESSION_POLICY_REF,
             new PropertyModel<>(model, MappingTypeDto.F_EXPRESSION_POLICY_REF),
-				new AbstractReadOnlyModel<List<ObjectReferenceType>>() {
+				new IModel<List<ObjectReferenceType>>() {
 
 					@Override
 					public List<ObjectReferenceType> getObject() {
@@ -468,7 +467,7 @@ public class MappingEditorDialog extends ModalWindow {
 		DropDownFormGroup<ObjectReferenceType> conditionGeneratePolicy = new DropDownFormGroup<ObjectReferenceType>(
 				ID_CONDITION_POLICY_REF,
             new PropertyModel<>(model, MappingTypeDto.F_CONDITION_POLICY_REF),
-				new AbstractReadOnlyModel<List<ObjectReferenceType>>() {
+				new IModel<List<ObjectReferenceType>>() {
 
 					@Override
 					public List<ObjectReferenceType> getObject() {
@@ -543,12 +542,12 @@ public class MappingEditorDialog extends ModalWindow {
 				createStringResource("MappingEditorDialog.button.apply")) {
 
 			@Override
-			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+			protected void onSubmit(AjaxRequestTarget target) {
 				savePerformed(target);
 			}
 
 			@Override
-			protected void onError(AjaxRequestTarget target, Form<?> form) {
+			protected void onError(AjaxRequestTarget target) {
 				target.add(getPageBase().getFeedbackPanel(), getContent());
 			}
 		};

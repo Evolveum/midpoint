@@ -135,7 +135,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
 
         final IModel<String> label = createDisplayName(model);
         Label displayName = new Label(ID_LABEL, label);
-        displayName.add(new AttributeModifier("style", new AbstractReadOnlyModel<String>() {
+        displayName.add(new AttributeModifier("style", new IModel<String>() {
         	
         	private static final long serialVersionUID = 1L;
 
@@ -195,7 +195,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
 
 
         Label deprecated = new Label(ID_DEPRECATED);
-        deprecated.add(AttributeModifier.replace("deprecated", new AbstractReadOnlyModel<String>() {
+        deprecated.add(AttributeModifier.replace("deprecated", new IModel<String>() {
         	
         	private static final long serialVersionUID = 1L;
 
@@ -324,7 +324,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
     }
 
     protected IModel<String> createStyleClassModel(final IModel<ValueWrapper> value) {
-        return new AbstractReadOnlyModel<String>() {
+        return new IModel<String>() {
         	private static final long serialVersionUID = 1L;
 
             @Override
@@ -402,7 +402,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
     }
 
     private IModel<String> createDisplayName(final IModel<IW> model) {
-        return new AbstractReadOnlyModel<String>() {
+        return new IModel<String>() {
         	private static final long serialVersionUID = 1L;
 
             @Override

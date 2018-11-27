@@ -30,7 +30,6 @@ import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -113,7 +112,7 @@ public class ObjectPolicyConfigurationEditor extends BasePanel<List<ObjectPolicy
             @Override
             protected void populateItem(final ListItem<ObjectPolicyConfigurationType> item) {
                 WebMarkupContainer textWrapper = new WebMarkupContainer(ID_TEXT_WRAPPER);
-                textWrapper.add(AttributeAppender.prepend("class", new AbstractReadOnlyModel<String>(){
+                textWrapper.add(AttributeAppender.prepend("class", new IModel<String>(){
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -153,7 +152,7 @@ public class ObjectPolicyConfigurationEditor extends BasePanel<List<ObjectPolicy
                 textWrapper.add(edit);
 
                 WebMarkupContainer buttonGroup = new WebMarkupContainer(ID_BUTTON_GROUP);
-                buttonGroup.add(AttributeAppender.append("class", new AbstractReadOnlyModel<String>() {
+                buttonGroup.add(AttributeAppender.append("class", new IModel<String>() {
                 	private static final long serialVersionUID = 1L;
 
                     @Override

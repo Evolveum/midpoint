@@ -75,7 +75,6 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
@@ -300,7 +299,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 	}
 
 	protected IModel<String> createAssignmentNameLabelModel(final boolean isManager) {
-		return new AbstractReadOnlyModel<String>() {
+		return new IModel<String>() {
 
 			@Override
 			public String getObject() {
@@ -413,7 +412,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 				new PropertyModel<>(getModel(), AssignmentEditorDto.F_FOCUS_TYPE), FocusType.class);
 		focusTypeContainer.add(focusType);
 
-		Label relationLabel = new Label(ID_RELATION_LABEL, new AbstractReadOnlyModel<String>() {
+		Label relationLabel = new Label(ID_RELATION_LABEL, new IModel<String>() {
 
 			@Override
 			public String getObject() {
@@ -620,7 +619,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
                 getModelObject().getOldValue().asContainerable() == null){
             metadataPanel = new WebMarkupContainer(ID_METADATA_CONTAINER);
         } else {
-            metadataPanel = new MetadataPanel(ID_METADATA_CONTAINER, new AbstractReadOnlyModel<MetadataType>() {
+            metadataPanel = new MetadataPanel(ID_METADATA_CONTAINER, new IModel<MetadataType>() {
                 @Override
                 public MetadataType getObject() {
                     return getModelObject().getOldValue().getValue().getMetadata();
@@ -776,7 +775,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 	}
 
 	private IModel<String> createShowEmptyLabel() {
-		return new AbstractReadOnlyModel<String>() {
+		return new IModel<String>() {
 
 			@Override
 			public String getObject() {
@@ -926,7 +925,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 	}
 
 	protected IModel<String> createImageTypeModel(final IModel<AssignmentEditorDto> model) {
-		return new AbstractReadOnlyModel<String>() {
+		return new IModel<String>() {
 			private static final long serialVersionUID = 1L;
 
 			@Override

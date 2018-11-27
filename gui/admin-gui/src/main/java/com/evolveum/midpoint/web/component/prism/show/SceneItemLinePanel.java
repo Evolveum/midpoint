@@ -27,7 +27,6 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -58,7 +57,7 @@ public class SceneItemLinePanel extends BasePanel<SceneItemLineDto> {
 		WebMarkupContainer nameCell = new WebMarkupContainer(ID_NAME_CONTAINER);
 		nameCell.add(new AttributeModifier("rowspan",
 				new PropertyModel<Integer>(getModel(), SceneItemLineDto.F_NUMBER_OF_LINES)));
-		Label label = new Label("name", new AbstractReadOnlyModel<String>() {
+		Label label = new Label("name", new IModel<String>() {
 			@Override
 			public String getObject() {
 				final SceneItemLineDto lineDto = getModel().getObject();
@@ -141,13 +140,13 @@ public class SceneItemLinePanel extends BasePanel<SceneItemLineDto> {
             new PropertyModel<>(getModel(), SceneItemLineDto.F_NEW_VALUE));
 		sivp.setRenderBodyOnly(true);
 		newValueCell.add(sivp);
-		newValueCell.add(new AttributeModifier("colspan", new AbstractReadOnlyModel<Integer>() {
+		newValueCell.add(new AttributeModifier("colspan", new IModel<Integer>() {
 			@Override
 			public Integer getObject() {
 				return !getModelObject().isDelta() && !getModelObject().isNullEstimatedOldValues() && getModelObject().isDeltaScene() ? 2 : 1;
 			}
 		}));
-		newValueCell.add(new AttributeModifier("align", new AbstractReadOnlyModel<String>() {
+		newValueCell.add(new AttributeModifier("align", new IModel<String>() {
 			@Override
 			public String getObject() {
 				return !getModelObject().isDelta() && !getModelObject().isNullEstimatedOldValues() && getModelObject().isDeltaScene() ? "center" : null;

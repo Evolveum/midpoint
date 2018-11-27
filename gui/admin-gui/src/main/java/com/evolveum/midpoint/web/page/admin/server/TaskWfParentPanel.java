@@ -29,7 +29,6 @@ import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
@@ -78,7 +77,7 @@ public class TaskWfParentPanel extends Panel {
 			final String changesId = ID_CHANGES_PREFIX + i;
 			final String changesContentId = changesId + ID_CHANGES_CONTENT_SUFFIX;
 			final WebMarkupContainer changes = new WebMarkupContainer(changesId);
-			final IModel<TaskChangesDto> changesModel = new AbstractReadOnlyModel<TaskChangesDto>() {
+			final IModel<TaskChangesDto> changesModel = new IModel<TaskChangesDto>() {
 				@Override
 				public TaskChangesDto getObject() {
 					return taskDtoModel.getObject().getChangesForIndex(index);

@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.gui.api.model;
 
-import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author mederly
  */
-public class ReadOnlyValueModel<T> extends AbstractReadOnlyModel<T> {
+public class ReadOnlyValueModel<T> implements IModel<T> {
 
 	@NotNull private final T object;
 

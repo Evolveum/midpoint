@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.web.page.admin.resources.component;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -71,15 +72,17 @@ public class TestConnectionResultPanel extends BasePanel<List<OpResult>> impleme
         AjaxLazyLoadPanel resultsPanel = new AjaxLazyLoadPanel(ID_RESULT) {
             @Override
             public Component getLazyLoadComponent(String id) {
-                return new TestConnectionMessagesPanel(id, resourceOid, (PageBase) parentPage);
+            	return new TestConnectionMessagesPanel(id, resourceOid, (PageBase) parentPage);
             }
 
             @Override
-            protected void onComponentLoaded(Component component, AjaxRequestTarget target){
-                isLoaded = true;
-                target.add(component);
+            protected void onContentLoaded(Component content, Optional optionalTarget) {
+            	isLoaded = true;
+            	AjaxRequestTarget target = (AjaxRequestTarget) optionalTarget.get();
+                target.add(content);
                 target.add(messageLabel);
             }
+            
         };
         contentPanel.add(resultsPanel);
 

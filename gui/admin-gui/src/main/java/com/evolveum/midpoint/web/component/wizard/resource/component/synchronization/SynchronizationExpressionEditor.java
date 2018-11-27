@@ -20,7 +20,6 @@ import com.evolveum.midpoint.web.component.input.ExpressionEditorPanel;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 /**
@@ -48,7 +47,7 @@ public class SynchronizationExpressionEditor extends BasePanel<ExpressionType> {
     }
 
     protected void initLayout(PageResourceWizard parentPage){
-        Label label = new Label(ID_LABEL, new AbstractReadOnlyModel<String>() {
+        Label label = new Label(ID_LABEL, new IModel<String>() {
 
             @Override
             public String getObject() {

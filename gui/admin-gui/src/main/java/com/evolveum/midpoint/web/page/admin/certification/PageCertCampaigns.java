@@ -152,7 +152,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 
 	@Override
 	protected IModel<String> createPageTitleModel() {
-		return new AbstractReadOnlyModel<String>() {
+		return new IModel<String>() {
 
 			@Override
 			public String getObject() {
@@ -220,12 +220,12 @@ public class PageCertCampaigns extends PageAdminCertification {
 			AjaxSubmitButton clearButton = new AjaxSubmitButton(ID_SEARCH_CLEAR) {
 
 				@Override
-				protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+				protected void onSubmit(AjaxRequestTarget target) {
 					clearSearchPerformed(target);
 				}
 
 				@Override
-				protected void onError(AjaxRequestTarget target, Form<?> form) {
+				protected void onError(AjaxRequestTarget target) {
 					target.add(((PageBase) getPage()).getFeedbackPanel());
 				}
 
@@ -285,7 +285,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 	}
 
 	private IModel<String> createCloseStageConfirmString() {
-		return new AbstractReadOnlyModel<String>() {
+		return new IModel<String>() {
 
 			@Override
 			public String getObject() {
@@ -309,7 +309,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 	}
 
 	private IModel<String> createCloseSelectedCampaignsConfirmString() {
-		return new AbstractReadOnlyModel<String>() {
+		return new IModel<String>() {
 
 			@Override
 			public String getObject() {
@@ -344,7 +344,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 	}
 
 	private IModel<String> createDeleteCampaignConfirmString() {
-		return new AbstractReadOnlyModel<String>() {
+		return new IModel<String>() {
 
 			@Override
 			public String getObject() {
@@ -355,7 +355,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 	}
 
 	private IModel<String> createDeleteSelectedCampaignsConfirmString() {
-		return new AbstractReadOnlyModel<String>() {
+		return new IModel<String>() {
 
 			@Override
 			public String getObject() {
@@ -578,7 +578,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 
 			@Override
 			public IModel<Boolean> getVisible() {
-				return new AbstractReadOnlyModel<Boolean>() {
+				return new IModel<Boolean>() {
 					@Override
 					public Boolean getObject() {
 						return dto.getState() != AccessCertificationCampaignStateType.CLOSED;

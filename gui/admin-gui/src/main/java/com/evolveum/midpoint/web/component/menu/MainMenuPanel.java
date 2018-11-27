@@ -34,7 +34,6 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -84,7 +83,7 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
         final MainMenuItem menu = getModelObject();
 
         WebMarkupContainer item = new WebMarkupContainer(ID_ITEM);
-        item.add(AttributeModifier.replace("class", new AbstractReadOnlyModel<String>() {
+        item.add(AttributeModifier.replace("class", new IModel<String>() {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -183,7 +182,7 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
     private void createSubmenu(final ListItem<MenuItem> listItem) {
         final MenuItem menuItem = listItem.getModelObject();
 
-        listItem.add(AttributeModifier.replace("class", new AbstractReadOnlyModel<String>() {
+        listItem.add(AttributeModifier.replace("class", new IModel<String>() {
         	private static final long serialVersionUID = 1L;
 
             @Override

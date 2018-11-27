@@ -41,7 +41,6 @@ import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextArea;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
@@ -178,7 +177,7 @@ public class ExpressionEditorPanel extends BasePanel<ExpressionType> {
 
         DropDownChoice policyRef = new DropDownChoice<>(ID_POLICY_REF,
             new PropertyModel<>(dtoModel, ExpressionTypeDto.F_POLICY_REF),
-                new AbstractReadOnlyModel<List<ObjectReferenceType>>() {
+                new IModel<List<ObjectReferenceType>>() {
 
                     @Override
                     public List<ObjectReferenceType> getObject() {
@@ -208,7 +207,7 @@ public class ExpressionEditorPanel extends BasePanel<ExpressionType> {
         AjaxSubmitLink update = new AjaxSubmitLink(ID_BUTTON_UPDATE) {
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+            protected void onSubmit(AjaxRequestTarget target) {
                 updateExpressionPerformed(target);
             }
         };

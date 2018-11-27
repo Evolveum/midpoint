@@ -19,7 +19,6 @@ import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.session.RoleCatalogStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -51,7 +50,7 @@ public class AssignmentsUtil {
 
     public static IModel<String> createActivationTitleModel(ActivationStatusType administrativeStatus, XMLGregorianCalendar validFrom, XMLGregorianCalendar validTo,
                                                             BasePanel basePanel) {
-        return new AbstractReadOnlyModel<String>() {
+        return new IModel<String>() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -177,7 +176,7 @@ public class AssignmentsUtil {
     }
 
     public static IModel<String> createAssignmentStatusClassModel(final UserDtoStatus model) {
-        return new AbstractReadOnlyModel<String>() {
+        return new IModel<String>() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -199,7 +198,7 @@ public class AssignmentsUtil {
     }
 
     public static IModel<String> createAssignmentIconTitleModel(BasePanel panel, AssignmentEditorDtoType type){
-        return new AbstractReadOnlyModel<String>() {
+        return new IModel<String>() {
             private static final long serialVersionUID = 1L;
 
             @Override

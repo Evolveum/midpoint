@@ -21,7 +21,6 @@ import javax.xml.namespace.QName;
 
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -49,7 +48,7 @@ public class ObjectTypeSelectPanel<O extends ObjectType> extends BasePanel<QName
 
 	private void initLayout(IModel<QName> model, final Class<O> superclass) {
 		select = new DropDownChoice<>(ID_SELECT, model,
-				new AbstractReadOnlyModel<List<QName>>() {
+				new IModel<List<QName>>() {
 					private static final long serialVersionUID = 1L;
 
 					@Override

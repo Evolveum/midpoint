@@ -152,7 +152,7 @@ public class StatisticsPanel extends BasePanel<StatisticsDto> {
         Label lastMessage = new Label(ID_LAST_MESSAGE, new PropertyModel<>(getModel(), StatisticsDto.F_LAST_MESSAGE));
         contentsPanel.add(lastMessage);
 
-//        Label source = new Label(ID_SOURCE, new AbstractReadOnlyModel<String>() {
+//        Label source = new Label(ID_SOURCE, new IModel<String>() {
 //            @Override
 //            public String getObject() {
 //                StatisticsDto dto = getModelObject();

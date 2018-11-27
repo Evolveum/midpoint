@@ -30,7 +30,6 @@ import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.http.WebResponse;
 import org.springframework.http.HttpStatus;
@@ -104,7 +103,7 @@ public class PageError extends PageBase {
             exMessage = ex.getMessage();
         }
 
-        final IModel<String> message = new AbstractReadOnlyModel<String>() {
+        final IModel<String> message = new IModel<String>() {
 
             @Override
             public String getObject() {

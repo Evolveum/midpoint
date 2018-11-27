@@ -27,7 +27,6 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
@@ -98,7 +97,7 @@ public class MetadataPanel extends BasePanel<MetadataType>{
 
             metadataRow.add(new Label(ID_METADATA_PROPERTY_KEY, createStringResource(DOT_CLASS + qname.getLocalPart())));
 
-            AbstractReadOnlyModel<String> metadataFieldModel = new AbstractReadOnlyModel<String>() {
+            IModel<String> metadataFieldModel = new IModel<String>() {
                 @Override
                 public String getObject() {
                     PropertyModel<Object> tempModel = new PropertyModel<>(getModel(),

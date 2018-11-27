@@ -185,12 +185,12 @@ public class ConfigurationStep extends WizardStep {
                 createStringResource("ConfigurationStep.button.testConnection")) {
 
             @Override
-            protected void onError(final AjaxRequestTarget target, Form<?> form) {
+            protected void onError(final AjaxRequestTarget target) {
                 WebComponentUtil.refreshFeedbacks(form, target);
             }
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+            protected void onSubmit(AjaxRequestTarget target) {
                 testConnectionPerformed(target);
             }
         };

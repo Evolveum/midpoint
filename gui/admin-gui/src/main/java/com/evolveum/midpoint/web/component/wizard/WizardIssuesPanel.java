@@ -25,7 +25,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -56,7 +56,7 @@ public class WizardIssuesPanel extends BasePanel<WizardIssuesDto> {
 				return getModelObject().hasIssues();
 			}
 		});
-		panel.add(AttributeAppender.append("class", new AbstractReadOnlyModel<String>() {
+		panel.add(AttributeAppender.append("class", new IModel<String>() {
 			@Override
 			public String getObject() {
 				WizardIssuesDto issuesDto = WizardIssuesPanel.this.getModelObject();
@@ -66,7 +66,7 @@ public class WizardIssuesPanel extends BasePanel<WizardIssuesDto> {
 		}));
 		add(panel);
 
-		Label title = new Label(ID_TITLE, new AbstractReadOnlyModel<String>() {
+		Label title = new Label(ID_TITLE, new IModel<String>() {
 			@Override
 			public String getObject() {
 				WizardIssuesDto issuesDto = WizardIssuesPanel.this.getModelObject();

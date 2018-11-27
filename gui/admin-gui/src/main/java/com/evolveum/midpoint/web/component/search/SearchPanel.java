@@ -37,6 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
+import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.attributes.ThrottlingSettings;
@@ -52,7 +53,6 @@ import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -185,12 +185,12 @@ public class SearchPanel extends BasePanel<Search> {
         	private static final long serialVersionUID = 1L;
 
             @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
+            protected void onError(AjaxRequestTarget target) {
                 target.add(form);
             }
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+            protected void onSubmit(AjaxRequestTarget target) {
                 searchPerformed(target);
             }
         };
@@ -233,12 +233,12 @@ public class SearchPanel extends BasePanel<Search> {
 			private static final long serialVersionUID = 1L;
 			
 			@Override
-			protected void onError(AjaxRequestTarget target, Form<?> form) {
+			protected void onError(AjaxRequestTarget target) {
 				target.add(form);
 			}
 
 			@Override
-			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+			protected void onSubmit(AjaxRequestTarget target) {
 				searchPerformed(target);
 			}
 		};
@@ -500,7 +500,7 @@ public class SearchPanel extends BasePanel<Search> {
 	}
 
 	private IModel<String> createAdvancedGroupLabelStyle() {
-        return new AbstractReadOnlyModel<String>() {
+        return new IModel<String>() {
         	
         	private static final long serialVersionUID = 1L;
 
@@ -514,7 +514,7 @@ public class SearchPanel extends BasePanel<Search> {
     }
 
     private IModel<String> createAdvancedGroupStyle() {
-        return new AbstractReadOnlyModel<String>() {
+        return new IModel<String>() {
         	
         	private static final long serialVersionUID = 1L;
 
@@ -528,7 +528,7 @@ public class SearchPanel extends BasePanel<Search> {
     }
 
     private IModel<String> createAdvancedModel() {
-        return new AbstractReadOnlyModel<String>() {
+        return new IModel<String>() {
         	
         	private static final long serialVersionUID = 1L;
 

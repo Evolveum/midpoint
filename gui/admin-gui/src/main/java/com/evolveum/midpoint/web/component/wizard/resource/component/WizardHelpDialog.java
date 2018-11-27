@@ -25,7 +25,7 @@ import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.wizard.IWizardStep;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 
 /**
@@ -84,7 +84,7 @@ public class WizardHelpDialog extends ModalWindow{
     }
 
     public void initLayout(WebMarkupContainer content){
-        Label helpLabel = new Label(ID_HELP, new AbstractReadOnlyModel<String>() {
+        Label helpLabel = new Label(ID_HELP, new IModel<String>() {
 
             @Override
             public String getObject() {

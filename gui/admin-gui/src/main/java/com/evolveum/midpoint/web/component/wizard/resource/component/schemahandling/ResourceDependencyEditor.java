@@ -42,7 +42,6 @@ import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
@@ -134,7 +133,7 @@ public class ResourceDependencyEditor extends BasePanel<List<ResourceObjectTypeD
                 dependencyBody.setMarkupId(createCollapseItemId(item, false).getObject());
 
                 if(changeState != ChangeState.SKIP){
-                    dependencyBody.add(new AttributeModifier("class", new AbstractReadOnlyModel<String>() {
+                    dependencyBody.add(new AttributeModifier("class", new IModel<String>() {
 
                         @Override
                         public String getObject() {
@@ -179,7 +178,7 @@ public class ResourceDependencyEditor extends BasePanel<List<ResourceObjectTypeD
 
                 DropDownChoice resource = new DropDownChoice<>(ID_REF,
                     new PropertyModel<>(item.getModelObject(), "resourceRef"),
-                        new AbstractReadOnlyModel<List<ObjectReferenceType>>() {
+                        new IModel<List<ObjectReferenceType>>() {
 
                             @Override
                             public List<ObjectReferenceType> getObject() {
@@ -227,7 +226,7 @@ public class ResourceDependencyEditor extends BasePanel<List<ResourceObjectTypeD
     }
 
     private IModel<String> createDependencyLabelModel(final ListItem<ResourceObjectTypeDependencyType> item){
-        return new AbstractReadOnlyModel<String>() {
+        return new IModel<String>() {
 
             @Override
             public String getObject() {
@@ -308,7 +307,7 @@ public class ResourceDependencyEditor extends BasePanel<List<ResourceObjectTypeD
     }
 
     private IModel<String> createCollapseItemId(final ListItem<ResourceObjectTypeDependencyType> item, final boolean appendSelector){
-        return new AbstractReadOnlyModel<String>() {
+        return new IModel<String>() {
 
             @Override
             public String getObject() {

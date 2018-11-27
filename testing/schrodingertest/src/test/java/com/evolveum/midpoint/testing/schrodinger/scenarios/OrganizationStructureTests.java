@@ -26,10 +26,7 @@ public class OrganizationStructureTests extends TestBase {
     private static final File ORG_ACCOUNT_INDUCEMENT_FILE = new File("./src/test/resources/org-account-inducement.xml");
     private static final File ORG_MONKEY_ISLAND_SOURCE_FILE = new File("../../samples/org/org-monkey-island-simple.xml");
 
-    protected static final File USER_TEST_RAPHAEL_FILE = new File("./src/test/resources/user-raphael.xml");
-
     private static final String TEST_USER_GUYBRUSH_NAME = "guybrush";
-    protected static final String TEST_USER_RAPHAEL_NAME = "raphael";
 
     private static final String NAME_ORG_UNIT_ASSIGN= "P0001";
     private static final String NAME_ORG_UNIT_UNASSIGN= "Save Elaine";
@@ -39,6 +36,7 @@ public class OrganizationStructureTests extends TestBase {
 
     private static final String IMPORT_ORG_STRUCT_DEPENDENCY = "importOrgStructure";
     private static final String ASSIGN_ORG_UNIT_DEPENDENCY = "assignOrgUnit";
+    private static final String ORG_UNIT_ACCOUNT_INDUCEMENT_DEPENDENCY = "orgUnitAccountInducement";
 
     private static final String DIRECTORY_CURRENT_TEST = "organizationStructureTests";
     private static final String FILE_RESOUCE_NAME = "midpoint-advanced-sync.csv";
@@ -95,10 +93,9 @@ public class OrganizationStructureTests extends TestBase {
                     .feedback()
                     .isSuccess()
         ;
-
     }
 
-    //@Test (dependsOnMethods ={ASSIGN_ORG_UNIT_DEPENDENCY})
+    @Test (dependsOnMethods ={ORG_UNIT_ACCOUNT_INDUCEMENT_DEPENDENCY})
     public void unassignOrgUnit(){
         ListUsersPage users = basicPage.listUsers();
             users
@@ -124,23 +121,20 @@ public class OrganizationStructureTests extends TestBase {
     public void orgUnitAccountInducement(){
         importObject(CSV_RESOURCE_ADVANCED_SYNC,true);
         importObject(ORG_ACCOUNT_INDUCEMENT_FILE);
-        importObject(USER_TEST_RAPHAEL_FILE);
-
-
+        importObject(ScenariosCommons.USER_TEST_RAPHAEL_FILE);
 
        changeResourceFilePath();
        refreshResourceSchema(NAME_CSV_RESOURCE_ADVANCED_SYNC);
-
 
          ListUsersPage users = basicPage.listUsers();
             users
                 .table()
                     .search()
                     .byName()
-                    .inputValue(TEST_USER_RAPHAEL_NAME)
+                    .inputValue(ScenariosCommons.TEST_USER_RAPHAEL_NAME)
                     .updateSearch()
                 .and()
-                .clickByName(TEST_USER_RAPHAEL_NAME)
+                .clickByName(ScenariosCommons.TEST_USER_RAPHAEL_NAME)
                     .selectTabAssignments()
                         .clickAddAssignemnt()
                             .selectType(TYPE_SELECTOR_ORG)
@@ -168,15 +162,12 @@ public class OrganizationStructureTests extends TestBase {
                 .clickByName("CSV (target with groups)")
                     .clickEditResourceConfiguration()
                         .form()
-                        .changeAttributeValue("File path",AccountTests.CSV_SOURCE_OLDVALUE, CSV_TARGET_FILE.getAbsolutePath())
+                        .changeAttributeValue("File path",ScenariosCommons.CSV_SOURCE_OLDVALUE, CSV_TARGET_FILE.getAbsolutePath())
                         .changeAttributeValue(CSV_RESOURCE_ATTR_UNIQUE,"","login")
                     .and()
                 .and()
                 .clickSaveAndTestConnection()
                 .isTestSuccess()
         );
-       // Selenide.sleep(11000);
     }
-
-
 }

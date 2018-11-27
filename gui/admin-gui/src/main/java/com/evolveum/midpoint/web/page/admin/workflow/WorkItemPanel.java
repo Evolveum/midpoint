@@ -43,6 +43,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
+import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
@@ -50,12 +51,12 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextArea;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author mederly
@@ -199,7 +200,7 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 
 		//primaryInfoColumn.add(new ScenePanel(ID_DELTAS_TO_BE_APPROVED, new PropertyModel<SceneDto>(getModel(), WorkItemDto.F_DELTAS)));
 		primaryInfoColumn.add(new TaskChangesPanel(ID_DELTAS_TO_BE_APPROVED, new PropertyModel<>(getModel(), WorkItemDto.F_CHANGES)));
-		primaryInfoColumn.add(new AttributeModifier("class", new AbstractReadOnlyModel<String>() {
+		primaryInfoColumn.add(new AttributeModifier("class", new IModel<String>() {
 			@Override
 			public String getObject() {
 				return additionalInfoColumnVisible.isVisible() ? "col-md-5" : "col-md-12";
@@ -208,7 +209,7 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 		add(primaryInfoColumn);
 
 		add(new AjaxFallbackLink(ID_SHOW_REQUEST) {
-			public void onClick(AjaxRequestTarget target) {
+			public void onClick(Optional target) {
 				String oid = WorkItemPanel.this.getModelObject().getTaskOid();
 				if (oid != null) {
 					PageParameters parameters = new PageParameters();

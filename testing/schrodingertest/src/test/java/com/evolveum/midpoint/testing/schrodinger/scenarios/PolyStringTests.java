@@ -15,8 +15,8 @@ public class PolyStringTests extends TestBase {
     private static final String TEST_USER_JOZKO_NAME = "džordž";
     private static final String TEST_USER_JOZKO_NAME_NO_DIAC = "dzordz";
     private static final String TEST_USER_JOZKO_GIVEN_NAME = "Jožko";
-    private static final String TEST_USER_JOZKO_FAMILY_NAME = "Mrkvička";
-    private static final String TEST_USER_JOZKO_FULL_NAME = "Jožko Jörg Nguyễn Trißtan Guðmund Mrkvička";
+    private static final String TEST_USER_JOZKO_FAMILY_NAME = "Mrkvičkä";
+    private static final String TEST_USER_JOZKO_FULL_NAME = "Jožko Jörg Nguyễn Trißtan Guðmund Mrkvičkä";
     private static final String TEST_USER_JOZKO_ADDITIONAL_NAME = "Jörg Nguyễn Trißtan Guðmund ";
 
     private static final String CREATE_USER_WITH_DIACRITIC_DEPENDENCY = "createUserWithDiacritic";
@@ -38,7 +38,6 @@ public class PolyStringTests extends TestBase {
                         .feedback()
                         .isSuccess()
         );
-
     }
 
     @Test (dependsOnMethods = {CREATE_USER_WITH_DIACRITIC_DEPENDENCY})
@@ -67,5 +66,4 @@ public class PolyStringTests extends TestBase {
                        .currentTableContains(TEST_USER_JOZKO_NAME)
         );
     }
-
 }

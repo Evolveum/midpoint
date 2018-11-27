@@ -30,7 +30,6 @@ import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 import java.io.Serializable;
@@ -78,7 +77,7 @@ public class MultiValueDropDownPanel<T extends Serializable> extends BasePanel<L
                 addValuePerformed(target);
             }
         };
-        placeholderAdd.add(new AttributeAppender("class", new AbstractReadOnlyModel<String>() {
+        placeholderAdd.add(new AttributeAppender("class", new IModel<String>() {
 
             @Override
             public String getObject() {
@@ -225,7 +224,7 @@ public class MultiValueDropDownPanel<T extends Serializable> extends BasePanel<L
      *  Provides list of choices for drop-down component
      * */
     protected IModel<List<T>> createChoiceList(){
-        return new AbstractReadOnlyModel<List<T>>() {
+        return new IModel<List<T>>() {
 
             @Override
             public List<T> getObject() {

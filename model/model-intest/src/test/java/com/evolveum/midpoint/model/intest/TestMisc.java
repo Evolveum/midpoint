@@ -471,7 +471,8 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 
 		Integer dummyConnectorNumber = ShadowUtil.getAttributeValue(accountShadow, 
 				getDummyResourceController(RESOURCE_DUMMY_SCRIPTY_NAME).getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEALTH_NAME));
-		assertFalse("Connector number is still the same: "+dummyConnectorNumber, lastDummyConnectorNumber == dummyConnectorNumber);
+		assertFalse("Connector number is still the same: "+dummyConnectorNumber,
+				lastDummyConnectorNumber.equals(dummyConnectorNumber));
 	}
 	
 

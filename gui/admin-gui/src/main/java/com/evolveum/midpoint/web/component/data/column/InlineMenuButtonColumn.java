@@ -150,7 +150,7 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
                 showConfirmationPopup(menuItem, target);
             } else {
                 if (menuItem.isSubmit()){
-                    menuItem.getAction().onSubmit(target, null);
+                    menuItem.getAction().onSubmit(target);
                 } else {
                     menuItem.getAction().onClick(target);
                 }

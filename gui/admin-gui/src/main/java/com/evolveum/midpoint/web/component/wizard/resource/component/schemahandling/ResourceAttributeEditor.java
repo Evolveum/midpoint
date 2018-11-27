@@ -174,7 +174,7 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
         schemaRefPanel.add(refTooltip);
 
         DropDownChoice refSelect = new DropDownChoice<ItemPathType>(ID_REFERENCE_SELECT, new PropertyModel<>(getModel(), "ref"),
-                new AbstractReadOnlyModel<List<ItemPathType>>() {
+                new IModel<List<ItemPathType>>() {
 
                     @Override
                     public List<ItemPathType> getObject() {
@@ -288,7 +288,7 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
 		AttributeEditorUtils.addMatchingRuleFields(this, readOnlyModel);
 
         TextField outboundLabel = new TextField<>(ID_OUTBOUND_LABEL,
-                new AbstractReadOnlyModel<String>() {
+                new IModel<String>() {
 
                     @Override
                     public String getObject() {
@@ -311,12 +311,12 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
         AjaxSubmitLink outbound = new AjaxSubmitLink(ID_BUTTON_OUTBOUND) {
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+            protected void onSubmit(AjaxRequestTarget target) {
                 outboundEditPerformed(target);
             }
 
 			@Override
-			protected void onError(AjaxRequestTarget target, Form<?> form) {
+			protected void onError(AjaxRequestTarget target) {
 				target.add(parentStep.getPageBase().getFeedbackPanel());
 			}
         };
@@ -327,12 +327,12 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
         AjaxSubmitLink deleteOutbound = new AjaxSubmitLink(ID_DELETE_OUTBOUND) {
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+            protected void onSubmit(AjaxRequestTarget target) {
                 deleteOutboundPerformed(target);
             }
 
 			@Override
-			protected void onError(AjaxRequestTarget target, Form<?> form) {
+			protected void onError(AjaxRequestTarget target) {
 				target.add(parentStep.getPageBase().getFeedbackPanel());
 			}
 		};

@@ -65,7 +65,6 @@ import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -212,12 +211,12 @@ public class SchemaHandlingStep extends WizardStep {
 
                 AjaxSubmitLink link = new AjaxSubmitLink(ID_LINK_OBJECT_TYPE) {
                     @Override
-                    protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                    protected void onSubmit(AjaxRequestTarget target) {
                         editObjectTypePerformed(target, objectType);
                     }
 
 					@Override
-					protected void onError(AjaxRequestTarget target, Form<?> form) {
+					protected void onError(AjaxRequestTarget target) {
 						target.add(parentPage.getFeedbackPanel());
 					}
 				};
@@ -236,7 +235,7 @@ public class SchemaHandlingStep extends WizardStep {
 				parentPage.addEditingVisibleBehavior(delete);
                 link.add(delete);
 
-                item.add(AttributeModifier.replace("class", new AbstractReadOnlyModel<String>() {
+                item.add(AttributeModifier.replace("class", new IModel<String>() {
 
                     @Override
                     public String getObject() {
@@ -254,12 +253,12 @@ public class SchemaHandlingStep extends WizardStep {
 
         AjaxSubmitLink add = new AjaxSubmitLink(ID_BUTTON_ADD_OBJECT_TYPE) {
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+            protected void onSubmit(AjaxRequestTarget target) {
                 addObjectTypePerformed(target);
             }
 
 			@Override
-			protected void onError(AjaxRequestTarget target, Form<?> form) {
+			protected void onError(AjaxRequestTarget target) {
 				target.add(parentPage.getFeedbackPanel());
 			}
         };
@@ -278,7 +277,7 @@ public class SchemaHandlingStep extends WizardStep {
 	}
 
 	private IModel<String> createObjectTypeDisplayModel(final ResourceObjectTypeDefinitionTypeDto objectType){
-        return new AbstractReadOnlyModel<String>() {
+        return new IModel<String>() {
 
             @Override
             public String getObject() {
@@ -305,7 +304,7 @@ public class SchemaHandlingStep extends WizardStep {
 	}
 
 	private void initObjectTypeEditor(WebMarkupContainer editor){
-        Label editorLabel = new Label(ID_EDITOR_NAME, new AbstractReadOnlyModel<Object>() {
+        Label editorLabel = new Label(ID_EDITOR_NAME, new IModel<Object>() {
             @Override
             public String getObject() {
 				ResourceObjectTypeDefinitionTypeDto selected = schemaHandlingDtoModel.getObject().getSelectedObjectTypeDto();
@@ -367,7 +366,7 @@ public class SchemaHandlingStep extends WizardStep {
         AjaxSubmitLink editorDependency = new AjaxSubmitLink(ID_EDITOR_BUTTON_DEPENDENCY) {
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+            protected void onSubmit(AjaxRequestTarget target) {
                 dependencyEditPerformed(target);
             }
         };
@@ -385,7 +384,7 @@ public class SchemaHandlingStep extends WizardStep {
             }
         };
         editorObjectClass.add(new UpdateNamesBehaviour());
-        editorObjectClass.add(createObjectClassValidator(new AbstractReadOnlyModel<List<QName>>() {
+        editorObjectClass.add(createObjectClassValidator(new IModel<List<QName>>() {
             @Override
             public List<QName> getObject() {
                 return schemaHandlingDtoModel.getObject().getObjectClassList();
@@ -506,7 +505,7 @@ public class SchemaHandlingStep extends WizardStep {
         AjaxSubmitLink editorIteration = new AjaxSubmitLink(ID_EDITOR_BUTTON_ITERATION) {
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+            protected void onSubmit(AjaxRequestTarget target) {
                 iterationEditPerformed(target);
             }
         };
@@ -516,7 +515,7 @@ public class SchemaHandlingStep extends WizardStep {
         AjaxSubmitLink editorProtected = new AjaxSubmitLink(ID_EDITOR_BUTTON_PROTECTED) {
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+            protected void onSubmit(AjaxRequestTarget target) {
                 protectedEditPerformed(target);
             }
         };
@@ -526,7 +525,7 @@ public class SchemaHandlingStep extends WizardStep {
         AjaxSubmitLink editorActivation = new AjaxSubmitLink(ID_EDITOR_BUTTON_ACTIVATION) {
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+            protected void onSubmit(AjaxRequestTarget target) {
                 activationEditPerformed(target);
             }
         };
@@ -536,7 +535,7 @@ public class SchemaHandlingStep extends WizardStep {
         AjaxSubmitLink editorCredentials = new AjaxSubmitLink(ID_EDITOR_BUTTON_CREDENTIALS) {
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+            protected void onSubmit(AjaxRequestTarget target) {
                 credentialsEditPerformed(target);
             }
         };
@@ -710,7 +709,7 @@ public class SchemaHandlingStep extends WizardStep {
     }
 
     private void addDisabledClassModifier(Component component){
-        component.add(new AttributeAppender("class", new AbstractReadOnlyModel<String>() {
+        component.add(new AttributeAppender("class", new IModel<String>() {
 
             @Override
             public String getObject() {

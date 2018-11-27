@@ -9,7 +9,6 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
@@ -44,7 +43,7 @@ public class ValidationErrorPanel extends BasePanel<FeedbackMessage> {
 
 	private IModel<String> createHeaderCss() {
 
-		return new AbstractReadOnlyModel<String>() {
+		return new IModel<String>() {
 
 			@Override
 			public String getObject() {
@@ -76,7 +75,7 @@ public class ValidationErrorPanel extends BasePanel<FeedbackMessage> {
 	private void initHeader(WebMarkupContainer box) {
 		WebMarkupContainer iconType = new WebMarkupContainer("iconType");
 		iconType.setOutputMarkupId(true);
-		iconType.add(new AttributeAppender("class", new AbstractReadOnlyModel() {
+		iconType.add(new AttributeAppender("class", new IModel() {
 			@Override
 			public Object getObject() {
 

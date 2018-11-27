@@ -40,7 +40,6 @@ import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -225,7 +224,7 @@ public class PageTaskAdd extends PageAdminTasks {
 
         final DropDownChoice resource = new DropDownChoice<>(ID_RESOURCE,
             new PropertyModel<>(model, TaskAddDto.F_RESOURCE),
-                new AbstractReadOnlyModel<List<TaskAddResourcesDto>>() {
+                new IModel<List<TaskAddResourcesDto>>() {
 
                     @Override
                     public List<TaskAddResourcesDto> getObject() {
@@ -256,7 +255,7 @@ public class PageTaskAdd extends PageAdminTasks {
 
         final DropDownChoice focusType = new DropDownChoice<>(ID_FOCUS_TYPE,
             new PropertyModel<>(model, TaskAddDto.F_FOCUS_TYPE),
-                new AbstractReadOnlyModel<List<QName>>() {
+                new IModel<List<QName>>() {
 
                     @Override
                     public List<QName> getObject() {
@@ -337,7 +336,7 @@ public class PageTaskAdd extends PageAdminTasks {
         mainForm.add(objectClass);
 
         DropDownChoice type = new DropDownChoice<>(ID_CATEGORY, new PropertyModel<>(model, TaskAddDto.F_CATEGORY),
-                new AbstractReadOnlyModel<List<String>>() {
+                new IModel<List<String>>() {
 
                     @Override
                     public List<String> getObject() {
@@ -571,12 +570,12 @@ public class PageTaskAdd extends PageAdminTasks {
                 createStringResource("PageBase.button.save")) {
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+            protected void onSubmit(AjaxRequestTarget target) {
                 savePerformed(target);
             }
 
             @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
+            protected void onError(AjaxRequestTarget target) {
                 target.add(getFeedbackPanel());
             }
         };

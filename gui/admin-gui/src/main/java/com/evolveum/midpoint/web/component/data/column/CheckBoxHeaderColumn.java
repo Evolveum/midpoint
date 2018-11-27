@@ -32,7 +32,8 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.repeater.data.IDataProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.util.iterator.ComponentHierarchyIterator;
+import org.apache.wicket.util.visit.IVisit;
+import org.apache.wicket.util.visit.IVisitor;
 
 import java.io.Serializable;
 import java.util.List;
@@ -117,16 +118,17 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
             }
         }
 
-        ComponentHierarchyIterator iterator = table.visitChildren(SelectableDataTable.SelectableRowItem.class);
+        table.visitChildren(SelectableDataTable.SelectableRowItem.class, new IVisitor<SelectableDataTable.SelectableRowItem, Void>() {
 
-        while (iterator.hasNext()) {
-            SelectableDataTable.SelectableRowItem row = (SelectableDataTable.SelectableRowItem) iterator.next();
-            if (!row.getOutputMarkupId()) {
-                //we skip rows that doesn't have outputMarkupId set to true (it would fail)
-                continue;
-            }
-            target.add(row);
-        }
+			@Override
+			public void component(SelectableDataTable.SelectableRowItem row, IVisit<Void> visit) {
+				if (row.getOutputMarkupId()) {
+	                //we skip rows that doesn't have outputMarkupId set to true (it would fail)
+					target.add(row);
+	            }
+			}
+		});
+        
     }
 
     public boolean shouldBeHeaderSelected(DataTable table) {
@@ -173,25 +175,31 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
 
     public IsolatedCheckBoxPanel findCheckBoxColumnHeader(DataTable table) {
         WebMarkupContainer topToolbars = table.getTopToolbars();
-        ComponentHierarchyIterator iterator = topToolbars.visitChildren(TableHeadersToolbar.class);
-        if (!iterator.hasNext()) {
+        TableHeadersToolbar toolbar = topToolbars.visitChildren(TableHeadersToolbar.class, new IVisitor<TableHeadersToolbar, TableHeadersToolbar>() {
+
+			@Override
+			public void component(TableHeadersToolbar object, IVisit<TableHeadersToolbar> visit) {
+				visit.stop(object);
+			}
+		});
+        
+        if (toolbar == null) {
             return null;
         }
 
-        TableHeadersToolbar toolbar = (TableHeadersToolbar) iterator.next();
         // simple attempt to find checkbox which is header for our column
         // todo: this search will fail if there are more checkbox header columns (which is not supported now,
         // because Selectable.F_SELECTED is hardcoded all over the place...
-        iterator = toolbar.visitChildren(IsolatedCheckBoxPanel.class);
-        while (iterator.hasNext()) {
-            Component c = iterator.next();
-            if (!c.getOutputMarkupId()) {
-                continue;
-            }
+        IsolatedCheckBoxPanel ret = toolbar.visitChildren(IsolatedCheckBoxPanel.class, new IVisitor<IsolatedCheckBoxPanel, IsolatedCheckBoxPanel>() {
 
-            return (IsolatedCheckBoxPanel) c;
-        }
-
-        return null;
+			@Override
+			public void component(IsolatedCheckBoxPanel object, IVisit<IsolatedCheckBoxPanel> visit) {
+				if (object.getOutputMarkupId()) {
+					visit.stop(object);
+	            }
+			}
+		});
+        
+        return ret;
     }
 }

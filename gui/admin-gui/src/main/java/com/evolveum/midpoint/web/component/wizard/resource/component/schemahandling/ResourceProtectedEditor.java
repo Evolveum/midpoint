@@ -32,7 +32,6 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
@@ -92,7 +91,7 @@ public class ResourceProtectedEditor extends BasePanel<List<ResourceObjectPatter
                 linkCont.add(new AttributeModifier("href", createCollapseItemId(item, true)));
                 item.add(linkCont);
 
-                Label accountLabel = new Label(ID_ACCOUNT_NAME, new AbstractReadOnlyModel<String>() {
+                Label accountLabel = new Label(ID_ACCOUNT_NAME, new IModel<String>() {
 
                     @Override
                     public String getObject() {
@@ -128,7 +127,7 @@ public class ResourceProtectedEditor extends BasePanel<List<ResourceObjectPatter
                 accountBody.setMarkupId(createCollapseItemId(item, false).getObject());
 
                 if(changeState != ChangeState.SKIP){
-                    accountBody.add(new AttributeModifier("class", new AbstractReadOnlyModel<String>() {
+                    accountBody.add(new AttributeModifier("class", new IModel<String>() {
 
                         @Override
                         public String getObject() {
@@ -193,7 +192,7 @@ public class ResourceProtectedEditor extends BasePanel<List<ResourceObjectPatter
     }
 
     private IModel<String> createCollapseItemId(final ListItem<ResourceObjectPatternType> item,final boolean includeSelector){
-        return new AbstractReadOnlyModel<String>() {
+        return new IModel<String>() {
 
             @Override
             public String getObject() {

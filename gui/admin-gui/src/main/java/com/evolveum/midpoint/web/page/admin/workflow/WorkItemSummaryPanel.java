@@ -27,7 +27,6 @@ import com.evolveum.midpoint.web.component.wf.WfGuiUtil;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
@@ -101,7 +100,7 @@ public class WorkItemSummaryPanel extends AbstractSummaryPanel<WorkItemType> {
 
 	@Override
 	protected IModel<String> getTitleModel() {
-		return new AbstractReadOnlyModel<String>() {
+		return new IModel<String>() {
 			@Override
 			public String getObject() {
 				UserType requester = dtoModel.getObject().getRequester();
@@ -123,7 +122,7 @@ public class WorkItemSummaryPanel extends AbstractSummaryPanel<WorkItemType> {
 
 	@Override
 	protected IModel<String> getTitle2Model() {
-		return new AbstractReadOnlyModel<String>() {
+		return new IModel<String>() {
 			@Override
 			public String getObject() {
 				WorkItemType workItem = getModelObject();
@@ -135,7 +134,7 @@ public class WorkItemSummaryPanel extends AbstractSummaryPanel<WorkItemType> {
 
 //	@Override
 //	protected IModel<String> getTitle3Model() {
-//		return new AbstractReadOnlyModel<String>() {
+//		return new IModel<String>() {
 //			@Override
 //			public String getObject() {
 //				WorkItemType workItem = getModelObject();

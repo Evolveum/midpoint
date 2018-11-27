@@ -42,7 +42,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextArea;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
@@ -93,7 +92,7 @@ public class PageResourceVisualization extends PageAdmin {
 
 	@Override
 	protected IModel<String> createPageTitleModel() {
-		return new AbstractReadOnlyModel<String>() {
+		return new IModel<String>() {
 			@Override
 			public String getObject() {
 				return getString("PageResourceVisualization.title", resourceObject.getName());
@@ -164,12 +163,12 @@ public class PageResourceVisualization extends PageAdmin {
 
 		AjaxSubmitButton back = new AjaxSubmitButton(ID_BACK) {
 			@Override
-			public void onSubmit(AjaxRequestTarget ajaxRequestTarget, org.apache.wicket.markup.html.form.Form<?> form) {
+			public void onSubmit(AjaxRequestTarget ajaxRequestTarget) {
 				redirectBack();
 			}
 
 			@Override
-			protected void onError(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
+			protected void onError(AjaxRequestTarget target) {
 				target.add(getFeedbackPanel());
 			}
 		};

@@ -25,7 +25,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
 import org.apache.wicket.markup.html.form.ChoiceRenderer;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
@@ -102,7 +101,7 @@ public class ReportConfigurationPanel extends BasePanel<ReportDto> {
         virtualizerList.add("JRSwapFileVirtualizer");
         virtualizerList.add("JRGzipVirtualizer");
 
-        return new AbstractReadOnlyModel<List<String>>() {
+        return new IModel<List<String>>() {
 
             @Override
             public List<String> getObject() {

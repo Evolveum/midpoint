@@ -219,7 +219,7 @@ public class PageValuePolicy extends PageAdminValuePolicies {
 
         AjaxSubmitButton saveButton = new AjaxSubmitButton(ID_SAVE_BUTTON,createStringResource("PageValuePolicy.button.save")) {
             @Override
-            protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
+            protected void onSubmit(AjaxRequestTarget target) {
                 savePerformed(target);
             }
         };

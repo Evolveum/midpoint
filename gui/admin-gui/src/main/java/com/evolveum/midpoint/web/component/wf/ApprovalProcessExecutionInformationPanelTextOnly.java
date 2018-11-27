@@ -24,7 +24,6 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.ApprovalProcessExecutio
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ApprovalStageExecutionInformationDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ApproverEngagementDto;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 import java.util.List;
@@ -45,7 +44,7 @@ public class ApprovalProcessExecutionInformationPanelTextOnly extends BasePanel<
     }
 
     protected void initLayout() {
-    	add(new TextAreaPanel<>(ID_TEXT, new AbstractReadOnlyModel<String>() {
+    	add(new TextAreaPanel<>(ID_TEXT, new IModel<String>() {
             @Override
             public String getObject() {
                 ApprovalProcessExecutionInformationDto processInfo = getModelObject();

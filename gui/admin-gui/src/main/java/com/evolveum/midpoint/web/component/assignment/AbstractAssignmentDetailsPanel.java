@@ -22,7 +22,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -61,7 +60,7 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
 
     protected <C extends Containerable> void initLayout(){
     	
-    	final AbstractReadOnlyModel<C> displayNameModel = new AbstractReadOnlyModel<C>() {
+    	final IModel<C> displayNameModel = new IModel<C>() {
 
     		private static final long serialVersionUID = 1L;
 

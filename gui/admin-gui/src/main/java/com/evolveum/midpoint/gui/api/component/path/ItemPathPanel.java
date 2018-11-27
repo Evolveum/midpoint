@@ -10,7 +10,6 @@ import javax.xml.namespace.QName;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -92,7 +91,7 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 		});
 		
 		ItemPathSegmentPanel itemDefPanel = new ItemPathSegmentPanel(ID_DEFINITION,
-				new AbstractReadOnlyModel<ItemPathDto>() {
+				new IModel<ItemPathDto>() {
 
 					private static final long serialVersionUID = 1L;
 					public ItemPathDto getObject() {

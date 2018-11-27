@@ -48,7 +48,6 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.*;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -108,7 +107,7 @@ public class WorkItemsPanel extends BasePanel {
 
 					@Override
 					public void populateItem(Item<ICellPopulator<WorkItemDto>> cellItem, String componentId, final IModel<WorkItemDto> rowModel) {
-						cellItem.add(new DateLabelComponent(componentId, new AbstractReadOnlyModel<Date>() {
+						cellItem.add(new DateLabelComponent(componentId, new IModel<Date>() {
 							private static final long serialVersionUID = 1L;
 
 							@Override
@@ -124,7 +123,7 @@ public class WorkItemsPanel extends BasePanel {
 
 				@Override
                 public void populateItem(Item<ICellPopulator<WorkItemDto>> cellItem, String componentId, final IModel<WorkItemDto> rowModel) {
-                        cellItem.add(new DateLabelComponent(componentId, new AbstractReadOnlyModel<Date>() {
+                        cellItem.add(new DateLabelComponent(componentId, new IModel<Date>() {
 							private static final long serialVersionUID = 1L;
 
                             @Override
@@ -139,7 +138,7 @@ public class WorkItemsPanel extends BasePanel {
 
 				@Override
                 public void populateItem(Item<ICellPopulator<WorkItemDto>> cellItem, String componentId, final IModel<WorkItemDto> rowModel) {
-                        cellItem.add(new DateLabelComponent(componentId, new AbstractReadOnlyModel<Date>() {
+                        cellItem.add(new DateLabelComponent(componentId, new IModel<Date>() {
 							private static final long serialVersionUID = 1L;
 
 							@Override

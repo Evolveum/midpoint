@@ -26,7 +26,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -167,7 +166,7 @@ public class ExpressionVariableEditorDialog extends ModalWindow {
 		DropDownFormGroup objectReference = new DropDownFormGroup<>(ID_OBJECT_REFERENCE,
             new PropertyModel<>(model,
                 ExpressionVariableDefinitionTypeDto.F_VARIABLE + ".objectRef"),
-				new AbstractReadOnlyModel<List<ObjectReferenceType>>() {
+				new IModel<List<ObjectReferenceType>>() {
 
 					@Override
 					public List<ObjectReferenceType> getObject() {
@@ -186,7 +185,7 @@ public class ExpressionVariableEditorDialog extends ModalWindow {
 				createStringResource("ExpressionVariableEditor.button.cancel")) {
 
 			@Override
-			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+			protected void onSubmit(AjaxRequestTarget target) {
 				cancelPerformed(target);
 			}
 		};
@@ -196,7 +195,7 @@ public class ExpressionVariableEditorDialog extends ModalWindow {
 				createStringResource("ExpressionVariableEditor.button.apply")) {
 
 			@Override
-			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+			protected void onSubmit(AjaxRequestTarget target) {
 				savePerformed(target);
 			}
 		};

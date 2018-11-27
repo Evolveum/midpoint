@@ -28,7 +28,6 @@ import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 import javax.xml.namespace.QName;
@@ -90,7 +89,7 @@ public class SceneItemValuePanel extends BasePanel<SceneItemValue> {
 		link.add(visibleIfReference);
 		add(link);
 
-		final Label additionalText = new Label(ID_ADDITIONAL_TEXT, new AbstractReadOnlyModel<String>() {
+		final Label additionalText = new Label(ID_ADDITIONAL_TEXT, new IModel<String>() {
 			@Override
 			public String getObject() {
 				return getModelObject() != null ? getModelObject().getAdditionalText() : null;
@@ -114,7 +113,7 @@ public class SceneItemValuePanel extends BasePanel<SceneItemValue> {
 		}
 	}
 
-	private class IconModel extends AbstractReadOnlyModel<String> {
+	private class IconModel implements IModel<String> {
 		@Override
 		public String getObject() {
 			ObjectTypeGuiDescriptor guiDescriptor = getObjectTypeDescriptor();
@@ -122,7 +121,7 @@ public class SceneItemValuePanel extends BasePanel<SceneItemValue> {
 		}
 	}
 
-	private class TitleModel extends AbstractReadOnlyModel<String> {
+	private class TitleModel implements IModel<String> {
 		@Override
 		public String getObject() {
 			ObjectTypeGuiDescriptor guiDescriptor = getObjectTypeDescriptor();
@@ -130,7 +129,7 @@ public class SceneItemValuePanel extends BasePanel<SceneItemValue> {
 		}
 	}
 
-	private class LabelModel extends AbstractReadOnlyModel<String> {
+	private class LabelModel implements IModel<String> {
 		@Override
 		public String getObject() {
 			return getModelObject() != null ? getModelObject().getText() : null;

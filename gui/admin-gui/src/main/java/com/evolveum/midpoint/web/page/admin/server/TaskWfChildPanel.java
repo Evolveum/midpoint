@@ -49,6 +49,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author mederly
@@ -144,7 +145,8 @@ public class TaskWfChildPanel extends Panel {
 		IModel<Boolean> showNextStagesModel = new PropertyModel<>(taskDtoModel, TaskDto.F_IN_STAGE_BEFORE_LAST_ONE);
 		add(new SwitchableApprovalProcessPreviewsPanel(ID_PREVIEWS_PANEL, taskOidModel, showNextStagesModel, parentPage));
 		add(new AjaxFallbackLink(ID_SHOW_PARENT) {
-			public void onClick(AjaxRequestTarget target) {
+			public void onClick(Optional optionalTarget) {
+				AjaxRequestTarget target = (AjaxRequestTarget) optionalTarget.get();
 				String oid = taskDtoModel.getObject().getParentTaskOid();
 				if (oid != null) {
 					PageParameters parameters = new PageParameters();
@@ -152,6 +154,7 @@ public class TaskWfChildPanel extends Panel {
 					((PageBase) getPage()).navigateToNext(PageTaskEdit.class, parameters);
 				}
 			}
+
 		});
 		add(WebComponentUtil.createHelp(ID_SHOW_PARENT_HELP));
 	}

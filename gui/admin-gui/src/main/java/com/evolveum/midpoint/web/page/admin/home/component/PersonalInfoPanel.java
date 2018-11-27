@@ -30,7 +30,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 import java.util.Date;
@@ -89,7 +88,7 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
     }
 
     protected void initLayout(PageBase parentPage) {
-        DateLabelComponent lastLoginDate = new DateLabelComponent(ID_LAST_LOGIN_DATE, new AbstractReadOnlyModel<Date>() {
+        DateLabelComponent lastLoginDate = new DateLabelComponent(ID_LAST_LOGIN_DATE, new IModel<Date>() {
 
             @Override
             public Date getObject() {
@@ -100,7 +99,7 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
         lastLoginDate.setBeforeTextOnDateNull(parentPage.getString("PersonalInfoPanel.never"));
         add(lastLoginDate);
 
-        Label lastLoginFrom = new Label(ID_LAST_LOGIN_FROM, new AbstractReadOnlyModel<String>() {
+        Label lastLoginFrom = new Label(ID_LAST_LOGIN_FROM, new IModel<String>() {
 
             @Override
             public String getObject() {
@@ -112,7 +111,7 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
         });
         add(lastLoginFrom);
 
-        DateLabelComponent lastFailDate = new DateLabelComponent(ID_LAST_FAIL_DATE, new AbstractReadOnlyModel<Date>() {
+        DateLabelComponent lastFailDate = new DateLabelComponent(ID_LAST_FAIL_DATE, new IModel<Date>() {
 
             @Override
             public Date getObject() {
@@ -123,7 +122,7 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
         lastFailDate.setBeforeTextOnDateNull(parentPage.getString("PersonalInfoPanel.never"));
         add(lastFailDate);
 
-        Label lastFailFrom = new Label(ID_LAST_FAIL_FROM, new AbstractReadOnlyModel<String>() {
+        Label lastFailFrom = new Label(ID_LAST_FAIL_FROM, new IModel<String>() {
 
             @Override
             public String getObject() {
@@ -135,7 +134,7 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
         });
         add(lastFailFrom);
 
-        Label passwordExp = new Label(ID_PASSWORD_EXP, new AbstractReadOnlyModel<String>() {
+        Label passwordExp = new Label(ID_PASSWORD_EXP, new IModel<String>() {
 
             @Override
             public String getObject() {

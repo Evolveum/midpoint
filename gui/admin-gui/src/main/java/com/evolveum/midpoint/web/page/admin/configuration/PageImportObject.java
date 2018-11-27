@@ -231,12 +231,12 @@ public class PageImportObject extends PageAdminConfiguration {
 				createStringResource("PageImportObject.button.import")) {
 
 			@Override
-			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+			protected void onSubmit(AjaxRequestTarget target) {
 				savePerformed(false, OPERATION_IMPORT_FILE, target);
 			}
 
 			@Override
-			protected void onError(AjaxRequestTarget target, Form<?> form) {
+			protected void onError(AjaxRequestTarget target) {
 				target.add(getFeedbackPanel());
 			}
 		};
@@ -247,12 +247,12 @@ public class PageImportObject extends PageAdminConfiguration {
 				createStringResource("PageImportObject.button.import")) {
 
 			@Override
-			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+			protected void onSubmit(AjaxRequestTarget target) {
 				savePerformed(true, OPERATION_IMPORT_XML, target);
 			}
 
 			@Override
-			protected void onError(AjaxRequestTarget target, Form<?> form) {
+			protected void onError(AjaxRequestTarget target) {
 				target.add(getFeedbackPanel());
 			}
 		};

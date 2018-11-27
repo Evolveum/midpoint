@@ -27,7 +27,6 @@ import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 
@@ -83,7 +82,7 @@ public abstract class UserSelectionButton extends BasePanel<List<UserType>> {
         };
         userSelectionButton.add(AttributeModifier.append("class", getTargetUserButtonClass()));
         userSelectionButton.setOutputMarkupId(true);
-        userSelectionButton.add(new AttributeAppender("title", new AbstractReadOnlyModel<String>() {
+        userSelectionButton.add(new AttributeAppender("title", new IModel<String>() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -93,7 +92,7 @@ public abstract class UserSelectionButton extends BasePanel<List<UserType>> {
         }));
         add(userSelectionButton);
 
-        Label label = new Label(ID_USER_SELECTION_BUTTON_LABEL, new AbstractReadOnlyModel<String>() {
+        Label label = new Label(ID_USER_SELECTION_BUTTON_LABEL, new IModel<String>() {
             private static final long serialVersionUID = 1L;
 
             @Override

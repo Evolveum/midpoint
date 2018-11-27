@@ -20,7 +20,6 @@ import com.evolveum.midpoint.web.page.admin.server.handlers.dto.QueryBasedHandle
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextArea;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
@@ -43,7 +42,7 @@ public class QueryBasedHandlerPanel<D extends QueryBasedHandlerDto> extends Base
 
 	private void initLayout() {
 		WebMarkupContainer objectTypeContainer = new WebMarkupContainer(ID_OBJECT_TYPE_CONTAINER);
-		Label objectType = new Label(ID_OBJECT_TYPE, new AbstractReadOnlyModel<String>() {
+		Label objectType = new Label(ID_OBJECT_TYPE, new IModel<String>() {
 			@Override
 			public String getObject() {
 				final String key = getModelObject().getObjectTypeKey();

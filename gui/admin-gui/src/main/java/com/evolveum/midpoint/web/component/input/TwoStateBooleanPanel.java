@@ -21,7 +21,6 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 /**
@@ -53,7 +52,7 @@ public class TwoStateBooleanPanel extends BasePanel<Boolean>{
 
     private void initLayout(final String optionOneLabel, final String optionTwoLabel, final String buttonCssClass){
 
-        AjaxButton buttonFalse = new AjaxButton(ID_BUTTON_ONE, new AbstractReadOnlyModel<String>() {
+        AjaxButton buttonFalse = new AjaxButton(ID_BUTTON_ONE, new IModel<String>() {
 
             @Override
             public String getObject() {
@@ -75,7 +74,7 @@ public class TwoStateBooleanPanel extends BasePanel<Boolean>{
         buttonFalse.add(prepareActiveButtonAppender(Boolean.FALSE));
         add(buttonFalse);
 
-        AjaxButton buttonTrue = new AjaxButton(ID_BUTTON_TWO, new AbstractReadOnlyModel<String>() {
+        AjaxButton buttonTrue = new AjaxButton(ID_BUTTON_TWO, new IModel<String>() {
 
             @Override
             public String getObject() {
@@ -105,7 +104,7 @@ public class TwoStateBooleanPanel extends BasePanel<Boolean>{
     }
 
     private AttributeAppender prepareActiveButtonAppender(final Boolean value){
-        return new AttributeAppender("class", new AbstractReadOnlyModel<String>() {
+        return new AttributeAppender("class", new IModel<String>() {
 
             @Override
             public String getObject() {

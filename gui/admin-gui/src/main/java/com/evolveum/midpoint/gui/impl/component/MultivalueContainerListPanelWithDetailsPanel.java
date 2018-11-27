@@ -22,7 +22,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.prism.Containerable;
@@ -95,7 +94,7 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
 		add(details);
 		
 		ListView<ContainerValueWrapper<C>> itemDetailsView = new ListView<ContainerValueWrapper<C>>(MultivalueContainerListPanelWithDetailsPanel.ID_ITEMS_DETAILS,
-				new AbstractReadOnlyModel<List<ContainerValueWrapper<C>>>() {
+				new IModel<List<ContainerValueWrapper<C>>>() {
 					private static final long serialVersionUID = 1L;
 
 					@Override

@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.gui.api.model;
 
-import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
 
 import java.util.Arrays;
 import java.util.List;
@@ -26,7 +26,7 @@ import java.util.List;
  *
  * @author mederly
  */
-public class ReadOnlyEnumValuesModel<E extends Enum<E>> extends AbstractReadOnlyModel<List<E>> {
+public class ReadOnlyEnumValuesModel<E extends Enum<E>> implements IModel<List<E>> {
 
 	private final List<E> values;
 

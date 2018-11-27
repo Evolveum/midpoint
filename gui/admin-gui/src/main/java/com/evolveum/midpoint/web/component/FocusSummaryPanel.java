@@ -34,7 +34,6 @@ import com.evolveum.midpoint.web.page.admin.users.component.UserSummaryPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.MarkupContainer;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.AbstractResource;
@@ -135,7 +134,7 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends ObjectSumm
 
 	@Override
 	protected IModel<AbstractResource> getPhotoModel() {
-		return new AbstractReadOnlyModel<AbstractResource>() {
+		return new IModel<AbstractResource>() {
 			private static final long serialVersionUID = 1L;
 
 			@Override

@@ -57,7 +57,6 @@ import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -177,7 +176,7 @@ public class SchemaListPanel extends BasePanel<PrismObject<ResourceType>> {
                 Label label = new Label(ID_LABEL, new PropertyModel<>(item.getModel(), ObjectClassDto.F_DISPLAY_NAME));
                 link.add(label);
 
-                item.add(AttributeModifier.replace("class", new AbstractReadOnlyModel<Object>() {
+                item.add(AttributeModifier.replace("class", new IModel<Object>() {
                     @Override
                     public Object getObject() {
                         return item.getModelObject().isSelected() ? "success" : null;

@@ -30,7 +30,6 @@ import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
 import org.apache.commons.lang.time.DurationFormatUtils;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -75,7 +74,7 @@ public class IterativeInformationPanel extends BasePanel<TaskCurrentStateDto> {
 
     protected void initLayout(PageBase pageBase) {
 
-		Label executionTime = new Label(ID_EXECUTION_TIME, new AbstractReadOnlyModel<String>() {
+		Label executionTime = new Label(ID_EXECUTION_TIME, new IModel<String>() {
 			@Override
 			public String getObject() {
 				TaskDto dto = getModel().getObject().getTaskDto();
@@ -99,7 +98,7 @@ public class IterativeInformationPanel extends BasePanel<TaskCurrentStateDto> {
 		});
 		add(executionTime);
 
-		Label processedSuccess = new Label(ID_OBJECTS_PROCESSED_SUCCESS, new AbstractReadOnlyModel<String>() {
+		Label processedSuccess = new Label(ID_OBJECTS_PROCESSED_SUCCESS, new IModel<String>() {
             @Override
             public String getObject() {
                 TaskCurrentStateDto dto = getModelObject();
@@ -119,7 +118,7 @@ public class IterativeInformationPanel extends BasePanel<TaskCurrentStateDto> {
         });
         add(processedSuccess);
 
-        Label processedSuccessTime = new Label(ID_OBJECTS_PROCESSED_SUCCESS_TIME, new AbstractReadOnlyModel<String>() {
+        Label processedSuccessTime = new Label(ID_OBJECTS_PROCESSED_SUCCESS_TIME, new IModel<String>() {
             @Override
             public String getObject() {
                 TaskCurrentStateDto dto = getModelObject();
@@ -141,7 +140,7 @@ public class IterativeInformationPanel extends BasePanel<TaskCurrentStateDto> {
         });
         add(processedSuccessTime);
 
-        Label lastProcessedSuccess = new Label(ID_LAST_OBJECT_PROCESSED_SUCCESS, new AbstractReadOnlyModel<String>() {
+        Label lastProcessedSuccess = new Label(ID_LAST_OBJECT_PROCESSED_SUCCESS, new IModel<String>() {
             @Override
             public String getObject() {
                 TaskCurrentStateDto dto = getModelObject();
@@ -162,7 +161,7 @@ public class IterativeInformationPanel extends BasePanel<TaskCurrentStateDto> {
         });
         add(lastProcessedSuccess);
 
-        Label lastProcessedSuccessTime = new Label(ID_LAST_OBJECT_PROCESSED_SUCCESS_TIME, new AbstractReadOnlyModel<String>() {
+        Label lastProcessedSuccessTime = new Label(ID_LAST_OBJECT_PROCESSED_SUCCESS_TIME, new IModel<String>() {
             @Override
             public String getObject() {
                 TaskCurrentStateDto dto = getModelObject();
@@ -192,7 +191,7 @@ public class IterativeInformationPanel extends BasePanel<TaskCurrentStateDto> {
         });
         add(lastProcessedSuccessTime);
 
-        Label processedFailure = new Label(ID_OBJECTS_PROCESSED_FAILURE, new AbstractReadOnlyModel<String>() {
+        Label processedFailure = new Label(ID_OBJECTS_PROCESSED_FAILURE, new IModel<String>() {
             @Override
             public String getObject() {
                 TaskCurrentStateDto dto = getModelObject();
@@ -213,7 +212,7 @@ public class IterativeInformationPanel extends BasePanel<TaskCurrentStateDto> {
         });
         add(processedFailure);
 
-        Label processedFailureTime = new Label(ID_OBJECTS_PROCESSED_FAILURE_TIME, new AbstractReadOnlyModel<String>() {
+        Label processedFailureTime = new Label(ID_OBJECTS_PROCESSED_FAILURE_TIME, new IModel<String>() {
             @Override
             public String getObject() {
                 TaskCurrentStateDto dto = getModelObject();
@@ -235,7 +234,7 @@ public class IterativeInformationPanel extends BasePanel<TaskCurrentStateDto> {
         });
         add(processedFailureTime);
 
-        Label lastProcessedFailure = new Label(ID_LAST_OBJECT_PROCESSED_FAILURE, new AbstractReadOnlyModel<String>() {
+        Label lastProcessedFailure = new Label(ID_LAST_OBJECT_PROCESSED_FAILURE, new IModel<String>() {
             @Override
             public String getObject() {
                 TaskCurrentStateDto dto = getModelObject();
@@ -256,7 +255,7 @@ public class IterativeInformationPanel extends BasePanel<TaskCurrentStateDto> {
         });
         add(lastProcessedFailure);
 
-        Label lastProcessedFailureTime = new Label(ID_LAST_OBJECT_PROCESSED_FAILURE_TIME, new AbstractReadOnlyModel<String>() {
+        Label lastProcessedFailureTime = new Label(ID_LAST_OBJECT_PROCESSED_FAILURE_TIME, new IModel<String>() {
             @Override
             public String getObject() {
                 TaskCurrentStateDto dto = getModelObject();
@@ -286,7 +285,7 @@ public class IterativeInformationPanel extends BasePanel<TaskCurrentStateDto> {
         });
         add(lastProcessedFailureTime);
 
-        Label lastError = new Label(ID_LAST_ERROR, new AbstractReadOnlyModel<String>() {
+        Label lastError = new Label(ID_LAST_ERROR, new IModel<String>() {
             @Override
             public String getObject() {
                 TaskCurrentStateDto dto = getModelObject();
@@ -302,7 +301,7 @@ public class IterativeInformationPanel extends BasePanel<TaskCurrentStateDto> {
         });
         add(lastError);
 
-        Label currentObjectProcessed = new Label(ID_CURRENT_OBJECT_PROCESSED, new AbstractReadOnlyModel<String>() {
+        Label currentObjectProcessed = new Label(ID_CURRENT_OBJECT_PROCESSED, new IModel<String>() {
             @Override
             public String getObject() {
                 TaskCurrentStateDto dto = getModelObject();
@@ -318,7 +317,7 @@ public class IterativeInformationPanel extends BasePanel<TaskCurrentStateDto> {
         });
         add(currentObjectProcessed);
 
-        Label currentObjectProcessedTime = new Label(ID_CURRENT_OBJECT_PROCESSED_TIME, new AbstractReadOnlyModel<String>() {
+        Label currentObjectProcessedTime = new Label(ID_CURRENT_OBJECT_PROCESSED_TIME, new IModel<String>() {
             @Override
             public String getObject() {
                 TaskCurrentStateDto dto = getModelObject();
@@ -341,7 +340,7 @@ public class IterativeInformationPanel extends BasePanel<TaskCurrentStateDto> {
         });
         add(currentObjectProcessedTime);
 
-        Label objectsTotal = new Label(ID_OBJECTS_TOTAL, new AbstractReadOnlyModel<String>() {
+        Label objectsTotal = new Label(ID_OBJECTS_TOTAL, new IModel<String>() {
             @Override
             public String getObject() {
                 TaskCurrentStateDto dto = getModelObject();

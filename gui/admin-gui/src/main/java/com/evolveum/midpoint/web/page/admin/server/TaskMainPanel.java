@@ -268,12 +268,12 @@ public class TaskMainPanel extends Panel {
 		AjaxSubmitButton saveButton = new AjaxSubmitButton(ID_SAVE, parentPage.createStringResource("pageTaskEdit.button.save")) {
 
 			@Override
-			protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
+			protected void onSubmit(AjaxRequestTarget target) {
 				parentPage.getController().savePerformed(target);
 			}
 
 			@Override
-			protected void onError(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
+			protected void onError(AjaxRequestTarget target) {
 				target.add(parentPage.getFeedbackPanel());
 			}
 

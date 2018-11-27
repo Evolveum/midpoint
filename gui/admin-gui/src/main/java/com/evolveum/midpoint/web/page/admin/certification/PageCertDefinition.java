@@ -214,7 +214,7 @@ public class PageCertDefinition extends PageAdminCertification {
 		AjaxSubmitButton saveButton = new AjaxSubmitButton(ID_SAVE_BUTTON,
 				createStringResource("PageCertDefinition.button.save")) {
 			@Override
-			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+			protected void onSubmit(AjaxRequestTarget target) {
 				savePerformed(target);
 			}
 		};

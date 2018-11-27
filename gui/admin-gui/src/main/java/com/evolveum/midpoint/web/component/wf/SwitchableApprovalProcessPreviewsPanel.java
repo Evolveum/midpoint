@@ -29,6 +29,9 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.TaskWfChildPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ApprovalProcessExecutionInformationDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaExecutionInformationType;
+
+import org.apache.wicket.Component;
+import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -36,6 +39,7 @@ import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
+import java.util.Optional;
 
 /**
  * @author mederly
@@ -149,10 +153,13 @@ public class SwitchableApprovalProcessPreviewsPanel extends BasePanel<String> { 
 
 		WebMarkupContainer showNextStagesContainer = new WebMarkupContainer(ID_SHOW_NEXT_STAGES_CONTAINER);
 		showNextStagesContainer.add(new AjaxFallbackLink(ID_SHOW_NEXT_STAGES) {
-			public void onClick(AjaxRequestTarget target) {
+			
+			@Override
+			public void onClick(Optional target) {
 				displayedProcessInfoBox = ProcessInfoBox.NEXT_STAGES;
-				target.add(SwitchableApprovalProcessPreviewsPanel.this);
+				((AjaxRequestTarget) target.get()).add(SwitchableApprovalProcessPreviewsPanel.this);
 			}
+
 		});
 		showNextStagesContainer.add(WebComponentUtil.createHelp(ID_SHOW_NEXT_STAGES_HELP));
 		showNextStagesContainer.add(new VisibleBehaviour(() ->
@@ -161,9 +168,11 @@ public class SwitchableApprovalProcessPreviewsPanel extends BasePanel<String> { 
 
 		WebMarkupContainer showWholeProcessContainer = new WebMarkupContainer(ID_SHOW_WHOLE_PROCESS_CONTAINER);
 		showWholeProcessContainer.add(new AjaxFallbackLink(ID_SHOW_WHOLE_PROCESS) {
-			public void onClick(AjaxRequestTarget target) {
+			
+			@Override
+			public void onClick(Optional target) {
 				displayedProcessInfoBox = ProcessInfoBox.WHOLE_PROCESS;
-				target.add(SwitchableApprovalProcessPreviewsPanel.this);
+				((AjaxRequestTarget) target.get()).add(SwitchableApprovalProcessPreviewsPanel.this);
 			}
 		});
 		showWholeProcessContainer.add(new VisibleBehaviour(() -> displayedProcessInfoBox != ProcessInfoBox.WHOLE_PROCESS));

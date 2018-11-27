@@ -28,7 +28,6 @@ import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 import java.util.ArrayList;
@@ -62,7 +61,7 @@ public abstract class AbstractAssignmentListPanel extends BasePanel<List<Assignm
     }
 
     public Popupable getDeleteAssignmentPopupContent(AssignmentEditorDto dto) {
-        return new ConfirmationPanel(getPageBase().getMainPopupBodyId(), new AbstractReadOnlyModel<String>() {
+        return new ConfirmationPanel(getPageBase().getMainPopupBodyId(), new IModel<String>() {
 
             private static final long serialVersionUID = 1L;
 

@@ -34,7 +34,6 @@ import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -187,7 +186,7 @@ public class MultiValueChoosePanel<T extends ObjectType> extends BasePanel<List<
 	}
 
 	protected IModel<String> createTextModel(final IModel<T> model) {
-		return new AbstractReadOnlyModel<String>() {
+		return new IModel<String>() {
 			private static final long serialVersionUID = 1L;
 
 			@Override

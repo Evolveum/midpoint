@@ -21,7 +21,6 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
@@ -77,7 +76,7 @@ public class ResourceConnectorPanel extends Panel {
 	private void initLayout(final IModel<PrismObject<ResourceType>> model, final PageBase parentPage) {
 		setOutputMarkupId(true);
 
-		IModel<List<ConnectorOperationalStatus>> statsModel = new AbstractReadOnlyModel<List<ConnectorOperationalStatus>>() {
+		IModel<List<ConnectorOperationalStatus>> statsModel = new IModel<List<ConnectorOperationalStatus>>() {
 			private static final long serialVersionUID = 1L;
 
 			@Override

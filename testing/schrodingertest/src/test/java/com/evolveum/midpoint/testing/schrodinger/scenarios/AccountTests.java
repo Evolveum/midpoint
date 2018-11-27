@@ -25,8 +25,6 @@ public class AccountTests extends TestBase {
 
     protected static final File CSV_INITIAL_SOURCE_FILE = new File("../../samples/resources/csv/midpoint-username.csv");
 
-    protected static final String CSV_SOURCE_OLDVALUE = "target/midpoint.csv";
-
     protected static final String IMPORT_CSV_RESOURCE_DEPENDENCY= "importCsvResource";
     protected static final String CREATE_MP_USER_DEPENDENCY= "createMidpointUser";
     protected static final String CHANGE_RESOURCE_FILE_PATH_DEPENDENCY= "changeResourceFilePath";
@@ -34,8 +32,6 @@ public class AccountTests extends TestBase {
     protected static final String DISABLE_ACCOUNT_DEPENDENCY= "disableAccount";
     protected static final String ENABLE_ACCOUNT_DEPENDENCY= "enableAccount";
     protected static final String MODIFY_ACCOUNT_PASSWORD_DEPENDENCY= "modifyAccountPassword";
-
-
     protected static final String TEST_GROUP_BEFORE_USER_DELETION = "beforeDelete";
 
     protected static final String CSV_RESOURCE_NAME= "Test CSV: username";
@@ -102,7 +98,7 @@ public class AccountTests extends TestBase {
                 .clickByName(CSV_RESOURCE_NAME)
                     .clickEditResourceConfiguration()
                         .form()
-                        .changeAttributeValue(CSV_RESOURCE_ATTR_FILE_PATH,CSV_SOURCE_OLDVALUE,CSV_TARGET_FILE.getAbsolutePath())
+                        .changeAttributeValue(CSV_RESOURCE_ATTR_FILE_PATH, ScenariosCommons.CSV_SOURCE_OLDVALUE,CSV_TARGET_FILE.getAbsolutePath())
                         .changeAttributeValue(CSV_RESOURCE_ATTR_UNIQUE,"","username")
                     .and()
                 .and()
@@ -127,7 +123,7 @@ public class AccountTests extends TestBase {
                     .selectTabProjections()
                     .clickCog()
                     .addProjection()
-                            .projectionsTable()
+                            .table()
                             .selectCheckboxByName(CSV_RESOURCE_NAME)
                         .and()
                         .clickAdd()
@@ -161,8 +157,8 @@ public class AccountTests extends TestBase {
                         .clickSave()
                         .feedback()
             ;
-
     }
+
     @Test (dependsOnMethods = {ADD_ACCOUNT_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
     public void modifyAccountPassword(){
         ListUsersPage users = basicPage.listUsers();
@@ -186,10 +182,8 @@ public class AccountTests extends TestBase {
                 .clickSave()
                     .feedback()
                     .isSuccess();
-
-
-
     }
+
     @Test (dependsOnMethods = {ADD_ACCOUNT_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
     public void disableAccount(){
         ListUsersPage users = basicPage.listUsers();
@@ -263,5 +257,4 @@ public class AccountTests extends TestBase {
                         .feedback()
                         .isSuccess();
     }
-
 }

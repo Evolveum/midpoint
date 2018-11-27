@@ -99,7 +99,7 @@ public class SearchFilterPanel<T extends SearchFilterType> extends BasePanel<T> 
         AjaxSubmitLink update = new AjaxSubmitLink(ID_BUTTON_UPDATE) {
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+            protected void onSubmit(AjaxRequestTarget target) {
                 updateClausePerformed(target);
             }
         };

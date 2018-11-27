@@ -6,7 +6,7 @@ import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 
 /**
@@ -30,7 +30,7 @@ public class HelpInfoPanel extends Panel implements Popupable{
         WebMarkupContainer content = new WebMarkupContainer(ID_CONTENT);
         add(content);
 
-        Label helpLabel = new Label(ID_HELP, new AbstractReadOnlyModel<String>() {
+        Label helpLabel = new Label(ID_HELP, new IModel<String>() {
 
             @Override
             public String getObject() {

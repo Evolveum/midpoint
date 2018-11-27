@@ -88,7 +88,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
 		final IModel<SceneDto> model = getModel();
 
 		WebMarkupContainer box = new WebMarkupContainer(ID_BOX);
-		box.add(AttributeModifier.append("class", new AbstractReadOnlyModel<String>() {
+		box.add(AttributeModifier.append("class", new IModel<String>() {
 
 			@Override
 			public String getObject() {
@@ -131,7 +131,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
 		Label headerObjectType = new Label(ID_HEADER_OBJECT_TYPE, new ObjectTypeModel());
 		//headerObjectType.setRenderBodyOnly(true);
 
-		IModel<String> nameModel = new AbstractReadOnlyModel<String>() {
+		IModel<String> nameModel = new IModel<String>() {
 			@Override
 			public String getObject() {
 				return model.getObject().getName(ScenePanel.this);
@@ -149,14 +149,14 @@ public class ScenePanel extends BasePanel<SceneDto> {
 				}
 			}
 		};
-        Label headerDescription = new Label(ID_HEADER_DESCRIPTION, new AbstractReadOnlyModel<String>() {
+        Label headerDescription = new Label(ID_HEADER_DESCRIPTION, new IModel<String>() {
 			@Override
 			public String getObject() {
 				return model.getObject().getDescription(ScenePanel.this);
 			}
 		});
         Label headerWrapperDisplayName = new Label(ID_HEADER_WRAPPER_DISPLAY_NAME,
-				new AbstractReadOnlyModel<String>() {
+				new IModel<String>() {
 					@Override
 					public String getObject() {
 						String key = ((WrapperScene) getModelObject().getScene()).getDisplayNameKey();
@@ -303,7 +303,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
         target.add(this);
     }
 
-	private class ChangeTypeModel extends AbstractReadOnlyModel<String> {
+	private class ChangeTypeModel implements IModel<String> {
 
 		@Override
 		public String getObject() {
@@ -315,7 +315,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
 		}
 	}
 
-	private class ObjectTypeModel extends AbstractReadOnlyModel<String> {
+	private class ObjectTypeModel implements IModel<String> {
 
 		@Override
 		public String getObject() {
