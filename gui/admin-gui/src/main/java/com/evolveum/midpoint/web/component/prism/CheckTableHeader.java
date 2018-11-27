@@ -85,7 +85,7 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
         add(pendingPanel);
 
         Label icon = new Label(ID_ICON);
-        icon.add(AttributeModifier.replace("class", new AbstractReadOnlyModel<String>() {
+        icon.add(AttributeModifier.replace("class", new IModel<String>() {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -96,7 +96,7 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
         add(icon);
 
         Label trigger = new Label(ID_TRIGGER);
-        trigger.add(AttributeModifier.replace("title", new AbstractReadOnlyModel<String>() {
+        trigger.add(AttributeModifier.replace("title", new IModel<String>() {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -139,7 +139,7 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
         };
         add(link);
 
-        Label name = new Label(ID_NAME, new AbstractReadOnlyModel<String>() {
+        Label name = new Label(ID_NAME, new IModel<String>() {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -149,7 +149,7 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
         });
         link.add(name);
 
-        Label description = new Label(ID_DESCRIPTION, new AbstractReadOnlyModel<String>() {
+        Label description = new Label(ID_DESCRIPTION, new IModel<String>() {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -178,7 +178,7 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
     }
 
     private IModel<List<PendingOperationType>> createPendingOperationsModel() {
-        return new AbstractReadOnlyModel<List<PendingOperationType>>() {
+        return new IModel<List<PendingOperationType>>() {
 
             private static final long serialVersionUID = 1L;
 

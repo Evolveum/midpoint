@@ -193,7 +193,7 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
             System.setProperty(MIDPOINT_HOME_PROPERTY, mpHome);
         }
         
-        System.setProperty("spring.config.location", MidPointSpringApplication.class.getResource("/") + ",${midpoint.home}/");
+        System.setProperty("spring.config.additional-location", "${midpoint.home}/");
 
         application.bannerMode(Banner.Mode.LOG);
 
@@ -275,6 +275,8 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
     	
     	@Value("${server.servlet.session.timeout}")
     	private int sessionTimeout;
+    	@Value("${server.servlet.context-path}")
+		private String servletPath;
     	
     	@Autowired 
     	ServerProperties serverProperties;
@@ -308,7 +310,7 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
     	private void customizeTomcat(TomcatServletWebServerFactory tomcatFactory) {
     		// Tomcat valve used to redirect root URL (/) to real application URL (/midpoint/).
     		// See comments in TomcatRootValve
-    		Valve rootValve = new TomcatRootValve();
+    		Valve rootValve = new TomcatRootValve(servletPath);
     		tomcatFactory.addEngineValves(rootValve);
     	}
 

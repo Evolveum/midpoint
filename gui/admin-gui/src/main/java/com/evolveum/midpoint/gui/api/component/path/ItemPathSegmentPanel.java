@@ -9,7 +9,6 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -40,7 +39,7 @@ public class ItemPathSegmentPanel extends BasePanel<ItemPathDto> {
 	private void initLayout() {
 
 		Label label = new Label(ID_PARENT,
-				new AbstractReadOnlyModel<String>() {
+				new IModel<String>() {
 			private static final long serialVersionUID = 1L;
 				@Override
 				public String getObject() {

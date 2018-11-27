@@ -129,7 +129,7 @@ public class SynchronizationReactionEditor extends BasePanel<SynchronizationReac
 
             @Override
             protected IModel<List<String>> createChoiceList() {
-                return new AbstractReadOnlyModel<List<String>>() {
+                return new IModel<List<String>>() {
 
                     @Override
                     public List<String> getObject() {
@@ -155,7 +155,7 @@ public class SynchronizationReactionEditor extends BasePanel<SynchronizationReac
 
         DropDownChoice objectTemplateRef = new DropDownChoice<>(ID_OBJECT_TEMPLATE_REF,
             new PropertyModel<>(getModel(), "objectTemplateRef"),
-                new AbstractReadOnlyModel<List<ObjectReferenceType>>() {
+                new IModel<List<ObjectReferenceType>>() {
 
                     @Override
                     public List<ObjectReferenceType> getObject() {

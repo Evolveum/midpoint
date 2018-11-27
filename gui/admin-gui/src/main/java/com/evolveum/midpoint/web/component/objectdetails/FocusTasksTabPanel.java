@@ -20,7 +20,7 @@ import java.util.List;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -59,7 +59,7 @@ public class FocusTasksTabPanel<F extends FocusType>
 
 	private void initLayout(final PageBase page) {
 
-		Label label = new Label(ID_LABEL, new AbstractReadOnlyModel<String>() {
+		Label label = new Label(ID_LABEL, new IModel<String>() {
 			private static final long serialVersionUID = 1L;
 
 			@Override

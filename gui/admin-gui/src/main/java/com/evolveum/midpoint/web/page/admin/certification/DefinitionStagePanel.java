@@ -33,7 +33,6 @@ import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
@@ -189,7 +188,7 @@ public class DefinitionStagePanel extends BasePanel<StageDefinitionDto> {
         add(outcomeIfNoReviewers);
 		add(WebComponentUtil.createHelp(ID_OUTCOME_IF_NO_REVIEWERS_HELP));
 
-		Label stopReviewOn = new Label(ID_STOP_REVIEW_ON, new AbstractReadOnlyModel<String>() {
+		Label stopReviewOn = new Label(ID_STOP_REVIEW_ON, new IModel<String>() {
             @Override
             public String getObject() {
                 List<AccessCertificationResponseType> stopOn = getModelObject().getStopReviewOn();
@@ -208,7 +207,7 @@ public class DefinitionStagePanel extends BasePanel<StageDefinitionDto> {
 		// quite a hack, to get rid of col-md-offset-2 style
 		@Override
 		protected IModel<String> createStyleClassModel(IModel value) {
-			return new AbstractReadOnlyModel<String>() {
+			return new IModel<String>() {
 				@Override
 				public String getObject() {
 					return null;

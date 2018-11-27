@@ -85,7 +85,6 @@ import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
@@ -382,7 +381,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 			@Override
 			public void populateItem(Item<ICellPopulator<NodeDto>> item, String componentId,
 					final IModel<NodeDto> rowModel) {
-				item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
+				item.add(new Label(componentId, new IModel<Object>() {
 
 					@Override
 					public Object getObject() {
@@ -583,7 +582,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 			@Override
 			public void populateItem(Item<ICellPopulator<TaskDto>> item, String componentId,
 					final IModel<TaskDto> rowModel) {
-				item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
+				item.add(new Label(componentId, new IModel<Object>() {
 
 					@Override
 					public Object getObject() {
@@ -607,7 +606,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 			public void populateItem(final Item<ICellPopulator<TaskDto>> item, final String componentId,
 					final IModel<TaskDto> rowModel) {
 
-				DateLabelComponent dateLabel = new DateLabelComponent(componentId, new AbstractReadOnlyModel<Date>() {
+				DateLabelComponent dateLabel = new DateLabelComponent(componentId, new IModel<Date>() {
 
 					@Override
 					public Date getObject() {
@@ -646,7 +645,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 			@Override
 			public void populateItem(Item<ICellPopulator<TaskDto>> item, String componentId,
 					final IModel<TaskDto> rowModel) {
-				item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
+				item.add(new Label(componentId, new IModel<Object>() {
 
 					@Override
 					public Object getObject() {
@@ -666,7 +665,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 			@Override
 			protected IModel<String> createTitleModel(final IModel<TaskDto> rowModel) {
 
-				return new AbstractReadOnlyModel<String>() {
+				return new IModel<String>() {
 
 					@Override
 					public String getObject() {
@@ -683,7 +682,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 
 			@Override
 			protected IModel<String> createIconModel(final IModel<TaskDto> rowModel) {
-				return new AbstractReadOnlyModel<String>() {
+				return new IModel<String>() {
 
 					@Override
 					public String getObject() {
@@ -711,7 +710,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 
 			@Override
 			public void populateItem(Item<ICellPopulator<TaskDto>> cellItem, String componentId, final IModel<TaskDto> rowModel) {
-				cellItem.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
+				cellItem.add(new Label(componentId, new IModel<Object>() {
 					@Override
 					public Object getObject() {
 						rowModel.getObject().ensureSubtasksLoaded(pageBase);
@@ -1818,7 +1817,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 
             DropDownChoice categorySelect = new DropDownChoice(ID_CATEGORY,
                     new PropertyModel(searchModel, TasksSearchDto.F_CATEGORY),
-                    new AbstractReadOnlyModel<List<String>>() {
+                    new IModel<List<String>>() {
 
                         @Override
                         public List<String> getObject() {
@@ -1853,13 +1852,13 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             AjaxSubmitButton clearButton = new AjaxSubmitButton(ID_SEARCH_CLEAR) {
 
                 @Override
-                protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                protected void onSubmit(AjaxRequestTarget target) {
                     PageTasks page = (PageTasks) getPage();
                     page.clearSearchPerformed(target);
                 }
 
                 @Override
-                protected void onError(AjaxRequestTarget target, Form<?> form) {
+                protected void onError(AjaxRequestTarget target) {
                     PageTasks page = (PageTasks) getPage();
                     target.add(page.getFeedbackPanel());
                 }

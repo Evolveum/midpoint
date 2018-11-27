@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.web.page.admin.resources.dto;
+package com.evolveum.midpoint.util;
+
+import com.evolveum.midpoint.util.exception.CommonException;
+
+import java.io.Serializable;
 
 /**
- * @author lazyman
+ * Almost the same as Producer but this one can throw CommonException.
+ * EXPERIMENTAL
  */
-public enum ResourceImportStatus {
-
-    ENABLE("drive_go.png"),
-
-    DISABLE("drive_go_gray.png");
-
-    private String icon;
-
-    private ResourceImportStatus(String icon) {
-        this.icon = icon;
-    }
-
-    public String getIcon() {
-        return icon;
-    }
+@FunctionalInterface
+public interface CheckedProducer<T> extends Serializable {
+	T get() throws CommonException;
 }

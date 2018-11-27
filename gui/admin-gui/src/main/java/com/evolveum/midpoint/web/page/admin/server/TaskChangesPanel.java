@@ -37,7 +37,7 @@ public class TaskChangesPanel extends BasePanel<TaskChangesDto> {
     }
 
     protected void initLayout() {
-//        add(new Label(ID_TITLE, new AbstractReadOnlyModel<String>() {
+//        add(new Label(ID_TITLE, new IModel<String>() {
 //			@Override
 //			public String getObject() {
 //				return getString(getModelObject().getTitleKey());

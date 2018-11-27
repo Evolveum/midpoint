@@ -91,18 +91,21 @@ public class ExtItemDictionary {
         }
     }
 
+    // TODO add "synchronized" before 4.0 release
     @NotNull
-    public synchronized RExtItem createOrFindItemDefinition(@NotNull ItemDefinition<?> definition, boolean throwExceptionAfterCreate) {
+    public RExtItem createOrFindItemDefinition(@NotNull ItemDefinition<?> definition, boolean throwExceptionAfterCreate) {
         return createOrFindItemByDefinitionInternal(definition, true, throwExceptionAfterCreate);
     }
 
+    // TODO add "synchronized" before 4.0 release
     @NotNull
-    public synchronized RExtItem createOrFindItemDefinition(@NotNull ItemDefinition<?> definition) {
+    public RExtItem createOrFindItemDefinition(@NotNull ItemDefinition<?> definition) {
         return createOrFindItemByDefinitionInternal(definition, true, true);
     }
 
+    // TODO add "synchronized" before 4.0 release
     @Nullable
-    public synchronized RExtItem findItemByDefinition(@NotNull ItemDefinition<?> definition) {
+    public RExtItem findItemByDefinition(@NotNull ItemDefinition<?> definition) {
         return createOrFindItemByDefinitionInternal(definition, false, true);
     }
 
@@ -173,7 +176,8 @@ public class ExtItemDictionary {
         }
     }
 
-    public synchronized RExtItem getItemById(Integer extItemId) {
+    // TODO add "synchronized" before 4.0 release
+    public RExtItem getItemById(Integer extItemId) {
         boolean fresh = fetchItemsIfNeeded();
         RExtItem extItem = itemsById.get(extItemId);
         if (extItem != null || fresh) {

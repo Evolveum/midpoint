@@ -44,7 +44,6 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
@@ -177,7 +176,7 @@ public class LimitationsEditorDialog extends ModalWindow{
                 limitationBody.setOutputMarkupId(true);
                 limitationBody.setMarkupId(createCollapseItemId(item, false).getObject());
                 if (changeState != ChangeState.SKIP) {
-                    limitationBody.add(new AttributeModifier("class", new AbstractReadOnlyModel<String>() {
+                    limitationBody.add(new AttributeModifier("class", new IModel<String>() {
 
                         @Override
                         public String getObject() {
@@ -317,7 +316,7 @@ public class LimitationsEditorDialog extends ModalWindow{
     }
 
     private IModel<String> createLimitationsLabelModel(final ListItem<PropertyLimitationsTypeDto> item){
-        return new AbstractReadOnlyModel<String>() {
+        return new IModel<String>() {
 
             @Override
             public String getObject() {
@@ -359,7 +358,7 @@ public class LimitationsEditorDialog extends ModalWindow{
     }
 
     private IModel<String> createCollapseItemId(final ListItem<PropertyLimitationsTypeDto> item, final boolean appendSelector){
-        return new AbstractReadOnlyModel<String>() {
+        return new IModel<String>() {
 
             @Override
             public String getObject() {

@@ -54,4 +54,6 @@ public class InducementsPanel extends AbstractRoleAssignmentPanel {
     protected boolean showAllAssignmentsVisible(){
         return false;
     }
+
+
 }

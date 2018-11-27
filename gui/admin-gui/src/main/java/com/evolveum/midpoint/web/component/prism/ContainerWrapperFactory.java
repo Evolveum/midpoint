@@ -107,7 +107,7 @@ public class ContainerWrapperFactory {
        return cWrapper;
     }
 
-	public <C extends Containerable> AbstractAssociationWrapper createAssociationWrapper(ObjectWrapper objectWrapper, PrismObject<ResourceType> resource, ShadowKindType kind, String shadowIntent, PrismContainer<C> association, ContainerStatus objectStatus, ContainerStatus status, ItemPath path) throws SchemaException {
+	public <C extends Containerable> ShadowAssociationWrapper createAssociationWrapper(ObjectWrapper objectWrapper, PrismObject<ResourceType> resource, ShadowKindType kind, String shadowIntent, PrismContainer<C> association, ContainerStatus objectStatus, ContainerStatus status, ItemPath path) throws SchemaException {
 		if (association == null || association.getDefinition() == null
 				|| (!(association.getDefinition().getCompileTimeClass().equals(ShadowAssociationType.class))
 				&& !(association.getDefinition().getCompileTimeClass().equals(ResourceObjectAssociationType.class)))){
@@ -136,16 +136,14 @@ public class ContainerWrapperFactory {
 		}
     	
     	PrismContainer associationTransformed = associationDefinition.instantiate();
-    	AbstractAssociationWrapper associationWrapper;
+		ShadowAssociationWrapper associationWrapper;
     	if (association.getDefinition().getCompileTimeClass().equals(ShadowAssociationType.class)) {
     		associationWrapper = new ShadowAssociationWrapper(objectWrapper, associationTransformed, objectStatus, status, path);
-		} else if (association.getDefinition().getCompileTimeClass().equals(ResourceObjectAssociationType.class)) {
-			associationWrapper = new ResourceAssociationWrapper(objectWrapper, associationTransformed, objectStatus, status, path);
 		} else {
     		return null;
 		}
     	
-    	ContainerValueWrapper<C> shadowValueWrapper = new ContainerValueWrapper<>(associationWrapper,
+    	ContainerValueWrapper<ShadowAssociationType> shadowValueWrapper = new ContainerValueWrapper<ShadowAssociationType>(associationWrapper,
 				associationTransformed.createNewValue(), objectStatus,
 				ContainerStatus.ADDING == status ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED, path);
 		

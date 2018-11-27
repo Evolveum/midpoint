@@ -37,7 +37,6 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -617,7 +616,7 @@ public abstract class ResourceContentPanel extends Panel {
 			@Override
 			protected IModel<FocusType> createLinkModel(final IModel<SelectableBean<ShadowType>> rowModel) {
 
-				return new AbstractReadOnlyModel<FocusType>() {
+				return new IModel<FocusType>() {
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -646,7 +645,7 @@ public abstract class ResourceContentPanel extends Panel {
 
 			@Override
 			protected IModel<String> createLinkModel(final IModel<SelectableBean<ShadowType>> rowModel) {
-				return new AbstractReadOnlyModel<String>() {
+				return new IModel<String>() {
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -805,7 +804,7 @@ public abstract class ResourceContentPanel extends Panel {
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+					public void onSubmit(AjaxRequestTarget target) {
 						if (getRowModel() == null){
 							updateResourceObjectStatusPerformed(null, target, true);
 						} else {
@@ -826,7 +825,7 @@ public abstract class ResourceContentPanel extends Panel {
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+					public void onSubmit(AjaxRequestTarget target) {
 						if (getRowModel() == null){
 							updateResourceObjectStatusPerformed(null, target, false);
 						} else {
@@ -847,7 +846,7 @@ public abstract class ResourceContentPanel extends Panel {
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+					public void onSubmit(AjaxRequestTarget target) {
 						if (getRowModel() == null){
 							deleteResourceObjectPerformed(null, target);
 						} else {
@@ -870,7 +869,7 @@ public abstract class ResourceContentPanel extends Panel {
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+					public void onSubmit(AjaxRequestTarget target) {
 						if (getRowModel() == null){
 							importResourceObject(null, target);
 						} else {
@@ -898,7 +897,7 @@ public abstract class ResourceContentPanel extends Panel {
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+					public void onSubmit(AjaxRequestTarget target) {
 						if (getRowModel() == null){
 							changeOwner(null, target, null, Operation.REMOVE);
 						} else {
@@ -919,7 +918,7 @@ public abstract class ResourceContentPanel extends Panel {
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+					public void onSubmit(AjaxRequestTarget target) {
 						final SelectableBean<ShadowType> shadow = getRowModel().getObject();
 						ObjectBrowserPanel<FocusType> browser = new ObjectBrowserPanel<FocusType>(
 								pageBase.getMainPopupBodyId(), UserType.class,
@@ -1041,7 +1040,7 @@ public abstract class ResourceContentPanel extends Panel {
 
 	private IModel<String> createDeleteConfirmString(final ShadowType selected, final String oneDeleteKey,
 			final String moreDeleteKey) {
-		return new AbstractReadOnlyModel<String>() {
+		return new IModel<String>() {
 
 			@Override
 			public String getObject() {

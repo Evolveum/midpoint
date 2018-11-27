@@ -63,7 +63,6 @@ import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -233,7 +232,7 @@ public class PageCertDecisions extends PageAdminCertification {
                 @Override
 				public void populateItem(Item<ICellPopulator<CertWorkItemDto>> item, String componentId,
 						final IModel<CertWorkItemDto> rowModel) {
-					item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
+					item.add(new Label(componentId, new IModel<Object>() {
 						@Override
 						public Object getObject() {
 							return rowModel.getObject().getCampaignName();
@@ -262,7 +261,7 @@ public class PageCertDecisions extends PageAdminCertification {
 
             @Override
             public void populateItem(Item<ICellPopulator<CertWorkItemDto>> item, String componentId, final IModel<CertWorkItemDto> rowModel) {
-                item.add(new Label(componentId, new AbstractReadOnlyModel<String>() {
+                item.add(new Label(componentId, new IModel<String>() {
                     @Override
                     public String getObject() {
                         CertWorkItemDto dto = rowModel.getObject();
@@ -289,7 +288,7 @@ public class PageCertDecisions extends PageAdminCertification {
 
             @Override
             public void populateItem(Item<ICellPopulator<CertWorkItemDto>> item, String componentId, final IModel<CertWorkItemDto> rowModel) {
-                item.add(new Label(componentId, new AbstractReadOnlyModel<String>() {
+                item.add(new Label(componentId, new IModel<String>() {
                     @Override
                     public String getObject() {
                         CertWorkItemDto dto = rowModel.getObject();

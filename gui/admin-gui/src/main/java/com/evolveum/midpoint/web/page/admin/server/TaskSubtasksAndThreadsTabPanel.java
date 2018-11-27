@@ -36,7 +36,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColu
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
@@ -128,7 +127,7 @@ public class TaskSubtasksAndThreadsTabPanel extends AbstractObjectTabPanel<TaskT
 		columns.add(new EnumPropertyColumn<>(createStringResourceStatic(this, "TaskStatePanel.subtaskState"), WorkerThreadDto.F_EXECUTION_STATUS));
 		columns.add(new PropertyColumn(createStringResourceStatic(this, "TaskStatePanel.subtaskObjectsProcessed"), WorkerThreadDto.F_PROGRESS));
 		ISortableDataProvider<WorkerThreadDto, String> threadsProvider = new ListDataProvider<>(this,
-				new AbstractReadOnlyModel<List<WorkerThreadDto>>() {
+				new IModel<List<WorkerThreadDto>>() {
 					@Override
 					public List<WorkerThreadDto> getObject() {
 						List<WorkerThreadDto> rv = new ArrayList<>();

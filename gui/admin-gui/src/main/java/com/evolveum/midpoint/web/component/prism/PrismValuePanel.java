@@ -56,7 +56,6 @@ import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -217,7 +216,7 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 	}
 
 	private IModel<String> createHelpModel() {
-		return new AbstractReadOnlyModel<String>() {
+		return new IModel<String>() {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -619,13 +618,7 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 				if (def.getValueEnumerationRef() != null) {
 					PrismReferenceValue valueEnumerationRef = def.getValueEnumerationRef();
 					String lookupTableUid = valueEnumerationRef.getOid();
-					Task task = getPageBase().createSimpleTask("loadLookupTable");
-					OperationResult result = task.getResult();
-
-					Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
-							.createLookupTableRetrieveOptions();
-					final PrismObject<LookupTableType> lookupTable = WebModelServiceUtils.loadObject(LookupTableType.class,
-							lookupTableUid, options, getPageBase(), task, result);
+					PrismObject<LookupTableType> lookupTable = getLookupTable(lookupTableUid);
 
 					if (lookupTable != null) {
 
@@ -686,7 +679,7 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 				};
 
 			} else if (ObjectDeltaType.COMPLEX_TYPE.equals(valueType)) {
-				panel = new ModificationsPanel(id, new AbstractReadOnlyModel<DeltaDto>() {
+				panel = new ModificationsPanel(id, new IModel<DeltaDto>() {
 					@Override
 					public DeltaDto getObject() {
 						if (getModel().getObject() == null || getModel().getObject().getValue() == null
@@ -706,7 +699,7 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 					}
 				});
 			} else if (QueryType.COMPLEX_TYPE.equals(valueType) || CleanupPoliciesType.COMPLEX_TYPE.equals(valueType)) {
-				return new TextAreaPanel<>(id, new AbstractReadOnlyModel<String>() {
+				return new TextAreaPanel<>(id, new IModel<String>() {
 
                     private static final long serialVersionUID = 1L;
 
@@ -899,28 +892,7 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 				} else if (def.getValueEnumerationRef() != null) {
 					PrismReferenceValue valueEnumerationRef = def.getValueEnumerationRef();
 					String lookupTableUid = valueEnumerationRef.getOid();
-					
-					PrismObject<LookupTableType> lookupTable;
-					String operation = "loadLookupTable";
-					if(getPageBase() instanceof PageSelfRegistration) {
-						lookupTable = getPageBase().runPrivileged(
-								() -> {
-									Task task = getPageBase().createAnonymousTask(operation);
-									OperationResult result = task.getResult();
-									Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
-											.createLookupTableRetrieveOptions();
-									return WebModelServiceUtils.loadObject(LookupTableType.class,
-											lookupTableUid, options, getPageBase(), task, result);
-								});
-					} else {
-						Task task = getPageBase().createSimpleTask(operation);
-						OperationResult result = task.getResult();
-	
-						Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
-								.createLookupTableRetrieveOptions();
-						lookupTable = WebModelServiceUtils.loadObject(LookupTableType.class,
-								lookupTableUid, options, getPageBase(), task, result);
-					}
+					PrismObject<LookupTableType> lookupTable = getLookupTable(lookupTableUid);
 					
 //					if (lookupTable != null) {
 //
@@ -994,6 +966,32 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 		}
 
 		return panel;
+	}
+	
+	private PrismObject<LookupTableType> getLookupTable(String lookupTableUid) {
+		PrismObject<LookupTableType> lookupTable;
+		String operation = "loadLookupTable";
+		if(getPageBase() instanceof PageSelfRegistration) {
+			lookupTable = getPageBase().runPrivileged(
+					() -> {
+						Task task = getPageBase().createAnonymousTask(operation);
+						OperationResult result = task.getResult();
+						Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
+								.createLookupTableRetrieveOptions();
+						return WebModelServiceUtils.loadObject(LookupTableType.class,
+								lookupTableUid, options, getPageBase(), task, result);
+					});
+		} else {
+			Task task = getPageBase().createSimpleTask(operation);
+			OperationResult result = task.getResult();
+
+			Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
+					.createLookupTableRetrieveOptions();
+			lookupTable = WebModelServiceUtils.loadObject(LookupTableType.class,
+					lookupTableUid, options, getPageBase(), task, result);
+		}
+		
+		return lookupTable;
 	}
 
 	private List<String> prepareAutoCompleteList(String input, PrismObject<LookupTableType> lookupTable) {

@@ -18,6 +18,7 @@ package com.evolveum.midpoint.security.impl;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.evolveum.midpoint.util.exception.*;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -35,11 +36,6 @@ import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.util.Producer;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
@@ -105,10 +101,9 @@ public class SecurityContextManagerImpl implements SecurityContextManager {
 		}
 		setupPreAuthenticatedSecurityContext(principal);
 	}
-	
+
 	@Override
 	public <T> T runAs(Producer<T> producer, PrismObject<UserType> user) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-
 		LOGGER.debug("Running {} as {}", producer, user);
 		Authentication origAuthentication = SecurityContextHolder.getContext().getAuthentication();
 		setupPreAuthenticatedSecurityContext(user);
@@ -119,8 +114,7 @@ public class SecurityContextManagerImpl implements SecurityContextManager {
 			LOGGER.debug("Finished running {} as {}", producer, user);
 		}
 	}
-	
-	
+
 	@Override
 	public <T> T runPrivileged(Producer<T> producer) {
 		LOGGER.debug("Running {} as privileged", producer);

@@ -30,7 +30,6 @@ import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
@@ -71,8 +70,8 @@ public class DefinitionStagesPanel extends BasePanel<List<StageDefinitionDto>> {
 
         AjaxSubmitButton addNewStage = new AjaxSubmitButton(ID_ADD_NEW_STAGE, createStringResource("StageDefinitionPanel.addNewStageButton")) {
             @Override
-            public void onSubmit(AjaxRequestTarget target, Form form) {
-				super.onSubmit(target, form);
+            public void onSubmit(AjaxRequestTarget target) {
+				super.onSubmit(target);
                 addPerformed(target);
             }
         };
@@ -89,8 +88,8 @@ public class DefinitionStagesPanel extends BasePanel<List<StageDefinitionDto>> {
 
 		AjaxSubmitButton moveLeft = new AjaxSubmitButton(ID_MOVE_STAGE_LEFT, createStringResource("StageDefinitionPanel.moveStageLeftButton")) {
 			@Override
-			public void onSubmit(AjaxRequestTarget target, Form form) {
-				super.onSubmit(target, form);
+			public void onSubmit(AjaxRequestTarget target) {
+				super.onSubmit(target);
 				moveLeftPerformed(target);
 			}
 		};
@@ -99,8 +98,8 @@ public class DefinitionStagesPanel extends BasePanel<List<StageDefinitionDto>> {
 
 		AjaxSubmitButton moveRight = new AjaxSubmitButton(ID_MOVE_STAGE_RIGHT, createStringResource("StageDefinitionPanel.moveStageRightButton")) {
 			@Override
-			public void onSubmit(AjaxRequestTarget target, Form form) {
-				super.onSubmit(target, form);
+			public void onSubmit(AjaxRequestTarget target) {
+				super.onSubmit(target);
 				moveRightPerformed(target);
 			}
 		};
@@ -109,8 +108,8 @@ public class DefinitionStagesPanel extends BasePanel<List<StageDefinitionDto>> {
 
 		AjaxSubmitButton delete = new AjaxSubmitButton(ID_DELETE_STAGE, createStringResource("StageDefinitionPanel.deleteStageButton")) {
 			@Override
-			public void onSubmit(AjaxRequestTarget target, Form form) {
-				super.onSubmit(target, form);
+			public void onSubmit(AjaxRequestTarget target) {
+				super.onSubmit(target);
 				deletePerformed(target);
 			}
 		};
@@ -121,7 +120,7 @@ public class DefinitionStagesPanel extends BasePanel<List<StageDefinitionDto>> {
     }
 
 	private void deletePerformed(AjaxRequestTarget target) {
-        ConfirmationPanel dialog = new ConfirmationPanel(getPageBase().getMainPopupBodyId(), new AbstractReadOnlyModel<String>() {
+        ConfirmationPanel dialog = new ConfirmationPanel(getPageBase().getMainPopupBodyId(), new IModel<String>() {
                     @Override
                     public String getObject() {
                         StageDefinitionDto dto = getModelObject().get(tabPanel.getSelectedTab());

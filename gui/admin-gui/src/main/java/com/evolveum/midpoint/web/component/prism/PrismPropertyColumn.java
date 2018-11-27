@@ -25,7 +25,6 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -174,7 +173,7 @@ public class PrismPropertyColumn<IW extends ItemWrapper> extends BasePanel<IW> {
 
    
     protected IModel<String> createStyleClassModel(final IModel<ValueWrapper> value) {
-        return new AbstractReadOnlyModel<String>() {
+        return new IModel<String>() {
         	private static final long serialVersionUID = 1L;
 
             @Override

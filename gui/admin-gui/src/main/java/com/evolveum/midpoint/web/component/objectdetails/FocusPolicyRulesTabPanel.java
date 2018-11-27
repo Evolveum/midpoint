@@ -28,7 +28,9 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 
 /**
  * Created by honchar.
+ * will be removed in a while as policy rule panel is moved strictly to the assignments/inducements tab
  */
+@Deprecated
 public class FocusPolicyRulesTabPanel <F extends FocusType> extends AbstractObjectTabPanel{
     private static final long serialVersionUID = 1L;
 

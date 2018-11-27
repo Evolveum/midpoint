@@ -30,7 +30,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.PasswordTextField;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -155,7 +154,7 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
 
             @Override
             protected IModel<String> createIconModel(final IModel<PasswordAccountDto> rowModel) {
-                return new AbstractReadOnlyModel<String>() {
+                return new IModel<String>() {
                 	private static final long serialVersionUID = 1L;
 
                     @Override
@@ -181,7 +180,7 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
             public void populateItem(Item<ICellPopulator<PasswordAccountDto>> item, String componentId,
                                      final IModel<PasswordAccountDto> rowModel) {
                 super.populateItem(item, componentId, rowModel);
-                final ImagePanel imagePanel = (ImagePanel) item.get(0);
+                final ImagePanel imagePanel = (ImagePanel) item.get(componentId);
 
                 final PasswordAccountDto passwordAccountDto = rowModel.getObject();
 
@@ -237,7 +236,7 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
             @Override
             public void populateItem(Item<ICellPopulator<PasswordAccountDto>> item, String componentId,
                                      final IModel<PasswordAccountDto> rowModel) {
-                item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
+                item.add(new Label(componentId, new IModel<Object>() {
                 	private static final long serialVersionUID = 1L;
 
                     @Override

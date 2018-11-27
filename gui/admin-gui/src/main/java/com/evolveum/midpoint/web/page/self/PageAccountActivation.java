@@ -175,14 +175,12 @@ public class PageAccountActivation extends PageBase {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void onSubmit(AjaxRequestTarget target,
-					Form<?> form) {
-				propagatePassword(target, form);
+			protected void onSubmit(AjaxRequestTarget target) {
+				propagatePassword(target, getForm());
 			}
 
 		@Override
-		protected void onError(AjaxRequestTarget target,
-				Form<?> form) {
+		protected void onError(AjaxRequestTarget target) {
 			getSession().error(getString("PageAccountActivation.account.activation.failed"));
 			target.add(getFeedbackPanel());
 		}

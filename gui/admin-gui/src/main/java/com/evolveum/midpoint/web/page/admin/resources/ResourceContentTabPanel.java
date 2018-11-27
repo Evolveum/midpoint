@@ -31,7 +31,6 @@ import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
@@ -174,7 +173,7 @@ public class ResourceContentTabPanel extends Panel {
 		});
 		add(intent);
 
-		Label realObjectClassLabel = new Label(ID_REAL_OBJECT_CLASS, new AbstractReadOnlyModel<String>() {
+		Label realObjectClassLabel = new Label(ID_REAL_OBJECT_CLASS, new IModel<String>() {
 			private static final long serialVersionUID = 1L;
 
 			@Override

@@ -35,7 +35,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -170,7 +169,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends AbstractAssignme
 	}
 
 	protected AttributeModifier getClassModifier(ListItem<AssignmentEditorDto> item){
-		return AttributeModifier.append("class", new AbstractReadOnlyModel<String>() {
+		return AttributeModifier.append("class", new IModel<String>() {
 			private static final long serialVersionUID = 1L;
 
 			@Override

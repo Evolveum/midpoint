@@ -30,7 +30,6 @@ import org.apache.wicket.markup.html.list.LoopItem;
 import org.apache.wicket.markup.html.navigation.paging.IPageable;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.AbstractRepeater;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 /**
@@ -56,7 +55,7 @@ public class NavigatorPanel extends Panel {
     private final IModel<Boolean> showPageListingModel;
 
     public NavigatorPanel(String id, IPageable pageable, final boolean showPageListing) {
-        this(id, pageable, new AbstractReadOnlyModel<Boolean>() {
+        this(id, pageable, new IModel<Boolean>() {
             @Override
             public Boolean getObject() {
                 return showPageListing;
@@ -91,7 +90,7 @@ public class NavigatorPanel extends Panel {
 
     private void initPrevious() {
         WebMarkupContainer previous = new WebMarkupContainer(ID_PREVIOUS);
-        previous.add(new AttributeModifier("class", new AbstractReadOnlyModel<String>() {
+        previous.add(new AttributeModifier("class", new IModel<String>() {
 
             @Override
             public String getObject() {
@@ -123,7 +122,7 @@ public class NavigatorPanel extends Panel {
 
     private void initFirst() {
         WebMarkupContainer first = new WebMarkupContainer(ID_FIRST);
-        first.add(new AttributeModifier("class", new AbstractReadOnlyModel<String>() {
+        first.add(new AttributeModifier("class", new IModel<String>() {
 
             @Override
             public String getObject() {
@@ -154,7 +153,7 @@ public class NavigatorPanel extends Panel {
     }
 
     private void initNavigation() {
-        IModel<Integer> model = new AbstractReadOnlyModel<Integer>() {
+        IModel<Integer> model = new IModel<Integer>() {
 
             @Override
             public Integer getObject() {
@@ -181,7 +180,7 @@ public class NavigatorPanel extends Panel {
                 };
                 item.add(pageLink);
 
-                item.add(new AttributeModifier("class", new AbstractReadOnlyModel<String>() {
+                item.add(new AttributeModifier("class", new IModel<String>() {
 
                     @Override
                     public String getObject() {
@@ -225,7 +224,7 @@ public class NavigatorPanel extends Panel {
 
     private void initNext() {
         WebMarkupContainer next = new WebMarkupContainer(ID_NEXT);
-        next.add(new AttributeModifier("class", new AbstractReadOnlyModel<String>() {
+        next.add(new AttributeModifier("class", new IModel<String>() {
 
             @Override
             public String getObject() {
@@ -258,7 +257,7 @@ public class NavigatorPanel extends Panel {
 
     private void initLast() {
         WebMarkupContainer last = new WebMarkupContainer(ID_LAST);
-        last.add(new AttributeModifier("class", new AbstractReadOnlyModel<String>() {
+        last.add(new AttributeModifier("class", new IModel<String>() {
 
             @Override
             public String getObject() {

@@ -19,7 +19,6 @@ import com.evolveum.midpoint.prism.Containerable;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 /**
@@ -114,7 +113,7 @@ public abstract class SummaryTagSimple<C extends Containerable> extends Panel {
 
 	protected abstract void initialize(C object);
 
-	abstract class SummaryTagModel<T> extends AbstractReadOnlyModel<T> {
+	abstract class SummaryTagModel<T> implements IModel<T> {
 
 		IModel<C> objectModel;
 

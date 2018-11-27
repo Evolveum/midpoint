@@ -45,7 +45,6 @@ import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -117,7 +116,7 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
 				return !parentPage.isReadOnly() || credentials.getPassword().getOutbound() != null;
 			}
 		};
-        TextField outboundLabel = new TextField<>(ID_OUTBOUND_LABEL, new AbstractReadOnlyModel<String>() {
+        TextField outboundLabel = new TextField<>(ID_OUTBOUND_LABEL, new IModel<String>() {
 
             @Override
             public String getObject() {
@@ -144,7 +143,7 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
         AjaxSubmitLink outbound = new AjaxSubmitLink(ID_OUTBOUND_BUTTON) {
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+            protected void onSubmit(AjaxRequestTarget target) {
                 outboundEditPerformed(target);
             }
         };
@@ -182,7 +181,7 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
 
         DropDownChoice passwordPolicy = new DropDownChoice<>(ID_PASS_POLICY,
             new PropertyModel<>(getModel(), "password.passwordPolicyRef"),
-                new AbstractReadOnlyModel<List<ObjectReferenceType>>() {
+                new IModel<List<ObjectReferenceType>>() {
 
                     @Override
                     public List<ObjectReferenceType> getObject() {

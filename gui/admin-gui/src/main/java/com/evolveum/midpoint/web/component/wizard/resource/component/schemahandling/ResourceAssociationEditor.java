@@ -152,7 +152,7 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
 
         DropDownChoice associationAttribute = new DropDownChoice<>(ID_ASSOCIATION_ATTRIBUTE,
             new PropertyModel<>(getModel(), "associationAttribute"),
-                new AbstractReadOnlyModel<List<QName>>() {
+                new IModel<List<QName>>() {
 
                     @Override
                     public List<QName> getObject() {
@@ -165,7 +165,7 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
 
         DropDownChoice valueAttribute = new DropDownChoice<>(ID_VALUE_ATTRIBUTE,
             new PropertyModel<>(getModel(), "valueAttribute"),
-                new AbstractReadOnlyModel<List<QName>>() {
+                new IModel<List<QName>>() {
 
                     @Override
                     public List<QName> getObject() {
@@ -248,7 +248,7 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
 
 		VisibleEnableBehaviour showIfEditingOrOutboundExists = AttributeEditorUtils.createShowIfEditingOrOutboundExists(getModel(), readOnlyModel);
         TextField outboundLabel = new TextField<>(ID_OUTBOUND_LABEL,
-                new AbstractReadOnlyModel<String>() {
+                new IModel<String>() {
 
                     @Override
                     public String getObject() {
@@ -269,12 +269,12 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
 
         AjaxSubmitButton outbound = new AjaxSubmitButton(ID_BUTTON_OUTBOUND) {
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+            protected void onSubmit(AjaxRequestTarget target) {
                 outboundEditPerformed(target);
             }
 
 			@Override
-			protected void onError(AjaxRequestTarget target, Form<?> form) {
+			protected void onError(AjaxRequestTarget target) {
 				target.add(parentStep.getPageBase().getFeedbackPanel());
 			}
 		};
@@ -285,12 +285,12 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
 		AjaxSubmitLink deleteOutbound = new AjaxSubmitLink(ID_DELETE_OUTBOUND) {
 
 			@Override
-			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+			protected void onSubmit(AjaxRequestTarget target) {
 				deleteOutboundPerformed(target);
 			}
 
 			@Override
-			protected void onError(AjaxRequestTarget target, Form<?> form) {
+			protected void onError(AjaxRequestTarget target) {
 				target.add(parentStep.getPageBase().getFeedbackPanel());
 			}
 		};

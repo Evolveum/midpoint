@@ -40,7 +40,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColu
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -49,6 +48,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author semancik
@@ -79,7 +79,9 @@ public class TaskResultTabPanel extends AbstractObjectTabPanel<TaskType> impleme
 		add(resultTablePanel);
 
 		add(new AjaxFallbackLink(ID_SHOW_RESULT) {
-			public void onClick(AjaxRequestTarget target) {
+			@Override
+			public void onClick(Optional optionalTarget) {
+				AjaxRequestTarget target = (AjaxRequestTarget) optionalTarget.get();
 				OperationResult opResult = taskDtoModel.getObject().getTaskOperationResult();
 				OperationResultPanel body = new OperationResultPanel(
 						pageBase.getMainPopupBodyId(),
@@ -100,7 +102,7 @@ public class TaskResultTabPanel extends AbstractObjectTabPanel<TaskType> impleme
 			@Override
 			public void populateItem(Item<ICellPopulator<OperationResult>> cellItem, String componentId,
 					IModel<OperationResult> rowModel) {
-				Label label = new Label(componentId, new AbstractReadOnlyModel<String>() {
+				Label label = new Label(componentId, new IModel<String>() {
 					@Override
 					public String getObject() {
 						return WebComponentUtil.nl2br(rowModel.getObject().getMessage());

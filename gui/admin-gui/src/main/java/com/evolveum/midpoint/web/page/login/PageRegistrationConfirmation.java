@@ -2,7 +2,15 @@ package com.evolveum.midpoint.web.page.login;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -25,19 +33,12 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.Producer;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 //CONFIRMATION_LINK = "http://localhost:8080/midpoint/confirm/registration/";
 @PageDescriptor(urls = {@Url(mountUrl = SchemaConstants.REGISTRATION_CONFIRAMTION_PREFIX)}, permitAll = true)
@@ -53,8 +54,11 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 	private static final String ID_SUCCESS_PANEL = "successPanel";
 	private static final String ID_ERROR_PANEL = "errorPanel";
 
-	private static final String OPERATION_ASSIGN_DEFAULT_ROLES = DOT_CLASS + ".assignDefaultRoles";
+	private static final String OPERATION_ASSIGN_DEFAULT_ROLES = DOT_CLASS + "assignDefaultRoles";
+	private static final String OPERATION_ASSIGN_ADDITIONAL_ROLE = DOT_CLASS + "assignAdditionalRole";
 	private static final String OPERATION_FINISH_REGISTRATION = DOT_CLASS + "finishRegistration";
+	private static final String OPERATION_CHECK_CREDENTIALS = DOT_CLASS + "checkCredentials";
+	private static final String OPERATION_REMOVE_NONCE_AND_SET_LIFECYCLE_STATE = DOT_CLASS + "removeNonceAndSetLifecycleState";
 
 	private static final long serialVersionUID = 1L;
 
@@ -90,156 +94,127 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 		StringValue tokenValue = params.get(SchemaConstants.TOKEN);
 		Validate.notEmpty(tokenValue.toString());
 
-		UserType userType = checkUserCredentials(userNameValue.toString(), tokenValue.toString(), result);
-		if (userType == null) {
+		try {
+			UserType user = checkUserCredentials(userNameValue.toString(), tokenValue.toString(), result);
+			PrismObject<UserType> administrator = getAdministratorPrivileged(result);
+
+			assignDefaultRoles(user.getOid(), administrator, result);
+			result.computeStatus();
+			if (result.getStatus() == OperationResultStatus.FATAL_ERROR) {
+				LOGGER.error("Failed to assign default roles, {}", result.getMessage());
+			} else {
+				NonceType nonceClone = user.getCredentials().getNonce().clone();
+				removeNonceAndSetLifecycleState(user.getOid(), nonceClone, administrator, result);
+				assignAdditionalRoleIfPresent(user.getOid(), nonceClone, administrator, result);
+				result.computeStatus();
+			}
 			initLayout(result);
-			return;
-		}
-
-		result = assignDefaultRoles(userType.getOid());
-		if (result.getStatus() == OperationResultStatus.FATAL_ERROR) {
-			LOGGER.error("Failed to assign default roles, {}", result.getMessage());
+		} catch (CommonException|AuthenticationException e) {
+			result.computeStatus();
 			initLayout(result);
-			return;
 		}
-
-		final NonceType nonceClone = userType.getCredentials().getNonce().clone();
-
-		result = removeNonce(userType.getOid(), nonceClone);
-		result = assignAdditionalRoleIfPresent(userType.getOid(), nonceClone, result);
-
-		initLayout(result);
 	}
 
-//	private UsernamePasswordAuthenticationToken authenticateUser(String username, String nonce, OperationResult result){
-//		ConnectionEnvironment connEnv = new ConnectionEnvironment();
-//		connEnv.setChannel(SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI);
-//		try {
-//			return getAuthenticationEvaluator().authenticate(connEnv, new NonceAuthenticationContext( username,
-//					nonce, getSelfRegistrationConfiguration().getNoncePolicy()));
-//		} catch (AuthenticationException ex) {
-//			getSession()
-//					.error(getString(ex.getMessage()));
-//			result.recordFatalError("Failed to validate user");
-//			LoggingUtils.logException(LOGGER, ex.getMessage(), ex);
-//			 return null;
-//		} catch (Exception ex) {
-//			getSession()
-//			.error(createStringResource("PageRegistrationConfirmation.authnetication.failed").getString());
-//			LoggingUtils.logException(LOGGER, "Failed to confirm registration", ex);
-//			return null;
-//		}
-//	}
-
-	private UserType checkUserCredentials(String username, String nonce, OperationResult result) {
-		ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI);
+	private UserType checkUserCredentials(String username, String nonce, OperationResult parentResult) {
+		OperationResult result = parentResult.createSubresult(OPERATION_CHECK_CREDENTIALS);
 		try {
-			return getAuthenticationEvaluator().checkCredentials(connEnv, new NonceAuthenticationContext( username,
+			ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI);
+			return getAuthenticationEvaluator().checkCredentials(connEnv, new NonceAuthenticationContext(username,
 					nonce, getSelfRegistrationConfiguration().getNoncePolicy()));
 		} catch (AuthenticationException ex) {
-			getSession()
-					.error(getString(ex.getMessage()));
-			result.recordFatalError("Failed to validate user");
+			getSession().error(getString(ex.getMessage()));
+			result.recordFatalError("Failed to validate user", ex);
 			LoggingUtils.logException(LOGGER, ex.getMessage(), ex);
-			 return null;
+			throw ex;
 		} catch (Exception ex) {
-			getSession()
-			.error(createStringResource("PageRegistrationConfirmation.authnetication.failed").getString());
+			getSession().error(createStringResource("PageRegistrationConfirmation.authnetication.failed").getString());
+			result.recordFatalError("Failed to confirm registration", ex);
 			LoggingUtils.logException(LOGGER, "Failed to confirm registration", ex);
-			return null;
-		}
-	}
-
-	private OperationResult assignDefaultRoles(final String userOid){
-		List<ContainerDelta<AssignmentType>> assignments = new ArrayList<>();
-		for (ObjectReferenceType defaultRole : getSelfRegistrationConfiguration().getDefaultRoles()) {
-			AssignmentType assignment = new AssignmentType();
-			assignment.setTargetRef(defaultRole);
-			try {
-				getPrismContext().adopt(assignment);
-				assignments.add(ContainerDelta.createModificationAdd(UserType.F_ASSIGNMENT, UserType.class, getPrismContext(), assignment));
-			} catch (SchemaException e) {
-				//nothing to do
-			}
-		}
-
-		final ObjectDelta<UserType> delta = ObjectDelta.createModifyDelta(userOid, assignments, UserType.class, getPrismContext());
-
-		return runPrivileged(new Producer<OperationResult>() {
-
-			@Override
-			public OperationResult run() {
-				OperationResult result = new OperationResult(OPERATION_ASSIGN_DEFAULT_ROLES);
-				Task task = createAnonymousTask(OPERATION_ASSIGN_DEFAULT_ROLES);
-				WebModelServiceUtils.save(delta, result, task, PageRegistrationConfirmation.this);
-				result.computeStatusIfUnknown();
-
-				return result;
-			}
-		});
-
-
-	}
-
-	private OperationResult removeNonce(final String userOid, final NonceType nonce){
-		return runPrivileged(() -> {
-			OperationResult result = new OperationResult("assignDefaultRoles");
-			Task task = createAnonymousTask("assignDefaultRoles");
-
-			ObjectDelta<UserType> userAssignmentsDelta;
-			try {
-				userAssignmentsDelta = ObjectDelta.createModificationDeleteContainer(UserType.class, userOid, new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_NONCE),  getPrismContext(), nonce);
-				userAssignmentsDelta.addModificationReplaceProperty(UserType.F_LIFECYCLE_STATE, SchemaConstants.LIFECYCLE_ACTIVE);
-			} catch (SchemaException e) {
-				result.recordFatalError("Could not create delta");
-				LOGGER.error("Could not prepare delta for removing nonce and lyfecycle state {}", e.getMessage());
-				return result;
-			}
-			WebModelServiceUtils.save(userAssignmentsDelta, result, task, PageRegistrationConfirmation.this);
+			throw ex;
+		} finally {
 			result.computeStatusIfUnknown();
-			return result;
-		});
+		}
 	}
 
-	private OperationResult assignAdditionalRoleIfPresent(String userOid, NonceType nonceType, OperationResult result){
-//		SecurityContextHolder.getContext().setAuthentication(token);
-		return runPrivileged(() -> {
-			List<ItemDelta> userDeltas = new ArrayList<>();
-			if (nonceType.getName() != null) {
+	private void assignDefaultRoles(String userOid, PrismObject<UserType> administrator, OperationResult parentResult) throws CommonException {
+		List<ObjectReferenceType> rolesToAssign = getSelfRegistrationConfiguration().getDefaultRoles();
+		if (CollectionUtils.isEmpty(rolesToAssign)) {
+			return;
+		}
 
-				Task task = createAnonymousTask(OPERATION_FINISH_REGISTRATION);
+		OperationResult result = parentResult.createSubresult(OPERATION_ASSIGN_DEFAULT_ROLES);
+		try {
+			PrismContext prismContext = getPrismContext();
+			List<AssignmentType> assignmentsToCreate = rolesToAssign.stream()
+					.map(ref -> ObjectTypeUtil.createAssignmentTo(ref, prismContext))
+					.collect(Collectors.toList());
+			ObjectDelta<Objectable> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+					.item(UserType.F_ASSIGNMENT).addRealValues(assignmentsToCreate)
+					.asObjectDelta(userOid);
+			runAsChecked(() -> {
+				Task task = createSimpleTask(OPERATION_ASSIGN_DEFAULT_ROLES);
+				WebModelServiceUtils.save(delta, result, task, PageRegistrationConfirmation.this);
+				return null;
+			}, administrator);
+		} catch (CommonException|RuntimeException e) {
+			result.recordFatalError("Couldn't assign default roles", e);
+			throw e;
+		} finally {
+			result.computeStatusIfUnknown();
+		}
+	}
 
-				ObjectDelta<UserType> assignRoleDelta = null;
+	private void removeNonceAndSetLifecycleState(String userOid, NonceType nonce, PrismObject<UserType> administrator,
+			OperationResult parentResult) throws CommonException {
+		OperationResult result = parentResult.createSubresult(OPERATION_REMOVE_NONCE_AND_SET_LIFECYCLE_STATE);
+		try {
+			runAsChecked(() -> {
+				Task task = createSimpleTask(OPERATION_REMOVE_NONCE_AND_SET_LIFECYCLE_STATE);
+				ObjectDelta<UserType> delta = ObjectDelta.createModificationDeleteContainer(UserType.class, userOid,
+						new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_NONCE), getPrismContext(), nonce);
+				delta.addModificationReplaceProperty(UserType.F_LIFECYCLE_STATE, SchemaConstants.LIFECYCLE_ACTIVE);
+				WebModelServiceUtils.save(delta, result, task, PageRegistrationConfirmation.this);
+				return null;
+			}, administrator);
+		} catch (CommonException|RuntimeException e) {
+			result.recordFatalError("Couldn't remove nonce and set lifecycle state", e);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't remove nonce and set lifecycle state", e);
+			throw e;
+		} finally {
+			result.computeStatusIfUnknown();
+		}
+	}
 
-				try {
-					AssignmentType assignment = new AssignmentType();
-					assignment.setTargetRef(
-							ObjectTypeUtil.createObjectRef(nonceType.getName(), ObjectTypes.ABSTRACT_ROLE));
-					getPrismContext().adopt(assignment);
-					userDeltas.add((ItemDelta) ContainerDelta.createModificationAdd(UserType.F_ASSIGNMENT,
-							UserType.class, getPrismContext(), assignment));
-
-					assignRoleDelta = ObjectDelta.createModifyDelta(userOid, userDeltas,
-							UserType.class, getPrismContext());
-					assignRoleDelta.setPrismContext(getPrismContext());
-				} catch (SchemaException e) {
-					result.recordFatalError("Could not create delta");
-					return result;
-
-				}
-
+	private void assignAdditionalRoleIfPresent(String userOid, NonceType nonceType,
+			PrismObject<UserType> administrator, OperationResult parentResult) throws CommonException {
+		if (nonceType.getName() == null) {
+			return;
+		}
+		OperationResult result = parentResult.createSubresult(OPERATION_ASSIGN_ADDITIONAL_ROLE);
+		try {
+			runAsChecked(() -> {
+				Task task = createAnonymousTask(OPERATION_ASSIGN_ADDITIONAL_ROLE);
+				ObjectDelta<UserType> assignRoleDelta;
+				AssignmentType assignment = new AssignmentType();
+				assignment.setTargetRef(ObjectTypeUtil.createObjectRef(nonceType.getName(), ObjectTypes.ABSTRACT_ROLE));
+				getPrismContext().adopt(assignment);
+				List<ItemDelta> userDeltas = new ArrayList<>();
+				userDeltas.add(ContainerDelta.createModificationAdd(UserType.F_ASSIGNMENT,
+						UserType.class, getPrismContext(), assignment));
+				assignRoleDelta = ObjectDelta.createModifyDelta(userOid, userDeltas, UserType.class, getPrismContext());
+				assignRoleDelta.setPrismContext(getPrismContext());
 				WebModelServiceUtils.save(assignRoleDelta, result, task, PageRegistrationConfirmation.this);
-				result.computeStatusIfUnknown();
-
-			}
-
-			return result;
-
-		});
-
-//		SecurityContextHolder.getContext().setAuthentication(null);
-
+				return null;
+			}, administrator);
+		} catch (CommonException|RuntimeException e) {
+			result.recordFatalError("Couldn't assign additional role", e);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't assign additional role", e);
+			throw e;
+		} finally {
+			result.computeStatusIfUnknown();
+		}
 	}
+
 	private void initLayout(final OperationResult result) {
 
 		WebMarkupContainer successPanel = new WebMarkupContainer(ID_SUCCESS_PANEL);

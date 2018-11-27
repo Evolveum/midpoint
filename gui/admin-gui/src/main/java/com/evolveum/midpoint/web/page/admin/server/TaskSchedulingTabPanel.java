@@ -48,7 +48,6 @@ import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.form.validation.IFormValidator;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -128,7 +127,7 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 
 		// last start
 		WebMarkupContainer lastStartedContainer = new WebMarkupContainer(ID_LAST_STARTED_CONTAINER);
-		Label lastStart = new Label(ID_LAST_STARTED, new AbstractReadOnlyModel<String>() {
+		Label lastStart = new Label(ID_LAST_STARTED, new IModel<String>() {
 			@Override
 			public String getObject() {
 				TaskDto dto = taskDtoModel.getObject();
@@ -141,7 +140,7 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 		});
 		lastStartedContainer.add(lastStart);
 
-		Label lastStartAgo = new Label(ID_LAST_STARTED_AGO, new AbstractReadOnlyModel<String>() {
+		Label lastStartAgo = new Label(ID_LAST_STARTED_AGO, new IModel<String>() {
 			@Override
 			public String getObject() {
 				TaskDto dto = taskDtoModel.getObject();
@@ -159,7 +158,7 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 
 		// last finish
 		WebMarkupContainer lastFinishedContainer = new WebMarkupContainer(ID_LAST_FINISHED_CONTAINER);
-		Label lastFinished = new Label(ID_LAST_FINISHED, new AbstractReadOnlyModel<String>() {
+		Label lastFinished = new Label(ID_LAST_FINISHED, new IModel<String>() {
 			@Override
 			public String getObject() {
 				TaskDto dto = taskDtoModel.getObject();
@@ -172,7 +171,7 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 		});
 		lastFinishedContainer.add(lastFinished);
 
-		Label lastFinishedAgo = new Label(ID_LAST_FINISHED_AGO, new AbstractReadOnlyModel<String>() {
+		Label lastFinishedAgo = new Label(ID_LAST_FINISHED_AGO, new IModel<String>() {
 			@Override
 			public String getObject() {
 				TaskDto dto = taskDtoModel.getObject();
@@ -202,7 +201,7 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 		add(lastFinishedContainer);
 
 		WebMarkupContainer nextRunContainer = new WebMarkupContainer(ID_NEXT_RUN_CONTAINER);
-		Label nextRun = new Label(ID_NEXT_RUN, new AbstractReadOnlyModel<String>() {
+		Label nextRun = new Label(ID_NEXT_RUN, new IModel<String>() {
 			@Override
 			public String getObject() {
 				TaskDto dto = taskDtoModel.getObject();
@@ -217,7 +216,7 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 		});
 		nextRunContainer.add(nextRun);
 
-		Label nextRunIn = new Label(ID_NEXT_RUN_IN, new AbstractReadOnlyModel<String>() {
+		Label nextRunIn = new Label(ID_NEXT_RUN_IN, new IModel<String>() {
 			@Override
 			public String getObject() {
 				TaskDto dto = taskDtoModel.getObject();
@@ -239,7 +238,7 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 		add(nextRunContainer);
 
 		WebMarkupContainer nextRetryContainer = new WebMarkupContainer(ID_NEXT_RETRY_CONTAINER);
-		Label nextRetry = new Label(ID_NEXT_RETRY, new AbstractReadOnlyModel<String>() {
+		Label nextRetry = new Label(ID_NEXT_RETRY, new IModel<String>() {
 			@Override
 			public String getObject() {
 				TaskDto dto = taskDtoModel.getObject();
@@ -252,7 +251,7 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 		});
 		nextRetryContainer.add(nextRetry);
 
-		Label nextRetryIn = new Label(ID_NEXT_RETRY_IN, new AbstractReadOnlyModel<String>() {
+		Label nextRetryIn = new Label(ID_NEXT_RETRY_IN, new IModel<String>() {
 			@Override
 			public String getObject() {
 				TaskDto dto = taskDtoModel.getObject();
@@ -488,7 +487,7 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 		schedulingTable.add(taskGroupLimitContainer);
 
 		WebMarkupContainer allowedNodesContainer = new WebMarkupContainer(ID_ALLOWED_NODES_CONTAINER);
-		allowedNodesContainer.add(new Label(ID_ALLOWED_NODES, new AbstractReadOnlyModel<String>() {
+		allowedNodesContainer.add(new Label(ID_ALLOWED_NODES, new IModel<String>() {
 			@Override
 			public String getObject() {
 				return taskDtoModel.getObject().getAllowedNodes(parentPage.getNodeListModel().getObject());

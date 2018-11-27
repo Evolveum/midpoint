@@ -29,7 +29,6 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceItemDefinitionType;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -79,7 +78,7 @@ class AttributeEditorUtils {
 
 		final List<QName> matchingRuleList = WebComponentUtil.getMatchingRuleList();
 		DropDownChoice matchingRule = new DropDownChoice<>(ID_MATCHING_RULE,
-				matchingRuleModel, new AbstractReadOnlyModel<List<QName>>() {
+				matchingRuleModel, new IModel<List<QName>>() {
 			@Override
 			public List<QName> getObject() {
 				return matchingRuleList;
@@ -99,7 +98,7 @@ class AttributeEditorUtils {
 		});
 		editor.add(matchingRule);
 
-		Label unknownMatchingRule = new Label(ID_UNKNOWN_MATCHING_RULE, new AbstractReadOnlyModel<String>() {
+		Label unknownMatchingRule = new Label(ID_UNKNOWN_MATCHING_RULE, new IModel<String>() {
 			@Override
 			public String getObject() {
 				return editor.getString("ResourceAttributeEditor.label.unknownMatchingRule", matchingRuleModel.getObject());

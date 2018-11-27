@@ -27,7 +27,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IFormSubmittingComponent;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
 
 /**
  * @author lazyman
@@ -120,12 +120,12 @@ public class WizardButtonBar extends Panel implements IDefaultButtonProvider {
 
 		AjaxSubmitButton validate = new AjaxSubmitButton(ID_VALIDATE) {
 			@Override
-			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+			protected void onSubmit(AjaxRequestTarget target) {
 				Session.get().getFeedbackMessages().clear();			// TODO - ok?
 				((PageResourceWizard) getPage()).refreshIssues(target);
 			}
 			@Override
-			protected void onError(AjaxRequestTarget target, Form<?> form) {
+			protected void onError(AjaxRequestTarget target) {
 				target.add(((PageBase) getPage()).getFeedbackPanel());
 			}
 		};
@@ -134,7 +134,7 @@ public class WizardButtonBar extends Panel implements IDefaultButtonProvider {
 
 		final AjaxSubmitButton save = new AjaxSubmitButton(ID_SAVE) {
 			@Override
-			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+			protected void onSubmit(AjaxRequestTarget target) {
 				IWizardStep activeStep = wizard.getModelObject().getActiveStep();
 				if (activeStep != null) {
 					activeStep.applyState();
@@ -143,7 +143,7 @@ public class WizardButtonBar extends Panel implements IDefaultButtonProvider {
 			}
 
 			@Override
-			protected void onError(AjaxRequestTarget target, Form<?> form) {
+			protected void onError(AjaxRequestTarget target) {
 				target.add(((PageBase) getPage()).getFeedbackPanel());
 			}
 		};
@@ -152,7 +152,7 @@ public class WizardButtonBar extends Panel implements IDefaultButtonProvider {
 
 		final AjaxSubmitButton visualize = new AjaxSubmitButton(ID_VISUALIZE) {
 			@Override
-			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+			protected void onSubmit(AjaxRequestTarget target) {
 				IWizardStep activeStep = wizard.getModelObject().getActiveStep();
 				PageResourceWizard wizardPage = (PageResourceWizard) getPage();
 				if (!wizardPage.isReadOnly()) {
@@ -167,14 +167,14 @@ public class WizardButtonBar extends Panel implements IDefaultButtonProvider {
 			}
 
 			@Override
-			protected void onError(AjaxRequestTarget target, Form<?> form) {
+			protected void onError(AjaxRequestTarget target) {
 				target.add(((PageBase) getPage()).getFeedbackPanel());
 			}
 		};
 		visualize.setVisible(moreSteps);
 		add(visualize);
 
-		Label visualizeLabel = new Label(ID_VISUALIZE_LABEL, new AbstractReadOnlyModel<String>() {
+		Label visualizeLabel = new Label(ID_VISUALIZE_LABEL, new IModel<String>() {
 			@Override
 			public String getObject() {
 				PageResourceWizard wizardPage = (PageResourceWizard) getPage();

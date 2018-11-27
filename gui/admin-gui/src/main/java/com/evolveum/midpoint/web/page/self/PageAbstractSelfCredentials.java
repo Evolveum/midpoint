@@ -233,12 +233,12 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
         	private static final long serialVersionUID = 1L;
 
             @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
+            protected void onError(AjaxRequestTarget target) {
                 target.add(getFeedbackPanel());
             }
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+            protected void onSubmit(AjaxRequestTarget target) {
                 onSavePerformed(target);
             }
         };
@@ -250,12 +250,12 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
         	private static final long serialVersionUID = 1L;
 
             @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
+            protected void onError(AjaxRequestTarget target) {
                 onCancelPerformed(target);
             }
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+            protected void onSubmit(AjaxRequestTarget target) {
                 onCancelPerformed(target);
             }
         };

@@ -20,9 +20,22 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import javax.validation.constraints.NotNull;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.DefaultReferencableImpl;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
+import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
+import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
+import com.evolveum.midpoint.web.component.prism.ValueWrapper;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -31,7 +44,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.export.Abstr
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -44,17 +56,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public class ColumnUtils {
 
@@ -157,7 +158,7 @@ public class ColumnUtils {
 
 			@Override
 			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
-				return new AbstractReadOnlyModel<String>() {
+				return new IModel<String>() {
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -174,7 +175,7 @@ public class ColumnUtils {
 
 			@Override
 			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
-				return new AbstractReadOnlyModel() {
+				return new IModel() {
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -189,7 +190,7 @@ public class ColumnUtils {
 			@Override
 			protected IModel<String> createTitleModel(final IModel<SelectableBean<T>> rowModel) {
 
-				return new AbstractReadOnlyModel<String>() {
+				return new IModel<String>() {
 
 					@Override
 					public String getObject() {
@@ -216,7 +217,7 @@ public class ColumnUtils {
 
 			@Override
 			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
-				return new AbstractReadOnlyModel<String>() {
+				return new IModel<String>() {
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -230,7 +231,7 @@ public class ColumnUtils {
             @Override
             protected IModel<String> createTitleModel(final IModel<SelectableBean<T>> rowModel) {
 
-                return new AbstractReadOnlyModel<String>() {
+                return new IModel<String>() {
 
                     @Override
                     public String getObject() {
@@ -258,7 +259,7 @@ public class ColumnUtils {
 
 			@Override
 			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
-				return new AbstractReadOnlyModel<String>() {
+				return new IModel<String>() {
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -305,7 +306,7 @@ public class ColumnUtils {
 
 			@Override
 			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
-				return new AbstractReadOnlyModel<String>() {
+				return new IModel<String>() {
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -324,7 +325,7 @@ public class ColumnUtils {
 
 			@Override
 			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
-				return new AbstractReadOnlyModel<String>() {
+				return new IModel<String>() {
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -347,7 +348,7 @@ public class ColumnUtils {
 
 			@Override
 			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
-				return new AbstractReadOnlyModel<String>() {
+				return new IModel<String>() {
 
 					/**
 					 *
@@ -370,7 +371,7 @@ public class ColumnUtils {
 
 			@Override
 			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
-				return new AbstractReadOnlyModel<String>() {
+				return new IModel<String>() {
 
 					private static final long serialVersionUID = 1L;
 
@@ -390,7 +391,7 @@ public class ColumnUtils {
 
 			@Override
 			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
-				return new AbstractReadOnlyModel<String>() {
+				return new IModel<String>() {
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -409,7 +410,7 @@ public class ColumnUtils {
 
 			@Override
 			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
-				return new AbstractReadOnlyModel<String>() {
+				return new IModel<String>() {
 					private static final long serialVersionUID = 1L;
 
 					@Override

@@ -58,7 +58,7 @@ public class PageAssignmentConflicts extends PageSelf {
         AjaxSubmitButton back = new AjaxSubmitButton(ID_BACK, createStringResource("PageAssignmentConflicts.back")) {
 
             @Override
-            public void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
+            public void onSubmit(AjaxRequestTarget target) {
                 redirectBack();
             }
 
@@ -68,7 +68,7 @@ public class PageAssignmentConflicts extends PageSelf {
         AjaxSubmitButton submit = new AjaxSubmitButton(ID_SUBMIT, createStringResource("PageAssignmentConflicts.submit")) {
 
             @Override
-            public void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
+            public void onSubmit(AjaxRequestTarget target) {
                 processConflictDecisions();
                 redirectBack();
             }

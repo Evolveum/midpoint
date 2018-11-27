@@ -31,7 +31,6 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.Nullable;
@@ -87,7 +86,7 @@ public class MultiValueTextEditPanel<T extends Serializable> extends BasePanel<L
                 addValuePerformed(target);
             }
         };
-        placeholderAdd.add(new AttributeAppender("class", new AbstractReadOnlyModel<String>() {
+        placeholderAdd.add(new AttributeAppender("class", new IModel<String>() {
 
             @Override
             public String getObject() {
@@ -140,16 +139,16 @@ public class MultiValueTextEditPanel<T extends Serializable> extends BasePanel<L
         AjaxSubmitLink edit = new AjaxSubmitLink(ID_EDIT) {
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+            protected void onSubmit(AjaxRequestTarget target) {
                 editPerformed(target, item.getModelObject());
             }
 
 			@Override
-			protected void onError(AjaxRequestTarget target, Form<?> form) {
+			protected void onError(AjaxRequestTarget target) {
 				target.add(getPageBase().getFeedbackPanel());
 			}
 		};
-        edit.add(new AttributeAppender("class", new AbstractReadOnlyModel<String>() {
+        edit.add(new AttributeAppender("class", new IModel<String>() {
 
             @Override
             public String getObject() {

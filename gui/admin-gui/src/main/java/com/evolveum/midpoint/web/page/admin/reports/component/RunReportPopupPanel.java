@@ -174,13 +174,13 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
         	private static final long serialVersionUID = 1L;
 
         	@Override
-        			protected void onError(AjaxRequestTarget target, Form<?> form) {
-        				FeedbackAlerts feedback = (FeedbackAlerts) form.get(ID_POPUP_FEEDBACK);
+        			protected void onError(AjaxRequestTarget target) {
+        				FeedbackAlerts feedback = (FeedbackAlerts) getForm().get(ID_POPUP_FEEDBACK);
         				target.add(feedback);
         			}
 
         	@Override
-        	protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+        	protected void onSubmit(AjaxRequestTarget target) {
         		runConfirmPerformed(target, reportModel);
         	}
                 };

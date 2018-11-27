@@ -50,7 +50,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.TextArea;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
@@ -144,7 +143,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         mainForm.add(panel);
 
         UserSelectionButton targetUserPanel = new UserSelectionButton(ID_TARGET_USER_PANEL,
-                new AbstractReadOnlyModel<List<UserType>>() {
+                new IModel<List<UserType>>() {
                     @Override
                     public List<UserType> getObject() {
                         return getSessionStorage().getRoleCatalog().getTargetUserList();
@@ -232,12 +231,12 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                 createStringResource("PageAssignmentsList.resolveConflicts")) {
 
             @Override
-            protected void onError(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
+            protected void onError(AjaxRequestTarget target) {
                 target.add(getFeedbackPanel());
             }
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
+            protected void onSubmit(AjaxRequestTarget target) {
                 PageAssignmentsList.this.navigateToNext(PageAssignmentConflicts.class);
             }
 

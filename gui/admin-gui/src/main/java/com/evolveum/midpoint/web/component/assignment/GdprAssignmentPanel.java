@@ -31,7 +31,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColu
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -70,7 +69,7 @@ public class GdprAssignmentPanel extends AbstractRoleAssignmentPanel {
 
 			@Override
 			protected IModel<Boolean> getCheckBoxValueModel(IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-				return new AbstractReadOnlyModel<Boolean>() {
+				return new IModel<Boolean>() {
 
 					private static final long serialVersionUID = 1L;
 

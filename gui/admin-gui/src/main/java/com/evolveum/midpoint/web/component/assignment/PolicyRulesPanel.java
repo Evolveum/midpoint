@@ -182,4 +182,5 @@ public class PolicyRulesPanel extends AssignmentPanel {
 		
 		return defs;
 	}
+
 }

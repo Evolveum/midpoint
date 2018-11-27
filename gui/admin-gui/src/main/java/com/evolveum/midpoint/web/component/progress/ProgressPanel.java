@@ -51,7 +51,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.time.Duration;
 import org.springframework.security.core.Authentication;
@@ -133,7 +132,7 @@ public class ProgressPanel extends BasePanel {
         progressForm.add(contentsPanel);
 
         ListView statusItemsListView = new ListView<ProgressReportActivityDto>(ID_ACTIVITIES,
-                new AbstractReadOnlyModel<List<ProgressReportActivityDto>>() {
+                new IModel<List<ProgressReportActivityDto>>() {
 
                     @Override
                     public List<ProgressReportActivityDto> getObject() {
@@ -154,7 +153,7 @@ public class ProgressPanel extends BasePanel {
         statisticsPanel = new StatisticsPanel(ID_STATISTICS, new StatisticsDtoModel());
         contentsPanel.add(statisticsPanel);
 
-        ListView logItemsListView = new ListView(ID_LOG_ITEMS, new AbstractReadOnlyModel<List>() {
+        ListView logItemsListView = new ListView(ID_LOG_ITEMS, new IModel<List>() {
 
             @Override
             public List getObject() {
@@ -172,7 +171,7 @@ public class ProgressPanel extends BasePanel {
         };
         contentsPanel.add(logItemsListView);
 
-        Label executionTime = new Label(ID_EXECUTION_TIME, new AbstractReadOnlyModel<String>() {
+        Label executionTime = new Label(ID_EXECUTION_TIME, new IModel<String>() {
 
             @Override
             public String getObject() {
@@ -202,7 +201,7 @@ public class ProgressPanel extends BasePanel {
     }
 
     private void populateStatusItem(ListItem<ProgressReportActivityDto> item) {
-        item.add(new Label(ID_ACTIVITY_DESCRIPTION, new AbstractReadOnlyModel<String>() {
+        item.add(new Label(ID_ACTIVITY_DESCRIPTION, new IModel<String>() {
 
             @Override
             public String getObject() {
@@ -217,7 +216,7 @@ public class ProgressPanel extends BasePanel {
             }
         }));
         item.add(createImageLabel(ID_ACTIVITY_STATE,
-                new AbstractReadOnlyModel<String>() {
+                new IModel<String>() {
 
                     @Override
                     public String getObject() {
@@ -229,7 +228,7 @@ public class ProgressPanel extends BasePanel {
                         }
                     }
                 },
-                new AbstractReadOnlyModel<String>() {
+                new IModel<String>() {
 
                     @Override
                     public String getObject() {     // TODO why this does not work???
@@ -243,7 +242,7 @@ public class ProgressPanel extends BasePanel {
                     }
                 }
         ));
-        item.add(new Label(ID_ACTIVITY_COMMENT, new AbstractReadOnlyModel<String>() {
+        item.add(new Label(ID_ACTIVITY_COMMENT, new IModel<String>() {
 
             @Override
             public String getObject() {
@@ -288,14 +287,12 @@ public class ProgressPanel extends BasePanel {
                 createStringResource("pageAdminFocus.button.abort")) {
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target,
-                                    org.apache.wicket.markup.html.form.Form<?> form) {
+            protected void onSubmit(AjaxRequestTarget target) {
                 abortPerformed(target);
             }
 
             @Override
-            protected void onError(AjaxRequestTarget target,
-                                   org.apache.wicket.markup.html.form.Form<?> form) {
+            protected void onError(AjaxRequestTarget target) {
                 target.add(getPageBase().getFeedbackPanel());
             }
         };
@@ -306,13 +303,12 @@ public class ProgressPanel extends BasePanel {
                 createStringResource("pageAdminFocus.button.back")) {
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
+            protected void onSubmit(AjaxRequestTarget target) {
                 backPerformed(target);
             }
 
             @Override
-            protected void onError(AjaxRequestTarget target,
-                                   org.apache.wicket.markup.html.form.Form<?> form) {
+            protected void onError(AjaxRequestTarget target) {
                 target.add(getPageBase().getFeedbackPanel());
             }
         };
@@ -323,14 +319,13 @@ public class ProgressPanel extends BasePanel {
                 createStringResource("pageAdminFocus.button.continueEditing")) {
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
+            protected void onSubmit(AjaxRequestTarget target) {
                 ProgressReportingAwarePage page = (ProgressReportingAwarePage) getPage();
                 page.continueEditing(target);
             }
 
             @Override
-            protected void onError(AjaxRequestTarget target,
-                                   org.apache.wicket.markup.html.form.Form<?> form) {
+            protected void onError(AjaxRequestTarget target) {
                 target.add(getPageBase().getFeedbackPanel());
             }
         };

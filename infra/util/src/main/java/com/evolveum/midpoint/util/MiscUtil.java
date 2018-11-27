@@ -15,7 +15,9 @@
  */
 package com.evolveum.midpoint.util;
 
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.TunnelException;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,7 +37,6 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -671,21 +672,30 @@ public class MiscUtil {
 		MiscUtil.throwException(t);
 	}
 
-	@FunctionalInterface
-	public interface CheckedSupplier<T> {
-		T get() throws Exception;
+	public static <T> T runChecked(CheckedFunction<Producer<T>, T> function, CheckedProducer<T> checkedProducer) throws CommonException {
+		try {
+			return function.apply(() -> {
+				try {
+					return checkedProducer.get();
+				} catch (CommonException e) {
+					throw new TunnelException(e);
+				}
+			});
+		} catch (TunnelException te) {
+			return unwrapTunnelledException(te);        // return is just for formal reasons -- this throws exceptions only
+		}
 	}
 
-	public static <T> Supplier<T> exceptionsToRuntime(CheckedSupplier<T> checkedSupplier) {
-		return () -> {
-			try {
-				return checkedSupplier.get();
-			} catch (RuntimeException e) {
-				throw e;
-			} catch (Exception e) {
-				throw new SystemException(e);
-			}
-		};
+	@SuppressWarnings("WeakerAccess")
+	public static <T> T unwrapTunnelledException(TunnelException te) throws CommonException {
+		Throwable cause = te.getCause();
+		if (cause instanceof CommonException) {
+			throw (CommonException) cause;
+		} else if (cause instanceof RuntimeException) {
+			throw (RuntimeException) cause;
+		} else {
+			throw te;
+		}
 	}
 
 	public static <T> Collection<T> filter(Collection<T> input, Predicate<? super T> predicate) {

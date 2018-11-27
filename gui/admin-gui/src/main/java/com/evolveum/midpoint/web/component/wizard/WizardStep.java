@@ -60,7 +60,7 @@ public class WizardStep extends org.apache.wicket.extensions.wizard.WizardStep {
     @Override
     public Component getHeader(String id, Component parent, IWizard wizard) {
 		return new Label(id, "");		// we don't want to display step names twice (in upper bar and in page header)
-//        return new Label(id, new AbstractReadOnlyModel<String>() {
+//        return new Label(id, new IModel<String>() {
 //            @Override
 //            public String getObject() {
 //                return getTitle();
@@ -142,7 +142,7 @@ public class WizardStep extends org.apache.wicket.extensions.wizard.WizardStep {
 
                 if(!stringList.contains(value)){
                     error(createStringResource("SchemaHandlingStep.message.validationError", value).getString());
-                    AjaxRequestTarget target = getRequestCycle().find(AjaxRequestTarget.class);
+                    AjaxRequestTarget target = getRequestCycle().find(AjaxRequestTarget.class).get();
                     target.add(getPageBase().getFeedbackPanel());
                 }
             }

@@ -23,7 +23,7 @@
       xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
    <name>c.fudge</name>
    <assignment id="1">
-      <targetRef oid="d163d767-2467-4304-badf-aaae421f2171"
+      <targetRef oid="00000000-0000-0org-0000-333111111111"
                  relation="org:default"
                  type="c:OrgType"><!-- Minister of magic --></targetRef>
    </assignment>

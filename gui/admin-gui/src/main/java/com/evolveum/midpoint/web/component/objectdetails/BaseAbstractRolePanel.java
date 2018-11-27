@@ -6,7 +6,6 @@ import com.evolveum.midpoint.web.page.admin.roles.component.MultiplicityPolicyPa
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -45,7 +44,7 @@ public class BaseAbstractRolePanel extends SimplePanel<AbstractRoleType>{
 	    }
 
 	    private IModel<String> createMultiplicityPolicyLabel(final IModel<MultiplicityPolicyConstraintType> model){
-	        return new AbstractReadOnlyModel<String>() {
+	        return new IModel<String>() {
 
 	            @Override
 	            public String getObject() {

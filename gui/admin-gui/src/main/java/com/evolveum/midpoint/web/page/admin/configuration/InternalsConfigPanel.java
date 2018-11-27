@@ -58,12 +58,12 @@ public class InternalsConfigPanel extends BasePanel<InternalsConfigDto> {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+			protected void onSubmit(AjaxRequestTarget target) {
 				updateInternalConfig(target);
 			}
 
 			@Override
-			protected void onError(AjaxRequestTarget target, Form<?> form) {
+			protected void onError(AjaxRequestTarget target) {
 				target.add(getPageBase().getFeedbackPanel());
 			}
 		};

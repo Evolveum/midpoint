@@ -38,7 +38,6 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -257,7 +256,7 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
                 } else {
                     created = null;
                 }
-                item.add(new Label(componentId, new AbstractReadOnlyModel<String>() {
+                item.add(new Label(componentId, new IModel<String>() {
                     @Override
                     public String getObject() {
                         return WebComponentUtil.getLocalizedDate(created, DateLabelComponent.LONG_MEDIUM_STYLE);
@@ -282,7 +281,7 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
                 } else {
                     deadline = null;
                 }
-                item.add(new Label(componentId, new AbstractReadOnlyModel<String>() {
+                item.add(new Label(componentId, new IModel<String>() {
                     @Override
                     public String getObject() {
                         return WebComponentUtil.getLocalizedDate(deadline, DateLabelComponent.LONG_MEDIUM_STYLE);
@@ -307,7 +306,7 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
                 } else {
                     closed = null;
                 }
-                item.add(new Label(componentId, new AbstractReadOnlyModel<String>() {
+                item.add(new Label(componentId, new IModel<String>() {
                     @Override
                     public String getObject() {
                         return WebComponentUtil.getLocalizedDate(closed, DateLabelComponent.LONG_MEDIUM_STYLE);

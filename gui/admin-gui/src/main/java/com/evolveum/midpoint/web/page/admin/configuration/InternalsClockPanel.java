@@ -47,12 +47,12 @@ public class InternalsClockPanel extends BasePanel<XMLGregorianCalendar>{
 	        	private static final long serialVersionUID = 1L;
 
 	            @Override
-	            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+	            protected void onSubmit(AjaxRequestTarget target) {
 	                savePerformed(target);
 	            }
 
 	            @Override
-	            protected void onError(AjaxRequestTarget target, Form<?> form) {
+	            protected void onError(AjaxRequestTarget target) {
 	                target.add(getPageBase().getFeedbackPanel());
 	            }
 	        };
@@ -62,12 +62,12 @@ public class InternalsClockPanel extends BasePanel<XMLGregorianCalendar>{
 	        	private static final long serialVersionUID = 1L;
 
 	            @Override
-	            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+	            protected void onSubmit(AjaxRequestTarget target) {
 	                resetPerformed(target);
 	            }
 
 	            @Override
-	            protected void onError(AjaxRequestTarget target, Form<?> form) {
+	            protected void onError(AjaxRequestTarget target) {
 	                target.add(getPageBase().getFeedbackPanel());
 	            }
 	        };

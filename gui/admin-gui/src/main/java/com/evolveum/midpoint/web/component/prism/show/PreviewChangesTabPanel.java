@@ -25,7 +25,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaExecut
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleEnforcerHookPreviewOutputType;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -107,13 +106,13 @@ public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<Mode
                 secondaryScenes.size() != 1 ? "PagePreviewChanges.secondaryChangesMore" : "PagePreviewChanges.secondaryChangesOne", secondaryScenes.size());
         final SceneDto primarySceneDto = new SceneDto(primaryScene);
         final SceneDto secondarySceneDto = new SceneDto(secondaryScene);
-        primaryDeltasModel = new AbstractReadOnlyModel<SceneDto>() {
+        primaryDeltasModel = new IModel<SceneDto>() {
             @Override
             public SceneDto getObject() {
                 return primarySceneDto;
             }
         };
-        secondaryDeltasModel = new AbstractReadOnlyModel<SceneDto>() {
+        secondaryDeltasModel = new IModel<SceneDto>() {
             @Override
             public SceneDto getObject() {
                 return secondarySceneDto;

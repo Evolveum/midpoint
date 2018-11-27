@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.web.component.form;
 
-import java.util.ArrayList;
+import java.util.ArrayList; 
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -29,7 +29,6 @@ import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -180,7 +179,8 @@ public class ValueChoosePanel<O extends ObjectType> extends BasePanel<ObjectRefe
 
 	protected IModel<String> createTextModel() {
 		final IModel<ObjectReferenceType> model = getModel();
-		return new AbstractReadOnlyModel<String>() {
+		return new IModel<String>() {
+
 			private static final long serialVersionUID = 1L;
 
 			@Override

@@ -38,7 +38,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -432,7 +431,7 @@ public class PageResources extends PageAdminResources {
 	 */
 	private IModel<String> createDeleteConfirmString(final String oneDeleteKey, final String moreDeleteKey,
 			final boolean resources) {
-		return new AbstractReadOnlyModel<String>() {
+		return new IModel<String>() {
 
 			@Override
 			public String getObject() {

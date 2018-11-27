@@ -91,6 +91,11 @@
                         <path>$user/name</path>
                     </target>
                 </inbound>
+                <outbound>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
+                </outbound>
             </attribute>
 
             <attribute>
@@ -102,6 +107,11 @@
                         <path>$user/givenName</path>
                     </target>
                 </inbound>
+                <outbound>
+                    <source>
+                        <path>$user/givenName</path>
+                    </source>
+                </outbound>
             </attribute>
             <attribute>
                 <ref>ri:lastname</ref>
@@ -112,6 +122,11 @@
                         <path>$user/familyName</path>
                     </target>
                 </inbound>
+                <outbound>
+                    <source>
+                        <path>$user/familyName</path>
+                    </source>
+                </outbound>
             </attribute>
             <attribute>
                 <ref>ri:groups</ref>
@@ -126,6 +141,7 @@
             <activation>
                 <administrativeStatus>
                     <inbound/>
+                    <outbound/>
                 </administrativeStatus>
             </activation>
 

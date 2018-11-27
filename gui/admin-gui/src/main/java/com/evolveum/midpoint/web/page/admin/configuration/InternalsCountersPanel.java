@@ -5,7 +5,7 @@ import java.util.Arrays;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
@@ -39,7 +39,7 @@ public class InternalsCountersPanel extends BasePanel<ListView<InternalCounters>
 				Label label = new Label(ID_COUNTER_LABEL, createStringResource("InternalCounters." + counter.getKey()));
 				item.add(label);
 
-				Label valueLabel = new Label(ID_COUNTER_VALUE, new AbstractReadOnlyModel<String>() {
+				Label valueLabel = new Label(ID_COUNTER_VALUE, new IModel<String>() {
 					private static final long serialVersionUID = 1L;
 
 					@Override

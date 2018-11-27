@@ -27,7 +27,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 import java.util.List;
@@ -84,7 +83,7 @@ public class PendingOperationPanel extends BasePanel<List<PendingOperationType>>
     }
 
     private IModel<String> createTextClass(IModel<PendingOperationType> model) {
-        return new AbstractReadOnlyModel<String>() {
+        return new IModel<String>() {
 
             private static final long serialVersionUID = 1L;
 
@@ -120,7 +119,7 @@ public class PendingOperationPanel extends BasePanel<List<PendingOperationType>>
     }
 
     private IModel<String> createTextTooltipModel(IModel<PendingOperationType> model) {
-        return new AbstractReadOnlyModel<String>() {
+        return new IModel<String>() {
 
             private static final long serialVersionUID = 1L;
 
@@ -157,7 +156,7 @@ public class PendingOperationPanel extends BasePanel<List<PendingOperationType>>
     }
 
     private IModel<String> createLabelText(IModel<PendingOperationType> model) {
-        return new AbstractReadOnlyModel<String>() {
+        return new IModel<String>() {
 
             private static final long serialVersionUID = 1L;
 

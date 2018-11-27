@@ -42,7 +42,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColu
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -287,7 +286,7 @@ public class PageCreatedReports extends PageAdminReports {
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<ReportOutputType>>> cellItem,
                                      String componentId, final IModel<SelectableBean<ReportOutputType>> rowModel) {
-                cellItem.add(new DateLabelComponent(componentId, new AbstractReadOnlyModel<Date>() {
+                cellItem.add(new DateLabelComponent(componentId, new IModel<Date>() {
 
                 	private static final long serialVersionUID = 1L;
                     @Override
@@ -347,7 +346,7 @@ public class PageCreatedReports extends PageAdminReports {
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                    public void onSubmit(AjaxRequestTarget target) {
                         deleteAllPerformed(target, ReportDeleteDialogDto.Operation.DELETE_ALL);
                     }
                 };
@@ -363,7 +362,7 @@ public class PageCreatedReports extends PageAdminReports {
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                    public void onSubmit(AjaxRequestTarget target) {
                         deleteSelectedPerformed(target, ReportDeleteDialogDto.Operation.DELETE_SELECTED, null);
                     }
                 };
@@ -374,7 +373,7 @@ public class PageCreatedReports extends PageAdminReports {
     }
 
     private IModel<String> createDeleteConfirmString() {
-        return new AbstractReadOnlyModel<String>() {
+        return new IModel<String>() {
 
         	private static final long serialVersionUID = 1L;
 

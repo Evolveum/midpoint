@@ -45,7 +45,6 @@ import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.string.Strings;
@@ -127,7 +126,7 @@ public class ResourceRelatedHandlerPanel<D extends ResourceRelatedHandlerDto> ex
 
 		final DropDownChoice<TaskAddResourcesDto> resourceRef = new DropDownChoice<>(ID_RESOURCE_REF,
             new PropertyModel<>(getModel(), ResourceRelatedHandlerDto.F_RESOURCE_REFERENCE),
-				new AbstractReadOnlyModel<List<TaskAddResourcesDto>>() {
+				new IModel<List<TaskAddResourcesDto>>() {
 					@Override
 					public List<TaskAddResourcesDto> getObject() {
 						return createResourceList();

@@ -30,7 +30,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -132,7 +131,7 @@ public class DefinitionBasicPanel extends BasePanel<CertDefinitionDto> {
 
 		add(WebComponentUtil.createHelp(ID_OUTCOME_STRATEGY_HELP));
 
-		Label stopReviewOn = new Label(ID_STOP_REVIEW_ON, new AbstractReadOnlyModel<String>() {
+		Label stopReviewOn = new Label(ID_STOP_REVIEW_ON, new IModel<String>() {
 			@Override
 			public String getObject() {
 				List<AccessCertificationResponseType> stopOn = getModel().getObject().getStopReviewOn();

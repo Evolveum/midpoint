@@ -63,7 +63,6 @@ import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -197,7 +196,7 @@ public class SynchronizationStep extends WizardStep {
                 AjaxSubmitLink link = new AjaxSubmitLink(ID_OBJECT_SYNC_LINK) {
 
                     @Override
-                    protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                    protected void onSubmit(AjaxRequestTarget target) {
                         editSyncObjectPerformed(target, syncObject);
                     }
                 };
@@ -217,7 +216,7 @@ public class SynchronizationStep extends WizardStep {
 				parentPage.addEditingVisibleBehavior(delete);
                 link.add(delete);
 
-                item.add(AttributeModifier.replace("class", new AbstractReadOnlyModel<String>() {
+                item.add(AttributeModifier.replace("class", new IModel<String>() {
 
                     @Override
                     public String getObject() {
@@ -260,7 +259,7 @@ public class SynchronizationStep extends WizardStep {
 	}
 
 	private void initObjectSyncEditor(WebMarkupContainer editor){
-        Label editorLabel = new Label(ID_EDITOR_LABEL, new AbstractReadOnlyModel<String>() {
+        Label editorLabel = new Label(ID_EDITOR_LABEL, new IModel<String>() {
             @Override
             public String getObject() {
                 if (!isAnySelected()) {
@@ -329,7 +328,7 @@ public class SynchronizationStep extends WizardStep {
 
             @Override
             protected IValidator<String> createAutoCompleteValidator(){
-                return createObjectClassValidator(new AbstractReadOnlyModel<List<QName>>() {
+                return createObjectClassValidator(new IModel<List<QName>>() {
                     @Override
 					public List<QName> getObject() {
                         return syncDtoModel.getObject().getObjectClassList();
@@ -343,7 +342,7 @@ public class SynchronizationStep extends WizardStep {
         // TODO: switch to ObjectTypeSelectPanel
         DropDownChoice editorFocus = new DropDownChoice<>(ID_EDITOR_FOCUS, new PropertyModel<>(syncDtoModel,
             ResourceSynchronizationDto.F_SELECTED + ".focusType"),
-                new AbstractReadOnlyModel<List<QName>>() {
+                new IModel<List<QName>>() {
 
                     @Override
                     public List<QName> getObject() {
@@ -363,7 +362,7 @@ public class SynchronizationStep extends WizardStep {
         AjaxSubmitLink editorCondition = new AjaxSubmitLink(ID_EDITOR_BUTTON_CONDITION){
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+            protected void onSubmit(AjaxRequestTarget target) {
                 conditionEditPerformed(target);
             }
         };
@@ -373,7 +372,7 @@ public class SynchronizationStep extends WizardStep {
         AjaxSubmitLink editorConfirmation = new AjaxSubmitLink(ID_EDITOR_BUTTON_CONFIRMATION){
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+            protected void onSubmit(AjaxRequestTarget target) {
                 confirmationEditPerformed(target);
             }
         };
@@ -382,7 +381,7 @@ public class SynchronizationStep extends WizardStep {
 
         DropDownChoice editorObjectTemplate = new DropDownChoice<>(ID_EDITOR_OBJECT_TEMPLATE,
             new PropertyModel<>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".objectTemplateRef"),
-                new AbstractReadOnlyModel<List<ObjectReferenceType>>() {
+                new IModel<List<ObjectReferenceType>>() {
 
                     @Override
                     public List<ObjectReferenceType> getObject() {
@@ -577,7 +576,7 @@ public class SynchronizationStep extends WizardStep {
     }
 
     private IModel<String> createObjectSyncTypeDisplayModel(final ObjectSynchronizationType syncObject){
-        return new AbstractReadOnlyModel<String>() {
+        return new IModel<String>() {
 
             @Override
             public String getObject() {
@@ -601,7 +600,7 @@ public class SynchronizationStep extends WizardStep {
 	}
 
 	private void addDisableClassModifier(Component component){
-        component.add(new AttributeAppender("class", new AbstractReadOnlyModel<String>() {
+        component.add(new AttributeAppender("class", new IModel<String>() {
 
             @Override
             public String getObject() {

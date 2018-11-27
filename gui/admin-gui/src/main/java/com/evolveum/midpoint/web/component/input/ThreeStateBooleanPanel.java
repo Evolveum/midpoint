@@ -21,7 +21,6 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 /**
@@ -61,7 +60,7 @@ public class ThreeStateBooleanPanel extends BasePanel<Boolean>{
     private void initLayout(final String optionOneLabel, final String optionTwoLabel,
                               final String optionThreeLabel, final String buttonCssClass){
 
-        AjaxButton buttonTrue = new AjaxButton(ID_BUTTON_ONE, new AbstractReadOnlyModel<String>() {
+        AjaxButton buttonTrue = new AjaxButton(ID_BUTTON_ONE, new IModel<String>() {
 
             @Override
             public String getObject() {
@@ -83,7 +82,7 @@ public class ThreeStateBooleanPanel extends BasePanel<Boolean>{
         buttonTrue.add(prepareActiveButtonAppender(Boolean.TRUE));
         add(buttonTrue);
 
-        AjaxButton buttonUndef = new AjaxButton(ID_BUTTON_TWO, new AbstractReadOnlyModel<String>() {
+        AjaxButton buttonUndef = new AjaxButton(ID_BUTTON_TWO, new IModel<String>() {
 
             @Override
             public String getObject() {
@@ -105,7 +104,7 @@ public class ThreeStateBooleanPanel extends BasePanel<Boolean>{
         buttonUndef.add(prepareActiveButtonAppender(null));
         add(buttonUndef);
 
-        AjaxButton buttonFalse = new AjaxButton(ID_BUTTON_THREE, new AbstractReadOnlyModel<String>() {
+        AjaxButton buttonFalse = new AjaxButton(ID_BUTTON_THREE, new IModel<String>() {
 
             @Override
             public String getObject() {
@@ -134,7 +133,7 @@ public class ThreeStateBooleanPanel extends BasePanel<Boolean>{
     }
 
     private AttributeAppender prepareActiveButtonAppender(final Boolean value){
-        return new AttributeAppender("class", new AbstractReadOnlyModel<String>() {
+        return new AttributeAppender("class", new IModel<String>() {
 
             @Override
             public String getObject() {

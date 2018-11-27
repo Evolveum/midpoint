@@ -150,7 +150,7 @@ public class MultiplicityPolicyPanel extends Panel implements Popupable {
 				createStringResource("PageBase.button.cancel")) {
 
 			@Override
-			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+			protected void onSubmit(AjaxRequestTarget target) {
 				cancelPerformed(target);
 			}
 		};
@@ -160,7 +160,7 @@ public class MultiplicityPolicyPanel extends Panel implements Popupable {
 				createStringResource("PageBase.button.save")) {
 
 			@Override
-			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+			protected void onSubmit(AjaxRequestTarget target) {
 				savePerformed(target);
 			}
 		};

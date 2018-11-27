@@ -40,7 +40,6 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -381,7 +380,7 @@ public class PageAuditLogDetails extends PageBase {
 
 		ListView<AuditEventRecordItemValueDto> additionalItemsList = new ListView<AuditEventRecordItemValueDto>(
 				ID_ADDITIONAL_ITEM_LINE,
-				new AbstractReadOnlyModel<List<AuditEventRecordItemValueDto>>() {
+				new IModel<List<AuditEventRecordItemValueDto>>() {
 					@Override
 					public List<AuditEventRecordItemValueDto> getObject() {
 						List<AuditEventRecordItemValueDto> rv = new ArrayList<>();

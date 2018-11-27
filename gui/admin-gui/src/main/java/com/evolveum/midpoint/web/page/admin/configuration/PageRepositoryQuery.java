@@ -67,7 +67,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.util.ListModel;
@@ -224,12 +224,12 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 
 		AjaxSubmitButton executeMidPoint = new AjaxSubmitButton(ID_EXECUTE_MIDPOINT, createStringResource("PageRepositoryQuery.button.translateAndExecute")) {
             @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
+            protected void onError(AjaxRequestTarget target) {
                 target.add(getFeedbackPanel());
             }
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+            protected void onSubmit(AjaxRequestTarget target) {
                 queryPerformed(Action.EXECUTE_MIDPOINT, target);
             }
         };
@@ -237,12 +237,12 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 
         AjaxSubmitButton compileMidPoint = new AjaxSubmitButton(ID_COMPILE_MIDPOINT, createStringResource("PageRepositoryQuery.button.translate")) {
             @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
+            protected void onError(AjaxRequestTarget target) {
                 target.add(getFeedbackPanel());
             }
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+            protected void onSubmit(AjaxRequestTarget target) {
                 queryPerformed(Action.TRANSLATE_ONLY, target);
             }
         };
@@ -250,11 +250,11 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 
 		AjaxSubmitButton useInObjectList = new AjaxSubmitButton(ID_USE_IN_OBJECT_LIST, createStringResource("PageRepositoryQuery.button.useInObjectList")) {
             @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
+            protected void onError(AjaxRequestTarget target) {
                 target.add(getFeedbackPanel());
             }
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+            protected void onSubmit(AjaxRequestTarget target) {
                 useInObjectListPerformed(target);
             }
         };
@@ -268,7 +268,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 
 		final DropDownChoice<String> sampleChoice = new DropDownChoice<>(ID_QUERY_SAMPLE,
 				Model.of(""),
-				new AbstractReadOnlyModel<List<String>>() {
+				new IModel<List<String>>() {
 					@Override
 					public List<String> getObject() {
 						return SAMPLES;
@@ -307,19 +307,19 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 
         AjaxSubmitButton executeHibernate = new AjaxSubmitButton(ID_EXECUTE_HIBERNATE, createStringResource("PageRepositoryQuery.button.execute")) {
             @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
+            protected void onError(AjaxRequestTarget target) {
                 target.add(getFeedbackPanel());
             }
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+            protected void onSubmit(AjaxRequestTarget target) {
                 queryPerformed(Action.EXECUTE_HIBERNATE, target);
             }
         };
 		executeHibernate.setVisible(isAdmin);
         mainForm.add(executeHibernate);
 
-		Label resultLabel = new Label(ID_RESULT_LABEL, new AbstractReadOnlyModel<String>() {
+		Label resultLabel = new Label(ID_RESULT_LABEL, new IModel<String>() {
 			@Override
 			public String getObject() {
 				if (model.getObject().getQueryResultText() == null) {

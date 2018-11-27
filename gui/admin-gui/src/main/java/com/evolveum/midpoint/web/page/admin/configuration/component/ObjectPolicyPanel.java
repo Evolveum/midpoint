@@ -29,6 +29,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
+import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -43,7 +44,6 @@ import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -186,7 +186,7 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 			protected void populateItem(final ListItem<PropertyConstraintType> item) {
 				WebMarkupContainer textWrapper = new WebMarkupContainer(ID_TEXT_WRAPPER);
 				textWrapper.setOutputMarkupId(true);
-				textWrapper.add(AttributeAppender.prepend("class", new AbstractReadOnlyModel<String>() {
+				textWrapper.add(AttributeAppender.prepend("class", new IModel<String>() {
 
 					private static final long serialVersionUID = 1L;
 					@Override
@@ -237,7 +237,7 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 				textWrapper.add(feedback);
 
 				WebMarkupContainer buttonGroup = new WebMarkupContainer(ID_BUTTON_GROUP);
-				buttonGroup.add(AttributeAppender.append("class", new AbstractReadOnlyModel<String>() {
+				buttonGroup.add(AttributeAppender.append("class", new IModel<String>() {
 
 					private static final long serialVersionUID = 1L;
 					@Override
@@ -261,12 +261,12 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 
 			private static final long serialVersionUID = 1L;
 			@Override
-			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+			protected void onSubmit(AjaxRequestTarget target) {
 				cancelPerformed(target);
 			}
 
 			@Override
-			protected void onError(AjaxRequestTarget target, Form<?> form) {
+			protected void onError(AjaxRequestTarget target) {
 				cancelPerformed(target);
 			}
 		};
@@ -277,12 +277,12 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 
 			private static final long serialVersionUID = 1L;
 			@Override
-			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+			protected void onSubmit(AjaxRequestTarget target) {
 				savePerformed(target);
 			}
 
 			@Override
-			protected void onError(AjaxRequestTarget target, Form<?> form) {
+			protected void onError(AjaxRequestTarget target) {
 				target.add(getPageBase().getFeedbackPanel());
 				target.add(form);
 			}
@@ -294,6 +294,7 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 		AjaxLink add = new AjaxLink(ID_BUTTON_ADD) {
 
 			private static final long serialVersionUID = 1L;
+			
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				addPerformed(target);
@@ -312,6 +313,7 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 		AjaxLink remove = new AjaxLink(ID_BUTTON_REMOVE) {
 
 			private static final long serialVersionUID = 1L;
+			
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				removePerformed(target, item);
@@ -373,7 +375,7 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 	}
 
 	protected IModel<List<ObjectTemplateConfigTypeReferenceDto>> createObjectTemplateList() {
-		return new AbstractReadOnlyModel<List<ObjectTemplateConfigTypeReferenceDto>>() {
+		return new IModel<List<ObjectTemplateConfigTypeReferenceDto>>() {
 
 			private static final long serialVersionUID = 1L;
 			@Override
@@ -408,7 +410,7 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 
 	// TODO - to what types can be ObjectTemplate bound?
 	private IModel<List<QName>> createTypeChoiceList() {
-		return new AbstractReadOnlyModel<List<QName>>() {
+		return new IModel<List<QName>>() {
 
 			private static final long serialVersionUID = 1L;
 			@Override

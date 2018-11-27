@@ -22,7 +22,6 @@ import java.util.List;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -72,7 +71,7 @@ public class DecisionsPanel extends BasePanel<List<DecisionDto>> {
 
 			@Override
 			protected IModel<String> createIconModel(final IModel<DecisionDto> rowModel) {
-				return new AbstractReadOnlyModel<String>() {
+				return new IModel<String>() {
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -89,7 +88,7 @@ public class DecisionsPanel extends BasePanel<List<DecisionDto>> {
 
 			@Override
 			protected IModel<String> createTitleModel(final IModel<DecisionDto> rowModel) {
-				return new AbstractReadOnlyModel<String>() {
+				return new IModel<String>() {
 					private static final long serialVersionUID = 1L;
 
 					@Override

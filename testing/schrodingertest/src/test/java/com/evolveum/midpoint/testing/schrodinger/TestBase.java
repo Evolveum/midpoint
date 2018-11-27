@@ -179,4 +179,45 @@ public abstract class TestBase {
         return resourcePage;
     }
 
+    public void changeResourceAttribute(String resourceName,String attributeName, String newValue){
+        changeResourceAttribute(resourceName ,attributeName ,null ,newValue ,true);
+    }
+
+    public void changeResourceAttribute(String resourceName,String attributeName, String newValue, Boolean shouldBeSuccess){
+        changeResourceAttribute(resourceName ,attributeName ,null ,newValue ,shouldBeSuccess);
+    }
+
+    public void changeResourceAttribute(String resourceName,String attributeName,String oldValue, String newValue, Boolean shouldBeSuccess){
+        ListResourcesPage listResourcesPage = basicPage.listResources();
+
+        if(shouldBeSuccess){
+            Assert.assertTrue(
+                    listResourcesPage
+                        .table()
+                            .clickByName(resourceName)
+                                .clickEditResourceConfiguration()
+                                    .form()
+                                    .changeAttributeValue(attributeName,oldValue, newValue)
+                                .and()
+                            .and()
+                                .clickSaveAndTestConnection()
+                                .isTestSuccess()
+            );
+          }else{
+            Assert.assertTrue(
+                    listResourcesPage
+                        .table()
+                            .clickByName(resourceName)
+                                .clickEditResourceConfiguration()
+                                    .form()
+                                    .changeAttributeValue(attributeName,oldValue, newValue)
+                                .and()
+                            .and()
+                                .clickSaveAndTestConnection()
+                                .isTestFailure()
+            );
+        }
+
+    }
+
 }
