@@ -175,10 +175,12 @@ public class ConstructionAssociationPanel<C extends Containerable, IW extends It
                                             ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression()) == null){
                                         return;
                                     }
-                                    ObjectReferenceType shadowRef = ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression());
-                                    if (shadowRef.equals(removedShadowRef)){
-                                        ((ContainerValueWrapper) associationValueWrapper).setStatus(ValueStatus.DELETED);
-                                    }
+                                    List<ObjectReferenceType> shadowRefList = ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression());
+                                    shadowRefList.forEach(shadowRef -> {
+                                        if (shadowRef.equals(removedShadowRef)) {
+                                            ((ContainerValueWrapper) associationValueWrapper).setStatus(ValueStatus.DELETED);
+                                        }
+                                    });
                                 });
                                 super.removeValuePerformed(target, item);
                             }
@@ -217,7 +219,7 @@ public class ConstructionAssociationPanel<C extends Containerable, IW extends It
                     QName assocRef = ItemPathUtil.getOnlySegmentQName(assoc.getRef());
                     if ((defName != null && defName.equals(assocRef))
                             || (assocRef == null && ValueStatus.ADDED.equals(((ContainerValueWrapper) associationValueWrapper).getStatus()))) {
-                        shadowsList.add(ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression()));
+                        shadowsList.addAll(ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression()));
                     }
                 });
                 return shadowsList;
@@ -241,10 +243,10 @@ public class ConstructionAssociationPanel<C extends Containerable, IW extends It
             if (compareName) {
                 QName assocRef = ItemPathUtil.getOnlySegmentQName(assoc.getRef());
                 if (name != null && name.equals(assocRef)) {
-                    shadowsList.add(ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression()));
+                    shadowsList.addAll(ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression()));
                 }
             } else {
-                shadowsList.add(ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression()));
+                shadowsList.addAll(ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression()));
             }
         });
         return shadowsList;

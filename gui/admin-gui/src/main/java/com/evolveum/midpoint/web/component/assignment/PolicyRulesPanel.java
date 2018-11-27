@@ -155,13 +155,6 @@ public class PolicyRulesPanel extends AssignmentPanel {
     }
 
 	@Override
-	protected Fragment getCustomSpecificContainers(String contentAreaId, ContainerValueWrapper<AssignmentType> modelObject) {
-		Fragment specificContainers = new Fragment(contentAreaId, AssignmentPanel.ID_SPECIFIC_CONTAINERS_FRAGMENT, this);
-		specificContainers.add(getSpecificContainerPanel(modelObject));
-		return specificContainers;
-	}
-	
-	@Override
 	protected IModel<ContainerWrapper> getSpecificContainerModel(ContainerValueWrapper<AssignmentType> modelObject) {
 		ContainerWrapper<PolicyRuleType> policyRuleWrapper = modelObject.findContainerWrapper(new ItemPath(modelObject.getPath(), AssignmentType.F_POLICY_RULE));
 		return Model.of(policyRuleWrapper);

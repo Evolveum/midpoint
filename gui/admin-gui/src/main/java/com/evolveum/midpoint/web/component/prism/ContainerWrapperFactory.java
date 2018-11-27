@@ -175,9 +175,9 @@ public class ContainerWrapperFactory {
 						if (expression == null){
 							continue;
 						}
-						ObjectReferenceType shadowRef = ExpressionUtil.getShadowRefValue(expression);
-						if (shadowRef != null) {
-							shadowAss.add(shadowRef.asReferenceValue().clone());
+						List<ObjectReferenceType> shadowRefList = ExpressionUtil.getShadowRefValue(expression);
+						if (shadowRefList != null && shadowRefList.size() > 0) {
+							shadowAss.add(shadowRefList.get(0).asReferenceValue().clone());
 						}
 					}
 				}

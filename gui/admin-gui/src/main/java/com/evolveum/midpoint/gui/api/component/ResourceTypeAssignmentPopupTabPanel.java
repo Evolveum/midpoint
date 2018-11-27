@@ -233,11 +233,13 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
             AssignmentType newConstructionAssignment = ObjectTypeUtil.createAssignmentWithConstruction(
                     selectedObject.asPrismObject(), kind, intent, getPageBase().getPrismContext());
             if (isEntitlementAssignment()){
-                ResourceObjectAssociationType association = new ResourceObjectAssociationType();
-                NameItemPathSegment segment = new NameItemPathSegment(getAssociationValue().getName());
+                NameItemPathSegment segment = getAssociationValue() != null ? new NameItemPathSegment(getAssociationValue().getName()) : null;
 
-                association.setRef(new ItemPathType(new ItemPath(segment)));
-                newConstructionAssignment.getConstruction().getAssociation().add(association);
+                if (segment != null) {
+                    ResourceObjectAssociationType association = new ResourceObjectAssociationType();
+                    association.setRef(new ItemPathType(new ItemPath(segment)));
+                    newConstructionAssignment.getConstruction().getAssociation().add(association);
+                }
             }
             assignmentList.put(selectedObject.getOid(), newConstructionAssignment);
         });

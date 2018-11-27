@@ -23,6 +23,7 @@ import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.AndFilter;
@@ -239,7 +240,8 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
                 if (expression == null || construction == null){
                     return new ObjectQuery();
                 }
-                PrismObject<ResourceType> resource = getResource();
+                PrismObject<ResourceType> resource = WebComponentUtil.getConstructionResource(construction, OPERATION_LOAD_RESOURCE,
+                        ExpressionValuePanel.this.getPageBase());
                 if (resource == null){
                     return new ObjectQuery();
                 }
@@ -361,13 +363,14 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
     }
 
     private ObjectReferenceType getShadowRefValue() {
-        ObjectReferenceType shadowRef = ExpressionUtil.getShadowRefValue(getModelObject());
-        if (shadowRef == null || shadowRef.getOid() == null){
+        //TODO fix the panel
+//        ObjectReferenceType shadowRef = ExpressionUtil.getShadowRefValue(getModelObject());
+//        if (shadowRef == null || shadowRef.getOid() == null){
             return null;
-        }
-        PolyStringType shadowName = new PolyStringType(WebModelServiceUtils.resolveReferenceName(shadowRef, pageBase));
-        shadowRef.setTargetName(shadowName);
-        return shadowRef;
+//        }
+//        PolyStringType shadowName = new PolyStringType(WebModelServiceUtils.resolveReferenceName(shadowRef, pageBase));
+//        shadowRef.setTargetName(shadowName);
+//        return shadowRef;
     }
 
        private List<InlineMenuItem> createAddButtonInlineMenuItems(){
@@ -448,17 +451,6 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
             }
         });
         return  menuList;
-    }
-
-    private PrismObject<ResourceType> getResource(){
-        ResourceType resource = construction.getResource();
-        if (resource != null){
-            return resource.asPrismObject();
-        }
-        ObjectReferenceType resourceRef = construction.getResourceRef();
-        OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCE);
-        Task task = pageBase.createSimpleTask(OPERATION_LOAD_RESOURCE);
-        return WebModelServiceUtils.resolveReferenceNoFetch(resourceRef, pageBase, task, result);
     }
 
     private List<String> getLiteralValues(){

@@ -2958,4 +2958,27 @@ public final class WebComponentUtil {
 		}
 		return sb.toString();
 	}
+
+	public static ExpressionType getAssociationExpression(AssignmentType assignment){
+		if (assignment == null || assignment.getConstruction() == null || assignment.getConstruction().getAssociation() == null
+				|| assignment.getConstruction().getAssociation().size() == 0){
+			return null;
+		}
+		ResourceObjectAssociationType association = assignment.getConstruction().getAssociation().get(0);
+		if (association == null || association.getOutbound() == null){
+			return null;
+		}
+		return association.getOutbound().getExpression();
+	}
+
+	public static PrismObject<ResourceType> getConstructionResource(ConstructionType construction, String operation, PageBase pageBase){
+		ResourceType resource = construction.getResource();
+		if (resource != null){
+			return resource.asPrismObject();
+		}
+		ObjectReferenceType resourceRef = construction.getResourceRef();
+		OperationResult result = new OperationResult(operation);
+		Task task = pageBase.createSimpleTask(operation);
+		return WebModelServiceUtils.resolveReferenceNoFetch(resourceRef, pageBase, task, result);
+	}
 }
