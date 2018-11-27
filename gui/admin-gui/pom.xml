@@ -849,6 +849,11 @@
             <artifactId>servlet-api</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>javax.validation</groupId>
+            <artifactId>validation-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
 
         <!-- Uncomment following if you want midpoint to be a part of SSO using CAS server-->
         <!-- SSO CAS Client dependencies -->

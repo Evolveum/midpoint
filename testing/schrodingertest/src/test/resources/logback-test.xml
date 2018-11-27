@@ -35,7 +35,8 @@
         <appender-ref ref="CONSOLE"/>
     </root>
 
-    <logger name="org.apache.http" level="DEBUG"/>
+	<!--org.apache.http LEVEL changed to WARN because of the Huuuge verbosity of DEBUG -->
+    <logger name="org.apache.http" level="WARN"/>
 
     <logger name="com.gargoylesoftware.htmlunit" level="WARNING"/>
     <logger name="com.gargoylesoftware.htmlunit.IncorrectnessListenerImpl" level="ERROR"/>

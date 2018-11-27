@@ -18,7 +18,6 @@ public class PostAuthenticationTests extends TestBase {
     private static final File SECURITY_POLICY_POST_AUTH_DEFAULT_FILE = new File("./src/test/resources/configuration/objects/securitypolicies/post-auth-no-form-default-policy.xml");
     private static final File CUSTOM_FORM_POST_AUTH_FILE = new File("./src/test/resources/configuration/objects/form/post-authentication-form.xml");
 
-
     protected static final String TEST_USER_TITIAN_NAME= "titian";
     protected static final String TEST_USER_BOTTICELLI_NAME= "botticelli";
 
@@ -58,7 +57,6 @@ public class PostAuthenticationTests extends TestBase {
                     .clickByName(TEST_USER_TITIAN_NAME)
                       .isActivationState(ACTIVATION_STATE_ENABLED_VALUE)
             );
-
     }
 
     @Test (dependsOnMethods = {INIT_BASIC_CONFIG_DEPENDENCY}, groups = TEST_GROUP_BEFORE_POST_AUTH_FLOW)
@@ -87,9 +85,9 @@ public class PostAuthenticationTests extends TestBase {
                     .clickByName(TEST_USER_BOTTICELLI_NAME)
                         .isActivationState(ACTIVATION_STATE_ARCHIVAED_VALUE)
             );
-
     }
 
+//TODO issue listed in Jira under MID-4996
     @Test (dependsOnGroups = {TEST_GROUP_BEFORE_POST_AUTH_FLOW}, alwaysRun = true)
     public void flowWithoutPostAuthRoleAssigned(){
         midPoint.logout();
@@ -141,7 +139,6 @@ public class PostAuthenticationTests extends TestBase {
             .login(TEST_USER_TITIAN_NAME,TEST_USER_TITIAN_PASSWORD)
                 .dynamicForm();
 
-        Selenide.sleep(5000);
 }
 
 
