@@ -318,7 +318,7 @@ public class BasicPage {
         SelenideElement mainMenuLi = mainMenu.parent().parent();
         if (!mainMenuLi.has(Condition.cssClass("active"))) {
             mainMenu.click();
-            mainMenuLi.shouldHave(Condition.cssClass("active"));
+            mainMenuLi.waitUntil(Condition.cssClass("active"),MidPoint.TIMEOUT_DEFAULT_2_S).shouldHave(Condition.cssClass("active"));
         }
 
         SelenideElement menuItem = mainMenu.$(Schrodinger.byDataResourceKey(menuItemKey));
