@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.evolveum.midpoint.gui.impl.factory;
 
 import javax.annotation.PostConstruct;
@@ -24,34 +23,45 @@ import org.apache.wicket.model.PropertyModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.gui.api.component.password.PasswordPanel;
 import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.web.component.input.TextAreaPanel;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.prism.ValueWrapper;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.web.page.admin.users.PageUser;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+/**
+ * @author katka
+ *
+ */
 @Component
-public class TextAreaFactory extends AbstractGuiComponentFactory {
+public class PasswordPanelFactory extends AbstractGuiComponentFactory {
 
 	@Autowired private GuiComponentRegistry registry;
 	
-//	@Override
 	@PostConstruct
 	public void register() {
 		registry.addToRegistry(this);
 	}
-
-	@Override
-	public <T> boolean match(ValueWrapper<T> valueWrapper) {
-		return FocusType.F_DESCRIPTION.equals(valueWrapper.getItem().getItemDefinition().getName());
-	}
 	
 	@Override
-	public <T> Panel createPanel(PanelContext<T> panelCtx) {
-		return new TextAreaPanel<>(panelCtx.getComponentId(), new PropertyModel<>(panelCtx.getBaseModel(), panelCtx.getBaseExpression()), 0);
+	public <T> boolean match(ValueWrapper<T> valueWrapper) {
+		return ProtectedStringType.COMPLEX_TYPE.equals(valueWrapper.getItem().getItemDefinition().getTypeName());
 	}
 
+	@Override
+	public <T> Panel createPanel(PanelContext<T> panelCtx) {
+		
+		if (!(panelCtx.getParentComponent().getPage() instanceof PageUser)) {
+			return new PasswordPanel(panelCtx.getComponentId(), (IModel<ProtectedStringType>) panelCtx.getRealValueModel(),
+				panelCtx.getBaseModel().getObject().isReadonly(), true);
+		} 
+		
+		return new PasswordPanel(panelCtx.getComponentId(), (IModel<ProtectedStringType>) panelCtx.getRealValueModel(),
+				panelCtx.getBaseModel().getObject().isReadonly());
+		
+	}
+
+	
 	
 }

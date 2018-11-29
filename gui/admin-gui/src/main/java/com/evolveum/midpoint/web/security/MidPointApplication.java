@@ -22,8 +22,10 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.MidPointApplicationConfiguration;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.converter.CleanupPoliciesTypeConverter;
 import com.evolveum.midpoint.gui.impl.converter.DurationConverter;
 import com.evolveum.midpoint.gui.impl.converter.PolyStringConverter;
+import com.evolveum.midpoint.gui.impl.converter.QueryTypeConverter;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -61,8 +63,10 @@ import com.evolveum.midpoint.web.util.MidPointResourceStreamLocator;
 import com.evolveum.midpoint.web.util.MidPointStringResourceLoader;
 import com.evolveum.midpoint.web.util.SchrodingerComponentInitListener;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPoliciesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DeploymentInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.IOUtils;
@@ -416,6 +420,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     	
     	locator.set(PolyString.class, new PolyStringConverter());
     	locator.set(Duration.class, new DurationConverter());
+    	locator.set(QueryType.class, new QueryTypeConverter(prismContext));
+    	locator.set(CleanupPoliciesType.class, new CleanupPoliciesTypeConverter(prismContext));
     	return locator;
     }
     

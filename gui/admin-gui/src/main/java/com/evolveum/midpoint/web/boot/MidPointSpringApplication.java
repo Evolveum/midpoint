@@ -70,7 +70,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextListener;
 import org.springframework.web.filter.DelegatingFilterProxy;
 
-import com.evolveum.midpoint.gui.impl.factory.TextAreaFactory;
+import com.evolveum.midpoint.gui.impl.factory.TextAreaPanelFactory;
 import com.evolveum.midpoint.gui.impl.util.ReportPeerQueryInterceptor;
 import com.evolveum.midpoint.init.StartupConfiguration;
 import com.evolveum.midpoint.model.api.authentication.NodeAuthenticationEvaluator;
@@ -126,7 +126,7 @@ import ro.isdc.wro.http.WroFilter;
         HealthIndicatorAutoConfiguration.class
 })
 @SpringBootConfiguration
-@ComponentScan(basePackages = {"com.evolveum.midpoint.gui"}, basePackageClasses = TextAreaFactory.class)
+@ComponentScan(basePackages = {"com.evolveum.midpoint.gui"}, basePackageClasses = TextAreaPanelFactory.class)
 //@EnableAutoConfiguration
 public class MidPointSpringApplication extends SpringBootServletInitializer {
 	

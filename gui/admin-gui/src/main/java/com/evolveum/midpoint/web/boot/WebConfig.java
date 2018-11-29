@@ -32,7 +32,7 @@ import org.springframework.context.annotation.Configuration;
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.impl.factory.LockoutStatusPanelFactory;
-import com.evolveum.midpoint.gui.impl.factory.TextAreaFactory;
+import com.evolveum.midpoint.gui.impl.factory.TextAreaPanelFactory;
 import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
 import com.evolveum.midpoint.web.application.AsyncWebProcessManager;
 import com.evolveum.midpoint.web.application.AsyncWebProcessManagerImpl;
@@ -69,7 +69,7 @@ public class WebConfig {
     
     @Bean
     public GuiComponentFactory textAreaFactory() {
-    	return new TextAreaFactory();
+    	return new TextAreaPanelFactory();
     }
     
     @Bean
