@@ -87,7 +87,8 @@ public class MidpointUtil {
 						.getPrimaryChangeProcessorState(task.asObjectable().getWorkflowContext());
 				ObjectTreeDeltasType updatedDelta = ObjectTreeDeltas.mergeDeltas(state.getDeltasToProcess(),
 						additionalDelta, prismContext);
-				ItemPath deltasToProcessPath = new ItemPath(F_WORKFLOW_CONTEXT, F_PROCESSOR_SPECIFIC_STATE, WfPrimaryChangeProcessorStateType.F_DELTAS_TO_PROCESS);		// assuming it already exists!
+				ItemPath deltasToProcessPath = ItemPath.create(F_WORKFLOW_CONTEXT, F_PROCESSOR_SPECIFIC_STATE,
+						WfPrimaryChangeProcessorStateType.F_DELTAS_TO_PROCESS);		// assuming it already exists!
 				ItemDefinition<?> deltasToProcessDefinition = getPrismContext().getSchemaRegistry()
 						.findContainerDefinitionByCompileTimeClass(WfPrimaryChangeProcessorStateType.class)
 						.findItemDefinition(WfPrimaryChangeProcessorStateType.F_DELTAS_TO_PROCESS);

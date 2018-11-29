@@ -40,6 +40,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -622,7 +623,7 @@ public class BasicExpressionFunctions {
         if (configurationProperties == null) {
             return null;
         }
-        PrismProperty<T> property = configurationProperties.findProperty(propertyQname);
+        PrismProperty<T> property = configurationProperties.findProperty(ItemName.fromQName(propertyQname));
         if (property == null) {
             return null;
         }

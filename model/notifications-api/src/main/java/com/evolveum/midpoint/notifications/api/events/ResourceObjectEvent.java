@@ -20,7 +20,7 @@ import com.evolveum.midpoint.notifications.api.OperationStatus;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -138,7 +138,7 @@ public class ResourceObjectEvent extends BaseEvent {
     }
 
     @Override
-    public boolean isRelatedToItem(ItemPath itemPath) {
+    public boolean isRelatedToItem(UniformItemPath itemPath) {
         return containsItem(getShadowDelta(), itemPath);
     }
 

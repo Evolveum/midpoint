@@ -161,9 +161,9 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
                     return dto;
                 }
 
-                final Collection<SelectorOptions<GetOperationOptions>> options =
-                        SelectorOptions.createCollection(ShadowType.F_RESOURCE, GetOperationOptions.createResolve());
-
+                final Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
+                        .item(ShadowType.F_RESOURCE).resolve()
+                        .build();
                 List<PrismReferenceValue> values = reference.getValues();
                 for (PrismReferenceValue value : values) {
                     subResult = result.createSubresult(OPERATION_LOAD_ACCOUNT);
@@ -333,7 +333,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
             if (!password.isEncrypted()) {
                 WebComponentUtil.encryptProtectedString(password, true, getMidpointApplication());
             }
-            final ItemPath valuePath = new ItemPath(SchemaConstantsGenerated.C_CREDENTIALS,
+            final ItemPath valuePath = ItemPath.create(SchemaConstantsGenerated.C_CREDENTIALS,
                     CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
             SchemaRegistry registry = getPrismContext().getSchemaRegistry();
             Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();

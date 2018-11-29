@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.repo.sql.helpers.modify;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
@@ -47,8 +49,8 @@ public class EntityRegistry {
 
     private static final Trace LOGGER = TraceManager.getTrace(EntityRegistry.class);
 
-    @Autowired
-    private SessionFactory sessionFactory;
+    @Autowired private SessionFactory sessionFactory;
+    @Autowired private PrismContext prismContext;
 
     private Metamodel metamodel;
 
@@ -56,7 +58,7 @@ public class EntityRegistry {
 
     private Map<ManagedType, Map<String, Attribute>> attributeNameOverrides = new HashMap<>();
 
-    private Map<ManagedType, Map<ItemPath, Attribute>> attributeNamePathOverrides = new HashMap<>();
+    private Map<ManagedType, Map<UniformItemPath, Attribute>> attributeNamePathOverrides = new HashMap<>();
 
     @PostConstruct
     public void init() {
@@ -86,7 +88,7 @@ public class EntityRegistry {
 
             // create override map
             Map<String, Attribute> overrides = new HashMap<>();
-            Map<ItemPath, Attribute> pathOverrides = new HashMap<>();
+            Map<UniformItemPath, Attribute> pathOverrides = new HashMap<>();
 
             for (Attribute attribute : (Set<Attribute>) entity.getAttributes()) {
                 Class jType = attribute.getJavaType();
@@ -107,7 +109,7 @@ public class EntityRegistry {
                 if (names.length == 1) {
                     overrides.put(names[0].localPart(), attribute);
                 } else {
-                    ItemPath customPath = ItemPath.EMPTY_PATH;
+                    UniformItemPath customPath = prismContext.emptyPath();
                     for (JaxbName name : path.itemPath()) {
                         customPath = customPath.append(new QName(name.namespace(), name.localPart()));
                     }
@@ -152,15 +154,15 @@ public class EntityRegistry {
     }
 
     public boolean hasAttributePathOverride(ManagedType type, ItemPath pathOverride) {
-        Map<ItemPath, Attribute> overrides = attributeNamePathOverrides.get(type);
+        Map<UniformItemPath, Attribute> overrides = attributeNamePathOverrides.get(type);
         if (overrides == null) {
             return false;
         }
 
         ItemPath namedOnly = pathOverride.namedSegmentsOnly();
 
-        for (ItemPath path : overrides.keySet()) {
-            if (path.startsWith(namedOnly) || path.equals(namedOnly)) {
+        for (UniformItemPath path : overrides.keySet()) {
+            if (path.isSuperPathOrEquivalent(namedOnly)) {
                 return true;
             }
         }
@@ -169,11 +171,11 @@ public class EntityRegistry {
     }
 
     public Attribute findAttributePathOverride(ManagedType type, ItemPath pathOverride) {
-        Map<ItemPath, Attribute> overrides = attributeNamePathOverrides.get(type);
+        Map<UniformItemPath, Attribute> overrides = attributeNamePathOverrides.get(type);
         if (overrides == null) {
             return null;
         }
 
-        return overrides.get(pathOverride);
+        return overrides.get(pathOverride.toUniform(prismContext));
     }
 }

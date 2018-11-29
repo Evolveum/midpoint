@@ -30,6 +30,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -46,7 +48,6 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.sql.testing.CarefulAnt;
@@ -751,7 +752,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 
 	private void assertConfigurationPropertyDefinition(PrismContainerDefinition<Containerable> containerDefinition,
 			String propertyLocalName, QName expectedType, int expectedMinOccurs, int expectedMaxOccurs, String expectedDisplayName, String expectedHelp) {
-		QName propName = new QName(containerDefinition.getTypeName().getNamespaceURI(),propertyLocalName);
+		ItemName propName = new ItemName(containerDefinition.getTypeName().getNamespaceURI(),propertyLocalName);
 		PrismPropertyDefinition propDef = containerDefinition.findPropertyDefinition(propName);
 		assertConfigurationPropertyDefinition(propDef, expectedType, expectedMinOccurs, expectedMaxOccurs, expectedDisplayName, expectedHelp);
 	}
@@ -759,7 +760,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 	private void assertConfigurationPropertyDefinition(PrismContainer container,
 			String propertyLocalName, QName expectedType, int expectedMinOccurs, int expectedMaxOccurs, String expectedDisplayName, String expectedHelp) {
 		QName propName = new QName(container.getDefinition().getTypeName().getNamespaceURI(),propertyLocalName);
-		PrismProperty prop = container.findProperty(propName);
+		PrismProperty prop = container.findProperty(ItemName.fromQName(propName));
 		assertNotNull("No property "+propName, prop);
 		PrismPropertyDefinition propDef = prop.getDefinition();
 		assertNotNull("No definition for property "+prop, propDef);
@@ -1095,7 +1096,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     }
 
     private ItemPath getConfigurationPropertyPath(QName elementQName) {
-    	return new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION, SchemaConstants.ICF_CONFIGURATION_PROPERTIES,
+    	return ItemPath.create(ResourceType.F_CONNECTOR_CONFIGURATION, SchemaConstants.ICF_CONFIGURATION_PROPERTIES,
     			elementQName);
     }
 

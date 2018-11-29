@@ -19,10 +19,7 @@ package com.evolveum.midpoint.repo.sql;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -41,6 +38,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
+import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -64,8 +62,8 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
     public void test001TwoWriters_OneAttributeEach__NoReader() throws Exception {
 
         PropertyModifierThread[] mts = new PropertyModifierThread[]{
-                new PropertyModifierThread(1, new ItemPath(UserType.F_GIVEN_NAME), true, null, true),
-                new PropertyModifierThread(2, new ItemPath(UserType.F_FAMILY_NAME), true, null, true),
+                new PropertyModifierThread(1, UserType.F_GIVEN_NAME, true, null, true),
+                new PropertyModifierThread(2, UserType.F_FAMILY_NAME, true, null, true),
 //                new ModifierThread(3, oid, UserType.F_DESCRIPTION, false),
 //                new ModifierThread(4, oid, UserType.F_EMAIL_ADDRESS, false),
 //                new ModifierThread(5, oid, UserType.F_TELEPHONE_NUMBER, false),
@@ -81,10 +79,10 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
     public void test002FourWriters_OneAttributeEach__NoReader() throws Exception {
 
         PropertyModifierThread[] mts = new PropertyModifierThread[]{
-                new PropertyModifierThread(1, new ItemPath(UserType.F_GIVEN_NAME), true, null, true),
-                new PropertyModifierThread(2, new ItemPath(UserType.F_FAMILY_NAME), true, null, true),
-                new PropertyModifierThread(3, new ItemPath(UserType.F_DESCRIPTION), false, null, true),
-                new PropertyModifierThread(4, new ItemPath(UserType.F_EMAIL_ADDRESS), false, null, true)
+                new PropertyModifierThread(1, UserType.F_GIVEN_NAME, true, null, true),
+                new PropertyModifierThread(2, UserType.F_FAMILY_NAME, true, null, true),
+                new PropertyModifierThread(3, UserType.F_DESCRIPTION, false, null, true),
+                new PropertyModifierThread(4, UserType.F_EMAIL_ADDRESS, false, null, true)
         };
 
         concurrencyUniversal("Test2", 60000L, 500L, mts, null);
@@ -94,11 +92,8 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
     public void test003OneWriter_TwoAttributes__OneReader() throws Exception {
 
         PropertyModifierThread[] mts = new PropertyModifierThread[]{
-                new PropertyModifierThread(1, new ItemPath(UserType.F_GIVEN_NAME), true,
-                        new ItemPath(
-                                new NameItemPathSegment(UserType.F_ASSIGNMENT),
-                                new IdItemPathSegment(1L),
-                                new NameItemPathSegment(AssignmentType.F_DESCRIPTION)),
+                new PropertyModifierThread(1, UserType.F_GIVEN_NAME, true,
+                        ItemPath.create(UserType.F_ASSIGNMENT, 1L, AssignmentType.F_DESCRIPTION),
                         true)
         };
 
@@ -122,18 +117,12 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
     public void test004TwoWriters_TwoAttributesEach__OneReader() throws Exception {
 
         PropertyModifierThread[] mts = new PropertyModifierThread[]{
-                new PropertyModifierThread(1, new ItemPath(UserType.F_GIVEN_NAME), true,
-                        new ItemPath(
-                                new NameItemPathSegment(UserType.F_ASSIGNMENT),
-                                new IdItemPathSegment(1L),
-                                new NameItemPathSegment(AssignmentType.F_DESCRIPTION)),
+                new PropertyModifierThread(1, UserType.F_GIVEN_NAME, true,
+                        ItemPath.create(UserType.F_ASSIGNMENT, 1L, AssignmentType.F_DESCRIPTION),
                         true),
 
-                new PropertyModifierThread(2, new ItemPath(UserType.F_FAMILY_NAME), true,
-                        new ItemPath(
-                                new NameItemPathSegment(UserType.F_ASSIGNMENT),
-                                new IdItemPathSegment(1L),
-                                new NameItemPathSegment(AssignmentType.F_CONSTRUCTION)),
+                new PropertyModifierThread(2, UserType.F_FAMILY_NAME, true,
+                        ItemPath.create(UserType.F_ASSIGNMENT, 1L, AssignmentType.F_CONSTRUCTION),
                         true),
         };
 
@@ -300,13 +289,8 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         }
 
         private String lastName(ItemPath path) {
-            List<ItemPathSegment> segments = path.getSegments();
-            for (int i = segments.size()-1; i >= 0; i++) {
-                if (segments.get(i) instanceof NameItemPathSegment) {
-                    return ((NameItemPathSegment) segments.get(i)).getName().getLocalPart();
-                }
-            }
-            return "?";
+            QName lastName = path.lastName();
+            return lastName != null ? lastName.getLocalPart() : "?";
         }
 
         void runOnce(OperationResult result) {

@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.schema;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
@@ -29,7 +30,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -533,7 +533,7 @@ public class TestJaxbConstruction {
         MapXNode equalsElement = new MapXNode();
 		filter.put(new QName(SchemaConstantsGenerated.NS_QUERY, "equal"), equalsElement);
 
-        PrimitiveXNode<ItemPathType> pathElement = new PrimitiveXNode<>(new ItemPathType(new ItemPath(new QName("name"))));
+        PrimitiveXNode<ItemPathType> pathElement = new PrimitiveXNode<>(new ItemPathType(getPrismContext().path(new QName("name"))));
         equalsElement.put(new QName(SchemaConstantsGenerated.NS_QUERY, "path"), pathElement);
 
         PrimitiveXNode<String> valueElement = new PrimitiveXNode<>("čučoriedka");

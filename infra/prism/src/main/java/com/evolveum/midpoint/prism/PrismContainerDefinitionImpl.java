@@ -18,12 +18,7 @@ package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ContainerDeltaImpl;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
-import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
-import com.evolveum.midpoint.prism.path.ParentPathSegment;
+import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -149,9 +144,9 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 	}
 
     @Override
-	public <D extends ItemDefinition> D findItemDefinition(@NotNull QName name, @NotNull Class<D> clazz, boolean caseInsensitive) {
+	public <D extends ItemDefinition> D findLocalItemDefinition(@NotNull QName name, @NotNull Class<D> clazz, boolean caseInsensitive) {
         if (complexTypeDefinition != null) {
-            return complexTypeDefinition.findItemDefinition(name, clazz, caseInsensitive);
+            return complexTypeDefinition.findLocalItemDefinition(name, clazz, caseInsensitive);
         } else {
         	return null;	// xsd:any and similar dynamic definitions
         }
@@ -167,7 +162,8 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 		return complexTypeDefinition != null ? complexTypeDefinition.getIgnoredNamespaces() : null;
 	}
 
-    public <ID extends ItemDefinition> ID findItemDefinition(@NotNull ItemPath path, @NotNull Class<ID> clazz) {
+    public <ID extends ItemDefinition> ID findItemDefinition(@NotNull ItemPath itemPath, @NotNull Class<ID> clazz) {
+    	UniformItemPath path = itemPath.toUniform(getPrismContext());
         for (;;) {
             if (path.isEmpty()) {
                 if (clazz.isAssignableFrom(PrismContainerDefinition.class)) {
@@ -176,14 +172,13 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
                     return null;
                 }
             }
-            ItemPathSegment first = path.first();
-            if (first instanceof NameItemPathSegment) {
-                QName firstName = ((NameItemPathSegment)first).getName();
-                return findNamedItemDefinition(firstName, path.rest(), clazz);
-            } else if (first instanceof IdItemPathSegment) {
+            Object first = path.first();
+            if (ItemPath.isName(first)) {
+                return findNamedItemDefinition(ItemPath.toName(first), path.rest(), clazz);
+            } else if (ItemPath.isId(first)) {
                 path = path.rest();
-            } else if (first instanceof ParentPathSegment) {
-				ItemPath rest = path.rest();
+            } else if (ItemPath.isParent(first)) {
+				UniformItemPath rest = path.rest();
                 ComplexTypeDefinition parent = getSchemaRegistry().determineParentDefinition(getComplexTypeDefinition(), rest);
 				if (rest.isEmpty()) {
 					// requires that the parent is defined as an item (container, object)
@@ -191,7 +186,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 				} else {
 					return parent.findItemDefinition(rest, clazz);
 				}
-            } else if (first instanceof ObjectReferencePathSegment) {
+            } else if (ItemPath.isObjectReference(first)) {
                 throw new IllegalStateException("Couldn't use '@' path segment in this context. PCD=" + getTypeName() + ", path=" + path);
             } else {
                 throw new IllegalStateException("Unexpected path segment: " + first + " in " + path);
@@ -281,7 +276,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 
     @Override
 	public ContainerDelta<C> createEmptyDelta(ItemPath path) {
-		return new ContainerDeltaImpl<>(path, this, prismContext);
+		return new ContainerDeltaImpl<>(prismContext.path(path), this, prismContext);
 	}
 
     @Override

@@ -37,7 +37,7 @@ import org.xml.sax.SAXException;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.foo.UserType;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -262,7 +262,7 @@ public abstract class TestPrismParsing {
 		PrismContext prismContext = constructInitializedPrismContext();
 
 		PrismObject<UserType> userJack = prismContext.parseObject(getFile(USER_JACK_FILE_BASENAME));
-		PrismContainer<Containerable> meleeContextContainer = userJack.findOrCreateContainer(new ItemPath(UserType.F_EXTENSION, EXTENSION_MELEE_CONTEXT_ELEMENT));
+		PrismContainer<Containerable> meleeContextContainer = userJack.findOrCreateContainer(prismContext.path(UserType.F_EXTENSION, EXTENSION_MELEE_CONTEXT_ELEMENT));
 		PrismReference opponentRef = meleeContextContainer.findOrCreateReference(EXTENSION_MELEE_CONTEXT_OPPONENT_REF_ELEMENT);
 		PrismObject<UserType> userBarbossa = prismContext.parseObject(getFile(USER_BARBOSSA_FILE_BASENAME));
 		// Cosmetics to make sure the equivalence assert below works
@@ -290,7 +290,7 @@ public abstract class TestPrismParsing {
 		System.out.println("Re-parsed user jack:");
 		System.out.println(reparsedUserJack.debugDump());
 
-		PrismReference reparsedOpponentRef = reparsedUserJack.findReference(new ItemPath(UserType.F_EXTENSION, EXTENSION_MELEE_CONTEXT_ELEMENT, EXTENSION_MELEE_CONTEXT_OPPONENT_REF_ELEMENT));
+		PrismReference reparsedOpponentRef = reparsedUserJack.findReference(prismContext.path(UserType.F_EXTENSION, EXTENSION_MELEE_CONTEXT_ELEMENT, EXTENSION_MELEE_CONTEXT_OPPONENT_REF_ELEMENT));
 		assertNotNull("No opponent ref (reparsed)", reparsedOpponentRef);
 		PrismReferenceValue reparsedOpponentRefValue = reparsedOpponentRef.getValue();
 		assertNotNull("No opponent ref value (reparsed)", reparsedOpponentRefValue);
@@ -426,7 +426,7 @@ public abstract class TestPrismParsing {
 		assertNull("Extension ID", extensionValue.getId());
 		PrismAsserts.assertPropertyValue(extension, USER_ADHOC_BOTTLES_ELEMENT, 20);
 
-		ItemPath bottlesPath = new ItemPath(new QName(NS_FOO,"extension"), USER_ADHOC_BOTTLES_ELEMENT);
+		UniformItemPath bottlesPath = user.getPrismContext().path(new QName(NS_FOO,"extension"), USER_ADHOC_BOTTLES_ELEMENT);
 		PrismProperty<Integer> bottlesProperty = user.findProperty(bottlesPath);
 		assertNotNull("Property "+bottlesPath+" not found", bottlesProperty);
 		PrismAsserts.assertPropertyValue(bottlesProperty, 20);
@@ -516,7 +516,7 @@ public abstract class TestPrismParsing {
         PrismAsserts.assertDefinition(indexedStringPropertyDef, EXTENSION_SINGLE_STRING_TYPE_ELEMENT, DOMUtil.XSD_STRING, 0, -1);
         assertEquals("'Indexed' attribute on 'singleStringType' property is wrong", Boolean.FALSE, indexedStringPropertyDef.isIndexed());
 
-		ItemPath barPath = new ItemPath(new QName(NS_FOO,"extension"), EXTENSION_BAR_ELEMENT);
+		UniformItemPath barPath = user.getPrismContext().path(new QName(NS_FOO,"extension"), EXTENSION_BAR_ELEMENT);
 		PrismProperty<String> barProperty = user.findProperty(barPath);
 		assertNotNull("Property "+barPath+" not found", barProperty);
 		PrismAsserts.assertPropertyValue(barProperty, "BAR");

@@ -20,7 +20,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.repo.api.RepoModifyOptions;
@@ -59,7 +59,7 @@ public class ModifyTestReindex extends ModifyTest {
 		PrismObject<UserType> user = prismContext.createObjectable(UserType.class)
 				.name("unstable")
 				.asPrismObject();
-		ItemPath UNSTABLE_PATH = new ItemPath(UserType.F_EXTENSION, "unstable");
+		UniformItemPath UNSTABLE_PATH = prismContext.path(UserType.F_EXTENSION, "unstable");
 		PrismPropertyDefinition<String> unstableDef = user.getDefinition().findPropertyDefinition(UNSTABLE_PATH);
 		PrismProperty<String> unstable = unstableDef.instantiate();
 		unstable.setRealValue("hi");

@@ -19,10 +19,8 @@ package com.evolveum.midpoint.prism;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
 import com.evolveum.midpoint.util.QNameUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -111,12 +109,12 @@ public class PrismReferenceDefinitionImpl extends ItemDefinitionImpl<PrismRefere
 
 	@Override
 	public <T extends ItemDefinition> T findItemDefinition(@NotNull ItemPath path, @NotNull Class<T> clazz) {
-		if (path.isEmpty() || !(path.first() instanceof ObjectReferencePathSegment)) {
+		if (!path.startsWithObjectReference()) {
 			return super.findItemDefinition(path, clazz);
 		} else {
 			ItemPath rest = path.rest();
 			PrismObjectDefinition referencedObjectDefinition = getSchemaRegistry().determineReferencedObjectDefinition(targetTypeName, rest);
-			return (T) referencedObjectDefinition.findItemDefinition(rest, clazz);
+			return (T) ((ItemDefinition) referencedObjectDefinition).findItemDefinition(rest, clazz);
 		}
 	}
 
@@ -135,7 +133,7 @@ public class PrismReferenceDefinitionImpl extends ItemDefinitionImpl<PrismRefere
 
     @Override
 	public ItemDelta createEmptyDelta(ItemPath path) {
-		return new ReferenceDeltaImpl(path, this, prismContext);
+		return new ReferenceDeltaImpl(prismContext.path(path), this, prismContext);
 	}
 
 	@Override

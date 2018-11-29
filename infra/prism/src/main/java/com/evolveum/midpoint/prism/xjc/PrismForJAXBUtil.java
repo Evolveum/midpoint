@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.prism.xjc;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -47,7 +48,7 @@ public final class PrismForJAXBUtil {
         Validate.notNull(name, "QName must not be null.");
         Validate.notNull(clazz, "Class type must not be null.");
 
-        PrismProperty property = container.findProperty(name);
+        PrismProperty property = container.findProperty(ItemName.fromQName(name));
         return getPropertyValue(property, clazz);
     }
 
@@ -107,7 +108,7 @@ public final class PrismForJAXBUtil {
 
 		PrismProperty<?> property;
 		try {
-			property = container.findProperty(name);
+			property = container.findProperty(ItemName.fromQName(name));
 			if (property == null) {
 				property = container.createDetachedSubItem(name, PrismPropertyImpl.class, null, container.isImmutable());
 			}
@@ -119,7 +120,7 @@ public final class PrismForJAXBUtil {
     }
 
 
-    public static <T> void setPropertyValue(PrismContainerValue<?> container, QName name, T value) {
+    public static <T> void setPropertyValue(PrismContainerValue<?> container, ItemName name, T value) {
         Validate.notNull(container, "Container must not be null.");
         Validate.notNull(name, "QName must not be null.");
 
@@ -146,7 +147,7 @@ public final class PrismForJAXBUtil {
         Validate.notNull(parent, "Container value must not be null.");
         Validate.notNull(fieldName, "Field QName must not be null.");
 
-        PrismContainer<T> container = parent.findItem(fieldName, PrismContainer.class);
+        PrismContainer<T> container = parent.findItem(ItemName.fromQName(fieldName), PrismContainer.class);
         return container != null ? container.getValue() : null;
     }
 
@@ -196,7 +197,7 @@ public final class PrismForJAXBUtil {
         }
     }
 
-    public static <T extends Containerable> boolean setFieldContainerValue(PrismContainerValue<?> parent, QName fieldName,
+    public static <T extends Containerable> boolean setFieldContainerValue(PrismContainerValue<?> parent, ItemName fieldName,
     		PrismContainerValue<T> fieldContainerValue) {
         Validate.notNull(parent, "Prism container value must not be null.");
         Validate.notNull(fieldName, "QName must not be null.");
@@ -225,7 +226,7 @@ public final class PrismForJAXBUtil {
         Validate.notNull(parent, "Prism container value must not be null.");
         Validate.notNull(name, "QName must not be null.");
 
-        PrismReference reference = parent.findItem(name, PrismReference.class);
+        PrismReference reference = parent.findItem(ItemName.fromQName(name), PrismReference.class);
         return reference != null ? reference.getValue() : null;
     }
 

@@ -18,6 +18,7 @@ package com.evolveum.midpoint.schema.processor;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -59,7 +60,7 @@ public interface ObjectClassComplexTypeDefinition extends ComplexTypeDefinition 
 	 */
 	@Nullable
 	default <X> ResourceAttributeDefinition<X> findAttributeDefinition(QName name) {
-		return findItemDefinition(name, ResourceAttributeDefinition.class, false);
+		return findLocalItemDefinition(ItemName.fromQName(name), ResourceAttributeDefinition.class, false);
 	}
 
 	/**
@@ -72,7 +73,7 @@ public interface ObjectClassComplexTypeDefinition extends ComplexTypeDefinition 
 	 */
 	@Nullable
 	default <X> ResourceAttributeDefinition<X> findAttributeDefinition(QName name, boolean caseInsensitive) {
-		return findItemDefinition(name, ResourceAttributeDefinition.class, caseInsensitive);
+		return findLocalItemDefinition(ItemName.fromQName(name), ResourceAttributeDefinition.class, caseInsensitive);
 	}
 
 	default <X> ResourceAttributeDefinition<X> findAttributeDefinition(String name) {

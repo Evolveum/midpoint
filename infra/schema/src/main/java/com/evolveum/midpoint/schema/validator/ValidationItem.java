@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.schema.validator;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -30,7 +30,7 @@ public class ValidationItem implements DebugDumpable, ShortDumpable {
 
 	private OperationResultStatus status;
 	private LocalizableMessage message;
-	private ItemPath itemPath;
+	private UniformItemPath itemPath;
 	// TODO? line number?
 	
 	public OperationResultStatus getStatus() {
@@ -49,11 +49,11 @@ public class ValidationItem implements DebugDumpable, ShortDumpable {
 		this.message = message;
 	}
 
-	public ItemPath getItemPath() {
+	public UniformItemPath getItemPath() {
 		return itemPath;
 	}
 
-	public void setItemPath(ItemPath itemPath) {
+	public void setItemPath(UniformItemPath itemPath) {
 		this.itemPath = itemPath;
 	}
 

@@ -44,42 +44,48 @@
 	            	     Therefore in practice we may need to make sure that the HR status has really changed
 	            	     before setting new timestamp. This is quite a dark magic for now. But it works. -->
 	            	<code>
-	            	    import com.evolveum.midpoint.prism.path.ItemPath
-	            	    
-	            	    currentTimestamp = focus?.asPrismObject()?.findExtensionItem("hrStatusChangeTimestamp")
-	            	    if (currentTimestamp == null) {
-	            	    	// No timestamp at all, e.g. the case of adding new object
-	            	    	return basic.currentDateTime()
-	            	    }
-	            	    
-	            	    // Let's check whether the hrStatus is really changed
-	            		hrStatusDelta = midpoint.focusContext?.delta?.findPropertyDelta(new ItemPath("extension","hrStatus"))
-	            		
-	            		if (hrStatusDelta == null) {
-	            			// No hrStatus delta. Therefore this is phantom invocation of this mapping. hrStatus is not really changing.
-	            			return currentTimestamp
-	            		} else {
-	            			// Let's check whether we are not changing hrStatusChangeTimestamp already. We do not want create different value in such case.
-	            			// Creating different value will mean that there will be too many triggers. And we may run into risk of creating new
-	            			// triggers indefinitely if we are not careful here.
-	            			timestampSecondaryDelta = midpoint.focusContext?.secondaryDelta?.findPropertyDelta(new ItemPath("extension","hrStatusChangeTimestamp"))
-	            			if (timestampSecondaryDelta == null) {
-	            				// This is the "core" case: we really are changing hrStatus, and we do not have new timestamp
-	            				 
-			            		// Pretend that output for old value is null. 
-			            		// Otherwise the script can produce the same value for old and new inputs if those two exections were done
-			            		// during the same millisecond. That midPoint will interpret that as "unchanged" and it will not update the timestamp.
-			            		if (!midpoint.isEvaluateNew()) {
-		   							return null;
-		   						}
-			            		return basic.currentDateTime()
-			            		
-		            		} else {
-		            			// We have already changed the timestamp. Therefore just return the value that we have created a moment ago.
-		            			return currentTimestamp
-		            		}
-	            		}
-	            	</code>
+						import com.evolveum.midpoint.prism.path.UniformItemPath
+
+						currentTimestamp = focus?.asPrismObject()?.findExtensionItem("hrStatusChangeTimestamp")
+						if (currentTimestamp == null) {
+						// No timestamp at all, e.g. the case of adding new object
+						return basic.currentDateTime()
+						}
+
+						// Let's check whether the hrStatus is really changed
+						hrStatusDelta = midpoint.focusContext?.delta?.findPropertyDelta(prismContext.path("extension","hrStatus"))
+
+						if (hrStatusDelta == null) {
+						// No hrStatus delta. Therefore this is phantom invocation of this mapping. hrStatus is not really
+						changing.
+						return currentTimestamp
+						} else {
+						// Let's check whether we are not changing hrStatusChangeTimestamp already. We do not want create
+						different value in such case.
+						// Creating different value will mean that there will be too many triggers. And we may run into risk of
+						creating new
+						// triggers indefinitely if we are not careful here.
+						timestampSecondaryDelta =
+						midpoint.focusContext?.secondaryDelta?.findPropertyDelta(prismContext.path("extension","hrStatusChangeTimestamp"))
+						if (timestampSecondaryDelta == null) {
+						// This is the "core" case: we really are changing hrStatus, and we do not have new timestamp
+
+						// Pretend that output for old value is null.
+						// Otherwise the script can produce the same value for old and new inputs if those two exections were done
+						// during the same millisecond. That midPoint will interpret that as "unchanged" and it will not update
+						the timestamp.
+						if (!midpoint.isEvaluateNew()) {
+						return null;
+						}
+						return basic.currentDateTime()
+
+						} else {
+						// We have already changed the timestamp. Therefore just return the value that we have created a moment
+						ago.
+						return currentTimestamp
+						}
+						}
+					</code>
 	            </script>
 	    	</expression>
 	    </mapping>

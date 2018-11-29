@@ -22,7 +22,6 @@ import com.evolveum.midpoint.ninja.opts.ExportOptions;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -216,7 +215,7 @@ public abstract class AbstractRepositorySearchAction<OP extends ExportOptions> e
         PrismReferenceDefinition def = registry.findItemDefinitionByFullPath(ShadowType.class,
                 PrismReferenceDefinition.class, ShadowType.F_RESOURCE_REF);
 
-        return RefFilter.createReferenceEqual(new ItemPath(ShadowType.F_RESOURCE_REF), def, values);
+        return RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, def, values);
     }
 
     private SearchProducerWorker createProducer(BlockingQueue<PrismObject> queue, OperationStatus operation,

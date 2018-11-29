@@ -17,7 +17,6 @@ package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
@@ -29,7 +28,6 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurA
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
 import com.evolveum.midpoint.web.page.admin.server.handlers.HandlerPanelFactory;
-import com.evolveum.midpoint.web.page.admin.server.handlers.dto.HandlerDto;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -104,21 +102,21 @@ public class TaskBasicTabPanel extends AbstractObjectTabPanel<TaskType> implemen
 		// Name
 		WebMarkupContainer nameContainer = new WebMarkupContainer(ID_NAME_CONTAINER);
 		RequiredTextField<String> name = new RequiredTextField<>(ID_NAME, new PropertyModel<String>(taskDtoModel, TaskDto.F_NAME));
-		name.add(parentPage.createEnabledIfEdit(new ItemPath(TaskType.F_NAME)));
+		name.add(parentPage.createEnabledIfEdit(TaskType.F_NAME));
 		name.add(new AttributeModifier("style", "width: 100%"));
 		name.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		nameContainer.add(name);
-		nameContainer.add(parentPage.createVisibleIfAccessible(new ItemPath(TaskType.F_NAME)));
+		nameContainer.add(parentPage.createVisibleIfAccessible(TaskType.F_NAME));
 		add(nameContainer);
 
 		// Description
 		WebMarkupContainer descriptionContainer = new WebMarkupContainer(ID_DESCRIPTION_CONTAINER);
 		TextArea<String> description = new TextArea<>(ID_DESCRIPTION, new PropertyModel<String>(taskDtoModel, TaskDto.F_DESCRIPTION));
-		description.add(parentPage.createEnabledIfEdit(new ItemPath(TaskType.F_DESCRIPTION)));
+		description.add(parentPage.createEnabledIfEdit(TaskType.F_DESCRIPTION));
 		//        description.add(new AttributeModifier("style", "width: 100%"));
 		//        description.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		descriptionContainer.add(description);
-		descriptionContainer.add(parentPage.createVisibleIfAccessible(new ItemPath(TaskType.F_DESCRIPTION)));
+		descriptionContainer.add(parentPage.createVisibleIfAccessible(TaskType.F_DESCRIPTION));
 		add(descriptionContainer);
 
 		// OID
@@ -128,14 +126,14 @@ public class TaskBasicTabPanel extends AbstractObjectTabPanel<TaskType> implemen
 		// Identifier
 		WebMarkupContainer identifierContainer = new WebMarkupContainer(ID_IDENTIFIER_CONTAINER);
 		identifierContainer.add(new Label(ID_IDENTIFIER, new PropertyModel(taskDtoModel, TaskDto.F_IDENTIFIER)));
-		identifierContainer.add(parentPage.createVisibleIfAccessible(new ItemPath(TaskType.F_TASK_IDENTIFIER)));
+		identifierContainer.add(parentPage.createVisibleIfAccessible(TaskType.F_TASK_IDENTIFIER));
 		add(identifierContainer);
 
 		// Category
 		WebMarkupContainer categoryContainer = new WebMarkupContainer(ID_CATEGORY_CONTAINER);
 		categoryContainer.add(new Label(ID_CATEGORY,
 				WebComponentUtil.createCategoryNameModel(this, new PropertyModel(taskDtoModel, TaskDto.F_CATEGORY))));
-		categoryContainer.add(parentPage.createVisibleIfAccessible(new ItemPath(TaskType.F_CATEGORY)));
+		categoryContainer.add(parentPage.createVisibleIfAccessible(TaskType.F_CATEGORY));
 		add(categoryContainer);
 
 		// Parent
@@ -152,7 +150,7 @@ public class TaskBasicTabPanel extends AbstractObjectTabPanel<TaskType> implemen
 			}
 		};
 		parentContainer.add(parent);
-		parentContainer.add(parentPage.createVisibleIfAccessible(new ItemPath(TaskType.F_PARENT)));
+		parentContainer.add(parentPage.createVisibleIfAccessible(TaskType.F_PARENT));
 		add(parentContainer);
 
 		// Owner
@@ -169,7 +167,7 @@ public class TaskBasicTabPanel extends AbstractObjectTabPanel<TaskType> implemen
 			}
 		};
 		ownerContainer.add(owner);
-		ownerContainer.add(parentPage.createVisibleIfAccessible(new ItemPath(TaskType.F_OWNER_REF)));
+		ownerContainer.add(parentPage.createVisibleIfAccessible(TaskType.F_OWNER_REF));
 		add(ownerContainer);
 
 		// Handler URI
@@ -179,7 +177,7 @@ public class TaskBasicTabPanel extends AbstractObjectTabPanel<TaskType> implemen
 				item.add(new Label(ID_HANDLER_URI, item.getModelObject()));
 			}
 		};
-		handlerUriContainer.add(parentPage.createVisibleIfAccessible(new ItemPath(TaskType.F_HANDLER_URI), new ItemPath(TaskType.F_OTHER_HANDLERS_URI_STACK)));
+		handlerUriContainer.add(parentPage.createVisibleIfAccessible(TaskType.F_HANDLER_URI, TaskType.F_OTHER_HANDLERS_URI_STACK));
 		add(handlerUriContainer);
 
 		// Execution
@@ -218,7 +216,7 @@ public class TaskBasicTabPanel extends AbstractObjectTabPanel<TaskType> implemen
 			}
 		});
 		executionContainer.add(node);
-		executionContainer.add(parentPage.createVisibleIfAccessible(new ItemPath(TaskType.F_EXECUTION_STATUS), new ItemPath(TaskType.F_NODE_AS_OBSERVED)));
+		executionContainer.add(parentPage.createVisibleIfAccessible(TaskType.F_EXECUTION_STATUS, TaskType.F_NODE_AS_OBSERVED));
 		add(executionContainer);
 
 	}

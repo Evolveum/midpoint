@@ -28,7 +28,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
@@ -110,9 +110,9 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 	private static final File TASK_TO_RESUME_FILE = new File(TEST_DIR, "task-to-resume.xml");
 	private static final File TASK_TO_KEEP_SUSPENDED_FILE = new File(TEST_DIR, "task-to-keep-suspended.xml");
 	private static final File RESUME_SUSPENDED_TASKS_FILE = new File(TEST_DIR, "resume-suspended-tasks.xml");
-	private static final QName USER_NAME_TASK_EXTENSION_PROPERTY = new QName("http://midpoint.evolveum.com/xml/ns/samples/piracy", "userName");
-	private static final QName USER_DESCRIPTION_TASK_EXTENSION_PROPERTY = new QName("http://midpoint.evolveum.com/xml/ns/samples/piracy", "userDescription");
-	private static final QName STUDY_GROUP_TASK_EXTENSION_PROPERTY = new QName("http://midpoint.evolveum.com/xml/ns/samples/piracy", "studyGroup");
+	private static final ItemName USER_NAME_TASK_EXTENSION_PROPERTY = new ItemName("http://midpoint.evolveum.com/xml/ns/samples/piracy", "userName");
+	private static final ItemName USER_DESCRIPTION_TASK_EXTENSION_PROPERTY = new ItemName("http://midpoint.evolveum.com/xml/ns/samples/piracy", "userDescription");
+	private static final ItemName STUDY_GROUP_TASK_EXTENSION_PROPERTY = new ItemName("http://midpoint.evolveum.com/xml/ns/samples/piracy", "studyGroup");
 
 	@Autowired
     private ScriptingExpressionEvaluator scriptingExpressionEvaluator;
@@ -971,8 +971,8 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         //assertEquals("administrator", ((PrismObject<UserType>) output.getData().get(0)).asObjectable().getName().getOrig());
 
 		for (PipelineItem item : output.getFinalOutput().getData()) {
-			PrismAsserts.assertHasTargetName((PrismContainerValue) item.getValue(), new ItemPath(UserType.F_ROLE_MEMBERSHIP_REF));
-			PrismAsserts.assertHasNoTargetName((PrismContainerValue) item.getValue(), new ItemPath(UserType.F_LINK_REF));
+			PrismAsserts.assertHasTargetName((PrismContainerValue) item.getValue(), prismContext.path(UserType.F_ROLE_MEMBERSHIP_REF));
+			PrismAsserts.assertHasNoTargetName((PrismContainerValue) item.getValue(), prismContext.path(UserType.F_LINK_REF));
 		}
 	}
 
@@ -997,8 +997,8 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         //assertEquals("administrator", ((PrismObject<UserType>) output.getData().get(0)).asObjectable().getName().getOrig());
 
 		for (PipelineItem item : output.getFinalOutput().getData()) {
-			PrismAsserts.assertHasObject((PrismContainerValue) item.getValue(), new ItemPath(UserType.F_ROLE_MEMBERSHIP_REF));
-			PrismAsserts.assertHasNoObject((PrismContainerValue) item.getValue(), new ItemPath(UserType.F_LINK_REF));
+			PrismAsserts.assertHasObject((PrismContainerValue) item.getValue(), prismContext.path(UserType.F_ROLE_MEMBERSHIP_REF));
+			PrismAsserts.assertHasNoObject((PrismContainerValue) item.getValue(), prismContext.path(UserType.F_LINK_REF));
 		}
     }
 

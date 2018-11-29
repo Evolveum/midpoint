@@ -298,7 +298,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		AssignmentType assignmentType = createConstructionAssignment(RESOURCE_DUMMY_PINK_OID, ShadowKindType.ACCOUNT, null);
 		ConstructionType constructionType = assignmentType.getConstruction();
 		ResourceAttributeDefinitionType attributeDefinitionType = new ResourceAttributeDefinitionType();
-		attributeDefinitionType.setRef(new ItemPathType(new ItemPath(getDummyResourceController(RESOURCE_DUMMY_PINK_NAME).getAttributeWeaponQName())));
+		attributeDefinitionType.setRef(new ItemPathType(ItemPath.create(getDummyResourceController(RESOURCE_DUMMY_PINK_NAME).getAttributeWeaponQName())));
 		MappingType mappingType = new MappingType();
 		mappingType.setStrength(MappingStrengthType.STRONG);
 		ExpressionType expressionType = new ExpressionType();

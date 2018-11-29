@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.wf.impl.processors.primary;
 
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 import org.jetbrains.annotations.NotNull;
@@ -33,10 +33,10 @@ public class PolicyRuleApplication {
 
 	static class Cause {
 		private final ResourceShadowDiscriminator shadowDiscriminator;		// non-null for projection context
-		@NotNull private final ItemPath itemPath;							// should be non-empty
+		@NotNull private final UniformItemPath itemPath;							// should be non-empty
 		@NotNull private final PrismValue itemValue;
 
-		Cause(ResourceShadowDiscriminator shadowDiscriminator, @NotNull ItemPath itemPath, @NotNull PrismValue itemValue) {
+		Cause(ResourceShadowDiscriminator shadowDiscriminator, @NotNull UniformItemPath itemPath, @NotNull PrismValue itemValue) {
 			this.shadowDiscriminator = shadowDiscriminator;
 			this.itemPath = itemPath;
 			this.itemValue = itemValue;

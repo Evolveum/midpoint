@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.prism;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.apache.commons.lang3.StringUtils;
@@ -145,7 +146,7 @@ public class PrismObjectValueImpl<O extends Objectable> extends PrismContainerVa
 			sb.append(getComplexTypeDefinition().getTypeName().getLocalPart()).append(":");
 		}
 		sb.append(oid).append("(");
-		PrismProperty nameProperty = findProperty(new QName(PrismConstants.NAME_LOCAL_NAME));
+		PrismProperty nameProperty = findProperty(new ItemName(PrismConstants.NAME_LOCAL_NAME));
 		sb.append(nameProperty != null ? nameProperty.getRealValue() : null);
 		sb.append(")");
 		return sb.toString();

@@ -154,7 +154,7 @@ public class WfTaskUtil {
         ItemDefinition<?> def = prismContext.getSchemaRegistry()
                 .findContainerDefinitionByCompileTimeClass(WfPrimaryChangeProcessorStateType.class)
                 .findPropertyDefinition(F_RESULTING_DELTAS);
-        ItemPath path = new ItemPath(F_WORKFLOW_CONTEXT, F_PROCESSOR_SPECIFIC_STATE, F_RESULTING_DELTAS);
+        ItemPath path = ItemPath.create(F_WORKFLOW_CONTEXT, F_PROCESSOR_SPECIFIC_STATE, F_RESULTING_DELTAS);
         task.addModification(DeltaBuilder.deltaFor(TaskType.class, prismContext)
                 .item(path, def).replace(deltasType)
                 .asItemDelta());
@@ -164,7 +164,7 @@ public class WfTaskUtil {
     }
 
     public ObjectTreeDeltas retrieveDeltasToProcess(Task task) throws SchemaException {
-        PrismProperty<ObjectTreeDeltasType> deltaTypePrismProperty = task.getTaskPrismObject().findProperty(new ItemPath(F_WORKFLOW_CONTEXT, F_PROCESSOR_SPECIFIC_STATE, F_DELTAS_TO_PROCESS));
+        PrismProperty<ObjectTreeDeltasType> deltaTypePrismProperty = task.getTaskPrismObject().findProperty(ItemPath.create(F_WORKFLOW_CONTEXT, F_PROCESSOR_SPECIFIC_STATE, F_DELTAS_TO_PROCESS));
         if (deltaTypePrismProperty == null) {
             throw new SchemaException("No deltas to process in task extension; task = " + task);
         }
@@ -172,7 +172,7 @@ public class WfTaskUtil {
     }
 
     public ObjectTreeDeltas retrieveResultingDeltas(Task task) throws SchemaException {
-        PrismProperty<ObjectTreeDeltasType> deltaTypePrismProperty = task.getTaskPrismObject().findProperty(new ItemPath(F_WORKFLOW_CONTEXT, F_PROCESSOR_SPECIFIC_STATE, F_RESULTING_DELTAS));
+        PrismProperty<ObjectTreeDeltasType> deltaTypePrismProperty = task.getTaskPrismObject().findProperty(ItemPath.create(F_WORKFLOW_CONTEXT, F_PROCESSOR_SPECIFIC_STATE, F_RESULTING_DELTAS));
         if (deltaTypePrismProperty == null) {
             return null;
         }

@@ -37,10 +37,7 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
-import com.evolveum.midpoint.prism.path.ParentPathSegment;
+import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -65,7 +62,6 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
-import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
@@ -267,7 +263,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			if (GetOperationOptions.isResolve(option.getOptions())) {
 				ObjectSelector selector = option.getSelector();
 				if (selector != null) {
-					ItemPath path = selector.getPath();
+					UniformItemPath path = selector.getPath();
 					ItemPath.checkNoSpecialSymbolsExceptParent(path);
 					executeResolveOption(containerable, path, option, task, result);
 				}
@@ -281,11 +277,11 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		if (path == null || path.isEmpty()) {
 			return;
 		}
-		ItemPathSegment first = path.first();
+		Object first = path.first();
 		ItemPath rest = path.rest();
 		PrismContainerValue<?> containerValue = containerable.asPrismContainerValue();
-		if (first instanceof NameItemPathSegment) {
-			QName firstName = ItemPath.getName(first);
+		if (ItemPath.isName(first)) {
+			QName firstName = ItemPath.toName(first);
 			PrismReference reference = containerValue.findReferenceByCompositeObjectElementName(firstName);
 			if (reference == null) {
 				reference = containerValue.findReference(firstName);	// alternatively look up by reference name (e.g. linkRef)
@@ -307,13 +303,13 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		if (rest.isEmpty()) {
 			return;
 		}
-		if (first instanceof ParentPathSegment) {
+		if (ItemPath.isParent(first)) {
 			PrismContainerValue<?> parent = containerValue.getParentContainerValue();
 			if (parent != null) {
 				executeResolveOption(parent.asContainerable(), rest, option, task, result);
 			}
 		} else {
-			QName nextName = ItemPath.getName(first);
+			QName nextName = ItemPath.toName(first);
 			PrismContainer<?> nextContainer = containerValue.findContainer(nextName);
 			if (nextContainer != null) {
 				for (PrismContainerValue<?> pcv : nextContainer.getValues()) {
@@ -1691,7 +1687,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	@Override
 	public <T extends ObjectType> CompareResultType compareObject(PrismObject<T> provided,
 			Collection<SelectorOptions<GetOperationOptions>> rawReadOptions, ModelCompareOptions compareOptions,
-			@NotNull List<ItemPath> ignoreItems, Task task, OperationResult parentResult)
+			@NotNull List<UniformItemPath> ignoreItems, Task task, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
 			ConfigurationException, ExpressionEvaluationException {
 		Validate.notNull(provided, "Object must not be null or empty.");
@@ -1750,7 +1746,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		return rv;
 	}
 
-	private <T extends ObjectType> void removeIgnoredItems(PrismObject<T> object, List<ItemPath> ignoreItems) {
+	private <T extends ObjectType> void removeIgnoredItems(PrismObject<T> object, List<UniformItemPath> ignoreItems) {
 		if (object != null) {
 			object.getValue().removeItems(ignoreItems);
 		}
@@ -1839,7 +1835,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			secChildFilter = NoneFilter.createNone();
 		} else {
 			ObjectFilter origChildFilter = origQuery != null ? origQuery.getFilter() : null;
-			ObjectFilter secChildFilterParentPart = ExistsFilter.createExists(new ItemPath(PrismConstants.T_PARENT),
+			ObjectFilter secChildFilterParentPart = ExistsFilter.createExists(PrismConstants.T_PARENT,
 					containerType, prismContext, secParentFilter);
 			if (origChildFilter == null) {
 				secChildFilter = secChildFilterParentPart;

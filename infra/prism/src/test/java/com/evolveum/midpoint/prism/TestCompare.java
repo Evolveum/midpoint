@@ -32,9 +32,6 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.foo.UserType;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -121,8 +118,8 @@ public abstract class TestCompare extends AbstractPrismTest {
 
 		PrismAsserts.assertPropertyReplace(jackDelta, USER_FULLNAME_QNAME, "Jack Sparrow");
 
-		PrismAsserts.assertPropertyDelete(jackDelta, new ItemPath(USER_EXTENSION_QNAME, EXTENSION_MULTI_ELEMENT), "dva");
-		PrismAsserts.assertPropertyAdd(jackDelta, new ItemPath(USER_EXTENSION_QNAME, EXTENSION_MULTI_ELEMENT), "osem");
+		PrismAsserts.assertPropertyDelete(jackDelta, prismContext.path(USER_EXTENSION_QNAME, EXTENSION_MULTI_ELEMENT), "dva");
+		PrismAsserts.assertPropertyAdd(jackDelta, prismContext.path(USER_EXTENSION_QNAME, EXTENSION_MULTI_ELEMENT), "osem");
 		// TODO: assert BAR
 
 		PrismAsserts.assertPropertyDelete(jackDelta, USER_ADDITIONALNAMES_QNAME, "Captain");
@@ -134,13 +131,10 @@ public abstract class TestCompare extends AbstractPrismTest {
 		PrismAsserts.assertNoItemDelta(jackDelta, USER_VALID_FROM_PATH);
 
 		PrismAsserts.assertPropertyReplace(jackDelta,
-				new ItemPath(
-						new NameItemPathSegment(USER_ASSIGNMENT_QNAME),
-						new IdItemPathSegment(USER_ASSIGNMENT_2_ID),
-						new NameItemPathSegment(USER_DESCRIPTION_QNAME)),
+				prismContext.path(USER_ASSIGNMENT_QNAME, USER_ASSIGNMENT_2_ID, USER_DESCRIPTION_QNAME),
 				"Assignment II");
 
-		ContainerDelta<?> assignment3Delta = PrismAsserts.assertContainerAddGetContainerDelta(jackDelta, new ItemPath(USER_ASSIGNMENT_QNAME));
+		ContainerDelta<?> assignment3Delta = PrismAsserts.assertContainerAddGetContainerDelta(jackDelta, prismContext.path(USER_ASSIGNMENT_QNAME));
 		PrismContainerValue<?> assignment3DeltaAddValue = assignment3Delta.getValuesToAdd().iterator().next();
 		assertEquals("Assignment 3 wrong ID", USER_ASSIGNMENT_3_ID, assignment3DeltaAddValue.getId());
 
@@ -181,8 +175,8 @@ public abstract class TestCompare extends AbstractPrismTest {
 
 		PrismAsserts.assertPropertyReplace(jackDelta, USER_FULLNAME_QNAME, "Jack Sparrow");
 
-		PrismAsserts.assertPropertyDelete(jackDelta, new ItemPath(USER_EXTENSION_QNAME, EXTENSION_MULTI_ELEMENT), "dva");
-		PrismAsserts.assertPropertyAdd(jackDelta, new ItemPath(USER_EXTENSION_QNAME, EXTENSION_MULTI_ELEMENT), "osem");
+		PrismAsserts.assertPropertyDelete(jackDelta, prismContext.path(USER_EXTENSION_QNAME, EXTENSION_MULTI_ELEMENT), "dva");
+		PrismAsserts.assertPropertyAdd(jackDelta, prismContext.path(USER_EXTENSION_QNAME, EXTENSION_MULTI_ELEMENT), "osem");
 		// TODO: assert BAR
 
 		PrismAsserts.assertPropertyDelete(jackDelta, USER_ADDITIONALNAMES_QNAME, "Captain");
@@ -193,13 +187,10 @@ public abstract class TestCompare extends AbstractPrismTest {
 		PrismAsserts.assertPropertyDelete(jackDelta, USER_VALID_FROM_PATH, USER_JACK_VALID_FROM);
 
 		PrismAsserts.assertPropertyReplace(jackDelta,
-				new ItemPath(
-						new NameItemPathSegment(USER_ASSIGNMENT_QNAME),
-						new IdItemPathSegment(USER_ASSIGNMENT_2_ID),
-						new NameItemPathSegment(USER_DESCRIPTION_QNAME)),
+				prismContext.path(USER_ASSIGNMENT_QNAME, USER_ASSIGNMENT_2_ID, USER_DESCRIPTION_QNAME),
 				"Assignment II");
 
-		ContainerDelta<?> assignment3Delta = PrismAsserts.assertContainerAddGetContainerDelta(jackDelta, new ItemPath(USER_ASSIGNMENT_QNAME));
+		ContainerDelta<?> assignment3Delta = PrismAsserts.assertContainerAddGetContainerDelta(jackDelta, prismContext.path(USER_ASSIGNMENT_QNAME));
 		PrismContainerValue<?> assignment3DeltaAddValue = assignment3Delta.getValuesToAdd().iterator().next();
 		assertEquals("Assignment 3 wrong ID", USER_ASSIGNMENT_3_ID, assignment3DeltaAddValue.getId());
 

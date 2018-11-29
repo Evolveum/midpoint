@@ -589,7 +589,7 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 		Task task = taskManager.createTaskInstance(AbstractCertificationTest.class.getName() + ".getObject");
 		OperationResult result = task.getResult();
 		Collection<SelectorOptions<GetOperationOptions>> options =
-				singletonList(SelectorOptions.create(F_CASE, GetOperationOptions.createRetrieve(INCLUDE)));
+				schemaHelper.getOperationOptionsBuilder().item(F_CASE).retrieve().build();
 		AccessCertificationCampaignType campaign = modelService.getObject(AccessCertificationCampaignType.class, campaignOid, options, task, result).asObjectable();
 		result.computeStatus();
 		TestUtil.assertSuccess(result);

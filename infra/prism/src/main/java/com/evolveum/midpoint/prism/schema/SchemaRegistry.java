@@ -18,6 +18,7 @@ package com.evolveum.midpoint.prism.schema;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -56,7 +57,7 @@ public interface SchemaRegistry extends DebugDumpable, GlobalDefinitionsStore {
 
 	Collection<Package> getCompileTimePackages();
 
-	<T extends Containerable> ItemDefinition locateItemDefinition(@NotNull QName itemName,
+	ItemDefinition locateItemDefinition(@NotNull QName itemName,
 			@Nullable ComplexTypeDefinition complexTypeDefinition,
 			@Nullable Function<QName, ItemDefinition> dynamicDefinitionResolver) throws SchemaException;
 
@@ -68,7 +69,7 @@ public interface SchemaRegistry extends DebugDumpable, GlobalDefinitionsStore {
 	// current implementation tries to find all references to the child CTD and select those that are able to resolve path of 'rest'
 	// fails on ambiguity
 	// it's a bit fragile, as adding new references to child CTD in future may break existing code
-	ComplexTypeDefinition determineParentDefinition(@NotNull ComplexTypeDefinition child, @NotNull ItemPath rest);
+	ComplexTypeDefinition determineParentDefinition(@NotNull ComplexTypeDefinition child, @NotNull UniformItemPath rest);
 
 	PrismObjectDefinition determineReferencedObjectDefinition(@NotNull QName targetTypeName, ItemPath rest);
 
@@ -103,10 +104,10 @@ public interface SchemaRegistry extends DebugDumpable, GlobalDefinitionsStore {
 
 	<C extends Containerable, O extends Objectable> void applyDefinition(PrismContainerValue<C> prismContainerValue,
 			Class<O> type,
-			ItemPath path, boolean force) throws SchemaException;
+			UniformItemPath path, boolean force) throws SchemaException;
 
 	<C extends Containerable> void applyDefinition(PrismContainerValue<C> prismContainerValue, QName typeName,
-			ItemPath path, boolean force) throws SchemaException;
+			UniformItemPath path, boolean force) throws SchemaException;
 
 	<T extends ItemDefinition> T findItemDefinitionByFullPath(Class<? extends Objectable> objectClass, Class<T> defClass,
 			QName... itemNames)
@@ -126,8 +127,7 @@ public interface SchemaRegistry extends DebugDumpable, GlobalDefinitionsStore {
 
 	boolean hasImplicitTypeDefinition(@NotNull QName itemName, @NotNull QName typeName);
 
-	ItemDefinition resolveGlobalItemDefinition(QName elementQName) throws SchemaException;
-
+	@Deprecated
 	ItemDefinition resolveGlobalItemDefinition(QName elementQName, PrismContainerDefinition<?> containerDefinition) throws SchemaException;
 
 	ItemDefinition resolveGlobalItemDefinition(QName itemName, @Nullable ComplexTypeDefinition complexTypeDefinition) throws SchemaException;

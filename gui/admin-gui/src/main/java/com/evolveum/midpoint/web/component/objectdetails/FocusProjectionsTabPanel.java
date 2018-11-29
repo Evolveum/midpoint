@@ -48,7 +48,6 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -487,14 +486,14 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 
 			ObjectWrapper<ShadowType> wrapper = account.getObject();
 			ContainerWrapper<ActivationType> activation = wrapper
-					.findContainerWrapper(new ItemPath(ShadowType.F_ACTIVATION));
+					.findContainerWrapper(ShadowType.F_ACTIVATION);
 			if (activation == null) {
 				warn(getString("pageAdminFocus.message.noActivationFound", wrapper.getDisplayName()));
 				continue;
 			}
 
 			PropertyWrapper enabledProperty = (PropertyWrapper) activation.getValues().iterator().next()
-					.findPropertyWrapper(ActivationType.F_ADMINISTRATIVE_STATUS);
+					.findPropertyWrapperByName(ActivationType.F_ADMINISTRATIVE_STATUS);
 			if (enabledProperty == null || enabledProperty.getValues().size() != 1) {
 				warn(getString("pageAdminFocus.message.noEnabledPropertyFound", wrapper.getDisplayName()));
 				continue;
@@ -524,13 +523,13 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 			ObjectWrapper<ShadowType> wrapper = account.getObject();
 			wrapper.setSelected(false);
 
-			ContainerWrapper<ActivationType> activation = wrapper.findContainerWrapper(new ItemPath(ShadowType.F_ACTIVATION));
+			ContainerWrapper<ActivationType> activation = wrapper.findContainerWrapper(ShadowType.F_ACTIVATION);
 			if (activation == null) {
 				warn(getString("pageAdminFocus.message.noActivationFound", wrapper.getDisplayName()));
 				continue;
 			}
 
-			PropertyWrapper lockedProperty = (PropertyWrapper) activation.getValues().iterator().next().findPropertyWrapper(ActivationType.F_LOCKOUT_STATUS);
+			PropertyWrapper lockedProperty = (PropertyWrapper) activation.getValues().iterator().next().findPropertyWrapperByName(ActivationType.F_LOCKOUT_STATUS);
 			if (lockedProperty == null || lockedProperty.getValues().size() != 1) {
 				warn(getString("pageAdminFocus.message.noLockoutStatusPropertyFound", wrapper.getDisplayName()));
 				continue;

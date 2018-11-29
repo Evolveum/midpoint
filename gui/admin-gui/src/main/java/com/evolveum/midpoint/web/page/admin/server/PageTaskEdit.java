@@ -21,6 +21,7 @@ import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -182,16 +183,17 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 	private TaskType loadTaskType(String taskOid, Task operationTask, OperationResult result) {
 		TaskType taskType = null;
 		try {
-			Collection<SelectorOptions<GetOperationOptions>> options = GetOperationOptions.retrieveItemsNamed(
-					TaskType.F_SUBTASK,
-					TaskType.F_NODE_AS_OBSERVED,
-					TaskType.F_NEXT_RUN_START_TIMESTAMP,
-					TaskType.F_NEXT_RETRY_TIMESTAMP,
-					TaskType.F_RESULT,          // todo maybe only when it is to be displayed
-					new ItemPath(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_WORK_ITEM));
-			options.addAll(GetOperationOptions.resolveItemsNamed(
-					new ItemPath(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_REQUESTER_REF)
-			));
+			Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
+					// retrieve
+					.item(TaskType.F_SUBTASK).retrieve()
+					.item(TaskType.F_NODE_AS_OBSERVED).retrieve()
+					.item(TaskType.F_NEXT_RUN_START_TIMESTAMP).retrieve()
+					.item(TaskType.F_NEXT_RETRY_TIMESTAMP).retrieve()
+					.item(TaskType.F_RESULT).retrieve()         // todo maybe only when it is to be displayed
+					.item(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_WORK_ITEM).retrieve()
+					// resolve
+					.item(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_REQUESTER_REF).resolve()
+					.build();
 			taskType = getModelService().getObject(TaskType.class, taskOid, options, operationTask, result).asObjectable();
 		} catch (Exception ex) {
 			result.recordFatalError("Couldn't get task.", ex);
@@ -409,10 +411,6 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		};
 	}
 
-	public VisibleEnableBehaviour createVisibleIfAccessible(QName... names) {
-		return createVisibleIfAccessible(ItemPath.asPathArray(names));
-	}
-
 	public VisibleEnableBehaviour createVisibleIfAccessible(final ItemPath... itemPaths) {
 		return new VisibleEnableBehaviour() {
 			@Override
@@ -452,10 +450,6 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		return false;
 	}
 
-	protected boolean isEditable(QName name) {
-		return isEditable(new ItemPath(name));
-	}
-
 	protected boolean isEditable(ItemPath itemPath) {
 		ItemDefinition<?> itemDefinition = objectWrapperModel.getObject().getDefinition().findItemDefinition(itemPath);
 		if (itemDefinition != null) {
@@ -474,13 +468,13 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		}
 	}
 
-	public boolean isExtensionReadable(QName name) {
-		return isReadable(new ItemPath(TaskType.F_EXTENSION, name));
+	public boolean isExtensionReadable(ItemName name) {
+		return isReadable(ItemPath.create(TaskType.F_EXTENSION, name));
 	}
 
 	boolean isReadableSomeOf(QName... names) {
 		for (QName name : names) {
-			if (isReadable(new ItemPath(name))) {
+			if (isReadable(ItemName.fromQName(name))) {
 				return true;
 			}
 		}

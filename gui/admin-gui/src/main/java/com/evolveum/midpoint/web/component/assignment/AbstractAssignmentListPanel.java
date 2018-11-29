@@ -17,7 +17,6 @@ package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -160,8 +159,7 @@ public abstract class AbstractAssignmentListPanel extends BasePanel<List<Assignm
         assignment.setConstruction(construction);
 
         try {
-            getPageBase().getPrismContext().adopt(assignment, UserType.class,
-                    new ItemPath(UserType.F_ASSIGNMENT));
+            getPageBase().getPrismContext().adopt(assignment, UserType.class, UserType.F_ASSIGNMENT);
         } catch (SchemaException e) {
             error(getString("Could not create assignment", resource.getName(), e.getMessage()));
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create assignment", e);

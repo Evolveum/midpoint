@@ -23,7 +23,6 @@ import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -95,7 +94,7 @@ public class PolicyStateRecorder {
 		if (cr.situationsNeedUpdate) {
 			focusContext.addToPendingAssignmentPolicyStateModifications(assignmentToMatch,
 					mode, DeltaBuilder.deltaFor(FocusType.class, prismContext)
-					.item(FocusType.F_ASSIGNMENT, new IdItemPathSegment(id), AssignmentType.F_POLICY_SITUATION)
+					.item(FocusType.F_ASSIGNMENT, id, AssignmentType.F_POLICY_SITUATION)
 					.oldRealValues(cr.oldPolicySituations)
 					.replaceRealValues(cr.newPolicySituations)
 					.asItemDelta());
@@ -103,7 +102,7 @@ public class PolicyStateRecorder {
 		if (cr.rulesNeedUpdate) {
 			focusContext.addToPendingAssignmentPolicyStateModifications(assignmentToMatch,
 					mode, DeltaBuilder.deltaFor(FocusType.class, prismContext)
-					.item(FocusType.F_ASSIGNMENT, new IdItemPathSegment(id), AssignmentType.F_TRIGGERED_POLICY_RULE)
+					.item(FocusType.F_ASSIGNMENT, id, AssignmentType.F_TRIGGERED_POLICY_RULE)
 					.oldRealValues(cr.oldTriggeredRules)
 					.replaceRealValues(cr.newTriggeredRules)
 					.asItemDelta());

@@ -25,6 +25,7 @@ import com.evolveum.midpoint.model.api.context.EvaluatedConstruction;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -234,12 +235,12 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	}
 
 	private <S extends ObjectType> List<FocusSubwrapperDto<S>> loadSubwrappers(Class<S> type,
-			QName propertyToLoad, boolean noFetch) {
+			ItemName propertyToLoad, boolean noFetch) {
 		List<FocusSubwrapperDto<S>> list = new ArrayList<>();
 
 		ObjectWrapper<F> focusWrapper = getObjectModel().getObject();
 		PrismObject<F> focus = focusWrapper.getObject();
-		PrismReference prismReference = focus.findReference(new ItemPath(propertyToLoad));
+		PrismReference prismReference = focus.findReference(propertyToLoad);
 		if (prismReference == null) {
 			return new ArrayList<>();
 		}
@@ -265,9 +266,9 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		try {
 			Collection<SelectorOptions<GetOperationOptions>> loadOptions;
 			if (ShadowType.class.equals(type)) {
-				GetOperationOptions resourceOption = GetOperationOptions.createResolve();
-				resourceOption.setReadOnly(true);
-				loadOptions = SelectorOptions.createCollection(ShadowType.F_RESOURCE, resourceOption);
+				loadOptions = getSchemaHelper().getOperationOptionsBuilder()
+						.item(ShadowType.F_RESOURCE).resolve().readOnly()
+						.build();
 			} else {
 				loadOptions = new ArrayList<>();
 			}
@@ -483,7 +484,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			ItemPath deltaPath = delta.getPath().rest();
 			ItemDefinition deltaDef = assignmentDef.findItemDefinition(deltaPath);
 
-			delta.setParentPath(WebComponentUtil.joinPath(oldValue.getPath(), delta.getPath().allExceptLast()));
+			delta.setParentPath(WebComponentUtil.joinPath(oldValue.getPath(), delta.getPath().allExceptLast(), getPrismContext()));
 			delta.applyDefinition(deltaDef);
 
 			focusDelta.addModification(delta);
@@ -550,7 +551,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 					focusWrapper.getObject().getOid(), getPrismContext());
 		}
 //perhaps not needed anymore
-		ContainerWrapper assignmentContainerWrapper = getObjectWrapper().findContainerWrapper(new ItemPath(FocusType.F_ASSIGNMENT));
+		ContainerWrapper assignmentContainerWrapper = getObjectWrapper().findContainerWrapper(FocusType.F_ASSIGNMENT);
 		handleAssignmentExperimentalDeltas(forceDeleteDelta, assignmentContainerWrapper.getValues(), def, false);
 		return forceDeleteDelta;
 	}

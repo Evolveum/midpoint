@@ -31,7 +31,7 @@ import javax.xml.bind.annotation.XmlElementDecl;
 import javax.xml.bind.annotation.XmlRegistry;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 
 
 /**
@@ -257,8 +257,8 @@ public class ObjectFactory implements Serializable {
     }
 
     @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/types-3", name = "path", scope = ItemPathType.class)
-    public JAXBElement<ItemPath> createItemPathType(ItemPath value) {
-        return new JAXBElement<>(_ItemPathType_QNAME, ItemPath.class, ItemPathType.class, value);
+    public JAXBElement<UniformItemPath> createItemPathType(UniformItemPath value) {
+        return new JAXBElement<>(_ItemPathType_QNAME, UniformItemPath.class, ItemPathType.class, value);
     }
 
     /**

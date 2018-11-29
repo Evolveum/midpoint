@@ -21,7 +21,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -99,11 +98,10 @@ public class RepositoryObjectDataProvider
 
     @NotNull
     private Collection<SelectorOptions<GetOperationOptions>> getOptions() {
-        Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<>();
-        GetOperationOptions opt = GetOperationOptions.createRaw();
-        opt.setRetrieve(RetrieveOption.DEFAULT);
-        options.add(SelectorOptions.create(ItemPath.EMPTY_PATH, opt));
-        return GetOperationOptions.merge(createDefaultOptions(), options);
+        return getDefaultOptionsBuilder()
+            .raw()
+            .retrieve(RetrieveOption.DEFAULT)
+            .build();
     }
 
     @Override
@@ -114,7 +112,7 @@ public class RepositoryObjectDataProvider
     private DebugObjectItem createItem(PrismObject<? extends ObjectType> object, OperationResult result) {
         DebugObjectItem item = DebugObjectItem.createDebugObjectItem(object);
         if (ShadowType.class.isAssignableFrom(object.getCompileTimeClass())) {
-            PrismReference ref = object.findReference(new ItemPath(ShadowType.F_RESOURCE_REF));
+            PrismReference ref = object.findReference(ShadowType.F_RESOURCE_REF);
             if (ref == null || ref.getValue() == null) {
                 return item;
             }
@@ -135,9 +133,9 @@ public class RepositoryObjectDataProvider
     }
 
     private ResourceDescription loadDescription(String oid, OperationResult result) {
-        Collection<SelectorOptions<GetOperationOptions>> options =
-                SelectorOptions.createCollection(ResourceType.F_CONNECTOR, GetOperationOptions.createResolve());
-
+        Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
+                .item(ResourceType.F_CONNECTOR).resolve()
+                .build();
         OperationResult subResult = result.createSubresult(OPERATION_LOAD_RESOURCE);
         subResult.addParam("oid", oid);
 

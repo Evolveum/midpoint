@@ -16,12 +16,7 @@
 package com.evolveum.midpoint.prism.delta;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.marshaller.ItemPathHolder;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -33,9 +28,10 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
-import java.io.Serializable;
 import java.util.*;
 import java.util.function.Function;
+
+import static com.evolveum.midpoint.prism.path.ItemPath.*;
 
 /**
  * @author Radovan Semancik
@@ -48,11 +44,11 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	/**
 	 * Name of the property
 	 */
-	protected QName elementName;
+	protected ItemName elementName;
 	/**
 	 * Parent path of the property (path to the property container)
 	 */
-	protected ItemPath parentPath;
+	protected UniformItemPath parentPath;
 	protected D definition;
 
 	protected Collection<V> valuesToReplace = null;
@@ -69,30 +65,31 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
         //checkPrismContext(prismContext, itemDefinition);
         this.prismContext = prismContext;
 		this.elementName = itemDefinition.getName();
-		this.parentPath = ItemPath.EMPTY_PATH;
+		this.parentPath = UniformItemPathImpl.EMPTY_PATH;
 		this.definition = itemDefinition;
 	}
 
 	protected ItemDeltaImpl(QName elementName, D itemDefinition, PrismContext prismContext) {
         //checkPrismContext(prismContext, itemDefinition);
         this.prismContext = prismContext;
-		this.elementName = elementName;
-		this.parentPath = ItemPath.EMPTY_PATH;
+		this.elementName = ItemName.fromQName(elementName);
+		this.parentPath = UniformItemPathImpl.EMPTY_PATH;
 		this.definition = itemDefinition;
     }
 
-	protected ItemDeltaImpl(ItemPath parentPath, QName elementName, D itemDefinition, PrismContext prismContext) {
+	protected ItemDeltaImpl(ItemPath itemPath, QName elementName, D itemDefinition, PrismContext prismContext) {
         //checkPrismContext(prismContext, itemDefinition);
-		ItemPath.checkNoSpecialSymbols(parentPath);
+		this.parentPath = itemPath.toUniform(prismContext);
+		checkNoSpecialSymbols(parentPath);
         this.prismContext = prismContext;
-		this.elementName = elementName;
-		this.parentPath = parentPath;
+		this.elementName = ItemName.fromQName(elementName);
 		this.definition = itemDefinition;
     }
 
-	protected ItemDeltaImpl(ItemPath path, D itemDefinition, PrismContext prismContext) {
+	protected ItemDeltaImpl(ItemPath itemPath, D itemDefinition, PrismContext prismContext) {
+		UniformItemPath path = UniformItemPathImpl.fromItemPath(itemPath);
         //checkPrismContext(prismContext, itemDefinition);
-		ItemPath.checkNoSpecialSymbols(path);
+		checkNoSpecialSymbols(path);
         this.prismContext = prismContext;
 
 		if (path == null) {
@@ -101,11 +98,11 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 		if (path.isEmpty()) {
 			this.elementName = null;
 		} else {
-			ItemPathSegment last = path.last();
-			if (!(last instanceof NameItemPathSegment)) {
+			Object last = path.last();
+			if (!ItemPath.isName(last)) {
 				throw new IllegalArgumentException("Invalid delta path "+path+". Delta path must always point to item, not to value");
 			}
-			this.elementName = ((NameItemPathSegment)last).getName();
+			this.elementName = ItemPath.toName(last);
 			this.parentPath = path.allExceptLast();
 		}
 		this.definition = itemDefinition;
@@ -118,28 +115,29 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 //        }
 //    }
 
-	public QName getElementName() {
+	public ItemName getElementName() {
 		return elementName;
 	}
 
 	public void setElementName(QName elementName) {
-		this.elementName = elementName;
+		this.elementName = ItemName.fromQName(elementName);
 	}
 
-	public ItemPath getParentPath() {
+	public UniformItemPath getParentPath() {
 		return parentPath;
 	}
 
 	public void setParentPath(ItemPath parentPath) {
-		this.parentPath = parentPath;
+		this.parentPath = UniformItemPathImpl.fromItemPath(parentPath);
 	}
 
+	@NotNull
 	@Override
-	public ItemPath getPath() {
+	public UniformItemPath getPath() {
 		if (getParentPath() == null) {
 			throw new IllegalStateException("No parent path in "+this);
 		}
-		return getParentPath().subPath(elementName);
+		return getParentPath().append(elementName);
 	}
 
 	public D getDefinition() {
@@ -201,9 +199,18 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 				visitor.visit(this);
 			}
 		} else {
-			IdItemPathSegment idSegment = ItemPath.getFirstIdSegment(path);
-			ItemPath rest = ItemPath.pathRestStartingWithName(path);
-			if (idSegment == null || idSegment.isWildcard()) {
+			Long id;
+			ItemPath rest;
+			if (path.startsWithId()) {
+				id = path.firstToId();
+				rest = path.rest();
+			} else if (path.startsWithName()) {
+				id = null;
+				rest = path;
+			} else {
+				throw new IllegalArgumentException("Unexpected first path segment "+path);
+			}
+			if (id == null) {
 				// visit all values
 				if (getValuesToAdd() != null) {
 					for (V pval : getValuesToAdd()) {
@@ -221,7 +228,6 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 					}
 				}
 			} else {
-				Long id = idSegment.getId();
 				acceptSet(getValuesToAdd(), id, visitor, rest, recursive);
 				acceptSet(getValuesToDelete(), id, visitor, rest, recursive);
 				acceptSet(getValuesToReplace(), id, visitor, rest, recursive);
@@ -264,18 +270,18 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 		}
 	}
 
-	public static void applyDefinitionIfPresent(Collection<? extends ItemDelta> deltas,
-			PrismObjectDefinition definition, boolean tolerateNoDefinition) throws SchemaException {
-		for (ItemDelta itemDelta : deltas) {
-			ItemPath path = itemDelta.getPath();
-			ItemDefinition itemDefinition = definition.findItemDefinition(path, ItemDefinition.class);
-            if (itemDefinition != null) {
-				itemDelta.applyDefinition(itemDefinition);
-			} else if (!tolerateNoDefinition) {
-				throw new SchemaException("Object type " + definition.getTypeName() + " doesn't contain definition for path " + new ItemPathHolder(path).getXPathWithDeclarations());
-			}
-		}
-	}
+//	public static void applyDefinitionIfPresent(Collection<? extends ItemDelta> deltas,
+//			PrismObjectDefinition definition, boolean tolerateNoDefinition) throws SchemaException {
+//		for (ItemDelta itemDelta : deltas) {
+//			ItemPath path = itemDelta.getPath();
+//			ItemDefinition itemDefinition = definition.findItemDefinition(path, ItemDefinition.class);
+//            if (itemDefinition != null) {
+//				itemDelta.applyDefinition(itemDefinition);
+//			} else if (!tolerateNoDefinition) {
+//				throw new SchemaException("Object type " + definition.getTypeName() + " doesn't contain definition for path " + new ItemPathHolder(path).getXPathWithDeclarations());
+//			}
+//		}
+//	}
 
 	public boolean hasCompleteDefinition() {
 		return getDefinition() != null;
@@ -790,28 +796,16 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 		valuesToDelete = null;
 	}
 
-	public static <T> PropertyDelta<T> findPropertyDelta(Collection<? extends ItemDelta> deltas, QName propertyName) {
-        return findPropertyDelta(deltas, new ItemPath(propertyName));
-    }
-
-    public static <T> PropertyDelta<T> findPropertyDelta(Collection<? extends ItemDelta> deltas, ItemPath parentPath, QName propertyName) {
-        return findPropertyDelta(deltas, new ItemPath(parentPath, propertyName));
-    }
-
-    public static <T> PropertyDelta<T> findPropertyDelta(Collection<? extends ItemDelta> deltas, ItemPath propertyPath) {
+    public static <T> PropertyDelta<T> findPropertyDelta(Collection<? extends ItemDelta> deltas, UniformItemPath propertyPath) {
     	return findItemDelta(deltas, propertyPath, PropertyDelta.class, false);
     }
 
-    public static <X extends Containerable> ContainerDelta<X> findContainerDelta(Collection<? extends ItemDelta> deltas, ItemPath propertyPath) {
+    public static <X extends Containerable> ContainerDelta<X> findContainerDelta(Collection<? extends ItemDelta> deltas, UniformItemPath propertyPath) {
     	return findItemDelta(deltas, propertyPath, ContainerDelta.class, false);
     }
 
-    public static <X extends Containerable> ContainerDelta<X> findContainerDelta(Collection<? extends ItemDelta> deltas, QName name) {
-    	return findContainerDelta(deltas, new ItemPath(name));
-    }
-
     // 'strict' means we avoid returning deltas that only partially match. This is NOT a definite solution, see MID-4689
-    public static <DD extends ItemDelta> DD findItemDelta(Collection<? extends ItemDelta> deltas, ItemPath propertyPath,
+    public static <DD extends ItemDelta> DD findItemDelta(Collection<? extends ItemDelta> deltas, UniformItemPath propertyPath,
 		    Class<DD> deltaType, boolean strict) {
         if (deltas == null) {
             return null;
@@ -829,7 +823,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
         return null;
     }
 
-    public static Collection<? extends ItemDelta<?,?>> findItemDeltasSubPath(Collection<? extends ItemDelta<?,?>> deltas, ItemPath itemPath) {
+    public static Collection<? extends ItemDelta<?,?>> findItemDeltasSubPath(Collection<? extends ItemDelta<?,?>> deltas, UniformItemPath itemPath) {
     	Collection<ItemDelta<?,?>> foundDeltas = new ArrayList<>();
         if (deltas == null) {
             return foundDeltas;
@@ -843,14 +837,14 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
     }
 
     public static <D extends ItemDelta> D findItemDelta(Collection<? extends ItemDelta> deltas, QName itemName, Class<D> deltaType) {
-    	return findItemDelta(deltas, new ItemPath(itemName), deltaType, false);
+    	return findItemDelta(deltas, new UniformItemPathImpl(itemName), deltaType, false);
     }
 
     public static ReferenceDelta findReferenceModification(Collection<? extends ItemDelta> deltas, QName itemName) {
     	return findItemDelta(deltas, itemName, ReferenceDelta.class);
     }
 
-    public static <D extends ItemDelta> void removeItemDelta(Collection<? extends ItemDelta> deltas, ItemPath propertyPath, Class<D> deltaType) {
+    public static <D extends ItemDelta> void removeItemDelta(Collection<? extends ItemDelta> deltas, UniformItemPath propertyPath, Class<D> deltaType) {
         if (deltas == null) {
             return;
         }
@@ -1045,7 +1039,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	}
 
 	public static void checkConsistence(Collection<? extends ItemDelta> deltas, boolean requireDefinition, boolean prohibitRaw, ConsistencyCheckScope scope) {
-		Map<ItemPath, ItemDelta<?,?>> pathMap = new HashMap<>();
+		Map<UniformItemPath, ItemDelta<?,?>> pathMap = new HashMap<>();
 		for (ItemDelta<?,?> delta : deltas) {
 			delta.checkConsistence(requireDefinition, prohibitRaw, scope);
 			int matches = 0;
@@ -1323,8 +1317,8 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	}
 
 	public void applyTo(PrismContainerValue containerValue) throws SchemaException {
-		ItemPath deltaPath = getPath();
-		if (ItemPath.isNullOrEmpty(deltaPath)) {
+		UniformItemPath deltaPath = getPath();
+		if (ItemPath.isEmpty(deltaPath)) {
 			throw new IllegalArgumentException("Cannot apply empty-path delta " + this + " directly to a PrismContainerValue " + containerValue);
 		}
 		Item subItem = containerValue.findOrCreateItem(deltaPath, getItemClass(), getDefinition());
@@ -1332,8 +1326,8 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	}
 
 	public void applyTo(Item item) throws SchemaException {
-		ItemPath itemPath = item.getPath();
-		ItemPath deltaPath = getPath();
+		UniformItemPath itemPath = item.getPath();
+		UniformItemPath deltaPath = getPath();
 		CompareResult compareComplex = itemPath.compareComplex(deltaPath);
 		if (compareComplex == CompareResult.EQUIVALENT) {
 			applyToMatchingPath(item);
@@ -1341,7 +1335,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 		} else if (compareComplex == CompareResult.SUBPATH) {
 			if (item instanceof PrismContainer<?>) {
 				PrismContainer<?> container = (PrismContainer<?>)item;
-				ItemPath remainderPath = deltaPath.remainder(itemPath);
+				UniformItemPath remainderPath = deltaPath.remainder(itemPath);
 				Item subItem = container.findOrCreateItem(remainderPath, getItemClass(), getDefinition());
 				applyToMatchingPath(subItem);
 			} else {
@@ -1407,15 +1401,15 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 
 	protected abstract boolean isApplicableToType(Item item);
 
-	public static void accept(Collection<? extends ItemDelta> modifications, Visitor visitor, ItemPath path,
+	public static void accept(Collection<? extends ItemDelta> modifications, Visitor visitor, UniformItemPath path,
 			boolean recursive) {
 		for (ItemDelta modification: modifications) {
-			ItemPath modPath = modification.getPath();
+			UniformItemPath modPath = modification.getPath();
 			CompareResult rel = modPath.compareComplex(path);
 			if (rel == CompareResult.EQUIVALENT) {
 				modification.accept(visitor, null, recursive);
 			} else if (rel == CompareResult.SUBPATH) {
-				modification.accept(visitor, path.substract(modPath), recursive);
+				modification.accept(visitor, path.remainder(modPath), recursive);
 			}
 		}
 	}
@@ -1518,7 +1512,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 
 	public abstract ItemDeltaImpl<V,D> clone();
 
-	public ItemDeltaImpl<V,D> cloneWithChangedParentPath(ItemPath newParentPath) {
+	public ItemDeltaImpl<V,D> cloneWithChangedParentPath(UniformItemPath newParentPath) {
 		ItemDeltaImpl<V,D> clone = clone();
 		clone.setParentPath(newParentPath);
 		return clone;
@@ -1855,7 +1849,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 		if (DebugUtil.isDetailedDebugDump()) {
 			sb.append(getClass().getSimpleName()).append(":");
 		}
-		ItemPath path = getPath();
+		UniformItemPath path = getPath();
 		sb.append(path);
 
 		if (definition != null && DebugUtil.isDetailedDebugDump()) {
@@ -2020,9 +2014,9 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 		return rv;
 	}
 
-	public static boolean pathMatches(@NotNull Collection<? extends ItemDelta<?, ?>> deltas, @NotNull ItemPath path, int segmentsToSkip, boolean exactMatch) {
+	public static boolean pathMatches(@NotNull Collection<? extends ItemDelta<?, ?>> deltas, @NotNull UniformItemPath path, int segmentsToSkip, boolean exactMatch) {
 		for (ItemDelta<?, ?> delta : deltas) {
-			ItemPath modifiedPath = delta.getPath().tail(segmentsToSkip).removeIdentifiers();   // because of extension/cities[2]/name (in delta) vs. extension/cities/name (in spec)
+			UniformItemPath modifiedPath = delta.getPath().rest(segmentsToSkip).removeIds();   // because of extension/cities[2]/name (in delta) vs. extension/cities/name (in spec)
 			if (exactMatch) {
 				if (path.equivalent(modifiedPath)) {
 					return true;

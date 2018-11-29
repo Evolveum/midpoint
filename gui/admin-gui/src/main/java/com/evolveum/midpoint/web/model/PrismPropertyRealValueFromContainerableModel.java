@@ -47,10 +47,6 @@ public class PrismPropertyRealValueFromContainerableModel<T, C extends Container
     private IModel<C> model;
     private ItemPath path;
 
-    public PrismPropertyRealValueFromContainerableModel(IModel<C> model, QName item) {
-        this(model, new ItemPath(item));
-    }
-
     public PrismPropertyRealValueFromContainerableModel(IModel<C> model, ItemPath path) {
         Validate.notNull(model, "Containerable model must not be null.");
         Validate.notNull(path, "Item path must not be null.");

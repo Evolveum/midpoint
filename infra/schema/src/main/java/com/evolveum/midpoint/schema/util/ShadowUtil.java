@@ -16,9 +16,7 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
@@ -31,11 +29,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
-import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
@@ -249,7 +244,7 @@ public class ShadowUtil {
 		if (attributesContainer == null) {
 			return null;
 		}
-		PrismProperty<String> attribute = attributesContainer.findProperty(attrName);
+		PrismProperty<String> attribute = attributesContainer.findProperty(ItemName.fromQName(attrName));
 		if (attribute == null) {
 			return null;
 		}
@@ -266,7 +261,7 @@ public class ShadowUtil {
 		if (attributesContainer == null) {
 			return null;
 		}
-		PrismProperty<String> attribute = attributesContainer.findProperty(attrName);
+		PrismProperty<String> attribute = attributesContainer.findProperty(ItemName.fromQName(attrName));
 		if (attribute == null) {
 			return null;
 		}
@@ -289,7 +284,7 @@ public class ShadowUtil {
 		if (attributesContainer == null || attributesContainer.isEmpty()) {
 			return null;
 		}
-		PrismProperty<T> attr = attributesContainer.findProperty(attrName);
+		PrismProperty<T> attr = attributesContainer.findProperty(ItemName.fromQName(attrName));
 		if (attr == null) {
 			return null;
 		}
@@ -422,15 +417,16 @@ public class ShadowUtil {
 		return attribute.getRealValues(type);
 	}
 
-	public static QName getAttributeName(ItemPath attributePath, String message) throws SchemaException {
+	public static ItemName getAttributeName(ItemPath attributePath, String message) throws SchemaException {
 		if (attributePath == null || attributePath.isEmpty()) {
 			return null;
 		}
-		ItemPathSegment firstPathSegment = attributePath.first();
-    	if (!(firstPathSegment instanceof NameItemPathSegment)) {
+		Object firstPathSegment = attributePath.first();
+    	if (!ItemPath.isName(firstPathSegment)) {
     		throw new SchemaException(message + ": first path segment is not a name segment");
     	}
-    	if (!QNameUtil.match(ShadowType.F_ATTRIBUTES, ((NameItemPathSegment) firstPathSegment).getName())) {
+    	ItemName firstName = ItemPath.toName(firstPathSegment);
+    	if (!QNameUtil.match(ShadowType.F_ATTRIBUTES, firstName)) {
     		throw new SchemaException(message + ": first path segment is not "+ShadowType.F_ATTRIBUTES);
     	}
     	if (attributePath.size() < 1) {
@@ -439,11 +435,11 @@ public class ShadowUtil {
     	if (attributePath.size() > 2) {
     		throw new SchemaException(message + ": path too long ("+attributePath.size()+" segments)");
     	}
-    	ItemPathSegment secondPathSegment = attributePath.getSegments().get(1);
-    	if (!(secondPathSegment instanceof NameItemPathSegment)) {
+    	Object secondPathSegment = attributePath.rest().first();
+    	if (!ItemPath.isName(secondPathSegment)) {
     		throw new SchemaException(message + ": second path segment is not a name segment");
     	}
-    	return ((NameItemPathSegment) secondPathSegment).getName();
+    	return ItemPath.toName(secondPathSegment);
 	}
 
 	public static void checkConsistence(PrismObject<? extends ShadowType> shadow, String desc) {
@@ -468,7 +464,7 @@ public class ShadowUtil {
     	}
 
     	PrismContainerDefinition<ShadowAttributesType> attributesDefinition =
-    			shadow.getDefinition().findContainerDefinition(ShadowType.F_ATTRIBUTES);
+    			shadow.getDefinition().findContainerDefinition((ItemPath) ShadowType.F_ATTRIBUTES);
     	checkConsistency(attributesDefinition, " object definition in "+desc);
 	}
 
@@ -700,9 +696,9 @@ public class ShadowUtil {
 				ShadowUtil.getPrimaryIdentifiers(shadow), ShadowUtil.getSecondaryIdentifiers(shadow));
 	}
 
-	public static boolean matchesAttribute(ItemPath path, QName attributeName) {
-		return (ShadowType.F_ATTRIBUTES.equals(ItemPath.getFirstName(path)) &&
-				QNameUtil.match(ItemPath.getFirstName(path.rest()), attributeName));
+	public static boolean matchesAttribute(UniformItemPath path, QName attributeName) {
+		return path.startsWithName(ShadowType.F_ATTRIBUTES) &&
+				path.rest().startsWithName(attributeName);
 	}
 
 	public static boolean hasPrimaryIdentifier(Collection<? extends ResourceAttribute<?>> identifiers,
@@ -719,7 +715,7 @@ public class ShadowUtil {
 		if (attribute == null) {
 			return null;
 		}
-		if (ShadowType.F_ATTRIBUTES.equals(ItemPath.getFirstName(attribute.getPath()))) {
+		if (attribute.getPath().startsWithName(ShadowType.F_ATTRIBUTES)) {
 			return attribute;
 		}
 		ResourceAttribute<?> fixedAttribute = attribute.clone();

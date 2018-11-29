@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.prism;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static org.testng.AssertJUnit.assertNull;
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
 import static org.testng.AssertJUnit.assertEquals;
@@ -32,9 +33,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.foo.AssignmentType;
 import com.evolveum.midpoint.prism.foo.UserType;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -474,10 +472,7 @@ public class TestDiff {
         assertEquals("Unexpected number of midifications", 1, modifications.size());
         PrismAsserts.assertPropertyReplace(
         		modifications,
-        		new ItemPath(
-        				new NameItemPathSegment(UserType.F_ASSIGNMENT),
-        				new IdItemPathSegment(1L),
-        				new NameItemPathSegment(AssignmentType.F_DESCRIPTION)),
+		        getPrismContext().path(UserType.F_ASSIGNMENT, 1L, AssignmentType.F_DESCRIPTION),
         		"chamalalia patlama paprtala");
         ItemDelta.checkConsistence(modifications);
     }
@@ -507,7 +502,7 @@ public class TestDiff {
         assertEquals("Unexpected number of midifications", 1, modifications.size());
         PrismAsserts.assertPropertyReplace(
         		modifications,
-        		new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_DESCRIPTION),
+        		getPrismContext().path(UserType.F_ASSIGNMENT, AssignmentType.F_DESCRIPTION),
         		"chamalalia patlama paprtala");
         ItemDelta.checkConsistence(modifications);
     }
@@ -528,7 +523,7 @@ public class TestDiff {
 //    	PrismContainerValue<AssignmentType> ass2cval = ass2.createNewValue();
 //    	ass2cval.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "chamalalia patlama paprtala");
 //
-//		ItemPath pathPrefix = new ItemPath(
+//		ItemPath pathPrefix = prismContext.path(
 //				new NameItemPathSegment(UserType.F_ASSIGNMENT),
 //				new IdItemPathSegment("1"));
 //
@@ -541,7 +536,7 @@ public class TestDiff {
 //        assertEquals("Unexpected number of midifications", 1, modifications.size());
 //        PrismAsserts.assertPropertyReplace(
 //        		modifications,
-//        		new ItemPath(
+//        		prismContext.path(
 //        				new NameItemPathSegment(UserType.F_ASSIGNMENT),
 //        				new IdItemPathSegment("1"),
 //        				new NameItemPathSegment(AssignmentType.F_DESCRIPTION)),

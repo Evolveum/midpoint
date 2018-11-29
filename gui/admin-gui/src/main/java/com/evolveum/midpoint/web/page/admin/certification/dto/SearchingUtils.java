@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.OrderDirection;
@@ -43,33 +44,33 @@ public class SearchingUtils {
 		}
 		String propertyName = sortParam.getProperty();
 
-		ItemPath casePath = isWorkItem ? new ItemPath(T_PARENT) : ItemPath.EMPTY_PATH;
-		ItemPath campaignPath = casePath.subPath(T_PARENT);
+		ItemPath casePath = isWorkItem ? T_PARENT : ItemPath.EMPTY_PATH;
+		ItemPath campaignPath = casePath.append(T_PARENT);
 		ItemPath primaryItemPath;
 		if (TARGET_NAME.equals(propertyName)) {
-			primaryItemPath = casePath.subPath(AccessCertificationCaseType.F_TARGET_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME);
+			primaryItemPath = casePath.append(AccessCertificationCaseType.F_TARGET_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME);
 		} else if (OBJECT_NAME.equals(propertyName)) {
-			primaryItemPath = casePath.subPath(AccessCertificationCaseType.F_OBJECT_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME);
+			primaryItemPath = casePath.append(AccessCertificationCaseType.F_OBJECT_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME);
 		} else if (TENANT_NAME.equals(propertyName)) {
-			primaryItemPath = casePath.subPath(AccessCertificationCaseType.F_TENANT_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME);
+			primaryItemPath = casePath.append(AccessCertificationCaseType.F_TENANT_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME);
 		} else if (ORG_NAME.equals(propertyName)) {
-			primaryItemPath = casePath.subPath(AccessCertificationCaseType.F_ORG_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME);
+			primaryItemPath = casePath.append(AccessCertificationCaseType.F_ORG_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME);
 		} else if (CURRENT_REVIEW_DEADLINE.equals(propertyName)) {
-			primaryItemPath = casePath.subPath(AccessCertificationCaseType.F_CURRENT_STAGE_DEADLINE);
+			primaryItemPath = casePath.append(AccessCertificationCaseType.F_CURRENT_STAGE_DEADLINE);
 		} else if (CURRENT_REVIEW_REQUESTED_TIMESTAMP.equals(propertyName)) {
-			primaryItemPath = casePath.subPath(AccessCertificationCaseType.F_CURRENT_STAGE_CREATE_TIMESTAMP);
+			primaryItemPath = casePath.append(AccessCertificationCaseType.F_CURRENT_STAGE_CREATE_TIMESTAMP);
 		} else if (CAMPAIGN_NAME.equals(propertyName)) {
-			primaryItemPath = campaignPath.subPath(ObjectType.F_NAME);
+			primaryItemPath = campaignPath.append(ObjectType.F_NAME);
 		} else {
-			primaryItemPath = new ItemPath(new QName(SchemaConstantsGenerated.NS_COMMON, propertyName));
+			primaryItemPath = new ItemName(SchemaConstantsGenerated.NS_COMMON, propertyName);
 		}
 		List<ObjectOrdering> rv = new ArrayList<>();
 		rv.add(ObjectOrdering.createOrdering(primaryItemPath, sortParam.isAscending() ? OrderDirection.ASCENDING : OrderDirection.DESCENDING));
 		// additional criteria are used to avoid random shuffling if first criteria is too vague)
-		rv.add(ObjectOrdering.createOrdering(campaignPath.subPath(PrismConstants.T_ID), OrderDirection.ASCENDING)); 	// campaign OID
-		rv.add(ObjectOrdering.createOrdering(casePath.subPath(PrismConstants.T_ID), OrderDirection.ASCENDING));			// case ID
+		rv.add(ObjectOrdering.createOrdering(campaignPath.append(PrismConstants.T_ID), OrderDirection.ASCENDING)); 	// campaign OID
+		rv.add(ObjectOrdering.createOrdering(casePath.append(PrismConstants.T_ID), OrderDirection.ASCENDING));			// case ID
 		if (isWorkItem) {
-			rv.add(ObjectOrdering.createOrdering(new ItemPath(PrismConstants.T_ID), OrderDirection.ASCENDING));			// work item ID
+			rv.add(ObjectOrdering.createOrdering(PrismConstants.T_ID, OrderDirection.ASCENDING));			// work item ID
 		}
 		return rv;
 	}

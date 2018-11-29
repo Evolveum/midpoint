@@ -23,6 +23,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -31,7 +33,6 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
@@ -312,7 +313,7 @@ class EntitlementConverter {
 		PrismPropertyValue<TA> normalized = new PrismPropertyValueImpl<>(normalizedRealValue);
 		LOGGER.trace("Converted entitlement filter value: {} ({}) def={}", normalized, normalized.getValue().getClass(), assocAttrDef);
 		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
-				.item(new ItemPath(ShadowType.F_ATTRIBUTES, assocAttrDef.getName()), assocAttrDef).eq(normalized)
+				.item(ItemPath.create(ShadowType.F_ATTRIBUTES, assocAttrDef.getName()), assocAttrDef).eq(normalized)
 				.build();
 		query.setAllowPartialResults(true);
 		return query;
@@ -492,7 +493,7 @@ class EntitlementConverter {
 							}
 						}
 						if (attributeDelta == null) {
-							attributeDelta = assocAttrDef.createEmptyDelta(new ItemPath(ShadowType.F_ATTRIBUTES, assocAttrName));
+							attributeDelta = assocAttrDef.createEmptyDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, assocAttrName));
 							PropertyModificationOperation attributeModification = new PropertyModificationOperation(attributeDelta);
 							attributeModification.setMatchingRuleQName(assocDefType.getMatchingRule());
 							operations.add(attributeModification);
@@ -571,7 +572,7 @@ class EntitlementConverter {
 		}
 		PropertyModificationOperation attributeOperation = operationMap.get(assocAttrName);
 		if (attributeOperation == null) {
-			attributeOperation = new PropertyModificationOperation(assocAttrDef.createEmptyDelta(new ItemPath(ShadowType.F_ATTRIBUTES, assocAttrName)));
+			attributeOperation = new PropertyModificationOperation(assocAttrDef.createEmptyDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, assocAttrName)));
 			attributeOperation.setMatchingRuleQName(assocDefType.getMatchingRule());
 			operationMap.put(assocAttrName, attributeOperation);
 		}
@@ -582,7 +583,7 @@ class EntitlementConverter {
 		}
 		ResourceAttributeContainer identifiersContainer =
 				ShadowUtil.getAttributesContainer(associationCVal, ShadowAssociationType.F_IDENTIFIERS);
-		PrismProperty<T> valueAttr = identifiersContainer.findProperty(valueAttrName);
+		PrismProperty<T> valueAttr = identifiersContainer.findProperty(ItemName.fromQName(valueAttrName));
 		if (valueAttr == null) {
 			throw new SchemaException("No value attribute "+valueAttrName+" present in entitlement association '"+associationName+"' in shadow for "+ctx.getResource());
 		}
@@ -725,7 +726,7 @@ class EntitlementConverter {
 				}
 			}
 			if (attributeDelta == null) {
-				attributeDelta = assocAttrDef.createEmptyDelta(new ItemPath(ShadowType.F_ATTRIBUTES, assocAttrName));
+				attributeDelta = assocAttrDef.createEmptyDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, assocAttrName));
 			}
 
 			PrismProperty<TA> changedAssocAttr = PrismUtil.convertProperty(valueAttr, assocAttrDef);

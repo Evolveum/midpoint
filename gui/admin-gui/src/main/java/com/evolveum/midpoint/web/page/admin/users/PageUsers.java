@@ -21,7 +21,7 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -57,7 +57,6 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -514,7 +513,7 @@ public class PageUsers extends PageAdminUsers {
 				// credentials specified (otherwise this would create
 				// almost-empty password container)
 				ObjectDelta delta = ObjectDelta.createModificationReplaceProperty(
-						UserType.class, user.getOid(), new ItemPath(UserType.F_ACTIVATION,
+						UserType.class, user.getOid(), ItemPath.create(UserType.F_ACTIVATION,
                                 ActivationType.F_LOCKOUT_STATUS),
 						getPrismContext(), LockoutStatusType.NORMAL);
 				Collection<ObjectDelta<? extends ObjectType>> deltas = WebComponentUtil

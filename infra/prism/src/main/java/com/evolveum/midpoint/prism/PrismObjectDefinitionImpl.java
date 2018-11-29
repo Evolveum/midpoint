@@ -20,6 +20,7 @@ import java.util.function.Consumer;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 
@@ -132,18 +133,18 @@ public class PrismObjectDefinitionImpl<O extends Objectable> extends PrismContai
 	}
 
 
-	private QName getExtensionQName() {
+	private ItemName getExtensionQName() {
 		String namespace = getName().getNamespaceURI();
-		return new QName(namespace, PrismConstants.EXTENSION_LOCAL_NAME);
+		return new ItemName(namespace, PrismConstants.EXTENSION_LOCAL_NAME);
 	}
 
-	public <I extends ItemDefinition> I getExtensionItemDefinition(QName elementName) {
-		PrismContainerDefinition<?> extensionDefinition = getExtensionDefinition();
-		if (extensionDefinition == null) {
-			return null;
-		}
-		return (I) extensionDefinition.findItemDefinition(elementName);
-	}
+//	public <I extends ItemDefinition> I getExtensionItemDefinition(QName elementName) {
+//		PrismContainerDefinition<?> extensionDefinition = getExtensionDefinition();
+//		if (extensionDefinition == null) {
+//			return null;
+//		}
+//		return (I) extensionDefinition.findItemDefinition(elementName);
+//	}
 
 	@Override
 	protected String getDebugDumpClassName() {

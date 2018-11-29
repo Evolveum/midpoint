@@ -248,7 +248,7 @@ public class ResourceRelatedHandlerDto extends HandlerDto implements HandlerDtoE
 			throws SchemaException {
 		PrismPropertyDefinition def = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(itemName);
 		rv.add(DeltaBuilder.deltaFor(TaskType.class, prismContext)
-				.item(new ItemPath(TaskType.F_EXTENSION, itemName), def).replace(realValue).asItemDelta());
+				.item(ItemPath.create(TaskType.F_EXTENSION, itemName), def).replace(realValue).asItemDelta());
 	}
 
 	@Override

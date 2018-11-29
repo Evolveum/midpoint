@@ -20,7 +20,7 @@ import com.evolveum.midpoint.common.StaticExpressionUtil;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
@@ -119,7 +119,7 @@ public class VariablesUtil {
 		if (!(expressionEvaluator.getValue() instanceof ItemPathType)) {
 			throw new IllegalArgumentException("Path expression: expected ItemPathType but got " + expressionEvaluator.getValue());
 		}
-		ItemPath itemPath = ((ItemPathType) expressionEvaluator.getValue()).getItemPath();
+		UniformItemPath itemPath = ((ItemPathType) expressionEvaluator.getValue()).getUniformItemPath();
 		return ExpressionUtil.resolvePath(itemPath, createVariables(resultingVariables), false, null, ctx.objectResolver, shortDesc, ctx.task, result);
 	}
 

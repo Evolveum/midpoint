@@ -18,7 +18,6 @@ package com.evolveum.midpoint.web.component.wizard.resource.dto;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -84,13 +83,12 @@ public class MappingTypeDto implements Serializable {
         oldMappingObject = mappingObject.clone();
 
         for(VariableBindingDefinitionType mappingSource: mappingObject.getSource()){
-            if(mappingSource.getPath() != null && mappingSource.getPath().getItemPath() != null){
+            if(mappingSource.getPath() != null) {
                 source.add(mappingSource.getPath().getItemPath().toString());
             }
         }
 
-        if(mappingObject.getTarget() != null && mappingObject.getTarget().getPath() != null
-                && mappingObject.getTarget().getPath().getItemPath() != null){
+        if(mappingObject.getTarget() != null && mappingObject.getTarget().getPath() != null) {
             target = mappingObject.getTarget().getPath().getItemPath().toString();
         }
 
@@ -345,14 +343,10 @@ public class MappingTypeDto implements Serializable {
             return sb.toString();
         }
 
-        if(!mapping.getSource().isEmpty()){
-            for(VariableBindingDefinitionType source: mapping.getSource()){
-                if(source.getPath() != null && source.getPath().getItemPath() != null
-                        && source.getPath().getItemPath().getSegments() != null){
-
-                    List<ItemPathSegment> segments = source.getPath().getItemPath().getSegments();
-                    sb.append(segments.get(segments.size() - 1));
-
+        if (!mapping.getSource().isEmpty()) {
+            for (VariableBindingDefinitionType source: mapping.getSource()) {
+                if (source.getPath() != null && !ItemPath.isEmpty(source.getPath().getItemPath())) {
+                    sb.append(source.getPath().getItemPath().last());
                     sb.append(",");
                 }
             }
@@ -368,9 +362,8 @@ public class MappingTypeDto implements Serializable {
 
         if (mapping.getTarget() != null) {
         	VariableBindingDefinitionType target = mapping.getTarget();
-            if (target.getPath() != null && !ItemPath.isNullOrEmpty(target.getPath().getItemPath())) {
-                List<ItemPathSegment> segments = target.getPath().getItemPath().getSegments();
-                sb.append(segments.get(segments.size() - 1));
+            if (target.getPath() != null && !ItemPath.isEmpty(target.getPath().getItemPath())) {
+                sb.append(target.getPath().getItemPath().last());
             }
         }
 

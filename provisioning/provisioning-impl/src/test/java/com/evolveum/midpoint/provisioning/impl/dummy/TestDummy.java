@@ -56,8 +56,6 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -100,7 +98,6 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -1177,7 +1174,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 		// WHEN (match)
 		displayWhen(TEST_NAME);
-		ItemComparisonResult comparisonResult = provisioningService.compare(ShadowType.class, shadowOid, SchemaConstants.PATH_PASSWORD_VALUE, 
+		ItemComparisonResult comparisonResult = provisioningService.compare(ShadowType.class, shadowOid, SchemaConstants.PATH_PASSWORD_VALUE,
 				expectedPassword, task, result);
 
 		// THEN (match)
@@ -2131,7 +2128,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 	}
 	
 	protected ObjectOrdering createAttributeOrdering(QName attrQname, OrderDirection direction) {
-		return ObjectOrdering.createOrdering(new ItemPath(ShadowType.F_ATTRIBUTES, attrQname), direction);
+		return ObjectOrdering.createOrdering(prismContext.path(ShadowType.F_ATTRIBUTES, attrQname), direction);
 	}
 
 	@Test
@@ -3567,7 +3564,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		syncServiceMock.reset();
 
 		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
-				ACCOUNT_MORGAN_OID, SchemaTestConstants.ICFS_NAME_PATH, prismContext, ACCOUNT_CPTMORGAN_NAME);
+				ACCOUNT_MORGAN_OID, prismContext.path(SchemaTestConstants.ICFS_NAME_PATH_PARTS), prismContext, ACCOUNT_CPTMORGAN_NAME);
 		provisioningService.applyDefinition(delta, task, result);
 		display("ObjectDelta", delta);
 		delta.checkConsistence();
@@ -3600,7 +3597,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		if (!isIcfNameUidSame()) {
 			shadowUuid = (String) identifier.getRealValue();
 		}
-		PrismAsserts.assertPropertyValue(repoShadow, SchemaTestConstants.ICFS_UID_PATH, shadowUuid);
+		PrismAsserts.assertPropertyValue(repoShadow, prismContext.path(SchemaTestConstants.ICFS_UID_PATH_PARTS), shadowUuid);
 
 		syncServiceMock.assertNotifySuccessOnly();
 
@@ -3746,7 +3743,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		ObjectClassComplexTypeDefinition defaultAccountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 		ResourceAttributeDefinition fullnameAttrDef = defaultAccountDefinition.findAttributeDefinition("fullname");
 		ResourceAttribute fullnameAttr = fullnameAttrDef.instantiate();
-		PropertyDelta fullnameDelta = fullnameAttr.createDelta(new ItemPath(ShadowType.F_ATTRIBUTES,
+		PropertyDelta fullnameDelta = fullnameAttr.createDelta(prismContext.path(ShadowType.F_ATTRIBUTES,
 				fullnameAttrDef.getName()));
 		fullnameDelta.setRealValuesToReplace("Good Daemon");
 		((Collection) modifications).add(fullnameDelta);

@@ -24,12 +24,12 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -102,6 +102,8 @@ public class ObjectValuePolicyEvaluator {
 
 	private Task task;
 
+	@NotNull private final PrismContext prismContext;
+
 	// state
 
 	private boolean prepared = false;
@@ -109,6 +111,9 @@ public class ObjectValuePolicyEvaluator {
 	private CredentialPolicyType credentialPolicy;
 	private ValuePolicyType valuePolicy;
 
+	public ObjectValuePolicyEvaluator(@NotNull PrismContext prismContext) {
+		this.prismContext = prismContext;
+	}
 
 	public Protector getProtector() {
 		return protector;
@@ -260,15 +265,17 @@ public class ObjectValuePolicyEvaluator {
 		if (valueItemPath == null) {
 			return;
 		}
+
+		UniformItemPath complexValueItemPath = valueItemPath.toUniform(prismContext);
 		
-		if (!QNameUtil.match(UserType.F_CREDENTIALS, valueItemPath.getFirstName())) {
+		if (!complexValueItemPath.startsWithName(UserType.F_CREDENTIALS)) {
 			return;
 		}
-		ItemPathSegment secondPathSegment = valueItemPath.getSegments().get(1);
-		if (!(secondPathSegment instanceof NameItemPathSegment)) {
+		Object secondPathSegment = complexValueItemPath.getSegment(1);
+		if (!ItemPath.isName(secondPathSegment)) {
 			return;
 		}
-		credentialQName = ((NameItemPathSegment)secondPathSegment).getName();
+		credentialQName = ItemPath.toName(secondPathSegment);
 		if (!QNameUtil.match(CredentialsType.F_PASSWORD, credentialQName)) {
 			return;
 		}

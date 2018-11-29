@@ -19,6 +19,7 @@ package com.evolveum.midpoint.prism;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -150,7 +151,7 @@ public interface PrismObject<O extends Objectable> extends PrismContainer<O> {
 	PrismValue getParent();
 
 	@Override
-	ItemPath getPath();
+	UniformItemPath getPath();
 
 	@Override
 	boolean equals(Object obj);

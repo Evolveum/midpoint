@@ -369,8 +369,9 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + "."+TEST_NAME);
         OperationResult result = task.getResult();
 
-        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
-        		ResourceType.F_CONNECTOR_REF, GetOperationOptions.createResolve());
+		Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
+				.item(ResourceType.F_CONNECTOR_REF).resolve()
+				.build();
 
 		// WHEN
         PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_CSVFILE_NOTFOUND_OID, options, task, result);

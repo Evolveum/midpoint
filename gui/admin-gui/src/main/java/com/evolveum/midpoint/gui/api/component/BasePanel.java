@@ -18,6 +18,9 @@ package com.evolveum.midpoint.gui.api.component;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.SchemaHelper;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
@@ -107,6 +110,18 @@ public class BasePanel<T> extends Panel {
 
     public PageBase getPageBase() {
         return WebComponentUtil.getPageBase(this);
+    }
+
+    public PrismContext getPrismContext() {
+        return getPageBase().getPrismContext();
+    }
+
+    public SchemaHelper getSchemaHelper() {
+        return getPageBase().getSchemaHelper();
+    }
+
+    public ItemPath path(Object... components) {
+        return getPrismContext().path(components);
     }
 
     protected String createComponentPath(String... components) {

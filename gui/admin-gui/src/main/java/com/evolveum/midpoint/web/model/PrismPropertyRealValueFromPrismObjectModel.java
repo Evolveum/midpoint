@@ -48,10 +48,6 @@ public class PrismPropertyRealValueFromPrismObjectModel<T,O extends ObjectType> 
     private IModel<PrismObject<O>> model;
     private ItemPath path;
 
-    public PrismPropertyRealValueFromPrismObjectModel(IModel<PrismObject<O>> model, QName item) {
-        this(model, new ItemPath(item));
-    }
-
     public PrismPropertyRealValueFromPrismObjectModel(IModel<PrismObject<O>> model, ItemPath path) {
         Validate.notNull(model, "Prism object model must not be null.");
         Validate.notNull(path, "Item path must not be null.");

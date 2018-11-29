@@ -18,6 +18,7 @@ package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,7 +32,7 @@ import java.util.function.Consumer;
 public interface ItemDefinition<I extends Item> extends Definition, Visitable {
 
 	@NotNull
-	QName getName();
+	ItemName getName();
 
 	String getNamespace();
 

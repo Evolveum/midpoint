@@ -418,7 +418,7 @@ public class PageSecurityQuestions extends PageBase {
 		password.setClearValue(newPassword);
 
 		WebComponentUtil.encryptProtectedString(password, true, getMidpointApplication());
-		final ItemPath valuePath = new ItemPath(SchemaConstantsGenerated.C_CREDENTIALS,
+		final ItemPath valuePath = ItemPath.create(SchemaConstantsGenerated.C_CREDENTIALS,
 				CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
 
 		SchemaRegistry registry = getPrismContext().getSchemaRegistry();

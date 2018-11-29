@@ -25,6 +25,7 @@ import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistency
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.SynchronizationUtils;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.ConflictWatcher;
 import com.evolveum.midpoint.repo.api.ModificationPrecondition;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
@@ -45,7 +46,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.focus.FocusConstraintsChe
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -478,7 +479,7 @@ public class ChangeExecutor {
 			if (pcv.representsSameValue(pcvToFind, false) || pcv.equalsRealValue(pcvToFind)) {
 				// TODO what if ID of the assignment being added is changed in repo? Hopefully it will be not.
 				for (ItemDelta<?, ?> modification : modifications) {
-					ItemPath newParentPath = modification.getParentPath().rest().rest();        // killing assignment + ID
+					UniformItemPath newParentPath = modification.getParentPath().rest(2);        // killing assignment + ID
 					ItemDelta<?, ?> pathRelativeModification = modification.cloneWithChangedParentPath(newParentPath);
 					pathRelativeModification.applyTo(pcv);
 				}
@@ -502,7 +503,7 @@ public class ChangeExecutor {
 		} else if (focusDelta.isModify()) {
 			
 			PropertyDelta<XMLGregorianCalendar> provTimestampDelta = PropertyDeltaImpl.createModificationReplaceProperty(
-					new ItemPath(ObjectType.F_METADATA, MetadataType.F_LAST_PROVISIONING_TIMESTAMP), 
+					ItemPath.create(ObjectType.F_METADATA, MetadataType.F_LAST_PROVISIONING_TIMESTAMP),
 					context.getFocusContext().getObjectDefinition(), 
 					clock.currentTimeXMLGregorianCalendar());
 			focusDelta.addModification(provTimestampDelta);
@@ -546,10 +547,8 @@ public class ChangeExecutor {
 
 	private boolean isEquivalentModifyDelta(Collection<? extends ItemDelta<?, ?>> modifications1,
 			Collection<? extends ItemDelta<?, ?>> modifications2) {
-		Collection<? extends ItemDelta<?, ?>> attrDeltas1 = ItemDelta.findItemDeltasSubPath(modifications1,
-				new ItemPath(ShadowType.F_ATTRIBUTES));
-		Collection<? extends ItemDelta<?, ?>> attrDeltas2 = ItemDelta.findItemDeltasSubPath(modifications2,
-				new ItemPath(ShadowType.F_ATTRIBUTES));
+		Collection<? extends ItemDelta<?, ?>> attrDeltas1 = ItemDelta.findItemDeltasSubPath(modifications1, ShadowType.F_ATTRIBUTES);
+		Collection<? extends ItemDelta<?, ?>> attrDeltas2 = ItemDelta.findItemDeltasSubPath(modifications2, ShadowType.F_ATTRIBUTES);
 		return MiscUtil.unorderedCollectionEquals(attrDeltas1, attrDeltas2);
 	}
 
@@ -1244,10 +1243,7 @@ public class ChangeExecutor {
 			return false;
 		}
 		UserType loggedInUser = principal.getUser();
-		if (loggedInUser == null) {
-			return false;
-		}
-		
+
 		if (!loggedInUser.getOid().equals(focusContext.getOid())) {
 			return false;
 		}

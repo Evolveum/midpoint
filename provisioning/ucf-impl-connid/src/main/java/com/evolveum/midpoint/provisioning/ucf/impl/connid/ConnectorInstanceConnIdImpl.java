@@ -28,6 +28,8 @@ import java.util.Set;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.Validate;
 import org.identityconnectors.common.pooling.ObjectPoolConfiguration;
@@ -82,8 +84,6 @@ import org.identityconnectors.framework.impl.api.local.ObjectPool.Statistics;
 import org.identityconnectors.framework.impl.api.local.operations.ConnectorOperationalContext;
 import org.identityconnectors.framework.spi.Connector;
 import org.identityconnectors.framework.spi.PoolableConnector;
-import org.identityconnectors.framework.spi.operations.UpdateAttributeValuesOp;
-import org.jfree.util.Log;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -103,7 +103,6 @@ import com.evolveum.midpoint.prism.match.DistinguishedNameMatchingRule;
 import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
 import com.evolveum.midpoint.prism.match.UuidMatchingRule;
 import com.evolveum.midpoint.prism.match.XmlMatchingRule;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
@@ -322,7 +321,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 			result.recordSuccess();
 
-			PrismProperty<Boolean> legacySchemaConfigProperty = configurationCloned.findProperty(new QName(
+			PrismProperty<Boolean> legacySchemaConfigProperty = configurationCloned.findProperty(new ItemName(
 					SchemaConstants.NS_ICF_CONFIGURATION,
 					ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_LEGACY_SCHEMA_XML_ELEMENT_NAME));
 			if (legacySchemaConfigProperty != null) {
@@ -1754,7 +1753,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 					if(definition == null){
 						throw new ObjectNotFoundException("Returned delta attribute with name: "+ name +" for which, has not been found ResourceAttributeDefinition.");
 					}
-					PropertyDelta<Object> delta = new PropertyDeltaImpl<>(new ItemPath(ShadowType.F_ATTRIBUTES,
+					PropertyDelta<Object> delta = new PropertyDeltaImpl<>(ItemPath.create(ShadowType.F_ATTRIBUTES,
 							definition.getName()), definition, prismContext);
 					if(attrDeltaSideEffect.getValuesToReplace() != null){
 						delta.setRealValuesToReplace(attrDeltaSideEffect.getValuesToReplace().get(0));
@@ -2048,14 +2047,14 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	}
 
 	private PropertyDelta<String> createNameDelta(Name name, ResourceAttributeDefinition nameDefinition) {
-		PropertyDelta<String> uidDelta = new PropertyDeltaImpl<>(new ItemPath(ShadowType.F_ATTRIBUTES, nameDefinition.getName()),
+		PropertyDelta<String> uidDelta = new PropertyDeltaImpl<>(ItemPath.create(ShadowType.F_ATTRIBUTES, nameDefinition.getName()),
 				nameDefinition, prismContext);
 		uidDelta.setRealValuesToReplace(name.getNameValue());
 		return uidDelta;
 	}
 	
 	private PropertyDelta<String> createUidDelta(Uid uid, ResourceAttributeDefinition uidDefinition) {
-		PropertyDelta<String> uidDelta = new PropertyDeltaImpl<>(new ItemPath(ShadowType.F_ATTRIBUTES, uidDefinition.getName()),
+		PropertyDelta<String> uidDelta = new PropertyDeltaImpl<>(ItemPath.create(ShadowType.F_ATTRIBUTES, uidDefinition.getName()),
 				uidDefinition, prismContext);
 		uidDelta.setRealValuesToReplace(uid.getUidValue());
 		return uidDelta;

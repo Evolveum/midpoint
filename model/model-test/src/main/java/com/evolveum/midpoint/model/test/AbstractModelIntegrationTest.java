@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.model.test;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.retrieveItemsNamed;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 import static java.util.Collections.singleton;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
@@ -48,6 +48,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.TaskDebugUtil;
@@ -107,9 +108,6 @@ import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.match.MatchingRule;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -128,11 +126,9 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -187,7 +183,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConflictResolutionActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConflictResolutionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -200,7 +195,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizatio
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordCredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
@@ -252,14 +246,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected static final String CONNECTOR_AD_TYPE = "Org.IdentityConnectors.ActiveDirectory.ActiveDirectoryConnector";
 	protected static final String CONNECTOR_AD_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/ActiveDirectory.Connector/Org.IdentityConnectors.ActiveDirectory.ActiveDirectoryConnector";
 
-	protected static final ItemPath ACTIVATION_ADMINISTRATIVE_STATUS_PATH = new ItemPath(UserType.F_ACTIVATION,
-			ActivationType.F_ADMINISTRATIVE_STATUS);
-	protected static final ItemPath ACTIVATION_VALID_FROM_PATH = new ItemPath(UserType.F_ACTIVATION,
-			ActivationType.F_VALID_FROM);
-	protected static final ItemPath ACTIVATION_VALID_TO_PATH = new ItemPath(UserType.F_ACTIVATION,
-			ActivationType.F_VALID_TO);
-
-	protected static final ItemPath PASSWORD_VALUE_PATH = new ItemPath(UserType.F_CREDENTIALS,  CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
+	protected static final ItemPath ACTIVATION_ADMINISTRATIVE_STATUS_PATH = SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS;
+	protected static final ItemPath ACTIVATION_VALID_FROM_PATH = SchemaConstants.PATH_ACTIVATION_VALID_FROM;
+	protected static final ItemPath ACTIVATION_VALID_TO_PATH = SchemaConstants.PATH_ACTIVATION_VALID_TO;
+	protected static final ItemPath PASSWORD_VALUE_PATH = SchemaConstants.PATH_CREDENTIALS_PASSWORD_VALUE;
 
 	private static final String DEFAULT_CHANNEL = SchemaConstants.CHANNEL_GUI_USER_URI;
 	
@@ -281,6 +271,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	@Autowired protected HookRegistry hookRegistry;
 	@Autowired protected Clock clock;
 	@Autowired protected PrismContext prismContext;
+	@Autowired protected SchemaHelper schemaHelper;
     @Autowired protected DummyTransport dummyTransport;
 	@Autowired protected SecurityEnforcer securityEnforcer;
 	@Autowired protected SecurityContextManager securityContextManager;
@@ -545,13 +536,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected void assertUserProperty(PrismObject<UserType> user, QName propertyName, Object... expectedPropValues) {
-		PrismProperty<Object> property = user.findProperty(propertyName);
+		PrismProperty<Object> property = user.findProperty(ItemName.fromQName(propertyName));
 		assert property != null : "No property "+propertyName+" in "+user;
 		PrismAsserts.assertPropertyValue(property, expectedPropValues);
 	}
 
 	protected void assertUserNoProperty(PrismObject<UserType> user, QName propertyName) {
-		PrismProperty<Object> property = user.findProperty(propertyName);
+		PrismProperty<Object> property = user.findProperty(ItemName.fromQName(propertyName));
 		assert property == null : "Property "+propertyName+" present in "+user+": "+property;
 	}
 
@@ -583,18 +574,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertEquals("Unexpected effective activation status in "+focus, expected, activation.getEffectiveStatus());
 	}
 
-	protected void modifyUserReplace(String userOid, QName propertyName, Task task, OperationResult result, Object... newRealValue)
-			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
-		modifyUserReplace(userOid, new ItemPath(propertyName), task, result, newRealValue);
-	}
-
-	protected void modifyUserReplace(String userOid, QName propertyName, ModelExecuteOptions options, Task task, OperationResult result, Object... newRealValue)
-			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
-		modifyUserReplace(userOid, new ItemPath(propertyName), options, task, result, newRealValue);
-	}
-
 	protected void modifyUserReplace(String userOid, ItemPath propertyPath, Task task, OperationResult result, Object... newRealValue)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
 			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
@@ -606,14 +585,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
 		ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(userOid, propertyPath, newRealValue);
 		executeChanges(objectDelta, options, task, result);
-	}
-
-	protected <O extends ObjectType> void modifyObjectReplaceProperty(Class<O> type, String oid, QName propertyName, Task task, OperationResult result, Object... newRealValue) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
-		modifyObjectReplaceProperty(type, oid, new ItemPath(propertyName), task, result, newRealValue);
-	}
-
-	protected <O extends ObjectType> void modifyObjectReplaceProperty(Class<O> type, String oid, QName propertyName, ModelExecuteOptions options, Task task, OperationResult result, Object... newRealValue) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
-		modifyObjectReplaceProperty(type, oid, new ItemPath(propertyName), options, task, result, newRealValue);
 	}
 
 	protected <O extends ObjectType> void modifyObjectReplaceProperty(Class<O> type, String oid, ItemPath propertyPath, Task task, OperationResult result, Object... newRealValue)
@@ -654,12 +625,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		modelService.executeChanges(deltas, null, task, result);
 	}
 
-	protected <O extends ObjectType, C extends Containerable> void modifyObjectAddContainer(Class<O> type, String oid, QName propertyName, Task task, OperationResult result, C... newRealValue)
-			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
-		modifyObjectAddContainer(type, oid, new ItemPath(propertyName), task, result, newRealValue);
-	}
-	
 	protected <O extends ObjectType, C extends Containerable> void modifyObjectAddContainer(Class<O> type, String oid, ItemPath propertyPath, Task task, OperationResult result, C... newRealValue)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
 			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
@@ -676,10 +641,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		modelService.executeChanges(deltas, null, task, result);
 	}
 
-	protected <O extends ObjectType> void modifyObjectReplaceReference(Class<O> type, String oid, QName refName, Task task, OperationResult result, PrismReferenceValue... refVals) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
-		modifyObjectReplaceReference(type, oid, new ItemPath(refName), task, result, refVals);
-	}
-
 	protected <O extends ObjectType> void modifyObjectReplaceReference(Class<O> type, String oid, ItemPath refPath, Task task, OperationResult result, PrismReferenceValue... refVals)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
 			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
@@ -688,24 +649,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		modelService.executeChanges(deltas, null, task, result);
 	}
 
-	protected void modifyUserAdd(String userOid, QName propertyName, Task task, OperationResult result, Object... newRealValue)
-			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
-		modifyUserAdd(userOid, new ItemPath(propertyName), task, result, newRealValue);
-	}
-
 	protected void modifyUserAdd(String userOid, ItemPath propertyPath, Task task, OperationResult result, Object... newRealValue)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
 			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
 		ObjectDelta<UserType> objectDelta = createModifyUserAddDelta(userOid, propertyPath, newRealValue);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 		modelService.executeChanges(deltas, null, task, result);
-	}
-
-	protected void modifyUserDelete(String userOid, QName propertyName, Task task, OperationResult result, Object... newRealValue)
-			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
-		modifyUserDelete(userOid, new ItemPath(propertyName), task, result, newRealValue);
 	}
 
 	protected void modifyUserDelete(String userOid, ItemPath propertyPath, Task task, OperationResult result, Object... newRealValue)
@@ -768,7 +717,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected void modifyAccountChangePassword(String accountOid, String newPassword, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
 		ProtectedStringType userPasswordPs = new ProtectedStringType();
         userPasswordPs.setClearValue(newPassword);
-        modifyAccountShadowReplace(accountOid, PASSWORD_VALUE_PATH, task,  result, userPasswordPs);
+        modifyAccountShadowReplace(accountOid, PASSWORD_VALUE_PATH, task, result, userPasswordPs);
 	}
 	
 	protected void clearUserPassword(String userOid) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
@@ -1298,7 +1247,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
 	protected <F extends FocusType> ContainerDelta<AssignmentType> createAssignmentModification(Class<F> type, QName elementName, String roleOid, QName refType, QName relation,
 			Consumer<AssignmentType> modificationBlock, boolean add) throws SchemaException {
-		ContainerDelta<AssignmentType> assignmentDelta = ContainerDeltaImpl.createDelta(elementName, getObjectDefinition(type));
+		ContainerDelta<AssignmentType> assignmentDelta = ContainerDeltaImpl.createDelta(ItemName.fromQName(elementName), getObjectDefinition(type));
 		PrismContainerValue<AssignmentType> cval = new PrismContainerValueImpl<>(prismContext);
 		if (add) {
 			assignmentDelta.addValueToAdd(cval);
@@ -1547,13 +1496,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected ObjectDelta<UserType> createReplaceAccountConstructionUserDelta(String userOid, Long id, ConstructionType newValue) throws SchemaException {
         PrismContainerDefinition pcd = getAssignmentDefinition().findContainerDefinition(AssignmentType.F_CONSTRUCTION);
-        ContainerDelta<ConstructionType> acDelta = new ContainerDeltaImpl<>(new ItemPath(new NameItemPathSegment(UserType.F_ASSIGNMENT), new IdItemPathSegment(id), new NameItemPathSegment(AssignmentType.F_CONSTRUCTION)), pcd, prismContext);
-//                ContainerDelta.createDelta(prismContext, ConstructionType.class, AssignmentType.F_CONSTRUCTION);
+        ContainerDelta<ConstructionType> acDelta = new ContainerDeltaImpl<>(ItemPath.create(UserType.F_ASSIGNMENT, id, AssignmentType.F_CONSTRUCTION), pcd, prismContext);
         acDelta.setValueToReplace(newValue.asPrismContainerValue());
-//        PropertyDelta.createModificationReplaceProperty(
-//                        new ItemPath(new NameItemPathSegment(UserType.F_ASSIGNMENT), new IdItemPathSegment(id), new NameItemPathSegment(AssignmentType.F_CONSTRUCTION)),
-//                        ppd,
-//                        newValue);
 
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
         modifications.add(acDelta);
@@ -1958,9 +1902,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected ItemPath getAssignmentPath(long id) {
-		return new ItemPath(
-				new NameItemPathSegment(FocusType.F_ASSIGNMENT),
-				new IdItemPathSegment(id));
+		return ItemPath.create(FocusType.F_ASSIGNMENT, id);
 	}
 
 	protected <F extends FocusType> void assertNoAssignments(PrismObject<F> user) {
@@ -2707,7 +2649,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected ItemPath getIcfsNameAttributePath() {
-		return new ItemPath(
+		return ItemPath.create(
 				ShadowType.F_ATTRIBUTES,
 				SchemaTestConstants.ICFS_NAME);
 
@@ -3391,29 +3333,29 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				expectedModifications++;
 			}
 		}
-		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_ENABLE_TIMESTAMP)) != null) {
+		if (focusDelta.findItemDelta(PATH_ACTIVATION_ENABLE_TIMESTAMP) != null) {
 			expectedModifications++;
 		}
-		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP)) != null) {
+		if (focusDelta.findItemDelta(PATH_ACTIVATION_DISABLE_TIMESTAMP) != null) {
 			expectedModifications++;
 		}
-		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_ARCHIVE_TIMESTAMP)) != null) {
+		if (focusDelta.findItemDelta(PATH_ACTIVATION_ARCHIVE_TIMESTAMP) != null) {
 			expectedModifications++;
 		}
-		PropertyDelta<ActivationStatusType> effectiveStatusDelta = focusDelta.findPropertyDelta(new ItemPath(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
+		PropertyDelta<ActivationStatusType> effectiveStatusDelta = focusDelta.findPropertyDelta(PATH_ACTIVATION_EFFECTIVE_STATUS);
 		if (effectiveStatusDelta != null) {
 			expectedModifications++;
 		}
-		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ITERATION)) != null) {
+		if (focusDelta.findItemDelta(FocusType.F_ITERATION) != null) {
 			expectedModifications++;
 		}
-		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ROLE_MEMBERSHIP_REF)) != null) {
+		if (focusDelta.findItemDelta(FocusType.F_ROLE_MEMBERSHIP_REF) != null) {
 			expectedModifications++;
 		}
-		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_DELEGATED_REF)) != null) {
+		if (focusDelta.findItemDelta(FocusType.F_DELEGATED_REF) != null) {
 			expectedModifications++;
 		}
-		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ITERATION_TOKEN)) != null) {
+		if (focusDelta.findItemDelta(FocusType.F_ITERATION_TOKEN) != null) {
 			expectedModifications++;
 		}
 		assertEquals("Unexpected modifications in " + desc + ": " + focusDelta, expectedModifications, focusDelta.getModifications().size());
@@ -3434,40 +3376,40 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				expectedModifications++;
 			}
 		}
-		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_ENABLE_TIMESTAMP)) != null) {
+		if (focusDelta.findItemDelta(PATH_ACTIVATION_ENABLE_TIMESTAMP) != null) {
 			expectedModifications++;
 		}
-		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP)) != null) {
+		if (focusDelta.findItemDelta(PATH_ACTIVATION_DISABLE_TIMESTAMP) != null) {
 			expectedModifications++;
 		}
-		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_ARCHIVE_TIMESTAMP)) != null) {
+		if (focusDelta.findItemDelta(PATH_ACTIVATION_ARCHIVE_TIMESTAMP) != null) {
 			expectedModifications++;
 		}
-		PropertyDelta<ActivationStatusType> effectiveStatusDelta = focusDelta.findPropertyDelta(new ItemPath(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
+		PropertyDelta<ActivationStatusType> effectiveStatusDelta = focusDelta.findPropertyDelta(PATH_ACTIVATION_EFFECTIVE_STATUS);
 		if (effectiveStatusDelta != null) {
 			expectedModifications++;
 			PrismAsserts.assertReplace(effectiveStatusDelta, expectedEfficientActivation);
 		}
-		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ROLE_MEMBERSHIP_REF)) != null) {
+		if (focusDelta.findItemDelta(FocusType.F_ROLE_MEMBERSHIP_REF) != null) {
 			expectedModifications++;
 		}
-		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_DELEGATED_REF)) != null) {
+		if (focusDelta.findItemDelta(FocusType.F_DELEGATED_REF) != null) {
 			expectedModifications++;
 		}
-		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ITERATION)) != null) {
+		if (focusDelta.findItemDelta(FocusType.F_ITERATION) != null) {
 			expectedModifications++;
 		}
-		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ITERATION_TOKEN)) != null) {
+		if (focusDelta.findItemDelta(FocusType.F_ITERATION_TOKEN) != null) {
 			expectedModifications++;
 		}
 		assertEquals("Unexpected modifications in "+desc+": "+focusDelta, expectedModifications, focusDelta.getModifications().size());
 	}
 
 	private boolean isSideEffectDelta(ItemDelta<?, ?> modification) {
-		if (modification.getPath().containsName(ObjectType.F_METADATA) ||
-				(modification.getPath().containsName(FocusType.F_ASSIGNMENT) && modification.getPath().containsName(ActivationType.F_EFFECTIVE_STATUS))) {
+		if (modification.getPath().containsNameExactly(ObjectType.F_METADATA) ||
+				(modification.getPath().containsNameExactly(FocusType.F_ASSIGNMENT) && modification.getPath().containsNameExactly(ActivationType.F_EFFECTIVE_STATUS))) {
 			return true;
-		} else if (modification.getPath().containsName(FocusType.F_ASSIGNMENT) && modification.getPath().containsName(AssignmentType.F_ACTIVATION) && modification.isReplace() && (modification instanceof ContainerDelta<?>)) {
+		} else if (modification.getPath().containsNameExactly(FocusType.F_ASSIGNMENT) && modification.getPath().containsNameExactly(AssignmentType.F_ACTIVATION) && modification.isReplace() && (modification instanceof ContainerDelta<?>)) {
 			Collection<PrismContainerValue<ActivationType>> valuesToReplace = ((ContainerDelta<ActivationType>)modification).getValuesToReplace();
 			if (valuesToReplace != null && valuesToReplace.size() == 1) {
 				PrismContainerValue<ActivationType> cval = valuesToReplace.iterator().next();
@@ -3647,8 +3589,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         TriggerType triggerType = new TriggerType();
         triggerType.setTimestamp(timestamp);
         triggerType.setHandlerUri(uri);
-        ObjectDelta<ObjectType> delta = ObjectDelta.createModificationAddContainer(ObjectType.class, oid,
-        		new ItemPath(ObjectType.F_TRIGGER), prismContext, triggerType);
+        ObjectDelta<ObjectType> delta = ObjectDelta.createModificationAddContainer(ObjectType.class, oid, ObjectType.F_TRIGGER, prismContext, triggerType);
         executeChanges(delta, null, task, result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
@@ -4161,7 +4102,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
 	protected void loginSuperUser(MidPointPrincipal principal) throws SchemaException {
 		AuthorizationType superAutzType = new AuthorizationType();
-		prismContext.adopt(superAutzType, RoleType.class, new ItemPath(RoleType.F_AUTHORIZATION));
+		prismContext.adopt(superAutzType, RoleType.class, RoleType.F_AUTHORIZATION);
 		superAutzType.getAction().add(AuthorizationConstants.AUTZ_ALL_URL);
 		Authorization superAutz = new Authorization(superAutzType);
 		Collection<Authorization> authorities = principal.getAuthorities();
@@ -4409,10 +4350,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         resourceRedRef.setOid(resourceOid);
 		construction.setResourceRef(resourceRedRef);
         ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationAddContainer(RoleType.class, roleOid,
-        		new ItemPath(
-        				new NameItemPathSegment(RoleType.F_INDUCEMENT),
-        				new IdItemPathSegment(inducementId),
-        				new NameItemPathSegment(AssignmentType.F_CONSTRUCTION)),
+        		ItemPath.create(RoleType.F_INDUCEMENT, inducementId, AssignmentType.F_CONSTRUCTION),
         		prismContext, construction);
         modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), null, task, result);
         result.computeStatus();
@@ -4430,8 +4368,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         targetRef.setOid(targetOid);
         inducement.setTargetRef(targetRef);
         ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationAddContainer(RoleType.class, roleOid,
-        		new ItemPath(new NameItemPathSegment(RoleType.F_INDUCEMENT)),
-        		prismContext, inducement);
+        		RoleType.F_INDUCEMENT, prismContext, inducement);
 		ModelExecuteOptions options = nullToEmpty(defaultOptions);
         options.setReconcileAffected(reconcileAffected);
         executeChanges(roleDelta, options, task, result);
@@ -4460,28 +4397,20 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assignment.setPolicyRule(exclusionPolicyRule);
 		ObjectDelta<RoleType> roleDelta;
 		if (add) {
-			roleDelta = ObjectDelta.createModificationAddContainer(RoleType.class, roleOid,
-        		new ItemPath(new NameItemPathSegment(RoleType.F_ASSIGNMENT)),
-        		prismContext, assignment);
+			roleDelta = ObjectDelta.createModificationAddContainer(RoleType.class, roleOid, RoleType.F_ASSIGNMENT, prismContext, assignment);
 		} else {
-			roleDelta = ObjectDelta.createModificationDeleteContainer(RoleType.class, roleOid,
-	        		new ItemPath(new NameItemPathSegment(RoleType.F_ASSIGNMENT)),
-	        		prismContext, assignment);
+			roleDelta = ObjectDelta.createModificationDeleteContainer(RoleType.class, roleOid, RoleType.F_ASSIGNMENT, prismContext, assignment);
 		}
         executeChanges(roleDelta, null, task, result);
 	}
 	
 	protected void modifyRoleAddAssignment(String roleOid, AssignmentType assignment, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-		ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationAddContainer(RoleType.class, roleOid,
-	        		new ItemPath(new NameItemPathSegment(RoleType.F_ASSIGNMENT)),
-	        		prismContext, assignment);
+		ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationAddContainer(RoleType.class, roleOid, RoleType.F_ASSIGNMENT, prismContext, assignment);
         executeChanges(roleDelta, null, task, result);
 	}
 	
 	protected void modifyRoleDeleteAssignment(String roleOid, AssignmentType assignment, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-		ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationDeleteContainer(RoleType.class, roleOid,
-	        		new ItemPath(new NameItemPathSegment(RoleType.F_ASSIGNMENT)),
-	        		prismContext, assignment);
+		ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationDeleteContainer(RoleType.class, roleOid, RoleType.F_ASSIGNMENT, prismContext, assignment);
         executeChanges(roleDelta, null, task, result);
 	}
 
@@ -4525,23 +4454,17 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected void modifyRoleAddPolicyException(String roleOid, PolicyExceptionType policyException, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-		ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationAddContainer(RoleType.class, roleOid,
-	        		new ItemPath(new NameItemPathSegment(RoleType.F_POLICY_EXCEPTION)),
-	        		prismContext, policyException);
-        executeChanges(roleDelta, null, task, result);
+		ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationAddContainer(RoleType.class, roleOid, RoleType.F_POLICY_EXCEPTION, prismContext, policyException);
+		executeChanges(roleDelta, null, task, result);
 	}
 	
 	protected void modifyRoleDeletePolicyException(String roleOid, PolicyExceptionType policyException, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-		ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationDeleteContainer(RoleType.class, roleOid,
-	        		new ItemPath(new NameItemPathSegment(RoleType.F_POLICY_EXCEPTION)),
-	        		prismContext, policyException);
+		ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationDeleteContainer(RoleType.class, roleOid, RoleType.F_POLICY_EXCEPTION, prismContext, policyException);
         executeChanges(roleDelta, null, task, result);
 	}
 	
 	protected void modifyRoleReplacePolicyException(String roleOid, PolicyExceptionType policyException, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-		ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationReplaceContainer(RoleType.class, roleOid,
-	        		new ItemPath(new NameItemPathSegment(RoleType.F_POLICY_EXCEPTION)),
-	        		prismContext, policyException);
+		ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationReplaceContainer(RoleType.class, roleOid, RoleType.F_POLICY_EXCEPTION, prismContext, policyException);
         executeChanges(roleDelta, null, task, result);
 	}
 	
@@ -4582,9 +4505,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		Task task = createTask(AbstractModelIntegrationTest.class.getName() + ".modifyRoleDeleteInducementTarget");
         OperationResult result = task.getResult();
         AssignmentType inducement = findInducementByTarget(roleOid, targetOid);
-        ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationDeleteContainer(RoleType.class, roleOid,
-        		new ItemPath(new NameItemPathSegment(RoleType.F_INDUCEMENT)),
-        		prismContext, inducement.asPrismContainerValue().clone());
+        ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationDeleteContainer(RoleType.class, roleOid, RoleType.F_INDUCEMENT, prismContext, inducement.asPrismContainerValue().clone());
         modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), options, task, result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
@@ -4818,7 +4739,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assertSuccess(result);
 	}
 
-	protected void assertAllowRequestAssignmentItems(String userOid, String targetRoleOid, Task task, OperationResult result, ItemPath... expectedAllowedItemPaths) 
+	protected void assertAllowRequestAssignmentItems(String userOid, String targetRoleOid, Task task, OperationResult result, ItemPath... expectedAllowedItemPaths)
 			throws SchemaException, SecurityViolationException, CommunicationException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException {
 		PrismObject<UserType> user = getUser(userOid);
 		PrismObject<RoleType> target = getRole(targetRoleOid);
@@ -4850,14 +4771,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
 	@Deprecated
 	protected void assertPasswordMetadata(PrismObject<UserType> user, boolean create, XMLGregorianCalendar start, XMLGregorianCalendar end, String actorOid, String channel) {
-		PrismContainer<MetadataType> metadataContainer = user.findContainer(new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_METADATA));
+		PrismContainer<MetadataType> metadataContainer = user.findContainer(PATH_CREDENTIALS_PASSWORD_METADATA);
 		assertNotNull("No password metadata in "+user, metadataContainer);
 		MetadataType metadataType = metadataContainer.getValue().asContainerable();
 		assertMetadata("password metadata in "+user, metadataType, create, false, start, end, actorOid, channel);
 	}
 
 	protected void assertPasswordMetadata(PrismObject<UserType> user, QName credentialType, boolean create, XMLGregorianCalendar start, XMLGregorianCalendar end, String actorOid, String channel) {
-		PrismContainer<MetadataType> metadataContainer = user.findContainer(new ItemPath(UserType.F_CREDENTIALS, credentialType, PasswordType.F_METADATA));
+		PrismContainer<MetadataType> metadataContainer = user.findContainer(ItemPath.create(UserType.F_CREDENTIALS, credentialType, PasswordType.F_METADATA));
 		assertNotNull("No password metadata in "+user, metadataContainer);
 		MetadataType metadataType = metadataContainer.getValue().asContainerable();
 		assertMetadata("password metadata in "+user, metadataType, create, false, start, end, actorOid, channel);
@@ -5239,13 +5160,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
 	protected void applyPasswordPolicy(String passwordPolicyOid, String securityPolicyOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
 		if (passwordPolicyOid == null) {
-			modifyObjectReplaceReference(SecurityPolicyType.class, securityPolicyOid,
-					new ItemPath(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_VALUE_POLICY_REF),
+			modifyObjectReplaceReference(SecurityPolicyType.class, securityPolicyOid, PATH_CREDENTIALS_PASSWORD_VALUE_POLICY_REF,
 					task, result /* no value */);
 		} else {
 			PrismReferenceValue passPolicyRef = new PrismReferenceValueImpl(passwordPolicyOid, ValuePolicyType.COMPLEX_TYPE);
-			modifyObjectReplaceReference(SecurityPolicyType.class, securityPolicyOid,
-					new ItemPath(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_VALUE_POLICY_REF),
+			modifyObjectReplaceReference(SecurityPolicyType.class, securityPolicyOid, PATH_CREDENTIALS_PASSWORD_VALUE_POLICY_REF,
 	        		task, result, passPolicyRef);
 		}
 	}
@@ -5760,24 +5679,25 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected <O extends ObjectType> SearchResultList<PrismObject<O>> assertSearch(Class<O> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, int expectedResults) throws Exception {
+		ObjectQuery originalQuery = query != null ? query.clone() : null;
 		return assertSearch(type, query, options, 
 				new SearchAssertion<O>() {
 
 					@Override
 					public void assertObjects(String message, List<PrismObject<O>> objects) throws Exception {
 						if (objects.size() > expectedResults) {
-							failDeny(message, type, query, expectedResults, objects.size());
+							failDeny(message, type, originalQuery, expectedResults, objects.size());
 						} else if (objects.size() < expectedResults) {
-							failAllow(message, type, query, expectedResults, objects.size());
+							failAllow(message, type, originalQuery, expectedResults, objects.size());
 						}
 					}
 
 					@Override
 					public void assertCount(int count) throws Exception {
 						if (count > expectedResults) {
-							failDeny("count", type, query, expectedResults, count);
+							failDeny("count", type, originalQuery, expectedResults, count);
 						} else if (count < expectedResults) {
-							failAllow("count", type, query, expectedResults, count);
+							failAllow("count", type, originalQuery, expectedResults, count);
 						}
 					}
 			

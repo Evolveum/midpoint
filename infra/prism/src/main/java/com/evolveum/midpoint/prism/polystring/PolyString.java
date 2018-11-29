@@ -19,8 +19,8 @@ import com.evolveum.midpoint.prism.Matchable;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.Recomputable;
 import com.evolveum.midpoint.prism.Structured;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -48,8 +48,8 @@ import javax.xml.namespace.QName;
 public class PolyString implements Matchable<PolyString>, Recomputable, Structured, DebugDumpable, ShortDumpable, Serializable, Comparable<Object> {
 	private static final long serialVersionUID = -5070443143609226661L;
 
-	public static final QName F_ORIG = new QName(PrismConstants.NS_TYPES, "orig");
-	public static final QName F_NORM = new QName(PrismConstants.NS_TYPES, "norm");
+	public static final ItemName F_ORIG = new ItemName(PrismConstants.NS_TYPES, "orig");
+	public static final ItemName F_NORM = new ItemName(PrismConstants.NS_TYPES, "norm");
 
 	private final String orig;
 	private String norm = null;
@@ -102,17 +102,11 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 		if (subpath.size() > 1) {
 			throw new IllegalArgumentException("Cannot resolve path "+subpath+" on polystring "+this+", the path is too deep");
 		}
-		if (!(subpath.first() instanceof NameItemPathSegment)) {
+		Object first = subpath.first();
+		if (!ItemPath.isName(first)) {
 			throw new IllegalArgumentException("Cannot resolve non-name path "+subpath+" on polystring "+this);
 		}
-		QName itemName = ((NameItemPathSegment)subpath.first()).getName();
-//		if (F_ORIG.equals(itemName)) {
-//			return orig;
-//		} else if (F_NORM.equals(itemName)) {
-//			return norm;
-//		} else {
-//			throw new IllegalArgumentException("Unknown path segment "+itemName);
-//		}
+		QName itemName = ItemPath.toName(first);
 		if (QNameUtil.match(F_ORIG, itemName)) {
 			return orig;
 		} else if (QNameUtil.match(F_NORM, itemName)) {

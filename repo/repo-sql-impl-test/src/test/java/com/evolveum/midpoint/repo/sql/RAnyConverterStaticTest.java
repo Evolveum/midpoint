@@ -19,7 +19,7 @@ package com.evolveum.midpoint.repo.sql;
 import java.util.Set;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAnyConverter;
@@ -65,7 +65,7 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
         Session session = getFactory().openSession();
 
         QName valueName = new QName(NS_P, "polyType");
-        ItemDefinition def = getDefinition(GenericObjectType.class, new ItemPath(ObjectType.F_EXTENSION, valueName));
+        ItemDefinition def = getDefinition(GenericObjectType.class, prismContext.path(ObjectType.F_EXTENSION, valueName));
         AssertJUnit.assertNotNull(def);
 
         Element poly = DOMUtil.createElement(DOMUtil.getDocument(), valueName);
@@ -88,7 +88,7 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
         Session session = getFactory().openSession();
 
         QName valueName = new QName(NS_P, "intType");
-        ItemDefinition def = getDefinition(GenericObjectType.class, new ItemPath(ObjectType.F_EXTENSION, valueName));
+        ItemDefinition def = getDefinition(GenericObjectType.class, prismContext.path(ObjectType.F_EXTENSION, valueName));
         AssertJUnit.assertNotNull(def);
 
         Element value = DOMUtil.createElement(DOMUtil.getDocument(), valueName);
@@ -105,7 +105,7 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
         Session session = getFactory().openSession();
 
         QName valueName = new QName(NS_P, "longType");
-        ItemDefinition def = getDefinition(GenericObjectType.class, new ItemPath(ObjectType.F_EXTENSION, valueName));
+        ItemDefinition def = getDefinition(GenericObjectType.class, prismContext.path(ObjectType.F_EXTENSION, valueName));
         AssertJUnit.assertNotNull(def);
 
         Element value = DOMUtil.createElement(DOMUtil.getDocument(), valueName);
@@ -122,7 +122,7 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
         Session session = getFactory().openSession();
 
         QName valueName = new QName(NS_P, "shortType");
-        ItemDefinition def = getDefinition(GenericObjectType.class, new ItemPath(ObjectType.F_EXTENSION, valueName));
+        ItemDefinition def = getDefinition(GenericObjectType.class, prismContext.path(ObjectType.F_EXTENSION, valueName));
         AssertJUnit.assertNotNull(def);
 
         Element value = DOMUtil.createElement(DOMUtil.getDocument(), valueName);
@@ -139,7 +139,7 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
         Session session = getFactory().openSession();
 
         QName valueName = new QName(NS_P, "doubleType");
-        ItemDefinition def = getDefinition(GenericObjectType.class, new ItemPath(ObjectType.F_EXTENSION, valueName));
+        ItemDefinition def = getDefinition(GenericObjectType.class, prismContext.path(ObjectType.F_EXTENSION, valueName));
         AssertJUnit.assertNotNull(def);
 
         Element value = DOMUtil.createElement(DOMUtil.getDocument(), valueName);
@@ -156,7 +156,7 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
         Session session = getFactory().openSession();
 
         QName valueName = new QName(NS_P, "floatType");
-        ItemDefinition def = getDefinition(GenericObjectType.class, new ItemPath(ObjectType.F_EXTENSION, valueName));
+        ItemDefinition def = getDefinition(GenericObjectType.class, prismContext.path(ObjectType.F_EXTENSION, valueName));
         AssertJUnit.assertNotNull(def);
 
         Element value = DOMUtil.createElement(DOMUtil.getDocument(), valueName);
@@ -173,7 +173,7 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
         Session session = getFactory().openSession();
 
         QName valueName = new QName(NS_P, "floatType");
-        ItemDefinition def = getDefinition(GenericObjectType.class, new ItemPath(ObjectType.F_EXTENSION, valueName));
+        ItemDefinition def = getDefinition(GenericObjectType.class, prismContext.path(ObjectType.F_EXTENSION, valueName));
         AssertJUnit.assertNotNull(def);
 
         Element value = DOMUtil.createElement(DOMUtil.getDocument(), valueName);
@@ -190,7 +190,7 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
         Session session = getFactory().openSession();
 
         QName valueName = new QName(NS_P, "enumType");
-        ItemDefinition def = getDefinition(GenericObjectType.class, new ItemPath(ObjectType.F_EXTENSION, valueName));
+        ItemDefinition def = getDefinition(GenericObjectType.class, prismContext.path(ObjectType.F_EXTENSION, valueName));
         AssertJUnit.assertNotNull(def);
         PrismProperty item = (PrismProperty) def.instantiate();
         item.setRealValue(BeforeAfterType.AFTER);
@@ -221,7 +221,7 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
         Session session = getFactory().openSession();
 
         QName valueName = new QName(NS_P, "decimalType");
-        ItemDefinition def = getDefinition(GenericObjectType.class, new ItemPath(ObjectType.F_EXTENSION, valueName));
+        ItemDefinition def = getDefinition(GenericObjectType.class, prismContext.path(ObjectType.F_EXTENSION, valueName));
         AssertJUnit.assertNotNull(def);
 
         Element value = DOMUtil.createElement(DOMUtil.getDocument(), valueName);
@@ -238,7 +238,7 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
         Session session = getFactory().openSession();
 
         QName valueName = new QName(NS_P, "locations");
-        ItemDefinition def = getDefinition(GenericObjectType.class, new ItemPath(ObjectType.F_EXTENSION, valueName));
+        ItemDefinition def = getDefinition(GenericObjectType.class, prismContext.path(ObjectType.F_EXTENSION, valueName));
         AssertJUnit.assertNotNull(def);
 
         Document document = DOMUtil.getDocument();
@@ -347,10 +347,10 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
     }
 
     private <T extends ObjectType> ItemDefinition getDefinition(Class<T> type, QName name) {
-        return getDefinition(type, new ItemPath(name));
+        return getDefinition(type, prismContext.path(name));
     }
 
-    private <T extends ObjectType> ItemDefinition getDefinition(Class<T> type, ItemPath path) {
+    private <T extends ObjectType> ItemDefinition getDefinition(Class<T> type, UniformItemPath path) {
         SchemaRegistry registry = prismContext.getSchemaRegistry();
         PrismObjectDefinition objectDef = registry.findObjectDefinitionByCompileTimeClass(type);
 

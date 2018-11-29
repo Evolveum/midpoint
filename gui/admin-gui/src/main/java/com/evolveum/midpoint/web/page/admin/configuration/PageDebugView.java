@@ -21,6 +21,7 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.RestartResponseException;
@@ -143,19 +144,17 @@ public class PageDebugView extends PageAdminConfiguration {
                 try {
                     MidPointApplication application = PageDebugView.this.getMidpointApplication();
 
-                    GetOperationOptions rootOptions = GetOperationOptions.createRaw();
-
-                    rootOptions.setResolveNames(true);
-                    rootOptions.setTolerateRawData(true);
-                    Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(rootOptions);
                     // FIXME: ObjectType.class will not work well here. We need more specific type.
                     //todo on page debug list create page params, put there oid and class for object type and send that to this page....read it here
                     Class<? extends ObjectType> type = getTypeFromParameters();
-                    
 
+	                GetOperationOptionsBuilder optionsBuilder = getSchemaHelper().getOperationOptionsBuilder()
+			                .raw()
+			                .resolveNames()
+			                .tolerateRawData();
                     // TODO make this configurable (or at least do not show campaign cases in production)
-                    WebModelServiceUtils.addIncludeOptionsForExportOrView(options, type);
-                    PrismObject<? extends ObjectType> object = getModelService().getObject(type, objectOid.toString(), options, task, result);
+                    optionsBuilder = WebModelServiceUtils.addIncludeOptionsForExportOrView(optionsBuilder, type);
+                    PrismObject<? extends ObjectType> object = getModelService().getObject(type, objectOid.toString(), optionsBuilder.build(), task, result);
 
                     PrismContext context = application.getPrismContext();
 

@@ -18,10 +18,7 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.SubstringFilter;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -95,33 +92,33 @@ public class ExtDictionaryConcurrencyTest extends BaseSQLRepoTest {
         executors.shutdownNow();
     }
 
-    private static class SelectWorker<T extends ObjectType> implements Runnable {
-
-        private ExtDictionaryConcurrencyTest test;
-
-        public SelectWorker(ExtDictionaryConcurrencyTest test) {
-            this.test = test;
-        }
-
-        @Override
-        public void run() {
-            try {
-                OperationResult result = new OperationResult("search");
-
-                SchemaRegistry registry = test.prismContext.getSchemaRegistry();
-
-                ObjectQuery query = ObjectQuery.createObjectQuery(
-                        SubstringFilter.createSubstring(
-                                new ItemPath(UserType.F_NAME),
-                                registry.findComplexTypeDefinitionByCompileTimeClass(UserType.class).findPropertyDefinition(UserType.F_NAME),
-                                test.prismContext, null, "worker", false, false));
-                List<PrismObject<UserType>> res = test.repositoryService.searchObjects(UserType.class, query, new ArrayList<>(), result);
-                LOGGER.info("Found {} users", res.size());
-            } catch (Exception ex) {
-                LOGGER.error("Search exception", ex);
-            }
-        }
-    }
+//    private static class SelectWorker<T extends ObjectType> implements Runnable {
+//
+//        private ExtDictionaryConcurrencyTest test;
+//
+//        public SelectWorker(ExtDictionaryConcurrencyTest test) {
+//            this.test = test;
+//        }
+//
+//        @Override
+//        public void run() {
+//            try {
+//                OperationResult result = new OperationResult("search");
+//
+//                SchemaRegistry registry = test.prismContext.getSchemaRegistry();
+//
+//                ObjectQuery query = ObjectQuery.createObjectQuery(
+//                        SubstringFilter.createSubstring(
+//                                .path(UserType.F_NAME),
+//                                registry.findComplexTypeDefinitionByCompileTimeClass(UserType.class).findPropertyDefinition(UserType.F_NAME),
+//                                test.prismContext, null, "worker", false, false));
+//                List<PrismObject<UserType>> res = test.repositoryService.searchObjects(UserType.class, query, new ArrayList<>(), result);
+//                LOGGER.info("Found {} users", res.size());
+//            } catch (Exception ex) {
+//                LOGGER.error("Search exception", ex);
+//            }
+//        }
+//    }
 
     private static class Worker<T extends ObjectType> implements Runnable {
 
@@ -150,8 +147,8 @@ public class ExtDictionaryConcurrencyTest extends BaseSQLRepoTest {
 
             OperationResult result = new OperationResult("Test: " + attribute + index);
             try {
-                ItemPath path = new ItemPath(UserType.F_EXTENSION, new QName(NAMESPACE, attribute + index));
-//                ItemPath path = new ItemPath(UserType.F_DESCRIPTION);
+                UniformItemPath path = test.prismContext.path(UserType.F_EXTENSION, new QName(NAMESPACE, attribute + index));
+//                ItemPath path = prismContext.path(UserType.F_DESCRIPTION);
                 ObjectDelta delta = ObjectDelta.createModificationAddProperty(type, oid, path,
                         test.prismContext, attribute + index);
 

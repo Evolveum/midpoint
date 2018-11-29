@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.form.Form;
@@ -27,7 +28,6 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -35,7 +35,6 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.ComponentLoggerType;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.StandardLoggerType;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -84,11 +83,12 @@ public class PrismPropertyColumn<IW extends ItemWrapper> extends BasePanel<IW> {
         
         LOGGER.trace("Creating property panel for {}", model.getObject());
         
-        if(model.getObject().getPath().removeIdentifiers().equivalent(new ItemPath(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_CLASS_LOGGER, ClassLoggerConfigurationType.F_APPENDER))){
+        if(model.getObject().getPath().namedSegmentsOnly().equivalent(
+		        ItemPath.create(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_CLASS_LOGGER, ClassLoggerConfigurationType.F_APPENDER))){
 	        
         	((PropertyWrapper)model.getObject()).setPredefinedValues(WebComponentUtil.createAppenderChoices(pageBase));
         
-        } else if(model.getObject().getPath().removeIdentifiers().equivalent(new ItemPath(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_CLASS_LOGGER, ClassLoggerConfigurationType.F_PACKAGE))){
+        } else if(model.getObject().getPath().namedSegmentsOnly().equivalent(ItemPath.create(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_CLASS_LOGGER, ClassLoggerConfigurationType.F_PACKAGE))){
         	LookupTableType lookupTable = new LookupTableType();
 	        List<LookupTableRowType> list = lookupTable.createRowList();
 	        IModel<List<StandardLoggerType>> standardLoggers = WebComponentUtil.createReadonlyModelFromEnum(StandardLoggerType.class);
@@ -123,7 +123,7 @@ public class PrismPropertyColumn<IW extends ItemWrapper> extends BasePanel<IW> {
 
             @Override
             public boolean isEnabled() {
-            	if(model.getObject() instanceof PropertyWrapper && model.getObject().getPath().isSuperPathOrEquivalent(new ItemPath(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_CLASS_LOGGER))){
+            	if(model.getObject() instanceof PropertyWrapper && model.getObject().getPath().isSuperPathOrEquivalent(ItemPath.create(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_CLASS_LOGGER))){
             		return ((PropertyWrapper)model.getObject()).getContainerValue().isSelected();
             	}
                 return !model.getObject().isReadonly();

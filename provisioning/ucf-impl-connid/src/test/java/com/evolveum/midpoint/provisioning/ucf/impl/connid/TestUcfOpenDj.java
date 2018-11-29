@@ -19,7 +19,8 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -195,14 +196,14 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		PrismContainerDefinition configurationPropertiesDefinition =
 			configurationDefinition.findContainerDefinition(SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
 
-		PrismPropertyDefinition<String> propHost = configurationPropertiesDefinition.findPropertyDefinition(new QName(UcfTestUtil.CONNECTOR_LDAP_NS,"host"));
+		PrismPropertyDefinition<String> propHost = configurationPropertiesDefinition.findPropertyDefinition(new ItemName(UcfTestUtil.CONNECTOR_LDAP_NS,"host"));
 		assertNotNull("No definition for configuration property 'host' in connector schema", propHost);
 		PrismAsserts.assertDefinition(propHost, new QName(UcfTestUtil.CONNECTOR_LDAP_NS,"host"), DOMUtil.XSD_STRING, 1, 1);
 		assertEquals("Wrong property 'host' display name", "Host", propHost.getDisplayName());
 		assertEquals("Wrong property 'host' help", "The name or IP address of the LDAP server host.", propHost.getHelp());
 		assertEquals("Wrong property 'host' display order", (Integer)1, propHost.getDisplayOrder()); // MID-2642
 
-		PrismPropertyDefinition<String> propPort = configurationPropertiesDefinition.findPropertyDefinition(new QName(UcfTestUtil.CONNECTOR_LDAP_NS,"port"));
+		PrismPropertyDefinition<String> propPort = configurationPropertiesDefinition.findPropertyDefinition(new ItemName(UcfTestUtil.CONNECTOR_LDAP_NS,"port"));
 		assertNotNull("No definition for configuration property 'port' in connector schema", propPort);
 		PrismAsserts.assertDefinition(propPort, new QName(UcfTestUtil.CONNECTOR_LDAP_NS,"port"), DOMUtil.XSD_INT, 0, 1);
 		assertEquals("Wrong property 'port' display name", "Port number", propPort.getDisplayName());
@@ -419,7 +420,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 	private PropertyModificationOperation createReplaceAttributeChange(String propertyName, String propertyValue) {
 		PrismProperty property = createProperty(propertyName, propertyValue);
-		ItemPath propertyPath = new ItemPath(ShadowType.F_ATTRIBUTES,
+		UniformItemPath propertyPath = prismContext.path(ShadowType.F_ATTRIBUTES,
 				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), propertyName));
 		PropertyDelta delta = new PropertyDeltaImpl(propertyPath, property.getDefinition(), prismContext);
 		delta.setRealValuesToReplace(propertyValue);
@@ -429,7 +430,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 	private PropertyModificationOperation createAddAttributeChange(String propertyName, String propertyValue) {
 		PrismProperty property = createProperty(propertyName, propertyValue);
-		ItemPath propertyPath = new ItemPath(ShadowType.F_ATTRIBUTES,
+		UniformItemPath propertyPath = prismContext.path(ShadowType.F_ATTRIBUTES,
 				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), propertyName));
 		PropertyDelta delta = new PropertyDeltaImpl(propertyPath, property.getDefinition(), prismContext);
 		delta.addRealValuesToAdd(propertyValue);
@@ -439,7 +440,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 	private PropertyModificationOperation createDeleteAttributeChange(String propertyName, String propertyValue) {
 		PrismProperty property = createProperty(propertyName, propertyValue);
-		ItemPath propertyPath = new ItemPath(ShadowType.F_ATTRIBUTES,
+		UniformItemPath propertyPath = prismContext.path(ShadowType.F_ATTRIBUTES,
 				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), propertyName));
 		PropertyDelta delta = new PropertyDeltaImpl(propertyPath, property.getDefinition(), prismContext);
 		delta.addRealValuesToDelete(propertyValue);
@@ -450,7 +451,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	private PropertyModificationOperation createActivationChange(ActivationStatusType status) {
 		PrismObjectDefinition<ShadowType> shadowDefinition = getShadowDefinition(ShadowType.class);
 		PropertyDelta<ActivationStatusType> delta = PropertyDeltaImpl.createDelta(
-				new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
+				prismContext.path(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
 				shadowDefinition);
 		delta.setRealValuesToReplace(status);
 		return new PropertyModificationOperation(delta);

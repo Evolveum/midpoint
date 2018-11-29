@@ -174,7 +174,8 @@ public class ProvisioningUtil {
 			AttributeFetchStrategyType fetchStrategy = attributeDefinition.getFetchStrategy();
 			if (fetchStrategy != null && fetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
 				explicit.add(attributeDefinition);
-			} else if (hasMinimal && (fetchStrategy != AttributeFetchStrategyType.MINIMAL || SelectorOptions.isExplicitlyIncluded(attributeDefinition.getName(), ctx.getGetOperationOptions()))) {
+			} else if (hasMinimal && (fetchStrategy != AttributeFetchStrategyType.MINIMAL ||
+					SelectorOptions.isExplicitlyIncluded(ctx.getPrismContext().path(attributeDefinition.getName()), ctx.getGetOperationOptions()))) {
 				explicit.add(attributeDefinition);
 			}
 		}
@@ -188,7 +189,7 @@ public class ProvisioningUtil {
 		CredentialsCapabilityType credentialsCapabilityType = ResourceTypeUtil.getEffectiveCapability(
 				resource, CredentialsCapabilityType.class);
 		if (credentialsCapabilityType != null) {
-			if (SelectorOptions.hasToLoadPath(SchemaConstants.PATH_PASSWORD_VALUE, ctx.getGetOperationOptions())) {
+			if (SelectorOptions.hasToLoadPath(ctx.getPrismContext().path(SchemaConstants.PATH_PASSWORD_VALUE), ctx.getGetOperationOptions())) {
 				attributesToReturn.setReturnPasswordExplicit(true);
 				apply = true;
 			} else {
@@ -213,7 +214,7 @@ public class ProvisioningUtil {
 				if (!CapabilityUtil.isActivationStatusReturnedByDefault(activationCapabilityType)) {
 					// There resource is capable of returning enable flag but it does
 					// not do it by default
-					if (SelectorOptions.hasToLoadPath(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, ctx.getGetOperationOptions())) {
+					if (SelectorOptions.hasToLoadPath(ctx.path(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS), ctx.getGetOperationOptions())) {
 						attributesToReturn.setReturnAdministrativeStatusExplicit(true);
 						apply = true;
 					} else {
@@ -228,7 +229,7 @@ public class ProvisioningUtil {
 			}
 			if (CapabilityUtil.isCapabilityEnabled(activationCapabilityType.getValidFrom())) {
 				if (!CapabilityUtil.isActivationValidFromReturnedByDefault(activationCapabilityType)) {
-					if (SelectorOptions.hasToLoadPath(SchemaConstants.PATH_ACTIVATION_VALID_FROM, ctx.getGetOperationOptions())) {
+					if (SelectorOptions.hasToLoadPath(ctx.path(SchemaConstants.PATH_ACTIVATION_VALID_FROM), ctx.getGetOperationOptions())) {
 						attributesToReturn.setReturnValidFromExplicit(true);
 						apply = true;
 					} else {
@@ -243,7 +244,7 @@ public class ProvisioningUtil {
 			}
 			if (CapabilityUtil.isCapabilityEnabled(activationCapabilityType.getValidTo())) {
 				if (!CapabilityUtil.isActivationValidToReturnedByDefault(activationCapabilityType)) {
-					if (SelectorOptions.hasToLoadPath(SchemaConstants.PATH_ACTIVATION_VALID_TO, ctx.getGetOperationOptions())) {
+					if (SelectorOptions.hasToLoadPath(ctx.path(SchemaConstants.PATH_ACTIVATION_VALID_TO), ctx.getGetOperationOptions())) {
 						attributesToReturn.setReturnValidToExplicit(true);
 						apply = true;
 					} else {
@@ -260,7 +261,7 @@ public class ProvisioningUtil {
 				if (!CapabilityUtil.isActivationLockoutStatusReturnedByDefault(activationCapabilityType)) {
 					// There resource is capable of returning lockout flag but it does
 					// not do it by default
-					if (SelectorOptions.hasToLoadPath(SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, ctx.getGetOperationOptions())) {
+					if (SelectorOptions.hasToLoadPath(ctx.path(SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS), ctx.getGetOperationOptions())) {
 						attributesToReturn.setReturnAdministrativeStatusExplicit(true);
 						apply = true;
 					} else {
@@ -479,7 +480,7 @@ public class ProvisioningUtil {
 				valuesToReplace = CloneUtil.cloneCollectionMembers(attribute.getValues());
 				LOGGER.trace("- updating identifier {} value of {}", attributeName, attribute.getValues());
 				rv.add(DeltaBuilder.deltaFor(ShadowType.class, prismContext)
-						.item(new ItemPath(ShadowType.F_ATTRIBUTES, attributeName), attribute.getDefinition()).replace(valuesToReplace)
+						.item(ItemPath.create(ShadowType.F_ATTRIBUTES, attributeName), attribute.getDefinition()).replace(valuesToReplace)
 						.asItemDelta());
 				QNameUtil.remove(outstandingInRepo, attributeName);
 			}
@@ -493,7 +494,7 @@ public class ProvisioningUtil {
 				}
 				LOGGER.trace("- removing non-identifier {} value", outstanding);
 				rv.add(DeltaBuilder.deltaFor(ShadowType.class, prismContext)
-						.item(new ItemPath(ShadowType.F_ATTRIBUTES, outstanding), outstandingDefinition).replace()
+						.item(ItemPath.create(ShadowType.F_ATTRIBUTES, outstanding), outstandingDefinition).replace()
 						.asItemDelta());
 			}
 		}
@@ -568,14 +569,12 @@ public class ProvisioningUtil {
 	}
 	
 	public static boolean isResourceModification(ItemDelta modification) {
-		ItemPath path = modification.getPath();
-		QName firstPathName = ItemPath.getFirstName(path);
+		QName firstPathName = modification.getPath().firstName();
 		return isAttributeModification(firstPathName) || isNonAttributeResourceModification(firstPathName);
 	}
 
 	public static boolean isAttributeModification(ItemDelta modification) {
-		ItemPath path = modification.getPath();
-		QName firstPathName = ItemPath.getFirstName(path);
+		QName firstPathName = modification.getPath().firstName();
 		return isAttributeModification(firstPathName);
 	}
 
@@ -584,8 +583,7 @@ public class ProvisioningUtil {
 	}
 
 	public static boolean isNonAttributeResourceModification(ItemDelta modification) {
-		ItemPath path = modification.getPath();
-		QName firstPathName = ItemPath.getFirstName(path);
+		QName firstPathName = modification.getPath().firstName();
 		return isNonAttributeResourceModification(firstPathName);
 	}
 

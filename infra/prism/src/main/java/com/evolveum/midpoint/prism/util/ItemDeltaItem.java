@@ -25,11 +25,14 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPathImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+
+import static com.evolveum.midpoint.prism.path.ItemPath.*;
 
 /**
  * A class defining old item state (before change), delta (change) and new item state (after change).
@@ -45,7 +48,7 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 	private Item<V,D> itemOld;
 	private ItemDelta<V,D> delta;
 	private Item<V,D> itemNew;
-	private ItemPath resolvePath = ItemPath.EMPTY_PATH;
+	private ItemPath resolvePath = UniformItemPathImpl.EMPTY_PATH;     // todo
 	private ItemPath residualPath = null;
 
 	// The deltas in sub-items. E.g. if this object represents "ContainerDeltaContainer"
@@ -177,13 +180,13 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 			return (ItemDeltaItem<IV,ID>) this;
 		}
 		Item<IV,ID> subItemOld = null;
-		ItemPath subResidualPath = null;
-		ItemPath newResolvePath = resolvePath.subPath(path);
+		UniformItemPath subResidualPath = null;
+		ItemPath newResolvePath = resolvePath.append(path);
 		if (itemOld != null) {
 			PartiallyResolvedItem<IV,ID> partialItemOld = itemOld.findPartial(path);
 			if (partialItemOld != null) {
 				subItemOld = partialItemOld.getItem();
-				subResidualPath = partialItemOld.getResidualPath();
+				subResidualPath = UniformItemPathImpl.fromItemPath(partialItemOld.getResidualPath());
 			}
 		}
 		Item<IV,ID> subItemNew = null;
@@ -192,7 +195,7 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 			if (partialItemNew != null) {
 				subItemNew = partialItemNew.getItem();
 				if (subResidualPath == null) {
-					subResidualPath = partialItemNew.getResidualPath();
+					subResidualPath = UniformItemPathImpl.fromItemPath(partialItemNew.getResidualPath());
 				}
 			}
 		}
@@ -286,7 +289,8 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 	}
 
 	// Assumes that this IDI represents structured property
-	public <X> ItemDeltaItem<PrismPropertyValue<X>,PrismPropertyDefinition<X>> resolveStructuredProperty(ItemPath resolvePath, PrismPropertyDefinition outputDefinition, ItemPath outputPath) {
+	public <X> ItemDeltaItem<PrismPropertyValue<X>,PrismPropertyDefinition<X>> resolveStructuredProperty(
+			ItemPath resolvePath, PrismPropertyDefinition outputDefinition, ItemPath outputPath) {
 		ItemDeltaItem<PrismPropertyValue<Structured>,PrismPropertyDefinition<Structured>> thisIdi = (ItemDeltaItem<PrismPropertyValue<Structured>,PrismPropertyDefinition<Structured>>)this;
 		PrismProperty<X> outputPropertyNew = resolveStructuredPropertyItem((PrismProperty<Structured>) thisIdi.getItemNew(), resolvePath, outputDefinition);
 		PrismProperty<X> outputPropertyOld = resolveStructuredPropertyItem((PrismProperty<Structured>) thisIdi.getItemOld(), resolvePath, outputDefinition);

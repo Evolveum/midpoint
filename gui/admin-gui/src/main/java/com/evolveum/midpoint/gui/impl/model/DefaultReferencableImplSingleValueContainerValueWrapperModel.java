@@ -22,7 +22,6 @@ import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
 import com.evolveum.midpoint.web.component.prism.ReferenceWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueWrapper;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 
 import org.apache.wicket.model.IModel;
 
@@ -53,7 +52,8 @@ public class DefaultReferencableImplSingleValueContainerValueWrapperModel<C exte
 	@Override
 	public DefaultReferencableImpl getObject() {
 		
-		PropertyOrReferenceWrapper ref = (PropertyOrReferenceWrapper) model.getObject().findPropertyWrapper(new ItemPath(model.getObject().getPath(), item));
+		PropertyOrReferenceWrapper ref = model.getObject().findPropertyWrapper(
+				ItemPath.create(model.getObject().getPath(), item));
 		
 		if(!(ref instanceof ReferenceWrapper)){
 			throw new IllegalStateException("Searched property is not ReferenceWrapper");

@@ -19,6 +19,7 @@ import com.evolveum.icf.dummy.resource.BreakMode;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -1262,7 +1263,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         displayTestTitle(TEST_NAME);
 
         PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-        PrismPropertyDefinition<String> markDef = userDef.findPropertyDefinition(new ItemPath(UserType.F_EXTENSION, PIRACY_MARK));
+        PrismPropertyDefinition<String> markDef = userDef.findPropertyDefinition(ItemPath.create(UserType.F_EXTENSION, PIRACY_MARK));
 
         // WHEN
         TestUtil.assertSetEquals("Wrong allowedValues in mark", MiscUtil.getValuesFromDisplayableValues(markDef.getAllowedValues()),
@@ -1283,14 +1284,14 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         // GIVEN
 
         PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-        PrismPropertyDefinition<String> markDef = userDef.findPropertyDefinition(new ItemPath(UserType.F_EXTENSION, PIRACY_MARK));
+        PrismPropertyDefinition<String> markDef = userDef.findPropertyDefinition(ItemPath.create(UserType.F_EXTENSION, PIRACY_MARK));
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
         // WHEN
-        modifyObjectReplaceProperty(UserType.class, USER_GUYBRUSH_OID, new ItemPath(UserType.F_EXTENSION, PIRACY_MARK),
+        modifyObjectReplaceProperty(UserType.class, USER_GUYBRUSH_OID, ItemPath.create(UserType.F_EXTENSION, PIRACY_MARK),
         		task, result, "bravery");
 
         // THEN
@@ -1298,7 +1299,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         assertSuccess(result);
 
         PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
-        PrismProperty<String> markProp = user.findProperty(new ItemPath(UserType.F_EXTENSION, PIRACY_MARK));
+        PrismProperty<String> markProp = user.findProperty(ItemPath.create(UserType.F_EXTENSION, PIRACY_MARK));
         assertEquals("Bad mark", "bravery", markProp.getRealValue());
     }
 
@@ -1312,7 +1313,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         displayTestTitle(TEST_NAME);
 
         PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-        PrismPropertyDefinition<String> markDef = userDef.findPropertyDefinition(new ItemPath(UserType.F_EXTENSION, PIRACY_MARK));
+        PrismPropertyDefinition<String> markDef = userDef.findPropertyDefinition(ItemPath.create(UserType.F_EXTENSION, PIRACY_MARK));
         Iterator<? extends DisplayableValue<String>> iterator = markDef.getAllowedValues().iterator();
 		DisplayableValue<String> braveryValue = null;
         while (iterator.hasNext()) {
@@ -1335,7 +1336,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         displayThen(TEST_NAME);
         assertSuccess(result);
 
-        PrismProperty<String> markProp = user.findProperty(new ItemPath(UserType.F_EXTENSION, PIRACY_MARK));
+        PrismProperty<String> markProp = user.findProperty(ItemPath.create(UserType.F_EXTENSION, PIRACY_MARK));
         assertEquals("Bad mark", null, markProp.getRealValue());
 
 		((Collection) markDef.getAllowedValues()).add(braveryValue);		// because of the following test
@@ -1356,7 +1357,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
-        modifyObjectReplaceProperty(UserType.class, USER_GUYBRUSH_OID, new ItemPath(UserType.F_EXTENSION, PIRACY_SHIP),
+        modifyObjectReplaceProperty(UserType.class, USER_GUYBRUSH_OID, prismContext.path(UserType.F_EXTENSION, PIRACY_SHIP),
         		task, result, "The Pink Lady");
         assertSuccess(result);
 
@@ -1548,7 +1549,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	private <O extends ObjectType, T> void assertExtension(PrismObject<O> object, QName propName, T... expectedValues) {
 		PrismContainer<Containerable> extensionContainer = object.findContainer(ObjectType.F_EXTENSION);
 		assertNotNull("No extension container in "+object, extensionContainer);
-		PrismProperty<T> extensionProperty = extensionContainer.findProperty(propName);
+		PrismProperty<T> extensionProperty = extensionContainer.findProperty(ItemName.fromQName(propName));
 		assertNotNull("No extension property "+propName+" in "+object, extensionProperty);
 		PrismAsserts.assertPropertyValues("Values of extension property "+propName, extensionProperty.getValues(), expectedValues);
 	}

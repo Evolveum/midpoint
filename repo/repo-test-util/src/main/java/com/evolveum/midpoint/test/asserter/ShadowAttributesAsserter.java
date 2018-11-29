@@ -23,11 +23,11 @@ import static org.testng.AssertJUnit.assertNull;
 
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
@@ -84,7 +84,7 @@ public class ShadowAttributesAsserter<R> extends AbstractAsserter<ShadowAsserter
 	
 	public ShadowAttributesAsserter<R> assertAttributes(QName... expectedAttributes) {
 		for (QName expectedAttribute: expectedAttributes) {
-			PrismProperty<Object> attr = getAttributes().findProperty(expectedAttribute);
+			PrismProperty<Object> attr = getAttributes().findProperty(ItemName.fromQName(expectedAttribute));
 			if (attr == null) {
 				fail("Expected attribute "+expectedAttribute+" in "+desc()+" but there was none. Attributes present: "+presentAttributeNames());
 			}
@@ -171,7 +171,7 @@ public class ShadowAttributesAsserter<R> extends AbstractAsserter<ShadowAsserter
 	}
 
 	private <T> PrismProperty<T> findAttribute(QName attrName) {
-		return getAttributes().findProperty(attrName);
+		return getAttributes().findProperty(ItemName.fromQName(attrName));
 	}
 
 	protected String desc() {

@@ -28,6 +28,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.PrismSchemaImpl;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
@@ -40,7 +41,7 @@ import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
@@ -401,7 +402,7 @@ public class ResourceManager {
 					schemaCachingMetadata = MiscSchemaUtil.generateCachingMetadata();
 					modifications.add(
 							PropertyDeltaImpl.createModificationReplaceProperty(
-								new ItemPath(ResourceType.F_SCHEMA, CapabilitiesType.F_CACHING_METADATA), 
+								ItemPath.create(ResourceType.F_SCHEMA, CapabilitiesType.F_CACHING_METADATA),
 								resource.getDefinition(),
 								schemaCachingMetadata)
 						);
@@ -433,7 +434,7 @@ public class ResourceManager {
 			resourceCapType = new CapabilitiesType();
 			resourceType.setCapabilities(resourceCapType);
 		}
-		completeConnectorCapabilities(defaultConnectorSpec, resourceCapType, new ItemPath(ResourceType.F_CAPABILITIES), forceRefresh, 
+		completeConnectorCapabilities(defaultConnectorSpec, resourceCapType, ResourceType.F_CAPABILITIES, forceRefresh,
 				capabilityMap==null?null:capabilityMap.get(null),
 				modifications, result);
 		
@@ -444,14 +445,14 @@ public class ResourceManager {
 				connectorCapType = new CapabilitiesType();
 				additionalConnectorType.setCapabilities(connectorCapType);
 			}
-			ItemPath itemPath = additionalConnectorType.asPrismContainerValue().getPath().subPath(ConnectorInstanceSpecificationType.F_CAPABILITIES);
+			UniformItemPath itemPath = additionalConnectorType.asPrismContainerValue().getPath().append(ConnectorInstanceSpecificationType.F_CAPABILITIES);
 			completeConnectorCapabilities(connectorSpec, connectorCapType, itemPath, forceRefresh, 
 					capabilityMap==null?null:capabilityMap.get(additionalConnectorType.getName()),
 					modifications, result);
 		}
 	}
 		
-	private void completeConnectorCapabilities(ConnectorSpec connectorSpec, CapabilitiesType capType, ItemPath itemPath, boolean forceRefresh, 
+	private void completeConnectorCapabilities(ConnectorSpec connectorSpec, CapabilitiesType capType, ItemPath itemPath, boolean forceRefresh,
 			Collection<Object> retrievedCapabilities, Collection<ItemDelta<?, ?>> modifications, OperationResult result) 
 					throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		
@@ -462,7 +463,7 @@ public class ResourceManager {
 					cachingMetadata = MiscSchemaUtil.generateCachingMetadata();
 					modifications.add(
 							PropertyDeltaImpl.createModificationReplaceProperty(
-								new ItemPath(ResourceType.F_CAPABILITIES, CapabilitiesType.F_CACHING_METADATA), 
+								ItemPath.create(ResourceType.F_CAPABILITIES, CapabilitiesType.F_CACHING_METADATA),
 								connectorSpec.getResource().getDefinition(),
 								cachingMetadata)
 						);
@@ -1198,9 +1199,8 @@ public class ResourceManager {
     		return;
     	}
     	
-    	QName first = ItemPath.getName(itemDelta.getParentPath().first());
-    	
-    	if (first == null){
+    	QName first = itemDelta.getParentPath().firstToNameOrNull();
+    	if (first == null) {
     		return;
     	}
     	
@@ -1362,5 +1362,7 @@ public class ResourceManager {
 		return new ConnectorSpec(resource, connectorName, connectorOid, connectorConfiguration);
 	}
 
-	
+	public PrismContext getPrismContext() {
+		return prismContext;
+	}
 }

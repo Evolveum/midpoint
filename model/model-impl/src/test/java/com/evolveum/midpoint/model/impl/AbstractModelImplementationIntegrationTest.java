@@ -167,12 +167,6 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
 	}
 
 	protected ObjectDelta<UserType> addModificationToContextReplaceUserProperty(
-			LensContext<UserType> context, QName propertyName, Object... propertyValues)
-			throws SchemaException {
-		return addModificationToContextReplaceUserProperty(context, new ItemPath(propertyName), propertyValues);
-	}
-
-	protected ObjectDelta<UserType> addModificationToContextReplaceUserProperty(
 			LensContext<UserType> context, ItemPath propertyPath, Object... propertyValues)
 			throws SchemaException {
 		LensFocusContext<UserType> focusContext = context.getOrCreateFocusContext();
@@ -267,7 +261,7 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
 			String attributeLocalName, T... propertyValues) throws SchemaException {
 		ResourceType resourceType = accCtx.getResource();
 		QName attrQName = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), attributeLocalName);
-		ItemPath attrPath = new ItemPath(ShadowType.F_ATTRIBUTES, attrQName);
+		ItemPath attrPath = ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName);
 		RefinedObjectClassDefinition refinedAccountDefinition = accCtx.getCompositeObjectClassDefinition();
 		RefinedAttributeDefinition attrDef = refinedAccountDefinition.findAttributeDefinition(attrQName);
 		assertNotNull("No definition of attribute "+attrQName+" in account def "+refinedAccountDefinition, attrDef);

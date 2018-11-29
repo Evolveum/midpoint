@@ -28,12 +28,12 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContainerValueImpl;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.BreakMode;
@@ -45,9 +45,6 @@ import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -63,7 +60,6 @@ import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 
@@ -577,11 +573,7 @@ public class TestMapping extends AbstractMappingTest {
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
 		display("User before", userBefore);
 		AssignmentType titanicAssignment = getAssignment(userBefore, ROLE_BLUE_TITANIC_OID);
-		ItemPath assignmentStatusPath = new ItemPath(
-				new NameItemPathSegment(FocusType.F_ASSIGNMENT),
-				new IdItemPathSegment(titanicAssignment.getId()),
-				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
-				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS));
+		ItemPath assignmentStatusPath = ItemPath.create(FocusType.F_ASSIGNMENT, titanicAssignment.getId(), AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
 
 		// WHEN
 		modifyUserReplace(USER_JACK_OID, assignmentStatusPath, task, result, ActivationStatusType.DISABLED);
@@ -662,11 +654,7 @@ public class TestMapping extends AbstractMappingTest {
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
 		display("User before", userBefore);
 		AssignmentType titanicAssignment = getAssignment(userBefore, ROLE_BLUE_TITANIC_OID);
-		ItemPath assignmentStatusPath = new ItemPath(
-				new NameItemPathSegment(FocusType.F_ASSIGNMENT),
-				new IdItemPathSegment(titanicAssignment.getId()),
-				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
-				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS));
+		ItemPath assignmentStatusPath = ItemPath.create(FocusType.F_ASSIGNMENT, titanicAssignment.getId(), AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
 
 		// WHEN
 		modifyUserReplace(USER_JACK_OID, assignmentStatusPath, task, result, ActivationStatusType.ENABLED);
@@ -778,11 +766,8 @@ public class TestMapping extends AbstractMappingTest {
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
 		display("User before", userBefore);
 		AssignmentType poetryAssignment = getAssignment(userBefore, ROLE_BLUE_POETRY_OID);
-		ItemPath assignmentStatusPath = new ItemPath(
-				new NameItemPathSegment(FocusType.F_ASSIGNMENT),
-				new IdItemPathSegment(poetryAssignment.getId()),
-				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
-				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS));
+		ItemPath assignmentStatusPath = ItemPath.create(FocusType.F_ASSIGNMENT, poetryAssignment.getId(),
+				AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
 
 		// WHEN
 		modifyUserReplace(USER_JACK_OID, assignmentStatusPath, task, result, ActivationStatusType.DISABLED);
@@ -869,11 +854,8 @@ public class TestMapping extends AbstractMappingTest {
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
 		display("User before", userBefore);
 		AssignmentType poetryAssignment = getAssignment(userBefore, ROLE_BLUE_POETRY_OID);
-		ItemPath assignmentStatusPath = new ItemPath(
-				new NameItemPathSegment(FocusType.F_ASSIGNMENT),
-				new IdItemPathSegment(poetryAssignment.getId()),
-				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
-				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS));
+		ItemPath assignmentStatusPath = ItemPath.create(FocusType.F_ASSIGNMENT, poetryAssignment.getId(),
+				AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
 
 		// WHEN
 		modifyUserReplace(USER_JACK_OID, assignmentStatusPath, task, result, ActivationStatusType.ENABLED);
@@ -1162,11 +1144,8 @@ public class TestMapping extends AbstractMappingTest {
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
 		display("User before", userBefore);
 		AssignmentType roleAssignment = getAssignment(userBefore, ROLE_COBALT_NEVERLAND_OID);
-		ItemPath assignmentStatusPath = new ItemPath(
-				new NameItemPathSegment(FocusType.F_ASSIGNMENT),
-				new IdItemPathSegment(roleAssignment.getId()),
-				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
-				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS));
+		ItemPath assignmentStatusPath = ItemPath.create(FocusType.F_ASSIGNMENT, roleAssignment.getId(),
+				AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
 
 		// WHEN
 		modifyUserReplace(USER_JACK_OID, assignmentStatusPath, task, result, ActivationStatusType.DISABLED);
@@ -1318,11 +1297,8 @@ public class TestMapping extends AbstractMappingTest {
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
 		display("User before", userBefore);
 		AssignmentType roleAssignment = getAssignment(userBefore, ROLE_COBALT_NEVERLAND_OID);
-		ItemPath assignmentStatusPath = new ItemPath(
-				new NameItemPathSegment(FocusType.F_ASSIGNMENT),
-				new IdItemPathSegment(roleAssignment.getId()),
-				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
-				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS));
+		ItemPath assignmentStatusPath = ItemPath.create(FocusType.F_ASSIGNMENT, roleAssignment.getId(),
+				AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
 
 		// WHEN
 		modifyUserReplace(USER_JACK_OID, assignmentStatusPath, task, result, ActivationStatusType.ENABLED);
@@ -2467,7 +2443,7 @@ public class TestMapping extends AbstractMappingTest {
 
 		// WHEN
         displayWhen(TEST_NAME);
-        ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_GUYBRUSH_OID, new ItemPath(UserType.F_LOCALITY),
+        ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_GUYBRUSH_OID, prismContext.path(UserType.F_LOCALITY),
         		PrismTestUtil.createPolyString(LOCALITY_SCABB_ISLAND));
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 		ModelExecuteOptions options = ModelExecuteOptions.createReconcile();
@@ -2928,7 +2904,7 @@ public class TestMapping extends AbstractMappingTest {
 
 		// WHEN
         displayWhen(TEST_NAME);
-        ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_GUYBRUSH_OID, new ItemPath(UserType.F_LOCALITY),
+        ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_GUYBRUSH_OID, prismContext.path(UserType.F_LOCALITY),
         		PrismTestUtil.createPolyString(LOCALITY_SCABB_ISLAND));
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 		ModelExecuteOptions options = ModelExecuteOptions.createReconcile();

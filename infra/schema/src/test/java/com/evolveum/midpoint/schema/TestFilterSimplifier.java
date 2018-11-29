@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -447,7 +446,7 @@ public class TestFilterSimplifier {
 		System.out.println("Simplified filter:\n" + DebugUtil.debugDump(simplified));
 		assertTrue("Wrong simplified filter: " + simplified, simplified instanceof ExistsFilter);
 		ExistsFilter existsSimplified = (ExistsFilter) simplified;
-		assertEquals("Wrong simplified filter path", new ItemPath(UserType.F_ASSIGNMENT), existsSimplified.getFullPath());
+		assertEquals("Wrong simplified filter path", prismContext.path(UserType.F_ASSIGNMENT), existsSimplified.getFullPath());
 		assertTrue("Wrong simplified filter subfilter: " + existsSimplified.getFilter(), ObjectQueryUtil.isAll(existsSimplified.getFilter()));
 	}
 
@@ -488,7 +487,7 @@ public class TestFilterSimplifier {
 		System.out.println("Simplified filter:\n" + DebugUtil.debugDump(simplified));
 		assertTrue("Wrong simplified filter: " + simplified, simplified instanceof ExistsFilter);
 		ExistsFilter existsSimplified = (ExistsFilter) simplified;
-		assertEquals("Wrong simplified filter path", new ItemPath(UserType.F_ASSIGNMENT), existsSimplified.getFullPath());
+		assertEquals("Wrong simplified filter path", prismContext.path(UserType.F_ASSIGNMENT), existsSimplified.getFullPath());
 		assertTrue("Wrong simplified filter subfilter: " + existsSimplified.getFilter(), ObjectQueryUtil.isAll(existsSimplified.getFilter()));
 	}
 

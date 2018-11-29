@@ -23,7 +23,6 @@ import com.evolveum.midpoint.prism.foo.AssignmentType;
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistryFactory;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -92,7 +91,7 @@ public class TestObjectQuery {
 		PrismObject<UserType> user = PrismTestUtil.parseObject(PrismInternalTestUtil.USER_JACK_FILE_XML);
 		PrismPropertyDefinitionImpl def = new PrismPropertyDefinitionImpl(new QName("indexedString"), DOMUtil.XSD_STRING, getPrismContext());
 		ObjectFilter filter = QueryBuilder.queryFor(UserType.class, getPrismContext())
-				.item(new ItemPath(UserType.F_EXTENSION, "indexedString"), def).eq("alpha")
+				.item(user.getPrismContext().path(UserType.F_EXTENSION, "indexedString"), def).eq("alpha")
 				.buildFilter();
 		boolean match = ObjectQuery.match(user, filter, matchingRuleRegistry);
 		AssertJUnit.assertTrue("filter does not match object", match);

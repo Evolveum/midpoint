@@ -729,9 +729,9 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         PrismObject<ShadowType> groupFoolsRepoShadow = repositoryService.getObject(ShadowType.class, shadowRef.getOid(), null, result);
         display("group fools repo shadow", groupFoolsRepoShadow);
 
-        PrismAsserts.assertPropertyValue(groupFoolsRepoShadow, new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME),
+        PrismAsserts.assertPropertyValue(groupFoolsRepoShadow, ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME),
         		GROUP_DUMMY_FOOLS_NAME.toLowerCase());
-        PrismAsserts.assertPropertyValue(groupFoolsRepoShadow, new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_UID),
+        PrismAsserts.assertPropertyValue(groupFoolsRepoShadow, ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_UID),
         		GROUP_DUMMY_FOOLS_NAME.toLowerCase());
         assertShadowKindIntent(groupFoolsRepoShadow, ShadowKindType.ENTITLEMENT, INTENT_DUMMY_GROUP);
 

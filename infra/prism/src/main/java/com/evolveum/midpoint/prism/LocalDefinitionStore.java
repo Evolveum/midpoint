@@ -16,7 +16,9 @@
 
 package com.evolveum.midpoint.prism;
 
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemName;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
@@ -38,36 +40,27 @@ public interface LocalDefinitionStore {
 	// (1) single-name resolution
 
 	// (1a) core
-	<ID extends ItemDefinition> ID findItemDefinition(@NotNull QName name, @NotNull Class<ID> clazz, boolean caseInsensitive);
+	<ID extends ItemDefinition> ID findLocalItemDefinition(@NotNull QName name, @NotNull Class<ID> clazz, boolean caseInsensitive);
 
 	// (1b) derived
 	@SuppressWarnings("unchecked")
-	default <ID extends ItemDefinition> ID findItemDefinition(@NotNull QName name) {
-		return (ID) findItemDefinition(name, ItemDefinition.class);
+	default <ID extends ItemDefinition> ID findLocalItemDefinition(@NotNull QName name) {
+		return (ID) findLocalItemDefinition(name, ItemDefinition.class, false);
+	};
+
+	@SuppressWarnings("unchecked")
+	default <ID extends ItemDefinition> ID findItemDefinition(@NotNull ItemPath path) {
+		return (ID) findItemDefinition(path, ItemDefinition.class);
 	}
 
 	@SuppressWarnings("unchecked")
-	default <T> PrismPropertyDefinition<T> findPropertyDefinition(@NotNull QName name) {
-		return findItemDefinition(name, PrismPropertyDefinition.class);
-	}
-
-	@SuppressWarnings("unchecked")
-	default PrismReferenceDefinition findReferenceDefinition(@NotNull QName name) {
+	default PrismReferenceDefinition findReferenceDefinition(@NotNull ItemName name) {
 		return findItemDefinition(name, PrismReferenceDefinition.class);
 	}
 
 	@SuppressWarnings("unchecked")
-	default <C extends Containerable> PrismContainerDefinition<C> findContainerDefinition(@NotNull QName name) {
-		return findItemDefinition(name, PrismContainerDefinition.class);
-	}
-
-	@SuppressWarnings("unchecked")
 	default <C extends Containerable> PrismContainerDefinition<C> findContainerDefinition(@NotNull String name) {
-		return findItemDefinition(new QName(name), PrismContainerDefinition.class);
-	}
-
-	default <ID extends ItemDefinition> ID findItemDefinition(@NotNull QName name, @NotNull Class<ID> clazz) {
-		return findItemDefinition(name, clazz, false);
+		return findItemDefinition(new ItemName(name), PrismContainerDefinition.class);
 	}
 
 	// (2) path resolution
@@ -80,7 +73,7 @@ public interface LocalDefinitionStore {
 	// (2b) derived
 
 	@SuppressWarnings("unchecked")
-	default <ID extends ItemDefinition> ID findItemDefinition(@NotNull ItemPath path) {
+	default <ID extends ItemDefinition> ID findItemDefinition(@NotNull UniformItemPath path) {
 		return (ID) findItemDefinition(path, ItemDefinition.class);
 	}
 
@@ -97,6 +90,5 @@ public interface LocalDefinitionStore {
 	default <C extends Containerable> PrismContainerDefinition<C> findContainerDefinition(@NotNull ItemPath path) {
 		return findItemDefinition(path, PrismContainerDefinition.class);
 	}
-
 
 }

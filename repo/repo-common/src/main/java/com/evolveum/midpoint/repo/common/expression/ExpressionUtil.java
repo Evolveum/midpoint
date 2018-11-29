@@ -33,9 +33,7 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
@@ -73,6 +71,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -185,10 +184,10 @@ public class ExpressionUtil {
 
 		Object root = defaultContext;
 		ItemPath relativePath = path;
-		ItemPathSegment first = path.first();
+		Object first = path.first();
 		String varDesc = "default context";
-		if (first.isVariable()) {
-			QName varName = ((NameItemPathSegment) first).getName();
+		if (ItemPath.isVariable(first)) {
+			QName varName = ItemPath.toVariableName(first);
 			varDesc = "variable " + PrettyPrinter.prettyPrint(varName);
 			relativePath = path.rest();
 			if (variables.containsKey(varName)) {
@@ -391,18 +390,18 @@ public class ExpressionUtil {
 		}
 	}
 
-	public static <ID extends ItemDefinition> ID resolveDefinitionPath(ItemPath path,
+	public static <ID extends ItemDefinition> ID resolveDefinitionPath(@NotNull ItemPath path,
 			ExpressionVariables variables, PrismContainerDefinition<?> defaultContext, String shortDesc)
 					throws SchemaException {
-		while (path != null && !path.isEmpty() && !(path.first() instanceof NameItemPathSegment)) {
+		while (!path.isEmpty() && !path.startsWithName() && !path.startsWithVariable()) {
 			path = path.rest();
 		}
 		Object root = defaultContext;
 		ItemPath relativePath = path;
-		NameItemPathSegment first = (NameItemPathSegment) path.first();
-		if (first.isVariable()) {
+		Object first = path.first();
+		if (ItemPath.isVariable(first)) {
 			relativePath = path.rest();
-			QName varName = first.getName();
+			QName varName = ItemPath.toVariableName(first);
 			if (variables.containsKey(varName)) {
 				Object varValue = variables.get(varName);
 				if (varValue instanceof ItemDeltaItem<?, ?>) {

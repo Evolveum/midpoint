@@ -23,6 +23,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.commons.lang.mutable.MutableBoolean;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,7 +39,6 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.SimpleVisitor;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -177,7 +177,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
 			return null;
 		}
 		
-		boolean isAssignment = new ItemPath(FocusType.F_ASSIGNMENT).equivalent(itemPath);
+		boolean isAssignment = FocusType.F_ASSIGNMENT.equivalent(itemPath);
 
 		ItemDelta<V,D> itemDelta = itemDefinition.createEmptyDelta(itemPath);
 

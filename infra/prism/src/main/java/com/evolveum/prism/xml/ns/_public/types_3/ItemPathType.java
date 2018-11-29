@@ -17,12 +17,17 @@
 package com.evolveum.prism.xml.ns._public.types_3;
 
 import com.evolveum.midpoint.prism.marshaller.ItemPathHolder;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPathImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jvnet.jaxb2_commons.lang.Equals;
 import org.jvnet.jaxb2_commons.lang.EqualsStrategy;
 import org.jvnet.jaxb2_commons.locator.ObjectLocator;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -57,7 +62,7 @@ import java.util.stream.Collectors;
  */
 
 // TODO it is questionable whether to treat ItemPathType as XmlType any more (similar to RawType)
-// however, unlike RawType, ItemPathType is still present in externally-visible schemas (XSD, WSDL)
+//   however, unlike RawType, ItemPathType is still present in externally-visible schemas (XSD, WSDL)
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "ItemPathType")
 public class ItemPathType implements Serializable, Equals, Cloneable {
@@ -67,7 +72,7 @@ public class ItemPathType implements Serializable, Equals, Cloneable {
 	@XmlTransient
 	private ItemPath itemPath;
 
-    @Deprecated         // use one of the content-filling constructors instead
+    // if possible, use one of the content-filling constructors instead
     public ItemPathType() {
     }
 
@@ -76,16 +81,17 @@ public class ItemPathType implements Serializable, Equals, Cloneable {
 	}
 
     public ItemPathType(String itemPath) {
-        ItemPathHolder holder = new ItemPathHolder(itemPath);
-        this.itemPath = holder.toItemPath();
+        this.itemPath = ItemPath.parseFromString(itemPath);
     }
 
     @NotNull
+    @Contract(pure = true)
 	public ItemPath getItemPath() {
-        if (itemPath == null) {
-            itemPath = ItemPath.EMPTY_PATH;
-        }
-		return itemPath;
+		return itemPath != null ? itemPath : UniformItemPath.EMPTY_PATH;
+	}
+
+	public UniformItemPath getUniformItemPath() {
+		return UniformItemPathImpl.fromItemPath(getItemPath());
 	}
 
 	public void setItemPath(ItemPath itemPath){
@@ -93,11 +99,7 @@ public class ItemPathType implements Serializable, Equals, Cloneable {
 	}
 
     public ItemPathType clone() {
-    	ItemPathType clone = new ItemPathType();
-        if (itemPath != null) {
-    	    clone.setItemPath(itemPath.clone());
-        }
-    	return clone;
+    	return new ItemPathType(itemPath);
     }
 
     /**
@@ -108,9 +110,6 @@ public class ItemPathType implements Serializable, Equals, Cloneable {
      * when editing via debug pages (MID-1969)
      *
      * For semantic-level comparison, please use equivalent(..) method.
-     *
-     * @param obj
-     * @return
      */
 
     @Override
@@ -158,18 +157,15 @@ public class ItemPathType implements Serializable, Equals, Cloneable {
         return getItemPath().toString();
     }
 
-    // temporary implementation until things settle down
-	public static ItemPathType asItemPathType(Object value) {
-		if (value instanceof ItemPathType) {
-			return (ItemPathType) value;
-		} else if (value instanceof ItemPath) {
-			return ((ItemPath) value).asItemPathType();
-		} else {
-			throw new IllegalArgumentException("Value " + value + " is neither ItemPath nor ItemPathType.");
-		}
+	public static List<UniformItemPath> toItemPathList(List<ItemPathType> list) {
+    	return list.stream().map(pt -> pt.getUniformItemPath()).collect(Collectors.toList());
 	}
 
-	public static List<ItemPath> toItemPathList(List<ItemPathType> list) {
-    	return list.stream().map(pt -> pt.getItemPath()).collect(Collectors.toList());
+	public static ItemPathType parseFromElement(Element element) {
+    	return new ItemPathType(ItemPathHolder.parseFromElement(element));
+	}
+
+	public Element serializeToElement(QName elementName, Document ownerDocument) {
+		return ItemPathHolder.serializeToElement(getUniformItemPath(), elementName, ownerDocument);
 	}
 }

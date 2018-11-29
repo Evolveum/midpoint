@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -28,6 +29,9 @@ import com.evolveum.midpoint.repo.api.ModificationPrecondition;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SchemaHelper;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.EnvironmentalPerformanceInformation;
@@ -62,7 +66,6 @@ import java.util.*;
 import java.util.concurrent.Future;
 
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;
-import static com.evolveum.midpoint.schema.GetOperationOptions.retrieveItemsNamed;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_MODEL_OPERATION_CONTEXT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
 import static java.util.Collections.emptyMap;
@@ -784,14 +787,6 @@ public class TaskQuartzImpl implements Task {
 		setBinding(binding);
 
 		this.setRecreateQuartzTrigger(true);            // will be applied on modifications save
-	}
-
-	public ItemDelta<?, ?> createExtensionDelta(PrismPropertyDefinition definition, Object realValue) {
-		PrismProperty<Object> property = (PrismProperty<Object>) definition.instantiate();
-		property.setRealValue(realValue);
-		//        PropertyDelta propertyDelta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, property.getElementName()), definition);
-		//        propertyDelta.setValuesToReplace(PrismValue.cloneCollection(property.getValues()));
-		return PropertyDeltaImpl.createModificationReplaceProperty(new ItemPath(TaskType.F_EXTENSION, property.getElementName()), definition, realValue);
 	}
 
 	private void storeExtensionDeltas(List<ItemDeltaType> result, Collection<ItemDelta<?, ?>> extensionDeltas) {
@@ -1817,7 +1812,7 @@ public class TaskQuartzImpl implements Task {
 	@Override
 	public <T> PrismProperty<T> getExtensionProperty(QName propertyName) {
 		if (getExtension() != null) {
-			return getExtension().findProperty(propertyName);
+			return getExtension().findProperty(ItemName.fromQName(propertyName));
 		} else {
 			return null;
 		}
@@ -1835,7 +1830,7 @@ public class TaskQuartzImpl implements Task {
 
 	@Override
 	public <T extends Containerable> T getExtensionContainerRealValue(QName containerName) {
-		Item<?, ?> item = getExtensionItem(containerName);
+		Item<?, ?> item = getExtensionItem(ItemName.fromQName(containerName));
 		if (item == null || item.getValues().isEmpty()) {
 			return null;
 		} else {
@@ -1844,7 +1839,7 @@ public class TaskQuartzImpl implements Task {
 	}
 
 	@Override
-	public Item<?, ?> getExtensionItem(QName propertyName) {
+	public Item<?, ?> getExtensionItem(ItemName propertyName) {
 		if (getExtension() != null) {
 			return getExtension().findItem(propertyName);
 		} else {
@@ -1854,7 +1849,7 @@ public class TaskQuartzImpl implements Task {
 
 	@Override
 	public PrismReference getExtensionReference(QName propertyName) {
-		Item item = getExtensionItem(propertyName);
+		Item item = getExtensionItem(ItemName.fromQName(propertyName));
 		return (PrismReference) item;
 	}
 
@@ -1922,7 +1917,7 @@ public class TaskQuartzImpl implements Task {
 		if (value != null) {
 			values.add(new PrismPropertyValueImpl<>(value));
 		}
-		ItemDelta delta = new PropertyDeltaImpl<>(new ItemPath(TaskType.F_EXTENSION, propertyName), propertyDef, getPrismContext());
+		ItemDelta delta = new PropertyDeltaImpl<>(ItemPath.create(TaskType.F_EXTENSION, propertyName), propertyDef, getPrismContext());
 		delta.setValuesToReplace(values);
 
 		Collection<ItemDelta<?, ?>> modifications = new ArrayList<>(1);
@@ -1958,9 +1953,7 @@ public class TaskQuartzImpl implements Task {
 
 	@Override
 	public void modifyExtension(ItemDelta itemDelta) throws SchemaException {
-		if (itemDelta.getPath() == null ||
-				itemDelta.getPath().first() == null ||
-				!TaskType.F_EXTENSION.equals(ItemPath.getName(itemDelta.getPath().first()))) {
+		if (ItemPath.isEmpty(itemDelta.getPath()) || !itemDelta.getPath().startsWithName(TaskType.F_EXTENSION)) {
 			throw new IllegalArgumentException(
 					"modifyExtension must modify the Task extension element; however, the path is " + itemDelta.getPath());
 		}
@@ -1980,25 +1973,25 @@ public class TaskQuartzImpl implements Task {
 
 	private ItemDelta<?, ?> setExtensionPropertyAndPrepareDelta(QName itemName, PrismPropertyDefinition definition,
 			Collection<? extends PrismPropertyValue> values) throws SchemaException {
-		ItemDelta delta = new PropertyDeltaImpl(new ItemPath(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
+		ItemDelta delta = new PropertyDeltaImpl(ItemPath.create(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
 		return setExtensionItemAndPrepareDeltaCommon(delta, values);
 	}
 
 	private ItemDelta<?, ?> setExtensionReferenceAndPrepareDelta(QName itemName, PrismReferenceDefinition definition,
 			Collection<? extends PrismReferenceValue> values) throws SchemaException {
-		ItemDelta delta = new ReferenceDeltaImpl(new ItemPath(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
+		ItemDelta delta = new ReferenceDeltaImpl(ItemPath.create(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
 		return setExtensionItemAndPrepareDeltaCommon(delta, values);
 	}
 
 	private ItemDelta<?, ?> addExtensionReferenceAndPrepareDelta(QName itemName, PrismReferenceDefinition definition,
 			Collection<? extends PrismReferenceValue> values) throws SchemaException {
-		ItemDelta delta = new ReferenceDeltaImpl(new ItemPath(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
+		ItemDelta delta = new ReferenceDeltaImpl(ItemPath.create(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
 		return addExtensionItemAndPrepareDeltaCommon(delta, values);
 	}
 
 	private ItemDelta<?, ?> setExtensionContainerAndPrepareDelta(QName itemName, PrismContainerDefinition definition,
 			Collection<? extends PrismContainerValue> values) throws SchemaException {
-		ItemDelta delta = new ContainerDeltaImpl(new ItemPath(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
+		ItemDelta delta = new ContainerDeltaImpl(ItemPath.create(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
 		return setExtensionItemAndPrepareDeltaCommon(delta, values);
 	}
 
@@ -2039,7 +2032,7 @@ public class TaskQuartzImpl implements Task {
 
 	private ItemDelta<?, ?> addExtensionPropertyAndPrepareDelta(QName itemName, PrismPropertyDefinition definition,
 			Collection<? extends PrismPropertyValue> values) throws SchemaException {
-		ItemDelta delta = new PropertyDeltaImpl<>(new ItemPath(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
+		ItemDelta delta = new PropertyDeltaImpl<>(ItemPath.create(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
 
 		delta.addValuesToAdd(values);
 
@@ -2052,7 +2045,7 @@ public class TaskQuartzImpl implements Task {
 
 	private ItemDelta<?, ?> deleteExtensionPropertyAndPrepareDelta(QName itemName, PrismPropertyDefinition definition,
 			Collection<? extends PrismPropertyValue> values) throws SchemaException {
-		ItemDelta delta = new PropertyDeltaImpl(new ItemPath(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
+		ItemDelta delta = new PropertyDeltaImpl(ItemPath.create(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
 
 		delta.addValuesToDelete(values);
 
@@ -2471,7 +2464,9 @@ public class TaskQuartzImpl implements Task {
 		try {
 			// Here we conservatively fetch the result. In the future we could optimize this a bit, avoiding result
 			// fetching when not strictly necessary. But it seems that it needs to be fetched most of the time.
-			repoObj = repositoryService.getObject(TaskType.class, getOid(), retrieveItemsNamed(TaskType.F_RESULT), result);
+			Collection<SelectorOptions<GetOperationOptions>> options = getSchemaHelper().getOperationOptionsBuilder()
+					.item(TaskType.F_RESULT).retrieve().build();
+			repoObj = repositoryService.getObject(TaskType.class, getOid(), options, result);
 		} catch (ObjectNotFoundException ex) {
 			result.recordFatalError("Object not found", ex);
 			throw ex;
@@ -2570,6 +2565,10 @@ public class TaskQuartzImpl implements Task {
 
 	private PrismContext getPrismContext() {
 		return taskManager.getPrismContext();
+	}
+
+	private SchemaHelper getSchemaHelper() {
+		return taskManager.getSchemaHelper();
 	}
 
 	@Override

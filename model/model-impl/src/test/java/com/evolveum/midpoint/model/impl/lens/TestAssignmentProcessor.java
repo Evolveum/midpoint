@@ -55,7 +55,7 @@ import static org.testng.AssertJUnit.*;
  */
 public class TestAssignmentProcessor extends AbstractLensTest {
 
-    private static final ItemPath ATTRIBUTES_PARENT_PATH = new ItemPath(ShadowType.F_ATTRIBUTES);
+    private static final ItemPath ATTRIBUTES_PARENT_PATH = ShadowType.F_ATTRIBUTES;
 
     @Autowired
     private AssignmentProcessor assignmentProcessor;
@@ -496,7 +496,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
 	        assertNotNull("Expected assigment change in secondary user changes, but it does not exist.", context.getFocusContext().getSecondaryDelta());
 	        assertEquals("Unexpected number of secundary changes. ", 1, context.getFocusContext().getSecondaryDelta().getModifications().size());
-	        assertNotNull("Expected assigment delta in secondary changes, but it does not exist.", ContainerDeltaImpl.findContainerDelta(context.getFocusContext().getSecondaryDelta().getModifications(), UserType.F_ASSIGNMENT));
+	        assertNotNull("Expected assigment delta in secondary changes, but it does not exist.", ContainerDeltaImpl.findContainerDelta(context.getFocusContext().getSecondaryDelta().getModifications(), prismContext.path(UserType.F_ASSIGNMENT)));
 	        assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
 	        LensProjectionContext accContext = context.getProjectionContexts().iterator().next();

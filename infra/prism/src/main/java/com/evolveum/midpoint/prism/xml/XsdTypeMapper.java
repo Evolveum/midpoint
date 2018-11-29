@@ -38,7 +38,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -92,7 +92,7 @@ public class XsdTypeMapper {
         addMapping(Duration.class, DOMUtil.XSD_DURATION, true);
 
         addMapping(ItemPathType.class, ItemPathType.COMPLEX_TYPE, true);
-        addMapping(ItemPath.class, ItemPathType.COMPLEX_TYPE, false);
+        addMapping(UniformItemPath.class, ItemPathType.COMPLEX_TYPE, false);
         addMapping(QName.class, DOMUtil.XSD_QNAME, true);
 
         addMapping(PolyString.class, PrismConstants.POLYSTRING_TYPE_QNAME, true);

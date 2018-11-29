@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.marshaller.JaxbDomHack;
 import com.evolveum.midpoint.prism.marshaller.ParsingMigrator;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.QueryConverter;
@@ -296,4 +297,12 @@ public interface PrismContext {
 	ParsingContext createParsingContextForAllowMissingRefTypes();
 
 	ParsingContext createParsingContextForCompatibilityMode();
+
+	UniformItemPath emptyPath();
+
+	UniformItemPath path(String... names);
+
+	UniformItemPath path(ItemPath components);
+
+	UniformItemPath path(Object... namesOrIdsOrSegments);
 }

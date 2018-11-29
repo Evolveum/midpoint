@@ -27,7 +27,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.repo.common.expression.AbstractObjectResolvableExpressionEvaluatorFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
@@ -76,7 +76,7 @@ public class PathExpressionEvaluatorFactory extends AbstractObjectResolvableExpr
 		        throw new IllegalArgumentException("Path expression cannot handle elements of type "
 		        		+ evaluatorElementObject.getClass().getName()+" in "+contextDescription);
 		}
-        ItemPath path = ((ItemPathType)evaluatorElementObject).getItemPath();
+        UniformItemPath path = ((ItemPathType)evaluatorElementObject).getUniformItemPath();
 
         return new PathExpressionEvaluator<>(path, getObjectResolver(), outputDefinition, protector, prismContext);
 

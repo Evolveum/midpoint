@@ -23,6 +23,9 @@ import java.util.function.Predicate;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.Visitor;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -33,7 +36,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.mutable.MutableBoolean;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.polystring.AlphanumericPolyStringNormalizer;
@@ -438,24 +441,25 @@ public class ObjectQueryUtil {
 		}
  	}
 
-	public static PrismValue getValueFromQuery(ObjectQuery query, QName itemName) throws SchemaException {
-		if (query != null) {
-			return getValueFromFilter(query.getFilter(), itemName);
-		} else {
-			return null;
-		}
-	}
+//	public static PrismValue getValueFromQuery(ObjectQuery query, QName itemName) throws SchemaException {
+//		if (query != null) {
+//			return getValueFromFilter(query.getFilter(), itemName);
+//		} else {
+//			return null;
+//		}
+//	}
 
-	public static <T extends PrismValue> Collection<T> getValuesFromQuery(ObjectQuery query, QName itemName) throws SchemaException {
-		if (query != null) {
-			return getValuesFromFilter(query.getFilter(), itemName);
-		} else {
-			return null;
-		}
-	}
+//	public static <T extends PrismValue> Collection<T> getValuesFromQuery(ObjectQuery query, QName itemName) throws SchemaException {
+//		if (query != null) {
+//			return getValuesFromFilter(query.getFilter(), itemName);
+//		} else {
+//			return null;
+//		}
+//	}
 
-	private static PrismValue getValueFromFilter(ObjectFilter filter, QName itemName) throws SchemaException {
-		Collection<PrismValue> values = getValuesFromFilter(filter, itemName);
+	private static PrismValue getValueFromFilter(ObjectFilter filter, QName itemName,
+			PrismContext prismContext) throws SchemaException {
+		Collection<PrismValue> values = getValuesFromFilter(filter, itemName, prismContext);
 		if (values == null || values.size() == 0) {
 			return null;
 		} else if (values.size() > 1) {
@@ -465,25 +469,26 @@ public class ObjectQueryUtil {
 		}
 	}
 
-	private static <T extends PrismValue> Collection<T> getValuesFromFilter(ObjectFilter filter, QName itemName) throws SchemaException {
-		ItemPath propertyPath = new ItemPath(itemName);
+	private static <T extends PrismValue> Collection<T> getValuesFromFilter(ObjectFilter filter, QName itemName,
+			PrismContext prismContext) throws SchemaException {
+		ItemPath propertyPath = ItemName.fromQName(itemName);
 		if (filter instanceof EqualFilter && propertyPath.equivalent(((EqualFilter) filter).getFullPath())) {
 			return ((EqualFilter) filter).getValues();
 		} else if (filter instanceof RefFilter && propertyPath.equivalent(((RefFilter) filter).getFullPath())) {
 			return (Collection<T>) ((RefFilter) filter).getValues();
 		} else if (filter instanceof AndFilter) {
-			return getValuesFromFilter(((NaryLogicalFilter) filter).getConditions(), itemName);
+			return getValuesFromFilter(((NaryLogicalFilter) filter).getConditions(), itemName, prismContext);
 		} else if (filter instanceof TypeFilter) {
-			return getValuesFromFilter(((TypeFilter) filter).getFilter(), itemName);
+			return getValuesFromFilter(((TypeFilter) filter).getFilter(), itemName, prismContext);
 		} else {
 			return null;
 		}
 	}
 
-	private static <T extends PrismValue> Collection<T> getValuesFromFilter(List<? extends ObjectFilter> conditions, QName propertyName)
+	private static <T extends PrismValue> Collection<T> getValuesFromFilter(List<? extends ObjectFilter> conditions, QName propertyName, PrismContext prismContext)
 			throws SchemaException {
 		for (ObjectFilter f : conditions) {
-			Collection<T> values = getValuesFromFilter(f, propertyName);
+			Collection<T> values = getValuesFromFilter(f, propertyName, prismContext);
 			if (values != null) {
 				return values;
 			}
@@ -491,21 +496,22 @@ public class ObjectQueryUtil {
 		return null;
 	}
 
-	private static String getResourceOidFromFilter(ObjectFilter filter) throws SchemaException {
-		PrismReferenceValue referenceValue = (PrismReferenceValue) getValueFromFilter(filter, ShadowType.F_RESOURCE_REF);
+	private static String getResourceOidFromFilter(ObjectFilter filter, PrismContext prismContext) throws SchemaException {
+		PrismReferenceValue referenceValue = (PrismReferenceValue) getValueFromFilter(filter, ShadowType.F_RESOURCE_REF, prismContext);
 		return referenceValue != null ? referenceValue.getOid() : null;
 	}
 
-	private static <T> T getPropertyRealValueFromFilter(ObjectFilter filter, QName propertyName) throws SchemaException {
-		PrismPropertyValue<T> propertyValue = (PrismPropertyValue<T>) getValueFromFilter(filter, propertyName);
+	private static <T> T getPropertyRealValueFromFilter(ObjectFilter filter, QName propertyName, PrismContext prismContext) throws SchemaException {
+		PrismPropertyValue<T> propertyValue = (PrismPropertyValue<T>) getValueFromFilter(filter, propertyName, prismContext);
 		return propertyValue != null ? propertyValue.getValue() : null;
 	}
 
-	public static ResourceShadowDiscriminator getCoordinates(ObjectFilter filter) throws SchemaException {
-		String resourceOid = getResourceOidFromFilter(filter);
-        QName objectClass = getPropertyRealValueFromFilter(filter, ShadowType.F_OBJECT_CLASS);
-        ShadowKindType kind = getPropertyRealValueFromFilter(filter, ShadowType.F_KIND);
-        String intent = getPropertyRealValueFromFilter(filter, ShadowType.F_INTENT);
+	public static ResourceShadowDiscriminator getCoordinates(ObjectFilter filter,
+			PrismContext prismContext) throws SchemaException {
+		String resourceOid = getResourceOidFromFilter(filter, prismContext);
+        QName objectClass = getPropertyRealValueFromFilter(filter, ShadowType.F_OBJECT_CLASS, prismContext);
+        ShadowKindType kind = getPropertyRealValueFromFilter(filter, ShadowType.F_KIND, prismContext);
+        String intent = getPropertyRealValueFromFilter(filter, ShadowType.F_INTENT, prismContext);
 
         if (resourceOid == null) {
             throw new SchemaException("Resource not defined in a search query");
@@ -520,23 +526,23 @@ public class ObjectQueryUtil {
 	}
 
 	public static FilterComponents factorOutQuery(ObjectQuery query, QName... names) {
-		return factorOutQuery(query, ItemPath.asPathArray(names));
+		return factorOutQuery(query, ItemPathCollectionsUtil.asPathArray(names));
 	}
 
-	public static FilterComponents factorOutQuery(ObjectQuery query, ItemPath... paths) {
+	public static FilterComponents factorOutQuery(ObjectQuery query, UniformItemPath... paths) {
 		return factorOutQuery(query, DEFAULT_EXTRACTORS, paths);
 	}
 
-	public static FilterComponents factorOutQuery(ObjectQuery query, List<FilterExtractor> extractors, ItemPath... paths) {
+	public static FilterComponents factorOutQuery(ObjectQuery query, List<FilterExtractor> extractors, UniformItemPath... paths) {
 		return factorOutFilter(query != null ? query.getFilter() : null, extractors, paths);
 	}
 
 	@SuppressWarnings("unused")
-	public static FilterComponents factorOutFilter(ObjectFilter filter, ItemPath... paths) {
+	public static FilterComponents factorOutFilter(ObjectFilter filter, UniformItemPath... paths) {
 		return factorOutFilter(filter, DEFAULT_EXTRACTORS, paths);
 	}
 
-	public static FilterComponents factorOutFilter(ObjectFilter filter, List<FilterExtractor> extractors, ItemPath... paths) {
+	public static FilterComponents factorOutFilter(ObjectFilter filter, List<FilterExtractor> extractors, UniformItemPath... paths) {
 		FilterComponents components = new FilterComponents();
 		factorOutFilter(components, simplify(filter), extractors, Arrays.asList(paths), true);
 		return components;
@@ -544,7 +550,7 @@ public class ObjectQueryUtil {
 
 	// TODO better API
 	@SuppressWarnings("unused")
-	public static FilterComponents factorOutOrFilter(ObjectFilter filter, ItemPath... paths) {
+	public static FilterComponents factorOutOrFilter(ObjectFilter filter, UniformItemPath... paths) {
 		FilterComponents components = new FilterComponents();
 		factorOutFilter(components, simplify(filter), DEFAULT_EXTRACTORS, Arrays.asList(paths), false);
 		return components;
@@ -572,10 +578,10 @@ public class ObjectQueryUtil {
 	 */
 	public static class FilterExtractor {
 		@NotNull private final Predicate<ObjectFilter> selector;                    // does this extractor apply?
-		@NotNull private final Function<ObjectFilter, ItemPath> pathExtractor;      // give me the item path!
+		@NotNull private final Function<ObjectFilter, UniformItemPath> pathExtractor;      // give me the item path!
 		@NotNull private final Function<ObjectFilter, List<? extends PrismValue>> valueExtractor;   // give me values! (optional)
 		public FilterExtractor(@NotNull Predicate<ObjectFilter> selector,
-				@NotNull Function<ObjectFilter, ItemPath> pathExtractor,
+				@NotNull Function<ObjectFilter, UniformItemPath> pathExtractor,
 				@NotNull Function<ObjectFilter, List<? extends PrismValue>> valueExtractor) {
 			this.selector = selector;
 			this.pathExtractor = pathExtractor;
@@ -596,7 +602,7 @@ public class ObjectQueryUtil {
 	public static final List<FilterExtractor> DEFAULT_EXTRACTORS = Arrays.asList(EQUAL_EXTRACTOR, REF_EXTRACTOR);
 
 	private static void factorOutFilter(FilterComponents filterComponents, ObjectFilter filter, @NotNull List<FilterExtractor> extractors,
-			List<ItemPath> paths, boolean connectedByAnd) {
+			List<UniformItemPath> paths, boolean connectedByAnd) {
 
 		if (connectedByAnd && filter instanceof AndFilter) {
 			for (ObjectFilter condition : ((AndFilter) filter).getConditions()) {
@@ -613,8 +619,8 @@ public class ObjectQueryUtil {
 			boolean found = false;
 			for (FilterExtractor extractor : extractors) {
 				if (extractor.selector.test(filter)) {
-					ItemPath filterPath = extractor.pathExtractor.apply(filter);
-					if (ItemPath.containsEquivalent(paths, filterPath)) {
+					UniformItemPath filterPath = extractor.pathExtractor.apply(filter);
+					if (ItemPathCollectionsUtil.containsEquivalent(paths, filterPath)) {
 						filterComponents.addToKnown(filterPath, extractor.valueExtractor.apply(filter), filter);
 						found = true;
 						break;
@@ -639,23 +645,23 @@ public class ObjectQueryUtil {
 		 * "Value" components: intersection of values found. Useful for equality-type filters.
 		 * Usually ignored for other kinds of filters.
 		 */
-		private Map<ItemPath,Collection<? extends PrismValue>> knownComponents = new HashMap<>();
+		private Map<UniformItemPath,Collection<? extends PrismValue>> knownComponents = new HashMap<>();
 		/**
 		 * "Filter" components: collection of all related filters found. Useful e.g. for GT/LT-type filters.
 		 */
-		private Map<ItemPath, Collection<ObjectFilter>> knownComponentFilters = new HashMap<>();
+		private Map<UniformItemPath, Collection<ObjectFilter>> knownComponentFilters = new HashMap<>();
 		/**
 		 * All the rest.
 		 */
 		private List<ObjectFilter> remainderClauses = new ArrayList<>();
 
 		@SuppressWarnings("unused")
-		public Map<ItemPath, Collection<? extends PrismValue>> getKnownComponents() {
+		public Map<UniformItemPath, Collection<? extends PrismValue>> getKnownComponents() {
 			return knownComponents;
 		}
 
 		@SuppressWarnings("unused")
-		public Map<ItemPath, Collection<ObjectFilter>> getKnownComponentFilters() {
+		public Map<UniformItemPath, Collection<ObjectFilter>> getKnownComponentFilters() {
 			return knownComponentFilters;
 		}
 
@@ -670,14 +676,14 @@ public class ObjectQueryUtil {
 			}
 		}
 
-		void addToKnown(ItemPath path, List<? extends PrismValue> values, ObjectFilter filter) {
-			Map.Entry<ItemPath, Collection<? extends PrismValue>> entry = getKnownComponent(path);
+		void addToKnown(UniformItemPath path, List<? extends PrismValue> values, ObjectFilter filter) {
+			Map.Entry<UniformItemPath, Collection<? extends PrismValue>> entry = getKnownComponent(path);
 			if (entry != null) {
 				entry.setValue(CollectionUtils.intersection(entry.getValue(), values));
 			} else {
 				knownComponents.put(path, values);
 			}
-			Map.Entry<ItemPath, Collection<ObjectFilter>> entryFilter = getKnownComponentFilter(path);
+			Map.Entry<UniformItemPath, Collection<ObjectFilter>> entryFilter = getKnownComponentFilter(path);
 			if (entryFilter != null) {
 				entryFilter.getValue().add(filter);
 			} else {
@@ -685,8 +691,8 @@ public class ObjectQueryUtil {
 			}
 		}
 
-		public Map.Entry<ItemPath, Collection<? extends PrismValue>> getKnownComponent(ItemPath path) {
-			for (Map.Entry<ItemPath, Collection<? extends PrismValue>> entry : knownComponents.entrySet()) {
+		public Map.Entry<UniformItemPath, Collection<? extends PrismValue>> getKnownComponent(UniformItemPath path) {
+			for (Map.Entry<UniformItemPath, Collection<? extends PrismValue>> entry : knownComponents.entrySet()) {
 				if (path.equivalent(entry.getKey())) {
 					return entry;
 				}
@@ -694,8 +700,8 @@ public class ObjectQueryUtil {
 			return null;
 		}
 
-		public Map.Entry<ItemPath, Collection<ObjectFilter>> getKnownComponentFilter(ItemPath path) {
-			for (Map.Entry<ItemPath, Collection<ObjectFilter>> entry : knownComponentFilters.entrySet()) {
+		public Map.Entry<UniformItemPath, Collection<ObjectFilter>> getKnownComponentFilter(UniformItemPath path) {
+			for (Map.Entry<UniformItemPath, Collection<ObjectFilter>> entry : knownComponentFilters.entrySet()) {
 				if (path.equivalent(entry.getKey())) {
 					return entry;
 				}

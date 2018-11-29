@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FullTextSearchConfigurationType;
@@ -45,17 +47,17 @@ public class FullTextSearchConfigurationUtil {
 	}
 
 	@NotNull
-	public static Set<ItemPath> getFullTextSearchItemPaths(@NotNull FullTextSearchConfigurationType config, Class<? extends ObjectType> clazz) {
+	public static Set<UniformItemPath> getFullTextSearchItemPaths(@NotNull FullTextSearchConfigurationType config, Class<? extends ObjectType> clazz) {
 		List<QName> types =
 				ObjectTypes.getObjectType(clazz).thisAndSupertypes().stream()
 						.map(ot -> ot.getTypeQName())
 						.collect(Collectors.toList());
-		Set<ItemPath> paths = new HashSet<>();
+		Set<UniformItemPath> paths = new HashSet<>();
 		for (FullTextSearchIndexedItemsConfigurationType indexed : config.getIndexed()) {
 			if (isApplicable(indexed, types)) {
 				for (ItemPathType itemPathType : indexed.getItem()) {
-					ItemPath path = itemPathType.getItemPath();
-					if (!ItemPath.isNullOrEmpty(path) && !ItemPath.containsEquivalent(paths, path)) {
+					UniformItemPath path = itemPathType.getUniformItemPath();
+					if (!ItemPath.isEmpty(path) && !ItemPathCollectionsUtil.containsEquivalent(paths, path)) {
 						paths.add(path);
 					}
 				}

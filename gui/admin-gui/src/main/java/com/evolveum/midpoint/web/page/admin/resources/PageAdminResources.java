@@ -22,7 +22,6 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
@@ -142,7 +141,7 @@ public class PageAdminResources extends PageAdmin {
     private void saveTask(PrismObject<TaskType> oldTask, OperationResult result){
         Task task = createSimpleTask(OPERATION_SAVE_SYNC_TASK);
 
-        PrismProperty property = oldTask.findProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN));
+        PrismProperty property = oldTask.findProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN));
 
         if(property == null){
             return;
@@ -151,7 +150,7 @@ public class PageAdminResources extends PageAdmin {
 
         ObjectDelta<TaskType> delta = ObjectDelta.createModifyDelta(oldTask.getOid(),
                 PropertyDeltaImpl
-                        .createModificationDeleteProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN), property.getDefinition(), value),
+                        .createModificationDeleteProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN), property.getDefinition(), value),
                 TaskType.class, getPrismContext());
 
         if(LOGGER.isTraceEnabled()){

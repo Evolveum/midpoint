@@ -19,6 +19,9 @@ package com.evolveum.midpoint.prism;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPathImpl;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -160,8 +163,8 @@ public class PrismObjectImpl<O extends Objectable> extends PrismContainerImpl<O>
 		return nameProperty.getRealValue();
 	}
 
-	private QName getNamePropertyElementName() {
-		return new QName(getElementName().getNamespaceURI(), PrismConstants.NAME_LOCAL_NAME);
+	private ItemName getNamePropertyElementName() {
+		return new ItemName(getElementName().getNamespaceURI(), PrismConstants.NAME_LOCAL_NAME);
 	}
 
 	public PrismContainer<?> getExtension() {
@@ -182,13 +185,13 @@ public class PrismObjectImpl<O extends Objectable> extends PrismContainerImpl<O>
 		return findExtensionItem(new QName(null, elementLocalName));
 	}
 	
-	public <I extends Item> I findExtensionItem(QName elementName) {
+	public <I extends Item> I findExtensionItem(@NotNull QName elementName) {
 		PrismContainer<?> extension = getExtension();
 		if (extension == null) {
 			return null;
 		}
 		//noinspection unchecked
-		return (I) extension.findItem(elementName);
+		return (I) extension.findItem(ItemName.fromQName(elementName));
 	}
 
 	public <I extends Item> void addExtensionItem(I item) throws SchemaException {
@@ -207,8 +210,8 @@ public class PrismObjectImpl<O extends Objectable> extends PrismContainerImpl<O>
 		return extensionContainer;
 	}
 
-	private QName getExtensionContainerElementName() {
-		return new QName(getElementName().getNamespaceURI(), PrismConstants.EXTENSION_LOCAL_NAME);
+	private ItemName getExtensionContainerElementName() {
+		return new ItemName(getElementName().getNamespaceURI(), PrismConstants.EXTENSION_LOCAL_NAME);
 	}
 
 	@Override
@@ -332,9 +335,10 @@ public class PrismObjectImpl<O extends Objectable> extends PrismContainerImpl<O>
 		return null;
 	}
 
+	@NotNull
 	@Override
-	public ItemPath getPath() {
-		return ItemPath.EMPTY_PATH;
+	public UniformItemPath getPath() {
+		return UniformItemPathImpl.EMPTY_PATH;
 	}
 
 	@Override
@@ -381,7 +385,7 @@ public class PrismObjectImpl<O extends Objectable> extends PrismContainerImpl<O>
 	private PrismProperty<PolyString> getNameProperty() {
 		QName elementName = getElementName();
 		String myNamespace = elementName.getNamespaceURI();
-		return findProperty(new QName(myNamespace, PrismConstants.NAME_LOCAL_NAME));
+		return findProperty(new ItemName(myNamespace, PrismConstants.NAME_LOCAL_NAME));
 	}
 
 	private String getNamePropertyStringValue() {

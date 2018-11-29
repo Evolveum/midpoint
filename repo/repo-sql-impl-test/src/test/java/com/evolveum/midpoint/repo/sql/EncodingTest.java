@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -612,7 +613,7 @@ public class EncodingTest extends BaseSQLRepoTest {
     private <O extends ObjectType, T> void checkUserProperty(PrismObject<O> object, QName propQName, OperationResult parentResult, T... expectedValues) {
         String propName = propQName.getLocalPart();
         OperationResult result = parentResult.createSubresult(parentResult.getOperation() + "." + propName);
-        PrismProperty<T> prop = object.findProperty(propQName);
+        PrismProperty<T> prop = object.findProperty(ItemName.fromQName(propQName));
         Collection<T> actualValues = prop.getRealValues();
         result.addArbitraryObjectCollectionAsParam("actualValues", actualValues);
         assertMultivalue("User, property '" + propName + "'", expectedValues, actualValues, result);
@@ -687,7 +688,7 @@ public class EncodingTest extends BaseSQLRepoTest {
     private <O extends ObjectType> void checkUserPropertyPolyString(PrismObject<O> object, QName propQName, OperationResult parentResult, String... expectedValues) {
         String propName = propQName.getLocalPart();
         OperationResult result = parentResult.createSubresult(parentResult.getOperation() + "." + propName);
-        PrismProperty<PolyString> prop = object.findProperty(propQName);
+        PrismProperty<PolyString> prop = object.findProperty(ItemName.fromQName(propQName));
         Collection<PolyString> actualValues = prop.getRealValues();
         result.addArbitraryObjectCollectionAsParam("actualValues", actualValues);
         assertMultivaluePolyString("User, property '" + propName + "'", expectedValues, actualValues, result);

@@ -22,7 +22,7 @@ import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -42,8 +42,8 @@ public class FilterContentEvaluator extends BaseExpressionEvaluator {
     private static final Trace LOGGER = TraceManager.getTrace(FilterContentEvaluator.class);
 
     public PipelineData evaluate(FilterContentExpressionType expression, PipelineData input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
-        List<ItemPath> keep = convert(expression.getKeep());
-        List<ItemPath> remove = convert(expression.getRemove());
+        List<UniformItemPath> keep = convert(expression.getKeep());
+        List<UniformItemPath> remove = convert(expression.getRemove());
         if (keep.isEmpty() && remove.isEmpty()) {
             return input;       // nothing to do here
         }
@@ -69,8 +69,8 @@ public class FilterContentEvaluator extends BaseExpressionEvaluator {
         return input;
     }
 
-    private List<ItemPath> convert(List<ItemPathType> paths) {
-        return paths.stream().map(p -> p.getItemPath()).collect(Collectors.toList());
+    private List<UniformItemPath> convert(List<ItemPathType> paths) {
+        return paths.stream().map(p -> p.getUniformItemPath()).collect(Collectors.toList());
     }
 
 }

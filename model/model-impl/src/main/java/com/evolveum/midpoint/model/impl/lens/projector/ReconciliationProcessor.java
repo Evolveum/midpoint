@@ -29,6 +29,8 @@ import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.match.MatchingRule;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.*;
@@ -50,7 +52,7 @@ import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.PointInTimeType;
@@ -232,7 +234,7 @@ public class ReconciliationProcessor {
 			QName shouldBeRealValue = shouldBePvwo.getItemValue().getValue();
 			if (!isInValues(valueMatcher, shouldBeRealValue, arePValues)) {
 				auxObjectClassChanged = true;
-				recordDelta(valueMatcher, projCtx, ItemPath.EMPTY_PATH, propDef, ModificationType.ADD, shouldBeRealValue,
+				recordDelta(valueMatcher, projCtx, UniformItemPath.EMPTY_PATH, propDef, ModificationType.ADD, shouldBeRealValue,
 						shouldBePvwo.getSource(), "it is given");
 			}
 		}
@@ -241,7 +243,7 @@ public class ReconciliationProcessor {
 			for (PrismPropertyValue<QName> isPValue : arePValues) {
 				if (!isInPvwoValues(valueMatcher, isPValue.getValue(), shouldBePValues, true)) {
 					auxObjectClassChanged = true;
-					recordDelta(valueMatcher, projCtx, ItemPath.EMPTY_PATH, propDef, ModificationType.DELETE,
+					recordDelta(valueMatcher, projCtx, UniformItemPath.EMPTY_PATH, propDef, ModificationType.DELETE,
 							isPValue.getValue(), null, "it is not given");
 				}
 			}
@@ -441,7 +443,7 @@ public class ReconciliationProcessor {
 			}
 		}
 
-		PrismProperty<T> attribute = attributesContainer.findProperty(attrName);
+		PrismProperty<T> attribute = attributesContainer.findProperty(ItemName.fromQName(attrName));
 		Collection<PrismPropertyValue<T>> arePValues;
 		if (attribute != null) {
 			arePValues = attribute.getValues();
@@ -537,7 +539,7 @@ public class ReconciliationProcessor {
 		if (delta == null) {
 			return;
 		}
-		List<PrismValue> values = delta.getNewValuesFor(new ItemPath(ShadowType.F_ATTRIBUTES, attrName));
+		List<PrismValue> values = delta.getNewValuesFor(ItemPath.create(ShadowType.F_ATTRIBUTES, attrName));
 		for (PrismValue value : values) {
 			if (value instanceof PrismPropertyValue) {
 				shouldBePValues.add(new ItemValueWithOrigin<>((PrismPropertyValue) value, null, null));
@@ -553,7 +555,7 @@ public class ReconciliationProcessor {
 		if (delta == null) {
 			return;
 		}
-		List<PrismValue> values = delta.getNewValuesFor(new ItemPath(ShadowType.F_ASSOCIATION));
+		List<PrismValue> values = delta.getNewValuesFor(ShadowType.F_ASSOCIATION);
 		for (PrismValue value : values) {
 			if (value instanceof PrismContainerValue) {
 				Containerable c = ((PrismContainerValue) value).asContainerable();
@@ -920,7 +922,7 @@ public class ReconciliationProcessor {
 		ItemDelta existingDelta = null;
 		if (projCtx.getSecondaryDelta() != null) {
 			existingDelta = projCtx.getSecondaryDelta().findItemDelta(
-					new ItemPath(parentPath, attrDef.getName()));
+					ItemPath.create(parentPath, attrDef.getName()));
 		}
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("  reconciliation will {} value of attribute {}: {} because {}", changeType,

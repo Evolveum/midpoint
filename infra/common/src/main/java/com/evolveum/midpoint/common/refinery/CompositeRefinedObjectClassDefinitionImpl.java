@@ -18,6 +18,8 @@ package com.evolveum.midpoint.common.refinery;
 import com.evolveum.midpoint.common.ResourceObjectPattern;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -378,11 +380,11 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	}
 
 	@Override
-	public <T extends ItemDefinition> T findItemDefinition(@NotNull QName name, @NotNull Class<T> clazz, boolean caseInsensitive) {
-		T itemDef = structuralObjectClassDefinition.findItemDefinition(name, clazz, caseInsensitive);
+	public <T extends ItemDefinition> T findLocalItemDefinition(@NotNull QName name, @NotNull Class<T> clazz, boolean caseInsensitive) {
+		T itemDef = structuralObjectClassDefinition.findLocalItemDefinition(name, clazz, caseInsensitive);
 		if (itemDef == null) {
 			for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition: auxiliaryObjectClassDefinitions) {
-				itemDef = auxiliaryObjectClassDefinition.findItemDefinition(name, clazz, caseInsensitive);
+				itemDef = auxiliaryObjectClassDefinition.findLocalItemDefinition(name, clazz, caseInsensitive);
 				if (itemDef != null) {
 					break;
 				}
@@ -470,7 +472,7 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	@SuppressWarnings("unchecked")
 	@Override
 	public <X> RefinedAttributeDefinition<X> findAttributeDefinition(QName elementQName, boolean caseInsensitive) {
-		return findItemDefinition(elementQName, RefinedAttributeDefinition.class, caseInsensitive);
+		return findLocalItemDefinition(ItemName.fromQName(elementQName), RefinedAttributeDefinition.class, caseInsensitive);
 	}
 
 	@Override
@@ -528,6 +530,9 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 
 	@Override
 	public <ID extends ItemDefinition> ID findItemDefinition(@NotNull ItemPath path, @NotNull Class<ID> clazz) {
+		if (path.size() == 1 && path.startsWithName()) {
+			return findLocalItemDefinition(ItemPath.toName(path.first()), clazz, false);
+		}
 		throw new UnsupportedOperationException("TODO implement if needed");
 	}
 
@@ -748,7 +753,7 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	}
 
 	@Override
-	public void trimTo(@NotNull Collection<ItemPath> paths) {
+	public void trimTo(@NotNull Collection<UniformItemPath> paths) {
 		structuralObjectClassDefinition.trimTo(paths);
 		auxiliaryObjectClassDefinitions.forEach(def -> def.trimTo(paths));
 	}

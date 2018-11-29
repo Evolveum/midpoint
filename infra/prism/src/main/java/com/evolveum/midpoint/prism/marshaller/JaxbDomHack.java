@@ -23,6 +23,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.lex.dom.DomLexicalProcessor;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
@@ -62,14 +63,14 @@ public class JaxbDomHack {
 	private <T extends Containerable> ItemDefinition locateItemDefinition(
 			PrismContainerDefinition<T> containerDefinition, QName elementQName, Object valueElements)
 			throws SchemaException {
-		ItemDefinition def = containerDefinition.findItemDefinition(elementQName);
+		ItemDefinition def = containerDefinition.findItemDefinition(ItemName.fromQName(elementQName));
 		if (def != null) {
 			return def;
 		}
 
 		if (valueElements instanceof Element) {
 			// Try to locate xsi:type definition in the element
-			def = resolveDynamicItemDefinition(containerDefinition, elementQName, (Element) valueElements,
+			def = resolveDynamicItemDefinition(elementQName, (Element) valueElements,
 					prismContext);
 		}
 
@@ -99,7 +100,7 @@ public class JaxbDomHack {
 		}
 		return def;
 	}
-	private ItemDefinition resolveDynamicItemDefinition(ItemDefinition parentDefinition, QName elementName,
+	private ItemDefinition resolveDynamicItemDefinition(QName elementName,
 			Element element, PrismContext prismContext) throws SchemaException {
 		QName typeName = null;
 		// QName elementName = null;
@@ -154,7 +155,7 @@ public class JaxbDomHack {
 		Validate.notNull(definition, "Attempt to parse raw element in a container without definition");
 
 		QName elementName = JAXBUtil.getElementQName(element);
-		ItemDefinition itemDefinition = definition.findItemDefinition(elementName);
+		ItemDefinition itemDefinition = definition.findItemDefinition(ItemName.fromQName(elementName));
 
 		if (itemDefinition == null) {
 			itemDefinition = locateItemDefinition(definition, elementName, element);

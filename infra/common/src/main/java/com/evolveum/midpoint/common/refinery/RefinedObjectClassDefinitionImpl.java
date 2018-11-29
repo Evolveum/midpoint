@@ -18,9 +18,11 @@ package com.evolveum.midpoint.common.refinery;
 import com.evolveum.midpoint.common.ResourceObjectPattern;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.util.ItemPathUtil;
+import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
@@ -121,7 +123,7 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 	}
 
 	@Override
-	public <ID extends ItemDefinition> ID findItemDefinition(@NotNull QName name, @NotNull Class<ID> clazz,
+	public <ID extends ItemDefinition> ID findLocalItemDefinition(@NotNull QName name, @NotNull Class<ID> clazz,
 			boolean caseInsensitive) {
 		for (ItemDefinition def : getDefinitions()) {
 			if (def.isValidFor(name, clazz, caseInsensitive)) {
@@ -707,18 +709,18 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 		if (path.size() != 1) {
 			return null;
 		}
-		QName first = ItemPath.getFirstName(path);
+		ItemName first = path.firstToNameOrNull();
 		if (first == null) {
 			return null;
 		}
-		return findItemDefinition(first, clazz);
+		return findLocalItemDefinition(first.asSingleName(), clazz, false);
 	}
 
 	// TODO
 	@Override
 	public <ID extends ItemDefinition> ID findNamedItemDefinition(@NotNull QName firstName, @NotNull ItemPath rest,
 			@NotNull Class<ID> clazz) {
-		return findItemDefinition(firstName);
+		return findItemDefinition(ItemName.fromQName(firstName));
 	}
 
 	@Nullable
@@ -1103,7 +1105,7 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
         ResourceAttributeDefinitionType foundAttrDefType = null;
         for (ResourceAttributeDefinitionType attrDefType : rOcDefType.getAttribute()) {
             if (attrDefType.getRef() != null) {
-            	QName ref = ItemPathUtil.getOnlySegmentQName(attrDefType.getRef());
+            	QName ref = ItemPathTypeUtil.asSingleNameOrFail(attrDefType.getRef());
                 if (QNameUtil.match(ref, attrName)) {
                     if (foundAttrDefType == null) {
                         foundAttrDefType = attrDefType;
@@ -1344,13 +1346,13 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 
 	@Override
 	public <X> RefinedAttributeDefinition<X> findAttributeDefinition(@NotNull QName name) {
-		return findItemDefinition(name, RefinedAttributeDefinition.class, false);
+		return findLocalItemDefinition(ItemName.fromQName(name), RefinedAttributeDefinition.class, false);
 	}
 
 	//endregion
 
 	@Override
-	public void trimTo(@NotNull Collection<ItemPath> paths) {
+	public void trimTo(@NotNull Collection<UniformItemPath> paths) {
 		originalObjectClassDefinition.trimTo(paths);
 		List<QName> names = paths.stream()
 				.filter(p -> p.isSingleName())

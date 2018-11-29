@@ -25,7 +25,6 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismReferenceValueImpl;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -134,7 +133,7 @@ public class TestObjectConstraints extends AbstractWfTestPolicy {
 								Collections.singletonList(expectedWorkItem));
 
 						Collection<SelectorOptions<GetOperationOptions>> options =
-								SelectorOptions.createCollection(new ItemPath(F_WORKFLOW_CONTEXT, F_WORK_ITEM), createRetrieve());
+								SelectorOptions.createCollection(prismContext.path(F_WORKFLOW_CONTEXT, F_WORK_ITEM), createRetrieve());
 						Task opTask = taskManager.createTaskInstance();
 						TaskType subtask = modelService.getObject(TaskType.class, subtasks.get(0).getOid(), options, opTask, result).asObjectable();
 
@@ -306,7 +305,7 @@ public class TestObjectConstraints extends AbstractWfTestPolicy {
 //						Collections.singletonList(expectedWorkItem));
 
 				Collection<SelectorOptions<GetOperationOptions>> options =
-						SelectorOptions.createCollection(new ItemPath(F_WORKFLOW_CONTEXT, F_WORK_ITEM), createRetrieve());
+						SelectorOptions.createCollection(prismContext.path(F_WORKFLOW_CONTEXT, F_WORK_ITEM), createRetrieve());
 				Task opTask = taskManager.createTaskInstance();
 				TaskType subtask = modelService.getObject(TaskType.class, subtasks.get(0).getOid(), options, opTask, result).asObjectable();
 				display("subtask", subtask);

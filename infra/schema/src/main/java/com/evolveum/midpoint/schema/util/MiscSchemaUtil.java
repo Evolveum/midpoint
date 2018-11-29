@@ -35,7 +35,7 @@ import com.evolveum.midpoint.schema.*;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -131,10 +131,10 @@ public class MiscSchemaUtil {
 		return list;
 	}
 
-	public static Collection<ItemPath> itemReferenceListTypeToItemPathList(PropertyReferenceListType resolve) {
-		Collection<ItemPath> itemPathList = new ArrayList<>(resolve.getProperty().size());
+	public static Collection<UniformItemPath> itemReferenceListTypeToItemPathList(PropertyReferenceListType resolve) {
+		Collection<UniformItemPath> itemPathList = new ArrayList<>(resolve.getProperty().size());
 		for (ItemPathType itemXPathElement: resolve.getProperty()) {
-			itemPathList.add(itemXPathElement.getItemPath());
+			itemPathList.add(itemXPathElement.getUniformItemPath());
 		}
 		return itemPathList;
 	}
@@ -224,7 +224,7 @@ public class MiscSchemaUtil {
 		if (selectorType == null) {
 			return null;
 		}
-		return new ObjectSelector(selectorType.getPath().getItemPath());
+		return new ObjectSelector(selectorType.getPath().getUniformItemPath());
 	}
 
     /**

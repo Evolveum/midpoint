@@ -18,7 +18,7 @@ package com.evolveum.midpoint.repo.sql.helpers;
 
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryObjectDiagnosticData;
@@ -625,7 +625,7 @@ public class ObjectRetriever {
 	        if (extItem == null) {
 	        	continue;
 	        }
-	        QName name = RUtil.stringToQName(extItem.getName());
+	        ItemName name = RUtil.stringToQName(extItem.getName());
             QName type = RUtil.stringToQName(extItem.getType());
             Item item = attributes.findItem(name);
 

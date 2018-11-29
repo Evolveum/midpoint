@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.testng.annotations.BeforeClass;
@@ -34,7 +35,6 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -657,7 +657,7 @@ public class TestMappingDynamicSysVar {
     	PrismValueDeltaSetTriple<PrismPropertyValue<Integer>> outputTriple = evaluator.evaluateMappingDynamicReplace(
     			"mapping-script-system-variables-employee-number.xml",
     			"testEmployeeNumberString",
-    			new ItemPath(UserType.F_EXTENSION, SchemaTestConstants.EXTENSION_INT_TYPE_ELEMENT),					// target
+    			UserType.F_EXTENSION.append(SchemaTestConstants.EXTENSION_INT_TYPE_ELEMENT),					// target
     			"employeeNumber",				// changed property
     			"666");	// changed values
 
@@ -673,7 +673,7 @@ public class TestMappingDynamicSysVar {
     	PrismValueDeltaSetTriple<PrismPropertyValue<Integer>> outputTriple = evaluator.evaluateMappingDynamicReplace(
     			"mapping-script-system-variables-employee-number.xml",
     			"testEmployeeNumberString",
-    			new ItemPath(UserType.F_EXTENSION, SchemaTestConstants.EXTENSION_INTEGER_TYPE_ELEMENT),					// target
+    			UserType.F_EXTENSION.append(SchemaTestConstants.EXTENSION_INTEGER_TYPE_ELEMENT),					// target
     			"employeeNumber",				// changed property
     			"666");	// changed values
 
@@ -689,7 +689,7 @@ public class TestMappingDynamicSysVar {
     	PrismValueDeltaSetTriple<PrismPropertyValue<Long>> outputTriple = evaluator.evaluateMappingDynamicReplace(
     			"mapping-script-system-variables-employee-number.xml",
     			"testEmployeeNumberString",
-    			new ItemPath(UserType.F_EXTENSION, SchemaTestConstants.EXTENSION_LONG_TYPE_ELEMENT),					// target
+    			UserType.F_EXTENSION.append(SchemaTestConstants.EXTENSION_LONG_TYPE_ELEMENT),					// target
     			"employeeNumber",				// changed property
     			"666");	// changed values
 
@@ -705,7 +705,7 @@ public class TestMappingDynamicSysVar {
     	PrismValueDeltaSetTriple<PrismPropertyValue<Integer>> outputTriple = evaluator.evaluateMappingDynamicReplace(
     			"mapping-script-system-variables-employee-number.xml",
     			"testEmployeeNumberString",
-    			new ItemPath(UserType.F_EXTENSION, SchemaTestConstants.EXTENSION_DECIMAL_TYPE_ELEMENT),					// target
+    			UserType.F_EXTENSION.append(SchemaTestConstants.EXTENSION_DECIMAL_TYPE_ELEMENT),					// target
     			"employeeNumber",				// changed property
     			"666.33");	// changed values
 
@@ -721,7 +721,7 @@ public class TestMappingDynamicSysVar {
     	PrismValueDeltaSetTriple<PrismPropertyValue<ProtectedStringType>> outputTriple = evaluator.evaluateMappingDynamicReplace(
     			"mapping-script-system-variables-employee-number.xml",
     			"testEmployeeNumberProtectedString",
-    			new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE),					// target
+    			UserType.F_CREDENTIALS.append(CredentialsType.F_PASSWORD).append(PasswordType.F_VALUE),					// target
     			"employeeNumber",				// changed property
     			"666");	// changed values
 
@@ -1007,7 +1007,7 @@ public class TestMappingDynamicSysVar {
     			"mapping-script-system-variables-password.xml",
     			"testPasswordString",
     			"employeeType",					// target
-    			new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE),				// changed property
+			    ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE),				// changed property
     			evaluator.createProtectedString("weighAnch0r"));	// changed values
 
     	// THEN
@@ -1023,7 +1023,7 @@ public class TestMappingDynamicSysVar {
     			"mapping-script-system-variables-password.xml",
     			"testPasswordPolyString",
     			UserType.F_ADDITIONAL_NAME.getLocalPart(),					// target
-    			new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE),	// changed property
+    			ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE),	// changed property
     			evaluator.createProtectedString("weighAnch0r"));	// changed values
 
     	// THEN
@@ -1038,8 +1038,8 @@ public class TestMappingDynamicSysVar {
     	PrismValueDeltaSetTriple<PrismPropertyValue<ProtectedStringType>> outputTriple = evaluator.evaluateMappingDynamicReplace(
     			"mapping-script-system-variables-password.xml",
     			"testPasswordPolyString",
-    			new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE),					// target
-    			new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE),	// changed property
+    			ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE),					// target
+			    ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE),	// changed property
     			evaluator.createProtectedString("weighAnch0r"));	// changed values
 
     	// THEN
@@ -1055,7 +1055,7 @@ public class TestMappingDynamicSysVar {
     			"mapping-script-system-variables-password-decrypt.xml",
     			"testPasswordDecryptString",
     			"employeeType",					// target
-    			new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE),				// changed property
+			    ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE),				// changed property
     			evaluator.createProtectedString("weighAnch0r"));	// changed values
 
     	// THEN

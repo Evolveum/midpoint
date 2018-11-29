@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -1706,7 +1705,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         Session session = open();
 
         try {
-            ObjectPaging paging = ObjectPaging.createPaging(null, null, F_NAME, ASCENDING);
+            ObjectPaging paging = ObjectPaging.createPaging(null, null, prismContext.path(F_NAME), ASCENDING);
             ObjectQuery query = ObjectQuery.createObjectQuery(null, paging);
 
             String real = getInterpretedQuery2(session, ObjectType.class, query, true);
@@ -2630,7 +2629,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     .type(UserType.class)
                             .item(UserType.F_LOCALITY).eqPoly("Caribbean", "caribbean")
                     .build();
-//            EqualFilter eq = EqualFilter.createEqual(new ItemPath(UserType.F_LOCALITY), UserType.class, prismContext,
+//            EqualFilter eq = EqualFilter.createEqual(prismContext.path(UserType.F_LOCALITY), UserType.class, prismContext,
 //                    new PolyString("Caribbean", "caribbean"));
 //            TypeFilter type = TypeFilter.createType(UserType.COMPLEX_TYPE, eq);
 
@@ -2732,7 +2731,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     .build();
 
 //            EqualFilter eq = EqualFilter.createEqual(
-//                    new ItemPath(ObjectType.F_EXTENSION, new QName("http://example.com/p", "weapon")),
+//                    prismContext.path(ObjectType.F_EXTENSION, new QName("http://example.com/p", "weapon")),
 //                    UserType.class, prismContext, "some weapon name");
 //            TypeFilter type = TypeFilter.createType(UserType.COMPLEX_TYPE, eq);
 
@@ -3035,11 +3034,11 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 //            String expected = null;//HibernateToSqlTranslator.toSql(main);
 //
 //            List<EqualFilter> secondaryEquals = new ArrayList<>();
-//            EqualFilter eq = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstantsGenerated.ICF_S_UID),
+//            EqualFilter eq = EqualFilter.createEqual(prismContext.path(ShadowType.F_ATTRIBUTES, SchemaConstantsGenerated.ICF_S_UID),
 //                    new PrismPropertyDefinitionImpl(SchemaConstantsGenerated.ICF_S_UID, DOMUtil.XSD_STRING, prismContext),
 //                    "8daaeeae-f0c7-41c9-b258-2a3351aa8876");
 //            secondaryEquals.add(eq);
-//            eq = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstantsGenerated.ICF_S_NAME),
+//            eq = EqualFilter.createEqual(prismContext.path(ShadowType.F_ATTRIBUTES, SchemaConstantsGenerated.ICF_S_NAME),
 //                    new PrismPropertyDefinitionImpl(SchemaConstantsGenerated.ICF_S_NAME, DOMUtil.XSD_STRING, prismContext),
 //                    "some-name");
 //            secondaryEquals.add(eq);
@@ -3785,7 +3784,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     .build();
 //
 //            ObjectFilter filter = EqualFilter.createEqual(
-//                    new ItemPath(),
+//                    prismContext.path(),
 //                    UserType.class, prismContext, "type1");
 //            ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
@@ -3838,7 +3837,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             ObjectQuery query = ObjectQuery.createObjectQuery(
                     null,
                     ObjectPaging.createPaging(
-                            new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
+                            prismContext.path(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
                             ASCENDING));
 
             String real = getInterpretedQuery2(session, UserType.class, query);
@@ -3869,7 +3868,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
              */
 
             ObjectQuery query = ObjectQuery.createObjectQuery(
-                    ObjectPaging.createPaging(new ItemPath(T_PARENT, F_NAME), DESCENDING));
+                    ObjectPaging.createPaging(prismContext.path(T_PARENT, F_NAME), DESCENDING));
 
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query);
             String expected = "select\n" +
@@ -3895,7 +3894,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
              */
 
             ObjectQuery query = ObjectQuery.createObjectQuery(
-                    ObjectPaging.createPaging(new ItemPath(
+                    ObjectPaging.createPaging(prismContext.path(
                             AccessCertificationCaseType.F_TARGET_REF,
                             PrismConstants.T_OBJECT_REFERENCE, F_NAME), ASCENDING));
 
@@ -5067,11 +5066,11 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 //             */
 //            ObjectQuery query = ObjectQuery.createObjectQuery(
 //                    EqualFilter.createEqual(
-//                            new ItemPath(UserType.F_ORGANIZATION),
+//                            prismContext.path(UserType.F_ORGANIZATION),
 //                            UserType.class,
 //                            prismContext,
 //                            null,
-//                            new ItemPath(UserType.F_COST_CENTER)));
+//                            prismContext.path(UserType.F_COST_CENTER)));
 //
 //            String real = getInterpretedQuery2(session, UserType.class, query);
 ////            assertEqualsIgnoreWhitespace(expected, real);

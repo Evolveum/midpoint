@@ -21,18 +21,12 @@ package com.evolveum.midpoint.prism.path;
  */
 public class IdItemPathSegment extends ItemPathSegment {
 
-	public static final IdItemPathSegment WILDCARD = IdItemPathSegment.createWildcard();
+	public static final IdItemPathSegment NULL = new IdItemPathSegment();
 
 	private Long id;
 
 	public IdItemPathSegment() {
 		this.id = null;
-	}
-
-	private static IdItemPathSegment createWildcard() {
-		IdItemPathSegment segment = new IdItemPathSegment();
-		segment.setWildcard(true);
-		return segment;
 	}
 
 	public IdItemPathSegment(Long id) {
@@ -79,7 +73,7 @@ public class IdItemPathSegment extends ItemPathSegment {
     }
 
     public IdItemPathSegment clone() {
-        IdItemPathSegment clone = new IdItemPathSegment();
+	    IdItemPathSegment clone = new IdItemPathSegment();
         clone.id = this.id;
         return clone;
     }

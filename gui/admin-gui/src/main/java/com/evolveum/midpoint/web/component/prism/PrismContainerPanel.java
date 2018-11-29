@@ -16,16 +16,11 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.web.component.assignment.ConstructionDetailsPanelChainedModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 import org.apache.wicket.AttributeModifier;
@@ -33,16 +28,12 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
 import com.evolveum.midpoint.prism.Containerable;
@@ -123,7 +114,7 @@ public class PrismContainerPanel<C extends Containerable> extends BasePanel<Cont
     			SystemConfigurationType.F_INFRASTRUCTURE,
     			SystemConfigurationType.F_FULL_TEXT_SEARCH);
     	
-    	if(qNames.contains(model.getObject().getPath().getFirstName())) {
+    	if(qNames.contains(model.getObject().getPath().firstToNameOrNull())) {
     		model.getObject().getValues().forEach(value -> setExpandedForContainerValueWrapper(value));
     	}
 	}

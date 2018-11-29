@@ -37,7 +37,6 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -589,7 +588,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 
 	private PropertyDelta<String> createUselessStringDelta(String newVal) {
 		PropertyDelta<String> uselessStringDelta = PropertyDeltaImpl.createModificationReplaceProperty(
-				new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION,
+				prismContext.path(ResourceType.F_CONNECTOR_CONFIGURATION,
 							 SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME,
 							 DummyResourceContoller.CONNECTOR_DUMMY_USELESS_STRING_QNAME),
 							 new PrismPropertyDefinitionImpl(DummyResourceContoller.CONNECTOR_DUMMY_USELESS_STRING_QNAME, DOMUtil.XSD_STRING, prismContext),

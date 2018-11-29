@@ -18,6 +18,7 @@ package com.evolveum.midpoint.schema;
 import java.io.File;
 import java.io.IOException;
 
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import org.testng.annotations.BeforeSuite;
 import org.xml.sax.SAXException;
 
@@ -28,6 +29,8 @@ import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 
 /**
  * @author semancik
@@ -57,11 +60,14 @@ public abstract class AbstractSchemaTest {
     }
 
 	protected PrismObjectDefinition<UserType> getUserDefinition() {
-		return PrismTestUtil.getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+		return getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
 	}
 
 	protected void displayTestTile(String TEST_NAME) {
 		System.out.println("===[ "+TEST_NAME+" ]====");
 	}
 
+	protected UniformItemPath path(Object... components) {
+		return getPrismContext().path(components);
+	}
 }

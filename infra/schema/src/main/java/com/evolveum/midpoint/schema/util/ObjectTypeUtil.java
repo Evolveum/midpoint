@@ -18,15 +18,12 @@ package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.marshaller.ItemPathHolder;
-import com.evolveum.midpoint.prism.marshaller.PathHolderSegment;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -37,8 +34,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 import org.apache.commons.collections4.CollectionUtils;
@@ -85,7 +80,7 @@ public class ObjectTypeUtil {
 		if (extensionContainer == null) {
 			return null;
 		}
-		PrismProperty<T> property = extensionContainer.findProperty(propertyQname);
+		PrismProperty<T> property = extensionContainer.findProperty(ItemName.fromQName(propertyQname));
 		if (property == null) {
 			return null;
 		}
@@ -98,7 +93,7 @@ public class ObjectTypeUtil {
 		if (extensionContainer == null) {
 			return null;
 		}
-		PrismReference property = extensionContainer.findReference(propertyQname);
+		PrismReference property = extensionContainer.findReference(ItemName.fromQName(propertyQname));
 		if (property == null) {
 			return null;
 		}
@@ -448,61 +443,6 @@ public class ObjectTypeUtil {
 		definitionProperty.setRealValue(schemaDefinition);
 	}
 
-    public static ItemPathHolder createXPathHolder(QName property) {
-        PathHolderSegment xpathSegment = new PathHolderSegment(property);
-        List<PathHolderSegment> segmentlist = new ArrayList<>(1);
-        segmentlist.add(xpathSegment);
-        ItemPathHolder xpath = new ItemPathHolder(segmentlist);
-        return xpath;
-    }
-
-    public static boolean isModificationOf(ItemDeltaType modification, QName elementName) {
-        return isModificationOf(modification, elementName, null);
-    }
-
-    //TODO: refactor after new schema
-    public static boolean isModificationOf(ItemDeltaType modification, QName elementName, ItemPathType path) {
-
-//        if (path == null && XPathHolder.isDefault(modification.getPath())) {
-//            return (elementName.equals(ObjectTypeUtil.getElementName(modification)));
-//        }
-
-    	ItemPathType modificationPath = modification.getPath();
-    	if (ItemPathUtil.isDefault(modificationPath)){
-    		throw new IllegalArgumentException("Path in the delta must not be null");
-    	}
-//    	  if (path == null && ItemPathUtil.isDefault(modificationPath)) {
-//            return (elementName.equals(getElementName(modification)));
-//        }
-
-        if (path == null) {
-            return false;
-        }
-//        XPathHolder modPath = new XPathHolder(modification.getPath());
-        ItemPath full = new ItemPath(path.getItemPath(), elementName);
-        ItemPathType fullPath = new ItemPathType(full);
-        return fullPath.equivalent(modificationPath);
-//        if (fullPath.equals(modificationPath)) {
-//            return (elementName.equals(getElementName(modification)));
-//        }
-//        return false;
-    }
-
-//    public static QName getElementName(ItemDeltaType propertyModification) {
-//        if (propertyModification.getValue() == null) {
-//            throw new IllegalArgumentException("Modification without value element");
-//        }
-//        if (propertyModification.getValue().getContent() == null || propertyModification.getValue().getContent().isEmpty()) {
-//            throw new IllegalArgumentException("Modification with empty value element");
-//        }
-//        return JAXBUtil.getElementQName(propertyModification.getValue().getContent().get(0));
-//    }
-
-//    public static boolean isEmpty(ObjectModificationType objectModification) {
-//        return (objectModification.getItemDelta() == null) ||
-//                objectModification.getItemDelta().isEmpty();
-//    }
-
     public static void assertConcreteType(Class<? extends Objectable> type) {
     	// The abstract object types are enumerated here. It should be switched to some flag later on
     	if (type.equals(ObjectType.class)) {
@@ -641,7 +581,7 @@ public class ObjectTypeUtil {
     	if (extension == null) {
     		return null;
 		}
-		Item item = extension.asPrismContainerValue().findItem(itemName);
+		Item item = extension.asPrismContainerValue().findItem(ItemName.fromQName(itemName));
     	return item != null ? (T) item.getRealValue() : null;
 	}
 
@@ -821,7 +761,7 @@ public class ObjectTypeUtil {
 		List<Item<?, ?>> extensionItems = new ArrayList<>();
 		for (Map.Entry<QName, Object> entry : values.entrySet()) {
 			ItemDefinition<Item<PrismValue, ItemDefinition>> def = extensionDefinition != null
-					? extensionDefinition.findItemDefinition(entry.getKey())
+					? extensionDefinition.findItemDefinition(ItemName.fromQName(entry.getKey()))
 					: null;
 			if (def == null) {
 				//noinspection unchecked

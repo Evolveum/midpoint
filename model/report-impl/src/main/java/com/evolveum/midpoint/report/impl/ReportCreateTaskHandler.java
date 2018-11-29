@@ -69,7 +69,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.report.api.ReportConstants;
 import com.evolveum.midpoint.report.api.ReportService;
@@ -171,7 +170,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
                 if (items != null) {
                     for (Item item : items) {
                         PrismProperty pp = (PrismProperty) item;
-                        String paramName = ItemPath.getName(pp.getPath().lastNamed()).getLocalPart();
+                        String paramName = pp.getPath().lastName().getLocalPart();
                         Object value = null;
                         if (isSingleValue(paramName, jasperReport.getParameters())) {
                         	value = pp.getRealValues().iterator().next();

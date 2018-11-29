@@ -28,6 +28,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.Nullable;
 import org.opends.server.types.DirectoryException;
@@ -48,7 +49,6 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -82,26 +82,26 @@ public class TestUnix extends AbstractStoryTest {
 	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "unix");
 
 	protected static final String EXTENSION_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/story/unix/ext";
-	protected static final QName EXTENSION_UID_NUMBER_NAME = new QName(EXTENSION_NAMESPACE, "uidNumber");
-	protected static final QName EXTENSION_GID_NUMBER_NAME = new QName(EXTENSION_NAMESPACE, "gidNumber");
+	protected static final ItemName EXTENSION_UID_NUMBER_NAME = new ItemName(EXTENSION_NAMESPACE, "uidNumber");
+	protected static final ItemName EXTENSION_GID_NUMBER_NAME = new ItemName(EXTENSION_NAMESPACE, "gidNumber");
 
 	protected static final File RESOURCE_OPENDJ_FILE = new File(TEST_DIR, "resource-opendj.xml");
 	protected static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
 	protected static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
-	protected static final QName OPENDJ_ACCOUNT_STRUCTURAL_OBJECTCLASS_NAME = new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson");
-	protected static final QName OPENDJ_ACCOUNT_POSIX_AUXILIARY_OBJECTCLASS_NAME = new QName(RESOURCE_OPENDJ_NAMESPACE, "posixAccount");
-	protected static final QName OPENDJ_ACCOUNT_LABELED_URI_OBJECT_AUXILIARY_OBJECTCLASS_NAME = new QName(RESOURCE_OPENDJ_NAMESPACE, "labeledURIObject");
-	protected static final QName OPENDJ_GROUP_STRUCTURAL_OBJECTCLASS_NAME = new QName(RESOURCE_OPENDJ_NAMESPACE, "groupOfUniqueNames");
-	protected static final QName OPENDJ_GROUP_UNIX_STRUCTURAL_OBJECTCLASS_NAME = new QName(RESOURCE_OPENDJ_NAMESPACE, "groupOfNames");
-	protected static final QName OPENDJ_GROUP_POSIX_AUXILIARY_OBJECTCLASS_NAME = new QName(RESOURCE_OPENDJ_NAMESPACE, "posixGroup");
-	protected static final QName OPENDJ_ASSOCIATION_LDAP_GROUP_NAME = new QName(RESOURCE_OPENDJ_NAMESPACE, "ldapGroup");
-	protected static final QName OPENDJ_ASSOCIATION_UNIX_GROUP_NAME = new QName(RESOURCE_OPENDJ_NAMESPACE, "unixGroup");
+	protected static final ItemName OPENDJ_ACCOUNT_STRUCTURAL_OBJECTCLASS_NAME = new ItemName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson");
+	protected static final ItemName OPENDJ_ACCOUNT_POSIX_AUXILIARY_OBJECTCLASS_NAME = new ItemName(RESOURCE_OPENDJ_NAMESPACE, "posixAccount");
+	protected static final ItemName OPENDJ_ACCOUNT_LABELED_URI_OBJECT_AUXILIARY_OBJECTCLASS_NAME = new ItemName(RESOURCE_OPENDJ_NAMESPACE, "labeledURIObject");
+	protected static final ItemName OPENDJ_GROUP_STRUCTURAL_OBJECTCLASS_NAME = new ItemName(RESOURCE_OPENDJ_NAMESPACE, "groupOfUniqueNames");
+	protected static final ItemName OPENDJ_GROUP_UNIX_STRUCTURAL_OBJECTCLASS_NAME = new ItemName(RESOURCE_OPENDJ_NAMESPACE, "groupOfNames");
+	protected static final ItemName OPENDJ_GROUP_POSIX_AUXILIARY_OBJECTCLASS_NAME = new ItemName(RESOURCE_OPENDJ_NAMESPACE, "posixGroup");
+	protected static final ItemName OPENDJ_ASSOCIATION_LDAP_GROUP_NAME = new ItemName(RESOURCE_OPENDJ_NAMESPACE, "ldapGroup");
+	protected static final ItemName OPENDJ_ASSOCIATION_UNIX_GROUP_NAME = new ItemName(RESOURCE_OPENDJ_NAMESPACE, "unixGroup");
 	protected static final String OPENDJ_UIDNUMBER_ATTRIBUTE_NAME = "uidNumber";
 	protected static final String OPENDJ_GIDNUMBER_ATTRIBUTE_NAME = "gidNumber";
 	protected static final String OPENDJ_UID_ATTRIBUTE_NAME = "uid";
 	protected static final String OPENDJ_LABELED_URI_ATTRIBUTE_NAME = "labeledURI";
 	protected static final String OPENDJ_MODIFY_TIMESTAMP_ATTRIBUTE_NAME = "modifyTimestamp";
-	protected static final QName OPENDJ_MODIFY_TIMESTAMP_ATTRIBUTE_QNAME = new QName(RESOURCE_OPENDJ_NAMESPACE, OPENDJ_MODIFY_TIMESTAMP_ATTRIBUTE_NAME);
+	protected static final ItemName OPENDJ_MODIFY_TIMESTAMP_ATTRIBUTE_QNAME = new ItemName(RESOURCE_OPENDJ_NAMESPACE, OPENDJ_MODIFY_TIMESTAMP_ATTRIBUTE_NAME);
 
 	public static final File ROLE_BASIC_FILE = new File(TEST_DIR, "role-basic.xml");
 	public static final String ROLE_BASIC_OID = "10000000-0000-0000-0000-000000000601";
@@ -1372,9 +1372,9 @@ public class TestUnix extends AbstractStoryTest {
 
         PrismObject<ShadowType> repoShadow = provisioningService.getObject(ShadowType.class, accountOid, SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), task, result);
         display("Shadow (repo)", repoShadow);
-        //PrismProperty<Integer> uidNumberRepoAttr = repoShadow.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_OPENDJ_NAMESPACE, OPENDJ_UIDNUMBER_ATTRIBUTE_NAME)));
+        //PrismProperty<Integer> uidNumberRepoAttr = repoShadow.findProperty(prismContext.path(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_OPENDJ_NAMESPACE, OPENDJ_UIDNUMBER_ATTRIBUTE_NAME)));
 	//PrismAsserts.assertPropertyValue(uidNumberRepoAttr, USER_RANGER_UID_NUMBER);
-        PrismProperty<String> uidRepoAttr = repoShadow.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_OPENDJ_NAMESPACE, OPENDJ_UID_ATTRIBUTE_NAME)));
+        PrismProperty<String> uidRepoAttr = repoShadow.findProperty(prismContext.path(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_OPENDJ_NAMESPACE, OPENDJ_UID_ATTRIBUTE_NAME)));
 	PrismAsserts.assertPropertyValue(uidRepoAttr, USER_RANGER_USERNAME);
 	}
 

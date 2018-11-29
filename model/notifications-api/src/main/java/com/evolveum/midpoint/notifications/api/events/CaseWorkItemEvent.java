@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.notifications.api.events;
 
 import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
@@ -71,7 +71,7 @@ public class CaseWorkItemEvent extends CaseManagementEvent {
     }
 
 	@Override
-	public boolean isRelatedToItem(ItemPath itemPath) {
+	public boolean isRelatedToItem(UniformItemPath itemPath) {
 		return false;       // TODO reconsider
 	}
 

@@ -24,15 +24,14 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.delta.*;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.foo.ActivationType;
 import com.evolveum.midpoint.prism.foo.AssignmentType;
 import com.evolveum.midpoint.prism.foo.UserType;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -50,17 +49,19 @@ public class TestDelta extends AbstractPrismTest {
 		final String TEST_NAME="testDeltaPaths";
 		displayTestTitle(TEST_NAME);
 
+		PrismContext prismContext = getPrismContext();
+
 		PrismPropertyDefinition<String> descDefinition = new PrismPropertyDefinitionImpl<>(UserType.F_DESCRIPTION,
 				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 		PropertyDelta<String> delta1 = new PropertyDeltaImpl<>(descDefinition, PrismTestUtil.getPrismContext());
 		delta1.addRealValuesToAdd("add1");
-		assertPath(delta1, new ItemPath(UserType.F_DESCRIPTION));
+		assertPath(delta1, prismContext.path(UserType.F_DESCRIPTION));
 
 		PrismReferenceDefinitionImpl referenceDefinition = new PrismReferenceDefinitionImpl(UserType.F_PARENT_ORG_REF,
                 OBJECT_REFERENCE_TYPE_QNAME, PrismTestUtil.getPrismContext());
         ReferenceDelta delta2 = new ReferenceDeltaImpl(referenceDefinition, PrismTestUtil.getPrismContext());
         delta2.addValueToAdd(new PrismReferenceValueImpl("oid1"));
-        assertPath(delta2, new ItemPath(UserType.F_PARENT_ORG_REF));
+        assertPath(delta2, prismContext.path(UserType.F_PARENT_ORG_REF));
 
     	PrismContainerValue<AssignmentType> assignmentValue1 = new PrismContainerValueImpl<>(PrismTestUtil.getPrismContext());
     	// The value id is null
@@ -68,7 +69,7 @@ public class TestDelta extends AbstractPrismTest {
 		ObjectDelta<UserType> assObjDelta1 = ObjectDelta.createModificationAddContainer(UserType.class, USER_FOO_OID,
 				UserType.F_ASSIGNMENT, PrismTestUtil.getPrismContext(), assignmentValue1);
 		ItemDelta<?,?> assDelta1 = assObjDelta1.getModifications().iterator().next();
-		assertPath(assDelta1, new ItemPath(UserType.F_ASSIGNMENT));
+		assertPath(assDelta1, prismContext.path(UserType.F_ASSIGNMENT));
 
 		PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValueImpl<>(PrismTestUtil.getPrismContext());
     	assignmentValue1.setId(USER_ASSIGNMENT_1_ID);
@@ -76,24 +77,21 @@ public class TestDelta extends AbstractPrismTest {
 		ObjectDelta<UserType> assObjDelta2 = ObjectDelta.createModificationAddContainer(UserType.class, USER_FOO_OID,
 				UserType.F_ASSIGNMENT, PrismTestUtil.getPrismContext(), assignmentValue2);
 		ItemDelta<?,?> assDelta2 = assObjDelta2.getModifications().iterator().next();
-		assertPath(assDelta2, new ItemPath(UserType.F_ASSIGNMENT));
+		assertPath(assDelta2, prismContext.path(UserType.F_ASSIGNMENT));
 
 		PrismPropertyDefinition<String> assDescDefinition = new PrismPropertyDefinitionImpl<>(AssignmentType.F_DESCRIPTION,
 				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
-		ItemPath itemPathAssDescNoId = new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_DESCRIPTION);
+		UniformItemPath itemPathAssDescNoId = prismContext.path(UserType.F_ASSIGNMENT, AssignmentType.F_DESCRIPTION);
 		PropertyDelta<String> propDelta2 = new PropertyDeltaImpl<>(itemPathAssDescNoId, descDefinition, PrismTestUtil.getPrismContext());
 		assertPath(propDelta2, itemPathAssDescNoId);
 
-		ItemPath itemPathAssDesc1Id = new ItemPath(
-				new NameItemPathSegment(UserType.F_ASSIGNMENT),
-				new IdItemPathSegment(USER_ASSIGNMENT_1_ID),
-				new NameItemPathSegment(AssignmentType.F_DESCRIPTION));
+		UniformItemPath itemPathAssDesc1Id = prismContext.path(UserType.F_ASSIGNMENT, USER_ASSIGNMENT_1_ID, AssignmentType.F_DESCRIPTION);
 		PropertyDelta<String> propDelta3 = new PropertyDeltaImpl<>(itemPathAssDesc1Id, descDefinition, PrismTestUtil.getPrismContext());
 		assertPath(propDelta3, itemPathAssDesc1Id);
 
 	}
 
-	private void assertPath(ItemDelta<?,?> delta, ItemPath expectedPath) {
+	private void assertPath(ItemDelta<?,?> delta, UniformItemPath expectedPath) {
 		assertEquals("Wrong path in "+delta, expectedPath, delta.getPath());
 	}
 
@@ -649,7 +647,7 @@ public class TestDelta extends AbstractPrismTest {
     	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValueImpl<>(PrismTestUtil.getPrismContext());
     	// The value id is null
     	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, ASSIGNMENT_PATLAMA_DESCRIPTION, PrismTestUtil.getPrismContext());
-    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDeltaImpl.createDelta(UserType.F_ASSIGNMENT,getUserTypeDefinition());
+    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDeltaImpl.createDelta(UserType.F_ASSIGNMENT, getUserTypeDefinition());
     	containerDelta2.addValueToAdd(assignmentValue2);
 
 		// WHEN
@@ -686,7 +684,7 @@ public class TestDelta extends AbstractPrismTest {
     	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValueImpl<>(PrismTestUtil.getPrismContext());
     	// The value id is null
     	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, ASSIGNMENT_ABRAKADABRA_DESCRIPTION, PrismTestUtil.getPrismContext());
-    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDeltaImpl.createDelta(UserType.F_ASSIGNMENT,getUserTypeDefinition());
+    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDeltaImpl.createDelta(UserType.F_ASSIGNMENT, getUserTypeDefinition());
     	containerDelta2.addValueToAdd(assignmentValue2);
 
 		// WHEN
@@ -1003,11 +1001,10 @@ public class TestDelta extends AbstractPrismTest {
     	activationValue.setPropertyRealValue(ActivationType.F_ENABLED, true, PrismTestUtil.getPrismContext());
 
 		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationAddContainer(UserType.class, USER_FOO_OID,
-				new ItemPath(
-						new NameItemPathSegment(UserType.F_ASSIGNMENT),
+				getPrismContext().path(UserType.F_ASSIGNMENT,
 						// We really need ID here. Otherwise it would not be clear to which assignment to add
-						new IdItemPathSegment(123L),
-						new NameItemPathSegment(AssignmentType.F_ACTIVATION)),
+						123L,
+						AssignmentType.F_ACTIVATION),
 				PrismTestUtil.getPrismContext(), activationValue);
 
 		// WHEN
@@ -1108,7 +1105,7 @@ public class TestDelta extends AbstractPrismTest {
 		// GIVEN
 
     	ObjectDelta<UserType> userDelta = createDeltaForFindItem(false);
-    	ItemPath itemDeltaPath = new ItemPath(UserType.F_GIVEN_NAME);
+    	UniformItemPath itemDeltaPath = getPrismContext().path(UserType.F_GIVEN_NAME);
 
 		// WHEN
     	ItemDelta<PrismValue, ItemDefinition> itemDelta = userDelta.findItemDelta(itemDeltaPath);
@@ -1128,7 +1125,7 @@ public class TestDelta extends AbstractPrismTest {
 		ObjectDelta<UserType> userDelta = createDeltaForFindItem(false);
 		System.out.println("Object delta:\n"+userDelta.debugDump());
 
-		ItemPath itemDeltaPath = new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ENABLED);
+		UniformItemPath itemDeltaPath = getPrismContext().path(UserType.F_ACTIVATION, ActivationType.F_ENABLED);
 
 		// WHEN
     	ItemDelta<PrismValue, ItemDefinition> itemDelta = userDelta.findItemDelta(itemDeltaPath);
@@ -1149,7 +1146,7 @@ public class TestDelta extends AbstractPrismTest {
 		ObjectDelta<UserType> userDelta = createDeltaForFindItem(false);
 		System.out.println("Object delta:\n"+userDelta.debugDump());
 
-		ItemPath itemDeltaPath = new ItemPath(UserType.F_ACTIVATION, ActivationType.F_VALID_TO);        // not present in the delta
+		UniformItemPath itemDeltaPath = getPrismContext().path(UserType.F_ACTIVATION, ActivationType.F_VALID_TO);        // not present in the delta
 
 		// WHEN
 		ItemDelta<PrismValue, ItemDefinition> itemDelta = userDelta.findItemDelta(itemDeltaPath);
@@ -1167,7 +1164,7 @@ public class TestDelta extends AbstractPrismTest {
 		ObjectDelta<UserType> userDelta = createDeltaForFindItem(true);
 		System.out.println("Object delta:\n"+userDelta.debugDump());
 
-		ItemPath itemDeltaPath = new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ENABLED);
+		UniformItemPath itemDeltaPath = getPrismContext().path(UserType.F_ACTIVATION, ActivationType.F_ENABLED);
 
 		// WHEN
 		ItemDelta<PrismValue, ItemDefinition> itemDelta = userDelta.findItemDelta(itemDeltaPath);
@@ -1195,7 +1192,7 @@ public class TestDelta extends AbstractPrismTest {
 		ObjectDelta<UserType> userDelta = createDeltaForFindItem(true);
 		System.out.println("Object delta:\n"+userDelta.debugDump());
 
-		ItemPath itemDeltaPath = new ItemPath(UserType.F_ACTIVATION, ActivationType.F_VALID_TO);        // not present in the delta
+		UniformItemPath itemDeltaPath = getPrismContext().path(UserType.F_ACTIVATION, ActivationType.F_VALID_TO);        // not present in the delta
 
 		// WHEN
     	ItemDelta<PrismValue, ItemDefinition> itemDelta = userDelta.findItemDelta(itemDeltaPath);
@@ -1210,7 +1207,7 @@ public class TestDelta extends AbstractPrismTest {
     			UserType.F_LOCALITY, PrismTestUtil.getPrismContext(), "Caribbean");
     	userDelta.addModificationReplaceProperty(UserType.F_GIVEN_NAME, "Guybrush");
 
-    	ContainerDelta<ActivationType> activationDelta = userDelta.createContainerModification(new ItemPath(UserType.F_ACTIVATION));
+    	ContainerDelta<ActivationType> activationDelta = userDelta.createContainerModification(getPrismContext().path(UserType.F_ACTIVATION));
     	PrismContainerValue<ActivationType> activationCVal = new PrismContainerValueImpl<>();
     	if (containerReplace) {
 		    activationDelta.addValueToReplace(activationCVal);
@@ -1494,6 +1491,8 @@ public class TestDelta extends AbstractPrismTest {
 		displayTestTitle(TEST_NAME);
 		// GIVEN
 
+		PrismContext prismContext = getPrismContext();
+
     	ObjectDelta<UserType> delta = ObjectDelta.createModificationAddProperty(UserType.class, USER_FOO_OID,
     			UserType.F_FULL_NAME, PrismTestUtil.getPrismContext(), PrismTestUtil.createPolyString("Foo Bar"));
 
@@ -1530,21 +1529,17 @@ public class TestDelta extends AbstractPrismTest {
 		// WHEN, THEN
 		PrismInternalTestUtil.assertVisitor(delta, 14);
 
-		PrismInternalTestUtil.assertPathVisitor(delta, new ItemPath(UserType.F_FULL_NAME), true, 2);
-		PrismInternalTestUtil.assertPathVisitor(delta, new ItemPath(UserType.F_ACTIVATION), true, 4);
-		PrismInternalTestUtil.assertPathVisitor(delta, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ENABLED), true, 2);
-		PrismInternalTestUtil.assertPathVisitor(delta, new ItemPath(UserType.F_ASSIGNMENT), true, 7);
-		PrismInternalTestUtil.assertPathVisitor(delta, new ItemPath(
-				new NameItemPathSegment(UserType.F_ASSIGNMENT),
-				IdItemPathSegment.WILDCARD), true, 6);
+		PrismInternalTestUtil.assertPathVisitor(delta, UserType.F_FULL_NAME, true, 2);
+		PrismInternalTestUtil.assertPathVisitor(delta, UserType.F_ACTIVATION, true, 4);
+		PrismInternalTestUtil.assertPathVisitor(delta, ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_ENABLED), true, 2);
+		PrismInternalTestUtil.assertPathVisitor(delta, UserType.F_ASSIGNMENT, true, 7);
+		PrismInternalTestUtil.assertPathVisitor(delta, ItemPath.create(UserType.F_ASSIGNMENT, null), true, 6);
 
-		PrismInternalTestUtil.assertPathVisitor(delta, new ItemPath(UserType.F_FULL_NAME), false, 1);
-		PrismInternalTestUtil.assertPathVisitor(delta, new ItemPath(UserType.F_ACTIVATION), false, 1);
-		PrismInternalTestUtil.assertPathVisitor(delta, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ENABLED), false, 1);
-		PrismInternalTestUtil.assertPathVisitor(delta, new ItemPath(UserType.F_ASSIGNMENT), false, 1);
-		PrismInternalTestUtil.assertPathVisitor(delta, new ItemPath(
-				new NameItemPathSegment(UserType.F_ASSIGNMENT),
-				IdItemPathSegment.WILDCARD), false, 2);
+		PrismInternalTestUtil.assertPathVisitor(delta, UserType.F_FULL_NAME, false, 1);
+		PrismInternalTestUtil.assertPathVisitor(delta, UserType.F_ACTIVATION, false, 1);
+		PrismInternalTestUtil.assertPathVisitor(delta, ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_ENABLED), false, 1);
+		PrismInternalTestUtil.assertPathVisitor(delta, UserType.F_ASSIGNMENT, false, 1);
+		PrismInternalTestUtil.assertPathVisitor(delta, ItemPath.create(UserType.F_ASSIGNMENT, null), false, 2);
     }
 
 

@@ -36,6 +36,8 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.*;
@@ -58,7 +60,6 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -474,7 +475,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		ObjectQuery q = QueryBuilder.queryFor(ShadowType.class, prismContext)
 				.item(ShadowType.F_RESOURCE_REF).ref(RESOURCE_DUMMY_OID)
 				.and().item(ShadowType.F_OBJECT_CLASS).eq(accountObjectClassQName)
-				.and().item(new ItemPath(ShadowType.F_ATTRIBUTES, weaponQName), weaponDefinition).eq("rum")
+				.and().item(ItemPath.create(ShadowType.F_ATTRIBUTES, weaponQName), weaponDefinition).eq("rum")
 				.build();
 
 		// WHEN
@@ -501,7 +502,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		ObjectQuery q = QueryBuilder.queryFor(ShadowType.class, prismContext)
 				.item(ShadowType.F_RESOURCE_REF).ref(RESOURCE_DUMMY_OID)
 				.and().item(ShadowType.F_OBJECT_CLASS).eq(accountObjectClassQName)
-				.and().item(new ItemPath(ShadowType.F_ATTRIBUTES, weaponQName), weaponFakeDef).eq("rum")
+				.and().item(ItemPath.create(ShadowType.F_ATTRIBUTES, weaponQName), weaponFakeDef).eq("rum")
 				.build();
 
 		// WHEN
@@ -619,8 +620,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
-        Collection<SelectorOptions<GetOperationOptions>> options =
-        	SelectorOptions.createCollection(UserType.F_LINK, GetOperationOptions.createResolve());
+        Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
+		        .item(UserType.F_LINK).resolve()
+		        .build();
 
 		// WHEN
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, options , task, result);
@@ -659,11 +661,10 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
-        Collection<SelectorOptions<GetOperationOptions>> options =
-            	SelectorOptions.createCollection(GetOperationOptions.createResolve(),
-        			new ItemPath(UserType.F_LINK),
-    				new ItemPath(UserType.F_LINK, ShadowType.F_RESOURCE)
-        	);
+        Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
+		        .item(UserType.F_LINK).resolve()
+		        .item(UserType.F_LINK, ShadowType.F_RESOURCE).resolve()
+		        .build();
 
 		// WHEN
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, options , task, result);
@@ -708,7 +709,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         getOpts.setResolve(true);
         getOpts.setNoFetch(true);
 		Collection<SelectorOptions<GetOperationOptions>> options =
-        	SelectorOptions.createCollection(UserType.F_LINK, getOpts);
+        	SelectorOptions.createCollection(prismContext.path(UserType.F_LINK), getOpts);
 
 		// WHEN
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, options , task, result);
@@ -2458,14 +2459,14 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
 
         RefinedObjectClassDefinition accountDefinition = refinedSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, (String) null);
-        PrismPropertyDefinition gossipDefinition = accountDefinition.findPropertyDefinition(new QName(
+        PrismPropertyDefinition gossipDefinition = accountDefinition.findPropertyDefinition(new ItemName(
                 "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004",
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME));
         assertNotNull("gossip attribute definition not found", gossipDefinition);
 
         ConstructionType accountConstruction = createAccountConstruction(RESOURCE_DUMMY_OID, null);
         ResourceAttributeDefinitionType radt = new ResourceAttributeDefinitionType();
-        radt.setRef(new ItemPathType(new ItemPath(gossipDefinition.getName())));
+        radt.setRef(new ItemPathType(prismContext.path(gossipDefinition.getName())));
         MappingType outbound = new MappingType();
         radt.setOutbound(outbound);
 
@@ -3140,13 +3141,13 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertOldValue(ChangeType.MODIFY, UserType.class,
         		UserType.F_NAME, PrismTestUtil.createPolyString("morgan"));
         dummyAuditService.assertOldValue(ChangeType.MODIFY, ShadowType.class,
-        		new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME), "morgan");
+        		ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME), "morgan");
         dummyAuditService.assertOldValue(ChangeType.MODIFY, ShadowType.class,
-        		new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_UID), "morgan");
+		        ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_UID), "morgan");
         // This is a side-effect change. It is silently done by provisioning. It is not supposed to
         // appear in audit log.
 //        dummyAuditService.assertOldValue(ChangeType.MODIFY, ShadowType.class,
-//        		new ItemPath(ShadowType.F_NAME), PrismTestUtil.createPolyString("morgan"));
+//        		prismContext.path(ShadowType.F_NAME), PrismTestUtil.createPolyString("morgan"));
 
         dummyAuditService.assertTarget(USER_MORGAN_OID);
         dummyAuditService.assertExecutionSuccess();

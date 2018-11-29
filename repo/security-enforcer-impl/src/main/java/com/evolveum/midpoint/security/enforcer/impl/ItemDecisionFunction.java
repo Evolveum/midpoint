@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.security.enforcer.impl;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.security.enforcer.api.AccessDecision;
 
 /**
@@ -25,6 +25,6 @@ import com.evolveum.midpoint.security.enforcer.api.AccessDecision;
 @FunctionalInterface
 public interface ItemDecisionFunction {
 
-	AccessDecision decide(ItemPath nameOnlyItemPath, boolean removingContainer);
+	AccessDecision decide(UniformItemPath nameOnlyItemPath, boolean removingContainer);
 	
 }

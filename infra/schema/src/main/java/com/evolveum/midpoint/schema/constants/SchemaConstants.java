@@ -23,9 +23,13 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_WORK_ITEM;
 
 /**
  * @author Vilo Repan
@@ -64,79 +68,67 @@ public abstract class SchemaConstants {
 
 	// COMMON NAMESPACE
 
-	public static final QName C_FILTER_TYPE_URI = new QName(NS_QUERY, "uri");
-	public static final QName C_ITEM = new QName(NS_C, "item");
-	public static final QName C_OBJECTS = new QName(NS_C, "objects");
-	public static final QName C_OBJECT = new QName(NS_C, "object");
-	public static final QName C_TARGET = new QName(NS_C, "target");
-	public static final QName C_ABSTRACT_ROLE = new QName(NS_C, "abstractRole");
-	public static final QName C_FOCUS = new QName(NS_C, "focus");
+	public static final ItemName C_FILTER_TYPE_URI = new ItemName(NS_QUERY, "uri");
+	public static final ItemName C_ITEM = new ItemName(NS_C, "item");
+	public static final ItemName C_OBJECTS = new ItemName(NS_C, "objects");
+	public static final ItemName C_OBJECT = new ItemName(NS_C, "object");
+	public static final ItemName C_TARGET = new ItemName(NS_C, "target");
+	public static final ItemName C_ABSTRACT_ROLE = new ItemName(NS_C, "abstractRole");
+	public static final ItemName C_FOCUS = new ItemName(NS_C, "focus");
 	public static final QName C_OBJECT_TYPE = new QName(NS_C, "ObjectType");
-	public static final QName C_OBJECT_REF = new QName(NS_C, "objectRef");
-	public static final QName C_VALUE = new QName(NS_C, "value");
-	public static final QName C_PARAM_VALUE = new QName(NS_C, "paramValue");
-	public static final QName C_REPORT_PARAM_VALUE = new QName(NS_C, "reportParamValue");
-	public static final QName C_OID_ATTRIBUTE = new QName(NS_C, "oid");
+	public static final ItemName C_OBJECT_REF = new ItemName(NS_C, "objectRef");
+	public static final ItemName C_VALUE = new ItemName(NS_C, "value");
+	public static final ItemName C_PARAM_VALUE = new ItemName(NS_C, "paramValue");
+	public static final ItemName C_REPORT_PARAM_VALUE = new ItemName(NS_C, "reportParamValue");
+	public static final ItemName C_OID_ATTRIBUTE = new ItemName(NS_C, "oid");
 	public static final QName C_USER_TYPE = new QName(NS_C, "UserType");
 	public static final QName C_TASK_TYPE = new QName(NS_C, "TaskType");
-	public static final QName C_TASK = new QName(NS_C, "task");
-	// public static final QName C_TASK_REQUESTEE = new QName(NS_C,
-	// "requestee");
-	// public static final QName C_TASK_REQUESTEE_REF = new QName(NS_C,
-	// "requesteeRef");
-	// public static final QName C_TASK_REQUESTEE_OID = new QName(NS_C,
-	// "requesteeOid");
-	public static final QName C_RESOURCE = new QName(NS_C, "resource");
-	public static final QName C_RESULT = new QName(NS_C, "result");
-	public static final QName C_USER = new QName(NS_C, "user");
-	public static final QName C_REQUESTER = new QName(NS_C, "requester");
-	public static final QName C_REQUESTEE = new QName(NS_C, "requestee");
-	public static final QName C_ASSIGNEE = new QName(NS_C, "assignee");
-	public static final QName C_OBJECT_TEMPLATE = new QName(NS_C, "objectTemplate");
-	public static final QName C_OBJECT_TEMPLATE_REF = new QName(NS_C, "objectTemplateRef");
+	public static final ItemName C_TASK = new ItemName(NS_C, "task");
+	public static final ItemName C_RESOURCE = new ItemName(NS_C, "resource");
+	public static final ItemName C_RESULT = new ItemName(NS_C, "result");
+	public static final ItemName C_USER = new ItemName(NS_C, "user");
+	public static final ItemName C_REQUESTER = new ItemName(NS_C, "requester");
+	public static final ItemName C_REQUESTEE = new ItemName(NS_C, "requestee");
+	public static final ItemName C_ASSIGNEE = new ItemName(NS_C, "assignee");
+	public static final ItemName C_OBJECT_TEMPLATE = new ItemName(NS_C, "objectTemplate");
+	public static final ItemName C_OBJECT_TEMPLATE_REF = new ItemName(NS_C, "objectTemplateRef");
 	public static final QName C_OBJECT_TEMPLATE_TYPE = new QName(NS_C, "ObjectTemplateType");
 	public static final QName C_GENERIC_OBJECT_TYPE = new QName(NS_C, "GenericObjectType");
-	public static final QName C_GENERIC_OBJECT = new QName(NS_C, "genericObject");
-	public static final QName C_ACCOUNT = new QName(NS_C, "account");
+	public static final ItemName C_GENERIC_OBJECT = new ItemName(NS_C, "genericObject");
+	public static final ItemName C_ACCOUNT = new ItemName(NS_C, "account");
 	public static final QName C_ACCOUNT_SHADOW_TYPE = new QName(NS_C, "AccountShadowType");
 	public static final QName C_RESOURCE_TYPE = new QName(NS_C, "ResourceType");
 	public static final QName C_CONNECTOR_TYPE = new QName(NS_C, "ConnectorType");
-	public static final QName C_CONNECTOR = new QName(NS_C, "connector");
+	public static final ItemName C_CONNECTOR = new ItemName(NS_C, "connector");
 	public static final QName C_CONNECTOR_HOST_TYPE = new QName(NS_C, "ConnectorHostType");
-	public static final QName C_CONNECTOR_HOST = new QName(NS_C, "connectorHost");
-	public static final QName C_CONNECTOR_FRAMEWORK = new QName(NS_C, "framework");
-	public static final QName C_CONNECTOR_CONNECTOR_TYPE = new QName(NS_C, "connectorType");
-	public static final QName C_SHADOW = new QName(NS_C, "shadow");
+	public static final ItemName C_CONNECTOR_HOST = new ItemName(NS_C, "connectorHost");
+	public static final ItemName C_CONNECTOR_FRAMEWORK = new ItemName(NS_C, "framework");
+	public static final ItemName C_CONNECTOR_CONNECTOR_TYPE = new ItemName(NS_C, "connectorType");
+	public static final ItemName C_SHADOW = new ItemName(NS_C, "shadow");
 	public static final QName C_SHADOW_TYPE = new QName(NS_C, "ShadowType");
         public static final QName C_ORG_TYPE = new QName(NS_C, "OrgType");
-	public static final QName C_ATTRIBUTES = new QName(NS_C, "attributes");
-	public static final QName C_ASSOCIATION = new QName(NS_C, "association");
+	public static final ItemName C_ATTRIBUTES = new ItemName(NS_C, "attributes");
+	public static final ItemName C_ASSOCIATION = new ItemName(NS_C, "association");
 	public static final QName C_CREDENTIALS_TYPE = new QName(NS_C, "CredentialsType");
-	public static final QName C_CREDENTIALS = new QName(NS_C, "credentials");
-	public static final QName C_ACTIVATION = new QName(NS_C, "activation");
+	public static final ItemName C_CREDENTIALS = new ItemName(NS_C, "credentials");
+	public static final ItemName C_ACTIVATION = new ItemName(NS_C, "activation");
 	public static final QName C_SYSTEM_CONFIGURATION_TYPE = new QName(NS_C, "SystemConfigurationType");
-	public static final QName C_SYSTEM_CONFIGURATION = new QName(NS_C, "systemConfiguration");
-	public static final QName C_SYSTEM_CONFIGURATION_GLOBAL_ACCOUNT_SYNCHRONIZATION_SETTINGS = new QName(NS_C,
+	public static final ItemName C_SYSTEM_CONFIGURATION = new ItemName(NS_C, "systemConfiguration");
+	public static final ItemName C_SYSTEM_CONFIGURATION_GLOBAL_ACCOUNT_SYNCHRONIZATION_SETTINGS = new ItemName(NS_C,
 			"globalAccountSynchronizationSettings");
 
-	public static final QName C_REPORT = new QName(NS_C, "report");
-	public static final QName C_REPORT_OUTPUT = new QName(NS_C, "reportOutput");
-	public static final QName C_ITEM_PATH_FIELD = new QName(NS_C, "itemPathField");
+	public static final ItemName C_REPORT = new ItemName(NS_C, "report");
+	public static final ItemName C_REPORT_OUTPUT = new ItemName(NS_C, "reportOutput");
+	public static final ItemName C_ITEM_PATH_FIELD = new ItemName(NS_C, "itemPathField");
 	public static final QName C_ACTIVATION_STATUS_TYPE = new QName(NS_C, "ActivationStatusType");
-	public static final QName C_SECURITY_POLICY = new QName(NS_C, "securityPolicy");
-	public static final QName C_MODEL_EXECUTE_OPTIONS = new QName(NS_C, "modelExecuteOptions");
+	public static final ItemName C_SECURITY_POLICY = new ItemName(NS_C, "securityPolicy");
+	public static final ItemName C_MODEL_EXECUTE_OPTIONS = new ItemName(NS_C, "modelExecuteOptions");
 
 	public static final QName T_POLY_STRING_TYPE = new QName(SchemaConstantsGenerated.NS_TYPES,
 			"PolyStringType");
-	public static final QName T_OBJECT_DELTA = new QName(SchemaConstantsGenerated.NS_TYPES, "objectDelta");
+	public static final ItemName T_OBJECT_DELTA = new ItemName(SchemaConstantsGenerated.NS_TYPES, "objectDelta");
 	public static final QName T_OBJECT_DELTA_TYPE = new QName(SchemaConstantsGenerated.NS_TYPES,
 			"ObjectDeltaType");
-	// public static final QName T_PROTECTED_STRING_TYPE = new QName(NS_C,
-	// "ProtectedStringType");
-	// public static final QName T_PROTECTED_STRING = new QName(NS_C,
-	// "protectedString");
-	// public static final QName T_PROTECTED_BYTE_ARRAY_TYPE = new QName(NS_C,
-	// "ProtectedByteArrayType");
 
 	/*
 	 * Constants for default relations.
@@ -189,65 +181,69 @@ public abstract class SchemaConstants {
 	 */
 	public static final QName ORG_CONSENT = new QName(NS_ORG, "consent");
 
-	public static final ItemPath PATH_NAME = new ItemPath(ObjectType.F_NAME);
-	public static final ItemPath PATH_DESCRIPTION = new ItemPath(ObjectType.F_DESCRIPTION);
-	public static final ItemPath PATH_PASSWORD = new ItemPath(C_CREDENTIALS, CredentialsType.F_PASSWORD);
-	public static final ItemPath PATH_PASSWORD_VALUE = new ItemPath(C_CREDENTIALS, CredentialsType.F_PASSWORD,
+	public static final ItemPath PATH_PASSWORD = ItemPath.create(C_CREDENTIALS, CredentialsType.F_PASSWORD);
+	public static final ItemPath PATH_PASSWORD_VALUE = ItemPath.create(C_CREDENTIALS, CredentialsType.F_PASSWORD,
 			PasswordType.F_VALUE);
-	public static final ItemPath PATH_PASSWORD_FORCE_CHANGE = new ItemPath(C_CREDENTIALS, CredentialsType.F_PASSWORD,
+	public static final ItemPath PATH_PASSWORD_FORCE_CHANGE = ItemPath.create(C_CREDENTIALS, CredentialsType.F_PASSWORD,
 			PasswordType.F_FORCE_CHANGE);
-	public static final ItemPath PATH_PASSWORD_METADATA = new ItemPath(C_CREDENTIALS, CredentialsType.F_PASSWORD,
+	public static final ItemPath PATH_PASSWORD_METADATA = ItemPath.create(C_CREDENTIALS, CredentialsType.F_PASSWORD,
 			PasswordType.F_METADATA);
-	public static final ItemPath PATH_NONCE = new ItemPath(C_CREDENTIALS, CredentialsType.F_NONCE);
-	public static final ItemPath PATH_NONCE_VALUE = new ItemPath(C_CREDENTIALS, CredentialsType.F_NONCE,
+	public static final ItemPath PATH_NONCE = ItemPath.create(C_CREDENTIALS, CredentialsType.F_NONCE);
+	public static final ItemPath PATH_NONCE_VALUE = ItemPath.create(C_CREDENTIALS, CredentialsType.F_NONCE,
 			NonceType.F_VALUE);
 
-	public static final ItemPath PATH_SECURITY_QUESTIONS = new ItemPath(C_CREDENTIALS, CredentialsType.F_SECURITY_QUESTIONS);
-	public static final ItemPath PATH_SECURITY_QUESTIONS_QUESTION_ANSWER = new ItemPath(C_CREDENTIALS, CredentialsType.F_SECURITY_QUESTIONS,
+	public static final ItemPath PATH_SECURITY_QUESTIONS = ItemPath.create(C_CREDENTIALS, CredentialsType.F_SECURITY_QUESTIONS);
+	public static final ItemPath PATH_SECURITY_QUESTIONS_QUESTION_ANSWER = ItemPath.create(C_CREDENTIALS, CredentialsType.F_SECURITY_QUESTIONS,
 			SecurityQuestionsCredentialsType.F_QUESTION_ANSWER);
-	public static final ItemPath PATH_ACTIVATION = new ItemPath(C_ACTIVATION);
-	public static final ItemPath PATH_ACTIVATION_ADMINISTRATIVE_STATUS = new ItemPath(C_ACTIVATION,
+	public static final ItemPath PATH_ACTIVATION = ItemPath.create(C_ACTIVATION);
+	public static final ItemPath PATH_ACTIVATION_ADMINISTRATIVE_STATUS = ItemPath.create(C_ACTIVATION,
 			ActivationType.F_ADMINISTRATIVE_STATUS);
-	public static final ItemPath PATH_ACTIVATION_EFFECTIVE_STATUS = new ItemPath(C_ACTIVATION,
+	public static final ItemPath PATH_ACTIVATION_EFFECTIVE_STATUS = ItemPath.create(C_ACTIVATION,
 			ActivationType.F_EFFECTIVE_STATUS);
-	public static final ItemPath PATH_ACTIVATION_VALID_FROM = new ItemPath(C_ACTIVATION,
+	public static final ItemPath PATH_ACTIVATION_VALID_FROM = ItemPath.create(C_ACTIVATION,
 			ActivationType.F_VALID_FROM);
-	public static final ItemPath PATH_ACTIVATION_VALID_TO = new ItemPath(C_ACTIVATION,
+	public static final ItemPath PATH_ACTIVATION_VALID_TO = ItemPath.create(C_ACTIVATION,
 			ActivationType.F_VALID_TO);
-	public static final ItemPath PATH_ACTIVATION_DISABLE_REASON = new ItemPath(ShadowType.F_ACTIVATION,
+	public static final ItemPath PATH_ACTIVATION_DISABLE_REASON = ItemPath.create(ShadowType.F_ACTIVATION,
 			ActivationType.F_DISABLE_REASON);
-	public static final ItemPath PATH_ACTIVATION_LOCKOUT_STATUS = new ItemPath(C_ACTIVATION,
+	public static final ItemPath PATH_ACTIVATION_LOCKOUT_STATUS = ItemPath.create(C_ACTIVATION,
 			ActivationType.F_LOCKOUT_STATUS);
-	public static final ItemPath PATH_OPERATIONAL_STATE_LAST_AVAILABILITY_STATUS = new ItemPath(
+	public static final ItemPath PATH_ACTIVATION_LOCKOUT_EXPIRATION_TIMESTAMP = ItemPath.create(C_ACTIVATION,
+			ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP);
+	public static final ItemPath PATH_OPERATIONAL_STATE_LAST_AVAILABILITY_STATUS = ItemPath.create(
 			ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS);
-	public static final ItemPath PATH_ATTRIBUTES = new ItemPath(C_ATTRIBUTES);
-	public static final ItemPath PATH_ASSIGNMENT = new ItemPath(FocusType.F_ASSIGNMENT);
-	public static final ItemPath PATH_INDUCEMENT = new ItemPath(AbstractRoleType.F_INDUCEMENT);
-	public static final ItemPath PATH_ASSIGNMENT_ACTIVATION = new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION);
-	public static final ItemPath PATH_ASSIGNMENT_ACTIVATION_EFFECTIVE_STATUS = new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS);
-	public static final ItemPath PATH_ASSIGNMENT_ACTIVATION_VALID_FROM = new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM);
-	public static final ItemPath PATH_ASSIGNMENT_ACTIVATION_VALID_TO = new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO);
-	public static final ItemPath PATH_ASSIGNMENT_TARGET_REF = new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF);
-	public static final ItemPath PATH_ASSIGNMENT_DESCRIPTION = new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_DESCRIPTION);
-	public static final ItemPath PATH_ASSOCIATION = new ItemPath(C_ASSOCIATION);
-	public static final ItemPath PATH_TRIGGER = new ItemPath(ObjectType.F_TRIGGER);
-	public static final ItemPath PATH_CREDENTIALS_PASSWORD_FAILED_LOGINS = new ItemPath(
+	public static final ItemPath PATH_ATTRIBUTES = ItemPath.create(C_ATTRIBUTES);
+	public static final ItemPath PATH_ASSIGNMENT = ItemPath.create(FocusType.F_ASSIGNMENT);
+	public static final ItemPath PATH_INDUCEMENT = ItemPath.create(AbstractRoleType.F_INDUCEMENT);
+	public static final ItemPath PATH_ASSIGNMENT_ACTIVATION = ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION);
+	public static final ItemPath PATH_ASSIGNMENT_ACTIVATION_EFFECTIVE_STATUS = ItemPath
+			.create(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS);
+	public static final ItemPath PATH_ASSIGNMENT_ACTIVATION_VALID_FROM = ItemPath
+			.create(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM);
+	public static final ItemPath PATH_ASSIGNMENT_ACTIVATION_VALID_TO = ItemPath
+			.create(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO);
+	public static final ItemPath PATH_ASSIGNMENT_TARGET_REF = ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF);
+	public static final ItemPath PATH_ASSIGNMENT_DESCRIPTION = ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_DESCRIPTION);
+	public static final ItemPath PATH_ASSOCIATION = ItemPath.create(C_ASSOCIATION);
+	public static final ItemPath PATH_TRIGGER = ItemPath.create(ObjectType.F_TRIGGER);
+	public static final ItemPath PATH_CREDENTIALS_PASSWORD_FAILED_LOGINS = ItemPath.create(
 			UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_FAILED_LOGINS);
-	public static final ItemPath PATH_CREDENTIALS_NONCE_FAILED_LOGINS = new ItemPath(
+	public static final ItemPath PATH_CREDENTIALS_NONCE_FAILED_LOGINS = ItemPath.create(
 			UserType.F_CREDENTIALS, CredentialsType.F_NONCE, PasswordType.F_FAILED_LOGINS);
-	public static final ItemPath PATH_CREDENTIALS_SECURITY_QUESTIONS_FAILED_LOGINS = new ItemPath(
+	public static final ItemPath PATH_CREDENTIALS_SECURITY_QUESTIONS_FAILED_LOGINS = ItemPath.create(
 			UserType.F_CREDENTIALS, CredentialsType.F_SECURITY_QUESTIONS, PasswordType.F_FAILED_LOGINS);
-	public static final ItemPath PATH_LINK_REF = new ItemPath(FocusType.F_LINK_REF);
-	public static final ItemPath PATH_LIFECYCLE_STATE = new ItemPath(ObjectType.F_LIFECYCLE_STATE);
-	public static final ItemPath PATH_ROLE_MEMBERSHIP_REF = new ItemPath(FocusType.F_ROLE_MEMBERSHIP_REF);
-	public static final ItemPath PATH_AUXILIARY_OBJECT_CLASS = new ItemPath(ShadowType.F_AUXILIARY_OBJECT_CLASS);
-	public static final ItemPath PATH_AUTOASSIGN_ENABLED = new ItemPath(AbstractRoleType.F_AUTOASSIGN, AutoassignSpecificationType.F_ENABLED);
-	public static final ItemPath PATH_PARENT_ORG_REF = new ItemPath(ObjectType.F_PARENT_ORG_REF);
-	public static final ItemPath PATH_METADATA_MODIFY_TIMESTAMP = new ItemPath(ObjectType.F_METADATA, MetadataType.F_MODIFY_TIMESTAMP);
+	public static final ItemPath PATH_LINK_REF = ItemPath.create(FocusType.F_LINK_REF);
+	public static final ItemPath PATH_LIFECYCLE_STATE = ItemPath.create(ObjectType.F_LIFECYCLE_STATE);
+	public static final ItemPath PATH_ROLE_MEMBERSHIP_REF = ItemPath.create(FocusType.F_ROLE_MEMBERSHIP_REF);
+	public static final ItemPath PATH_AUXILIARY_OBJECT_CLASS = ItemPath.create(ShadowType.F_AUXILIARY_OBJECT_CLASS);
+	public static final ItemPath PATH_AUTOASSIGN_ENABLED = ItemPath
+			.create(AbstractRoleType.F_AUTOASSIGN, AutoassignSpecificationType.F_ENABLED);
+	public static final ItemPath PATH_PARENT_ORG_REF = ItemPath.create(ObjectType.F_PARENT_ORG_REF);
+	public static final ItemPath PATH_METADATA_MODIFY_TIMESTAMP = ItemPath.create(ObjectType.F_METADATA, MetadataType.F_MODIFY_TIMESTAMP);
 
 	public static final String NS_PROVISIONING = NS_MIDPOINT_PUBLIC + "/provisioning";
 	public static final String NS_PROVISIONING_LIVE_SYNC = NS_PROVISIONING + "/liveSync-3";
-	public static final QName SYNC_TOKEN = new QName(NS_PROVISIONING_LIVE_SYNC, "token");
+	public static final ItemName SYNC_TOKEN = new ItemName(NS_PROVISIONING_LIVE_SYNC, "token");
 	public static final String NS_PROVISIONING_TASK = NS_PROVISIONING + "/task";
 
 	// Synchronization constants
@@ -283,16 +279,16 @@ public abstract class SchemaConstants {
 	public static final String NS_MODEL_SERVICE = NS_MODEL + "/service-3";
 
 	public static final String NS_MODEL_EXTENSION = NS_MODEL + "/extension-3";
-	public static final QName MODEL_EXTENSION_FRESHENESS_INTERVAL_PROPERTY_NAME = new QName(
+	public static final ItemName MODEL_EXTENSION_FRESHENESS_INTERVAL_PROPERTY_NAME = new ItemName(
 			NS_MODEL_EXTENSION, "freshnessInterval"); // unused? TODO consider
 														// removing
-	public static final QName MODEL_EXTENSION_DRY_RUN = new QName(NS_MODEL_EXTENSION, "dryRun");
-        public static final QName SYNC_TOKEN_RETRY_UNHANDLED = new QName(NS_MODEL_EXTENSION, "retryLiveSyncErrors");
-	public static final QName MODEL_EXTENSION_FINISH_OPERATIONS_ONLY = new QName(NS_MODEL_EXTENSION, "finishOperationsOnly");
-	public static final QName MODEL_EXTENSION_KIND = new QName(NS_MODEL_EXTENSION, "kind");
-	public static final QName MODEL_EXTENSION_INTENT = new QName(NS_MODEL_EXTENSION, "intent");
-	public static final QName MODEL_EXTENSION_OBJECTCLASS = new QName(NS_MODEL_EXTENSION, "objectclass");
-	public static final QName MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME = new QName(
+	public static final ItemName MODEL_EXTENSION_DRY_RUN = new ItemName(NS_MODEL_EXTENSION, "dryRun");
+	public static final ItemName SYNC_TOKEN_RETRY_UNHANDLED = new ItemName(NS_MODEL_EXTENSION, "retryLiveSyncErrors");
+	public static final ItemName MODEL_EXTENSION_FINISH_OPERATIONS_ONLY = new ItemName(NS_MODEL_EXTENSION, "finishOperationsOnly");
+	public static final ItemName MODEL_EXTENSION_KIND = new ItemName(NS_MODEL_EXTENSION, "kind");
+	public static final ItemName MODEL_EXTENSION_INTENT = new ItemName(NS_MODEL_EXTENSION, "intent");
+	public static final ItemName MODEL_EXTENSION_OBJECTCLASS = new ItemName(NS_MODEL_EXTENSION, "objectclass");
+	public static final ItemName MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME = new ItemName(
 			NS_MODEL_EXTENSION, "lastScanTimestamp");
 
 	public static final String NS_MODEL_DISABLE_REASON = NS_MODEL + "/disableReason";
@@ -348,45 +344,45 @@ public abstract class SchemaConstants {
 	public static final QName MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE_QNAME = new QName(NS_MODEL_CERTIFICATION_OUTCOME, "noResponse");
 	public static final String MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE = QNameUtil.qNameToUri(MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE_QNAME);		// only for aggregated decisions
 
-	public static final QName MODEL_EXTENSION_OBJECT_TYPE = new QName(NS_MODEL_EXTENSION, "objectType");
-	public static final QName MODEL_EXTENSION_OBJECT_QUERY = new QName(NS_MODEL_EXTENSION, "objectQuery");
-	public static final QName MODEL_EXTENSION_SEARCH_OPTIONS = new QName(NS_MODEL_EXTENSION, "searchOptions");
-	public static final QName MODEL_EXTENSION_USE_REPOSITORY_DIRECTLY = new QName(NS_MODEL_EXTENSION, "useRepositoryDirectly");
-	public static final QName MODEL_EXTENSION_ITERATION_METHOD = new QName(NS_MODEL_EXTENSION, "iterationMethod");
-	public static final QName MODEL_EXTENSION_OBJECT_DELTA = new QName(NS_MODEL_EXTENSION, "objectDelta");
-	public static final QName MODEL_EXTENSION_OBJECT_DELTAS = new QName(NS_MODEL_EXTENSION, "objectDeltas");
-	public static final QName MODEL_EXTENSION_WORKER_THREADS = new QName(NS_MODEL_EXTENSION, "workerThreads");
-	public static final QName MODEL_EXTENSION_OPTION_RAW = new QName(NS_MODEL_EXTENSION, "optionRaw");
-	public static final QName MODEL_EXTENSION_EXECUTE_OPTIONS = new QName(NS_MODEL_EXTENSION, "executeOptions");
+	public static final ItemName MODEL_EXTENSION_OBJECT_TYPE = new ItemName(NS_MODEL_EXTENSION, "objectType");
+	public static final ItemName MODEL_EXTENSION_OBJECT_QUERY = new ItemName(NS_MODEL_EXTENSION, "objectQuery");
+	public static final ItemName MODEL_EXTENSION_SEARCH_OPTIONS = new ItemName(NS_MODEL_EXTENSION, "searchOptions");
+	public static final ItemName MODEL_EXTENSION_USE_REPOSITORY_DIRECTLY = new ItemName(NS_MODEL_EXTENSION, "useRepositoryDirectly");
+	public static final ItemName MODEL_EXTENSION_ITERATION_METHOD = new ItemName(NS_MODEL_EXTENSION, "iterationMethod");
+	public static final ItemName MODEL_EXTENSION_OBJECT_DELTA = new ItemName(NS_MODEL_EXTENSION, "objectDelta");
+	public static final ItemName MODEL_EXTENSION_OBJECT_DELTAS = new ItemName(NS_MODEL_EXTENSION, "objectDeltas");
+	public static final ItemName MODEL_EXTENSION_WORKER_THREADS = new ItemName(NS_MODEL_EXTENSION, "workerThreads");
+	public static final ItemName MODEL_EXTENSION_OPTION_RAW = new ItemName(NS_MODEL_EXTENSION, "optionRaw");
+	public static final ItemName MODEL_EXTENSION_EXECUTE_OPTIONS = new ItemName(NS_MODEL_EXTENSION, "executeOptions");
 
-	public static final QName MODEL_EXTENSION_DIAGNOSE = new QName(NS_MODEL_EXTENSION, "diagnose");
-	public static final QName MODEL_EXTENSION_FIX = new QName(NS_MODEL_EXTENSION, "fix");
-	public static final QName MODEL_EXTENSION_DUPLICATE_SHADOWS_RESOLVER = new QName(NS_MODEL_EXTENSION,
+	public static final ItemName MODEL_EXTENSION_DIAGNOSE = new ItemName(NS_MODEL_EXTENSION, "diagnose");
+	public static final ItemName MODEL_EXTENSION_FIX = new ItemName(NS_MODEL_EXTENSION, "fix");
+	public static final ItemName MODEL_EXTENSION_DUPLICATE_SHADOWS_RESOLVER = new ItemName(NS_MODEL_EXTENSION,
 			"duplicateShadowsResolver");
-	public static final QName MODEL_EXTENSION_CHECK_DUPLICATES_ON_PRIMARY_IDENTIFIERS_ONLY = new QName(
+	public static final ItemName MODEL_EXTENSION_CHECK_DUPLICATES_ON_PRIMARY_IDENTIFIERS_ONLY = new ItemName(
 			NS_MODEL_EXTENSION, "checkDuplicatesOnPrimaryIdentifiersOnly");
 
-	public static final QName MODEL_EXTENSION_CLEANUP_POLICIES = new QName(NS_MODEL_EXTENSION,
+	public static final ItemName MODEL_EXTENSION_CLEANUP_POLICIES = new ItemName(NS_MODEL_EXTENSION,
 			"cleanupPolicies");
 
-	public static final QName MODEL_EXTENSION_WORK_ITEM_ID = new QName(NS_MODEL_EXTENSION, "workItemId");
-	public static final QName MODEL_EXTENSION_WORK_ITEM_ACTIONS = new QName(NS_MODEL_EXTENSION, "workItemActions");
-	public static final QName MODEL_EXTENSION_WORK_ITEM_ACTION = new QName(NS_MODEL_EXTENSION, "workItemAction");
-	public static final QName MODEL_EXTENSION_TIME_BEFORE_ACTION = new QName(NS_MODEL_EXTENSION, "timeBeforeAction");
+	public static final ItemName MODEL_EXTENSION_WORK_ITEM_ID = new ItemName(NS_MODEL_EXTENSION, "workItemId");
+	public static final ItemName MODEL_EXTENSION_WORK_ITEM_ACTIONS = new ItemName(NS_MODEL_EXTENSION, "workItemActions");
+	public static final ItemName MODEL_EXTENSION_WORK_ITEM_ACTION = new ItemName(NS_MODEL_EXTENSION, "workItemAction");
+	public static final ItemName MODEL_EXTENSION_TIME_BEFORE_ACTION = new ItemName(NS_MODEL_EXTENSION, "timeBeforeAction");
 
 	public static final String NOOP_SCHEMA_URI = NS_MIDPOINT_PUBLIC + "/task/noop/handler-3";
-	public static final QName NOOP_DELAY_QNAME = new QName(NOOP_SCHEMA_URI, "delay");
-	public static final QName NOOP_STEPS_QNAME = new QName(NOOP_SCHEMA_URI, "steps");
+	public static final ItemName NOOP_DELAY_QNAME = new ItemName(NOOP_SCHEMA_URI, "delay");
+	public static final ItemName NOOP_STEPS_QNAME = new ItemName(NOOP_SCHEMA_URI, "steps");
 
 	public static final String JDBC_PING_SCHEMA_URI = NS_MIDPOINT_PUBLIC + "/task/jdbc-ping/handler-3";
-	public static final QName JDBC_PING_TESTS_QNAME = new QName(JDBC_PING_SCHEMA_URI, "tests");
-	public static final QName JDBC_PING_INTERVAL_QNAME = new QName(JDBC_PING_SCHEMA_URI, "interval");
-	public static final QName JDBC_PING_TEST_QUERY_QNAME = new QName(JDBC_PING_SCHEMA_URI, "testQuery");
-	public static final QName JDBC_PING_DRIVER_CLASS_NAME_QNAME = new QName(JDBC_PING_SCHEMA_URI, "driverClassName");
-	public static final QName JDBC_PING_JDBC_URL_QNAME = new QName(JDBC_PING_SCHEMA_URI, "jdbcUrl");
-	public static final QName JDBC_PING_JDBC_USERNAME_QNAME = new QName(JDBC_PING_SCHEMA_URI, "jdbcUsername");
-	public static final QName JDBC_PING_JDBC_PASSWORD_QNAME = new QName(JDBC_PING_SCHEMA_URI, "jdbcPassword");
-	public static final QName JDBC_PING_LOG_ON_INFO_LEVEL_QNAME = new QName(JDBC_PING_SCHEMA_URI, "logOnInfoLevel");
+	public static final ItemName JDBC_PING_TESTS_QNAME = new ItemName(JDBC_PING_SCHEMA_URI, "tests");
+	public static final ItemName JDBC_PING_INTERVAL_QNAME = new ItemName(JDBC_PING_SCHEMA_URI, "interval");
+	public static final ItemName JDBC_PING_TEST_QUERY_QNAME = new ItemName(JDBC_PING_SCHEMA_URI, "testQuery");
+	public static final ItemName JDBC_PING_DRIVER_CLASS_NAME_QNAME = new ItemName(JDBC_PING_SCHEMA_URI, "driverClassName");
+	public static final ItemName JDBC_PING_JDBC_URL_QNAME = new ItemName(JDBC_PING_SCHEMA_URI, "jdbcUrl");
+	public static final ItemName JDBC_PING_JDBC_USERNAME_QNAME = new ItemName(JDBC_PING_SCHEMA_URI, "jdbcUsername");
+	public static final ItemName JDBC_PING_JDBC_PASSWORD_QNAME = new ItemName(JDBC_PING_SCHEMA_URI, "jdbcPassword");
+	public static final ItemName JDBC_PING_LOG_ON_INFO_LEVEL_QNAME = new ItemName(JDBC_PING_SCHEMA_URI, "logOnInfoLevel");
 
 	public static final String NS_GUI = NS_MIDPOINT_PUBLIC + "/gui";
 	public static final String NS_GUI_CHANNEL = NS_GUI + "/channels-3";
@@ -426,21 +422,21 @@ public abstract class SchemaConstants {
 	// be inverted, eventually (MID-356)
 	public static final String ICF_FRAMEWORK_URI = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1";
 	public static final String NS_ICF_CONFIGURATION = ICF_FRAMEWORK_URI + "/connector-schema-3";
-	public static final QName ICF_CONFIGURATION_PROPERTIES = new QName(NS_ICF_CONFIGURATION,
+	public static final ItemName ICF_CONFIGURATION_PROPERTIES = new ItemName(NS_ICF_CONFIGURATION,
 			"configurationProperties");
-	public static final QName ICF_TIMEOUTS = new QName(NS_ICF_CONFIGURATION, "timeouts");
-	public static final QName ICF_RESULTS_HANDLER_CONFIGURATION = new QName(NS_ICF_CONFIGURATION,
+	public static final ItemName ICF_TIMEOUTS = new ItemName(NS_ICF_CONFIGURATION, "timeouts");
+	public static final ItemName ICF_RESULTS_HANDLER_CONFIGURATION = new ItemName(NS_ICF_CONFIGURATION,
 			"resultsHandlerConfiguration");
-	public static final QName ICF_CONNECTOR_POOL_CONFIGURATION = new QName(NS_ICF_CONFIGURATION,
+	public static final ItemName ICF_CONNECTOR_POOL_CONFIGURATION = new ItemName(NS_ICF_CONFIGURATION,
 			"connectorPoolConfiguration");
 
 	// Note! This is also specified in SchemaConstants (MID-356)
 	public static final String NS_ICF_SCHEMA = ICF_FRAMEWORK_URI + "/resource-schema-3";
 	public static final String NS_ICF_SCHEMA_PREFIX = "icfs";
-	public static final QName ICFS_NAME = new QName(NS_ICF_SCHEMA, "name");
-	public static final QName ICFS_UID = new QName(NS_ICF_SCHEMA, "uid");
+	public static final ItemName ICFS_NAME = new ItemName(NS_ICF_SCHEMA, "name");
+	public static final ItemName ICFS_UID = new ItemName(NS_ICF_SCHEMA, "uid");
 	public static final String CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_LOCAL_NAME = "configurationProperties";
-	public static final QName CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME = new QName(NS_ICF_CONFIGURATION,
+	public static final ItemName CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME = new ItemName(NS_ICF_CONFIGURATION,
 			CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_LOCAL_NAME);
 	public static final String ACCOUNT_OBJECT_CLASS_LOCAL_NAME = "AccountObjectClass";
 	public static final String GROUP_OBJECT_CLASS_LOCAL_NAME = "GroupObjectClass";
@@ -450,47 +446,47 @@ public abstract class SchemaConstants {
 	// OTHER (temporary? [mederly])
 
 	public static final String ICF_CONNECTOR_EXTENSION = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-extension-3";
-	public static final QName ICF_CONNECTOR_USUAL_NAMESPACE_PREFIX = new QName(ICF_CONNECTOR_EXTENSION,
+	public static final ItemName ICF_CONNECTOR_USUAL_NAMESPACE_PREFIX = new ItemName(ICF_CONNECTOR_EXTENSION,
 			"usualNamespacePrefix");
 
 	public static final String SCRIPTING_EXTENSION_NS = "http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3";
-	public static final QName SE_EXECUTE_SCRIPT = new QName(SCRIPTING_EXTENSION_NS, "executeScript");
+	public static final ItemName SE_EXECUTE_SCRIPT = new ItemName(SCRIPTING_EXTENSION_NS, "executeScript");
 
 	public static final String NS_SCRIPTING = "http://midpoint.evolveum.com/xml/ns/public/model/scripting-3";
-	public static final QName S_PIPELINE = new QName(NS_SCRIPTING, "pipeline");
-	public static final QName S_SEARCH = new QName(NS_SCRIPTING, "search");
-	public static final QName S_SEQUENCE = new QName(NS_SCRIPTING, "sequence");
-	public static final QName S_ACTION = new QName(NS_SCRIPTING, "action");
+	public static final ItemName S_PIPELINE = new ItemName(NS_SCRIPTING, "pipeline");
+	public static final ItemName S_SEARCH = new ItemName(NS_SCRIPTING, "search");
+	public static final ItemName S_SEQUENCE = new ItemName(NS_SCRIPTING, "sequence");
+	public static final ItemName S_ACTION = new ItemName(NS_SCRIPTING, "action");
 
-	public static final QName S_PIPELINE_DATA = new QName(NS_SCRIPTING, "pipelineData");
+	public static final ItemName S_PIPELINE_DATA = new ItemName(NS_SCRIPTING, "pipelineData");
 
-	public static final QName C_EVENT = new QName(NS_C, "event");
-	public static final QName C_EVENT_HANDLER = new QName(NS_C, "eventHandler");			// TODO: no such element in common-3 - is it OK?
-	public static final QName C_TEXT_FORMATTER = new QName(NS_C, "textFormatter");
-	public static final QName C_NOTIFICATION_FUNCTIONS = new QName(NS_C, "notificationFunctions");
+	public static final ItemName C_EVENT = new ItemName(NS_C, "event");
+	public static final ItemName C_EVENT_HANDLER = new ItemName(NS_C, "eventHandler");			// TODO: no such element in common-3 - is it OK?
+	public static final ItemName C_TEXT_FORMATTER = new ItemName(NS_C, "textFormatter");
+	public static final ItemName C_NOTIFICATION_FUNCTIONS = new ItemName(NS_C, "notificationFunctions");
 
-	public static final QName C_TRANSPORT_NAME = new QName(NS_C, "transportName");
-	public static final QName C_FROM = new QName(NS_C, "from");
-	public static final QName C_ENCODED_FROM = new QName(NS_C, "encodedFrom");
-	public static final QName C_TO = new QName(NS_C, "to");
-	public static final QName C_TO_LIST = new QName(NS_C, "toList");
-	public static final QName C_ENCODED_TO = new QName(NS_C, "encodedTo");
-	public static final QName C_ENCODED_TO_LIST = new QName(NS_C, "encodedToList");
-	public static final QName C_MESSAGE_TEXT = new QName(NS_C, "messageText");
-	public static final QName C_ENCODED_MESSAGE_TEXT = new QName(NS_C, "encodedMessageText");
-	public static final QName C_MESSAGE = new QName(NS_C, "message");
-	public static final QName C_WORK_ITEM = new QName(NS_C, "workItem");
-	public static final QName C_WF_PROCESS_INSTANCE = new QName(NS_C, "wfProcessInstance");
+	public static final ItemName C_TRANSPORT_NAME = new ItemName(NS_C, "transportName");
+	public static final ItemName C_FROM = new ItemName(NS_C, "from");
+	public static final ItemName C_ENCODED_FROM = new ItemName(NS_C, "encodedFrom");
+	public static final ItemName C_TO = new ItemName(NS_C, "to");
+	public static final ItemName C_TO_LIST = new ItemName(NS_C, "toList");
+	public static final ItemName C_ENCODED_TO = new ItemName(NS_C, "encodedTo");
+	public static final ItemName C_ENCODED_TO_LIST = new ItemName(NS_C, "encodedToList");
+	public static final ItemName C_MESSAGE_TEXT = new ItemName(NS_C, "messageText");
+	public static final ItemName C_ENCODED_MESSAGE_TEXT = new ItemName(NS_C, "encodedMessageText");
+	public static final ItemName C_MESSAGE = new ItemName(NS_C, "message");
+	public static final ItemName C_WORK_ITEM = new ItemName(NS_C, "workItem");
+	public static final ItemName C_WF_PROCESS_INSTANCE = new ItemName(NS_C, "wfProcessInstance");
 
-	public static final QName APIT_ITEM_LIST = new QName(SchemaConstants.NS_API_TYPES, "itemList");
-	public static final QName C_ASSIGNMENT = new QName(SchemaConstants.NS_C, "assignment");
+	public static final ItemName APIT_ITEM_LIST = new ItemName(SchemaConstants.NS_API_TYPES, "itemList");
+	public static final ItemName C_ASSIGNMENT = new ItemName(SchemaConstants.NS_C, "assignment");
 
-	public static final QName C_NAME = new QName(SchemaConstants.NS_C, "name");
+	public static final ItemName C_NAME = new ItemName(SchemaConstants.NS_C, "name");
 
-	public static final QName FAULT_MESSAGE_ELEMENT_NAME = new QName(NS_FAULT, "fault");
-	public static final QName C_MODEL_CONTEXT = new QName(NS_C, "modelContext");
-	public static final QName C_ITEM_TO_APPROVE = new QName(NS_C, "itemToApprove");
-	public static final QName C_SHADOW_DISCRIMINATOR = new QName(NS_C, "shadowDiscriminator");
+	public static final ItemName FAULT_MESSAGE_ELEMENT_NAME = new ItemName(NS_FAULT, "fault");
+	public static final ItemName C_MODEL_CONTEXT = new ItemName(NS_C, "modelContext");
+	public static final ItemName C_ITEM_TO_APPROVE = new ItemName(NS_C, "itemToApprove");
+	public static final ItemName C_SHADOW_DISCRIMINATOR = new ItemName(NS_C, "shadowDiscriminator");
 
 	// Lifecycle
 
@@ -546,6 +542,7 @@ public abstract class SchemaConstants {
 
 	public static final QName SAMPLES_SSN = new QName(SchemaConstants.NS_SAMPLES_EXTENSION, "ssn");
 	public static final QName SAMPLES_DOMAIN = new QName(SchemaConstants.NS_SAMPLES_EXTENSION, "domain");
+	public static final ItemPath PATH_WORKFLOW_CONTEXT_WORK_ITEM = ItemPath.create(F_WORKFLOW_CONTEXT, F_WORK_ITEM);
 
 	// Misc
 
@@ -578,4 +575,29 @@ public abstract class SchemaConstants {
 
 	// a bit of hack
 	public static final String COMPLETED_TASK_CLEANUP_TRIGGER_HANDLER_URI = SchemaConstants.NS_MODEL + "/completedTaskCleanup/handler-3";
+
+	// other (temp)
+	public static final ItemPath PATH_CREDENTIALS_PASSWORD_VALUE = ItemPath
+			.create(SchemaConstantsGenerated.C_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
+
+	public static final ItemPath PATH_CREDENTIALS_PASSWORD = ItemPath
+			.create(SchemaConstantsGenerated.C_CREDENTIALS, CredentialsType.F_PASSWORD);
+
+	public static final ItemPath PATH_MODEL_EXTENSION_OBJECT_QUERY = ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
+	public static final ItemPath PATH_MODEL_EXTENSION_OBJECT_TYPE = ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE);
+	public static final ItemPath PATH_MODEL_EXTENSION_OBJECT_DELTA = ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA);
+	public static final ItemPath PATH_MODEL_EXTENSION_EXECUTE_OPTIONS = ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS);
+	public static final ItemPath PATH_MODEL_EXTENSION_DRY_RUN = ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_DRY_RUN);
+	public static final ItemPath PATH_CREDENTIALS_PASSWORD_METADATA = ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_METADATA);
+	public static final ItemPath PATH_CREDENTIALS_PASSWORD_HISTORY_ENTRY = ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_HISTORY_ENTRY);
+	public static final ItemPath PATH_CREDENTIALS_PASSWORD_VALUE_POLICY_REF = ItemPath.create(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_VALUE_POLICY_REF);
+	public static final ItemPath PATH_CREDENTIALS_PASSWORD_HISTORY_LENGTH = ItemPath.create(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_HISTORY_LENGTH);
+	public static final ItemPath PATH_ASSIGNMENT_CONSTRUCTION_KIND = ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_KIND);
+	public static final ItemPath PATH_ASSIGNMENT_CONSTRUCTION_INTENT = ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_INTENT);
+	public static final ItemPath PATH_ACTIVATION_ENABLE_TIMESTAMP = ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_ENABLE_TIMESTAMP);
+	public static final ItemPath PATH_ACTIVATION_DISABLE_TIMESTAMP = ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP);
+	public static final ItemPath PATH_ACTIVATION_ARCHIVE_TIMESTAMP = ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_ARCHIVE_TIMESTAMP);
+
+	public static final ItemPath PATH_PARENT = ItemPath.create(PrismConstants.T_PARENT);
+	public static final ItemPath PATH_OBJECT_REFERENCE = ItemPath.create(PrismConstants.T_OBJECT_REFERENCE);
 }

@@ -15,21 +15,16 @@
  */
 package com.evolveum.midpoint.common.refinery;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
-
-import javax.xml.namespace.QName;
-
 import com.evolveum.midpoint.common.ResourceObjectPattern;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinitionImpl;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -37,6 +32,14 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityTy
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.jetbrains.annotations.NotNull;
+
+import javax.xml.namespace.QName;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.emptySet;
 
@@ -153,7 +156,7 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	// TODO - doesn't return layered definition (should it?)
 	@Override
 	public <ID extends ItemDefinition> ID findNamedItemDefinition(@NotNull QName firstName, @NotNull ItemPath rest,
-																  @NotNull Class<ID> clazz) {
+			@NotNull Class<ID> clazz) {
 		return refinedObjectClassDefinition.findNamedItemDefinition(firstName, rest, clazz);
 	}
 
@@ -511,9 +514,9 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	}
 
 	@Override
-	public <ID extends ItemDefinition> ID findItemDefinition(@NotNull QName name, @NotNull Class<ID> clazz,
+	public <ID extends ItemDefinition> ID findLocalItemDefinition(@NotNull QName name, @NotNull Class<ID> clazz,
 			boolean caseInsensitive) {
-		ID def = refinedObjectClassDefinition.findItemDefinition(name, clazz, caseInsensitive);
+		ID def = refinedObjectClassDefinition.findLocalItemDefinition(name, clazz, caseInsensitive);
 		return (ID) LayerRefinedAttributeDefinitionImpl.wrap((RefinedAttributeDefinition) def, layer);
 	}
 
@@ -662,7 +665,7 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	}
 
 	@Override
-	public void trimTo(@NotNull Collection<ItemPath> paths) {
+	public void trimTo(@NotNull Collection<UniformItemPath> paths) {
 		if (refinedObjectClassDefinition != null) {
 			refinedObjectClassDefinition.trimTo(paths);
 		}

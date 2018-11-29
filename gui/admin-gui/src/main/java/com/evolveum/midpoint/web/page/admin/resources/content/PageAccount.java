@@ -97,9 +97,9 @@ public class PageAccount extends PageAdminResources {
     	Task task = createSimpleTask(OPERATION_LOAD_ACCOUNT);
         OperationResult result = task.getResult();
 
-        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
-                ShadowType.F_RESOURCE, GetOperationOptions.createResolve());
-
+        Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
+                .item(ShadowType.F_RESOURCE).resolve()
+                .build();
         StringValue oid = parameters != null ? parameters.get(OnePageParameterEncoder.PARAMETER) : null;
         PrismObject<ShadowType> account = WebModelServiceUtils.loadObject(ShadowType.class, oid.toString(), options,
                 PageAccount.this, task, result);

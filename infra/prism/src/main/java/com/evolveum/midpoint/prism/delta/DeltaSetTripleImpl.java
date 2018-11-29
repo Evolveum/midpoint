@@ -16,7 +16,7 @@
 package com.evolveum.midpoint.prism.delta;
 
 import com.evolveum.midpoint.prism.SimpleVisitor;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.util.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -512,8 +512,8 @@ public class DeltaSetTripleImpl<T> implements DeltaSetTriple<T> {
 		sb.append(item);
 	}
 
-	public static <T> DeltaSetTriple<? extends T> find(Map<ItemPath, DeltaSetTriple<? extends T>> tripleMap, ItemPath path) {
-		List<Map.Entry<ItemPath, DeltaSetTriple<? extends T>>> matching = tripleMap.entrySet().stream()
+	public static <T> DeltaSetTriple<? extends T> find(Map<UniformItemPath, DeltaSetTriple<? extends T>> tripleMap, UniformItemPath path) {
+		List<Map.Entry<UniformItemPath, DeltaSetTriple<? extends T>>> matching = tripleMap.entrySet().stream()
 				.filter(e -> path.equivalent(e.getKey()))
 				.collect(Collectors.toList());
 		if (matching.isEmpty()) {

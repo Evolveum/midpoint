@@ -30,6 +30,8 @@ import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcesso
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -55,7 +57,7 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -98,7 +100,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 @Component
 public class AssignmentProcessor {
 
-    @Autowired
+	@Autowired
     @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
 
@@ -265,7 +267,7 @@ public class AssignmentProcessor {
 
         // PROCESSING FOCUS
 
-        Map<ItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> focusOutputTripleMap = new HashMap<>();
+        Map<UniformItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> focusOutputTripleMap = new HashMap<>();
         collectFocusTripleFromMappings(evaluatedAssignmentTriple.getPlusSet(), focusOutputTripleMap, PlusMinusZero.PLUS);
         collectFocusTripleFromMappings(evaluatedAssignmentTriple.getMinusSet(), focusOutputTripleMap, PlusMinusZero.MINUS);
         collectFocusTripleFromMappings(evaluatedAssignmentTriple.getZeroSet(), focusOutputTripleMap, PlusMinusZero.ZERO);
@@ -494,19 +496,15 @@ public class AssignmentProcessor {
             return;
         }
 
-        final ItemPath TARGET_REF_PATH = new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF);
-        final ItemPath CONSTRUCTION_KIND_PATH = new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_KIND);
-        final ItemPath CONSTRUCTION_INTENT_PATH = new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_INTENT);
-
         for (@SuppressWarnings("rawtypes") ItemDelta itemDelta : focusDelta.getModifications()) {
-            ItemPath itemPath = itemDelta.getPath().namedSegmentsOnly();
-            if (TARGET_REF_PATH.isSubPathOrEquivalent(itemPath)) {
+            UniformItemPath itemPath = itemDelta.getPath().namedSegmentsOnly();
+            if (SchemaConstants.PATH_ASSIGNMENT_TARGET_REF.isSubPathOrEquivalent(itemPath)) {
                 throw new SchemaException("It is not allowed to change targetRef in an assignment. Offending path: " + itemPath);
             }
-            if (CONSTRUCTION_KIND_PATH.isSubPathOrEquivalent(itemPath)) {
+            if (SchemaConstants.PATH_ASSIGNMENT_CONSTRUCTION_KIND.isSubPathOrEquivalent(itemPath)) {
                 throw new SchemaException("It is not allowed to change construction.kind in an assignment. Offending path: " + itemPath);
             }
-            if (CONSTRUCTION_INTENT_PATH.isSubPathOrEquivalent(itemPath)) {
+            if (SchemaConstants.PATH_ASSIGNMENT_CONSTRUCTION_INTENT.isSubPathOrEquivalent(itemPath)) {
                 throw new SchemaException("It is not allowed to change construction.intent in an assignment. Offending path: " + itemPath);
             }
             // TODO some mechanism to detect changing kind/intent by add/delete/replace whole ConstructionType (should be implemented in the caller)
@@ -962,7 +960,7 @@ public class AssignmentProcessor {
 
     private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> XMLGregorianCalendar collectFocusTripleFromMappings(
     		Collection<EvaluatedAssignmentImpl<F>> evaluatedAssignments,
-    		Map<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> outputTripleMap,
+    		Map<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> outputTripleMap,
     		PlusMinusZero plusMinusZero) throws SchemaException {
 
 		XMLGregorianCalendar nextRecomputeTime = null;
@@ -974,7 +972,7 @@ public class AssignmentProcessor {
 			Collection<MappingImpl<V,D>> focusMappings = (Collection)ea.getFocusMappings();
 			for (MappingImpl<V,D> mapping: focusMappings) {
 
-				ItemPath itemPath = mapping.getOutputPath();
+				UniformItemPath itemPath = ItemPath.toUniform(mapping.getOutputPath(), prismContext);
 				DeltaSetTriple<ItemValueWithOrigin<V,D>> outputTriple = ItemValueWithOrigin.createOutputTriple(mapping);
 				if (outputTriple == null) {
 					continue;
@@ -1024,9 +1022,10 @@ public class AssignmentProcessor {
 		setReferences(focusContext, FocusType.F_DELEGATED_REF, shouldBeDelegatedRefs);
     }
 
-	private <F extends ObjectType> void setReferences(LensFocusContext<F> focusContext, QName itemName,
+	private <F extends ObjectType> void setReferences(LensFocusContext<F> focusContext, QName name,
 			Collection<PrismReferenceValue> targetState) throws SchemaException {
 
+		ItemName itemName = ItemName.fromQName(name);
 		PrismObject<F> focusOld = focusContext.getObjectOld();
 		if (focusOld == null) {
 			if (targetState.isEmpty()) {

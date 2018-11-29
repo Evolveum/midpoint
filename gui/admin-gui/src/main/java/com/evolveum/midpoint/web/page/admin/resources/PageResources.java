@@ -155,9 +155,10 @@ public class PageResources extends PageAdminResources {
 		Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
 		add(mainForm);
 
-		Collection<SelectorOptions<GetOperationOptions>> options = GetOperationOptions.resolveItemsNamed(ResourceType.F_CONNECTOR);
-		options.add(SelectorOptions.create(GetOperationOptions.createNoFetch()));
-
+		Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
+				.noFetch()
+				.item(ResourceType.F_CONNECTOR).resolve()
+				.build();
 
 		MainObjectListPanel<ResourceType> resourceListPanel = new MainObjectListPanel<ResourceType>(ID_TABLE,
 				ResourceType.class, TableId.TABLE_RESOURCES, options, this) {

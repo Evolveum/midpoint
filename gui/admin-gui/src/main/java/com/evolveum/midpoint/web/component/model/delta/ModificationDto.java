@@ -23,10 +23,7 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.schema.util.ValueDisplayUtil;
 
 import java.io.Serializable;
@@ -98,17 +95,19 @@ public class ModificationDto implements Serializable {
             }
         }
         ItemPath path = delta.getPath();
-        for (int i = path.getSegments().size()-1; i >= 0; i--) {
-            if (path.getSegments().get(i) instanceof NameItemPathSegment) {
-                String retval = ((NameItemPathSegment) path.getSegments().get(i)).getName().getLocalPart();
+        List<?> segments = path.getSegments();
+        for (int i = segments.size()-1; i >= 0; i--) {
+            Object component = segments.get(i);
+            if (ItemPath.isName(component)) {
+                StringBuilder retval = new StringBuilder(ItemPath.toName(component).getLocalPart());
                 i++;
-                while (i < path.getSegments().size()) {
-                    ItemPathSegment itemPathSegment = path.getSegments().get(i);
-                    if (itemPathSegment instanceof IdItemPathSegment) {     // should always be the case
-                        retval += "[" + ((IdItemPathSegment) itemPathSegment).getId() + "]";
+                while (i < segments.size()) {
+                    Object nextComponent = segments.get(i);
+                    if (ItemPath.isId(nextComponent)) {     // should always be the case
+                        retval.append("[").append(ItemPath.toId(nextComponent)).append("]");
                     }
                 }
-                return retval;
+                return retval.toString();
             }
         }
 

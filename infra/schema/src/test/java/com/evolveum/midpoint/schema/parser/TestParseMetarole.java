@@ -19,7 +19,6 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
@@ -122,7 +121,7 @@ public class TestParseMetarole extends AbstractObjectParserTest<RoleType> {
 		assertPropertyDefinition(metarole, "name", PolyStringType.COMPLEX_TYPE, 0, 1);
 
 		PrismContainer<?> assignmentConstraints = metarole.findContainer(
-				new ItemPath(RoleType.F_INDUCEMENT, 2L, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_ASSIGNMENT));
+				getPrismContext().path(RoleType.F_INDUCEMENT, 2L, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_ASSIGNMENT));
 		assertNotNull("No assignment constraints", assignmentConstraints);
 		assertEquals("Wrong # of assignment constraints", 1, assignmentConstraints.size());
 		assertTrue("Wrong (not empty) assignment constraints", assignmentConstraints.getValues().get(0).isEmpty());

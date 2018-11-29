@@ -611,14 +611,13 @@ public class PrismUnmarshaller {
         return SearchFilterType.createFromParsedXNode(xnode, pc, prismContext);
     }
 
-    private ItemDefinition locateItemDefinition(@NotNull QName itemName,
-            @Nullable ComplexTypeDefinition complexTypeDefinition,
+    private ItemDefinition locateItemDefinition(@NotNull QName itemName, @Nullable ComplexTypeDefinition complexTypeDefinition,
             XNode xnode) throws SchemaException {
         return getSchemaRegistry()
-                .locateItemDefinition(itemName, complexTypeDefinition, qName -> resolveDynamicItemDefinition(qName, xnode));
+                .locateItemDefinition(itemName, complexTypeDefinition, qName -> createDynamicItemDefinition(qName, xnode));
     }
 
-    private ItemDefinition resolveDynamicItemDefinition(QName itemName, XNode node)  {
+    private ItemDefinition createDynamicItemDefinition(QName itemName, XNode node)  {
         if (node == null) {
             return null;
         }
@@ -627,7 +626,7 @@ public class PrismUnmarshaller {
             if (node instanceof ListXNode) {
                 // there may be type definitions in individual list members
                 for (XNode subNode : ((ListXNode) node)) {
-                    ItemDefinition subdef = resolveDynamicItemDefinition(itemName, subNode);
+                    ItemDefinition subdef = createDynamicItemDefinition(itemName, subNode);
                     // TODO: make this smarter, e.g. detect conflicting type definitions
                     if (subdef != null) {
                         return subdef;

@@ -1,7 +1,7 @@
 package com.evolveum.prism.xml.ns._public.types_3;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
@@ -146,13 +146,12 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
         }
 	}
 
-	public <V,ID extends ItemDefinition> V getParsedRealValue(ID itemDefinition, ItemPath itemPath) throws SchemaException {
+	public <V,ID extends ItemDefinition> V getParsedRealValue(ID itemDefinition, UniformItemPath itemPath) throws SchemaException {
         if (parsed == null && xnode != null) {
 			if (itemDefinition == null) {
 				return prismContext.parserFor(xnode.toRootXNode()).parseRealValue();		// TODO what will be the result without definition?
         	} else {
-        		QName itemName = ItemPath.getName(itemPath.lastNamed());
-	        	getParsedValue(itemDefinition, itemName);
+	        	getParsedValue(itemDefinition, itemPath.lastName());
         	}
         }
         if (parsed != null) {

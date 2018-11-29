@@ -929,10 +929,6 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 		return relation;
 	}
 
-	protected PrismContext getPrismContext() {
-		return getPageBase().getPrismContext();
-	}
-
 	protected void updateMembersPanelSessionStorage(){
 		MemberPanelStorage storage = getMemberPanelStorage();
 		if (storage != null){

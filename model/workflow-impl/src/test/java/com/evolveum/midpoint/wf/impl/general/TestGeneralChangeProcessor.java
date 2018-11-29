@@ -24,7 +24,6 @@ import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
@@ -118,13 +117,13 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 		super.initSystem(initTask, initResult);
         importObjectFromFile(AbstractWfTestLegacy.USERS_AND_ROLES_FILE, initResult);
         modifyObjectReplaceProperty(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-                new ItemPath(SystemConfigurationType.F_WORKFLOW_CONFIGURATION,
+                prismContext.path(SystemConfigurationType.F_WORKFLOW_CONFIGURATION,
                         WfConfigurationType.F_PRIMARY_CHANGE_PROCESSOR,
                         PrimaryChangeProcessorConfigurationType.F_ENABLED),
                 initTask, initResult,
                 false);
         modifyObjectReplaceProperty(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-                new ItemPath(SystemConfigurationType.F_WORKFLOW_CONFIGURATION,
+                prismContext.path(SystemConfigurationType.F_WORKFLOW_CONFIGURATION,
                         WfConfigurationType.F_GENERAL_CHANGE_PROCESSOR,
                         GeneralChangeProcessorConfigurationType.F_ENABLED),
                 initTask, initResult,
@@ -251,7 +250,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
             gcpConfig.getScenario().get(i).setEnabled(values[i]);
         }
         modifyObjectReplaceProperty(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-                new ItemPath(SystemConfigurationType.F_WORKFLOW_CONFIGURATION,
+                prismContext.path(SystemConfigurationType.F_WORKFLOW_CONFIGURATION,
                         WfConfigurationType.F_GENERAL_CHANGE_PROCESSOR,
                         GeneralChangeProcessorConfigurationType.F_ENABLED),
                 task, result,
@@ -271,7 +270,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 //        QName name = new QName("http://midpoint.evolveum.com/xml/ns/public/model/model-context-3", "modelContext");
 //
 //        PrismObjectDefinition oDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class);
-//        PrismContainerDefinition def = oDef.findContainerDefinition(new ItemPath(ObjectType.F_EXTENSION, name));
+//        PrismContainerDefinition def = oDef.findContainerDefinition(prismContext.path(ObjectType.F_EXTENSION, name));
 //        Item parsedItem = domProcessor.parseItem(DOMUtil.listChildElements(root), name, def);
 //        LOGGER.debug("Parser:\n{}", parsedItem.debugDump());
 //    }

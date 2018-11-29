@@ -18,7 +18,6 @@ package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.common.StaticExpressionUtil;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -130,7 +129,7 @@ public class ACAttributeDto implements Serializable {
         if (construction != null && construction.getRef() != null) {
             attrConstruction.setRef(construction.getRef());         // preserves original ref (including xmlns prefix!) - in order to avoid false deltas when comparing old and new values
         } else {
-            attrConstruction.setRef(new ItemPathType(new ItemPath(definition.getName())));
+            attrConstruction.setRef(new ItemPathType(prismContext.path(definition.getName()))); // todo
         }
         MappingType outbound;
         if (construction != null && construction.getOutbound() != null) {

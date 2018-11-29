@@ -29,6 +29,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.web.component.input.*;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
@@ -418,7 +419,7 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 		if (component instanceof InputPanel) {
 			InputPanel inputPanel = (InputPanel) component;
 			// adding valid from/to date range validator, if necessary
-			ItemPath activation = new ItemPath(UserType.F_ACTIVATION);
+			ItemPath activation = UserType.F_ACTIVATION;
 			if (ActivationType.F_VALID_FROM.equals(property.getElementName())) {
 				DateValidator validator = WebComponentUtil.getRangeValidator(form, activation);
 				validator.setDateFrom((DateTimeField) inputPanel.getBaseFormComponent());
@@ -732,10 +733,10 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 			} else if (ItemPathType.COMPLEX_TYPE.equals(valueType)) {
 				
 				if((getModelObject().getItem().getParent() != null && getModelObject().getItem().getParent().getPath() != null) 
-						&& (getModelObject().getItem().getParent().getPath().removeIdentifiers().equivalent(
-						new ItemPath(AbstractRoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_ATTRIBUTE))
-						|| getModelObject().getItem().getParent().getPath().removeIdentifiers().equivalent(
-						new ItemPath(AbstractRoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION)))
+						&& (getModelObject().getItem().getParent().getPath().namedSegmentsOnly().equivalent(
+						ItemPath.create(AbstractRoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_ATTRIBUTE))
+						|| getModelObject().getItem().getParent().getPath().namedSegmentsOnly().equivalent(
+						ItemPath.create(AbstractRoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION)))
 						&& (getModelObject().getItem().getParent().getItem() != null
 						&& getModelObject().getItem().getParent().getItem().getParent() != null)){
 					
@@ -767,8 +768,8 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 				    List<LookupTableRowType> list = lookupTable.createRowList();
 			        	
 		            for(RefinedObjectClassDefinition schemaDefinition: schema.getRefinedDefinitions()){
-		            	if(getModelObject().getItem().getParent().getPath().removeIdentifiers().equivalent(
-								new ItemPath(AbstractRoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_ATTRIBUTE))) { 
+		            	if(getModelObject().getItem().getParent().getPath().namedSegmentsOnly().equivalent(
+					            ItemPath.create(AbstractRoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_ATTRIBUTE))) {
 		            		for (ResourceAttributeDefinition def : schemaDefinition.getAttributeDefinitions()) {
 		            			LookupTableRowType row = new LookupTableRowType();
 		            			row.setKey(def.getName().toString());
@@ -803,7 +804,7 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 										if(row.getLabel().toString().equalsIgnoreCase(input.getInput())) {
 											String namespace = row.getValue().substring(row.getValue().indexOf("{") + 1);
 											namespace = namespace.substring(0, namespace.indexOf("}"));
-											((PrismPropertyValue<ItemPathType>) PrismValuePanel.this.getModelObject().getValue()).setValue(new ItemPathType(new ItemPath(new QName(namespace, row.getLabel().toString()))));
+											((PrismPropertyValue<ItemPathType>) PrismValuePanel.this.getModelObject().getValue()).setValue(new ItemPathType(new ItemName(namespace, row.getLabel().toString())));
 											break;
 										}
 									}
@@ -860,7 +861,7 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 
 				PrismPropertyDefinition def = property.getDefinition();
 				
-				if(getModelObject().getItem() instanceof PropertyWrapper && getModelObject().getItem().getPath().removeIdentifiers().equivalent(new ItemPath(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_AUDITING, AuditingConfigurationType.F_APPENDER))){
+				if(getModelObject().getItem() instanceof PropertyWrapper && getModelObject().getItem().getPath().namedSegmentsOnly().equivalent(ItemPath.create(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_AUDITING, AuditingConfigurationType.F_APPENDER))){
 					((PropertyWrapper)getModelObject().getItem()).setPredefinedValues(WebComponentUtil.createAppenderChoices(getPageBase()));
 				}
 
@@ -978,7 +979,7 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 						Task task = getPageBase().createAnonymousTask(operation);
 						OperationResult result = task.getResult();
 						Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
-								.createLookupTableRetrieveOptions();
+								.createLookupTableRetrieveOptions(getSchemaHelper());
 						return WebModelServiceUtils.loadObject(LookupTableType.class,
 								lookupTableUid, options, getPageBase(), task, result);
 					});
@@ -987,7 +988,7 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 			OperationResult result = task.getResult();
 
 			Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
-					.createLookupTableRetrieveOptions();
+					.createLookupTableRetrieveOptions(getSchemaHelper());
 			lookupTable = WebModelServiceUtils.loadObject(LookupTableType.class,
 					lookupTableUid, options, getPageBase(), task, result);
 		}

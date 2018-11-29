@@ -18,7 +18,6 @@ package com.evolveum.midpoint.model.intest;
 import com.evolveum.icf.dummy.resource.*;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -2613,7 +2612,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 		ResourceAttributeDefinition<Object> nameDef = groupDef.findAttributeDefinition(SchemaConstants.ICFS_NAME);
 		assertNotNull("No icfs:name definition", nameDef);
 		ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassFilterPrefix(resource.getOid(), objectClass, prismContext)
-				.and().item(new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME), nameDef).eq(name)
+				.and().item(ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME), nameDef).eq(name)
 				.build();
 		SearchResultList<PrismObject<ShadowType>> shadows =
 				modelService.searchObjects(ShadowType.class, query, null, task, result);

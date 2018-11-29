@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.testing.conntest.ad;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_CREDENTIALS_PASSWORD_VALUE;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
@@ -31,6 +32,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.directory.api.ldap.model.cursor.CursorException;
 import org.apache.directory.api.ldap.model.entry.DefaultEntry;
 import org.apache.directory.api.ldap.model.entry.Entry;
@@ -48,7 +50,6 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -850,7 +851,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         QName attrQName = new QName(MidPointConstants.NS_RI, "title");
         ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
         PropertyDelta<String> attrDelta = PropertyDeltaImpl.createModificationReplaceProperty(
-        		new ItemPath(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "Captain");
+		       ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "Captain");
         delta.addModification(attrDelta);
 
         // WHEN
@@ -886,8 +887,8 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         QName attrQName = new QName(MidPointConstants.NS_RI, "showInAdvancedViewOnly");
         ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
         PropertyDelta<Boolean> attrDelta = PropertyDeltaImpl.createModificationReplaceProperty(
-        		new ItemPath(ShadowType.F_ATTRIBUTES, attrQName), attrDef, Boolean.TRUE);
-        delta.addModification(attrDelta);
+		        ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, Boolean.TRUE);
+		delta.addModification(attrDelta);
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -926,13 +927,12 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         QName attrQName = new QName(MidPointConstants.NS_RI, "showInAdvancedViewOnly");
         ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
         PropertyDelta<Boolean> attrDelta = PropertyDeltaImpl.createModificationReplaceProperty(
-        		new ItemPath(ShadowType.F_ATTRIBUTES, attrQName), attrDef, Boolean.TRUE);
+		        ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, Boolean.TRUE);
         delta.addModification(attrDelta);
 
         // WHEN
         displayWhen(TEST_NAME);
-        modifyUserReplace(USER_BARBOSSA_OID,
-        		new ItemPath(UserType.F_EXTENSION,  EXTENSION_SHOW_IN_ADVANCED_VIEW_ONLY_QNAME),
+        modifyUserReplace(USER_BARBOSSA_OID, ItemPath.create(UserType.F_EXTENSION, EXTENSION_SHOW_IN_ADVANCED_VIEW_ONLY_QNAME),
         		task, result, Boolean.FALSE);
 
         // THEN
@@ -1304,9 +1304,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         // WHEN
         displayWhen(TEST_NAME);
-        modifyUserReplace(USER_GUYBRUSH_OID,
-        		new ItemPath(UserType.F_CREDENTIALS,  CredentialsType.F_PASSWORD, PasswordType.F_VALUE),
-        		task, result, userPasswordPs);
+        modifyUserReplace(USER_GUYBRUSH_OID, PATH_CREDENTIALS_PASSWORD_VALUE, task, result, userPasswordPs);
 
         // THEN
         displayThen(TEST_NAME);
@@ -1769,9 +1767,8 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         // WHEN
         displayWhen(TEST_NAME);
         modifyObjectReplaceProperty(ShadowType.class, groupMeleeIslandPiratesOid,
-        		new ItemPath(ShadowType.F_ATTRIBUTES, new QName(MidPointConstants.NS_RI, "description")),
-        		task, result,
-        		GROUP_MELEE_ISLAND_PIRATES_DESCRIPTION);
+		        ItemPath.create(ShadowType.F_ATTRIBUTES, new QName(MidPointConstants.NS_RI, "description")),
+        		task, result, GROUP_MELEE_ISLAND_PIRATES_DESCRIPTION);
 
         // THEN
         displayThen(TEST_NAME);
@@ -1971,9 +1968,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         // WHEN
         displayWhen(TEST_NAME);
-        modifyUserReplace(USER_SUBMAN_OID,
-        		new ItemPath(UserType.F_CREDENTIALS,  CredentialsType.F_PASSWORD, PasswordType.F_VALUE),
-        		task, result, userPasswordPs);
+        modifyUserReplace(USER_SUBMAN_OID, PATH_CREDENTIALS_PASSWORD_VALUE, task, result, userPasswordPs);
 
         // THEN
         displayThen(TEST_NAME);

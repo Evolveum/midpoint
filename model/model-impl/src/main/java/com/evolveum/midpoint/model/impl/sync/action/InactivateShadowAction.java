@@ -25,6 +25,7 @@ import com.evolveum.midpoint.model.impl.sync.SynchronizationSituation;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -46,10 +47,11 @@ public class InactivateShadowAction extends BaseAction {
 			Map<QName, Object> parameters, Task task, OperationResult parentResult) {
 		ActivationStatusType desiredStatus = ActivationStatusType.DISABLED;
 
+		UniformItemPath pathAdminStatus = getPrismContext().path(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
 		LensProjectionContext projectionContext = context.getProjectionContextsIterator().next();
 		PrismObject<ShadowType> objectCurrent = projectionContext.getObjectCurrent();
 		if (objectCurrent != null) {
-			PrismProperty<Object> administrativeStatusProp = objectCurrent.findProperty(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
+			PrismProperty<Object> administrativeStatusProp = objectCurrent.findProperty(pathAdminStatus);
 			if (administrativeStatusProp != null) {
 				if (desiredStatus.equals(administrativeStatusProp.getRealValue())) {
 					// Desired status already set, nothing to do
@@ -58,8 +60,7 @@ public class InactivateShadowAction extends BaseAction {
 			}
 		}
 		ObjectDelta<ShadowType> activationDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
-				projectionContext.getOid(), SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, getPrismContext(),
-				desiredStatus);
+				projectionContext.getOid(), pathAdminStatus, getPrismContext(), desiredStatus);
 		projectionContext.setPrimaryDelta(activationDelta);
 	}
 

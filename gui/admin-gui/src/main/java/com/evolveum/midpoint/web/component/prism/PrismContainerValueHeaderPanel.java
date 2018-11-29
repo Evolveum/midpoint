@@ -291,7 +291,7 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 	}
 	
 	public void createNewContainerValue(ContainerValueWrapper<C> containerValueWrapper, QName path){
-		ItemPath newPath = new ItemPath(containerValueWrapper.getPath(), path);
+		ItemPath newPath = ItemPath.create(containerValueWrapper.getPath(), path);
 		ContainerWrapper<C> childContainerWrapper = containerValueWrapper.getContainer().findContainerWrapper(newPath);
 		
 		if (childContainerWrapper == null){

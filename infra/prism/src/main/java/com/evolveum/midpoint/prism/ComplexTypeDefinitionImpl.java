@@ -196,7 +196,7 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 	// TODO deduplicate w.r.t. findNamedItemDefinition
 	// but beware, consider only local definitions!
 	@Override
-	public <T extends ItemDefinition> T findItemDefinition(@NotNull QName name, @NotNull Class<T> clazz, boolean caseInsensitive) {
+	public <T extends ItemDefinition> T findLocalItemDefinition(@NotNull QName name, @NotNull Class<T> clazz, boolean caseInsensitive) {
 		for (ItemDefinition def : getDefinitions()) {
 			if (def.isValidFor(name, clazz, caseInsensitive)) {
 				return (T) def;
@@ -206,19 +206,20 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 	}
 
 	@Override
-	public <ID extends ItemDefinition> ID findItemDefinition(@NotNull ItemPath path, @NotNull Class<ID> clazz) {
+	public <ID extends ItemDefinition> ID findItemDefinition(@NotNull ItemPath itemPath, @NotNull Class<ID> clazz) {
+		UniformItemPath path = itemPath.toUniform(prismContext);
 		for (;;) {
 			if (path.isEmpty()) {
 				throw new IllegalArgumentException("Cannot resolve empty path on complex type definition "+this);
 			}
-			ItemPathSegment first = path.first();
-			if (first instanceof NameItemPathSegment) {
-				QName firstName = ((NameItemPathSegment)first).getName();
+			Object first = path.first();
+			if (ItemPath.isName(first)) {
+				QName firstName = ItemPath.toName(first);
 				return findNamedItemDefinition(firstName, path.rest(), clazz);
-			} else if (first instanceof IdItemPathSegment) {
+			} else if (ItemPath.isId(first)) {
 				path = path.rest();
-			} else if (first instanceof ParentPathSegment) {
-				ItemPath rest = path.rest();
+			} else if (ItemPath.isParent(first)) {
+				UniformItemPath rest = path.rest();
 				ComplexTypeDefinition parent = getSchemaRegistry().determineParentDefinition(this, rest);
 				if (rest.isEmpty()) {
 					// requires that the parent is defined as an item (container, object)
@@ -226,9 +227,9 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 				} else {
 					return parent.findItemDefinition(rest, clazz);
 				}
-			} else if (first instanceof ObjectReferencePathSegment) {
+			} else if (ItemPath.isObjectReference(first)) {
 				throw new IllegalStateException("Couldn't use '@' path segment in this context. CTD=" + getTypeName() + ", path=" + path);
-			} else if (first instanceof IdentifierPathSegment) {
+			} else if (ItemPath.isIdentifier(first)) {
 				if (!clazz.isAssignableFrom(PrismPropertyDefinition.class)) {
 					return null;
 				}
@@ -510,20 +511,20 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
     }
 
 	@Override
-	public void trimTo(@NotNull Collection<ItemPath> paths) {
+	public void trimTo(@NotNull Collection<UniformItemPath> paths) {
     	if (shared) {
     		// TODO switch this to warning before releasing this code (3.6.1 or 3.7)
     		throw new IllegalStateException("Couldn't trim shared definition: " + this);
 		}
 		for (Iterator<ItemDefinition> iterator = itemDefinitions.iterator(); iterator.hasNext(); ) {
 			ItemDefinition<?> itemDef = iterator.next();
-			ItemPath itemPath = new ItemPath(itemDef.getName());
-			if (!ItemPath.containsSuperpathOrEquivalent(paths, itemPath)) {
+			UniformItemPath itemPath = prismContext.path(itemDef.getName());
+			if (!ItemPathCollectionsUtil.containsSuperpathOrEquivalent(paths, itemPath)) {
 				iterator.remove();
 			} else if (itemDef instanceof PrismContainerDefinition) {
 				PrismContainerDefinition<?> itemPcd = (PrismContainerDefinition<?>) itemDef;
 				if (itemPcd.getComplexTypeDefinition() != null) {
-					itemPcd.getComplexTypeDefinition().trimTo(ItemPath.remainder(paths, itemPath, false));
+					itemPcd.getComplexTypeDefinition().trimTo(ItemPathCollectionsUtil.remainder(paths, itemPath, false));
 				}
 			}
 		}

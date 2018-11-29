@@ -19,9 +19,9 @@ package com.evolveum.midpoint.wf.impl;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SchemaHelper;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -56,6 +56,7 @@ public class ApprovalSchemaExecutionInformationHelper {
 
 	@Autowired private ModelService modelService;
 	@Autowired private PrismContext prismContext;
+	@Autowired private SchemaHelper schemaHelper;
 	@Autowired private WfStageComputeHelper computeHelper;
 	@Autowired private PrimaryChangeProcessor primaryChangeProcessor;
 	@Autowired private BaseConfigurationHelper baseConfigurationHelper;
@@ -65,8 +66,9 @@ public class ApprovalSchemaExecutionInformationHelper {
 			OperationResult result)
 			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
 			ConfigurationException, ExpressionEvaluationException {
-		Collection<SelectorOptions<GetOperationOptions>> options = GetOperationOptions
-				.retrieveItemsNamed(new ItemPath(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_WORK_ITEM));
+		Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+				.item(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_WORK_ITEM).retrieve()
+				.build();
 		TaskType wfTask = modelService.getObject(TaskType.class, taskOid, options, opTask, result).asObjectable();
 		return getApprovalSchemaExecutionInformation(wfTask, false, opTask, result);
 	}

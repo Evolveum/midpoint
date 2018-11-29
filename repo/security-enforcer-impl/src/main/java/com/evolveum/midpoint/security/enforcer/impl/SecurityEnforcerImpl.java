@@ -22,6 +22,7 @@ import java.util.function.Consumer;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import org.apache.commons.lang.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +45,7 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.query.AllFilter;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.InOidFilter;
@@ -303,7 +304,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		return decision;
 	}
 	
-	private AccessDecision decideAllowedItems(final ItemPath itemPath, final AutzItemPaths allowedItems, final AuthorizationPhaseType phase, final boolean removingContainer) {
+	private AccessDecision decideAllowedItems(final UniformItemPath itemPath, final AutzItemPaths allowedItems, final AuthorizationPhaseType phase, final boolean removingContainer) {
 		if (isAllowedItem(itemPath, allowedItems, phase, removingContainer)) {
 			return AccessDecision.ALLOW;
 		} else {
@@ -327,7 +328,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
 	private <C extends Containerable, O extends ObjectType> AccessDecision determineContainerDeltaDecision(ContainerDelta<C> cdelta, PrismObject<O> currentObject, ItemDecisionFunction itemDecitionFunction) {
 		AccessDecision decision = null;
-		ItemPath path = cdelta.getPath();
+		UniformItemPath path = cdelta.getPath();
 		
 		// Everything is plain and simple for add. No need for any additional checks.
 		Collection<PrismContainerValue<C>> valuesToAdd = cdelta.getValuesToAdd();
@@ -386,7 +387,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 	}
 	
-	private <C extends Containerable> void logSubitemDecision(AccessDecision subdecision, String location, ItemPath path) {
+	private <C extends Containerable> void logSubitemDecision(AccessDecision subdecision, String location, UniformItemPath path) {
 		if (LOGGER.isTraceEnabled()) {
 			if (subdecision != AccessDecision.ALLOW || InternalsConfig.isDetailedAuhotizationLog()) {
 				LOGGER.trace("    item {} for {}: decision={}", path, location, subdecision);
@@ -394,7 +395,8 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 	}
 
-	private <C extends Containerable, O extends ObjectType> PrismContainerValue<C> determineContainerValueFromCurrentObject(ItemPath path,
+	private <C extends Containerable, O extends ObjectType> PrismContainerValue<C> determineContainerValueFromCurrentObject(
+			UniformItemPath path,
 			long id, PrismObject<O> currentObject) {
 		Collection<PrismContainerValue<C>> oldCvals = determineContainerValuesFromCurrentObject(path, currentObject);
 		if (oldCvals == null) {
@@ -408,7 +410,8 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		return null;
 	}
 
-	private <C extends Containerable, O extends ObjectType> Collection<PrismContainerValue<C>> determineContainerValuesFromCurrentObject(ItemPath path,
+	private <C extends Containerable, O extends ObjectType> Collection<PrismContainerValue<C>> determineContainerValuesFromCurrentObject(
+			UniformItemPath path,
 			PrismObject<O> currentObject) {
 		PrismContainer<C> container = currentObject.findContainer(path);
 		if (container == null) {
@@ -429,7 +432,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 		AccessDecision decision = null;
 		for (Item<?, ?> item: items) {
-			ItemPath itemPath = item.getPath();
+			UniformItemPath itemPath = item.getPath();
 			AccessDecision itemDecision = itemDecitionFunction.decide(itemPath.namedSegmentsOnly(), removingContainer);
 			logSubitemDecision(itemDecision, decisionContextDesc, itemPath);
 			if (itemDecision == null) {
@@ -478,7 +481,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		} else {
 			AccessDecision decision = null;
 			for (ItemDelta<?,?> itemDelta: delta.getModifications()) {
-				ItemPath itemPath = itemDelta.getPath();
+				UniformItemPath itemPath = itemDelta.getPath();
 				AccessDecision itemDecision = itemDecisionFunction.decide(itemPath.namedSegmentsOnly(), false);
 				if (itemDecision == null) {
 					// null decision means: skip this
@@ -500,7 +503,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 	}
 	
-	private boolean isAllowedItem(ItemPath nameOnlyItemPath, AutzItemPaths allowedItems, AuthorizationPhaseType phase, boolean removingContainer) {
+	private boolean isAllowedItem(UniformItemPath nameOnlyItemPath, AutzItemPaths allowedItems, AuthorizationPhaseType phase, boolean removingContainer) {
 		if (removingContainer && isInList(nameOnlyItemPath, AuthorizationConstants.OPERATIONAL_ITEMS_ALLOWED_FOR_CONTAINER_DELETE)) {
 			return true;
 		}
@@ -510,7 +513,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		return allowedItems.isApplicable(nameOnlyItemPath);
 	}
 	
-	private boolean isInList(ItemPath itemPath, Collection<ItemPath> allowedItems) {
+	private boolean isInList(UniformItemPath itemPath, Collection<ItemPath> allowedItems) {
 		boolean itemAllowed = false;
 		for (ItemPath allowedPath: allowedItems) {
 			if (allowedPath.isSubPathOrEquivalent(itemPath)) {
@@ -809,10 +812,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			ExpressionVariables variables = new ExpressionVariables();
 			PrismObject<UserType> subject = null;
 			if (principal != null) {
-				UserType userType = principal.getUser();
-				if (userType != null) {
-					subject = userType.asPrismObject();
-				}
+				subject = principal.getUser().asPrismObject();
 			}
 			variables.addVariableDefinition(ExpressionConstants.VAR_SUBJECT, subject);
 			return ExpressionUtil.evaluateFilterExpressions(filter, variables, expressionFactory, prismContext, 
@@ -1233,7 +1233,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 					boolean applicable = true;
 					if (objectSpecTypes == null || objectSpecTypes.isEmpty()) {
 
-						LOGGER.trace("      No {} specification in authorization (authorization is universaly applicable)", objectTargetSpec);
+						LOGGER.trace("      No {} specification in authorization (authorization is universally applicable)", objectTargetSpec);
 						autzObjSecurityFilter = AllFilter.createAll();
 
 					} else {
@@ -1280,9 +1280,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 								// TODO what if owner is specified not as "self" ?
 								if (AbstractRoleType.class.isAssignableFrom(objectType)) {
 									// TODO beware, role.ownerRef is deprecated
-									objSpecSecurityFilter = applyOwnerFilterOwnerRef(new ItemPath(AbstractRoleType.F_OWNER_REF), objSpecSecurityFilter,  principal, objectDefinition);
+									objSpecSecurityFilter = applyOwnerFilterOwnerRef(AbstractRoleType.F_OWNER_REF, objSpecSecurityFilter,  principal, objectDefinition);
 								} else if (TaskType.class.isAssignableFrom(objectType)) {
-									objSpecSecurityFilter = applyOwnerFilterOwnerRef(new ItemPath(TaskType.F_OWNER_REF), objSpecSecurityFilter,  principal, objectDefinition);
+									objSpecSecurityFilter = applyOwnerFilterOwnerRef(TaskType.F_OWNER_REF, objSpecSecurityFilter,  principal, objectDefinition);
 								} else {
 									LOGGER.trace("      Authorization not applicable for object because it has owner specification (this is not applicable for search)");
 									continue;
@@ -1759,8 +1759,8 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			return null;
 		}
 		if (origFilter instanceof RefFilter) {
-			ItemPath path = ((RefFilter)origFilter).getPath();
-			if (path.equals(SchemaConstants.PATH_ROLE_MEMBERSHIP_REF)) {
+			UniformItemPath path = ((RefFilter)origFilter).getPath();
+			if (path.equivalent(SchemaConstants.PATH_ROLE_MEMBERSHIP_REF)) {
 				return ((RefFilter)origFilter).getValues();
 			}
 		}
@@ -1908,7 +1908,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		return determineDeltaDecision(delta, currentObject, itemDecisionFunction, itemDecisionFunctionDelete);
 	}
 	
-	private AccessDecision subitemDecide(ItemPath nameOnlyItemPath, boolean removingContainer, ObjectSecurityConstraints securityConstraints, String operationUrl, AuthorizationPhaseType phase, ItemPath subitemRootPath) {
+	private AccessDecision subitemDecide(UniformItemPath nameOnlyItemPath, boolean removingContainer, ObjectSecurityConstraints securityConstraints, String operationUrl, AuthorizationPhaseType phase, ItemPath subitemRootPath) {
 		if (removingContainer && isInList(nameOnlyItemPath, AuthorizationConstants.OPERATIONAL_ITEMS_ALLOWED_FOR_CONTAINER_DELETE)) {
 			return null;
 		}

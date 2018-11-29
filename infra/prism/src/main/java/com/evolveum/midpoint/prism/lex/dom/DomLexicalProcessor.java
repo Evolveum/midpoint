@@ -18,7 +18,6 @@ package com.evolveum.midpoint.prism.lex.dom;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.lex.LexicalProcessor;
 import com.evolveum.midpoint.prism.lex.LexicalUtils;
-import com.evolveum.midpoint.prism.marshaller.ItemPathHolder;
 import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -467,7 +466,7 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 	private static <T> T parsePrimitiveElementValue(Element element, QName typeName, XNodeProcessorEvaluationMode mode) throws SchemaException {
 		try {
 			if (ItemPathType.COMPLEX_TYPE.equals(typeName)) {
-				return (T) parsePath(element);
+				return (T) ItemPathType.parseFromElement(element);
 			} else if (DOMUtil.XSD_QNAME.equals(typeName)) {
 				return (T) DOMUtil.getQNameValue(element);
 			} else if (XmlTypeConverter.canConvert(typeName)) {
@@ -519,8 +518,7 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 
 	@NotNull
 	private static ItemPathType parsePath(Element element) {
-		ItemPathHolder holder = new ItemPathHolder(element);
-		return new ItemPathType(holder.toItemPath());
+		return ItemPathType.parseFromElement(element);
 	}
 
 	private SchemaXNode parseSchemaElement(Element schemaElement) {

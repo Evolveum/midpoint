@@ -22,7 +22,8 @@ package com.evolveum.midpoint.schema;
 import static com.evolveum.midpoint.prism.util.PrismAsserts.assertPropertyValue;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -57,6 +58,7 @@ import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -92,18 +94,18 @@ public class TestJaxbParsing {
 
         user.checkConsistence();
         assertPropertyValue(user, UserType.F_NAME, PrismTestUtil.createPolyString("jack"));
-        assertPropertyValue(user, new QName(SchemaConstants.NS_C, "fullName"), new PolyString("Jack Sparrow", "jack sparrow"));
-        assertPropertyValue(user, new QName(SchemaConstants.NS_C, "givenName"), new PolyString("Jack", "jack"));
-        assertPropertyValue(user, new QName(SchemaConstants.NS_C, "familyName"), new PolyString("Sparrow", "sparrow"));
-        assertPropertyValue(user, new QName(SchemaConstants.NS_C, "honorificPrefix"), new PolyString("Cpt.", "cpt"));
+        assertPropertyValue(user, new ItemName(SchemaConstants.NS_C, "fullName"), new PolyString("Jack Sparrow", "jack sparrow"));
+        assertPropertyValue(user, new ItemName(SchemaConstants.NS_C, "givenName"), new PolyString("Jack", "jack"));
+        assertPropertyValue(user, new ItemName(SchemaConstants.NS_C, "familyName"), new PolyString("Sparrow", "sparrow"));
+        assertPropertyValue(user, new ItemName(SchemaConstants.NS_C, "honorificPrefix"), new PolyString("Cpt.", "cpt"));
         assertPropertyValue(user.findContainer(UserType.F_EXTENSION),
-                new QName(NS_FOO, "bar"), "BAR");
-        PrismProperty<ProtectedStringType> password = user.findOrCreateContainer(UserType.F_EXTENSION).findProperty(new QName(NS_FOO, "password"));
+                new ItemName(NS_FOO, "bar"), "BAR");
+        PrismProperty<ProtectedStringType> password = user.findOrCreateContainer(UserType.F_EXTENSION).findProperty(new ItemName(NS_FOO, "password"));
         assertNotNull(password);
         // TODO: check inside
         assertPropertyValue(user.findOrCreateContainer(UserType.F_EXTENSION),
-                new QName(NS_FOO, "num"), 42);
-        PrismProperty<?> multi = user.findOrCreateContainer(UserType.F_EXTENSION).findProperty(new QName(NS_FOO, "multi"));
+                new ItemName(NS_FOO, "num"), 42);
+        PrismProperty<?> multi = user.findOrCreateContainer(UserType.F_EXTENSION).findProperty(new ItemName(NS_FOO, "multi"));
         assertEquals(3, multi.getValues().size());
 
         // WHEN
@@ -210,7 +212,7 @@ public class TestJaxbParsing {
         Document document = DOMUtil.getDocument();
 //        Element path = document.createElementNS(SchemaConstantsGenerated.NS_TYPES, "path");
 //        path.setTextContent("c:credentials/c:password");
-        ItemPath path = new ItemPath(SchemaConstantsGenerated.C_CREDENTIALS, CredentialsType.F_PASSWORD);
+        UniformItemPath path = getPrismContext().path(SchemaConstantsGenerated.C_CREDENTIALS, CredentialsType.F_PASSWORD);
         item1.setPath(new ItemPathType(path));
         ProtectedStringType protectedString = new ProtectedStringType();
         protectedString.setEncryptedData(new EncryptedDataType());

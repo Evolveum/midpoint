@@ -48,14 +48,6 @@ public class PrismPropertyRealValueFromObjectWrapperModel<T,O extends ObjectType
     private ItemPath path;
     private T defaultValue = null;
 
-    public PrismPropertyRealValueFromObjectWrapperModel(IModel<ObjectWrapper<O>> model, QName item) {
-        this(model, new ItemPath(item), null);
-    }
-
-    public PrismPropertyRealValueFromObjectWrapperModel(IModel<ObjectWrapper<O>> model, QName item, T defaltValue) {
-        this(model, new ItemPath(item), defaltValue);
-    }
-
     public PrismPropertyRealValueFromObjectWrapperModel(IModel<ObjectWrapper<O>> model, ItemPath path) {
     	this(model, path, null);
     }

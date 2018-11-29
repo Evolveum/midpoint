@@ -295,44 +295,44 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 		final VisibleEnableBehaviour visibleIfRecurringAndScheduleIsAccessible = new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {
-				return recurringCheckModel.getObject() && parentPage.isReadable(new ItemPath(TaskType.F_SCHEDULE));
+				return recurringCheckModel.getObject() && parentPage.isReadable(TaskType.F_SCHEDULE);
 			}
 		};
 		final VisibleEnableBehaviour visibleIfRecurringAndLooselyBoundAndScheduleIsAccessible = new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {
-				return recurringCheckModel.getObject() && !boundCheckModel.getObject() && parentPage.isReadable(new ItemPath(TaskType.F_SCHEDULE));
+				return recurringCheckModel.getObject() && !boundCheckModel.getObject() && parentPage.isReadable(TaskType.F_SCHEDULE);
 			}
 		};
 		final VisibleEnableBehaviour enabledIfEditAndNotRunningRunnableOrLooselyBoundAndScheduleIsEditable = new VisibleEnableBehaviour() {
 			@Override
 			public boolean isEnabled() {
 				return parentPage.isEdit() && (!parentPage.getTaskDto().isRunnableOrRunning() || !boundCheckModel.getObject())
-						&& parentPage.isEditable(new ItemPath(TaskType.F_SCHEDULE));
+						&& parentPage.isEditable(TaskType.F_SCHEDULE);
 			}
 		};
 		final VisibleEnableBehaviour enabledIfEditAndNotRunningAndScheduleIsEditable = new VisibleEnableBehaviour() {
 			@Override
 			public boolean isEnabled() {
-				return parentPage.isEdit() && !parentPage.getTaskDto().isRunning() && parentPage.isEditable(new ItemPath(TaskType.F_SCHEDULE));
+				return parentPage.isEdit() && !parentPage.getTaskDto().isRunning() && parentPage.isEditable(TaskType.F_SCHEDULE);
 			}
 		};
 		final VisibleEnableBehaviour enabledIfEditAndScheduleIsEditable = new VisibleEnableBehaviour() {
 			@Override
 			public boolean isEnabled() {
-				return parentPage.isEdit() && parentPage.isEditable(new ItemPath(TaskType.F_SCHEDULE));
+				return parentPage.isEdit() && parentPage.isEditable(TaskType.F_SCHEDULE);
 			}
 		};
 		final VisibleEnableBehaviour enabledIfEditAndThreadStopIsEditable = new VisibleEnableBehaviour() {
 			@Override
 			public boolean isEnabled() {
-				return parentPage.isEdit() && parentPage.isEditable(new ItemPath(TaskType.F_THREAD_STOP_ACTION));
+				return parentPage.isEdit() && parentPage.isEditable(TaskType.F_THREAD_STOP_ACTION);
 			}
 		};
 		VisibleEnableBehaviour enabledIfEditAndGroupIsEditable = new EnableBehaviour(() -> parentPage.isEdit()
-				&& parentPage.isEditable(new ItemPath(TaskType.F_EXECUTION_CONSTRAINTS, TaskExecutionConstraintsType.F_GROUP)));
+				&& parentPage.isEditable(ItemPath.create(TaskType.F_EXECUTION_CONSTRAINTS, TaskExecutionConstraintsType.F_GROUP)));
 		VisibleEnableBehaviour enabledIfEditAndTaskGroupLimitIsEditable = new EnableBehaviour(() -> parentPage.isEdit()
-				&& parentPage.isEditable(new ItemPath(TaskType.F_EXECUTION_CONSTRAINTS, TaskExecutionConstraintsType.F_GROUP_TASK_LIMIT)));
+				&& parentPage.isEditable(ItemPath.create(TaskType.F_EXECUTION_CONSTRAINTS, TaskExecutionConstraintsType.F_GROUP_TASK_LIMIT)));
 
 		// components
 		final WebMarkupContainer schedulingTable = new WebMarkupContainer(ID_SCHEDULING_TABLE);
@@ -394,7 +394,7 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 		boundContainer.add(new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {
-				return recurringCheckModel.getObject() && parentPage.isReadable(new ItemPath(TaskType.F_BINDING));
+				return recurringCheckModel.getObject() && parentPage.isReadable(TaskType.F_BINDING);
 			}
 		});
 		Label boundHelp = new Label(ID_BOUND_HELP);
@@ -411,7 +411,7 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 			@Override
 			public boolean isEnabled() {
 				return parentPage.isEdit() && (!parentPage.getTaskDto().isRunnableOrRunning() || !boundCheckModel.getObject())
-						&& parentPage.isEditable(new ItemPath(TaskType.F_SCHEDULE));
+						&& parentPage.isEditable(TaskType.F_SCHEDULE);
 			}
 		};
 
@@ -484,7 +484,7 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 		TextField<Integer> taskGroupLimit = new TextField<>(ID_GROUP_TASK_LIMIT, new PropertyModel<Integer>(taskDtoModel, TaskDto.F_GROUP_TASK_LIMIT));
 		taskGroupLimit.add(enabledIfEditAndTaskGroupLimitIsEditable);
 		taskGroupLimitContainer.add(taskGroupLimit);
-		taskGroupLimitContainer.add(parentPage.createVisibleIfAccessible(new ItemPath(TaskType.F_EXECUTION_CONSTRAINTS, TaskExecutionConstraintsType.F_GROUP_TASK_LIMIT)));
+		taskGroupLimitContainer.add(parentPage.createVisibleIfAccessible(ItemPath.create(TaskType.F_EXECUTION_CONSTRAINTS, TaskExecutionConstraintsType.F_GROUP_TASK_LIMIT)));
 		schedulingTable.add(taskGroupLimitContainer);
 
 		WebMarkupContainer allowedNodesContainer = new WebMarkupContainer(ID_ALLOWED_NODES_CONTAINER);
@@ -502,7 +502,7 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 		TextField<String> executionGroup = new TextField<>(ID_EXECUTION_GROUP, new PropertyModel<String>(taskDtoModel, TaskDto.F_EXECUTION_GROUP));
 		executionGroup.add(enabledIfEditAndGroupIsEditable);
 		executionGroupContainer.add(executionGroup);
-		executionGroupContainer.add(parentPage.createVisibleIfAccessible(new ItemPath(TaskType.F_EXECUTION_CONSTRAINTS, TaskExecutionConstraintsType.F_GROUP)));
+		executionGroupContainer.add(parentPage.createVisibleIfAccessible(ItemPath.create(TaskType.F_EXECUTION_CONSTRAINTS, TaskExecutionConstraintsType.F_GROUP)));
 		schedulingTable.add(executionGroupContainer);
 		executionGroup.add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
 			@Override

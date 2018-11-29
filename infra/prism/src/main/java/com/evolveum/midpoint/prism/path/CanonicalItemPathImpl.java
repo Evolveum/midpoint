@@ -34,7 +34,7 @@ import java.util.List;
  * @author katkav
  * @author mederly
  */
-public class CanonicalItemPath implements Serializable {
+public class CanonicalItemPathImpl implements CanonicalItemPath {
 
 	private static final List<Pair<String, String>> EXPLICIT_REPLACEMENTS = Arrays.asList(
 			new ImmutablePair<>("http://midpoint.evolveum.com/xml/ns/public/common/common-", "common"),
@@ -70,26 +70,25 @@ public class CanonicalItemPath implements Serializable {
 
 	private final List<Segment> segments = new ArrayList<>();
 
-	public static CanonicalItemPath create(ItemPath itemPath, Class<? extends Containerable> clazz, PrismContext prismContext) {
-		return new CanonicalItemPath(itemPath, clazz, prismContext);
+	public static CanonicalItemPathImpl create(UniformItemPath itemPath, Class<? extends Containerable> clazz, PrismContext prismContext) {
+		return new CanonicalItemPathImpl(itemPath, clazz, prismContext);
 	}
 
-	public static CanonicalItemPath create(ItemPath itemPath) {
-		return new CanonicalItemPath(itemPath, null, null);
+	public static CanonicalItemPath create(UniformItemPath itemPath) {
+		return new CanonicalItemPathImpl(itemPath, null, null);
 	}
 
-	private CanonicalItemPath(List<Segment> segments) {
+	CanonicalItemPathImpl(List<Segment> segments) {
 		this.segments.addAll(segments);
 	}
 
-	private CanonicalItemPath(ItemPath itemPath, Class<? extends Containerable> clazz, PrismContext prismContext) {
+	CanonicalItemPathImpl(ItemPath path, Class<? extends Containerable> clazz, PrismContext prismContext) {
 		ItemDefinition def = clazz != null && prismContext != null ?
 				prismContext.getSchemaRegistry().findContainerDefinitionByCompileTimeClass(clazz) : null;
-		while (!ItemPath.isNullOrEmpty(itemPath)) {
-			ItemPathSegment first = itemPath.first();
-			if (first instanceof NameItemPathSegment) {
-				// TODO what about variable named item path segments?
-				QName name = ((NameItemPathSegment) first).getName();
+		while (!ItemPath.isEmpty(path)) {
+			Object first = path.first();
+			if (ItemPath.isName(first)) {
+				ItemName name = ItemPath.toName(first);
 				if (def instanceof PrismContainerDefinition) {
 					def = ((PrismContainerDefinition) def).findItemDefinition(name);
 					if (def != null && !QNameUtil.hasNamespace(name)) {
@@ -97,12 +96,12 @@ public class CanonicalItemPath implements Serializable {
 					}
 				}
 				addToSegments(name);
-			} else if (first instanceof IdItemPathSegment) {
+			} else if (ItemPath.isId(first)) {
 				// ignored (for now)
 			} else {
 				throw new UnsupportedOperationException("Canonicalization of non-name/non-ID segments is not supported: " + first);
 			}
-			itemPath = itemPath.rest();
+			path = path.rest();
 		}
 	}
 
@@ -135,11 +134,11 @@ public class CanonicalItemPath implements Serializable {
 		return segments.size();
 	}
 
-	public CanonicalItemPath allUpToIncluding(int n) {
+	public CanonicalItemPathImpl allUpToIncluding(int n) {
 		if (n+1 < segments.size()) {
-			return new CanonicalItemPath(segments.subList(0, n+1));
+			return new CanonicalItemPathImpl(segments.subList(0, n+1));
 		} else {
-			return new CanonicalItemPath(segments);
+			return new CanonicalItemPathImpl(segments);
 		}
 	}
 

@@ -28,7 +28,7 @@ public class ObjectGrouping implements Serializable {
     final private ItemPath groupBy;
 
     ObjectGrouping(ItemPath groupBy) {
-        if (ItemPath.isNullOrEmpty(groupBy)) {
+        if (ItemPath.isEmpty(groupBy)) {
             throw new IllegalArgumentException("Null or empty groupBy path is not supported.");
         }
         this.groupBy = groupBy;

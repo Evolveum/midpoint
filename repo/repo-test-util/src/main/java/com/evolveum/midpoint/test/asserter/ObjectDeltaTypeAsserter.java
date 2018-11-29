@@ -21,9 +21,8 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
@@ -80,7 +79,7 @@ public class ObjectDeltaTypeAsserter<RA> extends AbstractAsserter<RA> {
 		return this;
 	}
 	
-	public ObjectDeltaTypeAsserter<RA> assertHasModification(ItemPath itemPath) {
+	public ObjectDeltaTypeAsserter<RA> assertHasModification(UniformItemPath itemPath) {
 		for (ItemDeltaType itemDelta: delta.getItemDelta()) {
 			if (itemPath.equivalent(itemDelta.getPath().getItemPath())) {
 				return this;

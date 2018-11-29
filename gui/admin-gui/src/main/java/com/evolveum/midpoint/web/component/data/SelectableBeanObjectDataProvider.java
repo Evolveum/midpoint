@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
@@ -166,22 +166,18 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
             if (ResourceType.class.equals(type) && (options == null || options.isEmpty())) {
             	options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
             }
-			Collection<SelectorOptions<GetOperationOptions>> currentOptions = options;
+			GetOperationOptionsBuilder optionsBuilder = getOperationOptionsBuilder(options);
 			if (export) {
 				// TODO also for other classes
 				if (ShadowType.class.equals(type)) {
-					currentOptions = SelectorOptions.set(currentOptions, ItemPath.EMPTY_PATH, () -> new GetOperationOptions(),
-							(o) -> o.setDefinitionProcessing(ONLY_IF_EXISTS));
-					currentOptions = SelectorOptions
-							.set(currentOptions, new ItemPath(ShadowType.F_FETCH_RESULT), GetOperationOptions::new,
-									(o) -> o.setDefinitionProcessing(FULL));
-					currentOptions = SelectorOptions
-							.set(currentOptions, new ItemPath(ShadowType.F_AUXILIARY_OBJECT_CLASS), GetOperationOptions::new,
-									(o) -> o.setDefinitionProcessing(FULL));
+					optionsBuilder = optionsBuilder
+							.definitionProcessing(ONLY_IF_EXISTS)
+							.item(ShadowType.F_FETCH_RESULT).definitionProcessing(FULL)
+							.item(ShadowType.F_AUXILIARY_OBJECT_CLASS).definitionProcessing(FULL);
 				}
 			}
-			currentOptions = GetOperationOptions.merge(currentOptions, getDistinctRelatedOptions());
-            List<PrismObject<? extends O>> list = (List)getModel().searchObjects(type, query, currentOptions, task, result);
+			optionsBuilder.mergeFrom(getDistinctRelatedOptions());
+            List<PrismObject<? extends O>> list = (List)getModel().searchObjects(type, query, optionsBuilder.build(), task, result);
 
             if (LOGGER.isTraceEnabled()) {
 	            LOGGER.trace("Query {} resulted in {} objects", type.getSimpleName(), list.size());
@@ -243,7 +239,7 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
         Task task = getPage().createSimpleTask(OPERATION_COUNT_OBJECTS);
         OperationResult result = task.getResult();
         try {
-	        Collection<SelectorOptions<GetOperationOptions>> currentOptions = GetOperationOptions.merge(options, getDistinctRelatedOptions());
+	        Collection<SelectorOptions<GetOperationOptions>> currentOptions = GetOperationOptions.merge(getPrismContext(), options, getDistinctRelatedOptions());
             Integer counted = getModel().countObjects(type, getQuery(), currentOptions, task, result);
             count = defaultIfNull(counted, 0);
         } catch (Exception ex) {

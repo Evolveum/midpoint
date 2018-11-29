@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.notifications.api.events;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryType;
@@ -40,7 +40,7 @@ public class PolicyRuleEvent extends BaseEvent {
     }
 
     @Override
-    public boolean isRelatedToItem(ItemPath itemPath) {
+    public boolean isRelatedToItem(UniformItemPath itemPath) {
         return false;           // not supported for this kind of events
     }
 

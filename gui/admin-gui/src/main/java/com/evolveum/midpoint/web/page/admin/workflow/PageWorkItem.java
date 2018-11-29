@@ -21,7 +21,6 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -58,8 +57,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.resolveItemsNamed;
-import static com.evolveum.midpoint.schema.GetOperationOptions.retrieveItemsNamed;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_PARENT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_REQUESTER_REF;
@@ -145,8 +142,9 @@ public class PageWorkItem extends PageAdminWorkItems {
 			final ObjectQuery query = QueryBuilder.queryFor(WorkItemType.class, getPrismContext())
 					.item(F_EXTERNAL_ID).eq(taskId)
 					.build();
-			final Collection<SelectorOptions<GetOperationOptions>> options =
-					resolveItemsNamed(F_ASSIGNEE_REF, F_ORIGINAL_ASSIGNEE_REF);
+			final Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
+					.items(F_ASSIGNEE_REF, F_ORIGINAL_ASSIGNEE_REF).resolve()
+					.build();
 			List<WorkItemType> workItems = getModelService().searchContainers(WorkItemType.class, query, options, task, result);
 			if (workItems.size() > 1) {
 				throw new SystemException("More than one work item with ID of " + taskId);
@@ -164,9 +162,10 @@ public class PageWorkItem extends PageAdminWorkItems {
 			}
 			TaskType taskType = null;
 			List<TaskType> relatedTasks = new ArrayList<>();
-			final Collection<SelectorOptions<GetOperationOptions>> getTaskOptions = resolveItemsNamed(
-					new ItemPath(F_WORKFLOW_CONTEXT, F_REQUESTER_REF));
-			getTaskOptions.addAll(retrieveItemsNamed(new ItemPath(F_WORKFLOW_CONTEXT, F_WORK_ITEM)));
+			final Collection<SelectorOptions<GetOperationOptions>> getTaskOptions = getOperationOptionsBuilder()
+					.item(F_WORKFLOW_CONTEXT, F_REQUESTER_REF).resolve()
+					.item(F_WORKFLOW_CONTEXT, F_WORK_ITEM).retrieve()
+					.build();
 			try {
 				taskType = getModelService().getObject(TaskType.class, taskOid, getTaskOptions, task, result).asObjectable();
 			} catch (AuthorizationException e) {

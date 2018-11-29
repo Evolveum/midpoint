@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.prism;
 
+import com.evolveum.midpoint.prism.path.ItemName;
+
 import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 
 import javax.xml.namespace.QName;
@@ -110,18 +112,18 @@ public class PrismConstants {
 
 	// Path constants
 	public static final String T_PARENT_LOCAL_PART = "parent";
-	public static final QName T_PARENT = new QName(NS_TYPES, T_PARENT_LOCAL_PART);
-	public static final QName T_OBJECT_REFERENCE = new QName(NS_TYPES, "objectReference");
+	public static final ItemName T_PARENT = new ItemName(NS_TYPES, T_PARENT_LOCAL_PART);
+	public static final ItemName T_OBJECT_REFERENCE = new ItemName(NS_TYPES, "objectReference");
 	public static final String T_ID_LOCAL_PART = "id";
-	public static final QName T_ID = new QName(NS_TYPES, T_ID_LOCAL_PART);
+	public static final ItemName T_ID = new ItemName(NS_TYPES, T_ID_LOCAL_PART);
 
 	// Misc
 
 	public static final Class DEFAULT_VALUE_CLASS = String.class;
 
 	public static final QName POLYSTRING_TYPE_QNAME = new QName(NS_TYPES, "PolyStringType");
-	public static final QName POLYSTRING_ELEMENT_ORIG_QNAME = new QName(NS_TYPES, "orig");
-	public static final QName POLYSTRING_ELEMENT_NORM_QNAME = new QName(NS_TYPES, "norm");
+	public static final ItemName POLYSTRING_ELEMENT_ORIG_QNAME = new ItemName(NS_TYPES, "orig");
+	public static final ItemName POLYSTRING_ELEMENT_NORM_QNAME = new ItemName(NS_TYPES, "norm");
 
     // a bit of hack: by this local name we know if a object is a reference (c:ObjectReferenceType)
     public static final String REFERENCE_TYPE_NAME = "ObjectReferenceType";

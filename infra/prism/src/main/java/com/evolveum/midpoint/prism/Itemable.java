@@ -15,8 +15,7 @@
  */
 package com.evolveum.midpoint.prism;
 
-import javax.xml.namespace.QName;
-
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
 /**
@@ -32,7 +31,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
  */
 public interface Itemable {
 
-	QName getElementName();
+	ItemName getElementName();
 
 	ItemDefinition getDefinition();
 

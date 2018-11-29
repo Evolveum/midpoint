@@ -24,9 +24,8 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -72,7 +71,7 @@ public class ApprovalMetadataHelper {
         Set<Long> processedIds = new HashSet<>();
         List<ItemDelta<?,?>> assignmentMetadataDeltas = new ArrayList<>();
         for (ItemDelta<?,?> itemDelta: objectDelta.getModifications()) {
-            ItemPath deltaPath = itemDelta.getPath();
+            UniformItemPath deltaPath = itemDelta.getPath();
             ItemPath.CompareResult comparison = deltaPath.compareComplex(SchemaConstants.PATH_ASSIGNMENT);
             if (comparison == EQUIVALENT) {
                 // whole assignment is being added/replaced (or deleted but we are not interested in that)
@@ -84,11 +83,11 @@ public class ApprovalMetadataHelper {
                     addAssignmentCreationApprovalMetadata(assignmentContainerValue.asContainerable(), approvedBy, comments);
                 }
             } else if (comparison == SUPERPATH) {
-                ItemPathSegment secondSegment = deltaPath.rest().first();
-                if (!(secondSegment instanceof IdItemPathSegment)) {
+                Object secondSegment = deltaPath.rest().first();
+                if (!ItemPath.isId(secondSegment)) {
                     throw new IllegalStateException("Assignment modification contains no assignment ID. Offending path = " + deltaPath);
                 }
-                Long id = ((IdItemPathSegment) secondSegment).getId();
+                Long id = ItemPath.toId(secondSegment);
                 if (id == null) {
                     throw new IllegalStateException("Assignment modification contains no assignment ID. Offending path = " + deltaPath);
                 }

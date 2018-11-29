@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.impl.model.FlexibleLabelModel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -178,7 +179,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
 	}
 
 	private FlexibleLabelModel<C> createFlexibleLabelModel(QName modelPropertyName, ModelServiceLocator serviceLocator, GuiFlexibleLabelType configuration) {
-		return new FlexibleLabelModel<C>(getModel(), modelPropertyName, serviceLocator, configuration) {
+		return new FlexibleLabelModel<C>(getModel(), ItemName.fromQName(modelPropertyName), serviceLocator, configuration) {
 			private static final long serialVersionUID = 1L;
 			@Override
 			protected void addAdditionalExpressionVariables(ExpressionVariables variables) {

@@ -29,6 +29,7 @@ import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.RelationRegistry;
@@ -54,11 +55,8 @@ import org.apache.wicket.protocol.http.WicketFilter;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.mock.web.MockFilterConfig;
 import org.springframework.mock.web.MockServletContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.web.context.WebApplicationContext;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
@@ -68,7 +66,6 @@ import org.testng.annotations.BeforeMethod;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.Locale;
-import java.util.Set;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.ServletException;
@@ -85,16 +82,16 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
     public static final File FOLDER_BASIC = new File("./src/test/resources/basic");
     
     public static final String NS_PIRACY = "http://midpoint.evolveum.com/xml/ns/samples/piracy";
-    public static final QName PIRACY_SHIP = new QName(NS_PIRACY, "ship");
-    public static final QName PIRACY_WEAPON = new QName(NS_PIRACY, "weapon");
-    public static final QName PIRACY_COLORS = new QName(NS_PIRACY, "colors");
-    public static final QName PIRACY_SECRET = new QName(NS_PIRACY, "secret");
-    public static final QName PIRACY_RANT = new QName(NS_PIRACY, "rant");
-    public static final QName PIRACY_TRANSFORM_DESCRIPTION = new QName(NS_PIRACY, "transformDescription");
-    public static final QName PIRACY_TRANSFORMATION_ENABLED = new QName(NS_PIRACY, "transformationEnabled");
-    public static final QName PIRACY_TRANSFORM = new QName(NS_PIRACY, "transform");
-    public static final QName PIRACY_PATTERN = new QName(NS_PIRACY, "pattern");
-    public static final QName PIRACY_REPLACEMENT = new QName(NS_PIRACY, "replacement");
+    public static final ItemName PIRACY_SHIP = new ItemName(NS_PIRACY, "ship");
+    public static final ItemName PIRACY_WEAPON = new ItemName(NS_PIRACY, "weapon");
+    public static final ItemName PIRACY_COLORS = new ItemName(NS_PIRACY, "colors");
+    public static final ItemName PIRACY_SECRET = new ItemName(NS_PIRACY, "secret");
+    public static final ItemName PIRACY_RANT = new ItemName(NS_PIRACY, "rant");
+    public static final ItemName PIRACY_TRANSFORM_DESCRIPTION = new ItemName(NS_PIRACY, "transformDescription");
+    public static final ItemName PIRACY_TRANSFORMATION_ENABLED = new ItemName(NS_PIRACY, "transformationEnabled");
+    public static final ItemName PIRACY_TRANSFORM = new ItemName(NS_PIRACY, "transform");
+    public static final ItemName PIRACY_PATTERN = new ItemName(NS_PIRACY, "pattern");
+    public static final ItemName PIRACY_REPLACEMENT = new ItemName(NS_PIRACY, "replacement");
     
     protected static final File ORG_MONKEY_ISLAND_FILE = new File(COMMON_DIR, "org-monkey-island.xml");
 	protected static final String ORG_GOVERNOR_OFFICE_OID = "00000000-8888-6666-0000-100000000001";
@@ -281,7 +278,7 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 	}
 	
 	protected ItemPath extensionPath(QName qname) {
-		return new ItemPath(ObjectType.F_EXTENSION, qname);
+		return ItemPath.create(ObjectType.F_EXTENSION, qname);
 	}
 
 	protected Task createSimpleTask(String operation) {

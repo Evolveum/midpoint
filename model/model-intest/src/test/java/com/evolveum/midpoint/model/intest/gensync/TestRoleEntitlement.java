@@ -27,7 +27,6 @@ import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ReferenceDeltaImpl;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -300,8 +299,9 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
-        Collection<SelectorOptions<GetOperationOptions>> options =
-        	SelectorOptions.createCollection(UserType.F_LINK, GetOperationOptions.createResolve());
+		Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+				.item(UserType.F_LINK).resolve()
+				.build();
 
 		// WHEN
         PrismObject<RoleType> role = modelService.getObject(RoleType.class, ROLE_PIRATE_OID, options, task, result);
@@ -330,8 +330,8 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
 
         Collection<SelectorOptions<GetOperationOptions>> options =
                 SelectorOptions.createCollection(GetOperationOptions.createResolve(),
-                        new ItemPath(UserType.F_LINK),
-                        new ItemPath(UserType.F_LINK, ShadowType.F_RESOURCE)
+                        prismContext.path(UserType.F_LINK),
+                        prismContext.path(UserType.F_LINK, ShadowType.F_RESOURCE)
                 );
 
         // WHEN
@@ -361,11 +361,11 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
-        GetOperationOptions getOpts = new GetOperationOptions();
-        getOpts.setResolve(true);
-        getOpts.setNoFetch(true);
-        Collection<SelectorOptions<GetOperationOptions>> options =
-                SelectorOptions.createCollection(UserType.F_LINK, getOpts);
+	    Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+		        .item(UserType.F_LINK)
+		                .resolve()
+		                .noFetch()
+		        .build();
 
         // WHEN
         PrismObject<RoleType> role = modelService.getObject(RoleType.class, ROLE_PIRATE_OID, options, task, result);

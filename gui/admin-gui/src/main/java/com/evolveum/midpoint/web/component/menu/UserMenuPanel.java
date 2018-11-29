@@ -23,9 +23,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.RetrieveOption;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
@@ -292,8 +289,9 @@ public class UserMenuPanel extends BasePanel {
             Task task = parentPage.createSimpleTask(OPERATION_LOAD_USER);
             OperationResult subResult = result.createSubresult(OPERATION_LOAD_USER);
 
-            Collection options = SelectorOptions.createCollection(UserType.F_JPEG_PHOTO,
-                    GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
+            Collection options = getSchemaHelper().getOperationOptionsBuilder()
+                    .item(UserType.F_JPEG_PHOTO).retrieve()
+                    .build();
             PrismObject<UserType> user = parentPage.getModelService().getObject(UserType.class, userOid, options, task, subResult);
             userModel.setObject(user);
             jpegPhoto = user == null ? null :

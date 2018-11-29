@@ -21,7 +21,7 @@ import com.evolveum.midpoint.prism.foo.AssignmentType;
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistryFactory;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -342,10 +342,10 @@ public class TestQueryBuilder {
         PrismContainerDefinition userPcd = getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(UserType.class);
         ObjectQuery expected = ObjectQuery.createObjectQuery(
                 ExistsFilter.createExists(
-                        new ItemPath(UserType.F_ASSIGNMENT),
+                        getPrismContext().path(UserType.F_ASSIGNMENT),
                         userPcd,
                         SubstringFilter.createSubstring(
-                                new ItemPath(AssignmentType.F_DESCRIPTION),
+                                getPrismContext().path(AssignmentType.F_DESCRIPTION),
                                 assCtd.findPropertyDefinition(AssignmentType.F_DESCRIPTION),
                                 getPrismContext(),
                                 null, "desc1", true, false)
@@ -364,10 +364,10 @@ public class TestQueryBuilder {
         PrismContainerDefinition userPcd = getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(UserType.class);
         ObjectQuery expected = ObjectQuery.createObjectQuery(
                 ExistsFilter.createExists(
-                        new ItemPath(UserType.F_ASSIGNMENT),
+                        getPrismContext().path(UserType.F_ASSIGNMENT),
                         userPcd,
                         SubstringFilter.createSubstring(
-                                new ItemPath(AssignmentType.F_NOTE),
+                                getPrismContext().path(AssignmentType.F_NOTE),
                                 assCtd.findPropertyDefinition(AssignmentType.F_NOTE),
                                 getPrismContext(),
                                 null, "DONE.", false, true)
@@ -388,10 +388,10 @@ public class TestQueryBuilder {
         PrismContainerDefinition userPcd = getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(UserType.class);
         ObjectQuery expected = ObjectQuery.createObjectQuery(
                 ExistsFilter.createExists(
-                        new ItemPath(UserType.F_ASSIGNMENT),
+                        getPrismContext().path(UserType.F_ASSIGNMENT),
                         userPcd,
                         SubstringFilter.createSubstring(
-                                new ItemPath(AssignmentType.F_NOTE),
+                                getPrismContext().path(AssignmentType.F_NOTE),
                                 assCtd.findPropertyDefinition(AssignmentType.F_NOTE),
                                 getPrismContext(),
                                 null, "DONE.", false, true)
@@ -413,11 +413,11 @@ public class TestQueryBuilder {
         PrismContainerDefinition userPcd = getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(UserType.class);
         ObjectQuery expected = ObjectQuery.createObjectQuery(
                 ExistsFilter.createExists(
-                        new ItemPath(UserType.F_ASSIGNMENT),
+                        getPrismContext().path(UserType.F_ASSIGNMENT),
                         userPcd,
                         AndFilter.createAnd(
                                 SubstringFilter.createSubstring(
-                                        new ItemPath(AssignmentType.F_NOTE),
+                                        getPrismContext().path(AssignmentType.F_NOTE),
                                         assCtd.findPropertyDefinition(AssignmentType.F_NOTE),
                                         getPrismContext(),
                                         null, "DONE.", false, true
@@ -442,7 +442,7 @@ public class TestQueryBuilder {
         ObjectQuery expected = ObjectQuery.createObjectQuery(
                 AndFilter.createAnd(
                         ExistsFilter.createExists(
-                                new ItemPath(UserType.F_ASSIGNMENT),
+                                getPrismContext().path(UserType.F_ASSIGNMENT),
                                 userPcd,
                                 NoneFilter.createNone()
                         ),
@@ -458,21 +458,21 @@ public class TestQueryBuilder {
                 .asc(UserType.F_NAME)
                 .build();
         ObjectQuery expected = ObjectQuery.createObjectQuery(
-                ObjectPaging.createPaging(UserType.F_NAME, OrderDirection.ASCENDING)
+                ObjectPaging.createPaging(getPrismContext().path(UserType.F_NAME), OrderDirection.ASCENDING)
         );
         compare(actual, expected);
     }
 
     @Test
-    public void test210OrderByNameAndId() throws Exception{
+    public void test210OrderByNameAndId() {
         ObjectQuery actual = QueryBuilder.queryFor(UserType.class, getPrismContext())
                 .item(UserType.F_LOCALITY).eq("Caribbean")
                 .asc(UserType.F_NAME)
                 .desc(PrismConstants.T_ID)
                 .build();
         ObjectPaging paging = ObjectPaging.createEmptyPaging();
-        paging.addOrderingInstruction(UserType.F_NAME, OrderDirection.ASCENDING);
-        paging.addOrderingInstruction(PrismConstants.T_ID, OrderDirection.DESCENDING);
+        paging.addOrderingInstruction(getPrismContext().path(UserType.F_NAME), OrderDirection.ASCENDING);
+        paging.addOrderingInstruction(getPrismContext().path(PrismConstants.T_ID), OrderDirection.DESCENDING);
         ObjectQuery expected = ObjectQuery.createObjectQuery(
                 createEqual(UserType.F_LOCALITY, UserType.class, null, "Caribbean"),
                 paging);
@@ -487,10 +487,10 @@ public class TestQueryBuilder {
         PrismContainerDefinition userPcd = getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(UserType.class);
         ObjectQuery expected = ObjectQuery.createObjectQuery(
                 EqualFilter.createEqual(
-                        new ItemPath(UserType.F_LOCALITY),
+                        getPrismContext().path(UserType.F_LOCALITY),
                         userPcd.findPropertyDefinition(UserType.F_LOCALITY),
                         null,
-                        new ItemPath(UserType.F_NAME),
+                        getPrismContext().path(UserType.F_NAME),
                         null
                 )
         );
@@ -503,13 +503,13 @@ public class TestQueryBuilder {
         PrismPropertyDefinition nameDef = userDef.findPropertyDefinition(UserType.F_NAME);
         PrismPropertyDefinition localityDef = userDef.findPropertyDefinition(UserType.F_LOCALITY);
         ObjectQuery actual = QueryBuilder.queryFor(UserType.class, getPrismContext())
-                .item(new ItemPath(UserType.F_LOCALITY), localityDef)
+                .item(getPrismContext().path(UserType.F_LOCALITY), localityDef)
                     .le()
-                        .item(new ItemPath(UserType.F_NAME), nameDef)
+                        .item(getPrismContext().path(UserType.F_NAME), nameDef)
                 .build();
         ObjectQuery expected = ObjectQuery.createObjectQuery(
-                LessFilter.createLess(new ItemPath(UserType.F_LOCALITY), localityDef, null,
-		                new ItemPath(UserType.F_NAME), nameDef, true)
+                LessFilter.createLess(getPrismContext().path(UserType.F_LOCALITY), localityDef, null,
+                        getPrismContext().path(UserType.F_NAME), nameDef, true)
         );
         compare(actual, expected);
     }
@@ -522,10 +522,10 @@ public class TestQueryBuilder {
     }
 
     private <C extends Containerable, T> EqualFilter<T> createEqual(QName propertyName, Class<C> type, QName matchingRule, T realValue) {
-        return createEqual(new ItemPath(propertyName), type, matchingRule, realValue);
+        return createEqual(getPrismContext().path(propertyName), type, matchingRule, realValue);
     }
 
-    private <C extends Containerable, T> EqualFilter<T> createEqual(ItemPath propertyPath, Class<C> type, QName matchingRule, T realValue) {
+    private <C extends Containerable, T> EqualFilter<T> createEqual(UniformItemPath propertyPath, Class<C> type, QName matchingRule, T realValue) {
         PrismPropertyDefinition<T> propertyDefinition = (PrismPropertyDefinition) FilterUtils.findItemDefinition(propertyPath, type, getPrismContext());
         return EqualFilter.createEqual(propertyPath, propertyDefinition, matchingRule, getPrismContext(), realValue);
     }

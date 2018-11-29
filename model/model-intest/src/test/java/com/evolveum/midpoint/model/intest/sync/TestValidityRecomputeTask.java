@@ -24,6 +24,7 @@ import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -41,9 +42,6 @@ import com.evolveum.midpoint.model.intest.TestTriggerTask;
 import com.evolveum.midpoint.model.intest.mapping.TestMapping;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -404,11 +402,8 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         modifyObjectDeleteProperty(UserType.class, USER_JACK_OID,
-        		new ItemPath(
-        				new NameItemPathSegment(UserType.F_ASSIGNMENT),
-        				new IdItemPathSegment(judgeAssignment.getId()),
-        				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
-        				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)),
+		        ItemPath.create(UserType.F_ASSIGNMENT, judgeAssignment.getId(), AssignmentType.F_ACTIVATION,
+				        ActivationType.F_ADMINISTRATIVE_STATUS),
         		task, result, ActivationStatusType.ENABLED);
 
         // THEN
@@ -434,11 +429,8 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         modifyObjectAddProperty(UserType.class, USER_JACK_OID,
-        		new ItemPath(
-        				new NameItemPathSegment(UserType.F_ASSIGNMENT),
-        				new IdItemPathSegment(judgeAssignment.getId()),
-        				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
-        				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)),
+        		ItemPath.create(UserType.F_ASSIGNMENT, judgeAssignment.getId(),
+        				AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
         		task, result, ActivationStatusType.ENABLED);
 
         // THEN
@@ -466,10 +458,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         modifyObjectDeleteContainer(UserType.class, USER_JACK_OID,
-        		new ItemPath(
-        				new NameItemPathSegment(UserType.F_ASSIGNMENT),
-        				new IdItemPathSegment(judgeAssignment.getId()),
-        				new NameItemPathSegment(AssignmentType.F_ACTIVATION)),
+        		ItemPath.create(UserType.F_ASSIGNMENT, judgeAssignment.getId(), AssignmentType.F_ACTIVATION),
         		task, result, activationType);
 
         // THEN
@@ -499,10 +488,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         modifyObjectReplaceContainer(UserType.class, USER_JACK_OID,
-        		new ItemPath(
-        				new NameItemPathSegment(UserType.F_ASSIGNMENT),
-        				new IdItemPathSegment(judgeAssignment.getId()),
-        				new NameItemPathSegment(AssignmentType.F_ACTIVATION)),
+        		ItemPath.create(UserType.F_ASSIGNMENT, judgeAssignment.getId(), AssignmentType.F_ACTIVATION),
         		task, result, activationType);
 
         // THEN
@@ -530,11 +516,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         modifyObjectReplaceProperty(UserType.class, USER_JACK_OID,
-        		new ItemPath(
-        				new NameItemPathSegment(UserType.F_ASSIGNMENT),
-        				new IdItemPathSegment(judgeAssignment.getId()),
-        				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
-        				new NameItemPathSegment(ActivationType.F_VALID_TO)),
+        		ItemPath.create(UserType.F_ASSIGNMENT, judgeAssignment.getId(), AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO),
         		task, result, validTo);
 
         // THEN
@@ -816,17 +798,11 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         ObjectDelta<UserType> objectDelta =
         		ObjectDelta.createModificationReplaceProperty(UserType.class,
         				USER_BARBOSSA_OID,
-        				new ItemPath(
-                				new NameItemPathSegment(UserType.F_ASSIGNMENT),
-                				new IdItemPathSegment(judgeAssignment.getId()),
-                				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
-                				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)),
+        				ItemPath.create(UserType.F_ASSIGNMENT, judgeAssignment.getId(),
+                				AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
                 		prismContext, ActivationStatusType.DISABLED);
-        objectDelta.addModificationReplaceProperty(new ItemPath(
-                				new NameItemPathSegment(UserType.F_ASSIGNMENT),
-                				new IdItemPathSegment(sailorAssignment.getId()),
-                				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
-                				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)),
+        objectDelta.addModificationReplaceProperty(ItemPath.create(UserType.F_ASSIGNMENT, sailorAssignment.getId(),
+                				AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
                 				ActivationStatusType.DISABLED);
 
         // WHEN
@@ -868,17 +844,17 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         ObjectDelta<UserType> objectDelta =
         		ObjectDelta.createModificationReplaceProperty(UserType.class,
         				USER_BARBOSSA_OID,
-        				new ItemPath(
-                				new NameItemPathSegment(UserType.F_ASSIGNMENT),
-                				new IdItemPathSegment(judgeAssignment.getId()),
-                				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
-                				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)),
+        				ItemPath.create(
+                				UserType.F_ASSIGNMENT,
+                				judgeAssignment.getId(),
+                				AssignmentType.F_ACTIVATION,
+                				ActivationType.F_ADMINISTRATIVE_STATUS),
                 		prismContext, ActivationStatusType.ENABLED);
-        objectDelta.addModificationReplaceProperty(new ItemPath(
-                				new NameItemPathSegment(UserType.F_ASSIGNMENT),
-                				new IdItemPathSegment(sailorAssignment.getId()),
-                				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
-                				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)),
+        objectDelta.addModificationReplaceProperty(ItemPath.create(
+                				UserType.F_ASSIGNMENT,
+                				sailorAssignment.getId(),
+                				AssignmentType.F_ACTIVATION,
+                				ActivationType.F_ADMINISTRATIVE_STATUS),
                 				ActivationStatusType.ENABLED);
 
         // WHEN
@@ -933,17 +909,17 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         ObjectDelta<UserType> objectDelta =
         		ObjectDelta.createModificationReplaceProperty(UserType.class,
         				USER_BARBOSSA_OID,
-        				new ItemPath(
-                				new NameItemPathSegment(UserType.F_ASSIGNMENT),
-                				new IdItemPathSegment(judgeAssignment.getId()),
-                				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
-                				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)),
+        				ItemPath.create(
+                				UserType.F_ASSIGNMENT,
+                				judgeAssignment.getId(),
+                				AssignmentType.F_ACTIVATION,
+                				ActivationType.F_ADMINISTRATIVE_STATUS),
                 		prismContext, ActivationStatusType.DISABLED);
-        objectDelta.addModificationReplaceProperty(new ItemPath(
-                				new NameItemPathSegment(UserType.F_ASSIGNMENT),
-                				new IdItemPathSegment(sailorAssignment.getId()),
-                				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
-                				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)),
+        objectDelta.addModificationReplaceProperty(ItemPath.create(
+                				UserType.F_ASSIGNMENT,
+                				sailorAssignment.getId(),
+                				AssignmentType.F_ACTIVATION,
+                				ActivationType.F_ADMINISTRATIVE_STATUS),
                 				ActivationStatusType.DISABLED);
 
         modelService.executeChanges(MiscSchemaUtil.createCollection(objectDelta), null, task, result);
@@ -959,12 +935,8 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 
         objectDelta =
         		ObjectDelta.createModificationDeleteContainer(UserType.class,
-        				USER_BARBOSSA_OID,
-        				new ItemPath(new NameItemPathSegment(UserType.F_ASSIGNMENT)),
-                		prismContext, judgeAssignmentLight);
-        objectDelta.addModificationDeleteContainer(
-        		new ItemPath(new NameItemPathSegment(UserType.F_ASSIGNMENT)),
-        		sailorAssignmentLight);
+        				USER_BARBOSSA_OID, UserType.F_ASSIGNMENT, prismContext, judgeAssignmentLight);
+        objectDelta.addModificationDeleteContainer(UserType.F_ASSIGNMENT, sailorAssignmentLight);
 
         display("Unassign delta", objectDelta);
 
@@ -1262,17 +1234,17 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         ObjectDelta<UserType> objectDelta =
         		ObjectDelta.createModificationReplaceProperty(UserType.class,
         				USER_BARBOSSA_OID,
-        				new ItemPath(
-                				new NameItemPathSegment(UserType.F_ASSIGNMENT),
-                				new IdItemPathSegment(judgeAssignment.getId()),
-                				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
-                				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)),
+        				ItemPath.create(
+                				UserType.F_ASSIGNMENT,
+                				judgeAssignment.getId(),
+                				AssignmentType.F_ACTIVATION,
+                				ActivationType.F_ADMINISTRATIVE_STATUS),
                 		prismContext, ActivationStatusType.DISABLED);
-        objectDelta.addModificationReplaceProperty(new ItemPath(
-                				new NameItemPathSegment(UserType.F_ASSIGNMENT),
-                				new IdItemPathSegment(sailorAssignment.getId()),
-                				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
-                				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)),
+        objectDelta.addModificationReplaceProperty(ItemPath.create(
+                				UserType.F_ASSIGNMENT,
+                				sailorAssignment.getId(),
+                				AssignmentType.F_ACTIVATION,
+                				ActivationType.F_ADMINISTRATIVE_STATUS),
                 				ActivationStatusType.DISABLED);
 
         // WHEN
@@ -1318,17 +1290,17 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         ObjectDelta<UserType> objectDelta =
         		ObjectDelta.createModificationReplaceProperty(UserType.class,
         				USER_BARBOSSA_OID,
-        				new ItemPath(
-                				new NameItemPathSegment(UserType.F_ASSIGNMENT),
-                				new IdItemPathSegment(judgeAssignment.getId()),
-                				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
-                				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)),
+        				ItemPath.create(
+                				UserType.F_ASSIGNMENT,
+                				judgeAssignment.getId(),
+                				AssignmentType.F_ACTIVATION,
+                				ActivationType.F_ADMINISTRATIVE_STATUS),
                 		prismContext, ActivationStatusType.ENABLED);
-        objectDelta.addModificationReplaceProperty(new ItemPath(
-                				new NameItemPathSegment(UserType.F_ASSIGNMENT),
-                				new IdItemPathSegment(sailorAssignment.getId()),
-                				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
-                				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)),
+        objectDelta.addModificationReplaceProperty(ItemPath.create(
+                				UserType.F_ASSIGNMENT,
+                				sailorAssignment.getId(),
+                				AssignmentType.F_ACTIVATION,
+                				ActivationType.F_ADMINISTRATIVE_STATUS),
                 				ActivationStatusType.ENABLED);
 
         // WHEN
@@ -1383,17 +1355,14 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         ObjectDelta<UserType> objectDelta =
         		ObjectDelta.createModificationReplaceProperty(UserType.class,
         				USER_BARBOSSA_OID,
-        				new ItemPath(
-                				new NameItemPathSegment(UserType.F_ASSIGNMENT),
-                				new IdItemPathSegment(judgeAssignment.getId()),
-                				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
-                				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)),
+				        ItemPath.create(UserType.F_ASSIGNMENT, judgeAssignment.getId(),
+                				AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
                 		prismContext, ActivationStatusType.DISABLED);
-        objectDelta.addModificationReplaceProperty(new ItemPath(
-                				new NameItemPathSegment(UserType.F_ASSIGNMENT),
-                				new IdItemPathSegment(sailorAssignment.getId()),
-                				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
-                				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)),
+        objectDelta.addModificationReplaceProperty(ItemPath.create(
+                				UserType.F_ASSIGNMENT,
+                				sailorAssignment.getId(),
+                				AssignmentType.F_ACTIVATION,
+                				ActivationType.F_ADMINISTRATIVE_STATUS),
                 				ActivationStatusType.DISABLED);
 
         modelService.executeChanges(MiscSchemaUtil.createCollection(objectDelta), null, task, result);
@@ -1409,12 +1378,8 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 
         objectDelta =
         		ObjectDelta.createModificationDeleteContainer(UserType.class,
-        				USER_BARBOSSA_OID,
-        				new ItemPath(new NameItemPathSegment(UserType.F_ASSIGNMENT)),
-                		prismContext, judgeAssignmentLight);
-        objectDelta.addModificationDeleteContainer(
-        		new ItemPath(new NameItemPathSegment(UserType.F_ASSIGNMENT)),
-        		sailorAssignmentLight);
+        				USER_BARBOSSA_OID, UserType.F_ASSIGNMENT, prismContext, judgeAssignmentLight);
+        objectDelta.addModificationDeleteContainer(UserType.F_ASSIGNMENT, sailorAssignmentLight);
 
         display("Unassign delta", objectDelta);
 
@@ -1968,19 +1933,19 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 	private void modifyAssignmentAdministrativeStatus(String userOid, long assignmentId, ActivationStatusType status, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
 		if (status == null) {
 			modifyObjectReplaceProperty(UserType.class, userOid,
-	        		new ItemPath(
-	        				new NameItemPathSegment(UserType.F_ASSIGNMENT),
-	        				new IdItemPathSegment(assignmentId),
-	        				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
-	        				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)),
+	        		ItemPath.create(
+	        				UserType.F_ASSIGNMENT,
+	        				assignmentId,
+	        				AssignmentType.F_ACTIVATION,
+	        				ActivationType.F_ADMINISTRATIVE_STATUS),
 	        		task, result);
 		} else {
 			modifyObjectReplaceProperty(UserType.class, userOid,
-        		new ItemPath(
-        				new NameItemPathSegment(UserType.F_ASSIGNMENT),
-        				new IdItemPathSegment(assignmentId),
-        				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
-        				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)),
+        		ItemPath.create(
+        				UserType.F_ASSIGNMENT,
+        				assignmentId,
+        				AssignmentType.F_ACTIVATION,
+        				ActivationType.F_ADMINISTRATIVE_STATUS),
         		task, result, status);
 		}
 	}

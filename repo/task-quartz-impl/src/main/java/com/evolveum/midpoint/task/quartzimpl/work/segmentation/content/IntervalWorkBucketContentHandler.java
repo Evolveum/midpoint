@@ -76,7 +76,7 @@ public abstract class IntervalWorkBucketContentHandler extends BaseWorkBucketCon
 		if (discriminatorPathType != null) {
 			return discriminatorPathType.getItemPath();
 		} else if (configuration instanceof OidWorkSegmentationType) {
-			return new ItemPath(PrismConstants.T_ID);
+			return PrismConstants.T_ID;
 		} else {
 			throw new IllegalStateException("No buckets discriminator defined; bucket content = " + content);
 		}

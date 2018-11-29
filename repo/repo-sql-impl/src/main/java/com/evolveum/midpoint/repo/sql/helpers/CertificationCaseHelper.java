@@ -20,9 +20,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.repo.api.RepoModifyOptions;
@@ -153,7 +151,7 @@ public class CertificationCaseHelper {
             return caseDelta;
         }
 
-        ItemPath casePath = new ItemPath(AccessCertificationCampaignType.F_CASE);
+        ItemPath casePath = AccessCertificationCampaignType.F_CASE;
         for (ItemDelta delta : modifications) {
             ItemPath path = delta.getPath();
             if (path.isEmpty()) {
@@ -183,12 +181,11 @@ public class CertificationCaseHelper {
     }
 
     protected List<Long> addOrDeleteCases(Session session, String campaignOid, Collection<? extends ItemDelta> modifications) throws SchemaException, DtoTranslationException {
-        final ItemPath casePath = new ItemPath(AccessCertificationCampaignType.F_CASE);
         boolean replacePresent = false;
         List<Long> affectedIds = new ArrayList<>();
         for (ItemDelta delta : modifications) {
             ItemPath deltaPath = delta.getPath();
-            if (!casePath.isSubPathOrEquivalent(deltaPath)) {
+            if (!AccessCertificationCampaignType.F_CASE.isSubPathOrEquivalent(deltaPath)) {
                 throw new IllegalStateException("Wrong campaign delta sneaked into updateCampaignCases: class=" + delta.getClass() + ", path=" + deltaPath);
             }
 
@@ -264,7 +261,7 @@ public class CertificationCaseHelper {
                 AccessCertificationCaseType aCase = RAccessCertificationCase.createJaxb(fullObject, prismContext, false);
 
                 delta = delta.clone();                                      // to avoid changing original modifications
-                delta.setParentPath(delta.getParentPath().tail(2));         // remove "case[id]" from the delta path
+                delta.setParentPath(delta.getParentPath().rest(2));         // remove "case[id]" from the delta path
                 delta.applyTo(aCase.asPrismContainerValue());
 
                 // we need to generate IDs but we (currently) do not use that for setting "isTransient" flag
@@ -302,11 +299,11 @@ public class CertificationCaseHelper {
     }
 
     private long checkPathSanity(ItemPath deltaPath, List<Long> casesAddedOrDeleted) {
-        ItemPathSegment secondSegment = deltaPath.getSegments().get(1);
-        if (!(secondSegment instanceof IdItemPathSegment)) {
+        Object secondSegment = deltaPath.getSegment(1);
+        if (!ItemPath.isId(secondSegment)) {
             throw new IllegalStateException("Couldn't update cert campaign by delta with path " + deltaPath + " - should start with case[id]");
         }
-        Long id = ((IdItemPathSegment) secondSegment).getId();
+        Long id = ItemPath.toId(secondSegment);
         if (id == null) {
             throw new IllegalStateException("Couldn't update cert campaign by delta with path " + deltaPath + " - should start with case[id]");
         }
@@ -371,7 +368,7 @@ public class CertificationCaseHelper {
 		}
 		@SuppressWarnings({"raw", "unchecked"})
 		PrismContainerValue<AccessCertificationWorkItemType> workItemPcv = (PrismContainerValue<AccessCertificationWorkItemType>)
-				casePcv.find(new ItemPath(AccessCertificationCaseType.F_WORK_ITEM, workItemId));
+				casePcv.find(ItemPath.create(AccessCertificationCaseType.F_WORK_ITEM, workItemId));
 		if (workItemPcv == null) {
 			throw new IllegalStateException("No work item " + workItemId + " in " + casePcv);
 		} else {

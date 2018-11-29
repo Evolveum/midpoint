@@ -34,6 +34,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.Validator;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.schema.SchemaRegistryImpl;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
@@ -50,10 +51,10 @@ public class TestExtraSchema {
 
 	public static final String NS_USER_2_EXT = "http://example.com/xml/ns/user-2-extension";
 
-	private static final QName USER_EXTENSION_TYPE_QNAME = new QName(NS_USER_EXT,"UserExtensionType");
-	private static final QName USER_2_EXTENSION_TYPE_QNAME = new QName(NS_USER_2_EXT,"User2ExtensionType");
+	private static final ItemName USER_EXTENSION_TYPE_QNAME = new ItemName(NS_USER_EXT,"UserExtensionType");
+	private static final ItemName USER_2_EXTENSION_TYPE_QNAME = new ItemName(NS_USER_2_EXT,"User2ExtensionType");
 
-	private static final QName USER_EXT_2_ELEMENT = new QName(NS_USER_2_EXT, "ext2");
+	private static final ItemName USER_EXT_2_ELEMENT = new ItemName(NS_USER_2_EXT, "ext2");
 
 	/**
 	 * Test is extra schema can be loaded to the schema registry and whether the file compliant to that
@@ -228,7 +229,7 @@ public class TestExtraSchema {
 
 		PrismContainerDefinition rootContDef = schema.findContainerDefinitionByElementName(new QName(NS_ROOT,"root"));
 		assertNotNull("Not <root> definition", rootContDef);
-		PrismContainerDefinition extensionContDef = rootContDef.findContainerDefinition(new QName(NS_FOO, "extension"));
+		PrismContainerDefinition extensionContDef = rootContDef.findContainerDefinition(new ItemName(NS_FOO, "extension"));
 		assertNotNull("Not <extension> definition", extensionContDef);
 		assertEquals("Wrong <extension> type", new QName(NS_ROOT, "MyExtensionType"), extensionContDef.getTypeName());
 

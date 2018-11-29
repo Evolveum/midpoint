@@ -30,38 +30,24 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.delta.builder.S_ValuesEntry;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
-import com.evolveum.midpoint.schema.util.LifecycleUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
 
 /**
  * Evaluates all assignments and sorts them to triple: added, removed and untouched assignments.
@@ -486,7 +472,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 		definition = definition.clone();
 		definition.setMaxOccurs(1);
 		return DeltaBuilder.deltaFor(FocusType.class, prismContext)
-				.item(new ItemPath(FocusType.F_ASSIGNMENT), definition);
+				.item(FocusType.F_ASSIGNMENT, definition);
 	}
 
 	private ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> createAssignmentIdiDelete(
@@ -518,8 +504,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
         if (focusDelta == null) {
             return null;
         }
-        return focusDelta.findItemDeltasSubPath(new ItemPath(new NameItemPathSegment(FocusType.F_ASSIGNMENT),
-        									  new IdItemPathSegment(id)));
+        return focusDelta.findItemDeltasSubPath(ItemPath.create(FocusType.F_ASSIGNMENT, id));
 	}
 
 	private <F extends FocusType> void collectToZero(DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple,
@@ -612,7 +597,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
         if (focusDelta == null) {
             return createEmptyAssignmentDelta(focusContext);
         }
-        ContainerDelta<AssignmentType> assignmentDelta = focusDelta.findContainerDelta(new ItemPath(FocusType.F_ASSIGNMENT));
+        ContainerDelta<AssignmentType> assignmentDelta = focusDelta.findContainerDelta(FocusType.F_ASSIGNMENT);
         if (assignmentDelta == null) {
             return createEmptyAssignmentDelta(focusContext);
         }

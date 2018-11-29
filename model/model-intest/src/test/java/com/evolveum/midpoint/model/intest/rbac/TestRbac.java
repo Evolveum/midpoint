@@ -29,6 +29,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -51,9 +52,6 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -1479,10 +1477,8 @@ public class TestRbac extends AbstractRbacTest {
 
         PrismObject<UserType> user = getObject(UserType.class, USER_JACK_OID);
 
-        ItemPath itemPath = new ItemPath(
-        		new NameItemPathSegment(UserType.F_ASSIGNMENT),
-        		new IdItemPathSegment(user.asObjectable().getAssignment().get(0).getId()),
-        		new NameItemPathSegment(AssignmentType.F_DESCRIPTION));
+        ItemPath itemPath = ItemPath.create(UserType.F_ASSIGNMENT, user.asObjectable().getAssignment().get(0).getId(),
+        		AssignmentType.F_DESCRIPTION);
 		ObjectDelta<UserType> assignmentDelta = ObjectDelta.createModificationReplaceProperty(
         		UserType.class, USER_JACK_OID, itemPath, prismContext, "soul");
 

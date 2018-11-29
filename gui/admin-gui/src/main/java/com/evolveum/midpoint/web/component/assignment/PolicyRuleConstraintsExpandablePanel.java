@@ -28,7 +28,7 @@ public class PolicyRuleConstraintsExpandablePanel<P extends AbstractPolicyConstr
 
 //    private void initContainerWrapper(){
 //        ContainerWrapperFactory cwf = new ContainerWrapperFactory(getPageBase());
-//        ItemPath exclusionContainerPath = new ItemPath(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS,
+//        ItemPath exclusionContainerPath = prismContext.path(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS,
 //                PolicyConstraintsType.F_EXCLUSION);
 //
 ////                    if (exclusionContainer != null) {

@@ -20,10 +20,12 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.ShortDumpable;
+
+import static com.evolveum.midpoint.prism.path.ItemPath.*;
 
 /**
  * @author semancik
@@ -31,23 +33,23 @@ import com.evolveum.midpoint.util.ShortDumpable;
  */
 public class PositiveNegativeItemPaths implements ShortDumpable {
 	
-	private List<ItemPath> includedItems = new ArrayList<>();
-	private List<ItemPath> excludedItems = new ArrayList<>();
+	private List<UniformItemPath> includedItems = new ArrayList<>();
+	private List<UniformItemPath> excludedItems = new ArrayList<>();
 	private boolean allItems = false;
 	
 	public boolean isAllItems() {
 		return allItems;
 	}
 	
-	protected List<ItemPath> getIncludedItems() {
+	protected List<UniformItemPath> getIncludedItems() {
 		return includedItems;
 	}
 
-	protected List<ItemPath> getExcludedItems() {
+	protected List<UniformItemPath> getExcludedItems() {
 		return excludedItems;
 	}
 
-	public void collectItemPaths(Collection<ItemPath> newIncludedItems, Collection<ItemPath> newExcludedItems) {
+	public void collectItemPaths(Collection<UniformItemPath> newIncludedItems, Collection<UniformItemPath> newExcludedItems) {
 		if (allItems) {
 			return;
 		}
@@ -55,7 +57,7 @@ public class PositiveNegativeItemPaths implements ShortDumpable {
 			allItems = true;
 			return;
 		}
-		for (ItemPath newIncludedItem: newIncludedItems) {
+		for (UniformItemPath newIncludedItem: newIncludedItems) {
 			// TODO: better merging, consider subpaths
 			includedItems.add(newIncludedItem);
 		}
@@ -64,13 +66,13 @@ public class PositiveNegativeItemPaths implements ShortDumpable {
 		} else {
 			// Merging exceptItem is in fact intersection operation, not addition.
 			// But we need to carefully consider subpaths.
-			List<ItemPath> newItems = new ArrayList<>();
-			Iterator<ItemPath> iterator = excludedItems.iterator();
+			List<UniformItemPath> newItems = new ArrayList<>();
+			Iterator<UniformItemPath> iterator = excludedItems.iterator();
 			while (iterator.hasNext()) {
-				ItemPath excludedItem = iterator.next();
-				ItemPath replacementItem = null;
+				UniformItemPath excludedItem = iterator.next();
+				UniformItemPath replacementItem = null;
 				boolean keep = false;
-				for (ItemPath newExcludedItem: newExcludedItems) {
+				for (UniformItemPath newExcludedItem: newExcludedItems) {
 					CompareResult result = newExcludedItem.compareComplex(excludedItem);
 					if (result == CompareResult.SUBPATH || result == CompareResult.EQUIVALENT) {
 						// match, keep excludedItem in the list
@@ -100,7 +102,7 @@ public class PositiveNegativeItemPaths implements ShortDumpable {
 		if (allItems) {
 			return true;
 		}
-		for (ItemPath includedItem: includedItems) {
+		for (UniformItemPath includedItem: includedItems) {
 			if (includedItem.isSubPathOrEquivalent(nameOnlyItemPath)) {
 				return true;
 			}
@@ -108,7 +110,7 @@ public class PositiveNegativeItemPaths implements ShortDumpable {
 		if (excludedItems.isEmpty()) {
 			return false;
 		}
-		for (ItemPath excludedItem: excludedItems) {
+		for (UniformItemPath excludedItem: excludedItems) {
 			CompareResult result = excludedItem.compareComplex(nameOnlyItemPath);
 			// This is tricky. We really want to exclude all related paths:
 			// subpaths, superpaths and (obviously) the item itself
@@ -127,7 +129,7 @@ public class PositiveNegativeItemPaths implements ShortDumpable {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append(this.getClass().getSimpleName()).append("(");;
+		sb.append(this.getClass().getSimpleName()).append("(");
 		shortDump(sb);
 		sb.append(")");
 		return sb.toString();
@@ -149,11 +151,11 @@ public class PositiveNegativeItemPaths implements ShortDumpable {
 		}
 	}
 
-	protected void dumpItems(StringBuilder sb, List<ItemPath> items) {
+	protected void dumpItems(StringBuilder sb, List<? extends ItemPath> items) {
 		if (items.isEmpty()) {
 			sb.append("[none]");
 		} else {
-			Iterator<ItemPath> iterator = items.iterator();
+			Iterator<? extends ItemPath> iterator = items.iterator();
 			while (iterator.hasNext()) {
 				sb.append(PrettyPrinter.prettyPrint(iterator.next()));
 				if (iterator.hasNext()) {

@@ -37,6 +37,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
@@ -224,7 +225,8 @@ public class UserPhotoTest extends BaseSQLRepoTest {
     private void checkObject(String oid, PrismObject<UserType> expected, boolean loadPhoto, OperationResult result) throws ObjectNotFoundException, SchemaException {
         Collection<SelectorOptions<GetOperationOptions>> options;
         if (loadPhoto) {
-            options = Arrays.asList(SelectorOptions.create(UserType.F_JPEG_PHOTO, GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
+            options = Collections.singletonList(
+                    SelectorOptions.create(prismContext.path(UserType.F_JPEG_PHOTO), GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
         } else {
             options = null;
         }

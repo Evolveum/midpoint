@@ -257,7 +257,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 						Task task = createSimpleTask("load task");
 						OperationResult result = task.getResult();
 						PrismObject<TaskType> taskType = WebModelServiceUtils
-								.loadObject(TaskType.class, oid, GetOperationOptions.retrieveItemsNamed(TaskType.F_RESULT),
+								.loadObject(TaskType.class, oid, retrieveItemsNamed(TaskType.F_RESULT),
 										PageTasks.this, task, result);
 						if (taskType == null) {
 							return null;

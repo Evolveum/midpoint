@@ -30,11 +30,10 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-
+import com.evolveum.midpoint.prism.path.ItemName;
 
 /**
  *
@@ -80,9 +79,9 @@ public class ActivationType
     protected XMLGregorianCalendar validTo;
 
     // This is NOT GENERATED. It is supplied here manually for the testing.
- 	public final static QName F_ENABLED = new QName(ObjectType.NS_FOO, "enabled");
- 	public final static QName F_VALID_FROM = new QName(ObjectType.NS_FOO, "validFrom");
- 	public final static QName F_VALID_TO = new QName(ObjectType.NS_FOO, "validTo");
+ 	public final static ItemName F_ENABLED = new ItemName(ObjectType.NS_FOO, "enabled");
+ 	public final static ItemName F_VALID_FROM = new ItemName(ObjectType.NS_FOO, "validFrom");
+ 	public final static ItemName F_VALID_TO = new ItemName(ObjectType.NS_FOO, "validTo");
 
     /**
      * Gets the value of the enabled property.

@@ -36,7 +36,7 @@ import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
@@ -609,7 +609,7 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 		ObjectMapper mapper = new ObjectMapper();
 		SimpleModule sm = new SimpleModule();
 		sm.addDeserializer(QName.class, new QNameDeserializer());
-		sm.addDeserializer(ItemPath.class, new ItemPathDeserializer());
+		sm.addDeserializer(UniformItemPath.class, new ItemPathDeserializer());
 		sm.addDeserializer(PolyString.class, new PolyStringDeserializer());
 		sm.addDeserializer(ItemPathType.class, new ItemPathTypeDeserializer());
 

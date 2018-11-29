@@ -26,6 +26,8 @@ import java.util.Random;
 import java.util.Set;
 import java.util.function.Consumer;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
@@ -44,7 +46,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
@@ -104,15 +106,16 @@ public class ValuePolicyProcessor {
 	private static final String DOT_CLASS = ValuePolicyProcessor.class.getName() + ".";
 	private static final String OPERATION_STRING_POLICY_VALIDATION = DOT_CLASS + "stringPolicyValidation";
 	private static final int DEFAULT_MAX_ATTEMPTS = 10;
-	
+
+	@Autowired private PrismContext prismContext;
 	@Autowired private ExpressionFactory expressionFactory;
 	@Autowired private Protector protector;
 
 	static class Context {
-		final ItemPath path;
+		@NotNull final ItemPath path;
 
-		public Context(ItemPath path) {
-			this.path = defaultIfNull(path, SchemaConstants.PATH_PASSWORD_VALUE);
+		public Context(@NotNull ItemPath path) {
+			this.path = path;
 		}
 	}
 
@@ -127,7 +130,7 @@ public class ValuePolicyProcessor {
 	
 	public <O extends ObjectType> String generate(ItemPath path, ValuePolicyType policy, int defaultLength, boolean generateMinimalSize,
 			AbstractValuePolicyOriginResolver<O> originResolver, String shortDesc, Task task, OperationResult parentResult) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-		Context ctx = new Context(path);
+		Context ctx = new Context(path != null ? path : SchemaConstants.PATH_PASSWORD_VALUE);
 		OperationResult result = parentResult.createSubresult(OP_GENERATE);
 		
 		if (policy == null) {

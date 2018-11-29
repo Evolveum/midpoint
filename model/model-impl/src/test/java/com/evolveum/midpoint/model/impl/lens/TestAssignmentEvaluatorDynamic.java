@@ -49,8 +49,8 @@ public class TestAssignmentEvaluatorDynamic extends TestAbstractAssignmentEvalua
 	        addObjects(getRoleCorpFiles());
 
 //	        PrismObject<UserType> userJack = getObject(UserType.class, USER_JACK_OID);
-//	        ItemPath resourceNamePath = new ItemPath(FocusType.F_EXTENSION, new QName(NS_PIRACY, "resourceName"));
-//	        ItemPath resourceRefPath = new ItemPath(FocusType.F_EXTENSION, new QName(NS_PIRACY, "resourceRef"));
+//	        ItemPath resourceNamePath = prismContext.path(FocusType.F_EXTENSION, new QName(NS_PIRACY, "resourceName"));
+//	        ItemPath resourceRefPath = prismContext.path(FocusType.F_EXTENSION, new QName(NS_PIRACY, "resourceRef"));
 //
 //	       Collection modifications = new ArrayList<>();
 //	       modifications.add(PropertyDelta.createModificationAddProperty(resourceNamePath, userJack.getDefinition().findPropertyDefinition(resourceNamePath), "Dummy Resource"));

@@ -50,6 +50,7 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.model.api.util.ResourceUtils;
+import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.*;
@@ -66,6 +67,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -130,8 +132,6 @@ import com.evolveum.midpoint.prism.match.PolyStringStrictMatchingRule;
 import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
 import com.evolveum.midpoint.prism.match.UuidMatchingRule;
 import com.evolveum.midpoint.prism.match.XmlMatchingRule;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -520,7 +520,7 @@ public final class WebComponentUtil {
     }
 	
 	public static boolean isItemVisible(List<ItemPath> visibleItems, ItemPath itemToBeFound) {
-			return ItemPath.containsSubpathOrEquivalent(visibleItems, itemToBeFound);
+			return ItemPathCollectionsUtil.containsSubpathOrEquivalent(visibleItems, itemToBeFound);
 	
 	}
 
@@ -561,28 +561,20 @@ public final class WebComponentUtil {
 		task.setName(WebComponentUtil.createPolyFromOrigString(taskName));
 
 		PrismObject<TaskType> prismTask = task.asPrismObject();
-		ItemPath path = new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
-		PrismProperty objectQuery = prismTask.findOrCreateProperty(path);
 		QueryType queryType = pageBase.getQueryConverter().createQueryType(query);
-		objectQuery.addRealValue(queryType);
-
-		path = new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE);
-		PrismProperty objectType = prismTask.findOrCreateProperty(path);
-		objectType.setRealValue(applicableType);
+		prismTask.findOrCreateProperty(SchemaConstants.PATH_MODEL_EXTENSION_OBJECT_QUERY).addRealValue(queryType);
+		prismTask.findOrCreateProperty(SchemaConstants.PATH_MODEL_EXTENSION_OBJECT_TYPE).setRealValue(applicableType);
 
 		if (delta != null) {
-			path = new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA);
-			PrismProperty objectDelta = prismTask.findOrCreateProperty(path);
-			objectDelta.setRealValue(DeltaConvertor.toObjectDeltaType(delta));
+			ObjectDeltaType deltaBean = DeltaConvertor.toObjectDeltaType(delta);
+			prismTask.findOrCreateProperty(SchemaConstants.PATH_MODEL_EXTENSION_OBJECT_DELTA).setRealValue(deltaBean);
 		}
 
 		if (options != null) {
-			prismTask.findOrCreateProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS))
+			prismTask.findOrCreateProperty(SchemaConstants.PATH_MODEL_EXTENSION_EXECUTE_OPTIONS)
 					.setRealValue(options.toModelExecutionOptionsType());
 		}
-
 		return task;
-
 	}
 
 	public static void executeMemberOperation(Task operationalTask, QName type, ObjectQuery memberQuery,
@@ -1007,7 +999,7 @@ public final class WebComponentUtil {
 			return null;
 		}
 
-		PrismProperty prop = object.findProperty(propertyName);
+		PrismProperty prop = object.findProperty(ItemName.fromQName(propertyName));
 
 		if (prop != null) {
 			Object realValue = prop.getRealValue();
@@ -1285,7 +1277,7 @@ public final class WebComponentUtil {
 			return null;
 		}
 
-		PrismProperty property = object.findProperty(propertyName);
+		PrismProperty property = object.findProperty(ItemName.fromQName(propertyName));
 		if (property == null || property.isEmpty()) {
 			return null;
 		}
@@ -1360,8 +1352,7 @@ public final class WebComponentUtil {
 			return;
 		}
 
-		PropertyDelta propertyDelta = delta.findPropertyDelta(new ItemPath(
-				SchemaConstantsGenerated.C_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE));
+		PropertyDelta propertyDelta = delta.findPropertyDelta(SchemaConstants.PATH_CREDENTIALS_PASSWORD_VALUE);
 		if (propertyDelta == null) {
 			return;
 		}
@@ -1375,8 +1366,7 @@ public final class WebComponentUtil {
 	}
 
 	public static void encryptCredentials(PrismObject object, boolean encrypt, MidPointApplication app) {
-		PrismContainer password = object.findContainer(
-				new ItemPath(SchemaConstantsGenerated.C_CREDENTIALS, CredentialsType.F_PASSWORD));
+		PrismContainer password = object.findContainer(SchemaConstants.PATH_CREDENTIALS_PASSWORD);
 		if (password == null) {
 			return;
 		}
@@ -2176,23 +2166,22 @@ public final class WebComponentUtil {
 		}
 	}
 
-	public static ItemPath joinPath(ItemPath path, ItemPath deltaPath) {
-		List<ItemPathSegment> newPath = new ArrayList<>();
+	// todo specify functionality of this method
+	public static UniformItemPath joinPath(ItemPath path1, ItemPath path2, PrismContext prismContext) {
+		ItemPath path = ItemPath.emptyIfNull(path1);
+		ItemPath deltaPath = ItemPath.emptyIfNull(path2);
+		List<Object> newPath = new ArrayList<>();
 
-		ItemPathSegment firstDeltaSegment = deltaPath != null ? deltaPath.first() : null;
-		if (path != null) {
-			for (ItemPathSegment seg : path.getSegments()) {
-				if (seg.equivalent(firstDeltaSegment)) {
-					break;
-				}
-				newPath.add(seg);
+		Object firstDeltaSegment = deltaPath.first();
+		for (Object seg : path.getSegments()) {
+			if (ItemPath.segmentsEquivalent(seg, firstDeltaSegment)) {
+				break;
 			}
+			newPath.add(seg);
 		}
-		if (deltaPath != null) {
-			newPath.addAll(deltaPath.getSegments());
-		}
+		newPath.addAll(deltaPath.getSegments());
 
-		return new ItemPath(newPath);
+		return prismContext.path(newPath);
 
 	}
 
@@ -2561,8 +2550,11 @@ public final class WebComponentUtil {
 	}
 	
 	public static List<ItemPath> getShadowItemsToShow() {
-		return Arrays.asList(new ItemPath(ShadowType.F_ATTRIBUTES), SchemaConstants.PATH_ACTIVATION,
-				SchemaConstants.PATH_PASSWORD, new ItemPath(ShadowType.F_ASSOCIATION));
+		return Arrays.asList(
+				ShadowType.F_ATTRIBUTES,
+				SchemaConstants.PATH_ACTIVATION,
+				SchemaConstants.PATH_PASSWORD,
+				ShadowType.F_ASSOCIATION);
 	}
 
 	public static ItemVisibility checkShadowActivationAndPasswordVisibility(ItemWrapper itemWrapper,

@@ -28,7 +28,6 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AllFilter;
 import com.evolveum.midpoint.prism.query.NoneFilter;
@@ -547,7 +546,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             for (ItemDelta modification : modifications) {
                 if (modification instanceof PropertyDelta<?>) {
                     PropertyDelta<?> propDelta = (PropertyDelta<?>) modification;
-                    if (propDelta.getPath().equivalent(new ItemPath(ObjectType.F_NAME))) {
+                    if (propDelta.getPath().equivalent(ObjectType.F_NAME)) {
                         Collection<PrismPropertyValue<PolyString>> values = propDelta.getValues(PolyString.class);
                         for (PrismPropertyValue<PolyString> pval : values) {
                             PolyString value = pval.getValue();

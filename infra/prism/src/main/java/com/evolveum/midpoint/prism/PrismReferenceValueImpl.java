@@ -16,9 +16,7 @@
 
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -260,16 +258,16 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
 		if (path == null || path.isEmpty()) {
 			return this;
 		}
-		ItemPathSegment first = path.first();
-    	if (!(first instanceof NameItemPathSegment)) {
+		Object first = path.first();
+    	if (!ItemPath.isName(first)) {
     		throw new IllegalArgumentException("Attempt to resolve inside the reference value using a non-name path "+path+" in "+this);
     	}
-    	QName subName = ((NameItemPathSegment)first).getName();
-    	if (compareLocalPart(F_OID,subName)) {
+		ItemName subName = ItemPath.toName(first);
+		if (compareLocalPart(F_OID, subName)) {
     		return this.getOid();
-    	} else if (compareLocalPart(F_TYPE,subName)) {
+    	} else if (compareLocalPart(F_TYPE, subName)) {
     		return this.getTargetType();
-    	} else if (compareLocalPart(F_RELATION,subName)) {
+    	} else if (compareLocalPart(F_RELATION, subName)) {
     		return this.getRelation();
     	} else {
     		throw new IllegalArgumentException("Attempt to resolve inside the reference value using a unrecognized path "+path+" in "+this);

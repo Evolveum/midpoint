@@ -23,9 +23,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import com.evolveum.icf.dummy.resource.ConflictException;
 import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
@@ -35,9 +33,7 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismReferenceValueImpl;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDeltaImpl;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -544,9 +540,9 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 //        Long id = findAssignmentIdForTarget(jack, ORG_MINISTRY_OF_OFFENSE_OID);
 //        PrismReferenceDefinition referenceDefinition = getUserDefinition()
 //                .findItemDefinition(
-//                        new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF), PrismReferenceDefinition.class);
+//                        prismContext.path(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF), PrismReferenceDefinition.class);
 //        ReferenceDelta referenceDelta = new ReferenceDelta(
-//                new ItemPath(
+//                prismContext.path(
 //                        new NameItemPathSegment(UserType.F_ASSIGNMENT),
 //                        new IdItemPathSegment(id),
 //                        new NameItemPathSegment(AssignmentType.F_TARGET_REF)), referenceDefinition, prismContext);
@@ -1447,12 +1443,9 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 
         PrismReferenceDefinition referenceDefinition = getUserDefinition()
                 .findItemDefinition(
-                        new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF), PrismReferenceDefinition.class);
+                        prismContext.path(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF), PrismReferenceDefinition.class);
         ReferenceDelta referenceDelta = new ReferenceDeltaImpl(
-                new ItemPath(
-                        new NameItemPathSegment(UserType.F_ASSIGNMENT),
-                        new IdItemPathSegment(id),
-                        new NameItemPathSegment(AssignmentType.F_TARGET_REF)), referenceDefinition, prismContext);
+                ItemPath.create(UserType.F_ASSIGNMENT, id, AssignmentType.F_TARGET_REF), referenceDefinition, prismContext);
         PrismReferenceValue oldValue = new PrismReferenceValueImpl(ORG_MINISTRY_OF_OFFENSE_OID, OrgType.COMPLEX_TYPE);
         PrismReferenceValue newValue = new PrismReferenceValueImpl(ORG_MINISTRY_OF_OFFENSE_OID, OrgType.COMPLEX_TYPE);
         newValue.setRelation(SchemaConstants.ORG_MANAGER);

@@ -25,7 +25,6 @@ import com.evolveum.midpoint.model.impl.dataModel.model.ResourceDataItem;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -48,6 +47,8 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 
 /**
  * @author pmederly
@@ -135,7 +136,7 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 					}
 					LOGGER.debug("Processing refined attribute definition for {}", attributeDefinition.getName());
 					ResourceDataItem attrItem = model.findResourceItem(resource.getOid(), kind, intent, getObjectClassName(refinedDefinition),
-							new ItemPath(attributeDefinition.getName()));
+							ItemPath.create(attributeDefinition.getName()));
 					if (attributeDefinition.getOutboundMappingType() != null) {
 						processOutboundMapping(model, attrItem, attributeDefinition.getOutboundMappingType(), null);
 					}
@@ -148,7 +149,7 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 					}
 					LOGGER.debug("Processing refined association definition for {}", associationDefinition.getName());
 					ResourceDataItem assocItem = model.findResourceItem(resource.getOid(), kind, intent, getObjectClassName(refinedDefinition),
-							new ItemPath(associationDefinition.getName()));
+							ItemPath.create(associationDefinition.getName()));
 					if (associationDefinition.getOutboundMappingType() != null) {
 						processOutboundMapping(model, assocItem, associationDefinition.getOutboundMappingType(), null);
 					}
@@ -161,27 +162,26 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 				ResourceActivationDefinitionType actMapping = refinedDefinition.getActivationSchemaHandling();
 				if (actMapping != null) {
 					QName objectClassName = getObjectClassName(refinedDefinition);
-					processBidirectionalMapping(model, resource.getOid(), kind, intent, objectClassName, new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), actMapping.getAdministrativeStatus());
-					processBidirectionalMapping(model, resource.getOid(), kind, intent, objectClassName, new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), actMapping.getValidFrom());
-					processBidirectionalMapping(model, resource.getOid(), kind, intent, objectClassName, new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), actMapping.getValidTo());
-					processBidirectionalMapping(model, resource.getOid(), kind, intent, objectClassName, new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS), actMapping.getLockoutStatus());
-					processBidirectionalMapping(model, resource.getOid(), kind, intent, objectClassName, new ItemPath(FocusType.F_ACTIVATION, ACTIVATION_EXISTENCE), actMapping.getExistence());
+					processBidirectionalMapping(model, resource.getOid(), kind, intent, objectClassName, PATH_ACTIVATION_ADMINISTRATIVE_STATUS, actMapping.getAdministrativeStatus());
+					processBidirectionalMapping(model, resource.getOid(), kind, intent, objectClassName, PATH_ACTIVATION_VALID_FROM, actMapping.getValidFrom());
+					processBidirectionalMapping(model, resource.getOid(), kind, intent, objectClassName, PATH_ACTIVATION_VALID_TO, actMapping.getValidTo());
+					processBidirectionalMapping(model, resource.getOid(), kind, intent, objectClassName, PATH_ACTIVATION_LOCKOUT_STATUS, actMapping.getLockoutStatus());
+					processBidirectionalMapping(model, resource.getOid(), kind, intent, objectClassName, ItemPath.create(FocusType.F_ACTIVATION, ACTIVATION_EXISTENCE), actMapping.getExistence());
 				}
 				ResourcePasswordDefinitionType pwdDef = refinedDefinition.getPasswordDefinition();
 				if (pwdDef != null) {
-					final ItemPath pwdPath = new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD);
 					ResourceDataItem resourceDataItem = model.findResourceItem(resource.getOid(), kind, intent,
-							getObjectClassName(refinedDefinition), pwdPath);
+							getObjectClassName(refinedDefinition), PATH_CREDENTIALS_PASSWORD);
 					if (resourceDataItem == null) {
-						throw new IllegalStateException("No resource item for " + resource.getOid() + ":" + kind + ":" + intent + ":" + pwdPath);
+						throw new IllegalStateException("No resource item for " + resource.getOid() + ":" + kind + ":" + intent + ":" + PATH_CREDENTIALS_PASSWORD);
 					}
 					if (pwdDef.getOutbound() != null) {
 						for (MappingType outbound : pwdDef.getOutbound()) {
-							processOutboundMapping(model, resourceDataItem, outbound, pwdPath);
+							processOutboundMapping(model, resourceDataItem, outbound, PATH_CREDENTIALS_PASSWORD);
 						}
 					}
 					for (MappingType inbound : pwdDef.getInbound()) {
-						processInboundMapping(model, resourceDataItem, inbound, pwdPath);
+						processInboundMapping(model, resourceDataItem, inbound, PATH_CREDENTIALS_PASSWORD);
 					}
 				}
 			}
@@ -248,12 +248,12 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 					ResourceDataItem assocItem = new ResourceDataItem(model, resource.getOid(), kind, intent, refinedResourceSchema, refinedDefinition, associationDefinition.getName());
 					model.registerDataItem(assocItem);
 				}
-				model.registerDataItem(new ResourceDataItem(model, resource.getOid(), kind, intent, refinedResourceSchema, refinedDefinition, new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS)));
-				model.registerDataItem(new ResourceDataItem(model, resource.getOid(), kind, intent, refinedResourceSchema, refinedDefinition, new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS)));
-				model.registerDataItem(new ResourceDataItem(model, resource.getOid(), kind, intent, refinedResourceSchema, refinedDefinition, new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_VALID_FROM)));
-				model.registerDataItem(new ResourceDataItem(model, resource.getOid(), kind, intent, refinedResourceSchema, refinedDefinition, new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_VALID_TO)));
-				model.registerDataItem(new ResourceDataItem(model, resource.getOid(), kind, intent, refinedResourceSchema, refinedDefinition, new ItemPath(ShadowType.F_ACTIVATION, ACTIVATION_EXISTENCE)));
-				model.registerDataItem(new ResourceDataItem(model, resource.getOid(), kind, intent, refinedResourceSchema, refinedDefinition, new ItemPath(ShadowType.F_CREDENTIALS, CredentialsType.F_PASSWORD)));
+				model.registerDataItem(new ResourceDataItem(model, resource.getOid(), kind, intent, refinedResourceSchema, refinedDefinition, PATH_ACTIVATION_ADMINISTRATIVE_STATUS));
+				model.registerDataItem(new ResourceDataItem(model, resource.getOid(), kind, intent, refinedResourceSchema, refinedDefinition, PATH_ACTIVATION_LOCKOUT_STATUS));
+				model.registerDataItem(new ResourceDataItem(model, resource.getOid(), kind, intent, refinedResourceSchema, refinedDefinition, PATH_ACTIVATION_VALID_FROM));
+				model.registerDataItem(new ResourceDataItem(model, resource.getOid(), kind, intent, refinedResourceSchema, refinedDefinition, PATH_ACTIVATION_VALID_TO));
+				model.registerDataItem(new ResourceDataItem(model, resource.getOid(), kind, intent, refinedResourceSchema, refinedDefinition, ItemPath.create(ShadowType.F_ACTIVATION, ACTIVATION_EXISTENCE)));
+				model.registerDataItem(new ResourceDataItem(model, resource.getOid(), kind, intent, refinedResourceSchema, refinedDefinition, PATH_CREDENTIALS_PASSWORD));
 			}
 		}
 //		createRepoDataItems(UserType.class);
@@ -314,16 +314,16 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 	@NotNull
 	private DataItem resolveSourceItem(@NotNull DataModel model, @NotNull ResourceDataItem currentItem,
 			@NotNull MappingType mapping, @NotNull ItemPath path, @Nullable QName defaultVariable) {
-		if (!(path.first() instanceof NameItemPathSegment)) {
+		if (!path.startsWithName()) {
 			LOGGER.warn("Probably incorrect path ({}) - does not start with a name - skipping", path);
 			return createAdHocDataItem(model, path);
 		}
 		QName varName;
 		ItemPath itemPath;
-		NameItemPathSegment firstNameSegment = (NameItemPathSegment) path.first();
-		if (firstNameSegment.isVariable()) {
-			varName = firstNameSegment.getName();
-			itemPath = path.tail();
+		Object first = path.first();
+		if (ItemPath.isVariable(first)) {
+			varName = ItemPath.toVariableName(first);
+			itemPath = path.rest();
 		} else {
 			if (defaultVariable == null) {
 				LOGGER.warn("No default variable for mapping source");
@@ -371,16 +371,16 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 	@NotNull
 	private DataItem resolveTargetItem(@NotNull DataModel model, @NotNull ResourceDataItem currentItem,
 			@NotNull MappingType mapping, @NotNull ItemPath path, @Nullable QName defaultVariable) {
-		if (!(path.first() instanceof NameItemPathSegment)) {
+		if (!path.startsWithName()) {
 			LOGGER.warn("Probably incorrect path ({}) - does not start with a name - skipping", path);
 			return createAdHocDataItem(model, path);
 		}
 		QName varName;
 		ItemPath itemPath;
-		NameItemPathSegment firstNameSegment = (NameItemPathSegment) path.first();
-		if (firstNameSegment.isVariable()) {
-			varName = firstNameSegment.getName();
-			itemPath = path.tail();
+		Object first = path.first();
+		if (ItemPath.isVariable(first)) {
+			varName = ItemPath.toVariableName(first);
+			itemPath = path.rest();
 		} else {
 			if (defaultVariable == null) {
 				LOGGER.warn("No default variable for mapping target");

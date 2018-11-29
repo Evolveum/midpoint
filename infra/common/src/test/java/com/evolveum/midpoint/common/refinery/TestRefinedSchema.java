@@ -31,6 +31,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 
 import com.evolveum.midpoint.schema.RelationRegistry;
@@ -398,8 +399,8 @@ public class TestRefinedSchema {
         accObject.checkConsistence(true, true, ConsistencyCheckScope.THOROUGH);
     }
 
-	private QName getAttrQName(PrismObject<ResourceType> resource, String localPart) {
-		return new QName(ResourceTypeUtil.getResourceNamespace(resource), localPart);
+	private ItemName getAttrQName(PrismObject<ResourceType> resource, String localPart) {
+		return new ItemName(ResourceTypeUtil.getResourceNamespace(resource), localPart);
 	}
 
 	@Test

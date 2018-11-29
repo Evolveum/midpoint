@@ -22,7 +22,7 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.util.ItemPathUtil;
+import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -596,7 +596,7 @@ public class SchemaHandlingStep extends WizardStep {
 			MappingType outbound) {
 		StringBuilder sb = new StringBuilder();
 		if (ref != null && !ref.getItemPath().isEmpty()) {
-			QName name = ItemPathUtil.getOnlySegmentQNameRobust(ref);
+			QName name = ref.getItemPath().asSingleName();
 			if (name != null) {
 				String prefix = SchemaConstants.NS_ICF_SCHEMA.equals(name.getNamespaceURI()) ? "icfs" : "ri";
 				sb.append(prefix);
@@ -658,10 +658,10 @@ public class SchemaHandlingStep extends WizardStep {
 		List<ItemRefinedDefinitionType> existingItems = new ArrayList<>();
 		existingItems.addAll(selectedObjectType.getAttribute());
 		existingItems.addAll(selectedObjectType.getAssociation());
-		QName name = ItemPathUtil.getOnlySegmentQNameRobust(item.getRef());
+		QName name = ItemPathTypeUtil.asSingleName(item.getRef());
 		int count = 0, position = 0;
 		for (ItemRefinedDefinitionType existingItem : existingItems) {
-			QName existingName = ItemPathUtil.getOnlySegmentQNameRobust(existingItem.getRef());
+			QName existingName = ItemPathTypeUtil.asSingleName(existingItem.getRef());
 			if (QNameUtil.match(name, existingName)) {
 				count++;
 			}
@@ -1214,13 +1214,12 @@ public class SchemaHandlingStep extends WizardStep {
         return newMappings;
     }
 
-    private boolean compareItemPath(ItemPathType itemPath, String comparePath){
-        if(itemPath != null && itemPath.getItemPath() != null){
-            if(comparePath.equals(itemPath.getItemPath().toString())){
+    private boolean compareItemPath(ItemPathType itemPath, String comparePath) {
+        if (itemPath != null) {
+            if (comparePath.equals(itemPath.getItemPath().toString())) {    // fixme?
                 return true;
             }
         }
-
         return false;
     }
 

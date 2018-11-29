@@ -23,9 +23,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
@@ -101,14 +99,14 @@ public class AccCertCaseOperationsHelper {
 
 		ObjectReferenceType responderRef = ObjectTypeUtil.createObjectRef(securityContextManager.getPrincipal().getUser(), prismContext);
 		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
-		ItemPath workItemPath = new ItemPath(F_CASE, caseId, F_WORK_ITEM, workItemId);
+		ItemPath workItemPath = ItemPath.create(F_CASE, caseId, F_WORK_ITEM, workItemId);
 		Collection<ItemDelta<?,?>> deltaList = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
-				.item(workItemPath.subPath(AccessCertificationWorkItemType.F_OUTPUT))
+				.item(workItemPath.append(AccessCertificationWorkItemType.F_OUTPUT))
 						.replace(new AbstractWorkItemOutputType()
 								.outcome(toUri(normalizeToNull(response)))
 								.comment(comment))
-				.item(workItemPath.subPath(AccessCertificationWorkItemType.F_OUTPUT_CHANGE_TIMESTAMP)).replace(now)
-				.item(workItemPath.subPath(AccessCertificationWorkItemType.F_PERFORMER_REF)).replace(responderRef)
+				.item(workItemPath.append(AccessCertificationWorkItemType.F_OUTPUT_CHANGE_TIMESTAMP)).replace(now)
+				.item(workItemPath.append(AccessCertificationWorkItemType.F_PERFORMER_REF)).replace(responderRef)
 				.asItemDeltas();
 		ItemDelta.applyTo(deltaList, campaign.asPrismContainerValue()); // to have data for outcome computation
 
@@ -126,10 +124,7 @@ public class AccCertCaseOperationsHelper {
 	void markCaseAsRemedied(@NotNull String campaignOid, long caseId, Task task, OperationResult parentResult)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         PropertyDelta<XMLGregorianCalendar> remediedDelta = PropertyDeltaImpl.createModificationReplaceProperty(
-                new ItemPath(
-                        new NameItemPathSegment(F_CASE),
-                        new IdItemPathSegment(caseId),
-                        new NameItemPathSegment(AccessCertificationCaseType.F_REMEDIED_TIMESTAMP)),
+                ItemPath.create(F_CASE, caseId, AccessCertificationCaseType.F_REMEDIED_TIMESTAMP),
                 generalHelper.getCampaignObjectDefinition(), XmlTypeConverter.createXMLGregorianCalendar(new Date()));
 
         updateHelper.modifyObjectPreAuthorized(AccessCertificationCampaignType.class, campaignOid,

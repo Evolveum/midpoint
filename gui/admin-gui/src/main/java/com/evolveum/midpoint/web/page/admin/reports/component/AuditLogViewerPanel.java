@@ -29,6 +29,7 @@ import java.util.function.Function;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -71,7 +72,6 @@ import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueChoosePanel;
 import com.evolveum.midpoint.web.component.input.DatePanel;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
@@ -158,8 +158,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
 
         DatePanel from = new DatePanel(ID_FROM, new PropertyModel<>(
             getModel(), AuditSearchDto.F_FROM));
-        DateValidator dateFromValidator = WebComponentUtil.getRangeValidator(mainForm,
-                new ItemPath(AuditSearchDto.F_FROM));
+        DateValidator dateFromValidator = WebComponentUtil.getRangeValidator(mainForm, ItemPath.create(AuditSearchDto.F_FROM));
         dateFromValidator.setMessageKey("AuditLogViewerPanel.dateValidatorMessage");
         dateFromValidator.setDateFrom((DateTimeField) from.getBaseFormComponent());
         for (FormComponent<?> formComponent : from.getFormComponents()) {
@@ -172,7 +171,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         DatePanel to = new DatePanel(ID_TO, new PropertyModel<>(getModel(),
             AuditSearchDto.F_TO));
         DateValidator dateToValidator = WebComponentUtil.getRangeValidator(mainForm,
-                new ItemPath(AuditSearchDto.F_FROM));
+                ItemPath.create(AuditSearchDto.F_FROM));
         dateToValidator.setMessageKey("AuditLogViewerPanel.dateValidatorMessage");
         dateToValidator.setDateTo((DateTimeField) to.getBaseFormComponent());
         for (FormComponent<?> formComponent : to.getFormComponents()) {

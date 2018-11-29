@@ -18,9 +18,7 @@ package com.evolveum.midpoint.schema.parser;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
@@ -41,23 +39,23 @@ public abstract class AbstractPrismValueParserTest<T extends PrismValue> extends
 
 	protected void assertPropertyDefinition(PrismContainer<?> container, String propName, QName xsdType, int minOccurs,
 			int maxOccurs) {
-		QName propQName = new QName(SchemaConstantsGenerated.NS_COMMON, propName);
-		PrismAsserts.assertPropertyDefinition(container, propQName, xsdType, minOccurs, maxOccurs);
+		ItemName propItemName = new ItemName(SchemaConstantsGenerated.NS_COMMON, propName);
+		PrismAsserts.assertPropertyDefinition(container, propItemName, xsdType, minOccurs, maxOccurs);
 	}
 
 	protected void assertPropertyValue(PrismContainer<?> container, String propName, Object propValue) {
-		QName propQName = new QName(SchemaConstantsGenerated.NS_COMMON, propName);
-		PrismAsserts.assertPropertyValue(container, propQName, propValue);
+		ItemName propItemName = new ItemName(SchemaConstantsGenerated.NS_COMMON, propName);
+		PrismAsserts.assertPropertyValue(container, propItemName, propValue);
 	}
 
 	protected <T> void assertPropertyValues(PrismContainer<?> container, String propName, T... expectedValues) {
-		QName propQName = new QName(SchemaConstantsGenerated.NS_COMMON, propName);
-		PrismAsserts.assertPropertyValue(container, propQName, expectedValues);
+		ItemName propItemName = new ItemName(SchemaConstantsGenerated.NS_COMMON, propName);
+		PrismAsserts.assertPropertyValue(container, propItemName, expectedValues);
 	}
 
 	protected void assertContainerDefinition(PrismContainer container, String contName, QName xsdType, int minOccurs,
 			int maxOccurs) {
-		QName qName = new QName(SchemaConstantsGenerated.NS_COMMON, contName);
+		ItemName qName = new ItemName(SchemaConstantsGenerated.NS_COMMON, contName);
 		PrismAsserts.assertDefinition(container.getDefinition(), qName, xsdType, minOccurs, maxOccurs);
 	}
 
@@ -114,10 +112,10 @@ public abstract class AbstractPrismValueParserTest<T extends PrismValue> extends
 		});
 	}
 
-	private boolean isDynamic(ItemPath path) {
+	private boolean isDynamic(UniformItemPath path) {
 		for (ItemPathSegment segment : path.getSegments()) {
-			if (segment instanceof NameItemPathSegment) {
-				QName name = ((NameItemPathSegment) segment).getName();
+			if (ItemPath.isName(segment)) {
+				QName name = ItemPath.toName(segment);
 				if (QNameUtil.match(name, ShadowType.F_ATTRIBUTES) || QNameUtil.match(name, ObjectType.F_EXTENSION)) {
 					return true;
 				}

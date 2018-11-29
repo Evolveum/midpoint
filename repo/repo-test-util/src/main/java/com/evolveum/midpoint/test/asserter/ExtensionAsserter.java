@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.test.asserter;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -66,7 +67,7 @@ public class ExtensionAsserter<O extends ObjectType, OA extends PrismObjectAsser
 	
 	public ExtensionAsserter<O,OA,RA> assertItems(QName... expectedItems) {
 		for (QName expectedItem: expectedItems) {
-			Item<PrismValue,ItemDefinition> item = getExtensionContainerValue().findItem(expectedItem);
+			Item<PrismValue,ItemDefinition> item = getExtensionContainerValue().findItem(ItemName.fromQName(expectedItem));
 			if (item == null) {
 				fail("Expected item "+expectedItem+" in "+desc()+" but there was none. Items present: "+presentItemNames());
 			}
@@ -127,11 +128,11 @@ public class ExtensionAsserter<O extends ObjectType, OA extends PrismObjectAsser
 	}
 
 	private <T> PrismProperty<T> findProperty(QName attrName) {
-		return getExtensionContainerValue().findProperty(attrName);
+		return getExtensionContainerValue().findProperty(ItemName.fromQName(attrName));
 	}
 	
 	private <T> Item<PrismValue,ItemDefinition> findItem(QName itemName) {
-		return getExtensionContainerValue().findItem(itemName);
+		return getExtensionContainerValue().findItem(ItemName.fromQName(itemName));
 	}
 	
 	public ExtensionAsserter<O,OA,RA> assertTimestampBetween(QName propertyName, XMLGregorianCalendar startTs, XMLGregorianCalendar endTs) {

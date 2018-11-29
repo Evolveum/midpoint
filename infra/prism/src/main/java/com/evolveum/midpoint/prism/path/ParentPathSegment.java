@@ -22,13 +22,11 @@ import javax.xml.namespace.QName;
 
 /**
  * Denotes parent object or container.
- *
- * @author mederly
  */
 public class ParentPathSegment extends ReferencePathSegment {
 
-	public static final String SYMBOL = "..";
-	public static final QName QNAME = PrismConstants.T_PARENT;
+    public static final String SYMBOL = "..";
+    public static final QName QNAME = PrismConstants.T_PARENT;
 
 	@Override
     public boolean equivalent(Object obj) {

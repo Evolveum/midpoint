@@ -20,7 +20,7 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.impl.visualizer.output.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.CloneUtil;
@@ -40,8 +40,7 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 
 import static com.evolveum.midpoint.prism.delta.ChangeType.*;
-import static com.evolveum.midpoint.prism.path.ItemPath.EMPTY_PATH;
-import static com.evolveum.midpoint.prism.path.ItemPath.isNullOrEmpty;
+import static com.evolveum.midpoint.prism.path.UniformItemPath.EMPTY_PATH;
 import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetch;
 import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
@@ -68,17 +67,17 @@ public class Visualizer {
 	private static final Map<Class<?>, List<ItemPath>> descriptiveItems = new HashMap<>();
 	static {
 		descriptiveItems.put(AssignmentType.class, Arrays.asList(
-				new ItemPath(AssignmentType.F_TARGET_REF),
-				new ItemPath(AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF),
-				new ItemPath(AssignmentType.F_CONSTRUCTION, ConstructionType.F_KIND),
-				new ItemPath(AssignmentType.F_CONSTRUCTION, ConstructionType.F_INTENT),
-				new ItemPath(AssignmentType.F_TENANT_REF),
-				new ItemPath(AssignmentType.F_ORG_REF),
-				new ItemPath(AssignmentType.F_DESCRIPTION)));
+				AssignmentType.F_TARGET_REF,
+				AssignmentType.F_CONSTRUCTION.append(ConstructionType.F_RESOURCE_REF),
+				AssignmentType.F_CONSTRUCTION.append(ConstructionType.F_KIND),
+				AssignmentType.F_CONSTRUCTION.append(ConstructionType.F_INTENT),
+				AssignmentType.F_TENANT_REF,
+				AssignmentType.F_ORG_REF,
+				AssignmentType.F_DESCRIPTION));
 		descriptiveItems.put(ShadowType.class, Arrays.asList(
-				new ItemPath(ShadowType.F_RESOURCE_REF),
-				new ItemPath(ShadowType.F_KIND),
-				new ItemPath(ShadowType.F_INTENT)));
+				ShadowType.F_RESOURCE_REF,
+				ShadowType.F_KIND,
+				ShadowType.F_INTENT));
 	}
 
 	public SceneImpl visualize(PrismObject<? extends ObjectType> object, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException {
@@ -186,8 +185,8 @@ public class Visualizer {
 		SceneImpl scene = new SceneImpl(owner);
 		scene.setChangeType(objectDelta.getChangeType());
 		scene.setSourceDelta(objectDelta);
-		scene.setSourceRelPath(ItemPath.EMPTY_PATH);
-		scene.setSourceAbsPath(ItemPath.EMPTY_PATH);
+		scene.setSourceRelPath(UniformItemPath.EMPTY_PATH);
+		scene.setSourceAbsPath(UniformItemPath.EMPTY_PATH);
 		PrismObject<? extends ObjectType> object;
 		if (objectDelta.isAdd()) {
 			object = objectDelta.getObjectToAdd();
@@ -296,8 +295,8 @@ public class Visualizer {
 								continue;
 							}
 						}
-						si.setSourceRelPath(new ItemPath(item.getElementName()));
-						si.setSourceAbsPath(scene.getSourceAbsPath().subPath(item.getElementName()));
+						si.setSourceRelPath(ItemPath.create(item.getElementName()));
+						si.setSourceAbsPath(scene.getSourceAbsPath().append(item.getElementName()));
 						si.setSourceDelta(null);
 						scene.addPartialScene(si);
 						currentScene = si;
@@ -446,11 +445,11 @@ public class Visualizer {
 		owningScene.addPartialScene(scene);
 	}
 
-	private SceneImpl createContainerScene(ChangeType changeType, ItemPath containerPath, SceneImpl owningScene) {
+	private SceneImpl createContainerScene(ChangeType changeType, UniformItemPath containerPath, SceneImpl owningScene) {
 		SceneImpl scene = new SceneImpl(owningScene);
 		scene.setChangeType(changeType);
 
-		ItemPath deltaParentItemPath = getDeltaParentItemPath(containerPath);
+		UniformItemPath deltaParentItemPath = getDeltaParentItemPath(containerPath);
 		PrismContainerDefinition<?> sceneDefinition = getSceneDefinition(scene, deltaParentItemPath);
 
 		NameImpl name = createNameForContainerDelta(containerPath, sceneDefinition);
@@ -461,14 +460,14 @@ public class Visualizer {
 			scene.setSourceDefinition(sceneDefinition);
 		}
 
-		ItemPath sceneRelativePath = containerPath.remainder(owningScene.getSourceRelPath());
+		UniformItemPath sceneRelativePath = containerPath.remainder(owningScene.getSourceRelPath());
 		scene.setSourceRelPath(sceneRelativePath);
 		scene.setSourceAbsPath(containerPath);
 		scene.setSourceDelta(null);
 		return scene;
 	}
 
-	private NameImpl createNameForContainerDelta(ItemPath deltaParentPath, PrismContainerDefinition<?> sceneDefinition) {
+	private NameImpl createNameForContainerDelta(UniformItemPath deltaParentPath, PrismContainerDefinition<?> sceneDefinition) {
 		NameImpl name = new NameImpl(deltaParentPath.toString());
 		name.setId(String.valueOf(getLastId(deltaParentPath)));
 		if (sceneDefinition != null) {
@@ -478,23 +477,19 @@ public class Visualizer {
 		return name;
 	}
 
-	private ItemPath getDeltaParentItemPath(ItemPath deltaParentPath) {
-		if (deltaParentPath.last() instanceof IdItemPathSegment) {
+	private UniformItemPath getDeltaParentItemPath(UniformItemPath deltaParentPath) {
+		if (ItemPath.isId(deltaParentPath.last())) {
 			return deltaParentPath.allExceptLast();
 		} else {
 			return deltaParentPath;
 		}
 	}
 
-	private Long getLastId(ItemPath deltaParentPath) {
-		if (deltaParentPath.last() instanceof IdItemPathSegment) {
-			return ((IdItemPathSegment) deltaParentPath.last()).getId();
-		} else {
-			return null;
-		}
+	private Long getLastId(UniformItemPath deltaParentPath) {
+		return ItemPath.toIdOrNull(deltaParentPath.last());
 	}
 
-	private PrismContainerDefinition<?> getSceneDefinition(SceneImpl ownerScene, ItemPath deltaParentItemPath) {
+	private PrismContainerDefinition<?> getSceneDefinition(SceneImpl ownerScene, UniformItemPath deltaParentItemPath) {
 		PrismContainerDefinition<?> rootDefinition = getRootDefinition(ownerScene);
 		if (rootDefinition == null) {
 			return null;
@@ -505,10 +500,10 @@ public class Visualizer {
 
 	private void visualizeAtomicDelta(ItemDelta<?, ?> delta, SceneImpl scene, VisualizationContext context, Task task, OperationResult result)
 			throws SchemaException {
-		ItemPath deltaParentPath = delta.getParentPath();
-		ItemPath sceneRelativeItemPath = getDeltaParentItemPath(deltaParentPath).remainder(scene.getSourceRelPath());
+		UniformItemPath deltaParentPath = delta.getParentPath();
+		UniformItemPath sceneRelativeItemPath = getDeltaParentItemPath(deltaParentPath).remainder(scene.getSourceRelPath());
 		SceneImpl sceneForItem;
-		if (isNullOrEmpty(deltaParentPath)) {
+		if (ItemPath.isEmpty(deltaParentPath)) {
 			sceneForItem = scene;
 		} else {
 			sceneForItem = findPartialSceneByPath(scene, deltaParentPath);
@@ -543,7 +538,7 @@ public class Visualizer {
 				scene.addPartialScene(sceneForItem);
 			}
 		}
-		ItemPath itemRelativeItemPath = getDeltaParentItemPath(delta.getPath()).remainder(sceneForItem.getSourceRelPath());
+		UniformItemPath itemRelativeItemPath = getDeltaParentItemPath(delta.getPath()).remainder(sceneForItem.getSourceRelPath());
 		if (context.isRemoveExtraDescriptiveItems()) {
 			Iterator<? extends SceneItemImpl> iterator = sceneForItem.getItems().iterator();
 			while (iterator.hasNext()) {
@@ -584,7 +579,7 @@ public class Visualizer {
 		return scene.getSourceDefinition();
 	}
 
-	private SceneImpl findPartialSceneByPath(SceneImpl scene, ItemPath deltaParentPath) {
+	private SceneImpl findPartialSceneByPath(SceneImpl scene, UniformItemPath deltaParentPath) {
 		for (SceneImpl subscene : scene.getPartialScenes()) {
 			if (subscene.getSourceAbsPath().equivalent(deltaParentPath) && subscene.getChangeType() == MODIFY) {
 				return subscene;
@@ -609,12 +604,7 @@ public class Visualizer {
 	}
 
 	private Comparator<Item<?, ?>> getItemDisplayOrderComparator() {
-		return new Comparator<Item<?, ?>>() {
-			@Override
-			public int compare(Item<?, ?> o1, Item<?, ?> o2) {
-				return compareDefinitions(o1.getDefinition(), o2.getDefinition());
-			}
-		};
+		return (o1, o2) -> compareDefinitions(o1.getDefinition(), o2.getDefinition());
 	}
 
 	private int compareDefinitions(ItemDefinition d1, ItemDefinition d2) {
@@ -654,7 +644,7 @@ public class Visualizer {
 			si.setOperational(def.isOperational());
 		}
 		si.setSourceItem(item);
-		si.setSourceRelPath(new ItemPath(item.getElementName()));
+		si.setSourceRelPath(prismContext.path(item.getElementName()));
 		return si;
 	}
 
@@ -757,9 +747,9 @@ public class Visualizer {
 			si.setSourceItem(item);
 			si.setOperational(def.isOperational());
 		}
-		ItemPath remainder = itemDelta.getPath().remainder(owningScene.getSourceRelPath());
-		if (remainder.startsWith(new ItemPath(new IdItemPathSegment()))) {
-			remainder = remainder.tail();
+		UniformItemPath remainder = itemDelta.getPath().remainder(owningScene.getSourceRelPath());
+		if (remainder.startsWithNullId()) {
+			remainder = remainder.rest();
 		}
 		si.setSourceRelPath(remainder);
 		return si;

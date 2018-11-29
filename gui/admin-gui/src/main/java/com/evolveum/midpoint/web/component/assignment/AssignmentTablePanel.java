@@ -23,7 +23,6 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.ContainerDeltaImpl;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -334,121 +333,6 @@ public class AssignmentTablePanel<T extends ObjectType> extends AbstractAssignme
 
 	protected void reloadAssignmentsPanel(AjaxRequestTarget target){
 		target.add(getPageBase().getFeedbackPanel(), get(ID_ASSIGNMENTS));
-	}
-
-	public void handleAssignmentsWhenAdd(PrismObject<T> object, PrismContainerDefinition assignmentDef,
-			List<AssignmentType> objectAssignments) throws SchemaException {
-
-		List<AssignmentEditorDto> assignments = getAssignmentModel().getObject();
-		for (AssignmentEditorDto assDto : assignments) {
-			if (!UserDtoStatus.ADD.equals(assDto.getStatus())) {
-				warn(getString("AssignmentTablePanel.message.illegalAssignmentState", assDto.getStatus()));
-				continue;
-			}
-
-			AssignmentType assignment = new AssignmentType();
-			PrismContainerValue value = assDto.getNewValue(getPageBase().getPrismContext());
-			assignment.setupContainerValue(value);
-			value.applyDefinition(assignmentDef, false);
-			objectAssignments.add(assignment.clone());
-
-			// todo remove this block [lazyman] after model is updated - it has
-			// to remove resource from accountConstruction
-			removeResourceFromAccConstruction(assignment);
-		}
-	}
-
-	public ContainerDelta handleAssignmentDeltas(ObjectDelta<T> userDelta, PrismContainerDefinition def,
-			QName assignmentPath) throws SchemaException {
-		ContainerDelta assDelta = new ContainerDeltaImpl(ItemPath.EMPTY_PATH, assignmentPath, def,
-				def.getPrismContext()); // hoping that def contains a prism
-										// context!
-
-		// PrismObject<OrgType> org =
-		// (PrismObject<OrgType>)getModel().getObject().getAssignmentParent();
-		// PrismObjectDefinition orgDef = org.getDefinition();
-		// PrismContainerDefinition assignmentDef =
-		// def.findContainerDefinition(assignmentPath);
-
-		List<AssignmentEditorDto> assignments = getAssignmentModel().getObject();
-		for (AssignmentEditorDto assDto : assignments) {
-			PrismContainerValue newValue = assDto.getNewValue(getPageBase().getPrismContext());
-			switch (assDto.getStatus()) {
-				case ADD:
-					newValue.applyDefinition(def, false);
-					assDelta.addValueToAdd(newValue.clone());
-					break;
-				case DELETE:
-					PrismContainerValue oldValue = assDto.getOldValue();
-					oldValue.applyDefinition(def);
-					assDelta.addValueToDelete(oldValue.clone());
-					break;
-				case MODIFY:
-					if (!assDto.isModified(getPageBase().getPrismContext())) {
-						LOGGER.trace("Assignment '{}' not modified.", new Object[] { assDto.getName() });
-						continue;
-					}
-
-					handleModifyAssignmentDelta(assDto, def, newValue, userDelta);
-					break;
-				default:
-					warn(getString("pageUser.message.illegalAssignmentState", assDto.getStatus()));
-			}
-		}
-
-		if (!assDelta.isEmpty()) {
-			assDelta = userDelta.addModification(assDelta);
-		}
-
-		// todo remove this block [lazyman] after model is updated - it has to
-		// remove resource from accountConstruction
-		Collection<PrismContainerValue> values = assDelta.getValues(PrismContainerValue.class);
-		for (PrismContainerValue value : values) {
-			AssignmentType ass = new AssignmentType();
-			ass.setupContainerValue(value);
-			removeResourceFromAccConstruction(ass);
-		}
-
-		return assDelta;
-	}
-
-	private void handleModifyAssignmentDelta(AssignmentEditorDto assDto,
-			PrismContainerDefinition assignmentDef, PrismContainerValue newValue, ObjectDelta<T> userDelta)
-					throws SchemaException {
-		LOGGER.debug("Handling modified assignment '{}', computing delta.",
-				new Object[] { assDto.getName() });
-
-		PrismValue oldValue = assDto.getOldValue();
-		Collection<? extends ItemDelta> deltas = oldValue.diff(newValue);
-
-		for (ItemDelta delta : deltas) {
-			ItemPath deltaPath = delta.getPath().rest();
-			ItemDefinition deltaDef = assignmentDef.findItemDefinition(deltaPath);
-
-			delta.setParentPath(
-					WebComponentUtil.joinPath(oldValue.getPath(), delta.getPath().allExceptLast()));
-			delta.applyDefinition(deltaDef);
-
-			userDelta.addModification(delta);
-		}
-	}
-
-	/**
-	 * remove this method after model is updated - it has to remove resource
-	 * from accountConstruction
-	 */
-	@Deprecated
-	private void removeResourceFromAccConstruction(AssignmentType assignment) {
-		ConstructionType accConstruction = assignment.getConstruction();
-		if (accConstruction == null || accConstruction.getResource() == null) {
-			return;
-		}
-
-		ObjectReferenceType ref = new ObjectReferenceType();
-		ref.setOid(assignment.getConstruction().getResource().getOid());
-		ref.setType(ResourceType.COMPLEX_TYPE);
-		assignment.getConstruction().setResourceRef(ref);
-		assignment.getConstruction().setResource(null);
 	}
 
 	/**

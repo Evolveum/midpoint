@@ -16,7 +16,9 @@
 package com.evolveum.midpoint.provisioning.impl;
 
 import com.evolveum.midpoint.common.refinery.*;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -51,7 +53,7 @@ public class ProvisioningContext extends StateReporter {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ProvisioningContext.class);
 
-	private ResourceManager resourceManager;
+	@NotNull private final ResourceManager resourceManager;
 	private OperationResult parentResult;
 	private Collection<SelectorOptions<GetOperationOptions>> getOperationOptions;
 
@@ -67,7 +69,7 @@ public class ProvisioningContext extends StateReporter {
 	private Map<Class<? extends CapabilityType>,ConnectorInstance> connectorMap;
 	private RefinedResourceSchema refinedSchema;
 
-	public ProvisioningContext(ResourceManager resourceManager, OperationResult parentResult) {
+	public ProvisioningContext(@NotNull ResourceManager resourceManager, OperationResult parentResult) {
 		this.resourceManager = resourceManager;
 		this.parentResult = parentResult;
 	}
@@ -328,4 +330,12 @@ public class ProvisioningContext extends StateReporter {
 		return "ProvisioningContext("+getDesc()+")";
 	}
 
+	@NotNull
+	public PrismContext getPrismContext() {
+		return resourceManager.getPrismContext();
+	}
+
+	public UniformItemPath path(Object... components) {
+		return getPrismContext().path(components);
+	}
 }

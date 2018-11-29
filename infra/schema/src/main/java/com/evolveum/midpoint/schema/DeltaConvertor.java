@@ -30,7 +30,7 @@ import org.apache.commons.lang.Validate;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.util.RawTypeUtil;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -296,9 +296,9 @@ public class DeltaConvertor {
     public static <IV extends PrismValue,ID extends ItemDefinition> ItemDelta<IV,ID> createItemDelta(ItemDeltaType propMod, PrismContainerDefinition<?> pcDef, boolean allowRawValues) throws
     SchemaException {
     	ItemPathType parentPathType = propMod.getPath();
-    	ItemPath parentPath = null;
+    	UniformItemPath parentPath = null;
     	if (parentPathType != null){
-    		parentPath = parentPathType.getItemPath();
+    		parentPath = parentPathType.getUniformItemPath();
     	} else {
     		throw new IllegalStateException("Path argument in the itemDelta HAVE TO BE specified.");
     	}
@@ -309,15 +309,15 @@ public class DeltaConvertor {
         ItemDefinition containingPcd = pcDef.findItemDefinition(parentPath);
         PrismContainerDefinition containerDef = null;
         if (containingPcd == null) {
-        	containerDef = pcDef.findContainerDefinition(parentPath.allUpToLastNamed());
+        	containerDef = pcDef.findContainerDefinition(parentPath.allUpToLastName());
         	if (containerDef == null){
         		if (allowRawValues){
         			return null;
         		}
-        		throw new SchemaException("No definition for " + parentPath.allUpToLastNamed().lastNamed().getName() + " (while creating delta for " + pcDef + ")");
+        		throw new SchemaException("No definition for " + parentPath.allUpToLastName().lastName() + " (while creating delta for " + pcDef + ")");
         	}
         }
-        QName elementName = parentPath.lastNamed().getName();
+        QName elementName = parentPath.lastName();
         Item item = RawTypeUtil.getParsedItem(containingPcd, propMod.getValue(), elementName, containerDef);//propMod.getValue().getParsedValue(containingPcd);
         ItemDelta<IV,ID> itemDelta = item.createDelta(parentPath);
         if (propMod.getModificationType() == ModificationTypeType.ADD) {

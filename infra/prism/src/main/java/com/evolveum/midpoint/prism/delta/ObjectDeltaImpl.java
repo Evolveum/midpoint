@@ -16,8 +16,7 @@
 package com.evolveum.midpoint.prism.delta;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
+import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -38,6 +37,7 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.evolveum.midpoint.prism.path.ItemPath.*;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 
 /**
@@ -233,7 +233,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
     	if (getChangeType() != ChangeType.MODIFY) {
     		throw new IllegalStateException("Cannot add modifications to "+getChangeType()+" delta");
     	}
-    	ItemPath itemPath = itemDelta.getPath();
+    	UniformItemPath itemPath = itemDelta.getPath();
 	    // We use 'strict' finding mode because of MID-4690 (TODO)
     	D existingModification = (D) findModification(itemPath, itemDelta.getClass(), true);
     	if (existingModification != null) {
@@ -301,7 +301,8 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
     }
 
     public <IV extends PrismValue,ID extends ItemDefinition, I extends Item<IV,ID>,DD extends ItemDelta<IV,ID>>
-    		DD findItemDelta(ItemPath propertyPath, Class<DD> deltaType, Class<I> itemType, boolean strict) {
+    		DD findItemDelta(ItemPath simplePath, Class<DD> deltaType, Class<I> itemType, boolean strict) {
+		UniformItemPath propertyPath = UniformItemPathImpl.fromItemPath(simplePath);        // todo
         if (changeType == ChangeType.ADD) {
             I item = objectToAdd.findItem(propertyPath, itemType);
             if (item == null) {
@@ -317,7 +318,8 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
         }
     }
 
-    public <IV extends PrismValue,ID extends ItemDefinition> Collection<PartiallyResolvedDelta<IV,ID>> findPartial(ItemPath propertyPath) {
+    public <IV extends PrismValue,ID extends ItemDefinition> Collection<PartiallyResolvedDelta<IV,ID>> findPartial(
+		    ItemPath propertyPath) {
         if (changeType == ChangeType.ADD) {
             PartiallyResolvedItem<IV,ID> partialValue = objectToAdd.findPartial(propertyPath);
             if (partialValue == null || partialValue.getItem() == null) {
@@ -327,7 +329,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
             ItemDelta<IV,ID> itemDelta = item.createDelta();
             itemDelta.addValuesToAdd(item.getClonedValues());
             Collection<PartiallyResolvedDelta<IV,ID>> deltas = new ArrayList<>(1);
-            deltas.add(new PartiallyResolvedDelta<>(itemDelta, partialValue.getResidualPath()));
+            deltas.add(new PartiallyResolvedDelta<>(itemDelta, prismContext.path(partialValue.getResidualPath())));
             return deltas;
         } else if (changeType == ChangeType.MODIFY) {
         	Collection<PartiallyResolvedDelta<IV,ID>> deltas = new ArrayList<>();
@@ -418,12 +420,8 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
     /**
      * Top-level path is assumed.
      */
-    public <X> PropertyDelta<X> findPropertyDelta(QName propertyName) {
-        return findPropertyDelta(new ItemPath(propertyName));
-    }
-
     public <X> PropertyDelta<X> findPropertyDelta(ItemPath parentPath, QName propertyName) {
-        return findPropertyDelta(new ItemPath(parentPath, propertyName));
+        return findPropertyDelta(ItemPath.create(parentPath, propertyName));
     }
 
     @SuppressWarnings("unchecked")
@@ -434,10 +432,6 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
     @SuppressWarnings("unchecked")
 	public <X extends Containerable> ContainerDelta<X> findContainerDelta(ItemPath propertyPath) {
     	return findItemDelta(propertyPath, ContainerDelta.class, PrismContainer.class, false);
-    }
-
-    public <X extends Containerable> ContainerDelta<X> findContainerDelta(QName name) {
-    	return findContainerDelta(new ItemPath(name));
     }
 
     private <D extends ItemDelta> D findModification(ItemPath propertyPath, Class<D> deltaType, boolean strict) {
@@ -457,7 +451,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
     }
 
     private  <D extends ItemDelta> D findModification(QName itemName, Class<D> deltaType) {
-    	return findModification(new ItemPath(itemName), deltaType, false);
+    	return findModification(prismContext.path(itemName), deltaType, false);
     }
 
     public ReferenceDelta findReferenceModification(QName itemName) {
@@ -484,24 +478,8 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
     	ItemDelta.removeItemDelta(modifications, itemDelta);
     }
 
-    private <D extends ItemDelta> void removeModification(QName itemName, Class<D> deltaType) {
-    	removeModification(new ItemPath(itemName), deltaType);
-    }
-
-    public void removeReferenceModification(QName itemName) {
-    	removeModification(itemName, ReferenceDelta.class);
-    }
-
     public void removeReferenceModification(ItemPath itemPath) {
     	removeModification(itemPath, ReferenceDelta.class);
-    }
-
-    public void removeContainerModification(QName itemName) {
-    	removeModification(itemName, ContainerDelta.class);
-    }
-
-    public void removePropertyModification(QName itemName) {
-    	removeModification(itemName, PropertyDelta.class);
     }
 
     public void removePropertyModification(ItemPath itemPath) {
@@ -834,11 +812,6 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
         return new ArrayList<>();
     }
 
-    public <X> PropertyDelta<X> createPropertyModification(QName name, PrismPropertyDefinition<X> propertyDefinition) {
-    	PropertyDelta<X> propertyDelta = new PropertyDeltaImpl<>(name, propertyDefinition, prismContext);
-    	return addModification(propertyDelta);
-    }
-
     public <X> PropertyDelta<X> createPropertyModification(ItemPath path) {
 	    PrismObjectDefinition<O> objDef = getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(getObjectTypeClass());
 		PrismPropertyDefinition<X> propDef = objDef.findPropertyDefinition(path);
@@ -853,17 +826,13 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
     }
 
     public ReferenceDelta createReferenceModification(QName name, PrismReferenceDefinition referenceDefinition) {
-    	ReferenceDelta referenceDelta = new ReferenceDeltaImpl(name, referenceDefinition, prismContext);
+    	ReferenceDelta referenceDelta = new ReferenceDeltaImpl(ItemName.fromQName(name), referenceDefinition, prismContext);
     	return addModification(referenceDelta);
     }
 
     public ReferenceDelta createReferenceModification(ItemPath path, PrismReferenceDefinition referenceDefinition) {
         ReferenceDelta referenceDelta = new ReferenceDeltaImpl(path, referenceDefinition, prismContext);
         return addModification(referenceDelta);
-    }
-
-    public <C extends Containerable> ContainerDelta<C> createContainerModification(QName qname) {
-    	return createContainerModification(new ItemPath(qname));
     }
 
     public <C extends Containerable> ContainerDelta<C> createContainerModification(ItemPath path) {
@@ -883,7 +852,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
      */
     public static <O extends Objectable, X> ObjectDeltaImpl<O> createModificationReplaceProperty(Class<O> type, String oid, QName propertyName,
     		PrismContext prismContext, X... propertyValues) {
-    	ItemPath propertyPath = new ItemPath(propertyName);
+    	UniformItemPath propertyPath = prismContext.path(propertyName);
     	return createModificationReplaceProperty(type, oid, propertyPath, prismContext, propertyValues);
     }
 
@@ -901,7 +870,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
 
     public static <O extends Objectable, X> ObjectDeltaImpl<O> createModificationAddProperty(Class<O> type, String oid,
     		QName propertyName, PrismContext prismContext, X... propertyValues) {
-    	return createModificationAddProperty(type, oid, new ItemPath(propertyName), prismContext, propertyValues);
+    	return createModificationAddProperty(type, oid, prismContext.path(propertyName), prismContext, propertyValues);
     }
 
     public static <O extends Objectable, X> ObjectDeltaImpl<O> createModificationAddProperty(Class<O> type, String oid,
@@ -914,7 +883,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
 
     public static <O extends Objectable, X> ObjectDeltaImpl<O> createModificationDeleteProperty(Class<O> type, String oid,
     		QName propertyName, PrismContext prismContext, X... propertyValues) {
-    	return createModificationDeleteProperty(type, oid, new ItemPath(propertyName), prismContext, propertyValues);
+    	return createModificationDeleteProperty(type, oid, prismContext.path(propertyName), prismContext, propertyValues);
     }
 
     public static <O extends Objectable, X> ObjectDeltaImpl<O> createModificationDeleteProperty(Class<O> type, String oid,
@@ -930,7 +899,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
      */
     public static <O extends Objectable, X> ObjectDeltaImpl<O> createModificationReplaceReference(Class<O> type, String oid, QName referenceName,
     		PrismContext prismContext, PrismReferenceValue... refValues) {
-    	ItemPath propertyPath = new ItemPath(referenceName);
+    	UniformItemPath propertyPath = prismContext.path(referenceName);
     	return createModificationReplaceReference(type, oid, propertyPath, prismContext, refValues);
     }
 
@@ -945,10 +914,6 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
     	return objectDelta;
     }
 
-    public <X> void addModificationReplaceProperty(QName propertyQName, X... propertyValues) {
-    	addModificationReplaceProperty(new ItemPath(propertyQName), propertyValues);
-    }
-
     public <X> PropertyDelta<X> addModificationReplaceProperty(ItemPath propertyPath, X... propertyValues) {
     	return fillInModificationReplaceProperty(this, propertyPath, propertyValues);
     }
@@ -957,56 +922,32 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
         fillInModificationReplaceReference(this, refPath, refValues);
     }
 
-    public <X> void addModificationAddProperty(QName propertyQName, X... propertyValues) {
-    	addModificationAddProperty(new ItemPath(propertyQName), propertyValues);
-    }
-
     public <X> void addModificationAddProperty(ItemPath propertyPath, X... propertyValues) {
     	fillInModificationAddProperty(this, propertyPath, propertyValues);
     }
 
     public <X> void addModificationDeleteProperty(QName propertyQName, X... propertyValues) {
-    	addModificationDeleteProperty(new ItemPath(propertyQName), propertyValues);
+    	addModificationDeleteProperty(prismContext.path(propertyQName), propertyValues);
     }
 
     public <X> void addModificationDeleteProperty(ItemPath propertyPath, X... propertyValues) {
     	fillInModificationDeleteProperty(this, propertyPath, propertyValues);
     }
 
-    public <C extends Containerable> void addModificationAddContainer(QName propertyQName, C... containerables) throws SchemaException {
-    	addModificationAddContainer(new ItemPath(propertyQName), containerables);
-    }
-
     public <C extends Containerable> void addModificationAddContainer(ItemPath propertyPath, C... containerables) throws SchemaException {
     	fillInModificationAddContainer(this, propertyPath, prismContext, containerables);
-    }
-
-    public <C extends Containerable> void addModificationAddContainer(QName propertyQName, PrismContainerValue<C>... containerValues) {
-    	addModificationAddContainer(new ItemPath(propertyQName), containerValues);
     }
 
     public <C extends Containerable> void addModificationAddContainer(ItemPath propertyPath, PrismContainerValue<C>... containerValues) {
     	fillInModificationAddContainer(this, propertyPath, containerValues);
     }
 
-    public <C extends Containerable> void addModificationDeleteContainer(QName propertyQName, C... containerables) throws SchemaException {
-    	addModificationDeleteContainer(new ItemPath(propertyQName), containerables);
-    }
-
     public <C extends Containerable> void addModificationDeleteContainer(ItemPath propertyPath, C... containerables) throws SchemaException {
     	fillInModificationDeleteContainer(this, propertyPath, prismContext, containerables);
     }
 
-    public <C extends Containerable> void addModificationDeleteContainer(QName propertyQName, PrismContainerValue<C>... containerValues) {
-    	addModificationDeleteContainer(new ItemPath(propertyQName), containerValues);
-    }
-
     public <C extends Containerable> void addModificationDeleteContainer(ItemPath propertyPath, PrismContainerValue<C>... containerValues) {
     	fillInModificationDeleteContainer(this, propertyPath, containerValues);
-    }
-
-    public <C extends Containerable> void addModificationReplaceContainer(QName propertyQName, PrismContainerValue<C>... containerValues) {
-    	addModificationReplaceContainer(new ItemPath(propertyQName), containerValues);
     }
 
     public <C extends Containerable> void addModificationReplaceContainer(ItemPath propertyPath, PrismContainerValue<C>... containerValues) {
@@ -1054,19 +995,19 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
     }
 
     public void addModificationAddReference(QName propertyQName, PrismReferenceValue... refValues) {
-    	fillInModificationAddReference(this, new ItemPath(propertyQName), refValues);
+    	fillInModificationAddReference(this, prismContext.path(propertyQName), refValues);
     }
 
     public void addModificationDeleteReference(QName propertyQName, PrismReferenceValue... refValues) {
-    	fillInModificationDeleteReference(this, new ItemPath(propertyQName), refValues);
+    	fillInModificationDeleteReference(this, prismContext.path(propertyQName), refValues);
     }
 
     public void addModificationReplaceReference(QName propertyQName, PrismReferenceValue... refValues) {
-    	fillInModificationReplaceReference(this, new ItemPath(propertyQName), refValues);
+    	fillInModificationReplaceReference(this, prismContext.path(propertyQName), refValues);
     }
 
     protected static <O extends Objectable> void fillInModificationReplaceReference(ObjectDeltaImpl<O> objectDelta,
-                                                                                       ItemPath refPath, PrismReferenceValue... refValues) {
+		    ItemPath refPath, PrismReferenceValue... refValues) {
         ReferenceDelta refDelta = objectDelta.createReferenceModification(refPath);
         if (refValues != null) {
             refDelta.setValuesToReplace(refValues);
@@ -1100,11 +1041,6 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
 
 
     public static <O extends Objectable, C extends Containerable> ObjectDeltaImpl<O> createModificationAddContainer(Class<O> type, String oid,
-    		QName propertyName, PrismContext prismContext, PrismContainerValue<C>... containerValues) {
-    	return createModificationAddContainer(type, oid, new ItemPath(propertyName), prismContext, containerValues);
-    }
-
-    public static <O extends Objectable, C extends Containerable> ObjectDeltaImpl<O> createModificationAddContainer(Class<O> type, String oid,
     		ItemPath propertyPath, PrismContext prismContext, PrismContainerValue<C>... containerValues) {
     	ObjectDeltaImpl<O> objectDelta = new ObjectDeltaImpl<>(type, ChangeType.MODIFY, prismContext);
     	objectDelta.setOid(oid);
@@ -1114,7 +1050,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
 
     public static <O extends Objectable, C extends Containerable> ObjectDeltaImpl<O> createModificationAddContainer(Class<O> type, String oid,
     		QName propertyName, PrismContext prismContext, C... containerValues) throws SchemaException {
-    	return createModificationAddContainer(type, oid, new ItemPath(propertyName), prismContext, containerValues);
+    	return createModificationAddContainer(type, oid, prismContext.path(propertyName), prismContext, containerValues);
     }
 
     public static <O extends Objectable, C extends Containerable> ObjectDeltaImpl<O> createModificationAddContainer(Class<O> type, String oid,
@@ -1134,7 +1070,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
     @SafeVarargs
 	public static <O extends Objectable, C extends Containerable> ObjectDeltaImpl<O> createModificationDeleteContainer(Class<O> type,
     		String oid, QName containerName, PrismContext prismContext, PrismContainerValue<C>... containerValues) {
-    	return createModificationDeleteContainer(type, oid, new ItemPath(containerName), prismContext, containerValues);
+    	return createModificationDeleteContainer(type, oid, prismContext.path(containerName), prismContext, containerValues);
     }
 
     public static <O extends Objectable, C extends Containerable> ObjectDeltaImpl<O> createModificationDeleteContainer(Class<O> type, String oid, ItemPath containerPath,
@@ -1147,7 +1083,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
 
     public static <O extends Objectable, C extends Containerable> ObjectDeltaImpl<O> createModificationDeleteContainer(Class<O> type, String oid,
     		QName containerName, PrismContext prismContext, C... containerValues) throws SchemaException {
-    	return createModificationDeleteContainer(type, oid, new ItemPath(containerName), prismContext, containerValues);
+    	return createModificationDeleteContainer(type, oid, prismContext.path(containerName), prismContext, containerValues);
     }
 
     public static <O extends Objectable, C extends Containerable> ObjectDeltaImpl<O> createModificationDeleteContainer(Class<O> type, String oid,
@@ -1173,11 +1109,6 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
     	}
     }
 
-    public static <O extends Objectable, C extends Containerable> ObjectDeltaImpl<O> createModificationReplaceContainer(Class<O> type,
-    		String oid, QName containerName, PrismContext prismContext, PrismContainerValue<C>... containerValues) {
-    	return createModificationReplaceContainer(type, oid, new ItemPath(containerName), prismContext, containerValues);
-    }
-
     public static <O extends Objectable, C extends Containerable> ObjectDeltaImpl<O> createModificationReplaceContainer(Class<O> type, String oid, ItemPath containerPath,
     		PrismContext prismContext, PrismContainerValue<C>... containerValues) {
     	ObjectDeltaImpl<O> objectDelta = new ObjectDeltaImpl<>(type, ChangeType.MODIFY, prismContext);
@@ -1188,7 +1119,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
 
     public static <O extends Objectable, C extends Containerable> ObjectDeltaImpl<O> createModificationReplaceContainer(Class<O> type, String oid,
     		QName propertyName, PrismContext prismContext, C... containerValues) throws SchemaException {
-    	return createModificationReplaceContainer(type, oid, new ItemPath(propertyName), prismContext, containerValues);
+    	return createModificationReplaceContainer(type, oid, prismContext.path(propertyName), prismContext, containerValues);
     }
 
     protected static <O extends Objectable, C extends Containerable> void fillInModificationAddContainer(
@@ -1279,7 +1210,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
     	ObjectDeltaImpl<O> objectDelta = new ObjectDeltaImpl<>(type, ChangeType.MODIFY, prismContext);
     	objectDelta.setOid(oid);
     	PrismObjectDefinition<O> objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
-    	PrismReferenceDefinition refDef = objDef.findReferenceDefinition(propertyName);
+    	PrismReferenceDefinition refDef = objDef.findReferenceDefinition(ItemName.fromQName(propertyName));
     	ReferenceDelta referenceDelta = objectDelta.createReferenceModification(propertyName, refDef);
     	Collection<PrismReferenceValue> valuesToReplace = new ArrayList<>(referenceObjects.length);
     	for (PrismObject<?> refObject: referenceObjects) {
@@ -1309,7 +1240,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
     	ObjectDeltaImpl<O> objectDelta = new ObjectDeltaImpl<>(type, ChangeType.MODIFY, prismContext);
     	objectDelta.setOid(oid);
     	PrismObjectDefinition<O> objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
-    	PrismReferenceDefinition refDef = objDef.findReferenceDefinition(propertyName);
+    	PrismReferenceDefinition refDef = objDef.findReferenceDefinition(ItemName.fromQName(propertyName));
     	ReferenceDelta referenceDelta = objectDelta.createReferenceModification(propertyName, refDef);
     	Collection<PrismReferenceValue> valuesToAdd = new ArrayList<>(referenceValues.length);
     	for (PrismReferenceValue refVal: referenceValues) {
@@ -1338,7 +1269,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
     	ObjectDeltaImpl<O> objectDelta = new ObjectDeltaImpl<>(type, ChangeType.MODIFY, prismContext);
     	objectDelta.setOid(oid);
     	PrismObjectDefinition<O> objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
-    	PrismReferenceDefinition refDef = objDef.findReferenceDefinition(propertyName);
+    	PrismReferenceDefinition refDef = objDef.findReferenceDefinition(ItemName.fromQName(propertyName));
     	ReferenceDelta referenceDelta = objectDelta.createReferenceModification(propertyName, refDef);
     	Collection<PrismReferenceValue> valuesToDelete = new ArrayList<>(referenceValues.length);
     	for (PrismReferenceValue refVal: referenceValues) {
@@ -1691,7 +1622,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
 	 * @param paths
 	 * @return
 	 */
-	public ObjectDeltaImpl<O> subtract(@NotNull Collection<ItemPath> paths) {
+	public ObjectDeltaImpl<O> subtract(@NotNull Collection<UniformItemPath> paths) {
 		if (!isModify()) {
 			throw new UnsupportedOperationException("Only for MODIFY deltas, not for " + this);
 		}
@@ -1728,7 +1659,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
 	}
 
 	@NotNull
-	public FactorOutResultSingle<O> factorOut(Collection<ItemPath> paths, boolean cloneDelta) {
+	public FactorOutResultSingle<O> factorOut(Collection<UniformItemPath> paths, boolean cloneDelta) {
 		if (isAdd()) {
 			return factorOutForAddDelta(paths, cloneDelta);
 		} else if (isDelete()) {
@@ -1739,7 +1670,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
 	}
 
 	@NotNull
-	public FactorOutResultMulti<O> factorOutValues(ItemPath path, boolean cloneDelta) throws SchemaException {
+	public FactorOutResultMulti<O> factorOutValues(UniformItemPath path, boolean cloneDelta) throws SchemaException {
 		if (isAdd()) {
 			return factorOutValuesForAddDelta(path, cloneDelta);
 		} else if (isDelete()) {
@@ -1758,13 +1689,13 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
 	 * involving splitting value-to-be-added into remainder and offspring delta. It's probably doable,
 	 * but some conditions would have to be met, e.g. inducement to be added must have an ID.
 	 */
-	private FactorOutResultSingle<O> factorOutForModifyDelta(Collection<ItemPath> paths, boolean cloneDelta) {
+	private FactorOutResultSingle<O> factorOutForModifyDelta(Collection<UniformItemPath> paths, boolean cloneDelta) {
 		ObjectDeltaImpl<O> remainder = cloneIfRequested(cloneDelta);
 		ObjectDeltaImpl<O> offspring = null;
 		List<ItemDelta<?, ?>> modificationsFound = new ArrayList<>();
 		for (Iterator<? extends ItemDelta<?, ?>> iterator = remainder.modifications.iterator(); iterator.hasNext(); ) {
 			ItemDelta<?, ?> modification = iterator.next();
-			if (ItemPath.containsSubpathOrEquivalent(paths, modification.getPath())) {
+			if (ItemPathCollectionsUtil.containsSubpathOrEquivalent(paths, modification.getPath())) {
 				modificationsFound.add(modification);
 				iterator.remove();
 			}
@@ -1776,9 +1707,9 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
 		return new FactorOutResultSingle<>(remainder, offspring);
 	}
 
-	private FactorOutResultSingle<O> factorOutForAddDelta(Collection<ItemPath> paths, boolean cloneDelta) {
+	private FactorOutResultSingle<O> factorOutForAddDelta(Collection<UniformItemPath> paths, boolean cloneDelta) {
 		List<Item<?, ?>> itemsFound = new ArrayList<>();
-		for (ItemPath path : paths) {
+		for (UniformItemPath path : paths) {
 			Item<?, ?> item = objectToAdd.findItem(path);
 			if (item != null && !item.isEmpty()) {
 				itemsFound.add(item);
@@ -1809,7 +1740,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
 	 * involving splitting value-to-be-added into remainder and offspring delta. It's probably doable,
 	 * but some conditions would have to be met, e.g. inducement to be added must have an ID.
 	 */
-	private FactorOutResultMulti<O> factorOutValuesForModifyDelta(ItemPath path, boolean cloneDelta) throws SchemaException {
+	private FactorOutResultMulti<O> factorOutValuesForModifyDelta(UniformItemPath path, boolean cloneDelta) throws SchemaException {
 		ObjectDeltaImpl<O> remainder = cloneIfRequested(cloneDelta);
 		FactorOutResultMulti<O> rv = new FactorOutResultMulti<>(remainder);
 
@@ -1840,8 +1771,8 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
 				iterator.remove();
 			} else if (path.isSubPath(modification.getPath())) {
 				// e.g. factoring inducement, having REPLACE(inducement[x]/activation/validTo, ...) or ADD(inducement[x]/activation)
-				ItemPath remainingPath = modification.getPath().remainder(path);
-				Long id = remainingPath.getFirstIdSegment() != null ? remainingPath.getFirstIdSegment().getId() : null;
+				UniformItemPath remainingPath = modification.getPath().remainder(path);
+				Long id = remainingPath.firstToIdOrNull();
 				modificationsForId.put(id, modification);
 				iterator.remove();
 			}
@@ -1870,7 +1801,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
 		return delta;
 	}
 
-	private FactorOutResultMulti<O> factorOutValuesForAddDelta(ItemPath path, boolean cloneDelta) {
+	private FactorOutResultMulti<O> factorOutValuesForAddDelta(UniformItemPath path, boolean cloneDelta) {
 		Item<?, ?> item = objectToAdd.findItem(path);
 		if (item == null || item.isEmpty()) {
 			return new FactorOutResultMulti<>(this);
@@ -1896,7 +1827,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
 	 * @param dryRun only testing if value could be subtracted; not changing anything
 	 * @return true if the delta originally contained an instruction to add (or set) 'itemPath' to 'value'.
 	 */
-    public boolean subtract(@NotNull ItemPath itemPath, @NotNull PrismValue value, boolean fromMinusSet, boolean dryRun) {
+    public boolean subtract(@NotNull UniformItemPath itemPath, @NotNull PrismValue value, boolean fromMinusSet, boolean dryRun) {
 		if (isAdd()) {
 			return !fromMinusSet && subtractFromObject(objectToAdd, itemPath, value, dryRun);
 		} else {
@@ -1905,7 +1836,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
 	}
 
 	public static boolean subtractFromModifications(Collection<? extends ItemDelta<?, ?>> modifications,
-			@NotNull ItemPath itemPath, @NotNull PrismValue value, boolean fromMinusSet, boolean dryRun) {
+			@NotNull UniformItemPath itemPath, @NotNull PrismValue value, boolean fromMinusSet, boolean dryRun) {
 		if (modifications == null) {
 			return false;
 		}
@@ -1942,7 +1873,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
 		return wasPresent;
 	}
 
-	public static boolean subtractFromObject(@NotNull PrismObject<?> object, @NotNull ItemPath itemPath,
+	public static boolean subtractFromObject(@NotNull PrismObject<?> object, @NotNull UniformItemPath itemPath,
 			@NotNull PrismValue value, boolean dryRun) {
 		Item<PrismValue, ItemDefinition> item = object.findItem(itemPath);
 		if (item == null) {
@@ -1956,14 +1887,14 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
 	}
 
 	@NotNull
-	public List<ItemPath> getModifiedItems() {
+	public List<UniformItemPath> getModifiedItems() {
 		if (!isModify()) {
 			throw new UnsupportedOperationException("Supported only for modify deltas");
 		}
 		return modifications.stream().map(ItemDelta::getPath).collect(Collectors.toList());
 	}
 
-	public List<PrismValue> getNewValuesFor(ItemPath itemPath) {
+	public List<PrismValue> getNewValuesFor(UniformItemPath itemPath) {
 		if (isAdd()) {
 			Item<PrismValue, ItemDefinition> item = objectToAdd.findItem(itemPath);
 			return item != null ? item.getValues() : Collections.emptyList();
@@ -1994,7 +1925,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
 	 * (only ID could be provided on PCVs).
 	 */
 	@SuppressWarnings("unused")			// used from scripts
-	public List<PrismValue> getDeletedValuesFor(ItemPath itemPath) {
+	public List<PrismValue> getDeletedValuesFor(UniformItemPath itemPath) {
 		if (isAdd()) {
 			return Collections.emptyList();
 		} else if (isDelete()) {

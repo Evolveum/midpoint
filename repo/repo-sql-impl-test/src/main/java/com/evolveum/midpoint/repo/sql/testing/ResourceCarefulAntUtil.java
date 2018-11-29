@@ -25,13 +25,13 @@ import java.util.List;
 import java.util.Random;
 
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
@@ -70,7 +70,7 @@ public class ResourceCarefulAntUtil {
 			public ItemDelta<?,?> createDelta(int iteration) throws SchemaException {
 				schemaHandling = createNewSchemaHandling(resourceFile, iteration, prismContext);
 				return ContainerDeltaImpl.createModificationReplace(ResourceType.F_SCHEMA_HANDLING,
-						prismContext.getSchemaRegistry().findContainerDefinitionByCompileTimeClass(SchemaHandlingType.class),
+						prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceType.class),
 						schemaHandling.asPrismContainerValue().clone());
 			}
 			@Override
@@ -90,7 +90,7 @@ public class ResourceCarefulAntUtil {
 			public ItemDelta<?,?> createDelta(int iteration) throws SchemaException {
 				xmlSchemaDef = createNewXmlSchemaDef(resourceFile, iteration, prismContext);
 				return PropertyDeltaImpl.createModificationReplaceProperty(
-						new ItemPath(ResourceType.F_SCHEMA, XmlSchemaType.F_DEFINITION),
+						ItemPath.create(ResourceType.F_SCHEMA, XmlSchemaType.F_DEFINITION),
 						resourceDef, xmlSchemaDef);
 			}
 			@Override

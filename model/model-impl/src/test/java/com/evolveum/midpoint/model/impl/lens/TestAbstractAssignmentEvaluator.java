@@ -36,6 +36,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,9 +63,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -222,10 +220,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 		AssignmentType assignmentType = unmarshallValueFromFile(ASSIGNMENT_DIRECT_EXPRESSION_FILE, AssignmentType.class);
 		user.asObjectable().getAssignment().add(assignmentType.clone());
 
-		ItemPath path = new ItemPath(
-				new NameItemPathSegment(UserType.F_ASSIGNMENT),
-				new IdItemPathSegment(123L),
-				new NameItemPathSegment(AssignmentType.F_DESCRIPTION));
+		ItemPath path = ItemPath.create(UserType.F_ASSIGNMENT, 123L, AssignmentType.F_DESCRIPTION);
 		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, USER_JACK_OID,
 				path, prismContext, "captain");
 		ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(user, userDelta, null);
@@ -291,10 +286,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 //		PrismContainer<AssignmentType> assignmentContainer = assignmentContainerDefinition.instantiate();
 //		assignmentContainer.add(assignmentType.asPrismContainerValue().clone());
 
-		ItemPath path = new ItemPath(
-				new NameItemPathSegment(UserType.F_ASSIGNMENT),
-				new IdItemPathSegment(123L),
-				new NameItemPathSegment(AssignmentType.F_DESCRIPTION));
+		ItemPath path = ItemPath.create(UserType.F_ASSIGNMENT, 123L, AssignmentType.F_DESCRIPTION);
 		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, USER_JACK_OID,
 				path, prismContext, "sailor");
 		ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(user, userDelta, null);

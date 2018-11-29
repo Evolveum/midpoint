@@ -33,6 +33,7 @@ import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeListener;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.SchemaHelper;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -168,6 +169,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     transient TaskService taskService;
     @Autowired
     transient PrismContext prismContext;
+    @Autowired
+    transient SchemaHelper schemaHelper;
     @Autowired
     transient ExpressionFactory expressionFactory;
     @Autowired
@@ -486,6 +489,10 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
     public PrismContext getPrismContext() {
         return prismContext;
+    }
+
+    public SchemaHelper getSchemaHelper() {
+        return schemaHelper;
     }
 
     public ExpressionFactory getExpressionFactory() {

@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -55,7 +56,7 @@ public interface PrismValue extends Visitable, PathVisitable, Serializable, Debu
 	void setParent(Itemable parent);
 
 	@NotNull
-	ItemPath getPath();
+	UniformItemPath getPath();
 
 	/**
 	 * Used when we are removing the value from the previous parent.

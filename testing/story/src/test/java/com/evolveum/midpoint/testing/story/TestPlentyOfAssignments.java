@@ -36,7 +36,7 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -137,7 +137,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
 		generateRoles(NUMBER_OF_GENERATED_DUMMY_ROLES, "Dummy Role %04d", GENERATED_DUMMY_ROLE_OID_FORMAT,
 				(role,i) -> {
 					ItemPathType attrPath = new ItemPathType(
-							new ItemPath(new QName(RESOURCE_DUMMY_NS, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME)));
+							prismContext.path(new QName(RESOURCE_DUMMY_NS, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME)));
 					JAXBElement<Object> evaluator = objectFactory.createValue(formatRum(i));
 					role
 						.beginInducement()
@@ -355,7 +355,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         ObjectClassComplexTypeDefinition rOcDef = rSchema.findObjectClassDefinition(getDummyResourceController().getGroupObjectClass());
 
         ObjectFactory objectFactory = new ObjectFactory();
-        ItemPath nameAttributePath = new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME);
+        UniformItemPath nameAttributePath = prismContext.path(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME);
         for (int i=0; i<NUMBER_OF_GENERATED_DUMMY_GROUPS; i++) {
         	PrismObject<ShadowType> shadow = shadowDef.instantiate();
         	ShadowType shadowType = shadow.asObjectable();
@@ -371,7 +371,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
 
         	PrismObject<RoleType> role = roleDef.instantiate();
         	RoleType roleType = role.asObjectable();
-        	ItemPathType assPath = new ItemPathType(new ItemPath(RESOURCE_DUMMY_ASSOCIATION_GROUP_QNAME));
+        	ItemPathType assPath = new ItemPathType(prismContext.path(RESOURCE_DUMMY_ASSOCIATION_GROUP_QNAME));
 			SearchObjectExpressionEvaluatorType associationTargetSearchType = new SearchObjectExpressionEvaluatorType();
 			EqualFilter<String> filter = EqualFilter.createEqual(nameAttributePath, null, null, prismContext, groupName);
 

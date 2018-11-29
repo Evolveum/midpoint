@@ -249,8 +249,9 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 		assertEquals("Wrong policy situation", emptyList(), roleAfter.asObjectable().getPolicySituation());
 		assertEquals("Wrong triggered policy rules", emptyList(), roleAfter.asObjectable().getTriggeredPolicyRule());
 
-		Collection<SelectorOptions<GetOperationOptions>> options =
-				GetOperationOptions.retrieveItemsNamed(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_WORK_ITEM);
+		Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+				.item(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_WORK_ITEM).retrieve()
+				.build();
 		List<PrismObject<TaskType>> tasks = getTasksForObject(roleCorrectOid, RoleType.COMPLEX_TYPE, options, task, result);
 		display("tasks for role", tasks);
 		assertEquals("Wrong # of approval tasks for role", 2, tasks.size());
@@ -329,8 +330,9 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 		assertEquals("Wrong policy situation", emptyList(), roleAfter.asObjectable().getPolicySituation());
 		assertEquals("Wrong triggered policy rules", emptyList(), roleAfter.asObjectable().getTriggeredPolicyRule());
 
-		Collection<SelectorOptions<GetOperationOptions>> options =
-				GetOperationOptions.retrieveItemsNamed(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_WORK_ITEM);
+		Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+				.item(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_WORK_ITEM).retrieve()
+				.build();
 		List<PrismObject<TaskType>> tasks = getTasksForObject(roleCorrectHighRiskOid, RoleType.COMPLEX_TYPE, options, task, result);
 		display("tasks for role", tasks);
 		assertEquals("Wrong # of approval tasks for role", 2, tasks.size());

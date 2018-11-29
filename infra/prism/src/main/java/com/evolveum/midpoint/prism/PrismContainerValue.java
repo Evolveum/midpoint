@@ -15,7 +15,9 @@
  */
 package com.evolveum.midpoint.prism;
 
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -91,7 +93,7 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 	PrismContainer<C> getContainer();
 
 	@NotNull
-	ItemPath getPath();
+	UniformItemPath getPath();
 
 	// For compatibility with other PrismValue types
 	C getValue();
@@ -164,7 +166,7 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 
 	boolean contains(Item item);
 
-	boolean contains(QName itemName);
+	boolean contains(ItemName itemName);
 
 	static <C extends Containerable> boolean containsRealValue(Collection<PrismContainerValue<C>> cvalCollection,
 			PrismContainerValue<C> cval) {
@@ -179,9 +181,6 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
     Object find(ItemPath path);
 
 	<IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path);
-
-	@SuppressWarnings("unchecked")
-	<X> PrismProperty<X> findProperty(QName propertyQName);
 
 	<X> PrismProperty<X> findProperty(ItemPath propertyPath);
 
@@ -201,13 +200,14 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 
 	PrismReference findReferenceByCompositeObjectElementName(QName elementName);
 
-	<IV extends PrismValue,ID extends ItemDefinition, I extends Item<IV,ID>> I findItem(QName itemName, Class<I> type);
+	<IV extends PrismValue,ID extends ItemDefinition, I extends Item<IV,ID>> I findItem(ItemPath itemName, Class<I> type);
 
-	<IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> findItem(String itemName);
+//	<IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> findItem(String itemName);
 
-	<IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> findItem(QName itemName);
-
-	<IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> findItem(ItemPath itemPath);
+	default <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> findItem(ItemPath itemPath) {
+		//noinspection unchecked
+		return (Item<IV,ID>) findItem(itemPath, Item.class);
+	}
 
 	<IV extends PrismValue,ID extends ItemDefinition, I extends Item<IV,ID>> I findItem(ItemDefinition itemDefinition,
 			Class<I> type);
@@ -229,8 +229,8 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 	<IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findOrCreateItem(ItemPath path, Class<I> type,
 			ID definition) throws SchemaException;
 
-	<X> PrismProperty<X> findOrCreateProperty(QName propertyQName) throws SchemaException;
-
+//	<X> PrismProperty<X> findOrCreateProperty(QName propertyQName) throws SchemaException;
+//
 	<X> PrismProperty<X> findOrCreateProperty(ItemPath propertyPath) throws SchemaException;
 
 	<X> PrismProperty<X> findOrCreateProperty(PrismPropertyDefinition propertyDef) throws SchemaException;
@@ -239,15 +239,9 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 
 	<X> PrismProperty<X> createProperty(PrismPropertyDefinition propertyDefinition) throws SchemaException;
 
-	void removeProperty(QName propertyName);
+	void removeProperty(ItemPath path);
 
-	void removeProperty(ItemPath propertyPath);
-
-	void removeContainer(QName containerName);
-
-	void removeContainer(ItemPath itemPath);
-
-	void removeReference(QName name);
+	void removeContainer(ItemPath path);
 
 	void removeReference(ItemPath path);
 
@@ -408,16 +402,16 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 	void setOriginTypeRecursive(final OriginType originType);
 
 	// TODO optimize a bit + test thoroughly
-	void keepPaths(List<ItemPath> keep);
+	void keepPaths(List<UniformItemPath> keep);
 
 	// TODO optimize a bit + test thoroughly
-	void removePaths(List<ItemPath> remove);
+	void removePaths(List<UniformItemPath> remove);
 
 	@NotNull
 	@Override
 	Collection<PrismValue> getAllValues(ItemPath path);
 
-	void removeItems(List<ItemPath> itemsToRemove);
+	void removeItems(List<UniformItemPath> itemsToRemove);
 
 	void removeOperationalItems();
 

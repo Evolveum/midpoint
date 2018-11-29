@@ -18,20 +18,13 @@ package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 
-import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -130,8 +123,6 @@ public interface PrismContainer<C extends Containerable> extends Item<PrismConta
 
 	<T> void setPropertyRealValues(QName propertyName, T... realValues) throws SchemaException;
 
-	<T> T getPropertyRealValue(QName propertyName, Class<T> type);
-
 	<T> T getPropertyRealValue(ItemPath propertyPath, Class<T> type);
 
 	/**
@@ -186,8 +177,6 @@ public interface PrismContainer<C extends Containerable> extends Item<PrismConta
 	@Override
 	<IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path);
 
-	<IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> findItem(QName itemQName);
-
 	<IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findCreateItem(QName itemQName, Class<I> type, boolean create) throws SchemaException;
 
 	<IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findItem(ItemPath path, Class<I> type);
@@ -202,8 +191,6 @@ public interface PrismContainer<C extends Containerable> extends Item<PrismConta
 
 	<T extends Containerable> PrismContainer<T> findContainer(ItemPath path);
 
-	<T extends Containerable> PrismContainer<T> findContainer(QName containerName);
-
 	<I extends Item<?,?>> List<I> getItems(Class<I> type);
 
 	@SuppressWarnings("unchecked")
@@ -211,11 +198,7 @@ public interface PrismContainer<C extends Containerable> extends Item<PrismConta
 
 	<T> PrismProperty<T> findProperty(ItemPath path);
 
-	<T> PrismProperty<T> findProperty(QName propertyQName);
-
 	PrismReference findReference(ItemPath path);
-
-	PrismReference findReference(QName referenceQName);
 
 	PrismReference findReferenceByCompositeObjectElementName(QName elementName);
 
@@ -227,15 +210,13 @@ public interface PrismContainer<C extends Containerable> extends Item<PrismConta
 	<IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findOrCreateItem(ItemPath containerPath,
 			Class<I> type, ID definition) throws SchemaException;
 
-	<T extends Containerable> PrismContainer<T> findOrCreateContainer(ItemPath containerPath) throws SchemaException;
+	<T extends Containerable> PrismContainer<T> findOrCreateContainer(UniformItemPath containerPath) throws SchemaException;
 
 	<T extends Containerable> PrismContainer<T> findOrCreateContainer(QName containerName) throws SchemaException;
 
 	<T> PrismProperty<T> findOrCreateProperty(ItemPath propertyPath) throws SchemaException;
 
-	<T> PrismProperty<T> findOrCreateProperty(QName propertyName) throws SchemaException;
-
-	PrismReference findOrCreateReference(ItemPath propertyPath) throws SchemaException;
+	PrismReference findOrCreateReference(UniformItemPath propertyPath) throws SchemaException;
 
 	PrismReference findOrCreateReference(QName propertyName) throws SchemaException;
 
@@ -244,15 +225,9 @@ public interface PrismContainer<C extends Containerable> extends Item<PrismConta
      */
 	void remove(Item<?, ?> item);
 
-	void removeProperty(QName propertyQName);
-
 	void removeProperty(ItemPath path);
 
-	void removeContainer(QName containerQName);
-
 	void removeContainer(ItemPath path);
-
-	void removeReference(QName referenceQName);
 
 	void removeReference(ItemPath path);
 
@@ -371,6 +346,6 @@ public interface PrismContainer<C extends Containerable> extends Item<PrismConta
 	 * Works recursively by sub-containers of this one.
 	 * USE WITH CARE. Make sure the definitions are not shared by other objects!
 	 */
-	void trimDefinitionTree(Collection<ItemPath> alwaysKeep);
+	void trimDefinitionTree(Collection<UniformItemPath> alwaysKeep);
 
 }

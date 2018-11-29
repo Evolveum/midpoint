@@ -16,7 +16,7 @@
 package com.evolveum.midpoint.schema.parser;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
@@ -124,7 +124,7 @@ public class TestParseShadow extends AbstractObjectParserTest<ShadowType> {
 //				new PolyString("Davie Jones' Locker", "davie jones locker"));
 
 
-		ItemPath admStatusPath = new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
+		UniformItemPath admStatusPath = getPrismContext().path(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
 		PrismProperty<ActivationStatusType> admStatusProperty1 = shadow.findProperty(admStatusPath);
 		PrismAsserts.assertDefinition(admStatusProperty1.getDefinition(), ActivationType.F_ADMINISTRATIVE_STATUS, SchemaConstants.C_ACTIVATION_STATUS_TYPE, 0, 1);
 		assertNotNull("Property "+admStatusPath+" not found", admStatusProperty1);

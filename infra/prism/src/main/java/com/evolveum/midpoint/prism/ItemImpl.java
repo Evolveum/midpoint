@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -49,7 +51,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
     // The object should basically work without definition and prismContext. This is the
 	// usual case when it is constructed "out of the blue", e.g. as a new JAXB object
 	// It may not work perfectly, but basic things should work
-    protected QName elementName;
+    protected ItemName elementName;
     protected PrismValue parent;
     protected D definition;
     @NotNull protected final List<V> values = new ArrayList<>();
@@ -68,12 +70,12 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
      */
     ItemImpl(QName elementName) {
         super();
-        this.elementName = elementName;
+        this.elementName = ItemName.fromQName(elementName);
     }
 
     ItemImpl(QName elementName, PrismContext prismContext) {
         super();
-        this.elementName = elementName;
+        this.elementName = ItemName.fromQName(elementName);
         this.prismContext = prismContext;
     }
 
@@ -84,7 +86,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
      */
     ItemImpl(QName elementName, D definition, PrismContext prismContext) {
         super();
-        this.elementName = elementName;
+        this.elementName = ItemName.fromQName(elementName);
         this.definition = definition;
         this.prismContext = prismContext;
     }
@@ -119,7 +121,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
      * @return property name
      */
     @Override
-    public QName getElementName() {
+    public ItemName getElementName() {
         return elementName;
     }
 
@@ -137,7 +139,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
     @Override
     public void setElementName(QName elementName) {
 		checkMutability();
-        this.elementName = elementName;
+        this.elementName = ItemName.fromQName(elementName);
     }
 
     /**
@@ -236,11 +238,12 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
     	this.parent = parentValue;
     }
 
-    public ItemPath getPath() {
+    @NotNull
+    public UniformItemPath getPath() {
     	 if (parent == null) {
-    		 return new ItemPath(getElementName());
+    		 return prismContext.path(getElementName());
     	 }
-    	 return parent.getPath().subPath(getElementName());
+    	 return parent.getPath().append(getElementName());
     }
 
     public Map<String, Object> getUserData() {
@@ -709,7 +712,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
 
 
     public void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw, ConsistencyCheckScope scope) {
-    	ItemPath path = getPath();
+    	UniformItemPath path = getPath();
     	if (elementName == null) {
     		throw new IllegalStateException("Item "+this+" has no name ("+path+" in "+rootItem+")");
     	}

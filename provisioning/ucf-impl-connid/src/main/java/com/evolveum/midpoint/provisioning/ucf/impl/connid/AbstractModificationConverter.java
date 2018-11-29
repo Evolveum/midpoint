@@ -35,7 +35,6 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorOperationOptions;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
@@ -194,7 +193,7 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
 				PropertyModificationOperation change = (PropertyModificationOperation) operation;
 				PropertyDelta<?> delta = change.getPropertyDelta();
 
-				if (delta.getParentPath().equivalent(new ItemPath(ShadowType.F_ATTRIBUTES))) {
+				if (delta.getParentPath().equivalent(ShadowType.F_ATTRIBUTES)) {
 					if (delta.getDefinition() == null || !(delta.getDefinition() instanceof ResourceAttributeDefinition)) {
 						ResourceAttributeDefinition def = objectClassDef
 								.findAttributeDefinition(delta.getElementName());
@@ -251,11 +250,11 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
 					String connIdAttrName = connIdNameMapper.convertAttributeNameToConnId(delta, objectClassDef);
 					collect(connIdAttrName, delta, isInModifiedAuxilaryClass);
 					
-				} else if (delta.getParentPath().equivalent(new ItemPath(ShadowType.F_ACTIVATION))) {
+				} else if (delta.getParentPath().equivalent(ShadowType.F_ACTIVATION)) {
 					convertFromActivation(delta);
 				} else if (delta.getParentPath().equivalent(SchemaConstants.PATH_PASSWORD)) {
 					convertFromPassword((PropertyDelta<ProtectedStringType>) delta);
-				} else if (delta.getPath().equivalent(new ItemPath(ShadowType.F_AUXILIARY_OBJECT_CLASS))) {
+				} else if (delta.getPath().equivalent(ShadowType.F_AUXILIARY_OBJECT_CLASS)) {
 					// already processed
 				} else {
 					throw new SchemaException("Change of unknown attribute " + delta.getPath());
@@ -389,7 +388,7 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
 			}
 			if (operation instanceof PropertyModificationOperation) {
 				PropertyDelta<?> delta = ((PropertyModificationOperation)operation).getPropertyDelta();
-				if (delta.getPath().equivalent(new ItemPath(ShadowType.F_AUXILIARY_OBJECT_CLASS))) {
+				if (delta.getPath().equivalent(ShadowType.F_AUXILIARY_OBJECT_CLASS)) {
 					auxiliaryObjectClassDelta = (PropertyDelta<QName>) delta;
 				}
 			}

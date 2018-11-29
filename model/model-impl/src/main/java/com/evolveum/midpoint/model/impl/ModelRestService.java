@@ -30,7 +30,8 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
@@ -742,7 +743,7 @@ public class ModelRestService {
 	}
 
 	private void removeExcludes(PrismObject<? extends ObjectType> object, List<String> exclude) {
-		object.getValue().removePaths(ItemPath.fromStringList(exclude));
+		object.getValue().removePaths(ItemPathCollectionsUtil.pathListFromStrings(exclude));
 	}
 
 	@POST
@@ -948,7 +949,7 @@ public class ModelRestService {
 		Response response;
 		try {
 			ResponseBuilder builder;
-			List<ItemPath> ignoreItemPaths = ItemPath.fromStringList(restIgnoreItems);
+			List<UniformItemPath> ignoreItemPaths = ItemPathCollectionsUtil.pathListFromStrings(restIgnoreItems);
 			final GetOperationOptions getOpOptions = GetOperationOptions.fromRestOptions(restReadOptions, DefinitionProcessingOption.ONLY_IF_EXISTS);
 			Collection<SelectorOptions<GetOperationOptions>> readOptions =
 					getOpOptions != null ? SelectorOptions.createCollection(getOpOptions) : null;

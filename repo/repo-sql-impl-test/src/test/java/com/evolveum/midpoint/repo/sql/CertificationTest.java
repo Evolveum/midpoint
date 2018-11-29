@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -52,15 +51,11 @@ import org.testng.annotations.Test;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.prism.delta.PropertyDeltaImpl.createModificationReplaceProperty;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createDistinct;
-import static com.evolveum.midpoint.schema.RetrieveOption.INCLUDE;
 import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType.F_OUTCOME;
@@ -151,9 +146,9 @@ public class CertificationTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("test210ModifyCaseProperties");
 
         List<ItemDelta<?, ?>> modifications = new ArrayList<>();
-        ItemPath case1 = new ItemPath(F_CASE).subPath(new IdItemPathSegment(1L));
-        modifications.add(createModificationReplaceProperty(case1.subPath(F_CURRENT_STAGE_OUTCOME), campaignDef, SchemaConstants.MODEL_CERTIFICATION_OUTCOME_REDUCE));
-        modifications.add(createModificationReplaceProperty(case1.subPath(AccessCertificationCaseType.F_STAGE_NUMBER), campaignDef, 300));
+        ItemPath case1 = ItemPath.create(F_CASE, 1L);
+        modifications.add(createModificationReplaceProperty(case1.append(F_CURRENT_STAGE_OUTCOME), campaignDef, SchemaConstants.MODEL_CERTIFICATION_OUTCOME_REDUCE));
+        modifications.add(createModificationReplaceProperty(case1.append(AccessCertificationCaseType.F_STAGE_NUMBER), campaignDef, 300));
 
         executeAndCheckModification(modifications, result, 0);
         checksCountsStandard(result);
@@ -714,8 +709,10 @@ public class CertificationTest extends BaseSQLRepoTest {
     }
 
     private PrismObject<AccessCertificationCampaignType> getFullCampaign(String campaignOid, OperationResult result) throws ObjectNotFoundException, SchemaException {
-        SelectorOptions<GetOperationOptions> retrieve = SelectorOptions.create(F_CASE, GetOperationOptions.createRetrieve(INCLUDE));
-        return repositoryService.getObject(AccessCertificationCampaignType.class, campaignOid, Collections.singletonList(retrieve), result);
+        Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
+                .item(F_CASE).retrieve()
+                .build();
+        return repositoryService.getObject(AccessCertificationCampaignType.class, campaignOid, options, result);
     }
 
     private PrismObject<AccessCertificationCampaignType> getFullCampaign(String oid) throws ObjectNotFoundException, SchemaException {

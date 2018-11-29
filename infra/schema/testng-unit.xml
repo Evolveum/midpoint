@@ -134,7 +134,6 @@
             <class name="com.evolveum.midpoint.schema.TestSchemaDelta"/>
             <class name="com.evolveum.midpoint.schema.TestSerialization"/>
             <class name="com.evolveum.midpoint.schema.TestOperationResult"/>
-            <class name="com.evolveum.midpoint.schema.util.SelectorOptionsTest"/>
             <class name="com.evolveum.midpoint.schema.TestEmptyItems"/>
             <class name="com.evolveum.midpoint.schema.TestMiscellaneous"/>
             <class name="com.evolveum.midpoint.schema.TestParseMisc"/>

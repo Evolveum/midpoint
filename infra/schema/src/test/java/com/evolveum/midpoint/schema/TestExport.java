@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -96,16 +95,16 @@ public class TestExport {
 		System.out.println("Reparsed:\n" + shadowReparsed.debugDump());
 		PrismAsserts.assertEquals("objects differ", shadow, shadowReparsed);
 
-		Item<?, ?> intAttributeReparsed = shadowReparsed.findItem(new ItemPath(ShadowType.F_ATTRIBUTES, INT_ATTRIBUTE_NAME));
+		Item<?, ?> intAttributeReparsed = shadowReparsed.findItem(prismContext.path(ShadowType.F_ATTRIBUTES, INT_ATTRIBUTE_NAME));
 		assertNotNull(intAttributeReparsed);
 		assertFalse(intAttributeReparsed.getValue(0).isRaw());
-		Item<?, ?> stringAttributeReparsed = shadowReparsed.findItem(new ItemPath(ShadowType.F_ATTRIBUTES, STRING_ATTRIBUTE_NAME));
+		Item<?, ?> stringAttributeReparsed = shadowReparsed.findItem(prismContext.path(ShadowType.F_ATTRIBUTES, STRING_ATTRIBUTE_NAME));
 		assertNotNull(stringAttributeReparsed);
 		assertFalse(stringAttributeReparsed.getValue(0).isRaw());
-		Item<?, ?> longExtensionReparsed = shadowReparsed.findItem(new ItemPath(ShadowType.F_EXTENSION, SchemaTestConstants.EXTENSION_LONG_TYPE_ELEMENT));
+		Item<?, ?> longExtensionReparsed = shadowReparsed.findItem(prismContext.path(ShadowType.F_EXTENSION, SchemaTestConstants.EXTENSION_LONG_TYPE_ELEMENT));
 		assertNotNull(longExtensionReparsed);
 		assertFalse(longExtensionReparsed.getValue(0).isRaw());
-		Item<?, ?> doubleExtensionReparsed = shadowReparsed.findItem(new ItemPath(ShadowType.F_EXTENSION, SchemaTestConstants.EXTENSION_DOUBLE_TYPE_ELEMENT));
+		Item<?, ?> doubleExtensionReparsed = shadowReparsed.findItem(prismContext.path(ShadowType.F_EXTENSION, SchemaTestConstants.EXTENSION_DOUBLE_TYPE_ELEMENT));
 		assertNotNull(doubleExtensionReparsed);
 		assertFalse(doubleExtensionReparsed.getValue(0).isRaw());
 	}

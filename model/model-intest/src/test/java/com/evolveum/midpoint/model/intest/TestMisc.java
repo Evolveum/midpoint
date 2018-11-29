@@ -38,7 +38,6 @@ import org.w3c.dom.Document;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RepositoryDiag;
@@ -151,7 +150,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         // WHEN
         displayWhen(TEST_NAME);
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null,
-        		SelectorOptions.createCollection(ItemPath.EMPTY_PATH, GetOperationOptions.createRaw()), task, result);
+        		SelectorOptions.createCollection(GetOperationOptions.createRaw()), task, result);
 
         // THEN
         displayThen(TEST_NAME);
@@ -438,7 +437,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 	 * connector and reused the pooled instances.
 	 * MID-3104
 	 */
-	@Test
+	@Test(enabled = false)
     public void test506ModifyResourceGetAccountJackResourceScripty() throws Exception {
 		final String TEST_NAME = "test506ModifyResourceGetAccountJackResourceScripty";
         displayTestTitle(TEST_NAME);
@@ -452,7 +451,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userBefore, 1);
         String accountOid = getSingleLinkOid(userBefore);
         PrismObject<ResourceType> resourceBefore = getObject(ResourceType.class, RESOURCE_SCRIPTY_OID);
-        display("Resouce version before", resourceBefore.getVersion());
+        display("Resource version before", resourceBefore.getVersion());
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -464,14 +463,15 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 		assertSuccess(result);
 		
 		PrismObject<ResourceType> resourceAfter = getObject(ResourceType.class, RESOURCE_SCRIPTY_OID);
-        display("Resouce version after", resourceAfter.getVersion());
+        display("Resource version after", resourceAfter.getVersion());
         assertFalse("Resource version is still the same: "+resourceAfter.getVersion(), resourceBefore.getVersion().equals(resourceAfter.getVersion()));
 		
         PrismObject<ShadowType> accountShadow = modelService.getObject(ShadowType.class, accountOid, null, task, result);
 
 		Integer dummyConnectorNumber = ShadowUtil.getAttributeValue(accountShadow, 
 				getDummyResourceController(RESOURCE_DUMMY_SCRIPTY_NAME).getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEALTH_NAME));
-		assertFalse("Connector number is still the same: "+dummyConnectorNumber, lastDummyConnectorNumber == dummyConnectorNumber);
+		assertFalse("Connector number is still the same: "+dummyConnectorNumber,
+				lastDummyConnectorNumber.equals(dummyConnectorNumber));
 	}
 	
 

@@ -22,6 +22,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -46,7 +47,6 @@ import com.evolveum.midpoint.gui.impl.model.RealContainerValueFromParentOfSingle
 import com.evolveum.midpoint.gui.impl.model.RealContainerValueFromContainerValueWrapperModel;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -154,9 +154,10 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
 					PrismContainerDefinition<ObjectPolicyConfigurationType> containerDef) {
 				List<SearchItemDefinition> defs = new ArrayList<>();
 				
-				SearchFactory.addSearchRefDef(containerDef, new ItemPath(ObjectPolicyConfigurationType.F_OBJECT_TEMPLATE_REF), defs, AreaCategoryType.ADMINISTRATION, getPageBase());
-				SearchFactory.addSearchPropertyDef(containerDef, new ItemPath(ObjectPolicyConfigurationType.F_SUBTYPE), defs);
-				SearchFactory.addSearchPropertyDef(containerDef, new ItemPath(ObjectPolicyConfigurationType.F_LIFECYCLE_STATE_MODEL, LifecycleStateModelType.F_STATE, LifecycleStateType.F_NAME), defs);
+				SearchFactory.addSearchRefDef(containerDef, ObjectPolicyConfigurationType.F_OBJECT_TEMPLATE_REF, defs, AreaCategoryType.ADMINISTRATION, getPageBase());
+				SearchFactory.addSearchPropertyDef(containerDef, ObjectPolicyConfigurationType.F_SUBTYPE, defs);
+				SearchFactory.addSearchPropertyDef(containerDef, ItemPath
+						.create(ObjectPolicyConfigurationType.F_LIFECYCLE_STATE_MODEL, LifecycleStateModelType.F_STATE, LifecycleStateType.F_NAME), defs);
 				
 				return defs;
 			}
@@ -278,8 +279,10 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
 			public void populateItem(Item<ICellPopulator<ContainerValueWrapper<ObjectPolicyConfigurationType>>> item, String componentId,
 									 final IModel<ContainerValueWrapper<ObjectPolicyConfigurationType>> rowModel) {
 				
-				RealContainerValueFromParentOfSingleValueContainerValueWrapperModel<LifecycleStateModelType, ObjectPolicyConfigurationType> lifecycleStateModel = 
-						new RealContainerValueFromParentOfSingleValueContainerValueWrapperModel<LifecycleStateModelType, ObjectPolicyConfigurationType>(rowModel, new ItemPath(rowModel.getObject().getPath(), ObjectPolicyConfigurationType.F_LIFECYCLE_STATE_MODEL));
+				RealContainerValueFromParentOfSingleValueContainerValueWrapperModel<LifecycleStateModelType, ObjectPolicyConfigurationType> lifecycleStateModel =
+						new RealContainerValueFromParentOfSingleValueContainerValueWrapperModel<>(rowModel,
+								ItemPath.create(rowModel.getObject().getPath(),
+										ObjectPolicyConfigurationType.F_LIFECYCLE_STATE_MODEL));
 				
 				if (lifecycleStateModel == null || lifecycleStateModel.getObject() == null
 						|| lifecycleStateModel.getObject().getState() == null || lifecycleStateModel.getObject().getState().isEmpty()) {

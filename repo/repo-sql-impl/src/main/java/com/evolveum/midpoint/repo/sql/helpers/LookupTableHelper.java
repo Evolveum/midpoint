@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.AlphanumericPolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.repo.sql.data.common.RLookupTable;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
@@ -68,8 +69,7 @@ public class LookupTableHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(LookupTableHelper.class);
 
-    @Autowired
-    private GeneralHelper generalHelper;
+    @Autowired private GeneralHelper generalHelper;
 
     public void addLookupTableRows(Session session, RObject object, boolean deleteBeforeAdd) {
         if (!(object instanceof RLookupTable)) {
@@ -120,9 +120,10 @@ public class LookupTableHelper {
         }
 
         for (ItemDelta delta : modifications) {
-            if (delta.getPath().size() == 1) {  // whole row add/delete/replace
+            ItemPath deltaPath = delta.getPath();
+            if (deltaPath.size() == 1) {  // whole row add/delete/replace
                 if (!(delta instanceof ContainerDelta)) {
-                    throw new IllegalStateException("Wrong table delta sneaked into updateLookupTableData: class=" + delta.getClass() + ", path=" + delta.getPath());
+                    throw new IllegalStateException("Wrong table delta sneaked into updateLookupTableData: class=" + delta.getClass() + ", path=" + deltaPath);
                 }
                 // one "table" container modification
                 ContainerDelta containerDelta = (ContainerDelta) delta;
@@ -147,12 +148,11 @@ public class LookupTableHelper {
                     deleteLookupTableRows(session, tableOid);
                     addLookupTableRows(session, tableOid, containerDelta.getValuesToReplace(), 1, false);
                 }
-            } else if (delta.getPath().size() == 3) {  // row segment modification (structure is already checked)
-                List<ItemPathSegment> segments = delta.getPath().getSegments();
-                Long rowId = ((IdItemPathSegment) segments.get(1)).getId();
-                QName name = ((NameItemPathSegment) segments.get(2)).getName();
+            } else if (deltaPath.size() == 3) {  // row segment modification (structure is already checked)
+                Long rowId = ItemPath.toId(deltaPath.getSegment(1));
+                QName name = ItemPath.toName(deltaPath.getSegment(2));
 
-                RLookupTableRow row = (RLookupTableRow) session.get(RLookupTableRow.class, new RContainerId(RUtil.toInteger(rowId), tableOid));
+                RLookupTableRow row = session.get(RLookupTableRow.class, new RContainerId(RUtil.toInteger(rowId), tableOid));
                 LookupTableRowType rowType = row.toJAXB();
                 delta.setParentPath(ItemPath.EMPTY_PATH);
                 delta.applyTo(rowType.asPrismContainerValue());
@@ -180,8 +180,6 @@ public class LookupTableHelper {
     }
 
     public GetOperationOptions findLookupTableGetOption(Collection<SelectorOptions<GetOperationOptions>> options) {
-        final ItemPath tablePath = new ItemPath(LookupTableType.F_ROW);
-
         Collection<SelectorOptions<GetOperationOptions>> filtered = SelectorOptions.filterRetrieveOptions(options);
         for (SelectorOptions<GetOperationOptions> option : filtered) {
             ObjectSelector selector = option.getSelector();
@@ -190,9 +188,7 @@ public class LookupTableHelper {
             	// apply to lookup table
             	continue;
             }
-            ItemPath selected = selector.getPath();
-
-            if (tablePath.equivalent(selected)) {
+            if (LookupTableType.F_ROW.equivalent(selector.getPath())) {
                 return option.getOptions();
             }
         }
@@ -286,30 +282,28 @@ public class LookupTableHelper {
         }
 
         ItemPath orderByPath = paging.getOrderBy();
-        if (paging.getDirection() != null && orderByPath != null && !orderByPath.isEmpty()) {
-            if (orderByPath.size() > 1 ||
-                    !(orderByPath.first() instanceof NameItemPathSegment) && !(orderByPath.first() instanceof IdentifierPathSegment)) {
+        OrderDirection direction = paging.getDirection();
+        if (direction != null && orderByPath != null && !orderByPath.isEmpty()) {
+            if (orderByPath.size() > 1 || !orderByPath.startsWithName() && !orderByPath.startsWithIdentifier()) {
                 throw new SchemaException("OrderBy has to consist of just one naming or identifier segment");
             }
 
-            ItemPathSegment first = orderByPath.first();
-            String orderBy = first instanceof NameItemPathSegment ?
-                    ((NameItemPathSegment) first).getName().getLocalPart() : RLookupTableRow.ID_COLUMN_NAME;
+            Object first = orderByPath.first();
+            String orderBy = ItemPath.isName(first) ?
+                    ItemPath.toName(first).getLocalPart() : RLookupTableRow.ID_COLUMN_NAME;
 
             Path[] orderByPaths = buildOrderByPaths(orderBy, root);
-            Order[] order = null;
-            switch (paging.getDirection()) {
+            Order[] order;
+            switch (direction) {
                 case ASCENDING:
                     order = Arrays.stream(orderByPaths).map(item -> cb.asc(item)).toArray(Order[]::new);
                     break;
                 case DESCENDING:
                     order = Arrays.stream(orderByPaths).map(item -> cb.desc(item)).toArray(Order[]::new);
                     break;
+                default: throw new AssertionError(direction);
             }
-
-            if (order != null) {
-                cq.orderBy(order);
-            }
+            cq.orderBy(order);
         }
 
         return session.createQuery(cq);
@@ -333,25 +327,22 @@ public class LookupTableHelper {
     }
 
     public <T extends ObjectType> Collection<? extends ItemDelta> filterLookupTableModifications(Class<T> type,
-                                                                                                 Collection<? extends ItemDelta> modifications) {
+            Collection<? extends ItemDelta> modifications) {
         Collection<ItemDelta> tableDelta = new ArrayList<>();
         if (!LookupTableType.class.equals(type)) {
             return tableDelta;
         }
-
-        ItemPath rowPath = new ItemPath(LookupTableType.F_ROW);
         for (ItemDelta delta : modifications) {
             ItemPath path = delta.getPath();
             if (path.isEmpty()) {
                 throw new UnsupportedOperationException("Lookup table cannot be modified via empty-path modification");
-            } else if (path.equivalent(rowPath)) {
+            } else if (path.equivalent(LookupTableType.F_ROW)) {
                 tableDelta.add(delta);
-            } else if (path.isSuperPath(rowPath)) {
+            } else if (path.isSuperPath(LookupTableType.F_ROW)) {
                 // should be row[id]/xxx where xxx=key|value|label?
-                List<ItemPathSegment> segments = path.getSegments();
-                if (segments.size() != 3
-                        || !(segments.get(1) instanceof IdItemPathSegment)
-                        || !(segments.get(2) instanceof NameItemPathSegment)) {
+                if (path.size() != 3
+                        || !ItemPath.isId(path.getSegment(1))
+                        || !ItemPath.isName(path.getSegment(2))) {
                     throw new UnsupportedOperationException("Unsupported modification path for lookup tables: " + path);
                 }
                 tableDelta.add(delta);

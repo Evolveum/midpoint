@@ -18,10 +18,7 @@ package com.evolveum.midpoint.repo.sql.helpers;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.*;
@@ -140,19 +137,19 @@ public class ObjectDeltaUpdater {
             attributeStep.managedType = mainEntityType;
             attributeStep.bean = object;
 
-            Iterator<ItemPathSegment> segments = path.getSegments().iterator();
+            Iterator<?> segments = path.getSegments().iterator();
             while (segments.hasNext()) {
-                ItemPathSegment segment = segments.next();
-                if (!(segment instanceof NameItemPathSegment)) {
+                Object segment = segments.next();
+                if (!ItemPath.isName(segment)) {
                     throw new SystemException("Segment '" + segment + "' in '" + path + "' is not a name item");
                 }
 
-                NameItemPathSegment nameSegment = (NameItemPathSegment) segment;
-                String nameLocalPart = nameSegment.getName().getLocalPart();
+                ItemName name = ItemPath.toName(segment);
+                String nameLocalPart = name.getLocalPart();
 
-                if (isAssignmentExtensionDelta(attributeStep, nameSegment)) {
-                    NameItemPathSegment lastNamed = delta.getPath().namedSegmentsOnly().lastNamed();
-                    if (AssignmentType.F_EXTENSION.equals(lastNamed.getName())) {
+                if (isAssignmentExtensionDelta(attributeStep, name)) {
+                    ItemName lastName = delta.getPath().lastName();
+                    if (AssignmentType.F_EXTENSION.equals(lastName)) {
                         handleAssignmentExtensionWholeContainer((RAssignment) attributeStep.bean, delta, idGenerator);
                     } else {
                         handleAssignmentExtensionDelta((RAssignment) attributeStep.bean, delta, idGenerator);
@@ -178,7 +175,7 @@ public class ObjectDeltaUpdater {
                     modifiesShadowPendingOperation = true;
                 }
 
-                Attribute attribute = findAttribute(attributeStep, nameLocalPart, path, segments, nameSegment);
+                Attribute attribute = findAttribute(attributeStep, nameLocalPart, path, segments, name);
                 if (attribute == null) {
                     // there's no table/column that needs update
                     break;
@@ -213,7 +210,7 @@ public class ObjectDeltaUpdater {
     }
 
     private boolean isFocusPhoto(ItemDelta delta) {
-        return new ItemPath(FocusType.F_JPEG_PHOTO).equals(delta.getPath());
+        return FocusType.F_JPEG_PHOTO.equivalent(delta.getPath());
     }
 
     private void handlePhoto(Object bean, ItemDelta delta) throws SchemaException {
@@ -259,7 +256,7 @@ public class ObjectDeltaUpdater {
 
     private boolean isMetadata(ItemDelta delta) {
         ItemPath named = delta.getPath().namedSegmentsOnly();
-        return new ItemPath(ObjectType.F_METADATA).equals(named) || new ItemPath(AssignmentType.F_METADATA).equals(named);
+        return ObjectType.F_METADATA.equivalent(named);
     }
 
     private void handleMetadata(Object bean, ItemDelta delta) {
@@ -322,7 +319,7 @@ public class ObjectDeltaUpdater {
 
 
     private boolean isShadowPendingOperation(RObject<?> object, ItemDelta delta) {
-        return object instanceof RShadow && new ItemPath(ShadowType.F_PENDING_OPERATION).equals(delta.getPath());
+        return object instanceof RShadow && ShadowType.F_PENDING_OPERATION.equivalent(delta.getPath());
     }
 
     private <T extends ObjectType> void handleShadowPendingOperation(RObject<T> bean, PrismObject<T> prismObject) throws SchemaException {
@@ -368,13 +365,11 @@ public class ObjectDeltaUpdater {
             return false;
         }
 
-        Set<ItemPath> paths = FullTextSearchConfigurationUtil.getFullTextSearchItemPaths(config, type);
+        Set<UniformItemPath> paths = FullTextSearchConfigurationUtil.getFullTextSearchItemPaths(config, type);
 
         for (ItemDelta modification : modifications) {
-            ItemPath modPath = modification.getPath();
-            ItemPath namesOnly = modPath.namedSegmentsOnly();
-
-            for (ItemPath path : paths) {
+            UniformItemPath namesOnly = modification.getPath().namedSegmentsOnly();
+            for (UniformItemPath path : paths) {
                 if (path.startsWith(namesOnly)) {
                     return true;
                 }
@@ -417,12 +412,12 @@ public class ObjectDeltaUpdater {
         return path.startsWithName(ShadowType.F_ATTRIBUTES);
     }
 
-    private boolean isAssignmentExtensionDelta(AttributeStep attributeStep, NameItemPathSegment nameSegment) {
+    private boolean isAssignmentExtensionDelta(AttributeStep attributeStep, ItemName name) {
         if (!(attributeStep.bean instanceof RAssignment)) {
             return false;
         }
 
-        if (!AssignmentType.F_EXTENSION.equals(nameSegment.getName())) {
+        if (!AssignmentType.F_EXTENSION.equals(name)) {
             return false;
         }
 
@@ -727,7 +722,7 @@ public class ObjectDeltaUpdater {
     }
 
     private Attribute findAttribute(AttributeStep attributeStep, String nameLocalPart, ItemPath path,
-                                    Iterator<ItemPathSegment> segments, NameItemPathSegment nameSegment) {
+            Iterator<?> segments, ItemName name) {
         Attribute attribute = entityRegistry.findAttribute(attributeStep.managedType, nameLocalPart);
         if (attribute != null) {
             return attribute;
@@ -743,28 +738,25 @@ public class ObjectDeltaUpdater {
         }
 
         // try to search path overrides like metadata/* or assignment/metadata/* or assignment/construction/resourceRef
-        ItemPathSegment segment;
-        ItemPath subPath = new ItemPath(nameSegment);
+        Object segment;
+        ItemPath subPath = name;
         while (segments.hasNext()) {
             if (!entityRegistry.hasAttributePathOverride(attributeStep.managedType, subPath)) {
-                subPath = subPath.allUpToLastNamed();
+                subPath = subPath.allUpToLastName();
                 break;
             }
 
             segment = segments.next();
-            if (!(segment instanceof NameItemPathSegment)) {
+            if (!ItemPath.isName(segment)) {
                 throw new SystemException("Segment '" + segment + "' in '" + path + "' is not a name item");
             }
-
-            nameSegment = (NameItemPathSegment) segment;
-
-            subPath = subPath.append(nameSegment.getName());
+            subPath = subPath.append(segment);
         }
 
         return entityRegistry.findAttributePathOverride(attributeStep.managedType, subPath);
     }
 
-    private AttributeStep stepThroughAttribute(Attribute attribute, AttributeStep step, Iterator<ItemPathSegment> segments) {
+    private AttributeStep stepThroughAttribute(Attribute attribute, AttributeStep step, Iterator<?> segments) {
         Method method = (Method) attribute.getJavaMember();
 
         switch (attribute.getPersistentAttributeType()) {
@@ -788,7 +780,7 @@ public class ObjectDeltaUpdater {
                 // object extension is handled separately, only {@link Container} and references are handled here
                 Class clazz = getRealOutputType(attribute);
 
-                IdItemPathSegment id = (IdItemPathSegment) segments.next();
+                Long id = ItemPath.toId(segments.next());
 
                 Collection c = (Collection) invoke(step.bean, method);
                 if (!Container.class.isAssignableFrom(clazz)) {
@@ -798,7 +790,7 @@ public class ObjectDeltaUpdater {
                 boolean found = false;
                 for (Container o : (Collection<Container>) c) {
                     long l = o.getId().longValue();
-                    if (l == id.getId()) {
+                    if (l == id) {
                         step.managedType = entityRegistry.getMapping(clazz);
                         step.bean = o;
 

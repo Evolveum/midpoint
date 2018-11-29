@@ -17,7 +17,8 @@
 package com.evolveum.midpoint.repo.sql.helpers;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -26,6 +27,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -39,6 +41,8 @@ public class NameResolutionHelper {
 
 	private static final int MAX_OIDS_TO_RESOLVE_AT_ONCE = 200;
 
+	@Autowired private PrismContext prismContext;
+
 	// TODO keep names between invocations (e.g. when called from searchObjects/searchContainers)
     public void resolveNamesIfRequested(Session session, PrismContainerValue<?> containerValue, Collection<SelectorOptions<GetOperationOptions>> options) {
     	resolveNamesIfRequested(session, Collections.singletonList(containerValue), options);
@@ -46,7 +50,7 @@ public class NameResolutionHelper {
 
     public void resolveNamesIfRequested(Session session, List<? extends PrismContainerValue> containerValues, Collection<SelectorOptions<GetOperationOptions>> options) {
 
-    	List<ItemPath> pathsToResolve = getPathsToResolve(options);
+    	List<UniformItemPath> pathsToResolve = getPathsToResolve(options);
 		if (pathsToResolve.isEmpty()) {
 			return;
 		}
@@ -55,7 +59,7 @@ public class NameResolutionHelper {
 		Visitor oidExtractor = visitable -> {
 			if (visitable instanceof PrismReferenceValue) {
 				PrismReferenceValue value = (PrismReferenceValue) visitable;
-				if (!ItemPath.containsSubpathOrEquivalent(pathsToResolve, value.getPath())) {
+				if (!ItemPathCollectionsUtil.containsSubpathOrEquivalent(pathsToResolve, value.getPath())) {
 					return;
 				}
 				if (value.getTargetName() != null) {    // just for sure
@@ -106,11 +110,12 @@ public class NameResolutionHelper {
 	}
 
 	@NotNull
-	private List<ItemPath> getPathsToResolve(Collection<SelectorOptions<GetOperationOptions>> options) {
-    	List<ItemPath> rv = new ArrayList<>();
+	private List<UniformItemPath> getPathsToResolve(Collection<SelectorOptions<GetOperationOptions>> options) {
+		final UniformItemPath EMPTY_PATH = prismContext.emptyPath();
+    	List<UniformItemPath> rv = new ArrayList<>();
 		for (SelectorOptions<GetOperationOptions> option : CollectionUtils.emptyIfNull(options)) {
 			if (GetOperationOptions.isResolveNames(option.getOptions())) {
-				rv.add(option.getItemPath());
+				rv.add(option.getItemPath(EMPTY_PATH));
 			}
 		}
 		return rv;

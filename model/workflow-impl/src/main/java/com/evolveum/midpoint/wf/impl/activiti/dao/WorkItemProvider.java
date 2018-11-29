@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -116,10 +117,10 @@ public class WorkItemProvider {
 	// primitive 'query interpreter'
 	// returns null if no results should be returned
     private TaskQuery createTaskQuery(ObjectQuery query, boolean includeVariables, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
-        final ItemPath WORK_ITEM_ID_PATH = new ItemPath(F_EXTERNAL_ID);
-        final ItemPath ASSIGNEE_PATH = new ItemPath(F_ASSIGNEE_REF);
-        final ItemPath CANDIDATE_PATH = new ItemPath(F_CANDIDATE_REF);
-        final ItemPath CREATED_PATH = new ItemPath(WorkItemType.F_CREATE_TIMESTAMP);
+        final UniformItemPath WORK_ITEM_ID_PATH = prismContext.path(F_EXTERNAL_ID);
+        final UniformItemPath ASSIGNEE_PATH = prismContext.path(F_ASSIGNEE_REF);
+        final UniformItemPath CANDIDATE_PATH = prismContext.path(F_CANDIDATE_REF);
+        final UniformItemPath CREATED_PATH = prismContext.path(WorkItemType.F_CREATE_TIMESTAMP);
 
 	    final ObjectQueryUtil.FilterExtractor CREATED_LT_GT_EXTRACTOR = new ObjectQueryUtil.FilterExtractor(
 	    		filter -> filter instanceof ComparativeFilter && !((ComparativeFilter) filter).isEquals(),
@@ -134,10 +135,10 @@ public class WorkItemProvider {
 		    throw new SchemaException("Unsupported clause(s) in search filter: " + remainingClauses);
 	    }
 
-	    final Map.Entry<ItemPath, Collection<? extends PrismValue>> workItemIdFilter = components.getKnownComponent(WORK_ITEM_ID_PATH);
-        final Map.Entry<ItemPath, Collection<? extends PrismValue>> assigneeFilter = components.getKnownComponent(ASSIGNEE_PATH);
-        final Map.Entry<ItemPath, Collection<? extends PrismValue>> candidateRolesFilter = components.getKnownComponent(CANDIDATE_PATH);
-        final Map.Entry<ItemPath, Collection<ObjectFilter>> createdFilters = components.getKnownComponentFilter(CREATED_PATH);
+	    final Map.Entry<UniformItemPath, Collection<? extends PrismValue>> workItemIdFilter = components.getKnownComponent(WORK_ITEM_ID_PATH);
+        final Map.Entry<UniformItemPath, Collection<? extends PrismValue>> assigneeFilter = components.getKnownComponent(ASSIGNEE_PATH);
+        final Map.Entry<UniformItemPath, Collection<? extends PrismValue>> candidateRolesFilter = components.getKnownComponent(CANDIDATE_PATH);
+        final Map.Entry<UniformItemPath, Collection<ObjectFilter>> createdFilters = components.getKnownComponentFilter(CREATED_PATH);
 
         TaskQuery taskQuery = activitiEngine.getTaskService().createTaskQuery();
 
@@ -200,8 +201,8 @@ public class WorkItemProvider {
 
                 switch (paging.getDirection()) {
                     case DESCENDING: taskQuery = taskQuery.desc(); break;
-                    case ASCENDING:
-                        default: taskQuery = taskQuery.asc(); break;
+	                case ASCENDING:
+	                default: taskQuery = taskQuery.asc(); break;
                 }
             }
         }
@@ -215,7 +216,7 @@ public class WorkItemProvider {
 		}
     }
 
-	private TaskQuery addAssigneesToQuery(TaskQuery taskQuery, Map.Entry<ItemPath, Collection<? extends PrismValue>> assigneeFilter) {
+	private TaskQuery addAssigneesToQuery(TaskQuery taskQuery, Map.Entry<UniformItemPath, Collection<? extends PrismValue>> assigneeFilter) {
 		@SuppressWarnings("unchecked")
 		Collection<PrismReferenceValue> assigneeRefs = (Collection<PrismReferenceValue>) assigneeFilter.getValue();
 		if (isEmpty(assigneeRefs)) {

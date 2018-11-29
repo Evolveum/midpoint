@@ -19,7 +19,7 @@ package com.evolveum.midpoint.schema;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -181,7 +181,7 @@ public class ObjectTreeDeltas<T extends ObjectType> implements DebugDumpable {
         return rv;
     }
 
-    public boolean subtractFromFocusDelta(@NotNull ItemPath itemPath, @NotNull PrismValue value, boolean fromMinus,
+    public boolean subtractFromFocusDelta(@NotNull UniformItemPath itemPath, @NotNull PrismValue value, boolean fromMinus,
 			boolean dryRun) {
 		return focusChange != null && focusChange.subtract(itemPath, value, fromMinus, dryRun);
 	}

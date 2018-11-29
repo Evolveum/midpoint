@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.testing.conntest;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 import static org.testng.AssertJUnit.assertNotNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertTrue;
@@ -28,6 +29,7 @@ import java.util.Collection;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.directory.api.ldap.model.cursor.CursorException;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.exception.LdapException;
@@ -39,9 +41,7 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -62,11 +62,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -494,7 +492,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         QName attrQName = new QName(MidPointConstants.NS_RI, "title");
         ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
         PropertyDelta<String> attrDelta = PropertyDeltaImpl.createModificationReplaceProperty(
-        		new ItemPath(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "Captain");
+		        ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "Captain");
         delta.addModification(attrDelta);
 
         // WHEN
@@ -528,9 +526,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        modifyUserReplace(USER_BARBOSSA_OID,
-        		new ItemPath(UserType.F_CREDENTIALS,  CredentialsType.F_PASSWORD, PasswordType.F_VALUE),
-        		task, result, userPasswordPs);
+        modifyUserReplace(USER_BARBOSSA_OID, PATH_CREDENTIALS_PASSWORD_VALUE, task, result, userPasswordPs);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -557,9 +553,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        modifyUserReplace(USER_BARBOSSA_OID,
-        		new ItemPath(UserType.F_ACTIVATION,  ActivationType.F_ADMINISTRATIVE_STATUS),
-        		task, result, ActivationStatusType.DISABLED);
+        modifyUserReplace(USER_BARBOSSA_OID, PATH_ACTIVATION_ADMINISTRATIVE_STATUS, task, result, ActivationStatusType.DISABLED);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -588,9 +582,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        modifyUserReplace(USER_BARBOSSA_OID,
-        		new ItemPath(UserType.F_ACTIVATION,  ActivationType.F_ADMINISTRATIVE_STATUS),
-        		task, result, ActivationStatusType.ENABLED);
+        modifyUserReplace(USER_BARBOSSA_OID, PATH_ACTIVATION_ADMINISTRATIVE_STATUS, task, result, ActivationStatusType.ENABLED);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -624,7 +616,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         QName attrQName = new QName(MidPointConstants.NS_RI, "passwordAllowChange");
         ResourceAttributeDefinition<Boolean> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
         PropertyDelta<Boolean> attrDelta = PropertyDeltaImpl.createModificationReplaceProperty(
-        		new ItemPath(ShadowType.F_ATTRIBUTES, attrQName), attrDef, Boolean.FALSE);
+        		ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, Boolean.FALSE);
         delta.addModification(attrDelta);
 
         // WHEN
@@ -661,9 +653,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
-        modifyUserReplace(USER_GUYBRUSH_OID,
-        		new ItemPath(UserType.F_ACTIVATION,  ActivationType.F_ADMINISTRATIVE_STATUS),
-        		task, result, ActivationStatusType.DISABLED);
+        modifyUserReplace(USER_GUYBRUSH_OID, PATH_ACTIVATION_ADMINISTRATIVE_STATUS, task, result, ActivationStatusType.DISABLED);
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -700,9 +690,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        modifyUserReplace(USER_GUYBRUSH_OID,
-        		new ItemPath(UserType.F_ACTIVATION,  ActivationType.F_ADMINISTRATIVE_STATUS),
-        		task, result, ActivationStatusType.ENABLED);
+        modifyUserReplace(USER_GUYBRUSH_OID, PATH_ACTIVATION_ADMINISTRATIVE_STATUS, task, result, ActivationStatusType.ENABLED);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -983,8 +971,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
-        modifyObjectReplaceProperty(ShadowType.class, shadowLocked.getOid(),
-        		new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS), task, result,
+        modifyObjectReplaceProperty(ShadowType.class, shadowLocked.getOid(), PATH_ACTIVATION_LOCKOUT_STATUS, task, result,
         		LockoutStatusType.NORMAL);
 
 		// THEN

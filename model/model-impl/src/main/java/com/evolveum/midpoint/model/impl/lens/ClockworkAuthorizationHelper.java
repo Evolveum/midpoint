@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,6 +22,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.ItemName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -34,7 +35,7 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -158,7 +159,7 @@ public class ClockworkAuthorizationHelper {
 					PrismObject<O> objectToAdd = primaryDeltaClone.getObjectToAdd();
 					PrismContainer<CredentialsType> credentialsContainer = objectToAdd.findContainer(UserType.F_CREDENTIALS);
 					if (credentialsContainer != null) {
-						List<ItemPath> pathsToRemove = new ArrayList<>();
+						List<UniformItemPath> pathsToRemove = new ArrayList<>();
 						for (Item<?,?> item: credentialsContainer.getValue().getItems()) {
 							ContainerDelta<?> cdelta = new ContainerDeltaImpl(item.getPath(), (PrismContainerDefinition)item.getDefinition(), prismContext);
 							cdelta.addValuesToAdd(((PrismContainer)item).getValue().clone());
@@ -176,13 +177,13 @@ public class ClockworkAuthorizationHelper {
 								// Do nothing. The access will be evaluated later in a normal way
 							}
 						}
-						for (ItemPath pathToRemove: pathsToRemove) {
+						for (UniformItemPath pathToRemove: pathsToRemove) {
 							objectToAdd.removeContainer(pathToRemove);
 						}
 					}
 				} else {
 					// modify
-					Collection<? extends ItemDelta<?, ?>> credentialChanges = primaryDeltaClone.findItemDeltasSubPath(new ItemPath(UserType.F_CREDENTIALS));
+					Collection<? extends ItemDelta<?, ?>> credentialChanges = primaryDeltaClone.findItemDeltasSubPath(UserType.F_CREDENTIALS);
 					for (ItemDelta credentialChange: credentialChanges) {
 						AuthorizationDecisionType cdecision = evaluateCredentialDecision(context, securityConstraints, credentialChange);
 						LOGGER.trace("AUTZ: credential delta {} decision: {}", credentialChange.getPath(), cdecision);
@@ -224,7 +225,7 @@ public class ClockworkAuthorizationHelper {
 			LensElementContext<O> elementContext,
 			ObjectDelta<O> primaryDeltaClone,
 			String operationUrl,
-			QName assignmentElementQName,
+			ItemName assignmentElementQName,
 			PrismObject<O> object,
 			OwnerResolver ownerResolver,
 			ObjectSecurityConstraints securityConstraints,
@@ -237,7 +238,7 @@ public class ClockworkAuthorizationHelper {
 			currentObject = elementContext.getObjectOld();
 		}
 		
-		if (primaryDeltaClone.hasItemOrSubitemDelta(new ItemPath(assignmentElementQName))) {
+		if (primaryDeltaClone.hasItemOrSubitemDelta(assignmentElementQName)) {
 			AccessDecision assignmentItemDecision = determineDecisionForAssignmentItems(securityConstraints, primaryDeltaClone, currentObject, operationUrl, getRequestAuthorizationPhase(context));
 			LOGGER.trace("Security decision for {} items: {}", assignmentElementQName.getLocalPart(), assignmentItemDecision);
 			if (assignmentItemDecision == AccessDecision.ALLOW) {
@@ -280,7 +281,7 @@ public class ClockworkAuthorizationHelper {
 				PrismObject<O> objectToAdd = primaryDeltaClone.getObjectToAdd();
 				objectToAdd.removeContainer(assignmentElementQName);
 			} else if (primaryDeltaClone.isModify()) {
-				primaryDeltaClone.removeContainerModification(assignmentElementQName);
+				primaryDeltaClone.removeContainerModification(ItemName.fromQName(assignmentElementQName));
 			}
 		}
 	}
@@ -289,7 +290,7 @@ public class ClockworkAuthorizationHelper {
 			LensContext<F> context,
 			String operationUrl,
 			String assignActionUrl,
-			QName assignmentElementQName,
+			ItemName assignmentElementQName,
 			PrismObject<O> object,
 			OwnerResolver ownerResolver,
 			ObjectSecurityConstraints securityConstraints,
@@ -447,7 +448,7 @@ public class ClockworkAuthorizationHelper {
 		}
 		Collection<PrismContainerValue<AssignmentType>> processedChangedAssignmentValues = new ArrayList<>(changedAssignmentValues.size());
 		PrismObject<F> existingObject = focusContext.getObjectCurrentOrOld();
-		PrismContainer<AssignmentType> existingAssignmentContainer = existingObject.findContainer(assignmentElementQName);
+		PrismContainer<AssignmentType> existingAssignmentContainer = existingObject.findContainer(ItemName.fromQName(assignmentElementQName));
 		for (PrismContainerValue<AssignmentType> changedAssignmentValue : changedAssignmentValues) {
 			if (changedAssignmentValue.isIdOnly()) {
 				if (existingAssignmentContainer != null) {

@@ -50,7 +50,7 @@ import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.common.SynchronizationUtils;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -469,12 +469,12 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         Collection<ItemDelta> modifications = new ArrayList<>();
         PropertyDelta pdelta = PropertyDeltaImpl.createModificationReplaceProperty(
-        		(new ItemPath(ObjectType.F_METADATA, MetadataType.F_MODIFY_CHANNEL)), accountDefinition, "channel");
+        		(prismContext.path(ObjectType.F_METADATA, MetadataType.F_MODIFY_CHANNEL)), accountDefinition, "channel");
         modifications.add(pdelta);
 
         XMLGregorianCalendar modifyTimestampBefore = XmlTypeConverter
                 .createXMLGregorianCalendar(System.currentTimeMillis());
-		pdelta = PropertyDeltaImpl.createModificationReplaceProperty((new ItemPath(ObjectType.F_METADATA,
+		pdelta = PropertyDeltaImpl.createModificationReplaceProperty((prismContext.path(ObjectType.F_METADATA,
                 MetadataType.F_MODIFY_TIMESTAMP)), accountDefinition, modifyTimestampBefore);
         modifications.add(pdelta);
 
@@ -535,7 +535,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         String lastVersion = readUser.getVersion();
 
         Collection<ItemDelta> modifications = new ArrayList<>();
-        ItemPath path = new ItemPath(UserType.F_EXTENSION, QNAME_LOOT);
+        UniformItemPath path = prismContext.path(UserType.F_EXTENSION, QNAME_LOOT);
         PrismProperty loot = user.findProperty(path);
         PropertyDelta lootDelta = new PropertyDeltaImpl(path, loot.getDefinition(), prismContext);
         lootDelta.setRealValuesToReplace(456);
@@ -545,7 +545,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         //check read after modify operation
         user = prismContext.parseObject(userFile);
-        loot = user.findProperty(new ItemPath(UserType.F_EXTENSION, QNAME_LOOT));
+        loot = user.findProperty(prismContext.path(UserType.F_EXTENSION, QNAME_LOOT));
         loot.setRealValue(456);
 
         readUser = repositoryService.getObject(UserType.class, oid, null, result);
@@ -621,7 +621,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         PrismPropertyDefinition<String> definition = new PrismPropertyDefinitionImpl<>(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING, prismContext);
 
         List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(ShadowType.class, prismContext)
-                .item(new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME), definition)
+                .item(prismContext.path(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME), definition)
                 .replace("account123")
                 .asItemDeltas();
 
@@ -645,7 +645,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         PrismPropertyDefinition<String> definition = new PrismPropertyDefinitionImpl<>(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING, prismContext);
 
         List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(ShadowType.class, prismContext)
-                .item(new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME), definition)
+                .item(prismContext.path(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME), definition)
                 .replace("account-new")
                 .asItemDeltas();
 
@@ -670,7 +670,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         PrismPropertyDefinition<String> definition = new PrismPropertyDefinitionImpl<>(QNAME_WEAPON, DOMUtil.XSD_STRING, prismContext);
 
         List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(UserType.class, prismContext)
-                .item(new ItemPath(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION, QNAME_WEAPON), definition)
+                .item(prismContext.path(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION, QNAME_WEAPON), definition)
                 .replace("knife")
                 .asItemDeltas();
 
@@ -874,7 +874,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         close(session);
 
         ObjectQuery query1 = QueryBuilder.queryFor(ShadowType.class, prismContext)
-                .item(new ItemPath(ShadowType.F_ATTRIBUTES, ATTR1_QNAME), def1).eq("value1")
+                .item(prismContext.path(ShadowType.F_ATTRIBUTES, ATTR1_QNAME), def1).eq("value1")
                 .build();
         List list1 = repositoryService.searchObjects(ShadowType.class, query1, null, result);
         LOGGER.info("*** query1 result:\n{}", DebugUtil.debugDump(list1));
@@ -916,7 +916,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         System.out.println("Serialized for export:\n" + xml);
         PrismObject<Objectable> shadowReparsed = prismContext.parseObject(xml);
         System.out.println("Reparsed:\n" + shadowReparsed.debugDump());
-        Item<PrismValue, ItemDefinition> attr1Reparsed = shadowReparsed.findItem(new ItemPath(ShadowType.F_ATTRIBUTES, ATTR1_QNAME));
+        Item<PrismValue, ItemDefinition> attr1Reparsed = shadowReparsed.findItem(prismContext.path(ShadowType.F_ATTRIBUTES, ATTR1_QNAME));
         assertNotNull(attr1Reparsed);
         assertFalse("Reparsed attribute is raw", attr1Reparsed.getValue(0).isRaw());
     }
@@ -926,7 +926,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     }
 
     private <T> void assertAttribute(PrismObject<ShadowType> shadow, QName attrQName, T... expectedValues) {
-    	PrismProperty<T> attr = shadow.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, attrQName));
+    	PrismProperty<T> attr = shadow.findProperty(prismContext.path(ShadowType.F_ATTRIBUTES, attrQName));
     	if (expectedValues.length == 0) {
     		assertTrue("Expected no value for attribute "+attrQName+" in "+shadow+", but it has "+attr, attr == null);
     	} else {

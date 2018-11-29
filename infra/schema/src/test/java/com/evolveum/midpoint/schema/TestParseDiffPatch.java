@@ -28,7 +28,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
@@ -104,10 +105,10 @@ public class TestParseDiffPatch {
         userDelta.checkConsistence();
         userDelta.assertDefinitions();
 
-        ItemPath path = new ItemPath(SchemaConstantsGenerated.C_CREDENTIALS,
+        UniformItemPath path = getPrismContext().path(SchemaConstantsGenerated.C_CREDENTIALS,
                 CredentialsType.F_PASSWORD, PasswordType.F_FAILED_LOGINS);
         PrismAsserts.assertPropertyAdd(userDelta, path, 1);
-        path = new ItemPath(SchemaConstantsGenerated.C_CREDENTIALS,
+        path = getPrismContext().path(SchemaConstantsGenerated.C_CREDENTIALS,
         		CredentialsType.F_PASSWORD, PasswordType.F_FAILED_LOGINS);
         PropertyDelta propertyDelta = userDelta.findPropertyDelta(path);
         assertNotNull("Property delta for "+path+" not found",propertyDelta);
@@ -147,10 +148,10 @@ public class TestParseDiffPatch {
         System.out.println("Assignment delta: " + assignmentDelta);
         System.out.println("Assignment delta: " + assignmentDelta.debugDump());
 
-        ItemPath path = new ItemPath(SchemaConstantsGenerated.C_ASSIGNMENT,
+        UniformItemPath path = getPrismContext().path(SchemaConstantsGenerated.C_ASSIGNMENT,
                 AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
 //        PrismAsserts.assertPropertyAdd(assignmentDelta, path, 1);
-//        path = new ItemPath(SchemaConstantsGenerated.C_CREDENTIALS,
+//        path = prismContext.path(SchemaConstantsGenerated.C_CREDENTIALS,
 //        		CredentialsType.F_PASSWORD, PasswordType.F_FAILED_LOGINS);
         PropertyDelta propertyDelta = ItemDelta.findPropertyDelta(userDelta, path);
         assertNotNull("Property delta for "+path+" not found",propertyDelta);
@@ -174,10 +175,10 @@ public class TestParseDiffPatch {
       System.out.println("Assignment delta: " + assignmentDelta);
       System.out.println("Assignment delta: " + assignmentDelta.debugDump());
 
-      path = new ItemPath(SchemaConstantsGenerated.C_ASSIGNMENT,
+      path = getPrismContext().path(SchemaConstantsGenerated.C_ASSIGNMENT,
               AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
 //      PrismAsserts.assertPropertyAdd(assignmentDelta, path, 1);
-//      path = new ItemPath(SchemaConstantsGenerated.C_CREDENTIALS,
+//      path = prismContext.path(SchemaConstantsGenerated.C_CREDENTIALS,
 //      		CredentialsType.F_PASSWORD, PasswordType.F_FAILED_LOGINS);
       propertyDelta = ItemDelta.findPropertyDelta(userDelta, path);
 
@@ -197,10 +198,10 @@ public class TestParseDiffPatch {
     System.out.println("Assignment delta: " + assignmentDelta);
     System.out.println("Assignment delta: " + assignmentDelta.debugDump());
 
-    path = new ItemPath(SchemaConstantsGenerated.C_ASSIGNMENT,
+    path = getPrismContext().path(SchemaConstantsGenerated.C_ASSIGNMENT,
             AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
 //    PrismAsserts.assertPropertyAdd(assignmentDelta, path, 1);
-//    path = new ItemPath(SchemaConstantsGenerated.C_CREDENTIALS,
+//    path = prismContext.path(SchemaConstantsGenerated.C_CREDENTIALS,
 //    		CredentialsType.F_PASSWORD, PasswordType.F_FAILED_LOGINS);
     propertyDelta = ItemDelta.findPropertyDelta(userDelta, path);
 
@@ -236,11 +237,11 @@ public class TestParseDiffPatch {
         assertEquals("Wrong change type", ChangeType.MODIFY, userDelta.getChangeType());
         Collection<? extends ItemDelta> modifications = userDelta.getModifications();
         assertEquals("Unexpected number of modifications", 3, modifications.size());
-        PrismAsserts.assertPropertyReplace(userDelta, new QName(SchemaConstants.NS_C,"fullName"),
+        PrismAsserts.assertPropertyReplace(userDelta, new ItemName(SchemaConstants.NS_C,"fullName"),
                 new PolyString("Cpt. Jack Sparrow", "cpt jack sparrow"));
-        PrismAsserts.assertPropertyAdd(userDelta, new QName(SchemaConstants.NS_C,"honorificPrefix"),
+        PrismAsserts.assertPropertyAdd(userDelta, new ItemName(SchemaConstants.NS_C,"honorificPrefix"),
         		new PolyString("Cpt.", "cpt"));
-        PrismAsserts.assertPropertyAdd(userDelta, new QName(SchemaConstants.NS_C,"locality"),
+        PrismAsserts.assertPropertyAdd(userDelta, new ItemName(SchemaConstants.NS_C,"locality"),
         		new PolyString("Tortuga", "tortuga"));
 
         ObjectModificationType objectModificationType = DeltaConvertor.toObjectModificationType(userDelta);
@@ -252,15 +253,15 @@ public class TestParseDiffPatch {
         PolyStringType polyString = new PolyStringType();
         polyString.setOrig("Cpt. Jack Sparrow");
         polyString.setNorm("cpt jack sparrow");
-        assertXmlPolyMod(objectModificationType, new QName(SchemaConstants.NS_C,"fullName"), ModificationTypeType.REPLACE, polyString);
+        assertXmlPolyMod(objectModificationType, new ItemName(SchemaConstants.NS_C,"fullName"), ModificationTypeType.REPLACE, polyString);
         polyString = new PolyStringType();
         polyString.setOrig("Cpt.");
         polyString.setNorm("cpt");
-        assertXmlPolyMod(objectModificationType, new QName(SchemaConstants.NS_C,"honorificPrefix"), ModificationTypeType.ADD, polyString);
+        assertXmlPolyMod(objectModificationType, new ItemName(SchemaConstants.NS_C,"honorificPrefix"), ModificationTypeType.ADD, polyString);
         polyString = new PolyStringType();
         polyString.setOrig("Tortuga");
         polyString.setNorm("tortuga");
-        assertXmlPolyMod(objectModificationType, new QName(SchemaConstants.NS_C,"locality"), ModificationTypeType.ADD, polyString);
+        assertXmlPolyMod(objectModificationType, new ItemName(SchemaConstants.NS_C,"locality"), ModificationTypeType.ADD, polyString);
 
         userBefore.checkConsistence();
         userAfter.checkConsistence();
@@ -305,11 +306,11 @@ public class TestParseDiffPatch {
         assertEquals("Wrong change type", ChangeType.MODIFY, userDelta.getChangeType());
         Collection<? extends ItemDelta> modifications = userDelta.getModifications();
         assertEquals("Unexpected number of modifications", 4, modifications.size());
-        PrismAsserts.assertPropertyReplace(userDelta, new QName(SchemaConstants.NS_C,"emailAddress"), "jack@blackpearl.com");
-        PrismAsserts.assertPropertyReplace(userDelta, new QName(SchemaConstants.NS_C,"locality"),
+        PrismAsserts.assertPropertyReplace(userDelta, new ItemName(SchemaConstants.NS_C,"emailAddress"), "jack@blackpearl.com");
+        PrismAsserts.assertPropertyReplace(userDelta, new ItemName(SchemaConstants.NS_C,"locality"),
         		new PolyString("World's End", "worlds end"));
         PrismAsserts.assertPropertyReplace(userDelta, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, ActivationStatusType.DISABLED);
-        PrismAsserts.assertPropertyAdd(userDelta, new QName(SchemaConstants.NS_C,"organizationalUnit"),
+        PrismAsserts.assertPropertyAdd(userDelta, new ItemName(SchemaConstants.NS_C,"organizationalUnit"),
         		new PolyString("Brethren of the Coast", "brethren of the coast"));
 	}
 
@@ -351,9 +352,9 @@ public class TestParseDiffPatch {
         Collection<? extends ItemDelta> modifications = diffDelta.getModifications();
         assertEquals("Unexpected number of modifications", 1, modifications.size());
         // there is only one property in the container. after deleting this property, all container will be deleted, isn't it right?
-        PrismAsserts.assertContainerDeleteGetContainerDelta(diffDelta, new ItemPath(TaskType.F_EXTENSION));
-//        PrismAsserts.assertPropertyDelete(diffDelta, new ItemPath(TaskType.F_EXTENSION,
-//        		new QName("http://midpoint.evolveum.com/xml/ns/public/provisioning/liveSync-1.xsd","token")), 480);
+        PrismAsserts.assertContainerDeleteGetContainerDelta(diffDelta, getPrismContext().path(TaskType.F_EXTENSION));
+//        PrismAsserts.assertPropertyDelete(diffDelta, prismContext.path(TaskType.F_EXTENSION,
+//        		new SingleNamePath("http://midpoint.evolveum.com/xml/ns/public/provisioning/liveSync-1.xsd","token")), 480);
 
         // Convert to XML form. This should include xsi:type to pass the type information
 
@@ -439,7 +440,7 @@ public class TestParseDiffPatch {
         PrismAsserts.assertPropertyReplace(resourceDelta, pathTimeouts("update"), 3);
         PrismAsserts.assertPropertyReplace(resourceDelta, pathTimeouts("scriptOnResource"), 4);
         PrismAsserts.assertPropertyDelete(resourceDelta,
-        		new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION, new QName(SchemaTestConstants.NS_ICFC, "producerBufferSize")),
+                getPrismContext().path(ResourceType.F_CONNECTOR_CONFIGURATION, new ItemName(SchemaTestConstants.NS_ICFC, "producerBufferSize")),
         		100);
         PrismAsserts.assertPropertyReplaceSimple(resourceDelta, ResourceType.F_SYNCHRONIZATION);
         // Configuration properties changes
@@ -531,14 +532,14 @@ public class TestParseDiffPatch {
 		resourceDelta.checkConsistence();
 	}
 
-	private ItemPath pathConfigProperties(String propName) {
-		return new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION, SchemaTestConstants.ICFC_CONFIGURATION_PROPERTIES,
-				new QName(SchemaTestConstants.NS_ICFC_LDAP, propName));
+	private UniformItemPath pathConfigProperties(String propName) {
+		return getPrismContext().path(ResourceType.F_CONNECTOR_CONFIGURATION, SchemaTestConstants.ICFC_CONFIGURATION_PROPERTIES,
+				new ItemName(SchemaTestConstants.NS_ICFC_LDAP, propName));
 	}
 
-	private ItemPath pathTimeouts(String last) {
-		return new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION, new QName(SchemaTestConstants.NS_ICFC, "timeouts"),
-				new QName(SchemaTestConstants.NS_ICFC, last));
+	private UniformItemPath pathTimeouts(String last) {
+		return getPrismContext().path(ResourceType.F_CONNECTOR_CONFIGURATION, new ItemName(SchemaTestConstants.NS_ICFC, "timeouts"),
+				new ItemName(SchemaTestConstants.NS_ICFC, last));
 	}
 
 	@Test
@@ -807,7 +808,7 @@ public class TestParseDiffPatch {
         for (ItemDeltaType itemDeltaType : objectChange.getItemDelta()) {
             for (RawType rawType : itemDeltaType.getValue()) {
                 rawType.getParsedItem(
-                        new PrismPropertyDefinitionImpl(itemDeltaType.getPath().getItemPath().lastNamed().getName(),
+                        new PrismPropertyDefinitionImpl(itemDeltaType.getPath().getItemPath().lastName(),
                                 rawType.getXnode().getTypeQName(),
                                 prismContext));
             }
@@ -837,7 +838,7 @@ public class TestParseDiffPatch {
     private void assertModificationPolyStringValue(RawType value, PolyStringType... expectedValues) throws SchemaException {
     	XNode xnode = value.serializeToXNode();
         assertFalse(xnode.isEmpty());
-        PolyStringType valueAsPoly = value.getPrismContext().parserFor(new RootXNode(new QName("dummy"), xnode)).parseRealValue(PolyStringType.class);
+        PolyStringType valueAsPoly = value.getPrismContext().parserFor(new RootXNode(new ItemName("dummy"), xnode)).parseRealValue(PolyStringType.class);
         boolean found = false;
         for (PolyStringType expectedValue: expectedValues) {
             if (expectedValue.getOrig().equals(valueAsPoly.getOrig()) && expectedValue.getNorm().equals(valueAsPoly.getNorm())) {

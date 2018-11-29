@@ -24,6 +24,7 @@ import java.util.Set;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
@@ -331,7 +332,7 @@ public final class ResourceAttributeContainer extends PrismContainerImpl {      
 	 */
 	@SuppressWarnings("unchecked")
 	public <X> ResourceAttribute<X> findAttribute(QName attributeQName) {
-		return (ResourceAttribute<X>) super.findProperty(attributeQName);
+		return (ResourceAttribute<X>) super.findProperty(ItemName.fromQName(attributeQName));
 	}
 
 	/**
@@ -352,7 +353,7 @@ public final class ResourceAttributeContainer extends PrismContainerImpl {      
 	}
 
 	public <X> ResourceAttribute<X> findOrCreateAttribute(QName attributeName) throws SchemaException {
-		return (ResourceAttribute<X>) getValue().findOrCreateProperty(attributeName);
+		return (ResourceAttribute<X>) getValue().findOrCreateProperty(ItemName.fromQName(attributeName));
 	}
 
 	public <T> boolean contains(ResourceAttribute<T> attr) {

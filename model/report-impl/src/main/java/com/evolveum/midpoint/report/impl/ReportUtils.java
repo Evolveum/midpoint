@@ -23,8 +23,7 @@ import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.path.ItemPath;
 
 import java.io.File;
 import java.sql.Timestamp;
@@ -37,6 +36,7 @@ import java.util.ResourceBundle;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
@@ -494,7 +494,7 @@ public class ReportUtils {
                     return "";
                 }
 
-                Object parsedRealValue = ((RawType) value).getParsedRealValue(null, itemPath.getItemPath());
+                Object parsedRealValue = ((RawType) value).getParsedRealValue(null, itemPath.getUniformItemPath());
                 if (parsedRealValue instanceof Containerable) { // this is for PCV
                     return prettyPrintForReport(((Containerable) parsedRealValue).asPrismContainerValue());
                 }
@@ -540,8 +540,8 @@ public class ReportUtils {
 
     private static boolean isMetadata(ItemPathType itemPath) {
         boolean retMeta = false;
-        for (ItemPathSegment ips : itemPath.getItemPath().getSegments()) {
-            if (ips instanceof NameItemPathSegment && "metadata".equals(((NameItemPathSegment) ips).getName().getLocalPart())) {
+        for (Object ips : itemPath.getItemPath().getSegments()) {
+            if (ItemPath.isName(ips) && ObjectType.F_METADATA.getLocalPart().equals(ItemPath.toName(ips).getLocalPart())) {
                 return true;
             }
         }
@@ -684,7 +684,7 @@ public class ReportUtils {
     }
 
     public static Object getItemRealValue(PrismContainerValue containerValue, String itemName) {
-        Item item = containerValue.findItem(new QName(itemName));
+        Item item = containerValue.findItem(new ItemName(itemName));
         if (item == null || item.size() == 0) {
             return null;
         }

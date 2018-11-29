@@ -191,15 +191,15 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
 				return;
 			}
 			QName root = Boolean.TRUE.equals(assignmentCase.isIsInducement()) ? AbstractRoleType.F_INDUCEMENT : FocusType.F_ASSIGNMENT;
-			ItemPath assignmentPath = new ItemPath(root, assignment.getId());
+			ItemPath assignmentPath = ItemPath.create(root, assignment.getId());
 			if (objectCtx.object.asPrismObject().find(assignmentPath) == null) {
 				LOGGER.debug("Assignment/inducement {} in {} does not exist. It might be already deleted e.g. by remediation.",
 						assignmentPath, toShortString(objectCtx.object));
 				return;
 			}
-			pathPrefix = assignmentPath.subPath(AssignmentType.F_METADATA);
+			pathPrefix = assignmentPath.append(AssignmentType.F_METADATA);
 		} else {
-			pathPrefix = new ItemPath(ObjectType.F_METADATA);
+			pathPrefix = ObjectType.F_METADATA;
 		}
 
 		try {
@@ -233,10 +233,10 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
 			}
 		}
 		return DeltaBuilder.deltaFor(objectClass, prismContext)
-				.item(pathPrefix.subPath(MetadataType.F_CERTIFICATION_FINISHED_TIMESTAMP)).replace(campaign.getEndTimestamp())
-				.item(pathPrefix.subPath(MetadataType.F_CERTIFICATION_OUTCOME)).replace(outcome)
-				.item(pathPrefix.subPath(MetadataType.F_CERTIFIER_REF)).replaceRealValues(certifiers)
-				.item(pathPrefix.subPath(MetadataType.F_CERTIFIER_COMMENT)).replaceRealValues(comments)
+				.item(pathPrefix.append(MetadataType.F_CERTIFICATION_FINISHED_TIMESTAMP)).replace(campaign.getEndTimestamp())
+				.item(pathPrefix.append(MetadataType.F_CERTIFICATION_OUTCOME)).replace(outcome)
+				.item(pathPrefix.append(MetadataType.F_CERTIFIER_REF)).replaceRealValues(certifiers)
+				.item(pathPrefix.append(MetadataType.F_CERTIFIER_COMMENT)).replaceRealValues(comments)
 				.asItemDeltas();
 	}
 

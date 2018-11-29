@@ -25,7 +25,6 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -309,7 +308,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
                 }
             }
             PrismObjectDefinition objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(object.getClass());
-            ItemDelta replaceParent = ReferenceDeltaImpl.createModificationReplace(new ItemPath(OrgType.F_PARENT_ORG_REF), objectDefinition, newValues);
+            ItemDelta replaceParent = ReferenceDeltaImpl.createModificationReplace(OrgType.F_PARENT_ORG_REF, objectDefinition, newValues);
             modifications.add(replaceParent);
         }
         repositoryService.modifyObject(object.getClass(), object.getOid(), modifications, opResult);
@@ -332,7 +331,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
             }
             newValues.add(existingValue.clone());
             PrismObjectDefinition objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(OrgType.class);
-            itemDelta = ReferenceDeltaImpl.createModificationReplace(new ItemPath(OrgType.F_PARENT_ORG_REF), objectDefinition, newValues);
+            itemDelta = ReferenceDeltaImpl.createModificationReplace(OrgType.F_PARENT_ORG_REF, objectDefinition, newValues);
         }
         modifications.add(itemDelta);
         repositoryService.modifyObject(OrgType.class, org.getOid(), modifications, opResult);
@@ -732,7 +731,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
 
     protected void addExtensionProperty(PrismObject object, String name, Object value) throws SchemaException {
         String NS = "http://example.com/p";
-        PrismProperty p = object.findOrCreateProperty(new ItemPath(UserType.F_EXTENSION, new QName(NS, name)));
+        PrismProperty p = object.findOrCreateProperty(ItemPath.create(UserType.F_EXTENSION, new QName(NS, name)));
         p.setRealValue(value);
     }
 

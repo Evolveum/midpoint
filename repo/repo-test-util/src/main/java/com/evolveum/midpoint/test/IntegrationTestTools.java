@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -361,7 +362,7 @@ public class IntegrationTestTools {
 		if (attrCont == null) {
 			return null;
 		}
-		PrismProperty<T> attrProp = attrCont.findProperty(name);
+		PrismProperty<T> attrProp = attrCont.findProperty(ItemName.fromQName(name));
 		if (attrProp == null) {
 			return null;
 		}
@@ -745,7 +746,7 @@ public class IntegrationTestTools {
 
 		PrismContainer<?> attributesContainer = resourceShadow.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES);
 		QName identifierName = objectClassDef.getPrimaryIdentifiers().iterator().next().getName();
-		PrismProperty<String> identifier = attributesContainer.findProperty(identifierName);
+		PrismProperty<String> identifier = attributesContainer.findProperty(ItemName.fromQName(identifierName));
 		if (identifier == null) {
 			throw new SchemaException("No identifier in "+resourceShadow);
 		}
@@ -757,7 +758,7 @@ public class IntegrationTestTools {
 		PrismPropertyDefinition<String> identifierDef = identifier.getDefinition();
 		return QueryBuilder.queryFor(ShadowType.class, prismContext)
 				.item(ShadowType.F_RESOURCE_REF).ref(ShadowUtil.getResourceOid(resourceShadow))
-				.and().item(new ItemPath(ShadowType.F_ATTRIBUTES, identifierDef.getName()), identifierDef).eq(identifierValue)
+				.and().item(ItemPath.create(ShadowType.F_ATTRIBUTES, identifierDef.getName()), identifierDef).eq(identifierValue)
 				.build();
 	}
 
@@ -822,12 +823,12 @@ public class IntegrationTestTools {
 
 	public static <T> void assertExtensionProperty(PrismObject<? extends ObjectType> object, QName propertyName, T... expectedValues) {
 		PrismContainer<?> extension = object.getExtension();
-		PrismAsserts.assertPropertyValue(extension, propertyName, expectedValues);
+		PrismAsserts.assertPropertyValue(extension, ItemName.fromQName(propertyName), expectedValues);
 	}
 
 	public static <T> void assertNoExtensionProperty(PrismObject<? extends ObjectType> object, QName propertyName) {
 		PrismContainer<?> extension = object.getExtension();
-		PrismAsserts.assertNoItem(extension, propertyName);
+		PrismAsserts.assertNoItem(extension, ItemName.fromQName(propertyName));
 	}
 
 	public static void assertIcfResourceSchemaSanity(ResourceSchema resourceSchema, ResourceType resourceType) {
@@ -914,9 +915,8 @@ public class IntegrationTestTools {
 		shadowRefType.setOid(groupOid);
 		shadowRefType.setType(ShadowType.COMPLEX_TYPE);
 		association.setShadowRef(shadowRefType);
-		ItemPath entitlementAssociationPath = new ItemPath(ShadowType.F_ASSOCIATION);
 		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationAddContainer(ShadowType.class,
-				accountOid, entitlementAssociationPath, prismContext, association);
+				accountOid, ShadowType.F_ASSOCIATION, prismContext, association);
 		return delta;
 	}
 
@@ -927,9 +927,8 @@ public class IntegrationTestTools {
 		shadowRefType.setOid(groupOid);
         shadowRefType.setType(ShadowType.COMPLEX_TYPE);
 		association.setShadowRef(shadowRefType);
-		ItemPath entitlementAssociationPath = new ItemPath(ShadowType.F_ASSOCIATION);
 		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationDeleteContainer(ShadowType.class,
-				accountOid, entitlementAssociationPath, prismContext, association);
+				accountOid, ShadowType.F_ASSOCIATION, prismContext, association);
 		return delta;
 	}
 

@@ -115,7 +115,7 @@ public abstract class Definition implements DebugDumpable {
         return null;
     }
 
-    public <D extends Definition> D findDefinition(QName jaxbName, Class<D> type) {
+    public <D extends Definition> D findLocalDefinition(QName jaxbName, Class<D> type) {
         return null;
     }
 }

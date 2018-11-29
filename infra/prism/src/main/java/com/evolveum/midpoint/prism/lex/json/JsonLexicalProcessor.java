@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.prism.lex.json;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -96,7 +96,7 @@ public class JsonLexicalProcessor extends AbstractJsonLexicalProcessor {
 		SimpleModule module = new SimpleModule("MidpointModule", new Version(0, 0, 0, "aa"));
 		module.addSerializer(QName.class, new QNameSerializer());
 		module.addSerializer(PolyString.class, new PolyStringSerializer());
-		module.addSerializer(ItemPath.class, new ItemPathSerializer());
+		module.addSerializer(UniformItemPath.class, new ItemPathSerializer());
 		module.addSerializer(ItemPathType.class, new ItemPathTypeSerializer());
 		module.addSerializer(XMLGregorianCalendar.class, new XmlGregorianCalendarSerializer());
 //		module.addSerializer(Element.class, new DomElementJsonSerializer());

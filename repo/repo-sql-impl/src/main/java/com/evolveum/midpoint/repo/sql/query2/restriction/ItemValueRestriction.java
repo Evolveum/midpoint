@@ -62,7 +62,7 @@ public abstract class ItemValueRestriction<T extends ValueFilter> extends ItemRe
     public Condition interpret() throws QueryException {
 
     	ItemPath path = getItemPath();
-        if (ItemPath.isNullOrEmpty(path)) {
+        if (ItemPath.isEmpty(path)) {
             throw new QueryException("Null or empty path for ItemValueRestriction in " + filter.debugDump());
         }
         HqlDataInstance dataInstance = getItemPathResolver().resolveItemPath(path, itemDefinition, getBaseHqlEntity(), false);

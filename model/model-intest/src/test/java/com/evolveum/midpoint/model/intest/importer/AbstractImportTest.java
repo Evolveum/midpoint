@@ -20,6 +20,7 @@ import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.intest.AbstractConfiguredModelIntegrationTest;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -901,7 +902,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
 		PrismContainer<Containerable> configurationPropertiesContainer = assertResource(resource, "Dummy Resource", RESOURCE_DUMMY_NAMESPACE,
 				dummyConnector.getOid(), fromRepo);
 		PrismProperty<ProtectedStringType> guardedProperty = configurationPropertiesContainer.findProperty(
-				new QName(CONNECTOR_DUMMY_NAMESPACE, "uselessGuardedString"));
+				new ItemName(CONNECTOR_DUMMY_NAMESPACE, "uselessGuardedString"));
 		// The resource was pulled from the repository. Therefore it does not have the right schema here. We should proceed with caution
 		// and inspect the DOM elements there
 		assertNotNull("No uselessGuardedString property in configuration properties", guardedProperty);

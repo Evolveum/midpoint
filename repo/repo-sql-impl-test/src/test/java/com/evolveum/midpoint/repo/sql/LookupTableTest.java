@@ -349,7 +349,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
     }
 
     private void checkTable(String tableOid, PrismObject<LookupTableType> expectedObject, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        SelectorOptions<GetOperationOptions> retrieve = SelectorOptions.create(F_ROW, GetOperationOptions.createRetrieve(INCLUDE));
+        SelectorOptions<GetOperationOptions> retrieve = SelectorOptions.create(prismContext.path(F_ROW), GetOperationOptions.createRetrieve(INCLUDE));
         PrismObject<LookupTableType> table = repositoryService.getObject(LookupTableType.class, tableOid, Arrays.asList(retrieve), result);
         expectedObject.setOid(tableOid);
         PrismAsserts.assertEquivalent("Table is not as expected", expectedObject, table);
@@ -438,7 +438,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
     }
 
     private PrismObject<LookupTableType> getFullTable(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
-        SelectorOptions<GetOperationOptions> retrieve = SelectorOptions.create(F_ROW, GetOperationOptions.createRetrieve(INCLUDE));
+        SelectorOptions<GetOperationOptions> retrieve = SelectorOptions.create(prismContext.path(F_ROW), GetOperationOptions.createRetrieve(INCLUDE));
         return repositoryService.getObject(LookupTableType.class, oid, Arrays.asList(retrieve), result);
     }
 

@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -104,9 +103,9 @@ public class TestMiscellaneous {
 		System.out.println("Property values after: " + propertyValuesAfter);
 
 		assertNull("metadata container present", role.findContainer(RoleType.F_METADATA));
-		assertNull("effectiveStatus present", role.findProperty(new ItemPath(RoleType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS)));
+		assertNull("effectiveStatus present", role.findProperty(getPrismContext().path(RoleType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS)));
 		assertNull("assignment[1]/activation/effectiveStatus present",
-				role.findProperty(new ItemPath(RoleType.F_ASSIGNMENT, 1L, AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS)));
+				role.findProperty(getPrismContext().path(RoleType.F_ASSIGNMENT, 1L, AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS)));
 
 		assertEquals("Wrong property values after", propertyValuesBefore.intValue()-6, propertyValuesAfter.intValue());
 	}

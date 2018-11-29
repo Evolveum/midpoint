@@ -20,6 +20,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -195,7 +196,7 @@ public class TestOperationPerf extends AbstractStoryTest {
 		}
 		for (int i=0; i<numberOfProperties; i++) {
 			String propName = String.format(USER_EXTENSION_PROPERTY_NAME_FORMAT, i);
-			PrismProperty<String> prop = extension.findOrCreateProperty(new QName(USER_EXTENSION_NS, propName));
+			PrismProperty<String> prop = extension.findOrCreateProperty(new ItemName(USER_EXTENSION_NS, propName));
 			prop.setRealValue("val "+i);
 		}
 		

@@ -27,52 +27,36 @@ import org.jetbrains.annotations.NotNull;
  */
 public class NameItemPathSegment extends ItemPathSegment {
 
-	public static final NameItemPathSegment WILDCARD = NameItemPathSegment.createWildcard();
-
-	@NotNull private final QName name;
-	private boolean isVariable = false;
+	@NotNull private final ItemName name;
 
 	public NameItemPathSegment(@NotNull QName name) {
-		this.name = name;
-	}
-
-	private static NameItemPathSegment createWildcard() {
-		NameItemPathSegment segment = new NameItemPathSegment(new QName("*"));		// TODO
-		segment.setWildcard(true);
-		return segment;
+		this.name = ItemName.fromQName(name);
 	}
 
 	public NameItemPathSegment(@NotNull QName name, boolean isVariable) {
-		this.name = name;
-		this.isVariable = isVariable;
+		this.name = ItemName.fromQName(name);
 	}
 
 	@NotNull
-	public QName getName() {
+	public ItemName getName() {
 		return name;
 	}
 
 	@Override
-	public boolean isVariable() {
-		return isVariable;
-	}
-
-	@Override
 	public String toString() {
-		return (isVariable ? "$" : "") + (isWildcard() ? "*" : DebugUtil.formatElementName(name));
+		return DebugUtil.formatElementName(name);
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result + (isVariable ? 1231 : 1237);
         // if we need to compute hash from namespace-normalized name, we would use this one:
         // (in order for equals to work; if we decide to change equals in such a way later)
 		// result = prime * result + ((name == null) ? 0 : name.getLocalPart().hashCode());
 
         // this version is for "precise" equals
-        result = prime * result + ((name == null) ? 0 : name.hashCode());
+        result = prime * result + name.hashCode();
 		return result;
 	}
 
@@ -109,14 +93,7 @@ public class NameItemPathSegment extends ItemPathSegment {
         if (getClass() != obj.getClass()) {
 			return false;
         }
-        NameItemPathSegment other = (NameItemPathSegment) obj;
-		if (isVariable != other.isVariable) {
-			return false;
-        }
-        if (name == null) {
-			return other.name != null;
-		}
-
+		NameItemPathSegment other = (NameItemPathSegment) obj;
         if (allowUnqualified) {
             if (!allowDifferentPrefixes) {
                 throw new UnsupportedOperationException("It is not possible to disallow different prefixes while allowing unqualified names");
@@ -143,7 +120,7 @@ public class NameItemPathSegment extends ItemPathSegment {
     }
 
     public NameItemPathSegment clone() {
-        NameItemPathSegment clone = new NameItemPathSegment(this.name, this.isVariable);
+	    NameItemPathSegment clone = new NameItemPathSegment(this.name);
         clone.setWildcard(this.isWildcard());
         return clone;
     }

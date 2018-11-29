@@ -16,27 +16,12 @@
 
 package com.evolveum.midpoint.prism.marshaller;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import javax.xml.namespace.QName;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.*;
-
+import com.evolveum.midpoint.prism.xml.GlobalDynamicNamespacePrefixMapper;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SystemException;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.DOMException;
@@ -44,11 +29,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import com.evolveum.midpoint.prism.xml.GlobalDynamicNamespacePrefixMapper;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
+import javax.xml.namespace.QName;
+import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * Holds internal (parsed) form of midPoint-style XPath-like expressions.
@@ -57,51 +40,45 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  *
  * Assumes relative XPath, but somehow can also work with absolute XPaths.
  *
+ * NOT to be used outside prism module (except for XPathTest in schema - but this is also to be resolved).
+ *
  * @author semancik
  * @author mederly
  */
 public class ItemPathHolder {
 
-	private static final Trace LOGGER = TraceManager.getTrace(ItemPathHolder.class);
-	public static final String DEFAULT_PREFIX = "c";
+//	private static final Trace LOGGER = TraceManager.getTrace(ItemPathHolder.class);
+//	public static final String DEFAULT_PREFIX = "c";
 	private boolean absolute;
 	private List<PathHolderSegment> segments;
 	private final Map<String, String> explicitNamespaceDeclarations = new HashMap<>();
 
-    // Part 1: Import from external representations.
+    //region Parsing
 
-	/**
-	 * Sets "current node" Xpath.
-	 */
-	public ItemPathHolder() {
-		absolute = false;
-		segments = new ArrayList<>();
+	public static UniformItemPath parseFromString(String path) {
+		return new ItemPathHolder(path).toItemPath();
 	}
 
-	// This should not really be used. There should always be a namespace
-	public ItemPathHolder(String xpath) {
+	public static UniformItemPath parseFromElement(Element element) {
+		return new ItemPathHolder(element).toItemPath();
+	}
+
+	private ItemPathHolder() {
+	}
+
+	private ItemPathHolder(String xpath) {
 		parse(xpath, null, null);
 	}
 
-	public ItemPathHolder(String xpath, Map<String, String> namespaceMap) {
-		parse(xpath, null, namespaceMap);
-	}
-
-	public ItemPathHolder(Element domElement) {
-
+	private ItemPathHolder(Element domElement) {
 		String xpath = ".";
 		if (domElement != null) {
 			xpath = domElement.getTextContent();
 		}
-
 		parse(xpath, domElement, null);
 	}
 
-	public ItemPathHolder(String xpath, Node domNode) {
-		parse(xpath, domNode, null);
-	}
-
-    /**
+	/**
      * Parses XPath-like expression (midPoint flavour), with regards to domNode from where the namespace declarations
      * (embedded in XML using xmlns attributes) are taken.
      *
@@ -236,57 +213,44 @@ public class ItemPathHolder {
 
 		return ns;
 	}
+	//endregion
 
-    public ItemPathHolder(List<PathHolderSegment> segments) {
-        this(segments, false);
-    }
+	//region Serializing
 
-    public ItemPathHolder(List<PathHolderSegment> segments, boolean absolute) {
-        this.segments = new ArrayList<>();
-        for (PathHolderSegment segment : segments) {
-            if (segment.getQName() != null && StringUtils.isEmpty(segment.getQName().getPrefix())) {
-                QName qname = segment.getQName();
-                this.segments.add(new PathHolderSegment(new QName(qname.getNamespaceURI(), qname.getLocalPart())));
-            } else {
-                this.segments.add(segment);
-            }
-        }
+	public static String serializeWithDeclarations(@NotNull ItemPath itemPath) {
+		return new ItemPathHolder(UniformItemPathImpl.fromItemPath(itemPath)).getXPathWithDeclarations();
+	}
 
-        // this.segments = segments;
-        this.absolute = absolute;
-    }
+	public static String serializeWithForcedDeclarations(@NotNull ItemPath itemPath) {
+		return new ItemPathHolder(UniformItemPathImpl.fromItemPath(itemPath), true).getXPathWithDeclarations();
+	}
 
-    public ItemPathHolder(QName... segmentQNames) {
-        this.segments = new ArrayList<>();
-        for (QName segmentQName : segmentQNames) {
-            PathHolderSegment segment = new PathHolderSegment(segmentQName);
-            this.segments.add(segment);
-        }
-
-        this.absolute = false;
-    }
-
-    public ItemPathHolder(ItemPath itemPath) {
+	private ItemPathHolder(@NotNull UniformItemPath itemPath) {
 		this(itemPath, false);
-    }
+	}
 
-    public ItemPathHolder(ItemPath itemPath, boolean forceExplicitNamespaceDeclarations) {
+	private ItemPathHolder(@NotNull UniformItemPath itemPath, boolean forceExplicitNamespaceDeclarations) {
 		if (itemPath.getNamespaceMap() != null) {
 			this.explicitNamespaceDeclarations.putAll(itemPath.getNamespaceMap());
 		}
-        this.segments = new ArrayList<>();
-        for (ItemPathSegment segment: itemPath.getSegments()) {
-            PathHolderSegment xsegment;
-            if (segment instanceof NameItemPathSegment) {
-            	boolean variable = segment.isVariable();
-	            QName name = ((NameItemPathSegment) segment).getName();
-	            xsegment = new PathHolderSegment(name, variable);
-	            if (forceExplicitNamespaceDeclarations && StringUtils.isNotEmpty(name.getPrefix())) {
-	            	this.explicitNamespaceDeclarations.put(name.getPrefix(), name.getNamespaceURI());
-	            }
-            } else if (segment instanceof IdItemPathSegment) {
-                xsegment = new PathHolderSegment(idToString(((IdItemPathSegment) segment).getId()));
-            } else if (segment instanceof ObjectReferencePathSegment) {
+		this.segments = new ArrayList<>();
+		for (ItemPathSegment segment: itemPath.getSegments()) {
+			PathHolderSegment xsegment;
+			if (segment instanceof NameItemPathSegment) {
+				QName name = ((NameItemPathSegment) segment).getName();
+				xsegment = new PathHolderSegment(name);
+				if (forceExplicitNamespaceDeclarations && StringUtils.isNotEmpty(name.getPrefix())) {
+					this.explicitNamespaceDeclarations.put(name.getPrefix(), name.getNamespaceURI());
+				}
+			} else if (segment instanceof VariableItemPathSegment) {
+				QName name = ((VariableItemPathSegment) segment).getName();
+				xsegment = new PathHolderSegment(name, true);
+				if (forceExplicitNamespaceDeclarations && StringUtils.isNotEmpty(name.getPrefix())) {
+					this.explicitNamespaceDeclarations.put(name.getPrefix(), name.getNamespaceURI());
+				}
+			} else if (segment instanceof IdItemPathSegment) {
+				xsegment = new PathHolderSegment(idToString(((IdItemPathSegment) segment).getId()));
+			} else if (segment instanceof ObjectReferencePathSegment) {
 				xsegment = new PathHolderSegment(PrismConstants.T_OBJECT_REFERENCE, false);
 			} else if (segment instanceof ParentPathSegment) {
 				xsegment = new PathHolderSegment(PrismConstants.T_PARENT, false);
@@ -295,22 +259,12 @@ public class ItemPathHolder {
 			} else {
 				throw new IllegalStateException("Unknown segment: " + segment);
 			}
-            this.segments.add(xsegment);
-        }
-        this.absolute = false;
-    }
-
-    // Part 2: Export to external representations.
-
-	public String getXPath() {
-		StringBuilder sb = new StringBuilder();
-
-//		addPureXpath(sb);
-		sb.append(getXPathWithDeclarations());
-		return sb.toString();
+			this.segments.add(xsegment);
+		}
+		this.absolute = false;
 	}
 
-    public String getXPathWithoutDeclarations() {
+	public String getXPathWithoutDeclarations() {
         StringBuilder sb = new StringBuilder();
 		addPureXpath(sb);
         return sb.toString();
@@ -379,90 +333,72 @@ public class ItemPathHolder {
 		}
 	}
 
-	public String toCanonicalPath(Class objectType, PrismContext prismContext) {
-		StringBuilder sb = new StringBuilder("\\");
-
-        boolean first = true;
-
-        PrismObjectDefinition objDef = null;
-        if (objectType != null) {
-        	 objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(objectType);
-        }
-        ItemDefinition def = null;
-		for (PathHolderSegment seg : segments) {
-
-            if (seg.isIdValueFilter()) {
-            	//for now, we don't want to save concrete id, just the path
-                continue;
-
-            } else {
-
-            	QName qname = seg.getQName();
-
-                if (!first) {
-                    sb.append("\\");
-                    if (StringUtils.isBlank(qname.getNamespaceURI()) && objDef != null) {
-                        if (def instanceof PrismContainerDefinition) {
-                        	PrismContainerDefinition containerDef = (PrismContainerDefinition) def;
-                        	def = containerDef.findItemDefinition(qname);
-                        }
-
-                    	if (def != null) {
-                    		qname = def.getName();
-                    	}
-                    }
-                } else {
-                	if (StringUtils.isBlank(qname.getNamespaceURI()) && objDef != null) {
-                    	def = objDef.findItemDefinition(qname);
-                    	if (def != null) {
-                    		qname = def.getName();
-                    	}
-                    }
-                    first = false;
-                }
-
-
-
-				sb.append(QNameUtil.qNameToUri(qname));
-            }
-		}
-
-		return sb.toString();
-	}
+//	public String toCanonicalPath(Class objectType, PrismContext prismContext) {
+//		StringBuilder sb = new StringBuilder("\\");
+//
+//        boolean first = true;
+//
+//        PrismObjectDefinition objDef = null;
+//        if (objectType != null) {
+//        	 objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(objectType);
+//        }
+//        ItemDefinition def = null;
+//		for (PathHolderSegment seg : segments) {
+//
+//            if (seg.isIdValueFilter()) {
+//            	//for now, we don't want to save concrete id, just the path
+//                continue;
+//
+//            } else {
+//
+//            	QName qname = seg.getQName();
+//
+//                if (!first) {
+//                    sb.append("\\");
+//                    if (StringUtils.isBlank(qname.getNamespaceURI()) && objDef != null) {
+//                        if (def instanceof PrismContainerDefinition) {
+//                        	PrismContainerDefinition containerDef = (PrismContainerDefinition) def;
+//                        	def = containerDef.findItemDefinition(ItemName.fromQName(qname));
+//                        }
+//
+//                    	if (def != null) {
+//                    		qname = def.getName();
+//                    	}
+//                    }
+//                } else {
+//                	if (StringUtils.isBlank(qname.getNamespaceURI()) && objDef != null) {
+//                    	def = objDef.findItemDefinition(ItemName.fromQName(qname));
+//                    	if (def != null) {
+//                    		qname = def.getName();
+//                    	}
+//                    }
+//                    first = false;
+//                }
+//
+//
+//
+//				sb.append(QNameUtil.qNameToUri(qname));
+//            }
+//		}
+//
+//		return sb.toString();
+//	}
 
 	public Map<String, String> getNamespaceMap() {
-
 		Map<String, String> namespaceMap = new HashMap<>();
-		Iterator<PathHolderSegment> iter = segments.iterator();
-		while (iter.hasNext()) {
-			PathHolderSegment seg = iter.next();
+		for (PathHolderSegment seg : segments) {
 			QName qname = seg.getQName();
-            if (qname != null) {
-                if (qname.getPrefix() != null && !qname.getPrefix().isEmpty()) {
-                    namespaceMap.put(qname.getPrefix(), qname.getNamespaceURI());
-                }
-                // this code seems to be currently of no use
-//                else {
-//                    // Default namespace
-//                    // HACK. See addPureXpath method
-//                    namespaceMap.put(DEFAULT_PREFIX, qname.getNamespaceURI());
-//                }
-            }
+			if (qname != null) {
+				if (qname.getPrefix() != null && !qname.getPrefix().isEmpty()) {
+					namespaceMap.put(qname.getPrefix(), qname.getNamespaceURI());
+				}
+			}
 		}
-
 		return namespaceMap;
 	}
 
-	public Element toElement(String elementNamespace, String localElementName) {
-		// TODO: is this efficient?
-		try {
-			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			factory.setNamespaceAware(true);
-			DocumentBuilder loader = factory.newDocumentBuilder();
-			return toElement(elementNamespace, localElementName, loader.newDocument());
-		} catch (ParserConfigurationException ex) {
-			throw new AssertionError("Error on creating XML document " + ex.getMessage());
-		}
+	public static Element serializeToElement(ItemPath path, QName elementQName, Document document) {
+		return new ItemPathHolder(UniformItemPathImpl.fromItemPath(path)).toElement(elementQName, document);
 	}
 
 	public Element toElement(QName elementQName, Document document) {
@@ -498,7 +434,7 @@ public class ItemPathHolder {
 	}
 
 	@NotNull
-    public ItemPath toItemPath() {
+    public UniformItemPath toItemPath() {
         List<PathHolderSegment> xsegments = toSegments();
         List<ItemPathSegment> segments = new ArrayList<>(xsegments.size());
         for (PathHolderSegment segment : xsegments) {
@@ -507,57 +443,32 @@ public class ItemPathHolder {
             } else {
                 QName qName = segment.getQName();
                 boolean variable = segment.isVariable();
-				segments.add(ItemPath.createSegment(qName, variable));
+				segments.add(UniformItemPathImpl.createSegment(qName, variable));
             }
         }
-        ItemPath path = new ItemPath(segments);
+        UniformItemPath path = new UniformItemPathImpl(segments);
         path.setNamespaceMap(explicitNamespaceDeclarations);
         return path;
     }
+	//endregion
 
-    // Part 3: Various
-
-	/**
-	 * Returns new XPath with a specified element prepended to the path. Useful
-	 * for "transposing" relative paths to a absolute root.
-	 */
-	public ItemPathHolder transposedPath(QName parentPath) {
-		PathHolderSegment segment = new PathHolderSegment(parentPath);
-		List<PathHolderSegment> segments = new ArrayList<>();
-		segments.add(segment);
-		return transposedPath(segments);
-	}
-
-	/**
-	 * Returns new XPath with a specified element prepended to the path. Useful
-	 * for "transposing" relative paths to a absolute root.
-	 */
-	public ItemPathHolder transposedPath(List<PathHolderSegment> parentPath) {
-		List<PathHolderSegment> allSegments = new ArrayList<>();
-		allSegments.addAll(parentPath);
-		allSegments.addAll(toSegments());
-		return new ItemPathHolder(allSegments);
-	}
-
-
+	//region Misc
 
 	private void addExplicitNsDeclarations(StringBuilder sb) {
-		if (explicitNamespaceDeclarations != null) {
-			for (Map.Entry<String, String> declaration : explicitNamespaceDeclarations.entrySet()) {
-				sb.append("declare ");
-				String prefix = declaration.getKey();
-				String value = declaration.getValue();
-				if (prefix.equals("")) {
-					sb.append("default namespace '");
-					sb.append(value);
-					sb.append("'; ");
-				} else {
-					sb.append("namespace ");
-					sb.append(prefix);
-					sb.append("='");
-					sb.append(value);
-					sb.append("'; ");
-				}
+		for (Entry<String, String> declaration : explicitNamespaceDeclarations.entrySet()) {
+			sb.append("declare ");
+			String prefix = declaration.getKey();
+			String value = declaration.getValue();
+			if (prefix.equals("")) {
+				sb.append("default namespace '");
+				sb.append(value);
+				sb.append("'; ");
+			} else {
+				sb.append("namespace ");
+				sb.append(prefix);
+				sb.append("='");
+				sb.append(value);
+				sb.append("'; ");
 			}
 		}
 	}
@@ -569,7 +480,7 @@ public class ItemPathHolder {
     @Override
     public String toString() {
         // TODO: more verbose toString later
-        return getXPath();
+        return getXPathWithDeclarations();
     }
 
     @Override
@@ -594,7 +505,7 @@ public class ItemPathHolder {
 				return false;
 			}
 			PathHolderSegment segment = segments.get(0);
-			return segment.getQName().equals((QName)obj);
+			return segment.getQName().equals(obj);
 		}
 
 		if (getClass() != obj.getClass())
@@ -610,63 +521,6 @@ public class ItemPathHolder {
 		return true;
 	}
 
-	/**
-	 * Returns true if this path is below a specified path.
-	 */
-	public boolean isBelow(ItemPathHolder path) {
-		if (this.segments.size() < 1){
-			return false;
-		}
-		for(int i = 0; i < path.segments.size(); i++) {
-			if (i > this.segments.size()) {
-				// We have run beyond all of local segments, therefore
-				// this path cannot be below specified path
-				return false;
-			}
-			if (!this.segments.get(i).equals(path.segments.get(i))) {
-				// Segments don't match. We are not below.
-				return false;
-			}
-		}
-		return true;
-	}
-
-	/**
-	 * Returns a list of segments that are the "tail" after specified path.
-	 * The path in the parameter is assumed to be a "superpath" to this path, e.i.
-	 * this path is below specified path. This method returns all the segments
-	 * of this path that are below the specified path.
-	 * Returns null if the assumption is false.
-	 */
-	public List<PathHolderSegment> getTail(ItemPathHolder path) {
-		int i = 0;
-		while(i < path.segments.size()) {
-			if (i > this.segments.size()) {
-				// We have run beyond all of local segments, therefore
-				// this path cannot be below specified path
-				return null;
-			}
-			if (!this.segments.get(i).equals(path.segments.get(i))) {
-				// Segments don't match. We are not below.
-				return null;
-			}
-			i++;
-		}
-		return segments.subList(i, this.segments.size());
-	}
-
-	public static boolean isDefault(Element pathElement) {
-		if (pathElement == null) {
-			return true;
-		}
-		ItemPathHolder xpath = new ItemPathHolder(pathElement);
-		if (xpath.isEmpty()) {
-			return true;
-		}
-		return false;
-	}
-
-
 	private Long idToLong(String stringVal) {
 		if (stringVal == null) {
 			return null;
@@ -680,5 +534,53 @@ public class ItemPathHolder {
 		}
 		return longVal.toString();
 	}
+	//endregion
 
+	//region Methods for testing
+	// public only because of testing
+	public static ItemPathHolder createForTesting(String xpath) {
+		return new ItemPathHolder(xpath);
+	}
+
+	public static ItemPathHolder createForTesting(String xpath, Map<String, String> namespaceMap) {
+		ItemPathHolder rv = new ItemPathHolder();
+		rv.parse(xpath, null, namespaceMap);
+		return rv;
+	}
+
+	public static ItemPathHolder createForTesting(Element element) {
+		return new ItemPathHolder(element);
+	}
+
+	public static ItemPathHolder createForTesting(List<PathHolderSegment> segments) {
+		ItemPathHolder rv = new ItemPathHolder();
+		rv.segments = new ArrayList<>();
+		for (PathHolderSegment segment : segments) {
+			if (segment.getQName() != null && StringUtils.isEmpty(segment.getQName().getPrefix())) {
+				QName qname = segment.getQName();
+				rv.segments.add(new PathHolderSegment(new QName(qname.getNamespaceURI(), qname.getLocalPart())));
+			} else {
+				rv.segments.add(segment);
+			}
+		}
+		rv.absolute = false;
+		return rv;
+	}
+
+	public static ItemPathHolder createForTesting(QName... segmentQNames) {
+		ItemPathHolder rv = new ItemPathHolder();
+		rv.segments = new ArrayList<>();
+		for (QName segmentQName : segmentQNames) {
+			PathHolderSegment segment = new PathHolderSegment(segmentQName);
+			rv.segments.add(segment);
+		}
+		rv.absolute = false;
+		return rv;
+	}
+
+	public static ItemPathHolder createForTesting(UniformItemPath path) {
+		return new ItemPathHolder(path);
+	}
+
+	//endregion
 }

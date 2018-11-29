@@ -417,8 +417,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
 					delta.addModificationReplaceProperty(UserType.F_LIFECYCLE_STATE,
 							getSelfRegistrationConfiguration().getInitialLifecycleState());
 				}
-				 delta.addModificationReplaceProperty(SchemaConstants.PATH_PASSWORD_VALUE,
-				 createPassword().getValue());
+				delta.addModificationReplaceProperty(SchemaConstants.PATH_PASSWORD_VALUE, createPassword().getValue());
 			} else {
 				delta = getDynamicFormPanel().getObjectDelta();
 			}

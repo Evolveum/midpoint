@@ -25,10 +25,7 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.model.RealContainerValueFromContainerValueWrapperModel;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -162,7 +159,7 @@ public class ContainerWrapperFactory {
 					//for now Induced entitlements gui should support only targetRef expression value
 					//that is why no need to look for another expression types within association
 					ResourceObjectAssociationType resourceAssociation = (ResourceObjectAssociationType) associationValue.asContainerable();
-					if (resourceAssociation.getRef() == null || resourceAssociation.getRef().getItemPath() == null){
+					if (resourceAssociation.getRef() == null) {
 						continue;
 					}
 					if (resourceAssociation.getRef().getItemPath().asSingleName().equals(refinedAssocationDefinition.getName())){
@@ -184,7 +181,7 @@ public class ContainerWrapperFactory {
 			}
 			
 			if (itemPath == null) {
-				itemPath = new ItemPath(ShadowType.F_ASSOCIATION);
+				itemPath = ShadowType.F_ASSOCIATION;
 			}		
 			
 			ReferenceWrapper associationValueWrapper = new ReferenceWrapper(shadowValueWrapper, shadowAss, isItemReadOnly(association.getDefinition(), shadowValueWrapper), shadowAss.isEmpty() ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED, itemPath);
@@ -274,7 +271,7 @@ public class ContainerWrapperFactory {
 			List<ItemWrapper> properties = createProperties(containerValueWrapper, false, task);
 			containerValueWrapper.setProperties(properties);
 			
-			ReferenceWrapper shadowRefWrapper = (ReferenceWrapper) containerValueWrapper.findPropertyWrapper(ShadowAssociationType.F_SHADOW_REF);
+			ReferenceWrapper shadowRefWrapper = (ReferenceWrapper) containerValueWrapper.findPropertyWrapperByName(ShadowAssociationType.F_SHADOW_REF);
     		if (shadowRefWrapper != null && cWrapper.getFilter() != null) {
     			shadowRefWrapper.setFilter(cWrapper.getFilter());
     		}
@@ -298,7 +295,7 @@ public class ContainerWrapperFactory {
 		}
 		Collection<? extends ItemDefinition> propertyDefinitions = definition.getDefinitions();
 		
-		if(containerWrapper.getPath().equals(new ItemPath(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_APPENDER))) {
+		if(containerWrapper.getPath().equivalent(ItemPath.create(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_APPENDER))) {
 			RealContainerValueFromContainerValueWrapperModel value = new RealContainerValueFromContainerValueWrapperModel(cWrapper);
 			if(value != null || value.getObject() != null || value.getObject().asPrismContainerValue()!= null
 					|| value.getObject().asPrismContainerValue().getComplexTypeDefinition() != null
@@ -407,7 +404,7 @@ public class ContainerWrapperFactory {
 			PrismProperty<T> newProperty = def.instantiate();
 			// We cannot just get path from newProperty.getPath(). The property is not added to the container, so it does not know its path.
 			// Definitions are reusable, they do not have paths either.
-			ItemPath propPath = cWrapper.getPath().subPath(newProperty.getElementName());
+			ItemPath propPath = cWrapper.getPath().append(newProperty.getElementName());
 			return new PropertyWrapper(cWrapper, newProperty, propertyIsReadOnly, ValueStatus.ADDED, propPath);
 		}
 		return new PropertyWrapper(cWrapper, property, propertyIsReadOnly, cWrapper.getStatus() == ValueStatus.ADDED ? ValueStatus.ADDED: ValueStatus.NOT_CHANGED, property.getPath());
@@ -428,7 +425,7 @@ public class ContainerWrapperFactory {
         if (reference == null) {
         	PrismReference newReference = def.instantiate();
         	refWrapper = new ReferenceWrapper(cWrapper, newReference, propertyIsReadOnly,
-                    ValueStatus.ADDED, cWrapper.getPath().subPath(newReference.getElementName()));
+                    ValueStatus.ADDED, cWrapper.getPath().append(newReference.getElementName()));
         } else {
         
         	refWrapper = new ReferenceWrapper(cWrapper, reference, propertyIsReadOnly,
@@ -443,7 +440,7 @@ public class ContainerWrapperFactory {
 	     }
 
 		if (QNameUtil.match(AbstractRoleType.F_TENANT_REF, def.getName())) {
-			refWrapper.setFilter(EqualFilter.createEqual(new ItemPath(OrgType.F_TENANT), null, null,
+			refWrapper.setFilter(EqualFilter.createEqual(OrgType.F_TENANT, null, null,
 					modelServiceLocator.getPrismContext(), Boolean.TRUE));
 		}
 
@@ -484,7 +481,7 @@ public class ContainerWrapperFactory {
 				return null;
 			}
 			return createContainerWrapper(objectWrapper, newContainer, ContainerStatus.ADDING,
-					cWrapper.getPath().append(new ItemPath(newContainer.getElementName())), task);
+					cWrapper.getPath().append(newContainer.getElementName()), task);
 		}
 		return createContainerWrapper(objectWrapper, container, cWrapper.getStatus() == ValueStatus.ADDED ? ContainerStatus.ADDING: ContainerStatus.MODIFYING, container.getPath(), task);
 	}

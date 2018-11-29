@@ -21,7 +21,6 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import org.jetbrains.annotations.NotNull;
 
-import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -82,10 +81,6 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 		return new ObjectPaging(offset, maxSize);
 	}
 	
-	public static ObjectPaging createPaging(Integer offset, Integer maxSize, QName orderBy, OrderDirection direction) {
-		return new ObjectPaging(offset, maxSize, orderBy != null ? new ItemPath(orderBy) : null, direction);
-	}
-
 	public static ObjectPaging createPaging(Integer offset, Integer maxSize, ItemPath orderBy, OrderDirection direction) {
 		return new ObjectPaging(offset, maxSize, orderBy, direction);
 	}
@@ -115,26 +110,14 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 		return new ObjectPaging(orderBy, direction);
 	}
 
-	public static ObjectPaging createPaging(QName orderBy, OrderDirection direction) {
-		return new ObjectPaging(new ItemPath(orderBy), direction);
-	}
-
     public static ObjectPaging createPaging(ItemPath orderBy, OrderDirection direction, ItemPath groupBy) {
         return new ObjectPaging(orderBy, direction, groupBy);
-    }
-
-    public static ObjectPaging createPaging(QName orderBy, OrderDirection direction, QName groupBy) {
-        return new ObjectPaging(new ItemPath(orderBy), direction, new ItemPath(groupBy));
     }
 
     public static ObjectPaging createPaging(ItemPath groupBy) {
         return new ObjectPaging(groupBy);
     }
 
-    public static ObjectPaging createPaging(QName groupBy) {
-        return new ObjectPaging(new ItemPath(groupBy));
-    }
-	
 	public static ObjectPaging createEmptyPaging(){
 		return new ObjectPaging();
 	}
@@ -203,10 +186,6 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 		this.ordering.add(new ObjectOrdering(orderBy, direction));
 	}
 
-	public void addOrderingInstruction(QName orderBy, OrderDirection direction) {
-		addOrderingInstruction(new ItemPath(orderBy), direction);
-	}
-
 	@SuppressWarnings("NullableProblems")
 	public void setOrdering(ObjectOrdering... orderings) {
 		this.ordering.clear();
@@ -225,10 +204,6 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 
     public void addGroupingInstruction(ItemPath groupBy) {
         this.grouping.add(new ObjectGrouping(groupBy));
-    }
-
-    public void addGroupingInstruction(QName groupBy) {
-        addGroupingInstruction(new ItemPath(groupBy));
     }
 
     public void setGrouping(ObjectGrouping... groupings) {

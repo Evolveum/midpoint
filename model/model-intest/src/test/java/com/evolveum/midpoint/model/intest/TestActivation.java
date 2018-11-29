@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_ENABLE_TIMESTAMP;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.cast;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertEquals;
@@ -33,7 +34,6 @@ import javax.xml.namespace.QName;
 import com.evolveum.icf.dummy.resource.DummyObjectClass;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
-import com.evolveum.midpoint.prism.path.ItemPath;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -539,7 +539,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         for (ObjectDeltaOperation<? extends ObjectType> executionDelta: executionDeltas) {
         	ObjectDelta<? extends ObjectType> objectDelta = executionDelta.getObjectDelta();
         	if (objectDelta.getObjectTypeClass() == ShadowType.class) {
-        		PropertyDelta<Object> enableTimestampDelta = objectDelta.findPropertyDelta(new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ENABLE_TIMESTAMP));
+        		PropertyDelta<Object> enableTimestampDelta = objectDelta.findPropertyDelta(PATH_ACTIVATION_ENABLE_TIMESTAMP);
         		display("Audit enableTimestamp delta", enableTimestampDelta);
         		assertNotNull("EnableTimestamp delta vanished from audit record", enableTimestampDelta);
         		found = true;
@@ -1442,7 +1442,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 //        		if (objectDelta.findContainerDelta(ShadowType.F_TRIGGER) != null) {
 //        			continue;
 //        		}
-        		PropertyDelta<Object> enableTimestampDelta = objectDelta.findPropertyDelta(new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ENABLE_TIMESTAMP));
+        		PropertyDelta<Object> enableTimestampDelta = objectDelta.findPropertyDelta(PATH_ACTIVATION_ENABLE_TIMESTAMP);
         		display("Audit enableTimestamp delta", enableTimestampDelta);
         		assertNotNull("EnableTimestamp delta vanished from audit record, delta: "+objectDelta, enableTimestampDelta);
         		found = true;

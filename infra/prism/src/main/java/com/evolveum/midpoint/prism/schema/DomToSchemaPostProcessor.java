@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.prism.schema;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -446,7 +447,7 @@ class DomToSchemaPostProcessor {
 		}
 		PrismReferenceDefinitionImpl definition = null;
 		if (containingCtd != null) {
-			definition = (PrismReferenceDefinitionImpl) containingCtd.findItemDefinition(primaryElementName, PrismReferenceDefinition.class);
+			definition = (PrismReferenceDefinitionImpl) containingCtd.findItemDefinition(ItemName.fromQName(primaryElementName), PrismReferenceDefinition.class);
 		}
 		if (definition == null) {
 			SchemaDefinitionFactory definitionFactory = getDefinitionFactory();

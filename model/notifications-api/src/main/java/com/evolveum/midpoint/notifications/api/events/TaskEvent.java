@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.notifications.api.events;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
@@ -117,7 +117,7 @@ public class TaskEvent extends BaseEvent {
     }
 
     @Override
-    public boolean isRelatedToItem(ItemPath itemPath) {
+    public boolean isRelatedToItem(UniformItemPath itemPath) {
         return false;
     }
 

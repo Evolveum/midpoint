@@ -166,7 +166,7 @@ public class ShadowConstraintsChecker<F extends FocusType> {
 		if (delta == null) {
 			return false;
 		}
-		return delta.hasItemDelta(new ItemPath(ShadowType.F_ATTRIBUTES, attrName));
+		return delta.hasItemDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, attrName));
 	}
 
 }

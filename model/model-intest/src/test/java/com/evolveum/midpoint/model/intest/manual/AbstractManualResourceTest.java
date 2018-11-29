@@ -35,6 +35,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.test.util.ParallelTestThread;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
@@ -55,7 +57,7 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.intest.AbstractConfiguredModelIntegrationTest;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.CapabilityUtil;
@@ -79,7 +81,6 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
-import com.evolveum.midpoint.test.asserter.ShadowAttributesAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -124,7 +125,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractManualResourceTest.class);
 
 	protected static final String NS_MANUAL_CONF = "http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin/ManualConnector";
-	protected static final QName CONF_PROPERTY_DEFAULT_ASSIGNEE_QNAME = new QName(NS_MANUAL_CONF, "defaultAssignee");
+	protected static final ItemName CONF_PROPERTY_DEFAULT_ASSIGNEE_QNAME = new ItemName(NS_MANUAL_CONF, "defaultAssignee");
 
 	protected static final File USER_PHANTOM_FILE = new File(TEST_DIR, "user-phantom.xml");
 	protected static final String USER_PHANTOM_OID = "5b12cc6e-575c-11e8-bc16-3744f9bfcac8";
@@ -1115,7 +1116,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		OperationResult result = task.getResult();
 
 		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
-				accountWillOid, new ItemPath(ShadowType.F_ATTRIBUTES, ATTR_FULLNAME_QNAME), prismContext,
+				accountWillOid, prismContext.path(ShadowType.F_ATTRIBUTES, ATTR_FULLNAME_QNAME), prismContext,
 				USER_WILL_FULL_NAME_PIRATE);
 		display("ObjectDelta", delta);
 
@@ -2424,7 +2425,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		assertEquals("Resource version mismatch", lastResourceVersion, currentResourceVersion);
 	}
 	
-	protected void assertHasModification(ObjectDeltaType deltaType, ItemPath itemPath) {
+	protected void assertHasModification(ObjectDeltaType deltaType, UniformItemPath itemPath) {
 		for (ItemDeltaType itemDelta: deltaType.getItemDelta()) {
 			if (itemPath.equivalent(itemDelta.getPath().getItemPath())) {
 				return;

@@ -24,7 +24,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluati
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -137,7 +137,7 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
 			}
 			boolean exactPathMatch = isTrue(constraint.isExactPathMatch());
 			for (ItemPathType path : constraint.getItem()) {
-				if (!pathMatches(summaryDelta, ctx.focusContext.getObjectOld(), path.getItemPath(), exactPathMatch)) {
+				if (!pathMatches(summaryDelta, ctx.focusContext.getObjectOld(), path.getUniformItemPath(), exactPathMatch)) {
 					return false;
 				}
 			}
@@ -145,7 +145,7 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
 		return expressionPasses(constraintElement, ctx, result);
 	}
 
-	private <F extends FocusType> boolean pathMatches(ObjectDelta<?> delta, PrismObject<F> objectOld, ItemPath path,
+	private <F extends FocusType> boolean pathMatches(ObjectDelta<?> delta, PrismObject<F> objectOld, UniformItemPath path,
 			boolean exactPathMatch) throws SchemaException {
 		if (delta.isAdd()) {
 			return delta.getObjectToAdd().containsItem(path, false);

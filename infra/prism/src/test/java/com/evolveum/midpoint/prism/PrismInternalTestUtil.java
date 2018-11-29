@@ -35,6 +35,7 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.crypto.ProtectorImpl;
 import com.evolveum.midpoint.prism.foo.AccountConstructionType;
 
+import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.schema.SchemaRegistryImpl;
 import org.xml.sax.SAXException;
 
@@ -42,9 +43,6 @@ import com.evolveum.midpoint.prism.foo.ActivationType;
 import com.evolveum.midpoint.prism.foo.AssignmentType;
 import com.evolveum.midpoint.prism.foo.ObjectFactory;
 import com.evolveum.midpoint.prism.foo.UserType;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -121,98 +119,98 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	public static final String NS_WEAPONS_PREFIX = "w";
 
 	// FOO schema
-	public static final QName USER_QNAME = new QName(NS_FOO,"user");
-	public static final QName USER_TYPE_QNAME = new QName(NS_FOO,"UserType");
+	public static final ItemName USER_QNAME = new ItemName(NS_FOO,"user");
+	public static final ItemName USER_TYPE_QNAME = new ItemName(NS_FOO,"UserType");
 
-	public static final QName OBJECT_REFERENCE_TYPE_QNAME = new QName(NS_FOO, "ObjectReferenceType");
+	public static final ItemName OBJECT_REFERENCE_TYPE_QNAME = new ItemName(NS_FOO, "ObjectReferenceType");
 
-	public static final QName USER_EXTENSION_QNAME = new QName(NS_FOO,"extension");
-    public static final QName USER_PARENT_ORG_QNAME = new QName(NS_FOO,"parentOrg");
-    public static final QName USER_PARENT_ORG_REF_QNAME = new QName(NS_FOO,"parentOrgRef");
+	public static final ItemName USER_EXTENSION_QNAME = new ItemName(NS_FOO,"extension");
+    public static final ItemName USER_PARENT_ORG_QNAME = new ItemName(NS_FOO,"parentOrg");
+    public static final ItemName USER_PARENT_ORG_REF_QNAME = new ItemName(NS_FOO,"parentOrgRef");
 
-	public static final QName USER_NAME_QNAME = new QName(NS_FOO,"name");
-	public static final QName USER_FULLNAME_QNAME = new QName(NS_FOO,"fullName");
-	public static final QName USER_GIVENNAME_QNAME = new QName(NS_FOO,"givenName");
-	public static final QName USER_FAMILYNAME_QNAME = new QName(NS_FOO,"familyName");
-	public static final QName USER_ADDITIONALNAMES_QNAME = new QName(NS_FOO,"additionalNames");
-	public static final QName USER_POLYNAME_QNAME = new QName(NS_FOO,"polyName");
-	public static final QName USER_LOCALITY_QNAME = new QName(NS_FOO,"locality");
+	public static final ItemName USER_NAME_QNAME = new ItemName(NS_FOO,"name");
+	public static final ItemName USER_FULLNAME_QNAME = new ItemName(NS_FOO,"fullName");
+	public static final ItemName USER_GIVENNAME_QNAME = new ItemName(NS_FOO,"givenName");
+	public static final ItemName USER_FAMILYNAME_QNAME = new ItemName(NS_FOO,"familyName");
+	public static final ItemName USER_ADDITIONALNAMES_QNAME = new ItemName(NS_FOO,"additionalNames");
+	public static final ItemName USER_POLYNAME_QNAME = new ItemName(NS_FOO,"polyName");
+	public static final ItemName USER_LOCALITY_QNAME = new ItemName(NS_FOO,"locality");
 
-	public static final QName USER_ACTIVATION_QNAME = new QName(NS_FOO,"activation");
-	public static final QName USER_ENABLED_QNAME = new QName(NS_FOO,"enabled");
-	public static final ItemPath USER_ENABLED_PATH = new ItemPath(USER_ACTIVATION_QNAME, USER_ENABLED_QNAME);
-	public static final QName USER_VALID_FROM_QNAME = new QName(NS_FOO,"validFrom");
-	public static final ItemPath USER_VALID_FROM_PATH = new ItemPath(USER_ACTIVATION_QNAME, USER_VALID_FROM_QNAME);
-	public static final QName USER_VALID_TO_QNAME = new QName(NS_FOO,"validTo");
-	public static final QName ACTIVATION_TYPE_QNAME = new QName(NS_FOO,"ActivationType");
+	public static final ItemName USER_ACTIVATION_QNAME = new ItemName(NS_FOO,"activation");
+	public static final ItemName USER_ENABLED_QNAME = new ItemName(NS_FOO,"enabled");
+	public static final UniformItemPath USER_ENABLED_PATH = new UniformItemPathImpl(USER_ACTIVATION_QNAME, USER_ENABLED_QNAME);
+	public static final ItemName USER_VALID_FROM_QNAME = new ItemName(NS_FOO,"validFrom");
+	public static final UniformItemPath USER_VALID_FROM_PATH = new UniformItemPathImpl(USER_ACTIVATION_QNAME, USER_VALID_FROM_QNAME);
+	public static final ItemName USER_VALID_TO_QNAME = new ItemName(NS_FOO,"validTo");
+	public static final ItemName ACTIVATION_TYPE_QNAME = new ItemName(NS_FOO,"ActivationType");
 
-	public static final QName USER_ASSIGNMENT_QNAME = new QName(NS_FOO,"assignment");
-	public static final QName USER_DESCRIPTION_QNAME = new QName(NS_FOO,"description");
-	public static final ItemPath USER_ASSIGNMENT_DESCRIPTION_PATH = new ItemPath(USER_ASSIGNMENT_QNAME, USER_DESCRIPTION_QNAME);
-	public static final QName ASSIGNMENT_TYPE_QNAME = new QName(NS_FOO,"AssignmentType");
-	public static final QName USER_ACCOUNT_CONSTRUCTION_QNAME = new QName(NS_FOO,"accountConstruction");
+	public static final ItemName USER_ASSIGNMENT_QNAME = new ItemName(NS_FOO,"assignment");
+	public static final ItemName USER_DESCRIPTION_QNAME = new ItemName(NS_FOO,"description");
+	public static final UniformItemPath USER_ASSIGNMENT_DESCRIPTION_PATH = new UniformItemPathImpl(USER_ASSIGNMENT_QNAME, USER_DESCRIPTION_QNAME);
+	public static final ItemName ASSIGNMENT_TYPE_QNAME = new ItemName(NS_FOO,"AssignmentType");
+	public static final ItemName USER_ACCOUNT_CONSTRUCTION_QNAME = new ItemName(NS_FOO,"accountConstruction");
 	public static final Long USER_ASSIGNMENT_1_ID = 1111L;
 	public static final Long USER_ASSIGNMENT_2_ID = 1112L;
 	public static final Long USER_ASSIGNMENT_3_ID = 1113L;
 
-	public static final QName ACCOUNT_CONSTRUCTION_TYPE_QNAME = new QName(NS_FOO,"AccountConstructionType");
+	public static final ItemName ACCOUNT_CONSTRUCTION_TYPE_QNAME = new ItemName(NS_FOO,"AccountConstructionType");
 
-	public static final QName USER_ACCOUNTREF_QNAME = new QName(NS_FOO,"accountRef");
-	public static final QName USER_ACCOUNT_QNAME = new QName(NS_FOO,"account");
+	public static final ItemName USER_ACCOUNTREF_QNAME = new ItemName(NS_FOO,"accountRef");
+	public static final ItemName USER_ACCOUNT_QNAME = new ItemName(NS_FOO,"account");
 
-	public static final QName ACCOUNT_TYPE_QNAME = new QName(NS_FOO,"AccountType");
+	public static final ItemName ACCOUNT_TYPE_QNAME = new ItemName(NS_FOO,"AccountType");
 
-	public static final QName ACCOUNT_NAME_QNAME = new QName(NS_FOO,"name");
-	public static final QName ACCOUNT_DESCRIPTION_QNAME = new QName(NS_FOO,"description");
-	public static final QName ACCOUNT_ATTRIBUTES_QNAME = new QName(NS_FOO,"attributes");
+	public static final ItemName ACCOUNT_NAME_QNAME = new ItemName(NS_FOO,"name");
+	public static final ItemName ACCOUNT_DESCRIPTION_QNAME = new ItemName(NS_FOO,"description");
+	public static final ItemName ACCOUNT_ATTRIBUTES_QNAME = new ItemName(NS_FOO,"attributes");
 
-	public static final QName ATTRIBUTES_TYPE_QNAME = new QName(NS_FOO,"AttributesType");
+	public static final ItemName ATTRIBUTES_TYPE_QNAME = new ItemName(NS_FOO,"AttributesType");
 
-	public static final QName DUMMY_PROTECTED_STRING_TYPE = new QName(NS_FOO, "DummyProtectedStringType");
+	public static final ItemName DUMMY_PROTECTED_STRING_TYPE = new ItemName(NS_FOO, "DummyProtectedStringType");
 
-	public static final QName RESOURCE_QNAME = new QName(NS_FOO,"resource");
-	public static final QName RESOURCE_TYPE_QNAME = new QName(NS_FOO,"ResourceType");
+	public static final ItemName RESOURCE_QNAME = new ItemName(NS_FOO,"resource");
+	public static final ItemName RESOURCE_TYPE_QNAME = new ItemName(NS_FOO,"ResourceType");
 
 	// extension.xsd
-	public static final QName EXTENSION_STRING_TYPE_ELEMENT = new QName(NS_EXTENSION, "stringType");
-	public static final QName EXTENSION_SINGLE_STRING_TYPE_ELEMENT = new QName(NS_EXTENSION, "singleStringType");
-	public static final QName EXTENSION_DOUBLE_TYPE_ELEMENT = new QName(NS_EXTENSION, "doubleType");
-	public static final QName EXTENSION_INT_TYPE_ELEMENT = new QName(NS_EXTENSION, "intType");
-	public static final QName EXTENSION_INTEGER_TYPE_ELEMENT = new QName(NS_EXTENSION, "integerType");
-	public static final QName EXTENSION_LONG_TYPE_ELEMENT = new QName(NS_EXTENSION, "longType");
-	public static final QName EXTENSION_DATE_TYPE_ELEMENT = new QName(NS_EXTENSION, "dateType");
-	public static final QName EXTENSION_DURATION_TYPE_ELEMENT = new QName(NS_EXTENSION, "durationType");
-	public static final QName EXTENSION_LOCATIONS_ELEMENT = new QName(NS_EXTENSION, "locations");
-	public static final QName EXTENSION_LOCATIONS_TYPE_QNAME = new QName(NS_EXTENSION, "LocationsType");
-	public static final QName EXTENSION_IGNORED_TYPE_ELEMENT = new QName(NS_EXTENSION, "ignoredType");
-	public static final QName EXTENSION_INDEXED_STRING_TYPE_ELEMENT = new QName(NS_EXTENSION, "indexedString");
-	public static final QName EXTENSION_BLADE_TYPE_QNAME = new QName(NS_EXTENSION, "BladeType");
-	public static final QName EXTENSION_MELEE_CONTEXT_ELEMENT = new QName(NS_EXTENSION, "meleeContext");
-	public static final QName EXTENSION_MELEE_CONTEXT_TYPE_QNAME = new QName(NS_EXTENSION, "MeleeContextType");
-	public static final QName EXTENSION_MELEE_CONTEXT_OPPONENT_REF_ELEMENT = new QName(NS_EXTENSION, "opponentRef");
-	public static final QName EXTENSION_MELEE_CONTEXT_OPPONENT_ELEMENT = new QName(NS_EXTENSION, "opponent");
+	public static final ItemName EXTENSION_STRING_TYPE_ELEMENT = new ItemName(NS_EXTENSION, "stringType");
+	public static final ItemName EXTENSION_SINGLE_STRING_TYPE_ELEMENT = new ItemName(NS_EXTENSION, "singleStringType");
+	public static final ItemName EXTENSION_DOUBLE_TYPE_ELEMENT = new ItemName(NS_EXTENSION, "doubleType");
+	public static final ItemName EXTENSION_INT_TYPE_ELEMENT = new ItemName(NS_EXTENSION, "intType");
+	public static final ItemName EXTENSION_INTEGER_TYPE_ELEMENT = new ItemName(NS_EXTENSION, "integerType");
+	public static final ItemName EXTENSION_LONG_TYPE_ELEMENT = new ItemName(NS_EXTENSION, "longType");
+	public static final ItemName EXTENSION_DATE_TYPE_ELEMENT = new ItemName(NS_EXTENSION, "dateType");
+	public static final ItemName EXTENSION_DURATION_TYPE_ELEMENT = new ItemName(NS_EXTENSION, "durationType");
+	public static final ItemName EXTENSION_LOCATIONS_ELEMENT = new ItemName(NS_EXTENSION, "locations");
+	public static final ItemName EXTENSION_LOCATIONS_TYPE_QNAME = new ItemName(NS_EXTENSION, "LocationsType");
+	public static final ItemName EXTENSION_IGNORED_TYPE_ELEMENT = new ItemName(NS_EXTENSION, "ignoredType");
+	public static final ItemName EXTENSION_INDEXED_STRING_TYPE_ELEMENT = new ItemName(NS_EXTENSION, "indexedString");
+	public static final ItemName EXTENSION_BLADE_TYPE_QNAME = new ItemName(NS_EXTENSION, "BladeType");
+	public static final ItemName EXTENSION_MELEE_CONTEXT_ELEMENT = new ItemName(NS_EXTENSION, "meleeContext");
+	public static final ItemName EXTENSION_MELEE_CONTEXT_TYPE_QNAME = new ItemName(NS_EXTENSION, "MeleeContextType");
+	public static final ItemName EXTENSION_MELEE_CONTEXT_OPPONENT_REF_ELEMENT = new ItemName(NS_EXTENSION, "opponentRef");
+	public static final ItemName EXTENSION_MELEE_CONTEXT_OPPONENT_ELEMENT = new ItemName(NS_EXTENSION, "opponent");
 
 	// extension-secondary.xsd
-	public static final QName EXTENSION_SECONDARY_STRING_TYPE_ELEMENT = new QName(NS_EXTENSION_SECONDARY, "stringType");
-	public static final QName EXTENSION_SECONDARY_SECONDARY_STRING_TYPE_ELEMENT = new QName(NS_EXTENSION_SECONDARY, "secondaryStringType");
+	public static final ItemName EXTENSION_SECONDARY_STRING_TYPE_ELEMENT = new ItemName(NS_EXTENSION_SECONDARY, "stringType");
+	public static final ItemName EXTENSION_SECONDARY_SECONDARY_STRING_TYPE_ELEMENT = new ItemName(NS_EXTENSION_SECONDARY, "secondaryStringType");
 
 	// These are NOT in the extension.xsd but are used as dynamic elements
-	public static final QName EXTENSION_BAR_ELEMENT = new QName(NS_EXTENSION, "bar");
-	public static final QName EXTENSION_FOOBAR_ELEMENT = new QName(NS_EXTENSION, "foobar");
-	public static final QName EXTENSION_NUM_ELEMENT = new QName(NS_EXTENSION, "num");
-	public static final QName EXTENSION_MULTI_ELEMENT = new QName(NS_EXTENSION, "multi");
+	public static final ItemName EXTENSION_BAR_ELEMENT = new ItemName(NS_EXTENSION, "bar");
+	public static final ItemName EXTENSION_FOOBAR_ELEMENT = new ItemName(NS_EXTENSION, "foobar");
+	public static final ItemName EXTENSION_NUM_ELEMENT = new ItemName(NS_EXTENSION, "num");
+	public static final ItemName EXTENSION_MULTI_ELEMENT = new ItemName(NS_EXTENSION, "multi");
 
 	// Definitions used in schema-extra/extension/user.xsd
 	// this is loaded as an extra schema, it is not part of usual tests. Mind the namespace that is
 	// different from the previous elements
-	public static final QName USER_EXT_BAR_ELEMENT = new QName(NS_USER_EXT, "bar");
-	public static final QName USER_EXT_FOOBAR_ELEMENT = new QName(NS_USER_EXT, "foobar");
-	public static final QName USER_EXT_NUM_ELEMENT = new QName(NS_USER_EXT, "num");
-	public static final QName USER_EXT_MULTI_ELEMENT = new QName(NS_USER_EXT, "multi");
+	public static final ItemName USER_EXT_BAR_ELEMENT = new ItemName(NS_USER_EXT, "bar");
+	public static final ItemName USER_EXT_FOOBAR_ELEMENT = new ItemName(NS_USER_EXT, "foobar");
+	public static final ItemName USER_EXT_NUM_ELEMENT = new ItemName(NS_USER_EXT, "num");
+	public static final ItemName USER_EXT_MULTI_ELEMENT = new ItemName(NS_USER_EXT, "multi");
 
-	public static final QName USER_ADHOC_BOTTLES_ELEMENT = new QName(NS_ADHOC, "bottles");
+	public static final ItemName USER_ADHOC_BOTTLES_ELEMENT = new ItemName(NS_ADHOC, "bottles");
 
-	public static final QName WEAPONS_WEAPON_BRAND_TYPE_QNAME = new QName(NS_WEAPONS, "WeaponBrandType");
+	public static final ItemName WEAPONS_WEAPON_BRAND_TYPE_QNAME = new ItemName(NS_WEAPONS, "WeaponBrandType");
 
 	public static final String KEYSTORE_PATH = "src/test/resources/keystore.jceks";
 	public static final String KEYSTORE_PASSWORD = "changeit";
@@ -282,12 +280,9 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 
 	public static void assertPathVisitor(PathVisitable visitable, final ItemPath path, final boolean recursive, int expectedVisits) {
 		final List<Visitable> visits = new ArrayList<>();
-		Visitor visitor = new Visitor() {
-			@Override
-			public void visit(Visitable visitable) {
-				visits.add(visitable);
-				System.out.println("Visiting(path="+path+",recursive="+recursive+"): "+visitable);
-			}
+		Visitor visitor = visitable1 -> {
+			visits.add(visitable1);
+			System.out.println("Visiting(path="+path+",recursive="+recursive+"): "+ visitable1);
 		};
 		visitable.accept(visitor, path, recursive);
 		assertEquals("Wrong number of visits for path "+path, expectedVisits, visits.size());
@@ -304,29 +299,23 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 		assertUserJackExtension(user);
 		assertVisitor(user, 71);
 
-		assertPathVisitor(user, new ItemPath(UserType.F_ASSIGNMENT), true, 9);
-		assertPathVisitor(user, new ItemPath(
-				new NameItemPathSegment(UserType.F_ASSIGNMENT),
-				new IdItemPathSegment(USER_ASSIGNMENT_1_ID)), true, 3);
-		assertPathVisitor(user, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ENABLED), true, 2);
-		assertPathVisitor(user, new ItemPath(UserType.F_EXTENSION), true, 15);
+		assertPathVisitor(user, UserType.F_ASSIGNMENT, true, 9);
+		assertPathVisitor(user, ItemPath.create(UserType.F_ASSIGNMENT, USER_ASSIGNMENT_1_ID), true, 3);
+		assertPathVisitor(user, ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_ENABLED), true, 2);
+		assertPathVisitor(user, UserType.F_EXTENSION, true, 15);
 
-		assertPathVisitor(user, new ItemPath(UserType.F_ASSIGNMENT), false, 1);
-		assertPathVisitor(user, new ItemPath(
-				new NameItemPathSegment(UserType.F_ASSIGNMENT),
-				new IdItemPathSegment(USER_ASSIGNMENT_1_ID)), false, 1);
-		assertPathVisitor(user, new ItemPath(
-				new NameItemPathSegment(UserType.F_ASSIGNMENT),
-				IdItemPathSegment.WILDCARD), false, 2);
-		assertPathVisitor(user, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ENABLED), false, 1);
-		assertPathVisitor(user, new ItemPath(UserType.F_EXTENSION), false, 1);
-		assertPathVisitor(user, new ItemPath(
-				new NameItemPathSegment(UserType.F_EXTENSION),
-				NameItemPathSegment.WILDCARD), false, 5);
+		assertPathVisitor(user, UserType.F_ASSIGNMENT, false, 1);
+		assertPathVisitor(user, ItemPath.create(UserType.F_ASSIGNMENT, USER_ASSIGNMENT_1_ID), false, 1);
+		assertPathVisitor(user, ItemPath.create(UserType.F_ASSIGNMENT, null), false, 2);
+		assertPathVisitor(user, ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_ENABLED), false, 1);
+		assertPathVisitor(user, UserType.F_EXTENSION, false, 1);
+//		assertPathVisitor(user, prismContext.path(
+//				UserType.F_EXTENSION,
+//				NameItemPathSegment.WILDCARD), false, 5);
 	}
 
 	public static void assertUserJackContent(PrismObject<UserType> user, boolean expectRawInConstructions) throws SchemaException {
-
+		PrismContext prismContext = user.getPrismContext();
 		assertEquals("Wrong oid", USER_JACK_OID, user.getOid());
 		assertEquals("Wrong version", "42", user.getVersion());
 		PrismAsserts.assertObjectDefinition(user.getDefinition(), USER_QNAME, USER_TYPE_QNAME, UserType.class);
@@ -347,7 +336,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 		assertPropertyValue(user, "polyName", new PolyString("Džek Sperou","dzek sperou"));
 		assertPropertyDefinition(user, "polyName", PolyStringType.COMPLEX_TYPE, 0, 1);
 
-		ItemPath enabledPath = USER_ENABLED_PATH;
+		UniformItemPath enabledPath = USER_ENABLED_PATH;
 		PrismProperty<Boolean> enabledProperty1 = user.findProperty(enabledPath);
 		assertNotNull("No enabled property", enabledProperty1);
 		PrismAsserts.assertDefinition(enabledProperty1.getDefinition(), USER_ENABLED_QNAME, DOMUtil.XSD_BOOLEAN, 0, 1);
@@ -358,9 +347,9 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 		assertNotNull("Property "+USER_VALID_FROM_PATH+" not found", validFromProperty);
 		PrismAsserts.assertPropertyValue(validFromProperty, USER_JACK_VALID_FROM);
 
-		QName actName = new QName(NS_FOO,"activation");
+		ItemName actName = new ItemName(NS_FOO,"activation");
 		// Use path
-		ItemPath actPath = new ItemPath(actName);
+		UniformItemPath actPath = prismContext.path(actName);
 		PrismContainer<ActivationType> actContainer1 = user.findContainer(actPath);
 		assertContainerDefinition(actContainer1, "activation", ACTIVATION_TYPE_QNAME, 0, 1);
 		assertNotNull("Property "+actPath+" not found", actContainer1);
@@ -372,31 +361,25 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 		// Compare
 		assertEquals("Eh?",actContainer1,actContainer2);
 
-		PrismProperty<Boolean> enabledProperty2 = actContainer1.findProperty(new QName(NS_FOO,"enabled"));
+		PrismProperty<Boolean> enabledProperty2 = actContainer1.findProperty(new ItemName(NS_FOO,"enabled"));
 		assertNotNull("Property enabled not found", enabledProperty2);
 		PrismAsserts.assertPropertyValue(enabledProperty2, true);
 		assertEquals("Eh?",enabledProperty1,enabledProperty2);
 
-		QName assName = new QName(NS_FOO,"assignment");
-		QName descriptionName = new QName(NS_FOO,"description");
-        QName accountConstructionName = new QName(NS_FOO,"accountConstruction");
+		ItemName assName = new ItemName(NS_FOO,"assignment");
+		ItemName descriptionName = new ItemName(NS_FOO,"description");
+        ItemName accountConstructionName = new ItemName(NS_FOO,"accountConstruction");
 		PrismContainer<AssignmentType> assContainer = user.findContainer(assName);
 		assertEquals("Wrong assignement values", 2, assContainer.getValues().size());
 		PrismProperty<String> a2DescProperty = assContainer.getValue(USER_ASSIGNMENT_2_ID).findProperty(descriptionName);
 		assertEquals("Wrong assigment 2 description", "Assignment 2", a2DescProperty.getValue().getValue());
 
-		ItemPath a1Path = new ItemPath(
-				new NameItemPathSegment(assName),
-				new IdItemPathSegment(USER_ASSIGNMENT_1_ID),
-				new NameItemPathSegment(descriptionName));
+		UniformItemPath a1Path = prismContext.path(assName, USER_ASSIGNMENT_1_ID, descriptionName);
 		PrismProperty a1Property = user.findProperty(a1Path);
 		assertNotNull("Property "+a1Path+" not found", a1Property);
 		PrismAsserts.assertPropertyValue(a1Property, "Assignment 1");
 
-        ItemPath a2Path = new ItemPath(
-                new NameItemPathSegment(assName),
-                new IdItemPathSegment(USER_ASSIGNMENT_2_ID),
-                new NameItemPathSegment(accountConstructionName));
+        UniformItemPath a2Path = prismContext.path(assName, USER_ASSIGNMENT_2_ID, accountConstructionName);
         PrismProperty a2Property = user.findProperty(a2Path);
         assertNotNull("Property "+a2Path+" not found", a2Property);
         AccountConstructionType accountConstructionType = (AccountConstructionType) a2Property.getRealValue();
@@ -418,7 +401,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
         assertNotNull("Value #2 has no XNode present", value2.getXnode());
         PrismValue prismValue2 = value2.getParsedValue(user.getDefinition(), user.getDefinition().getName());
         PrismContainerValue<UserType> prismUserValue2 = (PrismContainerValue<UserType>) prismValue2;
-        assertEquals("Wrong value #2", "Nobody", prismUserValue2.findProperty(new QName(NS_FOO, "fullName")).getRealValue());
+        assertEquals("Wrong value #2", "Nobody", prismUserValue2.findProperty(new ItemName(NS_FOO, "fullName")).getRealValue());
 
         PrismReference accountRef = user.findReference(USER_ACCOUNTREF_QNAME);
 		assertNotNull("Reference "+USER_ACCOUNTREF_QNAME+" not found", accountRef);
@@ -434,7 +417,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	}
 
 	private static void assertUserJackExtension(PrismObject<UserType> user) throws SchemaException {
-
+		PrismContext prismContext = user.getPrismContext();
 		PrismContainer<?> extension = user.getExtension();
 		assertContainerDefinition(extension, "extension", DOMUtil.XSD_ANY, 0, 1);
 		PrismContainerValue<?> extensionValue = extension.getValue();
@@ -455,7 +438,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
         PrismAsserts.assertDefinition(indexedStringPropertyDef, EXTENSION_SINGLE_STRING_TYPE_ELEMENT, DOMUtil.XSD_STRING, 0, -1);
         assertEquals("'Indexed' attribute on 'singleStringType' property is wrong", Boolean.FALSE, indexedStringPropertyDef.isIndexed());
 
-		ItemPath barPath = new ItemPath(new QName(NS_FOO,"extension"), EXTENSION_BAR_ELEMENT);
+		UniformItemPath barPath = prismContext.path(new QName(NS_FOO,"extension"), EXTENSION_BAR_ELEMENT);
 		PrismProperty<String> barProperty = user.findProperty(barPath);
 		assertNotNull("Property "+barPath+" not found", barProperty);
 		PrismAsserts.assertPropertyValue(barProperty, "BAR");
@@ -471,8 +454,8 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 
     }
 
-	public static void assertPropertyValue(PrismContainer<?> container, String propName, Object propValue) throws SchemaException {
-		QName propQName = new QName(NS_FOO, propName);
+	public static void assertPropertyValue(PrismContainer<?> container, String propName, Object propValue) {
+		ItemName propQName = new ItemName(NS_FOO, propName);
 		PrismAsserts.assertPropertyValue(container, propQName, propValue);
 	}
 

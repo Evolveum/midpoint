@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.notifications.api.events;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -87,7 +87,7 @@ public class CustomEvent extends BaseEvent {
 	}
 
 	@Override
-    public boolean isRelatedToItem(ItemPath itemPath) {
+    public boolean isRelatedToItem(UniformItemPath itemPath) {
 		// TODO implement if needed
         return false;
     }

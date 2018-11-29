@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import java.util.*;
 
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.model.api.util.ModelUtils;
@@ -57,7 +58,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 
 	// extracted from the template(s)
 	// this is not to be serialized into XML, but let's not mark it as transient
-	@NotNull private Map<ItemPath, ObjectTemplateItemDefinitionType> itemDefinitionsMap = new HashMap<>();
+	@NotNull private Map<UniformItemPath, ObjectTemplateItemDefinitionType> itemDefinitionsMap = new HashMap<>();
 
 	public LensFocusContext(Class<O> objectTypeClass, LensContext<O> lensContext) {
 		super(objectTypeClass, lensContext);
@@ -578,12 +579,12 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         }
     }
 
-	public void setItemDefinitionsMap(@NotNull Map<ItemPath, ObjectTemplateItemDefinitionType> itemDefinitionsMap) {
+	public void setItemDefinitionsMap(@NotNull Map<UniformItemPath, ObjectTemplateItemDefinitionType> itemDefinitionsMap) {
 		this.itemDefinitionsMap = itemDefinitionsMap;
 	}
 
 	@NotNull
-	public Map<ItemPath, ObjectTemplateItemDefinitionType> getItemDefinitionsMap() {
+	public Map<UniformItemPath, ObjectTemplateItemDefinitionType> getItemDefinitionsMap() {
 		return itemDefinitionsMap;
 	}
 }

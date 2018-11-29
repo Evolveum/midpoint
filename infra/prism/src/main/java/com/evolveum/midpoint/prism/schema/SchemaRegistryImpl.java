@@ -40,6 +40,8 @@ import javax.xml.validation.SchemaFactory;
 
 import com.evolveum.midpoint.prism.*;
 
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -61,7 +63,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -547,7 +549,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 			ComplexTypeDefinition extensionCtd = entry.getValue();
 			ComplexTypeDefinition primaryCtd = findComplexTypeDefinition(typeQName);
 			PrismContainerDefinition extensionContainer = primaryCtd.findContainerDefinition(
-					new QName(primaryCtd.getTypeName().getNamespaceURI(), PrismConstants.EXTENSION_LOCAL_NAME));
+					new ItemName(primaryCtd.getTypeName().getNamespaceURI(), PrismConstants.EXTENSION_LOCAL_NAME));
 			if (extensionContainer == null) {
 				throw new SchemaException("Attempt to extend type "+typeQName+" with "+extensionCtd.getTypeClass()+" but the original type does not have extension container");
 			}
@@ -678,7 +680,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 
 	@Override
 	public <C extends Containerable, O extends Objectable> void applyDefinition(PrismContainerValue<C> prismContainerValue,
-			Class<O> compileTimeClass, ItemPath path, boolean force) throws SchemaException {
+			Class<O> compileTimeClass, UniformItemPath path, boolean force) throws SchemaException {
 		PrismObjectDefinition<O> objectDefinition = determineDefinitionFromClass(compileTimeClass);
 		PrismContainerDefinition<C> containerDefinition = objectDefinition.findContainerDefinition(path);
 		prismContainerValue.applyDefinition(containerDefinition, force);
@@ -686,7 +688,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 
 	@Override
 	public <C extends Containerable> void applyDefinition(PrismContainerValue<C> prismContainerValue, QName typeName,
-			ItemPath path, boolean force) throws SchemaException {
+			UniformItemPath path, boolean force) throws SchemaException {
 		PrismObjectDefinition objectDefinition = findObjectDefinitionByType(typeName);
 		if (objectDefinition != null) {
 			PrismContainerDefinition<C> containerDefinition = objectDefinition.findContainerDefinition(path);
@@ -907,7 +909,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 		if (objectDefinition == null) {
 			throw new SchemaException("No object definition for " + objectClass);
 		}
-		return (T) objectDefinition.findItemDefinition(new ItemPath(itemNames), defClass);
+		return (T) ((ItemDefinition) objectDefinition).findItemDefinition(ItemPath.create(itemNames), defClass);
 	}
 
 	@Override
@@ -990,25 +992,24 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 	}
 
 	@Override
-	public <T extends Containerable> ItemDefinition locateItemDefinition(@NotNull QName itemName,
+	public ItemDefinition locateItemDefinition(@NotNull QName itemName,
 			@Nullable ComplexTypeDefinition complexTypeDefinition,
-			@Nullable Function<QName, ItemDefinition> dynamicDefinitionResolver) throws SchemaException {
-		ItemDefinition def;
+			@Nullable Function<QName, ItemDefinition> dynamicDefinitionProvider) throws SchemaException {
 		if (complexTypeDefinition != null) {
-			def = complexTypeDefinition.findItemDefinition(itemName);
+			ItemDefinition def = complexTypeDefinition.findLocalItemDefinition(itemName);
 			if (def != null) {
 				return def;
 			}
 		}
 		// not sure about this: shouldn't extension schemas have xsdAnyMarker set?
 		if (complexTypeDefinition == null || complexTypeDefinition.isXsdAnyMarker() || complexTypeDefinition.getExtensionForType() != null) {
-			def = resolveGlobalItemDefinition(itemName, complexTypeDefinition);
+			ItemDefinition def = resolveGlobalItemDefinition(itemName, complexTypeDefinition);
 			if (def != null) {
 				return def;
 			}
 		}
-		if (dynamicDefinitionResolver != null) {
-			def = dynamicDefinitionResolver.apply(itemName);
+		if (dynamicDefinitionProvider != null) {
+			ItemDefinition def = dynamicDefinitionProvider.apply(itemName);
 			if (def != null) {
 				return def;
 			}
@@ -1060,7 +1061,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 	// fails on ambiguity
 	// it's a bit fragile, as adding new references to child CTD in future may break existing code
 	@Override
-	public ComplexTypeDefinition determineParentDefinition(@NotNull ComplexTypeDefinition child, @NotNull ItemPath rest) {
+	public ComplexTypeDefinition determineParentDefinition(@NotNull ComplexTypeDefinition child, @NotNull UniformItemPath rest) {
 		Map<ComplexTypeDefinition, ItemDefinition> found = new HashMap<>();
 		for (PrismSchema schema : getSchemas()) {
 			if (schema == null) {
@@ -1151,11 +1152,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 	 * Looks for a top-level definition for the specified element name (in all schemas).
 	 */
 	@Override
-	public ItemDefinition resolveGlobalItemDefinition(QName elementQName) throws SchemaException {
-		return resolveGlobalItemDefinition(elementQName, (ComplexTypeDefinition) null);
-	}
-
-	@Override
+	@Deprecated
 	public ItemDefinition resolveGlobalItemDefinition(QName elementQName, PrismContainerDefinition<?> containerDefinition) throws SchemaException {
 		return resolveGlobalItemDefinition(elementQName, containerDefinition != null ? containerDefinition.getComplexTypeDefinition() : null);
 	}

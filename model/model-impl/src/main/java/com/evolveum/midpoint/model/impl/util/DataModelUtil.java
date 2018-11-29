@@ -21,8 +21,8 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -101,16 +101,16 @@ public class DataModelUtil {
 	@Nullable		// null means not supported yet
 	@SuppressWarnings("unchecked")
 	public static PathResolutionResult resolvePath(@NotNull ItemPath path, @NotNull PathResolutionContext context) {
-		if (!(path.first() instanceof NameItemPathSegment)) {
+		if (!path.startsWithName() && !path.startsWithVariable()) {
 			return new PathResolutionResult(new Issue(Issue.Severity.WARNING, CAT_ITEM_PATH, C_DOES_NOT_START_WITH_NAME,
-							"Path does not start with a name: '" + path + "'", null, null));
+							"Path does not start with a name nor variable: '" + path + "'", null, null));
 		}
 		QName varName;
 		ItemPath itemPath;
-		NameItemPathSegment firstNameSegment = (NameItemPathSegment) path.first();
-		if (firstNameSegment.isVariable()) {
-			varName = firstNameSegment.getName();
-			itemPath = path.tail();
+		Object first = path.first();
+		if (ItemPath.isVariable(first)) {
+			varName = ItemPath.toVariableName(first);
+			itemPath = path.rest();
 		} else {
 			if (context.defaultVariable == null) {
 				return new PathResolutionResult(new Issue(Issue.Severity.WARNING, CAT_ITEM_PATH, C_NO_DEFAULT_VARIABLE,

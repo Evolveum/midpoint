@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.prism.lex.json;
 
-import com.evolveum.midpoint.prism.marshaller.ItemPathHolder;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
@@ -30,9 +29,7 @@ public class ItemPathTypeSerializer extends JsonSerializer<ItemPathType> {
 
 	@Override
 	public void serialize(@NotNull ItemPathType value, JsonGenerator jgen, SerializerProvider provider) throws IOException {
-		ItemPathHolder xpath = new ItemPathHolder(value.getItemPath(), true);
-		String path = xpath.getXPathWithDeclarations();
-		jgen.writeObject(path);
+		jgen.writeObject(value.getItemPath().serializeWithForcedDeclarations());
 
 	}
 

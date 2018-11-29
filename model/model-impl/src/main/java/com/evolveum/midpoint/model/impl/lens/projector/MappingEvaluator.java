@@ -23,6 +23,8 @@ import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -42,20 +44,10 @@ import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsProcessor;
 import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.OriginType;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -95,6 +87,7 @@ public class MappingEvaluator {
     @Autowired private MappingFactory mappingFactory;
     @Autowired private CredentialsProcessor credentialsProcessor;
     @Autowired private ContextLoader contextLoader;
+    @Autowired private PrismContext prismContext;
 
     public static final List<QName> FOCUS_VARIABLE_NAMES = Arrays.asList(ExpressionConstants.VAR_FOCUS, ExpressionConstants.VAR_USER);
 
@@ -183,7 +176,7 @@ public class MappingEvaluator {
 		evaluateMappingSetProjection(params, task, result);
     }
 
-	public <V extends PrismValue, D extends ItemDefinition, T extends ObjectType, F extends FocusType> Map<ItemPath,MappingOutputStruct<V>> evaluateMappingSetProjection(
+	public <V extends PrismValue, D extends ItemDefinition, T extends ObjectType, F extends FocusType> Map<UniformItemPath,MappingOutputStruct<V>> evaluateMappingSetProjection(
 			MappingEvaluatorParams<V,D,T,F> params,
 			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 
@@ -192,7 +185,7 @@ public class MappingEvaluator {
 		PrismObjectDefinition<T> targetObjectDefinition = targetContext.getObjectDefinition();
 		ItemPath defaultTargetItemPath = params.getDefaultTargetItemPath();
 
-		Map<ItemPath,MappingOutputStruct<V>> outputTripleMap = new HashMap<>();
+		Map<UniformItemPath,MappingOutputStruct<V>> outputTripleMap = new HashMap<>();
 		XMLGregorianCalendar nextRecomputeTime = null;
 		Collection<MappingType> mappingTypes = params.getMappingTypes();
 		Collection<MappingImpl<V,D>> mappings = new ArrayList<>(mappingTypes.size());
@@ -257,7 +250,7 @@ public class MappingEvaluator {
 				continue;
 			}
 
-			ItemPath mappingOutputPath = mapping.getOutputPath();
+			UniformItemPath mappingOutputPath = ItemPath.toUniform(mapping.getOutputPath(), prismContext);
 			if (params.isFixTarget() && mappingOutputPath != null && defaultTargetItemPath != null && !mappingOutputPath.equivalent(defaultTargetItemPath)) {
 				throw new ExpressionEvaluationException("Target cannot be overridden in "+mappingDesc);
 			}
@@ -322,7 +315,7 @@ public class MappingEvaluator {
 					continue;
 				}
 
-				ItemPath mappingOutputPath = mapping.getOutputPath();
+				UniformItemPath mappingOutputPath = ItemPath.toUniform(mapping.getOutputPath(), prismContext);
 				if (params.isFixTarget() && mappingOutputPath != null && defaultTargetItemPath != null && !mappingOutputPath.equivalent(defaultTargetItemPath)) {
 					throw new ExpressionEvaluationException("Target cannot be overridden in "+mappingDesc);
 				}
@@ -386,8 +379,8 @@ public class MappingEvaluator {
 		}
 
 		MappingOutputProcessor<V> processor = params.getProcessor();
-		for (Entry<ItemPath, MappingOutputStruct<V>> outputTripleMapEntry: outputTripleMap.entrySet()) {
-			ItemPath mappingOutputPath = outputTripleMapEntry.getKey();
+		for (Entry<UniformItemPath, MappingOutputStruct<V>> outputTripleMapEntry: outputTripleMap.entrySet()) {
+			UniformItemPath mappingOutputPath = outputTripleMapEntry.getKey();
 			MappingOutputStruct<V> mappingOutputStruct = outputTripleMapEntry.getValue();
 			PrismValueDeltaSetTriple<V> outputTriple = mappingOutputStruct.getOutputTriple();
 
@@ -523,7 +516,7 @@ public class MappingEvaluator {
 
 			if (!alreadyHasTrigger) {
 				PrismContainerDefinition<TriggerType> triggerContDef = targetObjectDefinition.findContainerDefinition(ObjectType.F_TRIGGER);
-				ContainerDelta<TriggerType> triggerDelta = triggerContDef.createEmptyDelta(new ItemPath(ObjectType.F_TRIGGER));
+				ContainerDelta<TriggerType> triggerDelta = triggerContDef.createEmptyDelta(ObjectType.F_TRIGGER);
 				PrismContainerValue<TriggerType> triggerCVal = triggerContDef.createValue();
 				triggerDelta.addValueToAdd(triggerCVal);
 				TriggerType triggerType = triggerCVal.asContainerable();

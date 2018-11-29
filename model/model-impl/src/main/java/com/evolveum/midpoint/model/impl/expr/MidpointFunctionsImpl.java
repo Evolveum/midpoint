@@ -43,10 +43,12 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.marshaller.ItemPathHolder;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.match.DefaultMatchingRule;
 import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -96,6 +98,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_CREDENTIALS_PASSWORD;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_CREDENTIALS_PASSWORD_VALUE;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType.RUNNABLE;
 import static java.util.Collections.emptySet;
@@ -218,8 +222,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			return;
 		}
 
-		if (itemDelta.getPath()
-				.equivalent(new ItemPath(ShadowType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE))) {
+		if (itemDelta.getPath().equivalent(PATH_CREDENTIALS_PASSWORD_VALUE)) {
 			LOGGER.trace("Found password value add/modify delta");
 			Collection<PrismPropertyValue<ProtectedStringType>> values = itemDelta.isAdd() ?
 					itemDelta.getValuesToAdd() :
@@ -227,7 +230,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			for (PrismPropertyValue<ProtectedStringType> value : values) {
 				passwords.add(value.getValue());
 			}
-		} else if (itemDelta.getPath().equivalent(new ItemPath(ShadowType.F_CREDENTIALS, CredentialsType.F_PASSWORD))) {
+		} else if (itemDelta.getPath().equivalent(PATH_CREDENTIALS_PASSWORD)) {
 			LOGGER.trace("Found password add/modify delta");
 			Collection<PrismContainerValue<PasswordType>> values = itemDelta.isAdd() ?
 					itemDelta.getValuesToAdd() :
@@ -237,7 +240,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 					passwords.add(value.asContainerable().getValue());
 				}
 			}
-		} else if (itemDelta.getPath().equivalent(new ItemPath(ShadowType.F_CREDENTIALS))) {
+		} else if (itemDelta.getPath().equivalent(ShadowType.F_CREDENTIALS)) {
 			LOGGER.trace("Found credentials add/modify delta");
 			Collection<PrismContainerValue<CredentialsType>> values = itemDelta.isAdd() ?
 					itemDelta.getValuesToAdd() :
@@ -620,11 +623,11 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			SecurityViolationException, ExpressionEvaluationException {
 		Validate.notEmpty(propertyPathString, "Empty property path");
 		OperationResult result = getCurrentResult(MidpointFunctions.class.getName() + ".isUniquePropertyValue");
-		ItemPath propertyPath = new ItemPathHolder(propertyPathString).toItemPath();
+		UniformItemPath propertyPath = ItemPath.parseFromString(propertyPathString);
 		return isUniquePropertyValue(objectType, propertyPath, propertyValue, getCurrentTask(), result);
 	}
 
-	private <T> boolean isUniquePropertyValue(final ObjectType objectType, ItemPath propertyPath, T propertyValue, Task task,
+	private <T> boolean isUniquePropertyValue(final ObjectType objectType, UniformItemPath propertyPath, T propertyValue, Task task,
 			OperationResult result)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException {
@@ -647,13 +650,13 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			SecurityViolationException, ExpressionEvaluationException {
 		Validate.notEmpty(propertyPathString, "Empty property path");
 		OperationResult result = getCurrentResult(MidpointFunctions.class.getName() + ".getObjectsInConflictOnPropertyValue");
-		ItemPath propertyPath = new ItemPathHolder(propertyPathString).toItemPath();
+		UniformItemPath propertyPath = ItemPath.parseFromString(propertyPathString);
 		QName matchingRuleQName = new QName(matchingRuleName);      // no namespace for now
 		return getObjectsInConflictOnPropertyValue(objectType, propertyPath, propertyValue, matchingRuleQName, getAllConflicting,
 				getCurrentTask(), result);
 	}
 
-	private <O extends ObjectType, T> List<O> getObjectsInConflictOnPropertyValue(final O objectType, ItemPath propertyPath,
+	private <O extends ObjectType, T> List<O> getObjectsInConflictOnPropertyValue(final O objectType, UniformItemPath propertyPath,
 			T propertyValue, QName matchingRule, final boolean getAllConflicting, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException {
@@ -1809,5 +1812,10 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		if (object instanceof ShadowType || object instanceof ResourceType) {
 			provisioningService.applyDefinition(object.asPrismObject(), getCurrentTask(), getCurrentResult());
 		}
+	}
+
+	@Override
+	public <C extends Containerable> S_ItemEntry deltaFor(Class<C> objectClass) throws SchemaException {
+		return DeltaBuilder.deltaFor(objectClass, prismContext);
 	}
 }

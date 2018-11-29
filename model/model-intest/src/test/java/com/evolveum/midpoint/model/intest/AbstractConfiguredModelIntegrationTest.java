@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.ucf.impl.builtin.ManualConnectorInstance;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -486,21 +487,22 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String SECURITY_POLICY_OID = "28bf845a-b107-11e3-85bc-001e8c717e5b";
 
 	protected static final String NS_PIRACY = "http://midpoint.evolveum.com/xml/ns/samples/piracy";
-	protected static final QName PIRACY_SHIP = new QName(NS_PIRACY, "ship");
-	protected static final QName PIRACY_SHIP_BROKEN = new QName(NS_PIRACY, "ship-broken");
-	protected static final QName PIRACY_TALES = new QName(NS_PIRACY, "tales");
-	protected static final QName PIRACY_WEAPON = new QName(NS_PIRACY, "weapon");
-	protected static final QName PIRACY_LOOT = new QName(NS_PIRACY, "loot");
-	protected static final QName PIRACY_BAD_LUCK = new QName(NS_PIRACY, "badLuck");
-	protected static final QName PIRACY_FUNERAL_TIMESTAMP = new QName(NS_PIRACY, "funeralTimestamp");
-	protected static final QName PIRACY_SEA_QNAME = new QName(NS_PIRACY, "sea");
-	protected static final QName PIRACY_COLORS = new QName(NS_PIRACY, "colors");
-	protected static final QName PIRACY_MARK = new QName(NS_PIRACY, "mark");
-	protected static final QName PIRACY_KEY = new QName(NS_PIRACY, "key");
-	protected static final QName PIRACY_BINARY_ID = new QName(NS_PIRACY, "binaryId");
-	protected static final QName RELATION_PIRACY_CAPTAIN = new QName(NS_PIRACY, "captain");
+	protected static final ItemName PIRACY_SHIP = new ItemName(NS_PIRACY, "ship");
+	protected static final ItemName PIRACY_SHIP_BROKEN = new ItemName(NS_PIRACY, "ship-broken");
+	protected static final ItemName PIRACY_TALES = new ItemName(NS_PIRACY, "tales");
+	protected static final ItemName PIRACY_WEAPON = new ItemName(NS_PIRACY, "weapon");
+	protected static final ItemName PIRACY_LOOT = new ItemName(NS_PIRACY, "loot");
+	protected static final ItemName PIRACY_BAD_LUCK = new ItemName(NS_PIRACY, "badLuck");
+	protected static final ItemName PIRACY_FUNERAL_TIMESTAMP = new ItemName(NS_PIRACY, "funeralTimestamp");
+	protected static final ItemName PIRACY_SEA_QNAME = new ItemName(NS_PIRACY, "sea");
+	protected static final ItemName PIRACY_COLORS = new ItemName(NS_PIRACY, "colors");
+	protected static final ItemName PIRACY_MARK = new ItemName(NS_PIRACY, "mark");
+	protected static final ItemName PIRACY_KEY = new ItemName(NS_PIRACY, "key");
+	protected static final ItemName PIRACY_BINARY_ID = new ItemName(NS_PIRACY, "binaryId");
+	protected static final ItemName RELATION_PIRACY_CAPTAIN = new ItemName(NS_PIRACY, "captain");
 
-    protected static final ItemPath ROLE_EXTENSION_COST_CENTER_PATH = new ItemPath(RoleType.F_EXTENSION, new QName(NS_PIRACY, "costCenter"));
+    protected static final ItemPath ROLE_EXTENSION_COST_CENTER_PATH = ItemPath
+		    .create(RoleType.F_EXTENSION, new QName(NS_PIRACY, "costCenter"));
 
     protected static final String DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME = "sea";
     protected static final String DUMMY_ACCOUNT_ATTRIBUTE_MATE_NAME = "mate";

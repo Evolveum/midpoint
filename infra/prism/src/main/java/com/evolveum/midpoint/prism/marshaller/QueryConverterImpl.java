@@ -22,6 +22,8 @@ import java.util.Map.Entry;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.UniformItemPathImpl;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.xnode.*;
 import com.evolveum.prism.xml.ns._public.query_3.PagingType;
@@ -32,7 +34,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectReferenceType;
 import org.apache.commons.lang.StringUtils;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.query.OrgFilter.Scope;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -262,16 +264,16 @@ public class QueryConverterImpl implements QueryConverter {
 		//boolean isLt = QNameUtil.match(clauseQName, CLAUSE_LESS);
 		boolean isLtEq = QNameUtil.match(clauseQName, CLAUSE_LESS_OR_EQUAL);
 
-		ItemPath itemPath = getPath(clauseXMap);
+		UniformItemPath itemPath = getPath(clauseXMap);
 		if (itemPath == null || itemPath.isEmpty()){
 			throw new SchemaException("Could not convert query, because query does not contain item path.");
 		}
-		QName itemName = ItemPath.getName(itemPath.last());
+		QName itemName = ItemPath.toName(itemPath.last());
 
 		QName matchingRule = getMatchingRule(clauseXMap);
 
 		XNode valueXnode = clauseXMap.get(ELEMENT_VALUE);
-		ItemPath rightSidePath = getPath(clauseXMap, ELEMENT_RIGHT_HAND_SIDE_PATH);
+		UniformItemPath rightSidePath = getPath(clauseXMap, ELEMENT_RIGHT_HAND_SIDE_PATH);
 
 		ItemDefinition itemDefinition = locateItemDefinition(valueXnode, itemPath, pcd);
 		if (itemDefinition != null) {
@@ -432,7 +434,7 @@ public class QueryConverterImpl implements QueryConverter {
 
 	private ExistsFilter parseExistsFilter(MapXNode clauseXMap, PrismContainerDefinition pcd,
 			boolean preliminaryParsingOnly, ParsingContext pc) throws SchemaException {
-		ItemPath path = getPath(clauseXMap);
+		UniformItemPath path = getPath(clauseXMap);
 		XNode subXFilter = clauseXMap.get(ELEMENT_FILTER);
 		ObjectFilter subFilter = null;
 		PrismContainerDefinition subPcd = pcd != null ? pcd.findContainerDefinition(path) : null;
@@ -464,12 +466,12 @@ public class QueryConverterImpl implements QueryConverter {
 
 	private <C extends Containerable> RefFilter parseRefFilter(MapXNode clauseXMap, PrismContainerDefinition<C> pcd,
 			boolean preliminaryParsingOnly) throws SchemaException {
-		ItemPath itemPath = getPath(clauseXMap);
+		UniformItemPath itemPath = getPath(clauseXMap);
 
 		if (itemPath == null || itemPath.isEmpty()){
 			throw new SchemaException("Cannot convert query, because query does not contain property path.");
 		}
-		QName itemName = ItemPath.getName(itemPath.last());
+		QName itemName = ItemPath.toName(itemPath.last());
 
 		ItemDefinition itemDefinition = null;
 		if (pcd != null) {
@@ -533,12 +535,12 @@ public class QueryConverterImpl implements QueryConverter {
 	private <C extends Containerable> SubstringFilter parseSubstringFilter(MapXNode clauseXMap, PrismContainerDefinition<C> pcd,
 			boolean preliminaryParsingOnly)
 			throws SchemaException {
-		ItemPath itemPath = getPath(clauseXMap);
+		UniformItemPath itemPath = getPath(clauseXMap);
 
 		if (itemPath == null || itemPath.isEmpty()) {
 			throw new SchemaException("Could not convert query, because query does not contain item path.");
 		}
-		QName itemName = ItemPath.getName(itemPath.last());
+		QName itemName = ItemPath.toName(itemPath.last());
 		QName matchingRule = getMatchingRule(clauseXMap);
 
 		Boolean anchorStart = clauseXMap.getParsedPrimitiveValue(ELEMENT_ANCHOR_START, DOMUtil.XSD_BOOLEAN);
@@ -654,11 +656,11 @@ public class QueryConverterImpl implements QueryConverter {
 //		return (PrimitiveXNode)xnode;
 //	}
 
-	private ItemPath getPath(MapXNode clauseXMap) throws SchemaException {
+	private UniformItemPath getPath(MapXNode clauseXMap) throws SchemaException {
 		return getPath(clauseXMap, ELEMENT_PATH);
 	}
 
-	private ItemPath getPath(MapXNode clauseXMap, QName key) throws SchemaException {
+	private UniformItemPath getPath(MapXNode clauseXMap, QName key) throws SchemaException {
 		XNode xnode = clauseXMap.get(key);
 		if (xnode == null) {
 			return null;
@@ -667,7 +669,7 @@ public class QueryConverterImpl implements QueryConverter {
 			throw new SchemaException("Expected that field "+key+" will be primitive, but it is "+xnode.getDesc());
 		}
 		ItemPathType itemPathType = clauseXMap.getParsedPrimitiveValue(key, ItemPathType.COMPLEX_TYPE);
-		return itemPathType != null ? itemPathType.getItemPath() : null;
+		return itemPathType != null ? itemPathType.getUniformItemPath() : null;
 	}
 
 	private QName getMatchingRule(MapXNode xmap) throws SchemaException{
@@ -698,14 +700,14 @@ public class QueryConverterImpl implements QueryConverter {
 		return item;
 	}
 
-	private <C extends Containerable> ItemDefinition locateItemDefinition(XNode valueXnode, ItemPath itemPath,
+	private <C extends Containerable> ItemDefinition locateItemDefinition(XNode valueXnode, UniformItemPath itemPath,
 			PrismContainerDefinition<C> pcd) throws SchemaException{
 		ItemDefinition itemDefinition = null;
 		if (pcd != null) {
 			itemDefinition = pcd.findItemDefinition(itemPath);
 			if (itemDefinition == null) {
-				ItemPath rest = itemPath.tail();
-				QName first = ItemPath.getName(itemPath.first());
+				UniformItemPath rest = itemPath.rest();
+				QName first = itemPath.firstToName();
 				itemDefinition = ((PrismContextImpl) prismContext).getPrismUnmarshaller().locateItemDefinition(pcd, first, valueXnode);
 				if (rest.isEmpty()) {
 					return itemDefinition;
@@ -883,7 +885,8 @@ public class QueryConverterImpl implements QueryConverter {
 			map.put(ELEMENT_VALUE, valuesNode);
 		}
 		if (filter.getRightHandSidePath() != null) {
-			map.put(ELEMENT_RIGHT_HAND_SIDE_PATH, createPrimitiveXNode(filter.getRightHandSidePath().asItemPathType(), ItemPathType.COMPLEX_TYPE));
+			map.put(ELEMENT_RIGHT_HAND_SIDE_PATH, createPrimitiveXNode(
+					UniformItemPathImpl.fromItemPath(filter.getRightHandSidePath()).asItemPathType(), ItemPathType.COMPLEX_TYPE));
 		}
 
 		ExpressionWrapper xexpression = filter.getExpression();
@@ -970,7 +973,7 @@ public class QueryConverterImpl implements QueryConverter {
 		if (path == null) {
 			throw new IllegalStateException("Cannot serialize filter " + filter + " because it does not contain path");
 		}
-		map.put(ELEMENT_PATH, createPrimitiveXNode(path.asItemPathType(), ItemPathType.COMPLEX_TYPE));
+		map.put(ELEMENT_PATH, createPrimitiveXNode(UniformItemPathImpl.fromItemPath(path).asItemPathType(), ItemPathType.COMPLEX_TYPE));
 	}
 
 //	private <T> XNode serializePropertyValue(PrismPropertyValue<T> value, PrismPropertyDefinition<T> definition, BeanMarshaller beanConverter) throws SchemaException {

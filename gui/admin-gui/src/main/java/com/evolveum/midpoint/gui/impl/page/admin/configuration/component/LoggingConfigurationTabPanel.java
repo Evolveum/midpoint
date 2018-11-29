@@ -126,7 +126,7 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
     	
 
     	IModel<ContainerWrapper<ClassLoggerConfigurationType>> loggerModel =
-    			new ContainerWrapperFromObjectWrapperModel<ClassLoggerConfigurationType, SystemConfigurationType>(Model.of(getModelObject().getObjectWrapper()), new ItemPath(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_CLASS_LOGGER));
+    			new ContainerWrapperFromObjectWrapperModel<ClassLoggerConfigurationType, SystemConfigurationType>(Model.of(getModelObject().getObjectWrapper()), ItemPath.create(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_CLASS_LOGGER));
 
     	
     	MultivalueContainerListPanel<ClassLoggerConfigurationType> loggersMultivalueContainerListPanel = new MultivalueContainerListPanel<ClassLoggerConfigurationType>(ID_LOGGERS, loggerModel,
@@ -203,7 +203,7 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 
 
 		IModel<ContainerWrapper<AppenderConfigurationType>> appenderModel =
-    			new ContainerWrapperFromObjectWrapperModel<AppenderConfigurationType, SystemConfigurationType>(Model.of(getModelObject().getObjectWrapper()), new ItemPath(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_APPENDER));
+    			new ContainerWrapperFromObjectWrapperModel<AppenderConfigurationType, SystemConfigurationType>(Model.of(getModelObject().getObjectWrapper()), ItemPath.create(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_APPENDER));
 
     	MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType> appendersMultivalueContainerListPanel = new MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType>(ID_APPENDERS, appenderModel,
     			tableIdAppenders, pageStorageAppenders) {
@@ -302,15 +302,16 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 		
 		IModel<ContainerWrapper<AuditingConfigurationType>> auditModel =
     			new ContainerWrapperFromObjectWrapperModel<AuditingConfigurationType, SystemConfigurationType>(Model.of(getModelObject().getObjectWrapper()),
-    					new ItemPath(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_AUDITING));
-		PrismContainerPanel<AuditingConfigurationType> auditPanel = new PrismContainerPanel<AuditingConfigurationType>(ID_AUDITING, auditModel, true, new Form<>("form"), null, getPageBase());
+    					ItemPath.create(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_AUDITING));
+		PrismContainerPanel<AuditingConfigurationType> auditPanel = new PrismContainerPanel<>(ID_AUDITING, auditModel, true,
+				new Form<>("form"), null, getPageBase());
     	add(auditPanel);
 		setOutputMarkupId(true);
 	}
     
     private ItemVisibility getLoggingVisibility(ItemPath pathToCheck) {
-    	if(pathToCheck.isSubPathOrEquivalent(new ItemPath(getModelObject().getPath(), LoggingConfigurationType.F_ROOT_LOGGER_APPENDER)) ||
-    			pathToCheck.isSubPathOrEquivalent(new ItemPath(getModelObject().getPath(), LoggingConfigurationType.F_ROOT_LOGGER_LEVEL))){
+    	if(pathToCheck.isSubPathOrEquivalent(ItemPath.create(getModelObject().getPath(), LoggingConfigurationType.F_ROOT_LOGGER_APPENDER)) ||
+    			pathToCheck.isSubPathOrEquivalent(ItemPath.create(getModelObject().getPath(), LoggingConfigurationType.F_ROOT_LOGGER_LEVEL))){
 			return ItemVisibility.AUTO;
 		}
 		return ItemVisibility.HIDDEN;

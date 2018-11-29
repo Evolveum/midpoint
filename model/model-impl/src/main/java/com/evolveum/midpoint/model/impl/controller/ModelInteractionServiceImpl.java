@@ -29,6 +29,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 import com.evolveum.midpoint.repo.common.expression.*;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -89,7 +92,7 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AllFilter;
 import com.evolveum.midpoint.prism.query.AndFilter;
@@ -109,7 +112,6 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
-import com.evolveum.midpoint.repo.common.CacheRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -185,6 +187,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	@Autowired private ValuePolicyProcessor policyProcessor;
 	@Autowired private Protector protector;
 	@Autowired private PrismContext prismContext;
+	@Autowired private SchemaHelper schemaHelper;
 	@Autowired private Visualizer visualizer;
 	@Autowired private ModelService modelService;
 	@Autowired private ModelCrudService modelCrudService;
@@ -414,7 +417,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
          */
         layeredROCD = layeredROCD.clone();
         for (LayerRefinedAttributeDefinition rAttrDef: layeredROCD.getAttributeDefinitions()) {
-			ItemPath attributePath = new ItemPath(ShadowType.F_ATTRIBUTES, rAttrDef.getName());
+			ItemPath attributePath = ItemPath.create(ShadowType.F_ATTRIBUTES, rAttrDef.getName());
 			AuthorizationDecisionType attributeReadDecision = schemaTransformer.computeItemDecision(securityConstraints, attributePath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, attributesReadDecision, phase);
 			AuthorizationDecisionType attributeAddDecision = schemaTransformer.computeItemDecision(securityConstraints, attributePath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ADD, attributesAddDecision, phase);
 			AuthorizationDecisionType attributeModifyDecision = schemaTransformer.computeItemDecision(securityConstraints, attributePath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_MODIFY, attributesModifyDecision, phase);
@@ -584,7 +587,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 				continue;
 			}
 			ItemPath itemPath = ref.getItemPath();
-			QName itemName = ItemPath.getName(itemPath.first());
+			QName itemName = ItemPath.toNameOrNull(itemPath.first());
 			if (itemName == null) {
 				continue;
 			}
@@ -593,8 +596,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 				if (valueEnumerationRef == null || valueEnumerationRef.getOid() == null) {
 					return allEntries;
 				}
-				Collection<SelectorOptions<GetOperationOptions>> options = createCollection(LookupTableType.F_ROW,
-		    			GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
+				Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+						.item(LookupTableType.F_ROW).retrieve()
+						.build();
 				PrismObject<LookupTableType> lookup = cacheRepositoryService.getObject(LookupTableType.class, valueEnumerationRef.getOid(),
 						options, result);
 				for (LookupTableRowType row: lookup.asObjectable().getRow()) {
@@ -737,7 +741,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		if (securityPolicyType == null) {
 			return null;
 		}
-		PrismContainer<C> container = securityPolicyType.asPrismObject().findContainer(path);
+		PrismContainer<C> container = securityPolicyType.asPrismObject().findContainer(ItemName.fromQName(path));
 		if (container == null) {
 			return null;
 		}
@@ -977,7 +981,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 				}
 				
 				//TODO: not sure about the bulk actions here
-				ItemPath path = getPath(policyItemDefinition);
+				UniformItemPath path = getPath(policyItemDefinition);
 				if (path == null) {
 					if (isExecute(policyItemDefinition)) {
 						LOGGER.error("No item path defined in the target for policy item definition. Cannot generate value");
@@ -1042,7 +1046,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		
 		return policyItemDefinition.isExecute().booleanValue();
 	}
-	private ItemPath getPath(PolicyItemDefinitionType policyItemDefinition){
+	private UniformItemPath getPath(PolicyItemDefinitionType policyItemDefinition){
 		PolicyItemTargetType target = policyItemDefinition.getTarget();
 
 		if (target == null ) {
@@ -1054,10 +1058,10 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
 			return null;
 		}
-		return itemPathType.getItemPath();
+		return itemPathType.getUniformItemPath();
 	}
 
-	private <O extends ObjectType> PrismPropertyDefinition<?> getItemDefinition(PrismObject<O> object, ItemPath path){
+	private <O extends ObjectType> PrismPropertyDefinition<?> getItemDefinition(PrismObject<O> object, UniformItemPath path){
 		ItemDefinition<?> itemDef = object.getDefinition().findItemDefinition(path);
 		if (itemDef == null) {
 			return null;
@@ -1069,7 +1073,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	}
 
 	private <O extends ObjectType> void collectDeltasForGeneratedValuesIfNeeded(PrismObject<O> object,
-			PolicyItemDefinitionType policyItemDefinition, Collection<PropertyDelta<?>> deltasToExecute, ItemPath path,
+			PolicyItemDefinitionType policyItemDefinition, Collection<PropertyDelta<?>> deltasToExecute, UniformItemPath path,
 			PrismPropertyDefinition<?> itemDef, OperationResult result) throws SchemaException {
 
 		Object value = policyItemDefinition.getValue();
@@ -1105,14 +1109,14 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			ConfigurationException, SecurityViolationException {
 
 		PolicyItemTargetType target = policyItemDefinition.getTarget();
-		if ((target == null || ItemPath.isNullOrEmpty(target.getPath())) && isExecute(policyItemDefinition)) {
+		if ((target == null || ItemPathTypeUtil.isEmpty(target.getPath())) && isExecute(policyItemDefinition)) {
 			LOGGER.error("Target item path must be defined");
 			throw new SchemaException("Target item path must be defined");
 		}
-		ItemPath targetPath = null;
+		UniformItemPath targetPath = null;
 		
 		if (target != null) {
-			targetPath = target.getPath().getItemPath();
+			targetPath = target.getPath().getUniformItemPath();
 		}
 
 		ValuePolicyType valuePolicy = resolveValuePolicy(policyItemDefinition, defaultPolicy, task, result);
@@ -1223,9 +1227,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		
 		List<String> valuesToValidate = new ArrayList<>();
 		PolicyItemTargetType target = policyItemDefinition.getTarget();
-		ItemPath path = null;
+		UniformItemPath path = null;
 		if (target != null) {
-			path = target.getPath().getItemPath();
+			path = target.getPath().getUniformItemPath();
 		}
 		if (StringUtils.isNotEmpty(valueToValidate)) {
 			valuesToValidate.add(valueToValidate);
@@ -1235,7 +1239,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 				parentResult.recordFatalError("Target item path must be defined");
 				throw new SchemaException("Target item path must be defined");
 			}
-			path = target.getPath().getItemPath();
+			path = target.getPath().getUniformItemPath();
 
 			if (object == null) {
 				LOGGER.error("Object which values should be validated is null. Nothing to validate.");
@@ -1300,7 +1304,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 //				stringPolicy.setName(PolyString.toPolyStringType(new PolyString("Default policy")));
 //			}
 			
-			ObjectValuePolicyEvaluator evaluator = new ObjectValuePolicyEvaluator();
+			ObjectValuePolicyEvaluator evaluator = new ObjectValuePolicyEvaluator(prismContext);
 			evaluator.setValuePolicy(stringPolicy);
 			evaluator.setValuePolicyProcessor(policyProcessor);
 			evaluator.setProtector(protector);

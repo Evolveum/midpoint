@@ -70,10 +70,6 @@ public class FlexibleLabelModel<C extends Containerable> implements IModel<Strin
     private GuiFlexibleLabelType configuration;
     private ModelServiceLocator serviceLocator;
 
-    public FlexibleLabelModel(IModel<C> model, QName item, ModelServiceLocator serviceLocator, GuiFlexibleLabelType configuration) {
-        this(model, new ItemPath(item), serviceLocator, configuration);
-    }
-
     public FlexibleLabelModel(IModel<C> model, ItemPath path, ModelServiceLocator serviceLocator, GuiFlexibleLabelType configuration) {
         Validate.notNull(model, "Containerable model must not be null.");
         Validate.notNull(path, "Item path must not be null.");

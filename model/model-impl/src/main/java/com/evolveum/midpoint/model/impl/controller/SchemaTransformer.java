@@ -24,6 +24,8 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -52,7 +54,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import javax.xml.namespace.QName;
 import java.util.*;
 
 /**
@@ -107,14 +108,12 @@ public class SchemaTransformer {
 	// Expecting that C is a direct child of T.
 	// Expecting that container values point to their respective parents (in order to evaluate the security!)
 	public <C extends Containerable, T extends ObjectType>
-	SearchResultList<C> applySchemasAndSecurityToContainers(SearchResultList<C> originalResultList, Class<T> parentObjectType, QName childItemName,
+	SearchResultList<C> applySchemasAndSecurityToContainers(SearchResultList<C> originalResultList, Class<T> parentObjectType, ItemName childItemName,
 			GetOperationOptions rootOptions, Collection<SelectorOptions<GetOperationOptions>> options, AuthorizationPhaseType phase, Task task, OperationResult result)
 			throws SecurityViolationException, SchemaException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException, CommunicationException {
 
 		List<C> newValues = new ArrayList<>();
 		Map<PrismObject<T>,Object> processedParents = new IdentityHashMap<>();
-		final ItemPath childItemPath = new ItemPath(childItemName);
-
 		for (C value: originalResultList) {
 			Long originalId = value.asPrismContainerValue().getId();
 			if (originalId == null) {
@@ -127,7 +126,7 @@ public class SchemaTransformer {
 			} else {
 				// temporary solution TODO reconsider
 				parent = prismContext.createObject(parentObjectType);
-				PrismContainer<C> childContainer = parent.findOrCreateItem(childItemPath, PrismContainer.class);
+				PrismContainer<C> childContainer = parent.findOrCreateItem(childItemName, PrismContainer.class);
 				childContainer.add(value.asPrismContainerValue());
 				wasProcessed = false;
 			}
@@ -136,7 +135,7 @@ public class SchemaTransformer {
 				applySchemasAndSecurity(parent, rootOptions, options, phase, task, result);
 				processedParents.put(parent, null);
 			}
-			PrismContainer<C> updatedChildContainer = parent.findContainer(childItemPath);
+			PrismContainer<C> updatedChildContainer = parent.findContainer(childItemName);
 			if (updatedChildContainer != null) {
 				PrismContainerValue<C> updatedChildValue = updatedChildContainer.getValue(originalId);
 				if (updatedChildValue != null) {
@@ -218,16 +217,16 @@ public class SchemaTransformer {
 		applyObjectTemplateToObject(object, objectTemplateType, result);
 
 		if (CollectionUtils.isNotEmpty(options)) {
-			Map<DefinitionProcessingOption, Collection<ItemPath>> definitionProcession = SelectorOptions.extractOptionValues(options, (o) -> o.getDefinitionProcessing());
+			Map<DefinitionProcessingOption, Collection<UniformItemPath>> definitionProcession = SelectorOptions.extractOptionValues(options, (o) -> o.getDefinitionProcessing(), prismContext);
 			if (CollectionUtils.isNotEmpty(definitionProcession.get(DefinitionProcessingOption.NONE))) {
 				throw new UnsupportedOperationException("'NONE' definition processing is not supported now");
 			}
-			Collection<ItemPath> onlyIfExists = definitionProcession.get(DefinitionProcessingOption.ONLY_IF_EXISTS);
+			Collection<UniformItemPath> onlyIfExists = definitionProcession.get(DefinitionProcessingOption.ONLY_IF_EXISTS);
 			if (CollectionUtils.isNotEmpty(onlyIfExists)) {
-				if (onlyIfExists.size() != 1 || !ItemPath.isNullOrEmpty(onlyIfExists.iterator().next())) {
+				if (onlyIfExists.size() != 1 || !ItemPath.isEmpty(onlyIfExists.iterator().next())) {
 					throw new UnsupportedOperationException("'ONLY_IF_EXISTS' definition processing is currently supported on root level only; not on " + onlyIfExists);
 				}
-				Collection<ItemPath> full = definitionProcession.get(DefinitionProcessingOption.FULL);
+				Collection<UniformItemPath> full = definitionProcession.get(DefinitionProcessingOption.FULL);
 				object.trimDefinitionTree(full);
 			}
 		}
@@ -314,7 +313,7 @@ public class SchemaTransformer {
 				throw new AuthorizationException("Access denied");
 			}
 
-			applySecurityConstraintsItemDef(objectDefinition, new IdentityHashMap<>(), ItemPath.EMPTY_PATH, securityConstraints, globalReadDecision, globalAddDecision, globalModifyDecision, phase);
+			applySecurityConstraintsItemDef(objectDefinition, new IdentityHashMap<>(), UniformItemPath.EMPTY_PATH, securityConstraints, globalReadDecision, globalAddDecision, globalModifyDecision, phase);
 		} catch (SecurityViolationException | RuntimeException e) {
 			result.recordFatalError(e);
 			throw e;
@@ -349,13 +348,13 @@ public class SchemaTransformer {
 		Iterator<Item<?,?>> iterator = items.iterator();
 		while (iterator.hasNext()) {
 			Item<?,?> item = iterator.next();
-			ItemPath itemPath = item.getPath();
+			UniformItemPath itemPath = item.getPath();
 			ItemDefinition<?> itemDef = item.getDefinition();
 			if (itemDef != null && itemDef.isElaborate()) {
 				LOGGER.trace("applySecurityConstraints(item): {}: skip (elaborate)", itemPath);
 				continue;
 			}
-			ItemPath nameOnlyItemPath = itemPath.namedSegmentsOnly();
+			UniformItemPath nameOnlyItemPath = itemPath.namedSegmentsOnly();
 			AuthorizationDecisionType itemReadDecision = computeItemDecision(securityConstraints, nameOnlyItemPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, defaultReadDecision, phase);
 			AuthorizationDecisionType itemAddDecision = computeItemDecision(securityConstraints, nameOnlyItemPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ADD, defaultReadDecision, phase);
 			AuthorizationDecisionType itemModifyDecision = computeItemDecision(securityConstraints, nameOnlyItemPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_MODIFY, defaultReadDecision, phase);
@@ -422,7 +421,7 @@ public class SchemaTransformer {
             AuthorizationPhaseType phase) {
 		Validate.notNull(phase);
 		LOGGER.trace("applySecurityConstraints(itemDefs): def={}, phase={}", itemDefinition, phase);
-		applySecurityConstraintsItemDef(itemDefinition, new IdentityHashMap<>(), ItemPath.EMPTY_PATH, securityConstraints,
+		applySecurityConstraintsItemDef(itemDefinition, new IdentityHashMap<>(), UniformItemPath.EMPTY_PATH, securityConstraints,
 				null, null, null, phase);
 
 	}
@@ -447,7 +446,7 @@ public class SchemaTransformer {
 			PrismContainerDefinition<?> containerDefinition = (PrismContainerDefinition<?>)itemDefinition;
 			List<? extends ItemDefinition> subDefinitions = ((PrismContainerDefinition<?>)containerDefinition).getDefinitions();
 			for (ItemDefinition subDef: subDefinitions) {
-				ItemPath subPath = new ItemPath(nameOnlyItemPath, subDef.getName());
+				ItemPath subPath = ItemPath.create(nameOnlyItemPath, subDef.getName());
 				if (subDef.isElaborate()) {
 					LOGGER.trace("applySecurityConstraints(itemDef): {}: skip (elaborate)", subPath);
 					continue;
@@ -550,7 +549,7 @@ public class SchemaTransformer {
                 if (ref == null) {
 				throw new SchemaException("No 'ref' in item definition in "+objectTemplateType);
                 }
-                ItemPath itemPath = ref.getItemPath();
+                UniformItemPath itemPath = ref.getUniformItemPath();
                 ItemDefinition itemDef = objectDefinition.findItemDefinition(itemPath);
                 if (itemDef != null) {
                     applyObjectTemplateItem(itemDef, templateItemDefType, "item " + itemPath + " in object type " + objectDefinition.getTypeName() + " as specified in item definition in " + objectTemplateType);
@@ -575,7 +574,7 @@ public class SchemaTransformer {
 			if (ref == null) {
 				throw new SchemaException("No 'ref' in item definition in "+objectTemplateType);
 			}
-			ItemPath itemPath = ref.getItemPath();
+			UniformItemPath itemPath = ref.getUniformItemPath();
 			ItemDefinition itemDefFromObject = object.getDefinition().findItemDefinition(itemPath);
             if (itemDefFromObject != null) {
                 applyObjectTemplateItem(itemDefFromObject, templateItemDefType, "item " + itemPath + " in " + object

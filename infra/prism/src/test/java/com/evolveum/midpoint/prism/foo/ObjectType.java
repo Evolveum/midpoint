@@ -20,11 +20,11 @@ package com.evolveum.midpoint.prism.foo;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectReferenceType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import javax.xml.bind.annotation.*;
-import javax.xml.namespace.QName;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -72,10 +72,10 @@ public abstract class ObjectType
 	static final String NS_FOO = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd";
 
 	// This is NOT GENERATED. It is supplied here manually for the testing.
-	public final static QName F_NAME = new QName(NS_FOO, "name");
-	public final static QName F_DESCRIPTION = new QName(NS_FOO, "description");
-	public final static QName F_EXTENSION = new QName(NS_FOO, "extension");
-    public final static QName F_PARENT_ORG_REF = new QName(NS_FOO, "parentOrgRef");
+	public final static ItemName F_NAME = new ItemName(NS_FOO, "name");
+	public final static ItemName F_DESCRIPTION = new ItemName(NS_FOO, "description");
+	public final static ItemName F_EXTENSION = new ItemName(NS_FOO, "extension");
+    public final static ItemName F_PARENT_ORG_REF = new ItemName(NS_FOO, "parentOrgRef");
 
     private final static long serialVersionUID = 201202081233L;
     protected PolyStringType name;

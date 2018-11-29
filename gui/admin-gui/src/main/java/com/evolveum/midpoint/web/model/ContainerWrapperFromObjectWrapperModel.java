@@ -48,10 +48,6 @@ public class ContainerWrapperFromObjectWrapperModel<C extends Containerable,O ex
 
     private ItemPath path;
 
-    public ContainerWrapperFromObjectWrapperModel(IModel<ObjectWrapper<O>> model, QName item) {
-        this(model, new ItemPath(item));
-    }
-
     public ContainerWrapperFromObjectWrapperModel(IModel<ObjectWrapper<O>> model, ItemPath path) {
     	super(model);
         Validate.notNull(path, "Item path must not be null.");

@@ -25,9 +25,8 @@ import static org.testng.AssertJUnit.assertTrue;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -61,7 +60,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
 	private static final File TEST_DIR = new File("src/test/resources/deltaconverter");
 
 	private static final ItemPath CREDENTIALS_PASSWORD_VALUE_PATH =
-		new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
+		ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
 
     @Test
     public void testRefWithObject() throws SchemaException, IOException, JAXBException {
@@ -103,7 +102,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     	assertNotNull("No object delta", objectDelta);
     	objectDelta.checkConsistence();
     	assertEquals("Wrong OID", "c0c010c0-d34d-b33f-f00d-111111111111", objectDelta.getOid());
-    	PropertyDelta<ProtectedStringType> protectedStringDelta = objectDelta.findPropertyDelta(CREDENTIALS_PASSWORD_VALUE_PATH);
+    	PropertyDelta<ProtectedStringType> protectedStringDelta = objectDelta.findPropertyDelta(path(CREDENTIALS_PASSWORD_VALUE_PATH));
     	assertNotNull("No protectedString delta", protectedStringDelta);
     	Collection<PrismPropertyValue<ProtectedStringType>> valuesToReplace = protectedStringDelta.getValuesToReplace();
     	assertEquals("Wrong number of values to replace", 1, valuesToReplace.size());
@@ -213,7 +212,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
         RawType modificationValue = new RawType(((PrismContextImpl) prismContext).getBeanMarshaller().marshall(accountRefToDelete), prismContext);
         modificationDeleteAccountRef.getValue().add(modificationValue);
         objectChange.getItemDelta().add(modificationDeleteAccountRef);
-        ItemPathType itemPathType = new ItemPathType(new ItemPath(UserType.F_LINK_REF));
+        ItemPathType itemPathType = new ItemPathType(prismContext.path(UserType.F_LINK_REF));
         modificationDeleteAccountRef.setPath(itemPathType);
 
         PrismObjectDefinition<UserType> objDef = PrismTestUtil.getObjectDefinition(UserType.class);
@@ -232,7 +231,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     	System.out.println("===[ testProtectedStringObjectDelta ]====");
 
     	// GIVEN
-    	ItemPath path = CREDENTIALS_PASSWORD_VALUE_PATH;
+    	UniformItemPath path = path(CREDENTIALS_PASSWORD_VALUE_PATH);
     	ProtectedStringType protectedString = new ProtectedStringType();
     	protectedString.setClearValue("abrakadabra");
     	ObjectDelta<UserType> objectDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, "12345",
@@ -305,7 +304,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     	ItemPathType itemPathType = mod1.getPath();
     	assertNotNull("Wrong path (must not be null)", itemPathType);
 //    	assertTrue("Wrong path: "+itemPathType, itemPathType.getItemPath().isEmpty());
-    	PrismAsserts.assertPathEquivalent("Wrong path", itemPathType.getItemPath(), new ItemPath(UserType.F_COST_CENTER));
+    	PrismAsserts.assertPathEquivalent("Wrong path", itemPathType.getItemPath(), path(UserType.F_COST_CENTER));
     	List<RawType> valueElements = mod1.getValue();
     	assertEquals("Wrong number of value elements", 1, valueElements.size());
     	RawType rawValue = valueElements.get(0);
@@ -488,10 +487,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
         assertNotNull("No object delta", objectDelta);
         objectDelta.checkConsistence();
         assertEquals("Wrong OID", "00000000-8888-6666-0000-100000000005", objectDelta.getOid());
-        ReferenceDelta targetRefDelta = objectDelta.findReferenceModification(new ItemPath(
-                new NameItemPathSegment(RoleType.F_INDUCEMENT),
-                new IdItemPathSegment(5L),
-                new NameItemPathSegment(AssignmentType.F_TARGET_REF)));
+        ReferenceDelta targetRefDelta = objectDelta.findReferenceModification(path(RoleType.F_INDUCEMENT, 5L, AssignmentType.F_TARGET_REF));
         assertNotNull("No targetRef delta", targetRefDelta);
         Collection<PrismReferenceValue> valuesToAdd = targetRefDelta.getValuesToAdd();
         assertEquals("Wrong number of values to add", 1, valuesToAdd.size());

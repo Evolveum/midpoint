@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.model.api.visualizer;
 
 import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 
 import java.io.Serializable;
 import java.util.List;
@@ -37,5 +37,5 @@ public interface SceneItem extends Serializable {
 	/**
 	 * Item path, relative to the scene root path.
 	 */
-	ItemPath getSourceRelPath();
+	UniformItemPath getSourceRelPath();
 }

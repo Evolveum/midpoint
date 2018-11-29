@@ -50,7 +50,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
@@ -350,11 +349,11 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
 
         String pLabel = properties.getLabel();
         if (pLabel != null) {
-            label = new ItemPath(pLabel);
+            label = ItemPath.create(pLabel);
         }
         String pKey = properties.getKey();
         if (pKey != null) {
-            key = new ItemPath(pKey);
+            key = ItemPath.create(pKey);
         }
 
         String pTargetType = properties.getTargetType();
@@ -557,10 +556,6 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
         }
 
         runConfirmPerformed(target, reportDto.getObject().asObjectable(), paramContainer);
-    }
-
-    private PrismContext getPrismContext() {
-        return getPageBase().getPrismContext();
     }
 
     protected void runConfirmPerformed(AjaxRequestTarget target, ReportType reportType2,

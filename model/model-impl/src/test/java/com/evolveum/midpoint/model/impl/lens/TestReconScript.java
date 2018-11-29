@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -32,20 +33,19 @@ import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_MODEL_EXTENSION_DRY_RUN;
 
 @ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -72,13 +72,13 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
 		task.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON));
 		modelService.executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, parentResult);
 
-		delta = createModifyUserReplaceDelta(USER_JACK_OID, new ItemPath(UserType.F_FULL_NAME), new PolyString("tralala"));
+		delta = createModifyUserReplaceDelta(USER_JACK_OID, prismContext.path(UserType.F_FULL_NAME), new PolyString("tralala"));
 		deltas = new ArrayList<>();
 		deltas.add(delta);
 
 		modelService.executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, parentResult);
 
-		delta = createModifyUserReplaceDelta(USER_BARBOSSA_OID, new ItemPath(UserType.F_FULL_NAME), new PolyString("tralala"));
+		delta = createModifyUserReplaceDelta(USER_BARBOSSA_OID, prismContext.path(UserType.F_FULL_NAME), new PolyString("tralala"));
 		deltas = new ArrayList<>();
 		deltas.add(delta);
 
@@ -194,8 +194,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
 		PrismObject<TaskType> task = getTask(TASK_RECON_DUMMY_OID);
 		OperationResult parentResult = new OperationResult(TEST_NAME);
 
-		PropertyDelta dryRunDelta = PropertyDeltaImpl
-				.createModificationReplaceProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_DRY_RUN), task.getDefinition(), true);
+		PropertyDelta dryRunDelta = PropertyDeltaImpl.createModificationReplaceProperty(PATH_MODEL_EXTENSION_DRY_RUN, task.getDefinition(), true);
 		Collection<PropertyDelta> modifications = new ArrayList<>();
 		modifications.add(dryRunDelta);
 
@@ -227,7 +226,8 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
 		PrismObject<TaskType> task = getTask(TASK_RECON_DUMMY_OID);
 		OperationResult parentResult = new OperationResult(TEST_NAME);
 
-		PropertyDelta<Boolean> dryRunDelta = PropertyDeltaImpl.createModificationReplaceProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_DRY_RUN), task.getDefinition(), false);
+		PropertyDelta<Boolean> dryRunDelta = PropertyDeltaImpl.createModificationReplaceProperty(
+				PATH_MODEL_EXTENSION_DRY_RUN, task.getDefinition(), false);
 		Collection<PropertyDelta> modifications = new ArrayList<>();
 		modifications.add(dryRunDelta);
 

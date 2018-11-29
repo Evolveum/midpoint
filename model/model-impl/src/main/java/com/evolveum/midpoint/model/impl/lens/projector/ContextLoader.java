@@ -47,13 +47,11 @@ import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.SynchronizationIntent;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
-import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -594,7 +592,7 @@ public class ContextLoader {
 				// Adding new focus with no linkRef -> nothing to do
 				return;
 			}
-			linkRefDelta = linkRef.createDelta(new ItemPath(FocusType.F_LINK_REF));
+			linkRefDelta = linkRef.createDelta(FocusType.F_LINK_REF);
 			linkRefDelta.addValuesToAdd(PrismValue.cloneValues(linkRef.getValues()));
 		} else if (focusPrimaryDelta.getChangeType() == ChangeType.MODIFY) {
 			linkRefDelta = focusPrimaryDelta.findReferenceModification(FocusType.F_LINK_REF);
@@ -1396,7 +1394,7 @@ public class ContextLoader {
 	private void applyAttributesToGet(LensProjectionContext projCtx, Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException {
 		if ( !LensUtil.isPasswordReturnedByDefault(projCtx)
 				&& LensUtil.needsFullShadowForCredentialProcessing(projCtx)) {
-			options.add(SelectorOptions.create(SchemaConstants.PATH_PASSWORD_VALUE, GetOperationOptions.createRetrieve()));
+			options.add(SelectorOptions.create(prismContext.path(SchemaConstants.PATH_PASSWORD_VALUE), GetOperationOptions.createRetrieve()));
 		}
 	}
 
@@ -1407,7 +1405,7 @@ public class ContextLoader {
 		if (focusContext == null) {
 			return;
 		}
-		if (focusContext == null || !UserType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
+		if (!UserType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
 			LOGGER.trace("Skipping load of security policy because focus is not user");
 			return;
 		}

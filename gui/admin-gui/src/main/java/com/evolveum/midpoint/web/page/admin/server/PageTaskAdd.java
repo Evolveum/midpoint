@@ -18,7 +18,6 @@ package com.evolveum.midpoint.web.page.admin.server;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -185,7 +184,7 @@ public class PageTaskAdd extends PageAdminTasks {
     	taskAdd.setCategory(taskType.getCategory());
     	PrismProperty<ShadowKindType> pKind;
 		try {
-			pKind = taskType.asPrismObject().findOrCreateProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_KIND));
+			pKind = taskType.asPrismObject().findOrCreateProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_KIND));
 			taskAdd.setKind(pKind.getRealValue());
 		} catch (SchemaException e) {
 			warn("Could not set kind for new task : " + e.getMessage());
@@ -193,7 +192,7 @@ public class PageTaskAdd extends PageAdminTasks {
 
     	PrismProperty<String> pIntent;
 		try {
-			pIntent = taskType.asPrismObject().findOrCreateProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_INTENT));
+			pIntent = taskType.asPrismObject().findOrCreateProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_INTENT));
 			taskAdd.setIntent(pIntent.getRealValue());
 		} catch (SchemaException e) {
 			warn("Could not set intent for new task : " + e.getMessage());
@@ -201,7 +200,7 @@ public class PageTaskAdd extends PageAdminTasks {
 
     	PrismProperty<QName> pObjectClass;
 		try {
-			pObjectClass = taskType.asPrismObject().findOrCreateProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECTCLASS));
+			pObjectClass = taskType.asPrismObject().findOrCreateProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECTCLASS));
 			QName objectClass = pObjectClass.getRealValue();
 			if (objectClass != null){
 	    		taskAdd.setObjectClass(objectClass.getLocalPart());
@@ -731,7 +730,7 @@ public class PageTaskAdd extends PageAdminTasks {
 
         if (dto.isDryRun()) {
             PrismObject<TaskType> prismTask = task.asPrismObject();
-            ItemPath path = new ItemPath(TaskType.F_EXTENSION,SchemaConstants.MODEL_EXTENSION_DRY_RUN);
+            ItemPath path = ItemPath.create(TaskType.F_EXTENSION,SchemaConstants.MODEL_EXTENSION_DRY_RUN);
             PrismProperty dryRun = prismTask.findOrCreateProperty(path);
 
             SchemaRegistry registry = getPrismContext().getSchemaRegistry();
@@ -744,7 +743,7 @@ public class PageTaskAdd extends PageAdminTasks {
 
         	PrismObject<TaskType> prismTask = task.asPrismObject();
 
-        	ItemPath path = new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE);
+        	ItemPath path = ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE);
 			PrismProperty focusType = prismTask.findOrCreateProperty(path);
 			focusType.setRealValue(dto.getFocusType());
 
@@ -752,7 +751,7 @@ public class PageTaskAdd extends PageAdminTasks {
 
         if(dto.getKind() != null){
             PrismObject<TaskType> prismTask = task.asPrismObject();
-            ItemPath path = new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_KIND);
+            ItemPath path = ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_KIND);
             PrismProperty kind = prismTask.findOrCreateProperty(path);
 
             SchemaRegistry registry = getPrismContext().getSchemaRegistry();
@@ -763,7 +762,7 @@ public class PageTaskAdd extends PageAdminTasks {
 
         if(dto.getIntent() != null && StringUtils.isNotEmpty(dto.getIntent())){
             PrismObject<TaskType> prismTask = task.asPrismObject();
-            ItemPath path = new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_INTENT);
+            ItemPath path = ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_INTENT);
             PrismProperty intent = prismTask.findOrCreateProperty(path);
 
             SchemaRegistry registry = getPrismContext().getSchemaRegistry();
@@ -774,7 +773,7 @@ public class PageTaskAdd extends PageAdminTasks {
 
         if(dto.getObjectClass() != null && StringUtils.isNotEmpty(dto.getObjectClass())){
             PrismObject<TaskType> prismTask = task.asPrismObject();
-            ItemPath path = new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECTCLASS);
+            ItemPath path = ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECTCLASS);
             PrismProperty objectClassProperty = prismTask.findOrCreateProperty(path);
 
             QName objectClass = null;

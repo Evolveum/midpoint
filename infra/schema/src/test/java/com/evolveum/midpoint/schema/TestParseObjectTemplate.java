@@ -16,7 +16,7 @@
 package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -39,6 +39,7 @@ import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.fail;
@@ -95,7 +96,7 @@ public class TestParseObjectTemplate {
 		System.out.println("===[ "+TEST_NAME+" ]===");
 
 		// GIVEN
-		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		PrismContext prismContext = getPrismContext();
 
 		// WHEN
 		try {
@@ -114,7 +115,7 @@ public class TestParseObjectTemplate {
 		System.out.println("\n\n===[ "+TEST_NAME+" ]===\n");
 
 		// GIVEN
-		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		PrismContext prismContext = getPrismContext();
 
 		// WHEN
 		PrismObject<ObjectTemplateType> object = prismContext.parseObject(file);
@@ -131,7 +132,7 @@ public class TestParseObjectTemplate {
 		System.out.println("\n\n===[ "+TEST_NAME+" ]===\n");
 
 		// GIVEN
-		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		PrismContext prismContext = getPrismContext();
 
 		// WHEN
 		PrismObject<ObjectTemplateType> object = prismContext.parseObject(file);
@@ -194,9 +195,9 @@ public class TestParseObjectTemplate {
             if (mappingType.getExpression() != null) {
                 if (mappingType.getTarget() != null &&
                         mappingType.getTarget().getPath() != null &&
-                        new ItemPath(UserType.F_ASSIGNMENT).equivalent(mappingType.getTarget().getPath().getItemPath())) {
+                        getPrismContext().path(UserType.F_ASSIGNMENT).equivalent(mappingType.getTarget().getPath().getItemPath())) {
                     ItemDefinition assignmentDef =
-                            PrismTestUtil.getPrismContext().getSchemaRegistry()
+                            getPrismContext().getSchemaRegistry()
                                     .findObjectDefinitionByCompileTimeClass(UserType.class)
                                     .findItemDefinition(UserType.F_ASSIGNMENT);
                     for (JAXBElement evaluator : mappingType.getExpression().getExpressionEvaluator()) {
@@ -223,17 +224,17 @@ public class TestParseObjectTemplate {
 
 	private void assertPropertyDefinition(PrismContainer<?> container, String propName, QName xsdType, int minOccurs,
 			int maxOccurs) {
-		QName propQName = new QName(SchemaConstantsGenerated.NS_COMMON, propName);
+		ItemName propQName = new ItemName(SchemaConstantsGenerated.NS_COMMON, propName);
 		PrismAsserts.assertPropertyDefinition(container, propQName, xsdType, minOccurs, maxOccurs);
 	}
 
 	public static void assertPropertyValue(PrismContainer<?> container, String propName, Object propValue) {
-		QName propQName = new QName(SchemaConstantsGenerated.NS_COMMON, propName);
+		ItemName propQName = new ItemName(SchemaConstantsGenerated.NS_COMMON, propName);
 		PrismAsserts.assertPropertyValue(container, propQName, propValue);
 	}
 
 	public static <T> void assertPropertyValues(PrismContainer<?> container, String propName, T... expectedValues) {
-		QName propQName = new QName(SchemaConstantsGenerated.NS_COMMON, propName);
+		ItemName propQName = new ItemName(SchemaConstantsGenerated.NS_COMMON, propName);
 		PrismAsserts.assertPropertyValue(container, propQName, expectedValues);
 	}
 

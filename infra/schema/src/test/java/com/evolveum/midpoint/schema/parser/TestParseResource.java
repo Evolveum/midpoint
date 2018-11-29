@@ -18,11 +18,11 @@ package com.evolveum.midpoint.schema.parser;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.lex.dom.DomLexicalProcessor;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.prism.path.VariableItemPathSegment;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.util.ItemPathUtil;
+import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
@@ -463,11 +463,11 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
             ObjectFilter objectFilter = prismContext.getQueryConverter().parseFilter(filter, ConnectorType.class);
             assertTrue("Wrong kind of filter: " + objectFilter, objectFilter instanceof EqualFilter);
             EqualFilter equalFilter = (EqualFilter) objectFilter;
-            ItemPath path = equalFilter.getPath();      // should be extension/x:extConnType
+            UniformItemPath path = equalFilter.getPath();      // should be extension/x:extConnType
             PrismAsserts.assertPathEqualsExceptForPrefixes("Wrong filter path",
 					namespaces ?
-						new ItemPath(new QName("extension"), new QName("http://x/", "extConnType")) :
-						new ItemPath(new QName("extension"), new QName("extConnType")),
+						prismContext.path(new QName("extension"), new QName("http://x/", "extConnType")) :
+						prismContext.path(new QName("extension"), new QName("extConnType")),
 					path);
             PrismPropertyValue filterValue = (PrismPropertyValue) equalFilter.getValues().get(0);
             assertEquals("Wrong filter value", "org.identityconnectors.ldap.LdapConnector", ((RawType) filterValue.getValue()).getParsedRealValue(String.class).trim());
@@ -529,12 +529,12 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
 //            ItemPathType itemPathType = (ItemPathType) expressionType.getExpressionEvaluator().get(0).getValue();
 //            PrismAsserts.assertPathEqualsExceptForPrefixes("path in correlation expression",
 //					namespaces ?
-//							new ItemPath(
+//							prismContext.path(
 //									new NameItemPathSegment(new QName("account"), true),
 //									new NameItemPathSegment(new QName(SchemaConstantsGenerated.NS_COMMON, "attributes")),
 //									new NameItemPathSegment(new QName("http://myself.me/schemas/whatever", "yyy"))
 //							) :
-//							new ItemPath(
+//							prismContext.path(
 //									new NameItemPathSegment(new QName("account"), true),
 //									new NameItemPathSegment(new QName("attributes")),
 //									new NameItemPathSegment(new QName("yyy"))
@@ -589,7 +589,7 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
                 boolean foundDescription = false;
                 boolean foundDepartmentNumber = false;
                 for (ResourceAttributeDefinitionType attributeDefinitionType : accountType.getAttribute()) {
-                    if ("description".equals(ItemPathUtil.getOnlySegmentQName(attributeDefinitionType.getRef()).getLocalPart())) {
+                    if ("description".equals(ItemPathTypeUtil.asSingleNameOrFail(attributeDefinitionType.getRef()).getLocalPart())) {
                         foundDescription = true;
                         MappingType outbound = attributeDefinitionType.getOutbound();
                         JAXBElement<?> valueEvaluator = outbound.getExpression().getExpressionEvaluator().get(0);
@@ -597,19 +597,18 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
                         assertNotNull("no expression evaluator for description", valueEvaluator);
                         assertEquals("wrong expression evaluator element name for description", SchemaConstantsGenerated.C_VALUE, valueEvaluator.getName());
                         assertEquals("wrong expression evaluator actual type for description", RawType.class, valueEvaluator.getValue().getClass());
-                    } else if ("departmentNumber".equals(ItemPathUtil.getOnlySegmentQName(attributeDefinitionType.getRef()).getLocalPart())) {
+                    } else if ("departmentNumber".equals(ItemPathTypeUtil.asSingleNameOrFail(attributeDefinitionType.getRef()).getLocalPart())) {
                         foundDepartmentNumber = true;
                         MappingType outbound = attributeDefinitionType.getOutbound();
                         VariableBindingDefinitionType source = outbound.getSource().get(0);
                         System.out.println("source for departmentNumber = " + source);
                         assertNotNull("no source for outbound mapping for departmentNumber", source);
                         //<path xmlns:z="http://z/">$user/extension/z:dept</path>
-                        ItemPath expected = new ItemPath(
-                                new NameItemPathSegment(new QName("user"), true),
-                                new NameItemPathSegment(new QName("extension")),
+                        UniformItemPath expected = getPrismContext().path(new VariableItemPathSegment(new QName("user")),
+                                new QName("extension"),
 								namespaces ?
-										new NameItemPathSegment(new QName("http://z/", "dept")) :
-										new NameItemPathSegment(new QName("dept"))
+										new QName("http://z/", "dept") :
+										new QName("dept")
 						);
                         PrismAsserts.assertPathEqualsExceptForPrefixes("source for departmentNubmer", expected, source.getPath().getItemPath());
                     }

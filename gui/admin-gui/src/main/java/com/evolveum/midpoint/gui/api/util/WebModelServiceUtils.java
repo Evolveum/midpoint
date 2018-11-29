@@ -20,9 +20,7 @@ import java.util.*;
 
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.prism.query.OrderDirection;
-import com.evolveum.midpoint.schema.RelationalValueSearchQuery;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
@@ -52,9 +50,6 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.RetrieveOption;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -484,18 +479,10 @@ public class WebModelServiceUtils {
         LOGGER.debug("Deleted with result {}", new Object[]{result});
     }
 
-    public static Collection<SelectorOptions<GetOperationOptions>> createOptionsForParentOrgRefs() {
-        Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<>();
-        options.add(SelectorOptions.create(ObjectType.F_PARENT_ORG_REF,
-                GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
-        return options;
-    }
-
-    public static Collection<SelectorOptions<GetOperationOptions>> createMinimalOptions() {
-        Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<>();
-        options.add(SelectorOptions.create(ItemPath.EMPTY_PATH,
-                GetOperationOptions.createRetrieve(RetrieveOption.DEFAULT)));
-        return options;
+    public static Collection<SelectorOptions<GetOperationOptions>> createOptionsForParentOrgRefs(GetOperationOptionsBuilder builder) {
+		return builder
+				.item(ObjectType.F_PARENT_ORG_REF).retrieve()
+				.build();
     }
 
     public static void save(ObjectDelta delta, OperationResult result, PageBase page) {
@@ -545,7 +532,7 @@ public class WebModelServiceUtils {
     public static <T extends ObjectType> ObjectDelta<T> createActivationAdminStatusDelta(
             Class<T> type, String oid, boolean enabled, PrismContext context) {
 
-        ItemPath path = new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
+        ItemPath path = SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS;
         ActivationStatusType status = enabled ? ActivationStatusType.ENABLED : ActivationStatusType.DISABLED;
         ObjectDelta objectDelta = ObjectDelta.createModificationReplaceProperty(type, oid, path, context, status);
 
@@ -674,11 +661,13 @@ public class WebModelServiceUtils {
         return null;
     }
 
-	public static Collection<SelectorOptions<GetOperationOptions>> createLookupTableRetrieveOptions() {
-		return SelectorOptions.createCollection(LookupTableType.F_ROW,
-				GetOperationOptions.createRetrieve(
-						new RelationalValueSearchQuery(
-								ObjectPaging.createPaging(LookupTableRowType.F_LABEL, OrderDirection.ASCENDING))));
+	public static Collection<SelectorOptions<GetOperationOptions>> createLookupTableRetrieveOptions(SchemaHelper schemaHelper) {
+		return schemaHelper.getOperationOptionsBuilder()
+				.item(LookupTableType.F_ROW)
+				.retrieveQuery()
+					.asc(LookupTableRowType.F_LABEL)
+				.end()
+				.build();
 	}
 
 	public static ActivationStatusType getAssignmentEffectiveStatus(String lifecycleStatus, ActivationType activationType, PageBase pageBase){
@@ -715,7 +704,7 @@ public class WebModelServiceUtils {
 	}
 
 	// deduplicate with Action.addIncludeOptionsForExport (ninja module)
-	public static void addIncludeOptionsForExportOrView(Collection<SelectorOptions<GetOperationOptions>> options,
+	public static GetOperationOptionsBuilder addIncludeOptionsForExportOrView(GetOperationOptionsBuilder builder,
 			Class<? extends ObjectType> type) {
 		// todo fix this brutal hack (related to checking whether to include particular options)
 		boolean all = type == null
@@ -724,23 +713,18 @@ public class WebModelServiceUtils {
 				|| ObjectType.class.equals(type);
 
 		if (all || UserType.class.isAssignableFrom(type)) {
-			options.add(SelectorOptions.create(UserType.F_JPEG_PHOTO,
-					GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
+			builder = builder.item(UserType.F_JPEG_PHOTO).retrieve();
 		}
 		if (all || TaskType.class.isAssignableFrom(type)) {
-			options.add(SelectorOptions.create(TaskType.F_RESULT,
-					GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
+			builder = builder.item(TaskType.F_RESULT).retrieve();
 		}
 		if (all || LookupTableType.class.isAssignableFrom(type)) {
-			options.add(SelectorOptions.create(LookupTableType.F_ROW,
-					GetOperationOptions.createRetrieve(
-							new RelationalValueSearchQuery(
-									ObjectPaging.createPaging(PrismConstants.T_ID, OrderDirection.ASCENDING)))));
+			builder = builder.item(LookupTableType.F_ROW).retrieveQuery().asc(PrismConstants.T_ID).end();
 		}
 		if (all || AccessCertificationCampaignType.class.isAssignableFrom(type)) {
-			options.add(SelectorOptions.create(AccessCertificationCampaignType.F_CASE,
-					GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
+			builder = builder.item(AccessCertificationCampaignType.F_CASE).retrieve();
 		}
+		return builder;
 	}
 
 	public static boolean isEnableExperimentalFeature(Task task, ModelServiceLocator pageBase) {
@@ -822,10 +806,9 @@ public class WebModelServiceUtils {
 		Task task = pageBase.createSimpleTask(OPERATION_GET_SYSTEM_CONFIG);
 		OperationResult result = new OperationResult(OPERATION_GET_SYSTEM_CONFIG);
 
-		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
-			GetOperationOptions.createResolve(), SystemConfigurationType.F_DEFAULT_USER_TEMPLATE,
-			SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY);
-
+		Collection<SelectorOptions<GetOperationOptions>> options = pageBase.getOperationOptionsBuilder()
+				.items(SystemConfigurationType.F_DEFAULT_USER_TEMPLATE, SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY).resolve()
+				.build();
 		ObjectWrapper<SystemConfigurationType> wrapper = null;
 		try {
 			PrismObject<SystemConfigurationType> systemConfig = loadObject(

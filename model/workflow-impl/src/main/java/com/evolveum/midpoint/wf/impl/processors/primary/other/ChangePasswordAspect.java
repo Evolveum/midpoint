@@ -23,7 +23,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -46,6 +45,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_CREDENTIALS_PASSWORD_VALUE;
 
 /**
  * This is a preliminary version of 'password approval' process aspect. The idea is that in some cases, a user may request
@@ -86,13 +87,12 @@ public class ChangePasswordAspect extends BasePrimaryChangeAspect {
 
         Iterator<? extends ItemDelta> deltaIterator = changeRequested.getModifications().iterator();
 
-        ItemPath passwordPath = new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
         while (deltaIterator.hasNext()) {
             ItemDelta delta = deltaIterator.next();
 
             // this needs to be customized and enhanced; e.g. to start wf process only when not enough authentication info is present in the request
             // also, what if we replace whole 'credentials' container?
-            if (passwordPath.equivalent(delta.getPath())) {
+            if (PATH_CREDENTIALS_PASSWORD_VALUE.equivalent(delta.getPath())) {
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Found password-changing delta, moving it into approval request. Delta = " + delta.debugDump());
                 }

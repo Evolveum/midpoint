@@ -21,9 +21,7 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
@@ -63,7 +61,6 @@ import java.util.*;
 
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieve;
-import static com.evolveum.midpoint.schema.GetOperationOptions.resolveItemsNamed;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.*;
@@ -163,7 +160,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
     protected void assertWfContextAfterClockworkRun(Task rootTask, List<Task> subtasks, OperationResult result, String... processNames) throws Exception {
 
         final Collection<SelectorOptions<GetOperationOptions>> options =
-                SelectorOptions.createCollection(new ItemPath(F_WORKFLOW_CONTEXT, F_WORK_ITEM), createRetrieve());
+                SelectorOptions.createCollection(prismContext.path(F_WORKFLOW_CONTEXT, F_WORK_ITEM), createRetrieve());
 
         Task opTask = taskManager.createTaskInstance();
         TaskType rootTaskType = modelService.getObject(TaskType.class, rootTask.getOid(), options, opTask, result).asObjectable();
@@ -179,13 +176,13 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             WfTestUtil.assertRef("requester ref", subtaskType.getWorkflowContext().getRequesterRef(), USER_ADMINISTRATOR_OID, false, false);
         }
 
-        final Collection<SelectorOptions<GetOperationOptions>> options1 = resolveItemsNamed(
-                new ItemPath(T_PARENT, F_OBJECT_REF),
-                new ItemPath(T_PARENT, F_TARGET_REF),
-                F_ASSIGNEE_REF,
-                F_ORIGINAL_ASSIGNEE_REF,
-                new ItemPath(T_PARENT, F_REQUESTER_REF));
-
+        final Collection<SelectorOptions<GetOperationOptions>> options1 = schemaHelper.getOperationOptionsBuilder()
+                .item(T_PARENT, F_OBJECT_REF).resolve()
+                .item(T_PARENT, F_TARGET_REF).resolve()
+                .item(F_ASSIGNEE_REF).resolve()
+                .item(F_ORIGINAL_ASSIGNEE_REF).resolve()
+                .item(T_PARENT, F_REQUESTER_REF).resolve()
+                .build();
         List<WorkItemType> workItems = modelService.searchContainers(WorkItemType.class, null, options1, opTask, result);
         assertEquals("Wrong # of work items", processNames.length, workItems.size());
         i = 0;
@@ -217,7 +214,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
     protected void assertWfContextAfterRootTaskFinishes(Task rootTask, List<Task> subtasks, OperationResult result, String... processNames) throws Exception {
 
         final Collection<SelectorOptions<GetOperationOptions>> options =
-                SelectorOptions.createCollection(new ItemPath(F_WORKFLOW_CONTEXT, F_WORK_ITEM), createRetrieve());
+                SelectorOptions.createCollection(prismContext.path(F_WORKFLOW_CONTEXT, F_WORK_ITEM), createRetrieve());
 
         Task opTask = taskManager.createTaskInstance();
         TaskType rootTaskType = modelService.getObject(TaskType.class, rootTask.getOid(), options, opTask, result).asObjectable();
@@ -1017,24 +1014,18 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         PrismContainerDefinition<ActivationType> activationDef =
                 prismContext.getSchemaRegistry()
                         .findObjectDefinitionByCompileTimeClass(UserType.class)
-                        .findContainerDefinition(new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION));
+                        .findContainerDefinition(prismContext.path(UserType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION));
         assertNotNull("no activationDef", activationDef);
 
         Long assignmentId = jack.getAssignment().get(0).getId();
         PrismPropertyDefinition<XMLGregorianCalendar> validFromDef = activationDef.findPropertyDefinition(ActivationType.F_VALID_FROM);
         PropertyDelta<XMLGregorianCalendar> validFromDelta = new PropertyDeltaImpl<>(
-                new ItemPath(new NameItemPathSegment(UserType.F_ASSIGNMENT),
-                        new IdItemPathSegment(assignmentId),
-                        new NameItemPathSegment(AssignmentType.F_ACTIVATION),
-                        new NameItemPathSegment(ActivationType.F_VALID_FROM)),
+                ItemPath.create(UserType.F_ASSIGNMENT, assignmentId, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM),
                         validFromDef, prismContext);
         validFromDelta.setRealValuesToReplace(validFrom);
         PrismPropertyDefinition<XMLGregorianCalendar> validToDef = activationDef.findPropertyDefinition(ActivationType.F_VALID_TO);
         PropertyDelta<XMLGregorianCalendar> validToDelta = new PropertyDeltaImpl<>(
-                new ItemPath(new NameItemPathSegment(UserType.F_ASSIGNMENT),
-                        new IdItemPathSegment(assignmentId),
-                        new NameItemPathSegment(AssignmentType.F_ACTIVATION),
-                        new NameItemPathSegment(ActivationType.F_VALID_TO)),
+                ItemPath.create(UserType.F_ASSIGNMENT, assignmentId, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO),
                         validToDef, prismContext);
         validToDelta.setRealValuesToReplace(validTo);
 
@@ -1211,17 +1202,14 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         PrismContainerDefinition<ResourceAttributeDefinitionType> attributeDef =
                 prismContext.getSchemaRegistry()
                         .findObjectDefinitionByCompileTimeClass(UserType.class)
-                        .findContainerDefinition(new ItemPath(UserType.F_ASSIGNMENT,
+                        .findContainerDefinition(prismContext.path(UserType.F_ASSIGNMENT,
                                 AssignmentType.F_CONSTRUCTION,
                                 ConstructionType.F_ATTRIBUTE));
         assertNotNull("no attributeDef", attributeDef);
 
         Long assignmentId = jack.getAssignment().get(0).getId();
         ContainerDelta<ResourceAttributeDefinitionType> attributeDelta = new ContainerDeltaImpl<>(
-            new ItemPath(new NameItemPathSegment(UserType.F_ASSIGNMENT),
-                new IdItemPathSegment(assignmentId),
-                new NameItemPathSegment(AssignmentType.F_CONSTRUCTION),
-                new NameItemPathSegment(ConstructionType.F_ATTRIBUTE)),
+            ItemPath.create(UserType.F_ASSIGNMENT, assignmentId, AssignmentType.F_CONSTRUCTION, ConstructionType.F_ATTRIBUTE),
             attributeDef, prismContext);
         ResourceAttributeDefinitionType attributeDefinitionType = new ResourceAttributeDefinitionType();
         if (add) {
@@ -1229,7 +1217,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         } else {
             attributeDelta.addValueToDelete(attributeDefinitionType.asPrismContainerValue());
         }
-        attributeDefinitionType.setRef(new ItemPathType(new ItemPath(new QName(RESOURCE_DUMMY_NAMESPACE, attributeName))));
+        attributeDefinitionType.setRef(new ItemPathType(prismContext.path(new QName(RESOURCE_DUMMY_NAMESPACE, attributeName))));
         MappingType outbound = new MappingType();
         outbound.setStrength(MappingStrengthType.STRONG);       // to see changes on the resource
         ExpressionType expression = new ExpressionType();
@@ -1251,7 +1239,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         assertNotNull("construction is null", constructionType);
         boolean found = false;
         for (ResourceAttributeDefinitionType attributeDefinitionType : constructionType.getAttribute()) {
-            if (attributeDefinitionType.getRef().equivalent(new ItemPathType(new ItemPath(new QName(attributeName))))) {
+            if (attributeDefinitionType.getRef().equivalent(new ItemPathType(prismContext.path(new QName(attributeName))))) {
                 ExpressionType expressionType = attributeDefinitionType.getOutbound().getExpression();
                 assertNotNull("no expression", expressionType);
                 assertEquals("wrong # of expression evaluators", 1, expressionType.getExpressionEvaluator().size());
@@ -1270,7 +1258,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         ConstructionType constructionType = assignmentType.getConstruction();
         assertNotNull("construction is null", constructionType);
         for (ResourceAttributeDefinitionType attributeDefinitionType : constructionType.getAttribute()) {
-            if (attributeDefinitionType.getRef().equivalent(new ItemPathType(new ItemPath(new QName(attributeName))))) {
+            if (attributeDefinitionType.getRef().equivalent(new ItemPathType(prismContext.path(new QName(attributeName))))) {
                 fail("Construction attribute " + attributeName + " present, although it shouldn't");
             }
         }

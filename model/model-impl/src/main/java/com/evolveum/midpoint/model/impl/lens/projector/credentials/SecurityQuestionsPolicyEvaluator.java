@@ -18,7 +18,7 @@ package com.evolveum.midpoint.model.impl.lens.projector.credentials;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -36,8 +36,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 public class SecurityQuestionsPolicyEvaluator extends CredentialPolicyEvaluator<SecurityQuestionsCredentialsType, SecurityQuestionsCredentialsPolicyType> {
 
 	@Override
-	protected ItemPath getCredentialsContainerPath() {
-		return SchemaConstants.PATH_SECURITY_QUESTIONS;
+	protected UniformItemPath getCredentialsContainerPath() {
+		return getPrismContext().path(SchemaConstants.PATH_SECURITY_QUESTIONS);
 	}
 
 	@Override

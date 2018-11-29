@@ -45,7 +45,7 @@ public class PathHolderSegment {
      */
 
     private QName qName;
-    boolean variable;
+    private boolean variable;
     private String value;
 
     public PathHolderSegment(QName qName) {

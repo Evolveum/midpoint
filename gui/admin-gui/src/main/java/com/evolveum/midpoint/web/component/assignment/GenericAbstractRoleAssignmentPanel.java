@@ -39,17 +39,6 @@ public class GenericAbstractRoleAssignmentPanel extends AbstractRoleAssignmentPa
 		super(id, assignmentContainerWrapperModel);
 	}
 
-//	@Override
-//	protected boolean isRelationVisible() {
-//		return true;
-//	}
-
-//	@Override
-//	protected <T extends ObjectType> void addSelectedAssignmentsPerformed(AjaxRequestTarget target, List<T> assignmentsList,
-//			QName relation) {
-//		super.addSelectedAssignmentsPerformed(target, assignmentsList, SchemaConstants.ORG_DEFAULT);
-//	}
-	
 	@Override
 	protected List<ContainerValueWrapper<AssignmentType>> customPostSearch(List<ContainerValueWrapper<AssignmentType>> assignments) {
 		
@@ -80,26 +69,4 @@ public class GenericAbstractRoleAssignmentPanel extends AbstractRoleAssignmentPa
 		return resultList;
 	}
 
-//	protected ObjectQuery createObjectQuery() {
-//		
-//		List<ContainerValueWrapper<AssignmentType>> assignments = getModelObject().getValues();
-//		
-//		Task task = getPageBase().createSimpleTask("load assignment targets");
-//		
-//		List<String> oids = new ArrayList<>(); 
-//		Iterator<ContainerValueWrapper<AssignmentType>> assignmentIterator = assignments.iterator();
-//		while (assignmentIterator.hasNext()) {
-//			ContainerValueWrapper<AssignmentType> ass = assignmentIterator.next();
-//			AssignmentType assignment = ass.getContainerValue().asContainerable();
-//			PrismObject<OrgType> org = WebModelServiceUtils.loadObject(assignment.getTargetRef(), getPageBase(), task, task.getResult());
-//			if (org != null) {
-//				assignment.setTarget(org.asObjectable());
-//			}
-//			
-//		}
-//		ObjectQuery query =  QueryBuilder.queryFor(AssignmentType.class, getParentPage().getPrismContext())
-//				.item(new ItemPath(AssignmentType.F_TARGET, OrgType.F_ORG_TYPE)).eq("access").build();
-//				
-//		return query;
-//	}
 }

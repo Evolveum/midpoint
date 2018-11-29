@@ -18,17 +18,10 @@ package com.evolveum.midpoint.prism.delta;
 
 import java.util.*;
 
-import javax.xml.namespace.QName;
-
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
-import org.apache.commons.collections4.CollectionUtils;
 
 public interface ContainerDelta<V extends Containerable> extends ItemDelta<PrismContainerValue<V>,PrismContainerDefinition<V>>, PrismContainerable<V> {
 

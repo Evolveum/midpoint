@@ -17,7 +17,7 @@ package com.evolveum.midpoint.prism.marshaller;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.lex.dom.DomLexicalProcessor;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -1076,8 +1076,8 @@ public class BeanUnmarshaller {
 		if (parsedPrimValue == null) {
 			return null;
 		}
-		if (parsedPrimValue instanceof ItemPath) {
-			return (T) new ItemPathType((ItemPath)parsedPrimValue);
+		if (parsedPrimValue instanceof UniformItemPath) {
+			return (T) new ItemPathType((UniformItemPath)parsedPrimValue);
 		} else {
 			return (T) parsedPrimValue;
 		}

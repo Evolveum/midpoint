@@ -29,7 +29,7 @@ public class ObjectOrdering implements Serializable {
     final private OrderDirection direction;
 
     ObjectOrdering(ItemPath orderBy, OrderDirection direction) {
-        if (ItemPath.isNullOrEmpty(orderBy)) {
+        if (ItemPath.isEmpty(orderBy)) {
             throw new IllegalArgumentException("Null or empty ordering path is not supported.");
         }
         this.orderBy = orderBy;

@@ -19,7 +19,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValueImpl;
 import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -198,11 +197,11 @@ public class ModifyUser extends BaseSQLRepoTest {
     public void test100ModifyUserApproverMetadata() throws Exception {
         PrismObjectDefinition userDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
         ReferenceDelta delta1 = ReferenceDeltaImpl.createModificationAdd(
-                new ItemPath(UserType.F_METADATA, MetadataType.F_CREATE_APPROVER_REF),
+                prismContext.path(UserType.F_METADATA, MetadataType.F_CREATE_APPROVER_REF),
                 userDefinition,
                 new PrismReferenceValueImpl("target-oid-1", UserType.COMPLEX_TYPE));
         ReferenceDelta delta2 = ReferenceDeltaImpl.createModificationAdd(
-                new ItemPath(UserType.F_METADATA, MetadataType.F_MODIFY_APPROVER_REF),
+                prismContext.path(UserType.F_METADATA, MetadataType.F_MODIFY_APPROVER_REF),
                 userDefinition,
                 new PrismReferenceValueImpl("target-oid-1", UserType.COMPLEX_TYPE));            // the same as in delta1
 

@@ -19,7 +19,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -36,7 +36,6 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
 import com.evolveum.midpoint.task.quartzimpl.execution.JobExecutor;
-import com.evolveum.midpoint.task.quartzimpl.handlers.NoOpTaskHandler;
 import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -65,7 +64,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.retrieveItemsNamed;
+import static com.evolveum.midpoint.task.quartzimpl.TaskTestUtil.createExtensionDelta;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
 import static org.testng.AssertJUnit.*;
@@ -298,7 +297,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         PrismProperty<Integer> property = (PrismProperty<Integer>) delayDefinition.instantiate();
         property.setRealValue(100);
 
-        PropertyDelta delta = new PropertyDeltaImpl<>(new ItemPath(TaskType.F_EXTENSION, property.getElementName()), property.getDefinition(), prismContext);
+        PropertyDelta delta = new PropertyDeltaImpl<>(prismContext.path(TaskType.F_EXTENSION, property.getElementName()), property.getDefinition(), prismContext);
         //delta.addV(property.getValues());
         delta.setValuesToReplace(PrismValue.cloneCollection(property.getValues()));
 
@@ -343,12 +342,12 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         ScheduleType st1 = new ScheduleType();
         st1.setInterval(1);
         st1.setMisfireAction(MisfireActionType.RESCHEDULE);
-        task.pushHandlerUri("http://no-handler.org/1", st1, TaskBinding.TIGHT, ((TaskQuartzImpl) task).createExtensionDelta(delayDefinition, 1));
+        task.pushHandlerUri("http://no-handler.org/1", st1, TaskBinding.TIGHT, createExtensionDelta(delayDefinition, 1));
 
         ScheduleType st2 = new ScheduleType();
         st2.setInterval(2);
         st2.setMisfireAction(MisfireActionType.EXECUTE_IMMEDIATELY);
-        task.pushHandlerUri("http://no-handler.org/2", st2, TaskBinding.LOOSE, ((TaskQuartzImpl) task).createExtensionDelta(delayDefinition, 2));
+        task.pushHandlerUri("http://no-handler.org/2", st2, TaskBinding.LOOSE, createExtensionDelta(delayDefinition, 2));
 
         task.setRecurrenceStatus(TaskRecurrence.RECURRING);
 
@@ -535,7 +534,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         System.out.println(object.debugDump());
 
         PrismContainer<?> extensionContainer = object.getExtension();
-        PrismProperty<Object> deadProperty = extensionContainer.findProperty(new QName(NS_WHATEVER, "dead"));
+        PrismProperty<Object> deadProperty = extensionContainer.findProperty(new ItemName(NS_WHATEVER, "dead"));
         assertEquals("Bad typed of 'dead' property (add result)", DOMUtil.XSD_INT, deadProperty.getDefinition().getTypeName());
 
         // Read from repo
@@ -543,7 +542,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         PrismObject<TaskType> repoTask = repositoryService.getObject(TaskType.class, addedTask.getOid(), null, result);
 
         extensionContainer = repoTask.getExtension();
-        deadProperty = extensionContainer.findProperty(new QName(NS_WHATEVER, "dead"));
+        deadProperty = extensionContainer.findProperty(new ItemName(NS_WHATEVER, "dead"));
         assertEquals("Bad typed of 'dead' property (from repo)", DOMUtil.XSD_INT, deadProperty.getDefinition().getTypeName());
 
         // We need to wait for a sync interval, so the task scanner has a chance

@@ -35,8 +35,10 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
-import com.evolveum.midpoint.web.model.ContainerWrapperListFromObjectWrapperModel;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
+
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_LOCKOUT_EXPIRATION_TIMESTAMP;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS;
 
 /**
  * Created by honchar
@@ -202,14 +204,13 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
     		return ItemVisibility.HIDDEN;
     	}
     }
-    
 
     private ItemVisibility getActivationVisibileItems(ItemPath pathToCheck, ItemPath assignmentPath) {
-    	if (assignmentPath.append(new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP)).equivalent(pathToCheck)) {
+    	if (assignmentPath.append(PATH_ACTIVATION_LOCKOUT_EXPIRATION_TIMESTAMP).equivalent(pathToCheck)) {
     		return ItemVisibility.HIDDEN;
     	}
     	
-    	if (assignmentPath.append(new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS)).equivalent(pathToCheck)) {
+    	if (assignmentPath.append(PATH_ACTIVATION_LOCKOUT_STATUS).equivalent(pathToCheck)) {
     		return ItemVisibility.HIDDEN;
     	}
     	

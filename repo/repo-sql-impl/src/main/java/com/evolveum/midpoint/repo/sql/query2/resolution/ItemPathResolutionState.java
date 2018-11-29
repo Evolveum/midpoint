@@ -19,7 +19,6 @@ package com.evolveum.midpoint.repo.sql.query2.resolution;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ParentPathSegment;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaLinkDefinition;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -76,7 +75,7 @@ public class ItemPathResolutionState implements DebugDumpable {
     }
 
     public boolean isFinal() {
-        return ItemPath.isNullOrEmpty(remainingItemPath);
+        return ItemPath.isEmpty(remainingItemPath);
     }
 
     /**
@@ -95,9 +94,9 @@ public class ItemPathResolutionState implements DebugDumpable {
         // used e.g. for Exists (some-path, some-conditions AND Equals(../xxx, yyy))
         //
         // This is brutal hack, to be thought again.
-        if (remainingItemPath.startsWith(ParentPathSegment.class) && hqlDataInstance.getParentItem() != null) {
+        if (remainingItemPath.startsWithParent() && hqlDataInstance.getParentItem() != null) {
             return new ItemPathResolutionState(
-                    remainingItemPath.tail(),
+                    remainingItemPath.rest(),
                     hqlDataInstance.getParentItem(),
                     itemPathResolver);
 
@@ -121,7 +120,7 @@ public class ItemPathResolutionState implements DebugDumpable {
             }
         }
         HqlDataInstance<?> parentDataInstance;
-		if (!remainingItemPath.startsWith(ParentPathSegment.class)) {
+		if (!remainingItemPath.startsWithParent()) {
 			// TODO what about other special cases? (@, ...)
 			parentDataInstance = hqlDataInstance;
 		} else {

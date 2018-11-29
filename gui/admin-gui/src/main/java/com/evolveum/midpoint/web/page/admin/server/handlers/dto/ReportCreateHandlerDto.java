@@ -49,7 +49,8 @@ public class ReportCreateHandlerDto extends HandlerDto {
 
 	public String getReportParams() {
 		PrismObject<TaskType> taskObject = taskDto.getTaskType().asPrismObject();
-		PrismContainer<ReportParameterType> container = taskObject.findContainer(new ItemPath(TaskType.F_EXTENSION, ReportConstants.REPORT_PARAMS_PROPERTY_NAME));
+		PrismContainer<ReportParameterType> container = taskObject.findContainer(
+				ItemPath.create(TaskType.F_EXTENSION, ReportConstants.REPORT_PARAMS_PROPERTY_NAME));
 		if (container == null || container.isEmpty()) {
 			return null;
 		}

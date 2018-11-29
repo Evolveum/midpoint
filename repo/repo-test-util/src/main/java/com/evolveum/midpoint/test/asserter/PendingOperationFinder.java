@@ -15,10 +15,7 @@
  */
 package com.evolveum.midpoint.test.asserter;
 
-import java.util.List;
-
-import org.testng.AssertJUnit;
-
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
@@ -26,6 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import org.testng.AssertJUnit;
 
 /**
  * @author semancik
@@ -63,6 +61,9 @@ public class PendingOperationFinder<R> {
 		return this;
 	}
 
+	public PendingOperationFinder<R> item(Object... components) {
+		return item(ItemPath.create(components));
+	}
 
 	public PendingOperationAsserter<R> find() {
 		PendingOperationType found = null;
@@ -127,7 +128,7 @@ public class PendingOperationFinder<R> {
 			if (delta == null) {
 				return false;
 			}
-			if (!deltaContains(delta, itemPath)) {
+			if (!deltaContains(delta)) {
 				return false;
 			}
 		}
@@ -136,7 +137,7 @@ public class PendingOperationFinder<R> {
 		return true;
 	}
 
-	private boolean deltaContains(ObjectDeltaType delta, ItemPath itemPath2) {
+	private boolean deltaContains(ObjectDeltaType delta) {
 		for (ItemDeltaType itemDelta: delta.getItemDelta()) {
 			ItemPath deltaPath = itemDelta.getPath().getItemPath();
 			if (itemPath.equivalent(deltaPath)) {

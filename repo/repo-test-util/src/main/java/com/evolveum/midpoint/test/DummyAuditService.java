@@ -22,6 +22,8 @@ import java.util.*;
 
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditResultHandler;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
 import org.apache.commons.lang.StringUtils;
@@ -34,7 +36,6 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -344,10 +345,6 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 		assertTarget(expectedOid, AuditEventStage.EXECUTION);
 	}
 	
-	public <O extends ObjectType,T> void assertPropertyReplace(ChangeType expectedChangeType, Class<O> expectedClass, QName attrName, T... expectedValues) {
-		assertPropertyReplace(null, 0, expectedChangeType, expectedClass, new ItemPath(attrName), expectedValues);
-	}
-
 	public <O extends ObjectType,T> void assertPropertyReplace(ChangeType expectedChangeType, Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
 		assertPropertyReplace(null, 0, expectedChangeType, expectedClass, propPath, expectedValues);
 	}
@@ -373,10 +370,6 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 		PrismAsserts.assertValues((message==null?"":message+": ") +"Wrong values to replace in property delta for "+propPath+" in Delta for "+expectedClass+" of type "+expectedChangeType, valuesToReplace, expectedValues);
 	}
 	
-	public <O extends ObjectType,T> void assertOldValue(ChangeType expectedChangeType, Class<O> expectedClass, QName attrName, T... expectedValues) {
-		assertOldValue(null, 0, expectedChangeType, expectedClass, new ItemPath(attrName), expectedValues);
-	}
-
 	public <O extends ObjectType,T> void assertOldValue(ChangeType expectedChangeType, Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
 		assertOldValue(null, 0, expectedChangeType, expectedClass, propPath, expectedValues);
 	}

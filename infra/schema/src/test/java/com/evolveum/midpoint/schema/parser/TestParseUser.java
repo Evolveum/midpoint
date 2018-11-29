@@ -30,7 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -147,7 +147,7 @@ public class TestParseUser extends AbstractObjectParserTest<UserType> {
 //		assertTrue("Extension parent", extensionValue.getParent() == extension);
 //		assertNull("Extension ID", extensionValue.getId());
 
-		ItemPath admStatusPath = new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
+		UniformItemPath admStatusPath = getPrismContext().path(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
 		PrismProperty<ActivationStatusType> admStatusProperty1 = user.findProperty(admStatusPath);
 		PrismAsserts.assertDefinition(admStatusProperty1.getDefinition(), ActivationType.F_ADMINISTRATIVE_STATUS, SchemaConstants.C_ACTIVATION_STATUS_TYPE, 0, 1);
 		assertNotNull("Property "+admStatusPath+" not found", admStatusProperty1);

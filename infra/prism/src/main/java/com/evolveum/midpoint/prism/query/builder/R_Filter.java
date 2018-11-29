@@ -303,13 +303,21 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
         if (names.length == 0) {
             throw new IllegalArgumentException("Empty path in exists() filter is not allowed.");
         }
-        ItemPath existsPath = new ItemPath(names);
+        ItemPath existsPath = path(names);
         PrismContainerDefinition pcd = resolveItemPath(existsPath, PrismContainerDefinition.class);
         Class<? extends Containerable> clazz = pcd.getCompileTimeClass();
         if (clazz == null) {
             throw new IllegalArgumentException("Item path of '" + existsPath + "' in " + currentClass + " does not point to a valid prism container.");
         }
         return new R_Filter(queryBuilder, clazz, OrFilter.createOr(), null, false, this, null, existsPath, null, null,null, null);
+    }
+
+    private ItemPath path(QName... names) {
+        return queryBuilder.getPrismContext().path(names);
+    }
+
+    private ItemPath path(String... names) {
+        return queryBuilder.getPrismContext().path(names);
     }
 
     private <ID extends ItemDefinition> ID resolveItemPath(ItemPath itemPath, Class<ID> type) {
@@ -344,30 +352,30 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
 
     @Override
     public S_ConditionEntry item(QName... names) {
-        return item(new ItemPath(names));
+        return item(path(names));
     }
     
     @Override
     public S_ConditionEntry item(String... names) {
-        return item(new ItemPath(names));
+        return item(path(names));
     }
 
     @Override
     public S_ConditionEntry item(ItemPath itemPath) {
-        ItemDefinition itemDefinition = resolveItemPath(itemPath, ItemDefinition.class);
+        ItemDefinition itemDefinition = resolveItemPath(itemPath.toUniform(getPrismContext()), ItemDefinition.class);
         return item(itemPath, itemDefinition);
     }
 
     @Override
     public S_ConditionEntry itemWithDef(ItemDefinition itemDefinition, QName... names) {
-        ItemPath itemPath = new ItemPath(names);
+        ItemPath itemPath = path(names);
         return item(itemPath, itemDefinition);
     }
 
     @Override
     public S_ConditionEntry item(ItemPath itemPath, ItemDefinition itemDefinition) {
         if (itemDefinition != null) {
-            return R_AtomicFilter.create(itemPath, itemDefinition, this);
+            return R_AtomicFilter.create(itemPath.toUniform(getPrismContext()), itemDefinition, this);
         } else {
             return item(itemPath);
         }
@@ -375,7 +383,7 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
 
     @Override
     public S_ConditionEntry item(PrismContainerDefinition containerDefinition, QName... names) {
-        return item(containerDefinition, new ItemPath(names));
+        return item(containerDefinition, path(names));
     }
 
     @Override
@@ -418,12 +426,12 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
         if (names.length == 0) {
             throw new IllegalArgumentException("There must be at least one name for asc(...) ordering");
         }
-        return addOrdering(ObjectOrdering.createOrdering(new ItemPath(names), OrderDirection.ASCENDING));
+        return addOrdering(ObjectOrdering.createOrdering(path(names), OrderDirection.ASCENDING));
     }
 
     @Override
     public S_FilterExit asc(ItemPath path) {
-        if (ItemPath.isNullOrEmpty(path)) {
+        if (ItemPath.isEmpty(path)) {
             throw new IllegalArgumentException("There must be non-empty path for asc(...) ordering");
         }
         return addOrdering(ObjectOrdering.createOrdering(path, OrderDirection.ASCENDING));
@@ -434,12 +442,12 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
         if (names.length == 0) {
             throw new IllegalArgumentException("There must be at least one name for asc(...) ordering");
         }
-        return addOrdering(ObjectOrdering.createOrdering(new ItemPath(names), OrderDirection.DESCENDING));
+        return addOrdering(ObjectOrdering.createOrdering(path(names), OrderDirection.DESCENDING));
     }
 
     @Override
     public S_FilterExit desc(ItemPath path) {
-        if (ItemPath.isNullOrEmpty(path)) {
+        if (ItemPath.isEmpty(path)) {
             throw new IllegalArgumentException("There must be non-empty path for desc(...) ordering");
         }
         return addOrdering(ObjectOrdering.createOrdering(path, OrderDirection.DESCENDING));
@@ -450,12 +458,12 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
         if (names.length == 0) {
             throw new IllegalArgumentException("There must be at least one name for uniq(...) grouping");
         }
-        return addGrouping(ObjectGrouping.createGrouping(new ItemPath(names)));
+        return addGrouping(ObjectGrouping.createGrouping(path(names)));
     }
 
     @Override
     public S_FilterExit group(ItemPath path) {
-        if (ItemPath.isNullOrEmpty(path)) {
+        if (ItemPath.isEmpty(path)) {
             throw new IllegalArgumentException("There must be non-empty path for uniq(...) grouping");
         }
         return addGrouping(ObjectGrouping.createGrouping(path));

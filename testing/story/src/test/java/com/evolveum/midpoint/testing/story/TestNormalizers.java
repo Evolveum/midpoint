@@ -22,6 +22,7 @@ import java.io.File;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -138,7 +139,7 @@ public class TestNormalizers extends AbstractModelIntegrationTest {
 	}
 	
 	private void assertPolyString(PrismObject<UserType> user, QName propName, String expectedOrig, String expectedNorm) {
-		PrismProperty<PolyString> prop = user.findProperty(propName);
+		PrismProperty<PolyString> prop = user.findProperty(ItemName.fromQName(propName));
 		PolyString polyString = prop.getRealValue();
 		assertEquals("Wrong user "+propName.getLocalPart()+".orig", expectedOrig, polyString.getOrig());
 		assertEquals("Wrong user \"+propName.getLocalPart()+\".norm", expectedNorm, polyString.getNorm());

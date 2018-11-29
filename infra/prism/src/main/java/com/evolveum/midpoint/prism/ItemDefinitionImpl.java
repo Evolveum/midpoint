@@ -22,6 +22,7 @@ import java.util.function.Consumer;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -56,7 +57,7 @@ import org.jetbrains.annotations.NotNull;
 public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl implements ItemDefinition<I> {
 
 	private static final long serialVersionUID = -2643332934312107274L;
-	@NotNull protected QName name;
+	@NotNull protected ItemName name;
 	private int minOccurs = 1;
     private int maxOccurs = 1;
     private boolean operational = false;
@@ -80,7 +81,7 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
 	 */
 	ItemDefinitionImpl(@NotNull QName name, @NotNull QName typeName, @NotNull PrismContext prismContext) {
 		super(typeName, prismContext);
-		this.name = name;
+		this.name = ItemName.fromQName(name);     // todo
 	}
 
 	/**
@@ -100,12 +101,12 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
 	 */
 	@Override
 	@NotNull
-	public QName getName() {
+	public ItemName getName() {
 		return name;
 	}
 
 	public void setName(@NotNull QName name) {
-		this.name = name;
+		this.name = ItemName.fromQName(name); // todo
 	}
 
     @Override

@@ -25,8 +25,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -235,7 +233,7 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 
 	private void removeTrigger(PrismObject<ObjectType> object, PrismContainerValue<TriggerType> triggerCVal, Task task,
 			PrismContainerDefinition<TriggerType> triggerContainerDef) {
-		ContainerDelta<TriggerType> triggerDelta = triggerContainerDef.createEmptyDelta(new ItemPath(F_TRIGGER));
+		ContainerDelta<TriggerType> triggerDelta = triggerContainerDef.createEmptyDelta(F_TRIGGER);
 		triggerDelta.addValuesToDelete(triggerCVal.clone());
 		Collection<? extends ItemDelta> modifications = MiscSchemaUtil.createCollection(triggerDelta);
 		// This is detached result. It will not take part of the task result. We do not really care.

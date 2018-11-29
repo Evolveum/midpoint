@@ -19,8 +19,7 @@ package com.evolveum.midpoint.prism;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ContainerDeltaImpl;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -97,7 +96,18 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
         super(name, definition, prismContext);
     }
 
-    public Class<C> getCompileTimeClass() {
+    @NotNull
+	private ItemPath skipFirstId(@NotNull ItemPath path) {
+		if (path.startsWithName()) {
+			return path;
+		} else if (path.startsWithId()) {
+			return path.rest();
+		} else {
+			throw new IllegalArgumentException("Unexpected path segment in "+path);
+		}
+    }
+
+	public Class<C> getCompileTimeClass() {
 		if (this.compileTimeClass != null) {
 			return compileTimeClass;
 		}
@@ -256,18 +266,14 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
 
     public <T> void setPropertyRealValue(QName propertyName, T realValue) throws SchemaException {
 		checkMutability();
-    	PrismProperty<T> property = findOrCreateProperty(propertyName);
+    	PrismProperty<T> property = findOrCreateProperty(ItemName.fromQName(propertyName));
     	property.setRealValue(realValue);
     }
     
     public <T> void setPropertyRealValues(QName propertyName, T... realValues) throws SchemaException {
 		checkMutability();
-    	PrismProperty<T> property = findOrCreateProperty(propertyName);
+    	PrismProperty<T> property = findOrCreateProperty(ItemName.fromQName(propertyName));
     	property.setRealValues(realValues);
-    }
-
-    public <T> T getPropertyRealValue(QName propertyName, Class<T> type) {
-    	return getPropertyRealValue(new ItemPath(propertyName), type);
     }
 
 	public <T> T getPropertyRealValue(ItemPath propertyPath, Class<T> type) {
@@ -419,49 +425,41 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
 
 	@Override
 	public Object find(ItemPath path) {
-		if (path == null || path.isEmpty()) {
+		if (ItemPath.isEmpty(path)) {
     		return this;
     	}
 
-    	IdItemPathSegment idSegment = ItemPath.getFirstIdSegment(path);
-    	PrismContainerValue<C> cval = findValue(idSegment);
+    	Long id = path.firstToIdOrNull();
+    	PrismContainerValue<C> cval = findValue(id);
     	if (cval == null) {
     		return null;
     	}
     	// descent to the correct value
-    	ItemPath rest = ItemPath.pathRestStartingWithName(path);
+    	ItemPath rest = path.startsWithId() ? path.rest() : path;
     	return cval.find(rest);
 	}
 
 	@Override
 	public <IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path) {
-		if (path == null || path.isEmpty()) {
+		if (ItemPath.isEmpty(path)) {
     		return new PartiallyResolvedItem<>((Item<IV, ID>) this, null);
     	}
 
-    	IdItemPathSegment idSegment = ItemPath.getFirstIdSegment(path);
-    	PrismContainerValue<C> cval = findValue(idSegment);
+    	Long id = path.firstToIdOrNull();
+    	PrismContainerValue<C> cval = findValue(id);
     	if (cval == null) {
     		return null;
     	}
     	// descent to the correct value
-    	ItemPath rest = ItemPath.pathRestStartingWithName(path);
+		ItemPath rest = path.startsWithId() ? path.rest() : path;
     	return cval.findPartial(rest);
 	}
-
-	public <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> findItem(QName itemQName) {
-    	try {
-			return findCreateItem(itemQName, Item.class, false);
-		} catch (SchemaException e) {
-			// This should not happen
-			throw new SystemException("Internal Error: "+e.getMessage(),e);
-		}
-    }
 
     public <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findCreateItem(QName itemQName, Class<I> type, boolean create) throws SchemaException {
         return ((PrismContainerValueImpl<C>) getValue()).findCreateItem(itemQName, type, null, create);
     }
 
+    @Override
     public <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findItem(ItemPath path, Class<I> type) {
     	try {
 			return findCreateItem(path, type, null, false);
@@ -485,7 +483,7 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
     		throw new IllegalArgumentException("Empty path specified");
     	}
 
-    	ItemPath rest = ItemPath.pathRestStartingWithName(itemPath);
+    	ItemPath rest = skipFirstId(itemPath);
     	for (PrismContainerValue<C> value: getValues()) {
     		if (value.containsItem(rest, acceptEmptyItem)) {
     			return true;
@@ -495,18 +493,18 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
     	return false;
     }
 
+    @Override
     public <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findCreateItem(ItemPath itemPath, Class<I> type, ID itemDefinition, boolean create) throws SchemaException {
-    	if (itemPath == null || itemPath.isEmpty()) {
+    	if (ItemPath.isEmpty(itemPath)) {
     		throw new IllegalArgumentException("Empty path specified");
     	}
-    	
-    	IdItemPathSegment idSegment = ItemPath.getFirstIdSegment(itemPath);
-    	PrismContainerValue<C> cval = findValue(idSegment);
+    	Long id = itemPath.firstToIdOrNull();
+    	PrismContainerValue<C> cval = findValue(id);
     	if (cval == null) {
     		return null;
     	}
     	// descent to the correct value
-    	ItemPath rest = ItemPath.pathRestStartingWithName(itemPath);
+	    ItemPath rest = itemPath.startsWithId() ? itemPath.rest() : itemPath;
     	return ((PrismContainerValueImpl<C>) cval).findCreateItem(rest, type, itemDefinition, create);
     }
 
@@ -519,12 +517,7 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
         return null;
     }
 
-	private PrismContainerValue<C> findValue(IdItemPathSegment idSegment) {
-		Long id = null;
-    	if (idSegment != null) {
-    		id = idSegment.getId();
-    	}
-    	// Otherwise descent to the correct value
+	private PrismContainerValue<C> findValue(Long id) {
     	if (id == null) {
     		if (canAssumeSingleValue()) {
     			return getValue();
@@ -558,33 +551,28 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
 	    return (List) getItems(PrismContainer.class);
     }
 
+    @Override
     public <T> PrismProperty<T> findProperty(ItemPath path) {
         return findItem(path, PrismProperty.class);
-    }
-
-    public <T> PrismProperty<T> findProperty(QName propertyQName) {
-    	return findItem(propertyQName, PrismProperty.class);
     }
 
     public PrismReference findReference(ItemPath path) {
         return findItem(path, PrismReference.class);
     }
 
-    public PrismReference findReference(QName referenceQName) {
-    	return findItem(referenceQName, PrismReference.class);
-    }
-
     public PrismReference findReferenceByCompositeObjectElementName(QName elementName) {
     	return getValue().findReferenceByCompositeObjectElementName(elementName);
     }
 
-    public <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findOrCreateItem(ItemPath containerPath, Class<I> type) throws SchemaException {
+    public <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findOrCreateItem(
+		    ItemPath containerPath, Class<I> type) throws SchemaException {
         return findCreateItem(containerPath, type, null, true);
     }
 
     // The "definition" parameter provides definition of item to create, in case that the container does not have
     // the definition (e.g. in case of "extension" containers)
-    public <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findOrCreateItem(ItemPath containerPath, Class<I> type, ID definition) throws SchemaException {
+    public <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findOrCreateItem(
+		    ItemPath containerPath, Class<I> type, ID definition) throws SchemaException {
     	if (PrismObject.class.isAssignableFrom(type)) {
     		throw new IllegalArgumentException("It makes no sense to find object in a container (class)");
     	}
@@ -595,7 +583,7 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
     }
 
     // todo get rid of Impl classes here (problem is in com.evolveum.midpoint.prism.Item.createNewDefinitionlessItem(Item.java:330))
-    public <T extends Containerable> PrismContainer<T> findOrCreateContainer(ItemPath containerPath) throws SchemaException {
+    public <T extends Containerable> PrismContainer<T> findOrCreateContainer(UniformItemPath containerPath) throws SchemaException {
         return findCreateItem(containerPath, PrismContainerImpl.class, null, true);
     }
 
@@ -607,11 +595,7 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
         return findCreateItem(propertyPath, PrismPropertyImpl.class, null, true);
     }
 
-    public <T> PrismProperty<T> findOrCreateProperty(QName propertyName) throws SchemaException {
-        return findCreateItem(propertyName, PrismPropertyImpl.class, true);
-    }
-
-    public PrismReference findOrCreateReference(ItemPath propertyPath) throws SchemaException {
+    public PrismReference findOrCreateReference(UniformItemPath propertyPath) throws SchemaException {
         return findCreateItem(propertyPath, PrismReferenceImpl.class, null, true);
     }
 
@@ -626,24 +610,12 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
     	getValue().remove(item);
     }
 
-    public void removeProperty(QName propertyQName) {
-    	removeItem(new ItemPath(propertyQName), PrismProperty.class);
-    }
-
     public void removeProperty(ItemPath path) {
         removeItem(path, PrismProperty.class);
     }
 
-    public void removeContainer(QName containerQName) {
-    	removeItem(new ItemPath(containerQName), PrismContainer.class);
-    }
-
     public void removeContainer(ItemPath path) {
         removeItem(path, PrismContainer.class);
-    }
-
-    public void removeReference(QName referenceQName) {
-    	removeItem(new ItemPath(referenceQName), PrismReference.class);
     }
 
     public void removeReference(ItemPath path) {
@@ -651,12 +623,15 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
     }
 
     public <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> void removeItem(ItemPath path, Class<I> itemType) {
-    	IdItemPathSegment idSegment = ItemPath.getFirstIdSegment(path);
-    	PrismContainerValue<C> cval = findValue(idSegment);
+    	Long id = ItemPath.firstToIdOrNull(path);
+    	PrismContainerValue<C> cval = findValue(id);
     	if (cval == null) {
     		return;
     	}
-	    ((PrismContainerValueImpl<C>) cval).removeItem(ItemPath.pathRestStartingWithName(path), itemType);
+    	if (path == null) {
+    		throw new IllegalStateException("null path");       // todo
+	    }
+	    ((PrismContainerValueImpl<C>) cval).removeItem(skipFirstId(path), itemType);
     }
 
     // Expects that the "self" path segment is NOT included in the basePath
@@ -834,15 +809,15 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
     			visitor.visit(this);
     		}
 		} else {
-			IdItemPathSegment idSegment = ItemPath.getFirstIdSegment(path);
-			ItemPath rest = ItemPath.pathRestStartingWithName(path);
-			if (idSegment == null || idSegment.isWildcard()) {
+			Long id = ItemPath.firstToIdOrNull(path);
+			ItemPath rest = skipFirstId(path);
+			if (id == null) {
 				// visit all values
 				for (PrismContainerValue<C> cval: getValues()) {
 					cval.accept(visitor, rest, recursive);
 				}
 			} else {
-				PrismContainerValue<C> cval = findValue(idSegment);
+				PrismContainerValue<C> cval = findValue(id);
 		    	if (cval != null) {
 		    		cval.accept(visitor, rest, recursive);
 		    	}
@@ -972,23 +947,22 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
 	 * Works recursively by sub-containers of this one.
 	 * USE WITH CARE. Make sure the definitions are not shared by other objects!
 	 */
-	public void trimDefinitionTree(Collection<ItemPath> alwaysKeep) {
+	public void trimDefinitionTree(Collection<UniformItemPath> alwaysKeep) {
 		PrismContainerDefinition<C> def = getDefinition();
 		if (def == null || def.getComplexTypeDefinition() == null) {
 			return;
 		}
-		Set<ItemPath> allPaths = getAllItemPaths(alwaysKeep);
+		Set<UniformItemPath> allPaths = getAllItemPaths(alwaysKeep);
 		def.getComplexTypeDefinition().trimTo(allPaths);
 		values.forEach(v -> ((PrismContainerValueImpl<C>) v).trimItemsDefinitionsTrees(alwaysKeep));
 	}
 
 	// TODO implement more efficiently
-	private Set<ItemPath> getAllItemPaths(Collection<ItemPath> alwaysKeep) {
-		Set<ItemPath> paths = new HashSet<>();
-		paths.addAll(CollectionUtils.emptyIfNull(alwaysKeep));
+	private Set<UniformItemPath> getAllItemPaths(Collection<UniformItemPath> alwaysKeep) {
+		Set<UniformItemPath> paths = new HashSet<>(CollectionUtils.emptyIfNull(alwaysKeep));
 		this.accept(v -> {
 			if (v instanceof PrismValue) {
-				paths.add(((PrismValue) v).getPath());
+				paths.add(UniformItemPathImpl.fromItemPath(((PrismValue) v).getPath()));
 			}
 		});
 		return paths;

@@ -313,7 +313,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 									OperationResult result = task.getResult();
 
 									Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
-											.createLookupTableRetrieveOptions();
+											.createLookupTableRetrieveOptions(getPageBase().getSchemaHelper());
 									PrismObject<LookupTableType> lookupTable = WebModelServiceUtils.loadObject(LookupTableType.class,
 											lookupTableOid, options, getPageBase(), task, result);
 									return getItemValuesString(item, lookupTable);

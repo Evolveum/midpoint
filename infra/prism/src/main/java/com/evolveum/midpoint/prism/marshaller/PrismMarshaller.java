@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.prism.marshaller;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismUtil;
@@ -287,7 +288,7 @@ public class PrismMarshaller {
 			// ordering-sensitive. We need to keep that ordering otherwise the resulting
 			// document won't pass schema validation
 			for (ItemDefinition itemDef: containerDefinition.getDefinitions()) {
-				QName elementName = itemDef.getName();
+				ItemName elementName = itemDef.getName();
 				Item<?,?> item = containerVal.findItem(elementName);
 				if (item != null) {
 					XNode xsubnode = marshalItemContent(item, getItemDefinition(containerVal, item), ctx);
@@ -318,7 +319,7 @@ public class PrismMarshaller {
 		if (ctd == null) {
 			return null;
 		}
-		return ctd.findItemDefinition(item.getElementName());
+		return ctd.findLocalItemDefinition(item.getElementName());
 	}
 
 	// Returns type QName if it is different from parent's one and if it's suitable to be put to marshaled form

@@ -36,7 +36,7 @@ import java.util.*;
  *
  * @author mederly
  */
-public class DeltaBuilderImpl<T extends Containerable> implements DeltaBuilder<T> {
+public class DeltaBuilderImpl<T extends Containerable> implements DeltaBuilder {
 
     final private Class<T> objectClass;
     final private ComplexTypeDefinition containerCTD;
@@ -79,12 +79,12 @@ public class DeltaBuilderImpl<T extends Containerable> implements DeltaBuilder<T
 
     @Override
     public S_ValuesEntry item(QName... names) {
-        return item(new ItemPath(names));
+        return item(prismContext.path(names));
     }
 
     @Override
     public S_ValuesEntry item(Object... namesOrIds) {
-        return item(new ItemPath(namesOrIds));
+        return item(prismContext.path(namesOrIds));
     }
 
     @Override

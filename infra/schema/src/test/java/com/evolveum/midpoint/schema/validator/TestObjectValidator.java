@@ -15,38 +15,25 @@
  */
 package com.evolveum.midpoint.schema.validator;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.AbstractSchemaTest;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MultiplicityPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * @author semancik
@@ -104,8 +91,8 @@ public class TestObjectValidator extends AbstractSchemaTest {
 		System.out.println(validationResult.debugDump(1));
 
 		assertWarnings(validationResult, 
-				RoleType.F_ROLE_TYPE, RoleType.F_APPROVER_EXPRESSION, RoleType.F_POLICY_CONSTRAINTS, 
-				new ItemPath(RoleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_MIN_ASSIGNEES, MultiplicityPolicyConstraintType.F_ENFORCEMENT));
+				RoleType.F_ROLE_TYPE, RoleType.F_APPROVER_EXPRESSION, RoleType.F_POLICY_CONSTRAINTS,
+				getPrismContext().path(RoleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_MIN_ASSIGNEES, MultiplicityPolicyConstraintType.F_ENFORCEMENT));
 	}
 	
 	@Test
@@ -130,8 +117,8 @@ public class TestObjectValidator extends AbstractSchemaTest {
 		System.out.println(validationResult.debugDump(1));
 
 		assertWarnings(validationResult, 
-				RoleType.F_APPROVER_EXPRESSION, RoleType.F_POLICY_CONSTRAINTS, 
-				new ItemPath(RoleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_MIN_ASSIGNEES, MultiplicityPolicyConstraintType.F_ENFORCEMENT));
+				RoleType.F_APPROVER_EXPRESSION, RoleType.F_POLICY_CONSTRAINTS,
+				getPrismContext().path(RoleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_MIN_ASSIGNEES, MultiplicityPolicyConstraintType.F_ENFORCEMENT));
 	}
 
 
@@ -141,11 +128,11 @@ public class TestObjectValidator extends AbstractSchemaTest {
 
 	private void assertWarnings(ValidationResult validationResult, Object... expectedItems) {
 		for (Object expectedItem : expectedItems) {
-			ItemPath expectedPath;
-			if (expectedItem instanceof ItemPath) {
-				expectedPath = (ItemPath)expectedItem;
+			UniformItemPath expectedPath;
+			if (expectedItem instanceof UniformItemPath) {
+				expectedPath = (UniformItemPath)expectedItem;
 			} else if (expectedItem instanceof QName) {
-				expectedPath = new ItemPath((QName)expectedItem);
+				expectedPath = getPrismContext().path((QName)expectedItem);
 			} else {
 				throw new IllegalArgumentException("What? "+expectedItem);
 			}
@@ -157,7 +144,7 @@ public class TestObjectValidator extends AbstractSchemaTest {
 		assertEquals("Unexpected size of validation result", expectedItems.length, validationResult.size());
 	}
 
-	private ValidationItem findItem(ValidationResult validationResult, ItemPath expectedPath) {
+	private ValidationItem findItem(ValidationResult validationResult, UniformItemPath expectedPath) {
 		for (ValidationItem valItem : validationResult.getItems()) {
 			if (expectedPath.equals(valItem.getItemPath())) {
 				return valItem;

@@ -41,11 +41,11 @@ public class ExpressionVariableDefinitionTypeDto implements Serializable{
             variableObject = variable;
         }
 
-        if(variableObject.getPath() != null && variableObject.getPath().getItemPath() != null){
+        if (variableObject.getPath() != null) {
             path = variableObject.getPath().getItemPath().toString();
         }
 
-        if(variableObject.getValue() != null){
+        if (variableObject.getValue() != null) {
             value = variableObject.getValue().toString();
         }
     }

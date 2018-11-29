@@ -29,9 +29,8 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTripleImpl;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
@@ -48,13 +47,13 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinition> implements ExpressionEvaluator<V,D> {
 
-	private ItemPath path;
+	private UniformItemPath path;
 	private ObjectResolver objectResolver;
 	private PrismContext prismContext;
 	private D outputDefinition;
 	private Protector protector;
 
-    public PathExpressionEvaluator(ItemPath path, ObjectResolver objectResolver,
+    public PathExpressionEvaluator(UniformItemPath path, ObjectResolver objectResolver,
     		D outputDefinition, Protector protector, PrismContext prismContext) {
     	this.path = path;
 		this.objectResolver = objectResolver;
@@ -84,9 +83,9 @@ public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
         Map<QName, Object> variablesAndSources = ExpressionUtil.compileVariablesAndSources(context);
 
         ItemPath resolvePath = path;
-        ItemPathSegment first = path.first();
-        if (first instanceof NameItemPathSegment && first.isVariable()) {
-			QName variableName = ((NameItemPathSegment)first).getName();
+        Object first = path.first();
+        if (ItemPath.isVariable(first)) {
+			QName variableName = ItemPath.toVariableName(first);
 			Object variableValue;
         	if (variablesAndSources.containsKey(variableName)) {
         		variableValue = variablesAndSources.get(variableName);
@@ -120,8 +119,8 @@ public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
 
        while (!resolvePath.isEmpty()) {
     	    if (resolveContext.isContainer()) {
-        		resolveContext = resolveContext.findIdi(resolvePath.head());
-        		resolvePath = resolvePath.tail();
+        		resolveContext = resolveContext.findIdi(resolvePath.firstAsPath());
+        		resolvePath = resolvePath.rest();
         		if (resolveContext == null) {
         			throw new ExpressionEvaluationException("Cannot find item using path "+path+" in "+ context.getContextDescription());
         		}

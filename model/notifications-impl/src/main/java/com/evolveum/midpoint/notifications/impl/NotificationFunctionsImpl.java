@@ -82,24 +82,23 @@ public class NotificationFunctionsImpl implements NotificationFunctions {
 	private PrismContext prismContext;
 
 	private static final List<ItemPath> SYNCHRONIZATION_PATHS = Collections.unmodifiableList(Arrays.asList(
-			new ItemPath(ShadowType.F_SYNCHRONIZATION_SITUATION),
-			new ItemPath(ShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION),
-			new ItemPath(ShadowType.F_SYNCHRONIZATION_TIMESTAMP),
-			new ItemPath(ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP)));
+			ShadowType.F_SYNCHRONIZATION_SITUATION,
+			ShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION,
+			ShadowType.F_SYNCHRONIZATION_TIMESTAMP,
+			ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP));
 
 	private static final List<ItemPath> AUXILIARY_PATHS = Collections.unmodifiableList(Arrays.asList(
-			new ItemPath(ShadowType.F_METADATA),
-			new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_VALIDITY_STATUS),                // works for user activation as well
-			new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_VALIDITY_CHANGE_TIMESTAMP),
-			new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS),
-			new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP),
-			new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ARCHIVE_TIMESTAMP),
-			new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ENABLE_TIMESTAMP),
-			new ItemPath(ShadowType.F_ITERATION),
-			new ItemPath(ShadowType.F_ITERATION_TOKEN),
-			new ItemPath(UserType.F_LINK_REF),
-			new ItemPath(ShadowType.F_TRIGGER))
-	);
+			ShadowType.F_METADATA,
+			ShadowType.F_ACTIVATION.append(ActivationType.F_VALIDITY_STATUS),                // works for user activation as well
+			ShadowType.F_ACTIVATION.append(ActivationType.F_VALIDITY_CHANGE_TIMESTAMP),
+			ShadowType.F_ACTIVATION.append(ActivationType.F_EFFECTIVE_STATUS),
+			ShadowType.F_ACTIVATION.append(ActivationType.F_DISABLE_TIMESTAMP),
+			ShadowType.F_ACTIVATION.append(ActivationType.F_ARCHIVE_TIMESTAMP),
+			ShadowType.F_ACTIVATION.append(ActivationType.F_ENABLE_TIMESTAMP),
+			ShadowType.F_ITERATION,
+			ShadowType.F_ITERATION_TOKEN,
+			UserType.F_LINK_REF,
+			ShadowType.F_TRIGGER));
 
 
 	// beware, may return null if there's any problem getting sysconfig (e.g. during initial import)
@@ -353,7 +352,7 @@ public class NotificationFunctionsImpl implements NotificationFunctions {
 			Collection<PrismPropertyValue<ObjectDeltaType>> changes = null;
 			if (shadowDelta.getModifications() != null) {
 				for (ItemDelta itemDelta : shadowDelta.getModifications()) {
-					if (itemDelta.getPath().equivalent(new ItemPath(ShadowType.F_OBJECT_CHANGE))) {
+					if (itemDelta.getPath().equivalent(ShadowType.F_OBJECT_CHANGE)) {
 						changes = itemDelta.getValuesToAdd() != null && !itemDelta.getValuesToAdd().isEmpty() ?
 								itemDelta.getValuesToAdd() : itemDelta.getValuesToReplace();
 					}

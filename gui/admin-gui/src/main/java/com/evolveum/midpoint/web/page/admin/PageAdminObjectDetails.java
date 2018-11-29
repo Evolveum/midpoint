@@ -41,7 +41,6 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -310,14 +309,11 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 					object = objectToEdit;
 				}
 			} else {
-
-				loadOptions = SelectorOptions.createCollection(UserType.F_JPEG_PHOTO,
-						GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
-
+				loadOptions = getOperationOptionsBuilder()
+						.item(UserType.F_JPEG_PHOTO).retrieve()
+						.build();
 				String focusOid = getObjectOidParameter();
-				object = WebModelServiceUtils.loadObject(getCompileTimeClass(), focusOid, loadOptions, this, task,
-						result);
-
+				object = WebModelServiceUtils.loadObject(getCompileTimeClass(), focusOid, loadOptions, this, task, result);
 				LOGGER.trace("Loading object: Existing object (loadled): {} -> {}", focusOid, object);
 			}
 

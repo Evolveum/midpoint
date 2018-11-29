@@ -49,6 +49,7 @@ import java.io.IOException;
 import java.util.Collection;
 
 import static com.evolveum.midpoint.model.api.ModelExecuteOptions.createEvaluateAllAssignmentRelationsOnRecompute;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_DISABLE_TIMESTAMP;
 import static java.util.Collections.singleton;
 import static org.testng.AssertJUnit.*;
 
@@ -722,7 +723,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		modifyUserReplace(USER_GUYBRUSH_OID, new ItemPath(UserType.F_EXTENSION, PIRACY_WEAPON), task, result,
+		modifyUserReplace(USER_GUYBRUSH_OID, ItemPath.create(UserType.F_EXTENSION, PIRACY_WEAPON), task, result,
 				"tongue");
         assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_OID, null, task, result);
 
@@ -1878,7 +1879,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 				getAttributePath(getDummyResourceObject(RESOURCE_DUMMY_LEMON_NAME), DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
 				"The crew of The Sea Monkey");
 		PrismAsserts.assertPropertyReplace(accountSecondaryDelta,
-				new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME),
+				ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME),
 				"rogers");
 		PrismAsserts.assertPropertyAdd(accountSecondaryDelta,
 				getAttributePath(getDummyResourceObject(RESOURCE_DUMMY_LEMON_NAME), DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME),
@@ -1945,8 +1946,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ObjectDelta<ShadowType> accountSecondaryDelta = accContextDefault.getSecondaryDelta();
         PrismAsserts.assertModifications(accountSecondaryDelta, 2);
         assertNotNull("No disableTimestamp delta in account secodary delta (default)",
-        		accountSecondaryDelta.findPropertyDelta(
-        				new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP)));
+        		accountSecondaryDelta.findPropertyDelta(PATH_ACTIVATION_DISABLE_TIMESTAMP));
         PrismAsserts.assertPropertyReplace(accountSecondaryDelta, SchemaConstants.PATH_ACTIVATION_DISABLE_REASON,
         		SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
         // the other modification is disable timestamp
@@ -1963,9 +1963,8 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         ObjectDelta<ShadowType> accountSecondaryDeltaBlue = accContextBlue.getSecondaryDelta();
         PrismAsserts.assertModifications(accountSecondaryDeltaBlue, 2);
-        assertNotNull("No disableTimestamp delta in account secodary delta (blue)",
-        		accountSecondaryDeltaBlue.findPropertyDelta(
-        				new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP)));
+        assertNotNull("No disableTimestamp delta in account secondary delta (blue)",
+        		accountSecondaryDeltaBlue.findPropertyDelta(PATH_ACTIVATION_DISABLE_TIMESTAMP));
         PrismAsserts.assertPropertyReplace(accountSecondaryDeltaBlue, SchemaConstants.PATH_ACTIVATION_DISABLE_REASON,
         		SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
 	}

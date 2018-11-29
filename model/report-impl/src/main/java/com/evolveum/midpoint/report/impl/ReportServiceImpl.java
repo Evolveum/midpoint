@@ -29,6 +29,7 @@ import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.schema.SchemaHelper;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -81,6 +82,7 @@ public class ReportServiceImpl implements ReportService {
 	@Autowired private ModelService model;
 	@Autowired private TaskManager taskManager;
 	@Autowired private PrismContext prismContext;
+	@Autowired private SchemaHelper schemaHelper;
 	@Autowired private ExpressionFactory expressionFactory;
 	@Autowired @Qualifier("modelObjectResolver") private ObjectResolver objectResolver;
 	@Autowired private AuditService auditService;
@@ -305,7 +307,7 @@ public class ReportServiceImpl implements ReportService {
 		FunctionLibrary midPointLib = new FunctionLibrary();
 		midPointLib.setVariableName("report");
 		midPointLib.setNamespace("http://midpoint.evolveum.com/xml/ns/public/function/report-3");
-		ReportFunctions reportFunctions = new ReportFunctions(prismContext, model, taskManager, auditService);
+		ReportFunctions reportFunctions = new ReportFunctions(prismContext, schemaHelper, model, taskManager, auditService);
 		midPointLib.setGenericFunctions(reportFunctions);
 //
 //		MidpointFunctionsImpl mp = new MidpointFunctionsImpl();

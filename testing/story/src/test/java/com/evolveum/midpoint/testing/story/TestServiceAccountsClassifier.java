@@ -15,7 +15,6 @@ import org.testng.annotations.Test;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -173,7 +172,7 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
 		PrismObject<ServiceType> serviceJirafter = getObject(ServiceType.class, SERVICE_JIRA_OID);
 		display("Service magazine after", serviceJirafter);
 		assertNotNull("No magazine service", serviceJirafter);
-		PrismAsserts.assertPropertyValue(serviceJirafter, new ItemPath(ServiceType.F_EXTENSION, F_ACCOUNT_NAME), ACCOUNT_DUMMY_JIRA_USERNAME);
+		PrismAsserts.assertPropertyValue(serviceJirafter, prismContext.path(ServiceType.F_EXTENSION, F_ACCOUNT_NAME), ACCOUNT_DUMMY_JIRA_USERNAME);
 		assertLinks(serviceJirafter, 1);
 		
 	}
@@ -290,7 +289,7 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
 		display("Service github after", serviceGithubAfter);
 		assertNotNull("No github service", serviceGithubAfter);
 		assertAssignedResource(ServiceType.class, SERVICE_GITHUB_OID, RESOURCE_DUMMY_CLASSIFIER_OID, task, result);
-		PrismAsserts.assertPropertyValue(serviceGithubAfter, new ItemPath(ServiceType.F_EXTENSION, F_ACCOUNT_NAME), ACCOUNT_DUMMY_GITHUB_USERNAME);
+		PrismAsserts.assertPropertyValue(serviceGithubAfter, prismContext.path(ServiceType.F_EXTENSION, F_ACCOUNT_NAME), ACCOUNT_DUMMY_GITHUB_USERNAME);
 		assertLinks(serviceGithubAfter, 1);
 		
 		//check if the intent was changed

@@ -31,7 +31,8 @@ import org.apache.commons.lang.Validate;
 import javax.xml.namespace.QName;
 
 import java.util.ArrayList;
-import java.util.List;
+
+import static com.evolveum.midpoint.task.quartzimpl.TaskTestUtil.createExtensionDelta;
 
 /**
  * @author Radovan Semancik
@@ -94,7 +95,7 @@ public class MockSingleTaskHandler implements TaskHandler {
                 LOGGER.info("L1 handler, first run - scheduling L2 handler");
                 ScheduleType l2Schedule = new ScheduleType();
                 l2Schedule.setInterval(2);
-                task.pushHandlerUri(AbstractTaskManagerTest.L2_TASK_HANDLER_URI, l2Schedule, TaskBinding.TIGHT, ((TaskQuartzImpl) task).createExtensionDelta(l1FlagDefinition, true));
+                task.pushHandlerUri(AbstractTaskManagerTest.L2_TASK_HANDLER_URI, l2Schedule, TaskBinding.TIGHT, createExtensionDelta(l1FlagDefinition, true));
                 try {
                     task.savePendingModifications(opResult);
                 } catch(Exception e) {
@@ -144,7 +145,7 @@ public class MockSingleTaskHandler implements TaskHandler {
 
                 try {
                     ArrayList<ItemDelta<?,?>> deltas = new ArrayList<>();
-                    deltas.add(((TaskQuartzImpl) task).createExtensionDelta(wfsFlagDefinition, true));
+                    deltas.add(createExtensionDelta(wfsFlagDefinition, true));
                     runResult = ((TaskQuartzImpl) task).waitForSubtasks(2, deltas, opResult);
                     runResult.setProgress(1L);
                 } catch (Exception e) {

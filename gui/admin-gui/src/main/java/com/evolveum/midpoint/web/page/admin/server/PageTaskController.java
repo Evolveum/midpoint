@@ -80,7 +80,7 @@ public class PageTaskController implements Serializable {
 			} else {
 				final ObjectDelta<? extends ObjectType> delta =
 						DeltaBuilder.deltaFor(TaskType.class, parentPage.getPrismContext())
-								.item(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN), property.getDefinition()).replace()
+								.item(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN), property.getDefinition()).replace()
 								.asObjectDelta(parentPage.getTaskDto().getOid());
 				if (LOGGER.isDebugEnabled()) {
 					LOGGER.debug("Deleting sync token:\n{}", delta.debugDump());
@@ -181,7 +181,7 @@ public class PageTaskController implements Serializable {
 			SchemaRegistry registry = parentPage.getPrismContext().getSchemaRegistry();
 			PrismPropertyDefinition def = registry.findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS);
 			rv.add(DeltaBuilder.deltaFor(TaskType.class, parentPage.getPrismContext())
-					.item(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_WORKER_THREADS), def).replace(curr.getWorkerThreads())
+					.item(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_WORKER_THREADS), def).replace(curr.getWorkerThreads())
 					.asItemDelta());
 		}
 

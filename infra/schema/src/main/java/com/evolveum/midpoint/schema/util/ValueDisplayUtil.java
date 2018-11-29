@@ -18,8 +18,8 @@ package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
@@ -141,12 +141,14 @@ public class ValueDisplayUtil {
             return "(binary data)";
         } else if (value instanceof RawType) {
             return PrettyPrinter.prettyPrint(value);
-        } else if (value instanceof ItemPathType && ((ItemPathType) value).getItemPath() != null) {
+        } else if (value instanceof ItemPathType) {
             ItemPath itemPath = ((ItemPathType) value).getItemPath();
             StringBuilder sb = new StringBuilder();
             itemPath.getSegments().forEach(segment -> {
-                if (segment instanceof NameItemPathSegment){
-                    sb.append(PrettyPrinter.prettyPrint(((NameItemPathSegment) segment).getName()));
+                if (ItemPath.isName(segment)) {
+                    sb.append(PrettyPrinter.prettyPrint(ItemPath.toName(segment)));
+                } else if (ItemPath.isVariable(segment)) {
+                    sb.append(PrettyPrinter.prettyPrint(ItemPath.toVariableName(segment)));
                 } else {
                     sb.append(segment.toString());
                 }

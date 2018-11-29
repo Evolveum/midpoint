@@ -22,7 +22,7 @@ import java.util.function.Function;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -170,21 +170,6 @@ public class ScriptExpression {
 	private String formatCode() {
 		return DebugUtil.excerpt(scriptType.getCode().replaceAll("[\\s\\r\\n]+", " "), MAX_CODE_CHARS);
     }
-
-	public ItemPath parsePath(String path) {
-		if (path == null) {
-			return null;
-		}
-        ItemPathType itemPathType = new ItemPathType(path);
-        return itemPathType.getItemPath();
-        // TODO what about namespaces?
-//		Element codeElement = scriptType.getCode();
-//		XPathHolder xPathHolder = new XPathHolder(path, codeElement);
-//		if (xPathHolder == null) {
-//			return null;
-//		}
-//		return xPathHolder.toItemPath();
-	}
 
 	@Override
 	public String toString() {

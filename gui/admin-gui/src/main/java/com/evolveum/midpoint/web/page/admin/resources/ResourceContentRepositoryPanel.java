@@ -19,6 +19,7 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
@@ -165,8 +166,8 @@ public class ResourceContentRepositoryPanel extends ResourceContentPanel {
 	    }
 
 	@Override
-	protected SelectorOptions<GetOperationOptions> addAdditionalOptions() {
-		return new SelectorOptions<>(GetOperationOptions.createNoFetch());
+	protected GetOperationOptionsBuilder addAdditionalOptions(GetOperationOptionsBuilder builder) {
+		return builder.root().noFetch();
 	}
 
 	@Override

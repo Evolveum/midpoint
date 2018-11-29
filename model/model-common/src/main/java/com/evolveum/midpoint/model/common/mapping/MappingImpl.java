@@ -27,6 +27,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTripleImpl;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -489,7 +490,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 
 	private void checkRangeTarget(Task task, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-		QName name = outputPath.lastNamed().getName();
+		QName name = outputPath.lastName();
 		if (originalTargetValues == null) {
 			throw new IllegalStateException("Couldn't check range for mapping in " + contextDescription + ", as original target values are not known.");
 		}
@@ -869,7 +870,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		}
 		QName name = sourceType.getName();
 		if (name == null) {
-			name = ItemPath.getName(path.last());
+			name = ItemPath.toName(path.last());
 		}
 		ItemPath resolvePath = path;
 		Object sourceObject = ExpressionUtil.resolvePath(path, variables, true, sourceContext, objectResolver, "source definition in "+getMappingContextDescription(), task, result);

@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.schema.xjc.schema;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.xjc.PrismContainerArrayList;
 import com.evolveum.midpoint.prism.xjc.PrismForJAXBUtil;
 import com.evolveum.midpoint.prism.xjc.PrismReferenceArrayList;
@@ -170,6 +171,7 @@ public class SchemaProcessor implements Processor {
                     PrismReference.class, PrismReferenceImpl.class,
                     PrismObject.class, PrismObjectImpl.class,
                     String.class, Object.class, XmlTransient.class, Override.class, IllegalArgumentException.class,
+                    ItemName.class,
                     QName.class, PrismForJAXBUtil.class, PrismReferenceArrayList.class,
                     PrismContainerValue.class, PrismContainerValueImpl.class,
                     List.class, Objectable.class, StringBuilder.class, XmlAccessorType.class, XmlElement.class, XmlType.class,
@@ -184,7 +186,7 @@ public class SchemaProcessor implements Processor {
             stepSchemaConstants.run(outline, options, errorHandler);
 
             Map<String, JFieldVar> namespaceFields = stepSchemaConstants.getNamespaceFields();
-            addComplextType(outline, namespaceFields);
+            addComplexType(outline, namespaceFields);
             addContainerName(outline, namespaceFields);
             addFieldQNames(outline, namespaceFields);
 
@@ -971,7 +973,7 @@ public class SchemaProcessor implements Processor {
             JFieldVar var = namespaceFields.get(qname.getNamespaceURI());
             JInvocation invocation = JExpr._new(CLASS_MAP.get(QName.class));
             if (var != null) {
-                JClass schemaClass = outline.getModel().codeModel._getClass(StepSchemaConstants.CLASS_NAME);
+                JClass schemaClass = outline.getModel().codeModel._getClass(StepSchemaConstants.SCHEMA_CONSTANTS_GENERATED_CLASS_NAME);
                 invocation.arg(schemaClass.staticRef(var));
                 invocation.arg(qname.getLocalPart());
             } else {
@@ -997,7 +999,7 @@ public class SchemaProcessor implements Processor {
         return hasAnnotation(classOutline, annotation) || hasParentAnnotation(classOutline.getSuperClass(), annotation);
     }
 
-    private void addComplextType(Outline outline, Map<String, JFieldVar> namespaceFields) {
+    private void addComplexType(Outline outline, Map<String, JFieldVar> namespaceFields) {
         Set<Map.Entry<NClass, CClassInfo>> set = outline.getModel().beans().entrySet();
         for (Map.Entry<NClass, CClassInfo> entry : set) {
             ClassOutline classOutline = outline.getClazz(entry.getValue());
@@ -1005,13 +1007,8 @@ public class SchemaProcessor implements Processor {
             if (qname == null) {
                 continue;
             }
-
-            JFieldVar var = namespaceFields.get(qname.getNamespaceURI());
-            if (var != null) {
-                createQNameDefinition(outline, classOutline.implClass, COMPLEX_TYPE_FIELD_NAME, var, qname);
-            } else {
-                createPSFField(outline, classOutline.implClass, COMPLEX_TYPE_FIELD_NAME, qname);
-            }
+            JFieldVar namespaceField = namespaceFields.get(qname.getNamespaceURI());
+            createQName(outline, classOutline.implClass, COMPLEX_TYPE_FIELD_NAME, qname, namespaceField, false, false);
         }
     }
 
@@ -1040,18 +1037,6 @@ public class SchemaProcessor implements Processor {
         }
 
         return complexTypeToElementName;
-    }
-
-    private JFieldVar createQNameDefinition(Outline outline, JDefinedClass definedClass, String fieldName,
-            JFieldVar namespaceField, QName reference) {
-        JClass schemaClass = outline.getModel().codeModel._getClass(StepSchemaConstants.CLASS_NAME);
-
-        JInvocation invocation = JExpr._new(CLASS_MAP.get(QName.class));
-        invocation.arg(schemaClass.staticRef(namespaceField));
-        invocation.arg(reference.getLocalPart());
-
-        int psf = JMod.PUBLIC | JMod.STATIC | JMod.FINAL;
-        return definedClass.field(psf, QName.class, fieldName, invocation);
     }
 
     private void addFieldQNames(Outline outline, Map<String, JFieldVar> namespaceFields) {
@@ -1088,13 +1073,9 @@ public class SchemaProcessor implements Processor {
                 boxes.add(new FieldBox<>(fieldName, new QName(qname.getNamespaceURI(), field)));
             }
 
+            JFieldVar var = namespaceFields.get(qname.getNamespaceURI());
             for (FieldBox<QName> box : boxes) {
-                JFieldVar var = namespaceFields.get(qname.getNamespaceURI());
-                if (var != null) {
-                    createQNameDefinition(outline, implClass, box.getFieldName(), var, box.getValue());
-                } else {
-                    createPSFField(outline, implClass, box.getFieldName(), box.getValue());
-                }
+                createQName(outline, implClass, box.getFieldName(), box.getValue(), var, false, true);
             }
         }
     }

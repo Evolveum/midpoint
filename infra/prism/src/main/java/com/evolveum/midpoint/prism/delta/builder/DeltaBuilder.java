@@ -17,13 +17,7 @@
 package com.evolveum.midpoint.prism.delta.builder;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-import java.util.*;
 
 /**
  * Grammar:
@@ -34,7 +28,7 @@ import java.util.*;
  *
  * @author mederly
  */
-public interface DeltaBuilder<T extends Containerable> extends S_ItemEntry, S_MaybeDelete, S_ValuesEntry {
+public interface DeltaBuilder extends S_ItemEntry, S_MaybeDelete, S_ValuesEntry {
 
     static <C extends Containerable> S_ItemEntry deltaFor(Class<C> objectClass, PrismContext prismContext) throws SchemaException {
         return new DeltaBuilderImpl<>(objectClass, prismContext);

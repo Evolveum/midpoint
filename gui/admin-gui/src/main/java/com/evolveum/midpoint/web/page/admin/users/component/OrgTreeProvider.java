@@ -190,7 +190,7 @@ public class OrgTreeProvider extends SortableTreeProvider<SelectableBean<OrgType
             LOGGER.debug("Getting roots for: " + rootOid.getObject());
 
             PrismObject<OrgType> object = WebModelServiceUtils.loadObject(OrgType.class, rootOid.getObject(),
-                    WebModelServiceUtils.createOptionsForParentOrgRefs(), getPageBase(), task, result);
+                    WebModelServiceUtils.createOptionsForParentOrgRefs(getPageBase().getOperationOptionsBuilder()), getPageBase(), task, result);
             result.computeStatus();
 
             root = createObjectWrapper(null, object);

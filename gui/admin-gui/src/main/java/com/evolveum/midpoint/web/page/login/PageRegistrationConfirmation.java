@@ -9,6 +9,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ContainerDeltaImpl;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
@@ -23,10 +24,8 @@ import org.springframework.security.core.AuthenticationException;
 
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.context.NonceAuthenticationContext;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -172,7 +171,7 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 			runAsChecked(() -> {
 				Task task = createSimpleTask(OPERATION_REMOVE_NONCE_AND_SET_LIFECYCLE_STATE);
 				ObjectDelta<UserType> delta = ObjectDelta.createModificationDeleteContainer(UserType.class, userOid,
-						new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_NONCE), getPrismContext(), nonce);
+						ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_NONCE), getPrismContext(), nonce);
 				delta.addModificationReplaceProperty(UserType.F_LIFECYCLE_STATE, SchemaConstants.LIFECYCLE_ACTIVE);
 				WebModelServiceUtils.save(delta, result, task, PageRegistrationConfirmation.this);
 				return null;

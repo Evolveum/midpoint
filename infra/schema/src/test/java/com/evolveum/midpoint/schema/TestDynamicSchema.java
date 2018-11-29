@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.schema;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static com.evolveum.midpoint.schema.TestConstants.EXTENSION_STRING_TYPE_ELEMENT;
 import static com.evolveum.midpoint.schema.TestConstants.USER_ASSIGNMENT_1_ID;
 import static com.evolveum.midpoint.schema.TestConstants.USER_FILE;
@@ -31,9 +32,6 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -81,7 +79,7 @@ public class TestDynamicSchema {
 
 		// WHEN
 		PrismProperty<String> assignmentExtensionStringProperty = assignmentExtensionContainer.findOrCreateItem(
-				new ItemPath(EXTENSION_STRING_TYPE_ELEMENT), PrismProperty.class);
+				getPrismContext().path(EXTENSION_STRING_TYPE_ELEMENT), PrismProperty.class);
 
 		// THEN
 		assertNotNull("stringType is null", assignmentExtensionStringProperty);
@@ -128,16 +126,12 @@ public class TestDynamicSchema {
 
 
 	private PrismContainer<AssignmentType> parseUserAssignmentContainer() throws SchemaException, IOException {
-		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		PrismContext prismContext = getPrismContext();
 		PrismObject<UserType> user = prismContext.parseObject(USER_FILE);
 		System.out.println("Parsed user:");
 		System.out.println(user.debugDump());
 
-		return user.findContainer(
-				new ItemPath(
-						new NameItemPathSegment(UserType.F_ASSIGNMENT),
-						new IdItemPathSegment(USER_ASSIGNMENT_1_ID),
-						new NameItemPathSegment(AssignmentType.F_EXTENSION)));
+		return user.findContainer(prismContext.path(UserType.F_ASSIGNMENT, USER_ASSIGNMENT_1_ID, AssignmentType.F_EXTENSION));
 	}
 
 }

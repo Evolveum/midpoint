@@ -644,10 +644,6 @@ public class PageDebugList extends PageAdminConfiguration {
 	}
 
 	private void deleteAllIdentitiesConfirmed(AjaxRequestTarget target, DeleteAllDto dto) {
-		Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<>();
-		GetOperationOptions opt = GetOperationOptions.createRaw();
-		options.add(SelectorOptions.create(ItemPath.EMPTY_PATH, opt));
-
 		OperationResult result = new OperationResult(OPERATION_LAXATIVE_DELETE);
 		String taskOid = null;
 		try {

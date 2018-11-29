@@ -24,6 +24,8 @@ import java.util.Collection;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.xml.sax.SAXException;
@@ -47,7 +49,6 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
@@ -130,9 +131,9 @@ public class MappingTestEvaluator {
 		return createMappingBuilder(filename, testName, null, toPath(defaultTargetPropertyName), userDelta);
 	}
 
-	public <T> MappingImpl<PrismPropertyValue<T>, PrismPropertyDefinition<T>> createMapping(String filename, String testName, QName defaultTargetPropertyName,
+	public <T> MappingImpl<PrismPropertyValue<T>, PrismPropertyDefinition<T>> createMapping(String filename, String testName, ItemName defaultTargetPropertyName,
 			ObjectDelta<UserType> userDelta) throws SchemaException, IOException, JAXBException, EncryptionException  {
-		return this.<T>createMappingBuilder(filename, testName, null, toPath(defaultTargetPropertyName), userDelta).build();
+		return this.<T>createMappingBuilder(filename, testName, null, defaultTargetPropertyName, userDelta).build();
 	}
 
 	public <T> MappingImpl<PrismPropertyValue<T>, PrismPropertyDefinition<T>> createMapping(String filename, String testName, String defaultTargetPropertyName,
@@ -296,7 +297,7 @@ public class MappingTestEvaluator {
 	}
 
 	public <T,I> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateMapping(String filename, String testName,
-			QName defaultTargetPropertyName)
+			ItemName defaultTargetPropertyName)
             throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, EncryptionException, SecurityViolationException, ConfigurationException, CommunicationException {
 		MappingImpl<PrismPropertyValue<T>,PrismPropertyDefinition<T>> mapping = createMapping(filename, testName, defaultTargetPropertyName, null);
 		OperationResult opResult = new OperationResult(testName);
@@ -436,11 +437,7 @@ public class MappingTestEvaluator {
 	}
 
 	public ItemPath toPath(String propertyName) {
-		return new ItemPath(new QName(SchemaConstants.NS_C, propertyName));
-	}
-
-	public ItemPath toPath(QName propertyName) {
-		return new ItemPath(propertyName);
+		return ItemPath.create(new QName(SchemaConstants.NS_C, propertyName));
 	}
 
 	public static <T> T getSingleValue(String setName, Collection<PrismPropertyValue<T>> set) {

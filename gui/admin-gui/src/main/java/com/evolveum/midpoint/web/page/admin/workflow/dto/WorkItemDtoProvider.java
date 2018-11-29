@@ -20,7 +20,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -132,11 +131,11 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
 
         try {
             ObjectQuery query = createQuery(first, count, result);
-            Collection<SelectorOptions<GetOperationOptions>> options =
-                    GetOperationOptions.resolveItemsNamed(
-                            new ItemPath(F_ASSIGNEE_REF),
-                            new ItemPath(T_PARENT, WfContextType.F_OBJECT_REF),
-                            new ItemPath(T_PARENT, WfContextType.F_TARGET_REF));
+            Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
+                    .item(F_ASSIGNEE_REF).resolve()
+                    .item(T_PARENT, WfContextType.F_OBJECT_REF).resolve()
+                    .item(T_PARENT, WfContextType.F_TARGET_REF).resolve()
+                    .build();
             List<WorkItemType> items = getModel().searchContainers(WorkItemType.class, query, options, task, result);
 
             for (WorkItemType item : items) {

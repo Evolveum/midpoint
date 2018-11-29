@@ -45,7 +45,9 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -65,7 +67,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractCredentialType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsStorageTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordHistoryEntryType;
@@ -89,10 +90,10 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  *
  */
 public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType, P extends CredentialPolicyType> {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(CredentialPolicyEvaluator.class);
 	
-	private static final ItemPath CREDENTIAL_RELATIVE_VALUE_PATH = new ItemPath(PasswordType.F_VALUE);
+	private static final ItemPath CREDENTIAL_RELATIVE_VALUE_PATH = PasswordType.F_VALUE;
 
 	// Configuration
 	
@@ -208,7 +209,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 	 * E.g. "credentials/password/value"
 	 */
 	protected ItemPath getCredentialValuePath() {
-		return getCredentialsContainerPath().subPath(getCredentialRelativeValuePath());
+		return getCredentialsContainerPath().append(getCredentialRelativeValuePath());
 	}
 
 	protected abstract String getCredentialHumanReadableName();
@@ -235,7 +236,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 		if (objectValuePolicyEvaluator == null) {
 			AbstractValuePolicyOriginResolver originResolver = getOriginResolver();
 			
-			objectValuePolicyEvaluator = new ObjectValuePolicyEvaluator();
+			objectValuePolicyEvaluator = new ObjectValuePolicyEvaluator(prismContext);
 			objectValuePolicyEvaluator.setNow(now);
 			objectValuePolicyEvaluator.setOriginResolver(originResolver);
 			objectValuePolicyEvaluator.setProtector(protector);
@@ -411,7 +412,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 
 	private void addMetadataDelta() throws SchemaException {
 		Collection<? extends ItemDelta<?, ?>> metaDeltas = metadataManager.createModifyMetadataDeltas(
-				context, getCredentialsContainerPath().subPath(AbstractCredentialType.F_METADATA),
+				context, getCredentialsContainerPath().append(AbstractCredentialType.F_METADATA),
 				context.getFocusClass(), now, task);
 		for (ItemDelta<?, ?> metaDelta : metaDeltas) {
 			context.getFocusContext().swallowToSecondaryDelta(metaDelta);
@@ -423,7 +424,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 			if (!hasMetadata(cVal)) {
 				MetadataType metadataType = metadataManager.createCreateMetadata(context, now, task);
 				ContainerDelta<MetadataType> metadataDelta = ContainerDeltaImpl.createModificationAdd(
-						getCredentialsContainerPath().subPath(AbstractCredentialType.F_METADATA), UserType.class, prismContext,
+						getCredentialsContainerPath().append(AbstractCredentialType.F_METADATA), UserType.class, prismContext,
 						metadataType);
 				context.getFocusContext().swallowToSecondaryDelta(metadataDelta);
 			}
@@ -438,12 +439,12 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Residual delta:\n{}", partialDelta.debugDump());
 			}
-			ItemPath residualPath = partialDelta.getResidualPath();
-			if (residualPath == null || residualPath.isEmpty()) {
+			UniformItemPath residualPath = partialDelta.getResidualPath();
+			if (ItemPath.isEmpty(residualPath)) {
 				continue;
 			}
 			LOGGER.trace("PATH: {}", residualPath);
-			QName name = ItemPath.getFirstName(residualPath);
+			QName name = residualPath.firstName();
 			LOGGER.trace("NAME: {}", name);
 			if (isValueElement(name)) {
 				return true;
@@ -538,7 +539,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 		entryType.setChangeTimestamp(now);
 	
 		ContainerDelta<PasswordHistoryEntryType> addHistoryDelta = ContainerDeltaImpl
-				.createModificationAdd(new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_HISTORY_ENTRY), UserType.class, prismContext, entryType.clone());
+				.createModificationAdd(SchemaConstants.PATH_CREDENTIALS_PASSWORD_HISTORY_ENTRY, UserType.class, prismContext, entryType.clone());
 		context.getFocusContext().swallowToSecondaryDelta(addHistoryDelta);
 		
 		return 1;
@@ -563,24 +564,12 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 		int i = 0;
 		while (historyEntryIterator.hasNext() && i < numberOfHistoryEntriesToDelete) {
 			ContainerDelta<PasswordHistoryEntryType> deleteHistoryDelta = ContainerDeltaImpl
-					.createModificationDelete(
-							new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD,
-									PasswordType.F_HISTORY_ENTRY),
+					.createModificationDelete(SchemaConstants.PATH_CREDENTIALS_PASSWORD_HISTORY_ENTRY,
 							UserType.class, prismContext,
 							historyEntryIterator.next().clone());
 			context.getFocusContext().swallowToSecondaryDelta(deleteHistoryDelta);
 			i++;
 		}
-		
-//		for (int i = 0; i < numberOfHistoryEntriesToDelete; i++) {
-//			ContainerDelta<PasswordHistoryEntryType> deleteHistoryDelta = ContainerDelta
-//					.createModificationDelete(
-//							new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD,
-//									PasswordType.F_HISTORY_ENTRY),
-//							UserType.class, prismContext,
-//							historyEntryValues.get(i).clone());
-//			context.getFocusContext().swallowToSecondaryDelta(deleteHistoryDelta);
-//		}
 	}
 	
 	private void prepareProtectedStringForStorage(ProtectedStringType ps, CredentialsStorageTypeType storageType) throws SchemaException {

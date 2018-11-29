@@ -22,6 +22,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.prism.path.*;
 import org.apache.commons.lang.BooleanUtils;
 
 import com.evolveum.midpoint.model.api.ModelService;
@@ -38,8 +39,6 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
@@ -473,8 +472,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 		Collection<IV> pvalues = outputTriple.getNonNegativeValues();
 
 		// Maybe not really clean but it works. TODO: refactor later
-		NameItemPathSegment first = (NameItemPathSegment)targetPath.first();
-		if (first.isVariable()) {
+		if (targetPath.startsWithVariable()) {
 			targetPath = targetPath.rest();
 		}
 

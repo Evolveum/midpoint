@@ -16,18 +16,11 @@
 
 package com.evolveum.midpoint.prism;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
-
-import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import org.jetbrains.annotations.NotNull;
 
 /**

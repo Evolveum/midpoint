@@ -21,6 +21,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -44,7 +45,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -395,21 +395,21 @@ public class ResourceDetailsTabPanel extends Panel {
 		List<TaskType> syncTasks = new ArrayList<>();
 		for (PrismObject<TaskType> task : tasks) {
 			PrismProperty<ShadowKindType> taskKind = task
-					.findProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_KIND));
+					.findProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_KIND));
 			ShadowKindType taskKindValue = null;
 			if (taskKind != null) {
 				taskKindValue = taskKind.getRealValue();
 			}
 
 			PrismProperty<String> taskIntent = task
-					.findProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_INTENT));
+					.findProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_INTENT));
 			String taskIntentValue = null;
 			if (taskIntent != null) {
 				taskIntentValue = taskIntent.getRealValue();
 			}
 
 			PrismProperty<QName> taskObjectClass = task.findProperty(
-					new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECTCLASS));
+					ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECTCLASS));
 			QName taskObjectClassValue = null;
 			if (taskObjectClass != null) {
 				taskObjectClassValue = taskObjectClass.getRealValue();

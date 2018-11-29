@@ -22,6 +22,7 @@ import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -29,7 +30,6 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
@@ -50,7 +50,6 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.resolveItemsNamed;
 import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CLOSED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_STATE;
@@ -63,15 +62,16 @@ public class ReportFunctions {
 
     private static final Trace LOGGER = TraceManager.getTrace(ReportFunctions.class);
 
-    private PrismContext prismContext;
-    private ModelService model;
+    private final PrismContext prismContext;
+    private final SchemaHelper schemaHelper;
+    private final ModelService model;
+    private final TaskManager taskManager;
+    private final AuditService auditService;
 
-    private TaskManager taskManager;
-
-    private AuditService auditService;
-
-    public ReportFunctions(PrismContext prismContext, ModelService modelService, TaskManager taskManager, AuditService auditService) {
+    public ReportFunctions(PrismContext prismContext, SchemaHelper schemaHelper,
+		    ModelService modelService, TaskManager taskManager, AuditService auditService) {
         this.prismContext = prismContext;
+        this.schemaHelper = schemaHelper;
         this.model = modelService;
         this.taskManager = taskManager;
         this.auditService = auditService;
@@ -320,7 +320,7 @@ public class ReportFunctions {
                 .buildFilter();
     }
 
-    <C extends Containerable, T> ObjectFilter createEqualFilter(ItemPath propertyPath, Class<C> type, T realValue) throws SchemaException {
+    <C extends Containerable, T> ObjectFilter createEqualFilter(UniformItemPath propertyPath, Class<C> type, T realValue) throws SchemaException {
         return QueryBuilder.queryFor(type, prismContext)
                 .item(propertyPath).eq(realValue)
                 .buildFilter();
@@ -369,13 +369,12 @@ public class ReportFunctions {
                         .asc(sortColumn)
                         .buildFilter());
         }
-        
-        SearchResultList<WorkItemType> workItems = model.searchContainers(WorkItemType.class, query,
-                resolveItemsNamed(
-                        WorkItemType.F_ASSIGNEE_REF,
-                        new ItemPath(PrismConstants.T_PARENT, WfContextType.F_OBJECT_REF),
-                        new ItemPath(PrismConstants.T_PARENT, WfContextType.F_TARGET_REF),
-                        new ItemPath(PrismConstants.T_PARENT, WfContextType.F_REQUESTER_REF)), task, result);
+	    Object[] itemsToResolve = { WorkItemType.F_ASSIGNEE_REF,
+                ItemPath.create(PrismConstants.T_PARENT, WfContextType.F_OBJECT_REF),
+                ItemPath.create(PrismConstants.T_PARENT, WfContextType.F_TARGET_REF),
+                ItemPath.create(PrismConstants.T_PARENT, WfContextType.F_REQUESTER_REF) };
+	    SearchResultList<WorkItemType> workItems = model.searchContainers(WorkItemType.class, query,
+		        schemaHelper.getOperationOptionsBuilder().items(itemsToResolve).resolve().build(), task, result);
         return PrismContainerValue.toPcvList(workItems);
     }
 
@@ -569,10 +568,10 @@ public class ReportFunctions {
             );
         }
 
-        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createResolveNames());
-        options.add(SelectorOptions.create(AccessCertificationCampaignType.F_CASE,
-                GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
-
+        Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+                .root().resolveNames()
+                .item(AccessCertificationCampaignType.F_CASE).retrieve()
+                .build();
         return model.searchObjects(AccessCertificationCampaignType.class, query, options, task, task.getResult());
     }
 

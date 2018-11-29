@@ -17,6 +17,7 @@ package com.evolveum.midpoint.schema.processor;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 
@@ -341,7 +342,7 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 			}
 			if (reference != null && !reference.isEmpty()) {
 				QName referenceItemName = DOMUtil.resolveQName(element, reference);
-				PrismPropertyDefinition definition = objectClass.findPropertyDefinition(referenceItemName);
+				PrismPropertyDefinition definition = objectClass.findPropertyDefinition(ItemName.fromQName(referenceItemName));
 				if (definition == null) {
 					throw new SchemaException("The annotation "+qname+" in "+objectClass+" is pointing to "+referenceItemName+" which does not exist");
 				}

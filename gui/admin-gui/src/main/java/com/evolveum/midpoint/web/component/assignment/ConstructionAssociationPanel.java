@@ -24,28 +24,19 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.util.ItemPathUtil;
+import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
 import com.evolveum.midpoint.web.component.form.multivalue.GenericMultiValueLabelEditPanel;
-import com.evolveum.midpoint.web.component.form.multivalue.MultiValueChoosePanel;
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.*;
@@ -242,7 +233,7 @@ public class ConstructionAssociationPanel<C extends Containerable, IW extends It
                             && !ValueStatus.ADDED.equals(((ContainerValueWrapper) associationValueWrapper).getStatus()))) {
                         return;
                     }
-                    QName assocRef = ItemPathUtil.getOnlySegmentQName(assoc.getRef());
+                    QName assocRef = ItemPathTypeUtil.asSingleNameOrFailNullSafe(assoc.getRef());
                     if ((defName != null && defName.equals(assocRef))
                             || (assocRef == null && ValueStatus.ADDED.equals(((ContainerValueWrapper) associationValueWrapper).getStatus()))) {
                         shadowsList.add(ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression()));
@@ -267,7 +258,7 @@ public class ConstructionAssociationPanel<C extends Containerable, IW extends It
                 return;
             }
             if (compareName) {
-                QName assocRef = ItemPathUtil.getOnlySegmentQName(assoc.getRef());
+                QName assocRef = ItemPathTypeUtil.asSingleNameOrFailNullSafe(assoc.getRef());
                 if (name != null && name.equals(assocRef)) {
                     shadowsList.add(ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression()));
                 }
@@ -296,9 +287,8 @@ public class ConstructionAssociationPanel<C extends Containerable, IW extends It
                         .getPath().append(ConstructionType.F_ASSOCIATION));
                 PrismContainerValue newAssociation = associationWrapper.getItem().createNewValue();
                 QName associationRefPath = def.getName();
-                NameItemPathSegment segment = new NameItemPathSegment(associationRefPath);
                 ((ResourceObjectAssociationType)newAssociation.asContainerable())
-                        .setRef(new ItemPathType(new ItemPath(segment)));
+                        .setRef(new ItemPathType(getPageBase().path(associationRefPath)));
                 ExpressionType newAssociationExpression = ((ResourceObjectAssociationType)newAssociation.asContainerable()).beginOutbound().beginExpression();
                 ExpressionUtil.createShadowRefEvaluatorValue(newAssociationExpression, object.getOid(),
                         getPageBase().getPrismContext());

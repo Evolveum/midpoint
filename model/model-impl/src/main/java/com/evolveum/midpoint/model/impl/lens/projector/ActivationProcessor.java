@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -30,7 +31,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -297,7 +298,8 @@ public class ActivationProcessor {
         if (capStatus != null) {
 	    	evaluateActivationMapping(context, projCtx,
 	    			activationType.getAdministrativeStatus(),
-	    			SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
+	    			SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
+				    SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
 	    			capActivation, now, MappingTimeEval.CURRENT, ActivationType.F_ADMINISTRATIVE_STATUS.getLocalPart(), task, result);
         } else {
         	LOGGER.trace("Skipping activation administrative status processing because {} does not have activation administrative status capability", projCtx.getResource());
@@ -310,7 +312,8 @@ public class ActivationProcessor {
         	LOGGER.trace("Skipping activation validFrom processing because {} does not have activation validFrom capability nor outbound mapping with explicit target", projCtx.getResource());
         } else {
 	    	evaluateActivationMapping(context, projCtx, activationType.getValidFrom(),
-	    			SchemaConstants.PATH_ACTIVATION_VALID_FROM, SchemaConstants.PATH_ACTIVATION_VALID_FROM,
+	    			SchemaConstants.PATH_ACTIVATION_VALID_FROM,
+				    SchemaConstants.PATH_ACTIVATION_VALID_FROM,
 	    			null, now, MappingTimeEval.CURRENT, ActivationType.F_VALID_FROM.getLocalPart(), task, result);
         }
 
@@ -321,7 +324,8 @@ public class ActivationProcessor {
         	LOGGER.trace("Skipping activation validTo processing because {} does not have activation validTo capability nor outbound mapping with explicit target", projCtx.getResource());
         } else {
 	    	evaluateActivationMapping(context, projCtx, activationType.getValidTo(),
-	    			SchemaConstants.PATH_ACTIVATION_VALID_TO, SchemaConstants.PATH_ACTIVATION_VALID_TO,
+	    			SchemaConstants.PATH_ACTIVATION_VALID_TO,
+				    SchemaConstants.PATH_ACTIVATION_VALID_TO,
 	    			null, now, MappingTimeEval.CURRENT, ActivationType.F_VALID_TO.getLocalPart(), task, result);
 	    }
 
@@ -383,7 +387,8 @@ public class ActivationProcessor {
                         }
 
                         PrismPropertyDefinition<String> disableReasonDef = activationDefinition.findPropertyDefinition(ActivationType.F_DISABLE_REASON);
-                        disableReasonDelta = disableReasonDef.createEmptyDelta(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_DISABLE_REASON));
+                        disableReasonDelta = disableReasonDef.createEmptyDelta(
+		                        ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_DISABLE_REASON));
                         disableReasonDelta.setValueToReplace(new PrismPropertyValueImpl<>(disableReason, OriginType.OUTBOUND, null));
                         accCtx.swallowToSecondaryDelta(disableReasonDelta);
                     }
@@ -580,7 +585,7 @@ public class ActivationProcessor {
 				// Source: administrativeStatus, validFrom or validTo
 		        ItemDeltaItem<PrismPropertyValue<T>,PrismPropertyDefinition<T>> sourceIdi = context.getFocusContext().getObjectDeltaObject().findIdi(focusPropertyPath);
 
-		        if (capActivation != null && focusPropertyPath.equals(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS)) {
+		        if (capActivation != null && focusPropertyPath.equivalent(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS)) {
 			        ActivationValidityCapabilityType capValidFrom = CapabilityUtil.getEffectiveActivationValidFrom(capActivation);
 			        ActivationValidityCapabilityType capValidTo = CapabilityUtil.getEffectiveActivationValidTo(capActivation);
 
@@ -682,7 +687,7 @@ public class ActivationProcessor {
 		params.setContext(context);
 		params.setHasFullTargetObject(projCtx.hasFullShadow());
 		
-		Map<ItemPath, MappingOutputStruct<PrismPropertyValue<T>>> outputTripleMap = mappingEvaluator.evaluateMappingSetProjection(params, task, result);
+		Map<UniformItemPath, MappingOutputStruct<PrismPropertyValue<T>>> outputTripleMap = mappingEvaluator.evaluateMappingSetProjection(params, task, result);
 		
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Mapping processing output after {} ({}):\n{}", desc, evaluateCurrent, DebugUtil.debugDump(outputTripleMap, 1));
@@ -698,12 +703,12 @@ public class ActivationProcessor {
 	 * TODO: can we align this with ReconciliationProcessor?
 	 */
 	private <T, F extends FocusType> void reconcileOutboundValue(LensContext<F> context, LensProjectionContext projCtx,
-			Map<ItemPath, MappingOutputStruct<PrismPropertyValue<T>>> outputTripleMap, String desc) throws SchemaException {
+			Map<UniformItemPath, MappingOutputStruct<PrismPropertyValue<T>>> outputTripleMap, String desc) throws SchemaException {
 		
 		// TODO: check for full shadow?
 		
-		for (Entry<ItemPath,MappingOutputStruct<PrismPropertyValue<T>>> entry: outputTripleMap.entrySet()) {
-			ItemPath mappingOutputPath = entry.getKey();
+		for (Entry<UniformItemPath,MappingOutputStruct<PrismPropertyValue<T>>> entry: outputTripleMap.entrySet()) {
+			UniformItemPath mappingOutputPath = entry.getKey();
 			MappingOutputStruct<PrismPropertyValue<T>> mappingOutputStruct = entry.getValue();
 			if (mappingOutputStruct.isWeakMappingWasUsed()) {
 				// Thing to do. All deltas should already be in context

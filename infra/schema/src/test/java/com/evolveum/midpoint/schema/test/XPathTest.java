@@ -16,13 +16,14 @@
 
 package com.evolveum.midpoint.schema.test;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_C;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.path.CanonicalItemPath;
 
+import com.evolveum.midpoint.prism.path.CanonicalItemPathImpl;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -35,7 +36,7 @@ import org.testng.AssertJUnit;
 import com.evolveum.midpoint.prism.marshaller.TrivialItemPathParser;
 import com.evolveum.midpoint.prism.marshaller.ItemPathHolder;
 import com.evolveum.midpoint.prism.marshaller.PathHolderSegment;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -118,8 +119,8 @@ public class XPathTest {
 //                    System.out.println("  E: " + ((Element) e).getLocalName());
 //                }
 //            }
-            ItemPath path = pathType.getItemPath();
-            ItemPathHolder xpath = new ItemPathHolder(path);
+            UniformItemPath path = pathType.getUniformItemPath();
+            ItemPathHolder xpath = ItemPathHolder.createForTesting(path);
 
             AssertJUnit.assertEquals("c:extension/piracy:ship[2]/c:name", xpath.getXPathWithoutDeclarations());
 
@@ -143,7 +144,7 @@ public class XPathTest {
 
             System.out.println("XPATH Element: " + xpathElement);
 
-            ItemPathHolder xpathFromElement = new ItemPathHolder(xpathElement);
+            ItemPathHolder xpathFromElement = ItemPathHolder.createForTesting(xpathElement);
             AssertJUnit.assertEquals(xpath, xpathFromElement);
 
 //            attributes = xpathElement.getAttributes();
@@ -156,7 +157,7 @@ public class XPathTest {
 
             System.out.println("XPATH segments: " + segments);
 
-            ItemPathHolder xpathFromSegments = new ItemPathHolder(segments);
+            ItemPathHolder xpathFromSegments = ItemPathHolder.createForTesting(segments);
 
             System.out.println("XPath from segments: " + xpathFromSegments);
 
@@ -176,7 +177,7 @@ public class XPathTest {
 
         // When
 
-        ItemPathHolder xpath = new ItemPathHolder(el1);
+        ItemPathHolder xpath = ItemPathHolder.createForTesting(el1);
 
         // Then
 
@@ -220,25 +221,6 @@ public class XPathTest {
         return (Element)el1;
 	}
 
-	@Test
-    public void xPathFromDomNode2() throws ParserConfigurationException, SAXException, IOException {
-
-        // Given
-        Element el1 = parseDataGetEl1();
-
-        String xpathString = "declare namespace x='http://xx.com/'; /root/x:el1";
-
-        // When
-
-        ItemPathHolder xpath = new ItemPathHolder(xpathString, el1);
-
-        // Then
-
-        Map<String, String> namespaceMap = xpath.getNamespaceMap();
-
-        //AssertJUnit.assertEquals("http://default.com/", namespaceMap.get(XPathHolder.DEFAULT_PREFIX));
-    }
-
     @Test
     public void variableTest() {
 
@@ -247,7 +229,7 @@ public class XPathTest {
                 "declare namespace x='http://www.xxx.com';" +
                 "$v:var/x:xyz[10]";
 
-        ItemPathHolder xpath = new ItemPathHolder(xpathStr);
+        ItemPathHolder xpath = ItemPathHolder.createForTesting(xpathStr);
 
         AssertJUnit.assertEquals("$v:var/x:xyz[10]", xpath.getXPathWithoutDeclarations());
         AssertJUnit.assertEquals("http://vvv.com", xpath.getNamespaceMap().get("v"));
@@ -257,7 +239,7 @@ public class XPathTest {
     @Test
     public void dotTest() {
 
-        ItemPathHolder dotPath = new ItemPathHolder(".");
+        ItemPathHolder dotPath = ItemPathHolder.createForTesting(".");
 
         AssertJUnit.assertTrue(dotPath.toSegments().isEmpty());
         AssertJUnit.assertEquals(".", dotPath.getXPathWithoutDeclarations());
@@ -294,7 +276,7 @@ public class XPathTest {
         String xpathStr =
                 "declare namespace foo='http://ff.com/';\ndeclare default namespace 'http://default.com/';\n declare  namespace bar = 'http://www.b.com' ;declare namespace x= \"http://xxx.com/\";\nfoo:foofoo/x:bar";
 
-        ItemPathHolder xpath = new ItemPathHolder(xpathStr);
+        ItemPathHolder xpath = ItemPathHolder.createForTesting(xpathStr);
 
         System.out.println("Pure XPath: "+xpath.getXPathWithoutDeclarations());
         AssertJUnit.assertEquals("foo:foofoo/x:bar", xpath.getXPathWithoutDeclarations());
@@ -318,7 +300,7 @@ public class XPathTest {
 
         String xpathStr = "foo:foo/bar:bar";
 
-        ItemPathHolder xpath = new ItemPathHolder(xpathStr, namespaceMap);
+        ItemPathHolder xpath = ItemPathHolder.createForTesting(xpathStr, namespaceMap);
 
         System.out.println("Pure XPath: "+xpath.getXPathWithoutDeclarations());
         AssertJUnit.assertEquals("foo:foo/bar:bar", xpath.getXPathWithoutDeclarations());
@@ -348,7 +330,7 @@ public class XPathTest {
             stream.close();
         }
 
-        ItemPathHolder xpath = new ItemPathHolder(xpathStr);
+        ItemPathHolder xpath = ItemPathHolder.createForTesting(xpathStr);
 
         System.out.println("Stragechars Pure XPath: "+xpath.getXPathWithoutDeclarations());
         AssertJUnit.assertEquals("$i:user/i:extension/ri:foobar", xpath.getXPathWithoutDeclarations());
@@ -361,7 +343,7 @@ public class XPathTest {
     public void xpathFromQNameTest() {
     	// GIVEN
     	QName qname = new QName(NS_FOO, "foo");
-    	ItemPathHolder xpath = new ItemPathHolder(qname);
+    	ItemPathHolder xpath = ItemPathHolder.createForTesting(qname);
     	QName elementQName = new QName(NS_BAR, "bar");
 
     	// WHEN
@@ -384,19 +366,19 @@ public class XPathTest {
         // GIVEN
         QName qname1 = new QName(NS_C, "extension");
         QName qname2 = new QName(NS_FOO, "foo");
-        ItemPathHolder itemPathHolder1 = new ItemPathHolder(qname1, qname2);
+        ItemPathHolder itemPathHolder1 = ItemPathHolder.createForTesting(qname1, qname2);
         QName elementQName = new QName(NS_BAR, "bar");
 
         // WHEN
         Element element = itemPathHolder1.toElement(elementQName, DOMUtil.getDocument());
-        ItemPathHolder itemPathHolder2 = new ItemPathHolder(element);
+        ItemPathHolder itemPathHolder2 = ItemPathHolder.createForTesting(element);
 
         // THEN
         System.out.println("XPath from QNames:");
         System.out.println(DOMUtil.serializeDOMToString(element));
 
-        ItemPath xpath1 = itemPathHolder1.toItemPath();
-        ItemPath xpath2 = itemPathHolder2.toItemPath();
+        UniformItemPath xpath1 = itemPathHolder1.toItemPath();
+        UniformItemPath xpath2 = itemPathHolder2.toItemPath();
         assertTrue("Paths are not equivalent", xpath1.equivalent(xpath2));
     }
 
@@ -417,30 +399,10 @@ public class XPathTest {
 		AssertJUnit.assertEquals("a/#/b", TrivialItemPathParser.parse(D+"a/#/b").getPureItemPathString());
 	}
 
-    //not actual anymore..we have something like "wildcard" in xpath..there don't need to be prefix specified.we will try to match the local names
-    @Test(enabled=false)
-    public void testUndefinedPrefix() throws ParserConfigurationException, SAXException, IOException {
-
-        // GIVEN
-        Element el1 = parseDataGetEl1();
-        String xpathString = "/root/undef:el1";
-        el1.setTextContent(xpathString);
-
-        try {
-	        // WHEN
-	        ItemPathHolder xpath = new ItemPathHolder(el1);
-
-	        AssertJUnit.fail("Unexpected success");
-        } catch (IllegalArgumentException e) {
-        	// This is expected
-        }
-
-    }
-
 	@Test
 	public void testCanonicalizationEmpty() throws Exception {
 		assertCanonical(null, null, "");
-		assertCanonical(ItemPath.EMPTY_PATH, null, "");
+		assertCanonical(getPrismContext().emptyPath(), null, "");
 	}
 
 	private static final String COMMON = "${common}3";
@@ -451,20 +413,20 @@ public class XPathTest {
 
 	@Test
 	public void testCanonicalizationSimple() throws Exception {
-		ItemPath path = new ItemPath(UserType.F_NAME);
+		UniformItemPath path = getPrismContext().path(UserType.F_NAME);
 		assertCanonical(path, null, "\\" + COMMON + "#name");
 	}
 
 	@Test
 	public void testCanonicalizationSimpleNoNs() throws Exception {
-		ItemPath path = new ItemPath(UserType.F_NAME.getLocalPart());
+		UniformItemPath path = getPrismContext().path(UserType.F_NAME.getLocalPart());
 		assertCanonical(path, null, "\\#name");
 		assertCanonical(path, UserType.class, "\\" + COMMON + "#name");
 	}
 
 	@Test
 	public void testCanonicalizationMulti() throws Exception {
-		ItemPath path = new ItemPath(UserType.F_ASSIGNMENT, 1234, AssignmentType.F_ACTIVATION,
+		UniformItemPath path = getPrismContext().path(UserType.F_ASSIGNMENT, 1234, AssignmentType.F_ACTIVATION,
 				ActivationType.F_ADMINISTRATIVE_STATUS);
 		assertCanonical(path, null, "\\" + COMMON + "#assignment",
 				"\\" + COMMON + "#assignment\\" + ZERO + "#activation",
@@ -473,7 +435,7 @@ public class XPathTest {
 
 	@Test
 	public void testCanonicalizationMultiNoNs() throws Exception {
-		ItemPath path = new ItemPath(UserType.F_ASSIGNMENT.getLocalPart(), 1234, AssignmentType.F_ACTIVATION.getLocalPart(),
+		UniformItemPath path = getPrismContext().path(UserType.F_ASSIGNMENT.getLocalPart(), 1234, AssignmentType.F_ACTIVATION.getLocalPart(),
 				ActivationType.F_ADMINISTRATIVE_STATUS.getLocalPart());
 		assertCanonical(path, null, "\\#assignment",
 				"\\#assignment\\#activation", "\\#assignment\\#activation\\#administrativeStatus");
@@ -484,7 +446,7 @@ public class XPathTest {
 
 	@Test
 	public void testCanonicalizationMixedNs() throws Exception {
-		ItemPath path = new ItemPath(UserType.F_ASSIGNMENT.getLocalPart(), 1234, AssignmentType.F_EXTENSION,
+		UniformItemPath path = getPrismContext().path(UserType.F_ASSIGNMENT.getLocalPart(), 1234, AssignmentType.F_EXTENSION,
 				new QName("http://piracy.org/inventory", "store"),
 				new QName("http://piracy.org/inventory", "shelf"),
 				new QName("x"), ActivationType.F_ADMINISTRATIVE_STATUS);
@@ -506,7 +468,7 @@ public class XPathTest {
 
 	@Test
 	public void testCanonicalizationMixedNs2() throws Exception {
-		ItemPath path = new ItemPath(UserType.F_ASSIGNMENT.getLocalPart(), 1234, AssignmentType.F_EXTENSION.getLocalPart(),
+		UniformItemPath path = getPrismContext().path(UserType.F_ASSIGNMENT.getLocalPart(), 1234, AssignmentType.F_EXTENSION.getLocalPart(),
 				new QName("http://piracy.org/inventory", "store"),
 				new QName("http://piracy.org/inventory", "shelf"),
 				AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
@@ -532,7 +494,7 @@ public class XPathTest {
 
 	@Test
 	public void testCanonicalizationLong() throws Exception {
-		ItemPath path = new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION, SchemaConstants.ICF_CONFIGURATION_PROPERTIES,
+		UniformItemPath path = getPrismContext().path(ResourceType.F_CONNECTOR_CONFIGURATION, SchemaConstants.ICF_CONFIGURATION_PROPERTIES,
 				RESOURCE_DUMMY_CONFIGURATION_USELESS_STRING_ELEMENT_NAME);
 		assertCanonical(path, null, "\\" + COMMON + "#connectorConfiguration",
 				"\\" + COMMON + "#connectorConfiguration\\" + ICFS + "#configurationProperties",
@@ -540,8 +502,8 @@ public class XPathTest {
 	}
 
 
-	private void assertCanonical(ItemPath path, Class<? extends Containerable> clazz, String... representations) {
-    	CanonicalItemPath canonicalItemPath = CanonicalItemPath.create(path, clazz, PrismTestUtil.getPrismContext());
+	private void assertCanonical(UniformItemPath path, Class<? extends Containerable> clazz, String... representations) {
+    	CanonicalItemPathImpl canonicalItemPath = CanonicalItemPathImpl.create(path, clazz, getPrismContext());
 		System.out.println(path + " => " + canonicalItemPath.asString() + "  (" + clazz + ")");
 		for (int i = 0; i < representations.length; i++) {
     		String c = canonicalItemPath.allUpToIncluding(i).asString();

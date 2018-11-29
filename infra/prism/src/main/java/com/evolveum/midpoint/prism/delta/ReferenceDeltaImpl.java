@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.prism.delta;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -39,10 +40,6 @@ public class ReferenceDeltaImpl extends ItemDeltaImpl<PrismReferenceValue,PrismR
 
 	public ReferenceDeltaImpl(ItemPath parentPath, QName name, PrismReferenceDefinition itemDefinition, PrismContext prismContext) {
 		super(parentPath, name, itemDefinition, prismContext);
-	}
-
-	public ReferenceDeltaImpl(QName name, PrismReferenceDefinition itemDefinition, PrismContext prismContext) {
-		super(name, itemDefinition, prismContext);
 	}
 
 	@Override
@@ -86,25 +83,9 @@ public class ReferenceDeltaImpl extends ItemDeltaImpl<PrismReferenceValue,PrismR
      * Convenience method for quick creation of object deltas that replace a single object property. This is used quite often
      * to justify a separate method.
      */
-    public static Collection<? extends ItemDelta> createModificationReplaceCollection(QName propertyName,
-    		PrismObjectDefinition<?> objectDefinition, PrismReferenceValue refValue) {
-    	Collection<? extends ItemDelta> modifications = new ArrayList<>(1);
-    	ReferenceDeltaImpl delta = createModificationReplace(propertyName, objectDefinition, refValue);
-    	((Collection)modifications).add(delta);
-    	return modifications;
-    }
-
-    public static ReferenceDeltaImpl createModificationReplace(QName refName, PrismObjectDefinition<?> objectDefinition, String oid) {
-		return createModificationReplace(refName, objectDefinition, new PrismReferenceValueImpl(oid));
-	}
 
     public static ReferenceDeltaImpl createModificationReplace(ItemPath path, PrismObjectDefinition<?> objectDefinition, String oid) {
 		return createModificationReplace(path, objectDefinition, new PrismReferenceValueImpl(oid));
-	}
-
-    public static <O extends Objectable> ReferenceDeltaImpl createModificationReplace(QName refName, Class<O> type, PrismContext ctx , String oid) {
-    	PrismObjectDefinition<O> objectDefinition = ctx.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
-		return createModificationReplace(refName, objectDefinition, oid==null?null:new PrismReferenceValueImpl(oid));
 	}
 
     public static <O extends Objectable> ReferenceDeltaImpl createModificationReplace(ItemPath path, Class<O> type, PrismContext ctx, String oid) {
@@ -132,19 +113,7 @@ public class ReferenceDeltaImpl extends ItemDeltaImpl<PrismReferenceValue,PrismR
         return referenceDelta;
     }
 
-    public static ReferenceDeltaImpl createModificationReplace(QName refName, PrismObjectDefinition<?> objectDefinition,
-    		PrismReferenceValue refValue) {
-    	PrismReferenceDefinition referenceDefinition = objectDefinition.findItemDefinition(refName, PrismReferenceDefinition.class);
-    	ReferenceDeltaImpl referenceDelta = new ReferenceDeltaImpl(refName, referenceDefinition, objectDefinition.getPrismContext());              // hoping the prismContext is there
-    	if (refValue == null) {
-    		referenceDelta.setValueToReplace();
-    	} else {
-    		referenceDelta.setValueToReplace(refValue);
-    	}
-    	return referenceDelta;
-    }
-
-    public static Collection<? extends ItemDelta> createModificationAddCollection(QName propertyName,
+    public static Collection<? extends ItemDelta> createModificationAddCollection(ItemName propertyName,
     		PrismObjectDefinition<?> objectDefinition, PrismReferenceValue refValue) {
     	Collection<? extends ItemDelta<?,?>> modifications = createModificationsCollection(1);
     	ReferenceDeltaImpl delta = createModificationAdd(propertyName, objectDefinition, refValue);
@@ -156,22 +125,9 @@ public class ReferenceDeltaImpl extends ItemDeltaImpl<PrismReferenceValue,PrismR
 		return new ArrayList<>(initSize);
 	}
 
-	public static ReferenceDeltaImpl createModificationAdd(QName refName, PrismObjectDefinition<?> objectDefinition,
-    		String oid) {
-		return createModificationAdd(refName, objectDefinition, new PrismReferenceValueImpl(oid));
-	}
-
     public static ReferenceDeltaImpl createModificationAdd(ItemPath path, PrismObjectDefinition<?> objectDefinition,
                                                        String oid) {
         return createModificationAdd(path, objectDefinition, new PrismReferenceValueImpl(oid));
-    }
-
-    public static ReferenceDeltaImpl createModificationAdd(QName refName, PrismObjectDefinition<?> objectDefinition,
-    		PrismReferenceValue refValue) {
-    	PrismReferenceDefinition referenceDefinition = objectDefinition.findItemDefinition(refName, PrismReferenceDefinition.class);
-    	ReferenceDeltaImpl referenceDelta = new ReferenceDeltaImpl(refName, referenceDefinition, objectDefinition.getPrismContext());          // hoping the prismContext is there
-    	referenceDelta.addValueToAdd(refValue);
-    	return referenceDelta;
     }
 
     public static ReferenceDeltaImpl createModificationAdd(ItemPath path, PrismObjectDefinition<?> objectDefinition,
@@ -190,19 +146,19 @@ public class ReferenceDeltaImpl extends ItemDeltaImpl<PrismReferenceValue,PrismR
         return referenceDelta;
     }
 
-    public static <T extends Objectable> ReferenceDeltaImpl createModificationAdd(Class<T> type, QName refName, PrismContext prismContext,
+    public static <T extends Objectable> ReferenceDeltaImpl createModificationAdd(Class<T> type, ItemName refName, PrismContext prismContext,
     		PrismReferenceValue refValue) {
     	PrismObjectDefinition<T> objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
     	return createModificationAdd(refName, objectDefinition, refValue);
     }
 
-    public static <T extends Objectable> Collection<? extends ItemDelta> createModificationAddCollection(Class<T> type, QName refName, PrismContext prismContext,
+    public static <T extends Objectable> Collection<? extends ItemDelta> createModificationAddCollection(Class<T> type, ItemName refName, PrismContext prismContext,
     		String targetOid) {
     	PrismReferenceValue refValue = new PrismReferenceValueImpl(targetOid);
 		return createModificationAddCollection(type, refName, prismContext, refValue );
     }
 
-    public static <T extends Objectable> Collection<? extends ItemDelta> createModificationAddCollection(Class<T> type, QName refName, PrismContext prismContext,
+    public static <T extends Objectable> Collection<? extends ItemDelta> createModificationAddCollection(Class<T> type, ItemName refName, PrismContext prismContext,
     		PrismReferenceValue refValue) {
     	Collection<? extends ItemDelta<?,?>> modifications = createModificationsCollection(1);
     	ReferenceDeltaImpl delta = createModificationAdd(type, refName, prismContext, refValue);
@@ -210,13 +166,13 @@ public class ReferenceDeltaImpl extends ItemDeltaImpl<PrismReferenceValue,PrismR
     	return modifications;
     }
 
-    public static <T extends Objectable> ReferenceDeltaImpl createModificationAdd(Class<T> type, QName refName, PrismContext prismContext,
+    public static <T extends Objectable> ReferenceDeltaImpl createModificationAdd(Class<T> type, ItemName refName, PrismContext prismContext,
     		PrismObject<?> refTarget) {
     	PrismReferenceValue refValue = PrismReferenceValue.createFromTarget(refTarget);
     	return createModificationAdd(type, refName, prismContext, refValue);
     }
 
-    public static <T extends Objectable> Collection<? extends ItemDelta> createModificationAddCollection(Class<T> type, QName refName, PrismContext prismContext,
+    public static <T extends Objectable> Collection<? extends ItemDelta> createModificationAddCollection(Class<T> type, ItemName refName, PrismContext prismContext,
     		PrismObject<?> refTarget) {
     	Collection<? extends ItemDelta<?,?>> modifications = createModificationsCollection(1);
     	ReferenceDeltaImpl delta = createModificationAdd(type, refName, prismContext, refTarget);
@@ -254,8 +210,8 @@ public class ReferenceDeltaImpl extends ItemDeltaImpl<PrismReferenceValue,PrismR
 
     public static ReferenceDeltaImpl createModificationDelete(QName refName, PrismObjectDefinition<?> objectDefinition,
     		PrismReferenceValue refValue) {
-    	PrismReferenceDefinition referenceDefinition = objectDefinition.findItemDefinition(refName, PrismReferenceDefinition.class);
-    	ReferenceDeltaImpl referenceDelta = new ReferenceDeltaImpl(refName, referenceDefinition, objectDefinition.getPrismContext());              // hoping the prismContext is there
+    	PrismReferenceDefinition referenceDefinition = objectDefinition.findItemDefinition(ItemName.fromQName(refName), PrismReferenceDefinition.class);
+    	ReferenceDeltaImpl referenceDelta = new ReferenceDeltaImpl(ItemName.fromQName(refName), referenceDefinition, objectDefinition.getPrismContext());              // hoping the prismContext is there
     	referenceDelta.addValueToDelete(refValue);
     	return referenceDelta;
     }

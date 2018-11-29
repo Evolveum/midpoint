@@ -48,7 +48,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
@@ -1142,8 +1141,8 @@ public class TestStrings extends AbstractStoryTest {
 		ObjectDeltaOperation<? extends ObjectType> delta = deltas.iterator().next();
 		assertEquals("Wrong # of modifications in audit record delta", 1, delta.getObjectDelta().getModifications().size());
 		ItemDelta<?, ?> itemDelta = delta.getObjectDelta().getModifications().iterator().next();
-		if (!new ItemPath(UserType.F_DESCRIPTION).equivalent(itemDelta.getPath())) {
-			fail("Wrong item path in delta: expected: "+new ItemPath(UserType.F_DESCRIPTION)+", found: "+itemDelta.getPath());
+		if (!prismContext.path(UserType.F_DESCRIPTION).equivalent(itemDelta.getPath())) {
+			fail("Wrong item path in delta: expected: "+prismContext.path(UserType.F_DESCRIPTION)+", found: "+itemDelta.getPath());
 		}
 		assertEquals("Wrong value in delta", "Hello", itemDelta.getValuesToReplace().iterator().next().getRealValue());
 

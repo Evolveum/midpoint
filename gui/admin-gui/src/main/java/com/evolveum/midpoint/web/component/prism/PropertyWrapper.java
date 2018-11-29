@@ -103,7 +103,7 @@ public class PropertyWrapper<T> extends PropertyOrReferenceWrapper<PrismProperty
 //    }
 
 //    private boolean isThisPropertyActivationEnabled() {
-//        if (!new ItemPath(UserType.F_ACTIVATION).equivalent(container.getPath())) {
+//        if (!prismContext.path(UserType.F_ACTIVATION).equivalent(container.getPath())) {
 //            return false;
 //        }
 //

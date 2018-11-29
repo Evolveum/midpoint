@@ -21,7 +21,7 @@ import com.evolveum.midpoint.prism.marshaller.*;
 import com.evolveum.midpoint.prism.lex.LexicalProcessor;
 import com.evolveum.midpoint.prism.lex.LexicalProcessorRegistry;
 import com.evolveum.midpoint.prism.lex.dom.DomLexicalProcessor;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.polystring.AlphanumericPolyStringNormalizer;
 import com.evolveum.midpoint.prism.polystring.ConfigurableNormalizer;
@@ -390,14 +390,14 @@ public class PrismContextImpl implements PrismContext {
 	public <C extends Containerable, O extends Objectable> void adopt(PrismContainerValue<C> prismContainerValue, Class<O> type,
 			ItemPath path) throws SchemaException {
 		prismContainerValue.revive(this);
-		getSchemaRegistry().applyDefinition(prismContainerValue, type, path, false);
+		getSchemaRegistry().applyDefinition(prismContainerValue, type, path(path), false);
 	}
 
 	@Override
 	public <C extends Containerable, O extends Objectable> void adopt(PrismContainerValue<C> prismContainerValue, QName typeName,
 			ItemPath path) throws SchemaException {
 		prismContainerValue.revive(this);
-		getSchemaRegistry().applyDefinition(prismContainerValue, typeName, path, false);
+		getSchemaRegistry().applyDefinition(prismContainerValue, typeName, UniformItemPathImpl.fromItemPath(path), false);
 	}
     //endregion
 
@@ -524,5 +524,25 @@ public class PrismContextImpl implements PrismContext {
 	@Override
 	public ParsingContext createParsingContextForCompatibilityMode() {
 		return ParsingContextImpl.createForCompatibilityMode();
+	}
+
+	@Override
+	public UniformItemPath emptyPath() {
+		return UniformItemPathImpl.EMPTY_PATH;
+	}
+
+	@Override
+	public UniformItemPath path(String... names) {
+		return new UniformItemPathImpl(names);
+	}
+
+	@Override
+	public UniformItemPath path(@NotNull ItemPath itemPath) {
+		return new UniformItemPathImpl(itemPath);
+	}
+
+	@Override
+	public UniformItemPath path(Object... namesOrIdsOrSegments) {
+		return new UniformItemPathImpl(namesOrIdsOrSegments);
 	}
 }

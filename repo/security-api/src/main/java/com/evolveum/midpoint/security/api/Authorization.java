@@ -27,7 +27,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.security.core.GrantedAuthority;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
@@ -119,24 +119,24 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
 	}
 	
 	@NotNull
-	public Collection<ItemPath> getItems() {
+	public Collection<UniformItemPath> getItems() {
 		List<ItemPathType> itemPaths = getItem();
 		// TODO: maybe we can cache the itemPaths here?
-		Collection<ItemPath> items = new ArrayList<>(itemPaths.size());
+		Collection<UniformItemPath> items = new ArrayList<>(itemPaths.size());
 		for (ItemPathType itemPathType: itemPaths) {
-			ItemPath itemPath = itemPathType.getItemPath();
+			UniformItemPath itemPath = itemPathType.getUniformItemPath();
 			items.add(itemPath);
 		}
 		return items;
 	}
 	
 	@NotNull
-	public Collection<ItemPath> getExceptItems() {
+	public Collection<UniformItemPath> getExceptItems() {
 		List<ItemPathType> itemPaths = getExceptItem();
 		// TODO: maybe we can cache the itemPaths here?
-		Collection<ItemPath> items = new ArrayList<>(itemPaths.size());
+		Collection<UniformItemPath> items = new ArrayList<>(itemPaths.size());
 		for (ItemPathType itemPathType: itemPaths) {
-			ItemPath itemPath = itemPathType.getItemPath();
+			UniformItemPath itemPath = itemPathType.getUniformItemPath();
 			items.add(itemPath);
 		}
 		return items;

@@ -17,7 +17,7 @@ package com.evolveum.midpoint.prism.delta;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 
@@ -28,9 +28,9 @@ import com.evolveum.midpoint.util.DebugUtil;
 public class PartiallyResolvedDelta<V extends PrismValue,D extends ItemDefinition> implements DebugDumpable {
 
 	private ItemDelta<V,D> delta;
-	private ItemPath residualPath;
+	private UniformItemPath residualPath;
 
-	public PartiallyResolvedDelta(ItemDelta<V,D> itemDelta, ItemPath residualPath) {
+	public PartiallyResolvedDelta(ItemDelta<V,D> itemDelta, UniformItemPath residualPath) {
 		super();
 		this.delta = itemDelta;
 		this.residualPath = residualPath;
@@ -44,11 +44,11 @@ public class PartiallyResolvedDelta<V extends PrismValue,D extends ItemDefinitio
 		this.delta = itemDelta;
 	}
 
-	public ItemPath getResidualPath() {
+	public UniformItemPath getResidualPath() {
 		return residualPath;
 	}
 
-	public void setResidualPath(ItemPath residualPath) {
+	public void setResidualPath(UniformItemPath residualPath) {
 		this.residualPath = residualPath;
 	}
 

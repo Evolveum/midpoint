@@ -23,8 +23,9 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPathImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -117,12 +118,12 @@ public class ObjectDeltaObject<O extends Objectable> extends ItemDeltaItem<Prism
 	@Override
 	public <IV extends PrismValue,ID extends ItemDefinition> ItemDeltaItem<IV,ID> findIdi(ItemPath path) {
 		Item<IV,ID> subItemOld = null;
-		ItemPath subResidualPath = null;
+		UniformItemPath subResidualPath = null;
 		if (oldObject != null) {
 			PartiallyResolvedItem<IV,ID> partialOld = oldObject.findPartial(path);
 			if (partialOld != null) {
 				subItemOld = partialOld.getItem();
-				subResidualPath = partialOld.getResidualPath();
+				subResidualPath = UniformItemPathImpl.fromItemPath(partialOld.getResidualPath());
 			}
 		}
 		Item<IV,ID> subItemNew = null;
@@ -131,7 +132,7 @@ public class ObjectDeltaObject<O extends Objectable> extends ItemDeltaItem<Prism
 			if (partialNew != null) {
 				subItemNew = partialNew.getItem();
 				if (subResidualPath == null) {
-					subResidualPath = partialNew.getResidualPath();
+					subResidualPath = UniformItemPathImpl.fromItemPath(partialNew.getResidualPath());
 				}
 			}
 		}
@@ -150,7 +151,7 @@ public class ObjectDeltaObject<O extends Objectable> extends ItemDeltaItem<Prism
 	            }
 			} else if (delta.getChangeType() == ChangeType.DELETE) {
 				if (subItemOld != null) {
-					ItemPath subPath = subItemOld.getPath().remainder(path);
+					UniformItemPath subPath = subItemOld.getPath().remainder(path);
 					PartiallyResolvedItem<IV,ID> partialValue = subItemOld.findPartial(subPath);
 		            if (partialValue != null && partialValue.getItem() != null) {
 			            Item<IV,ID> item = partialValue.getItem();
@@ -162,22 +163,22 @@ public class ObjectDeltaObject<O extends Objectable> extends ItemDeltaItem<Prism
 				}
 			} else if (delta.getChangeType() == ChangeType.MODIFY) {
 				for (ItemDelta<?,?> modification: delta.getModifications()) {
-	        		CompareResult compareComplex = modification.getPath().compareComplex(path);
-	        		if (compareComplex == CompareResult.EQUIVALENT) {
+	        		ItemPath.CompareResult compareComplex = modification.getPath().compareComplex(path);
+	        		if (compareComplex == ItemPath.CompareResult.EQUIVALENT) {
 	        			if (itemDelta != null) {
 	        				throw new IllegalStateException("Conflicting modification in delta "+delta+": "+itemDelta+" and "+modification);
 	        			}
 	        			itemDelta = (ItemDelta<IV,ID>) modification;
-	        		} else if (compareComplex == CompareResult.SUPERPATH) {
+	        		} else if (compareComplex == ItemPath.CompareResult.SUPERPATH) {
 	        			if (subSubItemDeltas == null) {
 	        				subSubItemDeltas = new ArrayList<>();
 	        			}
 	        			((Collection)subSubItemDeltas).add(modification);
-	        		} else if (compareComplex == CompareResult.SUBPATH) {
+	        		} else if (compareComplex == ItemPath.CompareResult.SUBPATH) {
 	        			if (itemDelta != null) {
 	        				throw new IllegalStateException("Conflicting modification in delta "+delta+": "+itemDelta+" and "+modification);
 	        			}
-	        			itemDelta = (ItemDelta<IV,ID>) modification.getSubDelta(path.substract(modification.getPath()));
+	        			itemDelta = (ItemDelta<IV,ID>) modification.getSubDelta(path.remainder(modification.getPath()));
 	        		}
 	        	}
 			}

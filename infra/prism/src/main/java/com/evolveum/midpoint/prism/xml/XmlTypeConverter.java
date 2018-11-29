@@ -16,8 +16,8 @@
 package com.evolveum.midpoint.prism.xml;
 
 import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.marshaller.ItemPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -150,7 +150,7 @@ public class XmlTypeConverter {
         	return (T) getDatatypeFactory().newDuration(stringContent);
         } else if (type.equals(PolyString.class)) {
         	return (T) new PolyString(stringContent);
-        } else if (type.equals(ItemPath.class)) {
+        } else if (type.equals(UniformItemPath.class)) {
         	throw new UnsupportedOperationException("Path conversion not supported yet");
         } else {
         	if (exceptionOnUnknown) {
@@ -314,9 +314,8 @@ public class XmlTypeConverter {
         	return ((XMLGregorianCalendar) val).toXMLFormat();
         } else if (Duration.class.isAssignableFrom(type)) {
         	return ((Duration) val).toString();
-        } else if (type.equals(ItemPath.class)){
-        	ItemPathHolder xpath = new ItemPathHolder((ItemPath)val);
-        	return xpath.getXPath();
+        } else if (type.equals(UniformItemPath.class) || type.equals(ItemPath.class)) {
+        	return ((ItemPath) val).serializeWithDeclarations();
         } else {
             throw new IllegalArgumentException("Unknown type for conversion: " + type + "(element " + elementName + ")");
         }

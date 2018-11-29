@@ -18,7 +18,6 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -76,8 +75,8 @@ public class SearchTest extends BaseSQLRepoTest {
 
 		FullTextSearchConfigurationType fullTextConfig = new FullTextSearchConfigurationType();
 		FullTextSearchIndexedItemsConfigurationType entry = new FullTextSearchIndexedItemsConfigurationType();
-		entry.getItem().add(new ItemPath(ObjectType.F_NAME).asItemPathType());
-		entry.getItem().add(new ItemPath(ObjectType.F_DESCRIPTION).asItemPathType());
+		entry.getItem().add(prismContext.path(ObjectType.F_NAME).asItemPathType());
+		entry.getItem().add(prismContext.path(ObjectType.F_DESCRIPTION).asItemPathType());
 		fullTextConfig.getIndexed().add(entry);
 		repositoryService.applyFullTextSearchConfiguration(fullTextConfig);
 		LOGGER.info("Applying full text search configuration: {}", fullTextConfig);
@@ -162,7 +161,7 @@ public class SearchTest extends BaseSQLRepoTest {
         LOGGER.trace(">>>>>> iterateGeneral: offset = " + offset + ", size = " + size + ", batch = " + batch + " <<<<<<");
 
         ObjectQuery query = new ObjectQuery();
-        query.setPaging(ObjectPaging.createPaging(offset, size, ObjectType.F_NAME, OrderDirection.ASCENDING));
+        query.setPaging(ObjectPaging.createPaging(offset, size, prismContext.path(ObjectType.F_NAME), OrderDirection.ASCENDING));
         repositoryService.searchObjectsIterative(UserType.class, query, handler, null, false, result);
         result.recomputeStatus();
 
@@ -543,7 +542,7 @@ public class SearchTest extends BaseSQLRepoTest {
         final String oid = SystemObjectsType.USER_ADMINISTRATOR.value();
         ItemDefinition<?> ownerRefDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(RoleType.class).findItemDefinition(RoleType.F_OWNER_REF);
         ObjectQuery query = QueryBuilder.queryFor(ObjectType.class, prismContext)
-                .item(new ItemPath(new QName(SchemaConstants.NS_C, "ownerRef")), ownerRefDef).ref(oid)
+                .item(prismContext.path(new QName(SchemaConstants.NS_C, "ownerRef")), ownerRefDef).ref(oid)
                 .build();
         OperationResult result = new OperationResult("search");
         try {

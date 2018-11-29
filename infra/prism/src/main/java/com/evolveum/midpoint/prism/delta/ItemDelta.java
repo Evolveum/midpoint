@@ -27,26 +27,14 @@ import java.util.function.Function;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.marshaller.ItemPathHolder;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Foreachable;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.Processor;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
-import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -55,16 +43,17 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface ItemDelta<V extends PrismValue,D extends ItemDefinition> extends Itemable, DebugDumpable, Visitable, PathVisitable, Foreachable<V>, Serializable {
 
-	QName getElementName();
+	ItemName getElementName();
 
 	void setElementName(QName elementName);
 
-	ItemPath getParentPath();
+	UniformItemPath getParentPath();
 
 	void setParentPath(ItemPath parentPath);
 
+	@NotNull
 	@Override
-	ItemPath getPath();
+	UniformItemPath getPath();
 
 	D getDefinition();
 
@@ -86,12 +75,12 @@ public interface ItemDelta<V extends PrismValue,D extends ItemDefinition> extend
 	static void applyDefinitionIfPresent(Collection<? extends ItemDelta> deltas,
 			PrismObjectDefinition definition, boolean tolerateNoDefinition) throws SchemaException {
 		for (ItemDelta itemDelta : deltas) {
-			ItemPath path = itemDelta.getPath();
-			ItemDefinition itemDefinition = definition.findItemDefinition(path, ItemDefinition.class);
+			UniformItemPath path = itemDelta.getPath();
+			ItemDefinition itemDefinition = ((ItemDefinition) definition).findItemDefinition(path, ItemDefinition.class);
             if (itemDefinition != null) {
 				itemDelta.applyDefinition(itemDefinition);
 			} else if (!tolerateNoDefinition) {
-				throw new SchemaException("Object type " + definition.getTypeName() + " doesn't contain definition for path " + new ItemPathHolder(path).getXPathWithDeclarations());
+				throw new SchemaException("Object type " + definition.getTypeName() + " doesn't contain definition for path " + path.serializeWithDeclarations());
 			}
 		}
 	}
@@ -236,25 +225,13 @@ public interface ItemDelta<V extends PrismValue,D extends ItemDefinition> extend
 
 	void clear();
 
-	static <T> PropertyDelta<T> findPropertyDelta(Collection<? extends ItemDelta> deltas, QName propertyName) {
-        return findPropertyDelta(deltas, new ItemPath(propertyName));
-    }
-
-    static <T> PropertyDelta<T> findPropertyDelta(Collection<? extends ItemDelta> deltas, ItemPath parentPath, QName propertyName) {
-        return findPropertyDelta(deltas, new ItemPath(parentPath, propertyName));
-    }
-
     static <T> PropertyDelta<T> findPropertyDelta(Collection<? extends ItemDelta> deltas, ItemPath propertyPath) {
     	return findItemDelta(deltas, propertyPath, PropertyDelta.class, false);
     }
 
     static <X extends Containerable> ContainerDelta<X> findContainerDelta(Collection<? extends ItemDelta> deltas,
-		    ItemPath propertyPath) {
+		    UniformItemPath propertyPath) {
     	return findItemDelta(deltas, propertyPath, ContainerDelta.class, false);
-    }
-
-    static <X extends Containerable> ContainerDelta<X> findContainerDelta(Collection<? extends ItemDelta> deltas, QName name) {
-    	return findContainerDelta(deltas, new ItemPath(name));
     }
 
     // 'strict' means we avoid returning deltas that only partially match. This is NOT a definite solution, see MID-4689
@@ -270,7 +247,7 @@ public interface ItemDelta<V extends PrismValue,D extends ItemDefinition> extend
             // e.g. when deleting credentials we match also deletion of credentials/password (is that correct?)
             if (!strict && delta instanceof ContainerDelta<?> && delta.getPath().isSubPath(propertyPath)) {
 	            //noinspection unchecked
-	            return (DD) ((ContainerDelta)delta).getSubDelta(propertyPath.remainder(delta.getPath()));
+	            return (DD) ((ContainerDelta)delta).getSubDelta(UniformItemPathImpl.fromItemPath(propertyPath).remainder(delta.getPath()));  // todo
             }
         }
         return null;
@@ -288,14 +265,6 @@ public interface ItemDelta<V extends PrismValue,D extends ItemDefinition> extend
             }
         }
         return foundDeltas;
-    }
-
-    static <D extends ItemDelta> D findItemDelta(Collection<? extends ItemDelta> deltas, QName itemName, Class<D> deltaType) {
-    	return findItemDelta(deltas, new ItemPath(itemName), deltaType, false);
-    }
-
-    static ReferenceDelta findReferenceModification(Collection<? extends ItemDelta> deltas, QName itemName) {
-    	return findItemDelta(deltas, itemName, ReferenceDelta.class);
     }
 
     static <D extends ItemDelta> void removeItemDelta(Collection<? extends ItemDelta> deltas, ItemPath propertyPath,
@@ -365,7 +334,7 @@ public interface ItemDelta<V extends PrismValue,D extends ItemDefinition> extend
 
 	static void checkConsistence(Collection<? extends ItemDelta> deltas, boolean requireDefinition, boolean prohibitRaw,
 			ConsistencyCheckScope scope) {
-		Map<ItemPath,ItemDelta<?,?>> pathMap = new HashMap<>();
+		Map<UniformItemPath,ItemDelta<?,?>> pathMap = new HashMap<>();
 		for (ItemDelta<?,?> delta : deltas) {
 			delta.checkConsistence(requireDefinition, prohibitRaw, scope);
 			int matches = 0;
@@ -445,15 +414,16 @@ public interface ItemDelta<V extends PrismValue,D extends ItemDefinition> extend
 
 	boolean isApplicableTo(Item item);
 
-	static void accept(Collection<? extends ItemDelta> modifications, Visitor visitor, ItemPath path,
+	static void accept(Collection<? extends ItemDelta> modifications, Visitor visitor, ItemPath simplePath,
 			boolean recursive) {
+		UniformItemPath path = UniformItemPathImpl.fromItemPath(simplePath);    // todo fixme
 		for (ItemDelta modification: modifications) {
-			ItemPath modPath = modification.getPath();
-			CompareResult rel = modPath.compareComplex(path);
-			if (rel == CompareResult.EQUIVALENT) {
+			UniformItemPath modPath = modification.getPath();
+			ItemPath.CompareResult rel = modPath.compareComplex(path);
+			if (rel == ItemPath.CompareResult.EQUIVALENT) {
 				modification.accept(visitor, null, recursive);
-			} else if (rel == CompareResult.SUBPATH) {
-				modification.accept(visitor, path.substract(modPath), recursive);
+			} else if (rel == ItemPath.CompareResult.SUBPATH) {
+				modification.accept(visitor, path.remainder(modPath), recursive);
 			}
 		}
 	}
@@ -492,7 +462,7 @@ public interface ItemDelta<V extends PrismValue,D extends ItemDefinition> extend
 
 	ItemDelta<V,D> clone();
 
-	ItemDelta<V,D> cloneWithChangedParentPath(ItemPath newParentPath);
+	ItemDelta<V,D> cloneWithChangedParentPath(UniformItemPath newParentPath);
 
 	static <D extends ItemDelta<?,?>> Collection<D> cloneCollection(Collection<D> orig) {
 		if (orig == null) {
@@ -645,10 +615,10 @@ public interface ItemDelta<V extends PrismValue,D extends ItemDefinition> extend
 		return rv;
 	}
 
-	static boolean pathMatches(@NotNull Collection<? extends ItemDelta<?, ?>> deltas, @NotNull ItemPath path, int segmentsToSkip,
+	static boolean pathMatches(@NotNull Collection<? extends ItemDelta<?, ?>> deltas, @NotNull UniformItemPath path, int segmentsToSkip,
 			boolean exactMatch) {
 		for (ItemDelta<?, ?> delta : deltas) {
-			ItemPath modifiedPath = delta.getPath().tail(segmentsToSkip).removeIdentifiers();   // because of extension/cities[2]/name (in delta) vs. extension/cities/name (in spec)
+			UniformItemPath modifiedPath = delta.getPath().rest(segmentsToSkip).removeIds();   // because of extension/cities[2]/name (in delta) vs. extension/cities/name (in spec)
 			if (exactMatch) {
 				if (path.equivalent(modifiedPath)) {
 					return true;

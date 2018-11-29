@@ -260,7 +260,7 @@ public class ConstraintsChecker {
 		if (cache == null) {
 			return;
 		}
-		ItemPath attributesPath = new ItemPath(ShadowType.F_ATTRIBUTES);
+		ItemPath attributesPath = ShadowType.F_ATTRIBUTES;
 		for (ItemDelta itemDelta : deltas) {
 			if (attributesPath.isSubPathOrEquivalent(itemDelta.getParentPath())) {
 				log("Clearing cache on shadow attribute modify operation");
