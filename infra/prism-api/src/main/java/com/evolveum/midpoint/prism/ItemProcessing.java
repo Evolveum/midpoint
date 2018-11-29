@@ -15,8 +15,6 @@
  */
 package com.evolveum.midpoint.prism;
 
-import org.springframework.util.IdGenerator;
-
 /**
  * @author semancik
  *
