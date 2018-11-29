@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerValueWrapperModel;
+import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerModel;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -85,7 +85,7 @@ public class PolicyRulesPanel extends AssignmentPanel {
             public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> cellItem, String componentId,
                                      final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
             	ContainerWrapper<PolicyRuleType> policyRuleWrapper = rowModel.getObject().findContainerWrapper(new ItemPath(rowModel.getObject().getPath(), AssignmentType.F_POLICY_RULE));
-            	PropertyWrapperFromContainerValueWrapperModel<String, PolicyRuleType> propertyModel = new PropertyWrapperFromContainerValueWrapperModel(policyRuleWrapper.getValues().get(0), PolicyRuleType.F_POLICY_SITUATION);
+            	PropertyWrapperFromContainerModel<String, PolicyRuleType> propertyModel = new PropertyWrapperFromContainerModel(policyRuleWrapper, PolicyRuleType.F_POLICY_SITUATION);
             	String situationValue = propertyModel.getObject().getValues().get(0).getValue().getRealValue();
                 cellItem.add(new Label(componentId, Model.of(situationValue)));
             }
@@ -111,7 +111,7 @@ public class PolicyRulesPanel extends AssignmentPanel {
             @Override
             public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> cellItem, String componentId,
                                      final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-            	PropertyWrapperFromContainerValueWrapperModel<Integer, AssignmentType> propertyModel = new PropertyWrapperFromContainerValueWrapperModel(rowModel.getObject(), AssignmentType.F_ORDER);
+            	PropertyWrapperFromContainerModel<Integer, AssignmentType> propertyModel = new PropertyWrapperFromContainerModel(rowModel.getObject(), AssignmentType.F_ORDER);
                 
                 String orderValue;
                 if (propertyModel == null || propertyModel.getObject().getValues().get(0).getValue().getRealValue() == null){

@@ -25,7 +25,7 @@ import org.apache.wicket.model.Model;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerValueWrapperModel;
+import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerModel;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -236,7 +236,7 @@ public class AssignmentsUtil {
 
 		if (assignment.getPolicyRule() != null){
 			ContainerWrapper<PolicyRuleType> policyRuleWrapper = assignmentValueWrapper.findContainerWrapper(new ItemPath(assignmentValueWrapper.getPath(), AssignmentType.F_POLICY_RULE));
-			PropertyWrapperFromContainerValueWrapperModel<String, AssignmentType> propertyModel = new PropertyWrapperFromContainerValueWrapperModel(policyRuleWrapper.getValues().get(0), PolicyRuleType.F_NAME);
+			PropertyWrapperFromContainerModel<String, AssignmentType> propertyModel = new PropertyWrapperFromContainerModel(policyRuleWrapper, PolicyRuleType.F_NAME);
 	    	String name = propertyModel.getObject().getValues().get(0).getValue().getRealValue();
 			if (StringUtils.isNotEmpty(name)){
                 return name;
