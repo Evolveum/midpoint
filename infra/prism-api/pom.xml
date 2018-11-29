@@ -45,10 +45,10 @@
             <!--<groupId>org.apache.cxf</groupId>-->
             <!--<artifactId>cxf-rt-wsdl</artifactId>-->
         <!--</dependency>-->
-        <!--<dependency>-->
-            <!--<groupId>commons-lang</groupId>-->
-            <!--<artifactId>commons-lang</artifactId>-->
-        <!--</dependency>-->
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+        </dependency>
 		<!--<dependency>-->
 			<!--<groupId>org.apache.commons</groupId>-->
 			<!--<artifactId>commons-lang3</artifactId>-->
@@ -61,10 +61,10 @@
 			<groupId>org.apache.santuario</groupId>
 			<artifactId>xmlsec</artifactId>
 		</dependency>
-        <!--<dependency>-->
-            <!--<groupId>org.jetbrains</groupId>-->
-            <!--<artifactId>annotations-java5</artifactId>-->
-        <!--</dependency>-->
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations-java5</artifactId>
+        </dependency>
 		<!--<dependency>-->
 		  <!--<groupId>com.fasterxml.jackson.core</groupId>-->
 		  <!--<artifactId>jackson-core</artifactId>-->
@@ -77,10 +77,10 @@
 			<!--<groupId>org.yaml</groupId>-->
 			<!--<artifactId>snakeyaml</artifactId>-->
 		<!--</dependency>-->
-		<!--<dependency>-->
-		  <!--<groupId>org.springframework</groupId>-->
-		  <!--<artifactId>spring-core</artifactId>-->
-		<!--</dependency>-->
+		<dependency>
+		  <groupId>org.springframework</groupId>
+		  <artifactId>spring-core</artifactId>
+		</dependency>
 		<!--<dependency>-->
 		  <!--<groupId>org.springframework</groupId>-->
 		  <!--<artifactId>spring-beans</artifactId>-->
@@ -101,10 +101,10 @@
 		  <!--<groupId>com.sun.xml.bind</groupId>-->
 		  <!--<artifactId>jaxb-impl</artifactId>-->
 		<!--</dependency>-->
-		<!--<dependency>-->
-		  <!--<groupId>org.jvnet.jaxb2_commons</groupId>-->
-		  <!--<artifactId>jaxb2-basics-runtime</artifactId>-->
-		<!--</dependency>-->
+		<dependency>
+		  <groupId>org.jvnet.jaxb2_commons</groupId>
+		  <artifactId>jaxb2-basics-runtime</artifactId>
+		</dependency>
 		<!--<dependency>-->
 			<!--&lt;!&ndash; make this dependency explicit to detect conflicts with older versions &ndash;&gt;-->
 		  <!--<groupId>org.codehaus.woodstox</groupId>-->

@@ -44,7 +44,7 @@ public class SearchingUtils {
 		}
 		String propertyName = sortParam.getProperty();
 
-		ItemPath casePath = isWorkItem ? T_PARENT : ItemPath.EMPTY_PATH;
+		ItemPath casePath = isWorkItem ? ItemName.fromQName(T_PARENT) : ItemPath.EMPTY_PATH;
 		ItemPath campaignPath = casePath.append(T_PARENT);
 		ItemPath primaryItemPath;
 		if (TARGET_NAME.equals(propertyName)) {
@@ -70,7 +70,7 @@ public class SearchingUtils {
 		rv.add(ObjectOrdering.createOrdering(campaignPath.append(PrismConstants.T_ID), OrderDirection.ASCENDING)); 	// campaign OID
 		rv.add(ObjectOrdering.createOrdering(casePath.append(PrismConstants.T_ID), OrderDirection.ASCENDING));			// case ID
 		if (isWorkItem) {
-			rv.add(ObjectOrdering.createOrdering(PrismConstants.T_ID, OrderDirection.ASCENDING));			// work item ID
+			rv.add(ObjectOrdering.createOrdering(ItemName.fromQName(PrismConstants.T_ID), OrderDirection.ASCENDING));			// work item ID
 		}
 		return rv;
 	}

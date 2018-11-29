@@ -34,7 +34,7 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.PrismConstantsTemp;
+import com.evolveum.midpoint.prism.PrismConstants;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -51,7 +51,7 @@ import com.evolveum.midpoint.util.JAXBUtil;
 })
 public class ObjectReferenceType implements Serializable {
 
-    public final static QName COMPLEX_TYPE = new QName(PrismConstantsTemp.NS_TYPES, "ObjectReferenceType");
+    public final static QName COMPLEX_TYPE = new QName(PrismConstants.NS_TYPES, "ObjectReferenceType");
 
     protected String description;
     protected ObjectReferenceType.Filter filter;

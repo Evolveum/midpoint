@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,14 +21,12 @@ import com.evolveum.midpoint.prism.PrismConstants;
 import javax.xml.namespace.QName;
 
 /**
- * Denotes referenced object, like "assignment/targetRef/@/name" (name of assignment's target object)
- *
- * @author mederly
+ * Denotes parent object or container.
  */
-public class ObjectReferencePathSegment extends ReferencePathSegment {
+public class ParentPathSegment extends ReferencePathSegment {
 
-	public static final String SYMBOL = "@";
-	public static final QName QNAME = PrismConstants.T_OBJECT_REFERENCE;
+    public static final String SYMBOL = "..";
+    public static final QName QNAME = PrismConstants.T_PARENT;
 
 	@Override
     public boolean equivalent(Object obj) {
@@ -37,7 +35,7 @@ public class ObjectReferencePathSegment extends ReferencePathSegment {
 
     @Override
     public ItemPathSegment clone() {
-        return new ObjectReferencePathSegment();
+        return new ParentPathSegment();
     }
 
     @Override

@@ -18,6 +18,7 @@ package com.evolveum.midpoint.task.quartzimpl.work.segmentation.content;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -76,7 +77,7 @@ public abstract class IntervalWorkBucketContentHandler extends BaseWorkBucketCon
 		if (discriminatorPathType != null) {
 			return discriminatorPathType.getItemPath();
 		} else if (configuration instanceof OidWorkSegmentationType) {
-			return PrismConstants.T_ID;
+			return ItemName.fromQName(PrismConstants.T_ID);     // fixme
 		} else {
 			throw new IllegalStateException("No buckets discriminator defined; bucket content = " + content);
 		}

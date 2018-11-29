@@ -1835,7 +1835,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			secChildFilter = NoneFilter.createNone();
 		} else {
 			ObjectFilter origChildFilter = origQuery != null ? origQuery.getFilter() : null;
-			ObjectFilter secChildFilterParentPart = ExistsFilter.createExists(PrismConstants.T_PARENT,
+			ObjectFilter secChildFilterParentPart = ExistsFilter.createExists(ItemName.fromQName(PrismConstants.T_PARENT),  // fixme
 					containerType, prismContext, secParentFilter);
 			if (origChildFilter == null) {
 				secChildFilter = secChildFilterParentPart;
