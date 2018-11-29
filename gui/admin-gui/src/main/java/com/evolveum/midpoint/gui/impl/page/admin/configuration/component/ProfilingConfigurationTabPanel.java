@@ -45,8 +45,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfiguration
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingLevelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProfilingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.gui.impl.model.RealContainerValueFromContainerValueWrapperModel;
-import com.evolveum.midpoint.gui.impl.model.ValueWrapperOfSingleValuePropertyFromSingleValueContainerValueWrapperModel;
+import com.evolveum.midpoint.gui.impl.model.ContainerRealValueModel;
+import com.evolveum.midpoint.gui.impl.model.PropertyValueWrapperModel;
+import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerModel;
 
 /**
  * @author skublik
@@ -108,7 +109,7 @@ public class ProfilingConfigurationTabPanel extends BasePanel<ContainerWrapper<P
     	ContainerValueWrapper<ClassLoggerConfigurationType> profilingLogger = null;
     	
     	for (ContainerValueWrapper<ClassLoggerConfigurationType> logger : loggerModel.getObject().getValues()) {
-			if (LOGGER_PROFILING.equals(new RealContainerValueFromContainerValueWrapperModel<ClassLoggerConfigurationType>(logger).getObject().getPackage())) {
+			if (LOGGER_PROFILING.equals(new ContainerRealValueModel<ClassLoggerConfigurationType>(logger).getObject().getPackage())) {
 				profilingLogger = logger;
 				continue;
 			}
@@ -116,10 +117,11 @@ public class ProfilingConfigurationTabPanel extends BasePanel<ContainerWrapper<P
     	
     	if(profilingLogger == null) {
     		profilingLogger = WebModelServiceUtils.createNewItemContainerValueWrapper(getPageBase(), loggerModel);
-    		new RealContainerValueFromContainerValueWrapperModel<ClassLoggerConfigurationType>(profilingLogger).getObject().setPackage(LOGGER_PROFILING);
+    		new ContainerRealValueModel<ClassLoggerConfigurationType>(profilingLogger).getObject().setPackage(LOGGER_PROFILING);
     	}
     	
-    	ValueWrapperOfSingleValuePropertyFromSingleValueContainerValueWrapperModel<LoggingLevelType, ClassLoggerConfigurationType> level = new ValueWrapperOfSingleValuePropertyFromSingleValueContainerValueWrapperModel<>(profilingLogger, ClassLoggerConfigurationType.F_LEVEL);
+    	PropertyWrapperFromContainerModel<LoggingLevelType, ClassLoggerConfigurationType> property = new PropertyWrapperFromContainerModel<>(profilingLogger, ClassLoggerConfigurationType.F_LEVEL);
+    	PropertyValueWrapperModel<LoggingLevelType> level = new PropertyValueWrapperModel<LoggingLevelType>(property.getObject());
     	
     	DropDownFormGroup<ProfilingLevel> dropDownProfilingLevel = new DropDownFormGroup<>(ID_PROFILING_LOGGER_LEVEL, new Model<ProfilingLevel>() {
 

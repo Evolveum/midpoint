@@ -31,9 +31,8 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.data.column.EditableColumn;
 import com.evolveum.midpoint.gui.impl.component.form.TriStateFormGroup;
-import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerWrapperModel;
-import com.evolveum.midpoint.gui.impl.model.RealValueFromSingleValuePropertyWrapperModel;
-import com.evolveum.midpoint.gui.impl.model.RealValueOfSingleValuePropertyFromSingleValueContainerWrapperModel;
+import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
+import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerModel;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import org.apache.commons.lang3.StringUtils;
@@ -140,16 +139,17 @@ public class NotificationConfigTabPanel extends BasePanel<ContainerWrapper<Notif
 
 	protected void initLayout() {
 		
-		PropertyWrapperFromContainerWrapperModel<MailConfigurationType, NotificationConfigurationType> mailConfig = 
-				new PropertyWrapperFromContainerWrapperModel<MailConfigurationType, NotificationConfigurationType>(getModel().getObject(), NotificationConfigurationType.F_MAIL);
+		PropertyWrapperFromContainerModel<MailConfigurationType, NotificationConfigurationType> mailConfig = 
+				new PropertyWrapperFromContainerModel<MailConfigurationType, NotificationConfigurationType>(getModel().getObject(), NotificationConfigurationType.F_MAIL);
 		
 		add(createHeader(ID_MAIL_CONFIG_HEADER, mailConfig.getObject().getItemDefinition().getTypeName().getLocalPart() + ".details"));
 		
 		Form form = new Form<>("form");
 		
 		
-		
-		mailConfigType = new RealValueFromSingleValuePropertyWrapperModel<MailConfigurationType>(mailConfig).getObject();
+		if(mailConfig != null) {
+			mailConfigType = new ItemRealValueModel<MailConfigurationType>(mailConfig.getObject()).getObject();
+		}
 		
 		if(mailConfigType == null) {
 			mailConfigType = new MailConfigurationType();
@@ -170,8 +170,8 @@ public class NotificationConfigTabPanel extends BasePanel<ContainerWrapper<Notif
         
         add(createHeader(ID_FILE_CONFIG_HEADER, FileConfigurationType.COMPLEX_TYPE.getLocalPart() + ".details"));
         
-        PropertyWrapperFromContainerWrapperModel<FileConfigurationType, NotificationConfigurationType> fileConfig = 
-        		new PropertyWrapperFromContainerWrapperModel<FileConfigurationType, NotificationConfigurationType>(getModel().getObject(), NotificationConfigurationType.F_FILE);
+        PropertyWrapperFromContainerModel<FileConfigurationType, NotificationConfigurationType> fileConfig = 
+        		new PropertyWrapperFromContainerModel<FileConfigurationType, NotificationConfigurationType>(getModel().getObject(), NotificationConfigurationType.F_FILE);
         
         WebMarkupContainer files = new WebMarkupContainer(ID_FILE_CONFIG);
         files.setOutputMarkupId(true);
@@ -500,9 +500,9 @@ public class NotificationConfigTabPanel extends BasePanel<ContainerWrapper<Notif
 			return;
 		}
 		
-		
-		RealValueOfSingleValuePropertyFromSingleValueContainerWrapperModel<MailConfigurationType, NotificationConfigurationType> mailConfigType = 
-				new RealValueOfSingleValuePropertyFromSingleValueContainerWrapperModel<>(getModel(), NotificationConfigurationType.F_MAIL);
+		PropertyWrapperFromContainerModel<MailConfigurationType, NotificationConfigurationType> property = 
+				new PropertyWrapperFromContainerModel<MailConfigurationType, NotificationConfigurationType>(getModel().getObject(), NotificationConfigurationType.F_MAIL);
+		ItemRealValueModel<MailConfigurationType> mailConfigType = new ItemRealValueModel<MailConfigurationType>(property.getObject());
 		List<MailServerConfigurationType> servers = mailConfigType.getObject().getServer();
 		
 		toDelete.forEach(value -> {

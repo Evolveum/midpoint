@@ -16,20 +16,16 @@
 
 package com.evolveum.midpoint.gui.impl.model;
 
-import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.ObjectPolicyConfigurationTabPanel;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-
-import javax.xml.namespace.QName;
+import org.apache.wicket.model.PropertyModel;
 
 /**
  * Model that returns RealValue model. This implementation works on parent of ContainerValueWrapper models (not PrismObject).
@@ -37,33 +33,38 @@ import javax.xml.namespace.QName;
  * @author skublik
  * 
  */
-public class RealContainerValueFromContainerValueWrapperModel<C extends Containerable> implements IModel<C> {
+public class ContainerRealValueModel<C extends Containerable> extends PropertyModel<C> {
 
 	private static final long serialVersionUID = 1L;
 	
-	private static final Trace LOGGER = TraceManager.getTrace(RealContainerValueFromContainerValueWrapperModel.class);
+	private static final Trace LOGGER = TraceManager.getTrace(ContainerRealValueModel.class);
    
-	private IModel<ContainerValueWrapper<C>> model;
-
-    public RealContainerValueFromContainerValueWrapperModel(IModel<ContainerValueWrapper<C>> model) {
-    	this.model = model;
+	/** Model for real value of single valued container.
+	 * @param value single valued container
+	 */
+    public ContainerRealValueModel(ContainerValueWrapper<C> value) {
+    	super(value, "containerValue.value");
     }
     
-    public RealContainerValueFromContainerValueWrapperModel(ContainerValueWrapper<C> value) {
-    	this.model = Model.of(value);
+    /** Model for real value of single valued container.
+	 * @param wrapper single valued container wrapper
+	 */
+    public ContainerRealValueModel(ContainerWrapper<C> wrapper) {
+    	super(wrapper, "values[0].containerValue.value");
     }
-
-	@Override
-	public void detach() {
-	}
-
-	@Override
+    
+    /** Model for real value of single valued container.
+	 * @param value parent of single valued container
+	 * @param item path to single valued container
+	 */
+    public <T extends Containerable> ContainerRealValueModel(ContainerValueWrapper<T> value, ItemPath item) {
+		this(value.findContainerWrapper(item));
+    }
+    
+    @Override
 	public C getObject() {
 		
-		if(model == null || model.getObject() == null ||  model.getObject().getContainerValue() == null) {
-			return null;
-		}
-		return model.getObject().getContainerValue().getValue();
+		return super.getObject();
 	}
 
 	@Override

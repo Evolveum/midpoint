@@ -69,12 +69,18 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
     private PageBase pageBase;
 
     private boolean labelContainerVisible = true;
-
+    private boolean isInColumn;
+    
     public PrismPropertyPanel(String id, final IModel<IW> model, Form form, ItemVisibilityHandler visibilityHandler, PageBase pageBase) {
+    	this(id, model, form, visibilityHandler, pageBase, false);
+    }
+
+    public PrismPropertyPanel(String id, final IModel<IW> model, Form form, ItemVisibilityHandler visibilityHandler, PageBase pageBase, boolean isInColumn) {
         super(id, model);
         Validate.notNull(model, "no model");
         this.model = model;
         this.pageBase = pageBase;
+        this.isInColumn = isInColumn;
 
         LOGGER.trace("Creating property panel for {}", model.getObject());
 
@@ -92,6 +98,10 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
 
             @Override
             public boolean isEnabled() {
+            	if(isInColumn && model.getObject() instanceof PropertyWrapper
+            			&& model.getObject().getPath().isSuperPathOrEquivalent(new ItemPath(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_CLASS_LOGGER))){
+            		return ((PropertyWrapper)model.getObject()).getContainerValue().isSelected();
+            	}
                 return !model.getObject().isReadonly();
             }
         });
@@ -129,7 +139,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
         	private static final long serialVersionUID = 1L;
 
             @Override public boolean isVisible() {
-                return labelContainerVisible;
+                return labelContainerVisible && !isInColumn;
             }
         });
         add(labelContainer);
@@ -331,7 +341,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
             @Override
             public String getObject() {
                 if (getIndexOfValue(value.getObject()) > 0) {
-                    return "col-md-offset-2 prism-value";
+                    return isInColumn ? "prism-value" : "col-md-offset-2 prism-value";
                 }
 
                 return null;

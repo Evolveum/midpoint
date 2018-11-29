@@ -818,19 +818,26 @@ public class WebModelServiceUtils {
     	return false;
 	}
 	
-	public static ObjectWrapper<SystemConfigurationType> loadSystemConfigurationAsObjectWrapper(PageBase pageBase) {
-		Task task = pageBase.createSimpleTask(OPERATION_GET_SYSTEM_CONFIG);
-		OperationResult result = new OperationResult(OPERATION_GET_SYSTEM_CONFIG);
+	public static PrismObject<SystemConfigurationType> loadSystemConfigurationAsPrismObject(PageBase pageBase, Task task, OperationResult result) {
 
 		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
 			GetOperationOptions.createResolve(), SystemConfigurationType.F_DEFAULT_USER_TEMPLATE,
 			SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY);
 
+		PrismObject<SystemConfigurationType> systemConfig = loadObject(
+			SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), options,
+			pageBase, task, result);
+		
+		return systemConfig;
+	}
+	
+	public static ObjectWrapper<SystemConfigurationType> loadSystemConfigurationAsObjectWrapper(PageBase pageBase) {
+		Task task = pageBase.createSimpleTask(OPERATION_GET_SYSTEM_CONFIG);
+		OperationResult result = new OperationResult(OPERATION_GET_SYSTEM_CONFIG);
+		
 		ObjectWrapper<SystemConfigurationType> wrapper = null;
 		try {
-			PrismObject<SystemConfigurationType> systemConfig = loadObject(
-				SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), options,
-				pageBase, task, result);
+			PrismObject<SystemConfigurationType> systemConfig = loadSystemConfigurationAsPrismObject(pageBase, task, result);
 		
 			ObjectWrapperFactory owf = new ObjectWrapperFactory(pageBase);
 		
@@ -841,7 +848,7 @@ public class WebModelServiceUtils {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load system configuration", ex);
 			result.recordFatalError("Couldn't load system configuration.", ex);
 		}
-
+		
 		if (!WebComponentUtil.isSuccessOrHandledError(result) || wrapper == null) {
 			pageBase.showResult(result, false);
 			throw pageBase.getRestartResponseException(PageError.class);

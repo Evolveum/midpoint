@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.gui.impl.component.data.column;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerValueWrapperModel;
+import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerModel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -33,7 +33,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.PrismPropertyColumn;
+import com.evolveum.midpoint.web.component.prism.PrismPropertyPanel;
 
 /**
  * @author skublik
@@ -78,14 +78,14 @@ public class EditableLinkPropertyWrapperColumn<C extends Containerable> extends 
 
     protected Component createInputPanel(String componentId, IModel<ContainerValueWrapper<C>> rowModel) {
     	Form form= new Form("form");
-    	PropertyWrapperFromContainerValueWrapperModel model = new PropertyWrapperFromContainerValueWrapperModel<>(rowModel, qNameOfProperty);
-    	PrismPropertyColumn panel = new PrismPropertyColumn(componentId, model, form, getPageBase());
+    	PropertyWrapperFromContainerModel model = new PropertyWrapperFromContainerModel<>(rowModel.getObject(), qNameOfProperty);
+    	PrismPropertyPanel panel = new PrismPropertyPanel(componentId, model, form, null, getPageBase(), true);
     	return panel;
     }
     
     @Override
     protected IModel createLinkModel(IModel<ContainerValueWrapper<C>> rowModel) {
-    	PropertyWrapperFromContainerValueWrapperModel model = new PropertyWrapperFromContainerValueWrapperModel<>(rowModel, qNameOfProperty);
+    	PropertyWrapperFromContainerModel model = new PropertyWrapperFromContainerModel<>(rowModel.getObject(), qNameOfProperty);
     	return Model.of(String.valueOf(model.getObject().getItem().getRealValue()));
     }
     
