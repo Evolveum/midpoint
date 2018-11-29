@@ -50,6 +50,7 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.model.api.util.ResourceUtils;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
@@ -107,18 +108,6 @@ import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.DefaultReferencableImpl;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.Revivable;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -288,7 +277,7 @@ public final class WebComponentUtil {
 				.collect(Collectors.joining(", "));
 	}
 	
-	public static String getReferencedObjectDisplayNamesAndNames(DefaultReferencableImpl ref, boolean showTypes) {
+	public static String getReferencedObjectDisplayNamesAndNames(Referencable ref, boolean showTypes) {
 		String name = ref.getTargetName() == null ? "" : ref.getTargetName().getOrig();
 		StringBuilder sb = new StringBuilder(name);
 		if(showTypes) {

@@ -33,14 +33,14 @@ import javax.xml.namespace.QName;
  * @author skublik
  * 
  */
-public class DefaultReferencableImplSingleValueContainerValueWrapperModel<C extends Containerable> implements IModel<DefaultReferencableImpl> {
+public class ReferencableSingleValueContainerValueWrapperModel<C extends Containerable> implements IModel<Referencable> {
 
 	private static final long serialVersionUID = 1L;
    
 	private IModel<ContainerValueWrapper<C>> model;
    	private QName item;
 
-    public DefaultReferencableImplSingleValueContainerValueWrapperModel(IModel<ContainerValueWrapper<C>> model, QName item) {
+    public ReferencableSingleValueContainerValueWrapperModel(IModel<ContainerValueWrapper<C>> model, QName item) {
     	this.model = model;
     	this.item = item;
     }
@@ -50,27 +50,27 @@ public class DefaultReferencableImplSingleValueContainerValueWrapperModel<C exte
 	}
 
 	@Override
-	public DefaultReferencableImpl getObject() {
+	public Referencable getObject() {
 		
 		PropertyOrReferenceWrapper ref = model.getObject().findPropertyWrapper(
 				ItemPath.create(model.getObject().getPath(), item));
 		
-		if(!(ref instanceof ReferenceWrapper)){
+		if (!(ref instanceof ReferenceWrapper)) {
 			throw new IllegalStateException("Searched property is not ReferenceWrapper");
 		}
 		
-		if(ref.getItemDefinition().isSingleValue()) {
-			if(ref == null || ref.getValues() == null || ref.getValues().get(0) == null
-					|| ((ValueWrapper<DefaultReferencableImpl>)((ReferenceWrapper)ref).getValues().get(0)).getValue() == null) {
+		if (ref.getItemDefinition().isSingleValue()) {
+			if (ref.getValues() == null || ref.getValues().get(0) == null
+					|| ((ValueWrapper<Referencable>) ((ReferenceWrapper) ref).getValues().get(0)).getValue() == null) {
 				return null;
 			}
-			return ((ValueWrapper<DefaultReferencableImpl>)((ReferenceWrapper)ref).getValues().get(0)).getValue().getRealValue();
+			return ((ValueWrapper<Referencable>)((ReferenceWrapper)ref).getValues().get(0)).getValue().getRealValue();
 		}
 		throw new IllegalStateException("ContainerValueWrapper  " + model.getObject() + " isn't single value");
 	}
 
 	@Override
-	public void setObject(DefaultReferencableImpl object) {
+	public void setObject(Referencable object) {
 		throw new UnsupportedOperationException();
 	}
 

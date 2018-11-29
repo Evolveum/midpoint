@@ -301,7 +301,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         }
 	    PropertyOrReferenceWrapper policyRuleWrapper = assignmentContainer.findPropertyWrapper(
 			    ItemPath.create(assignmentContainer.getPath(), AssignmentType.F_TENANT_REF));
-	    return Model.of(WebComponentUtil.getReferencedObjectDisplayNamesAndNames((DefaultReferencableImpl)((ValueWrapper<DefaultReferencableImpl>)policyRuleWrapper.getValues().get(0)).getValue().getRealValue(), false));
+	    return Model.of(WebComponentUtil.getReferencedObjectDisplayNamesAndNames((Referencable) ((ValueWrapper<Referencable>)policyRuleWrapper.getValues().get(0)).getValue().getRealValue(), false));
     }
 
     private IModel<String> getOrgRefLabelModel(ContainerValueWrapper<AssignmentType> assignmentContainer){
@@ -309,7 +309,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 	        return Model.of("");
         }
 	    PropertyOrReferenceWrapper policyRuleWrapper = assignmentContainer.findPropertyWrapper(ItemPath.create(assignmentContainer.getPath(), AssignmentType.F_ORG_REF));
-	    return Model.of(WebComponentUtil.getReferencedObjectDisplayNamesAndNames((DefaultReferencableImpl)((ValueWrapper<DefaultReferencableImpl>)policyRuleWrapper.getValues().get(0)).getValue().getRealValue(), false));
+	    return Model.of(WebComponentUtil.getReferencedObjectDisplayNamesAndNames((Referencable) ((ValueWrapper<Referencable>)policyRuleWrapper.getValues().get(0)).getValue().getRealValue(), false));
 
     }
 

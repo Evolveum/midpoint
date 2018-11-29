@@ -41,7 +41,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
-import com.evolveum.midpoint.gui.impl.model.DefaultReferencableImplSingleValueContainerValueWrapperModel;
+import com.evolveum.midpoint.gui.impl.model.ReferencableSingleValueContainerValueWrapperModel;
 import com.evolveum.midpoint.gui.impl.model.RealValueOfSingleValuePropertyAsStringFromContainerValueWrapperModel;
 import com.evolveum.midpoint.gui.impl.model.RealContainerValueFromParentOfSingleValueContainerValueWrapperModel;
 import com.evolveum.midpoint.gui.impl.model.RealContainerValueFromContainerValueWrapperModel;
@@ -266,8 +266,8 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
 			public void populateItem(Item<ICellPopulator<ContainerValueWrapper<ObjectPolicyConfigurationType>>> item, String componentId,
 									 final IModel<ContainerValueWrapper<ObjectPolicyConfigurationType>> rowModel) {
 				
-				DefaultReferencableImplSingleValueContainerValueWrapperModel<ObjectPolicyConfigurationType> defaultReferencableImpl = 
-						new DefaultReferencableImplSingleValueContainerValueWrapperModel<ObjectPolicyConfigurationType>(rowModel, ObjectPolicyConfigurationType.F_OBJECT_TEMPLATE_REF);
+				ReferencableSingleValueContainerValueWrapperModel<ObjectPolicyConfigurationType> defaultReferencableImpl =
+						new ReferencableSingleValueContainerValueWrapperModel<>(rowModel, ObjectPolicyConfigurationType.F_OBJECT_TEMPLATE_REF);
 				item.add(new Label(componentId, Model.of(WebComponentUtil.getReferencedObjectDisplayNamesAndNames(defaultReferencableImpl.getObject(), false))));
 			}
         });
