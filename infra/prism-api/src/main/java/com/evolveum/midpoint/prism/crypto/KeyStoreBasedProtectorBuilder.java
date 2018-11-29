@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.prism.crypto;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import org.jetbrains.annotations.NotNull;
 
 import javax.net.ssl.TrustManager;
@@ -34,14 +33,14 @@ public final class KeyStoreBasedProtectorBuilder {
     String digestAlgorithm;
     List<TrustManager> trustManagers;
 
-    @NotNull private final PrismContext prismContext;
+    @NotNull private final ProtectorCreator protectorCreator;
 
-    public static KeyStoreBasedProtectorBuilder create(@NotNull PrismContext prismContext) {
-        return new KeyStoreBasedProtectorBuilder(prismContext);
+    public static KeyStoreBasedProtectorBuilder create(@NotNull ProtectorCreator protectorCreator) {
+        return new KeyStoreBasedProtectorBuilder(protectorCreator);
     }
 
-    private KeyStoreBasedProtectorBuilder(@NotNull PrismContext prismContext) {
-        this.prismContext = prismContext;
+    private KeyStoreBasedProtectorBuilder(@NotNull ProtectorCreator protectorCreator) {
+        this.protectorCreator = protectorCreator;
     }
 
     public KeyStoreBasedProtectorBuilder keyStorePath(String val) {
@@ -80,6 +79,6 @@ public final class KeyStoreBasedProtectorBuilder {
     }
 
     public Protector initialize() {
-        return prismContext.createInitializedProtector(this);
+        return protectorCreator.createInitializedProtector(this);
     }
 }

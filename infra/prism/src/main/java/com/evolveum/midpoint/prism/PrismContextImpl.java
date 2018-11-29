@@ -15,10 +15,7 @@
  */
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.prism.crypto.KeyStoreBasedProtector;
-import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.crypto.KeyStoreBasedProtectorBuilder;
-import com.evolveum.midpoint.prism.crypto.KeyStoreBasedProtectorImpl;
+import com.evolveum.midpoint.prism.crypto.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.marshaller.*;
 import com.evolveum.midpoint.prism.lex.LexicalProcessor;

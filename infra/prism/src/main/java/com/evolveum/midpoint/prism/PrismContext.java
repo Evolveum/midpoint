@@ -16,14 +16,13 @@
 
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.prism.crypto.KeyStoreBasedProtector;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.crypto.KeyStoreBasedProtectorBuilder;
+import com.evolveum.midpoint.prism.crypto.ProtectorCreator;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.marshaller.JaxbDomHack;
 import com.evolveum.midpoint.prism.marshaller.ParsingMigrator;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.QueryConverter;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -31,7 +30,6 @@ import com.evolveum.midpoint.prism.util.PrismMonitor;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringNormalizerConfigurationType;
-
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
@@ -47,7 +45,7 @@ import java.util.List;
  * @author semancik
  * @author mederly
  */
-public interface PrismContext {
+public interface PrismContext extends ProtectorCreator {
 
 	String LANG_XML = "xml";
 	String LANG_JSON = "json";
@@ -309,6 +307,4 @@ public interface PrismContext {
 	UniformItemPath path(Object... namesOrIdsOrSegments);
 
 	Miscellaneous misc();
-
-	KeyStoreBasedProtector createInitializedProtector(KeyStoreBasedProtectorBuilder builder);
 }
