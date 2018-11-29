@@ -59,7 +59,7 @@ public class AssignmentPathImpl implements AssignmentPath {
 		if (index >= 0) {
 			return segments.get(index);
 		} else {
-			return segments.get(segments.size() - index);
+			return segments.get(segments.size() + index);
 		}
 	}
 
