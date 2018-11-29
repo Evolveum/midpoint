@@ -113,7 +113,10 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
         }
     }
 
-    public KeyStoreBasedProtectorImpl(KeyStoreBasedProtectorBuilder builder) {
+	public KeyStoreBasedProtectorImpl() {
+	}
+
+	public KeyStoreBasedProtectorImpl(KeyStoreBasedProtectorBuilder builder) {
         setKeyStorePath(builder.keyStorePath);
         setKeyStorePassword(builder.keyStorePassword);
         if (builder.encryptionKeyAlias != null) {

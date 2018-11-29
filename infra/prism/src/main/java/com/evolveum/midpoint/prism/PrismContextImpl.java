@@ -78,8 +78,7 @@ public class PrismContextImpl implements PrismContext {
 
 	private SchemaDefinitionFactory definitionFactory;
 
-	@Autowired		// TODO is this really applied?
-	private Protector defaultProtector;
+	@Autowired private Protector defaultProtector;
 
 	// We need to keep this because of deprecated methods and various hacks
 	@NotNull private final JaxbDomHack jaxbDomHack;
