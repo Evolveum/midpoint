@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2010-2017 Evolveum
+/*
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.prism.util.CloneUtilTemp;
 import org.apache.commons.lang.StringUtils;
 import org.apache.xml.security.exceptions.Base64DecodingException;
 import org.apache.xml.security.utils.Base64;
@@ -336,9 +336,9 @@ public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializ
 	}
 
     protected void cloneTo(ProtectedDataType<T> cloned) {
-        cloned.clearValue = CloneUtil.clone(clearValue);
-        cloned.encryptedDataType = CloneUtil.clone(encryptedDataType);
-        cloned.hashedDataType = CloneUtil.clone(hashedDataType);
+        cloned.clearValue = CloneUtilTemp.clone(clearValue);
+        cloned.encryptedDataType = CloneUtilTemp.clone(encryptedDataType);
+        cloned.hashedDataType = CloneUtilTemp.clone(hashedDataType);
 
         // content is virtual, there is no point in copying it
     }
