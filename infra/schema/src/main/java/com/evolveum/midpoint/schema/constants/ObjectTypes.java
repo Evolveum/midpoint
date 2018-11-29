@@ -107,6 +107,9 @@ public enum ObjectTypes {
     
     OBJECT_COLLECTION(ObjectCollectionType.COMPLEX_TYPE, SchemaConstantsGenerated.C_OBJECT_COLLECTION, ObjectCollectionType.class, ObjectManager.MODEL,
             "objectCollections"),
+    
+    ARCHETYPE(ArchetypeType.COMPLEX_TYPE, SchemaConstantsGenerated.C_ARCHETYPE, ArchetypeType.class, ObjectManager.MODEL,
+            "archetypes"),
 
     // this should be at end, because otherwise it presents itself as entry for all subtypes of ObjectType
     OBJECT(SchemaConstants.C_OBJECT_TYPE, SchemaConstants.C_OBJECT, ObjectType.class, ObjectManager.MODEL, "objects");
