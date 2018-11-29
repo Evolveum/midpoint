@@ -15,28 +15,12 @@
  */
 package com.evolveum.midpoint.schema.util;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-import javax.xml.soap.Detail;
-
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.marshaller.BeanMarshaller;
-import com.evolveum.midpoint.prism.xnode.RootXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
-import com.evolveum.midpoint.schema.*;
-
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -47,10 +31,13 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultMessage;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.jetbrains.annotations.NotNull;
+
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+import java.util.*;
 
 /**
  * @author Radovan Semancik
@@ -378,20 +365,6 @@ public class MiscSchemaUtil {
 		}
 	}
 
-	// TODO some better place
-	public static void serializeFaultMessage(Detail detail, FaultMessage faultMessage, PrismContext prismContext, Trace logger) {
-        try {
-			BeanMarshaller marshaller = ((PrismContextImpl) prismContext).getBeanMarshaller();
-			XNode faultMessageXnode = marshaller.marshall(faultMessage.getFaultInfo());			// TODO
-            RootXNode xroot = new RootXNode(SchemaConstants.FAULT_MESSAGE_ELEMENT_NAME, faultMessageXnode);
-            xroot.setExplicitTypeDeclaration(true);
-            QName faultType = prismContext.getSchemaRegistry().determineTypeForClass(faultMessage.getFaultInfo().getClass());
-            xroot.setTypeQName(faultType);
-			((PrismContextImpl) prismContext).getParserDom().serializeUnderElement(xroot, SchemaConstants.FAULT_MESSAGE_ELEMENT_NAME, detail);
-        } catch (SchemaException e) {
-            logger.error("Error serializing fault message (SOAP fault detail): {}", e.getMessage(), e);
-        }
-	}
 
 	public static boolean referenceMatches(ObjectReferenceType refPattern, ObjectReferenceType ref,
 			PrismContext prismContext) {

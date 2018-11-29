@@ -537,22 +537,21 @@ public class ItemPathHolder {
 	//endregion
 
 	//region Methods for testing
-	// public only because of testing
-	public static ItemPathHolder createForTesting(String xpath) {
+	static ItemPathHolder createForTesting(String xpath) {
 		return new ItemPathHolder(xpath);
 	}
 
-	public static ItemPathHolder createForTesting(String xpath, Map<String, String> namespaceMap) {
+	static ItemPathHolder createForTesting(String xpath, Map<String, String> namespaceMap) {
 		ItemPathHolder rv = new ItemPathHolder();
 		rv.parse(xpath, null, namespaceMap);
 		return rv;
 	}
 
-	public static ItemPathHolder createForTesting(Element element) {
+	static ItemPathHolder createForTesting(Element element) {
 		return new ItemPathHolder(element);
 	}
 
-	public static ItemPathHolder createForTesting(List<PathHolderSegment> segments) {
+	static ItemPathHolder createForTesting(List<PathHolderSegment> segments) {
 		ItemPathHolder rv = new ItemPathHolder();
 		rv.segments = new ArrayList<>();
 		for (PathHolderSegment segment : segments) {
@@ -567,7 +566,7 @@ public class ItemPathHolder {
 		return rv;
 	}
 
-	public static ItemPathHolder createForTesting(QName... segmentQNames) {
+	static ItemPathHolder createForTesting(QName... segmentQNames) {
 		ItemPathHolder rv = new ItemPathHolder();
 		rv.segments = new ArrayList<>();
 		for (QName segmentQName : segmentQNames) {
@@ -578,7 +577,7 @@ public class ItemPathHolder {
 		return rv;
 	}
 
-	public static ItemPathHolder createForTesting(UniformItemPath path) {
+	static ItemPathHolder createForTesting(UniformItemPath path) {
 		return new ItemPathHolder(path);
 	}
 

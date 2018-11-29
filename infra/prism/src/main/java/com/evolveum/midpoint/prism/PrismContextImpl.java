@@ -69,6 +69,7 @@ public class PrismContextImpl implements PrismContext {
 	@NotNull private final PrismMarshaller prismMarshaller;
 	@NotNull private final BeanMarshaller beanMarshaller;
 	@NotNull private final BeanUnmarshaller beanUnmarshaller;
+	@NotNull private final Miscellaneous miscellaneous;
 	private ParsingMigrator parsingMigrator;
 	private PrismMonitor monitor = null;
 
@@ -100,6 +101,7 @@ public class PrismContextImpl implements PrismContext {
 		this.beanUnmarshaller = new BeanUnmarshaller(this, inspector);
 		this.prismMarshaller = new PrismMarshaller(beanMarshaller);
 		this.jaxbDomHack = new JaxbDomHack(lexicalProcessorRegistry.domProcessor(), this);
+		this.miscellaneous = new MiscellaneousImpl(this);
 
 		try {
 			configurePolyStringNormalizer(null);
@@ -544,5 +546,10 @@ public class PrismContextImpl implements PrismContext {
 	@Override
 	public UniformItemPath path(Object... namesOrIdsOrSegments) {
 		return new UniformItemPathImpl(namesOrIdsOrSegments);
+	}
+
+	@Override
+	public Miscellaneous misc() {
+		return miscellaneous;
 	}
 }

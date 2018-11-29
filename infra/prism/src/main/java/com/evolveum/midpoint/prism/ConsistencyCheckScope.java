@@ -18,9 +18,9 @@ public enum ConsistencyCheckScope {
      * Should be rather quick.
      *
      * TODO Current solution is not that optimal. We should distinguish between checks that deal with midPoint internal workings
-     * (throwing IllegalArgumentException/IllegalStateException on failure), which can be turned off, as it is today. Another set
-     * of checks should be applied only on users' inputs (when importing data, when accepting inputs via SOAP/REST/whathever interfaces, ...)
-     * - and these should throw perhaps SchemaException that can be caught and handled appropriately.
+     *  (throwing IllegalArgumentException/IllegalStateException on failure), which can be turned off, as it is today. Another set
+     *  of checks should be applied only on users' inputs (when importing data, when accepting inputs via SOAP/REST/whathever interfaces, ...)
+     *  - and these should throw perhaps SchemaException that can be caught and handled appropriately.
      *
      * However, for the time being we consider this approach (i.e. that both kinds of checks are implemented the same way) to be an acceptable one.
      */

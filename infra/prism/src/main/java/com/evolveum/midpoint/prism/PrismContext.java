@@ -305,4 +305,6 @@ public interface PrismContext {
 	UniformItemPath path(ItemPath components);
 
 	UniformItemPath path(Object... namesOrIdsOrSegments);
+
+	Miscellaneous misc();
 }
