@@ -23,6 +23,8 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.apache.commons.lang.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,7 +104,7 @@ public class RelationRegistryImpl implements RelationRegistry {
 		RelationDefinitionType relationDef = new RelationDefinitionType();
 		relationDef.setRef(defaultRelationDefinition.getRelation());
 		DisplayType display = new DisplayType();
-		display.setLabel(defaultRelationDefinition.getLabelKey());
+		display.setLabel(new PolyStringType(defaultRelationDefinition.getLabelKey()));
 		relationDef.setDisplay(display);
 		relationDef.setDefaultFor(defaultRelationDefinition.getDefaultFor());
 		relationDef.getKind().addAll(defaultRelationDefinition.getKinds());

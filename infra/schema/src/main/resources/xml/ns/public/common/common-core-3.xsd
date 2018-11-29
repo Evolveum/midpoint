@@ -21425,7 +21425,7 @@
         </xsd:annotation>
         <xsd:sequence>
             <!-- basic properties -->
-            <xsd:element name="label" type="xsd:string" minOccurs="0" >
+            <xsd:element name="label" type="t:PolyStringType" minOccurs="0" >
             	<xsd:annotation>
             		<xsd:documentation>
             			<p>
@@ -21436,6 +21436,7 @@
 	            			Label should be very short (couple of words).
             			</p>
             			<p>
+            				MidPoint 3.x compatibility:
             				Plain string or a localization key may be used in
             				this field. The value of this field will be interpreted
             				as a localizaton key and looked up in the localization
@@ -21448,7 +21449,20 @@
 					</xsd:appinfo>
             	</xsd:annotation>
             </xsd:element>
-            <xsd:element name="tooltip" type="xsd:string" minOccurs="0">
+            <xsd:element name="pluralLabel" type="t:PolyStringType" minOccurs="0" >
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			<p>
+	            			Label of the displayed item, when it is required to refer
+	            			to the items in plural. This is often used in lists and collections.
+            			</p>
+            		</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>DisplayType.label</a:displayName>
+					</xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
+            <xsd:element name="tooltip" type="t:PolyStringType" minOccurs="0">
             	<xsd:annotation>
             		<xsd:documentation>
             			<p>
@@ -21459,6 +21473,7 @@
 	            			Tooltip should still be quite short (one short sentence).
             			</p>
             			<p>
+            				MidPoint 3.x compatibility:
             				Plain string or a localization key may be used in
             				this field. The value of this field will be interpreted
             				as a localizaton key and looked up in the localization
@@ -21471,7 +21486,7 @@
 					</xsd:appinfo>
             	</xsd:annotation>            
             </xsd:element>
-            <xsd:element name="help" type="xsd:string" minOccurs="0">
+            <xsd:element name="help" type="t:PolyStringType" minOccurs="0">
             	<xsd:annotation>
             		<xsd:documentation>
             			<p>
@@ -21480,6 +21495,7 @@
 	            			This may be a longer text (several sentences).
             			</p>
             			<p>
+            				MidPoint 3.x compatibility:
             				Plain string or a localization key may be used in
             				this field. The value of this field will be interpreted
             				as a localizaton key and looked up in the localization
@@ -21507,8 +21523,14 @@
 					</xsd:appinfo>
             	</xsd:annotation>            
             </xsd:element>
-            <!-- TODO: icon -->
-            <!-- TODO: multilingual label, tooltip and help -->
+            <!-- icon and media properties -->
+            <xsd:element name="icon" type="tns:IconType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>DisplayType.icon</a:displayName>
+					</xsd:appinfo>
+            	</xsd:annotation>            
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 

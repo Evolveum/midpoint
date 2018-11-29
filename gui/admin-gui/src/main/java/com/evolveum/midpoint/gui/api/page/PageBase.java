@@ -37,6 +37,8 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
@@ -125,6 +127,8 @@ import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.*;
@@ -1232,6 +1236,26 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return new StringResourceModel(resourceKey, this).setModel(new Model<String>()).setDefaultValue(resourceKey)
                 .setParameters(objects);
     }
+    
+    public StringResourceModel createStringResource(PolyString polystringKey, Object... objects) {
+    	String resourceKey = null;
+    	if (polystringKey != null) {
+    		// TODO later: try polystringKey.getKey()
+    		resourceKey = polystringKey.getOrig();
+    	}
+        return new StringResourceModel(resourceKey, this).setModel(new Model<String>()).setDefaultValue(resourceKey)
+                .setParameters(objects);
+    }
+    
+    public StringResourceModel createStringResource(PolyStringType polystringKey, Object... objects) {
+    	String resourceKey = null;
+    	if (polystringKey != null) {
+    		// TODO later: try polystringKey.getKey()
+    		resourceKey = polystringKey.getOrig();
+    	}
+        return new StringResourceModel(resourceKey, this).setModel(new Model<String>()).setDefaultValue(resourceKey)
+                .setParameters(objects);
+    }
 
     public StringResourceModel createStringResource(Enum<?> e) {
         String resourceKey = e.getDeclaringClass().getSimpleName() + "." + e.name();
@@ -2095,7 +2119,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             PageParameters pageParameters = new PageParameters();
             pageParameters.add(PageUsersView.PARAMETER_OBJECT_COLLECTION_TYPE_OID, collectionValue.getOid());
 
-            MenuItem userViewMenu = new MenuItem(viewDisplayType != null && StringUtils.isNotEmpty(viewDisplayType.getLabel())
+            MenuItem userViewMenu = new MenuItem(viewDisplayType != null && PolyStringUtils.isNotEmpty(viewDisplayType.getLabel())
                     ? createStringResource(viewDisplayType.getLabel())
                     : createStringResource("MenuItem.noName"), PageUsersView.class, pageParameters, null);
             menu.add(userViewMenu);

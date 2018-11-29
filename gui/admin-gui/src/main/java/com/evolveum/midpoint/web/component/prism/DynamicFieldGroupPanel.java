@@ -23,6 +23,8 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.ItemDefinitionImpl;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.util.FormTypeUtil;
 import com.evolveum.midpoint.util.Holder;
@@ -68,7 +70,7 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 
 	private String getGroupName(@NotNull FormDefinitionType formDefinition) {
 		if (formDefinition.getDisplay() != null) {
-			return formDefinition.getDisplay().getLabel();
+			return formDefinition.getDisplay().getLabel().getOrig();
 		} else {
 			return "Basic";
 		}
@@ -156,11 +158,11 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 		}
 
 		ItemDefinitionImpl itemDef = (ItemDefinitionImpl) itemWrapper.getItemDefinition();
-		if (StringUtils.isNotEmpty(displayType.getLabel())) {
-			itemDef.setDisplayName(displayType.getLabel());
+		if (PolyStringUtils.isNotEmpty(displayType.getLabel())) {
+			itemDef.setDisplayName(displayType.getLabel().getOrig());
 		}
-		if (StringUtils.isNotEmpty(displayType.getHelp())) {
-			itemDef.setHelp(displayType.getHelp());
+		if (PolyStringUtils.isNotEmpty(displayType.getHelp())) {
+			itemDef.setHelp(displayType.getHelp().getOrig());
 		}
 		if (StringUtils.isNotEmpty(displayType.getMaxOccurs())) {
 			itemDef.setMaxOccurs(XsdTypeMapper.multiplicityToInteger(displayType.getMaxOccurs()));

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,6 +54,7 @@ import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.model.api.util.ResourceUtils;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
+import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -1763,7 +1764,7 @@ public final class WebComponentUtil {
 	public static String getRelationHeaderLabelKeyIfKnown(QName relation) {
 		RelationDefinitionType definition = getRelationRegistry().getRelationDefinition(relation);
 		if (definition != null && definition.getDisplay() != null && definition.getDisplay().getLabel() != null) {
-			return definition.getDisplay().getLabel();
+			return definition.getDisplay().getLabel().getOrig();
 		} else {
 			return null;
 		}
@@ -2792,8 +2793,8 @@ public final class WebComponentUtil {
 			if (StringUtils.isEmpty(templateOid)) {
 				return;
 			}
-			String label = action.getDisplay() != null && StringUtils.isNotEmpty(action.getDisplay().getLabel()) ?
-					action.getDisplay().getLabel() : action.getName();
+			String label = action.getDisplay() != null && PolyStringUtils.isNotEmpty(action.getDisplay().getLabel()) ?
+					action.getDisplay().getLabel().getOrig() : action.getName();
 			menuItems.add(new InlineMenuItem(Model.of(label)) {
 				private static final long serialVersionUID = 1L;
 

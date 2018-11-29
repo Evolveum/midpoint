@@ -190,6 +190,13 @@ public class PolyStringType implements DebugDumpable, Serializable, Cloneable {
         return this.any;
     }
 
+    public boolean isEmpty() {
+		if (orig == null) {
+			return true;
+		}
+		return orig.isEmpty();
+	}
+    
     /**
      * Plus method for ease of use of PolyStrings in groovy (mapped from + operator).
      */
