@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismConstantsTemp;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -51,7 +51,7 @@ import com.evolveum.midpoint.util.JAXBUtil;
 })
 public class ObjectReferenceType implements Serializable {
 
-    public final static QName COMPLEX_TYPE = new QName(PrismConstants.NS_TYPES, "ObjectReferenceType");
+    public final static QName COMPLEX_TYPE = new QName(PrismConstantsTemp.NS_TYPES, "ObjectReferenceType");
 
     protected String description;
     protected ObjectReferenceType.Filter filter;

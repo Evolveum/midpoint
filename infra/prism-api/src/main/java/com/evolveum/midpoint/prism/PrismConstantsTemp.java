@@ -27,7 +27,7 @@ import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
  * @author semancik
  *
  */
-public class PrismConstants {
+public class PrismConstantsTemp {
 
 	public static final String EXTENSION_LOCAL_NAME = "extension";
 	public static final String NAME_LOCAL_NAME = "name";
