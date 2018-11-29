@@ -29,6 +29,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.prism.crypto.KeyStoreBasedProtectorBuilder;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeSuite;
@@ -43,7 +44,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.crypto.ProtectorImpl;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.common.DirectoryFileObjectResolver;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
@@ -97,7 +97,7 @@ public abstract class AbstractScriptTest {
     public void setupFactory() {
     	PrismContext prismContext = PrismTestUtil.getPrismContext();
     	ObjectResolver resolver = new DirectoryFileObjectResolver(OBJECTS_DIR);
-    	Protector protector = new ProtectorImpl();
+    	Protector protector = KeyStoreBasedProtectorBuilder.create(prismContext).initialize();
     	Clock clock = new Clock();
         Collection<FunctionLibrary> functions = new ArrayList<>();
 		functions.add(FunctionLibraryUtil.createBasicFunctionLibrary(prismContext, protector, clock));

@@ -73,7 +73,7 @@ import java.util.Set;
  * @author Radovan Semancik
  * @author lazyman
  */
-public class ProtectorImpl extends BaseProtector {
+public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStoreBasedProtector {
 
     private static final String ALGORITHM_PKKDF2_NAME = "PBKDF2WithHmacSHA512";
     private static final QName ALGORITH_PBKDF2_WITH_HMAC_SHA512_QNAME = new QName(PrismConstants.NS_CRYPTO_ALGORITHM_PBKD, ALGORITHM_PKKDF2_NAME);
@@ -88,7 +88,7 @@ public class ProtectorImpl extends BaseProtector {
 
     private Random randomNumberGenerator;
 
-    private static final Trace LOGGER = TraceManager.getTrace(ProtectorImpl.class);
+    private static final Trace LOGGER = TraceManager.getTrace(KeyStoreBasedProtectorImpl.class);
 
     private String keyStorePath;
     private String keyStorePassword;
@@ -113,8 +113,20 @@ public class ProtectorImpl extends BaseProtector {
         }
     }
 
+    public KeyStoreBasedProtectorImpl(KeyStoreBasedProtectorBuilder builder) {
+        setKeyStorePath(builder.keyStorePath);
+        setKeyStorePassword(builder.keyStorePassword);
+        if (builder.encryptionKeyAlias != null) {
+            setEncryptionKeyAlias(builder.encryptionKeyAlias);
+        }
+        setRequestedJceProviderName(builder.requestedJceProviderName);
+        setEncryptionAlgorithm(builder.encryptionAlgorithm);
+        digestAlgorithm = builder.digestAlgorithm;
+        trustManagers = builder.trustManagers;
+    }
+
     /**
-     * @throws SystemException if jceks keystore is not available on {@link ProtectorImpl#getKeyStorePath}
+     * @throws SystemException if jceks keystore is not available on {@link KeyStoreBasedProtectorImpl#getKeyStorePath}
      */
     public void init() {
         InputStream stream = null;
@@ -135,11 +147,11 @@ public class ProtectorImpl extends BaseProtector {
                 LOGGER.warn("Using default keystore from classpath ({}).", getKeyStorePath());
                 // Read from class path
 
-                stream = ProtectorImpl.class.getClassLoader().getResourceAsStream(getKeyStorePath());
+                stream = KeyStoreBasedProtectorImpl.class.getClassLoader().getResourceAsStream(getKeyStorePath());
                 // ugly dirty hack to have second chance to find keystore on
                 // class path
                 if (stream == null) {
-                    stream = ProtectorImpl.class.getClassLoader().getResourceAsStream(
+                    stream = KeyStoreBasedProtectorImpl.class.getClassLoader().getResourceAsStream(
                         "com/../../" + getKeyStorePath());
                 }
             }
@@ -392,8 +404,8 @@ public class ProtectorImpl extends BaseProtector {
             } else {
                 desc = "Ciphering (mode " + cipherMode + ")";
             }
-            LOGGER.trace("{} data by JCE algorithm {} (URI {}), cipher {}, provider {}", new Object[]{
-                desc, jceAlgorithm, algorithmUri, cipher.getAlgorithm(), cipher.getProvider().getName()});
+            LOGGER.trace("{} data by JCE algorithm {} (URI {}), cipher {}, provider {}", desc, jceAlgorithm, algorithmUri, cipher.getAlgorithm(),
+                    cipher.getProvider().getName());
         }
         return cipher;
     }
@@ -402,6 +414,7 @@ public class ProtectorImpl extends BaseProtector {
      * TODO remove, used only in midpoint ninja cmd tool, not part of API
      */
     @Deprecated
+    @Override
     public String getSecretKeyDigest(SecretKey key) throws EncryptionException {
         for (Map.Entry<String, SecretKey> entry : digestToSecretKeyHashMap.entrySet()) {
             if (entry.getValue().equals(key)) {
@@ -458,6 +471,7 @@ public class ProtectorImpl extends BaseProtector {
         this.keyStorePath = keyStorePath;
     }
 
+    @Override
     public String getKeyStorePath() {
         if (StringUtils.isEmpty(keyStorePath)) {
             throw new IllegalStateException("Keystore path was not defined (is null or empty).");

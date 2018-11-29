@@ -21,6 +21,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import java.io.File;
 import java.io.IOException;
 
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.repo.common.DirectoryFileObjectResolver;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.Expression;
@@ -34,7 +35,6 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.prism.crypto.ProtectorImpl;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
@@ -77,7 +77,7 @@ public class TestExpression {
 
 		prismContext = PrismTestUtil.createInitializedPrismContext();
 		ObjectResolver resolver = new DirectoryFileObjectResolver(MidPointTestConstants.OBJECTS_DIR);
-		ProtectorImpl protector = ExpressionTestUtil.createInitializedProtector(prismContext);
+		Protector protector = ExpressionTestUtil.createInitializedProtector(prismContext);
 		Clock clock = new Clock();
 		expressionFactory = ExpressionTestUtil.createInitializedExpressionFactory(resolver, protector, prismContext, clock, null, null);
 	}

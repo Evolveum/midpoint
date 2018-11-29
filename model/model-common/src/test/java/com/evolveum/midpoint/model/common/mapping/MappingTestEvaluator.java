@@ -24,6 +24,7 @@ import java.util.Collection;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -44,7 +45,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.crypto.ProtectorImpl;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -88,7 +88,7 @@ public class MappingTestEvaluator {
 
     private PrismContext prismContext;
     private MappingFactory mappingFactory;
-    ProtectorImpl protector;
+    private Protector protector;
 
     public PrismContext getPrismContext() {
 		return prismContext;
@@ -113,7 +113,7 @@ public class MappingTestEvaluator {
         mappingFactory.setProtector(protector);
     }
 
-	public ProtectorImpl getProtector() {
+	public Protector getProtector() {
 		return protector;
 	}
 

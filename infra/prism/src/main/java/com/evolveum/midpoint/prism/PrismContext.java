@@ -16,7 +16,9 @@
 
 package com.evolveum.midpoint.prism;
 
+import com.evolveum.midpoint.prism.crypto.KeyStoreBasedProtector;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.crypto.KeyStoreBasedProtectorBuilder;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.marshaller.JaxbDomHack;
 import com.evolveum.midpoint.prism.marshaller.ParsingMigrator;
@@ -307,4 +309,6 @@ public interface PrismContext {
 	UniformItemPath path(Object... namesOrIdsOrSegments);
 
 	Miscellaneous misc();
+
+	KeyStoreBasedProtector createInitializedProtector(KeyStoreBasedProtectorBuilder builder);
 }

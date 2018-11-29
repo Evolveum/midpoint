@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.prism;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
@@ -32,7 +33,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.crypto.ProtectorImpl;
+import com.evolveum.midpoint.prism.crypto.KeyStoreBasedProtectorBuilder;
 import com.evolveum.midpoint.prism.foo.AccountConstructionType;
 
 import com.evolveum.midpoint.prism.path.*;
@@ -476,11 +477,10 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	}
 
 	public static Protector createProtector(String xmlCipher){
-		ProtectorImpl protector = new ProtectorImpl();
-		protector.setKeyStorePassword(KEYSTORE_PASSWORD);
-		protector.setKeyStorePath(KEYSTORE_PATH);
-		protector.setEncryptionAlgorithm(xmlCipher);
-		protector.init();
-		return protector;
+		return KeyStoreBasedProtectorBuilder.create(getPrismContext())
+				.keyStorePassword(KEYSTORE_PASSWORD)
+				.keyStorePath(KEYSTORE_PATH)
+				.encryptionAlgorithm(xmlCipher)
+				.initialize();
 	}
 }

@@ -22,7 +22,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.commons.lang.Validate;
 
 /**
- * @author mederly
+ *
  */
 public abstract class BaseProtector implements Protector {
 
