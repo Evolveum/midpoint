@@ -651,7 +651,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ObjectType">
+            <xsd:extension base="tns:FocusType">
                 <xsd:sequence>
                     <xsd:element name="objectType" type="xsd:anyURI">
                         <xsd:annotation>
@@ -666,14 +666,12 @@
                                 </p>
 
                                 <p>
-                                Object type may be changed, but the possible values may
-                                be constrained by the implementation. E.g. the implementation
-                                may allow to change the object type only to the subtype or
-                                supertype, or it may fail if the attributes of the object
-                                does not conform to the schema constraints defined for the
-                                new type.
+                                This property is DEPRECATED. It has been made obsolete by archetypes.
                                 </p>
                             </xsd:documentation>
+                            <xsd:appinfo>
+                            	<a:deprecated>true</a:deprecated>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
@@ -2284,7 +2282,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ObjectType">
+            <xsd:extension base="tns:AssignmentHolderType">
                 <xsd:sequence>
                     <xsd:element name="taskIdentifier" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
@@ -5450,7 +5448,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="c:ObjectType">
+            <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
                 	<xsd:element name="operationalState" type="tns:OperationalStateType" minOccurs="0"/>
                     <xsd:element name="connector" type="tns:ConnectorType" minOccurs="0" maxOccurs="1">
@@ -10421,7 +10419,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ObjectType">
+            <xsd:extension base="tns:AssignmentHolderType">
                 <xsd:sequence>
                     <xsd:element name="displayName" type="t:PolyStringType" minOccurs="0">
                         <xsd:annotation>
@@ -10551,7 +10549,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ObjectType">
+            <xsd:extension base="tns:AssignmentHolderType">
                 <xsd:sequence>
                     <xsd:element name="hostname" type="xsd:string">
                         <xsd:annotation>
@@ -13415,7 +13413,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="c:ObjectType">
+            <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
                 	<xsd:element name="includeRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                 		<xsd:annotation>
@@ -13816,7 +13814,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="c:ObjectType">
+            <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
                 	<xsd:element name="row" type="tns:LookupTableRowType" minOccurs="0" maxOccurs="unbounded"/>
                 	<!-- TODO: Maybe more settings describing the intended use of the lookup table. -->
@@ -13910,7 +13908,7 @@
 
     <xsd:complexType name="ValuePolicyType">
         <xsd:complexContent>
-            <xsd:extension base="c:ObjectType">
+            <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
                     <xsd:element name="lifetime" type="c:PasswordLifeTimeType" minOccurs="1" maxOccurs="1">
                     	<xsd:annotation>
@@ -14455,7 +14453,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ObjectType">
+            <xsd:extension base="tns:AssignmentHolderType">
                 <xsd:sequence>
                     <xsd:element name="globalAccountSynchronizationSettings"
                                  type="tns:ProjectionPolicyType" minOccurs="0">
@@ -14839,7 +14837,7 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		 <xsd:complexContent>
-            <xsd:extension base="c:ObjectType">
+            <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
                 	<xsd:element name="function" type="tns:ExpressionType" minOccurs="0" maxOccurs="unbounded"/>
             	</xsd:sequence>
@@ -14858,7 +14856,7 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		 <xsd:complexContent>
-            <xsd:extension base="c:ObjectType">
+            <xsd:extension base="c:AssignmentHolderType">
 				<xsd:sequence>
 					<xsd:element name="type" type="xsd:QName" minOccurs="1">
 						<xsd:annotation>
@@ -17484,7 +17482,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ObjectType">
+            <xsd:extension base="tns:AssignmentHolderType">
                 <xsd:sequence>
                 	<xsd:element name="authentication" type="tns:AuthenticationsPolicyType" minOccurs="0">
                 	</xsd:element>
@@ -19882,7 +19880,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="c:ObjectType">
+            <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
                     <xsd:element name="parent" type="xsd:boolean" default="true" minOccurs="0"/>
                     <xsd:element name="subreport" type="tns:SubreportType" minOccurs="0" maxOccurs="unbounded"/>
@@ -19997,7 +19995,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="c:ObjectType">
+            <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
             		<xsd:element name="filePath" type="xsd:string"/>
             		<xsd:element name="exportType" type="tns:ExportType"/>
@@ -20310,7 +20308,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="c:ObjectType">
+            <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
                     <xsd:element name="counter" type="xsd:long" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
@@ -21316,7 +21314,7 @@
              The schema change was just analysed, planned and clarified in those comments.
              -->
         <xsd:complexContent>
-            <xsd:extension base="c:ObjectType">
+            <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
                 	<!-- includeRef and formDefinition are used to specify "declarative" custom form.
                 	     Ideally, this should be inside its own container. But as this was not done
