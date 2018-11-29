@@ -23,13 +23,10 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.model.RealContainerValueFromContainerValueWrapperModel;
+import com.evolveum.midpoint.gui.impl.model.ContainerRealValueModel;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -302,7 +299,7 @@ public class ContainerWrapperFactory {
 		Collection<? extends ItemDefinition> propertyDefinitions = definition.getDefinitions();
 		
 		if(containerWrapper.getPath().equals(new ItemPath(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_APPENDER))) {
-			RealContainerValueFromContainerValueWrapperModel value = new RealContainerValueFromContainerValueWrapperModel(cWrapper);
+			ContainerRealValueModel value = new ContainerRealValueModel(cWrapper);
 			if(value != null || value.getObject() != null || value.getObject().asPrismContainerValue()!= null
 					|| value.getObject().asPrismContainerValue().getComplexTypeDefinition() != null
 					|| value.getObject().asPrismContainerValue().getComplexTypeDefinition().getDefinitions() != null) {
@@ -440,7 +437,11 @@ public class ContainerWrapperFactory {
 		}
 		
 		if (QNameUtil.match(def.getName(), ClassLoggerConfigurationType.F_APPENDER)) {
-			return WebComponentUtil.createAppenderChoices((PageBase) modelServiceLocator);
+			return WebComponentUtil.createAppenderChoices((PageBase) modelServiceLocator, task, result);
+		}
+		
+		if (QNameUtil.match(def.getName(), ClassLoggerConfigurationType.F_PACKAGE)) {
+			return WebComponentUtil.createLoggerPackageChoices((PageBase) modelServiceLocator);
 		}
 		
 		return null;

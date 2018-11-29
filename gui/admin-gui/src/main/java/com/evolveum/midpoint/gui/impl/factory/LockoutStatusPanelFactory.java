@@ -18,6 +18,7 @@ package com.evolveum.midpoint.gui.impl.factory;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
@@ -25,13 +26,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
+import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.web.component.LockoutStatusPanel;
 import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 
 @Component
-public class LockoutStatusPanelFactory extends AbstractGuiComponentFactory {
+public class LockoutStatusPanelFactory implements GuiComponentFactory {
 
 	@Autowired GuiComponentRegistry registry;
 	
@@ -47,8 +50,10 @@ public class LockoutStatusPanelFactory extends AbstractGuiComponentFactory {
 	}
 
 	@Override
-	public <T> Panel getPanel(PanelContext<T> panelCtx) {
-		return new LockoutStatusPanel(panelCtx.getComponentId(), panelCtx.getBaseModel().getObject(), new PropertyModel<>(panelCtx.getBaseModel(), panelCtx.getBaseExpression()));
+	public <T> Panel createPanel(PanelContext<T> panelCtx) {
+		LockoutStatusPanel panel = new LockoutStatusPanel(panelCtx.getComponentId(), (IModel<LockoutStatusType>) panelCtx.getRealValueModel());
+		panelCtx.getFeedbackPanel().setFilter(new ComponentFeedbackMessageFilter(panel));
+		return panel;
 	}
 
 }

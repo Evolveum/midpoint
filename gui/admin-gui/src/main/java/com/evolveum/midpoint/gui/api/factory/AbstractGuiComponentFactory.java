@@ -42,7 +42,10 @@ public abstract class AbstractGuiComponentFactory implements GuiComponentFactory
 	@Override
 	public <T> Panel createPanel(PanelContext<T> panelCtx) {
 		Panel panel = getPanel(panelCtx);
-//		feedback.setFilter(new ComponentFeedbackMessageFilter(((InputPanel) panel).getBaseFormComponent()));
+		
+		if (panel instanceof InputPanel) {
+			panelCtx.getFeedbackPanel().setFilter(new ComponentFeedbackMessageFilter(((InputPanel) panel).getBaseFormComponent()));
+		}
 		return panel;
 	}
 		

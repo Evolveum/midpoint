@@ -22,6 +22,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -40,10 +41,10 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
+import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.model.DefaultReferencableImplSingleValueContainerValueWrapperModel;
-import com.evolveum.midpoint.gui.impl.model.RealValueOfSingleValuePropertyAsStringFromContainerValueWrapperModel;
-import com.evolveum.midpoint.gui.impl.model.RealContainerValueFromParentOfSingleValueContainerValueWrapperModel;
-import com.evolveum.midpoint.gui.impl.model.RealContainerValueFromContainerValueWrapperModel;
+import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerModel;
+import com.evolveum.midpoint.gui.impl.model.ContainerRealValueModel;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -66,9 +67,11 @@ import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GlobalPolicyRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 /**
@@ -185,8 +188,8 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
 
 			@Override
 			protected DisplayNamePanel<ObjectPolicyConfigurationType> createDisplayNamePanel(String displayNamePanelId) {
-				RealContainerValueFromContainerValueWrapperModel<ObjectPolicyConfigurationType> displayNameModel = 
-						new RealContainerValueFromContainerValueWrapperModel<ObjectPolicyConfigurationType>(item.getModel());
+				ContainerRealValueModel<ObjectPolicyConfigurationType> displayNameModel = 
+						new ContainerRealValueModel<ObjectPolicyConfigurationType>(item.getModel().getObject());
 				return new DisplayNamePanel<ObjectPolicyConfigurationType>(displayNamePanelId, displayNameModel);
 			}
 		};
@@ -227,17 +230,21 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
             
 			@Override
 			public IModel<String> createLinkModel(IModel<ContainerValueWrapper<ObjectPolicyConfigurationType>> rowModel) {
-				RealValueOfSingleValuePropertyAsStringFromContainerValueWrapperModel<QName, ObjectPolicyConfigurationType> typeValue = 
-						new RealValueOfSingleValuePropertyAsStringFromContainerValueWrapperModel<QName, ObjectPolicyConfigurationType>(rowModel, ObjectPolicyConfigurationType.F_TYPE){
-					
-					private static final long serialVersionUID = 1L;
+				PropertyWrapperFromContainerModel<QName, ObjectPolicyConfigurationType> property =
+            			new PropertyWrapperFromContainerModel<QName, ObjectPolicyConfigurationType>(rowModel.getObject(), ObjectPolicyConfigurationType.F_TYPE);
+            	ItemRealValueModel<QName> typeValue = null;
+            	if(property.getObject() != null) {
+            		typeValue = new ItemRealValueModel<QName>(property.getObject()) {
+            			
+            			private static final long serialVersionUID = 1L;
 
-					@Override
-					protected String objectToString(QName object) {
-						return object.getLocalPart();
-					}
-				};
-				return typeValue.getObject() != null ? typeValue : Model.of("");
+    					@Override
+    					protected String objectToString(QName object) {
+    						return object.getLocalPart();
+    					}
+            		};
+            	}
+				return Model.of(typeValue != null && !StringUtils.isBlank(typeValue.getAsString()) ? typeValue.getAsString() : "");
 			}
 			
 			@Override
@@ -252,9 +259,13 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
 			@Override
 			public void populateItem(Item<ICellPopulator<ContainerValueWrapper<ObjectPolicyConfigurationType>>> item, String componentId,
 									 final IModel<ContainerValueWrapper<ObjectPolicyConfigurationType>> rowModel) {
-				RealValueOfSingleValuePropertyAsStringFromContainerValueWrapperModel<String, ObjectPolicyConfigurationType> subtypeValue = 
-						new RealValueOfSingleValuePropertyAsStringFromContainerValueWrapperModel<String, ObjectPolicyConfigurationType>(rowModel, ObjectPolicyConfigurationType.F_SUBTYPE);
-				item.add(new Label(componentId, Model.of(subtypeValue)));
+				PropertyWrapperFromContainerModel<String, ObjectPolicyConfigurationType> property =
+            			new PropertyWrapperFromContainerModel<String, ObjectPolicyConfigurationType>(rowModel.getObject(), ObjectPolicyConfigurationType.F_SUBTYPE);
+            	ItemRealValueModel<String> subtype = null;
+            	if(property.getObject() != null) {
+            		subtype = new ItemRealValueModel<String>(property.getObject());
+            	}
+            	item.add(new Label(componentId, Model.of(StringUtils.isBlank(subtype.getAsString()) ? "" : subtype.getAsString())));
 			}
         });
 
@@ -278,8 +289,9 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
 			public void populateItem(Item<ICellPopulator<ContainerValueWrapper<ObjectPolicyConfigurationType>>> item, String componentId,
 									 final IModel<ContainerValueWrapper<ObjectPolicyConfigurationType>> rowModel) {
 				
-				RealContainerValueFromParentOfSingleValueContainerValueWrapperModel<LifecycleStateModelType, ObjectPolicyConfigurationType> lifecycleStateModel = 
-						new RealContainerValueFromParentOfSingleValueContainerValueWrapperModel<LifecycleStateModelType, ObjectPolicyConfigurationType>(rowModel, new ItemPath(rowModel.getObject().getPath(), ObjectPolicyConfigurationType.F_LIFECYCLE_STATE_MODEL));
+				ContainerRealValueModel<LifecycleStateModelType> lifecycleStateModel =
+            			new ContainerRealValueModel<LifecycleStateModelType>(rowModel.getObject(),
+            					new ItemPath(rowModel.getObject().getPath(), ObjectPolicyConfigurationType.F_LIFECYCLE_STATE_MODEL));
 				
 				if (lifecycleStateModel == null || lifecycleStateModel.getObject() == null
 						|| lifecycleStateModel.getObject().getState() == null || lifecycleStateModel.getObject().getState().isEmpty()) {

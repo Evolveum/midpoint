@@ -48,9 +48,9 @@ import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.EditableLinkPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.input.QNameIChoiceRenderer;
-import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerValueWrapperModel;
-import com.evolveum.midpoint.gui.impl.model.RealContainerValueFromContainerValueWrapperModel;
-import com.evolveum.midpoint.gui.impl.model.RealValueFromSingleValuePropertyWrapperModel;
+import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
+import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerModel;
+import com.evolveum.midpoint.gui.impl.model.ContainerRealValueModel;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -368,8 +368,9 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 			
 			@Override
 		    protected IModel createLinkModel(IModel<ContainerValueWrapper<ClassLoggerConfigurationType>> rowModel) {
-		    	PropertyWrapperFromContainerValueWrapperModel model = new PropertyWrapperFromContainerValueWrapperModel<>(rowModel, qNameOfProperty);
-		    	if(((PropertyWrapper<AppenderConfigurationType>)model.getObject()).isEmpty()){
+		    	PropertyWrapperFromContainerModel model =
+		    			new PropertyWrapperFromContainerModel(rowModel.getObject(), qNameOfProperty);
+		    	if(model.getObject() != null && ((PropertyWrapper<AppenderConfigurationType>)model.getObject()).isEmpty()){
 		            return createStringResource("LoggingConfigPanel.appenders.Inherit");
 		        } else{
 		            return new LoadableModel<String>() {
@@ -379,7 +380,7 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 		                @Override
 		                protected String load() {
 		                    StringBuilder builder = new StringBuilder();
-		                    RealContainerValueFromContainerValueWrapperModel<ClassLoggerConfigurationType> loggerModel = new RealContainerValueFromContainerValueWrapperModel<>(rowModel);
+		                    ContainerRealValueModel<ClassLoggerConfigurationType> loggerModel = new ContainerRealValueModel<>(rowModel.getObject());
 		                    for (String appender : loggerModel.getObject().getAppender()) {
 		                        if (loggerModel.getObject().getAppender().indexOf(appender) != 0) {
 		                            builder.append(", ");
@@ -535,9 +536,9 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 
             @Override
             protected IModel<String> createLinkModel(IModel<ContainerValueWrapper<AppenderConfigurationType>> rowModel) {
-            	PropertyWrapperFromContainerValueWrapperModel<String, AppenderConfigurationType> property =
-            			new PropertyWrapperFromContainerValueWrapperModel<>(rowModel.getObject(), AppenderConfigurationType.F_NAME);
-            	RealValueFromSingleValuePropertyWrapperModel<String> name = new RealValueFromSingleValuePropertyWrapperModel<>(property);
+            	PropertyWrapperFromContainerModel<String, AppenderConfigurationType> property =
+            			new PropertyWrapperFromContainerModel<>(rowModel.getObject(), AppenderConfigurationType.F_NAME);
+            	ItemRealValueModel<String> name = new ItemRealValueModel<String>(property.getObject());
            		if (StringUtils.isBlank(name.getObject())) {
             		return createStringResource("AssignmentPanel.noName");
             	}
@@ -556,9 +557,9 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 			@Override
 			public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AppenderConfigurationType>>> item, String componentId,
 									 final IModel<ContainerValueWrapper<AppenderConfigurationType>> rowModel) {
-				PropertyWrapperFromContainerValueWrapperModel<String, AppenderConfigurationType> property =
-            			new PropertyWrapperFromContainerValueWrapperModel<>(rowModel.getObject(), AppenderConfigurationType.F_PATTERN);
-            	RealValueFromSingleValuePropertyWrapperModel<String> pattern = new RealValueFromSingleValuePropertyWrapperModel<>(property);
+				PropertyWrapperFromContainerModel<String, AppenderConfigurationType> property =
+            			new PropertyWrapperFromContainerModel<>(rowModel.getObject(), AppenderConfigurationType.F_PATTERN);
+				ItemRealValueModel<String> pattern = new ItemRealValueModel<String>(property.getObject());
 				item.add(new Label(componentId, Model.of(pattern.getObject())));
 			}
 			
@@ -574,8 +575,8 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 			@Override
 			public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AppenderConfigurationType>>> item, String componentId,
 									 final IModel<ContainerValueWrapper<AppenderConfigurationType>> rowModel) {
-				RealContainerValueFromContainerValueWrapperModel<AppenderConfigurationType> appender = 
-            			new RealContainerValueFromContainerValueWrapperModel<>(rowModel);
+				ContainerRealValueModel<AppenderConfigurationType> appender = 
+            			new ContainerRealValueModel<>(rowModel.getObject());
             	String type = "";
             	if(appender != null && appender.getObject() instanceof FileAppenderConfigurationType) {
             		type = "File appender";

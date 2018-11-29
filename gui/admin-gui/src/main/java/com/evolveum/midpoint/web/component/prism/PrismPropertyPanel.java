@@ -22,6 +22,7 @@ import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.factory.PanelContext;
 import com.evolveum.midpoint.gui.impl.factory.PrismValuePanel2;
 import com.evolveum.midpoint.prism.*;
@@ -42,13 +43,19 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
+import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.*;
+import org.apache.wicket.util.visit.IVisit;
+import org.apache.wicket.util.visit.IVisitor;
 
 import java.util.List;
 
@@ -65,18 +72,32 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
     private static final String ID_EXPERIMENTAL = "experimental";
     private static final String ID_LABEL = "label";
     private static final String ID_LABEL_CONTAINER = "labelContainer";
+    
+    
+    private static final String ID_FEEDBACK = "feedback";
+	private static final String ID_INPUT = "input";
+	private static final String ID_ADD_BUTTON = "addButton";
+	private static final String ID_REMOVE_BUTTON = "removeButton";
+	private static final String ID_VALUE_CONTAINER = "valueContainer";
+	
 
     private IModel<IW> model;
     private Form form;
 
     private boolean labelContainerVisible = true;
-
+    private boolean isInColumn;
+    
     public PrismPropertyPanel(String id, final IModel<IW> model, Form form, ItemVisibilityHandler visibilityHandler) {
+    	this(id, model, form, visibilityHandler, false);
+    }
+
+    public PrismPropertyPanel(String id, final IModel<IW> model, Form form, ItemVisibilityHandler visibilityHandler, boolean isInColumn) {
         super(id, model);
         Validate.notNull(model, "no model");
         this.model = model;
+        this.isInColumn = isInColumn;
         this.form = form;
-        
+
 
         LOGGER.trace("Creating property panel for {}", model.getObject());
 
@@ -94,6 +115,10 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
 
             @Override
             public boolean isEnabled() {
+            	if(isInColumn && model.getObject() instanceof PropertyWrapper
+            			&& model.getObject().getPath().isSuperPathOrEquivalent(new ItemPath(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_CLASS_LOGGER))){
+            		return ((PropertyWrapper)model.getObject()).getContainerValue().isSelected();
+            	}
                 return !model.getObject().isReadonly();
             }
         });
@@ -108,7 +133,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
     @Override
     protected void onInitialize() {
     	super.onInitialize();
-    	initLayout(model, form);
+    	initLayout();
     }
     
     public boolean isVisible(ItemVisibilityHandler visibilityHandler) {
@@ -134,14 +159,14 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
         return model;
     }
 
-    private void initLayout(final IModel<IW> model, final Form form) {
+    private void initLayout() {
         WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
         labelContainer.setOutputMarkupId(true);
         labelContainer.add(new VisibleEnableBehaviour() {
         	private static final long serialVersionUID = 1L;
 
             @Override public boolean isVisible() {
-                return labelContainerVisible;
+                return labelContainerVisible && !isInColumn;
             }
         });
         add(labelContainer);
@@ -288,48 +313,74 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
             @Override
             protected void populateItem(final ListItem<ValueWrapper> item) {
             	
-//            	Panel component = null;
-//            	GuiComponentFactory componentFactory = getPageBase().getRegistry().findFactory(model.getObject());
-//        		if (componentFactory != null) {
-//        			
-//        			PanelContext panelCtx = new PanelContext<>();
-//        			panelCtx.setBaseModel(item.getModel());
-//        			panelCtx.setPageBase(getPageBase());
-//        			panelCtx.setItemDefinition(model.getObject().getItemDefinition());
-//        			panelCtx.setComponentId("value");
-//        			panelCtx.setParentComponent(PrismPropertyPanel.this);
-//        			
-//        			try {
-//        			component = componentFactory.getPanel(panelCtx);
-//        			} catch (Throwable e) {
-//        				LoggingUtils.logUnexpectedException(LOGGER, "Cannot create panel", e);
-//        				getSession().error("Cannot create panel");
-//        				throw new RuntimeException(e);
-//        			}
-//        		
-////        			component = componentFactory.createPanel();
-//        		}
-            	
-                BasePanel panel;
-                ItemWrapper itemWrapper = item.getModelObject().getItem();
-                if ((itemWrapper.getPath().containsName(ConstructionType.F_ASSOCIATION) ||
-                                itemWrapper.getPath().containsName(ConstructionType.F_ATTRIBUTE))&&
-                        itemWrapper.getPath().containsName(ResourceObjectAssociationType.F_OUTBOUND) &&
-                        itemWrapper.getPath().containsName(MappingType.F_EXPRESSION)){
-                    ExpressionWrapper expressionWrapper = (ExpressionWrapper)item.getModelObject().getItem();
-                    panel = new ExpressionValuePanel("value", new PropertyModel(item.getModel(), "value.value"),
-                            expressionWrapper.getConstruction(), getPageBase()){
-                        private static final long serialVersionUID = 1L;
+            	WebMarkupContainer valueContainer = new WebMarkupContainer(ID_VALUE_CONTAINER);
+        		valueContainer.setOutputMarkupId(true);
+        		valueContainer.add(new AttributeModifier("class", getValueCssClass()));
+        		item.add(valueContainer);
 
-                        @Override
-                        protected boolean isAssociationExpression(){
-                            return itemWrapper.getPath().containsName(ConstructionType.F_ASSOCIATION);
-                        }
-                    };
-                } else {
-                    panel = new PrismValuePanel2("value", item.getModel(), label, form, getValueCssClass(), getInputCssClass());
-                }
-                item.add(panel);
+        		// feedback
+        		FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK);
+        		feedback.setOutputMarkupId(true);
+        		item.add(feedback);
+            	
+            	
+            	Panel component = null;
+            	GuiComponentFactory componentFactory = getPageBase().getRegistry().findFactory(model.getObject());
+        		if (componentFactory != null) {
+        			
+        			PanelContext<?> panelCtx = new PanelContext<>();
+        			panelCtx.setItemWrapper(model.getObject());
+        			panelCtx.setComponentId("value");
+        			panelCtx.setParentComponent(PrismPropertyPanel.this);
+        			panelCtx.setForm(form);
+        			panelCtx.setFeedbackPanel(feedback);
+        			panelCtx.setRealValueModel(item.getModelObject());
+        			
+        			try {
+        			component = componentFactory.createPanel(panelCtx);
+        			} catch (Throwable e) {
+        				LoggingUtils.logUnexpectedException(LOGGER, "Cannot create panel", e);
+        				getSession().error("Cannot create panel");
+        				throw new RuntimeException(e);
+        			}
+        		
+//        			component = componentFactory.createPanel();
+        		}
+            	
+//                BasePanel panel;
+//                ItemWrapper itemWrapper = item.getModelObject().getItem();
+//                if ((itemWrapper.getPath().containsName(ConstructionType.F_ASSOCIATION) ||
+//                                itemWrapper.getPath().containsName(ConstructionType.F_ATTRIBUTE))&&
+//                        itemWrapper.getPath().containsName(ResourceObjectAssociationType.F_OUTBOUND) &&
+//                        itemWrapper.getPath().containsName(MappingType.F_EXPRESSION)){
+//                    ExpressionWrapper expressionWrapper = (ExpressionWrapper)item.getModelObject().getItem();
+//                    panel = new ExpressionValuePanel("value", new PropertyModel(item.getModel(), "value.value"),
+//                            expressionWrapper.getConstruction(), getPageBase()){
+//                        private static final long serialVersionUID = 1L;
+//
+//                        @Override
+//                        protected boolean isAssociationExpression(){
+//                            return itemWrapper.getPath().containsName(ConstructionType.F_ASSOCIATION);
+//                        }
+//                    };
+//                    
+//                    if (input instanceof ExpressionValuePanel) {
+//            			input.visitChildren(new IVisitor<Component, Object>() {
+//            				@Override
+//            				public void component(Component component, IVisit<Object> objectIVisit) {
+//            					if (component instanceof FormComponent) {
+//            						feedback.setFilter(new ComponentFeedbackMessageFilter(component));
+//            					}
+//            				}
+//            			});
+//                    
+//                } else {
+////                    panel = new PrismValuePanel2("value", item.getModel(), label, form, getValueCssClass(), getInputCssClass());
+//                }
+        		
+        		if (component != null) {
+        			item.add(component);
+        		}
                 item.add(AttributeModifier.append("class", createStyleClassModel(item.getModel())));
 
                 item.add(new VisibleEnableBehaviour() {
@@ -337,7 +388,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
 
                     @Override
                     public boolean isVisible() {
-                        return isVisibleValue(item.getModel());
+                        return componentFactory != null && isVisibleValue(item.getModel());
                     }
                 });
             }
@@ -366,7 +417,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
             @Override
             public String getObject() {
                 if (getIndexOfValue(value.getObject()) > 0) {
-                    return "col-md-offset-2 prism-value";
+                    return isInColumn ? "prism-value" : "col-md-offset-2 prism-value";
                 }
 
                 return null;
@@ -459,11 +510,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
         return !ValueStatus.DELETED.equals(value.getStatus());
     }
 
-    public boolean isLabelContainerVisible() {
-        return labelContainerVisible;
-    }
-
-    public void setLabelContainerVisible(boolean labelContainerVisible) {
+      public void setLabelContainerVisible(boolean labelContainerVisible) {
         this.labelContainerVisible = labelContainerVisible;
     }
 }

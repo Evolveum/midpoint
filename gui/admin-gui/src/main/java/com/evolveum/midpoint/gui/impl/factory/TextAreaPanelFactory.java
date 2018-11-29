@@ -40,7 +40,6 @@ public class TextAreaPanelFactory extends AbstractGuiComponentFactory {
 
 	@Autowired private GuiComponentRegistry registry;
 	
-//	@Override
 	@PostConstruct
 	public void register() {
 		registry.addToRegistry(this);
@@ -55,7 +54,11 @@ public class TextAreaPanelFactory extends AbstractGuiComponentFactory {
 	
 	@Override
 	public <T> Panel getPanel(PanelContext<T> panelCtx) {
-		return new TextAreaPanel<>(panelCtx.getComponentId(), new PropertyModel<>(panelCtx.getBaseModel(), panelCtx.getBaseExpression()), 10);
+		int size = 10;
+		if (FocusType.F_DESCRIPTION.equals(panelCtx.getDefinitionName())) {
+			size = 1;
+		}
+		return new TextAreaPanel<>(panelCtx.getComponentId(), panelCtx.getRealValueModel(), size);
 	}
 
 	

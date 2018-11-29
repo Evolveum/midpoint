@@ -38,9 +38,9 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
-import com.evolveum.midpoint.gui.impl.model.RealContainerValueFromParentOfSingleValueContainerValueWrapperModel;
-import com.evolveum.midpoint.gui.impl.model.RealValueOfSingleValuePropertyAsStringFromContainerValueWrapperModel;
-import com.evolveum.midpoint.gui.impl.model.RealContainerValueFromContainerValueWrapperModel;
+import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
+import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerModel;
+import com.evolveum.midpoint.gui.impl.model.ContainerRealValueModel;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -181,8 +181,8 @@ public class GlobalPolicyRuleTabPanel extends BasePanel<ContainerWrapper<GlobalP
 
 			@Override
 			protected DisplayNamePanel<GlobalPolicyRuleType> createDisplayNamePanel(String displayNamePanelId) {
-				RealContainerValueFromContainerValueWrapperModel<GlobalPolicyRuleType> displayNameModel = 
-						new RealContainerValueFromContainerValueWrapperModel<GlobalPolicyRuleType>(item.getModel());
+				ContainerRealValueModel<GlobalPolicyRuleType> displayNameModel = 
+						new ContainerRealValueModel<GlobalPolicyRuleType>(item.getModel().getObject());
 				return new DisplayNamePanel<GlobalPolicyRuleType>(displayNamePanelId, displayNameModel);
 			}
 			
@@ -232,9 +232,13 @@ public class GlobalPolicyRuleTabPanel extends BasePanel<ContainerWrapper<GlobalP
 
             @Override
             protected IModel<String> createLinkModel(IModel<ContainerValueWrapper<GlobalPolicyRuleType>> rowModel) {
-            	RealValueOfSingleValuePropertyAsStringFromContainerValueWrapperModel<String, GlobalPolicyRuleType> name = 
-            			new RealValueOfSingleValuePropertyAsStringFromContainerValueWrapperModel<String, GlobalPolicyRuleType>(rowModel, GlobalPolicyRuleType.F_NAME);
-           		if (name == null || StringUtils.isBlank(name.getObject())) {
+            	PropertyWrapperFromContainerModel<String, GlobalPolicyRuleType> property =
+            			new PropertyWrapperFromContainerModel<String, GlobalPolicyRuleType>(rowModel.getObject(), GlobalPolicyRuleType.F_NAME);
+            	ItemRealValueModel<String> name = null;
+            	if(property.getObject() != null) {
+            		name = new ItemRealValueModel<String>(property.getObject());
+            	}
+           		if (name == null || StringUtils.isBlank(name.getAsString())) {
             		return createStringResource("AssignmentPanel.noName");
             	}
             	return name;
@@ -252,8 +256,10 @@ public class GlobalPolicyRuleTabPanel extends BasePanel<ContainerWrapper<GlobalP
             @Override
             public void populateItem(Item<ICellPopulator<ContainerValueWrapper<GlobalPolicyRuleType>>> cellItem, String componentId,
                                      final IModel<ContainerValueWrapper<GlobalPolicyRuleType>> rowModel) {
-            	RealContainerValueFromParentOfSingleValueContainerValueWrapperModel<PolicyConstraintsType, GlobalPolicyRuleType> constraintsModel = 
-            			new RealContainerValueFromParentOfSingleValueContainerValueWrapperModel<PolicyConstraintsType, GlobalPolicyRuleType>(rowModel, new ItemPath(rowModel.getObject().getPath(), GlobalPolicyRuleType.F_POLICY_CONSTRAINTS));
+            	ContainerRealValueModel<PolicyConstraintsType> constraintsModel =
+            			new ContainerRealValueModel<PolicyConstraintsType>(rowModel.getObject(),
+            					new ItemPath(rowModel.getObject().getPath(), GlobalPolicyRuleType.F_POLICY_CONSTRAINTS));
+            	
             	String constraints = "";
             	if(constraintsModel != null && constraintsModel.getObject() != null) {
             		constraints = PolicyRuleTypeUtil.toShortString(constraintsModel.getObject());
@@ -268,9 +274,13 @@ public class GlobalPolicyRuleTabPanel extends BasePanel<ContainerWrapper<GlobalP
             @Override
             public void populateItem(Item<ICellPopulator<ContainerValueWrapper<GlobalPolicyRuleType>>> cellItem, String componentId,
                                      final IModel<ContainerValueWrapper<GlobalPolicyRuleType>> rowModel) {
-            	RealValueOfSingleValuePropertyAsStringFromContainerValueWrapperModel<String, GlobalPolicyRuleType> situationValue = 
-            			new RealValueOfSingleValuePropertyAsStringFromContainerValueWrapperModel<String, GlobalPolicyRuleType>(rowModel, GlobalPolicyRuleType.F_POLICY_SITUATION);
-                cellItem.add(new Label(componentId, Model.of(situationValue)));
+            	PropertyWrapperFromContainerModel<String, GlobalPolicyRuleType> property =
+            			new PropertyWrapperFromContainerModel<String, GlobalPolicyRuleType>(rowModel.getObject(), GlobalPolicyRuleType.F_POLICY_SITUATION);
+            	ItemRealValueModel<String> situation = null;
+            	if(property.getObject() != null) {
+            		situation = new ItemRealValueModel<String>(property.getObject());
+            	}
+                cellItem.add(new Label(componentId, Model.of(StringUtils.isBlank(situation.getAsString()) ? "" : situation.getAsString())));
             }
 
         });
@@ -280,8 +290,10 @@ public class GlobalPolicyRuleTabPanel extends BasePanel<ContainerWrapper<GlobalP
             @Override
             public void populateItem(Item<ICellPopulator<ContainerValueWrapper<GlobalPolicyRuleType>>> cellItem, String componentId,
                                      final IModel<ContainerValueWrapper<GlobalPolicyRuleType>> rowModel) {
-            	RealContainerValueFromParentOfSingleValueContainerValueWrapperModel<PolicyActionsType, GlobalPolicyRuleType> constraintsModel = 
-            			new RealContainerValueFromParentOfSingleValueContainerValueWrapperModel<PolicyActionsType, GlobalPolicyRuleType>(rowModel, new ItemPath(rowModel.getObject().getPath(), GlobalPolicyRuleType.F_POLICY_ACTIONS));
+            	ContainerRealValueModel<PolicyActionsType> constraintsModel =
+            			new ContainerRealValueModel<PolicyActionsType>(rowModel.getObject(),
+            					new ItemPath(rowModel.getObject().getPath(), GlobalPolicyRuleType.F_POLICY_ACTIONS));
+            	
             	String action = "";
             	if(constraintsModel != null && constraintsModel.getObject() != null) {
             		action = PolicyRuleTypeUtil.toShortString(constraintsModel.getObject(),  new ArrayList<>());

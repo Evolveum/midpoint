@@ -186,36 +186,32 @@ public class PrismValuePanel2 extends BasePanel<ValueWrapper> {
 	private void initLayout() {
 		// container
 		WebMarkupContainer valueContainer = new WebMarkupContainer(ID_VALUE_CONTAINER);
-		valueContainer.setOutputMarkupId(true);
-		valueContainer.add(new AttributeModifier("class", valueCssClass));
-		add(valueContainer);
-
-		// feedback
-		FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK);
-		feedback.setOutputMarkupId(true);
-		add(feedback);
+//		valueContainer.setOutputMarkupId(true);
+//		valueContainer.add(new AttributeModifier("class", valueCssClass));
+//		add(valueContainer);
+//
+//		// feedback
+//		FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK);
+//		feedback.setOutputMarkupId(true);
+//		add(feedback);
 
 		// input
 		Panel input = createInputComponent(ID_INPUT, labelModel, form);
 		input.add(new AttributeModifier("class", inputCssClass));
 		//TODO should we set ComponentFeedbackMessageFilter for all types of input field?
-		if (input instanceof InputPanel) {
-			initAccessBehaviour((InputPanel) input);
-			feedback.setFilter(new ComponentFeedbackMessageFilter(((InputPanel) input).getBaseFormComponent()));
-		} else if (input instanceof LockoutStatusPanel ||
-				input instanceof ValueChoosePanel) {
-			feedback.setFilter(new ComponentFeedbackMessageFilter(input));
-		} else if (input instanceof ExpressionValuePanel) {
-			input.visitChildren(new IVisitor<Component, Object>() {
-				@Override
-				public void component(Component component, IVisit<Object> objectIVisit) {
-					if (component instanceof FormComponent) {
-						feedback.setFilter(new ComponentFeedbackMessageFilter(component));
-					}
-				}
-			});
+//		if (input instanceof InputPanel) {
+//			initAccessBehaviour((InputPanel) input);
+//			feedback.setFilter(new ComponentFeedbackMessageFilter(((InputPanel) input).getBaseFormComponent()));
+//		} else 
+//			
+//			if (input instanceof LockoutStatusPanel ||
+//				input instanceof ValueChoosePanel) {
+//			feedback.setFilter(new ComponentFeedbackMessageFilter(input));
+//		} else 
+			
+			
 
-		}
+//		}
 		valueContainer.add(input);
 
 		// buttons
@@ -450,13 +446,13 @@ public class PrismValuePanel2 extends BasePanel<ValueWrapper> {
 		if (componentFactory != null) {
 			
 			PanelContext<T> panelCtx = new PanelContext<>();
-			panelCtx.setBaseExpression(getBaseExpression(definition));
-			panelCtx.setBaseModel((IModel) getModel());
-			panelCtx.setPageBase(getPageBase());
-			panelCtx.setItemDefinition(definition);
-			panelCtx.setComponentId(id);
-			panelCtx.setParentComponent(this);
-			
+//			panelCtx.setBaseExpression(getBaseExpression(definition));
+//			panelCtx.setBaseModel((IModel) getModel());
+//			panelCtx.setPageBase(getPageBase());
+//			panelCtx.setItemDefinition(definition);
+//			panelCtx.setComponentId(id);
+//			panelCtx.setParentComponent(this);
+//			
 			try {
 			component = componentFactory.createPanel(panelCtx);
 			} catch (Throwable e) {
@@ -475,7 +471,6 @@ public class PrismValuePanel2 extends BasePanel<ValueWrapper> {
 		if (component instanceof InputPanel) {
 			InputPanel inputPanel = (InputPanel) component;
 			// adding valid from/to date range validator, if necessary
-			ItemPath activation = new ItemPath(UserType.F_ACTIVATION);
 			
 			if (valueWrapper.getItem().getFormItemValidator() != null) {
 				ExpressionValidator<T> expressionValidator = new ExpressionValidator<T>(valueWrapper.getItem().getFormItemValidator(), getPageBase()) {

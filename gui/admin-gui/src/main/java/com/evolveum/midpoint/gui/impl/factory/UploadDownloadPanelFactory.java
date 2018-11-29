@@ -58,16 +58,16 @@ public class UploadDownloadPanelFactory extends AbstractGuiComponentFactory {
 
 			@Override
 			public InputStream getStream() {
-				Object object = ((PrismPropertyValue) panelCtx.getBaseModel().getObject().getValue()).getValue();
+				T object = panelCtx.getRealValueModel().getObject();
 				return object != null ? new ByteArrayInputStream((byte[]) object) : new ByteArrayInputStream(new byte[0]);
 			}
 
 			@Override
 			public void updateValue(byte[] file) {
-				((PrismPropertyValue) panelCtx.getBaseModel().getObject().getValue()).setValue(file);
+				panelCtx.getRealValueModel().setObject((T) file);
 			}
 
-						@Override
+			@Override
 			public void uploadFileFailed(AjaxRequestTarget target) {
 				super.uploadFileFailed(target);
 				target.add(((PageBase) getPage()).getFeedbackPanel());

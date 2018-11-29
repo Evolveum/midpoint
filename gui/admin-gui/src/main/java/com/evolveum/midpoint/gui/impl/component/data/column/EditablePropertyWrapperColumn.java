@@ -26,14 +26,14 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerValueWrapperModel;
+import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerModel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.PrismPropertyColumn;
+import com.evolveum.midpoint.web.component.prism.PrismPropertyPanel;
 import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
@@ -76,14 +76,14 @@ public class EditablePropertyWrapperColumn<C extends Containerable, S> extends A
     
     protected Component createInputPanel(String componentId, IModel<ContainerValueWrapper<C>> rowModel) {
     	Form form= new Form("form");
-    	PropertyWrapperFromContainerValueWrapperModel model = new PropertyWrapperFromContainerValueWrapperModel<>(rowModel, qNameOfProperty);
-    	PrismPropertyColumn panel = new PrismPropertyColumn(componentId, model, form, getPageBase());
+    	PropertyWrapperFromContainerModel model = new PropertyWrapperFromContainerModel<>(rowModel.getObject(), qNameOfProperty);
+    	PrismPropertyPanel panel = new PrismPropertyPanel(componentId, model, form, null, true);
     	return panel;
     }
 
     protected Component createStaticPanel(String componentId, IModel<ContainerValueWrapper<C>> rowModel) {
     	Form form= new Form("form");
-    	PropertyWrapperFromContainerValueWrapperModel model = new PropertyWrapperFromContainerValueWrapperModel<>(rowModel, qNameOfProperty);
+    	PropertyWrapperFromContainerModel model = new PropertyWrapperFromContainerModel<>(rowModel.getObject(), qNameOfProperty);
     	
     	if(model.getObject().getPath().removeIdentifiers().equivalent(new ItemPath(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_CLASS_LOGGER, ClassLoggerConfigurationType.F_APPENDER))){
 			if(((PropertyWrapper<AppenderConfigurationType>)model.getObject()).isEmpty()){
@@ -92,7 +92,7 @@ public class EditablePropertyWrapperColumn<C extends Containerable, S> extends A
 			}
     	}
     	
-    	PrismPropertyColumn panel = new PrismPropertyColumn<>(componentId, model, form, getPageBase());
+    	PrismPropertyPanel panel = new PrismPropertyPanel(componentId, model, form, null, true);
     	panel.setEnabled(false);
     	return panel;
     }

@@ -32,6 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigur
 
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 
 import javax.xml.namespace.QName;
 
@@ -41,39 +42,18 @@ import javax.xml.namespace.QName;
  * @author skublik
  * 
  */
-public class ValueWrapperOfSingleValuePropertyFromSingleValueContainerValueWrapperModel<T, C extends Containerable> implements IModel<ValueWrapper<T>> {
+public class PropertyValueWrapperModel<T> extends PropertyModel<ValueWrapper<T>> {
 
 	private static final long serialVersionUID = 1L;
 	
-	private static final Trace LOGGER = TraceManager.getTrace(ValueWrapperOfSingleValuePropertyFromSingleValueContainerValueWrapperModel.class);
+	private static final Trace LOGGER = TraceManager.getTrace(PropertyValueWrapperModel.class);
    
-	private IModel<ContainerValueWrapper<C>> model;
-	private QName item;
-
-    public ValueWrapperOfSingleValuePropertyFromSingleValueContainerValueWrapperModel(IModel<ContainerValueWrapper<C>> model, QName item) {
-    	this.model = model;
-    	this.item = item;
+	/** Model for value wrapper of single valued property.
+	 * @param property single valued property
+	 */
+    public PropertyValueWrapperModel(PropertyWrapper<T> property) {
+    	super(property, "values[0]");
     }
-    
-    public ValueWrapperOfSingleValuePropertyFromSingleValueContainerValueWrapperModel(ContainerValueWrapper<C> value, QName item) {
-    	this.model = Model.of(value);
-    	this.item = item;
-    }
-
-	@Override
-	public void detach() {
-	}
-
-	@Override
-	public ValueWrapper<T> getObject() {
-		
-		PropertyWrapperFromContainerValueWrapperModel<T, C> propertyModel = new PropertyWrapperFromContainerValueWrapperModel<T, C>(model, item);
-		
-		if(propertyModel == null || propertyModel.getObject() == null ||  propertyModel.getObject().getValues() == null) {
-			return null;
-		}
-		return (ValueWrapper<T>)propertyModel.getObject().getValues().get(0);
-	}
 
 	@Override
 	public void setObject(ValueWrapper<T> object) {

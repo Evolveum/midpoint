@@ -106,6 +106,8 @@ import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.ComponentLoggerType;
+import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.StandardLoggerType;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.DefaultReferencableImpl;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -255,6 +257,24 @@ public final class WebComponentUtil {
 		storageTableIdMap.put(TableId.ORG_MEMEBER_PANEL, SessionStorage.KEY_ORG_MEMEBER_PANEL);
 		storageTableIdMap.put(TableId.SERVICE_MEMEBER_PANEL, SessionStorage.KEY_SERVICE_MEMEBER_PANEL);
 
+	}
+	
+	private static final Map<String, LoggingComponentType> componentMap = new HashMap<>();
+
+	static {
+		componentMap.put("com.evolveum.midpoint", LoggingComponentType.ALL);
+		componentMap.put("com.evolveum.midpoint.model", LoggingComponentType.MODEL);
+		componentMap.put("com.evolveum.midpoint.provisioning", LoggingComponentType.PROVISIONING);
+		componentMap.put("com.evolveum.midpoint.repo", LoggingComponentType.REPOSITORY);
+		componentMap.put("com.evolveum.midpoint.web", LoggingComponentType.WEB);
+		componentMap.put("com.evolveum.midpoint.gui", LoggingComponentType.GUI);
+		componentMap.put("com.evolveum.midpoint.task", LoggingComponentType.TASKMANAGER);
+		componentMap.put("com.evolveum.midpoint.model.sync",
+				LoggingComponentType.RESOURCEOBJECTCHANGELISTENER);
+		componentMap.put("com.evolveum.midpoint.wf", LoggingComponentType.WORKFLOWS);
+		componentMap.put("com.evolveum.midpoint.notifications", LoggingComponentType.NOTIFICATIONS);
+		componentMap.put("com.evolveum.midpoint.certification", LoggingComponentType.ACCESS_CERTIFICATION);
+		componentMap.put("com.evolveum.midpoint.security", LoggingComponentType.SECURITY);
 	}
 
 	public static String nl2br(String text) {
@@ -2768,10 +2788,18 @@ public final class WebComponentUtil {
 	}
 	
 	public static LookupTableType createAppenderChoices(PageBase pageBase) {
+        return createAppenderChoices(WebModelServiceUtils.loadSystemConfigurationAsObjectWrapper(pageBase).getObject().getRealValue().getLogging().getAppender());
+	}
+	
+	public static LookupTableType createAppenderChoices(PageBase pageBase, Task task, OperationResult result) {
+        return createAppenderChoices(WebModelServiceUtils.loadSystemConfigurationAsPrismObject(pageBase, task, result).getRealValue().getLogging().getAppender());
+	}
+	
+	private static LookupTableType createAppenderChoices(List<AppenderConfigurationType> appenders) {
 		LookupTableType lookupTable = new LookupTableType();
         List<LookupTableRowType> list = lookupTable.createRowList();
-        
-        for (AppenderConfigurationType appender : WebModelServiceUtils.loadSystemConfigurationAsObjectWrapper(pageBase).getObject().getRealValue().getLogging().getAppender()) {
+         
+        for (AppenderConfigurationType appender : appenders) {
         		LookupTableRowType row = new LookupTableRowType();
         		String name = appender.getName();
         		row.setKey(name);
@@ -2779,6 +2807,30 @@ public final class WebComponentUtil {
         		row.setLabel(new PolyStringType(name));
         		list.add(row);
         }
+        return lookupTable;
+	}
+	
+	public static LookupTableType createLoggerPackageChoices(PageBase pageBase) {
+		LookupTableType lookupTable = new LookupTableType();
+        List<LookupTableRowType> list = lookupTable.createRowList();
+        IModel<List<StandardLoggerType>> standardLoggers = WebComponentUtil.createReadonlyModelFromEnum(StandardLoggerType.class);
+    	IModel<List<LoggingComponentType>> componentLoggers = WebComponentUtil.createReadonlyModelFromEnum(LoggingComponentType.class);
+    	
+    	for(StandardLoggerType standardLogger : standardLoggers.getObject()) {
+    		LookupTableRowType row = new LookupTableRowType();
+    		row.setKey(standardLogger.getValue());
+    		row.setValue(standardLogger.getValue());
+    		row.setLabel(new PolyStringType(pageBase.createStringResource("StandardLoggerType." + standardLogger.name()).getString()));
+    		list.add(row);
+    	}
+    	for(LoggingComponentType componentLogger : componentLoggers.getObject()) {
+    		LookupTableRowType row = new LookupTableRowType();
+    			String value = ComponentLoggerType.getPackageByValue(componentLogger);
+    		row.setKey(value);
+    		row.setValue(value);
+    		row.setLabel(new PolyStringType(pageBase.createStringResource("LoggingComponentType." + componentLogger.name()).getString()));
+    		list.add(row);
+    	}
         return lookupTable;
 	}
 

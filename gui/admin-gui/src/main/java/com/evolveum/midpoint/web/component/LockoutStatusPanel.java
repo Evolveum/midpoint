@@ -39,16 +39,15 @@ public class LockoutStatusPanel extends Panel {
     private static final String ID_FEEDBACK = "feedback";
     private boolean isInitialState = true;
     private LockoutStatusType initialValue;
-    private ValueWrapper valueWrapper;
+    
 
     public LockoutStatusPanel(String id){
-        this(id, null, null);
+        this(id, null);
     }
 
-    public LockoutStatusPanel(String id, ValueWrapper valueWrapper, IModel<LockoutStatusType> model){
+    public LockoutStatusPanel(String id, IModel<LockoutStatusType> model){
         super(id);
-        initialValue = model.getObject();
-        this.valueWrapper = valueWrapper;
+        initialValue = model.getObject(); //TODO: clone
         initLayout(model);
     }
 
@@ -85,16 +84,10 @@ public class LockoutStatusPanel extends Panel {
         AjaxButton button = new AjaxButton(ID_BUTTON, getButtonModel()) {
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                PrismPropertyValue oldValue = (PrismPropertyValue)valueWrapper.getOldValue();
                 if (!isInitialState){
                     model.setObject(initialValue);
-                    oldValue.setValue(initialValue);
-                    valueWrapper.setStatus(ValueStatus.NOT_CHANGED);
                 } else {
                     model.setObject(LockoutStatusType.NORMAL);
-                    if (oldValue.getValue() != null) {
-                        oldValue.setValue(null);
-                    }
                 }
                 isInitialState = !isInitialState;
                 ajaxRequestTarget.add(getButton());

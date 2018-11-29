@@ -32,21 +32,39 @@ import javax.xml.namespace.QName;
  * @author skublik
  * 
  */
-public class PropertyWrapperFromContainerWrapperModel<T,C extends Containerable> implements IModel<PropertyWrapper<T>> {
+public class PropertyWrapperFromContainerModel<T,C extends Containerable> implements IModel<PropertyWrapper<T>> {
 
 	private static final long serialVersionUID = 1L;
    
-   	private ContainerWrapper<C> wrapper;
-   	private QName item;
+   	private ContainerValueWrapper<C> value;
+   	private QName qname;
 
-    public PropertyWrapperFromContainerWrapperModel(IModel<ContainerWrapper<C>> model, QName item) {
-    	this.wrapper = model.getObject();
-    	this.item = item;
+   	/** Model for property wrapper of single valued container.
+	 * @param value single valued container
+	 * @param item QName of property 
+	 */
+    public PropertyWrapperFromContainerModel(ContainerValueWrapper<C> value, QName qname) {
+    	this.value = value;
+    	this.qname = qname;
     }
     
-    public PropertyWrapperFromContainerWrapperModel(ContainerWrapper<C> wrapper, QName item) {
-    	this.wrapper = wrapper;
-    	this.item = item;
+    /** Model for property wrapper of single valued container.
+	 * @param wrapper single valued container wrapper
+	 * @param item QName of property
+	 */
+    public PropertyWrapperFromContainerModel(ContainerWrapper<C> wrapper, QName qname) {
+    	
+    	if(wrapper == null || wrapper.getItemDefinition() == null) {
+    		this.value =  null;
+    		
+		} else if(!wrapper.getItemDefinition().isSingleValue()) {
+			if(wrapper.getValues() != null) {
+				this.value = wrapper.getValues().get(0);
+				this.qname = qname;
+			}
+		} else {
+			throw new IllegalStateException("ContainerWrapper  " + wrapper + " isn't single value");
+		}
     }
 
 	@Override
@@ -55,20 +73,10 @@ public class PropertyWrapperFromContainerWrapperModel<T,C extends Containerable>
 
 	@Override
 	public PropertyWrapper<T> getObject() {
-		
-		if(wrapper == null || wrapper.getItemDefinition() == null) {
+		if(value == null) {
 			return null;
 		}
-		
-		if(wrapper.getItemDefinition().isSingleValue()) {
-			if(wrapper.getValues() == null) {
-				return null;
-			}
-			ContainerValueWrapper<C> containerValue = wrapper.getValues().get(0);
-		
-			return new PropertyWrapperFromContainerValueWrapperModel<T, C>(containerValue, item).getObject();
-		}
-		throw new IllegalStateException("ContainerWrapper  " + wrapper + " isn't single value");
+		return (PropertyWrapper<T>)value.findPropertyWrapper(new ItemPath(value.getPath(), qname));
 	}
 
 	@Override

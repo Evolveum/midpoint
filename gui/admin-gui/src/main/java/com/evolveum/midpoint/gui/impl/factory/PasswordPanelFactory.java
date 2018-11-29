@@ -52,13 +52,13 @@ public class PasswordPanelFactory extends AbstractGuiComponentFactory {
 	@Override
 	public <T> Panel getPanel(PanelContext<T> panelCtx) {
 		
-		if (!(panelCtx.getParentComponent().getPage() instanceof PageUser)) {
+		if (!(panelCtx.getPageBase() instanceof PageUser)) {
 			return new PasswordPanel(panelCtx.getComponentId(), (IModel<ProtectedStringType>) panelCtx.getRealValueModel(),
-				panelCtx.getBaseModel().getObject().isReadonly(), true);
+				panelCtx.isPropertyReadOnly(), true);
 		} 
 		
 		return new PasswordPanel(panelCtx.getComponentId(), (IModel<ProtectedStringType>) panelCtx.getRealValueModel(),
-				panelCtx.getBaseModel().getObject().isReadonly());
+				panelCtx.isPropertyReadOnly());
 		
 	}
 

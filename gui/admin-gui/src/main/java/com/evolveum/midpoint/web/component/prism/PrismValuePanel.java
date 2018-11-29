@@ -521,10 +521,10 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 				return new TextAreaPanel(id, new PropertyModel(getModel(), baseExpression), null);
 			}
 
-			if (ActivationType.F_LOCKOUT_STATUS.equals(definition.getName())) {
-				return new LockoutStatusPanel(id, getModel().getObject(),
-                    new PropertyModel<>(getModel(), baseExpression));
-			}
+//			if (ActivationType.F_LOCKOUT_STATUS.equals(definition.getName())) {
+//				return new LockoutStatusPanel(id, getModel().getObject(),
+//                    new PropertyModel<>(getModel(), baseExpression));
+//			}
 			
 			if (SearchFilterType.COMPLEX_TYPE.equals(definition.getTypeName())) {
 				return new AceEditorPanel(id, null, new IModel<String>() {

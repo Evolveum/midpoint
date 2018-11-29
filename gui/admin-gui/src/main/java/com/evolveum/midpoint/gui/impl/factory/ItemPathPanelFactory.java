@@ -56,7 +56,7 @@ public class ItemPathPanelFactory extends AbstractGuiComponentFactory {
 
 			@Override
 			protected void onUpdate(ItemPathDto itemPathDto) {
-				((PrismPropertyValue<ItemPathType>) panelCtx.getBaseModel().getObject().getValue()).setValue(new ItemPathType(itemPathDto.toItemPath())); 
+				panelCtx.getRealValueModel().setObject((T) new ItemPathType(itemPathDto.toItemPath())); 
 				
 			}
 		};

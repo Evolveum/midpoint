@@ -18,29 +18,40 @@ package com.evolveum.midpoint.gui.impl.factory;
 
 import org.apache.wicket.model.PropertyModel;
 
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Referencable;
-import com.evolveum.midpoint.web.component.prism.ItemWrapper;
+import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueWrapper;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public class ItemRealValueModel<T> extends PropertyModel<T>{
 
 	private static final long serialVersionUID = 1L;
 		
 	private ValueWrapper<T> modelObject;
+	boolean isProperty;
 	
 	public ItemRealValueModel(ValueWrapper<T> modelObject) {
 		super(modelObject, "value.value");
 		this.modelObject = modelObject;
 	}
+	
+	/** Model for real value of single valued property.
+	 * @param property single valued property
+	 */
+	public ItemRealValueModel(PropertyWrapper<T> property) {
+		super(property, "values[0].value.value");
+		
+		if(!property.getItemDefinition().isSingleValue()) {
+			throw new IllegalStateException("PropertyWrapper  " + property + " isn't single value");
+		}
+		
+		isProperty = true;
+	}
 
 	@Override
 	public T getObject() {
-		if (modelObject.getItem().getItemDefinition() instanceof PrismReferenceDefinition) {
+		if (!isProperty && modelObject.getItem().getItemDefinition() instanceof PrismReferenceDefinition) {
 			PrismReferenceValue refValue = (PrismReferenceValue) modelObject.getValue();
 			if (refValue == null) {
 				return null;
@@ -61,5 +72,12 @@ public class ItemRealValueModel<T> extends PropertyModel<T>{
 		super.setObject(object);
 	}
 	
+	public String getAsString() {
+		return getObject() != null ? objectToString(getObject()) : null;
+	}
+	
+	protected String objectToString(T object) {
+		return object.toString();
+	}
 	
 }
