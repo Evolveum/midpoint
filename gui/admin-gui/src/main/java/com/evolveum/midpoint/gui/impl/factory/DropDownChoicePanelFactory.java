@@ -33,7 +33,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
@@ -52,14 +52,14 @@ public class DropDownChoicePanelFactory extends AbstractGuiComponentFactory {
 	}
 	
 	@Override
-	public <T> boolean match(ValueWrapper<T> valueWrapper) {
-		ItemDefinition definition = valueWrapper.getItem().getItemDefinition();
+	public <T> boolean match(ItemWrapper itemWrapper) {
+		ItemDefinition definition = itemWrapper.getItemDefinition();
 		
 		return AssignmentType.F_FOCUS_TYPE.equals(definition.getName()) || DOMUtil.XSD_QNAME.equals(definition.getTypeName());
 	}
 
 	@Override
-	public <T> Panel createPanel(PanelContext<T> panelCtx) {
+	public <T> Panel getPanel(PanelContext<T> panelCtx) {
 		
 		List<QName> typesList = null;
 		if (AssignmentType.F_FOCUS_TYPE.equals(panelCtx.getDefinitionName())){

@@ -446,7 +446,7 @@ public class PrismValuePanel2 extends BasePanel<ValueWrapper> {
 		final String baseExpression = "value.value"; 
 		
 		Panel component = null;
-		GuiComponentFactory componentFactory = getPageBase().getRegistry().findFactory(valueWrapper);
+		GuiComponentFactory componentFactory = getPageBase().getRegistry().findFactory(valueWrapper.getItem());
 		if (componentFactory != null) {
 			
 			PanelContext<T> panelCtx = new PanelContext<>();
@@ -476,13 +476,8 @@ public class PrismValuePanel2 extends BasePanel<ValueWrapper> {
 			InputPanel inputPanel = (InputPanel) component;
 			// adding valid from/to date range validator, if necessary
 			ItemPath activation = new ItemPath(UserType.F_ACTIVATION);
-			if (ActivationType.F_VALID_FROM.equals(property.getElementName())) {
-				DateValidator validator = WebComponentUtil.getRangeValidator(form, activation);
-				validator.setDateFrom((DateTimeField) inputPanel.getBaseFormComponent());
-			} else if (ActivationType.F_VALID_TO.equals(property.getElementName())) {
-				DateValidator validator = WebComponentUtil.getRangeValidator(form, activation);
-				validator.setDateTo((DateTimeField) inputPanel.getBaseFormComponent());
-			} else if (valueWrapper.getItem().getFormItemValidator() != null) {
+			
+			if (valueWrapper.getItem().getFormItemValidator() != null) {
 				ExpressionValidator<T> expressionValidator = new ExpressionValidator<T>(valueWrapper.getItem().getFormItemValidator(), getPageBase()) {
 					
 					@Override

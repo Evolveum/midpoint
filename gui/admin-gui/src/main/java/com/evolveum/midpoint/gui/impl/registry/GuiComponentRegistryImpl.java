@@ -10,6 +10,7 @@ import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueWrapper;
 
 public class GuiComponentRegistryImpl implements GuiComponentRegistry {
@@ -22,9 +23,9 @@ public class GuiComponentRegistryImpl implements GuiComponentRegistry {
 	}
 
 	@Override
-	public <T> GuiComponentFactory findFactory(ValueWrapper<T> valueWrapper) {
+	public <T> GuiComponentFactory findFactory(ItemWrapper itemWrapper) {
 		
-		Optional<GuiComponentFactory> opt = guiComponentFactories.stream().filter(f -> f.match(valueWrapper)).findFirst();
+		Optional<GuiComponentFactory> opt = guiComponentFactories.stream().filter(f -> f.match(itemWrapper)).findFirst();
 		if (!opt.isPresent()) {
 			return null;
 		}

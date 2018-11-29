@@ -18,6 +18,7 @@ package com.evolveum.midpoint.gui.impl.factory;
 import javax.annotation.PostConstruct;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import org.apache.wicket.extensions.yui.calendar.DateTimeField;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
@@ -26,9 +27,13 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.component.input.DatePanel;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ItemWrapper;
+import com.evolveum.midpoint.web.util.DateValidator;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 
 /**
  * @author katka
@@ -45,13 +50,22 @@ public class DatePanelFactory extends AbstractGuiComponentFactory {
 	}
 
 	@Override
-	public <T> boolean match(ValueWrapper<T> valueWrapper) {
-		return DOMUtil.XSD_DATETIME.equals(valueWrapper.getItem().getItemDefinition().getTypeName());
+	public <T> boolean match(ItemWrapper itemWrapper) {
+		return DOMUtil.XSD_DATETIME.equals(itemWrapper.getItemDefinition().getTypeName());
 	}
 
 	@Override
-	public <T> Panel createPanel(PanelContext<T> panelCtx) {
-		return new DatePanel(panelCtx.getComponentId(), (IModel<XMLGregorianCalendar>) panelCtx.getRealValueModel());
+	protected <T> Panel getPanel(PanelContext<T> panelCtx) {
+		DatePanel panel = new DatePanel(panelCtx.getComponentId(), (IModel<XMLGregorianCalendar>) panelCtx.getRealValueModel());
+		
+		DateValidator validator = WebComponentUtil.getRangeValidator(panelCtx.getForm(), SchemaConstants.PATH_ACTIVATION);
+		if (ActivationType.F_VALID_FROM.equals(panelCtx.getDefinitionName())) {
+			validator.setDateFrom((DateTimeField) panel.getBaseFormComponent());
+		} else if (ActivationType.F_VALID_TO.equals(panelCtx.getDefinitionName())) {
+			validator.setDateTo((DateTimeField) panel.getBaseFormComponent());
+		} 
+		
+		return panel;
 	}
 	
 	

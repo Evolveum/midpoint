@@ -31,6 +31,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueWrapper;
 import com.evolveum.midpoint.web.page.admin.reports.component.AceEditorPanel;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -47,12 +48,12 @@ public class SearchFilterPanelFactory extends AbstractGuiComponentFactory {
 	}
 	
 	@Override
-	public <T> boolean match(ValueWrapper<T> valueWrapper) {
-		return SearchFilterType.COMPLEX_TYPE.equals(valueWrapper.getItem().getItemDefinition().getTypeName());
+	public <T> boolean match(ItemWrapper itemWrapper) {
+		return SearchFilterType.COMPLEX_TYPE.equals(itemWrapper.getItemDefinition().getTypeName());
 	}
 
 	@Override
-	public <T> Panel createPanel(PanelContext<T> panelCtx) {
+	public <T> Panel getPanel(PanelContext<T> panelCtx) {
 			return new AceEditorPanel(panelCtx.getComponentId(), null, new SearchFilterTypeModel((IModel) panelCtx.getBaseModel(), panelCtx.getPrismContext()));
 		}
 

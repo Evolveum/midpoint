@@ -36,7 +36,6 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
 import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 import com.evolveum.midpoint.web.component.prism.ReferenceWrapper;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -52,12 +51,12 @@ public class ReferencablePanelFactory extends AbstractGuiComponentFactory {
 	}
 	
 	@Override
-	public <T> boolean match(ValueWrapper<T> valueWrapper) {
-		return valueWrapper.getItem().getItemDefinition() instanceof PrismReferenceDefinition;
+	public <T> boolean match(ItemWrapper itemWrapper) {
+		return itemWrapper.getItemDefinition() instanceof PrismReferenceDefinition;
 	}
 
 	@Override
-	public <T> Panel createPanel(PanelContext<T> panelCtx) {
+	public <T> Panel getPanel(PanelContext<T> panelCtx) {
 		return new ValueChoosePanel(panelCtx.getComponentId(), panelCtx.getRealValueModel()) {
 
 			private static final long serialVersionUID = 1L;

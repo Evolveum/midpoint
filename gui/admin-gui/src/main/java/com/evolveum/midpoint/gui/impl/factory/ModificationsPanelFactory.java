@@ -32,7 +32,7 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.model.delta.DeltaDto;
 import com.evolveum.midpoint.web.component.model.delta.ModificationsPanel;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 /**
@@ -50,34 +50,30 @@ public class ModificationsPanelFactory extends AbstractGuiComponentFactory {
 	}
 	
 	@Override
-	public <T> boolean match(ValueWrapper<T> valueWrapper) {
-		return ObjectDeltaType.COMPLEX_TYPE.equals(valueWrapper.getItem().getItemDefinition().getTypeName());
+	public <T> boolean match(ItemWrapper itemWrapper) {
+		return ObjectDeltaType.COMPLEX_TYPE.equals(itemWrapper.getItemDefinition().getTypeName());
 	}
 
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.gui.api.factory.GuiComponentFactory#createPanel(com.evolveum.midpoint.gui.impl.factory.PanelContext)
 	 */
 	@Override
-	public <T> Panel createPanel(PanelContext<T> panelCtx) {
-		return new ModificationsPanel(panelCtx.getComponentId(), new AbstractReadOnlyModel<DeltaDto>() {
-			@Override
-			public DeltaDto getObject() {
-				ItemRealValueModel<T> model = panelCtx.getRealValueModel();
-				if (model == null || model.getObject() == null) {
-					return null;
-				}
-				
-				PrismContext prismContext = panelCtx.getPrismContext();
-				ObjectDeltaType objectDeltaType = (ObjectDeltaType) model.getObject();
-				try {
-					ObjectDelta delta = DeltaConvertor.createObjectDelta(objectDeltaType, prismContext);
-					return new DeltaDto(delta);
-				} catch (SchemaException e) {
-					throw new IllegalStateException("Couldn't convert object delta: " + objectDeltaType);
-				}
-
+	public <T> Panel getPanel(PanelContext<T> panelCtx) {
+		return new ModificationsPanel(panelCtx.getComponentId(), () -> {
+			ItemRealValueModel<T> model = panelCtx.getRealValueModel();
+			if (model == null || model.getObject() == null) {
+				return null;
 			}
-		});
+			
+			PrismContext prismContext = panelCtx.getPrismContext();
+			ObjectDeltaType objectDeltaType = (ObjectDeltaType) model.getObject();
+			try {
+				ObjectDelta delta = DeltaConvertor.createObjectDelta(objectDeltaType, prismContext);
+				return new DeltaDto(delta);
+			} catch (SchemaException e) {
+				throw new IllegalStateException("Couldn't convert object delta: " + objectDeltaType);
+			}
+		});	
 	}
 
 }

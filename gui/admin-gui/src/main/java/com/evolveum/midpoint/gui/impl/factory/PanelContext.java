@@ -5,6 +5,7 @@ import java.util.Collection;
 import javax.xml.namespace.QName;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -31,6 +32,8 @@ public class PanelContext<T> {
 	private LookupTableType predefinedValues;
 	
 	private ItemRealValueModel<T> realValueModel;
+	
+	private Form form;
 	
 	public PageBase getPageBase() {
 		return pageBase;
@@ -89,6 +92,10 @@ public class PanelContext<T> {
 		return realValueModel;
 	}
 	
+	public Form getForm() {
+		return form;
+	}
+	
 	void setPageBase(PageBase pageBase) {
 		this.pageBase = pageBase;
 	}
@@ -112,5 +119,9 @@ public class PanelContext<T> {
 	
 	public void setParentComponent(Component parentComponent) {
 		this.parentComponent = parentComponent;
+	}
+	
+	public void setForm(Form form) {
+		this.form = form;
 	}
 }

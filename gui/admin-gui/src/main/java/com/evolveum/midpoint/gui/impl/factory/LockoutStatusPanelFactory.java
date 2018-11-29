@@ -27,7 +27,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.web.component.LockoutStatusPanel;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 
 @Component
@@ -42,12 +42,12 @@ public class LockoutStatusPanelFactory extends AbstractGuiComponentFactory {
 	}
 
 	@Override
-	public <T> boolean match(ValueWrapper<T> valueWrapper) {
-		return ActivationType.F_LOCKOUT_STATUS.equals(valueWrapper.getItem().getItemDefinition().getName());
+	public <T> boolean match(ItemWrapper itemWrapper) {
+		return ActivationType.F_LOCKOUT_STATUS.equals(itemWrapper.getItemDefinition().getName());
 	}
 
 	@Override
-	public <T> Panel createPanel(PanelContext<T> panelCtx) {
+	public <T> Panel getPanel(PanelContext<T> panelCtx) {
 		return new LockoutStatusPanel(panelCtx.getComponentId(), panelCtx.getBaseModel().getObject(), new PropertyModel<>(panelCtx.getBaseModel(), panelCtx.getBaseExpression()));
 	}
 

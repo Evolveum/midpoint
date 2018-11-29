@@ -29,7 +29,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 
 /**
  * @author katka
@@ -46,18 +46,18 @@ public class EnumPanelFactory extends AbstractGuiComponentFactory {
 	}
 	
 	@Override
-	public <T> boolean match(ValueWrapper<T> valueWrapper) {
-		if (valueWrapper.getItem().getItem() instanceof PrismReference) {
+	public <T> boolean match(ItemWrapper itemWrapper) {
+		if (itemWrapper.getItem() instanceof PrismReference) {
 			return false;
 		}
-		 return isEnum((PrismProperty) valueWrapper.getItem().getItem());
+		 return isEnum((PrismProperty) itemWrapper.getItem());
 	}
 
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.gui.impl.factory.GuiComponentFactory#createPanel(com.evolveum.midpoint.gui.impl.factory.PanelContext)
 	 */
 	@Override
-	public <T> Panel createPanel(PanelContext<T> panelCtx) {
+	public <T> Panel getPanel(PanelContext<T> panelCtx) {
 		Class clazz = panelCtx.getTypeClass();
 
 		if (clazz != null) {

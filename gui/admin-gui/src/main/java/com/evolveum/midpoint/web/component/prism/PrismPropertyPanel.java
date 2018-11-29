@@ -18,9 +18,11 @@ package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.factory.PanelContext;
 import com.evolveum.midpoint.gui.impl.factory.PrismValuePanel2;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -65,16 +67,16 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
     private static final String ID_LABEL_CONTAINER = "labelContainer";
 
     private IModel<IW> model;
-
-    private PageBase pageBase;
+    private Form form;
 
     private boolean labelContainerVisible = true;
 
-    public PrismPropertyPanel(String id, final IModel<IW> model, Form form, ItemVisibilityHandler visibilityHandler, PageBase pageBase) {
+    public PrismPropertyPanel(String id, final IModel<IW> model, Form form, ItemVisibilityHandler visibilityHandler) {
         super(id, model);
         Validate.notNull(model, "no model");
         this.model = model;
-        this.pageBase = pageBase;
+        this.form = form;
+        
 
         LOGGER.trace("Creating property panel for {}", model.getObject());
 
@@ -96,7 +98,17 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
             }
         });
 
-        initLayout(model, form);
+        
+    }
+    
+    private PageBase getPageBase() {
+    	return (PageBase) getPage();
+    }
+    
+    @Override
+    protected void onInitialize() {
+    	super.onInitialize();
+    	initLayout(model, form);
     }
     
     public boolean isVisible(ItemVisibilityHandler visibilityHandler) {
@@ -172,7 +184,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
         labelContainer.add(help);
         
         Label experimental = new Label(ID_EXPERIMENTAL);
-        experimental.add(AttributeModifier.replace("experimental", pageBase.createStringResource("prismPropertyPanel.experimental")));
+        experimental.add(AttributeModifier.replace("experimental", getPageBase().createStringResource("prismPropertyPanel.experimental")));
         experimental.add(new InfoTooltipBehavior() {
         	
         	private static final long serialVersionUID = 1L;
@@ -275,6 +287,29 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
 
             @Override
             protected void populateItem(final ListItem<ValueWrapper> item) {
+            	
+//            	Panel component = null;
+//            	GuiComponentFactory componentFactory = getPageBase().getRegistry().findFactory(model.getObject());
+//        		if (componentFactory != null) {
+//        			
+//        			PanelContext panelCtx = new PanelContext<>();
+//        			panelCtx.setBaseModel(item.getModel());
+//        			panelCtx.setPageBase(getPageBase());
+//        			panelCtx.setItemDefinition(model.getObject().getItemDefinition());
+//        			panelCtx.setComponentId("value");
+//        			panelCtx.setParentComponent(PrismPropertyPanel.this);
+//        			
+//        			try {
+//        			component = componentFactory.getPanel(panelCtx);
+//        			} catch (Throwable e) {
+//        				LoggingUtils.logUnexpectedException(LOGGER, "Cannot create panel", e);
+//        				getSession().error("Cannot create panel");
+//        				throw new RuntimeException(e);
+//        			}
+//        		
+////        			component = componentFactory.createPanel();
+//        		}
+            	
                 BasePanel panel;
                 ItemWrapper itemWrapper = item.getModelObject().getItem();
                 if ((itemWrapper.getPath().containsName(ConstructionType.F_ASSOCIATION) ||
@@ -283,7 +318,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
                         itemWrapper.getPath().containsName(MappingType.F_EXPRESSION)){
                     ExpressionWrapper expressionWrapper = (ExpressionWrapper)item.getModelObject().getItem();
                     panel = new ExpressionValuePanel("value", new PropertyModel(item.getModel(), "value.value"),
-                            expressionWrapper.getConstruction(), pageBase){
+                            expressionWrapper.getConstruction(), getPageBase()){
                         private static final long serialVersionUID = 1L;
 
                         @Override
