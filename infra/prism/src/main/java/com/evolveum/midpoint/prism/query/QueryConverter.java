@@ -17,8 +17,9 @@
 package com.evolveum.midpoint.prism.query;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.MapXNodeImpl;
 import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.prism.xnode.XNodeImpl;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -46,7 +47,7 @@ public interface QueryConverter {
 	 * @param xfilter
 	 * @param pc
 	 */
-	void parseFilterPreliminarily(MapXNode xfilter, ParsingContext pc) throws SchemaException;
+	void parseFilterPreliminarily(MapXNodeImpl xfilter, ParsingContext pc) throws SchemaException;
 
 	// 1b. Parsing queries
 
@@ -66,7 +67,7 @@ public interface QueryConverter {
 	<O extends Objectable> ObjectFilter createObjectFilter(PrismObjectDefinition<O> objectDefinition, SearchFilterType filterType)
 			throws SchemaException;
 
-	MapXNode serializeFilter(ObjectFilter filter) throws SchemaException;
+	MapXNodeImpl serializeFilter(ObjectFilter filter) throws SchemaException;
 
 	// 2b. Serializing queries
 

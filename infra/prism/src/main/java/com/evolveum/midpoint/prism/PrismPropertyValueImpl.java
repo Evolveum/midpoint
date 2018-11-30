@@ -24,7 +24,7 @@ import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
 import com.evolveum.midpoint.prism.util.PrismUtil;
-import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.prism.xnode.XNodeImpl;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -63,7 +63,7 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
     // The rawElement is set during a schema-less parsing, e.g. during parsing without a definition.
     // We can't do anything smarter, as we don't have definition nor prism context. So we store the raw
     // elements here and process them later (e.g. during applyDefinition or getting a value with explicit type).
-    private XNode rawElement;
+    private XNodeImpl rawElement;
 
     @Nullable private ExpressionWrapper expression;
 
@@ -100,7 +100,7 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
     PrismPropertyValueImpl() {
     }
 
-	public static <T> PrismPropertyValueImpl<T> createRaw(XNode rawElement) {
+	public static <T> PrismPropertyValueImpl<T> createRaw(XNodeImpl rawElement) {
 		PrismPropertyValueImpl<T> pval = new PrismPropertyValueImpl<>();
 		pval.setRawElement(rawElement);
 		return pval;
@@ -165,11 +165,11 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
 		return realValues;
     }
 
-    public XNode getRawElement() {
+    public XNodeImpl getRawElement() {
 		return rawElement;
 	}
 
-	public void setRawElement(XNode rawElement) {
+	public void setRawElement(XNodeImpl rawElement) {
 		this.rawElement = rawElement;
 	}
 

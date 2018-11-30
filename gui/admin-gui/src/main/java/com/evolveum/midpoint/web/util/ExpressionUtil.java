@@ -35,9 +35,7 @@ import org.apache.commons.lang.StringUtils;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  *  @author shood
@@ -241,7 +239,7 @@ public class ExpressionUtil {
 		String xml;
 		if (element.getValue() instanceof RawType) {
 			RawType raw = (RawType) element.getValue();
-			RootXNode rootNode = new RootXNode(element.getName(), raw.serializeToXNode());
+			RootXNode rootNode = prismContext.xnodeFactory().root(element.getName(), raw.serializeToXNode());
 			xml = prismContext.xmlSerializer().serialize(rootNode);
 		} else {
 			xml = prismContext.xmlSerializer().serialize(element);
@@ -336,26 +334,19 @@ public class ExpressionUtil {
         }
     }
 
-    public static void updateShadowRefEvaluatorValue(ExpressionType expression, String value, PrismContext prismContext){
-        JAXBElement<RawType> element = findFirstEvaluatorByName(expression, SchemaConstants.C_VALUE);
-        if (element == null){
-            element = new JAXBElement(SchemaConstants.C_VALUE, RawType.class,
-                    new RawType(prismContext));
-        }
-        element.setValue(new RawType(new PrimitiveXNode<>(value), prismContext));
-        expression.getExpressionEvaluator().add(element);
-    }
-
-    public static JAXBElement createAssociationTargetSearchElement(){
+    public static JAXBElement createAssociationTargetSearchElement(PrismContext prismContext) {
         JAXBElement evaluator = new JAXBElement(SchemaConstantsGenerated.C_ASSOCIATION_TARGET_SEARCH, JAXBElement.GlobalScope.class,
                 new JAXBElement.GlobalScope());
         SearchObjectExpressionEvaluatorType searchObjectExpressionEvaluatorType = new SearchObjectExpressionEvaluatorType();
+
+        XNodeFactory factory = prismContext.xnodeFactory();
+        Map<QName, XNode> valuesMap = new HashMap<>();
+        valuesMap.put(new QName("path"), factory.primitive());
+        valuesMap.put(new QName("value"), factory.primitive());
+        MapXNode values = factory.map(valuesMap);
+        MapXNode filterClauseNode = factory.map(new QName("equal"), values);
+
         SearchFilterType filterType = new SearchFilterType();
-        MapXNode filterClauseNode = new MapXNode();
-        MapXNode values = new MapXNode();
-        values.put(new QName("path"), new PrimitiveXNode<ItemPathType>());
-        values.put(new QName("value"), new PrimitiveXNode());
-        filterClauseNode.put(new QName("equal"), values);
         filterType.setFilterClauseXNode(filterClauseNode);
         searchObjectExpressionEvaluatorType.setFilter(filterType);
 
@@ -363,10 +354,11 @@ public class ExpressionUtil {
         return evaluator;
     }
 
-    public static MapXNode getOrCreateAssociationTargetSearchValues(ExpressionType expression){
+    public static MapXNode getOrCreateAssociationTargetSearchValues(ExpressionType expression,
+            PrismContext prismContext) {
         JAXBElement element = findFirstEvaluatorByName(expression, SchemaConstantsGenerated.C_ASSOCIATION_TARGET_SEARCH);
         if (element == null){
-            element = createAssociationTargetSearchElement();
+            element = createAssociationTargetSearchElement(prismContext);
         }
         SearchObjectExpressionEvaluatorType evaluator = (SearchObjectExpressionEvaluatorType) element.getValue();
         if (evaluator == null){
@@ -378,30 +370,24 @@ public class ExpressionUtil {
         }
         MapXNode filterClauseNode = filterType.getFilterClauseXNode();
         if (filterClauseNode == null){
-            filterClauseNode = new MapXNode();
+            filterClauseNode = prismContext.xnodeFactory().map();
         }
-        if (!filterClauseNode.containsKey(new QName("equal"))){
-            filterClauseNode.put(new QName("equal"), null);
+        if (!filterClauseNode.containsKey(new QName("equal"))) {
+            prismContext.misc().putToMapXNode(filterClauseNode, new QName("equal"), null);
         }
         MapXNode values = (MapXNode)filterClauseNode.get(new QName("equal"));
-        if (values == null){
-            values = new MapXNode();
+        if (values == null) {
+            values = prismContext.xnodeFactory().map();        // todo [med] this has no effect on the map node!
         }
-
         return values;
     }
 
-    public static void updateAssociationTargetSearchPath(ExpressionType expression, ItemPathType path){
-        MapXNode values = getOrCreateAssociationTargetSearchValues(expression);
-        if (!values.containsKey(new QName("path"))){
-            values.put(new QName("path"), null);
-        }
+    public static void updateAssociationTargetSearchPath(ExpressionType expression, ItemPathType path, PrismContext prismContext) {
+        MapXNode values = getOrCreateAssociationTargetSearchValues(expression, prismContext);
         PrimitiveXNode<ItemPathType> pathValue = (PrimitiveXNode<ItemPathType>)values.get(new QName("path"));
-        if (pathValue == null){
-            pathValue = new PrimitiveXNode<>();
+        if (pathValue != null) {
+            prismContext.misc().setPrimitiveXNodeValue(pathValue, path, null);
         }
-        pathValue.setValue(path, null);
-
     }
 
     public static void updateAssociationTargetSearchValue(ExpressionType expression, String newPath, String newValue,
@@ -422,40 +408,38 @@ public class ExpressionUtil {
             return null;
         }
         JAXBElement element = ExpressionUtil.findFirstEvaluatorByName(expressionType, SchemaConstantsGenerated.C_VALUE);
-        ObjectReferenceType shadowRef = new ObjectReferenceType();
         if (element != null && element.getValue() instanceof RawType) {
             RawType raw = (RawType) element.getValue();
             XNode node = raw.getXnode();
             if (node instanceof MapXNode && ((MapXNode) node).containsKey(SHADOW_REF_KEY)) {
                 MapXNode shadowRefNode = (MapXNode) ((MapXNode) node).get(SHADOW_REF_KEY);
                 if (shadowRefNode != null && shadowRefNode.containsKey(SHADOW_OID_KEY)) {
-                    PrimitiveXNode shadowOidNode = (PrimitiveXNode) shadowRefNode.get(SHADOW_OID_KEY);
-                    String oid = shadowOidNode != null && shadowOidNode.getValueParser() != null ? shadowOidNode.getValueParser().getStringValue() :
-                            (shadowOidNode != null && shadowOidNode.getValue() != null ? (String)shadowOidNode.getValue() : null);
-                    shadowRef.setOid(oid);
-                    shadowRef.setType(ShadowType.COMPLEX_TYPE);
-                    return shadowRef;
+                    //noinspection unchecked
+                    PrimitiveXNode<String> shadowOidNode = (PrimitiveXNode<String>) shadowRefNode.get(SHADOW_OID_KEY);
+                    String oid = shadowOidNode != null ? shadowOidNode.getStringValue() : null;
+                    return new ObjectReferenceType().oid(oid).type(ShadowType.COMPLEX_TYPE);
                 }
             }
         }
         return null;
     }
 
-    public static void createShadowRefEvaluatorValue(ExpressionType expression, String oid, PrismContext prismContext){
-        if (expression == null){
-            expression = new ExpressionType();
+    public static void createShadowRefEvaluatorValue(ExpressionType expression, String oid, PrismContext prismContext) {
+        XNodeFactory factory = prismContext.xnodeFactory();
+
+        if (expression == null) {
+            expression = new ExpressionType();      // TODO ??? this value is thrown away
         }
-        JAXBElement element =  new JAXBElement(SchemaConstants.C_VALUE, RawType.class,
-                    new RawType(prismContext));
+        JAXBElement element =  new JAXBElement<>(SchemaConstants.C_VALUE, RawType.class, new RawType(prismContext));
 
-        MapXNode shadowRefNode = new MapXNode();
-        shadowRefNode.put(SHADOW_OID_KEY, new PrimitiveXNode<>(oid));
-        shadowRefNode.put(SHADOW_TYPE_KEY, new PrimitiveXNode<>(ShadowType.COMPLEX_TYPE.getLocalPart()));
+        Map<QName, XNode> shadowRefNodeSource = new HashMap<>();
+        shadowRefNodeSource.put(SHADOW_OID_KEY, factory.primitive(oid));
+        shadowRefNodeSource.put(SHADOW_TYPE_KEY, factory.primitive(ShadowType.COMPLEX_TYPE.getLocalPart()));
 
-        MapXNode valueNode = new MapXNode();
-        valueNode.put(SHADOW_REF_KEY, shadowRefNode);
+        Map<QName, XNode> valueNodeSource = new HashMap<>();
+        valueNodeSource.put(SHADOW_REF_KEY, factory.map(shadowRefNodeSource));
 
-        RawType expressionValue = new RawType(valueNode, prismContext);
+        RawType expressionValue = new RawType(factory.map(valueNodeSource), prismContext);
         element.setValue(expressionValue);
 
         removeEvaluatorByName(expression, SchemaConstants.C_VALUE);
@@ -472,9 +456,9 @@ public class ExpressionUtil {
                      if (raw != null) {
                          if (raw.getXnode() != null && raw.getXnode() instanceof PrimitiveXNode) {
                              PrimitiveXNode valueNode = (PrimitiveXNode) raw.getXnode();
-                             if (valueNode != null && valueNode.getValue() != null){
+                             if (valueNode != null && valueNode.getValue() != null) {
                                  values.add(valueNode.getValue().toString());
-                             } else if (valueNode.getValueParser() != null){
+                             } else if (valueNode.getValueParser() != null) {
                                  values.add(valueNode.getValueParser().getStringValue());
                              }
                          } else if (raw.getParsedRealValue(String.class) != null) {
@@ -487,15 +471,15 @@ public class ExpressionUtil {
         return values;
     }
 
-    public static void updateLiteralExpressionValue(ExpressionType expression, List<String> values, PrismContext  prismContext){
-        if (expression == null){
-            expression = new ExpressionType();
+    public static void updateLiteralExpressionValue(ExpressionType expression, List<String> values, PrismContext prismContext){
+        if (expression == null) {
+            expression = new ExpressionType();      // TODO ??? this is thrown away
         }
         removeEvaluatorByName(expression, SchemaConstantsGenerated.C_VALUE);
-        for (String value : values){
-            PrimitiveXNode<String> newValueNode = new PrimitiveXNode<>(value);
+        for (String value : values) {
+            PrimitiveXNode<String> newValueNode = prismContext.xnodeFactory().primitive(value);
             RawType raw = new RawType(newValueNode, prismContext);
-            JAXBElement element =  new JAXBElement(SchemaConstantsGenerated.C_VALUE, RawType.class, raw);
+            JAXBElement element =  new JAXBElement<>(SchemaConstantsGenerated.C_VALUE, RawType.class, raw);
             expression.expressionEvaluator(element);
         }
     }
@@ -518,19 +502,19 @@ public class ExpressionUtil {
         return null;
     }
 
-    public static String getTargetSearchExpPathValue(ExpressionType expression){
+    public static String getTargetSearchExpPathValue(ExpressionType expression) {
         if (expression == null){
             return null;
         }
         MapXNode filterNodeMap = getAssociationTargetSearchFilterValuesMap(expression);
-        if (filterNodeMap == null || !filterNodeMap.containsKey(new QName("path"))){
+        if (filterNodeMap == null || !filterNodeMap.containsKey(new QName("path"))) {
             return null;
         }
         PrimitiveXNode<ItemPathType> pathValue = (PrimitiveXNode<ItemPathType>)filterNodeMap.get(new QName("path"));
         return pathValue != null && pathValue.getValue() != null ? pathValue.getValue().toString() : null;
     }
 
-    public static String getTargetSearchExpValue(ExpressionType expression){
+    public static String getTargetSearchExpValue(ExpressionType expression) {
         if (expression == null){
             return null;
         }
@@ -539,7 +523,7 @@ public class ExpressionUtil {
             return null;
         }
         XNode node = filterNodeMap.get(new QName("value"));
-        if (node != null && node instanceof ListXNode) {
+        if (node instanceof ListXNode) {
             if (((ListXNode) node).size() > 0) {
                 node = ((ListXNode) node).get(0);
             }

@@ -112,13 +112,13 @@ public class QueryConverterImpl implements QueryConverter {
 	 */
 	@Override
 	public ObjectFilter parseFilter(XNode xnode, Class<? extends Containerable> clazz) throws SchemaException {
-		MapXNode xmap = toMap(xnode);
+		MapXNodeImpl xmap = toMap(xnode);
 		PrismContainerDefinition<? extends Containerable> pcd = prismContext.getSchemaRegistry()
 				.findContainerDefinitionByCompileTimeClass(clazz);
 		return parseFilterInternal(xmap, pcd, false, null);
 	}
 
-	private <O extends Containerable> ObjectFilter parseFilter(MapXNode xmap, PrismContainerDefinition<O> def) throws SchemaException {
+	private <O extends Containerable> ObjectFilter parseFilter(MapXNodeImpl xmap, PrismContainerDefinition<O> def) throws SchemaException {
 		if (xmap == null) {
 			return null;
 		}
@@ -138,17 +138,17 @@ public class QueryConverterImpl implements QueryConverter {
     }
 
 	private <C extends Containerable> ObjectFilter parseFilterInternal(
-			@NotNull MapXNode filterXMap,
+			@NotNull MapXNodeImpl filterXMap,
 			@Nullable PrismContainerDefinition<C> pcd,
 			boolean preliminaryParsingOnly,
 			@Nullable ParsingContext pc) throws SchemaException {
-		Entry<QName, XNode> clauseEntry = filterXMap.getSingleEntryThatDoesNotMatch(SearchFilterType.F_DESCRIPTION);
+		Entry<QName, XNodeImpl> clauseEntry = filterXMap.getSingleEntryThatDoesNotMatch(SearchFilterType.F_DESCRIPTION);
 		QName clauseQName = clauseEntry.getKey();
-		XNode clauseContent = clauseEntry.getValue();
+		XNodeImpl clauseContent = clauseEntry.getValue();
 		return parseFilterInternal(clauseContent, clauseQName, pcd, preliminaryParsingOnly, pc);
 	}
 
-	private <C extends Containerable> ObjectFilter parseFilterInternal(XNode clauseContent, QName clauseQName,
+	private <C extends Containerable> ObjectFilter parseFilterInternal(XNodeImpl clauseContent, QName clauseQName,
 			PrismContainerDefinition<C> pcd, boolean preliminaryParsingOnly, ParsingContext pc) throws SchemaException {
 
 		// trivial filters
@@ -161,7 +161,7 @@ public class QueryConverterImpl implements QueryConverter {
 		}
 
 		// primitive filters
-		MapXNode clauseXMap = toMap(clauseContent);
+		MapXNodeImpl clauseXMap = toMap(clauseContent);
 
 		if (QNameUtil.match(clauseQName, CLAUSE_EQUAL)
 				|| QNameUtil.match(clauseQName, CLAUSE_GREATER)
@@ -203,7 +203,7 @@ public class QueryConverterImpl implements QueryConverter {
 
 	}
 
-	private <C extends Containerable> AndFilter parseAndFilter(MapXNode clauseXMap, PrismContainerDefinition<C> pcd,
+	private <C extends Containerable> AndFilter parseAndFilter(MapXNodeImpl clauseXMap, PrismContainerDefinition<C> pcd,
 			boolean preliminaryParsingOnly, ParsingContext pc) throws SchemaException {
 		List<ObjectFilter> subfilters = parseLogicalFilter(clauseXMap, pcd, preliminaryParsingOnly, pc);
         if (preliminaryParsingOnly) {
@@ -213,12 +213,12 @@ public class QueryConverterImpl implements QueryConverter {
         }
 	}
 
-	private <C extends Containerable> List<ObjectFilter> parseLogicalFilter(MapXNode clauseXMap,
+	private <C extends Containerable> List<ObjectFilter> parseLogicalFilter(MapXNodeImpl clauseXMap,
 			PrismContainerDefinition<C> pcd, boolean preliminaryParsingOnly, ParsingContext pc) throws SchemaException {
         List<ObjectFilter> subfilters = new ArrayList<>();
-		for (Entry<QName, XNode> entry : clauseXMap.entrySet()) {
-			if (entry.getValue() instanceof ListXNode){
-				for (XNode xNode : ((ListXNode) entry.getValue())) {
+		for (Entry<QName, XNodeImpl> entry : clauseXMap.entrySet()) {
+			if (entry.getValue() instanceof ListXNodeImpl){
+				for (XNodeImpl xNode : ((ListXNodeImpl) entry.getValue())) {
 					ObjectFilter subFilter = parseFilterInternal(xNode, entry.getKey(), pcd, preliminaryParsingOnly, pc);
 					if (!preliminaryParsingOnly) {
 						subfilters.add(subFilter);
@@ -234,7 +234,7 @@ public class QueryConverterImpl implements QueryConverter {
 		return subfilters;
 	}
 
-	private <C extends Containerable> OrFilter parseOrFilter(MapXNode clauseXMap, PrismContainerDefinition<C> pcd,
+	private <C extends Containerable> OrFilter parseOrFilter(MapXNodeImpl clauseXMap, PrismContainerDefinition<C> pcd,
 			boolean preliminaryParsingOnly, ParsingContext pc) throws SchemaException {
 		List<ObjectFilter> subfilters = parseLogicalFilter(clauseXMap, pcd, preliminaryParsingOnly, pc);
         if (preliminaryParsingOnly) {
@@ -244,9 +244,9 @@ public class QueryConverterImpl implements QueryConverter {
         }
 	}
 
-	private <C extends Containerable> NotFilter parseNotFilter(MapXNode clauseXMap, PrismContainerDefinition<C> pcd,
+	private <C extends Containerable> NotFilter parseNotFilter(MapXNodeImpl clauseXMap, PrismContainerDefinition<C> pcd,
 			boolean preliminaryParsingOnly, ParsingContext pc) throws SchemaException {
-		Entry<QName, XNode> entry = singleSubEntry(clauseXMap, "not");
+		Entry<QName, XNodeImpl> entry = singleSubEntry(clauseXMap, "not");
 		ObjectFilter subfilter = parseFilterInternal(entry.getValue(), entry.getKey(), pcd, preliminaryParsingOnly, pc);
         if (preliminaryParsingOnly) {
             return null;
@@ -255,7 +255,7 @@ public class QueryConverterImpl implements QueryConverter {
         }
 	}
 
-	private <T,C extends Containerable> ObjectFilter parseComparisonFilter(QName clauseQName, MapXNode clauseXMap,
+	private <T,C extends Containerable> ObjectFilter parseComparisonFilter(QName clauseQName, MapXNodeImpl clauseXMap,
 			PrismContainerDefinition<C> pcd, boolean preliminaryParsingOnly) throws SchemaException {
 
 		boolean isEq = QNameUtil.match(clauseQName, CLAUSE_EQUAL);
@@ -272,7 +272,7 @@ public class QueryConverterImpl implements QueryConverter {
 
 		QName matchingRule = getMatchingRule(clauseXMap);
 
-		XNode valueXnode = clauseXMap.get(ELEMENT_VALUE);
+		XNodeImpl valueXnode = clauseXMap.get(ELEMENT_VALUE);
 		UniformItemPath rightSidePath = getPath(clauseXMap, ELEMENT_RIGHT_HAND_SIDE_PATH);
 
 		ItemDefinition itemDefinition = locateItemDefinition(valueXnode, itemPath, pcd);
@@ -284,7 +284,7 @@ public class QueryConverterImpl implements QueryConverter {
 			if (preliminaryParsingOnly) {
 				return null;
             } else {
-				RootXNode valueRoot = new RootXNode(ELEMENT_VALUE, valueXnode);
+				RootXNodeImpl valueRoot = new RootXNodeImpl(ELEMENT_VALUE, valueXnode);
 				Item item = parseItem(valueRoot, itemName, itemDefinition);
 				if (!isEq && item.getValues().size() != 1) {
 					throw new SchemaException("Expected exactly one value, got " + item.getValues().size() + " instead");
@@ -324,13 +324,13 @@ public class QueryConverterImpl implements QueryConverter {
 				}
 			}
 		} else {
-			Entry<QName,XNode> expressionEntry = clauseXMap.getSingleEntryThatDoesNotMatch(
+			Entry<QName, XNodeImpl> expressionEntry = clauseXMap.getSingleEntryThatDoesNotMatch(
 					ELEMENT_VALUE, ELEMENT_MATCHING, ELEMENT_PATH);
 			if (expressionEntry != null) {
                 if (preliminaryParsingOnly) {
                     return null;
                 } else {
-					RootXNode expressionRoot = clauseXMap.getEntryAsRoot(expressionEntry.getKey());
+					RootXNodeImpl expressionRoot = clauseXMap.getEntryAsRoot(expressionEntry.getKey());
 					PrismPropertyValue expressionPropertyValue = prismContext.parserFor(expressionRoot).parseItemValue();
                     ExpressionWrapper expressionWrapper = new ExpressionWrapper(expressionEntry.getKey(), expressionPropertyValue.getValue());
 					if (isEq) {
@@ -358,9 +358,9 @@ public class QueryConverterImpl implements QueryConverter {
 		}
 	}
 
-	private InOidFilter parseInOidFilter(MapXNode clauseXMap) throws SchemaException{
+	private InOidFilter parseInOidFilter(MapXNodeImpl clauseXMap) throws SchemaException{
 		boolean considerOwner = Boolean.TRUE.equals(clauseXMap.getParsedPrimitiveValue(ELEMENT_CONSIDER_OWNER, DOMUtil.XSD_BOOLEAN));
-		XNode valueXnode = clauseXMap.get(ELEMENT_VALUE);
+		XNodeImpl valueXnode = clauseXMap.get(ELEMENT_VALUE);
 		if (valueXnode != null) {
 			List<String> oids = getStringValues(valueXnode);
 			return InOidFilter.createInOid(considerOwner, oids);
@@ -374,8 +374,8 @@ public class QueryConverterImpl implements QueryConverter {
 		}
 	}
 
-	private FullTextFilter parseFullTextFilter(MapXNode clauseXMap) throws SchemaException{
-		XNode valueXnode = clauseXMap.get(ELEMENT_VALUE);
+	private FullTextFilter parseFullTextFilter(MapXNodeImpl clauseXMap) throws SchemaException{
+		XNodeImpl valueXnode = clauseXMap.get(ELEMENT_VALUE);
 		if (valueXnode != null) {
 			List<String> values = getStringValues(valueXnode);
 			return FullTextFilter.createFullText(values);
@@ -391,35 +391,35 @@ public class QueryConverterImpl implements QueryConverter {
 
 	@NotNull
 	private List<String> getStringValues(
-			XNode valueXnode) throws SchemaException {
+			XNodeImpl valueXnode) throws SchemaException {
 		List<String> values = new ArrayList<>();
-		if (valueXnode instanceof ListXNode) {
-			for (XNode subnode : (ListXNode) valueXnode) {
-				if (subnode instanceof PrimitiveXNode) {
+		if (valueXnode instanceof ListXNodeImpl) {
+			for (XNodeImpl subnode : (ListXNodeImpl) valueXnode) {
+				if (subnode instanceof PrimitiveXNodeImpl) {
 					//noinspection unchecked
-					values.add(((PrimitiveXNode<String>) subnode).getParsedValue(DOMUtil.XSD_STRING, String.class));
+					values.add(((PrimitiveXNodeImpl<String>) subnode).getParsedValue(DOMUtil.XSD_STRING, String.class));
 				} else {
 					throw new SchemaException("The value was expected to be present as primitive XNode, instead it is: " + subnode);
 				}
 			}
-		} else if (valueXnode instanceof PrimitiveXNode) {
+		} else if (valueXnode instanceof PrimitiveXNodeImpl) {
 			//noinspection unchecked
-			values.add(((PrimitiveXNode<String>) valueXnode).getParsedValue(DOMUtil.XSD_STRING, String.class));
+			values.add(((PrimitiveXNodeImpl<String>) valueXnode).getParsedValue(DOMUtil.XSD_STRING, String.class));
 		} else {
 			throw new SchemaException("The value was expected to be present as primitive or list XNode, instead it is: " + valueXnode);
 		}
 		return values;
 	}
 
-	private TypeFilter parseTypeFilter(MapXNode clauseXMap, boolean preliminaryParsingOnly,
+	private TypeFilter parseTypeFilter(MapXNodeImpl clauseXMap, boolean preliminaryParsingOnly,
 			ParsingContext pc) throws SchemaException{
 		QName type = clauseXMap.getParsedPrimitiveValue(ELEMENT_TYPE, DOMUtil.XSD_QNAME);
-		XNode subXFilter = clauseXMap.get(ELEMENT_FILTER);
+		XNodeImpl subXFilter = clauseXMap.get(ELEMENT_FILTER);
 		PrismObjectDefinition def = prismContext.getSchemaRegistry().findObjectDefinitionByType(type);
 		ObjectFilter subFilter = null;
-		if (subXFilter instanceof MapXNode) {
+		if (subXFilter instanceof MapXNodeImpl) {
 			//noinspection unchecked
-			subFilter = parseFilterInternal((MapXNode) subXFilter, def, preliminaryParsingOnly, pc);
+			subFilter = parseFilterInternal((MapXNodeImpl) subXFilter, def, preliminaryParsingOnly, pc);
 		}
 		if (!preliminaryParsingOnly || pc == null || pc.isStrict()) {
 			// MID-3614: we want to be strict when importing but forgiving when reading from the repository
@@ -432,15 +432,15 @@ public class QueryConverterImpl implements QueryConverter {
         }
 	}
 
-	private ExistsFilter parseExistsFilter(MapXNode clauseXMap, PrismContainerDefinition pcd,
+	private ExistsFilter parseExistsFilter(MapXNodeImpl clauseXMap, PrismContainerDefinition pcd,
 			boolean preliminaryParsingOnly, ParsingContext pc) throws SchemaException {
 		UniformItemPath path = getPath(clauseXMap);
-		XNode subXFilter = clauseXMap.get(ELEMENT_FILTER);
+		XNodeImpl subXFilter = clauseXMap.get(ELEMENT_FILTER);
 		ObjectFilter subFilter = null;
 		PrismContainerDefinition subPcd = pcd != null ? pcd.findContainerDefinition(path) : null;
-		if (subXFilter instanceof MapXNode) {
+		if (subXFilter instanceof MapXNodeImpl) {
 			//noinspection unchecked
-			subFilter = parseFilterInternal((MapXNode) subXFilter, subPcd, preliminaryParsingOnly, pc);
+			subFilter = parseFilterInternal((MapXNodeImpl) subXFilter, subPcd, preliminaryParsingOnly, pc);
 		}
 		if (!preliminaryParsingOnly || pc == null || pc.isStrict()) {
 			// MID-3614: we want to be strict when importing but forgiving when reading from the repository
@@ -454,9 +454,9 @@ public class QueryConverterImpl implements QueryConverter {
         }
 	}
 
-	private void checkExtraElements(MapXNode clauseXMap, QName... expected) throws SchemaException {
+	private void checkExtraElements(MapXNodeImpl clauseXMap, QName... expected) throws SchemaException {
 		List<QName> expectedList = Arrays.asList(expected);
-		for (Entry<QName, XNode> entry : clauseXMap.entrySet()) {
+		for (Entry<QName, XNodeImpl> entry : clauseXMap.entrySet()) {
 			if (!QNameUtil.contains(expectedList, entry.getKey())) {
 				throw new SchemaException("Unexpected item " + entry.getKey() + ":" +
 						(entry.getValue() != null ? entry.getValue().debugDump() : "null"));
@@ -464,7 +464,7 @@ public class QueryConverterImpl implements QueryConverter {
 		}
 	}
 
-	private <C extends Containerable> RefFilter parseRefFilter(MapXNode clauseXMap, PrismContainerDefinition<C> pcd,
+	private <C extends Containerable> RefFilter parseRefFilter(MapXNodeImpl clauseXMap, PrismContainerDefinition<C> pcd,
 			boolean preliminaryParsingOnly) throws SchemaException {
 		UniformItemPath itemPath = getPath(clauseXMap);
 
@@ -487,12 +487,12 @@ public class QueryConverterImpl implements QueryConverter {
 			itemDefinition.setMaxOccurs(-1);
 		}
 
-		XNode valueXnode = clauseXMap.get(ELEMENT_VALUE);
+		XNodeImpl valueXnode = clauseXMap.get(ELEMENT_VALUE);
 		if (valueXnode != null) {
 			if (preliminaryParsingOnly) {
 				return null;
 			}
-			RootXNode valueRoot = new RootXNode(ELEMENT_VALUE, valueXnode);
+			RootXNodeImpl valueRoot = new RootXNodeImpl(ELEMENT_VALUE, valueXnode);
 			Item<?,?> item = prismContext.parserFor(valueRoot)
 					.name(itemName)
 					.definition(itemDefinition)
@@ -526,13 +526,13 @@ public class QueryConverterImpl implements QueryConverter {
 		}
 	}
 
-	private ExpressionWrapper parseExpression(MapXNode xmap) throws SchemaException {
-		Entry<QName, XNode> expressionEntry = xmap.getSingleEntryThatDoesNotMatch(
+	private ExpressionWrapper parseExpression(MapXNodeImpl xmap) throws SchemaException {
+		Entry<QName, XNodeImpl> expressionEntry = xmap.getSingleEntryThatDoesNotMatch(
 				ELEMENT_VALUE, ELEMENT_MATCHING, ELEMENT_ANCHOR_START, ELEMENT_ANCHOR_END, ELEMENT_PATH);
 		return PrismUtil.parseExpression(expressionEntry, prismContext);
 	}
 
-	private <C extends Containerable> SubstringFilter parseSubstringFilter(MapXNode clauseXMap, PrismContainerDefinition<C> pcd,
+	private <C extends Containerable> SubstringFilter parseSubstringFilter(MapXNodeImpl clauseXMap, PrismContainerDefinition<C> pcd,
 			boolean preliminaryParsingOnly)
 			throws SchemaException {
 		UniformItemPath itemPath = getPath(clauseXMap);
@@ -553,12 +553,12 @@ public class QueryConverterImpl implements QueryConverter {
 			anchorEnd = false;
 		}
 
-		XNode valueXnode = clauseXMap.get(ELEMENT_VALUE);
+		XNodeImpl valueXnode = clauseXMap.get(ELEMENT_VALUE);
 		ItemDefinition itemDefinition = locateItemDefinition(valueXnode, itemPath, pcd);
 
 		if (valueXnode != null) {
 
-			Item item = parseItem(new RootXNode(ELEMENT_VALUE, valueXnode), itemName, itemDefinition);
+			Item item = parseItem(new RootXNodeImpl(ELEMENT_VALUE, valueXnode), itemName, itemDefinition);
 
 			if (preliminaryParsingOnly) {
 				return null;
@@ -598,7 +598,7 @@ public class QueryConverterImpl implements QueryConverter {
 		}
 	}
 
-	private OrgFilter parseOrgFilter(MapXNode clauseXMap, boolean preliminaryParsingOnly) throws SchemaException {
+	private OrgFilter parseOrgFilter(MapXNodeImpl clauseXMap, boolean preliminaryParsingOnly) throws SchemaException {
 		if (Boolean.TRUE.equals(clauseXMap.getParsedPrimitiveValue(ELEMENT_IS_ROOT, DOMUtil.XSD_BOOLEAN))) {
 			// TODO check if other content is present
 			if (preliminaryParsingOnly) {
@@ -608,11 +608,11 @@ public class QueryConverterImpl implements QueryConverter {
 			}
 		}
 
-		XNode xorgrefnode = clauseXMap.get(ELEMENT_ORG_REF);
+		XNodeImpl xorgrefnode = clauseXMap.get(ELEMENT_ORG_REF);
 		if (xorgrefnode == null) {
 			throw new SchemaException("No organization reference defined in the search query.");
 		}
-		MapXNode xorgrefmap = toMap(xorgrefnode);
+		MapXNodeImpl xorgrefmap = toMap(xorgrefnode);
 		String orgOid = xorgrefmap.getParsedPrimitiveValue(ELEMENT_OID, DOMUtil.XSD_STRING);
 		if (orgOid == null || StringUtils.isBlank(orgOid)) {
 			throw new SchemaException("No oid attribute defined in the organization reference element.");
@@ -632,20 +632,20 @@ public class QueryConverterImpl implements QueryConverter {
 	}
 
 	@SuppressWarnings("SameParameterValue")
-	private Entry<QName, XNode> singleSubEntry(MapXNode xmap, String filterName) throws SchemaException {
+	private Entry<QName, XNodeImpl> singleSubEntry(MapXNodeImpl xmap, String filterName) throws SchemaException {
 		if (xmap == null || xmap.isEmpty()) {
 			return null;
 		}
 		return xmap.getSingleSubEntry("search filter "+filterName);
 	}
 
-	private MapXNode toMap(XNode xnode) throws SchemaException {
-		if (xnode instanceof PrimitiveXNode && xnode.isEmpty()) {
-			return new MapXNode();          // hack but it might work (todo implement better)
-		} else if (!(xnode instanceof MapXNode)) {
+	private MapXNodeImpl toMap(XNode xnode) throws SchemaException {
+		if (xnode instanceof PrimitiveXNodeImpl && xnode.isEmpty()) {
+			return new MapXNodeImpl();          // hack but it might work (todo implement better)
+		} else if (!(xnode instanceof MapXNodeImpl)) {
 			throw new SchemaException("Cannot parse filter from "+xnode);
 		} else {
-			return (MapXNode) xnode;
+			return (MapXNodeImpl) xnode;
 		}
 	}
 
@@ -656,23 +656,23 @@ public class QueryConverterImpl implements QueryConverter {
 //		return (PrimitiveXNode)xnode;
 //	}
 
-	private UniformItemPath getPath(MapXNode clauseXMap) throws SchemaException {
+	private UniformItemPath getPath(MapXNodeImpl clauseXMap) throws SchemaException {
 		return getPath(clauseXMap, ELEMENT_PATH);
 	}
 
-	private UniformItemPath getPath(MapXNode clauseXMap, QName key) throws SchemaException {
-		XNode xnode = clauseXMap.get(key);
+	private UniformItemPath getPath(MapXNodeImpl clauseXMap, QName key) throws SchemaException {
+		XNodeImpl xnode = clauseXMap.get(key);
 		if (xnode == null) {
 			return null;
 		}
-		if (!(xnode instanceof PrimitiveXNode<?>)) {
+		if (!(xnode instanceof PrimitiveXNodeImpl<?>)) {
 			throw new SchemaException("Expected that field "+key+" will be primitive, but it is "+xnode.getDesc());
 		}
 		ItemPathType itemPathType = clauseXMap.getParsedPrimitiveValue(key, ItemPathType.COMPLEX_TYPE);
 		return itemPathType != null ? itemPathType.getUniformItemPath() : null;
 	}
 
-	private QName getMatchingRule(MapXNode xmap) throws SchemaException{
+	private QName getMatchingRule(MapXNodeImpl xmap) throws SchemaException{
 		String matchingRuleString = xmap.getParsedPrimitiveValue(ELEMENT_MATCHING, DOMUtil.XSD_STRING);
 		if (StringUtils.isNotBlank(matchingRuleString)){
 			if (QNameUtil.isUri(matchingRuleString)) {
@@ -685,7 +685,7 @@ public class QueryConverterImpl implements QueryConverter {
 		}
 	}
 
-	private Item parseItem(RootXNode root, QName itemName, ItemDefinition itemDefinition) throws SchemaException{
+	private Item parseItem(RootXNodeImpl root, QName itemName, ItemDefinition itemDefinition) throws SchemaException{
 		Item<?,?> item;
 		item = prismContext.parserFor(root)
 				.name(itemName)
@@ -700,7 +700,7 @@ public class QueryConverterImpl implements QueryConverter {
 		return item;
 	}
 
-	private <C extends Containerable> ItemDefinition locateItemDefinition(XNode valueXnode, UniformItemPath itemPath,
+	private <C extends Containerable> ItemDefinition locateItemDefinition(XNodeImpl valueXnode, UniformItemPath itemPath,
 			PrismContainerDefinition<C> pcd) throws SchemaException{
 		ItemDefinition itemDefinition = null;
 		if (pcd != null) {
@@ -727,11 +727,11 @@ public class QueryConverterImpl implements QueryConverter {
 //        return SearchFilterType.createFromSerializedXNode(xnode, prismContext);
 //    }
 
-	public MapXNode serializeFilter(ObjectFilter filter) throws SchemaException{
+	public MapXNodeImpl serializeFilter(ObjectFilter filter) throws SchemaException{
 		return serializeFilter(filter, prismContext.xnodeSerializer());
 	}
 
-	private MapXNode serializeFilter(ObjectFilter filter, PrismSerializer<RootXNode> xnodeSerializer) throws SchemaException{
+	private MapXNodeImpl serializeFilter(ObjectFilter filter, PrismSerializer<RootXNode> xnodeSerializer) throws SchemaException{
 		// null or primitive filters
 		if (filter == null) {
 			return null;
@@ -778,40 +778,40 @@ public class QueryConverterImpl implements QueryConverter {
 	}
 
 
-	private MapXNode serializeAndFilter(AndFilter filter, PrismSerializer<RootXNode> xnodeSerilizer) throws SchemaException{
+	private MapXNodeImpl serializeAndFilter(AndFilter filter, PrismSerializer<RootXNode> xnodeSerilizer) throws SchemaException{
 		return createFilter(CLAUSE_AND, serializeNaryLogicalSubfilters(filter.getConditions(), xnodeSerilizer));
 	}
 
-	private MapXNode serializeOrFilter(OrFilter filter, PrismSerializer<RootXNode> xnodeSerilizer) throws SchemaException{
+	private MapXNodeImpl serializeOrFilter(OrFilter filter, PrismSerializer<RootXNode> xnodeSerilizer) throws SchemaException{
 		return createFilter(CLAUSE_OR, serializeNaryLogicalSubfilters(filter.getConditions(), xnodeSerilizer));
 	}
 
-	private MapXNode serializeNaryLogicalSubfilters(List<ObjectFilter> objectFilters, PrismSerializer<RootXNode> xnodeSerilizer) throws SchemaException{
-		MapXNode filters = new MapXNode();
+	private MapXNodeImpl serializeNaryLogicalSubfilters(List<ObjectFilter> objectFilters, PrismSerializer<RootXNode> xnodeSerilizer) throws SchemaException{
+		MapXNodeImpl filters = new MapXNodeImpl();
 		for (ObjectFilter of : objectFilters) {
-			MapXNode subFilter = serializeFilter(of, xnodeSerilizer);
+			MapXNodeImpl subFilter = serializeFilter(of, xnodeSerilizer);
 			filters.merge(subFilter);
 		}
 		return filters;
 	}
 
-	private MapXNode serializeNotFilter(NotFilter filter, PrismSerializer<RootXNode> xnodeSerializer) throws SchemaException{
+	private MapXNodeImpl serializeNotFilter(NotFilter filter, PrismSerializer<RootXNode> xnodeSerializer) throws SchemaException{
 		return createFilter(CLAUSE_NOT, serializeFilter(filter.getFilter(), xnodeSerializer));
 	}
 
 	@NotNull
-	private MapXNode createFilter(QName clauseNot, MapXNode value) {
-		MapXNode map = new MapXNode();
+	private MapXNodeImpl createFilter(QName clauseNot, MapXNodeImpl value) {
+		MapXNodeImpl map = new MapXNodeImpl();
 		map.put(clauseNot, value);
 		return map;
 	}
 
-	private MapXNode serializeInOidFilter(InOidFilter filter) {
-		MapXNode clauseMap = new MapXNode();
+	private MapXNodeImpl serializeInOidFilter(InOidFilter filter) {
+		MapXNodeImpl clauseMap = new MapXNodeImpl();
 		if (filter.getOids() != null && !filter.getOids().isEmpty()) {
-			ListXNode valuesNode = new ListXNode();
+			ListXNodeImpl valuesNode = new ListXNodeImpl();
 			for (String oid : filter.getOids()) {
-				XNode val = createPrimitiveXNode(oid, DOMUtil.XSD_STRING);
+				XNodeImpl val = createPrimitiveXNode(oid, DOMUtil.XSD_STRING);
 				valuesNode.add(val);
 			}
 			clauseMap.put(ELEMENT_VALUE, valuesNode);
@@ -822,18 +822,18 @@ public class QueryConverterImpl implements QueryConverter {
 			// throw new SchemaException("InOid filter with no values nor expression");
 		}
 		if (filter.isConsiderOwner()) {
-			clauseMap.put(ELEMENT_CONSIDER_OWNER, new PrimitiveXNode<>(true));
+			clauseMap.put(ELEMENT_CONSIDER_OWNER, new PrimitiveXNodeImpl<>(true));
 		}
 
 		return createFilter(CLAUSE_IN_OID, clauseMap);
 	}
 
-	private MapXNode serializeFullTextFilter(FullTextFilter filter) throws SchemaException {
-		MapXNode clauseMap = new MapXNode();
+	private MapXNodeImpl serializeFullTextFilter(FullTextFilter filter) throws SchemaException {
+		MapXNodeImpl clauseMap = new MapXNodeImpl();
 		if (filter.getValues() != null && !filter.getValues().isEmpty()) {
-			ListXNode valuesNode = new ListXNode();
+			ListXNodeImpl valuesNode = new ListXNodeImpl();
 			for (String value : filter.getValues()) {
-				XNode val = createPrimitiveXNode(value, DOMUtil.XSD_STRING);
+				XNodeImpl val = createPrimitiveXNode(value, DOMUtil.XSD_STRING);
 				valuesNode.add(val);
 			}
 			clauseMap.put(ELEMENT_VALUE, valuesNode);
@@ -845,8 +845,8 @@ public class QueryConverterImpl implements QueryConverter {
 		return createFilter(CLAUSE_FULL_TEXT, clauseMap);
 	}
 
-	private <T> MapXNode serializeComparisonFilter(PropertyValueFilter<T> filter, PrismSerializer<RootXNode> xnodeSerializer) throws SchemaException{
-		MapXNode map = new MapXNode();
+	private <T> MapXNodeImpl serializeComparisonFilter(PropertyValueFilter<T> filter, PrismSerializer<RootXNode> xnodeSerializer) throws SchemaException{
+		MapXNodeImpl map = new MapXNodeImpl();
 		QName clause;
 		if (filter instanceof EqualFilter) {
 			clause = CLAUSE_EQUAL;
@@ -861,19 +861,19 @@ public class QueryConverterImpl implements QueryConverter {
 		return map;
 	}
 
-	private <V extends PrismValue, D extends ItemDefinition> MapXNode serializeValueFilter(ValueFilter<V,D> filter, PrismSerializer<RootXNode> xnodeSerializer) throws SchemaException {
-		MapXNode map = new MapXNode();
+	private <V extends PrismValue, D extends ItemDefinition> MapXNodeImpl serializeValueFilter(ValueFilter<V,D> filter, PrismSerializer<RootXNode> xnodeSerializer) throws SchemaException {
+		MapXNodeImpl map = new MapXNodeImpl();
 		serializeMatchingRule(filter, map);
 		serializePath(map, filter.getFullPath(), filter);
 
 		List<V> values = filter.getValues();
 		if (values != null) {
-			ListXNode valuesNode = new ListXNode();
+			ListXNodeImpl valuesNode = new ListXNodeImpl();
 			for (V val : values) {
 				if (val.getParent() == null) {
 					val.setParent(filter);
 				}
-				XNode valNode = xnodeSerializer.definition(filter.getDefinition()).serialize(val).getSubnode();
+				XNodeImpl valNode = (XNodeImpl) xnodeSerializer.definition(filter.getDefinition()).serialize(val).getSubnode();
 				if (filter instanceof RefFilter) {		// TODO shouldn't we do this in all cases?
 					valNode.setExplicitTypeDeclaration(true);
 					if (valNode.getTypeQName() == null) {
@@ -897,25 +897,25 @@ public class QueryConverterImpl implements QueryConverter {
 		return map;
 	}
 
-	private MapXNode serializeRefFilter(RefFilter filter, PrismSerializer<RootXNode> xnodeSerializer) throws SchemaException {
+	private MapXNodeImpl serializeRefFilter(RefFilter filter, PrismSerializer<RootXNode> xnodeSerializer) throws SchemaException {
 		return createFilter(CLAUSE_REF, serializeValueFilter(filter, xnodeSerializer));
 	}
 
-	private <T> MapXNode serializeSubstringFilter(SubstringFilter<T> filter, PrismSerializer<RootXNode> xnodeSerializer) throws SchemaException{
-		MapXNode map = new MapXNode();
-		MapXNode content = serializeValueFilter(filter, xnodeSerializer);
+	private <T> MapXNodeImpl serializeSubstringFilter(SubstringFilter<T> filter, PrismSerializer<RootXNode> xnodeSerializer) throws SchemaException{
+		MapXNodeImpl map = new MapXNodeImpl();
+		MapXNodeImpl content = serializeValueFilter(filter, xnodeSerializer);
 		if (filter.isAnchorStart()) {
-			content.put(ELEMENT_ANCHOR_START, new PrimitiveXNode<>(true));
+			content.put(ELEMENT_ANCHOR_START, new PrimitiveXNodeImpl<>(true));
 		}
 		if (filter.isAnchorEnd()) {
-			content.put(ELEMENT_ANCHOR_END, new PrimitiveXNode<>(true));
+			content.put(ELEMENT_ANCHOR_END, new PrimitiveXNodeImpl<>(true));
 		}
 		map.put(CLAUSE_SUBSTRING, content);
 		return map;
 	}
 
-	private MapXNode serializeTypeFilter(TypeFilter filter, PrismSerializer<RootXNode> xnodeSerializer) throws SchemaException{
-		MapXNode content = new MapXNode();
+	private MapXNodeImpl serializeTypeFilter(TypeFilter filter, PrismSerializer<RootXNode> xnodeSerializer) throws SchemaException{
+		MapXNodeImpl content = new MapXNodeImpl();
 		content.put(ELEMENT_TYPE, createPrimitiveXNode(filter.getType(), DOMUtil.XSD_QNAME));
 		if (filter.getFilter() != null){
 			content.put(ELEMENT_FILTER, serializeFilter(filter.getFilter(), xnodeSerializer));
@@ -923,8 +923,8 @@ public class QueryConverterImpl implements QueryConverter {
 		return createFilter(CLAUSE_TYPE, content);
 	}
 
-	private MapXNode serializeExistsFilter(ExistsFilter filter, PrismSerializer<RootXNode> xnodeSerializer) throws SchemaException{
-		MapXNode content = new MapXNode();
+	private MapXNodeImpl serializeExistsFilter(ExistsFilter filter, PrismSerializer<RootXNode> xnodeSerializer) throws SchemaException{
+		MapXNodeImpl content = new MapXNodeImpl();
 		serializePath(content, filter.getFullPath(), filter);
 		if (filter.getFilter() != null){
 			content.put(ELEMENT_FILTER, serializeFilter(filter.getFilter(), xnodeSerializer));
@@ -932,11 +932,11 @@ public class QueryConverterImpl implements QueryConverter {
 		return createFilter(CLAUSE_EXISTS, content);
 	}
 
-	private MapXNode serializeOrgFilter(OrgFilter filter) {
-		MapXNode map = new MapXNode();
+	private MapXNodeImpl serializeOrgFilter(OrgFilter filter) {
+		MapXNodeImpl map = new MapXNodeImpl();
 
 		if (filter.getOrgRef() != null) {
-			MapXNode orgRefMap = new MapXNode();
+			MapXNodeImpl orgRefMap = new MapXNodeImpl();
 			orgRefMap.put(ELEMENT_OID, createPrimitiveXNode(filter.getOrgRef().getOid(), DOMUtil.XSD_STRING));
 			map.put(ELEMENT_ORG_REF, orgRefMap);
 		}
@@ -950,26 +950,26 @@ public class QueryConverterImpl implements QueryConverter {
 		return createFilter(CLAUSE_ORG, map);
 	}
 
-	private MapXNode serializeAllFilter() {
-		return createFilter(CLAUSE_ALL, new MapXNode());
+	private MapXNodeImpl serializeAllFilter() {
+		return createFilter(CLAUSE_ALL, new MapXNodeImpl());
 	}
 
-	private MapXNode serializeNoneFilter() {
-		return createFilter(CLAUSE_NONE, new MapXNode());
+	private MapXNodeImpl serializeNoneFilter() {
+		return createFilter(CLAUSE_NONE, new MapXNodeImpl());
 	}
 
-	private MapXNode serializeUndefinedFilter() {
-		return createFilter(CLAUSE_UNDEFINED, new MapXNode());
+	private MapXNodeImpl serializeUndefinedFilter() {
+		return createFilter(CLAUSE_UNDEFINED, new MapXNodeImpl());
 	}
 
-	private void serializeMatchingRule(ValueFilter filter, MapXNode map) {
+	private void serializeMatchingRule(ValueFilter filter, MapXNodeImpl map) {
 		if (filter.getMatchingRule() != null){
-			PrimitiveXNode<String> matchingNode = createPrimitiveXNode(filter.getMatchingRule().getLocalPart(), DOMUtil.XSD_STRING);
+			PrimitiveXNodeImpl<String> matchingNode = createPrimitiveXNode(filter.getMatchingRule().getLocalPart(), DOMUtil.XSD_STRING);
 			map.put(ELEMENT_MATCHING, matchingNode);
 		}
 	}
 
-	private void serializePath(MapXNode map, ItemPath path, ObjectFilter filter) {
+	private void serializePath(MapXNodeImpl map, ItemPath path, ObjectFilter filter) {
 		if (path == null) {
 			throw new IllegalStateException("Cannot serialize filter " + filter + " because it does not contain path");
 		}
@@ -987,8 +987,8 @@ public class QueryConverterImpl implements QueryConverter {
 //			}
 //		}
 
-	private <T> PrimitiveXNode<T> createPrimitiveXNode(T val, QName type) {
-		PrimitiveXNode<T> xprim = new PrimitiveXNode<>();
+	private <T> PrimitiveXNodeImpl<T> createPrimitiveXNode(T val, QName type) {
+		PrimitiveXNodeImpl<T> xprim = new PrimitiveXNodeImpl<>();
 		xprim.setValue(val, type);
 		return xprim;
 	}
@@ -999,7 +999,7 @@ public class QueryConverterImpl implements QueryConverter {
      * when serializing raw (unparsed) paths and QNames - see MID-1969.
      */
     @Override
-    public void parseFilterPreliminarily(MapXNode xfilter, ParsingContext pc) throws SchemaException {
+    public void parseFilterPreliminarily(MapXNodeImpl xfilter, ParsingContext pc) throws SchemaException {
         parseFilterInternal(xfilter, null, true, pc);
     }
 
@@ -1055,7 +1055,7 @@ public class QueryConverterImpl implements QueryConverter {
 			ObjectQuery query = new ObjectQuery();
 
 			if (filterType != null && filterType.containsFilterClause()) {
-				MapXNode rootFilter = filterType.getFilterClauseXNode();
+				MapXNodeImpl rootFilter = filterType.getFilterClauseXNode();
 				ObjectFilter filter = parseFilter(rootFilter, objDef);
 				query.setFilter(filter);
 			}
@@ -1086,7 +1086,7 @@ public class QueryConverterImpl implements QueryConverter {
 			return null;
 		}
 		SearchFilterType filterType = new SearchFilterType();
-		MapXNode filterXNode = serializeFilter(filter);
+		MapXNodeImpl filterXNode = serializeFilter(filter);
 		filterType.setFilterClauseXNode(filterXNode);
 		return filterType;
 	}

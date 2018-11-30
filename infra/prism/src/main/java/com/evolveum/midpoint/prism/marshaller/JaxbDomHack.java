@@ -30,9 +30,9 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
-import com.evolveum.midpoint.prism.xnode.MapXNode;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.prism.xnode.MapXNodeImpl;
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNodeImpl;
+import com.evolveum.midpoint.prism.xnode.XNodeImpl;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -226,11 +226,11 @@ public class JaxbDomHack {
 		if (value instanceof PrismPropertyValue) {
 			PrismPropertyValue<Object> pval = (PrismPropertyValue)value;
 			if (pval.isRaw() && parent.getDefinition() == null) {
-				XNode rawElement = pval.getRawElement();
-				if (rawElement instanceof MapXNode) {
-					return domParser.serializeXMapToElement((MapXNode)rawElement, elementName);
-				} else if (rawElement instanceof PrimitiveXNode<?>) {
-					PrimitiveXNode<?> xprim = (PrimitiveXNode<?>)rawElement;
+				XNodeImpl rawElement = pval.getRawElement();
+				if (rawElement instanceof MapXNodeImpl) {
+					return domParser.serializeXMapToElement((MapXNodeImpl)rawElement, elementName);
+				} else if (rawElement instanceof PrimitiveXNodeImpl<?>) {
+					PrimitiveXNodeImpl<?> xprim = (PrimitiveXNodeImpl<?>)rawElement;
 					String stringValue = xprim.getStringValue();
 					Element element = DOMUtil.createElement(DOMUtil.getDocument(), elementName);
 					element.setTextContent(stringValue);

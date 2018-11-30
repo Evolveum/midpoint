@@ -49,6 +49,8 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.task.api.TaskManagerException;
 import com.evolveum.midpoint.util.exception.*;
 import org.apache.commons.lang.StringUtils;
@@ -82,9 +84,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.prism.xnode.MapXNode;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ResultHandler;
@@ -3840,7 +3839,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     	ItemPathType path = new ItemPathType(prismContext.path(ShadowType.F_ATTRIBUTES, new QName(resourceTypeOpenDjrepo.getNamespace(), "givenName")));
     	mod1.setPath(path);
 
-    	RawType value = new RawType(new PrimitiveXNode<>("newAngelika"), prismContext);
+    	RawType value = new RawType(prismContext.xnodeFactory().primitive("newAngelika"), prismContext);
         mod1.getValue().add(value);
 
     	delta.getItemDelta().add(mod1);

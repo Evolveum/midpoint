@@ -16,18 +16,33 @@
 
 package com.evolveum.midpoint.prism;
 
+import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
+import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import javax.xml.soap.Detail;
+import java.io.Serializable;
 
 /**
- * TEMPORARY
+ * TEMPORARY.
+ *
+ * This interface belongs to a coursebook on Software Engineering as a horrific design example ;)
+ *
+ * Prism API and/or client code should be modified to get rid of these hacks.
  */
 public interface Miscellaneous {
 
-	/**
-	 * TODO rewrite this method using standard Prism API.
-	 */
+	@Nullable
+	Serializable guessFormattedValue(Serializable value) throws SchemaException;
+
 	void serializeFaultMessage(Detail detail, Object faultInfo, QName faultMessageElementName, Trace logger);
+
+	<T> void setPrimitiveXNodeValue(PrimitiveXNode<T> node, T value, QName typeName);
+
+	void putToMapXNode(MapXNode map, QName key, XNode value);
 }

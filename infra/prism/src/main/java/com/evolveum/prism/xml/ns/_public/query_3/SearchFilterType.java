@@ -44,10 +44,7 @@ import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.lex.dom.DomLexicalProcessor;
 import com.evolveum.midpoint.prism.util.PrismUtil;
-import com.evolveum.midpoint.prism.xnode.MapXNode;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
-import com.evolveum.midpoint.prism.xnode.RootXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.prism.xnode.*;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -109,7 +106,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
         if (o == null) {
             throw new NullPointerException("Cannot create a copy of 'SearchFilterType' from 'null'.");
         }
-        this.filterClauseXNode = (MapXNode) o.filterClauseXNode.clone();
+        this.filterClauseXNode = (MapXNodeImpl) o.filterClauseXNode.clone();
     }
 
     public String getDescription() {
@@ -132,36 +129,37 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
         if (filterClauseNode == null) {
             this.filterClauseXNode = null;
         } else {
-            this.filterClauseXNode = new MapXNode();
-            this.filterClauseXNode.put(filterClauseNode.getRootElementName(), filterClauseNode.getSubnode());
+            MapXNodeImpl map = new MapXNodeImpl();    // todo
+            map.put(filterClauseNode.getRootElementName(), filterClauseNode.getSubnode());      // todo
+            this.filterClauseXNode = map;
         }
     }
 
     @Deprecated     // use the version without prismContext instead
-    public MapXNode getFilterClauseXNode(PrismContext prismContext) throws SchemaException {
+    public MapXNodeImpl getFilterClauseXNode(PrismContext prismContext) throws SchemaException {
         return getFilterClauseXNode();
     }
 
-    public MapXNode getFilterClauseXNode() {
+    public MapXNodeImpl getFilterClauseXNode() {
         if (this.filterClauseXNode == null) {
             return null;
         } else {
-            return (MapXNode) this.filterClauseXNode.clone();
+            return (MapXNodeImpl) this.filterClauseXNode.clone();
         }
     }
 
-    public RootXNode getFilterClauseAsRootXNode() throws SchemaException {
-        MapXNode clause = getFilterClauseXNode();
+    public RootXNodeImpl getFilterClauseAsRootXNode() throws SchemaException {
+        MapXNodeImpl clause = getFilterClauseXNode();
         if (clause == null) {
             return null;
         }
 
-        Entry<QName, XNode> singleEntry = clause.getSingleSubEntry("getFilterClauseAsRootXNode");
+        Entry<QName, XNodeImpl> singleEntry = clause.getSingleSubEntry("getFilterClauseAsRootXNode");
         if (singleEntry == null) {
             return null;
         }
 
-        return new RootXNode(singleEntry.getKey(), singleEntry.getValue());
+        return new RootXNodeImpl(singleEntry.getKey(), singleEntry.getValue());
     }
 
     public Element getFilterClauseAsElement(@NotNull PrismContext prismContext) throws SchemaException {
@@ -173,38 +171,38 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
     }
 
     // xnode should be correct (expecting it was just created by serializing something)
-    public static SearchFilterType createFromSerializedXNode(XNode xnode, PrismContext prismContext) throws SchemaException {
+    public static SearchFilterType createFromSerializedXNode(XNodeImpl xnode, PrismContext prismContext) throws SchemaException {
         SearchFilterType filter = new SearchFilterType();
         filter.parseFromXNode(xnode, null, prismContext);
         return filter;
     }
 
-    public static SearchFilterType createFromParsedXNode(XNode xnode, ParsingContext pc, PrismContext prismContext) throws SchemaException {
+    public static SearchFilterType createFromParsedXNode(XNodeImpl xnode, ParsingContext pc, PrismContext prismContext) throws SchemaException {
         SearchFilterType filter = new SearchFilterType();
         filter.parseFromXNode(xnode, pc, prismContext);
         return filter;
     }
 
-    public void parseFromXNode(XNode xnode, ParsingContext pc, PrismContext prismContext) throws SchemaException {
+    public void parseFromXNode(XNodeImpl xnode, ParsingContext pc, PrismContext prismContext) throws SchemaException {
     	if (xnode == null || xnode.isEmpty()) {
     		this.filterClauseXNode = null;
     		this.description = null;
     	} else {
-    		if (!(xnode instanceof MapXNode)) {
+    		if (!(xnode instanceof MapXNodeImpl)) {
     			throw new SchemaException("Cannot parse filter from "+xnode);
     		}
-    		MapXNode xmap = (MapXNode)xnode;
-    		XNode xdesc = xmap.get(SearchFilterType.F_DESCRIPTION);
+    		MapXNodeImpl xmap = (MapXNodeImpl)xnode;
+    		XNodeImpl xdesc = xmap.get(SearchFilterType.F_DESCRIPTION);
     		if (xdesc != null) {
-    			if (xdesc instanceof PrimitiveXNode<?>) {
-    				String desc = ((PrimitiveXNode<String>)xdesc).getParsedValue(DOMUtil.XSD_STRING, String.class);
+    			if (xdesc instanceof PrimitiveXNodeImpl<?>) {
+    				String desc = ((PrimitiveXNodeImpl<String>)xdesc).getParsedValue(DOMUtil.XSD_STRING, String.class);
     				setDescription(desc);
     			} else {
                     throw new SchemaException("Description must have a primitive value");
                 }
             }
-            MapXNode xfilter = new MapXNode();
-            for (Entry<QName,XNode> entry: xmap.entrySet()) {
+            MapXNodeImpl xfilter = new MapXNodeImpl();
+            for (Entry<QName, XNodeImpl> entry: xmap.entrySet()) {
                 if (!QNameUtil.match(entry.getKey(), SearchFilterType.F_DESCRIPTION) && !QNameUtil.match(entry.getKey(), new QName("condition"))) {
                     xfilter.put(entry.getKey(), entry.getValue());
                 }
@@ -217,14 +215,14 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
     	}
     }
 
-    public MapXNode serializeToXNode() throws SchemaException {
-        MapXNode xmap = getFilterClauseXNode();
+    public MapXNodeImpl serializeToXNode() throws SchemaException {
+        MapXNodeImpl xmap = getFilterClauseXNode();
     	if (description == null) {
     		return xmap;
     	} else {
             // we have to serialize the map in correct order (see MID-1847): description first, filter clause next
-            MapXNode newXMap = new MapXNode();
-    		newXMap.put(SearchFilterType.F_DESCRIPTION, new PrimitiveXNode<>(description));
+            MapXNodeImpl newXMap = new MapXNodeImpl();
+    		newXMap.put(SearchFilterType.F_DESCRIPTION, new PrimitiveXNodeImpl<>(description));
             if (xmap != null && !xmap.isEmpty()) {
                 newXMap.put(xmap.getSingleSubEntry("search filter"));
             }
@@ -684,7 +682,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
         }
         clone.description = this.description;
         if (this.filterClauseXNode != null) {
-            clone.filterClauseXNode = (MapXNode) this.filterClauseXNode.clone();
+            clone.filterClauseXNode = (MapXNodeImpl) this.filterClauseXNode.clone();
         }
         return clone;
     }

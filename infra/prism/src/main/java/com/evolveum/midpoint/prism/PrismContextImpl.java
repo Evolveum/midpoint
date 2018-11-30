@@ -32,6 +32,9 @@ import com.evolveum.midpoint.prism.schema.SchemaRegistryImpl;
 import com.evolveum.midpoint.prism.util.PrismMonitor;
 import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
+import com.evolveum.midpoint.prism.xnode.RootXNodeImpl;
+import com.evolveum.midpoint.prism.xnode.XNodeFactory;
+import com.evolveum.midpoint.prism.xnode.XNodeFactoryImpl;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -70,6 +73,8 @@ public class PrismContextImpl implements PrismContext {
 	@NotNull private final BeanMarshaller beanMarshaller;
 	@NotNull private final BeanUnmarshaller beanUnmarshaller;
 	@NotNull private final Miscellaneous miscellaneous;
+	@NotNull private final XNodeFactory xnodeFactory;
+
 	private ParsingMigrator parsingMigrator;
 	private PrismMonitor monitor = null;
 
@@ -101,6 +106,7 @@ public class PrismContextImpl implements PrismContext {
 		this.prismMarshaller = new PrismMarshaller(beanMarshaller);
 		this.jaxbDomHack = new JaxbDomHack(lexicalProcessorRegistry.domProcessor(), this);
 		this.miscellaneous = new MiscellaneousImpl(this);
+		this.xnodeFactory = new XNodeFactoryImpl();
 
 		try {
 			configurePolyStringNormalizer(null);
@@ -318,7 +324,7 @@ public class PrismContextImpl implements PrismContext {
 	@NotNull
 	@Override
 	public PrismParserNoIO parserFor(@NotNull RootXNode xnode) {
-		return new PrismParserImplNoIO(new ParserXNodeSource(xnode), null, getDefaultParsingContext(), this, null, null, null, null);
+		return new PrismParserImplNoIO(new ParserXNodeSource((RootXNodeImpl) xnode), null, getDefaultParsingContext(), this, null, null, null, null);
 	}
 
 	@NotNull
@@ -550,6 +556,11 @@ public class PrismContextImpl implements PrismContext {
 	@Override
 	public Miscellaneous misc() {
 		return miscellaneous;
+	}
+
+	@Override
+	public XNodeFactory xnodeFactory() {
+		return xnodeFactory;
 	}
 
 	@Override

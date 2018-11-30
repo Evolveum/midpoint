@@ -18,7 +18,7 @@ package com.evolveum.midpoint.prism.marshaller;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.lex.LexicalProcessor;
-import com.evolveum.midpoint.prism.xnode.RootXNode;
+import com.evolveum.midpoint.prism.xnode.RootXNodeImpl;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -138,22 +138,22 @@ abstract class PrismParserImpl implements PrismParser {
 
 	@NotNull
 	<O extends Objectable> PrismObject<O> doParse() throws SchemaException, IOException {
-		RootXNode xnode = getLexicalProcessor().read(source, context);
+		RootXNodeImpl xnode = getLexicalProcessor().read(source, context);
 		return prismContext.getPrismUnmarshaller().parseObject(xnode, itemDefinition, itemName, typeName, typeClass, context);
 	}
 
 	<IV extends PrismValue, ID extends ItemDefinition> Item<IV, ID> doParseItem() throws IOException, SchemaException {
-		RootXNode xnode = getLexicalProcessor().read(source, context);
+		RootXNodeImpl xnode = getLexicalProcessor().read(source, context);
 		return doParseItem(xnode, typeClass);
 	}
 
 	<IV extends PrismValue> IV doParseItemValue() throws IOException, SchemaException {
-		RootXNode root = getLexicalProcessor().read(source, context);
+		RootXNodeImpl root = getLexicalProcessor().read(source, context);
 		return doParseItemValue(root, typeClass);
 	}
 
 	<T> T doParseRealValue(Class<T> clazz) throws IOException, SchemaException {
-		RootXNode root = getLexicalProcessor().read(source, context);
+		RootXNodeImpl root = getLexicalProcessor().read(source, context);
 		return doParseRealValue(clazz, root);
 	}
 
@@ -164,22 +164,22 @@ abstract class PrismParserImpl implements PrismParser {
 
 	@SuppressWarnings("unchecked")
 	<T> JAXBElement<T> doParseAnyValueAsJAXBElement() throws IOException, SchemaException {
-		RootXNode root = getLexicalProcessor().read(source, context);
+		RootXNodeImpl root = getLexicalProcessor().read(source, context);
 		T real = doParseRealValue(null, root);
 		return real != null ?
 				new JAXBElement<>(root.getRootElementName(), (Class<T>) real.getClass(), real) :
 				null;
 	}
 
-	RootXNode doParseToXNode() throws IOException, SchemaException {
+	RootXNodeImpl doParseToXNode() throws IOException, SchemaException {
 		return getLexicalProcessor().read(source, context);
 	}
 
 	@NotNull
 	List<PrismObject<? extends Objectable>> doParseObjects() throws IOException, SchemaException {
-		List<RootXNode> roots = getLexicalProcessor().readObjects(source, context);
+		List<RootXNodeImpl> roots = getLexicalProcessor().readObjects(source, context);
 		List<PrismObject<? extends Objectable>> objects = new ArrayList<>();
-		for (RootXNode root : roots) {
+		for (RootXNodeImpl root : roots) {
 			// caller must make sure that itemDefinition, itemName, typeName, typeClass apply to all the objects
 			PrismObject<? extends Objectable> object = prismContext.getPrismUnmarshaller()
 					.parseObject(root, itemDefinition, itemName, typeName, typeClass, context);
@@ -202,7 +202,7 @@ abstract class PrismParserImpl implements PrismParser {
 	}
 
 	Object doParseItemOrRealValue() throws IOException, SchemaException {
-		RootXNode xnode = getLexicalProcessor().read(source, context);
+		RootXNodeImpl xnode = getLexicalProcessor().read(source, context);
 		if (itemDefinition != null || itemName != null || typeName != null || typeClass != null) {
 			throw new IllegalArgumentException("Item definition, item name, type name and type class must be null when calling parseItemOrRealValue.");
 		}
@@ -212,11 +212,11 @@ abstract class PrismParserImpl implements PrismParser {
 	// implementation
 
 	@SuppressWarnings("unchecked")
-	private <IV extends PrismValue, ID extends ItemDefinition> Item<IV, ID> doParseItem(RootXNode xnode, Class<?> clazz) throws IOException, SchemaException {
+	private <IV extends PrismValue, ID extends ItemDefinition> Item<IV, ID> doParseItem(RootXNodeImpl xnode, Class<?> clazz) throws IOException, SchemaException {
 		return (Item) prismContext.getPrismUnmarshaller().parseItem(xnode, itemDefinition, itemName, typeName, clazz, context);
 	}
 
-	private <IV extends PrismValue> IV doParseItemValue(RootXNode root, Class<?> clazz) throws IOException, SchemaException {
+	private <IV extends PrismValue> IV doParseItemValue(RootXNodeImpl root, Class<?> clazz) throws IOException, SchemaException {
 		Item<IV,?> item = doParseItem(root, clazz);
 		return getSingleParentlessValue(item);
 	}
@@ -236,7 +236,7 @@ abstract class PrismParserImpl implements PrismParser {
 	}
 
 	@SuppressWarnings("unchecked")
-	private <T> T doParseRealValue(Class<T> clazz, RootXNode root) throws IOException, SchemaException {
+	private <T> T doParseRealValue(Class<T> clazz, RootXNodeImpl root) throws IOException, SchemaException {
 		if (clazz == null) {
 			ItemInfo info = ItemInfo.determine(itemDefinition, root.getRootElementName(), itemName, null,
 					root.getTypeQName(), typeName, null, ItemDefinition.class, context, prismContext.getSchemaRegistry());

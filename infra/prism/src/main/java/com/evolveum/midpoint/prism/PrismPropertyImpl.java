@@ -21,10 +21,10 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
-import com.evolveum.midpoint.prism.xnode.ListXNode;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
-import com.evolveum.midpoint.prism.xnode.RootXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.prism.xnode.ListXNodeImpl;
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNodeImpl;
+import com.evolveum.midpoint.prism.xnode.RootXNodeImpl;
+import com.evolveum.midpoint.prism.xnode.XNodeImpl;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -623,8 +623,8 @@ public class PrismPropertyImpl<T> extends ItemImpl<PrismPropertyValue<T>,PrismPr
 		if (rawElement == null) {
 			return null;
 		}
-		if (rawElement instanceof PrimitiveXNode<?>) {
-			return ((PrimitiveXNode<?>)rawElement).getStringValue();
+		if (rawElement instanceof PrimitiveXNodeImpl<?>) {
+			return ((PrimitiveXNodeImpl<?>)rawElement).getStringValue();
 		} else {
 			return "<class " + rawElement.getClass().getSimpleName()+">";
 		}
@@ -658,12 +658,12 @@ public class PrismPropertyImpl<T> extends ItemImpl<PrismPropertyValue<T>,PrismPr
         return "PP";
     }
 
-	public static <T> PrismProperty<T> createRaw(@NotNull XNode node, @NotNull QName itemName, PrismContext prismContext)
+	public static <T> PrismProperty<T> createRaw(@NotNull XNodeImpl node, @NotNull QName itemName, PrismContext prismContext)
 			throws SchemaException {
-		Validate.isTrue(!(node instanceof RootXNode));
+		Validate.isTrue(!(node instanceof RootXNodeImpl));
 		PrismProperty<T> property = new PrismPropertyImpl<>(itemName, prismContext);
-		if (node instanceof ListXNode) {
-			for (XNode subnode : (ListXNode) node) {
+		if (node instanceof ListXNodeImpl) {
+			for (XNodeImpl subnode : (ListXNodeImpl) node) {
 				property.add(PrismPropertyValue.createRaw(subnode));
 			}
 		} else {

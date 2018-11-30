@@ -41,8 +41,8 @@ import com.evolveum.midpoint.prism.PrismInternalTestUtil;
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.prism.xnode.ListXNode;
-import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.ListXNodeImpl;
+import com.evolveum.midpoint.prism.xnode.MapXNodeImpl;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DomAsserts;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -132,13 +132,13 @@ public class TestQueryConverters {
 		System.out.println(convertedQueryType.debugDump());
 
 		SearchFilterType convertedFilterType = convertedQueryType.getFilter();
-		MapXNode xFilter = convertedFilterType.serializeToXNode();
+		MapXNodeImpl xFilter = convertedFilterType.serializeToXNode();
 		PrismAsserts.assertSize(xFilter, 1);
-		PrismAsserts.assertSubnode(xFilter, AndFilter.ELEMENT_NAME, MapXNode.class);
-		MapXNode xandmap = (MapXNode) xFilter.get(AndFilter.ELEMENT_NAME);
+		PrismAsserts.assertSubnode(xFilter, AndFilter.ELEMENT_NAME, MapXNodeImpl.class);
+		MapXNodeImpl xandmap = (MapXNodeImpl) xFilter.get(AndFilter.ELEMENT_NAME);
 		PrismAsserts.assertSize(xandmap, 1);
-		PrismAsserts.assertSubnode(xandmap, EqualFilter.ELEMENT_NAME, ListXNode.class);
-		ListXNode xequalsList = (ListXNode) xandmap.get(EqualFilter.ELEMENT_NAME);
+		PrismAsserts.assertSubnode(xandmap, EqualFilter.ELEMENT_NAME, ListXNodeImpl.class);
+		ListXNodeImpl xequalsList = (ListXNodeImpl) xandmap.get(EqualFilter.ELEMENT_NAME);
 		PrismAsserts.assertSize(xequalsList, 2);
 
 		Element filterClauseElement = convertedFilterType.getFilterClauseAsElement(getPrismContext());

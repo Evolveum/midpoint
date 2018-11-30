@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.prism.xnode.RootXNode;
+import com.evolveum.midpoint.prism.xnode.RootXNodeImpl;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -27,14 +27,14 @@ import java.io.InputStream;
  */
 public class ParserXNodeSource implements ParserSource {
 
-	@NotNull private final RootXNode xnode;
+	@NotNull private final RootXNodeImpl xnode;
 
-	public ParserXNodeSource(@NotNull RootXNode xnode) {
+	public ParserXNodeSource(@NotNull RootXNodeImpl xnode) {
 		this.xnode = xnode;
 	}
 
 	@NotNull
-	public RootXNode getXNode() {
+	public RootXNodeImpl getXNode() {
 		return xnode;
 	}
 

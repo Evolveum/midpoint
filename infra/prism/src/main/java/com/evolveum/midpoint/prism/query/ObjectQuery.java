@@ -20,7 +20,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.prism.xnode.XNodeImpl;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -73,7 +73,7 @@ public class ObjectQuery implements DebugDumpable, Serializable {
 		return query;
 	}
 	
-	public static ObjectQuery createObjectQuery(XNode condition, ObjectFilter filter) {
+	public static ObjectQuery createObjectQuery(XNodeImpl condition, ObjectFilter filter) {
 		ObjectQuery query = new ObjectQuery();
 		query.setFilter(filter);
 		return query;

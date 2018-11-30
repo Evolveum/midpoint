@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.prism.xnode.RootXNode;
+import com.evolveum.midpoint.prism.xnode.RootXNodeImpl;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -193,7 +193,7 @@ public interface PrismParser {
 	 * But it is useful at some places.
 	 * @return RootXNode corresponding to the input.
 	 */
-	RootXNode parseToXNode() throws IOException, SchemaException;
+	RootXNodeImpl parseToXNode() throws IOException, SchemaException;
 
 	/**
 	 * Parses either an item, or a real value. It depends on the type declaration or item name in the source data.

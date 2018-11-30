@@ -18,11 +18,8 @@ package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -106,13 +103,8 @@ public class ValueDisplayUtil {
                         if (QNameUtil.match(SchemaConstants.C_VALUE, evaluator.getName()) && evaluator.getValue() instanceof RawType) {
                             RawType raw = (RawType) evaluator.getValue();
                             try {
-                                XNode xnode = raw.serializeToXNode();
-                                if (xnode instanceof PrimitiveXNode) {
-                                    sb.append(((PrimitiveXNode) xnode).getStringValue());
-                                } else {
-                                    sb.append("(a complex value)");
-                                }
-                            } catch (SchemaException e) {
+                                sb.append(raw.extractString("(a complex value)"));
+                            } catch (RuntimeException e) {
                                 sb.append("(an invalid value)");
                             }
                         } else {

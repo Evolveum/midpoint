@@ -1,9 +1,8 @@
 package com.evolveum.midpoint.prism.lex;
 
-import com.evolveum.midpoint.prism.ParsingContext;
 import com.evolveum.midpoint.prism.lex.json.YamlLexicalProcessor;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.prism.xnode.RootXNode;
+import com.evolveum.midpoint.prism.xnode.RootXNodeImpl;
 import com.evolveum.midpoint.util.DebugUtil;
 import org.testng.annotations.Test;
 
@@ -49,7 +48,7 @@ public class TestYamlParser extends AbstractJsonLexicalProcessorTest {
 		LexicalProcessor<String> lexicalProcessor = createParser();
 
 		// WHEN (parse to xnode)
-		List<RootXNode> nodes = new ArrayList<>();
+		List<RootXNodeImpl> nodes = new ArrayList<>();
 		lexicalProcessor.readObjectsIteratively(getFileSource(OBJECTS_8_MULTI_DOCUMENT), createDefaultParsingContext(),
 				node -> {
 					nodes.add(node);
@@ -63,14 +62,14 @@ public class TestYamlParser extends AbstractJsonLexicalProcessorTest {
 		assertEquals("Wrong # of nodes read", 4, nodes.size());
 
 		final String NS_C = "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-		Iterator<RootXNode> i = nodes.iterator();
+		Iterator<RootXNodeImpl> i = nodes.iterator();
 		assertEquals("Wrong namespace for node 1", NS_C, i.next().getRootElementName().getNamespaceURI());
 		assertEquals("Wrong namespace for node 2", NS_C, i.next().getRootElementName().getNamespaceURI());
 		assertEquals("Wrong namespace for node 3", "", i.next().getRootElementName().getNamespaceURI());
 		assertEquals("Wrong namespace for node 4", "http://a/", i.next().getRootElementName().getNamespaceURI());
 
 		// WHEN+THEN (parse in standard way)
-		List<RootXNode> nodesStandard = lexicalProcessor.readObjects(getFileSource(OBJECTS_8_MULTI_DOCUMENT), createDefaultParsingContext());
+		List<RootXNodeImpl> nodesStandard = lexicalProcessor.readObjects(getFileSource(OBJECTS_8_MULTI_DOCUMENT), createDefaultParsingContext());
 
 		System.out.println("Parsed objects (standard way):");
 		System.out.println(DebugUtil.debugDump(nodesStandard));

@@ -2,8 +2,9 @@ package com.evolveum.prism.xml.ns._public.types_3;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
-import com.evolveum.midpoint.prism.xnode.RootXNode;
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNodeImpl;
+import com.evolveum.midpoint.prism.xnode.RootXNodeImpl;
+import com.evolveum.midpoint.prism.xnode.XNodeImpl;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -38,7 +39,7 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
     /**
      * Unparsed value. It is set on RawType instance construction.
      */
-	private XNode xnode;
+	private XNodeImpl xnode;
 
     /**
      * Parsed value. It is computed when calling getParsedValue/getParsedItem methods.
@@ -55,10 +56,11 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
         this.prismContext = prismContext;
     }
 
-    public RawType(XNode xnode, @NotNull PrismContext prismContext) {
+    public RawType(XNode node, @NotNull PrismContext prismContext) {
         this(prismContext);
-        this.xnode = xnode;
-        if (xnode != null) {
+	    XNodeImpl xnode = (XNodeImpl) node;
+	    this.xnode = xnode;
+        if (this.xnode != null) {
 	        this.explicitTypeName = xnode.getTypeQName();
 	        this.explicitTypeDeclaration = xnode.isExplicitTypeDeclaration();
         }
@@ -76,6 +78,26 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
 		}
 	}
 
+	/**
+	 * TEMPORARY. EXPERIMENTAL. DO NOT USE.
+	 */
+	public String extractString() {
+		if (xnode instanceof PrimitiveXNodeImpl) {
+			return ((PrimitiveXNodeImpl<?>) xnode).getStringValue();
+		} else {
+			return toString();
+		}
+	}
+
+	public String extractString(String defaultValue) {
+		if (xnode instanceof PrimitiveXNodeImpl) {
+			return ((PrimitiveXNodeImpl<?>) xnode).getStringValue();
+		} else {
+			return defaultValue;
+		}
+	}
+
+
 	@Override
     public void revive(PrismContext prismContext) throws SchemaException {
         Validate.notNull(prismContext);
@@ -87,13 +109,13 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
 
     //region General getters/setters
 
-    public XNode getXnode() {
+    public XNodeImpl getXnode() {
         return xnode;
     }
 
     @NotNull
-    public RootXNode getRootXNode(@NotNull QName itemName) {
-		return new RootXNode(itemName, xnode);
+    public RootXNodeImpl getRootXNode(@NotNull QName itemName) {
+		return new RootXNodeImpl(itemName, xnode);
 	}
 
     public PrismContext getPrismContext() {
@@ -207,7 +229,7 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
 //	}
 
 
-	public XNode serializeToXNode() throws SchemaException {
+	public XNodeImpl serializeToXNode() throws SchemaException {
         if (xnode != null) {
 //        	QName type = xnode.getTypeQName();
 //        	if (xnode instanceof PrimitiveXNode && type != null){
@@ -219,7 +241,7 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
             return xnode;
         } else if (parsed != null) {
             checkPrismContext();
-	        XNode rv = prismContext.xnodeSerializer().root(new QName("dummy")).serialize(parsed).getSubnode();
+	        XNodeImpl rv = (XNodeImpl) prismContext.xnodeSerializer().root(new QName("dummy")).serialize(parsed).getSubnode();
 	        rv.setTypeQName(explicitTypeName);
 	        rv.setExplicitTypeDeclaration(explicitTypeDeclaration);
 	        return rv;
@@ -293,11 +315,11 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
     }
 
     public static RawType create(String value, PrismContext prismContext) {
-        PrimitiveXNode<String> xnode = new PrimitiveXNode<>(value);
+        PrimitiveXNodeImpl<String> xnode = new PrimitiveXNodeImpl<>(value);
 		return new RawType(xnode, prismContext);
     }
 
-    public static RawType create(XNode node, PrismContext prismContext) {
+    public static RawType create(XNodeImpl node, PrismContext prismContext) {
 		return new RawType(node, prismContext);
     }
 
@@ -353,4 +375,5 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
 			}
 		}
 	}
+
 }

@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.ParserSource;
 import com.evolveum.midpoint.prism.ParsingContext;
 import com.evolveum.midpoint.prism.SerializationContext;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
+import com.evolveum.midpoint.prism.xnode.RootXNodeImpl;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
@@ -39,10 +40,10 @@ import java.util.List;
 public interface LexicalProcessor<T> {
 
 	@NotNull
-	RootXNode read(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException;
+	RootXNodeImpl read(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException;
 
 	@NotNull
-	List<RootXNode> readObjects(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException;
+	List<RootXNodeImpl> readObjects(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException;
 
 	/**
 	 * Note that this interface does not contain handleError method. It seems that we are currently not able to successfully
@@ -55,7 +56,7 @@ public interface LexicalProcessor<T> {
 		 * Called when a RootXNode was successfully retrieved from the input.
 		 * @return true if the processing should continue
 		 */
-		boolean handleData(RootXNode node);
+		boolean handleData(RootXNodeImpl node);
 	}
 
 	void readObjectsIteratively(@NotNull ParserSource source, @NotNull ParsingContext parsingContext, RootXNodeHandler handler) throws SchemaException, IOException;
@@ -98,5 +99,5 @@ public interface LexicalProcessor<T> {
 	 * @throws SchemaException
 	 */
 	@NotNull
-	T write(@NotNull List<RootXNode> roots, @Nullable QName aggregateElementName, @Nullable SerializationContext context) throws SchemaException;
+	T write(@NotNull List<RootXNodeImpl> roots, @Nullable QName aggregateElementName, @Nullable SerializationContext context) throws SchemaException;
 }

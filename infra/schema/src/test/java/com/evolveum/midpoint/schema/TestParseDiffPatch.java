@@ -838,7 +838,9 @@ public class TestParseDiffPatch {
     private void assertModificationPolyStringValue(RawType value, PolyStringType... expectedValues) throws SchemaException {
     	XNode xnode = value.serializeToXNode();
         assertFalse(xnode.isEmpty());
-        PolyStringType valueAsPoly = value.getPrismContext().parserFor(new RootXNode(new ItemName("dummy"), xnode)).parseRealValue(PolyStringType.class);
+        PrismContext pc = value.getPrismContext();
+        RootXNode rootNode = pc.xnodeFactory().root(new ItemName("dummy"), xnode);
+        PolyStringType valueAsPoly = pc.parserFor(rootNode).parseRealValue(PolyStringType.class);
         boolean found = false;
         for (PolyStringType expectedValue: expectedValues) {
             if (expectedValue.getOrig().equals(valueAsPoly.getOrig()) && expectedValue.getNorm().equals(valueAsPoly.getNorm())) {

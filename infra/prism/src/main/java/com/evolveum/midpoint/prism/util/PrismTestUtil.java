@@ -22,8 +22,8 @@ import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.prism.xnode.MapXNode;
-import com.evolveum.midpoint.prism.xnode.RootXNode;
+import com.evolveum.midpoint.prism.xnode.MapXNodeImpl;
+import com.evolveum.midpoint.prism.xnode.RootXNodeImpl;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -281,13 +281,13 @@ public class PrismTestUtil {
     }
 
 	public static void displaySearchFilterType(SearchFilterType filterType) throws SchemaException {
-        MapXNode mapXNode = filterType.getFilterClauseXNode();
+        MapXNodeImpl mapXNode = filterType.getFilterClauseXNode();
 
         String dumpX = mapXNode.debugDump();
         LOGGER.info(dumpX);
         System.out.println("filter clause xnode:\n" + dumpX + "\n");
 
-        String dumpXml = prismContext.xmlSerializer().serialize(new RootXNode(new QName("filterClauseXNode"), mapXNode));
+        String dumpXml = prismContext.xmlSerializer().serialize(new RootXNodeImpl(new QName("filterClauseXNode"), mapXNode));
         System.out.println("filter clause xnode serialized:\n" + dumpXml + "\n");
 	}
 

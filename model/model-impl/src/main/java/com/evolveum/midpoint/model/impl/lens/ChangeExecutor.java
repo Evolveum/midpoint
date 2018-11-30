@@ -26,6 +26,8 @@ import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.SynchronizationUtils;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
+import com.evolveum.midpoint.prism.xnode.XNodeFactory;
 import com.evolveum.midpoint.repo.api.ConflictWatcher;
 import com.evolveum.midpoint.repo.api.ModificationPrecondition;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
@@ -47,7 +49,6 @@ import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
@@ -1729,25 +1730,19 @@ public class ChangeExecutor {
 		}
 
 		// replace dynamic script with static value..
+		XNodeFactory factory = prismContext.xnodeFactory();
+
 		argument.getExpressionEvaluator().clear();
 		if (nonNegativeValues == null || nonNegativeValues.isEmpty()) {
 			// We need to create at least one evaluator. Otherwise the
 			// expression code will complain
-			// Element value = DOMUtil.createElement(SchemaConstants.C_VALUE);
-			// DOMUtil.setNill(value);
-			JAXBElement<RawType> el = new JAXBElement(SchemaConstants.C_VALUE, RawType.class,
-					new RawType(prismContext));
+			JAXBElement<RawType> el = new JAXBElement<>(SchemaConstants.C_VALUE, RawType.class, new RawType(prismContext));
 			argument.getExpressionEvaluator().add(el);
 
 		} else {
 			for (PrismPropertyValue<String> val : nonNegativeValues) {
-				// Element value =
-				// DOMUtil.createElement(SchemaConstants.C_VALUE);
-				// value.setTextContent(val.getValue());
-				PrimitiveXNode<String> prim = new PrimitiveXNode<>();
-				prim.setValue(val.getValue(), DOMUtil.XSD_STRING);
-				JAXBElement<RawType> el = new JAXBElement(SchemaConstants.C_VALUE, RawType.class,
-						new RawType(prim, prismContext));
+				PrimitiveXNode<String> prim = factory.primitive(val.getValue(), DOMUtil.XSD_STRING);
+				JAXBElement<RawType> el = new JAXBElement<>(SchemaConstants.C_VALUE, RawType.class, new RawType(prim, prismContext));
 				argument.getExpressionEvaluator().add(el);
 			}
 		}

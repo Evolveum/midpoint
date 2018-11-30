@@ -23,9 +23,10 @@ import com.evolveum.midpoint.prism.marshaller.PrismUnmarshaller;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
-import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.MapXNodeImpl;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.prism.xnode.RootXNodeImpl;
+import com.evolveum.midpoint.prism.xnode.XNodeImpl;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -248,14 +249,14 @@ public class PrismUtil {
 		};
 	}
 
-	public static ExpressionWrapper parseExpression(XNode node, PrismContext prismContext) throws SchemaException {
-		if (!(node instanceof MapXNode)) {
+	public static ExpressionWrapper parseExpression(XNodeImpl node, PrismContext prismContext) throws SchemaException {
+		if (!(node instanceof MapXNodeImpl)) {
 			return null;
 		}
-		if (((MapXNode)node).isEmpty()) {
+		if (((MapXNodeImpl)node).isEmpty()) {
 			return null;
 		}
-		for (Entry<QName, XNode> entry: ((MapXNode)node).entrySet()) {
+		for (Entry<QName, XNodeImpl> entry: ((MapXNodeImpl)node).entrySet()) {
 			if (PrismConstants.EXPRESSION_LOCAL_PART.equals(entry.getKey().getLocalPart())) {
 				return parseExpression(entry, prismContext);
 			}
@@ -263,24 +264,24 @@ public class PrismUtil {
 		return null;
 	}
 
-	public static ExpressionWrapper parseExpression(Entry<QName, XNode> expressionEntry, PrismContext prismContext) throws SchemaException {
+	public static ExpressionWrapper parseExpression(Entry<QName, XNodeImpl> expressionEntry, PrismContext prismContext) throws SchemaException {
 		if (expressionEntry == null) {
 			return null;
 		}
-		RootXNode expressionRoot = new RootXNode(expressionEntry);
+		RootXNodeImpl expressionRoot = new RootXNodeImpl(expressionEntry);
 		PrismPropertyValue expressionPropertyValue = prismContext.parserFor(expressionRoot).parseItemValue();
 		ExpressionWrapper expressionWrapper = new ExpressionWrapper(expressionEntry.getKey(), expressionPropertyValue.getValue());
 		return expressionWrapper;
 	}
 
 	@NotNull
-	public static MapXNode serializeExpression(@NotNull ExpressionWrapper expressionWrapper, BeanMarshaller beanMarshaller) throws SchemaException {
-		MapXNode xmap = new MapXNode();
+	public static MapXNodeImpl serializeExpression(@NotNull ExpressionWrapper expressionWrapper, BeanMarshaller beanMarshaller) throws SchemaException {
+		MapXNodeImpl xmap = new MapXNodeImpl();
 		Object expressionObject = expressionWrapper.getExpression();
 		if (expressionObject == null) {
 			return xmap;
 		}
-		XNode expressionXnode = beanMarshaller.marshall(expressionObject);
+		XNodeImpl expressionXnode = beanMarshaller.marshall(expressionObject);
 		if (expressionXnode == null) {
 			return xmap;
 		}
@@ -289,8 +290,8 @@ public class PrismUtil {
 	}
 
 	// TODO: Unify the two serializeExpression() methods
-	public static MapXNode serializeExpression(ExpressionWrapper expressionWrapper, PrismSerializer<RootXNode> xnodeSerializer) throws SchemaException {
-		MapXNode xmap = new MapXNode();
+	public static MapXNodeImpl serializeExpression(ExpressionWrapper expressionWrapper, PrismSerializer<RootXNode> xnodeSerializer) throws SchemaException {
+		MapXNodeImpl xmap = new MapXNodeImpl();
 		Object expressionObject = expressionWrapper.getExpression();
 		if (expressionObject == null) {
 			return xmap;

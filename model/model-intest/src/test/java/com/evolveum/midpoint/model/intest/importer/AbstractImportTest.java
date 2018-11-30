@@ -911,7 +911,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
 		if (fromRepo) {
 			Object passwordRawElement = guardedPVal.getRawElement();
 			if (!(passwordRawElement instanceof MapXNode)) {
-				AssertJUnit.fail("Expected password value of type "+MapXNode.class+" but got "+passwordRawElement.getClass());
+				AssertJUnit.fail("Expected password value of type "+ MapXNode.class+" but got "+passwordRawElement.getClass());
 			}
 			MapXNode passwordXNode = (MapXNode) passwordRawElement;
 			assertTrue("uselessGuardedString was not encrypted (clearValue)", passwordXNode.get(new QName("clearValue")) == null);

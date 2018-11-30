@@ -326,7 +326,7 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
                     getModel().setObject(new ExpressionType());
                 }
                 try {
-                    ExpressionUtil.updateAssociationTargetSearchPath(getModelObject(), new ItemPathType(pathValue));
+                    ExpressionUtil.updateAssociationTargetSearchPath(getModelObject(), new ItemPathType(pathValue), getPrismContext());
                 } catch (Exception ex){
                     pageBase.getFeedbackPanel().getFeedbackMessages().add(new FeedbackMessage(ExpressionValuePanel.this,
                             ex.getLocalizedMessage(), 0));
@@ -410,7 +410,7 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
                             getModel().setObject(new ExpressionType());
                         }
                         ExpressionType expression = getModelObject();
-                        expression.getExpressionEvaluator().add(ExpressionUtil.createAssociationTargetSearchElement());
+                        expression.getExpressionEvaluator().add(ExpressionUtil.createAssociationTargetSearchElement(getPrismContext()));
                         target.add(ExpressionValuePanel.this);
 
                     }

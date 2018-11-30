@@ -26,7 +26,7 @@ import javax.xml.bind.JAXBElement;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
@@ -141,7 +141,8 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         PrismContainerValue<ResourceAttributeDefinitionType> newAttrContainer = oldAttrContainer.clone();
         JAXBElement<?> cutlassExpressionEvalJaxbElement = newAttrContainer.getValue().getOutbound().getExpression().getExpressionEvaluator().get(0);
         RawType cutlassValueEvaluator = (RawType) cutlassExpressionEvalJaxbElement.getValue();
-        RawType daggerValueEvaluator = new RawType(new PrimitiveXNode<>("dagger"), prismContext);
+		XNode daggerXNode = prismContext.xnodeFactory().primitive("dagger");
+        RawType daggerValueEvaluator = new RawType(daggerXNode, prismContext);
         JAXBElement<?> daggerExpressionEvalJaxbElement = new JAXBElement<>(SchemaConstants.C_VALUE, Object.class, daggerValueEvaluator);
         newAttrContainer.getValue().getOutbound().getExpression().getExpressionEvaluator().add(daggerExpressionEvalJaxbElement);
         newAttrContainer.getValue().getOutbound().setStrength(MappingStrengthType.STRONG);

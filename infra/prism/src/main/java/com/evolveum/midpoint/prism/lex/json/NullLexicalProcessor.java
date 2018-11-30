@@ -22,7 +22,9 @@ import com.evolveum.midpoint.prism.ParsingContext;
 import com.evolveum.midpoint.prism.SerializationContext;
 import com.evolveum.midpoint.prism.lex.LexicalProcessor;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
+import com.evolveum.midpoint.prism.xnode.RootXNodeImpl;
 import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.prism.xnode.XNodeImpl;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,11 +37,11 @@ import java.util.List;
 /**
  * @author mederly
  */
-public class NullLexicalProcessor implements LexicalProcessor<XNode> {
+public class NullLexicalProcessor implements LexicalProcessor<XNodeImpl> {
 
 	@NotNull
 	@Override
-	public RootXNode read(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException {
+	public RootXNodeImpl read(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException {
 		if (!(source instanceof ParserXNodeSource)) {
 			throw new IllegalStateException("Unsupported parser source: " + source.getClass().getName());
 		}
@@ -48,7 +50,7 @@ public class NullLexicalProcessor implements LexicalProcessor<XNode> {
 
 	@NotNull
 	@Override
-	public List<RootXNode> readObjects(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException {
+	public List<RootXNodeImpl> readObjects(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException {
 		throw new UnsupportedOperationException();
 	}
 
@@ -70,20 +72,20 @@ public class NullLexicalProcessor implements LexicalProcessor<XNode> {
 
 	@NotNull
 	@Override
-	public XNode write(@NotNull RootXNode xnode, @Nullable SerializationContext serializationContext) throws SchemaException {
-		return xnode;
+	public XNodeImpl write(@NotNull RootXNode xnode, @Nullable SerializationContext serializationContext) throws SchemaException {
+		return (XNodeImpl) xnode;
 	}
 
 	@NotNull
 	@Override
-	public XNode write(@NotNull XNode xnode, @NotNull QName rootElementName, @Nullable SerializationContext serializationContext)
+	public XNodeImpl write(@NotNull XNode xnode, @NotNull QName rootElementName, @Nullable SerializationContext serializationContext)
 			throws SchemaException {
-		return xnode;
+		return (XNodeImpl) xnode;
 	}
 
 	@NotNull
 	@Override
-	public XNode write(@NotNull List<RootXNode> roots, @Nullable QName aggregateElementName,
+	public XNodeImpl write(@NotNull List<RootXNodeImpl> roots, @Nullable QName aggregateElementName,
 			@Nullable SerializationContext context) throws SchemaException {
 		throw new UnsupportedOperationException("NullLexicalProcessor.write is not supported for a collection of objects");
 	}

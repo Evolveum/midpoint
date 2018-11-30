@@ -1,7 +1,7 @@
 package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.lex.LexicalProcessor;
-import com.evolveum.midpoint.prism.xnode.RootXNode;
+import com.evolveum.midpoint.prism.xnode.RootXNodeImpl;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -23,14 +23,14 @@ public class SerializerStringTarget extends SerializerTarget<String> {
 
     @NotNull
     @Override
-    public String write(@NotNull RootXNode xroot, SerializationContext context) throws SchemaException {
+    public String write(@NotNull RootXNodeImpl xroot, SerializationContext context) throws SchemaException {
         LexicalProcessor<String> lexicalProcessor = prismContext.getLexicalProcessorRegistry().processorFor(language);
         return lexicalProcessor.write(xroot, context);
     }
 
     @NotNull
     @Override
-    public String write(@NotNull List<RootXNode> roots, @Nullable QName aggregateElementName, @Nullable SerializationContext context)
+    public String write(@NotNull List<RootXNodeImpl> roots, @Nullable QName aggregateElementName, @Nullable SerializationContext context)
             throws SchemaException {
         LexicalProcessor<String> lexicalProcessor = prismContext.getLexicalProcessorRegistry().processorFor(language);
         return lexicalProcessor.write(roots, aggregateElementName, context);

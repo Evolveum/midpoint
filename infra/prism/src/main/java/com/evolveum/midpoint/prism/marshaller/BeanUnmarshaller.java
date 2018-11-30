@@ -71,12 +71,12 @@ public class BeanUnmarshaller {
 
 	@FunctionalInterface
 	private interface PrimitiveUnmarshaller<T> {
-		T unmarshal(PrimitiveXNode node, Class<T> beanClass, ParsingContext pc) throws SchemaException;
+		T unmarshal(PrimitiveXNodeImpl node, Class<T> beanClass, ParsingContext pc) throws SchemaException;
 	}
 
 	@FunctionalInterface
 	private interface MapUnmarshaller<T> {
-		T unmarshal(MapXNode node, Class<T> beanClass, ParsingContext pc) throws SchemaException;
+		T unmarshal(MapXNodeImpl node, Class<T> beanClass, ParsingContext pc) throws SchemaException;
 	}
 
 	private void add(Class<?> beanClass, PrimitiveUnmarshaller primitive, MapUnmarshaller map) {
@@ -101,7 +101,7 @@ public class BeanUnmarshaller {
 	 *   1. typeName is processable by unmarshaller - i.e. it corresponds to simple or complex type NOT of containerable character
 	 */
 
-	<T> T unmarshal(@NotNull XNode xnode, @NotNull QName typeQName, @NotNull ParsingContext pc) throws SchemaException {
+	<T> T unmarshal(@NotNull XNodeImpl xnode, @NotNull QName typeQName, @NotNull ParsingContext pc) throws SchemaException {
 		Class<T> classType = getSchemaRegistry().determineClassForType(typeQName);		// TODO use correct method!
 		if (classType == null) {
 			TypeDefinition td = getSchemaRegistry().findTypeDefinitionByType(typeQName);
@@ -119,7 +119,7 @@ public class BeanUnmarshaller {
 	 * TODO: decide if this method should be marked @NotNull.
 	 * Basically the problem is with primitives. When parsed, they sometimes return null. The question is if it's correct.
 	 */
-	<T> T unmarshal(@NotNull XNode xnode, @NotNull Class<T> beanClass, @NotNull ParsingContext pc) throws SchemaException {
+	<T> T unmarshal(@NotNull XNodeImpl xnode, @NotNull Class<T> beanClass, @NotNull ParsingContext pc) throws SchemaException {
 		T value = unmarshalInternal(xnode, beanClass, pc);
 		if (PrismContextImpl.isExtraValidation() && value != null) {
 			Class<?> requested = ClassUtils.primitiveToWrapper(beanClass);
@@ -132,25 +132,25 @@ public class BeanUnmarshaller {
 		return value;
 	}
 
-	private <T> T unmarshalInternal(@NotNull XNode xnode, @NotNull Class<T> beanClass, @NotNull ParsingContext pc) throws SchemaException {
+	private <T> T unmarshalInternal(@NotNull XNodeImpl xnode, @NotNull Class<T> beanClass, @NotNull ParsingContext pc) throws SchemaException {
 		if (beanClass == null) {
 			throw new IllegalStateException("No bean class for node: " + xnode.debugDump());
 		}
-		if (xnode instanceof RootXNode) {
-			XNode subnode = ((RootXNode) xnode).getSubnode();
+		if (xnode instanceof RootXNodeImpl) {
+			XNodeImpl subnode = ((RootXNodeImpl) xnode).getSubnode();
 			if (subnode == null) {
 				throw new IllegalStateException("Couldn't parse " + beanClass + " from a root node with a null content: " + xnode.debugDump());
 			} else {
 				return unmarshal(subnode, beanClass, pc);
 			}
-		} else if (!(xnode instanceof MapXNode) && !(xnode instanceof PrimitiveXNode) && !xnode.isHeterogeneousList()) {
+		} else if (!(xnode instanceof MapXNodeImpl) && !(xnode instanceof PrimitiveXNodeImpl) && !xnode.isHeterogeneousList()) {
 			throw new IllegalStateException("Couldn't parse " + beanClass + " from non-map/non-primitive/non-hetero-list node: " + xnode.debugDump());
 		}
 
 		// only maps and primitives and heterogeneous lists after this point
 
-		if (xnode instanceof PrimitiveXNode) {
-			PrimitiveXNode<T> prim = (PrimitiveXNode) xnode;
+		if (xnode instanceof PrimitiveXNodeImpl) {
+			PrimitiveXNodeImpl<T> prim = (PrimitiveXNodeImpl) xnode;
 			if (XmlTypeConverter.canConvert(beanClass)) {
 				QName xsdType = XsdTypeMapper.toXsdType(beanClass);
 				Object parsedValue = prim.getParsedValue(xsdType, beanClass);
@@ -181,8 +181,8 @@ public class BeanUnmarshaller {
 
 			@SuppressWarnings("unchecked")
 			MapUnmarshaller<T> unmarshaller = specialMapUnmarshallers.get(beanClass);
-			if (xnode instanceof MapXNode && unmarshaller != null) {		// TODO: what about special unmarshaller + hetero list?
-				return unmarshaller.unmarshal((MapXNode) xnode, beanClass, pc);
+			if (xnode instanceof MapXNodeImpl && unmarshaller != null) {		// TODO: what about special unmarshaller + hetero list?
+				return unmarshaller.unmarshal((MapXNodeImpl) xnode, beanClass, pc);
 			}
 			return unmarshalFromMapOrHeteroList(xnode, beanClass, pc);
 		}
@@ -191,7 +191,7 @@ public class BeanUnmarshaller {
 	/**
 	 * For cases when XSD complex type has a simple content. In that case the resulting class has @XmlValue annotation.
 	 */
-	private <T> T unmarshallPrimitive(PrimitiveXNode<T> prim, Class<T> beanClass, ParsingContext pc) throws SchemaException {
+	private <T> T unmarshallPrimitive(PrimitiveXNodeImpl<T> prim, Class<T> beanClass, ParsingContext pc) throws SchemaException {
 		if (prim.isEmpty()) {
 			return instantiateWithSubtypeGuess(beanClass, emptySet());		// Special case. Just return empty object
 		}
@@ -248,14 +248,14 @@ public class BeanUnmarshaller {
 	//endregion
 
 	@NotNull
-	private <T> T unmarshalFromMapOrHeteroList(@NotNull XNode mapOrList, @NotNull Class<T> beanClass, @NotNull ParsingContext pc) throws SchemaException {
+	private <T> T unmarshalFromMapOrHeteroList(@NotNull XNodeImpl mapOrList, @NotNull Class<T> beanClass, @NotNull ParsingContext pc) throws SchemaException {
 
 		if (Containerable.class.isAssignableFrom(beanClass)) {
 			// This could have come from inside; note we MUST NOT parse this as PrismValue, because for objects we would lose oid/version
 			return prismContext.parserFor(mapOrList.toRootXNode()).type(beanClass).parseRealValue();
 		} else if (SearchFilterType.class.isAssignableFrom(beanClass)) {
-			if (mapOrList instanceof MapXNode) {
-				T bean = (T) unmarshalSearchFilterType((MapXNode) mapOrList, (Class<? extends SearchFilterType>) beanClass, pc);
+			if (mapOrList instanceof MapXNodeImpl) {
+				T bean = (T) unmarshalSearchFilterType((MapXNodeImpl) mapOrList, (Class<? extends SearchFilterType>) beanClass, pc);
 				// TODO fix this BRUTAL HACK - it is here because of c:ConditionalSearchFilterType
 				return unmarshalFromMapOrHeteroListToBean(bean, mapOrList, Collections.singleton("condition"), pc);
 			} else {
@@ -267,11 +267,11 @@ public class BeanUnmarshaller {
 		}
 	}
 
-	private <T> T instantiateWithSubtypeGuess(@NotNull Class<T> beanClass, XNode mapOrList) throws SchemaException {
-		if (!(mapOrList instanceof MapXNode)) {
+	private <T> T instantiateWithSubtypeGuess(@NotNull Class<T> beanClass, XNodeImpl mapOrList) throws SchemaException {
+		if (!(mapOrList instanceof MapXNodeImpl)) {
 			return instantiate(beanClass);          // guessing is supported only for traditional maps now
 		}
-		return instantiateWithSubtypeGuess(beanClass, ((MapXNode) mapOrList).keySet());
+		return instantiateWithSubtypeGuess(beanClass, ((MapXNodeImpl) mapOrList).keySet());
 	}
 
 	private <T> T instantiateWithSubtypeGuess(@NotNull Class<T> beanClass, Collection<QName> fields) throws SchemaException {
@@ -293,12 +293,12 @@ public class BeanUnmarshaller {
 	}
 
 	@NotNull
-	private <T> T unmarshalFromMapOrHeteroListToBean(@NotNull T bean, @NotNull XNode mapOrList, @Nullable Collection<String> keysToParse, @NotNull ParsingContext pc) throws SchemaException {
+	private <T> T unmarshalFromMapOrHeteroListToBean(@NotNull T bean, @NotNull XNodeImpl mapOrList, @Nullable Collection<String> keysToParse, @NotNull ParsingContext pc) throws SchemaException {
 		@SuppressWarnings("unchecked")
 		Class<T> beanClass = (Class<T>) bean.getClass();
-		if (mapOrList instanceof MapXNode) {
-			MapXNode map = (MapXNode) mapOrList;
-			for (Entry<QName, XNode> entry : map.entrySet()) {
+		if (mapOrList instanceof MapXNodeImpl) {
+			MapXNodeImpl map = (MapXNodeImpl) mapOrList;
+			for (Entry<QName, XNodeImpl> entry : map.entrySet()) {
 				QName key = entry.getKey();
 				if (keysToParse != null && !keysToParse.contains(key.getLocalPart())) {
 					continue;
@@ -431,7 +431,7 @@ public class BeanUnmarshaller {
 	 * sequence.scriptingExpression.
 	 */
 	private <T> void unmarshalEntry(@NotNull T bean, @NotNull Class<T> beanClass,
-			@NotNull QName key, @NotNull XNode node, @NotNull XNode containingNode,
+			@NotNull QName key, @NotNull XNodeImpl node, @NotNull XNodeImpl containingNode,
 			boolean isHeteroListProperty, @NotNull ParsingContext pc) throws SchemaException {
 
 		//System.out.println("bean=" + bean.getClass().getSimpleName() + ", key=" + key.getLocalPart() + ", node=" + node + ", isHeteroListProperty=" + isHeteroListProperty);
@@ -473,7 +473,7 @@ public class BeanUnmarshaller {
 			paramType = mechanism.paramType;
 		}
 
-		if (!(node instanceof ListXNode) && Object.class.equals(paramType) && !storeAsRawType) {
+		if (!(node instanceof ListXNodeImpl) && Object.class.equals(paramType) && !storeAsRawType) {
 			throw new IllegalArgumentException("Object property (without @Raw) not supported in field "+actualPropertyName+" in "+beanClass);
 		}
 
@@ -484,8 +484,8 @@ public class BeanUnmarshaller {
 		Collection<Object> propValues = null;
 		// For heterogeneous lists we have to create multi-valued fictitious property first. So we have to treat node as a map
 		// (instead of list) and process it as a single value. Only when
-		if (node instanceof ListXNode && (!node.isHeterogeneousList() || isHeteroListProperty)) {
-			ListXNode xlist = (ListXNode) node;
+		if (node instanceof ListXNodeImpl && (!node.isHeterogeneousList() || isHeteroListProperty)) {
+			ListXNodeImpl xlist = (ListXNodeImpl) node;
 			if (setter != null) {
 				try {
 					Object value = unmarshalSinglePropValue(node, actualPropertyName, paramType, storeAsRawType, beanClass, pc);
@@ -501,7 +501,7 @@ public class BeanUnmarshaller {
 			} else {
 				// No setter, we have to use collection getter
 				propValues = new ArrayList<>(xlist.size());
-				for (XNode xsubsubnode: xlist) {
+				for (XNodeImpl xsubsubnode: xlist) {
 					try {
 						Object valueToAdd;
 						Object value = unmarshalSinglePropValue(xsubsubnode, actualPropertyName, paramType, storeAsRawType, beanClass, pc);
@@ -600,7 +600,7 @@ public class BeanUnmarshaller {
 		}
 	}
 
-	private Class<?> specializeParamType(@NotNull XNode node, @NotNull Class<?> expectedType, @NotNull ParsingContext pc)
+	private Class<?> specializeParamType(@NotNull XNodeImpl node, @NotNull Class<?> expectedType, @NotNull ParsingContext pc)
 			throws SchemaException {
 		if (node.getTypeQName() != null) {
 			Class explicitType = getSchemaRegistry().determineClassForType(node.getTypeQName());
@@ -644,7 +644,7 @@ public class BeanUnmarshaller {
 
 		// returns true if the processing is to be continued;
 		// false in case of using alternative way of unmarshalling (e.g. use of "any" method), or in case of error (in COMPAT mode)
-		private <T> boolean compute(T bean, Class<T> beanClass, String propName, QName key, XNode node, ParsingContext pc)
+		private <T> boolean compute(T bean, Class<T> beanClass, String propName, QName key, XNodeImpl node, ParsingContext pc)
 				throws SchemaException {
 
 			this.beanClass = beanClass;
@@ -659,7 +659,7 @@ public class BeanUnmarshaller {
 
 		// computes actualPropertyName + storeAsRawType
 		// if necessary, fills-in also objectFactory + elementFactoryMethod
-		private <T> boolean computeActualPropertyName(T bean, String propName, QName key, XNode node, ParsingContext pc)
+		private <T> boolean computeActualPropertyName(T bean, String propName, QName key, XNodeImpl node, ParsingContext pc)
 				throws SchemaException {
 			Field propertyField = inspector.findPropertyField(beanClass, propName);
 			Method propertyGetter = null;
@@ -873,7 +873,7 @@ public class BeanUnmarshaller {
 		}
 	}
 
-	private QName getRealElementName(XNode node, QName key, ParsingContext pc) throws SchemaException {
+	private QName getRealElementName(XNodeImpl node, QName key, ParsingContext pc) throws SchemaException {
 		if (node.getElementName() == null) {
 			return key;
 		}
@@ -888,7 +888,7 @@ public class BeanUnmarshaller {
 		}
 	}
 
-	private <T> void unmarshalToAnyUsingGetterIfExists(@NotNull T bean, @NotNull QName key, @NotNull XNode node,
+	private <T> void unmarshalToAnyUsingGetterIfExists(@NotNull T bean, @NotNull QName key, @NotNull XNodeImpl node,
 			@NotNull ParsingContext pc, String propName) throws SchemaException {
 		Method elementMethod = inspector.findAnyMethod(bean.getClass());
 		if (elementMethod != null) {
@@ -952,7 +952,7 @@ public class BeanUnmarshaller {
 		}
 	}
 
-	private boolean processSchemaException(SchemaException e, XNode xsubnode, ParsingContext pc) throws SchemaException {
+	private boolean processSchemaException(SchemaException e, XNodeImpl xsubnode, ParsingContext pc) throws SchemaException {
 		if (pc.isStrict()) {
             throw e;
         } else {
@@ -965,7 +965,7 @@ public class BeanUnmarshaller {
         }
 	}
 
-	private <T,S> void unmarshallToAnyUsingGetter(T bean, Method getter, QName elementName, XNode xsubnode, ParsingContext pc) throws SchemaException{
+	private <T,S> void unmarshallToAnyUsingGetter(T bean, Method getter, QName elementName, XNodeImpl xsubnode, ParsingContext pc) throws SchemaException{
 		Class<T> beanClass = (Class<T>) bean.getClass();
 
 		Class objectFactoryClass = inspector.getObjectFactoryClass(elementName.getNamespaceURI());
@@ -973,8 +973,8 @@ public class BeanUnmarshaller {
 		Method elementFactoryMethod = inspector.findElementMethodInObjectFactory(objectFactoryClass, elementName.getLocalPart());
 		Class<S> subBeanClass = (Class<S>) elementFactoryMethod.getParameterTypes()[0];
 
-		if (xsubnode instanceof ListXNode){
-			for (XNode xsubSubNode : ((ListXNode) xsubnode)){
+		if (xsubnode instanceof ListXNodeImpl){
+			for (XNodeImpl xsubSubNode : ((ListXNodeImpl) xsubnode)){
 				S subBean = unmarshal(xsubSubNode, subBeanClass, pc);
 				unmarshallToAnyValue(bean, beanClass, subBean, objectFactoryClass, objectFactory, elementFactoryMethod, getter, pc);
 			}
@@ -1010,7 +1010,7 @@ public class BeanUnmarshaller {
 		col.add(subBeanElement != null ? subBeanElement.getValue() : null);
 	}
 
-	private <T,S> void unmarshalToAnyUsingField(T bean, Field anyField, QName elementName, XNode xsubnode, ParsingContext pc) throws SchemaException{
+	private <T,S> void unmarshalToAnyUsingField(T bean, Field anyField, QName elementName, XNodeImpl xsubnode, ParsingContext pc) throws SchemaException{
 		Method getter = inspector.findPropertyGetter(bean.getClass(), anyField.getName());
 		unmarshallToAnyUsingGetter(bean, getter, elementName, xsubnode, pc);
 	}
@@ -1023,12 +1023,12 @@ public class BeanUnmarshaller {
         }
     }
 
-	private Object unmarshalSinglePropValue(XNode xsubnode, String fieldName, Class paramType, boolean storeAsRawType,
+	private Object unmarshalSinglePropValue(XNodeImpl xsubnode, String fieldName, Class paramType, boolean storeAsRawType,
 			Class classType, ParsingContext pc) throws SchemaException {
 		Object propValue;
 		if (xsubnode == null) {
 			propValue = null;
-		} else if (paramType.equals(XNode.class)) {
+		} else if (paramType.equals(XNodeImpl.class)) {
 			propValue = xsubnode;
 		} else if (storeAsRawType || paramType.equals(RawType.class)) {
             RawType raw = new RawType(xsubnode, prismContext);
@@ -1049,10 +1049,10 @@ public class BeanUnmarshaller {
             if (paramType == null) {
             	return null;				// skipping this element in case of error
 			}
-			if (xsubnode instanceof PrimitiveXNode<?> || xsubnode instanceof MapXNode || xsubnode.isHeterogeneousList()) {
+			if (xsubnode instanceof PrimitiveXNodeImpl<?> || xsubnode instanceof MapXNodeImpl || xsubnode.isHeterogeneousList()) {
 				propValue = unmarshal(xsubnode, paramType, pc);
-			} else if (xsubnode instanceof ListXNode) {
-				ListXNode xlist = (ListXNode)xsubnode;
+			} else if (xsubnode instanceof ListXNodeImpl) {
+				ListXNodeImpl xlist = (ListXNodeImpl)xsubnode;
 				if (xlist.size() > 1) {
 					throw new SchemaException("Cannot set multi-value value to a single valued property "+fieldName+" of "+classType);
 				} else {
@@ -1083,22 +1083,22 @@ public class BeanUnmarshaller {
 		}
 	}
 
-    private SchemaDefinitionType unmarshalSchemaDefinitionType(MapXNode xmap, Class<?> beanClass, ParsingContext pc) throws SchemaException {
-        Entry<QName, XNode> subEntry = xmap.getSingleSubEntry("schema element");
+    private SchemaDefinitionType unmarshalSchemaDefinitionType(MapXNodeImpl xmap, Class<?> beanClass, ParsingContext pc) throws SchemaException {
+        Entry<QName, XNodeImpl> subEntry = xmap.getSingleSubEntry("schema element");
         if (subEntry == null) {
             return null;
         }
-        XNode xsub = subEntry.getValue();
+        XNodeImpl xsub = subEntry.getValue();
         if (xsub == null) {
             return null;
         }
-        if (!(xsub instanceof SchemaXNode)) {
+        if (!(xsub instanceof SchemaXNodeImpl)) {
             throw new SchemaException("Cannot parse schema from "+xsub);
         }
-		return unmarshalSchemaDefinitionType((SchemaXNode) xsub);
+		return unmarshalSchemaDefinitionType((SchemaXNodeImpl) xsub);
     }
 
-    SchemaDefinitionType unmarshalSchemaDefinitionType(SchemaXNode xsub) throws SchemaException{
+    SchemaDefinitionType unmarshalSchemaDefinitionType(SchemaXNodeImpl xsub) throws SchemaException{
         Element schemaElement = xsub.getSchemaElement();
         if (schemaElement == null) {
             throw new SchemaException("Empty schema in " + xsub);
@@ -1122,7 +1122,7 @@ public class BeanUnmarshaller {
 	//region Specific unmarshallers =========================================================
 
 	// parses any subtype of SearchFilterType
-	private <T extends SearchFilterType> T unmarshalSearchFilterType(MapXNode xmap, Class<T> beanClass, ParsingContext pc) throws SchemaException {
+	private <T extends SearchFilterType> T unmarshalSearchFilterType(MapXNodeImpl xmap, Class<T> beanClass, ParsingContext pc) throws SchemaException {
 		if (xmap == null) {
 			return null;
 		}
@@ -1131,24 +1131,24 @@ public class BeanUnmarshaller {
 		return filterType;
 	}
 
-	private ItemPathType unmarshalItemPath(PrimitiveXNode<ItemPathType> primitiveXNode, Class beanClass, ParsingContext parsingContext)
+	private ItemPathType unmarshalItemPath(PrimitiveXNodeImpl<ItemPathType> primitiveXNode, Class beanClass, ParsingContext parsingContext)
 			throws SchemaException {
 		ItemPathType parsedValue = primitiveXNode.getParsedValue(ItemPathType.COMPLEX_TYPE, ItemPathType.class);
 		return postConvertUnmarshal(parsedValue, parsingContext);
 	}
 
-	private Object unmarshalPolyStringFromPrimitive(PrimitiveXNode<?> node, Class<?> beanClass, ParsingContext parsingContext)
+	private Object unmarshalPolyStringFromPrimitive(PrimitiveXNodeImpl<?> node, Class<?> beanClass, ParsingContext parsingContext)
 			throws SchemaException {
 		Object value;
 		if (node.isParsed()) {
 			value = node.getValue();			// there can be e.g. PolyString there
 		} else {
-			value = ((PrimitiveXNode<String>) node).getParsedValue(DOMUtil.XSD_STRING, String.class);
+			value = ((PrimitiveXNodeImpl<String>) node).getParsedValue(DOMUtil.XSD_STRING, String.class);
 		}
 		return toCorrectPolyStringClass(value, beanClass, node);
 	}
 
-	private Object unmarshalPolyStringFromMap(MapXNode map, Class<?> beanClass, ParsingContext pc) throws SchemaException {
+	private Object unmarshalPolyStringFromMap(MapXNodeImpl map, Class<?> beanClass, ParsingContext pc) throws SchemaException {
 		String orig = map.getParsedPrimitiveValue(QNameUtil.nullNamespace(PolyString.F_ORIG), DOMUtil.XSD_STRING);
 		if (orig == null) {
 			throw new SchemaException("Null polystring orig in "+map);
@@ -1158,7 +1158,7 @@ public class BeanUnmarshaller {
 		return toCorrectPolyStringClass(value, beanClass, map);
 	}
 
-	private Object toCorrectPolyStringClass(Object value, Class<?> beanClass, XNode node) {
+	private Object toCorrectPolyStringClass(Object value, Class<?> beanClass, XNodeImpl node) {
 		PolyString polyString;
 		if (value instanceof String) {
 			polyString = new PolyString((String) value);
@@ -1184,16 +1184,16 @@ public class BeanUnmarshaller {
 		}
 	}
 
-	private Object notSupported(XNode node, Class<?> beanClass, ParsingContext parsingContext) {
+	private Object notSupported(XNodeImpl node, Class<?> beanClass, ParsingContext parsingContext) {
 		// TODO what if compat mode?
 		throw new IllegalArgumentException("The following couldn't be parsed as " + beanClass + ": " + node.debugDump());
 	}
 
-	private XmlAsStringType unmarshalXmlAsStringFromPrimitive(PrimitiveXNode node, Class<XmlAsStringType> beanClass, ParsingContext parsingContext) throws SchemaException {
-		return new XmlAsStringType(((PrimitiveXNode<String>) node).getParsedValue(DOMUtil.XSD_STRING, String.class));
+	private XmlAsStringType unmarshalXmlAsStringFromPrimitive(PrimitiveXNodeImpl node, Class<XmlAsStringType> beanClass, ParsingContext parsingContext) throws SchemaException {
+		return new XmlAsStringType(((PrimitiveXNodeImpl<String>) node).getParsedValue(DOMUtil.XSD_STRING, String.class));
 	}
 
-	private XmlAsStringType unmarshalXmlAsStringFromMap(MapXNode map, Class<XmlAsStringType> beanClass, ParsingContext parsingContext) throws SchemaException {
+	private XmlAsStringType unmarshalXmlAsStringFromMap(MapXNodeImpl map, Class<XmlAsStringType> beanClass, ParsingContext parsingContext) throws SchemaException {
 		// reading a string represented a XML-style content
 		// used e.g. when reading report templates (embedded XML)
 		// A necessary condition: there may be only one map entry.
@@ -1202,19 +1202,19 @@ public class BeanUnmarshaller {
 		} else if (map.isEmpty()) {
 			return new XmlAsStringType();
 		} else {
-			Entry<QName, XNode> entry = map.entrySet().iterator().next();
+			Entry<QName, XNodeImpl> entry = map.entrySet().iterator().next();
 			DomLexicalProcessor domParser = ((PrismContextImpl) prismContext).getParserDom();
 			String value = domParser.write(entry.getValue(), entry.getKey(), null);
 			return new XmlAsStringType(value);
 		}
 	}
 
-	private RawType unmarshalRawType(XNode node, Class<RawType> beanClass, ParsingContext parsingContext) {
+	private RawType unmarshalRawType(XNodeImpl node, Class<RawType> beanClass, ParsingContext parsingContext) {
 		// TODO We could probably try to parse the raw node content using information from explicit node type.
 		return new RawType(node, prismContext);
 	}
 
-	private <T> T unmarshalEnumFromPrimitive(PrimitiveXNode prim, Class<T> beanClass, ParsingContext pc)
+	private <T> T unmarshalEnumFromPrimitive(PrimitiveXNodeImpl prim, Class<T> beanClass, ParsingContext pc)
 			throws SchemaException {
 
 		String primValue = (String) prim.getParsedValue(DOMUtil.XSD_STRING, String.class);
@@ -1242,7 +1242,7 @@ public class BeanUnmarshaller {
 		return bean;
 	}
 
-	private ProtectedStringType unmarshalProtectedString(MapXNode map, Class beanClass, ParsingContext pc) throws SchemaException {
+	private ProtectedStringType unmarshalProtectedString(MapXNodeImpl map, Class beanClass, ParsingContext pc) throws SchemaException {
 		ProtectedStringType protectedType = new ProtectedStringType();
 		XNodeProcessorUtil.parseProtectedType(protectedType, map, prismContext, pc);
 		if (protectedType.isEmpty()) {
@@ -1252,19 +1252,19 @@ public class BeanUnmarshaller {
 		return protectedType;
 	}
 
-	private ProtectedStringType unmarshalProtectedString(PrimitiveXNode<String> prim, Class beanClass, ParsingContext pc) throws SchemaException {
+	private ProtectedStringType unmarshalProtectedString(PrimitiveXNodeImpl<String> prim, Class beanClass, ParsingContext pc) throws SchemaException {
 		ProtectedStringType protectedType = new ProtectedStringType();
 		protectedType.setClearValue(prim.getParsedValue(DOMUtil.XSD_STRING, String.class));
 		return protectedType;
 	}
 
-	private ProtectedByteArrayType unmarshalProtectedByteArray(MapXNode map, Class beanClass, ParsingContext pc) throws SchemaException {
+	private ProtectedByteArrayType unmarshalProtectedByteArray(MapXNodeImpl map, Class beanClass, ParsingContext pc) throws SchemaException {
 		ProtectedByteArrayType protectedType = new ProtectedByteArrayType();
 		XNodeProcessorUtil.parseProtectedType(protectedType, map, prismContext, pc);
 		return protectedType;
 	}
 
-	private ProtectedByteArrayType unmarshalProtectedByteArray(PrimitiveXNode<String> prim, Class beanClass, ParsingContext pc) throws SchemaException {
+	private ProtectedByteArrayType unmarshalProtectedByteArray(PrimitiveXNodeImpl<String> prim, Class beanClass, ParsingContext pc) throws SchemaException {
 		ProtectedByteArrayType protectedType = new ProtectedByteArrayType();
 		String stringValue = prim.getParsedValue(DOMUtil.XSD_STRING, String.class);
 		if (stringValue == null) {

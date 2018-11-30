@@ -23,15 +23,16 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static com.evolveum.midpoint.schema.TestConstants.*;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 
-import com.evolveum.midpoint.prism.xnode.MapXNode;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
+import com.evolveum.midpoint.prism.xnode.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
@@ -527,18 +528,17 @@ public class TestJaxbConstruction {
 		stringProperty.setRealValue("fifteen men on a dead man chest");
 	}
 
-	private MapXNode createFilter(){
+	private MapXNode createFilter() {
+		XNodeFactory factory = getPrismContext().xnodeFactory();
 
-        MapXNode filter = new MapXNode();
-        MapXNode equalsElement = new MapXNode();
-		filter.put(new QName(SchemaConstantsGenerated.NS_QUERY, "equal"), equalsElement);
+		Map<QName, XNode> equalsElementSource = new HashMap<>();
+		PrimitiveXNode<ItemPathType> pathElement = factory.primitive(new ItemPathType(getPrismContext().path(new QName("name"))));
+		equalsElementSource.put(new QName(SchemaConstantsGenerated.NS_QUERY, "path"), pathElement);
+		PrimitiveXNode<String> valueElement = factory.primitive("čučoriedka");
+		equalsElementSource.put(new QName(SchemaConstantsGenerated.NS_QUERY, "value"), valueElement);
+        MapXNode equalsElement = factory.map(equalsElementSource);
 
-        PrimitiveXNode<ItemPathType> pathElement = new PrimitiveXNode<>(new ItemPathType(getPrismContext().path(new QName("name"))));
-        equalsElement.put(new QName(SchemaConstantsGenerated.NS_QUERY, "path"), pathElement);
-
-        PrimitiveXNode<String> valueElement = new PrimitiveXNode<>("čučoriedka");
-        equalsElement.put(new QName(SchemaConstantsGenerated.NS_QUERY, "value"), valueElement);
-		return filter;
+		return factory.map(new QName(SchemaConstantsGenerated.NS_QUERY, "equal"), equalsElement);
 	}
 
 }

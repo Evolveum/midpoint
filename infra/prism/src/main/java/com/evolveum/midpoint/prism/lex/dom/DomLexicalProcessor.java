@@ -67,13 +67,13 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 	}
 
 	@Deprecated
-	public XNode read(File file, ParsingContext parsingContext) throws SchemaException, IOException {
+	public XNodeImpl read(File file, ParsingContext parsingContext) throws SchemaException, IOException {
 		return read(new ParserFileSource(file), parsingContext);
 	}
 
 	@NotNull
 	@Override
-	public RootXNode read(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException {
+	public RootXNodeImpl read(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException {
 		if (source instanceof ParserElementSource) {
 			return read(((ParserElementSource) source).getElement());
 		}
@@ -91,7 +91,7 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 
 	@NotNull
 	@Override
-	public List<RootXNode> readObjects(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException {
+	public List<RootXNodeImpl> readObjects(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException {
 		InputStream is = source.getInputStream();
 		try {
 			Document document = DOMUtil.parse(is);
@@ -151,17 +151,17 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 		Document objectDoc = domConverter.buildDocument(stream);
 		Element objectElement = DOMUtil.getFirstChildElement(objectDoc);
 		DOMUtil.setNamespaceDeclarations(objectElement, rootNamespaceDeclarations);
-		RootXNode rootNode = read(objectElement);
+		RootXNodeImpl rootNode = read(objectElement);
 		return handler.handleData(rootNode);
 	}
 
-	private List<RootXNode> readObjects(Document document) throws SchemaException{
+	private List<RootXNodeImpl> readObjects(Document document) throws SchemaException{
 		Element root = DOMUtil.getFirstChildElement(document);
 		QName objectsMarker = schemaRegistry.getPrismContext().getObjectsElementName();
 		if (objectsMarker != null && !QNameUtil.match(DOMUtil.getQName(root), objectsMarker)) {
 			return Collections.singletonList(read(root));
 		} else {
-			List<RootXNode> rv = new ArrayList<>();
+			List<RootXNodeImpl> rv = new ArrayList<>();
 			for (Element child : DOMUtil.listChildElements(root)) {
 				rv.add(read(child));
 			}
@@ -170,21 +170,21 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 	}
 
 	@NotNull
-	public RootXNode read(Document document) throws SchemaException {
+	public RootXNodeImpl read(Document document) throws SchemaException {
 		Element rootElement = DOMUtil.getFirstChildElement(document);
 		return read(rootElement);
 	}
 
 	@NotNull
-	public RootXNode read(Element rootElement) throws SchemaException {
-		RootXNode xroot = new RootXNode(DOMUtil.getQName(rootElement));
+	public RootXNodeImpl read(Element rootElement) throws SchemaException {
+		RootXNodeImpl xroot = new RootXNodeImpl(DOMUtil.getQName(rootElement));
 		extractCommonMetadata(rootElement, xroot);
-		XNode xnode = parseElementContent(rootElement, false);
+		XNodeImpl xnode = parseElementContent(rootElement, false);
 		xroot.setSubnode(xnode);
 		return xroot;
 	}
 
-	private void extractCommonMetadata(Element element, XNode xnode) throws SchemaException {
+	private void extractCommonMetadata(Element element, XNodeImpl xnode) throws SchemaException {
 		QName xsiType = DOMUtil.resolveXsiType(element);
 		if (xsiType != null) {
 			xnode.setTypeQName(xsiType);
@@ -220,11 +220,11 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 	 * only the content is parsed).
 	 */
 	@Nullable
-	private XNode parseElementContent(Element element, boolean storeElementName) throws SchemaException {
+	private XNodeImpl parseElementContent(Element element, boolean storeElementName) throws SchemaException {
 		if (DOMUtil.isNil(element)) {		// TODO: ok?
 			return null;
 		}
-		XNode node;
+		XNodeImpl node;
 		if (DOMUtil.hasChildElements(element) || DOMUtil.hasApplicationAttributes(element)) {
 			if (isList(element)) {
 				node = parseElementContentToList(element);
@@ -242,20 +242,20 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 	}
 
 	// all the sub-elements should be compatible (this is not enforced here, however)
-	private ListXNode parseElementContentToList(Element element) throws SchemaException {
+	private ListXNodeImpl parseElementContentToList(Element element) throws SchemaException {
 		if (DOMUtil.hasApplicationAttributes(element)) {
 			throw new SchemaException("List should have no application attributes: " + element);
 		}
 		return parseElementList(DOMUtil.listChildElements(element), true);
 	}
 
-	private MapXNode parseElementContentToMap(Element element) throws SchemaException {
-		MapXNode xmap = new MapXNode();
+	private MapXNodeImpl parseElementContentToMap(Element element) throws SchemaException {
+		MapXNodeImpl xmap = new MapXNodeImpl();
 
 		// Attributes
 		for (Attr attr: DOMUtil.listApplicationAttributes(element)) {
 			QName attrQName = DOMUtil.getQName(attr);
-			XNode subnode = parseAttributeValue(attr);
+			XNodeImpl subnode = parseAttributeValue(attr);
 			xmap.put(attrQName, subnode);
 		}
 
@@ -358,11 +358,11 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 		}
 	}
 
-	private void parseSubElementsGroupAsMapEntry(MapXNode xmap, QName elementQName, List<Element> elements) throws SchemaException {
+	private void parseSubElementsGroupAsMapEntry(MapXNodeImpl xmap, QName elementQName, List<Element> elements) throws SchemaException {
 		if (elements == null || elements.isEmpty()) {
 			return;
 		}
-		XNode xsub;
+		XNodeImpl xsub;
 		// We really want to have equals here, not match
 		// we want to be very explicit about namespace here
 		if (elementQName.equals(SCHEMA_ELEMENT_QNAME)) {
@@ -383,10 +383,10 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 	 * Parses elements that should form the list (either they have the same element name, or they are
 	 * stored as a sub-elements of "list" parent element).
 	 */
-	private ListXNode parseElementList(List<Element> elements, boolean storeElementNames) throws SchemaException {
-		ListXNode xlist = new ListXNode();
+	private ListXNodeImpl parseElementList(List<Element> elements, boolean storeElementNames) throws SchemaException {
+		ListXNodeImpl xlist = new ListXNodeImpl();
 		for (Element element: elements) {
-			XNode xnode = parseElementContent(element, storeElementNames);
+			XNodeImpl xnode = parseElementContent(element, storeElementNames);
 			xlist.add(xnode);
 		}
 		return xlist;
@@ -457,8 +457,8 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
         }
     }
 
-	private <T> PrimitiveXNode<T> parsePrimitiveElement(final Element element) throws SchemaException {
-		PrimitiveXNode<T> xnode = new PrimitiveXNode<>();
+	private <T> PrimitiveXNodeImpl<T> parsePrimitiveElement(final Element element) throws SchemaException {
+		PrimitiveXNodeImpl<T> xnode = new PrimitiveXNodeImpl<>();
 		xnode.setValueParser(new PrimitiveValueParser<>(element));
 		return xnode;
 	}
@@ -489,8 +489,8 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 		return null;
 	}
 
-	private <T> PrimitiveXNode<T> parseAttributeValue(final Attr attr) {
-		PrimitiveXNode<T> xnode = new PrimitiveXNode<>();
+	private <T> PrimitiveXNodeImpl<T> parseAttributeValue(final Attr attr) {
+		PrimitiveXNodeImpl<T> xnode = new PrimitiveXNodeImpl<>();
 		xnode.setValueParser(new PrimitiveAttributeParser<>(attr));
 		xnode.setAttribute(true);
 		return xnode;
@@ -521,8 +521,8 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 		return ItemPathType.parseFromElement(element);
 	}
 
-	private SchemaXNode parseSchemaElement(Element schemaElement) {
-		SchemaXNode xschema = new SchemaXNode();
+	private SchemaXNodeImpl parseSchemaElement(Element schemaElement) {
+		SchemaXNodeImpl xschema = new SchemaXNodeImpl();
 		xschema.setSchemaElement(schemaElement);
 		return xschema;
 	}
@@ -549,7 +549,7 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 	@Override
 	public String write(@NotNull XNode xnode, @NotNull QName rootElementName, SerializationContext serializationContext) throws SchemaException {
 		DomLexicalWriter serializer = new DomLexicalWriter(schemaRegistry);
-		RootXNode xroot = LexicalUtils.createRootXNode(xnode, rootElementName);
+		RootXNodeImpl xroot = LexicalUtils.createRootXNode((XNodeImpl) xnode, rootElementName);
 		Element element = serializer.serialize(xroot);
 		return DOMUtil.serializeDOMToString(element);
 	}
@@ -558,57 +558,57 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 	@Override
 	public String write(@NotNull RootXNode xnode, SerializationContext serializationContext) throws SchemaException {
 		DomLexicalWriter serializer = new DomLexicalWriter(schemaRegistry);
-		Element element = serializer.serialize(xnode);
+		Element element = serializer.serialize((RootXNodeImpl) xnode);
 		return DOMUtil.serializeDOMToString(element);
 	}
 
 	@NotNull
 	@Override
-	public String write(@NotNull List<RootXNode> roots, @Nullable QName aggregateElementName,
+	public String write(@NotNull List<RootXNodeImpl> roots, @Nullable QName aggregateElementName,
 			@Nullable SerializationContext context) throws SchemaException {
 		Element aggregateElement = writeXRootListToElement(roots, aggregateElementName);
 		return DOMUtil.serializeDOMToString(aggregateElement);
 	}
 
 	@NotNull
-	public Element writeXRootListToElement(@NotNull List<RootXNode> roots, QName aggregateElementName) throws SchemaException {
+	public Element writeXRootListToElement(@NotNull List<RootXNodeImpl> roots, QName aggregateElementName) throws SchemaException {
 		DomLexicalWriter serializer = new DomLexicalWriter(schemaRegistry);
 		return serializer.serialize(roots, aggregateElementName);
 	}
 
-	public Element serializeUnderElement(XNode xnode, QName rootElementName, Element parentElement) throws SchemaException {
+	public Element serializeUnderElement(XNodeImpl xnode, QName rootElementName, Element parentElement) throws SchemaException {
 		DomLexicalWriter serializer = new DomLexicalWriter(schemaRegistry);
-		RootXNode xroot = LexicalUtils.createRootXNode(xnode, rootElementName);
+		RootXNodeImpl xroot = LexicalUtils.createRootXNode(xnode, rootElementName);
 		return serializer.serializeUnderElement(xroot, parentElement);
 	}
 
-    public Element serializeXMapToElement(MapXNode xmap, QName elementName) throws SchemaException {
+    public Element serializeXMapToElement(MapXNodeImpl xmap, QName elementName) throws SchemaException {
 		DomLexicalWriter serializer = new DomLexicalWriter(schemaRegistry);
 		return serializer.serializeToElement(xmap, elementName);
 	}
 
-	private Element serializeXPrimitiveToElement(PrimitiveXNode<?> xprim, QName elementName) throws SchemaException {
+	private Element serializeXPrimitiveToElement(PrimitiveXNodeImpl<?> xprim, QName elementName) throws SchemaException {
 		DomLexicalWriter serializer = new DomLexicalWriter(schemaRegistry);
 		return serializer.serializeXPrimitiveToElement(xprim, elementName);
 	}
 
 	@NotNull
-	public Element writeXRootToElement(@NotNull RootXNode xroot) throws SchemaException {
+	public Element writeXRootToElement(@NotNull RootXNodeImpl xroot) throws SchemaException {
 		DomLexicalWriter serializer = new DomLexicalWriter(schemaRegistry);
 		return serializer.serialize(xroot);
 	}
 
-	private Element serializeToElement(XNode xnode, QName elementName) throws SchemaException {
+	private Element serializeToElement(XNodeImpl xnode, QName elementName) throws SchemaException {
         Validate.notNull(xnode);
         Validate.notNull(elementName);
-		if (xnode instanceof MapXNode) {
-			return serializeXMapToElement((MapXNode) xnode, elementName);
-		} else if (xnode instanceof PrimitiveXNode<?>) {
-			return serializeXPrimitiveToElement((PrimitiveXNode<?>) xnode, elementName);
-		} else if (xnode instanceof RootXNode) {
-			return writeXRootToElement((RootXNode)xnode);
-		} else if (xnode instanceof ListXNode) {
-			ListXNode xlist = (ListXNode) xnode;
+		if (xnode instanceof MapXNodeImpl) {
+			return serializeXMapToElement((MapXNodeImpl) xnode, elementName);
+		} else if (xnode instanceof PrimitiveXNodeImpl<?>) {
+			return serializeXPrimitiveToElement((PrimitiveXNodeImpl<?>) xnode, elementName);
+		} else if (xnode instanceof RootXNodeImpl) {
+			return writeXRootToElement((RootXNodeImpl)xnode);
+		} else if (xnode instanceof ListXNodeImpl) {
+			ListXNodeImpl xlist = (ListXNodeImpl) xnode;
 			if (xlist.size() == 0) {
 				return null;
 			} else if (xlist.size() > 1) {
@@ -621,11 +621,12 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 		}
 	}
 
-	public Element serializeSingleElementMapToElement(MapXNode xmap) throws SchemaException {
+	public Element serializeSingleElementMapToElement(MapXNode map) throws SchemaException {
+		MapXNodeImpl xmap = (MapXNodeImpl) map;
 		if (xmap == null || xmap.isEmpty()) {
 			return null;
 		}
-		Entry<QName, XNode> subEntry = xmap.getSingleSubEntry(xmap.toString());
+		Entry<QName, XNodeImpl> subEntry = xmap.getSingleSubEntry(xmap.toString());
 		Element parent = serializeToElement(xmap, subEntry.getKey());
 		return DOMUtil.getFirstChildElement(parent);
 	}

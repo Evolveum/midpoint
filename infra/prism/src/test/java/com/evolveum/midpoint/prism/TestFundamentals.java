@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.MapXNodeImpl;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -82,7 +82,7 @@ public class TestFundamentals {
 		System.out.println("\n\n===[ testRawTypeClone ]===\n");
 		// GIVEN
 		QName typeQName = new QName("abcdef");
-		MapXNode mapXNode = new MapXNode();
+		MapXNodeImpl mapXNode = new MapXNodeImpl();
 		mapXNode.setTypeQName(typeQName);
 		RawType rawType = new RawType(mapXNode, PrismTestUtil.getPrismContext());
 

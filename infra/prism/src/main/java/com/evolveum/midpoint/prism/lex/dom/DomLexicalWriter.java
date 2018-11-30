@@ -18,12 +18,12 @@ package com.evolveum.midpoint.prism.lex.dom;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
-import com.evolveum.midpoint.prism.xnode.ListXNode;
-import com.evolveum.midpoint.prism.xnode.MapXNode;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
-import com.evolveum.midpoint.prism.xnode.RootXNode;
-import com.evolveum.midpoint.prism.xnode.SchemaXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.prism.xnode.ListXNodeImpl;
+import com.evolveum.midpoint.prism.xnode.MapXNodeImpl;
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNodeImpl;
+import com.evolveum.midpoint.prism.xnode.RootXNodeImpl;
+import com.evolveum.midpoint.prism.xnode.SchemaXNodeImpl;
+import com.evolveum.midpoint.prism.xnode.XNodeImpl;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -82,12 +82,12 @@ public class DomLexicalWriter {
     }
 
     @NotNull
-	public Element serialize(@NotNull RootXNode rootxnode) throws SchemaException {
+	public Element serialize(@NotNull RootXNodeImpl rootxnode) throws SchemaException {
 		initialize();
         return serializeInternal(rootxnode, null);
     }
 
-	public Element serialize(@NotNull List<RootXNode> roots, @Nullable QName aggregateElementName) throws SchemaException {
+	public Element serialize(@NotNull List<RootXNodeImpl> roots, @Nullable QName aggregateElementName) throws SchemaException {
 		initialize();
 		if (aggregateElementName == null) {
 			aggregateElementName = schemaRegistry.getPrismContext().getObjectsElementName();
@@ -96,7 +96,7 @@ public class DomLexicalWriter {
 			}
 		}
 		Element aggregateElement = createElement(aggregateElementName, null);
-		for (RootXNode root : roots) {
+		for (RootXNodeImpl root : roots) {
 			serializeInternal(root, aggregateElement);
 		}
 		return aggregateElement;
@@ -104,18 +104,18 @@ public class DomLexicalWriter {
 
 	// this one is used only from within JaxbDomHack.toAny(..) - hopefully it will disappear soon
     @Deprecated
-    public Element serialize(RootXNode rootxnode, Document document) throws SchemaException {
+    public Element serialize(RootXNodeImpl rootxnode, Document document) throws SchemaException {
         initializeWithExistingDocument(document);
         return serializeInternal(rootxnode, null);
     }
 
-    public Element serializeUnderElement(RootXNode rootxnode, Element parentElement) throws SchemaException {
+    public Element serializeUnderElement(RootXNodeImpl rootxnode, Element parentElement) throws SchemaException {
     	initializeWithExistingDocument(parentElement.getOwnerDocument());
     	return serializeInternal(rootxnode, parentElement);
     }
 
     @NotNull
-    private Element serializeInternal(@NotNull RootXNode rootxnode, Element parentElement) throws SchemaException {
+    private Element serializeInternal(@NotNull RootXNodeImpl rootxnode, Element parentElement) throws SchemaException {
 		QName rootElementName = rootxnode.getRootElementName();
 		Element topElement = createElement(rootElementName, parentElement);
 		if (parentElement != null) {
@@ -125,19 +125,19 @@ public class DomLexicalWriter {
 		if (typeQName != null && rootxnode.isExplicitTypeDeclaration()) {
             DOMUtil.setXsiType(topElement, setQNamePrefixExplicitIfNeeded(typeQName));
 		}
-		XNode subnode = rootxnode.getSubnode();
-		if (subnode instanceof PrimitiveXNode){
-			serializePrimitiveElementOrAttribute((PrimitiveXNode) subnode, topElement, rootElementName, false);
+		XNodeImpl subnode = rootxnode.getSubnode();
+		if (subnode instanceof PrimitiveXNodeImpl){
+			serializePrimitiveElementOrAttribute((PrimitiveXNodeImpl) subnode, topElement, rootElementName, false);
 			return DOMUtil.getFirstChildElement(topElement);
 		}
-		if (subnode instanceof MapXNode) {
+		if (subnode instanceof MapXNodeImpl) {
 			// at this point we can put frequently used namespaces (e.g. c, t, q, ri) into the document to eliminate their use
 			// on many places inside the doc (MID-2198)
 			DOMUtil.setNamespaceDeclarations(topElement, getNamespacePrefixMapper().getNamespacesDeclaredByDefault());
-			serializeMap((MapXNode) subnode, topElement);
+			serializeMap((MapXNodeImpl) subnode, topElement);
 		} else if (subnode.isHeterogeneousList()) {
 			DOMUtil.setNamespaceDeclarations(topElement, getNamespacePrefixMapper().getNamespacesDeclaredByDefault());
-			serializeExplicitList((ListXNode) subnode, topElement);
+			serializeExplicitList((ListXNodeImpl) subnode, topElement);
 		} else {
 			throw new SchemaException("Sub-root xnode is not a map nor an explicit list, cannot serialize to XML (it is "+subnode+")");
 		}
@@ -163,65 +163,65 @@ public class DomLexicalWriter {
 		DOMUtil.setNamespaceDeclaration(top, "", namespaces.iterator().next());
 	}
 
-	Element serializeToElement(MapXNode xmap, QName elementName) throws SchemaException {
+	Element serializeToElement(MapXNodeImpl xmap, QName elementName) throws SchemaException {
 		initialize();
 		Element element = createElement(elementName, null);
 		serializeMap(xmap, element);
 		return element;
 	}
 
-	private void serializeMap(MapXNode xmap, Element topElement) throws SchemaException {
-		for (Entry<QName,XNode> entry: xmap.entrySet()) {
+	private void serializeMap(MapXNodeImpl xmap, Element topElement) throws SchemaException {
+		for (Entry<QName, XNodeImpl> entry: xmap.entrySet()) {
 			QName elementQName = entry.getKey();
-			XNode xsubnode = entry.getValue();
+			XNodeImpl xsubnode = entry.getValue();
 			serializeSubnode(xsubnode, topElement, elementQName);
 		}
 	}
 
-	private void serializeSubnode(XNode xsubnode, Element parentElement, QName elementName) throws SchemaException {
+	private void serializeSubnode(XNodeImpl xsubnode, Element parentElement, QName elementName) throws SchemaException {
 		if (xsubnode == null) {
 			return;
 		}
-        if (xsubnode instanceof RootXNode) {
+        if (xsubnode instanceof RootXNodeImpl) {
             Element element = createElement(elementName, parentElement);
             appendCommentIfPresent(element, xsubnode);
             parentElement.appendChild(element);
-            serializeSubnode(((RootXNode) xsubnode).getSubnode(), element, ((RootXNode) xsubnode).getRootElementName());
-        } else if (xsubnode instanceof MapXNode) {
+            serializeSubnode(((RootXNodeImpl) xsubnode).getSubnode(), element, ((RootXNodeImpl) xsubnode).getRootElementName());
+        } else if (xsubnode instanceof MapXNodeImpl) {
 			Element element = createElement(elementName, parentElement);
             appendCommentIfPresent(element, xsubnode);
 			if (xsubnode.isExplicitTypeDeclaration() && xsubnode.getTypeQName() != null){
 				DOMUtil.setXsiType(element, setQNamePrefixExplicitIfNeeded(xsubnode.getTypeQName()));
 			}
 			parentElement.appendChild(element);
-			serializeMap((MapXNode)xsubnode, element);
-		} else if (xsubnode instanceof PrimitiveXNode<?>) {
-			PrimitiveXNode<?> xprim = (PrimitiveXNode<?>)xsubnode;
+			serializeMap((MapXNodeImpl)xsubnode, element);
+		} else if (xsubnode instanceof PrimitiveXNodeImpl<?>) {
+			PrimitiveXNodeImpl<?> xprim = (PrimitiveXNodeImpl<?>)xsubnode;
 			if (xprim.isAttribute()) {
                 serializePrimitiveElementOrAttribute(xprim, parentElement, elementName, true);
 			} else {
 				serializePrimitiveElementOrAttribute(xprim, parentElement, elementName, false);
 			}
-		} else if (xsubnode instanceof ListXNode) {
-			ListXNode xlist = (ListXNode)xsubnode;
+		} else if (xsubnode instanceof ListXNodeImpl) {
+			ListXNodeImpl xlist = (ListXNodeImpl)xsubnode;
 			if (xlist.isHeterogeneousList()) {
 				Element element = createElement(elementName, parentElement);
 				serializeExplicitList(xlist, element);
 				parentElement.appendChild(element);
 			} else {
-				for (XNode xsubsubnode : xlist) {
+				for (XNodeImpl xsubsubnode : xlist) {
 					serializeSubnode(xsubsubnode, parentElement, elementName);
 				}
 			}
-		} else if (xsubnode instanceof SchemaXNode) {
-			serializeSchema((SchemaXNode)xsubnode, parentElement);
+		} else if (xsubnode instanceof SchemaXNodeImpl) {
+			serializeSchema((SchemaXNodeImpl)xsubnode, parentElement);
 		} else {
 			throw new IllegalArgumentException("Unknown subnode "+xsubnode);
 		}
 	}
 
-	private void serializeExplicitList(ListXNode list, Element parent) throws SchemaException {
-		for (XNode node : list) {
+	private void serializeExplicitList(ListXNodeImpl list, Element parent) throws SchemaException {
+		for (XNodeImpl node : list) {
 			if (node.getElementName() == null) {
 				throw new SchemaException("In a list, there are both nodes with element names and nodes without them: " + list);
 			}
@@ -230,14 +230,14 @@ public class DomLexicalWriter {
 		DOMUtil.setAttributeValue(parent, DOMUtil.IS_LIST_ATTRIBUTE_NAME, "true");
 	}
 
-	Element serializeXPrimitiveToElement(PrimitiveXNode<?> xprim, QName elementName) throws SchemaException {
+	Element serializeXPrimitiveToElement(PrimitiveXNodeImpl<?> xprim, QName elementName) throws SchemaException {
 		initialize();
 		Element parent = DOMUtil.createElement(doc, new QName("fake","fake"));
 		serializePrimitiveElementOrAttribute(xprim, parent, elementName, false);
 		return DOMUtil.getFirstChildElement(parent);
 	}
 
-	private void serializePrimitiveElementOrAttribute(PrimitiveXNode<?> xprim, Element parentElement, QName elementOrAttributeName, boolean asAttribute) throws SchemaException {
+	private void serializePrimitiveElementOrAttribute(PrimitiveXNodeImpl<?> xprim, Element parentElement, QName elementOrAttributeName, boolean asAttribute) throws SchemaException {
 		QName typeQName = xprim.getTypeQName();
 
         // if typeQName is not explicitly specified, we try to determine it from parsed value
@@ -338,14 +338,14 @@ public class DomLexicalWriter {
         }
 	}
 
-    private void appendCommentIfPresent(Element element, XNode xnode) {
+    private void appendCommentIfPresent(Element element, XNodeImpl xnode) {
         String text = xnode.getComment();
         if (StringUtils.isNotEmpty(text)) {
             DOMUtil.createComment(element, text);
         }
     }
 
-    private void serializeSchema(SchemaXNode xschema, Element parentElement) {
+    private void serializeSchema(SchemaXNodeImpl xschema, Element parentElement) {
 		Element schemaElement = xschema.getSchemaElement();
 		if (schemaElement == null){
 			return;

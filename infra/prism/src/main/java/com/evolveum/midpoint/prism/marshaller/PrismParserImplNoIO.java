@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.prism.marshaller;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.xnode.RootXNode;
+import com.evolveum.midpoint.prism.xnode.RootXNodeImpl;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -159,7 +159,7 @@ public class PrismParserImplNoIO extends PrismParserImpl implements PrismParserN
 	}
 
 	@Override
-	public RootXNode parseToXNode() throws SchemaException {
+	public RootXNodeImpl parseToXNode() throws SchemaException {
 		try {
 			return doParseToXNode();
 		} catch (IOException e) {

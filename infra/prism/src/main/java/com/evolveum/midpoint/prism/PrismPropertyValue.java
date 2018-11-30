@@ -18,7 +18,7 @@ package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.prism.xnode.XNodeImpl;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
  */
 public interface PrismPropertyValue<T> extends DebugDumpable, Serializable, PrismValue {
 	
-	static <T> PrismPropertyValue<T> createRaw(XNode rawElement) {
+	static <T> PrismPropertyValue<T> createRaw(XNodeImpl rawElement) {
 		PrismPropertyValue<T> pval = new PrismPropertyValueImpl<T>();
 		pval.setRawElement(rawElement);
 		return pval;
@@ -54,9 +54,9 @@ public interface PrismPropertyValue<T> extends DebugDumpable, Serializable, Pris
 		return realValues;
     }
 
-    XNode getRawElement();
+    XNodeImpl getRawElement();
 
-	void setRawElement(XNode rawElement);
+	void setRawElement(XNodeImpl rawElement);
 
 	boolean isRaw();
 

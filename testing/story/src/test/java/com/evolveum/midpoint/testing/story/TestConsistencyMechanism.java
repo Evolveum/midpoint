@@ -60,7 +60,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -1982,7 +1981,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         
         ExpressionType expression = new ExpressionType();
         ObjectFactory of = new ObjectFactory();
-        RawType raw = new RawType(new PrimitiveXNode("uid=morgan,ou=users,dc=example,dc=com"), prismContext);       
+        RawType raw = new RawType(prismContext.xnodeFactory().primitive("uid=morgan,ou=users,dc=example,dc=com"), prismContext);
        
         JAXBElement val = of.createValue(raw);
         expression.getExpressionEvaluator().add(val);

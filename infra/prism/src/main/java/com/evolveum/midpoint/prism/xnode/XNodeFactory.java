@@ -17,14 +17,29 @@
 package com.evolveum.midpoint.prism.xnode;
 
 import javax.xml.namespace.QName;
+import java.util.Map;
 
 /**
- *
+ *  Temporary, experimental API. Clients should not try to produce XNode objects themselves.
  */
-public interface RootXNode extends XNode {
-	QName getRootElementName();
+public interface XNodeFactory {
 
-	XNode getSubnode();
+	RootXNode root(QName rootElementName, XNode subnode);
 
-	MapXNode toMapXNode();
+	<T> PrimitiveXNode<T> primitive();
+
+	<T> PrimitiveXNode<T> primitive(T value, QName typeName);
+
+	<T> PrimitiveXNode<T> primitive(T value);
+
+	<T> PrimitiveXNode<T> primitive(ValueParser<T> valueParser);
+
+	<T> PrimitiveXNode<T> primitive(ValueParser<T> valueParser, QName typeName, boolean explicitTypeDeclaration);
+
+	MapXNode map();
+
+	MapXNode map(Map<QName, XNode> source);
+
+	MapXNode map(QName key, XNode value);
+
 }

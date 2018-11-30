@@ -28,6 +28,8 @@ import com.evolveum.midpoint.prism.query.QueryConverter;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismMonitor;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
+import com.evolveum.midpoint.prism.xnode.RootXNodeImpl;
+import com.evolveum.midpoint.prism.xnode.XNodeFactory;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringNormalizerConfigurationType;
 import org.jetbrains.annotations.NotNull;
@@ -307,4 +309,6 @@ public interface PrismContext extends ProtectorCreator {
 	UniformItemPath path(Object... namesOrIdsOrSegments);
 
 	Miscellaneous misc();
+
+	XNodeFactory xnodeFactory();
 }

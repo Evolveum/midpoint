@@ -18,9 +18,9 @@ package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.xnode.ListXNode;
-import com.evolveum.midpoint.prism.xnode.RootXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.prism.xnode.ListXNodeImpl;
+import com.evolveum.midpoint.prism.xnode.RootXNodeImpl;
+import com.evolveum.midpoint.prism.xnode.XNodeImpl;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -177,12 +177,12 @@ public interface PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismProper
 
 	String toHumanReadableString();
 
-	static <T> PrismProperty<T> createRaw(@NotNull XNode node, @NotNull QName itemName, PrismContext prismContext)
+	static <T> PrismProperty<T> createRaw(@NotNull XNodeImpl node, @NotNull QName itemName, PrismContext prismContext)
 			throws SchemaException {
-		Validate.isTrue(!(node instanceof RootXNode));
+		Validate.isTrue(!(node instanceof RootXNodeImpl));
 		PrismProperty<T> property = new PrismPropertyImpl<T>(itemName, prismContext);
-		if (node instanceof ListXNode) {
-			for (XNode subnode : (ListXNode) node) {
+		if (node instanceof ListXNodeImpl) {
+			for (XNodeImpl subnode : (ListXNodeImpl) node) {
 				property.add(PrismPropertyValue.createRaw(subnode));
 			}
 		} else {

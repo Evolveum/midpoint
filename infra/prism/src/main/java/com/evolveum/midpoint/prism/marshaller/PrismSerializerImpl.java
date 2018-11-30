@@ -18,7 +18,8 @@ package com.evolveum.midpoint.prism.marshaller;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.prism.xnode.RootXNodeImpl;
+import com.evolveum.midpoint.prism.xnode.XNodeImpl;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -86,7 +87,7 @@ public class PrismSerializerImpl<T> implements PrismSerializer<T> {
 	@NotNull
 	@Override
 	public T serialize(@NotNull Item<?, ?> item) throws SchemaException {
-		RootXNode xroot = getMarshaller().marshalItemAsRoot(item, itemName, itemDefinition, context);
+		RootXNodeImpl xroot = getMarshaller().marshalItemAsRoot(item, itemName, itemDefinition, context);
 		checkPostconditions(xroot);			// TODO find better way
 		return target.write(xroot, context);
 	}
@@ -113,7 +114,7 @@ public class PrismSerializerImpl<T> implements PrismSerializer<T> {
 //			// TODO derive from the value type itself? Not worth the effort.
 //			throw new IllegalArgumentException("Item name nor definition is not known for " + value);
 //		}
-		RootXNode xroot = getMarshaller().marshalPrismValueAsRoot(value, nameToUse, itemDefinition, context);
+		RootXNodeImpl xroot = getMarshaller().marshalPrismValueAsRoot(value, nameToUse, itemDefinition, context);
 		checkPostconditions(xroot);				// TODO find better way
 		return target.write(xroot, context);
 	}
@@ -127,16 +128,16 @@ public class PrismSerializerImpl<T> implements PrismSerializer<T> {
 	@NotNull
 	@Override
 	public T serialize(@NotNull RootXNode xnode) throws SchemaException {
-		return target.write(xnode, context);
+		return target.write((RootXNodeImpl) xnode, context);
 	}
 
 	@NotNull
 	@Override
 	public T serializeObjects(@NotNull List<PrismObject<?>> objects, @Nullable QName aggregateElementName) throws SchemaException {
-		List<RootXNode> roots = new ArrayList<>();
+		List<RootXNodeImpl> roots = new ArrayList<>();
 		for (PrismObject<?> object : objects) {
 			// itemName and itemDefinition might be set only if they apply to all the objects
-			RootXNode xroot = getMarshaller().marshalItemAsRoot(object, itemName, itemDefinition, context);
+			RootXNodeImpl xroot = getMarshaller().marshalItemAsRoot(object, itemName, itemDefinition, context);
 			checkPostconditions(xroot);			// TODO find better way
 			roots.add(xroot);
 		}
@@ -168,7 +169,7 @@ public class PrismSerializerImpl<T> implements PrismSerializer<T> {
 
 	@Override
 	public T serializeAnyData(Object value) throws SchemaException {
-		RootXNode xnode = getMarshaller().marshalAnyData(value, itemName, itemDefinition, context);
+		RootXNodeImpl xnode = getMarshaller().marshalAnyData(value, itemName, itemDefinition, context);
 		checkPostconditions(xnode);				// TODO find better way
 		return target.write(xnode, context);
 	}
@@ -183,7 +184,7 @@ public class PrismSerializerImpl<T> implements PrismSerializer<T> {
 		return target.prismContext.getPrismMarshaller();
 	}
 
-	private void checkPostconditions(RootXNode root) {
+	private void checkPostconditions(RootXNodeImpl root) {
 		if (itemName != null && !(root.getRootElementName().equals(itemName))) {
 			throw new IllegalStateException("Postcondition fail: marshaled root name (" + root.getRootElementName() +
 				" is different from preset one (" + itemName + ")");
@@ -193,10 +194,10 @@ public class PrismSerializerImpl<T> implements PrismSerializer<T> {
 		}
 	}
 
-	private void checkTypeResolvable(RootXNode root) {
+	private void checkTypeResolvable(RootXNodeImpl root) {
 		root.accept(n -> {
 			QName type;
-			if (n instanceof XNode && (type = ((XNode) n).getTypeQName()) != null && ((XNode) n).isExplicitTypeDeclaration()) {
+			if (n instanceof XNodeImpl && (type = ((XNodeImpl) n).getTypeQName()) != null && ((XNodeImpl) n).isExplicitTypeDeclaration()) {
 				if (prismContext.getSchemaRegistry().determineClassForType(type) == null) {
 					// it could be sufficient to find a TD
 					if (prismContext.getSchemaRegistry().findTypeDefinitionByType(type) == null) {

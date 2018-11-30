@@ -18,7 +18,7 @@ package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.lex.dom.DomLexicalProcessor;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNodeImpl;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.testng.annotations.BeforeSuite;
@@ -56,8 +56,8 @@ public class TestXmlSerialization {
 
         // WHEN
 
-        PrimitiveXNode<String> valOkNode = new PrimitiveXNode<>("abcdef");
-        PrimitiveXNode<String> valWrongNode = new PrimitiveXNode<>("abc\1def");
+        PrimitiveXNodeImpl<String> valOkNode = new PrimitiveXNodeImpl<>("abcdef");
+        PrimitiveXNodeImpl<String> valWrongNode = new PrimitiveXNodeImpl<>("abc\1def");
 
         // THEN
 

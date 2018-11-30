@@ -16,8 +16,8 @@
 
 package com.evolveum.midpoint.prism.lex;
 
-import com.evolveum.midpoint.prism.xnode.RootXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.prism.xnode.RootXNodeImpl;
+import com.evolveum.midpoint.prism.xnode.XNodeImpl;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
@@ -28,11 +28,11 @@ import javax.xml.namespace.QName;
 public class LexicalUtils {
 
 	@NotNull
-	public static RootXNode createRootXNode(XNode xnode, QName rootElementName) {
-		if (xnode instanceof RootXNode) {
-			return (RootXNode) xnode;
+	public static RootXNodeImpl createRootXNode(XNodeImpl xnode, QName rootElementName) {
+		if (xnode instanceof RootXNodeImpl) {
+			return (RootXNodeImpl) xnode;
 		} else {
-			RootXNode xroot = new RootXNode(rootElementName);
+			RootXNodeImpl xroot = new RootXNodeImpl(rootElementName);
 			xroot.setSubnode(xnode);
 			return xroot;
 		}

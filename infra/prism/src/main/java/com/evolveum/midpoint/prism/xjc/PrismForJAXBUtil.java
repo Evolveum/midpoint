@@ -19,7 +19,7 @@ package com.evolveum.midpoint.prism.xjc;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.MapXNodeImpl;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -346,7 +346,7 @@ public final class PrismForJAXBUtil {
         }
     }
 
-    public static MapXNode getReferenceFilterClauseXNode(PrismReferenceValue rval) {
+    public static MapXNodeImpl getReferenceFilterClauseXNode(PrismReferenceValue rval) {
         SearchFilterType filter = rval.getFilter();
         if (filter == null || !filter.containsFilterClause()) {
             return null;

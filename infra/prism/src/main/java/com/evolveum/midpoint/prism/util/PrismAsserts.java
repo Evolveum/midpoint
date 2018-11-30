@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.path.*;
 
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.xnode.*;
 import com.evolveum.midpoint.util.QNameUtil;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
@@ -45,10 +46,6 @@ import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.prism.xnode.ListXNode;
-import com.evolveum.midpoint.prism.xnode.MapXNode;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -984,12 +981,12 @@ public class PrismAsserts {
 		assert expectedClass.isAssignableFrom(xsubnode.getClass()) : "Wrong class of subnode "+key+" in "+xmap+"; expected "+expectedClass+", got "+xsubnode.getClass();
 	}
 
-	public static void assertAllParsedNodes(XNode xnode) {
+	public static void assertAllParsedNodes(XNodeImpl xnode) {
 		Visitor visitor = new Visitor() {
 			@Override
 			public void visit(Visitable visitable) {
-				if ((visitable instanceof PrimitiveXNode<?>)) {
-					assert ((PrimitiveXNode<?>)visitable).isParsed() : "Xnode "+visitable+" is not parsed";
+				if ((visitable instanceof PrimitiveXNodeImpl<?>)) {
+					assert ((PrimitiveXNodeImpl<?>)visitable).isParsed() : "Xnode "+visitable+" is not parsed";
 				}
 			}
 		};
