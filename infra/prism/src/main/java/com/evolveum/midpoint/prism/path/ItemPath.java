@@ -701,6 +701,10 @@ public interface ItemPath extends ShortDumpable, Serializable {
 	default String serializeWithForcedDeclarations() {
 		return ItemPathHolder.serializeWithForcedDeclarations(this);
 	}
+
+	default String serializeWithoutDeclarations() {
+		return ItemPathHolder.serializeWithoutDeclarations(this);
+	}
 	//endregion
 
 	//region Diagnostics

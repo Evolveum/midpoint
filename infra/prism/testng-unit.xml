@@ -51,6 +51,7 @@
 			<class name="com.evolveum.midpoint.prism.query.TestObjectQuery"/>
 			<class name="com.evolveum.midpoint.prism.query.TestQueryConverters"/>
 			<class name="com.evolveum.midpoint.prism.query.TestQueryBuilder"/>
+			<class name="com.evolveum.midpoint.prism.path.ItemPathTest"/>
         </classes>
     </test>
 </suite>

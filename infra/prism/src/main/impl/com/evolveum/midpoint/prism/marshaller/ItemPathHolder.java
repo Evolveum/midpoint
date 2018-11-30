@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -216,6 +216,10 @@ public class ItemPathHolder {
 	//endregion
 
 	//region Serializing
+
+	public static String serializeWithoutDeclarations(@NotNull ItemPath itemPath) {
+		return new ItemPathHolder(UniformItemPathImpl.fromItemPath(itemPath)).getXPathWithoutDeclarations();
+	}
 
 	public static String serializeWithDeclarations(@NotNull ItemPath itemPath) {
 		return new ItemPathHolder(UniformItemPathImpl.fromItemPath(itemPath)).getXPathWithDeclarations();
@@ -537,21 +541,21 @@ public class ItemPathHolder {
 	//endregion
 
 	//region Methods for testing
-	static ItemPathHolder createForTesting(String xpath) {
+	public static ItemPathHolder createForTesting(String xpath) {
 		return new ItemPathHolder(xpath);
 	}
 
-	static ItemPathHolder createForTesting(String xpath, Map<String, String> namespaceMap) {
+	public static ItemPathHolder createForTesting(String xpath, Map<String, String> namespaceMap) {
 		ItemPathHolder rv = new ItemPathHolder();
 		rv.parse(xpath, null, namespaceMap);
 		return rv;
 	}
 
-	static ItemPathHolder createForTesting(Element element) {
+	public static ItemPathHolder createForTesting(Element element) {
 		return new ItemPathHolder(element);
 	}
 
-	static ItemPathHolder createForTesting(List<PathHolderSegment> segments) {
+	public static ItemPathHolder createForTesting(List<PathHolderSegment> segments) {
 		ItemPathHolder rv = new ItemPathHolder();
 		rv.segments = new ArrayList<>();
 		for (PathHolderSegment segment : segments) {
@@ -566,7 +570,7 @@ public class ItemPathHolder {
 		return rv;
 	}
 
-	static ItemPathHolder createForTesting(QName... segmentQNames) {
+	public static ItemPathHolder createForTesting(QName... segmentQNames) {
 		ItemPathHolder rv = new ItemPathHolder();
 		rv.segments = new ArrayList<>();
 		for (QName segmentQName : segmentQNames) {
@@ -577,7 +581,7 @@ public class ItemPathHolder {
 		return rv;
 	}
 
-	static ItemPathHolder createForTesting(UniformItemPath path) {
+	public static ItemPathHolder createForTesting(UniformItemPath path) {
 		return new ItemPathHolder(path);
 	}
 
