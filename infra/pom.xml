@@ -53,7 +53,6 @@
         <module>common</module>
         <module>test-util</module>
         <module>prism</module>
-        <!--<module>prism-api</module>-->
         <module>prism-maven-plugin</module>
 		<module>prism-api</module>
 	</modules>
