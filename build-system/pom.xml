@@ -1559,6 +1559,9 @@
 								<ignoredUnusedDeclaredDependency>org.springframework</ignoredUnusedDeclaredDependency>
                                 <ignoredUnusedDeclaredDependency>org.springframework.boot</ignoredUnusedDeclaredDependency>
 
+                                <!-- TEMPORARY -->
+                                <ignoredUnusedDeclaredDependency>com.evolveum.midpoint.infra:prism-api</ignoredUnusedDeclaredDependency>
+
 								<!-- Common "drill" for all modules. -->
 								<ignoredUnusedDeclaredDependency>com.evolveum.midpoint.tools:test-ng</ignoredUnusedDeclaredDependency>
 								<ignoredUnusedDeclaredDependency>org.testng:testng</ignoredUnusedDeclaredDependency>

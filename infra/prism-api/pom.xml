@@ -93,10 +93,10 @@
 		  <!--<groupId>commons-codec</groupId>-->
 		  <!--<artifactId>commons-codec</artifactId>-->
 		<!--</dependency>-->
-		<!--<dependency>-->
-		  <!--<groupId>commons-io</groupId>-->
-		  <!--<artifactId>commons-io</artifactId>-->
-		<!--</dependency>-->
+		<dependency>
+		  <groupId>commons-io</groupId>
+		  <artifactId>commons-io</artifactId>
+		</dependency>
 		<!--<dependency>-->
 		  <!--<groupId>com.sun.xml.bind</groupId>-->
 		  <!--<artifactId>jaxb-impl</artifactId>-->
