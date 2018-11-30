@@ -18,7 +18,6 @@ package com.evolveum.midpoint.prism.marshaller;
 
 import com.evolveum.midpoint.prism.ParsingContext;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNodeImpl;
 
 /**
  * Migrator that comes into play when content is parsed.

@@ -194,6 +194,27 @@
     </dependencies>
     <build>
         <plugins>
+			<!-- TEMPORARY solution to add src/main/impl as a secondary source -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>add-source</goal>
+						</goals>
+						<configuration>
+							<sources>
+								<source>src/main/impl</source>
+							</sources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+
+
         	<!-- Code generator may be used in Prism in the "pure" form without any prism-specific plugins.
         	 This creates the classes for basic (almost-primitive) data types such as PolyStringType. 
         	 But ... the JAXB-generated classes are not that useful. They may reflect the schema well, but
