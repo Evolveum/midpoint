@@ -121,6 +121,8 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
         setKeyStorePassword(builder.keyStorePassword);
         if (builder.encryptionKeyAlias != null) {
             setEncryptionKeyAlias(builder.encryptionKeyAlias);
+        } else {
+            // using the pre-initialized default one
         }
         setRequestedJceProviderName(builder.requestedJceProviderName);
         setEncryptionAlgorithm(builder.encryptionAlgorithm);
@@ -132,7 +134,8 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
      * @throws SystemException if jceks keystore is not available on {@link KeyStoreBasedProtectorImpl#getKeyStorePath}
      */
     public void init() {
-        InputStream stream = null;
+        validateConfiguration();
+        InputStream stream;
         try {
             // Test if use file or classpath resource
             File f = new File(getKeyStorePath());
@@ -268,14 +271,13 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
         return 32;
     }
 
-    /**
-     * @return the encryptionKeyAlias
-     * @throws IllegalStateException if encryption key digest is null or empty string
-     */
+    private void validateConfiguration() {
+        Validate.notEmpty(encryptionKeyAlias, "Encryption key alias must not be null or empty.");
+        Validate.notNull(keyStorePassword, "Keystore password must not be null.");
+        Validate.notEmpty(keyStorePath, "Key store path must not be null.");
+    }
+
     private String getEncryptionKeyAlias() {
-        if (StringUtils.isEmpty(encryptionKeyAlias)) {
-            throw new IllegalStateException("Encryption key alias was not defined (is null or empty).");
-        }
         return encryptionKeyAlias;
     }
 
@@ -445,40 +447,23 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
      * @throws IllegalArgumentException if encryption key digest is null or empty string
      */
     public void setEncryptionKeyAlias(String encryptionKeyAlias) {
-        Validate.notEmpty(encryptionKeyAlias, "Encryption key alias must not be null or empty.");
         this.encryptionKeyAlias = encryptionKeyAlias;
     }
 
-    /**
-     * @param keyStorePassword
-     * @throws IllegalArgumentException if keystore password is null string
-     */
     public void setKeyStorePassword(String keyStorePassword) {
-        Validate.notNull(keyStorePassword, "Keystore password must not be null.");
         this.keyStorePassword = keyStorePassword;
     }
 
     private String getKeyStorePassword() {
-        if (keyStorePassword == null) {
-            throw new IllegalStateException("Keystore password was not defined (null).");
-        }
         return keyStorePassword;
     }
 
-    /**
-     * @param keyStorePath
-     * @throws IllegalArgumentException if keystore path is null string
-     */
     public void setKeyStorePath(String keyStorePath) {
-        Validate.notEmpty(keyStorePath, "Key store path must not be null.");
         this.keyStorePath = keyStorePath;
     }
 
     @Override
     public String getKeyStorePath() {
-        if (StringUtils.isEmpty(keyStorePath)) {
-            throw new IllegalStateException("Keystore path was not defined (is null or empty).");
-        }
         return keyStorePath;
     }
 
@@ -588,14 +573,11 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
         if (a == b) {
             return true;
         }
-        if (a == null && b == null) {
-            return true;
-        }
         if (a == null || b == null) {
             return false;
         }
         if (a.isHashed() && b.isHashed()) {
-            throw new SchemaException("Cannot compare two hased protected strings");
+            throw new SchemaException("Cannot compare two hashed protected strings");
         }
 
         if (a.isHashed() || b.isHashed()) {

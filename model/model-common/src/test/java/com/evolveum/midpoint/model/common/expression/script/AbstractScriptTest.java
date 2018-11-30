@@ -97,7 +97,7 @@ public abstract class AbstractScriptTest {
     public void setupFactory() {
     	PrismContext prismContext = PrismTestUtil.getPrismContext();
     	ObjectResolver resolver = new DirectoryFileObjectResolver(OBJECTS_DIR);
-    	Protector protector = KeyStoreBasedProtectorBuilder.create(prismContext).initialize();
+    	Protector protector = KeyStoreBasedProtectorBuilder.create(prismContext).buildOnly();
     	Clock clock = new Clock();
         Collection<FunctionLibrary> functions = new ArrayList<>();
 		functions.add(FunctionLibraryUtil.createBasicFunctionLibrary(prismContext, protector, clock));

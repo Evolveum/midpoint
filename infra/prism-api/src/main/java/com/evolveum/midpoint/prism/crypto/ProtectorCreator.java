@@ -27,4 +27,9 @@ public interface ProtectorCreator {
 	 */
 	KeyStoreBasedProtector createInitializedProtector(KeyStoreBasedProtectorBuilder builder);
 
+	/**
+	 * Creates uninitialized KeyStoreBasedProtector according to configured KeyStoreBasedProtectorBuilder object.
+	 */
+	KeyStoreBasedProtector createProtector(KeyStoreBasedProtectorBuilder builder);
+
 }

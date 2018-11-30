@@ -569,4 +569,9 @@ public class PrismContextImpl implements PrismContext {
 		protector.init();
 		return protector;
 	}
+
+	@Override
+	public KeyStoreBasedProtector createProtector(KeyStoreBasedProtectorBuilder builder) {
+		return new KeyStoreBasedProtectorImpl(builder);
+	}
 }

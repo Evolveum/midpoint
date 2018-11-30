@@ -81,4 +81,11 @@ public final class KeyStoreBasedProtectorBuilder {
     public Protector initialize() {
         return protectorCreator.createInitializedProtector(this);
     }
+
+    /**
+     * Creates the protector without actually initializing it.
+     */
+    public Protector buildOnly() {
+        return protectorCreator.createProtector(this);
+    }
 }
