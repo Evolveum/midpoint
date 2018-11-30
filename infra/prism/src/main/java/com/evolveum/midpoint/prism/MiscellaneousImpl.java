@@ -16,9 +16,11 @@
 
 package com.evolveum.midpoint.prism;
 
+import com.evolveum.midpoint.prism.marshaller.XNodeProcessorUtil;
 import com.evolveum.midpoint.prism.xnode.*;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedDataType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -81,5 +83,10 @@ public class MiscellaneousImpl implements Miscellaneous {
 	@Override
 	public void putToMapXNode(MapXNode map, QName key, XNode value) {
 		((MapXNodeImpl) map).put(key, value);
+	}
+
+	@Override
+	public <T> void parseProtectedType(ProtectedDataType<T> protectedType, MapXNode xmap, PrismContext prismContext, ParsingContext pc) throws SchemaException {
+		XNodeProcessorUtil.parseProtectedType(protectedType, (MapXNodeImpl) xmap, prismContext, pc);
 	}
 }

@@ -77,7 +77,6 @@ import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.prism.marshaller.XNodeProcessorUtil;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -625,7 +624,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 			MapXNode xmap = (MapXNode) rawElement;
 			try{
 			ProtectedStringType protectedType = new ProtectedStringType();
-			XNodeProcessorUtil.parseProtectedType(protectedType, xmap, prismContext);
+			prismContext.misc().parseProtectedType(protectedType, xmap, prismContext, prismContext.getDefaultParsingContext());
 	//		display("LDAP credentials raw element", DOMUtil.serializeDOMToString(rawDomElement));
 //			assertEquals("Wrong credentials element namespace in "+resource+" from "+source, connectorNamespace, rawDomElement.getNamespaceURI());
 //			assertEquals("Wrong credentials element local name in "+resource+" from "+source, credentialsPropertyName, rawDomElement.getLocalName());

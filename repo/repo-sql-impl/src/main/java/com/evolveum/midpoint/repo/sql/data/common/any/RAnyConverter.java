@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.marshaller.PrismBeanInspector;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
@@ -37,9 +36,11 @@ import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
+import javax.xml.bind.annotation.XmlEnumValue;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -193,7 +194,18 @@ public class RAnyConverter {
     }
 
     private static String getEnumStringValue(Enum<?> realValue) {
-        return PrismBeanInspector.findEnumFieldValueUncached(realValue.getClass(), realValue.toString());
+        return findEnumFieldValueUncached(realValue.getClass(), realValue.toString());
+    }
+
+    // copied from PrismBeanInspector (maybe reconcile somehow later)
+    private static String findEnumFieldValueUncached(Class classType, String toStringValue){
+        for (Field field: classType.getDeclaredFields()) {
+            XmlEnumValue xmlEnumValue = field.getAnnotation(XmlEnumValue.class);
+            if (xmlEnumValue != null && field.getName().equals(toStringValue)) {
+                return xmlEnumValue.value();
+            }
+        }
+        return null;
     }
 
     private static boolean isIndexed(ItemDefinition definition, QName elementName,

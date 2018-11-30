@@ -37,22 +37,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 public class XNodeProcessorUtil {
 
-//    @Deprecated     // too slow - moved to PrismBeanInspector where it is cached
-//	public static <T> String findEnumFieldValue(Class classType, Object bean){
-//        String name = bean.toString();
-//        for (Field field: classType.getDeclaredFields()) {
-//            XmlEnumValue xmlEnumValue = field.getAnnotation(XmlEnumValue.class);
-//            if (xmlEnumValue != null && field.getName().equals(name)) {
-//                return xmlEnumValue.value();
-//            }
-//        }
-//        return null;
-//    }
-
-	public static <T> void parseProtectedType(ProtectedDataType<T> protectedType, MapXNode xmap, PrismContext prismContext) throws SchemaException {
-		parseProtectedType(protectedType, (MapXNodeImpl) xmap, prismContext, prismContext.getDefaultParsingContext());
-	}
-
 	public static <T> void parseProtectedType(ProtectedDataType<T> protectedType, MapXNodeImpl xmap, PrismContext prismContext, ParsingContext pc) throws SchemaException {
 		RootXNodeImpl xEncryptedData = xmap.getEntryAsRoot(ProtectedDataType.F_ENCRYPTED_DATA);
         if (xEncryptedData != null) {
@@ -120,8 +104,6 @@ public class XNodeProcessorUtil {
 		if (protector == null) {
 			return;
 		}
-//		AESProtector protector = new AESProtector();
-//		protector.init();
         try {
         	protector.decrypt(protectedType);
         	Object clearValue = protectedType.getClearValue();

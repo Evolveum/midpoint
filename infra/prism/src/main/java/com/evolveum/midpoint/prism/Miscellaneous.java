@@ -21,7 +21,7 @@ import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedDataType;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
@@ -45,4 +45,6 @@ public interface Miscellaneous {
 	<T> void setPrimitiveXNodeValue(PrimitiveXNode<T> node, T value, QName typeName);
 
 	void putToMapXNode(MapXNode map, QName key, XNode value);
+
+	<T> void parseProtectedType(ProtectedDataType<T> protectedType, MapXNode xmap, PrismContext prismContext, ParsingContext pc) throws SchemaException;
 }

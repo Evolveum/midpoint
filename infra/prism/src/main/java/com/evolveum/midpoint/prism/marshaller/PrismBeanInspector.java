@@ -471,7 +471,7 @@ public class PrismBeanInspector {
         return null;
     }
 
-    public static String findEnumFieldValueUncached(Class classType, String toStringValue){
+    private static String findEnumFieldValueUncached(Class classType, String toStringValue){
         for (Field field: classType.getDeclaredFields()) {
             XmlEnumValue xmlEnumValue = field.getAnnotation(XmlEnumValue.class);
             if (xmlEnumValue != null && field.getName().equals(toStringValue)) {
