@@ -3702,6 +3702,8 @@
         </xsd:complexContent>
     </xsd:complexType>
     <!-- No element definition for AssignmentHolderType, because it is abstract. -->
+	<!-- [med] but we need this to find PCD for AssignmentHolderType see MID-5010 -->
+	<xsd:element name="assignmentHolder" type="tns:AssignmentHolderType"/>
 
 	<xsd:complexType name="FocusType" abstract="true">
         <xsd:annotation>
@@ -3978,7 +3980,9 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <!-- No element definition for FocusType, because it is abstract. -->
+    <!-- No element definition for FocusType, because it is abstract.
+    	 [med] OK but later :) We need this to be able to find PCD for FocusType ... see MID-5010 -->
+	<xsd:element name="focus" type="tns:FocusType"/>
 	    
     <xsd:complexType name="UserType">
         <xsd:annotation>

@@ -2501,7 +2501,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 //    }
 
     @Test
-    public void test0530queryUserSubstringName() throws Exception {
+    public void test0530queryObjectSubstringName() throws Exception {
         Session session = open();
 
         try {
@@ -2525,16 +2525,16 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  o.name.orig like :orig\n";
             assertEqualsIgnoreWhitespace(expected, real);
 
-            OperationResult result = new OperationResult("test530queryUserSubstringName");
+            OperationResult result = new OperationResult("test0540queryObjectClassTypeUser");
             int count = repositoryService.countObjects(ObjectType.class, objectQuery, null, result);
-            assertEquals(2, count);
+            assertEquals(3, count);
 
             objectQuery = QueryBuilder.queryFor(ObjectType.class, prismContext)
                     .item(F_NAME).containsPoly("a").matchingOrig()
                     .build();
             objectQuery.setUseNewQueryInterpreter(true);
             count = repositoryService.countObjects(ObjectType.class, objectQuery, null, result);
-            assertEquals(21, count);
+            assertEquals(22, count);
 
         } finally {
             close(session);
