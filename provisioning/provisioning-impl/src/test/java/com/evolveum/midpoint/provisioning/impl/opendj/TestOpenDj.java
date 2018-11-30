@@ -35,7 +35,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.*;
 
 import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -56,19 +56,9 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.match.DistinguishedNameMatchingRule;
-import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
-import com.evolveum.midpoint.prism.match.UuidMatchingRule;
-import com.evolveum.midpoint.prism.match.XmlMatchingRule;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -402,7 +392,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertTrue("No UID read", idPrimaryDef.canRead());
 		assertTrue("UID definition not in identifiers", accountDef.getPrimaryIdentifiers().contains(idPrimaryDef));
 		assertEquals("Wrong "+OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", ProvisioningTestUtil.CONNID_UID_NAME, idPrimaryDef.getFrameworkAttributeName());
-		assertEquals("Wrong primary identifier matching rule", UuidMatchingRule.NAME, idPrimaryDef.getMatchingRuleQName());
+		assertEquals("Wrong primary identifier matching rule", PrismConstants.UUID_MATCHING_RULE_NAME, idPrimaryDef.getMatchingRuleQName());
 
 
 		ResourceAttributeDefinition<String> idSecondaryDef = accountDef.findAttributeDefinition(getSecondaryIdentifierQName());
@@ -413,7 +403,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertTrue("No NAME read", idSecondaryDef.canRead());
 		assertTrue("NAME definition not in secondary identifiers", accountDef.getSecondaryIdentifiers().contains(idSecondaryDef));
 		assertEquals("Wrong "+OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", ProvisioningTestUtil.CONNID_NAME_NAME, idSecondaryDef.getFrameworkAttributeName());
-		assertEquals("Wrong secondary identifier matching rule", DistinguishedNameMatchingRule.NAME, idSecondaryDef.getMatchingRuleQName());
+		assertEquals("Wrong secondary identifier matching rule", PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME, idSecondaryDef.getMatchingRuleQName());
 
 		ResourceAttributeDefinition<String> cnDef = accountDef.findAttributeDefinition("cn");
 		assertNotNull("No definition for cn", cnDef);
@@ -422,7 +412,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertTrue("No cn create", cnDef.canAdd());
 		assertTrue("No cn update", cnDef.canModify());
 		assertTrue("No cn read", cnDef.canRead());
-		assertEquals("Wrong cn matching rule", StringIgnoreCaseMatchingRule.NAME, cnDef.getMatchingRuleQName());
+		assertEquals("Wrong cn matching rule", PrismConstants.STRING_IGNORE_CASE_MATCHING_RULE_NAME, cnDef.getMatchingRuleQName());
 
 		ResourceAttributeDefinition<byte[]> jpegPhoto = accountDef.findAttributeDefinition("jpegPhoto");
 		assertNotNull("No definition for jpegPhoto", jpegPhoto);
@@ -450,7 +440,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertFalse("isMemberOf create", memberOfDef.canAdd());
 		assertFalse("isMemberOf update", memberOfDef.canModify());
 		assertTrue("No isMemberOf read", memberOfDef.canRead());
-		assertEquals("Wrong isMemberOf matching rule", DistinguishedNameMatchingRule.NAME, memberOfDef.getMatchingRuleQName());
+		assertEquals("Wrong isMemberOf matching rule", PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME, memberOfDef.getMatchingRuleQName());
 
 		ResourceAttributeDefinition<String> labeledUriDef = accountDef.findAttributeDefinition("labeledURI");
 		assertNotNull("No definition for labeledUri", labeledUriDef);
@@ -468,7 +458,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertTrue("No secretary create", secretaryDef.canAdd());
 		assertTrue("No secretary update", secretaryDef.canModify());
 		assertTrue("No secretary read", secretaryDef.canRead());
-		assertEquals("Wrong secretary matching rule", DistinguishedNameMatchingRule.NAME, secretaryDef.getMatchingRuleQName());
+		assertEquals("Wrong secretary matching rule", PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME, secretaryDef.getMatchingRuleQName());
 
 		ResourceAttributeDefinition<String> createTimestampDef = accountDef.findAttributeDefinition("createTimestamp");
 		assertNotNull("No definition for createTimestamp", createTimestampDef);
@@ -589,7 +579,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertTrue("No NAME update", idSecondaryDef.canModify());
 		assertTrue("No NAME read", idSecondaryDef.canRead());
 		assertTrue("NAME definition not in identifiers", accountDef.getSecondaryIdentifiers().contains(idSecondaryDef));
-		assertEquals("Wrong NAME matching rule", DistinguishedNameMatchingRule.NAME, idSecondaryDef.getMatchingRuleQName());
+		assertEquals("Wrong NAME matching rule", PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME, idSecondaryDef.getMatchingRuleQName());
 		assertEquals("Wrong "+OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", ProvisioningTestUtil.CONNID_NAME_NAME, idSecondaryDef.getFrameworkAttributeName());
 
 		RefinedAttributeDefinition<String> cnDef = accountDef.findAttributeDefinition("cn");
@@ -607,7 +597,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertFalse("isMemberOf create", memberOfDef.canAdd());
 		assertFalse("isMemberOf update", memberOfDef.canModify());
 		assertTrue("No isMemberOf read", memberOfDef.canRead());
-		assertEquals("Wrong isMemberOf matching rule", DistinguishedNameMatchingRule.NAME, memberOfDef.getMatchingRuleQName());
+		assertEquals("Wrong isMemberOf matching rule", PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME, memberOfDef.getMatchingRuleQName());
 
 		ResourceAttributeDefinition<String> secretaryDef = accountDef.findAttributeDefinition("secretary");
 		assertNotNull("No definition for secretary", secretaryDef);
@@ -616,7 +606,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertTrue("No secretary create", secretaryDef.canAdd());
 		assertTrue("No secretary update", secretaryDef.canModify());
 		assertTrue("No secretary read", secretaryDef.canRead());
-		assertEquals("Wrong secretary matching rule", XmlMatchingRule.NAME, secretaryDef.getMatchingRuleQName());
+		assertEquals("Wrong secretary matching rule", PrismConstants.XML_MATCHING_RULE_NAME, secretaryDef.getMatchingRuleQName());
 
 		RefinedAttributeDefinition<String> dsDef = accountDef.findAttributeDefinition("ds-pwp-account-disabled");
 		assertNotNull("No definition for cn", dsDef);

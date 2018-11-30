@@ -30,14 +30,12 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  */
 public class PolyStringNormMatchingRule implements MatchingRule<PolyString> {
 
-	public static final QName NAME = new QName(PrismConstants.NS_MATCHING_RULE, "polyStringNorm");
-
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.prism.match.MatchingRule#getName()
 	 */
 	@Override
 	public QName getName() {
-		return NAME;
+		return PrismConstants.POLY_STRING_NORM_MATCHING_RULE_NAME;
 	}
 
 	/* (non-Javadoc)

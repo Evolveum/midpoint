@@ -27,6 +27,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -36,7 +37,6 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -162,7 +162,7 @@ public class TestMachineIntelligence extends AbstractStoryTest {
         //assert created organization
 		SearchResultList<PrismObject<OrgType>> orgs = modelService.searchObjects(
 				OrgType.class, QueryBuilder.queryFor(OrgType.class, prismContext).item(OrgType.F_NAME)
-						.eq("Universe").matching(PolyStringNormMatchingRule.NAME).build(),
+						.eq("Universe").matching(PrismConstants.POLY_STRING_NORM_MATCHING_RULE_NAME).build(),
 				null, task, result);
         assertEquals("Found unexpected number of organizations, expected 1, found " + orgs.size(), 1, orgs.size());
 
@@ -196,7 +196,7 @@ public class TestMachineIntelligence extends AbstractStoryTest {
 		SearchResultList<PrismObject<OrgType>> orgs = modelService
 				.searchObjects(
 						OrgType.class, QueryBuilder.queryFor(OrgType.class, prismContext).item(OrgType.F_NAME)
-								.eq("Earth").matching(PolyStringNormMatchingRule.NAME).build(),
+								.eq("Earth").matching(PrismConstants.POLY_STRING_NORM_MATCHING_RULE_NAME).build(),
 						null, task, result);
         assertEquals("Found unexpected number of organizations, expected 1, found " + orgs.size(), 1, orgs.size());
 

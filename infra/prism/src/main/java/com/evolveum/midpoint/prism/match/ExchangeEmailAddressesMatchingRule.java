@@ -31,11 +31,9 @@ import java.util.regex.Pattern;
  */
 public class ExchangeEmailAddressesMatchingRule implements MatchingRule<String> {
 
-	public static final QName NAME = new QName(PrismConstants.NS_MATCHING_RULE, "exchangeEmailAddresses");
-
 	@Override
 	public QName getName() {
-		return NAME;
+		return PrismConstants.EXCHANGE_EMAIL_ADDRESSES_MATCHING_RULE_NAME;
 	}
 
 	@Override

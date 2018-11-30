@@ -45,8 +45,6 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
-import com.evolveum.midpoint.prism.match.DefaultMatchingRule;
-import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -641,7 +639,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException {
 		return getObjectsInConflictOnPropertyValue(objectType, propertyPathString, propertyValue,
-				DefaultMatchingRule.NAME.getLocalPart(), getAllConflicting);
+				PrismConstants.DEFAULT_MATCHING_RULE_NAME.getLocalPart(), getAllConflicting);
 	}
 
 	public <O extends ObjectType, T> List<O> getObjectsInConflictOnPropertyValue(O objectType, String propertyPathString,
@@ -667,9 +665,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 				.findPropertyDefinition(propertyPath);
 		if (matchingRule == null) {
 			if (propertyDefinition != null && PolyStringType.COMPLEX_TYPE.equals(propertyDefinition.getTypeName())) {
-				matchingRule = PolyStringOrigMatchingRule.NAME;
+				matchingRule = PrismConstants.POLY_STRING_ORIG_MATCHING_RULE_NAME;
 			} else {
-				matchingRule = DefaultMatchingRule.NAME;
+				matchingRule = PrismConstants.DEFAULT_MATCHING_RULE_NAME;
 			}
 		}
 		ObjectQuery query = QueryBuilder.queryFor(objectType.getClass(), prismContext)

@@ -35,11 +35,9 @@ import com.evolveum.midpoint.util.DOMUtil;
  */
 public class UuidMatchingRule implements MatchingRule<String> {
 
-	public static final QName NAME = new QName(PrismConstants.NS_MATCHING_RULE, "uuid");
-
 	@Override
 	public QName getName() {
-		return NAME;
+		return PrismConstants.UUID_MATCHING_RULE_NAME;
 	}
 
 	@Override

@@ -36,11 +36,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 public class DistinguishedNameMatchingRule implements MatchingRule<String> {
 
-	public static final QName NAME = new QName(PrismConstants.NS_MATCHING_RULE, "distinguishedName");
-
 	@Override
 	public QName getName() {
-		return NAME;
+		return PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME;
 	}
 
 	@Override

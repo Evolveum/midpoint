@@ -30,14 +30,12 @@ import com.evolveum.midpoint.prism.PrismConstants;
  */
 public class DefaultMatchingRule<T> implements MatchingRule<T> {
 
-	public static final QName NAME = new QName(PrismConstants.NS_MATCHING_RULE, "default");
-
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.model.match.MatchingRule#getUrl()
 	 */
 	@Override
 	public QName getName() {
-		return NAME;
+		return PrismConstants.DEFAULT_MATCHING_RULE_NAME;
 	}
 
 	/* (non-Javadoc)

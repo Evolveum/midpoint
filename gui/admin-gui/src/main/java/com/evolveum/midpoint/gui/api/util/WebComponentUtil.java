@@ -112,15 +112,6 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.match.DefaultMatchingRule;
-import com.evolveum.midpoint.prism.match.DistinguishedNameMatchingRule;
-import com.evolveum.midpoint.prism.match.ExchangeEmailAddressesMatchingRule;
-import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
-import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
-import com.evolveum.midpoint.prism.match.PolyStringStrictMatchingRule;
-import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
-import com.evolveum.midpoint.prism.match.UuidMatchingRule;
-import com.evolveum.midpoint.prism.match.XmlMatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -2059,15 +2050,15 @@ public final class WebComponentUtil {
 	public static List<QName> getMatchingRuleList() {
 		List<QName> list = new ArrayList<>();
 
-		list.add(DefaultMatchingRule.NAME);
-		list.add(StringIgnoreCaseMatchingRule.NAME);
-		list.add(PolyStringStrictMatchingRule.NAME);
-		list.add(PolyStringOrigMatchingRule.NAME);
-		list.add(PolyStringNormMatchingRule.NAME);
-		list.add(DistinguishedNameMatchingRule.NAME);
-		list.add(ExchangeEmailAddressesMatchingRule.NAME);
-		list.add(UuidMatchingRule.NAME);
-		list.add(XmlMatchingRule.NAME);
+		list.add(PrismConstants.DEFAULT_MATCHING_RULE_NAME);
+		list.add(PrismConstants.STRING_IGNORE_CASE_MATCHING_RULE_NAME);
+		list.add(PrismConstants.POLY_STRING_STRICT_MATCHING_RULE_NAME);
+		list.add(PrismConstants.POLY_STRING_ORIG_MATCHING_RULE_NAME);
+		list.add(PrismConstants.POLY_STRING_NORM_MATCHING_RULE_NAME);
+		list.add(PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME);
+		list.add(PrismConstants.EXCHANGE_EMAIL_ADDRESSES_MATCHING_RULE_NAME);
+		list.add(PrismConstants.UUID_MATCHING_RULE_NAME);
+		list.add(PrismConstants.XML_MATCHING_RULE_NAME);
 
 		return list;
 	}

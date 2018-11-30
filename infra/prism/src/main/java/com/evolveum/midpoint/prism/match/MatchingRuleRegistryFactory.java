@@ -25,7 +25,7 @@ public class MatchingRuleRegistryFactory {
 
 	public static MatchingRuleRegistry createRegistry() {
 
-		MatchingRuleRegistry registry = new MatchingRuleRegistry();
+		MatchingRuleRegistryImpl registry = new MatchingRuleRegistryImpl();
 		registry.registerMatchingRule(new StringIgnoreCaseMatchingRule());
 		registry.registerMatchingRule(new PolyStringStrictMatchingRule());
 		registry.registerMatchingRule(new PolyStringOrigMatchingRule());

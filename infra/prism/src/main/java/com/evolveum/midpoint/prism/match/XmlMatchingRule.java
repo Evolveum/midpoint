@@ -39,11 +39,9 @@ public class XmlMatchingRule implements MatchingRule<String> {
 
 	public static final Trace LOGGER = TraceManager.getTrace(XmlMatchingRule.class);
 
-	public static final QName NAME = new QName(PrismConstants.NS_MATCHING_RULE, "xml");
-
 	@Override
 	public QName getName() {
-		return NAME;
+		return PrismConstants.XML_MATCHING_RULE_NAME;
 	}
 
 	@Override

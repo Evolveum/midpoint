@@ -27,6 +27,7 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -85,24 +86,10 @@ import org.identityconnectors.framework.impl.api.local.operations.ConnectorOpera
 import org.identityconnectors.framework.spi.Connector;
 import org.identityconnectors.framework.spi.PoolableConnector;
 
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.match.DistinguishedNameMatchingRule;
-import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
-import com.evolveum.midpoint.prism.match.UuidMatchingRule;
-import com.evolveum.midpoint.prism.match.XmlMatchingRule;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
@@ -370,16 +357,16 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			return null;
 		}
 		if (AttributeInfo.Subtypes.STRING_CASE_IGNORE.toString().equals(icfSubtype)) {
-			return StringIgnoreCaseMatchingRule.NAME;
+			return PrismConstants.STRING_IGNORE_CASE_MATCHING_RULE_NAME;
 		}
 		if (AttributeInfo.Subtypes.STRING_LDAP_DN.toString().equals(icfSubtype)) {
-			return DistinguishedNameMatchingRule.NAME;
+			return PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME;
 		}
 		if (AttributeInfo.Subtypes.STRING_XML.toString().equals(icfSubtype)) {
-			return XmlMatchingRule.NAME;
+			return PrismConstants.XML_MATCHING_RULE_NAME;
 		}
 		if (AttributeInfo.Subtypes.STRING_UUID.toString().equals(icfSubtype)) {
-			return UuidMatchingRule.NAME;
+			return PrismConstants.UUID_MATCHING_RULE_NAME;
 		}
 		LOGGER.debug("Unknown subtype {} defined for attribute {}, ignoring (no matching rule definition)", icfSubtype, attributeInfo.getName());
 		return null;

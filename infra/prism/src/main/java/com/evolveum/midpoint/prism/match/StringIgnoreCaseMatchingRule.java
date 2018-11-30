@@ -33,11 +33,9 @@ import com.evolveum.midpoint.util.DOMUtil;
  */
 public class StringIgnoreCaseMatchingRule implements MatchingRule<String> {
 
-	public static final QName NAME = new QName(PrismConstants.NS_MATCHING_RULE, "stringIgnoreCase");
-
 	@Override
 	public QName getName() {
-		return NAME;
+		return PrismConstants.STRING_IGNORE_CASE_MATCHING_RULE_NAME;
 	}
 
 	@Override

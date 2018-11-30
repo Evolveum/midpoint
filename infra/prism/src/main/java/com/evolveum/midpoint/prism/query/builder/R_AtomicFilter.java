@@ -17,10 +17,6 @@
 package com.evolveum.midpoint.prism.query.builder;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
-import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
-import com.evolveum.midpoint.prism.match.PolyStringStrictMatchingRule;
-import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
 import com.evolveum.midpoint.prism.path.UniformItemPathImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -297,22 +293,22 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
 
     @Override
     public S_AtomicFilterExit matchingOrig() {
-        return matching(PolyStringOrigMatchingRule.NAME);
+        return matching(PrismConstants.POLY_STRING_ORIG_MATCHING_RULE_NAME);
     }
 
     @Override
     public S_AtomicFilterExit matchingNorm() {
-        return matching(PolyStringNormMatchingRule.NAME);
+        return matching(PrismConstants.POLY_STRING_NORM_MATCHING_RULE_NAME);
     }
 
     @Override
     public S_AtomicFilterExit matchingStrict() {
-        return matching(PolyStringStrictMatchingRule.NAME);
+        return matching(PrismConstants.POLY_STRING_STRICT_MATCHING_RULE_NAME);
     }
 
     @Override
     public S_AtomicFilterExit matchingCaseIgnore() {
-        return matching(StringIgnoreCaseMatchingRule.NAME);
+        return matching(PrismConstants.STRING_IGNORE_CASE_MATCHING_RULE_NAME);
     }
 
     // ==============================================================

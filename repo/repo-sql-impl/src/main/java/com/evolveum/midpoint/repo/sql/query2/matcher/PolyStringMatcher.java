@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.query2.matcher;
 
-import com.evolveum.midpoint.prism.match.*;
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
@@ -38,20 +38,20 @@ import java.util.Map;
 public class PolyStringMatcher extends Matcher<PolyString> {
 
     //todo will be changed to QNames later (after query api update)
-    public static final String STRICT = PolyStringStrictMatchingRule.NAME.getLocalPart();
-    public static final String ORIG = PolyStringOrigMatchingRule.NAME.getLocalPart();
-    public static final String NORM = PolyStringNormMatchingRule.NAME.getLocalPart();
-    public static final String DEFAULT = DefaultMatchingRule.NAME.getLocalPart();
+    public static final String STRICT = PrismConstants.POLY_STRING_STRICT_MATCHING_RULE_NAME.getLocalPart();
+    public static final String ORIG = PrismConstants.POLY_STRING_ORIG_MATCHING_RULE_NAME.getLocalPart();
+    public static final String NORM = PrismConstants.POLY_STRING_NORM_MATCHING_RULE_NAME.getLocalPart();
+    public static final String DEFAULT = PrismConstants.DEFAULT_MATCHING_RULE_NAME.getLocalPart();
 
     public static final String STRICT_IGNORE_CASE = "strictIgnoreCase";
     public static final String ORIG_IGNORE_CASE = "origIgnoreCase";
     public static final String NORM_IGNORE_CASE = "normIgnoreCase";
 
 	private static final List<QName> SUPPORTED_MATCHING_RULES = Arrays
-			.asList(DefaultMatchingRule.NAME,
-					PolyStringStrictMatchingRule.NAME,
-					PolyStringOrigMatchingRule.NAME,
-					PolyStringNormMatchingRule.NAME,
+			.asList(PrismConstants.DEFAULT_MATCHING_RULE_NAME,
+					PrismConstants.POLY_STRING_STRICT_MATCHING_RULE_NAME,
+					PrismConstants.POLY_STRING_ORIG_MATCHING_RULE_NAME,
+					PrismConstants.POLY_STRING_NORM_MATCHING_RULE_NAME,
 					new QName(STRICT_IGNORE_CASE),
 					new QName(ORIG_IGNORE_CASE),
 					new QName(NORM_IGNORE_CASE));

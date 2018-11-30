@@ -77,7 +77,6 @@ import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
 import com.evolveum.midpoint.prism.marshaller.XNodeProcessorUtil;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -1284,7 +1283,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         ObjectQuery q = ObjectQueryUtil.createResourceAndObjectClassQuery(resourceTypeOpenDjrepo.getOid(), objectClass, prismContext);
 
         final Collection<ObjectType> objects = new HashSet<>();
-        final MatchingRule caseIgnoreMatchingRule = matchingRuleRegistry.getMatchingRule(StringIgnoreCaseMatchingRule.NAME, DOMUtil.XSD_STRING);
+        final MatchingRule caseIgnoreMatchingRule = matchingRuleRegistry.getMatchingRule(PrismConstants.STRING_IGNORE_CASE_MATCHING_RULE_NAME, DOMUtil.XSD_STRING);
         ResultHandler handler = new ResultHandler<ObjectType>() {
 
             @Override
@@ -4149,7 +4148,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 		String value = getAttributeValue(repoShadow, name);
 
 		RefinedAttributeDefinition idDef = objClassDef.getPrimaryIdentifiers().iterator().next();
-		if (idDef.getMatchingRuleQName() != null && idDef.getMatchingRuleQName().equals(StringIgnoreCaseMatchingRule.NAME)){
+		if (idDef.getMatchingRuleQName() != null && idDef.getMatchingRuleQName().equals(PrismConstants.STRING_IGNORE_CASE_MATCHING_RULE_NAME)){
 			return value.toLowerCase();
 		}
 

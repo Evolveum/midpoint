@@ -47,6 +47,17 @@ public class PrismConstants {
 	public static final String PREFIX_NS_QUERY = "q";
 
 	public static final String NS_MATCHING_RULE = NS_PREFIX + "matching-rule-3";
+
+	public static final QName DEFAULT_MATCHING_RULE_NAME = new QName(NS_MATCHING_RULE, "default");
+	public static final QName POLY_STRING_ORIG_MATCHING_RULE_NAME = new QName(NS_MATCHING_RULE, "polyStringOrig");
+	public static final QName POLY_STRING_NORM_MATCHING_RULE_NAME = new QName(NS_MATCHING_RULE, "polyStringNorm");
+	public static final QName POLY_STRING_STRICT_MATCHING_RULE_NAME = new QName(NS_MATCHING_RULE, "polyStringStrict");
+	public static final QName STRING_IGNORE_CASE_MATCHING_RULE_NAME = new QName(NS_MATCHING_RULE, "stringIgnoreCase");
+	public static final QName UUID_MATCHING_RULE_NAME = new QName(NS_MATCHING_RULE, "uuid");
+	public static final QName XML_MATCHING_RULE_NAME = new QName(NS_MATCHING_RULE, "xml");
+	public static final QName EXCHANGE_EMAIL_ADDRESSES_MATCHING_RULE_NAME = new QName(NS_MATCHING_RULE, "exchangeEmailAddresses");
+	public static final QName DISTINGUISHED_NAME_MATCHING_RULE_NAME = new QName(NS_MATCHING_RULE, "distinguishedName");
+
 	public static final String PREFIX_NS_MATCHING = "mr";
 
 	public static final String NS_PREFIX_CRYPTO = NS_PREFIX + "crypto/";
