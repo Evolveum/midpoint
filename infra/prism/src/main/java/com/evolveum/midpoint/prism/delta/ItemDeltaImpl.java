@@ -79,7 +79,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 
 	protected ItemDeltaImpl(ItemPath itemPath, QName elementName, D itemDefinition, PrismContext prismContext) {
         //checkPrismContext(prismContext, itemDefinition);
-		this.parentPath = itemPath.toUniform(prismContext);
+		this.parentPath = prismContext.toUniformPath(itemPath);
 		checkNoSpecialSymbols(parentPath);
         this.prismContext = prismContext;
 		this.elementName = ItemName.fromQName(elementName);

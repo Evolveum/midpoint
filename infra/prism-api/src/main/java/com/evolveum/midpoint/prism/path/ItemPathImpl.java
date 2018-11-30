@@ -16,10 +16,8 @@
 
 package com.evolveum.midpoint.prism.path;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import org.jetbrains.annotations.NotNull;
 
-import javax.xml.namespace.QName;
 import java.util.*;
 
 /**
@@ -93,12 +91,6 @@ public class ItemPathImpl implements ItemPath {
 	@Override
 	public List<?> getSegments() {
 		return segments;
-	}
-
-	@NotNull
-	@Override
-	public UniformItemPath toUniform(PrismContext prismContext) {
-		return prismContext.path(segments);
 	}
 
 	@Override

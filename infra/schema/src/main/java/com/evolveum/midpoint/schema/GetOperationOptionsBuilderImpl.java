@@ -66,7 +66,7 @@ public class GetOperationOptionsBuilderImpl implements GetOperationOptionsBuilde
 
 	@Override
 	public GetOperationOptionsBuilder item(ItemPath path) {
-		currentPaths = singleton(path.toUniform(prismContext));
+		currentPaths = singleton(prismContext.toUniformPath(path));
 		return this;
 	}
 
@@ -385,7 +385,7 @@ public class GetOperationOptionsBuilderImpl implements GetOperationOptionsBuilde
 		} else if (item instanceof UniformItemPath) {
 			return ((UniformItemPath) item);
 		} else if (item instanceof ItemPath) {
-			return ((ItemPath) item).toUniform(prismContext);
+			return prismContext.toUniformPath((ItemPath) item);
 		} else {
 			throw new IllegalArgumentException("item has to be QName or ItemPath but is " + item);
 		}

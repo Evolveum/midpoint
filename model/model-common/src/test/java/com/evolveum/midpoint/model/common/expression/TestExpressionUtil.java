@@ -18,7 +18,7 @@ package com.evolveum.midpoint.model.common.expression;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.marshaller.ItemPathParserTemp;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -245,6 +245,6 @@ public class TestExpressionUtil {
 				stringPath + "</path>";
 		Document doc = DOMUtil.parseDocument(xml);
 		Element element = DOMUtil.getFirstChildElement(doc);
-		return ItemPath.parseFromElement(element);
+		return ItemPathParserTemp.parseFromElement(element);
 	}
 }

@@ -336,7 +336,7 @@ public class PropertyDeltaImpl<T extends Object> extends ItemDeltaImpl<PrismProp
     public static <T> PropertyDelta<T> createModificationDeleteProperty(ItemPath propertyPath, PrismPropertyDefinition propertyDefinition,
     		T... propertyValues) {
 	    PrismContext prismContext = propertyDefinition.getPrismContext();
-	    PropertyDelta<T> propertyDelta = new PropertyDeltaImpl<T>(propertyPath.toUniform(prismContext), propertyDefinition, prismContext);             // hoping the prismContext is there
+	    PropertyDelta<T> propertyDelta = new PropertyDeltaImpl<T>(prismContext.toUniformPath(propertyPath), propertyDefinition, prismContext);             // hoping the prismContext is there
     	Collection<PrismPropertyValue<T>> pValues = new ArrayList<>(propertyValues.length);
     	for (T val: propertyValues) {
     		pValues.add(new PrismPropertyValueImpl<>(val));

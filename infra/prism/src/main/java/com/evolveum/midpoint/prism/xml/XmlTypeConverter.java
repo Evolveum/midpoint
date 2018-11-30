@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.prism.xml;
 
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.marshaller.ItemPathSerializerTemp;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -262,6 +263,7 @@ public class XmlTypeConverter {
         }
     }
 
+    // TODO move to DOM/XML serializer
 	public static String toXmlTextContent(Object val, QName elementName) {
         if (val == null) {
             // if no value is specified, do not create element
@@ -315,7 +317,7 @@ public class XmlTypeConverter {
         } else if (Duration.class.isAssignableFrom(type)) {
         	return ((Duration) val).toString();
         } else if (type.equals(UniformItemPath.class) || type.equals(ItemPath.class)) {
-        	return ((ItemPath) val).serializeWithDeclarations();
+        	return ItemPathSerializerTemp.serializeWithDeclarations((ItemPath) val);
         } else {
             throw new IllegalArgumentException("Unknown type for conversion: " + type + "(element " + elementName + ")");
         }

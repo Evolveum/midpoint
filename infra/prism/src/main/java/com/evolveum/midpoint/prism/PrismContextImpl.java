@@ -574,4 +574,9 @@ public class PrismContextImpl implements PrismContext {
 	public KeyStoreBasedProtector createProtector(KeyStoreBasedProtectorBuilder builder) {
 		return new KeyStoreBasedProtectorImpl(builder);
 	}
+
+	@Override
+	public UniformItemPath toUniformPath(ItemPath path) {
+		return UniformItemPathImpl.fromItemPath(path);
+	}
 }

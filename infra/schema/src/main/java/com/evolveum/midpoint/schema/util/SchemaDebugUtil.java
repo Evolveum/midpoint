@@ -532,7 +532,7 @@ public class SchemaDebugUtil {
 		sb.append(change.getModificationType());
 		sb.append(",");
 		if (change.getPath() != null) {
-			sb.append(change.getPath().getItemPath().serializeWithDeclarations());
+			sb.append(change.getPath().getItemPath());      // todo ... with declarations?
 		} else {
 			sb.append("xpath=null");
 		}

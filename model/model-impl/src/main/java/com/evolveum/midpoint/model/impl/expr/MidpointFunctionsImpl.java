@@ -45,6 +45,7 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
+import com.evolveum.midpoint.prism.marshaller.ItemPathParserTemp;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -621,7 +622,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			SecurityViolationException, ExpressionEvaluationException {
 		Validate.notEmpty(propertyPathString, "Empty property path");
 		OperationResult result = getCurrentResult(MidpointFunctions.class.getName() + ".isUniquePropertyValue");
-		UniformItemPath propertyPath = ItemPath.parseFromString(propertyPathString);
+		UniformItemPath propertyPath = ItemPathParserTemp.parseFromString(propertyPathString);
 		return isUniquePropertyValue(objectType, propertyPath, propertyValue, getCurrentTask(), result);
 	}
 
@@ -648,7 +649,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			SecurityViolationException, ExpressionEvaluationException {
 		Validate.notEmpty(propertyPathString, "Empty property path");
 		OperationResult result = getCurrentResult(MidpointFunctions.class.getName() + ".getObjectsInConflictOnPropertyValue");
-		UniformItemPath propertyPath = ItemPath.parseFromString(propertyPathString);
+		UniformItemPath propertyPath = ItemPathParserTemp.parseFromString(propertyPathString);
 		QName matchingRuleQName = new QName(matchingRuleName);      // no namespace for now
 		return getObjectsInConflictOnPropertyValue(objectType, propertyPath, propertyValue, matchingRuleQName, getAllConflicting,
 				getCurrentTask(), result);

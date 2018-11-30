@@ -80,7 +80,7 @@ public interface ItemDelta<V extends PrismValue,D extends ItemDefinition> extend
             if (itemDefinition != null) {
 				itemDelta.applyDefinition(itemDefinition);
 			} else if (!tolerateNoDefinition) {
-				throw new SchemaException("Object type " + definition.getTypeName() + " doesn't contain definition for path " + path.serializeWithDeclarations());
+				throw new SchemaException("Object type " + definition.getTypeName() + " doesn't contain definition for path " + path);
 			}
 		}
 	}

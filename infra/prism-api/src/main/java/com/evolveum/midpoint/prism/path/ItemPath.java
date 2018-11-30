@@ -16,13 +16,10 @@
 
 package com.evolveum.midpoint.prism.path;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.marshaller.ItemPathHolder;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.ShortDumpable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
@@ -641,16 +638,6 @@ public interface ItemPath extends ShortDumpable, Serializable {
 		return startsWithVariable() ? rest() : this;
 	}
 
-	/**
-	 * Converts an ItemPath to a UniformItemPath.
-	 */
-	@NotNull
-	UniformItemPath toUniform(PrismContext prismContext);
-
-	@Nullable
-	static UniformItemPath toUniform(ItemPath path, PrismContext prismContext) {
-		return path != null ? path.toUniform(prismContext) : null;
-	}
 	//endregion
 
 	//region Finding in path
@@ -686,25 +673,6 @@ public interface ItemPath extends ShortDumpable, Serializable {
 		return ItemPathComparatorUtil.segmentsEquivalent(segment1, segment2);
 	}
 
-	static UniformItemPath parseFromString(String string) {
-		return ItemPathHolder.parseFromString(string);
-	}
-
-	static UniformItemPath parseFromElement(Element element) {
-		return ItemPathHolder.parseFromElement(element);
-	}
-
-	default String serializeWithDeclarations() {
-		return ItemPathHolder.serializeWithDeclarations(this);
-	}
-
-	default String serializeWithForcedDeclarations() {
-		return ItemPathHolder.serializeWithForcedDeclarations(this);
-	}
-
-	default String serializeWithoutDeclarations() {
-		return ItemPathHolder.serializeWithoutDeclarations(this);
-	}
 	//endregion
 
 	//region Diagnostics

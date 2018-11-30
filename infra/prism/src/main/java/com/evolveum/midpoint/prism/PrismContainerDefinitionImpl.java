@@ -163,7 +163,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 	}
 
     public <ID extends ItemDefinition> ID findItemDefinition(@NotNull ItemPath itemPath, @NotNull Class<ID> clazz) {
-    	UniformItemPath path = itemPath.toUniform(getPrismContext());
+    	UniformItemPath path = prismContext.toUniformPath(itemPath);
         for (;;) {
             if (path.isEmpty()) {
                 if (clazz.isAssignableFrom(PrismContainerDefinition.class)) {

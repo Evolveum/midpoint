@@ -311,4 +311,9 @@ public interface PrismContext extends ProtectorCreator {
 	Miscellaneous misc();
 
 	XNodeFactory xnodeFactory();
+
+	/**
+	 * Temporary
+	 */
+	UniformItemPath toUniformPath(ItemPath path);
 }

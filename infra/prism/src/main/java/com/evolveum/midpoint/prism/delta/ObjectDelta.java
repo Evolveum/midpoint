@@ -305,7 +305,7 @@ public class ObjectDelta<O extends Objectable> implements DebugDumpable, Visitab
 
     public <IV extends PrismValue,ID extends ItemDefinition, I extends Item<IV,ID>,DD extends ItemDelta<IV,ID>>
     		DD findItemDelta(ItemPath itemPath, Class<DD> deltaType, Class<I> itemType, boolean strict) {
-		UniformItemPath propertyPath = itemPath.toUniform(prismContext);
+		UniformItemPath propertyPath = prismContext.toUniformPath(itemPath);
         if (changeType == ChangeType.ADD) {
             I item = objectToAdd.findItem(propertyPath, itemType);
             if (item == null) {
@@ -358,7 +358,7 @@ public class ObjectDelta<O extends Objectable> implements DebugDumpable, Visitab
             Item item = objectToAdd.findItem(propertyPath, Item.class);
             return item != null;
         } else if (changeType == ChangeType.MODIFY) {
-            ItemDelta modification = findModification(propertyPath.toUniform(prismContext), ItemDelta.class, false);
+            ItemDelta modification = findModification(prismContext.toUniformPath(propertyPath), ItemDelta.class, false);
             return modification != null;
         } else {
             return false;
@@ -401,7 +401,7 @@ public class ObjectDelta<O extends Objectable> implements DebugDumpable, Visitab
     private <D extends ItemDelta, I extends Item> D createEmptyDelta(ItemPath itemPath, ItemDefinition itemDef,
     		Class<D> deltaType, Class<I> itemType) {
 
-		UniformItemPath propertyPath = itemPath.toUniform(prismContext);
+		UniformItemPath propertyPath = prismContext.toUniformPath(itemPath);
 
     	if (PrismProperty.class.isAssignableFrom(itemType)) {
     		return (D) new PropertyDeltaImpl<>(propertyPath, (PrismPropertyDefinition)itemDef, prismContext);

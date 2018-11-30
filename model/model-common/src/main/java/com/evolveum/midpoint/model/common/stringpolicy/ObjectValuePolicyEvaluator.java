@@ -266,7 +266,7 @@ public class ObjectValuePolicyEvaluator {
 			return;
 		}
 
-		UniformItemPath complexValueItemPath = valueItemPath.toUniform(prismContext);
+		UniformItemPath complexValueItemPath = prismContext.toUniformPath(valueItemPath);
 		
 		if (!complexValueItemPath.startsWithName(UserType.F_CREDENTIALS)) {
 			return;

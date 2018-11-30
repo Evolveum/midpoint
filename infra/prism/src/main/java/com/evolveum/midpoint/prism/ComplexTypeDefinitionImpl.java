@@ -207,7 +207,7 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 
 	@Override
 	public <ID extends ItemDefinition> ID findItemDefinition(@NotNull ItemPath itemPath, @NotNull Class<ID> clazz) {
-		UniformItemPath path = itemPath.toUniform(prismContext);
+		UniformItemPath path = prismContext.toUniformPath(itemPath);
 		for (;;) {
 			if (path.isEmpty()) {
 				throw new IllegalArgumentException("Cannot resolve empty path on complex type definition "+this);

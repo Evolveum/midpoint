@@ -972,7 +972,7 @@ public class AssignmentProcessor {
 			Collection<MappingImpl<V,D>> focusMappings = (Collection)ea.getFocusMappings();
 			for (MappingImpl<V,D> mapping: focusMappings) {
 
-				UniformItemPath itemPath = ItemPath.toUniform(mapping.getOutputPath(), prismContext);
+				UniformItemPath itemPath = mapping.getOutputPath() != null ? prismContext.toUniformPath(mapping.getOutputPath()) : null;        // todo really null->null ?
 				DeltaSetTriple<ItemValueWithOrigin<V,D>> outputTriple = ItemValueWithOrigin.createOutputTriple(mapping);
 				if (outputTriple == null) {
 					continue;

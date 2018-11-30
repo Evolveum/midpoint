@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.prism.path;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.DebugUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -81,12 +80,6 @@ public class ItemName extends QName implements ItemPath {
 		} else {
 			throw new IndexOutOfBoundsException("Index: " + i + ", while accessing single-item path");
 		}
-	}
-
-	@NotNull
-	@Override
-	public UniformItemPath toUniform(PrismContext prismContext) {
-		return prismContext.path(this);
 	}
 
 	@Override

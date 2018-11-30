@@ -672,7 +672,7 @@ public class ObjectTemplateProcessor {
 			if (outputPath == null) {
                 continue;
             }
-			UniformItemPath complexPath = outputPath.toUniform(prismContext);
+			UniformItemPath complexPath = prismContext.toUniformPath(outputPath);
 			DeltaSetTriple<ItemValueWithOrigin<V,D>> outputTriple = ItemValueWithOrigin.createOutputTriple(mapping);
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Output triple for {}:\n{}", mapping, DebugUtil.debugDump(outputTriple));

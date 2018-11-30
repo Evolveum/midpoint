@@ -2,6 +2,7 @@ package com.evolveum.midpoint.prism.lex.json;
 
 import java.io.IOException;
 
+import com.evolveum.midpoint.prism.marshaller.ItemPathSerializerTemp;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
@@ -12,8 +13,7 @@ public class ItemPathSerializer extends JsonSerializer<UniformItemPath> {
 
 	@Override
 	public void serialize(UniformItemPath value, JsonGenerator jgen, SerializerProvider provider) throws IOException {
-		jgen.writeObject(value.serializeWithForcedDeclarations());
-
+		jgen.writeObject(ItemPathSerializerTemp.serializeWithForcedDeclarations(value));
 	}
 
 	@Override

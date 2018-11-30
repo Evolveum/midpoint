@@ -412,12 +412,6 @@ public class UniformItemPathImpl implements UniformItemPath {
 		return new ItemPathType(this);
 	}
 
-	@NotNull
-	@Override
-	public UniformItemPath toUniform(PrismContext prismContext) {
-		return this;
-	}
-
 	@Override
 	public ItemName lastName() {
 		NameItemPathSegment lastNamed = lastNamed();

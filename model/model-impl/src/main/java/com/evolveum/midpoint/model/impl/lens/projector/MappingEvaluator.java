@@ -250,7 +250,7 @@ public class MappingEvaluator {
 				continue;
 			}
 
-			UniformItemPath mappingOutputPath = ItemPath.toUniform(mapping.getOutputPath(), prismContext);
+			UniformItemPath mappingOutputPath = mapping.getOutputPath() != null ? prismContext.toUniformPath(mapping.getOutputPath()) : null;
 			if (params.isFixTarget() && mappingOutputPath != null && defaultTargetItemPath != null && !mappingOutputPath.equivalent(defaultTargetItemPath)) {
 				throw new ExpressionEvaluationException("Target cannot be overridden in "+mappingDesc);
 			}
@@ -315,7 +315,7 @@ public class MappingEvaluator {
 					continue;
 				}
 
-				UniformItemPath mappingOutputPath = ItemPath.toUniform(mapping.getOutputPath(), prismContext);
+				UniformItemPath mappingOutputPath = mapping.getOutputPath() != null ? prismContext.toUniformPath(mapping.getOutputPath()) : null;
 				if (params.isFixTarget() && mappingOutputPath != null && defaultTargetItemPath != null && !mappingOutputPath.equivalent(defaultTargetItemPath)) {
 					throw new ExpressionEvaluationException("Target cannot be overridden in "+mappingDesc);
 				}

@@ -2,7 +2,7 @@ package com.evolveum.midpoint.prism.lex.json;
 
 import java.io.IOException;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.marshaller.ItemPathParserTemp;
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -23,7 +23,7 @@ public class ItemPathTypeDeserializer extends JsonDeserializer<ItemPathType>{
 		if (StringUtils.isBlank(path)){
 			throw new IllegalStateException("Error while deserializing path. No path specified.");
 		}
-		return new ItemPathType(ItemPath.parseFromString(path));
+		return new ItemPathType(ItemPathParserTemp.parseFromString(path));
 	}
 
 }

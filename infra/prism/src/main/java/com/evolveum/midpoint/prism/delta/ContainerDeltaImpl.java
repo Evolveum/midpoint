@@ -137,7 +137,7 @@ public class ContainerDeltaImpl<V extends Containerable> extends ItemDeltaImpl<P
     	if (itemPath.isEmpty()) {
 			return this;
 		}
-		UniformItemPath path = itemPath.toUniform(getPrismContext());
+		UniformItemPath path = getPrismContext().toUniformPath(itemPath);
 		Long id = null;
     	if (path.startsWithId()) {
     		id = path.firstToIdOrNull();

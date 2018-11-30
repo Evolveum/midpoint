@@ -17,6 +17,7 @@
 package com.evolveum.prism.xml.ns._public.types_3;
 
 import com.evolveum.midpoint.prism.marshaller.ItemPathHolder;
+import com.evolveum.midpoint.prism.marshaller.ItemPathParserTemp;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.UniformItemPathImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -81,7 +82,7 @@ public class ItemPathType implements Serializable, Equals, Cloneable {
 	}
 
     public ItemPathType(String itemPath) {
-        this.itemPath = ItemPath.parseFromString(itemPath);
+        this.itemPath = ItemPathParserTemp.parseFromString(itemPath);
     }
 
     @NotNull

@@ -176,6 +176,6 @@ public class EntityRegistry {
             return null;
         }
 
-        return overrides.get(pathOverride.toUniform(prismContext));
+        return overrides.get(prismContext.toUniformPath(pathOverride));
     }
 }

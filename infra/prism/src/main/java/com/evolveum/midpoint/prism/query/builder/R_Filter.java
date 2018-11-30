@@ -362,7 +362,7 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
 
     @Override
     public S_ConditionEntry item(ItemPath itemPath) {
-        ItemDefinition itemDefinition = resolveItemPath(itemPath.toUniform(getPrismContext()), ItemDefinition.class);
+        ItemDefinition itemDefinition = resolveItemPath(getPrismContext().toUniformPath(itemPath), ItemDefinition.class);
         return item(itemPath, itemDefinition);
     }
 
@@ -375,7 +375,7 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
     @Override
     public S_ConditionEntry item(ItemPath itemPath, ItemDefinition itemDefinition) {
         if (itemDefinition != null) {
-            return R_AtomicFilter.create(itemPath.toUniform(getPrismContext()), itemDefinition, this);
+            return R_AtomicFilter.create(getPrismContext().toUniformPath(itemPath), itemDefinition, this);
         } else {
             return item(itemPath);
         }
