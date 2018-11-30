@@ -28,7 +28,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -460,7 +459,7 @@ public class NameStep extends WizardStep {
 					throw new SystemException("Resource being edited (" + oid + ") couldn't be retrieved");
 				}
 				ResourceType oldResource = oldResourceObject.asObjectable();
-				S_ItemEntry i = DeltaBuilder.deltaFor(ResourceType.class, prismContext);
+				S_ItemEntry i = prismContext.deltaFor(ResourceType.class);
 				if (!StringUtils.equals(PolyString.getOrig(oldResource.getName()), resourceNameModel.getObject())) {
 					i = i.item(ResourceType.F_NAME).replace(PolyString.fromOrig(resourceNameModel.getObject()));
 				}

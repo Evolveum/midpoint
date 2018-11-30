@@ -22,13 +22,9 @@ import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEval
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
@@ -865,7 +861,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 
 		LensContext<UserType> context = createContextForRoleAssignment(USER_JACK_OID, ROLE_R1_OID, null, null, result);
 		context.getFocusContext().swallowToPrimaryDelta(
-				DeltaBuilder.deltaFor(UserType.class, prismContext)
+				prismContext.deltaFor(UserType.class)
 						.item(UserType.F_NAME).replace(PolyString.fromOrig("jack1"))
 						.asItemDelta());
 

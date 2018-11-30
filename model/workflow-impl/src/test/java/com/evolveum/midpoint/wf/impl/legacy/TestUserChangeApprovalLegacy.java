@@ -20,7 +20,6 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -808,7 +807,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
                 LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 addFocusDeltaToContext(context,
-                        (ObjectDelta) DeltaBuilder.deltaFor(UserType.class, prismContext)
+                        (ObjectDelta) prismContext.deltaFor(UserType.class)
                                 .item(UserType.F_ASSIGNMENT).add(
                                         ObjectTypeUtil.createAssignmentTo(ROLE_R11_OID, ObjectTypes.ROLE, prismContext).asPrismContainerValue())
                             .asObjectDelta(USER_JACK_OID));
@@ -854,7 +853,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
                 LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 addFocusDeltaToContext(context,
-                        (ObjectDelta) DeltaBuilder.deltaFor(UserType.class, prismContext)
+                        (ObjectDelta) prismContext.deltaFor(UserType.class)
                                 .item(UserType.F_ASSIGNMENT).add(
                                         ObjectTypeUtil.createAssignmentTo(ROLE_R12_OID, ObjectTypes.ROLE, prismContext).asPrismContainerValue())
                                 .asObjectDelta(USER_JACK_OID));
@@ -898,7 +897,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
                 LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 addFocusDeltaToContext(context,
-                        (ObjectDelta) DeltaBuilder.deltaFor(UserType.class, prismContext)
+                        (ObjectDelta) prismContext.deltaFor(UserType.class)
                                 .item(UserType.F_ASSIGNMENT).add(
                                         ObjectTypeUtil.createAssignmentTo(ROLE_R13_OID, ObjectTypes.ROLE, prismContext).asPrismContainerValue())
                                 .asObjectDelta(USER_JACK_OID));

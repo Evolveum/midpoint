@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,24 +14,18 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.prism.delta.builder;
+package com.evolveum.midpoint.prism.marshaller;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
- * Grammar:
  *
- *  ObjectDelta ::= (ItemDelta)* ( 'OBJECT-DELTA(oid)' | 'ITEM-DELTA' | 'ITEM-DELTAS' )
- *
- *  ItemDelta ::= 'ITEM(...)' ( ( 'ADD-VALUES(...)' 'DELETE-VALUES(...)'? ) | 'DELETE-VALUES(...)' | 'REPLACE-VALUES(...)' )
- *
- * @author mederly
  */
-public interface DeltaBuilder extends S_ItemEntry, S_MaybeDelete, S_ValuesEntry {
+public interface JaxbDomHack {
 
-    static <C extends Containerable> S_ItemEntry deltaFor(Class<C> objectClass, PrismContext prismContext) throws SchemaException {
-        return new DeltaBuilderImpl<>(objectClass, prismContext);
-    }
+	<IV extends PrismValue,ID extends ItemDefinition,C extends Containerable> Item<IV,ID> parseRawElement(Object element,
+			PrismContainerDefinition<C> definition) throws SchemaException;
 
+	Object toAny(PrismValue value) throws SchemaException;
 }

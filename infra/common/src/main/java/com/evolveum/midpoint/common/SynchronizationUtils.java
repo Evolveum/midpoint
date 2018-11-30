@@ -30,7 +30,6 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.delta.builder.S_MaybeDelete;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -95,7 +94,7 @@ public class SynchronizationUtils {
 		syncSituationDescription.setTimestamp(timestamp);
 		syncSituationDescription.setFull(full);
 
-		S_MaybeDelete builder = DeltaBuilder.deltaFor(ShadowType.class, shadow.getPrismContext())
+		S_MaybeDelete builder = shadow.getPrismContext().deltaFor(ShadowType.class)
 			.item(ShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION).add(syncSituationDescription);
 		
 		

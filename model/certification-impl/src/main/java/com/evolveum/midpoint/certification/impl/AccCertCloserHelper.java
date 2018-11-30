@@ -23,7 +23,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -104,7 +103,7 @@ public class AccCertCloserHelper {
 		eventHelper.onCampaignEnd(updatedCampaign, task, result);
 
 		if (campaign.getDefinitionRef() != null) {
-			List<ItemDelta<?,?>> definitionDeltas = DeltaBuilder.deltaFor(AccessCertificationDefinitionType.class, prismContext)
+			List<ItemDelta<?,?>> definitionDeltas = prismContext.deltaFor(AccessCertificationDefinitionType.class)
 					.item(F_LAST_CAMPAIGN_CLOSED_TIMESTAMP).replace(now)
 					.asItemDeltas();
 			updateHelper.modifyObjectPreAuthorized(AccessCertificationDefinitionType.class, campaign.getDefinitionRef().getOid(), definitionDeltas, task, result);
@@ -145,7 +144,7 @@ public class AccCertCloserHelper {
 		for (AccessCertificationWorkItemType workItem : openWorkItems) {
 			AccessCertificationCaseType aCase = CertCampaignTypeUtil.getCaseChecked(workItem);
 			modifications.add(
-					DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+					prismContext.deltaFor(AccessCertificationCampaignType.class)
 							.item(F_CASE, aCase.getId(), F_WORK_ITEM, workItem.getId(), F_CLOSE_TIMESTAMP)
 							.replace(now)
 							.asItemDelta());
@@ -192,7 +191,7 @@ public class AccCertCloserHelper {
 			String newStageOutcomeUri = toUri(newStageOutcome);
 			String newOverallOutcomeUri = toUri(computationHelper.computeOverallOutcome(aCase, campaign, campaign.getStageNumber(), newStageOutcome));
 			List<ItemDelta<?, ?>> deltas = new ArrayList<>(
-					DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+					prismContext.deltaFor(AccessCertificationCampaignType.class)
 							.item(F_CASE, caseId, F_CURRENT_STAGE_OUTCOME).replace(newStageOutcomeUri)
 							.item(F_CASE, caseId, F_OUTCOME).replace(newOverallOutcomeUri)
 							.item(F_CASE, caseId, F_EVENT).add(
@@ -204,7 +203,7 @@ public class AccCertCloserHelper {
 							.asItemDeltas());
 			LOGGER.trace("Stage outcome = {}, overall outcome = {}", newStageOutcome, newOverallOutcomeUri);
 			if (outcomesToStopOn.contains(newStageOutcome)) {
-				deltas.add(DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+				deltas.add(prismContext.deltaFor(AccessCertificationCampaignType.class)
 						.item(F_CASE, caseId, F_REVIEW_FINISHED_TIMESTAMP).replace(now)
 						.asItemDelta());
 				LOGGER.debug("Marking case {} as review-finished because stage outcome = {}", caseId, newStageOutcome);
@@ -217,7 +216,7 @@ public class AccCertCloserHelper {
 		AccessCertificationStageType stage = CertCampaignTypeUtil.findStage(campaign, campaign.getStageNumber());
 		Long stageId = stage.asPrismContainerValue().getId();
 		assert stageId != null;
-		return DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+		return prismContext.deltaFor(AccessCertificationCampaignType.class)
 				.item(F_STAGE, stageId, F_END_TIMESTAMP).replace(now)
 				.asItemDelta();
 	}

@@ -27,7 +27,6 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.Nullable;
@@ -1876,7 +1875,7 @@ public class TestUnix extends AbstractStoryTest {
 			}
 		}
 		assertNotNull("No 'rangers' assignment for stan", rangersAssignmentId);
-		final List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(UserType.class, prismContext)
+		final List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT, rangersAssignmentId, AssignmentType.F_ACTIVATION,
 						ActivationType.F_ADMINISTRATIVE_STATUS)
 				.replace(ActivationStatusType.DISABLED)

@@ -23,7 +23,6 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -267,7 +266,7 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
         ResourceShadowDiscriminator shadowDiscriminator =
                 ResourceShadowDiscriminator.fromResourceShadowDiscriminatorType(addition.getResourceShadowDiscriminator());
         String projectionOid = modelContext.findProjectionContext(shadowDiscriminator).getOid();
-        ObjectDelta<ShadowType> objectDelta = DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+        ObjectDelta<ShadowType> objectDelta = prismContext.deltaFor(ShadowType.class)
                 .item(ShadowType.F_ASSOCIATION).add(addition.getAssociation().clone())
                 .asObjectDelta(projectionOid);
 

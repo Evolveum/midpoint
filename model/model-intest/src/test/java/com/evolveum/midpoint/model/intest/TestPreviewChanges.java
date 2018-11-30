@@ -21,7 +21,6 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -1984,7 +1983,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
 		assignRole(USER_GUYBRUSH_OID, ROLE_SAILOR_OID, SchemaConstants.ORG_OWNER, task, result);
 
-		ObjectDelta<UserType> empty = DeltaBuilder.deltaFor(UserType.class, prismContext).asObjectDeltaCast(USER_GUYBRUSH_OID);
+		ObjectDelta<UserType> empty = prismContext.deltaFor(UserType.class).asObjectDeltaCast(USER_GUYBRUSH_OID);
 
 		// WHEN
 		displayWhen(TEST_NAME);

@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -79,7 +78,7 @@ public class PageTaskController implements Serializable {
 				result.recordWarning("Token is not present in this task.");		// should be treated by isVisible
 			} else {
 				final ObjectDelta<? extends ObjectType> delta =
-						DeltaBuilder.deltaFor(TaskType.class, parentPage.getPrismContext())
+						parentPage.getPrismContext().deltaFor(TaskType.class)
 								.item(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN), property.getDefinition()).replace()
 								.asObjectDelta(parentPage.getTaskDto().getOid());
 				if (LOGGER.isDebugEnabled()) {
@@ -180,7 +179,7 @@ public class PageTaskController implements Serializable {
 		if (!ObjectUtils.equals(orig.getWorkerThreads(), curr.getWorkerThreads())) {
 			SchemaRegistry registry = parentPage.getPrismContext().getSchemaRegistry();
 			PrismPropertyDefinition def = registry.findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS);
-			rv.add(DeltaBuilder.deltaFor(TaskType.class, parentPage.getPrismContext())
+			rv.add(parentPage.getPrismContext().deltaFor(TaskType.class)
 					.item(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_WORKER_THREADS), def).replace(curr.getWorkerThreads())
 					.asItemDelta());
 		}
@@ -195,13 +194,13 @@ public class PageTaskController implements Serializable {
 	}
 
 	private void addDelta(List<ItemDelta<?, ?>> deltas, QName itemName, Object itemRealValue) throws SchemaException {
-		deltas.add(DeltaBuilder.deltaFor(TaskType.class, parentPage.getPrismContext())
+		deltas.add(parentPage.getPrismContext().deltaFor(TaskType.class)
 			.item(itemName).replace(itemRealValue)
 			.asItemDelta());
 	}
 
 	private void addDelta(List<ItemDelta<?, ?>> deltas, QName itemName1, QName itemName2, Object itemRealValue) throws SchemaException {
-		deltas.add(DeltaBuilder.deltaFor(TaskType.class, parentPage.getPrismContext())
+		deltas.add(parentPage.getPrismContext().deltaFor(TaskType.class)
 			.item(itemName1, itemName2).replace(itemRealValue)
 			.asItemDelta());
 	}

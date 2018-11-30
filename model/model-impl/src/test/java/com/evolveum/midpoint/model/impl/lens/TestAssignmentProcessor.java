@@ -24,7 +24,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -669,7 +668,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assignmentType.setTargetRef(ObjectTypeUtil.createObjectRef(ROLE_CORP_VISITOR_OID, ObjectTypes.ROLE));
         fillContextWithFocus(context, user);
 
-        addFocusDeltaToContext(context, (ObjectDelta) DeltaBuilder.deltaFor(UserType.class, prismContext)
+        addFocusDeltaToContext(context, (ObjectDelta) prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT).add(assignmentType)
                 .asObjectDelta(USER_JACK_OID));
         context.recompute();
@@ -724,7 +723,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 		assignmentType.setTargetRef(ObjectTypeUtil.createObjectRef(ROLE_CORP_ENGINEER_OID, ObjectTypes.ROLE));
 		fillContextWithFocus(context, user);
 
-		addFocusDeltaToContext(context, (ObjectDelta) DeltaBuilder.deltaFor(UserType.class, prismContext)
+		addFocusDeltaToContext(context, (ObjectDelta) prismContext.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT).add(assignmentType)
 				.asObjectDelta(USER_JACK_OID));
 		context.recompute();

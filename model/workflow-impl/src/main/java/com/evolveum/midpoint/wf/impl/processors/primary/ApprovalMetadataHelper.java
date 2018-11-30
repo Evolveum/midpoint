@@ -23,7 +23,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
@@ -130,7 +129,7 @@ public class ApprovalMetadataHelper {
 
     private Collection<ItemDelta<?, ?>> createAssignmentModificationApprovalMetadata(Class<? extends Objectable> objectTypeClass,
             long assignmentId, Collection<ObjectReferenceType> approvedBy, Collection<String> comments) throws SchemaException {
-        return DeltaBuilder.deltaFor(objectTypeClass, prismContext)
+        return prismContext.deltaFor(objectTypeClass)
                 .item(FocusType.F_ASSIGNMENT, assignmentId, AssignmentType.F_METADATA, MetadataType.F_MODIFY_APPROVER_REF)
                         .replaceRealValues(CloneUtil.cloneCollectionMembers(approvedBy))
                 .item(FocusType.F_ASSIGNMENT, assignmentId, AssignmentType.F_METADATA, MetadataType.F_MODIFY_APPROVAL_COMMENT)

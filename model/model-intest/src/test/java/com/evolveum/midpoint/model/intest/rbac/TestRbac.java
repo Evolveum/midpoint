@@ -28,7 +28,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.notifications.api.transports.Message;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -45,10 +45,6 @@ import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.model.api.context.EvaluatedConstruction;
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -4715,7 +4711,7 @@ public class TestRbac extends AbstractRbacTest {
 		PrismObject<UserType> userJackBefore = getUser(USER_JACK_OID);
 		display("user jack", userJackBefore);
 
-		ObjectDelta<UserType> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
 				.item(UserType.F_DESCRIPTION).replace("Came from Pluto")
 				.asObjectDeltaCast(USER_JACK_OID);
 
@@ -4785,7 +4781,7 @@ public class TestRbac extends AbstractRbacTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		ObjectDelta<UserType> delta = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+		ObjectDelta<UserType> delta = prismContext.deltaFor(RoleType.class)
 				.item(RoleType.F_NAME).replace(PolyString.fromOrig("modified"))
 				.asObjectDeltaCast(ROLE_DETECTING_MODIFICATIONS_OID);
 		executeChanges(delta, null, task, result);

@@ -17,7 +17,6 @@ package com.evolveum.midpoint.task.quartzimpl;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -1794,7 +1793,7 @@ public class TaskQuartzImpl implements Task {
 	private ItemDelta<?, ?> addTriggerAndPrepareDelta(TriggerType trigger) throws SchemaException {
 		addTriggerTransient(trigger.clone());
 		return isPersistent() ?
-				DeltaBuilder.deltaFor(TaskType.class, getPrismContext())
+				getPrismContext().deltaFor(TaskType.class)
 						.item(TaskType.F_TRIGGER).add(trigger.clone())
 						.asItemDelta()
 				: null;
@@ -2105,11 +2104,11 @@ public class TaskQuartzImpl implements Task {
 			return null;
 		}
 		if (value != null) {
-			return DeltaBuilder.deltaFor(TaskType.class, getPrismContext())
+			return getPrismContext().deltaFor(TaskType.class)
 					.item(F_MODEL_OPERATION_CONTEXT).replace(value.asPrismContainerValue().clone())
 					.asItemDelta();
 		} else {
-			return DeltaBuilder.deltaFor(TaskType.class, getPrismContext())
+			return getPrismContext().deltaFor(TaskType.class)
 					.item(F_MODEL_OPERATION_CONTEXT).replace()
 					.asItemDelta();
 		}
@@ -2143,11 +2142,11 @@ public class TaskQuartzImpl implements Task {
 			return null;
 		}
 		if (value != null) {
-			return DeltaBuilder.deltaFor(TaskType.class, getPrismContext())
+			return getPrismContext().deltaFor(TaskType.class)
 					.item(F_WORKFLOW_CONTEXT).replace(value.asPrismContainerValue().clone())
 					.asItemDelta();
 		} else {
-			return DeltaBuilder.deltaFor(TaskType.class, getPrismContext())
+			return getPrismContext().deltaFor(TaskType.class)
 					.item(F_WORKFLOW_CONTEXT).replace()
 					.asItemDelta();
 		}

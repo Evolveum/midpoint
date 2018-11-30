@@ -17,7 +17,6 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
@@ -200,7 +199,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 
 		// WHEN
 		t.displayWhen();
-		ObjectDelta<UserType> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT)
 				.delete(pirateAssignment.clone())
 				.asObjectDeltaCast(USER_JACK_OID);
@@ -231,7 +230,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 
 		// WHEN
 		t.displayWhen();
-		ObjectDelta<UserType> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT)
 						.add(createAssignmentTo(roleATest2aOid, ObjectTypes.ROLE, prismContext),
 								createAssignmentTo(roleATest3aOid, ObjectTypes.ROLE, prismContext))
@@ -267,7 +266,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 
 		// WHEN
 		t.displayWhen();
-		ObjectDelta<UserType> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT)
 				.add(createAssignmentTo(roleATest2bOid, ObjectTypes.ROLE, prismContext),
 						createAssignmentTo(roleATest3bOid, ObjectTypes.ROLE, prismContext))
@@ -425,7 +424,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 		t.displayWhen();
 		AssignmentType assignment2b = createAssignmentTo(roleATest2bOid, ObjectTypes.ROLE, prismContext);
 		assignment2b.setId(200L);
-		ObjectDelta<UserType> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT)
 				.add(assignment2b)
 				.asObjectDeltaCast(userEveOid);
@@ -458,7 +457,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 
 		// WHEN
 		t.displayWhen();
-		ObjectDelta<RoleType> delta = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+		ObjectDelta<RoleType> delta = prismContext.deltaFor(RoleType.class)
 				.item(RoleType.F_DESCRIPTION).replace("wrong")
 				.asObjectDeltaCast(roleATestWrongOid);
 		executeChangesAssertSuccess(delta, null, t.task, t.result);

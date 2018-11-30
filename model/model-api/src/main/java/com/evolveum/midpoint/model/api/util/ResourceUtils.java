@@ -19,17 +19,13 @@ package com.evolveum.midpoint.model.api.util;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
-
-import java.util.Collections;
 
 import static java.util.Collections.singleton;
 
@@ -47,7 +43,7 @@ public class ResourceUtils {
 			ConfigurationException, PolicyViolationException, SecurityViolationException {
 		PrismProperty<SchemaDefinitionType> definition = resource.findProperty(SCHEMA_PATH);
 		if (definition != null && !definition.isEmpty()) {
-			ObjectDelta<ResourceType> delta = DeltaBuilder.deltaFor(ResourceType.class, prismContext)
+			ObjectDelta<ResourceType> delta = prismContext.deltaFor(ResourceType.class)
 					.item(SCHEMA_PATH).replace()
 					.asObjectDelta(resource.getOid());
 			modelService.executeChanges(singleton(delta), null, task, parentResult);

@@ -22,7 +22,6 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -57,14 +56,14 @@ public class PolicyStateRecorder {
 		F objectNew = focusContext.getObjectNew().asObjectable();
 		ComputationResult cr = compute(rulesToRecord, objectNew.getPolicySituation(), objectNew.getTriggeredPolicyRule());
 		if (cr.situationsNeedUpdate) {
-			focusContext.addToPendingObjectPolicyStateModifications(DeltaBuilder.deltaFor(ObjectType.class, prismContext)
+			focusContext.addToPendingObjectPolicyStateModifications(prismContext.deltaFor(ObjectType.class)
 					.item(ObjectType.F_POLICY_SITUATION)
 							.oldRealValues(cr.oldPolicySituations)
 							.replaceRealValues(cr.newPolicySituations)
 					.asItemDelta());
 		}
 		if (cr.rulesNeedUpdate) {
-			focusContext.addToPendingObjectPolicyStateModifications(DeltaBuilder.deltaFor(ObjectType.class, prismContext)
+			focusContext.addToPendingObjectPolicyStateModifications(prismContext.deltaFor(ObjectType.class)
 					.item(ObjectType.F_TRIGGERED_POLICY_RULE)
 							.oldRealValues(cr.oldTriggeredRules)
 							.replaceRealValues(cr.newTriggeredRules)
@@ -93,7 +92,7 @@ public class PolicyStateRecorder {
 		ComputationResult cr = compute(rulesToRecord, assignmentToCompute.getPolicySituation(), assignmentToCompute.getTriggeredPolicyRule());
 		if (cr.situationsNeedUpdate) {
 			focusContext.addToPendingAssignmentPolicyStateModifications(assignmentToMatch,
-					mode, DeltaBuilder.deltaFor(FocusType.class, prismContext)
+					mode, prismContext.deltaFor(FocusType.class)
 					.item(FocusType.F_ASSIGNMENT, id, AssignmentType.F_POLICY_SITUATION)
 					.oldRealValues(cr.oldPolicySituations)
 					.replaceRealValues(cr.newPolicySituations)
@@ -101,7 +100,7 @@ public class PolicyStateRecorder {
 		}
 		if (cr.rulesNeedUpdate) {
 			focusContext.addToPendingAssignmentPolicyStateModifications(assignmentToMatch,
-					mode, DeltaBuilder.deltaFor(FocusType.class, prismContext)
+					mode, prismContext.deltaFor(FocusType.class)
 					.item(FocusType.F_ASSIGNMENT, id, AssignmentType.F_TRIGGERED_POLICY_RULE)
 					.oldRealValues(cr.oldTriggeredRules)
 					.replaceRealValues(cr.newTriggeredRules)

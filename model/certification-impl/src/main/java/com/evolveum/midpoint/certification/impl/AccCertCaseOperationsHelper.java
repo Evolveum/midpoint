@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -100,7 +99,7 @@ public class AccCertCaseOperationsHelper {
 		ObjectReferenceType responderRef = ObjectTypeUtil.createObjectRef(securityContextManager.getPrincipal().getUser(), prismContext);
 		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
 		ItemPath workItemPath = ItemPath.create(F_CASE, caseId, F_WORK_ITEM, workItemId);
-		Collection<ItemDelta<?,?>> deltaList = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+		Collection<ItemDelta<?,?>> deltaList = prismContext.deltaFor(AccessCertificationCampaignType.class)
 				.item(workItemPath.append(AccessCertificationWorkItemType.F_OUTPUT))
 						.replace(new AbstractWorkItemOutputType()
 								.outcome(toUri(normalizeToNull(response)))
@@ -112,7 +111,7 @@ public class AccCertCaseOperationsHelper {
 
 	    AccessCertificationResponseType newCurrentOutcome = computationHelper.computeOutcomeForStage(_case, campaign, campaign.getStageNumber());
 	    AccessCertificationResponseType newOverallOutcome = computationHelper.computeOverallOutcome(_case, campaign, campaign.getStageNumber(), newCurrentOutcome);
-	    deltaList.addAll(DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+	    deltaList.addAll(prismContext.deltaFor(AccessCertificationCampaignType.class)
 			    .item(F_CASE, caseId, F_CURRENT_STAGE_OUTCOME).replace(toUri(newCurrentOutcome))
 			    .item(F_CASE, caseId, F_OUTCOME).replace(toUri(newOverallOutcome))
 			    .asItemDeltas());
@@ -278,7 +277,7 @@ public class AccCertCaseOperationsHelper {
 			event.setIteration(norm(campaign.getIteration()));
 			List<ItemDelta<?, ?>> deltas = new ArrayList<>();
 			addDeltasForNewAssigneesAndEvent(deltas, workItem, aCase, newAssignees, event);
-			deltas.add(DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+			deltas.add(prismContext.deltaFor(AccessCertificationCampaignType.class)
 					.item(F_CASE, aCase.getId(), F_WORK_ITEM, workItem.getId(), F_ESCALATION_LEVEL).replace(newEscalationLevel)
 					.asItemDelta());
 			modifications.add(deltas);
@@ -288,7 +287,7 @@ public class AccCertCaseOperationsHelper {
 		assert stage != null;
 		Long stageId = stage.asPrismContainerValue().getId();
 		assert stageId != null;
-		modifications.add(DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+		modifications.add(prismContext.deltaFor(AccessCertificationCampaignType.class)
 				.item(F_STAGE, stageId, AccessCertificationStageType.F_ESCALATION_LEVEL).replace(newEscalationLevel)
 				.asItemDelta());
 		AccessCertificationStageDefinitionType stageDefinition = CertCampaignTypeUtil.getCurrentStageDefinition(campaign);
@@ -310,11 +309,11 @@ public class AccCertCaseOperationsHelper {
 	private void addDeltasForNewAssigneesAndEvent(List<ItemDelta<?, ?>> deltas, AccessCertificationWorkItemType workItem,
 			AccessCertificationCaseType aCase, List<ObjectReferenceType> newAssignees, WorkItemDelegationEventType event)
 			throws SchemaException {
-		deltas.add(DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+		deltas.add(prismContext.deltaFor(AccessCertificationCampaignType.class)
 				.item(F_CASE, aCase.getId(), F_WORK_ITEM, workItem.getId(), F_ASSIGNEE_REF)
 				.replace(PrismReferenceValue.asReferenceValues(newAssignees))
 				.asItemDelta());
-		deltas.add(DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+		deltas.add(prismContext.deltaFor(AccessCertificationCampaignType.class)
 				.item(F_CASE, aCase.getId(), F_EVENT).add(event)
 				.asItemDelta());
 	}

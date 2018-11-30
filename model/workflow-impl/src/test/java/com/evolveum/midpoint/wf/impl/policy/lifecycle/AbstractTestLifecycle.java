@@ -19,7 +19,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismReferenceValueImpl;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -104,7 +103,7 @@ public abstract class AbstractTestLifecycle extends AbstractWfTestPolicy {
 
 		PrismReferenceValue pirateOwner = new PrismReferenceValueImpl(rolePirateOid, RoleType.COMPLEX_TYPE);
 		pirateOwner.setRelation(SchemaConstants.ORG_OWNER);
-		executeChanges(DeltaBuilder.deltaFor(UserType.class, prismContext)
+		executeChanges(prismContext.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT).add(ObjectTypeUtil.createAssignmentTo(pirateOwner, prismContext))
 				.asObjectDelta(userPirateOwnerOid),
 				null, task, result);
@@ -129,7 +128,7 @@ public abstract class AbstractTestLifecycle extends AbstractWfTestPolicy {
 		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
-		ObjectDelta<RoleType> descriptionDelta = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+		ObjectDelta<RoleType> descriptionDelta = prismContext.deltaFor(RoleType.class)
 				.item(RoleType.F_DESCRIPTION).replace("Bloody pirate")
 				.asObjectDelta(rolePirateOid);
 		ObjectDelta<RoleType> delta0 = ObjectDelta.createModifyDelta(rolePirateOid, Collections.emptyList(), RoleType.class, prismContext);

@@ -19,10 +19,11 @@ package com.evolveum.midpoint.prism;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.crypto.ProtectorCreator;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.marshaller.JaxbDomHack;
 import com.evolveum.midpoint.prism.marshaller.ParsingMigrator;
 import com.evolveum.midpoint.prism.path.CanonicalItemPath;
-import com.evolveum.midpoint.prism.path.CanonicalItemPathImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
@@ -30,7 +31,6 @@ import com.evolveum.midpoint.prism.query.QueryConverter;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismMonitor;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
-import com.evolveum.midpoint.prism.xnode.RootXNodeImpl;
 import com.evolveum.midpoint.prism.xnode.XNodeFactory;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringNormalizerConfigurationType;
@@ -328,4 +328,9 @@ public interface PrismContext extends ProtectorCreator {
 	 * Temporary
 	 */
 	CanonicalItemPath createCanonicalItemPath(ItemPath itemPath);
+
+	default <C extends Containerable> S_ItemEntry deltaFor(Class<C> objectClass) throws SchemaException {
+		return new DeltaBuilder<>(objectClass, this);
+	}
+
 }

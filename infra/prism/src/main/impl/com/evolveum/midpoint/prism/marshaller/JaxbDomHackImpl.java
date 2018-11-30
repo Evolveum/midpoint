@@ -47,14 +47,14 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  *
  * @author Radovan Semancik
  */
-public class JaxbDomHack {
+public class JaxbDomHackImpl implements JaxbDomHack {
 
 	private static final Trace LOGGER = TraceManager.getTrace(JaxbDomHack.class);
 
 	private PrismContext prismContext;
 	private DomLexicalProcessor domParser;
 
-	public JaxbDomHack(DomLexicalProcessor domParser, PrismContext prismContext) {
+	public JaxbDomHackImpl(DomLexicalProcessor domParser, PrismContext prismContext) {
 		super();
 		this.domParser = domParser;
 		this.prismContext = prismContext;
@@ -151,7 +151,9 @@ public class JaxbDomHack {
 	/**
 	 * This is used in a form of "fromAny" to parse elements from a JAXB getAny method to prism.
 	 */
-	public <IV extends PrismValue,ID extends ItemDefinition,C extends Containerable> Item<IV,ID> parseRawElement(Object element, PrismContainerDefinition<C> definition) throws SchemaException {
+	@Override
+	public <IV extends PrismValue,ID extends ItemDefinition,C extends Containerable> Item<IV,ID> parseRawElement(Object element,
+			PrismContainerDefinition<C> definition) throws SchemaException {
 		Validate.notNull(definition, "Attempt to parse raw element in a container without definition");
 
 		QName elementName = JAXBUtil.getElementQName(element);
@@ -214,6 +216,7 @@ public class JaxbDomHack {
 	/**
 	 * Serializes prism value to JAXB "any" format as returned by JAXB getAny() methods.
 	 */
+	@Override
 	public Object toAny(PrismValue value) throws SchemaException {
 		if (value == null) {
 			return null;

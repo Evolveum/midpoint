@@ -65,7 +65,6 @@ import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.CloneUtil;
@@ -906,13 +905,13 @@ public class Clockwork {
 		Class<? extends ObjectType> objectClass = object.asObjectable().getClass();
 		List<ItemDelta<?, ?>> deltas = new ArrayList<>();
 		if (!keepNoExecutions) {
-			deltas.add(DeltaBuilder.deltaFor(objectClass, prismContext)
+			deltas.add(prismContext.deltaFor(objectClass)
 					.item(ObjectType.F_OPERATION_EXECUTION)
 					.add(executionToAdd)
 					.asItemDelta());
 		}
 		if (!executionsToDelete.isEmpty()) {
-			deltas.add(DeltaBuilder.deltaFor(objectClass, prismContext)
+			deltas.add(prismContext.deltaFor(objectClass)
 					.item(ObjectType.F_OPERATION_EXECUTION)
 					.delete(PrismContainerValue.toPcvList(CloneUtil.cloneCollectionMembers(executionsToDelete)))
 					.asItemDelta());

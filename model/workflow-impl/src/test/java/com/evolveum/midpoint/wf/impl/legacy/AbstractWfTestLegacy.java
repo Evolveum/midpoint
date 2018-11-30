@@ -29,7 +29,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -185,7 +184,7 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
 
         display("setting policyRuleBasedAspect.enabled to", enablePolicyRuleBasedAspect);
         List<ItemDelta<?, ?>> deltas =
-                DeltaBuilder.deltaFor(SystemConfigurationType.class, prismContext)
+                prismContext.deltaFor(SystemConfigurationType.class)
                         .item(SystemConfigurationType.F_WORKFLOW_CONFIGURATION, WfConfigurationType.F_PRIMARY_CHANGE_PROCESSOR,
                                 PrimaryChangeProcessorConfigurationType.F_POLICY_RULE_BASED_ASPECT, PcpAspectConfigurationType.F_ENABLED)
                         .replace(enablePolicyRuleBasedAspect)

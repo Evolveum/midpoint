@@ -20,7 +20,6 @@ import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -232,7 +231,7 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
 				}
 			}
 		}
-		return DeltaBuilder.deltaFor(objectClass, prismContext)
+		return prismContext.deltaFor(objectClass)
 				.item(pathPrefix.append(MetadataType.F_CERTIFICATION_FINISHED_TIMESTAMP)).replace(campaign.getEndTimestamp())
 				.item(pathPrefix.append(MetadataType.F_CERTIFICATION_OUTCOME)).replace(outcome)
 				.item(pathPrefix.append(MetadataType.F_CERTIFIER_REF)).replaceRealValues(certifiers)

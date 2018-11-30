@@ -21,7 +21,6 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -179,7 +178,7 @@ public class WorkersManager {
 
 	private void renameWorker(Task currentWorker, String newName, OperationResult result)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
-		List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(TaskType.class, prismContext)
+		List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(TaskType.class)
 				.item(TaskType.F_NAME).replace(PolyString.fromOrig(newName))
 				.asItemDeltas();
 		LOGGER.info("Renaming worker task {} to {}", currentWorker, newName);
@@ -297,7 +296,7 @@ public class WorkersManager {
 
 	private void moveWorker(Task worker, WorkerKey shouldBe, OperationResult result)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
-		List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(TaskType.class, prismContext)
+		List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(TaskType.class)
 				.item(TaskType.F_EXECUTION_CONSTRAINTS, TaskExecutionConstraintsType.F_GROUP).replace(shouldBe.group)
 				.item(TaskType.F_NAME).replace(PolyString.fromOrig(shouldBe.name))
 				.asItemDeltas();
@@ -423,7 +422,7 @@ public class WorkersManager {
 		}
 		List<Task> subtasks = coordinatorTask.listSubtasks(true, result);
 		taskManager.suspendAndDeleteTasks(TaskUtil.tasksToOids(subtasks), subtasksWaitTime, true, result);
-		List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(TaskType.class, prismContext)
+		List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(TaskType.class)
 				.item(TaskType.F_WORK_STATE).replace()
 				.asItemDeltas();
 		try {

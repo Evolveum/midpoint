@@ -23,7 +23,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismReferenceValueImpl;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -166,7 +165,7 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 
 		PrismReferenceValue judgeOwner = new PrismReferenceValueImpl(roleJudgeOid, RoleType.COMPLEX_TYPE);
 		judgeOwner.setRelation(SchemaConstants.ORG_OWNER);
-		executeChanges(DeltaBuilder.deltaFor(UserType.class, prismContext)
+		executeChanges(prismContext.deltaFor(UserType.class)
 						.item(UserType.F_ASSIGNMENT).add(ObjectTypeUtil.createAssignmentTo(judgeAfter, SchemaConstants.ORG_OWNER))
 						.asObjectDeltaCast(userJudgeOwnerOid),
 				null, task, result);
@@ -186,7 +185,7 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 		//Task task = createTask(TEST_NAME);
 		//OperationResult result = task.getResult();
 
-		ObjectDelta<RoleType> judgeDelta = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+		ObjectDelta<RoleType> judgeDelta = prismContext.deltaFor(RoleType.class)
 				.item(RoleType.F_APPROVER_REF)
 						.add(new ObjectReferenceType().oid("oid1").type(RoleType.COMPLEX_TYPE),
 								new ObjectReferenceType().oid("oid2").type(RoleType.COMPLEX_TYPE))
@@ -457,7 +456,7 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 
 		PrismObject<RoleType> captainBefore = getRole(roleCaptainOid);
 
-		ObjectDelta<RoleType> captainDelta = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+		ObjectDelta<RoleType> captainDelta = prismContext.deltaFor(RoleType.class)
 				.item(RoleType.F_APPROVER_REF)
 						.delete(cloneCollectionMembers(captainBefore.findReference(RoleType.F_APPROVER_REF).getValues()))
 				.asObjectDeltaCast(roleCaptainOid);
@@ -649,7 +648,7 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 
 		PrismObject<RoleType> thiefBefore = getRole(roleThiefOid);
 
-		ObjectDelta<RoleType> captainDelta = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+		ObjectDelta<RoleType> captainDelta = prismContext.deltaFor(RoleType.class)
 				.item(RoleType.F_APPROVER_REF)
 				.delete(cloneCollectionMembers(thiefBefore.findReference(RoleType.F_APPROVER_REF).getValues()))
 				.asObjectDeltaCast(roleThiefOid);

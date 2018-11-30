@@ -35,6 +35,7 @@ import java.util.Set;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -54,15 +55,9 @@ import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
 import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -715,7 +710,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 		OperationResult result = task.getResult();
 
 		// disable Engineer->Employee inducement
-		ObjectDelta disableInducementDelta = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+		ObjectDelta disableInducementDelta = prismContext.deltaFor(RoleType.class)
 				.item(RoleType.F_INDUCEMENT, 3, F_ACTIVATION, F_ADMINISTRATIVE_STATUS).replace(ActivationStatusType.DISABLED)
 				.asObjectDelta(ROLE_CORP_ENGINEER_OID);
 		modelService.executeChanges(Collections.singletonList(disableInducementDelta),
@@ -775,7 +770,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 		OperationResult result = task.getResult();
 
 		// disable Engineer->Employee inducement
-		ObjectDelta enableInducementDelta = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+		ObjectDelta enableInducementDelta = prismContext.deltaFor(RoleType.class)
 				.item(RoleType.F_INDUCEMENT, 3, F_ACTIVATION, F_ADMINISTRATIVE_STATUS).replace(ActivationStatusType.DISABLED)
 				.asObjectDelta(ROLE_CORP_ENGINEER_OID);
 		modelService.executeChanges(Collections.singletonList(enableInducementDelta),
@@ -796,7 +791,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 		OperationResult result = task.getResult();
 
 		// disable role Employee
-		ObjectDelta disableEmployeeDelta = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+		ObjectDelta disableEmployeeDelta = prismContext.deltaFor(RoleType.class)
 				.item(ACTIVATION_ADMINISTRATIVE_STATUS_PATH).replace(ActivationStatusType.DISABLED)
 				.asObjectDelta(ROLE_CORP_EMPLOYEE_OID);
 		modelService.executeChanges(Collections.<ObjectDelta<? extends ObjectType>>singletonList(disableEmployeeDelta),
@@ -854,7 +849,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 		OperationResult result = task.getResult();
 
 		// disable role Engineer
-		ObjectDelta disableEngineerDelta = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+		ObjectDelta disableEngineerDelta = prismContext.deltaFor(RoleType.class)
 				.item(ACTIVATION_ADMINISTRATIVE_STATUS_PATH).replace(ActivationStatusType.DISABLED)
 				.asObjectDelta(ROLE_CORP_ENGINEER_OID);
 		modelService.executeChanges(Collections.<ObjectDelta<? extends ObjectType>>singletonList(disableEngineerDelta),
@@ -926,7 +921,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 		PrismObject<UserType> fredAsCreated = findUserByUsername("fred");
 		display("fred as created", fredAsCreated);
 
-		ObjectDelta<UserType> descriptionDelta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> descriptionDelta = prismContext.deltaFor(UserType.class)
 				.item(UserType.F_DESCRIPTION).replace(pastTime)
 				.asObjectDeltaCast(fredAsCreated.getOid());
 

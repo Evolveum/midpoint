@@ -47,7 +47,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
@@ -1105,7 +1104,7 @@ public class TestStrings extends AbstractStoryTest {
 		// WHEN
 		PrismObject<UserType> cheese = getUserFromRepo(userCheeseOid);
 		login(cheese);
-		ObjectDelta formDelta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta formDelta = prismContext.deltaFor(UserType.class)
 				.item(UserType.F_DESCRIPTION).replace("Hello")
 				.asObjectDelta(userBobOid);
 		workflowService.completeWorkItem(workItem.getExternalId(), true, "OK. LeChuck", formDelta, result);

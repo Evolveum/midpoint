@@ -18,7 +18,6 @@ package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -78,7 +77,7 @@ public class MidpointUtil {
 		RepositoryService cacheRepositoryService = getCacheRepositoryService();
 		PrismContext prismContext = getPrismContext();
 		try {
-			S_ItemEntry deltaBuilder = DeltaBuilder.deltaFor(TaskType.class, getPrismContext())
+			S_ItemEntry deltaBuilder = getPrismContext().deltaFor(TaskType.class)
 					.item(F_WORKFLOW_CONTEXT, F_EVENT).add(event);
 
 			if (additionalDelta != null) {
@@ -155,7 +154,7 @@ public class MidpointUtil {
 			LOGGER.trace("Adding {} triggers to {}:\n{}", triggers.size(), wfTask,
 					PrismUtil.serializeQuietlyLazily(prismContext, triggers));
 			if (!triggers.isEmpty()) {
-				List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(TaskType.class, prismContext)
+				List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(TaskType.class)
 						.item(TaskType.F_TRIGGER).add(PrismContainerValue.toPcvList(triggers))
 						.asItemDeltas();
 				getCacheRepositoryService().modifyObject(TaskType.class, wfTask.getOid(), itemDeltas, result);
@@ -194,7 +193,7 @@ public class MidpointUtil {
 	private static void removeSelectedTriggers(Task wfTask, List<PrismContainerValue<TriggerType>> toDelete, OperationResult result) {
 		try {
 			LOGGER.trace("About to delete {} triggers from {}: {}", toDelete.size(), wfTask, toDelete);
-			List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(TaskType.class, getPrismContext())
+			List<ItemDelta<?, ?>> itemDeltas = getPrismContext().deltaFor(TaskType.class)
 					.item(TaskType.F_TRIGGER).delete(toDelete)
 					.asItemDeltas();
 			getCacheRepositoryService().modifyObject(TaskType.class, wfTask.getOid(), itemDeltas, result);

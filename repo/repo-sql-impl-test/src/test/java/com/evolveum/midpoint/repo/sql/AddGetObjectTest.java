@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDeltaImpl;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -850,7 +849,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         OperationResultType res = new OperationResultType();
         res.setOperation("asdf");
         res.setStatus(OperationResultStatusType.FATAL_ERROR);
-        List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(TaskType.class, prismContext)
+        List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(TaskType.class)
                 .item(TaskType.F_RESULT).replace(res)
                 .item(TaskType.F_RESULT_STATUS).replace(res.getStatus())
                 .asItemDeltas();

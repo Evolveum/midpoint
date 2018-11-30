@@ -24,7 +24,6 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDeltaImpl;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
@@ -438,7 +437,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 		AssignmentType assignment = findAssignmentByTargetRequired(jack, ROLE_SUPERUSER_OID);
 		Long id = assignment.getId();
 		executeChanges(
-				DeltaBuilder.deltaFor(UserType.class, prismContext)
+				prismContext.deltaFor(UserType.class)
 						.item(UserType.F_ASSIGNMENT, id, AssignmentType.F_DESCRIPTION)
 						.replace("hi")
 						.asObjectDeltaCast(jack.getOid()), null, task, result);
@@ -500,7 +499,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 		AssignmentType assignment = findAssignmentByTargetRequired(jack, ROLE_SUPERUSER_OID);
 		Long id = assignment.getId();
 		executeChanges(
-				DeltaBuilder.deltaFor(UserType.class, prismContext)
+				prismContext.deltaFor(UserType.class)
 						.item(UserType.F_ASSIGNMENT)
 						.delete(new AssignmentType(prismContext).id(id))
 						.asObjectDeltaCast(jack.getOid()), null, task, result);

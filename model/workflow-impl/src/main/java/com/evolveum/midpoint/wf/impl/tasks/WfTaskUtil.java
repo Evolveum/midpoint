@@ -20,7 +20,6 @@ import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -155,7 +154,7 @@ public class WfTaskUtil {
                 .findContainerDefinitionByCompileTimeClass(WfPrimaryChangeProcessorStateType.class)
                 .findPropertyDefinition(F_RESULTING_DELTAS);
         ItemPath path = ItemPath.create(F_WORKFLOW_CONTEXT, F_PROCESSOR_SPECIFIC_STATE, F_RESULTING_DELTAS);
-        task.addModification(DeltaBuilder.deltaFor(TaskType.class, prismContext)
+        task.addModification(prismContext.deltaFor(TaskType.class)
                 .item(path, def).replace(deltasType)
                 .asItemDelta());
         if (LOGGER.isTraceEnabled()) {
@@ -189,7 +188,7 @@ public class WfTaskUtil {
             values.add(createObjectRef(oid, TASK).asReferenceValue());
         }
         task.addModificationImmediate(
-                DeltaBuilder.deltaFor(TaskType.class, prismContext)
+                prismContext.deltaFor(TaskType.class)
                         .item(F_WORKFLOW_CONTEXT, F_ROOT_TASK_REF).replace(values)
                         .asItemDelta(),
                 result);

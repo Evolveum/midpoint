@@ -20,7 +20,6 @@ import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -203,7 +202,7 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
 	}
 	
 	protected <C extends Containerable> S_ItemEntry deltaFor(Class<C> objectClass) throws SchemaException {
-		return DeltaBuilder.deltaFor(objectClass, prismContext);
+		return prismContext.deltaFor(objectClass);
 	}
 
 	protected SqlRepositoryConfiguration getRepositoryConfiguration() {

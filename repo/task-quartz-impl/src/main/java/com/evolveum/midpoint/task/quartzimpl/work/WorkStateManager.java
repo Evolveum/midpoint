@@ -20,7 +20,6 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -317,7 +316,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 		Integer number = workStateStrategy.estimateNumberOfBuckets(task.getWorkState());
 		if (number != null && (task.getWorkState() == null || !number.equals(task.getWorkState().getNumberOfBuckets()))) {
-			List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(TaskType.class, prismContext)
+			List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(TaskType.class)
 					.item(TaskType.F_WORK_STATE, TaskWorkStateType.F_NUMBER_OF_BUCKETS).replace(number)
 					.asItemDeltas();
 			repositoryService.modifyObject(TaskType.class, task.getOid(), itemDeltas, result);
@@ -404,7 +403,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 
 	private void markWorkComplete(Task task, OperationResult result)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
-		List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(TaskType.class, prismContext)
+		List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(TaskType.class)
 				.item(TaskType.F_WORK_STATE, TaskWorkStateType.F_ALL_WORK_COMPLETE).replace(true)
 				.asItemDeltas();
 		repositoryService.modifyObject(TaskType.class, task.getOid(), itemDeltas, result);
@@ -568,13 +567,13 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 	}
 
 	private Collection<ItemDelta<?, ?>> bucketsReplaceDeltas(List<WorkBucketType> buckets) throws SchemaException {
-		return DeltaBuilder.deltaFor(TaskType.class, prismContext)
+		return prismContext.deltaFor(TaskType.class)
 				.item(TaskType.F_WORK_STATE, TaskWorkStateType.F_BUCKET)
 				.replaceRealValues(CloneUtil.cloneCollectionMembers(buckets)).asItemDeltas();
 	}
 
 	private Collection<ItemDelta<?, ?>> bucketsAddDeltas(List<WorkBucketType> buckets) throws SchemaException {
-		return DeltaBuilder.deltaFor(TaskType.class, prismContext)
+		return prismContext.deltaFor(TaskType.class)
 				.item(TaskType.F_WORK_STATE, TaskWorkStateType.F_BUCKET)
 				.addRealValues(CloneUtil.cloneCollectionMembers(buckets)).asItemDeltas();
 	}
@@ -585,13 +584,13 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 	}
 
 	private Collection<ItemDelta<?, ?>> bucketStateChangeDeltas(WorkBucketType bucket, WorkBucketStateType newState) throws SchemaException {
-		return DeltaBuilder.deltaFor(TaskType.class, prismContext)
+		return prismContext.deltaFor(TaskType.class)
 				.item(TaskType.F_WORK_STATE, TaskWorkStateType.F_BUCKET, bucket.getId(), WorkBucketType.F_STATE)
 				.replace(newState).asItemDeltas();
 	}
 
 	private Collection<ItemDelta<?, ?>> bucketDeleteDeltas(WorkBucketType bucket) throws SchemaException {
-		return DeltaBuilder.deltaFor(TaskType.class, prismContext)
+		return prismContext.deltaFor(TaskType.class)
 				.item(TaskType.F_WORK_STATE, TaskWorkStateType.F_BUCKET)
 				.delete(bucket.clone()).asItemDeltas();
 	}

@@ -35,7 +35,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
@@ -560,7 +559,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		} else {
 			if (task.getExecutionStatus() == TaskExecutionStatus.WAITING || task.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
 				try {
-					List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(TaskType.class, prismContext)
+					List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(TaskType.class)
 							.item(TaskType.F_EXECUTION_STATUS).replace(TaskExecutionStatusType.SUSPENDED)
 							.item(TaskType.F_STATE_BEFORE_SUSPEND).replace(task.getExecutionStatus().toTaskType())
 							.asItemDeltas();
@@ -727,13 +726,13 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	        }
 	        clearTaskOperationResult(task, parentResult);           // see a note on scheduleTaskNow
 	        if (task.getStateBeforeSuspend() == TaskExecutionStatusType.WAITING) {
-		        List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(TaskType.class, prismContext)
+		        List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(TaskType.class)
 				        .item(TaskType.F_EXECUTION_STATUS).replace(TaskExecutionStatusType.WAITING)
 				        .item(TaskType.F_STATE_BEFORE_SUSPEND).replace()
 				        .asItemDeltas();
 		        ((TaskQuartzImpl) task).applyDeltasImmediate(itemDeltas, result);
 	        } else {
-		        List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(TaskType.class, prismContext)
+		        List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(TaskType.class)
 				        .item(TaskType.F_EXECUTION_STATUS).replace(TaskExecutionStatusType.RUNNABLE)
 				        .item(TaskType.F_STATE_BEFORE_SUSPEND).replace()
 				        .asItemDeltas();

@@ -25,7 +25,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ContainerDeltaImpl;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -197,7 +196,7 @@ public class AccCertOpenerHelper {
 
     private void recordLastCampaignIdUsed(String definitionOid, int lastIdUsed, Task task, OperationResult result) {
         try {
-            List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationDefinitionType.class, prismContext)
+            List<ItemDelta<?,?>> modifications = prismContext.deltaFor(AccessCertificationDefinitionType.class)
                     .item(F_LAST_CAMPAIGN_ID_USED).replace(lastIdUsed)
                     .asItemDeltas();
             updateHelper.modifyObjectPreAuthorized(AccessCertificationDefinitionType.class, definitionOid, modifications, task, result);
@@ -459,7 +458,7 @@ public class AccCertOpenerHelper {
 				LOGGER.trace("Computed: reviewers: {}, workItems: {}, currentStageOutcome: {}, overallOutcome: {}",
 						PrettyPrinter.prettyPrint(reviewers), workItems.size(), currentStageOutcome, overallOutcome);
 			}
-			modifications.add(DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+			modifications.add(prismContext.deltaFor(AccessCertificationCampaignType.class)
 					.item(F_CASE, caseId, F_WORK_ITEM).add(PrismContainerValue.toPcvList(workItems))
 					.item(F_CASE, caseId, F_CURRENT_STAGE_CREATE_TIMESTAMP).replace(stage.getStartTimestamp())
 					.item(F_CASE, caseId, F_CURRENT_STAGE_DEADLINE).replace(stage.getDeadline())
@@ -572,7 +571,7 @@ public class AccCertOpenerHelper {
 		updateHelper.notifyReviewers(campaign, false, task, result);
 
         if (newStage.getNumber() == 1 && norm(campaign.getIteration()) == 1 && campaign.getDefinitionRef() != null) {
-            List<ItemDelta<?,?>> deltas = DeltaBuilder.deltaFor(AccessCertificationDefinitionType.class, prismContext)
+            List<ItemDelta<?,?>> deltas = prismContext.deltaFor(AccessCertificationDefinitionType.class)
                     .item(F_LAST_CAMPAIGN_STARTED_TIMESTAMP).replace(clock.currentTimeXMLGregorianCalendar())
                     .asItemDeltas();
             updateHelper.modifyObjectPreAuthorized(AccessCertificationDefinitionType.class, campaign.getDefinitionRef().getOid(), deltas, task, result);
@@ -601,7 +600,7 @@ public class AccCertOpenerHelper {
 		modifications.add(updateHelper.createStartTimeDelta(null));
 		modifications.add(updateHelper.createEndTimeDelta(null));
 		int newIteration = norm(campaign.getIteration()) + 1;
-		modifications.add(DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+		modifications.add(prismContext.deltaFor(AccessCertificationCampaignType.class)
 				.item(AccessCertificationCampaignType.F_ITERATION).replace(newIteration)
 				.asItemDelta());
 
@@ -619,7 +618,7 @@ public class AccCertOpenerHelper {
 				.searchCases(campaign.getOid(), unresolvedCasesQuery, null, result);
 		for (AccessCertificationCaseType aCase : unresolvedCases) {
 			modifications.add(
-					DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+					prismContext.deltaFor(AccessCertificationCampaignType.class)
 							.item(F_CASE, aCase.getId(), F_ITERATION).replace(newIteration)
 							.item(F_CASE, aCase.getId(), F_STAGE_NUMBER).replace(0)
 							.item(F_CASE, aCase.getId(), F_CURRENT_STAGE_OUTCOME).replace()
@@ -634,7 +633,7 @@ public class AccCertOpenerHelper {
 
 	//region ================================ Misc / helper methods ================================
 	private ItemDelta createStageAddDelta(AccessCertificationStageType stage) throws SchemaException {
-		return DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+		return prismContext.deltaFor(AccessCertificationCampaignType.class)
 				.item(F_STAGE).add(stage)
 				.asItemDelta();
 	}

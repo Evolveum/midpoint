@@ -36,7 +36,6 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
@@ -2265,7 +2264,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 				throw new ObjectNotFoundException("Work item with ID " + workItemId + " was not found in " + aCase);
 			}
 			XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
-			ObjectDelta<CaseType> delta = DeltaBuilder.deltaFor(CaseType.class, prismContext)
+			ObjectDelta<CaseType> delta = prismContext.deltaFor(CaseType.class)
 					.item(CaseType.F_WORK_ITEM, workItemId, WorkItemType.F_OUTPUT).replace(output)
 					.item(CaseType.F_STATE).replace(SchemaConstants.CASE_STATE_CLOSED)
 					.item(CaseType.F_OUTCOME).replace(output != null ? output.getOutcome() : null)
@@ -2273,7 +2272,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 					.asObjectDeltaCast(caseOid);
 			for (CaseWorkItemType workItem : aCase.asObjectable().getWorkItem()) {
 				delta.swallow(
-						DeltaBuilder.deltaFor(CaseType.class, prismContext)
+						prismContext.deltaFor(CaseType.class)
 								.item(CaseType.F_WORK_ITEM, workItem.getId(), WorkItemType.F_CLOSE_TIMESTAMP).replace(now)
 								.asItemDelta());
 			}

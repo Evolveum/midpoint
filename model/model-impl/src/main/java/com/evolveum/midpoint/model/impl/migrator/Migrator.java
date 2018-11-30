@@ -25,7 +25,6 @@ import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -154,7 +153,7 @@ public class Migrator {
 								+ "Object: {}, assignment: {}", objectNew, assignment);
 					} else {
 						deltas.add(
-								DeltaBuilder.deltaFor(FocusType.class, prismContext)
+								prismContext.deltaFor(FocusType.class)
 										.item(FocusType.F_ASSIGNMENT, id, AssignmentType.F_TRIGGER)
 										.replace()
 										.asItemDelta());

@@ -16,13 +16,9 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -515,7 +511,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         loot.setRealValue("otherString");
         extension.asPrismContainerValue().add(loot);
 
-        List<ItemDelta<?, ?>> deltas = DeltaBuilder.deltaFor(UserType.class, prismContext)
+        List<ItemDelta<?, ?>> deltas = prismContext.deltaFor(UserType.class)
                 .item(prismContext.path(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION))
                 .replace(extension)
                 .asItemDeltas();
@@ -536,7 +532,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         close(session);
 
         // delete
-        deltas = DeltaBuilder.deltaFor(UserType.class, prismContext)
+        deltas = prismContext.deltaFor(UserType.class)
                 .item(prismContext.path(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION))
                 .delete(extension.asPrismContainerValue().clone())
                 .asItemDeltas();
@@ -549,7 +545,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         close(session);
 
         // add
-        deltas = DeltaBuilder.deltaFor(UserType.class, prismContext)
+        deltas = prismContext.deltaFor(UserType.class)
                 .item(prismContext.path(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION))
                 .add(extension.asPrismContainerValue().clone())
                 .asItemDeltas();
@@ -581,7 +577,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         assertOperationExecutionSize(userOid, 1);
 
         oe = createOperationExecution("repo2");
-        Collection deltas = DeltaBuilder.deltaFor(UserType.class, prismContext)
+        Collection deltas = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_OPERATION_EXECUTION)
                 .add(oe.asPrismContainerValue().clone())
                 .asItemDeltas();

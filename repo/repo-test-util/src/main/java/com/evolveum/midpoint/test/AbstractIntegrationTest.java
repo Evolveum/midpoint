@@ -32,7 +32,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
@@ -237,7 +236,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	};
 	
 	public <C extends Containerable> S_ItemEntry deltaFor(Class<C> objectClass) throws SchemaException {
-		return DeltaBuilder.deltaFor(objectClass, prismContext);
+		return prismContext.deltaFor(objectClass);
 	}
 
 	protected <T extends ObjectType> PrismObject<T> repoAddObjectFromFile(String filePath,
@@ -546,7 +545,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 					.beginConflictResolution()
 						.action(action)
 					.end();
-			itemDeltas.add(DeltaBuilder.deltaFor(SystemConfigurationType.class, prismContext)
+			itemDeltas.add(prismContext.deltaFor(SystemConfigurationType.class)
 					.item(SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION)
 					.add(newPolicy)
 					.deleteRealValues(current)
@@ -558,7 +557,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 					.beginConflictResolution()
 						.action(ACTION_FOR_TASKS)
 					.end();
-			itemDeltas.add(DeltaBuilder.deltaFor(SystemConfigurationType.class, prismContext)
+			itemDeltas.add(prismContext.deltaFor(SystemConfigurationType.class)
 					.item(SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION)
 					.add(newPolicyForTasks)
 					.deleteRealValues(currentForTasks)

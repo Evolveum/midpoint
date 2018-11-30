@@ -18,7 +18,6 @@ package com.evolveum.midpoint.task.quartzimpl.handlers;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
@@ -116,7 +115,7 @@ public class WorkersCreationTaskHandler implements TaskHandler {
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 		TaskKindType taskKind = task.getWorkManagement() != null ? task.getWorkManagement().getTaskKind() : null;
 		if (taskKind == null) {
-			ItemDelta<?, ?> itemDelta = DeltaBuilder.deltaFor(TaskType.class, prismContext)
+			ItemDelta<?, ?> itemDelta = prismContext.deltaFor(TaskType.class)
 					.item(TaskType.F_WORK_MANAGEMENT, TaskWorkManagementType.F_TASK_KIND)
 					.replace(TaskKindType.COORDINATOR)
 					.asItemDelta();
@@ -149,7 +148,7 @@ public class WorkersCreationTaskHandler implements TaskHandler {
 	}
 
 	private void deleteWorkState(Task task, OperationResult opResult) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-		List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(TaskType.class, prismContext)
+		List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(TaskType.class)
 				.item(TaskType.F_WORK_STATE).replace()
 				.asItemDeltas();
 		repositoryService.modifyObject(TaskType.class, task.getOid(), itemDeltas, opResult);

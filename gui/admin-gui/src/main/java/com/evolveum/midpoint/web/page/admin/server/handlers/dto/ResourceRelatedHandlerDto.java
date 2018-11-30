@@ -5,7 +5,6 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -212,7 +211,7 @@ public class ResourceRelatedHandlerDto extends HandlerDto implements HandlerDtoE
 			ObjectReferenceType resourceObjectRef = new ObjectReferenceType();
 			resourceObjectRef.setOid(curr.getResourceRef().getOid());
 			resourceObjectRef.setType(ResourceType.COMPLEX_TYPE);
-			rv.add(DeltaBuilder.deltaFor(TaskType.class, prismContext)
+			rv.add(prismContext.deltaFor(TaskType.class)
 					.item(TaskType.F_OBJECT_REF).replace(resourceObjectRef.asReferenceValue()).asItemDelta());
 		}
 
@@ -247,7 +246,7 @@ public class ResourceRelatedHandlerDto extends HandlerDto implements HandlerDtoE
 	private void addExtensionDelta(List<ItemDelta<?, ?>> rv, QName itemName, Object realValue, PrismContext prismContext)
 			throws SchemaException {
 		PrismPropertyDefinition def = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(itemName);
-		rv.add(DeltaBuilder.deltaFor(TaskType.class, prismContext)
+		rv.add(prismContext.deltaFor(TaskType.class)
 				.item(ItemPath.create(TaskType.F_EXTENSION, itemName), def).replace(realValue).asItemDelta());
 	}
 

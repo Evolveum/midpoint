@@ -46,7 +46,6 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
@@ -420,7 +419,7 @@ public class ProvisioningUtil {
 		if (activation == null) {
 			return emptyList();
 		}
-		S_ItemEntry i = DeltaBuilder.deltaFor(ShadowType.class, prismContext);
+		S_ItemEntry i = prismContext.deltaFor(ShadowType.class);
 		if (activation.getAdministrativeStatus() != null) {
 			i = i.item(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS).replace();
 		}
@@ -479,7 +478,7 @@ public class ProvisioningUtil {
 			if (isIdentifier) {
 				valuesToReplace = CloneUtil.cloneCollectionMembers(attribute.getValues());
 				LOGGER.trace("- updating identifier {} value of {}", attributeName, attribute.getValues());
-				rv.add(DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+				rv.add(prismContext.deltaFor(ShadowType.class)
 						.item(ItemPath.create(ShadowType.F_ATTRIBUTES, attributeName), attribute.getDefinition()).replace(valuesToReplace)
 						.asItemDelta());
 				QNameUtil.remove(outstandingInRepo, attributeName);
@@ -493,7 +492,7 @@ public class ProvisioningUtil {
 					continue;       // cannot do anything with this
 				}
 				LOGGER.trace("- removing non-identifier {} value", outstanding);
-				rv.add(DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+				rv.add(prismContext.deltaFor(ShadowType.class)
 						.item(ItemPath.create(ShadowType.F_ATTRIBUTES, outstanding), outstandingDefinition).replace()
 						.asItemDelta());
 			}

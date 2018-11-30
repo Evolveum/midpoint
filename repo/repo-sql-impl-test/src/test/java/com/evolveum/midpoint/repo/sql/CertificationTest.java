@@ -16,12 +16,8 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -207,7 +203,7 @@ public class CertificationTest extends BaseSQLRepoTest {
                 .end();
         case100.setStageNumber(1);
 
-        List<ItemDelta<?, ?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(AccessCertificationCampaignType.class)
                 .item(F_CASE).add(caseNoId, case100)
                 .asItemDeltas();
 
@@ -290,7 +286,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         assertNotNull("No new work item", workItem);
 
         XMLGregorianCalendar closedTimestamp = XmlTypeConverter.createXMLGregorianCalendar(new Date());
-        List<ItemDelta<?, ?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(AccessCertificationCampaignType.class)
                 .item(F_CASE, NEW_CASE_ID, F_WORK_ITEM, workItem.getId(), AccessCertificationWorkItemType.F_CLOSE_TIMESTAMP)
                 .replace(closedTimestamp)
                 .asItemDeltas();
@@ -319,7 +315,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         AccessCertificationWorkItemType workItem = case100.getWorkItem().stream().filter(wi -> wi.getOriginalAssigneeRef() != null).findFirst().orElse(null);
         assertNotNull("No new work item", workItem);
 
-        List<ItemDelta<?, ?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(AccessCertificationCampaignType.class)
                 .item(F_CASE, NEW_CASE_ID, F_WORK_ITEM).delete(workItem.clone())
                 .asItemDeltas();
 
@@ -358,7 +354,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         AccessCertificationCaseType case100 = new AccessCertificationCaseType();
         case100.setId(NEW_CASE_ID);
 
-        List<ItemDelta<?, ?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(AccessCertificationCampaignType.class)
                 .item(F_CASE).add(caseNoId, case110).delete(case100)
                 .item(F_CASE, 3, AccessCertificationCaseType.F_STAGE_NUMBER).replace(400)
                 .asItemDeltas();
@@ -390,7 +386,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         AccessCertificationWorkItemType wi1 = new AccessCertificationWorkItemType();
         wi1.setId(1L);
 
-        List<ItemDelta<?, ?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(AccessCertificationCampaignType.class)
                 .item(F_CASE, 6, F_WORK_ITEM).add(wiNoId, wi200)
                 .item(F_CASE, 6, F_WORK_ITEM).delete(wi1)
                 .item(F_CASE, 6, F_WORK_ITEM, 2, F_OUTPUT, F_OUTCOME).replace(SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT)
@@ -415,7 +411,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         wi200.setStageNumber(44);
         wi200.assigneeRef(createObjectRef("999999", ObjectTypes.USER));
 
-        List<ItemDelta<?, ?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(AccessCertificationCampaignType.class)
                 .item(F_CASE, 6, F_WORK_ITEM).replace(wi200)
                 .asItemDeltas();
 
@@ -442,7 +438,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         wi251.setId(251L);
         wi251.setStageNumber(1);
 
-        List<ItemDelta<?, ?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(AccessCertificationCampaignType.class)
                 .item(F_CASE, 6, F_WORK_ITEM).replace(wi250, wi251)
                 .asItemDeltas();
 
@@ -481,7 +477,7 @@ public class CertificationTest extends BaseSQLRepoTest {
                 .workItem(wiNoId)
                 .stageNumber(1);
 
-        List<ItemDelta<?, ?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(AccessCertificationCampaignType.class)
                 .item(F_CASE).replace(caseNoId)
                 .asItemDeltas();
 

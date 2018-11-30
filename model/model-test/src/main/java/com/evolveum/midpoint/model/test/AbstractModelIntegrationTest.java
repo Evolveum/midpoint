@@ -106,7 +106,6 @@ import com.evolveum.midpoint.model.test.asserter.ModelContextAsserter;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -708,7 +707,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         userPasswordPs.setClearValue(newPassword);
         PasswordType passwordType = new PasswordType();
         passwordType.setValue(userPasswordPs);
-        ObjectDelta<UserType> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
         	.item(SchemaConstants.PATH_PASSWORD).add(passwordType)
         	.asObjectDelta(userOid);
         executeChanges(delta, null, task, result);
@@ -723,7 +722,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected void clearUserPassword(String userOid) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		Task task = createTask("clearUserPassword");
 		OperationResult result = task.getResult();
-		List<ItemDelta<?,?>> itemDeltas = DeltaBuilder.deltaFor(UserType.class, prismContext)
+		List<ItemDelta<?,?>> itemDeltas = prismContext.deltaFor(UserType.class)
 			.item(SchemaConstants.PATH_PASSWORD).replace(new PrismContainerValueImpl[0])        // todo
 			.asItemDeltas();
 		repositoryService.modifyObject(UserType.class, userOid, itemDeltas, result);
@@ -848,7 +847,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 			PolicyViolationException, SecurityViolationException {
 		AssignmentType assignment = findAssignmentByTargetRequired(focus, roleOid);
-		ObjectDelta<? extends FocusType> delta = DeltaBuilder.deltaFor(focus.getCompileTimeClass(), prismContext)
+		ObjectDelta<? extends FocusType> delta = prismContext.deltaFor(focus.getCompileTimeClass())
 				.item(FocusType.F_ASSIGNMENT)
 				.delete(assignment.clone())
 				.asObjectDeltaCast(focus.getOid());
@@ -3601,7 +3600,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         Collection<TriggerType> triggers = timestamps.stream()
 		        .map(ts -> new TriggerType().timestamp(ts).handlerUri(uri))
 		        .collect(Collectors.toList());
-        ObjectDelta<ObjectType> delta = DeltaBuilder.deltaFor(ObjectType.class, prismContext)
+        ObjectDelta<ObjectType> delta = prismContext.deltaFor(ObjectType.class)
 		       .item(ObjectType.F_TRIGGER).addRealValues(triggers)
 		       .asObjectDeltaCast(oid);
         executeChanges(delta, null, task, result);
@@ -3615,7 +3614,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         Collection<TriggerType> triggers = timestamps.stream()
 		        .map(ts -> new TriggerType().timestamp(ts).handlerUri(uri))
 		        .collect(Collectors.toList());
-        ObjectDelta<ObjectType> delta = DeltaBuilder.deltaFor(ObjectType.class, prismContext)
+        ObjectDelta<ObjectType> delta = prismContext.deltaFor(ObjectType.class)
 		       .item(ObjectType.F_TRIGGER).replaceRealValues(triggers)
 		       .asObjectDeltaCast(oid);
         executeChanges(delta, null, task, result);
@@ -5046,7 +5045,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		importObjectFromFile(taskFile, result);
 		taskManager.suspendTasks(Collections.singletonList(taskOid), 60000L, result);
 		modifySystemObjectInRepo(TaskType.class, taskOid,
-				DeltaBuilder.deltaFor(TaskType.class, prismContext)
+				prismContext.deltaFor(TaskType.class)
 						.item(TaskType.F_SCHEDULE).replace()
 						.asItemDeltas(),
 				result);
@@ -5122,7 +5121,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected void transplantGlobalPolicyRulesAdd(File configWithGlobalRulesFile, Task task, OperationResult parentResult) throws SchemaException, IOException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		// copy rules from the file into live system config object
 		PrismObject<SystemConfigurationType> rules = prismContext.parserFor(configWithGlobalRulesFile).parse();
-		ObjectDelta<SystemConfigurationType> delta = DeltaBuilder.deltaFor(SystemConfigurationType.class, prismContext)
+		ObjectDelta<SystemConfigurationType> delta = prismContext.deltaFor(SystemConfigurationType.class)
 				.item(SystemConfigurationType.F_GLOBAL_POLICY_RULE).add(
 					rules.asObjectable().getGlobalPolicyRule().stream()
 							.map(r -> r.clone().asPrismContainerValue())

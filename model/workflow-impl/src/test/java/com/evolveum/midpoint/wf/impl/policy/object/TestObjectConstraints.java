@@ -24,7 +24,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismReferenceValueImpl;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -177,7 +176,7 @@ public class TestObjectConstraints extends AbstractWfTestPolicy {
 		roleEmployeeOid = searchObjectByName(RoleType.class, "employee").getOid();
 
 		PrismReferenceValue employeeOwner = new PrismReferenceValueImpl(roleEmployeeOid, RoleType.COMPLEX_TYPE).relation(SchemaConstants.ORG_OWNER);
-		executeChanges(DeltaBuilder.deltaFor(UserType.class, prismContext)
+		executeChanges(prismContext.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT).add(ObjectTypeUtil.createAssignmentTo(employeeOwner, prismContext))
 				.asObjectDelta(userEmployeeOwnerOid),
 				null, task, result);
@@ -195,7 +194,7 @@ public class TestObjectConstraints extends AbstractWfTestPolicy {
 		OperationResult result = task.getResult();
 
 		@SuppressWarnings({"unchecked", "raw"})
-		ObjectDelta<RoleType> activateRoleDelta = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+		ObjectDelta<RoleType> activateRoleDelta = prismContext.deltaFor(RoleType.class)
 				.item(RoleType.F_LIFECYCLE_STATE).replace(SchemaConstants.LIFECYCLE_ACTIVE)
 				.asObjectDelta(roleEmployeeOid);
 
@@ -230,7 +229,7 @@ public class TestObjectConstraints extends AbstractWfTestPolicy {
 		OperationResult result = task.getResult();
 
 		@SuppressWarnings({"unchecked", "raw"})
-		ObjectDelta<RoleType> activateRoleDelta = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+		ObjectDelta<RoleType> activateRoleDelta = prismContext.deltaFor(RoleType.class)
 				.item(RoleType.F_LIFECYCLE_STATE).replace(SchemaConstants.LIFECYCLE_ACTIVE)
 				.item(RoleType.F_DESCRIPTION).replace("hi")
 				.asObjectDelta(roleEmployeeOid);
@@ -278,7 +277,7 @@ public class TestObjectConstraints extends AbstractWfTestPolicy {
 		OperationResult result = task.getResult();
 
 		@SuppressWarnings({"unchecked", "raw"})
-		ObjectDelta<RoleType> activateRoleDelta = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+		ObjectDelta<RoleType> activateRoleDelta = prismContext.deltaFor(RoleType.class)
 				.item(RoleType.F_LIFECYCLE_STATE).replace(SchemaConstants.LIFECYCLE_ACTIVE)
 				.item(RoleType.F_DESCRIPTION).replace("hi")
 				.asObjectDelta(roleEmployeeOid);

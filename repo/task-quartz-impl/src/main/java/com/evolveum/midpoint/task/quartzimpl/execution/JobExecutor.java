@@ -18,7 +18,6 @@ package com.evolveum.midpoint.task.quartzimpl.execution;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -692,7 +691,7 @@ mainCycle:
 		if (task.getWorkState() != null && Boolean.TRUE.equals(task.getWorkState().isAllWorkComplete())) {
 			LOGGER.debug("Work is marked as complete; restarting it in task {}", task);
 			try {
-				List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(TaskType.class, taskManagerImpl.getPrismContext())
+				List<ItemDelta<?, ?>> itemDeltas = taskManagerImpl.getPrismContext().deltaFor(TaskType.class)
 						.item(TaskType.F_WORK_STATE).replace()
 						.asItemDeltas();
 				task.applyDeltasImmediate(itemDeltas, executionResult);

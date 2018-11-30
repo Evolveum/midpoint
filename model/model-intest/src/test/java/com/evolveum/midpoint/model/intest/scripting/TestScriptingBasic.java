@@ -27,7 +27,6 @@ import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -852,7 +851,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
 		addObject(PASSWORD_POLICY_GLOBAL_FILE);
 
-		List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(SecurityPolicyType.class, prismContext)
+		List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(SecurityPolicyType.class)
 				.item(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD,
 						PasswordCredentialsPolicyType.F_PASSWORD_POLICY_REF)
 				.add(new PrismReferenceValueImpl(PASSWORD_POLICY_GLOBAL_OID))

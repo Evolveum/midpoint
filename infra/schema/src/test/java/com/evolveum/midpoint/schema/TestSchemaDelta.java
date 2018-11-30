@@ -19,7 +19,6 @@ package com.evolveum.midpoint.schema;
 import com.evolveum.midpoint.prism.*;
 
 import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -344,7 +343,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 		user.asObjectable().getAssignment().get(0).setId(9999L);
 		AssignmentType assignment9999 = new AssignmentType();
 		assignment9999.setId(9999L);
-		ObjectDelta<UserType> delta = DeltaBuilder.deltaFor(UserType.class, getPrismContext())
+		ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT).delete(assignment9999)
 				.asObjectDeltaCast(user.getOid());
 
@@ -474,7 +473,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 
 		// GIVEN
 		String OID = "oid1";
-		ObjectDelta<UserType> delta = DeltaBuilder.deltaFor(UserType.class, getPrismContext())
+		ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT)
 						.add(ObjectTypeUtil.createAssignmentTo("oid-r", ObjectTypes.ROLE, getPrismContext()))
 						.delete(new AssignmentType().id(101L), new AssignmentType().id(102L))
@@ -506,7 +505,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 
 		// GIVEN
 		String OID = "oid1";
-		ObjectDelta<UserType> delta = DeltaBuilder.deltaFor(UserType.class, getPrismContext())
+		ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT)
 						.add(ObjectTypeUtil.createAssignmentTo("oid-r", ObjectTypes.ROLE, getPrismContext()))
 						.delete(new AssignmentType().id(101L), new AssignmentType().id(102L))
@@ -557,11 +556,11 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 		ProtectedStringType value = new ProtectedStringType();
 		value.setClearValue("hi");
 		PasswordType newPassword = new PasswordType(getPrismContext()).value(value);
-		ObjectDelta<UserType> userDelta1 = DeltaBuilder.deltaFor(UserType.class, getPrismContext())
+		ObjectDelta<UserType> userDelta1 = getPrismContext().deltaFor(UserType.class)
 				.item(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD).replace(newPassword)
 				.asObjectDeltaCast("001");
 		MetadataType newMetadata = new MetadataType(getPrismContext()).requestorComment("comment");
-		ObjectDelta<UserType> userDelta2 = DeltaBuilder.deltaFor(UserType.class, getPrismContext())
+		ObjectDelta<UserType> userDelta2 = getPrismContext().deltaFor(UserType.class)
 				.item(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_METADATA)
 					.add(newMetadata)
 				.asObjectDeltaCast("001");

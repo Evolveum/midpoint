@@ -23,7 +23,6 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
@@ -94,7 +93,7 @@ public class AccCertUpdateHelper {
 			if (triggers.isEmpty()) {
 				return Collections.emptyList();
 			} else {
-				return DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+				return prismContext.deltaFor(AccessCertificationCampaignType.class)
 						.item(TaskType.F_TRIGGER).add(PrismContainerValue.toPcvList(triggers))
 						.asItemDeltas();
 			}
@@ -125,13 +124,13 @@ public class AccCertUpdateHelper {
     }
 
     ItemDelta<?, ?> createStartTimeDelta(XMLGregorianCalendar date) throws SchemaException {
-		return DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+		return prismContext.deltaFor(AccessCertificationCampaignType.class)
 				.item(AccessCertificationCampaignType.F_START_TIMESTAMP).replace(date)
 				.asItemDelta();
     }
 
 	ItemDelta<?, ?> createEndTimeDelta(XMLGregorianCalendar date) throws SchemaException {
-		return DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+		return prismContext.deltaFor(AccessCertificationCampaignType.class)
 				.item(AccessCertificationCampaignType.F_END_TIMESTAMP).replace(date)
 				.asItemDelta();
 	}
@@ -141,7 +140,7 @@ public class AccCertUpdateHelper {
     }
 
     List<ItemDelta<?, ?>> createTriggerReplaceDelta(Collection<TriggerType> triggers) throws SchemaException {
-		return DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+		return prismContext.deltaFor(AccessCertificationCampaignType.class)
 				.item(AccessCertificationCampaignType.F_TRIGGER).replaceRealValues(triggers)
 				.asItemDeltas();
     }

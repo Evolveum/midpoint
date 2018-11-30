@@ -33,7 +33,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.icf.dummy.resource.DummyObjectClass;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -2662,7 +2661,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		OperationResult result = task.getResult();
 
 		PrismObject<UserType> user1 = prismContext.createObject(UserType.class);
-		DeltaBuilder.deltaFor(UserType.class, prismContext)
+		prismContext.deltaFor(UserType.class)
 				.item(UserType.F_NAME).replace(new PolyString("user1"))
 				.item(UserType.F_ASSIGNMENT).add(ObjectTypeUtil.createAssignmentTo(resourceDummyCoral, prismContext).asPrismContainerValue())
 				.item(ACTIVATION_ADMINISTRATIVE_STATUS_PATH).replace(ActivationStatusType.DISABLED)
@@ -2709,7 +2708,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		OperationResult result = task.getResult();
 
 		Collection<ObjectDelta<? extends ObjectType>> deltas =
-				cast(DeltaBuilder.deltaFor(UserType.class, prismContext)
+				cast(prismContext.deltaFor(UserType.class)
 						.item(ACTIVATION_ADMINISTRATIVE_STATUS_PATH).replace(ActivationStatusType.ENABLED)
 						.asObjectDeltas(user1.getOid()));
 

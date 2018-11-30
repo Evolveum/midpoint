@@ -24,10 +24,7 @@ import java.util.UUID;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContainerValueImpl;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -42,7 +39,6 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -3484,7 +3480,7 @@ public class TestMapping extends AbstractMappingTest {
 		assertNotNull("org assignment not found", orgAssignment);
 		PrismContainerValue<Containerable> orgAssignmentPcv = new PrismContainerValueImpl<>(prismContext);
 		orgAssignmentPcv.setId(orgAssignment.getId());
-		ObjectDelta<UserType> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT).delete(orgAssignmentPcv)
 				.asObjectDeltaCast(jim.getOid());
 		executeChanges(delta, null, task, result);

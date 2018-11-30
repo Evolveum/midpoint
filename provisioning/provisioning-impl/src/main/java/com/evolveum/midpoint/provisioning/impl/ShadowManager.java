@@ -39,7 +39,6 @@ import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
@@ -530,7 +529,7 @@ public class ShadowManager {
 			// Live shadow was found in repository
 			
             if (change.getObjectDelta() != null && change.getObjectDelta().getChangeType() == ChangeType.DELETE) {
-            		List<ItemDelta<?, ?>> deadDeltas = DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+            		List<ItemDelta<?, ?>> deadDeltas = prismContext.deltaFor(ShadowType.class)
             			.item(ShadowType.F_DEAD).replace(true)
             			.item(ShadowType.F_EXISTS).replace(false)
             			.asItemDeltas();
@@ -1022,7 +1021,7 @@ public class ShadowManager {
 			// This means we have failed add operation here. We tried to add object,
 			// but we have failed. Which means that this shadow is now dead.
 			shadowChanges.add(
-				DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+				prismContext.deltaFor(ShadowType.class)
 					.item(ShadowType.F_DEAD).replace(true)
 				.asItemDelta()
 			);
@@ -1969,7 +1968,7 @@ public class ShadowManager {
 	
 	
 	public PrismObject<ShadowType> markShadowExists(PrismObject<ShadowType> repoShadow, OperationResult parentResult) throws SchemaException {
-		List<ItemDelta<?, ?>> shadowChanges = DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+		List<ItemDelta<?, ?>> shadowChanges = prismContext.deltaFor(ShadowType.class)
 			.item(ShadowType.F_EXISTS).replace(true)
 		.asItemDeltas();
 		LOGGER.trace("Marking shadow {} as existent", repoShadow);
@@ -1991,7 +1990,7 @@ public class ShadowManager {
 		if (repoShadow == null) {
 			return null;
 		}
-		List<ItemDelta<?, ?>> shadowChanges = DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+		List<ItemDelta<?, ?>> shadowChanges = prismContext.deltaFor(ShadowType.class)
 			.item(ShadowType.F_DEAD).replace(true)
 			.item(ShadowType.F_EXISTS).replace(false)
 		.asItemDeltas();

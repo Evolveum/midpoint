@@ -36,7 +36,7 @@ import java.util.*;
  *
  * @author mederly
  */
-public class DeltaBuilderImpl<T extends Containerable> implements DeltaBuilder {
+public class DeltaBuilder<T extends Containerable> implements S_ItemEntry, S_MaybeDelete, S_ValuesEntry {
 
     final private Class<T> objectClass;
     final private ComplexTypeDefinition containerCTD;
@@ -46,7 +46,7 @@ public class DeltaBuilderImpl<T extends Containerable> implements DeltaBuilder {
     private final List<ItemDelta<?,?>> deltas;
     private final ItemDelta currentDelta;
 
-    DeltaBuilderImpl(Class<T> objectClass, PrismContext prismContext) throws SchemaException {
+    public DeltaBuilder(Class<T> objectClass, PrismContext prismContext) throws SchemaException {
         this.objectClass = objectClass;
         this.prismContext = prismContext;
         containerCTD = prismContext.getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(this.objectClass);
@@ -57,7 +57,7 @@ public class DeltaBuilderImpl<T extends Containerable> implements DeltaBuilder {
         currentDelta = null;
     }
 
-    public DeltaBuilderImpl(Class<T> objectClass, ComplexTypeDefinition containerCTD, PrismContext prismContext, List<ItemDelta<?,?>> deltas, ItemDelta currentDelta) {
+    public DeltaBuilder(Class<T> objectClass, ComplexTypeDefinition containerCTD, PrismContext prismContext, List<ItemDelta<?,?>> deltas, ItemDelta currentDelta) {
         this.objectClass = objectClass;
         this.containerCTD = containerCTD;
         this.prismContext = prismContext;
@@ -74,7 +74,7 @@ public class DeltaBuilderImpl<T extends Containerable> implements DeltaBuilder {
     }
 
     public static <C extends Containerable> S_ItemEntry deltaFor(Class<C> objectClass, PrismContext prismContext) throws SchemaException {
-        return new DeltaBuilderImpl<>(objectClass, prismContext);
+        return new DeltaBuilder<>(objectClass, prismContext);
     }
 
     @Override
@@ -112,7 +112,7 @@ public class DeltaBuilderImpl<T extends Containerable> implements DeltaBuilder {
         if (currentDelta != null) {
             newDeltas.add(currentDelta);
         }
-        return new DeltaBuilderImpl(objectClass, containerCTD, prismContext, newDeltas, newDelta);
+        return new DeltaBuilder(objectClass, containerCTD, prismContext, newDeltas, newDelta);
     }
 
     // TODO fix this after ObjectDelta is changed to accept Containerable

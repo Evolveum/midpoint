@@ -18,7 +18,6 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -500,7 +499,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
             DeltaExecutionThread thread = new DeltaExecutionThread(i, oid, "operationExecution adder #" + i) {
                 @Override
                 Collection<ItemDelta<?, ?>> getItemDeltas() throws Exception {
-                    return DeltaBuilder.deltaFor(UserType.class, prismContext)
+                    return prismContext.deltaFor(UserType.class)
                             .item(UserType.F_OPERATION_EXECUTION).add(
                                     new OperationExecutionType(prismContext)
                                             .channel(threadIndex + ":" + counter)
@@ -541,7 +540,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
             DeltaExecutionThread thread = new DeltaExecutionThread(i, oid, "assignment adder #" + i) {
                 @Override
                 Collection<ItemDelta<?, ?>> getItemDeltas() throws Exception {
-                    return DeltaBuilder.deltaFor(UserType.class, prismContext)
+                    return prismContext.deltaFor(UserType.class)
                             .item(UserType.F_ASSIGNMENT).add(
                                     new AssignmentType(prismContext)
                                             .targetRef("0000-" + threadIndex + "-" + counter, OrgType.COMPLEX_TYPE))

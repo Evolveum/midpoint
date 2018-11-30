@@ -8,7 +8,6 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ContainerDeltaImpl;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -148,7 +147,7 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 			List<AssignmentType> assignmentsToCreate = rolesToAssign.stream()
 					.map(ref -> ObjectTypeUtil.createAssignmentTo(ref, prismContext))
 					.collect(Collectors.toList());
-			ObjectDelta<Objectable> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+			ObjectDelta<Objectable> delta = prismContext.deltaFor(UserType.class)
 					.item(UserType.F_ASSIGNMENT).addRealValues(assignmentsToCreate)
 					.asObjectDelta(userOid);
 			runAsChecked(() -> {

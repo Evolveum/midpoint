@@ -194,7 +194,7 @@
     </dependencies>
     <build>
         <plugins>
-			<!-- TEMPORARY solution to add src/main/impl as a secondary source -->
+			<!-- TEMPORARY solution to add src/main/impl and src/main/api as a secondary sources -->
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>build-helper-maven-plugin</artifactId>
@@ -207,6 +207,7 @@
 						<configuration>
 							<sources>
 								<source>src/main/impl</source>
+								<source>src/main/api</source>
 							</sources>
 						</configuration>
 					</execution>

@@ -20,7 +20,6 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -136,7 +135,7 @@ public class OperationalDataManager {
 			approverComments.addAll(workflowManager.getApproverComments(task, result));
 		}
 		ItemDelta.mergeAll(objectDelta.getModifications(),
-				DeltaBuilder.deltaFor(objectTypeClass, prismContext)
+				prismContext.deltaFor(objectTypeClass)
 						.item(ObjectType.F_METADATA, MetadataType.F_MODIFY_APPROVER_REF).replace(approverReferenceValues)
 						.item(ObjectType.F_METADATA, MetadataType.F_MODIFY_APPROVAL_COMMENT).replaceRealValues(approverComments)
 						.asItemDeltas());
@@ -256,7 +255,7 @@ public class OperationalDataManager {
 
 	public <F extends ObjectType, T extends ObjectType> Collection<ItemDelta<?,?>> createModifyMetadataDeltas(LensContext<F> context,
 			ItemPath metadataPath, Class<T> objectType, XMLGregorianCalendar now, Task task) throws SchemaException {
-		return DeltaBuilder.deltaFor(objectType, prismContext)
+		return prismContext.deltaFor(objectType)
 				.item(metadataPath.append(MetadataType.F_MODIFY_CHANNEL)).replace(LensUtil.getChannel(context, task))
 				.item(metadataPath.append(MetadataType.F_MODIFY_TIMESTAMP)).replace(now)
 				.item(metadataPath.append(MetadataType.F_MODIFIER_REF)).replace(createObjectRef(task.getOwner(), prismContext))

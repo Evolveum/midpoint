@@ -27,7 +27,6 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -907,7 +906,7 @@ public class TestParseDiffPatch {
 
 		@SuppressWarnings({"unchecked", "raw"})
         ObjectDelta<AccessCertificationCampaignType> delta =
-				DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, getPrismContext())
+				getPrismContext().deltaFor(AccessCertificationCampaignType.class)
 				.item(AccessCertificationCampaignType.F_TRIGGER).delete(triggerToDelete)
 				.asObjectDelta(campaign.getOid());
 

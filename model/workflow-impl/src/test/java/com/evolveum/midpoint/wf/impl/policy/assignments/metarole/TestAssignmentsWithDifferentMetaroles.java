@@ -20,7 +20,6 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -394,11 +393,11 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		displayWhen(TEST_NAME);
 		PrismObject<UserType> jackBefore = getUser(userJackOid);
 		AssignmentType assignment = findAssignmentByTargetRequired(jackBefore, roleRole29Oid);
-		ObjectDelta<UserType> deltaToApprove = DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> deltaToApprove = prismContext.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT, assignment.getId(), AssignmentType.F_DESCRIPTION)
 						.replace("new description")
 				.asObjectDeltaCast(userJackOid);
-		ObjectDelta<UserType> delta0 = DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> delta0 = prismContext.deltaFor(UserType.class)
 				.item(UserType.F_FULL_NAME)
 						.replace(PolyString.fromOrig("new full name"))
 				.asObjectDeltaCast(userJackOid);
@@ -514,11 +513,11 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		displayWhen(TEST_NAME);
 		PrismObject<UserType> jackBefore = getUser(userJackOid);
 		AssignmentType assignment = findAssignmentByTargetRequired(jackBefore, roleRole29Oid);
-		ObjectDelta<UserType> deltaToApprove = DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> deltaToApprove = prismContext.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT, assignment.getId(), AssignmentType.F_DESCRIPTION)
 						.replace("new description 2")
 				.asObjectDeltaCast(userJackOid);
-		ObjectDelta<UserType> delta0 = DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> delta0 = prismContext.deltaFor(UserType.class)
 				.item(UserType.F_FULL_NAME)
 						.replace(PolyString.fromOrig("new full name 2"))
 				.asObjectDeltaCast(userJackOid);
@@ -642,12 +641,12 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		OperationResult result = task.getResult();
 
 		// WHEN/THEN
-		ObjectDelta<UserType> deltaToApprove = DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> deltaToApprove = prismContext.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT)
 						.add(ObjectTypeUtil.createAssignmentTo(roleRole28Oid, ObjectTypes.ROLE, prismContext)
 									.description("description"))
 				.asObjectDeltaCast(userJackOid);
-		ObjectDelta<UserType> delta0 = DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> delta0 = prismContext.deltaFor(UserType.class)
 				.item(UserType.F_FULL_NAME)
 				.replace(PolyString.fromOrig("new full name 3"))
 				.asObjectDeltaCast(userJackOid);
@@ -757,13 +756,13 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		displayWhen(TEST_NAME);
 		PrismObject<UserType> jackBefore = getUser(userJackOid);
 		AssignmentType assignment = findAssignmentByTargetRequired(jackBefore, roleRole28Oid);
-		ObjectDelta<UserType> deltaToApprove = DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> deltaToApprove = prismContext.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT, assignment.getId(), AssignmentType.F_DESCRIPTION)
 						.replace("new description")
 				.item(UserType.F_ASSIGNMENT, assignment.getId(), AssignmentType.F_LIFECYCLE_STATE)      // this will be part of the delta to approve
 						.replace("active")
 				.asObjectDeltaCast(userJackOid);
-		ObjectDelta<UserType> delta0 = DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> delta0 = prismContext.deltaFor(UserType.class)
 				.item(UserType.F_FULL_NAME)
 						.replace(PolyString.fromOrig("new full name 4"))
 				.asObjectDeltaCast(userJackOid);
@@ -869,11 +868,11 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		displayWhen(TEST_NAME);
 		PrismObject<UserType> jackBefore = getUser(userJackOid);
 		AssignmentType assignment = findAssignmentByTargetRequired(jackBefore, roleRole28Oid);
-		ObjectDelta<UserType> deltaToApprove = DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> deltaToApprove = prismContext.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT)
 						.delete(new AssignmentType().id(assignment.getId()))        // id-only, to test the constraint
 				.asObjectDeltaCast(userJackOid);
-		ObjectDelta<UserType> delta0 = DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> delta0 = prismContext.deltaFor(UserType.class)
 				.item(UserType.F_FULL_NAME)
 				.replace(PolyString.fromOrig("new full name 5"))
 				.asObjectDeltaCast(userJackOid);
@@ -979,7 +978,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		ObjectDelta<UserType> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT)
 				.add(ObjectTypeUtil.createAssignmentTo(roleRole27Oid, ObjectTypes.ROLE, prismContext)
 						.description("description"))
@@ -1005,7 +1004,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		displayWhen(TEST_NAME);
 		PrismObject<UserType> jackBefore = getUser(userJackOid);
 		AssignmentType assignmentBefore = findAssignmentByTargetRequired(jackBefore, roleRole27Oid);
-		ObjectDelta<UserType> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT, assignmentBefore.getId(), AssignmentType.F_DESCRIPTION)
 				.replace("new description")
 				.asObjectDeltaCast(userJackOid);
@@ -1044,23 +1043,23 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		Task task = createTask("executeAssignRoles123ToJack");
 		PrismObject<UserType> jack = getUser(userJackOid);
 		@SuppressWarnings("unchecked")
-		ObjectDelta<UserType> addRole1Delta = DeltaBuilder
-				.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> addRole1Delta = prismContext
+				.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT).add(createAssignmentTo(roleRole21Oid, ObjectTypes.ROLE, prismContext))
 				.asObjectDelta(userJackOid);
 		@SuppressWarnings("unchecked")
-		ObjectDelta<UserType> addRole2Delta = DeltaBuilder
-				.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> addRole2Delta = prismContext
+				.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT).add(createAssignmentTo(roleRole22Oid, ObjectTypes.ROLE, prismContext))
 				.asObjectDelta(userJackOid);
 		@SuppressWarnings("unchecked")
-		ObjectDelta<UserType> addRole3Delta = DeltaBuilder
-				.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> addRole3Delta = prismContext
+				.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT).add(createAssignmentTo(roleRole23Oid, ObjectTypes.ROLE, prismContext))
 				.asObjectDelta(userJackOid);
 		@SuppressWarnings("unchecked")
-		ObjectDelta<UserType> changeDescriptionDelta = DeltaBuilder
-				.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> changeDescriptionDelta = prismContext
+				.deltaFor(UserType.class)
 				.item(UserType.F_DESCRIPTION).replace(TEST_NAME)
 				.asObjectDelta(userJackOid);
 		ObjectDelta<UserType> primaryDelta = ObjectDelta.summarize(addRole1Delta, addRole2Delta, addRole3Delta, changeDescriptionDelta);
@@ -1194,8 +1193,8 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 			assignmentsToAdd.add(createAssignmentTo(roleRole24Oid, ObjectTypes.ROLE, prismContext));
 		}
 		@SuppressWarnings("unchecked")
-		ObjectDelta<UserType> primaryDelta = DeltaBuilder
-				.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> primaryDelta = prismContext
+				.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT).addRealValues(assignmentsToAdd)
 				.item(UserType.F_DESCRIPTION).replace(TEST_NAME)
 				.asObjectDelta(userJackOid);
@@ -1307,23 +1306,23 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		AssignmentType del2 = toDelete(a2, byId);
 		AssignmentType del3 = toDelete(a3, byId);
 		@SuppressWarnings("unchecked")
-		ObjectDelta<UserType> deleteRole1Delta = has1and2 ? DeltaBuilder
-				.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> deleteRole1Delta = has1and2 ? prismContext
+				.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT).delete(del1)
 				.asObjectDelta(userJackOid) : null;
 		@SuppressWarnings("unchecked")
-		ObjectDelta<UserType> deleteRole2Delta = has1and2 ? DeltaBuilder
-				.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> deleteRole2Delta = has1and2 ? prismContext
+				.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT).delete(del2)
 				.asObjectDelta(userJackOid) : null;
 		@SuppressWarnings("unchecked")
-		ObjectDelta<UserType> deleteRole3Delta = DeltaBuilder
-				.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> deleteRole3Delta = prismContext
+				.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT).delete(del3)
 				.asObjectDelta(userJackOid);
 		@SuppressWarnings("unchecked")
-		ObjectDelta<UserType> changeDescriptionDelta = DeltaBuilder
-				.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> changeDescriptionDelta = prismContext
+				.deltaFor(UserType.class)
 				.item(UserType.F_DESCRIPTION).replace(TEST_NAME)
 				.asObjectDelta(userJackOid);
 		ObjectDelta<UserType> primaryDelta = ObjectDelta.summarize(changeDescriptionDelta, deleteRole1Delta, deleteRole2Delta, deleteRole3Delta);

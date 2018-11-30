@@ -19,7 +19,6 @@ import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -128,7 +127,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 				.policyActions(new PolicyActionsType(prismContext));
 
 		repositoryService.modifyObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-				DeltaBuilder.deltaFor(SystemConfigurationType.class, prismContext)
+				prismContext.deltaFor(SystemConfigurationType.class)
 						.item(SystemConfigurationType.F_GLOBAL_POLICY_RULE).add(hasStudentDisabled)
 						.asItemDeltas(), initResult);
 
@@ -243,7 +242,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		fillContextWithUser(context, USER_JACK_OID, result);
 		AssignmentType assignment = ObjectTypeUtil.createAssignmentTo(roleStudentOid, ObjectTypes.ROLE, prismContext);
 		assignment.beginActivation().validTo("2099-01-01T00:00:00");
-		context.getFocusContext().addPrimaryDelta(DeltaBuilder.deltaFor(UserType.class, prismContext)
+		context.getFocusContext().addPrimaryDelta(prismContext.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT).add(assignment)
 				.item(UserType.F_COST_CENTER).replace("1900")
 				.asObjectDelta(USER_JACK_OID));
@@ -296,7 +295,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		fillContextWithUser(context, USER_JACK_OID, result);
 		AssignmentType assignment = ObjectTypeUtil.createAssignmentTo(roleStudentOid, ObjectTypes.ROLE, prismContext);
 		assignment.beginActivation().validTo("2099-01-01T00:00:00");
-		context.getFocusContext().addPrimaryDelta(DeltaBuilder.deltaFor(UserType.class, prismContext)
+		context.getFocusContext().addPrimaryDelta(prismContext.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT).add(assignment)
 				.item(UserType.F_COST_CENTER).replace("1900")
 				.asObjectDelta(USER_JACK_OID));
@@ -352,7 +351,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
 		LensContext<UserType> context = createUserLensContext();
 		fillContextWithUser(context, USER_JACK_OID, result);
-		context.getFocusContext().addPrimaryDelta(DeltaBuilder.deltaFor(UserType.class, prismContext)
+		context.getFocusContext().addPrimaryDelta(prismContext.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT, assignmentId, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO).replace()
 				.asObjectDelta(USER_JACK_OID));
 		display("Input context", context);
@@ -500,7 +499,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
 		LensContext<UserType> context = createUserLensContext();
 		fillContextWithUser(context, userFrankOid, result);
-		context.getFocusContext().addPrimaryDelta(DeltaBuilder.deltaFor(UserType.class, prismContext)
+		context.getFocusContext().addPrimaryDelta(prismContext.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT).add(
 						ObjectTypeUtil.createAssignmentTo(roleStudentOid, ObjectTypes.ROLE, prismContext)
 								.beginActivation()
@@ -834,7 +833,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
-		ObjectDelta<RoleType> delta = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+		ObjectDelta<RoleType> delta = prismContext.deltaFor(RoleType.class)
 				.item(RoleType.F_INDUCEMENT, 1L, AssignmentType.F_DESCRIPTION).replace("hi")
 				.asObjectDeltaCast(roleImmutableInducementsOid);
 		LensContext<RoleType> context = createLensContext(RoleType.class);
@@ -869,7 +868,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
-		ObjectDelta<RoleType> delta = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+		ObjectDelta<RoleType> delta = prismContext.deltaFor(RoleType.class)
 				.item(RoleType.F_INDUCEMENT, 1L, AssignmentType.F_DESCRIPTION).replace("hi")
 				.asObjectDeltaCast(roleNoInducementsAddDeleteOid);
 		LensContext<RoleType> context = createLensContext(RoleType.class);
@@ -896,7 +895,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
-		ObjectDelta<RoleType> delta = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+		ObjectDelta<RoleType> delta = prismContext.deltaFor(RoleType.class)
 				.item(RoleType.F_INDUCEMENT, 1L, AssignmentType.F_DESCRIPTION).replace("hi")
 				.asObjectDeltaCast(roleNoInducementsAddDeleteViaExpressionOid);
 		LensContext<RoleType> context = createLensContext(RoleType.class);
@@ -923,7 +922,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
-		ObjectDelta<RoleType> delta = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+		ObjectDelta<RoleType> delta = prismContext.deltaFor(RoleType.class)
 				.item(RoleType.F_INDUCEMENT).add(new AssignmentType(prismContext).targetRef("1", OrgType.COMPLEX_TYPE))
 				.asObjectDeltaCast(roleNoInducementsAddDeleteOid);
 		LensContext<RoleType> context = createLensContext(RoleType.class);
@@ -958,7 +957,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
-		ObjectDelta<RoleType> delta = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+		ObjectDelta<RoleType> delta = prismContext.deltaFor(RoleType.class)
 				.item(RoleType.F_INDUCEMENT).replace(new AssignmentType(prismContext).targetRef("1", OrgType.COMPLEX_TYPE))
 				.asObjectDeltaCast(roleNoInducementsAddDeleteViaExpressionOid);
 		LensContext<RoleType> context = createLensContext(RoleType.class);

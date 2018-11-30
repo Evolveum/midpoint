@@ -24,7 +24,6 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -514,7 +513,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
 	public void test110ObjectModifyNone() throws Exception {
 		System.out.println("===[ test110ObjectModifyNone ]====");
 
-		ObjectDelta delta = DeltaBuilder.deltaFor(UserType.class, getPrismContext())
+		ObjectDelta delta = getPrismContext().deltaFor(UserType.class)
 				.asObjectDelta("123456");
 		roundTrip(delta);
 	}
@@ -523,7 +522,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
 	public void test120ObjectModifyName() throws Exception {
 		System.out.println("===[ test120ObjectModifyName ]====");
 
-		ObjectDelta<?> delta = DeltaBuilder.deltaFor(UserType.class, getPrismContext())
+		ObjectDelta<?> delta = getPrismContext().deltaFor(UserType.class)
 				.item(UserType.F_NAME).replace(PolyString.fromOrig("jack"))
 				.asObjectDelta("123456");
 		roundTrip(delta);

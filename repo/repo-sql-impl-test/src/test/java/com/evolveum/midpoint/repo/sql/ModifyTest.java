@@ -49,7 +49,6 @@ import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.common.SynchronizationUtils;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -620,7 +619,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         PrismPropertyDefinition<String> definition = new PrismPropertyDefinitionImpl<>(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING, prismContext);
 
-        List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+        List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(ShadowType.class)
                 .item(prismContext.path(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME), definition)
                 .replace("account123")
                 .asItemDeltas();
@@ -644,7 +643,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         PrismPropertyDefinition<String> definition = new PrismPropertyDefinitionImpl<>(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING, prismContext);
 
-        List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+        List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(ShadowType.class)
                 .item(prismContext.path(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME), definition)
                 .replace("account-new")
                 .asItemDeltas();
@@ -669,7 +668,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         PrismPropertyDefinition<String> definition = new PrismPropertyDefinitionImpl<>(QNAME_WEAPON, DOMUtil.XSD_STRING, prismContext);
 
-        List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(UserType.class, prismContext)
+        List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(UserType.class)
                 .item(prismContext.path(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION, QNAME_WEAPON), definition)
                 .replace("knife")
                 .asItemDeltas();
@@ -746,7 +745,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         ModificationPrecondition<RoleType> precondition = o -> { throw new PreconditionViolationException("hello"); };
 
         // WHEN
-        List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+        List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(RoleType.class)
                 .item(RoleType.F_DESCRIPTION).replace("123456")
                 .asItemDeltas();
         try {
@@ -772,7 +771,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         ModificationPrecondition<RoleType> precondition = o -> false;
 
         // WHEN
-        List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+        List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(RoleType.class)
                 .item(RoleType.F_DESCRIPTION).replace("123456")
                 .asItemDeltas();
         try {
@@ -799,7 +798,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         ModificationPrecondition<RoleType> precondition = new VersionPrecondition<>("9999");
 
         // WHEN
-        List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+        List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(RoleType.class)
                 .item(RoleType.F_DESCRIPTION).replace("123456")
                 .asItemDeltas();
         try {
@@ -826,7 +825,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         ModificationPrecondition<RoleType> precondition = new VersionPrecondition<>(versionBefore);
 
         // WHEN
-        List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+        List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(RoleType.class)
                 .item(RoleType.F_DESCRIPTION).replace("123456")
                 .asItemDeltas();
         repositoryService.modifyObject(RoleType.class, roleOid, itemDeltas, precondition, null, result);
@@ -856,7 +855,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         attr1.setRealValue("value1");
         attributes.asPrismContainerValue().add(attr1);
 
-        List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+        List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(ShadowType.class)
                 .item(ShadowType.F_ATTRIBUTES)
                 .replace(attributes)
                 .asItemDeltas();
@@ -886,7 +885,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         close(session);
 
         // delete
-        itemDeltas = DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+        itemDeltas = prismContext.deltaFor(ShadowType.class)
                 .item(ShadowType.F_ATTRIBUTES)
                 .delete(attributes.asPrismContainerValue().clone())
                 .asItemDeltas();
@@ -898,7 +897,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         close(session);
 
         // add
-        itemDeltas = DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+        itemDeltas = prismContext.deltaFor(ShadowType.class)
                 .item(ShadowType.F_ATTRIBUTES)
                 .add(attributes.asPrismContainerValue().clone())
                 .asItemDeltas();
@@ -947,7 +946,7 @@ public class ModifyTest extends BaseSQLRepoTest {
                 .type(UserType.COMPLEX_TYPE);
         repositoryService.addObject(collection.asPrismObject(), null, result);
 
-        List<ItemDelta<?, ?>> deltas1 = DeltaBuilder.deltaFor(ObjectCollectionType.class, prismContext)
+        List<ItemDelta<?, ?>> deltas1 = prismContext.deltaFor(ObjectCollectionType.class)
                 .item(ObjectCollectionType.F_NAME).replace(PolyString.fromOrig("collection2"))
                 .asItemDeltas();
         repositoryService.modifyObject(ObjectCollectionType.class, collection.getOid(), deltas1, result);
@@ -962,7 +961,7 @@ public class ModifyTest extends BaseSQLRepoTest {
                 .buildFilter();
         SearchFilterType filterBean = prismContext.getQueryConverter().createSearchFilterType(filter);
 
-        List<ItemDelta<?, ?>> deltas2 = DeltaBuilder.deltaFor(ObjectCollectionType.class, prismContext)
+        List<ItemDelta<?, ?>> deltas2 = prismContext.deltaFor(ObjectCollectionType.class)
                 .item(ObjectCollectionType.F_DESCRIPTION).replace("description")
                 .item(ObjectCollectionType.F_FILTER).replace(filterBean)
                 .asItemDeltas();
@@ -1014,7 +1013,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         // WHEN
 
-        List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+        List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(ShadowType.class)
                 .item(ShadowType.F_PENDING_OPERATION).add(new PendingOperationType(prismContext).executionStatus(COMPLETED))
                 .asItemDeltas();
         repositoryService.modifyObject(ShadowType.class, shadow.getOid(), itemDeltas, getModifyOptions(), result);
@@ -1056,7 +1055,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         // WHEN
 
-        List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+        List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(ShadowType.class)
                 .item(ShadowType.F_PENDING_OPERATION).replace()
                 .asItemDeltas();
         repositoryService.modifyObject(ShadowType.class, shadow.getOid(), itemDeltas, getModifyOptions(), result);

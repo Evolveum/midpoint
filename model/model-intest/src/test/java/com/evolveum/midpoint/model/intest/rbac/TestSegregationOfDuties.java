@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import org.springframework.test.annotation.DirtiesContext;
@@ -917,7 +916,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		ObjectDelta<UserType> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT).add(
 						ObjectTypeUtil.createAssignmentTo(ROLE_PRIZE_GOLD_ENFORCED_OID, ObjectTypes.ROLE, prismContext),
 						ObjectTypeUtil.createAssignmentTo(ROLE_PRIZE_SILVER_ENFORCED_OID, ObjectTypes.ROLE, prismContext))
@@ -950,7 +949,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		ObjectDelta<UserType> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT).add(
 						ObjectTypeUtil.createAssignmentTo(ROLE_PRIZE_GOLD_OID, ObjectTypes.ROLE, prismContext),
 						ObjectTypeUtil.createAssignmentTo(ROLE_PRIZE_SILVER_OID, ObjectTypes.ROLE, prismContext))
@@ -1280,7 +1279,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		ObjectDelta<UserType> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT).add(
 						ObjectTypeUtil.createAssignmentTo(ROLE_COLOR_RED_OID, ObjectTypes.ROLE, prismContext),
 						ObjectTypeUtil.createAssignmentTo(ROLE_COLOR_BLUE_OID, ObjectTypes.ROLE, prismContext),

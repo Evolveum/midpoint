@@ -28,7 +28,6 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.delta.builder.S_ValuesEntry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
@@ -471,7 +470,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 		}
 		definition = definition.clone();
 		definition.setMaxOccurs(1);
-		return DeltaBuilder.deltaFor(FocusType.class, prismContext)
+		return prismContext.deltaFor(FocusType.class)
 				.item(FocusType.F_ASSIGNMENT, definition);
 	}
 

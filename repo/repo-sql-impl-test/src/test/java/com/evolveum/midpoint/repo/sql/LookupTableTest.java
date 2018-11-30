@@ -18,7 +18,6 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -107,7 +106,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
     public void test200ModifyTableProperties() throws Exception {
         OperationResult result = new OperationResult("test200ModifyTableProperties");
 
-        List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(LookupTableType.class, prismContext)
+        List<ItemDelta<?,?>> modifications = prismContext.deltaFor(LookupTableType.class)
                 .item(F_NAME).replace(new PolyString("Table 1", "table 1"))
                 .asItemDeltas();
 
@@ -118,7 +117,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
     public void test210ModifyRowProperties() throws Exception {
         OperationResult result = new OperationResult("test210ModifyRowProperties");
 
-        List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(LookupTableType.class, prismContext)
+        List<ItemDelta<?,?>> modifications = prismContext.deltaFor(LookupTableType.class)
                 .item(F_ROW, 1, F_KEY).replace("key 1")
                 .item(F_ROW, 2, F_VALUE).replace()
                 .item(F_ROW, 3, F_LABEL).replace(new PolyString("label 3"))
@@ -139,7 +138,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
     public void test220AddRemoveValues() throws Exception {
         OperationResult result = new OperationResult("test220AddRemoveValues");
 
-        List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(LookupTableType.class, prismContext)
+        List<ItemDelta<?,?>> modifications = prismContext.deltaFor(LookupTableType.class)
                 .item(F_ROW, 1, F_VALUE).delete("first value")
                 .item(F_ROW, 2, F_VALUE).add("value 2")
                 .asItemDeltas();
@@ -150,7 +149,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
     public void test222ReplaceKeyToNull() throws Exception {
         OperationResult result = new OperationResult("test222ReplaceKeyToNull");
 
-        List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(LookupTableType.class, prismContext)
+        List<ItemDelta<?,?>> modifications = prismContext.deltaFor(LookupTableType.class)
                 .item(F_ROW, 1, F_KEY).replace()
                 .asItemDeltas();
         repositoryService.modifyObject(LookupTableType.class, tableOid, modifications, null, result);
@@ -160,7 +159,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
     public void test224DeleteKeyValue() throws Exception {
         OperationResult result = new OperationResult("test224DeleteKeyValue");
 
-        List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(LookupTableType.class, prismContext)
+        List<ItemDelta<?,?>> modifications = prismContext.deltaFor(LookupTableType.class)
                 .item(F_ROW, 1, F_KEY).delete("key 1")
                 .asItemDeltas();
         repositoryService.modifyObject(LookupTableType.class, tableOid, modifications, null, result);
@@ -170,7 +169,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
     public void test226AddKeylessRow() throws Exception {
         OperationResult result = new OperationResult("test226AddKeylessRow");
 
-        List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(LookupTableType.class, prismContext)
+        List<ItemDelta<?,?>> modifications = prismContext.deltaFor(LookupTableType.class)
                 .item(F_ROW).add(new LookupTableRowType())
                 .asItemDeltas();
         repositoryService.modifyObject(LookupTableType.class, tableOid, modifications, null, result);
@@ -182,7 +181,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
 
         LookupTableRowType row = new LookupTableRowType();
         row.setValue("value");
-        List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(LookupTableType.class, prismContext)
+        List<ItemDelta<?,?>> modifications = prismContext.deltaFor(LookupTableType.class)
                 .item(F_ROW).add(row)
                 .asItemDeltas();
         repositoryService.modifyObject(LookupTableType.class, tableOid, modifications, null, result);
@@ -192,7 +191,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
     public void test230ModifyTableAndRow() throws Exception {
         OperationResult result = new OperationResult("test230ModifyTableAndRow");
 
-        List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(LookupTableType.class, prismContext)
+        List<ItemDelta<?,?>> modifications = prismContext.deltaFor(LookupTableType.class)
                 .item(F_NAME).replace(new PolyString("Table 111", "table 111"))
                 .item(F_ROW, 2, F_KEY).replace("key 2")
                 .asItemDeltas();
@@ -218,7 +217,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
         row4.setKey("key 4");
         row4.setValue("value 4");
 
-        List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(LookupTableType.class, prismContext)
+        List<ItemDelta<?,?>> modifications = prismContext.deltaFor(LookupTableType.class)
                 .item(F_ROW).add(rowNoId, rowNoId2, row4)
                 .asItemDeltas();
 
@@ -240,7 +239,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
         row4.setKey("key 4");
         row4.setValue("value 4 NEW");
 
-        List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(LookupTableType.class, prismContext)
+        List<ItemDelta<?,?>> modifications = prismContext.deltaFor(LookupTableType.class)
                 .item(F_ROW).add(rowNoId, row4)
                 .asItemDeltas();
 
@@ -256,7 +255,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
         LookupTableRowType row3 = new LookupTableRowType(prismContext);
         row3.setId(3L);
 
-        List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(LookupTableType.class, prismContext)
+        List<ItemDelta<?,?>> modifications = prismContext.deltaFor(LookupTableType.class)
                 .item(F_ROW).delete(row3)
                 .asItemDeltas();
 
@@ -270,7 +269,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
         LookupTableRowType rowNoId = new LookupTableRowType(prismContext);
         rowNoId.setKey("non-existing-key");
 
-        List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(LookupTableType.class, prismContext)
+        List<ItemDelta<?,?>> modifications = prismContext.deltaFor(LookupTableType.class)
                 .item(F_ROW).delete(rowNoId)
                 .asItemDeltas();
 
@@ -301,7 +300,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
         LookupTableRowType row4 = new LookupTableRowType(prismContext);
         row4.setId(4L);
 
-        List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(LookupTableType.class, prismContext)
+        List<ItemDelta<?,?>> modifications = prismContext.deltaFor(LookupTableType.class)
                 .item(F_ROW).add(rowNoId, row5).delete(row4)
                 .asItemDeltas();
 
@@ -318,7 +317,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
         row5.setValue("value 5 plus");
         row5.setLastChangeTimestamp(XmlTypeConverter.createXMLGregorianCalendar(createDate(99, 3, 10)));
 
-        List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(LookupTableType.class, prismContext)
+        List<ItemDelta<?,?>> modifications = prismContext.deltaFor(LookupTableType.class)
                 .item(F_ROW).replace(row5)
                 .asItemDeltas();
 
@@ -333,7 +332,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
         rowNoId.setKey("key new plus");
         rowNoId.setValue("value now plus");
 
-        List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(LookupTableType.class, prismContext)
+        List<ItemDelta<?,?>> modifications = prismContext.deltaFor(LookupTableType.class)
                 .item(F_ROW).replace(rowNoId)
                 .asItemDeltas();
 

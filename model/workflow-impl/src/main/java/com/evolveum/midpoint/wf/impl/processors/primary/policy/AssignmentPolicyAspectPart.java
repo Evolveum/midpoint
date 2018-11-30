@@ -30,7 +30,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.delta.builder.S_ValuesEntry;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
@@ -345,7 +344,7 @@ public class AssignmentPolicyAspectPart {
 	private ObjectDelta<? extends FocusType> assignmentToDelta(Class<? extends Objectable> focusClass,
 			AssignmentType assignmentType, boolean assignmentRemoved, String objectOid) throws SchemaException {
 		PrismContainerValue value = assignmentType.clone().asPrismContainerValue();
-		S_ValuesEntry item = DeltaBuilder.deltaFor(focusClass, prismContext)
+		S_ValuesEntry item = prismContext.deltaFor(focusClass)
 				.item(FocusType.F_ASSIGNMENT);
 		S_ItemEntry op = assignmentRemoved ? item.delete(value) : item.add(value);
 		return op.asObjectDelta(objectOid);

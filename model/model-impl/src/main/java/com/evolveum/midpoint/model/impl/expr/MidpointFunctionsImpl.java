@@ -43,7 +43,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.marshaller.ItemPathParserTemp;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -1815,6 +1814,6 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
 	@Override
 	public <C extends Containerable> S_ItemEntry deltaFor(Class<C> objectClass) throws SchemaException {
-		return DeltaBuilder.deltaFor(objectClass, prismContext);
+		return prismContext.deltaFor(objectClass);
 	}
 }

@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -751,7 +750,7 @@ public class SearchTest extends BaseSQLRepoTest {
 
 		LOGGER.info("## changing description ##");
 		repositoryService.modifyObject(UserType.class, users.get(0).getOid(),
-				DeltaBuilder.deltaFor(UserType.class, prismContext)
+				prismContext.deltaFor(UserType.class)
 						.item(UserType.F_DESCRIPTION).replace(newDescription)
 						.asItemDeltas(),
 				result);
@@ -759,7 +758,7 @@ public class SearchTest extends BaseSQLRepoTest {
 		// just to see SQL used
 		LOGGER.info("## changing telephoneNumber ##");
 		repositoryService.modifyObject(UserType.class, users.get(0).getOid(),
-				DeltaBuilder.deltaFor(UserType.class, prismContext)
+				prismContext.deltaFor(UserType.class)
 						.item(UserType.F_TELEPHONE_NUMBER).replace("123456")
 						.asItemDeltas(),
 				result);
@@ -787,13 +786,13 @@ public class SearchTest extends BaseSQLRepoTest {
 
         OperationResult result = new OperationResult("fullTextSearchModify");
         repositoryService.modifyObject(TaskType.class, "777",
-                DeltaBuilder.deltaFor(UserType.class, prismContext)
+                prismContext.deltaFor(UserType.class)
                         .item(TaskType.F_NAME).replace(PolyString.fromOrig("TASK with no owner"))
                         .asItemDeltas(),
                 result);
 
         repositoryService.modifyObject(TaskType.class, "777",
-                DeltaBuilder.deltaFor(UserType.class, prismContext)
+                prismContext.deltaFor(UserType.class)
                         .item(TaskType.F_NAME).replace(PolyString.fromOrig("Task with no owner"))
                         .asItemDeltas(),
                 result);
