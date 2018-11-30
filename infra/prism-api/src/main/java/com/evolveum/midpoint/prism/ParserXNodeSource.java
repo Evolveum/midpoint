@@ -16,10 +16,9 @@
 
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.prism.xnode.RootXNodeImpl;
+import com.evolveum.midpoint.prism.xnode.RootXNode;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
 import java.io.InputStream;
 
 /**
@@ -27,20 +26,20 @@ import java.io.InputStream;
  */
 public class ParserXNodeSource implements ParserSource {
 
-	@NotNull private final RootXNodeImpl xnode;
+	@NotNull private final RootXNode xnode;
 
-	public ParserXNodeSource(@NotNull RootXNodeImpl xnode) {
+	public ParserXNodeSource(@NotNull RootXNode xnode) {
 		this.xnode = xnode;
 	}
 
 	@NotNull
-	public RootXNodeImpl getXNode() {
+	public RootXNode getXNode() {
 		return xnode;
 	}
 
 	@NotNull
 	@Override
-	public InputStream getInputStream() throws IOException {
+	public InputStream getInputStream() {
 		throw new UnsupportedOperationException();
 	}
 

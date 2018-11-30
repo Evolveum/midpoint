@@ -45,7 +45,7 @@ public class NullLexicalProcessor implements LexicalProcessor<XNodeImpl> {
 		if (!(source instanceof ParserXNodeSource)) {
 			throw new IllegalStateException("Unsupported parser source: " + source.getClass().getName());
 		}
-		return ((ParserXNodeSource) source).getXNode();
+		return (RootXNodeImpl) ((ParserXNodeSource) source).getXNode();
 	}
 
 	@NotNull
