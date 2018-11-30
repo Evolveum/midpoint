@@ -15031,8 +15031,27 @@
 					        </xsd:documentation>
 					    </xsd:annotation>
 		            </xsd:element>
+		            <xsd:element name="baseCollection" type="tns:CollectionSpecificationType" minOccurs="0" maxOccurs="1">
+					    <xsd:annotation>
+					        <xsd:documentation>
+					        	<p>
+						        	Collection used as a base for this collection. In this case this collection may be
+						        	a "concretization" of another collection. E.g. to create "active employees" collection
+						        	use base collection referrence to "employees" archetype. And this collection adds a filer
+						        	that selects only active user. The resulting collection will be a combination of those two.
+					        	</p>
+					        	<p>
+					        		This mechanism may also be used without additional search filter to create a "named collection"
+					        		for a collection that has quite a complex specification.
+					        		E.g. "all managers in our company" or "owners of roles in role catalog".
+					        	</p>
+					        </xsd:documentation>
+						    <xsd:appinfo>
+								<a:since>4.0</a:since>
+							</xsd:appinfo>
+					    </xsd:annotation>
+		            </xsd:element>
 		            <!-- Note: collection references such as domanin or baseCollection may point to collection or archetype. Maybe even to org or role. -->
-		            <!-- TODO: baseCollection: if this collection is a "concretization" of another collection. I.e. this collection selects only some parts of another collection. -->
 		            <!-- TODO: domain (filter or reference to another collection) -->
 		            <!-- TODO: tresholds (actions should be performed by policy rules) -->
 		            <!-- TODO(maybe): default view specification, e.g. default set of columns, search, etc. -->
@@ -15041,6 +15060,164 @@
 		</xsd:complexContent>
 	</xsd:complexType>
 	<xsd:element name="objectCollection" type="tns:ObjectCollectionType" substitutionGroup="c:object"/>
+
+    <xsd:complexType name="CollectionSpecificationType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Specification of an explicit or implicit object collection.
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="collectionRef" type="tns:ObjectReferenceType" minOccurs="1" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Referrence to an object that defines the base of implicit or explicit collection.
+						This may be ObjectCollectionType or any subclass of AbstractRoleType.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+						<a:displayName>CollectionSpecificationType.collectionRef</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="interpretation" type="tns:CollectionSpecificationInterpretationType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							Method how implicit or explicit object collection should be interpreted.
+						</p>
+						<p>
+							If no interpretation is defined then the interpretation depends on the type
+							of object referenced in collectionRef. The default favors "native", the most
+							specific interpretation. Therefore if collectionRef points to an archetype then
+							"archetype" interpretation is assumed. Similarly for orgs and collections where
+							"org" and "explicit" interpretations are assumed. For roles and services only
+							"assignment" interpretation is possible.
+						</p>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+						<a:displayName>CollectionSpecificationType.interpretation</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="relation" type="xsd:QName" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Relation parameter for collection interpretations that depend on relation.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+						<a:displayName>CollectionSpecificationType.relation</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="depth" type="tns:CollectionSpecificationDepthType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Depth parameter for collection interpretations that allow distinction between direct and indirect relation.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+						<a:displayName>CollectionSpecificationType.depth</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<!-- TODO: Status may be added here later: all/active/active+delegated -->
+		</xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:simpleType name="CollectionSpecificationInterpretationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Method how implicit or explicit object collection should be interpreted.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="assignment">
+				<xsd:annotation>
+					<xsd:documentation>
+						Assignment-based interpretation of a collection. Selects objects that have
+						assignment to the reference object. For example, selects all owners of a role.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="ASSIGNMENT"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="explicit">
+				<xsd:annotation>
+					<xsd:documentation>
+						Explicit collection interpretation. This mode is only valid if a reference object
+						is ObjectCollectionType. In that case explicit collection instructions in the
+						ObjectCollectionType (e.g. filter) will be used to select objects.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="EXPLICIT"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="archetype">
+				<xsd:annotation>
+					<xsd:documentation>
+						Archetype collection interpretation. This mode is only valid if a reference object
+						is ArchetypeType. In this case all objects of a given archetype are selected. 
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="ARCHETYPE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="org">
+				<xsd:annotation>
+					<xsd:documentation>
+						Org-based collection interpretation. This mode is only valid if a reference object
+						is OrgType. In this case all objects that belong to given organizational unit (or subtree)
+						are selected. 
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="ORG"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+    <xsd:simpleType name="CollectionSpecificationDepthType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Depth parameter for collection interpretations that allow distinction between direct and indirect relation.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="direct">
+				<xsd:annotation>
+					<xsd:documentation>
+						Only directly related objects are considered.
+						E.g. direct organization structure sub-orgs (one level), direct assignments, etc.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="DIRECT"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="transitive">
+				<xsd:annotation>
+					<xsd:documentation>
+						Both direct and indirect objects are considered.
+						E.g. all organization structure sub-orgs (subtree), both direct and indirect assignments, etc.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="TRANSITIVE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
 
 	<xsd:complexType name="InternalsConfigurationType">
         <xsd:annotation>
@@ -15142,12 +15319,27 @@
       						such as Users, Roles, Orgs, ...
 						</p>
 						<p>
-							Note: name of this element is wrong. It should be objectViews or objectListViews.
+							DEPRECATED because name of this element is wrong. Use objectCollectionViews element instead.
 						</p>
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.4</a:since>
 						<a:displayName>AdminGuiConfigurationType.objectLists</a:displayName>
+						<a:deprecated>true</a:deprecated>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="objectCollectionViews" type="tns:GuiObjectListViewsType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							Specifies the set of pages that are used for displaying lists of objects
+      						such as Users, Roles, Orgs, ...
+						</p>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+						<a:displayName>AdminGuiConfigurationType.objectCollectionViews</a:displayName>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -20477,10 +20669,22 @@
            		<xsd:element name="objectList" type="tns:GuiObjectListViewType" minOccurs="0" maxOccurs="unbounded">
            			<xsd:annotation>
            				<xsd:documentation>
-           					Note: in fact name of this element is wrong. It should be objectView or objectListView.
+           					DEPRECATED because name of this element is wrong. Use objectCollectionView instead.
            				</xsd:documentation>
 						<xsd:appinfo>
 							<a:displayName>GuiObjectListViewsType.objectList</a:displayName>
+							<a:deprecated>true</a:deprecated>
+						</xsd:appinfo>
+           			</xsd:annotation>
+           		</xsd:element>
+           		<xsd:element name="objectCollectionView" type="tns:GuiObjectListViewType" minOccurs="0" maxOccurs="unbounded">
+           			<xsd:annotation>
+           				<xsd:documentation>
+           					Specifies a view of an object collection (list).
+           				</xsd:documentation>
+						<xsd:appinfo>
+							<a:displayName>GuiObjectListViewsType.objectCollectionView</a:displayName>
+							<a:since>4.0</a:since>
 						</xsd:appinfo>
            			</xsd:annotation>
            		</xsd:element>
@@ -20584,15 +20788,27 @@
 							</xsd:appinfo>
 	       				</xsd:annotation>
 	       			</xsd:element>
-	       			<xsd:element name="collectionRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+	       			<xsd:element name="collection" type="tns:CollectionSpecificationType" minOccurs="0" maxOccurs="unbounded">
 	       				<xsd:annotation>
 	       					<xsd:documentation>
-	       						Reference to object collection that will be used to select objects in this view.
+	       						Specification of an explicit or implicit object collection that will be used to select objects in this view.
 	       						If no collection is specified then it is assumed that all objects of a particular
 	       						type has to be displayed (type element above is mandatory in that case).
 	       					</xsd:documentation>
 	       					<xsd:appinfo>
+	       						<a:since>4.0</a:since>
+								<a:displayName>GuiObjectListViewType.collection</a:displayName>
+	       					</xsd:appinfo>
+	       				</xsd:annotation>
+	       			</xsd:element>
+	       			<xsd:element name="collectionRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+	       				<xsd:annotation>
+	       					<xsd:documentation>
+	       						DEPRECATED. Use "collection" element instead.
+	       					</xsd:documentation>
+	       					<xsd:appinfo>
 	       						<a:since>3.9</a:since>
+	       						<a:deprecated>true</a:deprecated>
 	       						<!-- Reference target type defeinition is NOT here by purpose. Later on we might want
 	       						     archetypes (meta-roles), services and orgs to work as implicit collections. Therefore
 	       						     this reference may point to various object types. By NOT specifying default ObjectCollectionType
@@ -20645,7 +20861,7 @@
          	</xsd:extension>
        	</xsd:complexContent>
     </xsd:complexType>
-    
+        
     <xsd:complexType name="GuiObjectListViewAdditionalPanelsType">
         <xsd:annotation>
         	<xsd:documentation>
