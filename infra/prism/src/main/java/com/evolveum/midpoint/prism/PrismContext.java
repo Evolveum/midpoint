@@ -21,6 +21,8 @@ import com.evolveum.midpoint.prism.crypto.ProtectorCreator;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.marshaller.JaxbDomHack;
 import com.evolveum.midpoint.prism.marshaller.ParsingMigrator;
+import com.evolveum.midpoint.prism.path.CanonicalItemPath;
+import com.evolveum.midpoint.prism.path.CanonicalItemPathImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
@@ -316,4 +318,14 @@ public interface PrismContext extends ProtectorCreator {
 	 * Temporary
 	 */
 	UniformItemPath toUniformPath(ItemPath path);
+
+	/**
+	 * Temporary
+	 */
+	CanonicalItemPath createCanonicalItemPath(ItemPath itemPath, Class<? extends Containerable> clazz);
+
+	/**
+	 * Temporary
+	 */
+	CanonicalItemPath createCanonicalItemPath(ItemPath itemPath);
 }

@@ -16,30 +16,16 @@
 
 package com.evolveum.midpoint.prism.path;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContext;
-
 import java.io.Serializable;
-import java.util.List;
 
 /**
  * @author mederly
  */
 public interface CanonicalItemPath extends Serializable {
 
-	static CanonicalItemPathImpl create(ItemPath itemPath, Class<? extends Containerable> clazz, PrismContext prismContext) {
-		return new CanonicalItemPathImpl(itemPath, clazz, prismContext);
-	}
-
-	static CanonicalItemPath create(ItemPath itemPath) {
-		return new CanonicalItemPathImpl(itemPath, null, null);
-	}
-
-	List<CanonicalItemPathImpl.Segment> getSegments();
-
 	int size();
 
-	CanonicalItemPathImpl allUpToIncluding(int n);
+	CanonicalItemPath allUpToIncluding(int n);
 
 	String asString();
 

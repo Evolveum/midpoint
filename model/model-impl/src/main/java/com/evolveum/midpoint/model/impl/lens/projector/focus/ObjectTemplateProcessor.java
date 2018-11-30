@@ -516,7 +516,7 @@ public class ObjectTemplateProcessor {
 			}
 			for (AutoassignMappingType autoMapping: focalAutoassignSpec.getMapping()) {
 				AutoassignMappingType mapping = autoMapping.clone();
-				setMappingTarget(mapping, prismContext.path(SchemaConstants.PATH_ASSIGNMENT).asItemPathType()); // todo
+				setMappingTarget(mapping, (ItemPathType) prismContext.path(SchemaConstants.PATH_ASSIGNMENT).asItemPathType()); // todo
 				mappings.add(new FocalMappingSpec(mapping, role.asObjectable()));
 				LOGGER.trace("Collected autoassign mapping {} from {}", mapping.getName(), role);
 			}

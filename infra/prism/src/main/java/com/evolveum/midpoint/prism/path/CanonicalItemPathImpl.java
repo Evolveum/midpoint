@@ -78,11 +78,11 @@ public class CanonicalItemPathImpl implements CanonicalItemPath {
 		return new CanonicalItemPathImpl(itemPath, null, null);
 	}
 
-	CanonicalItemPathImpl(List<Segment> segments) {
+	private CanonicalItemPathImpl(List<Segment> segments) {
 		this.segments.addAll(segments);
 	}
 
-	CanonicalItemPathImpl(ItemPath path, Class<? extends Containerable> clazz, PrismContext prismContext) {
+	public CanonicalItemPathImpl(ItemPath path, Class<? extends Containerable> clazz, PrismContext prismContext) {
 		ItemDefinition def = clazz != null && prismContext != null ?
 				prismContext.getSchemaRegistry().findContainerDefinitionByCompileTimeClass(clazz) : null;
 		while (!ItemPath.isEmpty(path)) {

@@ -56,8 +56,6 @@ import com.evolveum.midpoint.gui.api.component.path.ItemPathPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil.Channel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.path.CanonicalItemPath;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -405,7 +403,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         }
         if (search.getChangedItem().toItemPath() != null) {
             ItemPath itemPath = search.getChangedItem().toItemPath();
-            parameters.put(AuditEventRecordProvider.PARAMETER_CHANGED_ITEM, CanonicalItemPath.create(itemPath).asString());
+            parameters.put(AuditEventRecordProvider.PARAMETER_CHANGED_ITEM, getPrismContext().createCanonicalItemPath(itemPath).asString());
         }
         parameters.put(AuditEventRecordProvider.PARAMETER_EVENT_TYPE, search.getEventType());
         parameters.put(AuditEventRecordProvider.PARAMETER_EVENT_STAGE, search.getEventStage());

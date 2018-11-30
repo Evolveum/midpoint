@@ -579,4 +579,14 @@ public class PrismContextImpl implements PrismContext {
 	public UniformItemPath toUniformPath(ItemPath path) {
 		return UniformItemPathImpl.fromItemPath(path);
 	}
+
+	@Override
+	public CanonicalItemPath createCanonicalItemPath(ItemPath itemPath, Class<? extends Containerable> clazz) {
+		return new CanonicalItemPathImpl(itemPath, clazz, this);
+	}
+
+	@Override
+	public CanonicalItemPath createCanonicalItemPath(ItemPath itemPath) {
+		return new CanonicalItemPathImpl(itemPath, null, null);
+	}
 }

@@ -33,6 +33,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeClass;
@@ -75,8 +76,8 @@ public class SearchTest extends BaseSQLRepoTest {
 
 		FullTextSearchConfigurationType fullTextConfig = new FullTextSearchConfigurationType();
 		FullTextSearchIndexedItemsConfigurationType entry = new FullTextSearchIndexedItemsConfigurationType();
-		entry.getItem().add(prismContext.path(ObjectType.F_NAME).asItemPathType());
-		entry.getItem().add(prismContext.path(ObjectType.F_DESCRIPTION).asItemPathType());
+		entry.getItem().add((ItemPathType) prismContext.path(ObjectType.F_NAME).asItemPathType());
+		entry.getItem().add((ItemPathType) prismContext.path(ObjectType.F_DESCRIPTION).asItemPathType());
 		fullTextConfig.getIndexed().add(entry);
 		repositoryService.applyFullTextSearchConfiguration(fullTextConfig);
 		LOGGER.info("Applying full text search configuration: {}", fullTextConfig);
