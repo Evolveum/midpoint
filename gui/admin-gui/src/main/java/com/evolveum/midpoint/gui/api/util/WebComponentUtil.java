@@ -2868,8 +2868,9 @@ public final class WebComponentUtil {
 		LOGGER.debug("Loading objects which can be assigned");
 		try {
 			ModelInteractionService mis = pageBase.getModelInteractionService();
+			// TODO: set proper assignmentOrder (MID-5005)
 			RoleSelectionSpecification roleSpec =
-					mis.getAssignableRoleSpecification(focusObject, type, task, result);
+					mis.getAssignableRoleSpecification(focusObject, type, 0, task, result);
 			filter = roleSpec.getFilter();
 		} catch (Exception ex) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load available roles", ex);

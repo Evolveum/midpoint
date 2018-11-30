@@ -147,8 +147,9 @@ public interface ModelInteractionService {
      * Returns an object that defines which roles can be assigned by the currently logged-in user.
      *
      * @param focus Object of the operation. The object (usually user) to whom the roles should be assigned.
+     * @param assignmentOrder order=0 means assignment, order>0 means inducement
      */
-    <F extends FocusType, R extends AbstractRoleType> RoleSelectionSpecification getAssignableRoleSpecification(PrismObject<F> focus, Class<R> targetType, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException;
+    <F extends FocusType, R extends AbstractRoleType> RoleSelectionSpecification getAssignableRoleSpecification(PrismObject<F> focus, Class<R> targetType, int assignmentOrder, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException;
 
     /**
      * Returns filter for lookup of donors or power of attorney. The donors are the users that have granted

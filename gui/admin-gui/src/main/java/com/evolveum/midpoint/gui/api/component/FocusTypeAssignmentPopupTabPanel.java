@@ -103,8 +103,9 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
         ObjectFilter filter = null;
         try {
             ModelInteractionService mis = getPageBase().getModelInteractionService();
+            // TODO: set proper assignmentOrder (MID-5005)
             RoleSelectionSpecification roleSpec =
-                    mis.getAssignableRoleSpecification(getTargetedAssignemntObject(), (Class<AbstractRoleType>) getObjectType().getClassDefinition(), task, result);
+                    mis.getAssignableRoleSpecification(getTargetedAssignemntObject(), (Class<AbstractRoleType>) getObjectType().getClassDefinition(), 0, task, result);
             filter = roleSpec.getFilter();
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load available roles", ex);
