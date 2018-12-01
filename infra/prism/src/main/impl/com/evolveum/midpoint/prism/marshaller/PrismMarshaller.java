@@ -364,7 +364,7 @@ public class PrismMarshaller {
         }
         SearchFilterType filter = value.getFilter();
         if (filter != null) {
-            XNodeImpl xsubnode = filter.serializeToXNode();
+            XNodeImpl xsubnode = (XNodeImpl) filter.serializeToXNode(beanMarshaller.getPrismContext());
 			if (xsubnode != null) {
 				xmap.put(createReferenceQName(XNodeImpl.KEY_REFERENCE_FILTER, namespace), xsubnode);
 			}

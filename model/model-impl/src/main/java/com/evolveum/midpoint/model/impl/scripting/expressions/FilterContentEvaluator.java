@@ -70,7 +70,7 @@ public class FilterContentEvaluator extends BaseExpressionEvaluator {
     }
 
     private List<UniformItemPath> convert(List<ItemPathType> paths) {
-        return paths.stream().map(p -> p.getUniformItemPath()).collect(Collectors.toList());
+        return paths.stream().map(p -> prismContext.toUniformPath(p)).collect(Collectors.toList());
     }
 
 }

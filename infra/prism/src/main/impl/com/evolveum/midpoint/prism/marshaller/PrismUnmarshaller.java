@@ -610,12 +610,12 @@ public class PrismUnmarshaller {
     }
 
     private ItemDefinition locateItemDefinition(@NotNull QName itemName, @Nullable ComplexTypeDefinition complexTypeDefinition,
-            XNodeImpl xnode) throws SchemaException {
+            XNode xnode) throws SchemaException {
         return getSchemaRegistry()
                 .locateItemDefinition(itemName, complexTypeDefinition, qName -> createDynamicItemDefinition(qName, xnode));
     }
 
-    private ItemDefinition createDynamicItemDefinition(QName itemName, XNodeImpl node)  {
+    private ItemDefinition createDynamicItemDefinition(QName itemName, XNode node)  {
         if (node == null) {
             return null;
         }
@@ -666,7 +666,7 @@ public class PrismUnmarshaller {
 
 	//TODO
     public <T extends Containerable> ItemDefinition locateItemDefinition(
-            @NotNull PrismContainerDefinition<T> containerDefinition, @NotNull QName itemName, @Nullable XNodeImpl xnode)
+            @NotNull PrismContainerDefinition<T> containerDefinition, @NotNull QName itemName, @Nullable XNode xnode)
             throws SchemaException {
         return locateItemDefinition(itemName, containerDefinition.getComplexTypeDefinition(), xnode);
     }

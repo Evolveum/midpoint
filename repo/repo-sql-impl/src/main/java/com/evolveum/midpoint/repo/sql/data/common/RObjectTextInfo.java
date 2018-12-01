@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
@@ -131,10 +132,10 @@ public class RObjectTextInfo implements Serializable {
 		if (!FullTextSearchConfigurationUtil.isEnabled(config)) {
 			return Collections.emptySet();
 		}
-		Set<UniformItemPath> paths = FullTextSearchConfigurationUtil.getFullTextSearchItemPaths(config, object.getClass());
+		Set<ItemPath> paths = FullTextSearchConfigurationUtil.getFullTextSearchItemPaths(config, object.getClass());
 
 		List<PrismValue> values = new ArrayList<>();
-		for (UniformItemPath path : paths) {
+		for (ItemPath path : paths) {
 			Object o = object.asPrismObject().find(path);
 			if (o == null) {
 				// shouldn't occur

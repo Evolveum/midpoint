@@ -30,7 +30,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -325,7 +325,8 @@ public class ModelRestService {
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_GET);
 
 		Class<? extends ObjectType> clazz = ObjectTypes.getClassFromRestType(type);
-		Collection<SelectorOptions<GetOperationOptions>> getOptions = GetOperationOptions.fromRestOptions(options, include, exclude, DefinitionProcessingOption.ONLY_IF_EXISTS);
+		Collection<SelectorOptions<GetOperationOptions>> getOptions = GetOperationOptions.fromRestOptions(options, include, exclude, DefinitionProcessingOption.ONLY_IF_EXISTS,
+				prismContext);
 		Response response;
 
 		try {
@@ -456,7 +457,8 @@ public class ModelRestService {
 		Response response;
 		try {
 
-			Collection<SelectorOptions<GetOperationOptions>> searchOptions = GetOperationOptions.fromRestOptions(options, include, exclude, DefinitionProcessingOption.ONLY_IF_EXISTS);
+			Collection<SelectorOptions<GetOperationOptions>> searchOptions = GetOperationOptions.fromRestOptions(options, include, exclude, DefinitionProcessingOption.ONLY_IF_EXISTS,
+					prismContext);
 
 			List<PrismObject<T>> objects = modelService.searchObjects(clazz, null, searchOptions, task, parentResult);
 			ObjectListType listType = new ObjectListType();
@@ -722,7 +724,8 @@ public class ModelRestService {
 		Response response;
 		try {
 			ObjectQuery query = prismContext.getQueryConverter().createObjectQuery(clazz, queryType);
-			Collection<SelectorOptions<GetOperationOptions>> searchOptions = GetOperationOptions.fromRestOptions(options, include, exclude, DefinitionProcessingOption.ONLY_IF_EXISTS);
+			Collection<SelectorOptions<GetOperationOptions>> searchOptions = GetOperationOptions.fromRestOptions(options, include, exclude, DefinitionProcessingOption.ONLY_IF_EXISTS,
+					prismContext);
 			List<PrismObject<? extends ObjectType>> objects = model.searchObjects(clazz, query, searchOptions, task, parentResult);
 
 			ObjectListType listType = new ObjectListType();
@@ -743,7 +746,7 @@ public class ModelRestService {
 	}
 
 	private void removeExcludes(PrismObject<? extends ObjectType> object, List<String> exclude) {
-		object.getValue().removePaths(ItemPathCollectionsUtil.pathListFromStrings(exclude));
+		object.getValue().removePaths(ItemPathCollectionsUtil.pathListFromStrings(exclude, prismContext));
 	}
 
 	@POST
@@ -949,7 +952,7 @@ public class ModelRestService {
 		Response response;
 		try {
 			ResponseBuilder builder;
-			List<UniformItemPath> ignoreItemPaths = ItemPathCollectionsUtil.pathListFromStrings(restIgnoreItems);
+			List<ItemPath> ignoreItemPaths = ItemPathCollectionsUtil.pathListFromStrings(restIgnoreItems, prismContext);
 			final GetOperationOptions getOpOptions = GetOperationOptions.fromRestOptions(restReadOptions, DefinitionProcessingOption.ONLY_IF_EXISTS);
 			Collection<SelectorOptions<GetOperationOptions>> readOptions =
 					getOpOptions != null ? SelectorOptions.createCollection(getOpOptions) : null;

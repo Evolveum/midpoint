@@ -14,28 +14,17 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.prism.xnode;
+package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.prism.Visitable;
-import com.evolveum.midpoint.util.DebugDumpable;
-
-import javax.xml.namespace.QName;
-import java.io.Serializable;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  *
  */
-public interface XNode extends DebugDumpable, Visitable, Cloneable, Serializable {
-	
-	boolean isEmpty();
+public interface ItemPathParser {
 
-	QName getTypeQName();
+	ItemPathType asItemPathType(String value);
 
-	RootXNode toRootXNode();
-
-	boolean isExplicitTypeDeclaration();
-
-	XNode clone();
-
-	Integer getMaxOccurs();
+	UniformItemPath asItemPath(String value);
 }

@@ -366,11 +366,11 @@ public class ObjectDeltaUpdater {
             return false;
         }
 
-        Set<UniformItemPath> paths = FullTextSearchConfigurationUtil.getFullTextSearchItemPaths(config, type);
+        Set<ItemPath> paths = FullTextSearchConfigurationUtil.getFullTextSearchItemPaths(config, type);
 
         for (ItemDelta modification : modifications) {
             UniformItemPath namesOnly = modification.getPath().namedSegmentsOnly();
-            for (UniformItemPath path : paths) {
+            for (ItemPath path : paths) {
                 if (path.startsWith(namesOnly)) {
                     return true;
                 }

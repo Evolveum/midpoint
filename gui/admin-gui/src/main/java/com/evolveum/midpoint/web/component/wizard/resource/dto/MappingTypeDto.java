@@ -138,7 +138,7 @@ public class MappingTypeDto implements Serializable {
 
         if(target != null){
         	VariableBindingDefinitionType mappingTarget = new VariableBindingDefinitionType();
-            mappingTarget.setPath(new ItemPathType(target));
+            mappingTarget.setPath(prismContext.itemPathParser().asItemPathType(target));
             mappingObject.setTarget(mappingTarget);
         } else {
             mappingObject.setTarget(null);
@@ -152,7 +152,7 @@ public class MappingTypeDto implements Serializable {
             }
 
             VariableBindingDefinitionType mappingSource = new VariableBindingDefinitionType();
-            mappingSource.setPath(new ItemPathType(s));
+            mappingSource.setPath(prismContext.itemPathParser().asItemPathType(s));
             mappingSourceList.add(mappingSource);
         }
 

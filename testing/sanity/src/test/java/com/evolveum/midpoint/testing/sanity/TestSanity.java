@@ -1465,7 +1465,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         ItemDeltaType passwordDelta = new ItemDeltaType();
         passwordDelta.setModificationType(ModificationTypeType.REPLACE);
-        passwordDelta.setPath(ModelClientUtil.createItemPathType("credentials/password/value"));
+        passwordDelta.setPath(ModelClientUtil.createItemPathType("credentials/password/value", prismContext));
         ProtectedStringType pass = new ProtectedStringType();
         pass.setClearValue(NEW_PASSWORD);
         XNode passValue = ((PrismContextImpl) prismContext).getBeanMarshaller().marshall(pass);
@@ -3894,7 +3894,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         ItemDeltaType passwordDelta = new ItemDeltaType();
         passwordDelta.setModificationType(ModificationTypeType.REPLACE);
-        passwordDelta.setPath(ModelClientUtil.createItemPathType("credentials/password/value"));
+        passwordDelta.setPath(ModelClientUtil.createItemPathType("credentials/password/value", prismContext));
         RawType passwordValue = new RawType(((PrismContextImpl) prismContext).getBeanMarshaller().marshall(ModelClientUtil.createProtectedString(newPassword)), prismContext);
         passwordDelta.getValue().add(passwordValue);
 

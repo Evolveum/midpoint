@@ -736,7 +736,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		ItemDeltaType propMod = new ItemDeltaType();
 		//create modification path
 		Document doc = DOMUtil.getDocument();
-		ItemPathType path = new ItemPathType("credentials/password/value");
+		ItemPathType path = prismContext.itemPathParser().asItemPathType("credentials/password/value");
 //		PropertyPath propPath = new PropertyPath(new PropertyPath(ResourceObjectShadowType.F_CREDENTIALS), CredentialsType.F_PASSWORD);
 		propMod.setPath(path);
 

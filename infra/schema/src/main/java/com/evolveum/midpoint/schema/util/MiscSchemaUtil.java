@@ -118,10 +118,10 @@ public class MiscSchemaUtil {
 		return list;
 	}
 
-	public static Collection<UniformItemPath> itemReferenceListTypeToItemPathList(PropertyReferenceListType resolve) {
+	public static Collection<UniformItemPath> itemReferenceListTypeToItemPathList(PropertyReferenceListType resolve, PrismContext prismContext) {
 		Collection<UniformItemPath> itemPathList = new ArrayList<>(resolve.getProperty().size());
 		for (ItemPathType itemXPathElement: resolve.getProperty()) {
-			itemPathList.add(itemXPathElement.getUniformItemPath());
+			itemPathList.add(prismContext.toUniformPath(itemXPathElement));
 		}
 		return itemPathList;
 	}
@@ -136,7 +136,7 @@ public class MiscSchemaUtil {
 		return optionsType;
 	}
 
-	private static SelectorQualifiedGetOptionType selectorOptionToSelectorQualifiedGetOptionType(SelectorOptions<GetOperationOptions> selectorOption){
+	private static SelectorQualifiedGetOptionType selectorOptionToSelectorQualifiedGetOptionType(SelectorOptions<GetOperationOptions> selectorOption) {
 		OptionObjectSelectorType selectorType = selectorToSelectorType(selectorOption.getSelector());
 		GetOperationOptionsType getOptionsType = getOptionsToGetOptionsType(selectorOption.getOptions());
 		SelectorQualifiedGetOptionType selectorOptionType = new SelectorQualifiedGetOptionType();
@@ -172,19 +172,21 @@ public class MiscSchemaUtil {
 		 return optionsType;
 	 }
 
-	 public static List<SelectorOptions<GetOperationOptions>> optionsTypeToOptions(SelectorQualifiedGetOptionsType objectOptionsType) {
+	 public static List<SelectorOptions<GetOperationOptions>> optionsTypeToOptions(
+			 SelectorQualifiedGetOptionsType objectOptionsType, PrismContext prismContext) {
 		if (objectOptionsType == null) {
 			return null;
 		}
 		List<SelectorOptions<GetOperationOptions>> retval = new ArrayList<>();
 		for (SelectorQualifiedGetOptionType optionType : objectOptionsType.getOption()) {
-			retval.add(selectorQualifiedGetOptionTypeToSelectorOption(optionType));
+			retval.add(selectorQualifiedGetOptionTypeToSelectorOption(optionType, prismContext));
 		}
 		return retval;
 	}
 
-	private static SelectorOptions<GetOperationOptions> selectorQualifiedGetOptionTypeToSelectorOption(SelectorQualifiedGetOptionType objectOptionsType) {
-		ObjectSelector selector = selectorTypeToSelector(objectOptionsType.getSelector());
+	private static SelectorOptions<GetOperationOptions> selectorQualifiedGetOptionTypeToSelectorOption(
+			SelectorQualifiedGetOptionType objectOptionsType, PrismContext prismContext) {
+		ObjectSelector selector = selectorTypeToSelector(objectOptionsType.getSelector(), prismContext);
 		GetOperationOptions options = getOptionsTypeToGetOptions(objectOptionsType.getOptions());
 		return new SelectorOptions<>(selector, options);
 	}
@@ -207,11 +209,12 @@ public class MiscSchemaUtil {
 		return options;
 	}
 
-    private static ObjectSelector selectorTypeToSelector(OptionObjectSelectorType selectorType) {
+    private static ObjectSelector selectorTypeToSelector(OptionObjectSelectorType selectorType,
+		    PrismContext prismContext) {
 		if (selectorType == null) {
 			return null;
 		}
-		return new ObjectSelector(selectorType.getPath().getUniformItemPath());
+		return new ObjectSelector(prismContext.toUniformPath(selectorType.getPath()));
 	}
 
     /**

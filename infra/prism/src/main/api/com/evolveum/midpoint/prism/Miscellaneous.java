@@ -23,6 +23,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedDataType;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
 import javax.xml.soap.Detail;
@@ -47,4 +48,8 @@ public interface Miscellaneous {
 	void putToMapXNode(MapXNode map, QName key, XNode value);
 
 	<T> void parseProtectedType(ProtectedDataType<T> protectedType, MapXNode xmap, PrismContext prismContext, ParsingContext pc) throws SchemaException;
+
+	Element serializeSingleElementMapToElement(MapXNode filterClauseXNode) throws SchemaException;
+
+	void setXNodeType(XNode node, QName explicitTypeName, boolean explicitTypeDeclaration);
 }

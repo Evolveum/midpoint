@@ -118,7 +118,7 @@ public class TestQueryConverter {
 		System.out.println(convertedQueryType.debugDump());
 
 		SearchFilterType convertedFilterType = convertedQueryType.getFilter();
-		MapXNode xFilter = convertedFilterType.serializeToXNode();
+		MapXNode xFilter = convertedFilterType.serializeToXNode(getPrismContext());
 		PrismAsserts.assertSize(xFilter, 1);
 		PrismAsserts.assertSubnode(xFilter, AndFilter.ELEMENT_NAME, MapXNode.class);
 		MapXNode xandmap = (MapXNode) xFilter.get(AndFilter.ELEMENT_NAME);

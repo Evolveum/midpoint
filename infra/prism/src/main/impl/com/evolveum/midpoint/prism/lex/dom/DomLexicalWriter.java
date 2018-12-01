@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.prism.lex.dom;
 
+import com.evolveum.midpoint.prism.marshaller.ItemPathHolder;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
@@ -292,7 +293,7 @@ public class DomLexicalWriter {
                 if (asAttribute) {
                     throw new UnsupportedOperationException("Serializing ItemPath as an attribute is not supported yet");
                 }
-                element = itemPathType.serializeToElement(elementOrAttributeName, parentElement.getOwnerDocument());
+                element = serializeItemPathTypeToElement(itemPathType, elementOrAttributeName, parentElement.getOwnerDocument());
                 parentElement.appendChild(element);
             }
 
@@ -397,6 +398,10 @@ public class DomLexicalWriter {
 			return qname;
 		}
 		return namespacePrefixMapper.setQNamePrefixExplicit(qname);
+	}
+
+	public Element serializeItemPathTypeToElement(ItemPathType itemPathType, QName elementName, Document ownerDocument) {
+		return ItemPathHolder.serializeToElement(itemPathType.getItemPath(), elementName, ownerDocument);
 	}
 
 }

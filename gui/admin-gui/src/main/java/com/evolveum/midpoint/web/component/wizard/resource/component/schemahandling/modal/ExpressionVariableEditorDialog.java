@@ -252,7 +252,7 @@ public class ExpressionVariableEditorDialog extends ModalWindow {
 
 	private void savePerformed(AjaxRequestTarget target) {
 		if (model != null && model.getObject() != null) {
-			model.getObject().prepareDtoToSave();
+			model.getObject().prepareDtoToSave(getPageBase().getPrismContext());
 			inputModel.setObject(model.getObject().getVariableObject());
 		}
 

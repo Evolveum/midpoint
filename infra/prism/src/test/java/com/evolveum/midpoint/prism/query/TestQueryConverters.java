@@ -31,6 +31,7 @@ import java.io.IOException;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.xnode.MapXNode;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
@@ -132,7 +133,7 @@ public class TestQueryConverters {
 		System.out.println(convertedQueryType.debugDump());
 
 		SearchFilterType convertedFilterType = convertedQueryType.getFilter();
-		MapXNodeImpl xFilter = convertedFilterType.serializeToXNode();
+		MapXNode xFilter = convertedFilterType.serializeToXNode(getPrismContext());
 		PrismAsserts.assertSize(xFilter, 1);
 		PrismAsserts.assertSubnode(xFilter, AndFilter.ELEMENT_NAME, MapXNodeImpl.class);
 		MapXNodeImpl xandmap = (MapXNodeImpl) xFilter.get(AndFilter.ELEMENT_NAME);

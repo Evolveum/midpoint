@@ -141,6 +141,12 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode, Map<QName, XNod
 		return subnodes.get(0);
 	}
 
+	@Override
+	public RootXNode getSingleSubEntryAsRoot(String errorContext) throws SchemaException {
+		java.util.Map.Entry<QName, XNodeImpl> entry = getSingleSubEntry(errorContext);
+		return entry != null ? new RootXNodeImpl(entry.getKey(), entry.getValue()) : null;
+	}
+
 	public Entry getSingleEntryThatDoesNotMatch(QName... excludedKeys) throws SchemaException {
 		Entry found = null;
 		OUTER: for (Entry subentry: subnodes) {
@@ -479,4 +485,13 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode, Map<QName, XNod
         }
     }
 
+	@Override
+	public MapXNodeImpl clone() {
+		return (MapXNodeImpl) super.clone();        // fixme brutal hack
+	}
+
+	@Override
+	public Map<QName, ? extends XNode> asMap() {
+		return this;
+	}
 }

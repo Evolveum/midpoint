@@ -16,13 +16,12 @@
 
 package com.evolveum.midpoint.prism.path;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.*;
-
-import static com.evolveum.midpoint.prism.path.UniformItemPathImpl.EMPTY_PATH;
 
 /**
  * Methods that operate on path collections.
@@ -130,11 +129,12 @@ public class ItemPathCollectionsUtil {
 	}
 
 	@NotNull
-	public static List<UniformItemPath> pathListFromStrings(List<String> pathsAsStrings) {
-		List<UniformItemPath> rv = new ArrayList<>();
+	public static List<ItemPath> pathListFromStrings(List<String> pathsAsStrings,
+			PrismContext prismContext) {
+		List<ItemPath> rv = new ArrayList<>();
 		if (pathsAsStrings != null) {
 			for (String pathAsString : pathsAsStrings) {
-				rv.add(new ItemPathType(pathAsString).getUniformItemPath());
+				rv.add(prismContext.itemPathParser().asItemPath(pathAsString));
 			}
 		}
 		return rv;

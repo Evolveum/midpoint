@@ -465,7 +465,7 @@ public class BeanMarshaller {
     }
 
     private XNodeImpl marshalRawType(Object value, SerializationContext sc) throws SchemaException {
-        return ((RawType) value).serializeToXNode();
+        return (XNodeImpl) ((RawType) value).serializeToXNode();
 	}
 
     private XNodeImpl marshalItemPathType(Object o, SerializationContext sc) {
@@ -513,7 +513,7 @@ public class BeanMarshaller {
 		if (value == null) {
 			return null;
 		}
-		return value.serializeToXNode();
+		return (MapXNodeImpl) value.serializeToXNode(prismContext);
 	}
 
 	//endregion

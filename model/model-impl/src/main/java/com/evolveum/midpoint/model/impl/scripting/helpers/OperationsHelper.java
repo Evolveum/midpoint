@@ -85,7 +85,7 @@ public class OperationsHelper {
 
     public Collection<SelectorOptions<GetOperationOptions>> createGetOptions(SelectorQualifiedGetOptionsType optionsBean, boolean noFetch) {
         LOGGER.trace("optionsBean = {}, noFetch = {}", optionsBean, noFetch);
-        Collection<SelectorOptions<GetOperationOptions>> rv = MiscSchemaUtil.optionsTypeToOptions(optionsBean);
+        Collection<SelectorOptions<GetOperationOptions>> rv = MiscSchemaUtil.optionsTypeToOptions(optionsBean, prismContext);
         if (noFetch) {
             if (rv == null) {
                 return SelectorOptions.createCollection(GetOperationOptions.createNoFetch());

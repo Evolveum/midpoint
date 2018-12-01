@@ -16,7 +16,9 @@
 
 package com.evolveum.midpoint.prism;
 
+import com.evolveum.midpoint.prism.lex.dom.DomLexicalProcessor;
 import com.evolveum.midpoint.prism.marshaller.XNodeProcessorUtil;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xnode.*;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -24,6 +26,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedDataType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
 import javax.xml.soap.Detail;
@@ -88,5 +91,17 @@ public class MiscellaneousImpl implements Miscellaneous {
 	@Override
 	public <T> void parseProtectedType(ProtectedDataType<T> protectedType, MapXNode xmap, PrismContext prismContext, ParsingContext pc) throws SchemaException {
 		XNodeProcessorUtil.parseProtectedType(protectedType, (MapXNodeImpl) xmap, prismContext, pc);
+	}
+
+	@Override
+	public Element serializeSingleElementMapToElement(MapXNode filterClauseXNode) throws SchemaException {
+		DomLexicalProcessor domParser = PrismUtil.getDomParser(prismContext);
+		return domParser.serializeSingleElementMapToElement(filterClauseXNode);
+	}
+
+	@Override
+	public void setXNodeType(XNode node, QName explicitTypeName, boolean explicitTypeDeclaration) {
+		((XNodeImpl) node).setTypeQName(explicitTypeName);
+		((XNodeImpl) node).setExplicitTypeDeclaration(explicitTypeDeclaration);
 	}
 }

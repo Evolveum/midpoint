@@ -554,7 +554,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 	protected Collection<SelectorOptions<GetOperationOptions>> createSearchOptionsFromTask(H resultHandler, TaskRunResult runResult,
 			Task coordinatorTask, OperationResult opResult) {
 		SelectorQualifiedGetOptionsType opts = getRealValue(coordinatorTask.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_SEARCH_OPTIONS));
-		return MiscSchemaUtil.optionsTypeToOptions(opts);
+		return MiscSchemaUtil.optionsTypeToOptions(opts, prismContext);
 	}
 
 	protected Boolean getUseRepositoryDirectlyFromTask(H resultHandler, TaskRunResult runResult,

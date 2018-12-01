@@ -23,6 +23,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -296,9 +297,9 @@ public class DeltaConvertor {
     public static <IV extends PrismValue,ID extends ItemDefinition> ItemDelta<IV,ID> createItemDelta(ItemDeltaType propMod, PrismContainerDefinition<?> pcDef, boolean allowRawValues) throws
     SchemaException {
     	ItemPathType parentPathType = propMod.getPath();
-    	UniformItemPath parentPath = null;
-    	if (parentPathType != null){
-    		parentPath = parentPathType.getUniformItemPath();
+    	ItemPath parentPath;
+    	if (parentPathType != null) {
+    		parentPath = parentPathType.getItemPath();
     	} else {
     		throw new IllegalStateException("Path argument in the itemDelta HAVE TO BE specified.");
     	}

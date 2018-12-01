@@ -175,7 +175,7 @@ public class TestModelWebServiceNegative extends AbstractInitializedModelIntegra
 		objectChange.setObjectType(ObjectTypes.SHADOW.getTypeQName());
 		ItemDeltaType itemDeltaType = new ItemDeltaType();
 		itemDeltaType.setModificationType(ModificationTypeType.REPLACE);
-		ItemPathType itemPath = new ItemPathType(path);
+		ItemPathType itemPath = prismContext.itemPathParser().asItemPathType(path);
 		itemDeltaType.setPath(itemPath);
 		ValueParser<String> valueParser = new ValueParser<String>() {
 			@Override

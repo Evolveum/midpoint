@@ -115,10 +115,10 @@ public class ResourceActivationEditor extends BasePanel<ResourceActivationDefini
         if(activation.getExistence() == null){
             activation.setExistence(new ResourceBidirectionalMappingType());
         } else {
-            for(MappingType mapping: activation.getExistence().getInbound()){
+            for(MappingType mapping: activation.getExistence().getInbound()) {
                 if(mapping.equals(new MappingType())){
                 	VariableBindingDefinitionType source = new VariableBindingDefinitionType();
-                    source.setPath(new ItemPathType(EXISTENCE_DEFAULT_SOURCE));
+                    source.setPath(getPrismContext().itemPathParser().asItemPathType(EXISTENCE_DEFAULT_SOURCE));
                     mapping.getSource().add(source);
                 }
             }
@@ -130,11 +130,11 @@ public class ResourceActivationEditor extends BasePanel<ResourceActivationDefini
             for(MappingType outbound: activation.getAdministrativeStatus().getOutbound()){
                 if(outbound.equals(new MappingType())){
                 	VariableBindingDefinitionType source = new VariableBindingDefinitionType();
-                    source.setPath(new ItemPathType(ADM_STATUS_OUT_SOURCE_DEFAULT));
+                    source.setPath(getPrismContext().itemPathParser().asItemPathType(ADM_STATUS_OUT_SOURCE_DEFAULT));
                     outbound.getSource().add(source);
 
                     VariableBindingDefinitionType target = new VariableBindingDefinitionType();
-                    target.setPath(new ItemPathType(ADM_STATUS_OUT_TARGET_DEFAULT));
+                    target.setPath(getPrismContext().itemPathParser().asItemPathType(ADM_STATUS_OUT_TARGET_DEFAULT));
                     outbound.setTarget(target);
                 }
             }
@@ -142,11 +142,11 @@ public class ResourceActivationEditor extends BasePanel<ResourceActivationDefini
             for(MappingType inbound: activation.getAdministrativeStatus().getInbound()){
                 if(inbound.equals(new MappingType())){
                     VariableBindingDefinitionType source = new VariableBindingDefinitionType();
-                    source.setPath(new ItemPathType(ADM_STATUS_IN_SOURCE_DEFAULT));
+                    source.setPath(getPrismContext().itemPathParser().asItemPathType(ADM_STATUS_IN_SOURCE_DEFAULT));
                     inbound.getSource().add(source);
 
                     VariableBindingDefinitionType target = new VariableBindingDefinitionType();
-                    target.setPath(new ItemPathType(ADM_STATUS_IN_TARGET_DEFAULT));
+                    target.setPath(getPrismContext().itemPathParser().asItemPathType(ADM_STATUS_IN_TARGET_DEFAULT));
                     inbound.setTarget(target);
                 }
             }
@@ -158,11 +158,11 @@ public class ResourceActivationEditor extends BasePanel<ResourceActivationDefini
             for(MappingType outbound: activation.getValidFrom().getOutbound()){
                 if(outbound.equals(new MappingType())){
                     VariableBindingDefinitionType source = new VariableBindingDefinitionType();
-                    source.setPath(new ItemPathType(VALID_FROM_OUT_SOURCE_DEFAULT));
+                    source.setPath(getPrismContext().itemPathParser().asItemPathType(VALID_FROM_OUT_SOURCE_DEFAULT));
                     outbound.getSource().add(source);
 
                     VariableBindingDefinitionType target = new VariableBindingDefinitionType();
-                    target.setPath(new ItemPathType(VALID_FROM_OUT_TARGET_DEFAULT));
+                    target.setPath(getPrismContext().itemPathParser().asItemPathType(VALID_FROM_OUT_TARGET_DEFAULT));
                     outbound.setTarget(target);
                 }
             }
@@ -170,11 +170,11 @@ public class ResourceActivationEditor extends BasePanel<ResourceActivationDefini
             for(MappingType inbound: activation.getValidFrom().getInbound()){
                 if(inbound.equals(new MappingType())){
                     VariableBindingDefinitionType source = new VariableBindingDefinitionType();
-                    source.setPath(new ItemPathType(VALID_FROM_IN_SOURCE_DEFAULT));
+                    source.setPath(getPrismContext().itemPathParser().asItemPathType(VALID_FROM_IN_SOURCE_DEFAULT));
                     inbound.getSource().add(source);
 
                     VariableBindingDefinitionType target = new VariableBindingDefinitionType();
-                    target.setPath(new ItemPathType(VALID_FROM_IN_TARGET_DEFAULT));
+                    target.setPath(getPrismContext().itemPathParser().asItemPathType(VALID_FROM_IN_TARGET_DEFAULT));
                     inbound.setTarget(target);
                 }
             }
@@ -186,11 +186,11 @@ public class ResourceActivationEditor extends BasePanel<ResourceActivationDefini
             for(MappingType outbound: activation.getValidTo().getOutbound()){
                 if(outbound.equals(new MappingType())){
                     VariableBindingDefinitionType source = new VariableBindingDefinitionType();
-                    source.setPath(new ItemPathType(VALID_TO_OUT_SOURCE_DEFAULT));
+                    source.setPath(getPrismContext().itemPathParser().asItemPathType(VALID_TO_OUT_SOURCE_DEFAULT));
                     outbound.getSource().add(source);
 
                     VariableBindingDefinitionType target = new VariableBindingDefinitionType();
-                    target.setPath(new ItemPathType(VALID_TO_OUT_TARGET_DEFAULT));
+                    target.setPath(getPrismContext().itemPathParser().asItemPathType(VALID_TO_OUT_TARGET_DEFAULT));
                     outbound.setTarget(target);
                 }
             }
@@ -198,11 +198,11 @@ public class ResourceActivationEditor extends BasePanel<ResourceActivationDefini
             for(MappingType inbound: activation.getValidTo().getInbound()){
                 if(inbound.equals(new MappingType())){
                     VariableBindingDefinitionType source = new VariableBindingDefinitionType();
-                    source.setPath(new ItemPathType(VALID_TO_IN_SOURCE_DEFAULT));
+                    source.setPath(getPrismContext().itemPathParser().asItemPathType(VALID_TO_IN_SOURCE_DEFAULT));
                     inbound.getSource().add(source);
 
                     VariableBindingDefinitionType target = new VariableBindingDefinitionType();
-                    target.setPath(new ItemPathType(VALID_TO_IN_TARGET_DEFAULT));
+                    target.setPath(getPrismContext().itemPathParser().asItemPathType(VALID_TO_IN_TARGET_DEFAULT));
                     inbound.setTarget(target);
                 }
             }

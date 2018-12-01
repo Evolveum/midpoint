@@ -44,6 +44,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringNormalizerConfigurationType;
 
 import org.jetbrains.annotations.NotNull;
@@ -81,6 +82,7 @@ public class PrismContextImpl implements PrismContext {
 	@NotNull private final DeltaFactory deltaFactory;
 	@NotNull private final ItemFactory itemFactory;
 	@NotNull private final DefinitionFactory definitionFactory;
+	@NotNull private final ItemPathParser itemPathParser;
 
 	private ParsingMigrator parsingMigrator;
 	private PrismMonitor monitor = null;
@@ -117,6 +119,7 @@ public class PrismContextImpl implements PrismContext {
 		this.deltaFactory = new DeltaFactoryImpl(this);
 		this.itemFactory = new ItemFactoryImpl(this);
 		this.definitionFactory = new DefinitionFactoryImpl(this);
+		this.itemPathParser = new ItemPathParserImpl(this);
 
 		try {
 			configurePolyStringNormalizer(null);
@@ -591,6 +594,11 @@ public class PrismContextImpl implements PrismContext {
 	}
 
 	@Override
+	public UniformItemPath toUniformPath(ItemPathType path) {
+		return UniformItemPathImpl.fromItemPath(path.getItemPath());
+	}
+
+	@Override
 	public CanonicalItemPath createCanonicalItemPath(ItemPath itemPath, Class<? extends Containerable> clazz) {
 		return new CanonicalItemPathImpl(itemPath, clazz, this);
 	}
@@ -621,5 +629,11 @@ public class PrismContextImpl implements PrismContext {
 	@Override
 	public DefinitionFactory definitionFactory() {
 		return definitionFactory;
+	}
+
+	@NotNull
+	@Override
+	public ItemPathParser itemPathParser() {
+		return itemPathParser;
 	}
 }

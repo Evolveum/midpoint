@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.testing.sanity;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaOperationListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
@@ -80,9 +81,9 @@ public class ModelClientUtil {
 		return createTextElement(COMMON_PATH, pathDeclaration, doc);
 	}
 
-    public static ItemPathType createItemPathType(String stringPath) {
+    public static ItemPathType createItemPathType(String stringPath, PrismContext prismContext) {
         String pathDeclaration = "declare default namespace '" + NS_COMMON + "'; " + stringPath;
-        ItemPathType itemPathType = new ItemPathType(pathDeclaration);
+        ItemPathType itemPathType = prismContext.itemPathParser().asItemPathType(pathDeclaration);
         return itemPathType;
     }
 

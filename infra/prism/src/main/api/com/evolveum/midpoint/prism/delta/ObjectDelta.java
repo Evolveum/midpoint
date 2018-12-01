@@ -332,10 +332,10 @@ public interface ObjectDelta<O extends Objectable> extends DebugDumpable, Visita
 	}
 
 	@NotNull
-	FactorOutResultSingle<O> factorOut(Collection<UniformItemPath> paths, boolean cloneDelta);
+	FactorOutResultSingle<O> factorOut(Collection<? extends ItemPath> paths, boolean cloneDelta);
 
 	@NotNull
-	FactorOutResultMulti<O> factorOutValues(UniformItemPath path, boolean cloneDelta) throws SchemaException;
+	FactorOutResultMulti<O> factorOutValues(ItemPath path, boolean cloneDelta) throws SchemaException;
 
 	/*
 	 * Some comments for modify deltas:

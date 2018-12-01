@@ -402,16 +402,16 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 	void setOriginTypeRecursive(final OriginType originType);
 
 	// TODO optimize a bit + test thoroughly
-	void keepPaths(List<UniformItemPath> keep);
+	void keepPaths(List<? extends ItemPath> keep);
 
 	// TODO optimize a bit + test thoroughly
-	void removePaths(List<UniformItemPath> remove);
+	void removePaths(List<? extends ItemPath> remove);
 
 	@NotNull
 	@Override
 	Collection<PrismValue> getAllValues(ItemPath path);
 
-	void removeItems(List<UniformItemPath> itemsToRemove);
+	void removeItems(List<? extends ItemPath> itemsToRemove);
 
 	void removeOperationalItems();
 

@@ -156,7 +156,7 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
 			}
 		}
 		for (ItemPathType path : constraint.getItem()) {
-			UniformItemPath itemPath = path.getUniformItemPath();
+			UniformItemPath itemPath = prismContext.toUniformPath(path);
 			if (ctx.inPlus && !pathMatches(ctx.evaluatedAssignment.getAssignmentType(false), itemPath) ||
 					ctx.inMinus && !pathMatches(ctx.evaluatedAssignment.getAssignmentType(true), itemPath) ||
 					ctx.inZero && !pathMatches(ctx.evaluatedAssignment.getAssignmentIdi().getSubItemDeltas(), itemPath, exactMatch)) {

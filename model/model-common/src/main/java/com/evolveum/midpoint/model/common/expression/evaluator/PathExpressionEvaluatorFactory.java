@@ -76,7 +76,7 @@ public class PathExpressionEvaluatorFactory extends AbstractObjectResolvableExpr
 		        throw new IllegalArgumentException("Path expression cannot handle elements of type "
 		        		+ evaluatorElementObject.getClass().getName()+" in "+contextDescription);
 		}
-        UniformItemPath path = ((ItemPathType)evaluatorElementObject).getUniformItemPath();
+        UniformItemPath path = prismContext.toUniformPath(((ItemPathType)evaluatorElementObject).getItemPath());
 
         return new PathExpressionEvaluator<>(path, getObjectResolver(), outputDefinition, protector, prismContext);
 

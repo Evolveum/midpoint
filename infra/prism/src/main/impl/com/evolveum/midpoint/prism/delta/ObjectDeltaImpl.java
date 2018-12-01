@@ -1069,7 +1069,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
 	}
 
 	@NotNull
-	public FactorOutResultSingle<O> factorOut(Collection<UniformItemPath> paths, boolean cloneDelta) {
+	public FactorOutResultSingle<O> factorOut(Collection<? extends ItemPath> paths, boolean cloneDelta) {
 		if (isAdd()) {
 			return factorOutForAddDelta(paths, cloneDelta);
 		} else if (isDelete()) {
@@ -1080,7 +1080,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
 	}
 
 	@NotNull
-	public FactorOutResultMulti<O> factorOutValues(UniformItemPath path, boolean cloneDelta) throws SchemaException {
+	public FactorOutResultMulti<O> factorOutValues(ItemPath path, boolean cloneDelta) throws SchemaException {
 		if (isAdd()) {
 			return factorOutValuesForAddDelta(path, cloneDelta);
 		} else if (isDelete()) {
@@ -1099,7 +1099,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
 	 * involving splitting value-to-be-added into remainder and offspring delta. It's probably doable,
 	 * but some conditions would have to be met, e.g. inducement to be added must have an ID.
 	 */
-	private FactorOutResultSingle<O> factorOutForModifyDelta(Collection<UniformItemPath> paths, boolean cloneDelta) {
+	private FactorOutResultSingle<O> factorOutForModifyDelta(Collection<? extends ItemPath> paths, boolean cloneDelta) {
 		ObjectDeltaImpl<O> remainder = cloneIfRequested(cloneDelta);
 		ObjectDeltaImpl<O> offspring = null;
 		List<ItemDelta<?, ?>> modificationsFound = new ArrayList<>();
@@ -1117,9 +1117,9 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
 		return new FactorOutResultSingle<>(remainder, offspring);
 	}
 
-	private FactorOutResultSingle<O> factorOutForAddDelta(Collection<UniformItemPath> paths, boolean cloneDelta) {
+	private FactorOutResultSingle<O> factorOutForAddDelta(Collection<? extends ItemPath> paths, boolean cloneDelta) {
 		List<Item<?, ?>> itemsFound = new ArrayList<>();
-		for (UniformItemPath path : paths) {
+		for (ItemPath path : paths) {
 			Item<?, ?> item = objectToAdd.findItem(path);
 			if (item != null && !item.isEmpty()) {
 				itemsFound.add(item);
@@ -1150,7 +1150,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
 	 * involving splitting value-to-be-added into remainder and offspring delta. It's probably doable,
 	 * but some conditions would have to be met, e.g. inducement to be added must have an ID.
 	 */
-	private FactorOutResultMulti<O> factorOutValuesForModifyDelta(UniformItemPath path, boolean cloneDelta) throws SchemaException {
+	private FactorOutResultMulti<O> factorOutValuesForModifyDelta(ItemPath path, boolean cloneDelta) throws SchemaException {
 		ObjectDeltaImpl<O> remainder = cloneIfRequested(cloneDelta);
 		FactorOutResultMulti<O> rv = new FactorOutResultMulti<>(remainder);
 
@@ -1211,7 +1211,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
 		return delta;
 	}
 
-	private FactorOutResultMulti<O> factorOutValuesForAddDelta(UniformItemPath path, boolean cloneDelta) {
+	private FactorOutResultMulti<O> factorOutValuesForAddDelta(ItemPath path, boolean cloneDelta) {
 		Item<?, ?> item = objectToAdd.findItem(path);
 		if (item == null || item.isEmpty()) {
 			return new FactorOutResultMulti<>(this);

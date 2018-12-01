@@ -118,11 +118,11 @@ public class QueryConverterImpl implements QueryConverter {
 		return parseFilterInternal(xmap, pcd, false, null);
 	}
 
-	private <O extends Containerable> ObjectFilter parseFilter(MapXNodeImpl xmap, PrismContainerDefinition<O> def) throws SchemaException {
+	private <O extends Containerable> ObjectFilter parseFilter(MapXNode xmap, PrismContainerDefinition<O> def) throws SchemaException {
 		if (xmap == null) {
 			return null;
 		}
-		return parseFilterInternal(xmap, def, false, null);
+		return parseFilterInternal((MapXNodeImpl) xmap, def, false, null);
 	}
 
     public ObjectFilter parseFilter(@NotNull SearchFilterType filter, @NotNull Class<? extends Containerable> clazz) throws SchemaException {
@@ -669,7 +669,7 @@ public class QueryConverterImpl implements QueryConverter {
 			throw new SchemaException("Expected that field "+key+" will be primitive, but it is "+xnode.getDesc());
 		}
 		ItemPathType itemPathType = clauseXMap.getParsedPrimitiveValue(key, ItemPathType.COMPLEX_TYPE);
-		return itemPathType != null ? itemPathType.getUniformItemPath() : null;
+		return itemPathType != null ? prismContext.toUniformPath(itemPathType) : null;
 	}
 
 	private QName getMatchingRule(MapXNodeImpl xmap) throws SchemaException{
@@ -999,8 +999,8 @@ public class QueryConverterImpl implements QueryConverter {
      * when serializing raw (unparsed) paths and QNames - see MID-1969.
      */
     @Override
-    public void parseFilterPreliminarily(MapXNodeImpl xfilter, ParsingContext pc) throws SchemaException {
-        parseFilterInternal(xfilter, null, true, pc);
+    public void parseFilterPreliminarily(MapXNode xfilter, ParsingContext pc) throws SchemaException {
+        parseFilterInternal((MapXNodeImpl) xfilter, null, true, pc);
     }
 
 	public <O extends Objectable> ObjectQuery createObjectQuery(Class<O> clazz, QueryType queryType)
@@ -1055,7 +1055,7 @@ public class QueryConverterImpl implements QueryConverter {
 			ObjectQuery query = new ObjectQuery();
 
 			if (filterType != null && filterType.containsFilterClause()) {
-				MapXNodeImpl rootFilter = filterType.getFilterClauseXNode();
+				MapXNodeImpl rootFilter = (MapXNodeImpl) filterType.getFilterClauseXNode();
 				ObjectFilter filter = parseFilter(rootFilter, objDef);
 				query.setFilter(filter);
 			}

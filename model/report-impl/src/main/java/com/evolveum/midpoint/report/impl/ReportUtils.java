@@ -494,7 +494,7 @@ public class ReportUtils {
                     return "";
                 }
 
-                Object parsedRealValue = ((RawType) value).getParsedRealValue(null, itemPath.getUniformItemPath());
+                Object parsedRealValue = ((RawType) value).getParsedRealValue(null, itemPath.getItemPath());
                 if (parsedRealValue instanceof Containerable) { // this is for PCV
                     return prettyPrintForReport(((Containerable) parsedRealValue).asPrismContainerValue());
                 }

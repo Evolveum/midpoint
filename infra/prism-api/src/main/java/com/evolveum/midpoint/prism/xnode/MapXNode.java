@@ -36,13 +36,18 @@ public interface MapXNode extends XNode, Serializable, DebugDumpable {
 
 	boolean isEmpty();
 
-	XNode clone();
+	MapXNode clone();
 
 	int size();
 
 	Set<QName> keySet();
 
+	RootXNode getEntryAsRoot(@NotNull QName key);
+
 	Map.Entry<QName, ? extends XNode> getSingleSubEntry(String errorContext) throws SchemaException;
 
-	RootXNode getEntryAsRoot(@NotNull QName key);
+	RootXNode getSingleSubEntryAsRoot(String errorContext) throws SchemaException;
+
+	// EXPERIMENTAL
+	Map<QName, ? extends XNode> asMap();
 }

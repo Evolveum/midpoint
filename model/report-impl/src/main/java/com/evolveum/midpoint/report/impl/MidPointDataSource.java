@@ -75,7 +75,7 @@ public class MidPointDataSource implements JRDataSource{
 			return currentObject;
 		}
 
-		ItemPathType itemPathType = new ItemPathType(fieldName);
+		ItemPathType itemPathType = new ItemPathType(ItemPath.create(fieldName));
 		ItemPath path = itemPathType.getItemPath();
 		Item i = currentObject.findItem(path);
 		if (i == null) {

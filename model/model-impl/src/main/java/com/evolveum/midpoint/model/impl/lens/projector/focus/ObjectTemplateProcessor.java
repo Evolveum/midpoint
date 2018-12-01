@@ -310,7 +310,7 @@ public class ObjectTemplateProcessor {
 			if (def.getRef() == null) {
 				throw new IllegalStateException("Item definition with null ref in " + contextDesc);
 			}
-			ItemPathCollectionsUtil.putToMap(definitions, def.getRef().getUniformItemPath(), def);	// TODO check for incompatible overrides
+			ItemPathCollectionsUtil.putToMap(definitions, prismContext.toUniformPath(def.getRef()), def);	// TODO check for incompatible overrides
 		}
 		return definitions;
 	}
@@ -606,7 +606,7 @@ public class ObjectTemplateProcessor {
 		ItemPath targetPath = mapping2.getTarget().getPath().getItemPath().stripVariableSegment();
 
 		for (VariableBindingDefinitionType source : mapping1.getSource()) {
-			UniformItemPath sourcePath = source.getPath() != null ? source.getPath().getUniformItemPath() : null;
+			UniformItemPath sourcePath = source.getPath() != null ? prismContext.toUniformPath(source.getPath()) : null;
 			if (sourcePath != null && stripFocusVariableSegment(sourcePath).equivalent(targetPath)) {
 				return true;
 			}
@@ -700,7 +700,7 @@ public class ObjectTemplateProcessor {
 			if (source.getPath() == null) {
 				continue;
 			}
-			UniformItemPath path = stripFocusVariableSegment(source.getPath().getUniformItemPath());
+			UniformItemPath path = stripFocusVariableSegment(prismContext.toUniformPath(source.getPath()));
 			if (path.startsWithVariable()) {
 				continue;
 			}

@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNodeImpl;
 import com.evolveum.midpoint.prism.xnode.RootXNodeImpl;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -281,7 +282,7 @@ public class PrismTestUtil {
     }
 
 	public static void displaySearchFilterType(SearchFilterType filterType) throws SchemaException {
-        MapXNodeImpl mapXNode = filterType.getFilterClauseXNode();
+        MapXNode mapXNode = filterType.getFilterClauseXNode();
 
         String dumpX = mapXNode.debugDump();
         LOGGER.info(dumpX);

@@ -549,7 +549,7 @@ public class SchemaTransformer {
                 if (ref == null) {
 				throw new SchemaException("No 'ref' in item definition in "+objectTemplateType);
                 }
-                UniformItemPath itemPath = ref.getUniformItemPath();
+                UniformItemPath itemPath = prismContext.toUniformPath(ref);
                 ItemDefinition itemDef = objectDefinition.findItemDefinition(itemPath);
                 if (itemDef != null) {
                     applyObjectTemplateItem(itemDef, templateItemDefType, "item " + itemPath + " in object type " + objectDefinition.getTypeName() + " as specified in item definition in " + objectTemplateType);
@@ -574,7 +574,7 @@ public class SchemaTransformer {
 			if (ref == null) {
 				throw new SchemaException("No 'ref' in item definition in "+objectTemplateType);
 			}
-			UniformItemPath itemPath = ref.getUniformItemPath();
+			UniformItemPath itemPath = prismContext.toUniformPath(ref);
 			ItemDefinition itemDefFromObject = object.getDefinition().findItemDefinition(itemPath);
             if (itemDefFromObject != null) {
                 applyObjectTemplateItem(itemDefFromObject, templateItemDefType, "item " + itemPath + " in " + object

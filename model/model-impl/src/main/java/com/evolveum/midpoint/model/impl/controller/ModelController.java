@@ -1686,7 +1686,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	@Override
 	public <T extends ObjectType> CompareResultType compareObject(PrismObject<T> provided,
 			Collection<SelectorOptions<GetOperationOptions>> rawReadOptions, ModelCompareOptions compareOptions,
-			@NotNull List<UniformItemPath> ignoreItems, Task task, OperationResult parentResult)
+			@NotNull List<? extends ItemPath> ignoreItems, Task task, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
 			ConfigurationException, ExpressionEvaluationException {
 		Validate.notNull(provided, "Object must not be null or empty.");
@@ -1745,7 +1745,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		return rv;
 	}
 
-	private <T extends ObjectType> void removeIgnoredItems(PrismObject<T> object, List<UniformItemPath> ignoreItems) {
+	private <T extends ObjectType> void removeIgnoredItems(PrismObject<T> object, List<? extends ItemPath> ignoreItems) {
 		if (object != null) {
 			object.getValue().removeItems(ignoreItems);
 		}

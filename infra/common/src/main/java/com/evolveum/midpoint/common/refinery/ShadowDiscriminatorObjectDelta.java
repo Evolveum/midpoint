@@ -140,14 +140,14 @@ public class ShadowDiscriminatorObjectDelta<T extends Objectable> implements Obj
 
 	@Override
 	@NotNull
-	public FactorOutResultSingle<T> factorOut(Collection<UniformItemPath> paths,
+	public FactorOutResultSingle<T> factorOut(Collection<? extends ItemPath> paths,
 			boolean cloneDelta) {
 		return objectDelta.factorOut(paths, cloneDelta);
 	}
 
 	@Override
 	@NotNull
-	public FactorOutResultMulti<T> factorOutValues(UniformItemPath path, boolean cloneDelta) throws SchemaException {
+	public FactorOutResultMulti<T> factorOutValues(ItemPath path, boolean cloneDelta) throws SchemaException {
 		return objectDelta.factorOutValues(path, cloneDelta);
 	}
 

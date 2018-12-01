@@ -159,7 +159,7 @@ public class ObjectPolicyAspectPart {
 				addIgnoreNull(rv, out.offspring);
 			} else {
 				assert sourceSpec.getItemValue() != null;
-				ObjectDelta.FactorOutResultMulti<T> out = focusDelta.factorOutValues(sourceSpec.getItemValue().getUniformItemPath(), false);
+				ObjectDelta.FactorOutResultMulti<T> out = focusDelta.factorOutValues(prismContext.toUniformPath(sourceSpec.getItemValue()), false);
 				rv.addAll(out.offsprings);
 			}
 		}

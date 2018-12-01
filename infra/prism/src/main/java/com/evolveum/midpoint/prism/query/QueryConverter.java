@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.prism.query;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNodeImpl;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.prism.xnode.XNodeImpl;
@@ -47,7 +48,7 @@ public interface QueryConverter {
 	 * @param xfilter
 	 * @param pc
 	 */
-	void parseFilterPreliminarily(MapXNodeImpl xfilter, ParsingContext pc) throws SchemaException;
+	void parseFilterPreliminarily(MapXNode xfilter, ParsingContext pc) throws SchemaException;
 
 	// 1b. Parsing queries
 

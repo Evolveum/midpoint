@@ -205,7 +205,7 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 						String newValue = (String) component.getDefaultModelObject();
 						ItemPathType itemPathType = null;
 						if (StringUtils.isNotBlank(newValue)) {
-						  itemPathType = new ItemPathType(newValue);
+						  itemPathType = getPrismContext().itemPathParser().asItemPathType(newValue);
 						} 
 						item.getModelObject().setPath(itemPathType);
 					}

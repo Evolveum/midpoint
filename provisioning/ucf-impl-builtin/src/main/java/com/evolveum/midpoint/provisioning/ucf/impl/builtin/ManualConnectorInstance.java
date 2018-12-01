@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.ucf.api.connectors.AbstractManualConnectorInstance;
 import com.evolveum.midpoint.repo.api.RepositoryAware;
@@ -186,7 +187,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 		objectDeltaType.setChangeType(ChangeTypeType.DELETE);
 		objectDeltaType.setObjectType(ShadowType.COMPLEX_TYPE);
 		ItemDeltaType itemDeltaType = new ItemDeltaType();
-		itemDeltaType.setPath(new ItemPathType("kind"));
+		itemDeltaType.setPath(new ItemPathType(ItemPath.create("kind")));
 		itemDeltaType.setModificationType(ModificationTypeType.DELETE);
 		objectDeltaType.setOid(shadow.getOid());
 

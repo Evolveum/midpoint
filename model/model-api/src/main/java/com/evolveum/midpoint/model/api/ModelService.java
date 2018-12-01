@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -705,7 +706,7 @@ public interface ModelService {
 	 */
 	<O extends ObjectType> CompareResultType compareObject(PrismObject<O> object,
 			Collection<SelectorOptions<GetOperationOptions>> readOptions, ModelCompareOptions compareOptions,
-			@NotNull List<UniformItemPath> ignoreItemPaths, Task task, OperationResult result)
+			@NotNull List<? extends ItemPath> ignoreItemPaths, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
 			ConfigurationException, ExpressionEvaluationException;
 

@@ -16,8 +16,8 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.dto;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionVariableDefinitionType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import java.io.Serializable;
 
@@ -50,7 +50,7 @@ public class ExpressionVariableDefinitionTypeDto implements Serializable{
         }
     }
 
-    public void prepareDtoToSave(){
+    public void prepareDtoToSave(PrismContext prismContext){
         if(variableObject == null){
             variableObject = new ExpressionVariableDefinitionType();
         }
@@ -60,7 +60,7 @@ public class ExpressionVariableDefinitionTypeDto implements Serializable{
         }
 
         if(path != null){
-            variableObject.setPath(new ItemPathType(path));
+            variableObject.setPath(prismContext.itemPathParser().asItemPathType(path));
         }
     }
 

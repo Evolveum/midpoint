@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.util.ShortDumpable;
@@ -946,7 +947,9 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 	}
 
 
-	public static Collection<SelectorOptions<GetOperationOptions>> fromRestOptions(List<String> options, List<String> include, List<String> exclude, DefinitionProcessingOption definitionProcessing) {
+	public static Collection<SelectorOptions<GetOperationOptions>> fromRestOptions(List<String> options, List<String> include,
+			List<String> exclude, DefinitionProcessingOption definitionProcessing,
+			PrismContext prismContext) {
 		if (CollectionUtils.isEmpty(options) && CollectionUtils.isEmpty(include) && CollectionUtils.isEmpty(exclude)) {
 			if (definitionProcessing != null) {
 				return SelectorOptions.createCollection(GetOperationOptions.createDefinitionProcessing(definitionProcessing));
@@ -958,11 +961,11 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		if (rootOptions != null) {
 			rv.add(SelectorOptions.create(rootOptions));
 		}
-		for (UniformItemPath includePath : ItemPathCollectionsUtil.pathListFromStrings(include)) {
-			rv.add(SelectorOptions.create(includePath, GetOperationOptions.createRetrieve()));
+		for (ItemPath includePath : ItemPathCollectionsUtil.pathListFromStrings(include, prismContext)) {
+			rv.add(SelectorOptions.create(prismContext.toUniformPath(includePath), GetOperationOptions.createRetrieve()));
 		}
-		for (UniformItemPath excludePath : ItemPathCollectionsUtil.pathListFromStrings(exclude)) {
-			rv.add(SelectorOptions.create(excludePath, GetOperationOptions.createDontRetrieve()));
+		for (ItemPath excludePath : ItemPathCollectionsUtil.pathListFromStrings(exclude, prismContext)) {
+			rv.add(SelectorOptions.create(prismContext.toUniformPath(excludePath), GetOperationOptions.createDontRetrieve()));
 		}
 		// Do NOT set executionPhase here!
 		return rv;

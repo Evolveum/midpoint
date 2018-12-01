@@ -157,7 +157,7 @@ public class ValueDisplayUtil {
                     } else if (evaluator.getValue() instanceof SearchObjectExpressionEvaluatorType){
                         SearchObjectExpressionEvaluatorType evaluatorValue = (SearchObjectExpressionEvaluatorType)evaluator.getValue();
                         if (evaluatorValue.getFilter() != null) {
-                            DebugUtil.debugDumpMapMultiLine(expressionString, evaluatorValue.getFilter().getFilterClauseXNode(),
+                            DebugUtil.debugDumpMapMultiLine(expressionString, evaluatorValue.getFilter().getFilterClauseXNode().asMap(),
                                     0, false, null);
 
                             //TODO temporary hack: removing namespace part of the QName

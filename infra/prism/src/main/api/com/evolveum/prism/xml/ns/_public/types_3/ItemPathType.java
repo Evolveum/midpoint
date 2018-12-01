@@ -16,19 +16,14 @@
 
 package com.evolveum.prism.xml.ns._public.types_3;
 
-import com.evolveum.midpoint.prism.marshaller.ItemPathHolder;
-import com.evolveum.midpoint.prism.marshaller.ItemPathParserTemp;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
-import com.evolveum.midpoint.prism.path.UniformItemPathImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jvnet.jaxb2_commons.lang.Equals;
 import org.jvnet.jaxb2_commons.lang.EqualsStrategy;
 import org.jvnet.jaxb2_commons.locator.ObjectLocator;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -81,18 +76,10 @@ public class ItemPathType implements Serializable, Equals, Cloneable {
 		this.itemPath = itemPath;
 	}
 
-    public ItemPathType(String itemPath) {
-        this.itemPath = ItemPathParserTemp.parseFromString(itemPath);
-    }
-
     @NotNull
     @Contract(pure = true)
 	public ItemPath getItemPath() {
 		return itemPath != null ? itemPath : UniformItemPath.EMPTY_PATH;
-	}
-
-	public UniformItemPath getUniformItemPath() {
-		return UniformItemPathImpl.fromItemPath(getItemPath());
 	}
 
 	public void setItemPath(ItemPath itemPath){
@@ -158,15 +145,7 @@ public class ItemPathType implements Serializable, Equals, Cloneable {
         return getItemPath().toString();
     }
 
-	public static List<UniformItemPath> toItemPathList(List<ItemPathType> list) {
-    	return list.stream().map(pt -> pt.getUniformItemPath()).collect(Collectors.toList());
-	}
-
-	public static ItemPathType parseFromElement(Element element) {
-    	return new ItemPathType(ItemPathHolder.parseFromElement(element));
-	}
-
-	public Element serializeToElement(QName elementName, Document ownerDocument) {
-		return ItemPathHolder.serializeToElement(getUniformItemPath(), elementName, ownerDocument);
+	public static List<? extends ItemPath> toItemPathList(List<ItemPathType> list) {
+    	return list.stream().map(pt -> pt.getItemPath()).collect(Collectors.toList());
 	}
 }

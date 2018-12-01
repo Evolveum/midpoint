@@ -33,23 +33,23 @@ import static com.evolveum.midpoint.prism.path.ItemPath.*;
  */
 public class PositiveNegativeItemPaths implements ShortDumpable {
 	
-	private List<UniformItemPath> includedItems = new ArrayList<>();
-	private List<UniformItemPath> excludedItems = new ArrayList<>();
+	private List<ItemPath> includedItems = new ArrayList<>();
+	private List<ItemPath> excludedItems = new ArrayList<>();
 	private boolean allItems = false;
 	
 	public boolean isAllItems() {
 		return allItems;
 	}
 	
-	protected List<UniformItemPath> getIncludedItems() {
+	protected List<? extends ItemPath> getIncludedItems() {
 		return includedItems;
 	}
 
-	protected List<UniformItemPath> getExcludedItems() {
+	protected List<? extends ItemPath> getExcludedItems() {
 		return excludedItems;
 	}
 
-	public void collectItemPaths(Collection<UniformItemPath> newIncludedItems, Collection<UniformItemPath> newExcludedItems) {
+	public void collectItemPaths(Collection<? extends ItemPath> newIncludedItems, Collection<? extends ItemPath> newExcludedItems) {
 		if (allItems) {
 			return;
 		}
@@ -57,7 +57,7 @@ public class PositiveNegativeItemPaths implements ShortDumpable {
 			allItems = true;
 			return;
 		}
-		for (UniformItemPath newIncludedItem: newIncludedItems) {
+		for (ItemPath newIncludedItem: newIncludedItems) {
 			// TODO: better merging, consider subpaths
 			includedItems.add(newIncludedItem);
 		}
@@ -66,13 +66,13 @@ public class PositiveNegativeItemPaths implements ShortDumpable {
 		} else {
 			// Merging exceptItem is in fact intersection operation, not addition.
 			// But we need to carefully consider subpaths.
-			List<UniformItemPath> newItems = new ArrayList<>();
-			Iterator<UniformItemPath> iterator = excludedItems.iterator();
+			List<ItemPath> newItems = new ArrayList<>();
+			Iterator<ItemPath> iterator = excludedItems.iterator();
 			while (iterator.hasNext()) {
-				UniformItemPath excludedItem = iterator.next();
-				UniformItemPath replacementItem = null;
+				ItemPath excludedItem = iterator.next();
+				ItemPath replacementItem = null;
 				boolean keep = false;
-				for (UniformItemPath newExcludedItem: newExcludedItems) {
+				for (ItemPath newExcludedItem: newExcludedItems) {
 					CompareResult result = newExcludedItem.compareComplex(excludedItem);
 					if (result == CompareResult.SUBPATH || result == CompareResult.EQUIVALENT) {
 						// match, keep excludedItem in the list
@@ -102,7 +102,7 @@ public class PositiveNegativeItemPaths implements ShortDumpable {
 		if (allItems) {
 			return true;
 		}
-		for (UniformItemPath includedItem: includedItems) {
+		for (ItemPath includedItem: includedItems) {
 			if (includedItem.isSubPathOrEquivalent(nameOnlyItemPath)) {
 				return true;
 			}
@@ -110,7 +110,7 @@ public class PositiveNegativeItemPaths implements ShortDumpable {
 		if (excludedItems.isEmpty()) {
 			return false;
 		}
-		for (UniformItemPath excludedItem: excludedItems) {
+		for (ItemPath excludedItem: excludedItems) {
 			CompareResult result = excludedItem.compareComplex(nameOnlyItemPath);
 			// This is tricky. We really want to exclude all related paths:
 			// subpaths, superpaths and (obviously) the item itself

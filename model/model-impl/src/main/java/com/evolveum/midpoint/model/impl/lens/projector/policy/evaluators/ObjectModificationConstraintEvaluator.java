@@ -138,7 +138,7 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
 			}
 			boolean exactPathMatch = isTrue(constraint.isExactPathMatch());
 			for (ItemPathType path : constraint.getItem()) {
-				if (!pathMatches(summaryDelta, ctx.focusContext.getObjectOld(), path.getUniformItemPath(), exactPathMatch)) {
+				if (!pathMatches(summaryDelta, ctx.focusContext.getObjectOld(), prismContext.toUniformPath(path), exactPathMatch)) {
 					return false;
 				}
 			}

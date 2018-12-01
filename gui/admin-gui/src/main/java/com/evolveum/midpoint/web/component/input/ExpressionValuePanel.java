@@ -326,7 +326,7 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
                     getModel().setObject(new ExpressionType());
                 }
                 try {
-                    ExpressionUtil.updateAssociationTargetSearchPath(getModelObject(), new ItemPathType(pathValue), getPrismContext());
+                    ExpressionUtil.updateAssociationTargetSearchPath(getModelObject(), getPrismContext().itemPathParser().asItemPathType(pathValue), getPrismContext());
                 } catch (Exception ex){
                     pageBase.getFeedbackPanel().getFeedbackMessages().add(new FeedbackMessage(ExpressionValuePanel.this,
                             ex.getLocalizedMessage(), 0));

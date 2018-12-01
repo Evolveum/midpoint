@@ -189,7 +189,7 @@ public class ObjectMerger {
 			MergeConfigurationType mergeConfiguration, final String mergeConfigurationName, final Task task, final OperationResult result) throws SchemaException, ConfigurationException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, SecurityViolationException {
 
 		for (ItemRefMergeConfigurationType itemMergeConfig: mergeConfiguration.getItem()) {
-			UniformItemPath itemPath = itemMergeConfig.getRef().getUniformItemPath();
+			UniformItemPath itemPath = prismContext.toUniformPath(itemMergeConfig.getRef());
 			processedPaths.add(itemPath);
 			ItemDelta itemDelta = mergeItem(objectLeft, objectRight, mergeConfigurationName, itemMergeConfig, itemPath, task, result);
 			LOGGER.trace("Item {} delta: {}", itemPath, itemDelta);

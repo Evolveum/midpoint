@@ -33,6 +33,7 @@ import com.evolveum.midpoint.prism.util.PrismMonitor;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNodeFactory;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringNormalizerConfigurationType;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
@@ -320,6 +321,7 @@ public interface PrismContext extends ProtectorCreator {
 	 * Temporary
 	 */
 	UniformItemPath toUniformPath(ItemPath path);
+	UniformItemPath toUniformPath(ItemPathType path);
 
 	/**
 	 * Temporary
@@ -341,4 +343,7 @@ public interface PrismContext extends ProtectorCreator {
 
 	@NotNull
 	DefinitionFactory definitionFactory();
+
+	@NotNull
+	ItemPathParser itemPathParser();
 }

@@ -1705,7 +1705,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
 	}
 
 	// TODO optimize a bit + test thoroughly
-	public void keepPaths(List<UniformItemPath> keep) {
+	public void keepPaths(List<? extends ItemPath> keep) {
 		if (items != null) {
 			for (Iterator<Item<?, ?>> iterator = items.iterator(); iterator.hasNext(); ) {
 				Item<?, ?> item = iterator.next();
@@ -1724,7 +1724,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
 	}
 
 	// TODO optimize a bit + test thoroughly
-	public void removePaths(List<UniformItemPath> remove) {
+	public void removePaths(List<? extends ItemPath> remove) {
 		if (items != null) {
 			for (Iterator<Item<?, ?>> iterator = items.iterator(); iterator.hasNext(); ) {
 				Item<?, ?> item = iterator.next();
@@ -1770,8 +1770,8 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
 		return rv;
 	}
 
-	public void removeItems(List<UniformItemPath> itemsToRemove) {
-		for (UniformItemPath itemToRemove : itemsToRemove) {
+	public void removeItems(List<? extends ItemPath> itemsToRemove) {
+		for (ItemPath itemToRemove : itemsToRemove) {
 			Item item = findItem(itemToRemove);		// reduce to "removeItem" after fixing that method implementation
 			if (item != null) {
 				removeItem(item.getPath(), Item.class);
