@@ -514,35 +514,34 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
         if (deltaToMerge == null) {
             return;
         }
-		ObjectDeltaImpl deltaImplToMerge = (ObjectDeltaImpl) deltaToMerge;
 		if (changeType == ChangeType.ADD) {
-            if (deltaImplToMerge.changeType == ChangeType.ADD) {
+            if (deltaToMerge.getChangeType() == ChangeType.ADD) {
                 // Maybe we can, be we do not want. This is usually an error anyway.
-                throw new IllegalArgumentException("Cannot merge two ADD deltas: " + this + ", " + deltaImplToMerge);
-            } else if (deltaImplToMerge.changeType == ChangeType.MODIFY) {
+                throw new IllegalArgumentException("Cannot merge two ADD deltas: " + this + ", " + deltaToMerge);
+            } else if (deltaToMerge.getChangeType() == ChangeType.MODIFY) {
                 if (objectToAdd == null) {
                     throw new IllegalStateException("objectToAdd is null");
                 }
-                deltaImplToMerge.applyTo(objectToAdd);
-            } else if (deltaImplToMerge.changeType == ChangeType.DELETE) {
+                deltaToMerge.applyTo(objectToAdd);
+            } else if (deltaToMerge.getChangeType() == ChangeType.DELETE) {
                 this.changeType = ChangeType.DELETE;
             }
         } else if (changeType == ChangeType.MODIFY) {
-            if (deltaImplToMerge.changeType == ChangeType.ADD) {
+            if (deltaToMerge.getChangeType() == ChangeType.ADD) {
                 throw new IllegalArgumentException("Cannot merge 'add' delta to a 'modify' object delta");
-            } else if (deltaImplToMerge.changeType == ChangeType.MODIFY) {
-            	mergeModifications(deltaImplToMerge.modifications);
-            } else if (deltaImplToMerge.changeType == ChangeType.DELETE) {
+            } else if (deltaToMerge.getChangeType() == ChangeType.MODIFY) {
+            	mergeModifications(deltaToMerge.getModifications());
+            } else if (deltaToMerge.getChangeType() == ChangeType.DELETE) {
                 this.changeType = ChangeType.DELETE;
             }
         } else { // DELETE
-            if (deltaImplToMerge.changeType == ChangeType.ADD) {
+            if (deltaToMerge.getChangeType() == ChangeType.ADD) {
                 this.changeType = ChangeType.ADD;
                 // TODO: clone?
-                this.objectToAdd = deltaImplToMerge.objectToAdd;
-            } else if (deltaImplToMerge.changeType == ChangeType.MODIFY) {
+                this.objectToAdd = deltaToMerge.getObjectToAdd();
+            } else if (deltaToMerge.getChangeType() == ChangeType.MODIFY) {
                 // Just ignore the modification of a deleted object
-            } else if (deltaImplToMerge.changeType == ChangeType.DELETE) {
+            } else if (deltaToMerge.getChangeType() == ChangeType.DELETE) {
                 // Nothing to do
             }
         }

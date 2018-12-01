@@ -32,6 +32,11 @@ import java.util.List;
 /**
  * @author semancik
  *
+ * TODO after prism-api creation, this class became problematic ... rethink it!
+ *
+ * e.g. prism-impl expects that each ObjectDelta it gets is ObjectDeltaImpl
+ * also, checkIdentifierConsistence overriding now does not work in objectDelta
+ * etc.
  */
 public class ShadowDiscriminatorObjectDelta<T extends Objectable> implements ObjectDelta<T> {
 
@@ -555,23 +560,25 @@ public class ShadowDiscriminatorObjectDelta<T extends Objectable> implements Obj
 
 	@Override
 	public void checkConsistence() {
-		objectDelta.checkConsistence();
+		checkConsistence(ConsistencyCheckScope.THOROUGH);
 	}
 
 	@Override
 	public void checkConsistence(ConsistencyCheckScope scope) {
-		objectDelta.checkConsistence(scope);
+		checkConsistence(true, false, false, scope);
 	}
 
 	@Override
 	public void checkConsistence(boolean requireOid, boolean requireDefinition, boolean prohibitRaw) {
-		objectDelta.checkConsistence(requireOid, requireDefinition, prohibitRaw);
+		checkConsistence(requireOid, requireDefinition, prohibitRaw, ConsistencyCheckScope.THOROUGH);
 	}
 
 	@Override
 	public void checkConsistence(boolean requireOid, boolean requireDefinition, boolean prohibitRaw,
 			ConsistencyCheckScope scope) {
-		objectDelta.checkConsistence(requireOid, requireDefinition, prohibitRaw, scope);
+		// todo HACK requireOid must be false here, as objectDelta.oid is null
+		objectDelta.checkConsistence(false, requireDefinition, prohibitRaw, scope);
+		checkIdentifierConsistence(requireOid);
 	}
 
 	@Override
