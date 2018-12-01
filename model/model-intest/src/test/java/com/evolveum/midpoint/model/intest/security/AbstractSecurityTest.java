@@ -238,6 +238,9 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 
 	protected static final File ROLE_ASSIGN_ORGRELATION_FILE = new File(TEST_DIR, "role-assign-orgrelation.xml");
 	protected static final String ROLE_ASSIGN_ORGRELATION_OID = "5856eb42-319f-11e7-8e26-a7c6d1a855fc";
+	
+	protected static final File ROLE_INDUCE_ANY_ROLE_FILE = new File(TEST_DIR, "role-induce-any-role.xml");
+	protected static final String ROLE_INDUCE_ANY_ROLE_OID = "a1265d34-f4b3-11e8-8bfe-c3482dfbb7fe";
 
 	protected static final File ROLE_DELEGATOR_FILE = new File(TEST_DIR, "role-delegator.xml");
 	protected static final String ROLE_DELEGATOR_OID = "00000000-0000-0000-0000-00000000d001";
@@ -378,7 +381,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	protected static final XMLGregorianCalendar JACK_VALID_TO_LONG_AGEAD = XmlTypeConverter.createXMLGregorianCalendar(10000000000000L);
 
 	protected static final int NUMBER_OF_ALL_USERS = 11;
-	protected static final int NUMBER_OF_IMPORTED_ROLES = 68;
+	protected static final int NUMBER_OF_IMPORTED_ROLES = 69;
 	protected static final int NUMBER_OF_ALL_ORGS = 11;
 
 	protected String userRumRogersOid;
@@ -421,6 +424,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		repoAddObjectFromFile(ROLE_ASSIGN_NON_APPLICATION_ROLES_FILE, initResult);
 		repoAddObjectFromFile(ROLE_ASSIGN_ANY_ROLES_FILE, initResult);
 		repoAddObjectFromFile(ROLE_ASSIGN_REQUESTABLE_ROLES_FILE, initResult);
+		repoAddObjectFromFile(ROLE_INDUCE_ANY_ROLE_FILE, initResult);
 		repoAddObjectFromFile(ROLE_ASSIGN_ORGRELATION_FILE, initResult);
 		repoAddObjectFromFile(ROLE_DELEGATOR_FILE, initResult);
 		repoAddObjectFromFile(ROLE_DELEGATOR_PLUS_FILE, initResult);

@@ -988,4 +988,16 @@ public class SearchTest extends BaseSQLRepoTest {
         assertTrue(result.isSuccess());
         assertEquals("Should find 1 object", 1, collections.size());
     }
+
+    @Test
+    public void testArchetype() throws SchemaException {
+        ObjectQuery query = QueryBuilder.queryFor(ArchetypeType.class, prismContext)
+                .item(ObjectType.F_NAME).eqPoly("archetype1", "archetype1").matchingOrig()
+                .build();
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<ArchetypeType>> collections = repositoryService.searchObjects(ArchetypeType.class, query, null, result);
+        result.recomputeStatus();
+        assertTrue(result.isSuccess());
+        assertEquals("Should find 1 object", 1, collections.size());
+    }
 }

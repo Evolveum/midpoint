@@ -1088,7 +1088,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
 	@Override
 	public <T extends ObjectType, O extends ObjectType> ObjectFilter preProcessObjectFilter(String[] operationUrls, AuthorizationPhaseType phase,
-			Class<T> searchResultType, PrismObject<O> object, ObjectFilter origFilter, String limitAuthorizationAction, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+			Class<T> searchResultType, PrismObject<O> object, ObjectFilter origFilter, String limitAuthorizationAction, List<OrderConstraintsType> paramOrderConstraints, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		MidPointPrincipal principal = getMidPointPrincipal();
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("AUTZ: evaluating search pre-process principal={}, searchResultType={}, object={}: orig filter {}",
@@ -1100,14 +1100,14 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		ObjectFilter securityFilter;
 		if (phase != null) {
 			securityFilter = preProcessObjectFilterInternal(principal, operationUrls, phase,
-					true, searchResultType, object, true, origFilter, limitAuthorizationAction, "search pre-process", task, result);
+					true, searchResultType, object, true, origFilter, limitAuthorizationAction, paramOrderConstraints, "search pre-process", task, result);
 		} else {
 			ObjectFilter filterBoth = preProcessObjectFilterInternal(principal, operationUrls, null,
-					false, searchResultType, object, true, origFilter, limitAuthorizationAction, "search pre-process", task, result);
+					false, searchResultType, object, true, origFilter, limitAuthorizationAction, paramOrderConstraints, "search pre-process", task, result);
 			ObjectFilter filterRequest = preProcessObjectFilterInternal(principal, operationUrls, AuthorizationPhaseType.REQUEST,
-					false, searchResultType, object, true, origFilter, limitAuthorizationAction, "search pre-process", task, result);
+					false, searchResultType, object, true, origFilter, limitAuthorizationAction, paramOrderConstraints, "search pre-process", task, result);
 			ObjectFilter filterExecution = preProcessObjectFilterInternal(principal, operationUrls, AuthorizationPhaseType.EXECUTION,
-					false, searchResultType, object, true, origFilter, limitAuthorizationAction, "search pre-process", task, result);
+					false, searchResultType, object, true, origFilter, limitAuthorizationAction, paramOrderConstraints, "search pre-process", task, result);
 			securityFilter = ObjectQueryUtil.filterOr(filterBoth, ObjectQueryUtil.filterAnd(filterRequest, filterExecution));
 		}
 		ObjectFilter finalFilter = ObjectQueryUtil.filterAnd(origFilter, securityFilter);
@@ -1140,14 +1140,14 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		ObjectFilter securityFilter;
 		if (phase != null) {
 			securityFilter = preProcessObjectFilterInternal(principal, operationUrls, phase,
-					true, searchResultType, object, includeSpecial, origFilter, null, "search permission", task, result);
+					true, searchResultType, object, includeSpecial, origFilter, null, null, "search permission", task, result);
 		} else {
 			ObjectFilter filterBoth = preProcessObjectFilterInternal(principal, operationUrls, null,
-					false, searchResultType, object, includeSpecial, origFilter, null, "search permission", task, result);
+					false, searchResultType, object, includeSpecial, origFilter, null, null, "search permission", task, result);
 			ObjectFilter filterRequest = preProcessObjectFilterInternal(principal, operationUrls, AuthorizationPhaseType.REQUEST,
-					false, searchResultType, object, includeSpecial, origFilter, null, "search permission", task, result);
+					false, searchResultType, object, includeSpecial, origFilter, null, null, "search permission", task, result);
 			ObjectFilter filterExecution = preProcessObjectFilterInternal(principal, operationUrls, AuthorizationPhaseType.EXECUTION,
-					false, searchResultType, object, includeSpecial, origFilter, null, "search permission", task, result);
+					false, searchResultType, object, includeSpecial, origFilter, null, null, "search permission", task, result);
 			securityFilter = ObjectQueryUtil.filterOr(filterBoth, ObjectQueryUtil.filterAnd(filterRequest, filterExecution));
 		}
 		ObjectFilter finalFilter = ObjectQueryUtil.filterAnd(origFilter, securityFilter);
@@ -1165,7 +1165,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	 */
 	private <T extends ObjectType, O extends ObjectType> ObjectFilter preProcessObjectFilterInternal(MidPointPrincipal principal, String[] operationUrls,
 			AuthorizationPhaseType phase, boolean includeNullPhase,
-			Class<T> objectType, PrismObject<O> object, boolean includeSpecial, ObjectFilter origFilter, String limitAuthorizationAction, String desc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+			Class<T> objectType, PrismObject<O> object, boolean includeSpecial, ObjectFilter origFilter, String limitAuthorizationAction, List<OrderConstraintsType> paramOrderConstraints, String desc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		Collection<Authorization> authorities = getAuthorities(principal);
 
@@ -1205,6 +1205,14 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 					if (!isApplicableLimitations(autz, limitAuthorizationAction)) {
 						if (LOGGER.isTraceEnabled()) {
 							LOGGER.trace("      Authorization is limited to other action, not applicable for operation {}", prettyActionUrl(operationUrls));
+						}
+						continue;
+					}
+					
+					// orderConstraints
+					if (!isApplicableOrderConstraints(autz, paramOrderConstraints)) {
+						if (LOGGER.isTraceEnabled()) {
+							LOGGER.trace("      Authorization not applicable for orderConstraints {}", SchemaDebugUtil.shortDumpOrderConstraintsList(paramOrderConstraints));
 						}
 						continue;
 					}

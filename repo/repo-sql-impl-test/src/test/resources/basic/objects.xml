@@ -1711,4 +1711,8 @@
 		<name>fl1</name>
 	</functionLibrary>
 
+	<archetype>
+		<name>archetype1</name>
+	</archetype>
+
 </objects>

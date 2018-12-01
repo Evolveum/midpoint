@@ -123,7 +123,8 @@ public class OrganizationStructureTests extends TestBase {
         importObject(ORG_ACCOUNT_INDUCEMENT_FILE);
         importObject(ScenariosCommons.USER_TEST_RAPHAEL_FILE);
 
-       changeResourceFilePath();
+        changeResourceFilePath();
+
        refreshResourceSchema(NAME_CSV_RESOURCE_ADVANCED_SYNC);
 
          ListUsersPage users = basicPage.listUsers();
@@ -162,7 +163,7 @@ public class OrganizationStructureTests extends TestBase {
                 .clickByName("CSV (target with groups)")
                     .clickEditResourceConfiguration()
                         .form()
-                        .changeAttributeValue("File path",ScenariosCommons.CSV_SOURCE_OLDVALUE, CSV_TARGET_FILE.getAbsolutePath())
+                        .changeAttributeValue("File path", "", CSV_TARGET_FILE.getAbsolutePath())
                         .changeAttributeValue(CSV_RESOURCE_ATTR_UNIQUE,"","login")
                     .and()
                 .and()

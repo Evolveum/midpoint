@@ -18,9 +18,12 @@ package com.evolveum.midpoint.gui.api.component;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -75,6 +78,28 @@ public class BasePanel<T> extends Panel {
                 .setDefaultValue(resourceKey)
                 .setParameters(objects);
 //    	return StringResourceModelMigration.of(resourceKey, this, null, resourceKey, objects);
+    }
+    
+    public StringResourceModel createStringResource(PolyString polystringKey, Object... objects) {
+    	String resourceKey = null;
+    	if (polystringKey != null) {
+    		// TODO later: use polystringKey.getKey()
+    		resourceKey = polystringKey.getOrig();
+    	}
+        return new StringResourceModel(resourceKey, this).setModel(null)
+                .setDefaultValue(resourceKey)
+                .setParameters(objects);
+    }
+    
+    public StringResourceModel createStringResource(PolyStringType polystringKey, Object... objects) {
+    	String resourceKey = null;
+    	if (polystringKey != null) {
+    		// TODO later: use polystringKey.getKey()
+    		resourceKey = polystringKey.getOrig();
+    	}
+        return new StringResourceModel(resourceKey, this).setModel(null)
+                .setDefaultValue(resourceKey)
+                .setParameters(objects);
     }
 
     public StringResourceModel createStringResource(Enum e) {
