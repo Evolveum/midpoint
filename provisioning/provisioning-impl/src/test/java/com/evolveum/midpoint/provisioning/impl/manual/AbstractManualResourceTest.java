@@ -875,7 +875,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		syncServiceMock.reset();
 
 		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
-				ACCOUNT_WILL_OID, prismContext.path(ShadowType.F_ATTRIBUTES, ATTR_FULLNAME_QNAME), prismContext,
+				ACCOUNT_WILL_OID, ItemPath.create(ShadowType.F_ATTRIBUTES, ATTR_FULLNAME_QNAME), prismContext,
 				ACCOUNT_WILL_FULLNAME_PIRATE);
 		display("ObjectDelta", delta);
 

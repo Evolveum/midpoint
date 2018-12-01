@@ -133,11 +133,10 @@ public class ContainerDeltaImpl<V extends Containerable> extends ItemDeltaImpl<P
 	}
 
 	@Override
-	public ItemDelta<?,?> getSubDelta(ItemPath itemPath) {
-    	if (itemPath.isEmpty()) {
+	public ItemDelta<?,?> getSubDelta(ItemPath path) {
+    	if (path.isEmpty()) {
 			return this;
 		}
-		UniformItemPath path = getPrismContext().toUniformPath(itemPath);
 		Long id = null;
     	if (path.startsWithId()) {
     		id = path.firstToIdOrNull();
@@ -157,7 +156,7 @@ public class ContainerDeltaImpl<V extends Containerable> extends ItemDeltaImpl<P
 		return itemDelta;
 	}
 
-	private Collection findItemValues(Long id, UniformItemPath path, Collection<PrismContainerValue<V>> cvalues) {
+	private Collection findItemValues(Long id, ItemPath path, Collection<PrismContainerValue<V>> cvalues) {
 		if (cvalues == null) {
 			return null;
 		}
@@ -183,7 +182,7 @@ public class ContainerDeltaImpl<V extends Containerable> extends ItemDeltaImpl<P
 	 */
 	public <O extends Objectable> void expand(PrismObject<O> object, Trace logger) throws SchemaException {
 		if (valuesToDelete != null) {
-			UniformItemPath path = this.getPath();
+			ItemPath path = this.getPath();
 			PrismContainer<Containerable> container = null;
 			if (object != null) {
 				container = object.findContainer(path);

@@ -2147,7 +2147,7 @@ public final class WebComponentUtil {
 	}
 
 	// todo specify functionality of this method
-	public static UniformItemPath joinPath(ItemPath path1, ItemPath path2, PrismContext prismContext) {
+	public static ItemPath joinPath(ItemPath path1, ItemPath path2, PrismContext prismContext) {
 		ItemPath path = ItemPath.emptyIfNull(path1);
 		ItemPath deltaPath = ItemPath.emptyIfNull(path2);
 		List<Object> newPath = new ArrayList<>();
@@ -2161,8 +2161,7 @@ public final class WebComponentUtil {
 		}
 		newPath.addAll(deltaPath.getSegments());
 
-		return prismContext.path(newPath);
-
+		return ItemPath.create(newPath);
 	}
 
 	public static <T extends ObjectType> T getObjectFromReference(ObjectReferenceType ref, Class<T> type) {

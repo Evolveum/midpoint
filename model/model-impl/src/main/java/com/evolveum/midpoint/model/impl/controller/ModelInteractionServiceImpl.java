@@ -89,7 +89,6 @@ import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.model.impl.visualizer.Visualizer;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AllFilter;
 import com.evolveum.midpoint.prism.query.AndFilter;
@@ -978,7 +977,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 				}
 				
 				//TODO: not sure about the bulk actions here
-				UniformItemPath path = getPath(policyItemDefinition);
+				ItemPath path = getPath(policyItemDefinition);
 				if (path == null) {
 					if (isExecute(policyItemDefinition)) {
 						LOGGER.error("No item path defined in the target for policy item definition. Cannot generate value");
@@ -1043,21 +1042,16 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		
 		return policyItemDefinition.isExecute().booleanValue();
 	}
-	private UniformItemPath getPath(PolicyItemDefinitionType policyItemDefinition){
+	private ItemPath getPath(PolicyItemDefinitionType policyItemDefinition) {
 		PolicyItemTargetType target = policyItemDefinition.getTarget();
-
-		if (target == null ) {
+		if (target == null) {
 			return null;
 		}
-
 		ItemPathType itemPathType = target.getPath();
-		if (itemPathType == null) {
-			return null;
-		}
-		return prismContext.toUniformPath(itemPathType.getItemPath());
+		return itemPathType != null ? itemPathType.getItemPath() : null;
 	}
 
-	private <O extends ObjectType> PrismPropertyDefinition<?> getItemDefinition(PrismObject<O> object, UniformItemPath path){
+	private <O extends ObjectType> PrismPropertyDefinition<?> getItemDefinition(PrismObject<O> object, ItemPath path) {
 		ItemDefinition<?> itemDef = object.getDefinition().findItemDefinition(path);
 		if (itemDef == null) {
 			return null;
@@ -1069,7 +1063,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	}
 
 	private <O extends ObjectType> void collectDeltasForGeneratedValuesIfNeeded(PrismObject<O> object,
-			PolicyItemDefinitionType policyItemDefinition, Collection<PropertyDelta<?>> deltasToExecute, UniformItemPath path,
+			PolicyItemDefinitionType policyItemDefinition, Collection<PropertyDelta<?>> deltasToExecute, ItemPath path,
 			PrismPropertyDefinition<?> itemDef, OperationResult result) throws SchemaException {
 
 		Object value = policyItemDefinition.getValue();
@@ -1109,10 +1103,10 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			LOGGER.error("Target item path must be defined");
 			throw new SchemaException("Target item path must be defined");
 		}
-		UniformItemPath targetPath = null;
+		ItemPath targetPath = null;
 		
 		if (target != null) {
-			targetPath = prismContext.toUniformPath(target.getPath());
+			targetPath = target.getPath().getItemPath();
 		}
 
 		ValuePolicyType valuePolicy = resolveValuePolicy(policyItemDefinition, defaultPolicy, task, result);
@@ -1214,7 +1208,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		ValuePolicyType stringPolicy = resolveValuePolicy(policyItemDefinition, policy, task, parentResult);
 
 		Object value = policyItemDefinition.getValue();
-		String valueToValidate = null;
+		String valueToValidate;
 		if (value instanceof RawType) {
 			valueToValidate = ((RawType) value).getParsedRealValue(String.class);
 		} else {
@@ -1223,10 +1217,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		
 		List<String> valuesToValidate = new ArrayList<>();
 		PolicyItemTargetType target = policyItemDefinition.getTarget();
-		UniformItemPath path = null;
-		if (target != null) {
-			path = prismContext.toUniformPath(target.getPath());
-		}
+		ItemPath path = target != null ? target.getPath().getItemPath() : null;
 		if (StringUtils.isNotEmpty(valueToValidate)) {
 			valuesToValidate.add(valueToValidate);
 		} else {
@@ -1235,8 +1226,6 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 				parentResult.recordFatalError("Target item path must be defined");
 				throw new SchemaException("Target item path must be defined");
 			}
-			path = prismContext.toUniformPath(target.getPath());
-
 			if (object == null) {
 				LOGGER.error("Object which values should be validated is null. Nothing to validate.");
 				parentResult.recordFatalError("Object which values should be validated is null. Nothing to validate.");

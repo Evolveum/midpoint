@@ -18,7 +18,7 @@ package com.evolveum.midpoint.schema.processor;
 
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -65,11 +65,9 @@ public interface ResourceAttributeContainerDefinition extends PrismContainerDefi
 	@NotNull
 	ResourceAttributeContainerDefinition clone();
 
-	ResourceAttributeDefinition findAttributeDefinition(QName elementQName);
-
 	ResourceAttributeDefinition findAttributeDefinition(QName elementQName, boolean caseInsensitive);
 
-	ResourceAttributeDefinition findAttributeDefinition(UniformItemPath elementPath);
+	ResourceAttributeDefinition findAttributeDefinition(ItemPath elementPath);
 
 	ResourceAttributeDefinition findAttributeDefinition(String elementLocalname);
 

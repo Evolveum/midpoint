@@ -112,8 +112,8 @@ public abstract class AbstractPrismValueParserTest<T extends PrismValue> extends
 		});
 	}
 
-	private boolean isDynamic(UniformItemPath path) {
-		for (ItemPathSegment segment : path.getSegments()) {
+	private boolean isDynamic(ItemPath path) {
+		for (Object segment : path.getSegments()) {
 			if (ItemPath.isName(segment)) {
 				QName name = ItemPath.toName(segment);
 				if (QNameUtil.match(name, ShadowType.F_ATTRIBUTES) || QNameUtil.match(name, ObjectType.F_EXTENSION)) {

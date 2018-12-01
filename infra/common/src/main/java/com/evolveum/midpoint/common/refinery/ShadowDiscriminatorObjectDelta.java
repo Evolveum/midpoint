@@ -18,7 +18,6 @@ package com.evolveum.midpoint.common.refinery;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -139,7 +138,7 @@ public class ShadowDiscriminatorObjectDelta<T extends Objectable> implements Obj
 
 	@Override
 	public ObjectDelta<T> subtract(
-			@NotNull Collection<UniformItemPath> paths) {
+			@NotNull Collection<ItemPath> paths) {
 		return objectDelta.subtract(paths);
 	}
 
@@ -157,14 +156,14 @@ public class ShadowDiscriminatorObjectDelta<T extends Objectable> implements Obj
 	}
 
 	@Override
-	public boolean subtract(@NotNull UniformItemPath itemPath,
+	public boolean subtract(@NotNull ItemPath itemPath,
 			@NotNull PrismValue value, boolean fromMinusSet, boolean dryRun) {
 		return objectDelta.subtract(itemPath, value, fromMinusSet, dryRun);
 	}
 
 	@Override
 	@NotNull
-	public List<UniformItemPath> getModifiedItems() {
+	public List<ItemPath> getModifiedItems() {
 		return objectDelta.getModifiedItems();
 	}
 
@@ -174,8 +173,7 @@ public class ShadowDiscriminatorObjectDelta<T extends Objectable> implements Obj
 	}
 
 	@Override
-	public List<PrismValue> getDeletedValuesFor(
-			UniformItemPath itemPath) {
+	public List<PrismValue> getDeletedValuesFor(ItemPath itemPath) {
 		return objectDelta.getDeletedValuesFor(itemPath);
 	}
 

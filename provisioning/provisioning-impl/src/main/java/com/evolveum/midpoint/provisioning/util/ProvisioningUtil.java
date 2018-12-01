@@ -49,6 +49,7 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -174,7 +175,7 @@ public class ProvisioningUtil {
 			if (fetchStrategy != null && fetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
 				explicit.add(attributeDefinition);
 			} else if (hasMinimal && (fetchStrategy != AttributeFetchStrategyType.MINIMAL ||
-					SelectorOptions.isExplicitlyIncluded(ctx.getPrismContext().path(attributeDefinition.getName()), ctx.getGetOperationOptions()))) {
+					SelectorOptions.isExplicitlyIncluded(ctx.getPrismContext().toUniformPath(attributeDefinition.getName()), ctx.getGetOperationOptions()))) {
 				explicit.add(attributeDefinition);
 			}
 		}
@@ -188,7 +189,7 @@ public class ProvisioningUtil {
 		CredentialsCapabilityType credentialsCapabilityType = ResourceTypeUtil.getEffectiveCapability(
 				resource, CredentialsCapabilityType.class);
 		if (credentialsCapabilityType != null) {
-			if (SelectorOptions.hasToLoadPath(ctx.getPrismContext().path(SchemaConstants.PATH_PASSWORD_VALUE), ctx.getGetOperationOptions())) {
+			if (SelectorOptions.hasToLoadPath(ctx.getPrismContext().toUniformPath(SchemaConstants.PATH_PASSWORD_VALUE), ctx.getGetOperationOptions())) {
 				attributesToReturn.setReturnPasswordExplicit(true);
 				apply = true;
 			} else {
@@ -487,7 +488,7 @@ public class ProvisioningUtil {
 		for (QName outstanding : outstandingInRepo) {
 			boolean isIdentifier = QNameUtil.matchAny(outstanding, identifiers);
 			if (!isIdentifier) {
-				ResourceAttributeDefinition<?> outstandingDefinition = attributesDefinition.findAttributeDefinition(outstanding);
+				ResourceAttributeDefinition<?> outstandingDefinition = attributesDefinition.findAttributeDefinition(ItemName.fromQName(outstanding));
 				if (outstandingDefinition == null) {
 					continue;       // cannot do anything with this
 				}

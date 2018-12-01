@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -239,9 +238,9 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
     }
 
     @NotNull
-    public UniformItemPath getPath() {
+    public ItemPath getPath() {
     	 if (parent == null) {
-    		 return prismContext.path(getElementName());
+    		 return getElementName();
     	 }
     	 return parent.getPath().append(getElementName());
     }
@@ -712,7 +711,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
 
 
     public void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw, ConsistencyCheckScope scope) {
-    	UniformItemPath path = getPath();
+    	ItemPath path = getPath();
     	if (elementName == null) {
     		throw new IllegalStateException("Item "+this+" has no name ("+path+" in "+rootItem+")");
     	}

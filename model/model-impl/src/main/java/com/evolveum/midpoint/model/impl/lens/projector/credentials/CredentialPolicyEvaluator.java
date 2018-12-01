@@ -45,7 +45,6 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -439,7 +438,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Residual delta:\n{}", partialDelta.debugDump());
 			}
-			UniformItemPath residualPath = partialDelta.getResidualPath();
+			ItemPath residualPath = partialDelta.getResidualPath();
 			if (ItemPath.isEmpty(residualPath)) {
 				continue;
 			}

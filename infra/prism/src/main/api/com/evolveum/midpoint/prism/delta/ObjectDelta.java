@@ -17,7 +17,6 @@ package com.evolveum.midpoint.prism.delta;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
@@ -304,7 +303,7 @@ public interface ObjectDelta<O extends Objectable> extends DebugDumpable, Visita
 	 * @param paths
 	 * @return
 	 */
-	ObjectDelta<O> subtract(@NotNull Collection<UniformItemPath> paths);
+	ObjectDelta<O> subtract(@NotNull Collection<ItemPath> paths);
 
 	// FIXME this is because of ShadowDiscriminatorObjectDelta
 	String debugName();
@@ -359,10 +358,10 @@ public interface ObjectDelta<O extends Objectable> extends DebugDumpable, Visita
 	 * @param dryRun only testing if value could be subtracted; not changing anything
 	 * @return true if the delta originally contained an instruction to add (or set) 'itemPath' to 'value'.
 	 */
-	boolean subtract(@NotNull UniformItemPath itemPath, @NotNull PrismValue value, boolean fromMinusSet, boolean dryRun);
+	boolean subtract(@NotNull ItemPath itemPath, @NotNull PrismValue value, boolean fromMinusSet, boolean dryRun);
 
 	@NotNull
-	List<UniformItemPath> getModifiedItems();
+	List<ItemPath> getModifiedItems();
 
 	List<PrismValue> getNewValuesFor(ItemPath itemPath);
 
@@ -375,7 +374,7 @@ public interface ObjectDelta<O extends Objectable> extends DebugDumpable, Visita
 	 * (only ID could be provided on PCVs).
 	 */
 	@SuppressWarnings("unused")			// used from scripts
-	List<PrismValue> getDeletedValuesFor(UniformItemPath itemPath);
+	List<PrismValue> getDeletedValuesFor(ItemPath itemPath);
 
 	void clear();
 }

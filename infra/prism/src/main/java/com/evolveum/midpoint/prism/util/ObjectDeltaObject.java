@@ -24,8 +24,6 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
-import com.evolveum.midpoint.prism.path.UniformItemPathImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -120,12 +118,12 @@ public class ObjectDeltaObject<O extends Objectable> extends ItemDeltaItem<Prism
 	@Override
 	public <IV extends PrismValue,ID extends ItemDefinition> ItemDeltaItem<IV,ID> findIdi(ItemPath path) {
 		Item<IV,ID> subItemOld = null;
-		UniformItemPath subResidualPath = null;
+		ItemPath subResidualPath = null;
 		if (oldObject != null) {
 			PartiallyResolvedItem<IV,ID> partialOld = oldObject.findPartial(path);
 			if (partialOld != null) {
 				subItemOld = partialOld.getItem();
-				subResidualPath = UniformItemPathImpl.fromItemPath(partialOld.getResidualPath());
+				subResidualPath = partialOld.getResidualPath();
 			}
 		}
 		Item<IV,ID> subItemNew = null;
@@ -134,7 +132,7 @@ public class ObjectDeltaObject<O extends Objectable> extends ItemDeltaItem<Prism
 			if (partialNew != null) {
 				subItemNew = partialNew.getItem();
 				if (subResidualPath == null) {
-					subResidualPath = UniformItemPathImpl.fromItemPath(partialNew.getResidualPath());
+					subResidualPath = partialNew.getResidualPath();
 				}
 			}
 		}
@@ -153,7 +151,7 @@ public class ObjectDeltaObject<O extends Objectable> extends ItemDeltaItem<Prism
 	            }
 			} else if (delta.getChangeType() == ChangeType.DELETE) {
 				if (subItemOld != null) {
-					UniformItemPath subPath = subItemOld.getPath().remainder(path);
+					ItemPath subPath = subItemOld.getPath().remainder(path);
 					PartiallyResolvedItem<IV,ID> partialValue = subItemOld.findPartial(subPath);
 		            if (partialValue != null && partialValue.getItem() != null) {
 			            Item<IV,ID> item = partialValue.getItem();

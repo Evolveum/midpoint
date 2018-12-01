@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -93,7 +92,7 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 	PrismContainer<C> getContainer();
 
 	@NotNull
-	UniformItemPath getPath();
+	ItemPath getPath();
 
 	// For compatibility with other PrismValue types
 	C getValue();

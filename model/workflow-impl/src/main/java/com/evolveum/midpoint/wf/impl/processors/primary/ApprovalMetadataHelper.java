@@ -21,7 +21,6 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -68,7 +67,7 @@ public class ApprovalMetadataHelper {
         Set<Long> processedIds = new HashSet<>();
         List<ItemDelta<?,?>> assignmentMetadataDeltas = new ArrayList<>();
         for (ItemDelta<?,?> itemDelta: objectDelta.getModifications()) {
-            UniformItemPath deltaPath = itemDelta.getPath();
+            ItemPath deltaPath = itemDelta.getPath();
             ItemPath.CompareResult comparison = deltaPath.compareComplex(SchemaConstants.PATH_ASSIGNMENT);
             if (comparison == EQUIVALENT) {
                 // whole assignment is being added/replaced (or deleted but we are not interested in that)

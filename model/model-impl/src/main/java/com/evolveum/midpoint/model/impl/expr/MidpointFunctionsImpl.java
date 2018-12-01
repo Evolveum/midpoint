@@ -44,9 +44,7 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
-import com.evolveum.midpoint.prism.marshaller.ItemPathParserTemp;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -621,11 +619,11 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			SecurityViolationException, ExpressionEvaluationException {
 		Validate.notEmpty(propertyPathString, "Empty property path");
 		OperationResult result = getCurrentResult(MidpointFunctions.class.getName() + ".isUniquePropertyValue");
-		UniformItemPath propertyPath = ItemPathParserTemp.parseFromString(propertyPathString);
+		ItemPath propertyPath = prismContext.itemPathParser().asItemPath(propertyPathString);
 		return isUniquePropertyValue(objectType, propertyPath, propertyValue, getCurrentTask(), result);
 	}
 
-	private <T> boolean isUniquePropertyValue(final ObjectType objectType, UniformItemPath propertyPath, T propertyValue, Task task,
+	private <T> boolean isUniquePropertyValue(final ObjectType objectType, ItemPath propertyPath, T propertyValue, Task task,
 			OperationResult result)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException {
@@ -648,13 +646,13 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			SecurityViolationException, ExpressionEvaluationException {
 		Validate.notEmpty(propertyPathString, "Empty property path");
 		OperationResult result = getCurrentResult(MidpointFunctions.class.getName() + ".getObjectsInConflictOnPropertyValue");
-		UniformItemPath propertyPath = ItemPathParserTemp.parseFromString(propertyPathString);
+		ItemPath propertyPath = prismContext.itemPathParser().asItemPath(propertyPathString);
 		QName matchingRuleQName = new QName(matchingRuleName);      // no namespace for now
 		return getObjectsInConflictOnPropertyValue(objectType, propertyPath, propertyValue, matchingRuleQName, getAllConflicting,
 				getCurrentTask(), result);
 	}
 
-	private <O extends ObjectType, T> List<O> getObjectsInConflictOnPropertyValue(final O objectType, UniformItemPath propertyPath,
+	private <O extends ObjectType, T> List<O> getObjectsInConflictOnPropertyValue(final O objectType, ItemPath propertyPath,
 			T propertyValue, QName matchingRule, final boolean getAllConflicting, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException {

@@ -18,7 +18,6 @@ package com.evolveum.midpoint.common.refinery;
 import com.evolveum.midpoint.common.ResourceObjectPattern;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -665,7 +664,7 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	}
 
 	@Override
-	public void trimTo(@NotNull Collection<UniformItemPath> paths) {
+	public void trimTo(@NotNull Collection<ItemPath> paths) {
 		if (refinedObjectClassDefinition != null) {
 			refinedObjectClassDefinition.trimTo(paths);
 		}

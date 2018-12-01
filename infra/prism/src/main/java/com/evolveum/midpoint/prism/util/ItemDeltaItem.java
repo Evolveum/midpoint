@@ -22,8 +22,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
-import com.evolveum.midpoint.prism.path.UniformItemPathImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -45,7 +43,7 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 	private Item<V,D> itemOld;
 	private ItemDelta<V,D> delta;
 	private Item<V,D> itemNew;
-	private ItemPath resolvePath = UniformItemPathImpl.EMPTY_PATH;     // todo
+	private ItemPath resolvePath = ItemPath.EMPTY_PATH;
 	private ItemPath residualPath = null;
 
 	// The deltas in sub-items. E.g. if this object represents "ContainerDeltaContainer"
@@ -177,13 +175,13 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 			return (ItemDeltaItem<IV,ID>) this;
 		}
 		Item<IV,ID> subItemOld = null;
-		UniformItemPath subResidualPath = null;
+		ItemPath subResidualPath = null;
 		ItemPath newResolvePath = resolvePath.append(path);
 		if (itemOld != null) {
 			PartiallyResolvedItem<IV,ID> partialItemOld = itemOld.findPartial(path);
 			if (partialItemOld != null) {
 				subItemOld = partialItemOld.getItem();
-				subResidualPath = UniformItemPathImpl.fromItemPath(partialItemOld.getResidualPath());
+				subResidualPath = partialItemOld.getResidualPath();
 			}
 		}
 		Item<IV,ID> subItemNew = null;
@@ -192,7 +190,7 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 			if (partialItemNew != null) {
 				subItemNew = partialItemNew.getItem();
 				if (subResidualPath == null) {
-					subResidualPath = UniformItemPathImpl.fromItemPath(partialItemNew.getResidualPath());
+					subResidualPath = partialItemNew.getResidualPath();
 				}
 			}
 		}

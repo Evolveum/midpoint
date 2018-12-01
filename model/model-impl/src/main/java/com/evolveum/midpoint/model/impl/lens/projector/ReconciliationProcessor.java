@@ -52,7 +52,6 @@ import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.PointInTimeType;
@@ -234,7 +233,7 @@ public class ReconciliationProcessor {
 			QName shouldBeRealValue = shouldBePvwo.getItemValue().getValue();
 			if (!isInValues(valueMatcher, shouldBeRealValue, arePValues)) {
 				auxObjectClassChanged = true;
-				recordDelta(valueMatcher, projCtx, UniformItemPath.EMPTY_PATH, propDef, ModificationType.ADD, shouldBeRealValue,
+				recordDelta(valueMatcher, projCtx, ItemPath.EMPTY_PATH, propDef, ModificationType.ADD, shouldBeRealValue,
 						shouldBePvwo.getSource(), "it is given");
 			}
 		}
@@ -243,7 +242,7 @@ public class ReconciliationProcessor {
 			for (PrismPropertyValue<QName> isPValue : arePValues) {
 				if (!isInPvwoValues(valueMatcher, isPValue.getValue(), shouldBePValues, true)) {
 					auxObjectClassChanged = true;
-					recordDelta(valueMatcher, projCtx, UniformItemPath.EMPTY_PATH, propDef, ModificationType.DELETE,
+					recordDelta(valueMatcher, projCtx, ItemPath.EMPTY_PATH, propDef, ModificationType.DELETE,
 							isPValue.getValue(), null, "it is not given");
 				}
 			}

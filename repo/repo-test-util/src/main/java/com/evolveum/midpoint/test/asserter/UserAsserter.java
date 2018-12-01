@@ -25,7 +25,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -304,13 +304,7 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
 	}
 	
 	@Override
-	public UserAsserter<RA> assertNoItem(QName itemName) {
-		super.assertNoItem(itemName);
-		return this;
-	}
-	
-	@Override
-	public UserAsserter<RA> assertNoItem(UniformItemPath itemPath) {
+	public UserAsserter<RA> assertNoItem(ItemPath itemPath) {
 		super.assertNoItem(itemPath);
 		return this;
 	}

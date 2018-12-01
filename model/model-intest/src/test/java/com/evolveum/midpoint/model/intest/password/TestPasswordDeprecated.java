@@ -158,7 +158,7 @@ public class TestPasswordDeprecated extends AbstractInitializedModelIntegrationT
 
 		// WHEN
 		modifyObjectReplaceReference(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-				prismContext.path(SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY_REF),
+				SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY_REF,
         		task, result, passPolicyRef);
 
 		// THEN

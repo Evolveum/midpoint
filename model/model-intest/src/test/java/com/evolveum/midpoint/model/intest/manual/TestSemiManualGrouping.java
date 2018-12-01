@@ -27,6 +27,7 @@ import java.io.File;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -216,7 +217,7 @@ public class TestSemiManualGrouping extends AbstractGroupingManualResourceTest {
 									.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTION_PENDING)
 									.delta()
 										.assertModify()
-										.assertHasModification(prismContext.path(ShadowType.F_ATTRIBUTES, new QName(MidPointConstants.NS_RI, "fullname")))
+										.assertHasModification(ItemPath.create(ShadowType.F_ATTRIBUTES, new QName(MidPointConstants.NS_RI, "fullname")))
 										.end()
 									.end()
 								.end()

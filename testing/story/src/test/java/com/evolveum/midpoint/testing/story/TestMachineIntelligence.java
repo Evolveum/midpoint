@@ -121,7 +121,7 @@ public class TestMachineIntelligence extends AbstractStoryTest {
 		Object[] newRealValue = { sourceFilePath };
 
         ObjectDelta<ResourceType> objectDelta = ObjectDeltaCreationUtil
-		        .createModificationReplaceProperty(ResourceType.class, RESOURCE_HR_OID, prismContext.path(ResourceType.F_CONNECTOR_CONFIGURATION,
+		        .createModificationReplaceProperty(ResourceType.class, RESOURCE_HR_OID, ItemPath.create(ResourceType.F_CONNECTOR_CONFIGURATION,
 						SchemaConstants.ICF_CONFIGURATION_PROPERTIES, new QName(NS_RESOURCE_CSV, "filePath")), prismContext, newRealValue);
         provisioningService.applyDefinition(objectDelta, task, result);
         provisioningService.modifyObject(ResourceType.class, objectDelta.getOid(), objectDelta.getModifications(), null, null, task, result);

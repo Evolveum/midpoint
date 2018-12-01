@@ -388,7 +388,7 @@ public class TestMapleLeaf extends AbstractStoryTest {
 		String accountOid = assertAccount(userJackBefore, RESOURCE_OPENDJ_OID);
 		PrismObject<ShadowType> shadowBefore = getShadowModel(accountOid);
 		display("Shadow before: ", shadowBefore.asObjectable());
-		PrismProperty<String> carLicenseBefore = shadowBefore.findProperty(prismContext.path(ShadowType.F_ATTRIBUTES, new QName(NS_RESOURCE, "carLicense")));
+		PrismProperty<String> carLicenseBefore = shadowBefore.findProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, new QName(NS_RESOURCE, "carLicense")));
 		assertNotNull("Unexpected car license: " + carLicenseBefore, carLicenseBefore);
 		AssertJUnit.assertNotNull("Unexpected value in car license: " + carLicenseBefore.getRealValue(), carLicenseBefore.getRealValue());
 		
@@ -419,7 +419,7 @@ public class TestMapleLeaf extends AbstractStoryTest {
 		openDJController.assertPassword("uid=jack,ou=People,dc=example,dc=com", "oldValue");
 		PrismObject<ShadowType> shadowAfter = getShadowModel(accountOid);
 		display("Shadow after: ", shadowAfter.asObjectable());
-		PrismProperty<String> carLicenseAfter = shadowAfter.findProperty(prismContext.path(ShadowType.F_ATTRIBUTES, new QName(NS_RESOURCE, "carLicense")));
+		PrismProperty<String> carLicenseAfter = shadowAfter.findProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, new QName(NS_RESOURCE, "carLicense")));
 		assertNotNull("Unexpected car license: " + carLicenseAfter, carLicenseAfter);
 		AssertJUnit.assertNotNull("Unexpected value in car license: " + carLicenseAfter.getRealValue(), carLicenseAfter.getRealValue());
 		assertNotEquals(carLicenseBefore.getRealValue(), carLicenseAfter.getRealValue(), "Unexpected values. Before: " + carLicenseBefore.getRealValue() + ", after: " + carLicenseAfter.getRealValue());

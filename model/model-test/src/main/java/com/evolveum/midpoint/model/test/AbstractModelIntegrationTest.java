@@ -2506,7 +2506,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected <T> void addAttributeToShadow(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, String attrName, T attrValue) throws SchemaException {
 		ResourceAttributeContainer attrs = ShadowUtil.getAttributesContainer(shadow);
         ResourceAttributeDefinition attrSnDef = attrs.getDefinition().findAttributeDefinition(
-        		 new QName(ResourceTypeUtil.getResourceNamespace(resource), attrName));
+        		 new ItemName(ResourceTypeUtil.getResourceNamespace(resource), attrName));
         ResourceAttribute<T> attr = attrSnDef.instantiate();
         attr.setRealValue(attrValue);
         attrs.add(attr);

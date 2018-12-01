@@ -41,6 +41,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.commons.lang.StringUtils;
 import org.opends.server.types.Entry;
 import org.opends.server.util.EmbeddedUtils;
@@ -1207,7 +1208,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		
 		Collection<PropertyDelta> modifications = new ArrayList<>();
 		
-		PropertyDelta fullNameDelta = PropertyDeltaImpl.createModificationReplaceProperty(prismContext.path(UserType.F_FULL_NAME), getUserDefinition(), new PolyString("jackNew2"));
+		PropertyDelta fullNameDelta = PropertyDeltaImpl.createModificationReplaceProperty(UserType.F_FULL_NAME, getUserDefinition(), new PolyString("jackNew2"));
 		modifications.add(fullNameDelta);
 		
 		PrismPropertyValue<ActivationStatusType> enabledUserAction = new PrismPropertyValueImpl<>(ActivationStatusType.ENABLED, OriginType.USER_ACTION, null);
@@ -1234,11 +1235,11 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		
 		
 		Collection<PropertyDelta> newModifications = new ArrayList<>();
-		PropertyDelta fullNameDeltaNew = PropertyDeltaImpl.createModificationReplaceProperty(prismContext.path(UserType.F_FULL_NAME), getUserDefinition(), new PolyString("jackNew2a"));
+		PropertyDelta fullNameDeltaNew = PropertyDeltaImpl.createModificationReplaceProperty(UserType.F_FULL_NAME, getUserDefinition(), new PolyString("jackNew2a"));
 		newModifications.add(fullNameDeltaNew);
 		
 		
-		PropertyDelta givenNameDeltaNew = PropertyDeltaImpl.createModificationReplaceProperty(prismContext.path(UserType.F_GIVEN_NAME), getUserDefinition(), new PolyString("jackNew2a"));
+		PropertyDelta givenNameDeltaNew = PropertyDeltaImpl.createModificationReplaceProperty(UserType.F_GIVEN_NAME, getUserDefinition(), new PolyString("jackNew2a"));
 		newModifications.add(givenNameDeltaNew);
 		
 		PrismPropertyValue<ActivationStatusType> enabledOutboundAction = new PrismPropertyValueImpl<>(ActivationStatusType.ENABLED, OriginType.USER_ACTION, null);
@@ -1573,8 +1574,9 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
 		johnAccountType = checkPostponedAccountBasic(accountOid, FailedOperationTypeType.MODIFY, true, parentResult);
 		ObjectDelta deltaInAccount = DeltaConvertor.createObjectDelta(johnAccountType.getObjectChange(), prismContext);
-		assertTrue("Delta stored in account must contain given name modification", deltaInAccount.hasItemDelta(prismContext.path(ShadowType.F_ATTRIBUTES, new QName(resourceTypeOpenDjrepo.getNamespace(), "givenName"))));
-		assertFalse("Delta stored in account must not contain employeeType modification", deltaInAccount.hasItemDelta(prismContext.path(ShadowType.F_ATTRIBUTES, new QName(resourceTypeOpenDjrepo.getNamespace(), "employeeType"))));
+		assertTrue("Delta stored in account must contain given name modification", deltaInAccount.hasItemDelta(
+				ItemPath.create(ShadowType.F_ATTRIBUTES, new QName(resourceTypeOpenDjrepo.getNamespace(), "givenName"))));
+		assertFalse("Delta stored in account must not contain employeeType modification", deltaInAccount.hasItemDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, new QName(resourceTypeOpenDjrepo.getNamespace(), "employeeType"))));
 		assertNotNull("Donald's account must contain reference on the resource", johnAccountType.getResourceRef());
 	
 		//TODO: check on user if it was processed successfully (add this check also to previous (30) test..
@@ -1598,8 +1600,8 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		
 		ShadowType johnAccountType = checkPostponedAccountBasic(johnAccount, FailedOperationTypeType.MODIFY, true, parentResult);
 		ObjectDelta deltaInAccount = DeltaConvertor.createObjectDelta(johnAccountType.getObjectChange(), prismContext);
-		assertTrue("Delta stored in account must contain given name modification", deltaInAccount.hasItemDelta(prismContext.path(ShadowType.F_ATTRIBUTES, new QName(resourceTypeOpenDjrepo.getNamespace(), "givenName"))));
-		assertFalse("Delta stored in account must not contain employeeType modification", deltaInAccount.hasItemDelta(prismContext.path(ShadowType.F_ATTRIBUTES, new QName(resourceTypeOpenDjrepo.getNamespace(), "employeeType"))));
+		assertTrue("Delta stored in account must contain given name modification", deltaInAccount.hasItemDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, new QName(resourceTypeOpenDjrepo.getNamespace(), "givenName"))));
+		assertFalse("Delta stored in account must not contain employeeType modification", deltaInAccount.hasItemDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, new QName(resourceTypeOpenDjrepo.getNamespace(), "employeeType"))));
 		assertNotNull("Donald's account must contain reference on the resource", johnAccountType.getResourceRef());
 		
 		
@@ -1648,7 +1650,8 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		
 		ShadowType johnAccountType = checkPostponedAccountBasic(johnAccount, FailedOperationTypeType.MODIFY, true, parentResult);
 		ObjectDelta deltaInAccount = DeltaConvertor.createObjectDelta(johnAccountType.getObjectChange(), prismContext);
-		assertTrue("Delta stored in account must contain association modification", deltaInAccount.hasItemDelta(prismContext.path(ShadowType.F_ASSOCIATION)));
+		assertTrue("Delta stored in account must contain association modification", deltaInAccount.hasItemDelta(
+				ShadowType.F_ASSOCIATION));
 //		assertFalse("Delta stored in account must not contain employeeType modification", deltaInAccount.hasItemDelta(prismContext.path(ShadowType.F_ATTRIBUTES, new QName(resourceTypeOpenDjrepo.getNamespace(), "employeeType"))));
 		assertNotNull("Donald's account must contain reference on the resource", johnAccountType.getResourceRef());
 		
@@ -1995,7 +1998,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         mapping.setExpression(expression);
         
         ResourceAttributeDefinitionType attrDefType = new ResourceAttributeDefinitionType();
-        attrDefType.setRef(new ItemPathType(prismContext.path(getOpenDjSecondaryIdentifierQName())));
+        attrDefType.setRef(new ItemPathType(ItemPath.create(getOpenDjSecondaryIdentifierQName())));
         attrDefType.setOutbound(mapping);
         
         ConstructionType construction = new ConstructionType();
@@ -2567,7 +2570,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 	}
 
 	private void modifyResourceAvailabilityStatus(AvailabilityStatusType status, OperationResult parentResult) throws Exception {
-		PropertyDelta resourceStatusDelta = PropertyDeltaImpl.createModificationReplaceProperty(prismContext.path(
+		PropertyDelta resourceStatusDelta = PropertyDeltaImpl.createModificationReplaceProperty(ItemPath.create(
 				ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS),
 				resourceTypeOpenDjrepo.asPrismObject().getDefinition(), status);
 		Collection<PropertyDelta> modifications = new ArrayList<>();

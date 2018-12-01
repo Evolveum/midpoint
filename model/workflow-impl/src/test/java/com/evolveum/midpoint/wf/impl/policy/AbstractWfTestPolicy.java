@@ -28,6 +28,7 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.prism.util.PrismUtil;
@@ -639,7 +640,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		for (int i = 0; i < subtasks.size(); i++) {
 			Task subtask = subtasks.get(i);
 			PrismProperty<ObjectTreeDeltasType> deltas = subtask.getTaskPrismObject()
-					.findProperty(prismContext.path(F_WORKFLOW_CONTEXT, F_PROCESSOR_SPECIFIC_STATE, F_DELTAS_TO_PROCESS));
+					.findProperty(ItemPath.create(F_WORKFLOW_CONTEXT, F_PROCESSOR_SPECIFIC_STATE, F_DELTAS_TO_PROCESS));
 			assertNotNull("There are no modifications in subtask #" + i + ": " + subtask, deltas);
 			assertEquals("Incorrect number of modifications in subtask #" + i + ": " + subtask, 1, deltas.getRealValues().size());
 			// todo check correctness of the modification?
@@ -1020,8 +1021,8 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	protected <T extends ObjectType> void assertObject(T object) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		PrismObject<T> objectFromRepo = searchObjectByName((Class<T>) object.getClass(), object.getName().getOrig());
 		assertNotNull("Object " + object + " was not created", objectFromRepo);
-		objectFromRepo.removeItem(prismContext.path(ObjectType.F_METADATA), Item.class);
-		objectFromRepo.removeItem(prismContext.path(ObjectType.F_OPERATION_EXECUTION), Item.class);
+		objectFromRepo.removeItem(ObjectType.F_METADATA, Item.class);
+		objectFromRepo.removeItem(ObjectType.F_OPERATION_EXECUTION, Item.class);
 		assertEquals("Object is different from the one that was expected", object, objectFromRepo.asObjectable());
 	}
 

@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.lex.LexicalProcessor;
 import com.evolveum.midpoint.prism.lex.LexicalUtils;
 import com.evolveum.midpoint.prism.lex.json.yaml.MidpointYAMLGenerator;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xnode.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -604,6 +605,7 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 		SimpleModule sm = new SimpleModule();
 		sm.addDeserializer(QName.class, new QNameDeserializer());
 		sm.addDeserializer(UniformItemPath.class, new ItemPathDeserializer());
+		sm.addDeserializer(ItemPath.class, new ItemPathDeserializer());
 		sm.addDeserializer(PolyString.class, new PolyStringDeserializer());
 		sm.addDeserializer(ItemPathType.class, new ItemPathTypeDeserializer());
 

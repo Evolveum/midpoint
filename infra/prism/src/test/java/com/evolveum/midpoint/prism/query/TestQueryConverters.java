@@ -31,6 +31,7 @@ import java.io.IOException;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -84,7 +85,7 @@ public class TestQueryConverters {
 
 		ObjectFilter filter = query.getFilter();
 		PrismAsserts.assertEqualsFilter(filter, UserType.F_NAME, PolyStringType.COMPLEX_TYPE,
-				getPrismContext().path(new QName(null, UserType.F_NAME.getLocalPart())));
+				ItemPath.create(new QName(null, UserType.F_NAME.getLocalPart())));
 		PrismAsserts.assertEqualsFilterValue((EqualFilter) filter, createPolyString("jack"));
 
 		QueryType convertedQueryType = toQueryType(query);
@@ -120,12 +121,12 @@ public class TestQueryConverters {
 
 		ObjectFilter first = getFilterCondition(filter, 0);
 		PrismAsserts.assertEqualsFilter(first, UserType.F_GIVEN_NAME, DOMUtil.XSD_STRING,
-				getPrismContext().path(new QName(null,UserType.F_GIVEN_NAME.getLocalPart())));
+				ItemPath.create(new QName(null,UserType.F_GIVEN_NAME.getLocalPart())));
 		PrismAsserts.assertEqualsFilterValue((EqualFilter) first, "Jack");
 
 		ObjectFilter second = getFilterCondition(filter, 1);
 		PrismAsserts.assertEqualsFilter(second, UserType.F_LOCALITY, DOMUtil.XSD_STRING,
-				getPrismContext().path(new QName(null,UserType.F_LOCALITY.getLocalPart())));
+				ItemPath.create(new QName(null,UserType.F_LOCALITY.getLocalPart())));
 		PrismAsserts.assertEqualsFilterValue((EqualFilter) second, "Caribbean");
 
 		QueryType convertedQueryType = toQueryType(query);

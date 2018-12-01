@@ -22,7 +22,7 @@ package com.evolveum.midpoint.schema;
 import static com.evolveum.midpoint.prism.util.PrismAsserts.assertPropertyValue;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -212,7 +212,7 @@ public class TestJaxbParsing {
         Document document = DOMUtil.getDocument();
 //        Element path = document.createElementNS(SchemaConstantsGenerated.NS_TYPES, "path");
 //        path.setTextContent("c:credentials/c:password");
-        UniformItemPath path = getPrismContext().path(SchemaConstantsGenerated.C_CREDENTIALS, CredentialsType.F_PASSWORD);
+        ItemPath path = ItemPath.create(SchemaConstantsGenerated.C_CREDENTIALS, CredentialsType.F_PASSWORD);
         item1.setPath(new ItemPathType(path));
         ProtectedStringType protectedString = new ProtectedStringType();
         protectedString.setEncryptedData(new EncryptedDataType());

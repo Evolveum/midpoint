@@ -598,7 +598,7 @@ private SecurityQuestionAnswerDTO checkIfQuestionisValidSingle(SecurityQuestionA
 			 PrismObjectDefinition objDef =registry.findObjectDefinitionByCompileTimeClass(UserType.class);
 			 Class<? extends ObjectType> type =  UserType.class;
 
-			 final ItemPath valuePath = prismContext.path(SchemaConstantsGenerated.C_CREDENTIALS,
+			 final ItemPath valuePath = ItemPath.create(SchemaConstantsGenerated.C_CREDENTIALS,
 	                  CredentialsType.F_SECURITY_QUESTIONS, SecurityQuestionsCredentialsType.F_QUESTION_ANSWER);
 			 SecurityQuestionAnswerType secQuesAnsType= new SecurityQuestionAnswerType();
 			 ProtectedStringType protStrType= new ProtectedStringType();

@@ -482,10 +482,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return getOperationOptionsBuilder().items(items).retrieve().build();
     }
 
-    public UniformItemPath path(Object... components) {
-        return getPrismContext().path(components);
-    }
-
     public QueryConverter getQueryConverter() {
         return getPrismContext().getQueryConverter();
     }

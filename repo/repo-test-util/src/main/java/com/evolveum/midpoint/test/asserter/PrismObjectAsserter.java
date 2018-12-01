@@ -31,7 +31,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -170,13 +170,7 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
 		assertEquals("Wrong "+propName.getLocalPart()+" in "+desc(), expected, realValue);
 	}
 	
-	public PrismObjectAsserter<O,RA> assertNoItem(QName itemName) {
-		Item<PrismValue, ItemDefinition> item = getObject().findItem(ItemName.fromQName(itemName));
-		assertNull("Unexpected item "+itemName+" in "+desc(), item);
-		return this;
-	}
-	
-	public PrismObjectAsserter<O,RA> assertNoItem(UniformItemPath itemPath) {
+	public PrismObjectAsserter<O,RA> assertNoItem(ItemPath itemPath) {
 		Item<PrismValue, ItemDefinition> item = getObject().findItem(itemPath);
 		assertNull("Unexpected item "+itemPath+" in "+desc(), item);
 		return this;

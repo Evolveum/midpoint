@@ -20,7 +20,6 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.impl.visualizer.output.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.CloneUtil;
@@ -40,7 +39,7 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 
 import static com.evolveum.midpoint.prism.delta.ChangeType.*;
-import static com.evolveum.midpoint.prism.path.UniformItemPath.EMPTY_PATH;
+import static com.evolveum.midpoint.prism.path.ItemPath.EMPTY_PATH;
 import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetch;
 import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
@@ -185,8 +184,8 @@ public class Visualizer {
 		SceneImpl scene = new SceneImpl(owner);
 		scene.setChangeType(objectDelta.getChangeType());
 		scene.setSourceDelta(objectDelta);
-		scene.setSourceRelPath(UniformItemPath.EMPTY_PATH);
-		scene.setSourceAbsPath(UniformItemPath.EMPTY_PATH);
+		scene.setSourceRelPath(ItemPath.EMPTY_PATH);
+		scene.setSourceAbsPath(ItemPath.EMPTY_PATH);
 		PrismObject<? extends ObjectType> object;
 		if (objectDelta.isAdd()) {
 			object = objectDelta.getObjectToAdd();
@@ -445,11 +444,11 @@ public class Visualizer {
 		owningScene.addPartialScene(scene);
 	}
 
-	private SceneImpl createContainerScene(ChangeType changeType, UniformItemPath containerPath, SceneImpl owningScene) {
+	private SceneImpl createContainerScene(ChangeType changeType, ItemPath containerPath, SceneImpl owningScene) {
 		SceneImpl scene = new SceneImpl(owningScene);
 		scene.setChangeType(changeType);
 
-		UniformItemPath deltaParentItemPath = getDeltaParentItemPath(containerPath);
+		ItemPath deltaParentItemPath = getDeltaParentItemPath(containerPath);
 		PrismContainerDefinition<?> sceneDefinition = getSceneDefinition(scene, deltaParentItemPath);
 
 		NameImpl name = createNameForContainerDelta(containerPath, sceneDefinition);
@@ -460,14 +459,14 @@ public class Visualizer {
 			scene.setSourceDefinition(sceneDefinition);
 		}
 
-		UniformItemPath sceneRelativePath = containerPath.remainder(owningScene.getSourceRelPath());
+		ItemPath sceneRelativePath = containerPath.remainder(owningScene.getSourceRelPath());
 		scene.setSourceRelPath(sceneRelativePath);
 		scene.setSourceAbsPath(containerPath);
 		scene.setSourceDelta(null);
 		return scene;
 	}
 
-	private NameImpl createNameForContainerDelta(UniformItemPath deltaParentPath, PrismContainerDefinition<?> sceneDefinition) {
+	private NameImpl createNameForContainerDelta(ItemPath deltaParentPath, PrismContainerDefinition<?> sceneDefinition) {
 		NameImpl name = new NameImpl(deltaParentPath.toString());
 		name.setId(String.valueOf(getLastId(deltaParentPath)));
 		if (sceneDefinition != null) {
@@ -477,7 +476,7 @@ public class Visualizer {
 		return name;
 	}
 
-	private UniformItemPath getDeltaParentItemPath(UniformItemPath deltaParentPath) {
+	private ItemPath getDeltaParentItemPath(ItemPath deltaParentPath) {
 		if (ItemPath.isId(deltaParentPath.last())) {
 			return deltaParentPath.allExceptLast();
 		} else {
@@ -485,11 +484,11 @@ public class Visualizer {
 		}
 	}
 
-	private Long getLastId(UniformItemPath deltaParentPath) {
+	private Long getLastId(ItemPath deltaParentPath) {
 		return ItemPath.toIdOrNull(deltaParentPath.last());
 	}
 
-	private PrismContainerDefinition<?> getSceneDefinition(SceneImpl ownerScene, UniformItemPath deltaParentItemPath) {
+	private PrismContainerDefinition<?> getSceneDefinition(SceneImpl ownerScene, ItemPath deltaParentItemPath) {
 		PrismContainerDefinition<?> rootDefinition = getRootDefinition(ownerScene);
 		if (rootDefinition == null) {
 			return null;
@@ -500,8 +499,8 @@ public class Visualizer {
 
 	private void visualizeAtomicDelta(ItemDelta<?, ?> delta, SceneImpl scene, VisualizationContext context, Task task, OperationResult result)
 			throws SchemaException {
-		UniformItemPath deltaParentPath = delta.getParentPath();
-		UniformItemPath sceneRelativeItemPath = getDeltaParentItemPath(deltaParentPath).remainder(scene.getSourceRelPath());
+		ItemPath deltaParentPath = delta.getParentPath();
+		ItemPath sceneRelativeItemPath = getDeltaParentItemPath(deltaParentPath).remainder(scene.getSourceRelPath());
 		SceneImpl sceneForItem;
 		if (ItemPath.isEmpty(deltaParentPath)) {
 			sceneForItem = scene;
@@ -538,7 +537,7 @@ public class Visualizer {
 				scene.addPartialScene(sceneForItem);
 			}
 		}
-		UniformItemPath itemRelativeItemPath = getDeltaParentItemPath(delta.getPath()).remainder(sceneForItem.getSourceRelPath());
+		ItemPath itemRelativeItemPath = getDeltaParentItemPath(delta.getPath()).remainder(sceneForItem.getSourceRelPath());
 		if (context.isRemoveExtraDescriptiveItems()) {
 			Iterator<? extends SceneItemImpl> iterator = sceneForItem.getItems().iterator();
 			while (iterator.hasNext()) {
@@ -579,7 +578,7 @@ public class Visualizer {
 		return scene.getSourceDefinition();
 	}
 
-	private SceneImpl findPartialSceneByPath(SceneImpl scene, UniformItemPath deltaParentPath) {
+	private SceneImpl findPartialSceneByPath(SceneImpl scene, ItemPath deltaParentPath) {
 		for (SceneImpl subscene : scene.getPartialScenes()) {
 			if (subscene.getSourceAbsPath().equivalent(deltaParentPath) && subscene.getChangeType() == MODIFY) {
 				return subscene;
@@ -644,7 +643,7 @@ public class Visualizer {
 			si.setOperational(def.isOperational());
 		}
 		si.setSourceItem(item);
-		si.setSourceRelPath(prismContext.path(item.getElementName()));
+		si.setSourceRelPath(item.getElementName());
 		return si;
 	}
 
@@ -747,7 +746,7 @@ public class Visualizer {
 			si.setSourceItem(item);
 			si.setOperational(def.isOperational());
 		}
-		UniformItemPath remainder = itemDelta.getPath().remainder(owningScene.getSourceRelPath());
+		ItemPath remainder = itemDelta.getPath().remainder(owningScene.getSourceRelPath());
 		if (remainder.startsWithNullId()) {
 			remainder = remainder.rest();
 		}

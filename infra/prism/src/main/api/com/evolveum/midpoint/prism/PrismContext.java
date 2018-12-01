@@ -36,6 +36,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringNormalizerConfigurationType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 import org.w3c.dom.ls.LSResourceResolver;
 import org.xml.sax.SAXException;
@@ -307,10 +308,6 @@ public interface PrismContext extends ProtectorCreator {
 
 	UniformItemPath emptyPath();
 
-	UniformItemPath path(String... names);
-
-	UniformItemPath path(ItemPath components);
-
 	UniformItemPath path(Object... namesOrIdsOrSegments);
 
 	Miscellaneous misc();
@@ -320,8 +317,14 @@ public interface PrismContext extends ProtectorCreator {
 	/**
 	 * Temporary
 	 */
+	@NotNull
 	UniformItemPath toUniformPath(ItemPath path);
+	@Nullable
+	UniformItemPath toUniformPathKeepNull(ItemPath path);
 	UniformItemPath toUniformPath(ItemPathType path);
+	default ItemPath toPath(ItemPathType path) {
+		return path != null ? path.getItemPath() : null;
+	}
 
 	/**
 	 * Temporary

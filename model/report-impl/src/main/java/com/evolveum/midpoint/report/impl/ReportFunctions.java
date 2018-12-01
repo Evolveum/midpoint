@@ -22,7 +22,6 @@ import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -320,7 +319,7 @@ public class ReportFunctions {
                 .buildFilter();
     }
 
-    <C extends Containerable, T> ObjectFilter createEqualFilter(UniformItemPath propertyPath, Class<C> type, T realValue) throws SchemaException {
+    <C extends Containerable, T> ObjectFilter createEqualFilter(ItemPath propertyPath, Class<C> type, T realValue) throws SchemaException {
         return QueryBuilder.queryFor(type, prismContext)
                 .item(propertyPath).eq(realValue)
                 .buildFilter();

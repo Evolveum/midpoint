@@ -32,6 +32,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.xnode.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.testng.AssertJUnit;
@@ -532,7 +533,7 @@ public class TestJaxbConstruction {
 		XNodeFactory factory = getPrismContext().xnodeFactory();
 
 		Map<QName, XNode> equalsElementSource = new HashMap<>();
-		PrimitiveXNode<ItemPathType> pathElement = factory.primitive(new ItemPathType(getPrismContext().path(new QName("name"))));
+		PrimitiveXNode<ItemPathType> pathElement = factory.primitive(new ItemPathType(new ItemName("name")));
 		equalsElementSource.put(new QName(SchemaConstantsGenerated.NS_QUERY, "path"), pathElement);
 		PrimitiveXNode<String> valueElement = factory.primitive("čučoriedka");
 		equalsElementSource.put(new QName(SchemaConstantsGenerated.NS_QUERY, "value"), valueElement);

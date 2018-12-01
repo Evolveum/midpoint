@@ -19,7 +19,6 @@ import com.evolveum.midpoint.common.ResourceObjectPattern;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -753,7 +752,7 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	}
 
 	@Override
-	public void trimTo(@NotNull Collection<UniformItemPath> paths) {
+	public void trimTo(@NotNull Collection<ItemPath> paths) {
 		structuralObjectClassDefinition.trimTo(paths);
 		auxiliaryObjectClassDefinitions.forEach(def -> def.trimTo(paths));
 	}

@@ -25,6 +25,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
@@ -2118,7 +2119,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		c.setDescription(name);
 		c.setResourceRef(ObjectTypeUtil.createObjectRef(RESOURCE_DUMMY_EMPTY_OID, ObjectTypes.RESOURCE));
 		ResourceAttributeDefinitionType nameDef = new ResourceAttributeDefinitionType();
-		nameDef.setRef((ItemPathType) prismContext.path(new QName(SchemaConstants.NS_ICF_SCHEMA, "name")).asItemPathType());
+		nameDef.setRef(new ItemPathType(ItemPath.create(new QName(SchemaConstants.NS_ICF_SCHEMA, "name"))));
 		MappingType outbound = new MappingType();
 		outbound.setName(name);
 		ExpressionType expression = new ExpressionType();
@@ -2208,7 +2209,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		ExpressionType expression = new ExpressionType();
 		expression.getExpressionEvaluator().add(new ObjectFactory().createScript(script));
 		VariableBindingDefinitionType source = new VariableBindingDefinitionType();
-		source.setPath((ItemPathType) prismContext.path(UserType.F_NAME).asItemPathType());
+		source.setPath(new ItemPathType(UserType.F_NAME));
 		MappingType rv = new MappingType();
 		rv.setName(conditionName);
 		rv.setExpression(expression);
@@ -2285,10 +2286,10 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 			MappingType mapping = new MappingType();
 			mapping.setName(name + "-" + i);
 			VariableBindingDefinitionType source = new VariableBindingDefinitionType();
-			source.setPath((ItemPathType) prismContext.path(UserType.F_NAME).asItemPathType());
+			source.setPath(new ItemPathType(UserType.F_NAME));
 			mapping.getSource().add(source);
 			VariableBindingDefinitionType target = new VariableBindingDefinitionType();
-			target.setPath((ItemPathType) prismContext.path(UserType.F_DESCRIPTION).asItemPathType());
+			target.setPath(new ItemPathType(UserType.F_DESCRIPTION));
 			mapping.setTarget(target);
 			MappingsType mappings = new MappingsType(prismContext);
 			mappings.getMapping().add(mapping);

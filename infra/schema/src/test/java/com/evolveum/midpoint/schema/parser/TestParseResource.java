@@ -18,7 +18,7 @@ package com.evolveum.midpoint.schema.parser;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.lex.dom.DomLexicalProcessor;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.VariableItemPathSegment;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -463,11 +463,11 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
             ObjectFilter objectFilter = prismContext.getQueryConverter().parseFilter(filter, ConnectorType.class);
             assertTrue("Wrong kind of filter: " + objectFilter, objectFilter instanceof EqualFilter);
             EqualFilter equalFilter = (EqualFilter) objectFilter;
-            UniformItemPath path = equalFilter.getPath();      // should be extension/x:extConnType
+            ItemPath path = equalFilter.getPath();      // should be extension/x:extConnType
             PrismAsserts.assertPathEqualsExceptForPrefixes("Wrong filter path",
 					namespaces ?
-						prismContext.path(new QName("extension"), new QName("http://x/", "extConnType")) :
-						prismContext.path(new QName("extension"), new QName("extConnType")),
+						ItemPath.create(new QName("extension"), new QName("http://x/", "extConnType")) :
+						ItemPath.create(new QName("extension"), new QName("extConnType")),
 					path);
             PrismPropertyValue filterValue = (PrismPropertyValue) equalFilter.getValues().get(0);
             assertEquals("Wrong filter value", "org.identityconnectors.ldap.LdapConnector", ((RawType) filterValue.getValue()).getParsedRealValue(String.class).trim());
@@ -529,12 +529,12 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
 //            ItemPathType itemPathType = (ItemPathType) expressionType.getExpressionEvaluator().get(0).getValue();
 //            PrismAsserts.assertPathEqualsExceptForPrefixes("path in correlation expression",
 //					namespaces ?
-//							prismContext.path(
+//							ItemPath.create(
 //									new NameItemPathSegment(new QName("account"), true),
 //									new NameItemPathSegment(new QName(SchemaConstantsGenerated.NS_COMMON, "attributes")),
 //									new NameItemPathSegment(new QName("http://myself.me/schemas/whatever", "yyy"))
 //							) :
-//							prismContext.path(
+//							ItemPath.create(
 //									new NameItemPathSegment(new QName("account"), true),
 //									new NameItemPathSegment(new QName("attributes")),
 //									new NameItemPathSegment(new QName("yyy"))
@@ -604,7 +604,7 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
                         System.out.println("source for departmentNumber = " + source);
                         assertNotNull("no source for outbound mapping for departmentNumber", source);
                         //<path xmlns:z="http://z/">$user/extension/z:dept</path>
-                        UniformItemPath expected = getPrismContext().path(new VariableItemPathSegment(new QName("user")),
+                        ItemPath expected = ItemPath.create(new VariableItemPathSegment(new QName("user")),
                                 new QName("extension"),
 								namespaces ?
 										new QName("http://z/", "dept") :

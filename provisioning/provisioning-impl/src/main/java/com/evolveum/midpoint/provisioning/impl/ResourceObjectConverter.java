@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -524,7 +523,7 @@ public class ResourceObjectConverter {
 			boolean hasVolatilityTriggerModification = false;
 			boolean hasResourceModification = false;
 			for (ItemDelta modification: itemDeltas) {
-				UniformItemPath path = modification.getPath();
+				ItemPath path = modification.getPath();
 				QName firstPathName = path.firstName();
 				if (ProvisioningUtil.isAttributeModification(firstPathName)) {
 					hasResourceModification = true;
@@ -1117,7 +1116,7 @@ public class ResourceObjectConverter {
 		}
 		
 		for (ItemDelta subjectDelta : subjectDeltas) {
-			UniformItemPath subjectItemPath = subjectDelta.getPath();
+			ItemPath subjectItemPath = subjectDelta.getPath();
 			
 			if (ShadowType.F_ASSOCIATION.equivalent(subjectItemPath)) {
 				ContainerDelta<ShadowAssociationType> containerDelta = (ContainerDelta<ShadowAssociationType>)subjectDelta;				

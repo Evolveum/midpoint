@@ -26,6 +26,7 @@ import java.util.Collection;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -64,7 +65,7 @@ public class TestTrafo extends AbstractStoryTest {
 	public static final String NS_TRAFO_EXT = "http://midpoint.evolveum.com/xml/ns/story/trafo/ext";
 	private static final QName TRAFO_EXTENSION_HOMEDIR_QNAME = new QName(NS_TRAFO_EXT, "homedir");
 	private static final QName TRAFO_EXTENSION_UID_QNAME = new QName(NS_TRAFO_EXT, "uid");
-	private static final UniformItemPath TRAFO_EXTENSION_HOMEDIR_PATH = prismContext.path(UserType.F_EXTENSION, TRAFO_EXTENSION_HOMEDIR_QNAME);
+	private static final ItemPath TRAFO_EXTENSION_HOMEDIR_PATH = ItemPath.create(UserType.F_EXTENSION, TRAFO_EXTENSION_HOMEDIR_QNAME);
 
 	private static final String TRAFO_MAIL_DOMAIN = "trafo.xx";
 
@@ -437,7 +438,7 @@ public class TestTrafo extends AbstractStoryTest {
  		// Set by inbound mappings
  		PrismAsserts.assertPropertyValue(userJack, UserType.F_EMAIL_ADDRESS, "Jack.Sparrow@" + TRAFO_MAIL_DOMAIN);
  		PrismAsserts.assertPropertyValue(userJack,
- 				prismContext.path(UserType.F_EXTENSION, TRAFO_EXTENSION_HOMEDIR_QNAME), "c:\\install\\test-id-folder");
+			    ItemPath.create(UserType.F_EXTENSION, TRAFO_EXTENSION_HOMEDIR_QNAME), "c:\\install\\test-id-folder");
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -512,7 +513,7 @@ public class TestTrafo extends AbstractStoryTest {
  		// Set by inbound mappings
  		PrismAsserts.assertPropertyValue(userJack, UserType.F_EMAIL_ADDRESS, "Jack.Sparrow@" + TRAFO_MAIL_DOMAIN);
  		PrismAsserts.assertPropertyValue(userJack,
- 				prismContext.path(UserType.F_EXTENSION, TRAFO_EXTENSION_HOMEDIR_QNAME), "c:\\install\\test-id-folder");
+			    ItemPath.create(UserType.F_EXTENSION, TRAFO_EXTENSION_HOMEDIR_QNAME), "c:\\install\\test-id-folder");
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -672,7 +673,7 @@ public class TestTrafo extends AbstractStoryTest {
  		// Set by inbound mappings
  		PrismAsserts.assertPropertyValue(userJack, UserType.F_EMAIL_ADDRESS, "Jack.Sparrow@" + TRAFO_MAIL_DOMAIN);
  		PrismAsserts.assertPropertyValue(userJack,
- 				prismContext.path(UserType.F_EXTENSION, TRAFO_EXTENSION_HOMEDIR_QNAME), "c:\\install\\test-id-folder");
+			    ItemPath.create(UserType.F_EXTENSION, TRAFO_EXTENSION_HOMEDIR_QNAME), "c:\\install\\test-id-folder");
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -788,7 +789,7 @@ public class TestTrafo extends AbstractStoryTest {
  		// Set by inbound mappings
  		PrismAsserts.assertPropertyValue(userAngelica, UserType.F_EMAIL_ADDRESS, "Jack.Sparrow2@" + TRAFO_MAIL_DOMAIN);
  		PrismAsserts.assertPropertyValue(userAngelica,
- 				prismContext.path(UserType.F_EXTENSION, TRAFO_EXTENSION_HOMEDIR_QNAME), "c:\\install\\test-id-folder");
+			    ItemPath.create(UserType.F_EXTENSION, TRAFO_EXTENSION_HOMEDIR_QNAME), "c:\\install\\test-id-folder");
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -907,7 +908,7 @@ public class TestTrafo extends AbstractStoryTest {
  		// Set by inbound mappings
  		PrismAsserts.assertPropertyValue(userSmith, UserType.F_EMAIL_ADDRESS, "John.Smith@" + TRAFO_MAIL_DOMAIN);
  		PrismAsserts.assertPropertyValue(userSmith,
- 				prismContext.path(UserType.F_EXTENSION, TRAFO_EXTENSION_HOMEDIR_QNAME), "\\\\medusa\\User\\Smith_smith111");
+			    ItemPath.create(UserType.F_EXTENSION, TRAFO_EXTENSION_HOMEDIR_QNAME), "\\\\medusa\\User\\Smith_smith111");
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -1028,7 +1029,7 @@ public class TestTrafo extends AbstractStoryTest {
  		// Set by inbound mappings
  		PrismAsserts.assertPropertyValue(userSmith, UserType.F_EMAIL_ADDRESS, "John.Smith2@" + TRAFO_MAIL_DOMAIN);
  		PrismAsserts.assertPropertyValue(userSmith,
- 				prismContext.path(UserType.F_EXTENSION, TRAFO_EXTENSION_HOMEDIR_QNAME), "\\\\medusa\\User\\Smith_smith222");
+			    ItemPath.create(UserType.F_EXTENSION, TRAFO_EXTENSION_HOMEDIR_QNAME), "\\\\medusa\\User\\Smith_smith222");
 
         // Check audit
         display("Audit", dummyAuditService);

@@ -493,7 +493,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         // Lets make this a bit more interesting by setting up a fake situation in the shadow
         ObjectDelta<ShadowType> objectDelta = createModifyAccountShadowReplaceDelta(accountShadowCalypsoDummyOid,
-        		getDummyResourceObject(), prismContext.path(ShadowType.F_SYNCHRONIZATION_SITUATION), SynchronizationSituationType.DISPUTED);
+        		getDummyResourceObject(), ShadowType.F_SYNCHRONIZATION_SITUATION, SynchronizationSituationType.DISPUTED);
         repositoryService.modifyObject(ShadowType.class, accountShadowCalypsoDummyOid, objectDelta.getModifications(), result);
 
         PrismObject<ShadowType> accountShadowCalypso = getShadowModelNoFetch(accountShadowCalypsoDummyOid);

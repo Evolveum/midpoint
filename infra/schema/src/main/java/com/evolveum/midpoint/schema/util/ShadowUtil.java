@@ -696,7 +696,7 @@ public class ShadowUtil {
 				ShadowUtil.getPrimaryIdentifiers(shadow), ShadowUtil.getSecondaryIdentifiers(shadow));
 	}
 
-	public static boolean matchesAttribute(UniformItemPath path, QName attributeName) {
+	public static boolean matchesAttribute(ItemPath path, QName attributeName) {
 		return path.startsWithName(ShadowType.F_ATTRIBUTES) &&
 				path.rest().startsWithName(attributeName);
 	}

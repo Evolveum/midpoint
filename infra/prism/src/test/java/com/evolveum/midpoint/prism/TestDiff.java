@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.util.Collection;
 
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
@@ -470,7 +471,7 @@ public class TestDiff {
         assertEquals("Unexpected number of midifications", 1, modifications.size());
         PrismAsserts.assertPropertyReplace(
         		modifications,
-		        getPrismContext().path(UserType.F_ASSIGNMENT, 1L, AssignmentType.F_DESCRIPTION),
+		        ItemPath.create(UserType.F_ASSIGNMENT, 1L, AssignmentType.F_DESCRIPTION),
         		"chamalalia patlama paprtala");
         ItemDeltaCollectionsUtil.checkConsistence(modifications);
     }
@@ -500,7 +501,7 @@ public class TestDiff {
         assertEquals("Unexpected number of midifications", 1, modifications.size());
         PrismAsserts.assertPropertyReplace(
         		modifications,
-        		getPrismContext().path(UserType.F_ASSIGNMENT, AssignmentType.F_DESCRIPTION),
+		        ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_DESCRIPTION),
         		"chamalalia patlama paprtala");
         ItemDeltaCollectionsUtil.checkConsistence(modifications);
     }
@@ -521,7 +522,7 @@ public class TestDiff {
 //    	PrismContainerValue<AssignmentType> ass2cval = ass2.createNewValue();
 //    	ass2cval.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "chamalalia patlama paprtala");
 //
-//		ItemPath pathPrefix = prismContext.path(
+//		ItemPath pathPrefix = ItemPath.create(
 //				new NameItemPathSegment(UserType.F_ASSIGNMENT),
 //				new IdItemPathSegment("1"));
 //
@@ -534,7 +535,7 @@ public class TestDiff {
 //        assertEquals("Unexpected number of midifications", 1, modifications.size());
 //        PrismAsserts.assertPropertyReplace(
 //        		modifications,
-//        		prismContext.path(
+//        		ItemPath.create(
 //        				new NameItemPathSegment(UserType.F_ASSIGNMENT),
 //        				new IdItemPathSegment("1"),
 //        				new NameItemPathSegment(AssignmentType.F_DESCRIPTION)),

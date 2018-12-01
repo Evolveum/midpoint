@@ -29,6 +29,7 @@ import java.util.Collection;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Listeners;
@@ -1700,7 +1701,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 		dummyResourceCtl.addAccount(ACCOUNT_BETTY_USERNAME, ACCOUNT_BETTY_FULLNAME);
 		
 		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
-				ACCOUNT_ELIZABETH_OID, prismContext.path(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME), prismContext, ACCOUNT_BETTY_USERNAME);
+				ACCOUNT_ELIZABETH_OID, ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME), prismContext, ACCOUNT_BETTY_USERNAME);
 
 		// WHEN
 		displayWhen(TEST_NAME);
@@ -1776,7 +1777,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 		dummyResource.resetBreakMode();
 		
 		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
-				ACCOUNT_ELIZABETH_OID, prismContext.path(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME), prismContext, ACCOUNT_BETTY_USERNAME);
+				ACCOUNT_ELIZABETH_OID, ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME), prismContext, ACCOUNT_BETTY_USERNAME);
 
 		// WHEN
 		displayWhen(TEST_NAME);

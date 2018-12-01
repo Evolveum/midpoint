@@ -41,7 +41,6 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -1064,7 +1063,7 @@ public class ShadowManager {
 				cdelta.addValuesToAdd(pendingOperation.asPrismContainerValue());
 				shadowChanges.add(cdelta);
 			} else {
-				UniformItemPath containerPath = pendingOperation.asPrismContainerValue().getPath();
+				ItemPath containerPath = pendingOperation.asPrismContainerValue().getPath();
 				
 				if (!opState.getExecutionStatus().equals(pendingOperation.getExecutionStatus())) {
 					PropertyDelta<PendingOperationExecutionStatusType> executionStatusDelta = createPendingOperationDelta(containerDefinition, containerPath,
@@ -1122,7 +1121,7 @@ public class ShadowManager {
 		
 	}
 	
-	private <T> PropertyDelta<T> createPendingOperationDelta(PrismContainerDefinition<PendingOperationType> containerDefinition, UniformItemPath containerPath, QName propName, T valueToReplace) {
+	private <T> PropertyDelta<T> createPendingOperationDelta(PrismContainerDefinition<PendingOperationType> containerDefinition, ItemPath containerPath, QName propName, T valueToReplace) {
 		PrismPropertyDefinition<T> propDef = containerDefinition.findPropertyDefinition(ItemName.fromQName(propName));
 		PropertyDelta<T> propDelta = new PropertyDeltaImpl<>(containerPath.append(propName), propDef, prismContext);
 		if (valueToReplace == null) {
@@ -1358,7 +1357,7 @@ public class ShadowManager {
 		PendingOperationExecutionStatusType executionStatus = opState.getExecutionStatus();
 		
 		for (PendingOperationType existingPendingOperation: pendingExecutionOperations) {
-			UniformItemPath containerPath = existingPendingOperation.asPrismContainerValue().getPath();
+			ItemPath containerPath = existingPendingOperation.asPrismContainerValue().getPath();
 			addPropertyDelta(repoDeltas, containerPath, PendingOperationType.F_EXECUTION_STATUS, executionStatus, shadow.getDefinition());
 			addPropertyDelta(repoDeltas, containerPath, PendingOperationType.F_RESULT_STATUS, resultStatus, shadow.getDefinition());
 			addPropertyDelta(repoDeltas, containerPath, PendingOperationType.F_ASYNCHRONOUS_OPERATION_REFERENCE, asynchronousOperationReference, shadow.getDefinition());
@@ -1386,8 +1385,8 @@ public class ShadowManager {
 		}
 	}
 	
-	private <T> void addPropertyDelta(Collection repoDeltas, UniformItemPath containerPath, QName propertyName, T propertyValue, PrismObjectDefinition<ShadowType> shadowDef) {
-		UniformItemPath propPath = containerPath.append(propertyName);
+	private <T> void addPropertyDelta(Collection repoDeltas, ItemPath containerPath, QName propertyName, T propertyValue, PrismObjectDefinition<ShadowType> shadowDef) {
+		ItemPath propPath = containerPath.append(propertyName);
 		PropertyDelta<T> delta;
 		if (propertyValue == null) {
 			delta = PropertyDeltaImpl.createModificationReplaceProperty(propPath, shadowDef /* no value */);
@@ -1591,8 +1590,8 @@ public class ShadowManager {
 	}
 	
 	private boolean isResourceModification(ItemDelta itemDelta) {
-		UniformItemPath path = itemDelta.getPath();
-		UniformItemPath parentPath = itemDelta.getParentPath();
+		ItemPath path = itemDelta.getPath();
+		ItemPath parentPath = itemDelta.getParentPath();
 		if (ShadowType.F_ATTRIBUTES.equivalent(parentPath)) {
 			return true;
 		}

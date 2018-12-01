@@ -24,6 +24,7 @@ import java.util.Collection;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -216,9 +217,9 @@ public class TestScience  extends AbstractStoryTest {
 
 
 		//internalId on unix dummy resource and title on openDJ simulation must be the same
-		PrismProperty unixId = shadowUnix.findProperty(prismContext.path(ShadowType.F_ATTRIBUTES, UNIX_INTERNAL_ID));
+		PrismProperty unixId = shadowUnix.findProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, UNIX_INTERNAL_ID));
 		assertNotNull("No "+UNIX_INTERNAL_ID+" in "+shadowUnix, unixId);
-		PrismProperty openDjSyncedId = shadowOpenDj.findProperty(prismContext.path(ShadowType.F_ATTRIBUTES, new QName(NS_RESOURCE_INSTANCE, "title")));
+		PrismProperty openDjSyncedId = shadowOpenDj.findProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, new QName(NS_RESOURCE_INSTANCE, "title")));
 		assertNotNull("No 'title' in "+shadowOpenDj, openDjSyncedId);
 		PrismAsserts.assertEquals("Unix id was not synced to the opendj properly.", String.valueOf(unixId.getAnyRealValue()), openDjSyncedId.getAnyRealValue());
 

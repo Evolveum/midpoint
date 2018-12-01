@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -297,7 +298,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         PrismProperty<Integer> property = (PrismProperty<Integer>) delayDefinition.instantiate();
         property.setRealValue(100);
 
-        PropertyDelta delta = new PropertyDeltaImpl<>(prismContext.path(TaskType.F_EXTENSION, property.getElementName()), property.getDefinition(), prismContext);
+        PropertyDelta delta = new PropertyDeltaImpl<>(ItemPath.create(TaskType.F_EXTENSION, property.getElementName()), property.getDefinition(), prismContext);
         //delta.addV(property.getValues());
         delta.setValuesToReplace(PrismValueCollectionsUtil.cloneCollection(property.getValues()));
 

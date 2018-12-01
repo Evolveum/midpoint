@@ -24,6 +24,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -286,9 +287,9 @@ public class ConstructionAssociationPanel<C extends Containerable, IW extends It
                 ContainerWrapper associationWrapper = constructionContainerWrapper.findContainerWrapper(constructionContainerWrapper
                         .getPath().append(ConstructionType.F_ASSOCIATION));
                 PrismContainerValue newAssociation = associationWrapper.getItem().createNewValue();
-                QName associationRefPath = def.getName();
+                ItemName associationRefPath = def.getName();
                 ((ResourceObjectAssociationType)newAssociation.asContainerable())
-                        .setRef(new ItemPathType(getPageBase().path(associationRefPath)));
+                        .setRef(new ItemPathType(associationRefPath));
                 ExpressionType newAssociationExpression = ((ResourceObjectAssociationType)newAssociation.asContainerable()).beginOutbound().beginExpression();
                 ExpressionUtil.createShadowRefEvaluatorValue(newAssociationExpression, object.getOid(),
                         getPageBase().getPrismContext());

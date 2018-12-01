@@ -23,6 +23,7 @@ import static org.testng.AssertJUnit.assertTrue;
 import com.evolveum.midpoint.prism.Containerable;
 
 import com.evolveum.midpoint.prism.path.CanonicalItemPathImpl;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -31,7 +32,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -70,20 +70,20 @@ public class ItemPathCanonicalizationTest {
 
 	@Test
 	public void testCanonicalizationSimple() {
-		UniformItemPath path = getPrismContext().path(UserType.F_NAME);
+		ItemPath path = UserType.F_NAME;
 		assertCanonical(path, null, "\\" + COMMON + "#name");
 	}
 
 	@Test
 	public void testCanonicalizationSimpleNoNs() {
-		UniformItemPath path = getPrismContext().path(UserType.F_NAME.getLocalPart());
+		ItemPath path = ItemPath.create(UserType.F_NAME.getLocalPart());
 		assertCanonical(path, null, "\\#name");
 		assertCanonical(path, UserType.class, "\\" + COMMON + "#name");
 	}
 
 	@Test
 	public void testCanonicalizationMulti() {
-		UniformItemPath path = getPrismContext().path(UserType.F_ASSIGNMENT, 1234, AssignmentType.F_ACTIVATION,
+		ItemPath path = ItemPath.create(UserType.F_ASSIGNMENT, 1234, AssignmentType.F_ACTIVATION,
 				ActivationType.F_ADMINISTRATIVE_STATUS);
 		assertCanonical(path, null, "\\" + COMMON + "#assignment",
 				"\\" + COMMON + "#assignment\\" + ZERO + "#activation",
@@ -92,7 +92,7 @@ public class ItemPathCanonicalizationTest {
 
 	@Test
 	public void testCanonicalizationMultiNoNs() {
-		UniformItemPath path = getPrismContext().path(UserType.F_ASSIGNMENT.getLocalPart(), 1234, AssignmentType.F_ACTIVATION.getLocalPart(),
+		ItemPath path = ItemPath.create(UserType.F_ASSIGNMENT.getLocalPart(), 1234, AssignmentType.F_ACTIVATION.getLocalPart(),
 				ActivationType.F_ADMINISTRATIVE_STATUS.getLocalPart());
 		assertCanonical(path, null, "\\#assignment",
 				"\\#assignment\\#activation", "\\#assignment\\#activation\\#administrativeStatus");
@@ -103,7 +103,7 @@ public class ItemPathCanonicalizationTest {
 
 	@Test
 	public void testCanonicalizationMixedNs() {
-		UniformItemPath path = getPrismContext().path(UserType.F_ASSIGNMENT.getLocalPart(), 1234, AssignmentType.F_EXTENSION,
+		ItemPath path = ItemPath.create(UserType.F_ASSIGNMENT.getLocalPart(), 1234, AssignmentType.F_EXTENSION,
 				new QName("http://piracy.org/inventory", "store"),
 				new QName("http://piracy.org/inventory", "shelf"),
 				new QName("x"), ActivationType.F_ADMINISTRATIVE_STATUS);
@@ -125,7 +125,7 @@ public class ItemPathCanonicalizationTest {
 
 	@Test
 	public void testCanonicalizationMixedNs2() {
-		UniformItemPath path = getPrismContext().path(UserType.F_ASSIGNMENT.getLocalPart(), 1234, AssignmentType.F_EXTENSION.getLocalPart(),
+		ItemPath path = ItemPath.create(UserType.F_ASSIGNMENT.getLocalPart(), 1234, AssignmentType.F_EXTENSION.getLocalPart(),
 				new QName("http://piracy.org/inventory", "store"),
 				new QName("http://piracy.org/inventory", "shelf"),
 				AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
@@ -151,7 +151,7 @@ public class ItemPathCanonicalizationTest {
 
 	@Test
 	public void testCanonicalizationLong() {
-		UniformItemPath path = getPrismContext().path(ResourceType.F_CONNECTOR_CONFIGURATION, SchemaConstants.ICF_CONFIGURATION_PROPERTIES,
+		ItemPath path = ItemPath.create(ResourceType.F_CONNECTOR_CONFIGURATION, SchemaConstants.ICF_CONFIGURATION_PROPERTIES,
 				RESOURCE_DUMMY_CONFIGURATION_USELESS_STRING_ELEMENT_NAME);
 		assertCanonical(path, null, "\\" + COMMON + "#connectorConfiguration",
 				"\\" + COMMON + "#connectorConfiguration\\" + ICFS + "#configurationProperties",
@@ -159,7 +159,7 @@ public class ItemPathCanonicalizationTest {
 	}
 
 
-	private void assertCanonical(UniformItemPath path, Class<? extends Containerable> clazz, String... representations) {
+	private void assertCanonical(ItemPath path, Class<? extends Containerable> clazz, String... representations) {
     	CanonicalItemPathImpl canonicalItemPath = CanonicalItemPathImpl.create(path, clazz, getPrismContext());
 		System.out.println(path + " => " + canonicalItemPath.asString() + "  (" + clazz + ")");
 		for (int i = 0; i < representations.length; i++) {

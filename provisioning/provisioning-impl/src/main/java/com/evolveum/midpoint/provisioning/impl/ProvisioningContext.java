@@ -18,7 +18,7 @@ package com.evolveum.midpoint.provisioning.impl;
 import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -335,7 +335,7 @@ public class ProvisioningContext extends StateReporter {
 		return resourceManager.getPrismContext();
 	}
 
-	public UniformItemPath path(Object... components) {
-		return getPrismContext().path(components);
+	public ItemPath path(Object... components) {
+		return ItemPath.create(components);
 	}
 }

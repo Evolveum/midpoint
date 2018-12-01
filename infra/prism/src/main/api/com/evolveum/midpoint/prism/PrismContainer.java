@@ -18,7 +18,6 @@ package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
@@ -210,15 +209,11 @@ public interface PrismContainer<C extends Containerable> extends Item<PrismConta
 	<IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findOrCreateItem(ItemPath containerPath,
 			Class<I> type, ID definition) throws SchemaException;
 
-	<T extends Containerable> PrismContainer<T> findOrCreateContainer(UniformItemPath containerPath) throws SchemaException;
-
-	<T extends Containerable> PrismContainer<T> findOrCreateContainer(QName containerName) throws SchemaException;
+	<T extends Containerable> PrismContainer<T> findOrCreateContainer(ItemPath containerPath) throws SchemaException;
 
 	<T> PrismProperty<T> findOrCreateProperty(ItemPath propertyPath) throws SchemaException;
 
-	PrismReference findOrCreateReference(UniformItemPath propertyPath) throws SchemaException;
-
-	PrismReference findOrCreateReference(QName propertyName) throws SchemaException;
+	PrismReference findOrCreateReference(ItemPath propertyPath) throws SchemaException;
 
 	/**
      * Convenience method. Works only on single-valued containers.
@@ -346,6 +341,6 @@ public interface PrismContainer<C extends Containerable> extends Item<PrismConta
 	 * Works recursively by sub-containers of this one.
 	 * USE WITH CARE. Make sure the definitions are not shared by other objects!
 	 */
-	void trimDefinitionTree(Collection<UniformItemPath> alwaysKeep);
+	void trimDefinitionTree(Collection<? extends ItemPath> alwaysKeep);
 
 }

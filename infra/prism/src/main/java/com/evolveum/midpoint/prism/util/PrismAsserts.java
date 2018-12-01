@@ -356,10 +356,9 @@ public class PrismAsserts {
 	}
 
 	public static <T> void assertPropertyReplace(ObjectDelta<?> userDelta, ItemPath path, T... expectedValues) {
-		UniformItemPath propertyPath = userDelta.getPrismContext().path(path);
-		PropertyDelta<T> propertyDelta = userDelta.findPropertyDelta(propertyPath);
-		assertNotNull("Property delta for "+propertyPath+" not found",propertyDelta);
-		assertSet("delta " + propertyDelta + " for " + propertyPath.last(), "replace", propertyDelta.getValuesToReplace(), expectedValues);
+		PropertyDelta<T> propertyDelta = userDelta.findPropertyDelta(path);
+		assertNotNull("Property delta for "+path+" not found",propertyDelta);
+		assertSet("delta " + propertyDelta + " for " + path.last(), "replace", propertyDelta.getValuesToReplace(), expectedValues);
 	}
 
 	public static void assertPropertyAdd(ObjectDelta<?> userDelta, ItemPath propertyPath, Object... expectedValues) {
@@ -382,7 +381,7 @@ public class PrismAsserts {
 		assertSet("delta "+propertyDelta+" for "+propertyPath, "delete", propertyDelta.getValuesToDelete(), expectedValues);
 	}
 
-	public static void assertPropertyReplace(Collection<? extends ItemDelta> modifications, UniformItemPath propertyPath, Object... expectedValues) {
+	public static void assertPropertyReplace(Collection<? extends ItemDelta> modifications, ItemPath propertyPath, Object... expectedValues) {
 		PropertyDelta propertyDelta = ItemDeltaCollectionsUtil.findPropertyDelta(modifications, propertyPath);
 		assertNotNull("Property delta for "+propertyPath+" not found",propertyDelta);
 		assertSet("delta "+propertyDelta+" for "+propertyPath.last(), "replace", propertyDelta.getValuesToReplace(), expectedValues);
@@ -394,7 +393,7 @@ public class PrismAsserts {
 		assertSet("delta "+propertyDelta+" for "+propertyPath, "add", propertyDelta.getValuesToAdd(), expectedValues);
 	}
 
-	public static void assertPropertyDelete(Collection<? extends ItemDelta> modifications, UniformItemPath propertyPath, Object... expectedValues) {
+	public static void assertPropertyDelete(Collection<? extends ItemDelta> modifications, ItemPath propertyPath, Object... expectedValues) {
 		PropertyDelta propertyDelta = ItemDeltaCollectionsUtil.findPropertyDelta(modifications, propertyPath);
 		assertNotNull("Property delta for "+propertyPath+" not found",propertyDelta);
 		assertSet("delta "+propertyDelta+" for "+propertyPath.last(), "delete", propertyDelta.getValuesToDelete(), expectedValues);
@@ -433,11 +432,7 @@ public class PrismAsserts {
 		assertSet("delta "+delta, "replace", delta.getValuesToReplace(), expectedReplaceValues);
 	}
 
-	public static ContainerDelta<?> assertContainerAddGetContainerDelta(ObjectDelta<?> objectDelta, QName name) {
-		return assertContainerAddGetContainerDelta(objectDelta, new UniformItemPathImpl(name));
-	}
-
-	public static ContainerDelta<?> assertContainerAddGetContainerDelta(ObjectDelta<?> objectDelta, UniformItemPath propertyPath) {
+	public static ContainerDelta<?> assertContainerAddGetContainerDelta(ObjectDelta<?> objectDelta, ItemPath propertyPath) {
 		ContainerDelta<?> delta = objectDelta.findContainerDelta(propertyPath);
 		assertNotNull("Container delta for "+propertyPath+" not found",delta);
 		assert !delta.isEmpty() : "Container delta for "+propertyPath+" is empty";
@@ -446,11 +441,7 @@ public class PrismAsserts {
 		return delta;
 	}
 
-	public static ContainerDelta<?> assertContainerDeleteGetContainerDelta(ObjectDelta<?> objectDelta, QName name) {
-		return assertContainerDeleteGetContainerDelta(objectDelta, new UniformItemPathImpl(name));
-	}
-
-	public static ContainerDelta<?> assertContainerDeleteGetContainerDelta(ObjectDelta<?> objectDelta, UniformItemPath propertyPath) {
+	public static ContainerDelta<?> assertContainerDeleteGetContainerDelta(ObjectDelta<?> objectDelta, ItemPath propertyPath) {
 		ContainerDelta<?> delta = objectDelta.findContainerDelta(propertyPath);
 		assertNotNull("Container delta for "+propertyPath+" not found",delta);
 		assert !delta.isEmpty() : "Container delta for "+propertyPath+" is empty";
@@ -459,23 +450,14 @@ public class PrismAsserts {
 		return delta;
 	}
 
-	public static <C extends Containerable> void assertContainerAdd(ObjectDelta<?> objectDelta, QName itemName, C... containerables) {
-		assertContainerAdd(objectDelta, new UniformItemPathImpl(itemName), containerables);
-	}
-
-	public static <C extends Containerable> void assertContainerAdd(ObjectDelta<?> objectDelta, UniformItemPath propertyPath, C... containerables) {
+	public static <C extends Containerable> void assertContainerAdd(ObjectDelta<?> objectDelta, ItemPath propertyPath, C... containerables) {
 		List<PrismContainerValue<C>> expectedCVals = new ArrayList<>();
 		for (C expectedContainerable: containerables) {
 			expectedCVals.add(expectedContainerable.asPrismContainerValue());
 		}
 	}
 
-	public static <C extends Containerable> void assertContainerAdd(ObjectDelta<?> objectDelta, QName itemName,
-			PrismContainerValue<C>... expectedCVals) {
-		assertContainerAdd(objectDelta, new UniformItemPathImpl(itemName), expectedCVals);
-	}
-
-	public static <C extends Containerable> void assertContainerAdd(ObjectDelta<?> objectDelta, UniformItemPath propertyPath,
+	public static <C extends Containerable> void assertContainerAdd(ObjectDelta<?> objectDelta, ItemPath propertyPath,
 			PrismContainerValue<C>... expectedCVals) {
 		ContainerDelta<C> delta = objectDelta.findContainerDelta(propertyPath);
 		assertNotNull("Container delta for "+propertyPath+" not found",delta);
@@ -999,7 +981,7 @@ public class PrismAsserts {
 	}
 
 	public static void assertEqualsFilter(ObjectFilter objectFilter, QName expectedFilterDef,
-			QName expectedTypeName, UniformItemPath path) {
+			QName expectedTypeName, ItemPath path) {
 		assertEquals("Wrong filter class", EqualFilter.class, objectFilter.getClass());
 		EqualFilter filter = (EqualFilter) objectFilter;
 		//we don't have definition in all situation..this is almost OK..it will be computed dynamicaly
@@ -1020,7 +1002,7 @@ public class PrismAsserts {
 
 
 	public static void assertRefFilter(ObjectFilter objectFilter, QName expectedFilterDef, QName expectedTypeName,
-			UniformItemPath path) {
+			ItemPath path) {
 		assertEquals("Wrong filter class", RefFilter.class, objectFilter.getClass());
 		RefFilter filter = (RefFilter) objectFilter;
 		assertEquals("Wrong filter definition element name", expectedFilterDef, filter.getDefinition().getName());
@@ -1187,7 +1169,7 @@ public class PrismAsserts {
 		}
 	}
 
-	public static void assertHasTargetName(PrismContainerValue<?> pcv, UniformItemPath path) {
+	public static void assertHasTargetName(PrismContainerValue<?> pcv, ItemPath path) {
 		for (PrismValue value : getValues(pcv, path)) {
 			PrismReferenceValue prv = (PrismReferenceValue) value;
 			assertHasTargetName(prv);
@@ -1195,7 +1177,7 @@ public class PrismAsserts {
 	}
 
 	@NotNull
-	private static List<PrismValue> getValues(PrismContainerValue<?> pcv, UniformItemPath path) {
+	private static List<PrismValue> getValues(PrismContainerValue<?> pcv, ItemPath path) {
 		Item<PrismValue, ItemDefinition> item = pcv.findItem(path);
 		return item != null ? item.getValues() : Collections.emptyList();
 	}
@@ -1204,7 +1186,7 @@ public class PrismAsserts {
 		assertNotNull("No target name in " + prv, prv.getTargetName());
 	}
 
-	public static void assertHasNoTargetName(PrismContainerValue<?> pcv, UniformItemPath path) {
+	public static void assertHasNoTargetName(PrismContainerValue<?> pcv, ItemPath path) {
 		for (PrismValue value : getValues(pcv, path)) {
 			PrismReferenceValue prv = (PrismReferenceValue) value;
 			assertHasNoTargetName(prv);
@@ -1215,7 +1197,7 @@ public class PrismAsserts {
 		assertNull("Target name present in " + prv + ": " + prv.getTargetName(), prv.getTargetName());
 	}
 
-	public static void assertHasObject(PrismContainerValue<?> pcv, UniformItemPath path) {
+	public static void assertHasObject(PrismContainerValue<?> pcv, ItemPath path) {
 		for (PrismValue value : getValues(pcv, path)) {
 			assertHasObject((PrismReferenceValue) value);
 		}
@@ -1225,7 +1207,7 @@ public class PrismAsserts {
 		assertNotNull("No resolved object in " + prv, prv.getObject());
 	}
 
-	public static void assertHasNoObject(PrismContainerValue<?> pcv, UniformItemPath path) {
+	public static void assertHasNoObject(PrismContainerValue<?> pcv, ItemPath path) {
 		for (PrismValue value : getValues(pcv, path)) {
 			assertHasNoObject((PrismReferenceValue) value);
 		}

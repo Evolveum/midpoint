@@ -1358,7 +1358,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
-        modifyObjectReplaceProperty(UserType.class, USER_GUYBRUSH_OID, prismContext.path(UserType.F_EXTENSION, PIRACY_SHIP),
+        modifyObjectReplaceProperty(UserType.class, USER_GUYBRUSH_OID, ItemPath.create(UserType.F_EXTENSION, PIRACY_SHIP),
         		task, result, "The Pink Lady");
         assertSuccess(result);
 

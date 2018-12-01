@@ -23,6 +23,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -35,7 +36,6 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -159,7 +159,7 @@ public class ClockworkAuthorizationHelper {
 					PrismObject<O> objectToAdd = primaryDeltaClone.getObjectToAdd();
 					PrismContainer<CredentialsType> credentialsContainer = objectToAdd.findContainer(UserType.F_CREDENTIALS);
 					if (credentialsContainer != null) {
-						List<UniformItemPath> pathsToRemove = new ArrayList<>();
+						List<ItemPath> pathsToRemove = new ArrayList<>();
 						for (Item<?,?> item: credentialsContainer.getValue().getItems()) {
 							ContainerDelta<?> cdelta = new ContainerDeltaImpl(item.getPath(), (PrismContainerDefinition)item.getDefinition(), prismContext);
 							cdelta.addValuesToAdd(((PrismContainer)item).getValue().clone());
@@ -177,7 +177,7 @@ public class ClockworkAuthorizationHelper {
 								// Do nothing. The access will be evaluated later in a normal way
 							}
 						}
-						for (UniformItemPath pathToRemove: pathsToRemove) {
+						for (ItemPath pathToRemove: pathsToRemove) {
 							objectToAdd.removeContainer(pathToRemove);
 						}
 					}

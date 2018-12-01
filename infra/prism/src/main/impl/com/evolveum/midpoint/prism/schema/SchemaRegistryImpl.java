@@ -63,7 +63,6 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -680,7 +679,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 
 	@Override
 	public <C extends Containerable, O extends Objectable> void applyDefinition(PrismContainerValue<C> prismContainerValue,
-			Class<O> compileTimeClass, UniformItemPath path, boolean force) throws SchemaException {
+			Class<O> compileTimeClass, ItemPath path, boolean force) throws SchemaException {
 		PrismObjectDefinition<O> objectDefinition = determineDefinitionFromClass(compileTimeClass);
 		PrismContainerDefinition<C> containerDefinition = objectDefinition.findContainerDefinition(path);
 		prismContainerValue.applyDefinition(containerDefinition, force);
@@ -688,7 +687,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 
 	@Override
 	public <C extends Containerable> void applyDefinition(PrismContainerValue<C> prismContainerValue, QName typeName,
-			UniformItemPath path, boolean force) throws SchemaException {
+			ItemPath path, boolean force) throws SchemaException {
 		PrismObjectDefinition objectDefinition = findObjectDefinitionByType(typeName);
 		if (objectDefinition != null) {
 			PrismContainerDefinition<C> containerDefinition = objectDefinition.findContainerDefinition(path);
@@ -1061,7 +1060,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 	// fails on ambiguity
 	// it's a bit fragile, as adding new references to child CTD in future may break existing code
 	@Override
-	public ComplexTypeDefinition determineParentDefinition(@NotNull ComplexTypeDefinition child, @NotNull UniformItemPath rest) {
+	public ComplexTypeDefinition determineParentDefinition(@NotNull ComplexTypeDefinition child, @NotNull ItemPath rest) {
 		Map<ComplexTypeDefinition, ItemDefinition> found = new HashMap<>();
 		for (PrismSchema schema : getSchemas()) {
 			if (schema == null) {

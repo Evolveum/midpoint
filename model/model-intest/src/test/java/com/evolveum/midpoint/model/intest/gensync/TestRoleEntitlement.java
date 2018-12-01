@@ -27,6 +27,7 @@ import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -329,8 +330,8 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
 
         Collection<SelectorOptions<GetOperationOptions>> options =
                 SelectorOptions.createCollection(GetOperationOptions.createResolve(),
-                        prismContext.path(UserType.F_LINK),
-                        prismContext.path(UserType.F_LINK, ShadowType.F_RESOURCE)
+                        prismContext.toUniformPath(UserType.F_LINK),
+                        prismContext.toUniformPath(ItemPath.create(UserType.F_LINK, ShadowType.F_RESOURCE))
                 );
 
         // WHEN

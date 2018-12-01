@@ -244,7 +244,7 @@ public class TestRefinedSchema {
         System.out.println(rComplexTypeDefinition.debugDump());
         assertRefinedToLayer(rComplexTypeDefinition, sourceLayer);
 
-        ResourceAttributeDefinition riUidAttrDef = resAttrContainerDef.findAttributeDefinition(new QName(resourceType.getNamespace(), "uid"));
+        ResourceAttributeDefinition riUidAttrDef = resAttrContainerDef.findAttributeDefinition(new ItemName(resourceType.getNamespace(), "uid"));
         assertNotNull("No ri:uid def in ResourceAttributeContainerDefinition", riUidAttrDef);
         System.out.println("\nri:uid def "+riUidAttrDef.getClass()+" ("+sourceLayer+")");
         System.out.println(riUidAttrDef.debugDump());
@@ -682,7 +682,7 @@ public class TestRefinedSchema {
         System.out.println("\nResourceAttributeContainerDefinition ComplexTypeDefinition");
         System.out.println(rComplexTypeDefinition.debugDump());
 
-        ResourceAttributeDefinition<String> riUidAttrDef = resAttrContainerDef.findAttributeDefinition(new QName(resourceType.getNamespace(), "uid"));
+        ResourceAttributeDefinition<String> riUidAttrDef = resAttrContainerDef.findAttributeDefinition(new ItemName(resourceType.getNamespace(), "uid"));
         assertNotNull("No ri:uid def in ResourceAttributeContainerDefinition", riUidAttrDef);
         System.out.println("\nri:uid def "+riUidAttrDef.getClass());
         System.out.println(riUidAttrDef.debugDump());

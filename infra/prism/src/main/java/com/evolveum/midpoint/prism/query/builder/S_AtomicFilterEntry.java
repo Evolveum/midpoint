@@ -53,6 +53,6 @@ public interface S_AtomicFilterEntry {
     S_AtomicFilterExit isRoot() ;
     S_AtomicFilterExit fullText(String... words);
     S_FilterEntryOrEmpty block();
-    S_FilterEntryOrEmpty type(Class<? extends Containerable> type) ;
-    S_FilterEntryOrEmpty exists(QName... names) ;
+    S_FilterEntryOrEmpty type(Class<? extends Containerable> type);
+    S_FilterEntryOrEmpty exists(Object... components);
 }

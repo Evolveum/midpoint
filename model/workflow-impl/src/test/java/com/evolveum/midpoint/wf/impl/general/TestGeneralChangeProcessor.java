@@ -24,6 +24,7 @@ import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
@@ -117,13 +118,13 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 		super.initSystem(initTask, initResult);
         importObjectFromFile(AbstractWfTestLegacy.USERS_AND_ROLES_FILE, initResult);
         modifyObjectReplaceProperty(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-                prismContext.path(SystemConfigurationType.F_WORKFLOW_CONFIGURATION,
+                ItemPath.create(SystemConfigurationType.F_WORKFLOW_CONFIGURATION,
                         WfConfigurationType.F_PRIMARY_CHANGE_PROCESSOR,
                         PrimaryChangeProcessorConfigurationType.F_ENABLED),
                 initTask, initResult,
                 false);
         modifyObjectReplaceProperty(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-                prismContext.path(SystemConfigurationType.F_WORKFLOW_CONFIGURATION,
+                ItemPath.create(SystemConfigurationType.F_WORKFLOW_CONFIGURATION,
                         WfConfigurationType.F_GENERAL_CHANGE_PROCESSOR,
                         GeneralChangeProcessorConfigurationType.F_ENABLED),
                 initTask, initResult,
@@ -250,7 +251,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
             gcpConfig.getScenario().get(i).setEnabled(values[i]);
         }
         modifyObjectReplaceProperty(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-                prismContext.path(SystemConfigurationType.F_WORKFLOW_CONFIGURATION,
+                ItemPath.create(SystemConfigurationType.F_WORKFLOW_CONFIGURATION,
                         WfConfigurationType.F_GENERAL_CHANGE_PROCESSOR,
                         GeneralChangeProcessorConfigurationType.F_ENABLED),
                 task, result,

@@ -73,9 +73,9 @@ public interface GetOperationOptionsBuilder {
 	GetOperationOptionsBuilder mergeFrom(Collection<SelectorOptions<GetOperationOptions>> options);
 
 	interface Query {
-		Query asc(UniformItemPath path);
+		Query asc(ItemPath path);
 		Query asc(Object... components);
-		Query desc(UniformItemPath path);
+		Query desc(ItemPath path);
 		Query desc(Object... components);
 		Query offset(Integer n);
 		Query maxSize(Integer n);

@@ -369,7 +369,7 @@ public class ObjectDeltaUpdater {
         Set<ItemPath> paths = FullTextSearchConfigurationUtil.getFullTextSearchItemPaths(config, type);
 
         for (ItemDelta modification : modifications) {
-            UniformItemPath namesOnly = modification.getPath().namedSegmentsOnly();
+            ItemPath namesOnly = modification.getPath().namedSegmentsOnly();
             for (ItemPath path : paths) {
                 if (path.startsWith(namesOnly)) {
                     return true;

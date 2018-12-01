@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.helpers;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -50,7 +51,7 @@ public class NameResolutionHelper {
 
     public void resolveNamesIfRequested(Session session, List<? extends PrismContainerValue> containerValues, Collection<SelectorOptions<GetOperationOptions>> options) {
 
-    	List<UniformItemPath> pathsToResolve = getPathsToResolve(options);
+    	List<? extends ItemPath> pathsToResolve = getPathsToResolve(options);
 		if (pathsToResolve.isEmpty()) {
 			return;
 		}
@@ -110,7 +111,7 @@ public class NameResolutionHelper {
 	}
 
 	@NotNull
-	private List<UniformItemPath> getPathsToResolve(Collection<SelectorOptions<GetOperationOptions>> options) {
+	private List<? extends ItemPath> getPathsToResolve(Collection<SelectorOptions<GetOperationOptions>> options) {
 		final UniformItemPath EMPTY_PATH = prismContext.emptyPath();
     	List<UniformItemPath> rv = new ArrayList<>();
 		for (SelectorOptions<GetOperationOptions> option : CollectionUtils.emptyIfNull(options)) {

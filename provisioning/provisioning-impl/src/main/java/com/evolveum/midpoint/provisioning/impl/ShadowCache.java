@@ -1349,7 +1349,7 @@ public class ShadowCache {
 				continue;
 			}
 			
-			UniformItemPath containerPath = pendingOperation.asPrismContainerValue().getPath();
+			ItemPath containerPath = pendingOperation.asPrismContainerValue().getPath();
 			
 			String asyncRef = pendingOperation.getAsynchronousOperationReference();
 			if (asyncRef == null) {
@@ -1493,7 +1493,7 @@ public class ShadowCache {
 			
 			// TODO: move to a better place
 			ObjectDelta<ShadowType> shadowDelta = repoShadow.createModifyDelta();
-			UniformItemPath containerPath = pendingOperation.asPrismContainerValue().getPath();
+			ItemPath containerPath = pendingOperation.asPrismContainerValue().getPath();
 			
 			int attemptNumber = pendingOperation.getAttemptNumber() + 1;
 			PropertyDelta<Integer> attemptNumberDelta = shadowDelta.createPropertyModification(containerPath.append(PendingOperationType.F_ATTEMPT_NUMBER));
@@ -1599,7 +1599,7 @@ public class ShadowCache {
 				// Other operations are not cancellable now
 				continue;
 			}
-			UniformItemPath containerPath = pendingOperation.asPrismContainerValue().getPath();
+			ItemPath containerPath = pendingOperation.asPrismContainerValue().getPath();
 			PropertyDelta<PendingOperationExecutionStatusType> executionStatusDelta = shadowDelta.createPropertyModification(containerPath.append(PendingOperationType.F_EXECUTION_STATUS));
 			executionStatusDelta.setRealValuesToReplace(PendingOperationExecutionStatusType.COMPLETED);
 			shadowDelta.addModification(executionStatusDelta);

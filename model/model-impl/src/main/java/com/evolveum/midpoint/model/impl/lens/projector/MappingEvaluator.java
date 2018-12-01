@@ -250,13 +250,13 @@ public class MappingEvaluator {
 				continue;
 			}
 
-			UniformItemPath mappingOutputPath = mapping.getOutputPath() != null ? prismContext.toUniformPath(mapping.getOutputPath()) : null;
-			if (params.isFixTarget() && mappingOutputPath != null && defaultTargetItemPath != null && !mappingOutputPath.equivalent(defaultTargetItemPath)) {
+			UniformItemPath mappingOutputPathUniform = prismContext.toUniformPathKeepNull(mapping.getOutputPath());
+			if (params.isFixTarget() && mappingOutputPathUniform != null && defaultTargetItemPath != null && !mappingOutputPathUniform.equivalent(defaultTargetItemPath)) {
 				throw new ExpressionEvaluationException("Target cannot be overridden in "+mappingDesc);
 			}
 
-			if (params.getAPrioriTargetDelta() != null && mappingOutputPath != null) {
-				ItemDelta<?,?> aPrioriItemDelta = params.getAPrioriTargetDelta().findItemDelta(mappingOutputPath);
+			if (params.getAPrioriTargetDelta() != null && mappingOutputPathUniform != null) {
+				ItemDelta<?,?> aPrioriItemDelta = params.getAPrioriTargetDelta().findItemDelta(mappingOutputPathUniform);
 				if (mapping.getStrength() != MappingStrengthType.STRONG) {
 		        	if (aPrioriItemDelta != null && !aPrioriItemDelta.isEmpty()) {
 		        		continue;
@@ -274,10 +274,10 @@ public class MappingEvaluator {
 
 			if (isMeaningful(mappingOutputTriple)) {
 
-				MappingOutputStruct<V> mappingOutputStruct = outputTripleMap.get(mappingOutputPath);
+				MappingOutputStruct<V> mappingOutputStruct = outputTripleMap.get(mappingOutputPathUniform);
 				if (mappingOutputStruct == null) {
 					mappingOutputStruct = new MappingOutputStruct<>();
-					outputTripleMap.put(mappingOutputPath, mappingOutputStruct);
+					outputTripleMap.put(mappingOutputPathUniform, mappingOutputStruct);
 				}
 
                 if (mapping.getStrength() == MappingStrengthType.STRONG) {
@@ -315,7 +315,7 @@ public class MappingEvaluator {
 					continue;
 				}
 
-				UniformItemPath mappingOutputPath = mapping.getOutputPath() != null ? prismContext.toUniformPath(mapping.getOutputPath()) : null;
+				UniformItemPath mappingOutputPath = prismContext.toUniformPathKeepNull(mapping.getOutputPath());
 				if (params.isFixTarget() && mappingOutputPath != null && defaultTargetItemPath != null && !mappingOutputPath.equivalent(defaultTargetItemPath)) {
 					throw new ExpressionEvaluationException("Target cannot be overridden in "+mappingDesc);
 				}

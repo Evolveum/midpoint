@@ -25,6 +25,7 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
@@ -237,7 +238,7 @@ public class ConnIdConvertor {
 				continue;
 			}
 
-			QName qname = icfNameMapper.convertAttributeNameToQName(connIdAttr.getName(), attributesContainerDefinition);
+			ItemName qname = ItemName.fromQName(icfNameMapper.convertAttributeNameToQName(connIdAttr.getName(), attributesContainerDefinition));
 			ResourceAttributeDefinition attributeDefinition = attributesContainerDefinition.findAttributeDefinition(qname, caseIgnoreAttributeNames);
 
 			if (attributeDefinition == null) {

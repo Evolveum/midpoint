@@ -296,28 +296,21 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
     }
 
     @Override
-    public S_FilterEntryOrEmpty exists(QName... names) {
+    public S_FilterEntryOrEmpty exists(Object... components) {
         if (existsRestriction != null) {
             throw new IllegalStateException("Exists within exists");
         }
-        if (names.length == 0) {
+        if (components.length == 0) {
             throw new IllegalArgumentException("Empty path in exists() filter is not allowed.");
         }
-        ItemPath existsPath = path(names);
+        ItemPath existsPath = ItemPath.create(components);
         PrismContainerDefinition pcd = resolveItemPath(existsPath, PrismContainerDefinition.class);
+        //noinspection unchecked
         Class<? extends Containerable> clazz = pcd.getCompileTimeClass();
         if (clazz == null) {
             throw new IllegalArgumentException("Item path of '" + existsPath + "' in " + currentClass + " does not point to a valid prism container.");
         }
         return new R_Filter(queryBuilder, clazz, OrFilter.createOr(), null, false, this, null, existsPath, null, null,null, null);
-    }
-
-    private ItemPath path(QName... names) {
-        return queryBuilder.getPrismContext().path(names);
-    }
-
-    private ItemPath path(String... names) {
-        return queryBuilder.getPrismContext().path(names);
     }
 
     private <ID extends ItemDefinition> ID resolveItemPath(ItemPath itemPath, Class<ID> type) {
@@ -352,12 +345,12 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
 
     @Override
     public S_ConditionEntry item(QName... names) {
-        return item(path(names));
+        return item(ItemPath.create((Object[]) names));
     }
     
     @Override
     public S_ConditionEntry item(String... names) {
-        return item(path(names));
+        return item(ItemPath.create((Object[]) names));
     }
 
     @Override
@@ -368,7 +361,7 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
 
     @Override
     public S_ConditionEntry itemWithDef(ItemDefinition itemDefinition, QName... names) {
-        ItemPath itemPath = path(names);
+        ItemPath itemPath = ItemPath.create((Object[]) names);
         return item(itemPath, itemDefinition);
     }
 
@@ -383,7 +376,7 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
 
     @Override
     public S_ConditionEntry item(PrismContainerDefinition containerDefinition, QName... names) {
-        return item(containerDefinition, path(names));
+        return item(containerDefinition, ItemPath.create((Object[]) names));
     }
 
     @Override
@@ -426,7 +419,7 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
         if (names.length == 0) {
             throw new IllegalArgumentException("There must be at least one name for asc(...) ordering");
         }
-        return addOrdering(ObjectOrdering.createOrdering(path(names), OrderDirection.ASCENDING));
+        return addOrdering(ObjectOrdering.createOrdering(ItemPath.create((Object[]) names), OrderDirection.ASCENDING));
     }
 
     @Override
@@ -442,7 +435,7 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
         if (names.length == 0) {
             throw new IllegalArgumentException("There must be at least one name for asc(...) ordering");
         }
-        return addOrdering(ObjectOrdering.createOrdering(path(names), OrderDirection.DESCENDING));
+        return addOrdering(ObjectOrdering.createOrdering(ItemPath.create((Object[]) names), OrderDirection.DESCENDING));
     }
 
     @Override
@@ -458,7 +451,7 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
         if (names.length == 0) {
             throw new IllegalArgumentException("There must be at least one name for uniq(...) grouping");
         }
-        return addGrouping(ObjectGrouping.createGrouping(path(names)));
+        return addGrouping(ObjectGrouping.createGrouping(ItemPath.create((Object[]) names)));
     }
 
     @Override

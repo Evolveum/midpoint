@@ -79,12 +79,12 @@ public class DeltaBuilder<T extends Containerable> implements S_ItemEntry, S_May
 
     @Override
     public S_ValuesEntry item(QName... names) {
-        return item(prismContext.path(names));
+        return item(ItemPath.create(names));
     }
 
     @Override
     public S_ValuesEntry item(Object... namesOrIds) {
-        return item(prismContext.path(namesOrIds));
+        return item(ItemPath.create(namesOrIds));
     }
 
     @Override

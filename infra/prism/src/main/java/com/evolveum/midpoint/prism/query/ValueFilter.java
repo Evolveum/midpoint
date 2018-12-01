@@ -37,7 +37,7 @@ import java.util.Objects;
 public abstract class ValueFilter<V extends PrismValue, D extends ItemDefinition> extends ObjectFilter implements Itemable, ItemFilter {
 	private static final long serialVersionUID = 1L;
 
-	@NotNull private final UniformItemPath fullPath;
+	@NotNull private final ItemPath fullPath;
 	// This is a definition of the item pointed to by "fullPath"
 	// (not marked as @NotNull, because it can be filled-in after creation of the filter - e.g. in provisioning)
 	@Nullable private D definition;
@@ -63,7 +63,7 @@ public abstract class ValueFilter<V extends PrismValue, D extends ItemDefinition
 			@Nullable List<V> values, @Nullable ExpressionWrapper expression,
 			@Nullable ItemPath rightHandSidePath, @Nullable ItemDefinition rightHandSideDefinition) {
 		Validate.isTrue(!ItemPath.isEmpty(fullPath), "path in filter is null or empty");
-		this.fullPath = UniformItemPathImpl.fromItemPath(fullPath);
+		this.fullPath = fullPath;
 		this.definition = definition;
 		this.matchingRule = matchingRule;
 		this.expression = expression;
@@ -80,13 +80,13 @@ public abstract class ValueFilter<V extends PrismValue, D extends ItemDefinition
 
 	@NotNull
 	@Override
-	public UniformItemPath getFullPath() {
+	public ItemPath getFullPath() {
 		return fullPath;
 	}
 
 	@NotNull
 	public ItemPath getParentPath() {
-		return UniformItemPathImpl.fromItemPath(fullPath).allExceptLast();   // todo
+		return fullPath.allExceptLast();
 	}
 
 	@NotNull
@@ -230,7 +230,7 @@ public abstract class ValueFilter<V extends PrismValue, D extends ItemDefinition
 	}
 
 	@Override
-	public UniformItemPath getPath() {
+	public ItemPath getPath() {
 		return getFullPath();
 	}
 
@@ -429,7 +429,6 @@ public abstract class ValueFilter<V extends PrismValue, D extends ItemDefinition
 		if (requireDefinitions && definition == null) {
 			throw new IllegalArgumentException("Null definition in "+this);
 		}
-		UniformItemPath temp = UniformItemPathImpl.fromItemPath(fullPath);           // todo
 		if (fullPath.isEmpty()) {
 			throw new IllegalArgumentException("Empty path in "+this);
 		}
@@ -469,7 +468,7 @@ public abstract class ValueFilter<V extends PrismValue, D extends ItemDefinition
 		}
 		if (definition != null && ItemPath.isName(last)) {
 			if (!QNameUtil.match(definition.getName(), ItemPath.toName(last))) {
-				throw new IllegalArgumentException("Last segment of item path (" + temp.lastName() + ") "
+				throw new IllegalArgumentException("Last segment of item path (" + fullPath.lastName() + ") "
 						+ "does not match item name from the definition: " + definition);
 			}
 			// todo check consistence for ID-based filters

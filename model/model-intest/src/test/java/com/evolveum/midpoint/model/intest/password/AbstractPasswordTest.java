@@ -25,6 +25,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.PrismReferenceValueImpl;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
@@ -1062,7 +1063,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		displayWhen(TEST_NAME);
 		applyPasswordPolicy(PASSWORD_POLICY_GLOBAL_OID, getSecurityPolicyOid(), task, result);
 		modifyObjectReplaceProperty(SecurityPolicyType.class, getSecurityPolicyOid(),
-				prismContext.path(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_HISTORY_LENGTH),
+				ItemPath.create(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_HISTORY_LENGTH),
         		task, result, 3);
 
 		// THEN
@@ -1262,7 +1263,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		ObjectDelta<UserType> objectDelta = ObjectDeltaCreationUtil
 				.createModificationReplaceContainer(UserType.class, USER_JACK_OID,
-				prismContext.path(UserType.F_CREDENTIALS,  CredentialsType.F_PASSWORD),
+						ItemPath.create(UserType.F_CREDENTIALS,  CredentialsType.F_PASSWORD),
 						prismContext, passwordType);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 
@@ -3865,7 +3866,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		// WHEN
 		modifyObjectReplaceProperty(SecurityPolicyType.class, getSecurityPolicyOid(),
-				prismContext.path(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_MIN_AGE),
+				ItemPath.create(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_MIN_AGE),
         		task, result, XmlTypeConverter.createDuration("PT10M"));
 
 		// THEN
@@ -3875,7 +3876,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		PrismObject<SecurityPolicyType> securityPolicy = getObject(SecurityPolicyType.class, getSecurityPolicyOid());
 		display("Security policy after", securityPolicy);
 		PrismAsserts.assertPropertyValue(securityPolicy,
-				prismContext.path(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_MIN_AGE),
+				ItemPath.create(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_MIN_AGE),
 				XmlTypeConverter.createDuration("PT10M"));
 
 		assertNoAccountPasswordNotifications();
@@ -4238,13 +4239,13 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		displayWhen(TEST_NAME);
 		applyPasswordPolicy(null, getSecurityPolicyOid(), task, result);
 		modifyObjectReplaceProperty(SecurityPolicyType.class, getSecurityPolicyOid(),
-				prismContext.path(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_HISTORY_LENGTH),
+				ItemPath.create(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_HISTORY_LENGTH),
         		task, result /* no value */);
 		modifyObjectReplaceProperty(SecurityPolicyType.class, getSecurityPolicyOid(),
-				prismContext.path(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_MIN_AGE),
+				ItemPath.create(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_MIN_AGE),
         		task, result /* no value */);
 		modifyObjectReplaceProperty(SecurityPolicyType.class, getSecurityPolicyOid(),
-				prismContext.path(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_MAX_AGE),
+				ItemPath.create(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_MAX_AGE),
 				task, result /* no value */);
 
 		// THEN
@@ -4563,7 +4564,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		displayWhen(TEST_NAME);
 		applyPasswordPolicy(PASSWORD_POLICY_GLOBAL_OID, getSecurityPolicyOid(), task, result);
 		modifyObjectReplaceProperty(SecurityPolicyType.class, getSecurityPolicyOid(),
-				prismContext.path(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_HISTORY_LENGTH),
+				ItemPath.create(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_HISTORY_LENGTH),
         		task, result, GLOBAL_POLICY_NEW_PASSWORD_HISTORY_LENGTH);
 
 		// THEN

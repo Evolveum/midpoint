@@ -1117,7 +1117,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		OperationResult result = task.getResult();
 
 		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
-				accountWillOid, prismContext.path(ShadowType.F_ATTRIBUTES, ATTR_FULLNAME_QNAME), prismContext,
+				accountWillOid, ItemPath.create(ShadowType.F_ATTRIBUTES, ATTR_FULLNAME_QNAME), prismContext,
 				USER_WILL_FULL_NAME_PIRATE);
 		display("ObjectDelta", delta);
 
@@ -2426,7 +2426,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		assertEquals("Resource version mismatch", lastResourceVersion, currentResourceVersion);
 	}
 	
-	protected void assertHasModification(ObjectDeltaType deltaType, UniformItemPath itemPath) {
+	protected void assertHasModification(ObjectDeltaType deltaType, ItemPath itemPath) {
 		for (ItemDeltaType itemDelta: deltaType.getItemDelta()) {
 			if (itemPath.equivalent(itemDelta.getPath().getItemPath())) {
 				return;

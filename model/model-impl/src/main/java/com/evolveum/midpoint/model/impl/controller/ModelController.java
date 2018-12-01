@@ -262,7 +262,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			if (GetOperationOptions.isResolve(option.getOptions())) {
 				ObjectSelector selector = option.getSelector();
 				if (selector != null) {
-					UniformItemPath path = selector.getPath();
+					ItemPath path = selector.getPath();
 					ItemPath.checkNoSpecialSymbolsExceptParent(path);
 					executeResolveOption(containerable, path, option, task, result);
 				}

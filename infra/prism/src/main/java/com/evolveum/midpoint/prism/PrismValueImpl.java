@@ -16,8 +16,6 @@
 package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
-import com.evolveum.midpoint.prism.path.UniformItemPathImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -25,7 +23,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
@@ -119,12 +120,12 @@ public abstract class PrismValueImpl implements PrismValue {
 
 	@NotNull
 	@Override
-	public UniformItemPath getPath() {
+	public ItemPath getPath() {
 		Itemable parent = getParent();
 		if (parent == null) {
 			throw new IllegalStateException("No parent, cannot create value path for "+this);
 		}
-		return UniformItemPathImpl.fromItemPath(parent.getPath());
+		return parent.getPath();
 	}
 
 	/**

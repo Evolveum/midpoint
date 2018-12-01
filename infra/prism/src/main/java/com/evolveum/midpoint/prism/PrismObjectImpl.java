@@ -20,8 +20,6 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaImpl;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
-import com.evolveum.midpoint.prism.path.UniformItemPathImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -338,8 +336,8 @@ public class PrismObjectImpl<O extends Objectable> extends PrismContainerImpl<O>
 
 	@NotNull
 	@Override
-	public UniformItemPath getPath() {
-		return UniformItemPathImpl.EMPTY_PATH;
+	public ItemPath getPath() {
+		return ItemPath.EMPTY_PATH;
 	}
 
 	@Override

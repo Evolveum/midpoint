@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package com.evolveum.midpoint.prism.delta;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 
@@ -28,9 +28,9 @@ import com.evolveum.midpoint.util.DebugUtil;
 public class PartiallyResolvedDelta<V extends PrismValue,D extends ItemDefinition> implements DebugDumpable {
 
 	private ItemDelta<V,D> delta;
-	private UniformItemPath residualPath;
+	private ItemPath residualPath;
 
-	public PartiallyResolvedDelta(ItemDelta<V,D> itemDelta, UniformItemPath residualPath) {
+	public PartiallyResolvedDelta(ItemDelta<V,D> itemDelta, ItemPath residualPath) {
 		super();
 		this.delta = itemDelta;
 		this.residualPath = residualPath;
@@ -44,11 +44,11 @@ public class PartiallyResolvedDelta<V extends PrismValue,D extends ItemDefinitio
 		this.delta = itemDelta;
 	}
 
-	public UniformItemPath getResidualPath() {
+	public ItemPath getResidualPath() {
 		return residualPath;
 	}
 
-	public void setResidualPath(UniformItemPath residualPath) {
+	public void setResidualPath(ItemPath residualPath) {
 		this.residualPath = residualPath;
 	}
 

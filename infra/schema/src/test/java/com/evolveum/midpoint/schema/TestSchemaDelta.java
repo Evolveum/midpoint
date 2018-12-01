@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -208,7 +209,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 		// No container ID
         ObjectDelta<RoleType> roleDelta = ObjectDeltaCreationUtil
 		        .createModificationDeleteContainer(RoleType.class, ROLE_CONSTRUCTION_OID,
-		        path(RoleType.F_INDUCEMENT, ROLE_CONSTRUCTION_INDUCEMENT_ID, AssignmentType.F_CONSTRUCTION),
+		        ItemPath.create(RoleType.F_INDUCEMENT, ROLE_CONSTRUCTION_INDUCEMENT_ID, AssignmentType.F_CONSTRUCTION),
         		getPrismContext(), construction);
 
 		// WHEN
@@ -244,7 +245,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 		// No container ID
         ObjectDelta<RoleType> roleDelta = ObjectDeltaCreationUtil
 		        .createModificationDeleteContainer(RoleType.class, ROLE_CONSTRUCTION_OID,
-        		path(RoleType.F_INDUCEMENT, ROLE_CONSTRUCTION_INDUCEMENT_ID, AssignmentType.F_ACTIVATION),
+        		ItemPath.create(RoleType.F_INDUCEMENT, ROLE_CONSTRUCTION_INDUCEMENT_ID, AssignmentType.F_ACTIVATION),
         		getPrismContext(), activationType);
 
 		// WHEN
@@ -278,7 +279,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 		activationType.setAdministrativeStatus(ActivationStatusType.ENABLED);
 		// No container ID
         ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil.createModificationDeleteContainer(UserType.class, USER_JACK_OID,
-        		path(UserType.F_ASSIGNMENT, USER_JACK_ASSIGNMENT_ID, AssignmentType.F_ACTIVATION),
+        		ItemPath.create(UserType.F_ASSIGNMENT, USER_JACK_ASSIGNMENT_ID, AssignmentType.F_ACTIVATION),
         		getPrismContext(), activationType);
 
 		// WHEN
@@ -327,7 +328,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 
 		System.out.println("Delta before operation:\n" + addDelta.debugDump() + "\n");
 		System.out.println("Assignment to subtract:\n" + assignmentValue.debugDump() + "\n");
-		boolean removed = addDelta.subtract(path(SchemaConstants.PATH_ASSIGNMENT), assignmentValue, false, false);
+		boolean removed = addDelta.subtract(ItemPath.create(SchemaConstants.PATH_ASSIGNMENT), assignmentValue, false, false);
 
 		// THEN
 		System.out.println("Delta after operation:\n" + addDelta.debugDump() + "\n");
@@ -367,7 +368,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 
 		System.out.println("Delta before operation:\n" + delta.debugDump() + "\n");
 		System.out.println("Assignment to subtract:\n" + assignmentValue.debugDump() + "\n");
-		boolean removed = delta.subtract(path(SchemaConstants.PATH_ASSIGNMENT), assignmentValue, true, false);
+		boolean removed = delta.subtract(ItemPath.create(SchemaConstants.PATH_ASSIGNMENT), assignmentValue, true, false);
 
 		// THEN
 		System.out.println("Delta after operation:\n" + delta.debugDump() + "\n");
@@ -391,7 +392,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 		ObjectDelta<UserType> addDelta = ObjectDeltaCreationUtil.createAddDelta(user);
 
 		// WHEN
-		ObjectDelta.FactorOutResultSingle<UserType> out = addDelta.factorOut(singleton(path(UserType.F_ASSIGNMENT)), true);
+		ObjectDelta.FactorOutResultSingle<UserType> out = addDelta.factorOut(singleton(ItemPath.create(UserType.F_ASSIGNMENT)), true);
 
 		// THEN
 		System.out.println("Delta before factorOut:\n" + addDelta.debugDump() + "\n");
@@ -425,7 +426,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 		ObjectDelta<UserType> addDelta = ObjectDeltaCreationUtil.createAddDelta(user);
 
 		// WHEN
-		ObjectDelta.FactorOutResultSingle<UserType> out = addDelta.factorOut(asList(path(UserType.F_GIVEN_NAME), path(UserType.F_FAMILY_NAME)), true);
+		ObjectDelta.FactorOutResultSingle<UserType> out = addDelta.factorOut(asList(ItemPath.create(UserType.F_GIVEN_NAME), ItemPath.create(UserType.F_FAMILY_NAME)), true);
 
 		// THEN
 		System.out.println("Delta before factorOut:\n" + addDelta.debugDump() + "\n");
@@ -453,7 +454,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 		ObjectDelta<UserType> addDelta = ObjectDeltaCreationUtil.createAddDelta(user);
 
 		// WHEN
-		ObjectDelta.FactorOutResultMulti<UserType> out = addDelta.factorOutValues(path(UserType.F_ASSIGNMENT), true);
+		ObjectDelta.FactorOutResultMulti<UserType> out = addDelta.factorOutValues(ItemPath.create(UserType.F_ASSIGNMENT), true);
 
 		// THEN
 		System.out.println("Delta before factorOut:\n" + addDelta.debugDump() + "\n");
@@ -487,7 +488,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 				.asObjectDeltaCast(OID);
 
 		// WHEN
-		ObjectDelta.FactorOutResultSingle<UserType> out = delta.factorOut(singleton(path(UserType.F_ASSIGNMENT)), true);
+		ObjectDelta.FactorOutResultSingle<UserType> out = delta.factorOut(singleton(ItemPath.create(UserType.F_ASSIGNMENT)), true);
 
 		// THEN
 		System.out.println("Delta before operation:\n" + delta.debugDump() + "\n");
@@ -521,7 +522,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 				.asObjectDeltaCast(OID);
 
 		// WHEN
-		ObjectDelta.FactorOutResultMulti<UserType> out = delta.factorOutValues(path(UserType.F_ASSIGNMENT), true);
+		ObjectDelta.FactorOutResultMulti<UserType> out = delta.factorOutValues(ItemPath.create(UserType.F_ASSIGNMENT), true);
 
 		// THEN
 		System.out.println("Delta before operation:\n" + delta.debugDump() + "\n");

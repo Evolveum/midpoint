@@ -18,8 +18,6 @@ package com.evolveum.midpoint.prism.delta;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
-import com.evolveum.midpoint.prism.path.UniformItemPathImpl;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -52,7 +50,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	/**
 	 * Parent path of the property (path to the property container)
 	 */
-	protected UniformItemPath parentPath;
+	protected ItemPath parentPath;
 	protected D definition;
 
 	protected Collection<V> valuesToReplace = null;
@@ -69,7 +67,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
         //checkPrismContext(prismContext, itemDefinition);
         this.prismContext = prismContext;
 		this.elementName = itemDefinition.getName();
-		this.parentPath = UniformItemPathImpl.EMPTY_PATH;
+		this.parentPath = ItemPath.EMPTY_PATH;
 		this.definition = itemDefinition;
 	}
 
@@ -77,7 +75,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
         //checkPrismContext(prismContext, itemDefinition);
         this.prismContext = prismContext;
 		this.elementName = ItemName.fromQName(elementName);
-		this.parentPath = UniformItemPathImpl.EMPTY_PATH;
+		this.parentPath = ItemPath.EMPTY_PATH;
 		this.definition = itemDefinition;
     }
 
@@ -90,8 +88,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 		this.definition = itemDefinition;
     }
 
-	protected ItemDeltaImpl(ItemPath itemPath, D itemDefinition, PrismContext prismContext) {
-		UniformItemPath path = UniformItemPathImpl.fromItemPath(itemPath);
+	protected ItemDeltaImpl(ItemPath path, D itemDefinition, PrismContext prismContext) {
         //checkPrismContext(prismContext, itemDefinition);
 		checkNoSpecialSymbols(path);
         this.prismContext = prismContext;
@@ -127,17 +124,17 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 		this.elementName = ItemName.fromQName(elementName);
 	}
 
-	public UniformItemPath getParentPath() {
+	public ItemPath getParentPath() {
 		return parentPath;
 	}
 
 	public void setParentPath(ItemPath parentPath) {
-		this.parentPath = UniformItemPathImpl.fromItemPath(parentPath);
+		this.parentPath = parentPath;
 	}
 
 	@NotNull
 	@Override
-	public UniformItemPath getPath() {
+	public ItemPath getPath() {
 		if (getParentPath() == null) {
 			throw new IllegalStateException("No parent path in "+this);
 		}
@@ -1178,7 +1175,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	}
 
 	public void applyTo(PrismContainerValue containerValue) throws SchemaException {
-		UniformItemPath deltaPath = getPath();
+		ItemPath deltaPath = getPath();
 		if (ItemPath.isEmpty(deltaPath)) {
 			throw new IllegalArgumentException("Cannot apply empty-path delta " + this + " directly to a PrismContainerValue " + containerValue);
 		}
@@ -1187,8 +1184,8 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	}
 
 	public void applyTo(Item item) throws SchemaException {
-		UniformItemPath itemPath = item.getPath();
-		UniformItemPath deltaPath = getPath();
+		ItemPath itemPath = item.getPath();
+		ItemPath deltaPath = getPath();
 		CompareResult compareComplex = itemPath.compareComplex(deltaPath);
 		if (compareComplex == CompareResult.EQUIVALENT) {
 			applyToMatchingPath(item);
@@ -1196,7 +1193,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 		} else if (compareComplex == CompareResult.SUBPATH) {
 			if (item instanceof PrismContainer<?>) {
 				PrismContainer<?> container = (PrismContainer<?>)item;
-				UniformItemPath remainderPath = deltaPath.remainder(itemPath);
+				ItemPath remainderPath = deltaPath.remainder(itemPath);
 				Item subItem = container.findOrCreateItem(remainderPath, getItemClass(), getDefinition());
 				applyToMatchingPath(subItem);
 			} else {
@@ -1360,7 +1357,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 
 	public abstract ItemDeltaImpl<V,D> clone();
 
-	public ItemDeltaImpl<V,D> cloneWithChangedParentPath(UniformItemPath newParentPath) {
+	public ItemDeltaImpl<V,D> cloneWithChangedParentPath(ItemPath newParentPath) {
 		ItemDeltaImpl<V,D> clone = clone();
 		clone.setParentPath(newParentPath);
 		return clone;
@@ -1635,7 +1632,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 		if (DebugUtil.isDetailedDebugDump()) {
 			sb.append(getClass().getSimpleName()).append(":");
 		}
-		UniformItemPath path = getPath();
+		ItemPath path = getPath();
 		sb.append(path);
 
 		if (definition != null && DebugUtil.isDetailedDebugDump()) {

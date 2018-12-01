@@ -18,7 +18,7 @@ package com.evolveum.midpoint.schema.util;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -118,10 +118,10 @@ public class MiscSchemaUtil {
 		return list;
 	}
 
-	public static Collection<UniformItemPath> itemReferenceListTypeToItemPathList(PropertyReferenceListType resolve, PrismContext prismContext) {
-		Collection<UniformItemPath> itemPathList = new ArrayList<>(resolve.getProperty().size());
+	public static Collection<ItemPath> itemReferenceListTypeToItemPathList(PropertyReferenceListType resolve, PrismContext prismContext) {
+		Collection<ItemPath> itemPathList = new ArrayList<>(resolve.getProperty().size());
 		for (ItemPathType itemXPathElement: resolve.getProperty()) {
-			itemPathList.add(prismContext.toUniformPath(itemXPathElement));
+			itemPathList.add(prismContext.toPath(itemXPathElement));
 		}
 		return itemPathList;
 	}

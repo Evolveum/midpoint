@@ -22,6 +22,7 @@ import java.util.List;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -37,7 +38,6 @@ import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
@@ -174,7 +174,7 @@ public class ObjectMerger {
 		final ObjectDelta<O> leftObjectDelta = objectLeft.createModifyDelta();
 		final ObjectDelta<O> leftLinkDelta = objectLeft.createModifyDelta();
 		final ObjectDelta<O> rightLinkDelta = objectRight.createModifyDelta();
-		final List<UniformItemPath> processedPaths = new ArrayList<>();
+		final List<ItemPath> processedPaths = new ArrayList<>();
 
 		computeItemDeltas(leftObjectDelta, objectLeft, objectRight, processedPaths, mergeConfiguration, mergeConfigurationName, task, result);
 		computeDefaultDeltas(leftObjectDelta, objectLeft, objectRight, processedPaths, mergeConfiguration, mergeConfigurationName, task, result);
@@ -185,11 +185,11 @@ public class ObjectMerger {
 	}
 
 	private <O extends ObjectType> void computeItemDeltas(final ObjectDelta<O> leftObjectDelta,
-			final PrismObject<O> objectLeft, final PrismObject<O> objectRight, final List<UniformItemPath> processedPaths,
+			final PrismObject<O> objectLeft, final PrismObject<O> objectRight, final List<ItemPath> processedPaths,
 			MergeConfigurationType mergeConfiguration, final String mergeConfigurationName, final Task task, final OperationResult result) throws SchemaException, ConfigurationException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, SecurityViolationException {
 
 		for (ItemRefMergeConfigurationType itemMergeConfig: mergeConfiguration.getItem()) {
-			UniformItemPath itemPath = prismContext.toUniformPath(itemMergeConfig.getRef());
+			ItemPath itemPath = prismContext.toPath(itemMergeConfig.getRef());
 			processedPaths.add(itemPath);
 			ItemDelta itemDelta = mergeItem(objectLeft, objectRight, mergeConfigurationName, itemMergeConfig, itemPath, task, result);
 			LOGGER.trace("Item {} delta: {}", itemPath, itemDelta);
@@ -201,7 +201,7 @@ public class ObjectMerger {
 	}
 
 	private <O extends ObjectType> void computeDefaultDeltas(final ObjectDelta<O> leftObjectDelta,
-			final PrismObject<O> objectLeft, final PrismObject<O> objectRight, final List<UniformItemPath> processedPaths,
+			final PrismObject<O> objectLeft, final PrismObject<O> objectRight, final List<ItemPath> processedPaths,
 			MergeConfigurationType mergeConfiguration, final String mergeConfigurationName, final Task task, final OperationResult result) throws SchemaException, ConfigurationException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, SecurityViolationException {
 
 		final ItemMergeConfigurationType defaultItemMergeConfig = mergeConfiguration.getDefault();
@@ -216,7 +216,7 @@ public class ObjectMerger {
 						}
 						Item item = (Item)visitable;
 
-						UniformItemPath itemPath = item.getPath();
+						ItemPath itemPath = item.getPath();
 						if (itemPath == null || itemPath.isEmpty()) {
 							return;
 						}
@@ -227,7 +227,7 @@ public class ObjectMerger {
 						}
 
 						boolean found = false;
-						for (UniformItemPath processedPath: processedPaths) {
+						for (ItemPath processedPath: processedPaths) {
 							// Need to check for super-paths here.
 							// E.g. if we have already processed metadata, we do not want to process
 							// metadata/modifyTimestamp
@@ -518,7 +518,7 @@ public class ObjectMerger {
 	}
 
 	private <O extends ObjectType, I extends Item> ItemDelta mergeItem(PrismObject<O> objectLeft, PrismObject<O> objectRight,
-			String mergeConfigurationName, ItemMergeConfigurationType itemMergeConfig, UniformItemPath itemPath,
+			String mergeConfigurationName, ItemMergeConfigurationType itemMergeConfig, ItemPath itemPath,
 			Task task, OperationResult result) throws SchemaException, ConfigurationException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, SecurityViolationException {
 		I itemLeft = (I) objectLeft.findItem(itemPath);
 		I itemRight = (I) objectRight.findItem(itemPath);

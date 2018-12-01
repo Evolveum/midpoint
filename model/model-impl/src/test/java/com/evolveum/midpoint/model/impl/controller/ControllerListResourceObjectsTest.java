@@ -18,7 +18,7 @@ package com.evolveum.midpoint.model.impl.controller;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -77,7 +77,7 @@ public class ControllerListResourceObjectsTest extends AbstractTestNGSpringConte
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullResult() throws Exception {
-		ObjectPaging paging = ObjectPaging.createPaging(0, Integer.MAX_VALUE, (UniformItemPath) null, null);
+		ObjectPaging paging = ObjectPaging.createPaging(0, Integer.MAX_VALUE, (ItemPath) null, null);
 		controller.listResourceObjects("1", new QName("local name"), paging, null, null);
 	}
 }

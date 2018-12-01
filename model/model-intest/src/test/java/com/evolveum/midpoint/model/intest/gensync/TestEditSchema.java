@@ -28,6 +28,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -1077,7 +1078,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		assertNotNull("No definition for credentials in user", credentialsDef);
 		assertTrue("Credentials not readable", credentialsDef.canRead());
 
-		UniformItemPath passwdValPath = prismContext.path(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
+		ItemPath passwdValPath = ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
 		PrismPropertyDefinition<ProtectedStringType> passwdValDef = editDef.findPropertyDefinition(passwdValPath);
 		assertNotNull("No definition for "+passwdValPath+" in user", passwdValDef);
 		assertTrue("Password not readable", passwdValDef.canRead());
@@ -1131,7 +1132,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 				assertTrue("Credentials not readable", credentialsDef.canRead());
 			}, true);
 
-		assertProperty(user, prismContext.path(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE),
+		assertProperty(user, ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE),
 			(propDef, name) -> {
 					assertTrue("Password not readable", propDef.canRead());
 				});
@@ -1207,7 +1208,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
 		}, true);
 
-		assertProperty(user, prismContext.path(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE),
+		assertProperty(user, ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE),
 				(Validator<PrismPropertyDefinition<String>>) (propDef, name) -> assertTrue("Password not readable", propDef.canRead()));
 
 		assertUntouchedUserDefinition();
@@ -1466,7 +1467,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		assertTrue("Credentials is creatable", !credentialsDef.canAdd());
 		assertTrue("Credentials is modifiable", !credentialsDef.canModify());
 
-		UniformItemPath passwdValPath = prismContext.path(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
+		ItemPath passwdValPath = ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
 		PrismPropertyDefinition<ProtectedStringType> passwdValDef = editDef.findPropertyDefinition(passwdValPath);
 		assertNotNull("No definition for "+passwdValPath+" in user", passwdValDef);
 		assertTrue("Password is readable", !passwdValDef.canRead());
@@ -1637,22 +1638,12 @@ public class TestEditSchema extends AbstractGenericSyncTest {
     }
 
 
-    private <O extends ObjectType, T> void assertPropertyValues(PrismObject<O> object, QName propName,
-			Validator<PrismPropertyDefinition<T>> validator, T... expectedValues) throws Exception {
-    	assertPropertyValues(object, prismContext.path(propName), validator, expectedValues);
-    }
-
-    private <O extends ObjectType, T> void assertProperty(PrismObject<O> object, UniformItemPath path,
+    private <O extends ObjectType, T> void assertProperty(PrismObject<O> object, ItemPath path,
 			Validator<PrismPropertyDefinition<T>> validator) throws Exception {
     	assertPropertyValues(object, path, validator, (T[])null);
     }
 
-    private <O extends ObjectType, T> void assertProperty(PrismObject<O> object, QName propname,
-			Validator<PrismPropertyDefinition<T>> validator) throws Exception {
-    	assertPropertyValues(object, prismContext.path(propname), validator, (T[])null);
-    }
-
-    private <O extends ObjectType, T> void assertPropertyValues(PrismObject<O> object, UniformItemPath path,
+    private <O extends ObjectType, T> void assertPropertyValues(PrismObject<O> object, ItemPath path,
 			Validator<PrismPropertyDefinition<T>> validator, T... expectedValues) throws Exception {
 		PrismProperty<T> prop = object.findProperty(path);
 		if (expectedValues == null) {
@@ -1756,7 +1747,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		assertTrue("Credentials not creatable", credentialsDef.canAdd());
 		assertTrue("Credentials not modifiable", credentialsDef.canModify());
 
-		UniformItemPath passwdValPath = prismContext.path(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
+		ItemPath passwdValPath = ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
 		PrismPropertyDefinition<ProtectedStringType> passwdValDef = userDefinition.findPropertyDefinition(passwdValPath);
 		assertNotNull("No definition for "+passwdValPath+" in user", passwdValDef);
 		assertTrue("Password not readable", passwdValDef.canRead());

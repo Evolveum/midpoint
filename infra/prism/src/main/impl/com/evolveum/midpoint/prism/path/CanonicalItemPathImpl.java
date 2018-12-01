@@ -70,11 +70,11 @@ public class CanonicalItemPathImpl implements CanonicalItemPath {
 
 	private final List<Segment> segments = new ArrayList<>();
 
-	public static CanonicalItemPathImpl create(UniformItemPath itemPath, Class<? extends Containerable> clazz, PrismContext prismContext) {
+	public static CanonicalItemPathImpl create(ItemPath itemPath, Class<? extends Containerable> clazz, PrismContext prismContext) {
 		return new CanonicalItemPathImpl(itemPath, clazz, prismContext);
 	}
 
-	public static CanonicalItemPath create(UniformItemPath itemPath) {
+	public static CanonicalItemPath create(ItemPath itemPath) {
 		return new CanonicalItemPathImpl(itemPath, null, null);
 	}
 

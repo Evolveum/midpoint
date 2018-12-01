@@ -17,7 +17,6 @@
 package com.evolveum.prism.xml.ns._public.types_3;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -79,7 +78,7 @@ public class ItemPathType implements Serializable, Equals, Cloneable {
     @NotNull
     @Contract(pure = true)
 	public ItemPath getItemPath() {
-		return itemPath != null ? itemPath : UniformItemPath.EMPTY_PATH;
+		return itemPath != null ? itemPath : ItemPath.EMPTY_PATH;
 	}
 
 	public void setItemPath(ItemPath itemPath){

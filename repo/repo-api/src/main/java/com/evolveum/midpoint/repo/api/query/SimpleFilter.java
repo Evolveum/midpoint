@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.repo.api.query;
 
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -31,18 +31,18 @@ import javax.xml.namespace.QName;
 public class SimpleFilter<T> implements QueryFilter {
 
     private QName type;
-    private UniformItemPath propertyPath;
+    private ItemPath propertyPath;
     private SimpleFilterType filterType;
     private PrismPropertyValue<T> value;
 
     public SimpleFilter() {
     }
 
-    public SimpleFilter(SimpleFilterType filterType, UniformItemPath propertyPath) {
+    public SimpleFilter(SimpleFilterType filterType, ItemPath propertyPath) {
         this(filterType, propertyPath, null);
     }
 
-    public SimpleFilter(SimpleFilterType filterType, UniformItemPath propertyPath, PrismPropertyValue<T> value) {
+    public SimpleFilter(SimpleFilterType filterType, ItemPath propertyPath, PrismPropertyValue<T> value) {
         this.filterType = filterType;
         this.propertyPath = propertyPath;
         this.value = value;
@@ -52,7 +52,7 @@ public class SimpleFilter<T> implements QueryFilter {
         return filterType;
     }
 
-    public UniformItemPath getPropertyPath() {
+    public ItemPath getPropertyPath() {
         return propertyPath;
     }
 
@@ -64,7 +64,7 @@ public class SimpleFilter<T> implements QueryFilter {
         this.filterType = filterType;
     }
 
-    public void setPropertyPath(UniformItemPath propertyPath) {
+    public void setPropertyPath(ItemPath propertyPath) {
         this.propertyPath = propertyPath;
     }
 

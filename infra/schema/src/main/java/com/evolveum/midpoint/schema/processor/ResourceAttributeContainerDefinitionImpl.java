@@ -23,7 +23,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
@@ -310,23 +310,18 @@ public class ResourceAttributeContainerDefinitionImpl extends PrismContainerDefi
 	}
 
 	@Override
-	public ResourceAttributeDefinition findAttributeDefinition(QName elementQName) {
-		return findAttributeDefinition(elementQName, false);
-	}
-
-	@Override
 	public ResourceAttributeDefinition findAttributeDefinition(QName elementQName, boolean caseInsensitive) {
 		return findLocalItemDefinition(ItemName.fromQName(elementQName), ResourceAttributeDefinition.class, caseInsensitive);
 	}
 
 	@Override
-	public ResourceAttributeDefinition findAttributeDefinition(UniformItemPath elementPath) {
+	public ResourceAttributeDefinition findAttributeDefinition(ItemPath elementPath) {
 		return findItemDefinition(elementPath, ResourceAttributeDefinition.class);
 	}
 
 	@Override
 	public ResourceAttributeDefinition findAttributeDefinition(String elementLocalname) {
-		QName elementQName = new QName(getName().getNamespaceURI(),elementLocalname);
+		ItemName elementQName = new ItemName(getName().getNamespaceURI(),elementLocalname);
 		return findAttributeDefinition(elementQName);
 	}
 

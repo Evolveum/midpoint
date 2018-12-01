@@ -151,7 +151,7 @@ public class XmlTypeConverter {
         	return (T) getDatatypeFactory().newDuration(stringContent);
         } else if (type.equals(PolyString.class)) {
         	return (T) new PolyString(stringContent);
-        } else if (type.equals(UniformItemPath.class)) {
+        } else if (type.equals(UniformItemPath.class) || type.equals(ItemPath.class)) {
         	throw new UnsupportedOperationException("Path conversion not supported yet");
         } else {
         	if (exceptionOnUnknown) {

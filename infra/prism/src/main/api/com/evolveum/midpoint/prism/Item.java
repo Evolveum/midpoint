@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -166,7 +165,7 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
 
     void setParent(PrismValue parentValue);                 // todo remove
 
-    UniformItemPath getPath();
+    ItemPath getPath();
 
     Map<String, Object> getUserData();
 

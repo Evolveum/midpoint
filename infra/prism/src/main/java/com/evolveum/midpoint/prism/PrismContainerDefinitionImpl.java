@@ -162,8 +162,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 		return complexTypeDefinition != null ? complexTypeDefinition.getIgnoredNamespaces() : null;
 	}
 
-    public <ID extends ItemDefinition> ID findItemDefinition(@NotNull ItemPath itemPath, @NotNull Class<ID> clazz) {
-    	UniformItemPath path = prismContext.toUniformPath(itemPath);
+    public <ID extends ItemDefinition> ID findItemDefinition(@NotNull ItemPath path, @NotNull Class<ID> clazz) {
         for (;;) {
             if (path.isEmpty()) {
                 if (clazz.isAssignableFrom(PrismContainerDefinition.class)) {
@@ -178,7 +177,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
             } else if (ItemPath.isId(first)) {
                 path = path.rest();
             } else if (ItemPath.isParent(first)) {
-				UniformItemPath rest = path.rest();
+				ItemPath rest = path.rest();
                 ComplexTypeDefinition parent = getSchemaRegistry().determineParentDefinition(getComplexTypeDefinition(), rest);
 				if (rest.isEmpty()) {
 					// requires that the parent is defined as an item (container, object)
@@ -276,7 +275,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 
     @Override
 	public ContainerDelta<C> createEmptyDelta(ItemPath path) {
-		return new ContainerDeltaImpl<>(prismContext.path(path), this, prismContext);
+		return new ContainerDeltaImpl<>(path, this, prismContext);
 	}
 
     @Override

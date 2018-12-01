@@ -942,7 +942,7 @@ public class TestProjector extends AbstractLensTest {
         assertNull(accContext.getPrimaryDelta());
 
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
-        PrismAsserts.assertNoItemDelta(accountSecondaryDelta, prismContext.path(SchemaTestConstants.ICFS_NAME_PATH_PARTS));
+        PrismAsserts.assertNoItemDelta(accountSecondaryDelta, SchemaTestConstants.ICFS_NAME_PATH_PARTS);
 
         // Activation is created in user policy. Therefore assert the origin of that as special case
         // and remove it from the delta so the next assert passes
@@ -1147,7 +1147,7 @@ public class TestProjector extends AbstractLensTest {
         assertNull(accContext.getPrimaryDelta());
 
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
-        PrismAsserts.assertNoItemDelta(accountSecondaryDelta, prismContext.path(SchemaTestConstants.ICFS_NAME_PATH_PARTS));
+        PrismAsserts.assertNoItemDelta(accountSecondaryDelta, SchemaTestConstants.ICFS_NAME_PATH_PARTS);
         // Full name is not changed, it has normal mapping strength
         // Location is changed back, it has strong mapping
         PropertyDelta<String> locationDelta = accountSecondaryDelta.findPropertyDelta(

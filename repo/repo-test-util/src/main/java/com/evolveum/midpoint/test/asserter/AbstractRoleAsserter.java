@@ -24,7 +24,7 @@ import static org.testng.AssertJUnit.assertTrue;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
@@ -260,13 +260,7 @@ public class AbstractRoleAsserter<F extends AbstractRoleType, RA> extends FocusA
 	}
 	
 	@Override
-	public AbstractRoleAsserter<F,RA> assertNoItem(QName itemName) {
-		super.assertNoItem(itemName);
-		return this;
-	}
-	
-	@Override
-	public AbstractRoleAsserter<F,RA> assertNoItem(UniformItemPath itemPath) {
+	public AbstractRoleAsserter<F,RA> assertNoItem(ItemPath itemPath) {
 		super.assertNoItem(itemPath);
 		return this;
 	}

@@ -22,7 +22,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -261,7 +261,7 @@ public abstract class AddAssignmentAspect<T extends ObjectType, F extends FocusT
         PrismContainerDefinition<AssignmentType> prismContainerDefinition = focus.getDefinition().findContainerDefinition(FocusType.F_ASSIGNMENT);
 
         ItemDelta<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> addRoleDelta = new ContainerDeltaImpl<>(
-		        UniformItemPath.EMPTY_PATH, FocusType.F_ASSIGNMENT, prismContainerDefinition, prismContext);
+		        ItemPath.EMPTY_PATH, FocusType.F_ASSIGNMENT, prismContainerDefinition, prismContext);
         PrismContainerValue<AssignmentType> assignmentValue = assignmentType.asPrismContainerValue().clone();
         addRoleDelta.addValueToAdd(assignmentValue);
 

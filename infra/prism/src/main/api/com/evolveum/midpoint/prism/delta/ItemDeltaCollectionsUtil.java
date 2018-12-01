@@ -19,7 +19,6 @@ package com.evolveum.midpoint.prism.delta;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 
@@ -53,7 +52,7 @@ public class ItemDeltaCollectionsUtil {
 	public static void applyDefinitionIfPresent(Collection<? extends ItemDelta> deltas,
 			PrismObjectDefinition definition, boolean tolerateNoDefinition) throws SchemaException {
 		for (ItemDelta itemDelta : deltas) {
-			UniformItemPath path = itemDelta.getPath();
+			ItemPath path = itemDelta.getPath();
 			ItemDefinition itemDefinition = ((ItemDefinition) definition).findItemDefinition(path, ItemDefinition.class);
             if (itemDefinition != null) {
 				itemDelta.applyDefinition(itemDefinition);
@@ -68,7 +67,7 @@ public class ItemDeltaCollectionsUtil {
 	}
 
 	public static <X extends Containerable> ContainerDelta<X> findContainerDelta(Collection<? extends ItemDelta> deltas,
-			UniformItemPath propertyPath) {
+			ItemPath propertyPath) {
 		return findItemDelta(deltas, propertyPath, ContainerDelta.class, false);
 	}
 
@@ -123,7 +122,6 @@ public class ItemDeltaCollectionsUtil {
 
 	public static void checkConsistence(Collection<? extends ItemDelta> deltas, boolean requireDefinition, boolean prohibitRaw,
 			ConsistencyCheckScope scope) {
-		Map<UniformItemPath,ItemDelta<?,?>> pathMap = new HashMap<>();
 		for (ItemDelta<?,?> delta : deltas) {
 			delta.checkConsistence(requireDefinition, prohibitRaw, scope);
 			int matches = 0;
@@ -164,7 +162,7 @@ public class ItemDeltaCollectionsUtil {
 	public static void accept(Collection<? extends ItemDelta> modifications, Visitor visitor, ItemPath path,
 			boolean recursive) {
 		for (ItemDelta modification: modifications) {
-			UniformItemPath modPath = modification.getPath();
+			ItemPath modPath = modification.getPath();
 			ItemPath.CompareResult rel = modPath.compareComplex(path);
 			if (rel == ItemPath.CompareResult.EQUIVALENT) {
 				modification.accept(visitor, null, recursive);
@@ -225,11 +223,11 @@ public class ItemDeltaCollectionsUtil {
 		}
 	}
 
-	public static boolean pathMatches(@NotNull Collection<? extends ItemDelta<?, ?>> deltas, @NotNull UniformItemPath path,
+	public static boolean pathMatches(@NotNull Collection<? extends ItemDelta<?, ?>> deltas, @NotNull ItemPath path,
 			int segmentsToSkip,
 			boolean exactMatch) {
 		for (ItemDelta<?, ?> delta : deltas) {
-			UniformItemPath modifiedPath = delta.getPath().rest(segmentsToSkip).removeIds();   // because of extension/cities[2]/name (in delta) vs. extension/cities/name (in spec)
+			ItemPath modifiedPath = delta.getPath().rest(segmentsToSkip).removeIds();   // because of extension/cities[2]/name (in delta) vs. extension/cities/name (in spec)
 			if (exactMatch) {
 				if (path.equivalent(modifiedPath)) {
 					return true;

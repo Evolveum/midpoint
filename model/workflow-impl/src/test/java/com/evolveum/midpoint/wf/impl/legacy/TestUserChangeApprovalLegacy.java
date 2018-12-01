@@ -1013,7 +1013,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         PrismContainerDefinition<ActivationType> activationDef =
                 prismContext.getSchemaRegistry()
                         .findObjectDefinitionByCompileTimeClass(UserType.class)
-                        .findContainerDefinition(prismContext.path(UserType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION));
+                        .findContainerDefinition(ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION));
         assertNotNull("no activationDef", activationDef);
 
         Long assignmentId = jack.getAssignment().get(0).getId();
@@ -1201,7 +1201,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         PrismContainerDefinition<ResourceAttributeDefinitionType> attributeDef =
                 prismContext.getSchemaRegistry()
                         .findObjectDefinitionByCompileTimeClass(UserType.class)
-                        .findContainerDefinition(prismContext.path(UserType.F_ASSIGNMENT,
+                        .findContainerDefinition(ItemPath.create(UserType.F_ASSIGNMENT,
                                 AssignmentType.F_CONSTRUCTION,
                                 ConstructionType.F_ATTRIBUTE));
         assertNotNull("no attributeDef", attributeDef);
@@ -1216,7 +1216,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         } else {
             attributeDelta.addValueToDelete(attributeDefinitionType.asPrismContainerValue());
         }
-        attributeDefinitionType.setRef(new ItemPathType(prismContext.path(new QName(RESOURCE_DUMMY_NAMESPACE, attributeName))));
+        attributeDefinitionType.setRef(new ItemPathType(ItemPath.create(new QName(RESOURCE_DUMMY_NAMESPACE, attributeName))));
         MappingType outbound = new MappingType();
         outbound.setStrength(MappingStrengthType.STRONG);       // to see changes on the resource
         ExpressionType expression = new ExpressionType();
@@ -1238,7 +1238,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         assertNotNull("construction is null", constructionType);
         boolean found = false;
         for (ResourceAttributeDefinitionType attributeDefinitionType : constructionType.getAttribute()) {
-            if (attributeDefinitionType.getRef().equivalent(new ItemPathType(prismContext.path(new QName(attributeName))))) {
+            if (attributeDefinitionType.getRef().equivalent(new ItemPathType(ItemPath.create(new QName(attributeName))))) {
                 ExpressionType expressionType = attributeDefinitionType.getOutbound().getExpression();
                 assertNotNull("no expression", expressionType);
                 assertEquals("wrong # of expression evaluators", 1, expressionType.getExpressionEvaluator().size());
@@ -1257,7 +1257,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         ConstructionType constructionType = assignmentType.getConstruction();
         assertNotNull("construction is null", constructionType);
         for (ResourceAttributeDefinitionType attributeDefinitionType : constructionType.getAttribute()) {
-            if (attributeDefinitionType.getRef().equivalent(new ItemPathType(prismContext.path(new QName(attributeName))))) {
+            if (attributeDefinitionType.getRef().equivalent(new ItemPathType(ItemPath.create(new QName(attributeName))))) {
                 fail("Construction attribute " + attributeName + " present, although it shouldn't");
             }
         }

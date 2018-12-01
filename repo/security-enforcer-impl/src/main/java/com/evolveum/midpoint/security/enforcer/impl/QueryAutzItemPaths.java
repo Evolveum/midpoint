@@ -18,7 +18,6 @@ package com.evolveum.midpoint.security.enforcer.impl;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.prism.query.ItemFilter;
@@ -41,7 +40,7 @@ public class QueryAutzItemPaths extends AutzItemPaths {
 		return requiredItems;
 	}
 
-	public void addRequiredItem(UniformItemPath path) {
+	public void addRequiredItem(ItemPath path) {
 		requiredItems.add(path);
 	}
 

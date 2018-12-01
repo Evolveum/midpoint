@@ -217,10 +217,6 @@ public class ItemPathHolder {
 
 	//region Serializing
 
-	public static String serializeWithoutDeclarations(@NotNull ItemPath itemPath) {
-		return new ItemPathHolder(UniformItemPathImpl.fromItemPath(itemPath)).getXPathWithoutDeclarations();
-	}
-
 	public static String serializeWithDeclarations(@NotNull ItemPath itemPath) {
 		return new ItemPathHolder(UniformItemPathImpl.fromItemPath(itemPath)).getXPathWithDeclarations();
 	}
@@ -555,21 +551,6 @@ public class ItemPathHolder {
 		return new ItemPathHolder(element);
 	}
 
-	public static ItemPathHolder createForTesting(List<PathHolderSegment> segments) {
-		ItemPathHolder rv = new ItemPathHolder();
-		rv.segments = new ArrayList<>();
-		for (PathHolderSegment segment : segments) {
-			if (segment.getQName() != null && StringUtils.isEmpty(segment.getQName().getPrefix())) {
-				QName qname = segment.getQName();
-				rv.segments.add(new PathHolderSegment(new QName(qname.getNamespaceURI(), qname.getLocalPart())));
-			} else {
-				rv.segments.add(segment);
-			}
-		}
-		rv.absolute = false;
-		return rv;
-	}
-
 	public static ItemPathHolder createForTesting(QName... segmentQNames) {
 		ItemPathHolder rv = new ItemPathHolder();
 		rv.segments = new ArrayList<>();
@@ -579,10 +560,6 @@ public class ItemPathHolder {
 		}
 		rv.absolute = false;
 		return rv;
-	}
-
-	public static ItemPathHolder createForTesting(UniformItemPath path) {
-		return new ItemPathHolder(path);
 	}
 
 	//endregion

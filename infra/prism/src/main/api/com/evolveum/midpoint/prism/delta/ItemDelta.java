@@ -47,13 +47,13 @@ public interface ItemDelta<V extends PrismValue,D extends ItemDefinition> extend
 
 	void setElementName(QName elementName);
 
-	UniformItemPath getParentPath();
+	ItemPath getParentPath();
 
 	void setParentPath(ItemPath parentPath);
 
 	@NotNull
 	@Override
-	UniformItemPath getPath();
+	ItemPath getPath();
 
 	D getDefinition();
 
@@ -308,7 +308,7 @@ public interface ItemDelta<V extends PrismValue,D extends ItemDefinition> extend
 
 	ItemDelta<V,D> clone();
 
-	ItemDelta<V,D> cloneWithChangedParentPath(UniformItemPath newParentPath);
+	ItemDelta<V,D> cloneWithChangedParentPath(ItemPath newParentPath);
 
 	PrismValueDeltaSetTriple<V> toDeltaSetTriple();
 

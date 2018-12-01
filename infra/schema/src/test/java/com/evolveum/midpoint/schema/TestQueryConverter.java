@@ -17,7 +17,8 @@
 package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ParentPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -105,12 +106,11 @@ public class TestQueryConverter {
 
 		ObjectFilter first = getFilterCondition(filter, 0);
 		PrismAsserts.assertEqualsFilter(first, ShadowType.F_FAILED_OPERATION_TYPE, FAILED_OPERATION_TYPE_QNAME,
-				getPrismContext().path(ShadowType.F_FAILED_OPERATION_TYPE));
+				ShadowType.F_FAILED_OPERATION_TYPE);
 		PrismAsserts.assertEqualsFilterValue((EqualFilter) first, FailedOperationTypeType.ADD);
 
 		ObjectFilter second = getFilterCondition(filter, 1);
-		PrismAsserts.assertEqualsFilter(second, ShadowType.F_NAME, PolyStringType.COMPLEX_TYPE, getPrismContext().path(
-				ShadowType.F_NAME));
+		PrismAsserts.assertEqualsFilter(second, ShadowType.F_NAME, PolyStringType.COMPLEX_TYPE, ShadowType.F_NAME);
 		PrismAsserts.assertEqualsFilterValue((EqualFilter) second, createPolyString("someName"));
 
 		QueryType convertedQueryType = toQueryType(query);
@@ -159,12 +159,11 @@ public class TestQueryConverter {
 		PrismAsserts.assertAndFilter(filter, 2);
 
 		ObjectFilter first = getFilterCondition(filter, 0);
-		PrismAsserts.assertRefFilter(first, ShadowType.F_RESOURCE_REF, ObjectReferenceType.COMPLEX_TYPE, getPrismContext().path(
-				ShadowType.F_RESOURCE_REF));
+		PrismAsserts.assertRefFilter(first, ShadowType.F_RESOURCE_REF, ObjectReferenceType.COMPLEX_TYPE, ShadowType.F_RESOURCE_REF);
 		assertRefFilterValue((RefFilter) first, "aae7be60-df56-11df-8608-0002a5d5c51b");
 
 		ObjectFilter second = getFilterCondition(filter, 1);
-		PrismAsserts.assertEqualsFilter(second, ICF_NAME, DOMUtil.XSD_STRING, getPrismContext().path(ShadowType.F_ATTRIBUTES,
+		PrismAsserts.assertEqualsFilter(second, ICF_NAME, DOMUtil.XSD_STRING, ItemPath.create(ShadowType.F_ATTRIBUTES,
 				ICF_NAME));
 		PrismAsserts.assertEqualsFilterValue((EqualFilter) second, "uid=jbond,ou=People,dc=example,dc=com");
 
@@ -188,12 +187,12 @@ public class TestQueryConverter {
 		PrismAsserts.assertAndFilter(filter, 2);
 
 		ObjectFilter first = getFilterCondition(filter, 0);
-		PrismAsserts.assertRefFilter(first, ShadowType.F_RESOURCE_REF, ObjectReferenceType.COMPLEX_TYPE, getPrismContext().path(
-				ShadowType.F_RESOURCE_REF));
+		PrismAsserts.assertRefFilter(first, ShadowType.F_RESOURCE_REF, ObjectReferenceType.COMPLEX_TYPE,
+				ShadowType.F_RESOURCE_REF);
 		assertRefFilterValue((RefFilter) first, "aae7be60-df56-11df-8608-0002a5d5c51b");
 
 		ObjectFilter second = getFilterCondition(filter, 1);
-		PrismAsserts.assertEqualsFilter(second, ICF_NAME, DOMUtil.XSD_STRING, getPrismContext().path("attributes", "name"));
+		PrismAsserts.assertEqualsFilter(second, ICF_NAME, DOMUtil.XSD_STRING, ItemPath.create("attributes", "name"));
 		//PrismAsserts.assertEqualsFilterValue((EqualFilter) second, "uid=jbond,ou=People,dc=example,dc=com");
 
 		QueryType convertedQueryType = toQueryType(query);
@@ -216,22 +215,22 @@ public class TestQueryConverter {
 		PrismAsserts.assertOrFilter(filter, 4);
 
 		ObjectFilter first = getFilterCondition(filter, 0);
-		PrismAsserts.assertEqualsFilter(first, ShadowType.F_INTENT, DOMUtil.XSD_STRING, getPrismContext().path(ShadowType.F_INTENT));
+		PrismAsserts.assertEqualsFilter(first, ShadowType.F_INTENT, DOMUtil.XSD_STRING, ShadowType.F_INTENT);
 		PrismAsserts.assertEqualsFilterValue((EqualFilter) first, "some account type");
 
 		ObjectFilter second = getFilterCondition(filter, 1);
-		PrismAsserts.assertEqualsFilter(second, fooBlaDefinition, DOMUtil.XSD_STRING, getPrismContext().path(
+		PrismAsserts.assertEqualsFilter(second, fooBlaDefinition, DOMUtil.XSD_STRING, ItemPath.create(
 				ShadowType.F_ATTRIBUTES, fooBlaDefinition));
 		PrismAsserts.assertEqualsFilterValue((EqualFilter) second, "foo value");
 
 		ObjectFilter third = getFilterCondition(filter, 2);
-		PrismAsserts.assertEqualsFilter(third, stringExtensionDefinition, DOMUtil.XSD_STRING, getPrismContext().path(
+		PrismAsserts.assertEqualsFilter(third, stringExtensionDefinition, DOMUtil.XSD_STRING, ItemPath.create(
 				ShadowType.F_EXTENSION, stringExtensionDefinition));
 		PrismAsserts.assertEqualsFilterValue((EqualFilter) third, "uid=test,dc=example,dc=com");
 
 		ObjectFilter forth = getFilterCondition(filter, 3);
-		PrismAsserts.assertRefFilter(forth, ShadowType.F_RESOURCE_REF, ObjectReferenceType.COMPLEX_TYPE, getPrismContext().path(
-				ShadowType.F_RESOURCE_REF));
+		PrismAsserts.assertRefFilter(forth, ShadowType.F_RESOURCE_REF, ObjectReferenceType.COMPLEX_TYPE,
+				ShadowType.F_RESOURCE_REF);
 		assertRefFilterValue((RefFilter) forth, "d0db5be9-cb93-401f-b6c1-86ffffe4cd5e");
 
 		QueryType convertedQueryType = toQueryType(query);
@@ -252,7 +251,7 @@ public class TestQueryConverter {
 			assertNotNull(query);
 			ObjectFilter filter = query.getFilter();
 			PrismAsserts.assertEqualsFilter(query.getFilter(), ConnectorType.F_CONNECTOR_TYPE, DOMUtil.XSD_STRING,
-					getPrismContext().path(ConnectorType.F_CONNECTOR_TYPE));
+					ConnectorType.F_CONNECTOR_TYPE);
 			PrismAsserts.assertEqualsFilterValue((EqualFilter) filter, "org.identityconnectors.ldap.LdapConnector");
 
 			QueryType convertedQueryType = toQueryType(query);
@@ -284,7 +283,7 @@ public class TestQueryConverter {
 			TypeFilter typeFilter = (TypeFilter) filter;
 			assertEquals(typeFilter.getType(), UserType.COMPLEX_TYPE);
 			assertNotNull("filter in type filter must not be null", typeFilter.getFilter());
-			UniformItemPath namePath = getPrismContext().path(UserType.F_NAME);
+			ItemPath namePath = UserType.F_NAME;
 			PrismPropertyDefinition ppd = getUserDefinition().findPropertyDefinition(namePath);
 			PrismAsserts.assertEqualsFilter(typeFilter.getFilter(), ppd.getName(), ppd.getTypeName(), namePath);
 			PrismAsserts.assertEqualsFilterValue((EqualFilter) typeFilter.getFilter(), PrismTestUtil.createPolyString("some name identificator"));
@@ -386,12 +385,11 @@ public class TestQueryConverter {
 		PrismAsserts.assertAndFilter(filter, 2);
 		// check first condition
 		ObjectFilter first = getFilterCondition(filter, 0);
-		PrismAsserts.assertEqualsFilter(first, GenericObjectType.F_NAME, PolyStringType.COMPLEX_TYPE, getPrismContext().path(
-				GenericObjectType.F_NAME));
+		PrismAsserts.assertEqualsFilter(first, GenericObjectType.F_NAME, PolyStringType.COMPLEX_TYPE, GenericObjectType.F_NAME);
 		PrismAsserts.assertEqualsFilterValue((EqualFilter) first, createPolyString("generic object"));
 		// check second condition
 		ObjectFilter second = getFilterCondition(filter, 1);
-		PrismAsserts.assertEqualsFilter(second, intExtensionDefinition, DOMUtil.XSD_INT, getPrismContext().path(
+		PrismAsserts.assertEqualsFilter(second, intExtensionDefinition, DOMUtil.XSD_INT, ItemPath.create(
 				ObjectType.F_EXTENSION, new QName(NS_EXTENSION, "intType")));
 		PrismAsserts.assertEqualsFilterValue((EqualFilter) second, 123);
 
@@ -773,7 +771,7 @@ public class TestQueryConverter {
 		displayTestTitle(TEST_NAME);
 		PrismReferenceValue ownerRef = ObjectTypeUtil.createObjectRef("1234567890", ObjectTypes.USER).asReferenceValue();
 		ObjectQuery q = QueryBuilder.queryFor(AccessCertificationCaseType.class, getPrismContext())
-				.exists(T_PARENT)
+				.exists(new ParentPathSegment())        // if using T_PARENT then toString representation of paths is different
 					.block()
 						.id(123456L)
 						.or().item(F_OWNER_REF).ref(ownerRef)

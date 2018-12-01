@@ -1140,8 +1140,8 @@ public class TestStrings extends AbstractStoryTest {
 		ObjectDeltaOperation<? extends ObjectType> delta = deltas.iterator().next();
 		assertEquals("Wrong # of modifications in audit record delta", 1, delta.getObjectDelta().getModifications().size());
 		ItemDelta<?, ?> itemDelta = delta.getObjectDelta().getModifications().iterator().next();
-		if (!prismContext.path(UserType.F_DESCRIPTION).equivalent(itemDelta.getPath())) {
-			fail("Wrong item path in delta: expected: "+prismContext.path(UserType.F_DESCRIPTION)+", found: "+itemDelta.getPath());
+		if (!UserType.F_DESCRIPTION.equivalent(itemDelta.getPath())) {
+			fail("Wrong item path in delta: expected: "+UserType.F_DESCRIPTION+", found: "+itemDelta.getPath());
 		}
 		assertEquals("Wrong value in delta", "Hello", itemDelta.getValuesToReplace().iterator().next().getRealValue());
 

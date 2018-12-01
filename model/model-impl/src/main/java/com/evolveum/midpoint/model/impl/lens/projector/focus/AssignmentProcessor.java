@@ -31,6 +31,7 @@ import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -496,7 +497,7 @@ public class AssignmentProcessor {
         }
 
         for (@SuppressWarnings("rawtypes") ItemDelta itemDelta : focusDelta.getModifications()) {
-            UniformItemPath itemPath = itemDelta.getPath().namedSegmentsOnly();
+            ItemPath itemPath = itemDelta.getPath().namedSegmentsOnly();
             if (SchemaConstants.PATH_ASSIGNMENT_TARGET_REF.isSubPathOrEquivalent(itemPath)) {
                 throw new SchemaException("It is not allowed to change targetRef in an assignment. Offending path: " + itemPath);
             }
@@ -971,7 +972,7 @@ public class AssignmentProcessor {
 			Collection<MappingImpl<V,D>> focusMappings = (Collection)ea.getFocusMappings();
 			for (MappingImpl<V,D> mapping: focusMappings) {
 
-				UniformItemPath itemPath = mapping.getOutputPath() != null ? prismContext.toUniformPath(mapping.getOutputPath()) : null;        // todo really null->null ?
+				ItemPath itemPath = mapping.getOutputPath();
 				DeltaSetTriple<ItemValueWithOrigin<V,D>> outputTriple = ItemValueWithOrigin.createOutputTriple(mapping);
 				if (outputTriple == null) {
 					continue;
@@ -987,7 +988,8 @@ public class AssignmentProcessor {
 				}
 				DeltaSetTriple<ItemValueWithOrigin<V,D>> mapTriple = (DeltaSetTriple<ItemValueWithOrigin<V,D>>) outputTripleMap.get(itemPath);
 				if (mapTriple == null) {
-					outputTripleMap.put(itemPath, outputTriple);
+					UniformItemPath uniformItemPath = prismContext.toUniformPath(itemPath);
+					outputTripleMap.put(uniformItemPath, outputTriple);
 				} else {
 					mapTriple.merge(outputTriple);
 				}

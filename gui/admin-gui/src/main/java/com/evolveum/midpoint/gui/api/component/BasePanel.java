@@ -120,10 +120,6 @@ public class BasePanel<T> extends Panel {
         return getPageBase().getSchemaHelper();
     }
 
-    public ItemPath path(Object... components) {
-        return getPrismContext().path(components);
-    }
-
     protected String createComponentPath(String... components) {
         return StringUtils.join(components, ":");
     }

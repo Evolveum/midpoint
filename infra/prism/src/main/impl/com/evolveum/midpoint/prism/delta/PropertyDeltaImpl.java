@@ -18,7 +18,6 @@ package com.evolveum.midpoint.prism.delta;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.match.MatchingRule;
-import com.evolveum.midpoint.prism.path.UniformItemPathImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -306,8 +305,7 @@ public class PropertyDeltaImpl<T extends Object> extends ItemDeltaImpl<PrismProp
 
     public static <T> PropertyDelta<T> createModificationReplaceProperty(ItemPath path, PrismPropertyDefinition propertyDefinition,
     		T... propertyValues) {
-    	UniformItemPathImpl propertyPath = UniformItemPathImpl.fromItemPath(path);
-    	PropertyDelta<T> propertyDelta = new PropertyDeltaImpl<T>(propertyPath, propertyDefinition, propertyDefinition.getPrismContext());             // hoping the prismContext is there
+    	PropertyDelta<T> propertyDelta = new PropertyDeltaImpl<T>(path, propertyDefinition, propertyDefinition.getPrismContext());             // hoping the prismContext is there
     	Collection<PrismPropertyValue<T>> pValues = new ArrayList<>(propertyValues.length);
     	for (T val: propertyValues) {
     		pValues.add(new PrismPropertyValueImpl<>(val));

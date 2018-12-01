@@ -18,7 +18,6 @@ package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -149,7 +148,7 @@ public interface ComplexTypeDefinition extends TypeDefinition, LocalDefinitionSt
 	 * Trims the definition (and any definitions it refers to) to contain only items related to given paths.
 	 * USE WITH CARE. Be sure no shared definitions would be affected by this operation!
 	 */
-	void trimTo(@NotNull Collection<UniformItemPath> paths);
+	void trimTo(@NotNull Collection<ItemPath> paths);
 
 	default boolean containsItemDefinition(QName itemName) {
 		return findItemDefinition(ItemName.fromQName(itemName)) != null;

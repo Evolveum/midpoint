@@ -28,7 +28,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
@@ -266,12 +265,10 @@ public class ObjectValuePolicyEvaluator {
 			return;
 		}
 
-		UniformItemPath complexValueItemPath = prismContext.toUniformPath(valueItemPath);
-		
-		if (!complexValueItemPath.startsWithName(UserType.F_CREDENTIALS)) {
+		if (!valueItemPath.startsWithName(UserType.F_CREDENTIALS)) {
 			return;
 		}
-		Object secondPathSegment = complexValueItemPath.getSegment(1);
+		Object secondPathSegment = valueItemPath.getSegment(1);
 		if (!ItemPath.isName(secondPathSegment)) {
 			return;
 		}

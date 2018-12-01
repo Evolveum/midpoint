@@ -253,25 +253,25 @@ public class GetOperationOptionsBuilderImpl implements GetOperationOptionsBuilde
 
 	//region Query
 	@Override
-	public Query asc(UniformItemPath path) {
+	public Query asc(ItemPath path) {
 		getOrCreatePaging().addOrderingInstruction(path, OrderDirection.ASCENDING);
 		return this;
 	}
 
 	@Override
 	public Query asc(Object... components) {
-		return asc(prismContext.path(components));
+		return asc(ItemPath.create(components));
 	}
 
 	@Override
-	public Query desc(UniformItemPath path) {
+	public Query desc(ItemPath path) {
 		getOrCreatePaging().addOrderingInstruction(path, OrderDirection.DESCENDING);
 		return this;
 	}
 
 	@Override
 	public Query desc(Object... components) {
-		return desc(prismContext.path(components));
+		return desc(ItemPath.create(components));
 	}
 
 	@Override

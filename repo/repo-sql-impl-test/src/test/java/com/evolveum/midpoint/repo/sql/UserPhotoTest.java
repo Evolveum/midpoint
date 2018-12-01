@@ -226,7 +226,7 @@ public class UserPhotoTest extends BaseSQLRepoTest {
         Collection<SelectorOptions<GetOperationOptions>> options;
         if (loadPhoto) {
             options = Collections.singletonList(
-                    SelectorOptions.create(prismContext.path(UserType.F_JPEG_PHOTO), GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
+                    SelectorOptions.create(prismContext.toUniformPath(UserType.F_JPEG_PHOTO), GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
         } else {
             options = null;
         }

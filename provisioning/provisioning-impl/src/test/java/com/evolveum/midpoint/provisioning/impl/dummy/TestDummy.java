@@ -39,6 +39,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.commons.lang.ArrayUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -2128,7 +2129,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 	}
 	
 	protected ObjectOrdering createAttributeOrdering(QName attrQname, OrderDirection direction) {
-		return ObjectOrdering.createOrdering(prismContext.path(ShadowType.F_ATTRIBUTES, attrQname), direction);
+		return ObjectOrdering.createOrdering(ItemPath.create(ShadowType.F_ATTRIBUTES, attrQname), direction);
 	}
 
 	@Test
@@ -3564,7 +3565,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		syncServiceMock.reset();
 
 		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
-				ACCOUNT_MORGAN_OID, prismContext.path(SchemaTestConstants.ICFS_NAME_PATH_PARTS), prismContext, ACCOUNT_CPTMORGAN_NAME);
+				ACCOUNT_MORGAN_OID, SchemaTestConstants.ICFS_NAME_PATH_PARTS, prismContext, ACCOUNT_CPTMORGAN_NAME);
 		provisioningService.applyDefinition(delta, task, result);
 		display("ObjectDelta", delta);
 		delta.checkConsistence();
@@ -3597,7 +3598,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		if (!isIcfNameUidSame()) {
 			shadowUuid = (String) identifier.getRealValue();
 		}
-		PrismAsserts.assertPropertyValue(repoShadow, prismContext.path(SchemaTestConstants.ICFS_UID_PATH_PARTS), shadowUuid);
+		PrismAsserts.assertPropertyValue(repoShadow, SchemaTestConstants.ICFS_UID_PATH_PARTS, shadowUuid);
 
 		syncServiceMock.assertNotifySuccessOnly();
 
@@ -3743,7 +3744,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		ObjectClassComplexTypeDefinition defaultAccountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 		ResourceAttributeDefinition fullnameAttrDef = defaultAccountDefinition.findAttributeDefinition("fullname");
 		ResourceAttribute fullnameAttr = fullnameAttrDef.instantiate();
-		PropertyDelta fullnameDelta = fullnameAttr.createDelta(prismContext.path(ShadowType.F_ATTRIBUTES,
+		PropertyDelta fullnameDelta = fullnameAttr.createDelta(ItemPath.create(ShadowType.F_ATTRIBUTES,
 				fullnameAttrDef.getName()));
 		fullnameDelta.setRealValuesToReplace("Good Daemon");
 		((Collection) modifications).add(fullnameDelta);

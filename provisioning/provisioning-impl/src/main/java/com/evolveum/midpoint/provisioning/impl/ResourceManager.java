@@ -41,7 +41,6 @@ import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
@@ -445,7 +444,7 @@ public class ResourceManager {
 				connectorCapType = new CapabilitiesType();
 				additionalConnectorType.setCapabilities(connectorCapType);
 			}
-			UniformItemPath itemPath = additionalConnectorType.asPrismContainerValue().getPath().append(ConnectorInstanceSpecificationType.F_CAPABILITIES);
+			ItemPath itemPath = additionalConnectorType.asPrismContainerValue().getPath().append(ConnectorInstanceSpecificationType.F_CAPABILITIES);
 			completeConnectorCapabilities(connectorSpec, connectorCapType, itemPath, forceRefresh, 
 					capabilityMap==null?null:capabilityMap.get(additionalConnectorType.getName()),
 					modifications, result);

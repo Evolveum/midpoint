@@ -970,8 +970,8 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         //assertEquals("administrator", ((PrismObject<UserType>) output.getData().get(0)).asObjectable().getName().getOrig());
 
 		for (PipelineItem item : output.getFinalOutput().getData()) {
-			PrismAsserts.assertHasTargetName((PrismContainerValue) item.getValue(), prismContext.path(UserType.F_ROLE_MEMBERSHIP_REF));
-			PrismAsserts.assertHasNoTargetName((PrismContainerValue) item.getValue(), prismContext.path(UserType.F_LINK_REF));
+			PrismAsserts.assertHasTargetName((PrismContainerValue) item.getValue(), UserType.F_ROLE_MEMBERSHIP_REF);
+			PrismAsserts.assertHasNoTargetName((PrismContainerValue) item.getValue(), UserType.F_LINK_REF);
 		}
 	}
 
@@ -996,8 +996,8 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         //assertEquals("administrator", ((PrismObject<UserType>) output.getData().get(0)).asObjectable().getName().getOrig());
 
 		for (PipelineItem item : output.getFinalOutput().getData()) {
-			PrismAsserts.assertHasObject((PrismContainerValue) item.getValue(), prismContext.path(UserType.F_ROLE_MEMBERSHIP_REF));
-			PrismAsserts.assertHasNoObject((PrismContainerValue) item.getValue(), prismContext.path(UserType.F_LINK_REF));
+			PrismAsserts.assertHasObject((PrismContainerValue) item.getValue(), UserType.F_ROLE_MEMBERSHIP_REF);
+			PrismAsserts.assertHasNoObject((PrismContainerValue) item.getValue(), UserType.F_LINK_REF);
 		}
     }
 

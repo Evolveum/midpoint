@@ -95,7 +95,7 @@ public class AssociationTargetSearchExpressionEvaluator
 		super.extendOptions(options, searchOnResource);
 		// We do not need to worry about associations of associations here
 		// (nested associations). Avoiding that will make the query faster.
-		options.add(SelectorOptions.create(getPrismContext().path(ShadowType.F_ASSOCIATION), GetOperationOptions.createDontRetrieve()));
+		options.add(SelectorOptions.create(getPrismContext().toUniformPath(ShadowType.F_ASSOCIATION), GetOperationOptions.createDontRetrieve()));
 	}
 
 	protected PrismContainerValue<ShadowAssociationType> createPrismValue(String oid, QName targetTypeQName, List<ItemDelta<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> additionalAttributeDeltas, ExpressionEvaluationContext params) {

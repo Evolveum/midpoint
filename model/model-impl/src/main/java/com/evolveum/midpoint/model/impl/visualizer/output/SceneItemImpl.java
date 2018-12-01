@@ -21,7 +21,7 @@ import com.evolveum.midpoint.model.api.visualizer.Name;
 import com.evolveum.midpoint.model.api.visualizer.SceneItemValue;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import org.jetbrains.annotations.NotNull;
@@ -39,7 +39,7 @@ public class SceneItemImpl implements SceneItem, DebugDumpable {
 	protected List<SceneItemValueImpl> newValues;
 	protected boolean operational;
 	protected Item<?,?> sourceItem;
-	protected UniformItemPath sourceRelPath;
+	protected ItemPath sourceRelPath;
 	protected boolean descriptive;					// added only as a description of container value being changed
 
 	public SceneItemImpl(NameImpl name) {
@@ -87,11 +87,11 @@ public class SceneItemImpl implements SceneItem, DebugDumpable {
 		this.sourceItem = sourceItem;
 	}
 
-	public UniformItemPath getSourceRelPath() {
+	public ItemPath getSourceRelPath() {
 		return sourceRelPath;
 	}
 
-	public void setSourceRelPath(UniformItemPath sourceRelPath) {
+	public void setSourceRelPath(ItemPath sourceRelPath) {
 		this.sourceRelPath = sourceRelPath;
 	}
 

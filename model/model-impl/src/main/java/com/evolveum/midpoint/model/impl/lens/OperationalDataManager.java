@@ -28,7 +28,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.ActivationComputer;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -169,7 +168,7 @@ public class OperationalDataManager {
 			Set<Long> processedIds = new HashSet<>();
 			List<ItemDelta<?,?>> assignmentMetadataDeltas = new ArrayList<>();
 			for (ItemDelta<?,?> itemDelta: objectDelta.getModifications()) {
-				UniformItemPath deltaPath = itemDelta.getPath();
+				ItemPath deltaPath = itemDelta.getPath();
 				CompareResult comparison = deltaPath.compareComplex(SchemaConstants.PATH_ASSIGNMENT);
 				if (comparison == EQUIVALENT) {
 					// whole assignment is being added/replaced (or deleted but we are not interested in that)

@@ -20,6 +20,7 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.marshaller.ItemPathParserTemp;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -204,7 +205,7 @@ public class TestExpressionUtil {
 
     private <T> T resolvePath(String path, ExpressionVariables variables, final String TEST_NAME) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
     	OperationResult result = new OperationResult(TestExpressionUtil.class.getName() + "." + TEST_NAME);
-		UniformItemPath itemPath = toItemPath(path);
+		ItemPath itemPath = toItemPath(path);
 
 		// WHEN
     	Object resolved = ExpressionUtil.resolvePath(itemPath, variables, false, null, null, TEST_NAME, null, result);

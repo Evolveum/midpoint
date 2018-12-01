@@ -16,7 +16,7 @@
 package com.evolveum.midpoint.model.impl.controller;
 
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -63,7 +63,7 @@ public class ControllerSearchObjectsTest extends AbstractTestNGSpringContextTest
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullResult() throws Exception {
-		ObjectPaging paging = ObjectPaging.createPaging(0, Integer.MAX_VALUE, (UniformItemPath) null, null);
+		ObjectPaging paging = ObjectPaging.createPaging(0, Integer.MAX_VALUE, (ItemPath) null, null);
 		ObjectQuery query = ObjectQuery.createObjectQuery(paging);
 		controller.searchObjects(null, query, null, null, null);
 	}

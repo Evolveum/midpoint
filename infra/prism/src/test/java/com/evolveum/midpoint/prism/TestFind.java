@@ -22,6 +22,7 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.IOException;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
@@ -29,7 +30,6 @@ import org.xml.sax.SAXException;
 import com.evolveum.midpoint.prism.foo.AccountConstructionType;
 import com.evolveum.midpoint.prism.foo.AssignmentType;
 import com.evolveum.midpoint.prism.foo.UserType;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -54,7 +54,7 @@ public class TestFind {
 
 		// GIVEN
 		PrismObject<UserType> user = createUser();
-		UniformItemPath path = getPrismContext().path(UserType.F_DESCRIPTION);
+		ItemPath path = UserType.F_DESCRIPTION;
 
 		// WHEN
 		PrismProperty<String> nameProperty = findProperty(user, path);
@@ -71,7 +71,7 @@ public class TestFind {
 
 		// GIVEN
 		PrismObject<UserType> user = createUser();
-		UniformItemPath path = getPrismContext().path(UserType.F_POLY_NAME);
+		ItemPath path = UserType.F_POLY_NAME;
 
 		// WHEN
 		PrismProperty<PolyString> nameProperty = findProperty(user, path);
@@ -87,7 +87,7 @@ public class TestFind {
 		System.out.println("===[ "+TEST_NAME+" ]===");
 
 		// GIVEN
-		UniformItemPath path = getPrismContext().path(UserType.F_POLY_NAME, PolyString.F_ORIG);
+		ItemPath path = ItemPath.create(UserType.F_POLY_NAME, PolyString.F_ORIG);
 
 		// WHEN
 		Object found = findUser(path);
@@ -102,7 +102,7 @@ public class TestFind {
 		System.out.println("===[ "+TEST_NAME+" ]===");
 
 		// GIVEN
-		UniformItemPath path = getPrismContext().path(UserType.F_POLY_NAME, PolyString.F_NORM);
+		ItemPath path = ItemPath.create(UserType.F_POLY_NAME, PolyString.F_NORM);
 
 		// WHEN
 		Object found = findUser(path);
@@ -117,7 +117,7 @@ public class TestFind {
 		System.out.println("===[ "+TEST_NAME+" ]===");
 
 		// GIVEN
-		UniformItemPath path = getPrismContext().path(UserType.F_EXTENSION, EXTENSION_BAR_ELEMENT);
+		ItemPath path = ItemPath.create(UserType.F_EXTENSION, EXTENSION_BAR_ELEMENT);
 
 		// WHEN
 		PrismProperty<String> property = findUserProperty(path);
@@ -132,7 +132,7 @@ public class TestFind {
 		System.out.println("===[ "+TEST_NAME+" ]===");
 
 		// GIVEN
-		UniformItemPath path = getPrismContext().path(UserType.F_ASSIGNMENT, USER_ASSIGNMENT_1_ID, AssignmentType.F_DESCRIPTION);
+		ItemPath path = ItemPath.create(UserType.F_ASSIGNMENT, USER_ASSIGNMENT_1_ID, AssignmentType.F_DESCRIPTION);
 
 		// WHEN
 		PrismProperty<String> property = findUserProperty(path);
@@ -147,7 +147,7 @@ public class TestFind {
 		System.out.println("===[ "+TEST_NAME+" ]===");
 
 		// GIVEN
-		UniformItemPath path = getPrismContext().path(UserType.F_ASSIGNMENT, USER_ASSIGNMENT_2_ID, AssignmentType.F_ACCOUNT_CONSTRUCTION);
+		ItemPath path = ItemPath.create(UserType.F_ASSIGNMENT, USER_ASSIGNMENT_2_ID, AssignmentType.F_ACCOUNT_CONSTRUCTION);
 
 		// WHEN
 		PrismProperty<AccountConstructionType> property = findUserProperty(path);
@@ -162,7 +162,7 @@ public class TestFind {
 		System.out.println("===[ "+TEST_NAME+" ]===");
 
 		// GIVEN
-		UniformItemPath path = getPrismContext().path(UserType.F_ASSIGNMENT);
+		ItemPath path = UserType.F_ASSIGNMENT;
 
 		// WHEN
 		PrismContainer<AssignmentType> container = findUserContainer(path);
@@ -172,12 +172,12 @@ public class TestFind {
 		assertEquals("Wrong value2 description (path="+path+")", "Assignment 2", value2.findProperty(AssignmentType.F_DESCRIPTION).getRealValue());
 	}
 
-	private <T> T findUser(UniformItemPath path) throws SchemaException, SAXException, IOException {
+	private <T> T findUser(ItemPath path) throws SchemaException, SAXException, IOException {
 		PrismObject<UserType> user = createUser();
 		return find(user, path);
 	}
 
-	private <T> T find(PrismObject<UserType> user, UniformItemPath path) {
+	private <T> T find(PrismObject<UserType> user, ItemPath path) {
 		System.out.println("Path:");
 		System.out.println(path);
 
@@ -190,12 +190,12 @@ public class TestFind {
 		return (T) found;
 	}
 
-	private <T> PrismProperty<T> findUserProperty(UniformItemPath path) throws SchemaException, SAXException, IOException {
+	private <T> PrismProperty<T> findUserProperty(ItemPath path) throws SchemaException, SAXException, IOException {
 		PrismObject<UserType> user = createUser();
 		return findProperty(user, path);
 	}
 
-	private <T> PrismProperty<T> findProperty(PrismObject<UserType> user, UniformItemPath path) {
+	private <T> PrismProperty<T> findProperty(PrismObject<UserType> user, ItemPath path) {
 		System.out.println("Path:");
 		System.out.println(path);
 
@@ -208,12 +208,12 @@ public class TestFind {
 		return property;
 	}
 
-	private <T extends Containerable> PrismContainer<T> findUserContainer(UniformItemPath path) throws SchemaException, SAXException, IOException {
+	private <T extends Containerable> PrismContainer<T> findUserContainer(ItemPath path) throws SchemaException, SAXException, IOException {
 		PrismObject<UserType> user = createUser();
 		return findContainer(user, path);
 	}
 
-	private <T extends Containerable> PrismContainer<T> findContainer(PrismObject<UserType> user, UniformItemPath path) {
+	private <T extends Containerable> PrismContainer<T> findContainer(PrismObject<UserType> user, ItemPath path) {
 		System.out.println("Path:");
 		System.out.println(path);
 

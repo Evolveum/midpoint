@@ -446,7 +446,7 @@ public class TestFilterSimplifier {
 		System.out.println("Simplified filter:\n" + DebugUtil.debugDump(simplified));
 		assertTrue("Wrong simplified filter: " + simplified, simplified instanceof ExistsFilter);
 		ExistsFilter existsSimplified = (ExistsFilter) simplified;
-		assertEquals("Wrong simplified filter path", prismContext.path(UserType.F_ASSIGNMENT), existsSimplified.getFullPath());
+		assertEquals("Wrong simplified filter path", UserType.F_ASSIGNMENT, existsSimplified.getFullPath());
 		assertTrue("Wrong simplified filter subfilter: " + existsSimplified.getFilter(), ObjectQueryUtil.isAll(existsSimplified.getFilter()));
 	}
 
@@ -487,7 +487,7 @@ public class TestFilterSimplifier {
 		System.out.println("Simplified filter:\n" + DebugUtil.debugDump(simplified));
 		assertTrue("Wrong simplified filter: " + simplified, simplified instanceof ExistsFilter);
 		ExistsFilter existsSimplified = (ExistsFilter) simplified;
-		assertEquals("Wrong simplified filter path", prismContext.path(UserType.F_ASSIGNMENT), existsSimplified.getFullPath());
+		assertEquals("Wrong simplified filter path", UserType.F_ASSIGNMENT, existsSimplified.getFullPath());
 		assertTrue("Wrong simplified filter subfilter: " + existsSimplified.getFilter(), ObjectQueryUtil.isAll(existsSimplified.getFilter()));
 	}
 

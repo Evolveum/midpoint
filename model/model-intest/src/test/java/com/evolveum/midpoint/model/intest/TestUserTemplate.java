@@ -29,6 +29,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismPropertyValueImpl;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -1015,7 +1016,8 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertExecutionSuccess();
         ObjectDeltaOperation<?> objectDeltaOperation = dummyAuditService.getExecutionDelta(0, ChangeType.MODIFY, UserType.class);
         assertEquals("unexpected number of modifications in audited delta", 10, objectDeltaOperation.getObjectDelta().getModifications().size());   // givenName + badLuck + modifyTimestamp
-        PropertyDelta badLuckDelta = objectDeltaOperation.getObjectDelta().findPropertyDelta(prismContext.path(UserType.F_EXTENSION, PIRACY_BAD_LUCK));
+        PropertyDelta badLuckDelta = objectDeltaOperation.getObjectDelta().findPropertyDelta(
+		        ItemPath.create(UserType.F_EXTENSION, PIRACY_BAD_LUCK));
         assertNotNull("badLuck delta was not found", badLuckDelta);
         List<PrismValue> oldValues = (List<PrismValue>) badLuckDelta.getEstimatedOldValues();
         assertNotNull("badLuck delta has null estimatedOldValues field", oldValues);
@@ -1094,7 +1096,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
 
         // all the values should be gone now, because the corresponding item in user template is marked as non-tolerant
-        PrismAsserts.assertNoItem(userJack, prismContext.path(UserType.F_EXTENSION, PIRACY_BAD_LUCK));
+        PrismAsserts.assertNoItem(userJack, ItemPath.create(UserType.F_EXTENSION, PIRACY_BAD_LUCK));
     }
 
     private PrismObject<OrgType> assertOnDemandOrgExists(String orgName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
@@ -2380,7 +2382,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userBefore = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
 		display("User before", userBefore);
 
-		ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_RAPP_OID, prismContext.path(UserType.F_LOCALITY),
+		ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_RAPP_OID, UserType.F_LOCALITY,
 				PrismTestUtil.createPolyString("Six feet under"));
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 		ModelExecuteOptions options = ModelExecuteOptions.createReconcile();

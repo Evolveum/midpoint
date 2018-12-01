@@ -195,7 +195,7 @@ public class TestParseObjectTemplate {
             if (mappingType.getExpression() != null) {
                 if (mappingType.getTarget() != null &&
                         mappingType.getTarget().getPath() != null &&
-                        getPrismContext().path(UserType.F_ASSIGNMENT).equivalent(mappingType.getTarget().getPath().getItemPath())) {
+                        UserType.F_ASSIGNMENT.equivalent(mappingType.getTarget().getPath().getItemPath())) {
                     ItemDefinition assignmentDef =
                             getPrismContext().getSchemaRegistry()
                                     .findObjectDefinitionByCompileTimeClass(UserType.class)

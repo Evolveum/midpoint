@@ -39,6 +39,7 @@ import com.evolveum.midpoint.prism.*;
 
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.processor.*;
 import org.apache.commons.lang.StringUtils;
@@ -975,7 +976,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(ACCOUNT_JACK_CHANGE_FILE, ObjectModificationType.COMPLEX_TYPE);
 		ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, object.asPrismObject().getDefinition());
 
-		UniformItemPath icfNamePath = prismContext.path(
+		ItemPath icfNamePath = ItemPath.create(
 				ShadowType.F_ATTRIBUTES, getSecondaryIdentifierQName());
 		PrismPropertyDefinition icfNameDef = object
 				.asPrismObject().getDefinition().findPropertyDefinition(icfNamePath);
@@ -1040,7 +1041,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		display("Bytes in", MiscUtil.binaryToHex(bytesIn));
 
 		ItemName jpegPhotoQName = new ItemName(RESOURCE_OPENDJ_NS, "jpegPhoto");
-		PropertyDelta<byte[]> jpegPhotoDelta = new PropertyDeltaImpl<>(prismContext.path(ShadowType.F_ATTRIBUTES, jpegPhotoQName),
+		PropertyDelta<byte[]> jpegPhotoDelta = new PropertyDeltaImpl<>(ItemPath.create(ShadowType.F_ATTRIBUTES, jpegPhotoQName),
 				null , prismContext);
 		jpegPhotoDelta.setRealValuesToReplace(bytesIn);
 
@@ -1094,14 +1095,14 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		OperationResult result = task.getResult();
 
 		PropertyDelta<String> givenNameDelta = new PropertyDeltaImpl<>(
-				prismContext.path(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_OPENDJ_NS, "givenName")),
+				ItemPath.create(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_OPENDJ_NS, "givenName")),
 				null , prismContext);
 		givenNameDelta.addRealValuesToAdd("Jack");
 
 		// Also make an ordinary non-conflicting modification. We need to make sure that
 		// the operation was not ignored as a whole
 		PropertyDelta<String> titleDelta = new PropertyDeltaImpl<>(
-				prismContext.path(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_OPENDJ_NS, "title")),
+				ItemPath.create(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_OPENDJ_NS, "title")),
 				null , prismContext);
 		titleDelta.addRealValuesToAdd("Great Captain");
 
@@ -1962,7 +1963,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
 		ObjectPaging paging = ObjectPaging.createPaging(null, 4);
 		paging.setOrdering(ObjectOrdering.createOrdering(
-				prismContext.path(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_NS, "sn")), OrderDirection.ASCENDING));
+				ItemPath.create(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_NS, "sn")), OrderDirection.ASCENDING));
 		query.setPaging(paging);
 
 		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
@@ -2001,7 +2002,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
 		ObjectPaging paging = ObjectPaging.createPaging(2, 4);
 		paging.setOrdering(ObjectOrdering.createOrdering(
-				prismContext.path(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_NS, "sn")), OrderDirection.ASCENDING));
+				ItemPath.create(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_NS, "sn")), OrderDirection.ASCENDING));
 		query.setPaging(paging);
 
 		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
@@ -2944,7 +2945,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		addResourceFromFile(new File(TEST_DIR, "/resource-opendj-no-update.xml"), IntegrationTestTools.CONNECTOR_LDAP_TYPE, true, result);
 
 		try {
-			PropertyDelta delta = PropertyDeltaImpl.createModificationReplaceProperty(prismContext.path(ShadowType.F_ATTRIBUTES, new QName(resourceType.getNamespace(), "sn")), prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class), "doesnotmatter");
+			PropertyDelta delta = PropertyDeltaImpl.createModificationReplaceProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, new QName(resourceType.getNamespace(), "sn")), prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class), "doesnotmatter");
 			Collection modifications = MiscUtil.createCollection(delta);
 			provisioningService.modifyObject(ShadowType.class, ACCOUNT_WILL_OID, modifications, null, null, task, result);
 			AssertJUnit

@@ -148,7 +148,7 @@ public class PrismPropertyDefinitionImpl<T> extends ItemDefinitionImpl<PrismProp
 
     @Override
 	public PropertyDelta<T> createEmptyDelta(ItemPath path) {
-		return new PropertyDeltaImpl<>(prismContext.path(path), this, prismContext);
+		return new PropertyDeltaImpl<>(path, this, prismContext);
 	}
 
 	@Override

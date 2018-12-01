@@ -206,8 +206,7 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 	}
 
 	@Override
-	public <ID extends ItemDefinition> ID findItemDefinition(@NotNull ItemPath itemPath, @NotNull Class<ID> clazz) {
-		UniformItemPath path = prismContext.toUniformPath(itemPath);
+	public <ID extends ItemDefinition> ID findItemDefinition(@NotNull ItemPath path, @NotNull Class<ID> clazz) {
 		for (;;) {
 			if (path.isEmpty()) {
 				throw new IllegalArgumentException("Cannot resolve empty path on complex type definition "+this);
@@ -219,7 +218,7 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 			} else if (ItemPath.isId(first)) {
 				path = path.rest();
 			} else if (ItemPath.isParent(first)) {
-				UniformItemPath rest = path.rest();
+				ItemPath rest = path.rest();
 				ComplexTypeDefinition parent = getSchemaRegistry().determineParentDefinition(this, rest);
 				if (rest.isEmpty()) {
 					// requires that the parent is defined as an item (container, object)
@@ -511,14 +510,14 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
     }
 
 	@Override
-	public void trimTo(@NotNull Collection<UniformItemPath> paths) {
+	public void trimTo(@NotNull Collection<ItemPath> paths) {
     	if (shared) {
     		// TODO switch this to warning before releasing this code (3.6.1 or 3.7)
     		throw new IllegalStateException("Couldn't trim shared definition: " + this);
 		}
 		for (Iterator<ItemDefinition> iterator = itemDefinitions.iterator(); iterator.hasNext(); ) {
 			ItemDefinition<?> itemDef = iterator.next();
-			UniformItemPath itemPath = prismContext.path(itemDef.getName());
+			ItemPath itemPath = itemDef.getName();
 			if (!ItemPathCollectionsUtil.containsSuperpathOrEquivalent(paths, itemPath)) {
 				iterator.remove();
 			} else if (itemDef instanceof PrismContainerDefinition) {

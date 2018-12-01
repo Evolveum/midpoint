@@ -26,11 +26,11 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -335,13 +335,7 @@ public class FocusAsserter<F extends FocusType,RA> extends PrismObjectAsserter<F
 	}
 	
 	@Override
-	public FocusAsserter<F,RA> assertNoItem(QName itemName) {
-		super.assertNoItem(itemName);
-		return this;
-	}
-	
-	@Override
-	public FocusAsserter<F,RA> assertNoItem(UniformItemPath itemPath) {
+	public FocusAsserter<F,RA> assertNoItem(ItemPath itemPath) {
 		super.assertNoItem(itemPath);
 		return this;
 	}

@@ -516,7 +516,7 @@ public class ObjectTemplateProcessor {
 			}
 			for (AutoassignMappingType autoMapping: focalAutoassignSpec.getMapping()) {
 				AutoassignMappingType mapping = autoMapping.clone();
-				setMappingTarget(mapping, (ItemPathType) prismContext.path(SchemaConstants.PATH_ASSIGNMENT).asItemPathType()); // todo
+				setMappingTarget(mapping, new ItemPathType(SchemaConstants.PATH_ASSIGNMENT));
 				mappings.add(new FocalMappingSpec(mapping, role.asObjectable()));
 				LOGGER.trace("Collected autoassign mapping {} from {}", mapping.getName(), role);
 			}
@@ -606,7 +606,7 @@ public class ObjectTemplateProcessor {
 		ItemPath targetPath = mapping2.getTarget().getPath().getItemPath().stripVariableSegment();
 
 		for (VariableBindingDefinitionType source : mapping1.getSource()) {
-			UniformItemPath sourcePath = source.getPath() != null ? prismContext.toUniformPath(source.getPath()) : null;
+			ItemPath sourcePath = prismContext.toPath(source.getPath());
 			if (sourcePath != null && stripFocusVariableSegment(sourcePath).equivalent(targetPath)) {
 				return true;
 			}
@@ -615,7 +615,7 @@ public class ObjectTemplateProcessor {
 	}
 
 	// must be Uniform because of the later use in outputTripleMap
-	private UniformItemPath stripFocusVariableSegment(UniformItemPath sourcePath) {
+	private ItemPath stripFocusVariableSegment(ItemPath sourcePath) {
 		if (sourcePath.startsWithVariable()
 			&& QNameUtil.matchAny(sourcePath.firstToVariableNameOrNull(), MappingEvaluator.FOCUS_VARIABLE_NAMES)) {
 			return sourcePath.stripVariableSegment();
@@ -672,7 +672,6 @@ public class ObjectTemplateProcessor {
 			if (outputPath == null) {
                 continue;
             }
-			UniformItemPath complexPath = prismContext.toUniformPath(outputPath);
 			DeltaSetTriple<ItemValueWithOrigin<V,D>> outputTriple = ItemValueWithOrigin.createOutputTriple(mapping);
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Output triple for {}:\n{}", mapping, DebugUtil.debugDump(outputTriple));
@@ -680,9 +679,10 @@ public class ObjectTemplateProcessor {
 			if (outputTriple == null) {
 				continue;
 			}
-			DeltaSetTriple<ItemValueWithOrigin<V,D>> mapTriple = (DeltaSetTriple<ItemValueWithOrigin<V,D>>) outputTripleMap.get(complexPath);
+			UniformItemPath uniformItemPath = prismContext.toUniformPath(outputPath);
+			DeltaSetTriple<ItemValueWithOrigin<V,D>> mapTriple = (DeltaSetTriple<ItemValueWithOrigin<V,D>>) outputTripleMap.get(uniformItemPath);
 			if (mapTriple == null) {
-				outputTripleMap.put(complexPath, outputTriple);
+				outputTripleMap.put(uniformItemPath, outputTriple);
 			} else {
 				mapTriple.merge(outputTriple);
 			}
@@ -700,7 +700,7 @@ public class ObjectTemplateProcessor {
 			if (source.getPath() == null) {
 				continue;
 			}
-			UniformItemPath path = stripFocusVariableSegment(prismContext.toUniformPath(source.getPath()));
+			ItemPath path = stripFocusVariableSegment(prismContext.toUniformPath(source.getPath()));
 			if (path.startsWithVariable()) {
 				continue;
 			}

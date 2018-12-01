@@ -7,6 +7,7 @@ import java.io.File;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -172,7 +173,7 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
 		PrismObject<ServiceType> serviceJirafter = getObject(ServiceType.class, SERVICE_JIRA_OID);
 		display("Service magazine after", serviceJirafter);
 		assertNotNull("No magazine service", serviceJirafter);
-		PrismAsserts.assertPropertyValue(serviceJirafter, prismContext.path(ServiceType.F_EXTENSION, F_ACCOUNT_NAME), ACCOUNT_DUMMY_JIRA_USERNAME);
+		PrismAsserts.assertPropertyValue(serviceJirafter, ItemPath.create(ServiceType.F_EXTENSION, F_ACCOUNT_NAME), ACCOUNT_DUMMY_JIRA_USERNAME);
 		assertLinks(serviceJirafter, 1);
 		
 	}
@@ -289,7 +290,7 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
 		display("Service github after", serviceGithubAfter);
 		assertNotNull("No github service", serviceGithubAfter);
 		assertAssignedResource(ServiceType.class, SERVICE_GITHUB_OID, RESOURCE_DUMMY_CLASSIFIER_OID, task, result);
-		PrismAsserts.assertPropertyValue(serviceGithubAfter, prismContext.path(ServiceType.F_EXTENSION, F_ACCOUNT_NAME), ACCOUNT_DUMMY_GITHUB_USERNAME);
+		PrismAsserts.assertPropertyValue(serviceGithubAfter, ItemPath.create(ServiceType.F_EXTENSION, F_ACCOUNT_NAME), ACCOUNT_DUMMY_GITHUB_USERNAME);
 		assertLinks(serviceGithubAfter, 1);
 		
 		//check if the intent was changed

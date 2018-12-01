@@ -48,7 +48,6 @@ import com.evolveum.midpoint.model.impl.lens.projector.focus.FocusConstraintsChe
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
@@ -480,7 +479,7 @@ public class ChangeExecutor {
 			if (pcv.representsSameValue(pcvToFind, false) || pcv.equalsRealValue(pcvToFind)) {
 				// TODO what if ID of the assignment being added is changed in repo? Hopefully it will be not.
 				for (ItemDelta<?, ?> modification : modifications) {
-					UniformItemPath newParentPath = modification.getParentPath().rest(2);        // killing assignment + ID
+					ItemPath newParentPath = modification.getParentPath().rest(2);        // killing assignment + ID
 					ItemDelta<?, ?> pathRelativeModification = modification.cloneWithChangedParentPath(newParentPath);
 					pathRelativeModification.applyTo(pcv);
 				}

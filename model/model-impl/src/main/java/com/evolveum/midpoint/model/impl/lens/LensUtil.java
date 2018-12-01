@@ -60,7 +60,6 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.Expression;
@@ -305,7 +304,7 @@ public class LensUtil {
 	 * equivalent discriminator.
 	 */
 	public static <F extends ObjectType, T> PropertyDelta<T> findAPrioriDelta(LensContext<F> context,
-			LensProjectionContext projCtx, UniformItemPath projectionPropertyPath) throws SchemaException {
+			LensProjectionContext projCtx, ItemPath projectionPropertyPath) throws SchemaException {
 		PropertyDelta<T> aPrioriDelta = null;
 		for (LensProjectionContext aProjCtx: findRelatedContexts(context, projCtx)) {
 			ObjectDelta<ShadowType> aProjDelta = aProjCtx.getDelta();
@@ -842,7 +841,7 @@ public class LensUtil {
 	}
 
 	// a heuristic by now
-	private static <O extends ObjectType> boolean isItemLoadable(PrismObject<O> object, UniformItemPath path) {
+	private static <O extends ObjectType> boolean isItemLoadable(PrismObject<O> object, ItemPath path) {
 		if (!(object.asObjectable() instanceof ShadowType)) {
 			return false;
 		}

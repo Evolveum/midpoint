@@ -2441,7 +2441,7 @@ public class TestMapping extends AbstractMappingTest {
 
 		// WHEN
         displayWhen(TEST_NAME);
-        ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_GUYBRUSH_OID, prismContext.path(UserType.F_LOCALITY),
+        ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_GUYBRUSH_OID, UserType.F_LOCALITY,
         		PrismTestUtil.createPolyString(LOCALITY_SCABB_ISLAND));
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 		ModelExecuteOptions options = ModelExecuteOptions.createReconcile();
@@ -2902,7 +2902,7 @@ public class TestMapping extends AbstractMappingTest {
 
 		// WHEN
         displayWhen(TEST_NAME);
-        ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_GUYBRUSH_OID, prismContext.path(UserType.F_LOCALITY),
+        ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_GUYBRUSH_OID, UserType.F_LOCALITY,
         		PrismTestUtil.createPolyString(LOCALITY_SCABB_ISLAND));
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 		ModelExecuteOptions options = ModelExecuteOptions.createReconcile();

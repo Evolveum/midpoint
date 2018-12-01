@@ -28,6 +28,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.Nullable;
 import org.opends.server.types.DirectoryException;
@@ -1373,7 +1374,8 @@ public class TestUnix extends AbstractStoryTest {
         display("Shadow (repo)", repoShadow);
         //PrismProperty<Integer> uidNumberRepoAttr = repoShadow.findProperty(prismContext.path(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_OPENDJ_NAMESPACE, OPENDJ_UIDNUMBER_ATTRIBUTE_NAME)));
 	//PrismAsserts.assertPropertyValue(uidNumberRepoAttr, USER_RANGER_UID_NUMBER);
-        PrismProperty<String> uidRepoAttr = repoShadow.findProperty(prismContext.path(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_OPENDJ_NAMESPACE, OPENDJ_UID_ATTRIBUTE_NAME)));
+        PrismProperty<String> uidRepoAttr = repoShadow.findProperty(
+		        ItemPath.create(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_OPENDJ_NAMESPACE, OPENDJ_UID_ATTRIBUTE_NAME)));
 	PrismAsserts.assertPropertyValue(uidRepoAttr, USER_RANGER_USERNAME);
 	}
 

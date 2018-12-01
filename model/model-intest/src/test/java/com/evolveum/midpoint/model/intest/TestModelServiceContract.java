@@ -712,7 +712,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         getOpts.setResolve(true);
         getOpts.setNoFetch(true);
 		Collection<SelectorOptions<GetOperationOptions>> options =
-        	SelectorOptions.createCollection(prismContext.path(UserType.F_LINK), getOpts);
+        	SelectorOptions.createCollection(prismContext.toUniformPath(UserType.F_LINK), getOpts);
 
 		// WHEN
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, options , task, result);
@@ -2480,7 +2480,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         ConstructionType accountConstruction = createAccountConstruction(RESOURCE_DUMMY_OID, null);
         ResourceAttributeDefinitionType radt = new ResourceAttributeDefinitionType();
-        radt.setRef(new ItemPathType(prismContext.path(gossipDefinition.getName())));
+        radt.setRef(new ItemPathType(gossipDefinition.getName()));
         MappingType outbound = new MappingType();
         radt.setOutbound(outbound);
 
@@ -3161,7 +3161,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // This is a side-effect change. It is silently done by provisioning. It is not supposed to
         // appear in audit log.
 //        dummyAuditService.assertOldValue(ChangeType.MODIFY, ShadowType.class,
-//        		prismContext.path(ShadowType.F_NAME), PrismTestUtil.createPolyString("morgan"));
+//        		ItemPath.create(ShadowType.F_NAME), PrismTestUtil.createPolyString("morgan"));
 
         dummyAuditService.assertTarget(USER_MORGAN_OID);
         dummyAuditService.assertExecutionSuccess();

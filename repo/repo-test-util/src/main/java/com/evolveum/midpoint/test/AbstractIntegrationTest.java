@@ -2472,7 +2472,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 
 	// use only if necessary (use ItemPath.create instead)
-	protected UniformItemPath path(Object... components) {
-		return prismContext.path(components);
+	protected ItemPath path(Object... components) {
+		return ItemPath.create(components);
 	}
 }

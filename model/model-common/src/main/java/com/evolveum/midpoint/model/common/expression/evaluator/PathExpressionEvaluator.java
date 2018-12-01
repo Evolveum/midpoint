@@ -30,7 +30,6 @@ import com.evolveum.midpoint.prism.delta.ItemDeltaUtil;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTripleImpl;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
@@ -48,13 +47,13 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinition> implements ExpressionEvaluator<V,D> {
 
-	private UniformItemPath path;
+	private ItemPath path;
 	private ObjectResolver objectResolver;
 	private PrismContext prismContext;
 	private D outputDefinition;
 	private Protector protector;
 
-    public PathExpressionEvaluator(UniformItemPath path, ObjectResolver objectResolver,
+    public PathExpressionEvaluator(ItemPath path, ObjectResolver objectResolver,
     		D outputDefinition, Protector protector, PrismContext prismContext) {
     	this.path = path;
 		this.objectResolver = objectResolver;

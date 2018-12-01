@@ -72,13 +72,13 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
 		task.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON));
 		modelService.executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, parentResult);
 
-		delta = createModifyUserReplaceDelta(USER_JACK_OID, prismContext.path(UserType.F_FULL_NAME), new PolyString("tralala"));
+		delta = createModifyUserReplaceDelta(USER_JACK_OID, UserType.F_FULL_NAME, new PolyString("tralala"));
 		deltas = new ArrayList<>();
 		deltas.add(delta);
 
 		modelService.executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, parentResult);
 
-		delta = createModifyUserReplaceDelta(USER_BARBOSSA_OID, prismContext.path(UserType.F_FULL_NAME), new PolyString("tralala"));
+		delta = createModifyUserReplaceDelta(USER_BARBOSSA_OID, UserType.F_FULL_NAME, new PolyString("tralala"));
 		deltas = new ArrayList<>();
 		deltas.add(delta);
 

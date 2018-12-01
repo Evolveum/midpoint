@@ -23,6 +23,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.IOException;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
@@ -79,7 +80,7 @@ public class TestDynamicSchema {
 
 		// WHEN
 		PrismProperty<String> assignmentExtensionStringProperty = assignmentExtensionContainer.findOrCreateItem(
-				getPrismContext().path(EXTENSION_STRING_TYPE_ELEMENT), PrismProperty.class);
+				EXTENSION_STRING_TYPE_ELEMENT, PrismProperty.class);
 
 		// THEN
 		assertNotNull("stringType is null", assignmentExtensionStringProperty);
@@ -131,7 +132,7 @@ public class TestDynamicSchema {
 		System.out.println("Parsed user:");
 		System.out.println(user.debugDump());
 
-		return user.findContainer(prismContext.path(UserType.F_ASSIGNMENT, USER_ASSIGNMENT_1_ID, AssignmentType.F_EXTENSION));
+		return user.findContainer(ItemPath.create(UserType.F_ASSIGNMENT, USER_ASSIGNMENT_1_ID, AssignmentType.F_EXTENSION));
 	}
 
 }

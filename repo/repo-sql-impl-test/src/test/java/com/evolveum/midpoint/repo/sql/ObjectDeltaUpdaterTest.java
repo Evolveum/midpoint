@@ -114,7 +114,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         delta.addModificationReplaceProperty(UserType.F_GIVEN_NAME, new PolyString("ášdf", "asdf"));
         delta.addModificationReplaceProperty(UserType.F_LOCALE, "en-US");
         delta.addModificationReplaceProperty(
-                prismContext.path(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), ActivationStatusType.DISABLED);
+                ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), ActivationStatusType.DISABLED);
 
         queryCountInterceptor.startCounter();
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
@@ -173,7 +173,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("test110ReplaceExtensionProperty");
 
         ObjectDelta<?> delta = ObjectDeltaCreationUtil.createEmptyModifyDelta(UserType.class, userOid, prismContext);
-        delta.addModificationReplaceProperty(prismContext.path(UserType.F_EXTENSION, LOOT), 34);
+        delta.addModificationReplaceProperty(ItemPath.create(UserType.F_EXTENSION, LOOT), 34);
 
         queryCountInterceptor.startCounter();
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
@@ -226,7 +226,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("test120AddExtensionProperty");
 
         ObjectDelta<?> delta = ObjectDeltaCreationUtil.createEmptyModifyDelta(UserType.class, userOid, prismContext);
-        delta.addModificationReplaceProperty(prismContext.path(UserType.F_EXTENSION, WEAPON), "weapon1", "weapon2");
+        delta.addModificationReplaceProperty(ItemPath.create(UserType.F_EXTENSION, WEAPON), "weapon1", "weapon2");
 
         queryCountInterceptor.startCounter();
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
@@ -306,7 +306,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         ActivationType activation = new ActivationType();
         activation.setAdministrativeStatus(ActivationStatusType.ENABLED);
         delta.addModificationAddContainer(
-                prismContext.path(UserType.F_ASSIGNMENT, 2, AssignmentType.F_ACTIVATION), activation.asPrismContainerValue());
+                ItemPath.create(UserType.F_ASSIGNMENT, 2, AssignmentType.F_ACTIVATION), activation.asPrismContainerValue());
 
         queryCountInterceptor.startCounter();
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
@@ -460,8 +460,8 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
 
         ObjectDelta delta = ObjectDeltaCreationUtil.createEmptyModifyDelta(UserType.class, userOid, prismContext);
         ObjectReferenceType ref = createRef(UserType.COMPLEX_TYPE, "111");
-        delta.addModificationReplaceReference(prismContext.path(UserType.F_METADATA, MetadataType.F_CREATE_APPROVER_REF), ref.asReferenceValue());
-        delta.addModificationReplaceProperty(prismContext.path(UserType.F_METADATA, MetadataType.F_CREATE_CHANNEL), "zxcv");
+        delta.addModificationReplaceReference(ItemPath.create(UserType.F_METADATA, MetadataType.F_CREATE_APPROVER_REF), ref.asReferenceValue());
+        delta.addModificationReplaceProperty(ItemPath.create(UserType.F_METADATA, MetadataType.F_CREATE_CHANNEL), "zxcv");
 
         queryCountInterceptor.startCounter();
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
@@ -513,14 +513,14 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         extension.asPrismContainerValue().add(loot);
 
         List<ItemDelta<?, ?>> deltas = prismContext.deltaFor(UserType.class)
-                .item(prismContext.path(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION))
+                .item(ItemPath.create(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION))
                 .replace(extension)
                 .asItemDeltas();
 
         repositoryService.modifyObject(UserType.class, userOid, deltas, result);
 
         ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
-                .item(prismContext.path(UserType.F_ASSIGNMENT, AssignmentType.F_EXTENSION, SHIP_NAME_QNAME), def1).eq("otherString")
+                .item(ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_EXTENSION, SHIP_NAME_QNAME), def1).eq("otherString")
                 .build();
         List list = repositoryService.searchObjects(UserType.class, query, null, result);
         LOGGER.info("*** query1 result:\n{}", DebugUtil.debugDump(list));
@@ -534,7 +534,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
 
         // delete
         deltas = prismContext.deltaFor(UserType.class)
-                .item(prismContext.path(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION))
+                .item(ItemPath.create(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION))
                 .delete(extension.asPrismContainerValue().clone())
                 .asItemDeltas();
         repositoryService.modifyObject(UserType.class, userOid, deltas, result);
@@ -547,7 +547,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
 
         // add
         deltas = prismContext.deltaFor(UserType.class)
-                .item(prismContext.path(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION))
+                .item(ItemPath.create(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION))
                 .add(extension.asPrismContainerValue().clone())
                 .asItemDeltas();
         repositoryService.modifyObject(UserType.class, userOid, deltas, result);
@@ -619,7 +619,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("test280AddPhoto");
 
         ObjectDelta delta = ObjectDeltaCreationUtil.createEmptyModifyDelta(UserType.class, userOid, prismContext);
-        delta.addModificationAddProperty(prismContext.path(UserType.F_JPEG_PHOTO), new byte[]{1, 2, 3});
+        delta.addModificationAddProperty(UserType.F_JPEG_PHOTO, new byte[]{1, 2, 3});
 
         queryCountInterceptor.startCounter();
 
@@ -649,7 +649,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("test290ReplacePhoto");
 
         ObjectDelta delta = ObjectDeltaCreationUtil.createEmptyModifyDelta(UserType.class, userOid, prismContext);
-        delta.addModificationReplaceProperty(prismContext.path(UserType.F_JPEG_PHOTO), new byte[]{4,5,6});
+        delta.addModificationReplaceProperty(UserType.F_JPEG_PHOTO, new byte[]{4,5,6});
 
         queryCountInterceptor.startCounter();
 
@@ -679,7 +679,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("test300DeletePhoto");
 
         ObjectDelta delta = ObjectDeltaCreationUtil.createEmptyModifyDelta(UserType.class, userOid, prismContext);
-        delta.addModificationDeleteProperty(prismContext.path(UserType.F_JPEG_PHOTO), new byte[]{4,5,6});
+        delta.addModificationDeleteProperty(UserType.F_JPEG_PHOTO, new byte[]{4,5,6});
 
         queryCountInterceptor.startCounter();
 

@@ -583,24 +583,16 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
     }
 
     // todo get rid of Impl classes here (problem is in com.evolveum.midpoint.prism.Item.createNewDefinitionlessItem(Item.java:330))
-    public <T extends Containerable> PrismContainer<T> findOrCreateContainer(UniformItemPath containerPath) throws SchemaException {
+    public <T extends Containerable> PrismContainer<T> findOrCreateContainer(ItemPath containerPath) throws SchemaException {
         return findCreateItem(containerPath, PrismContainerImpl.class, null, true);
-    }
-
-    public <T extends Containerable> PrismContainer<T> findOrCreateContainer(QName containerName) throws SchemaException {
-        return findCreateItem(containerName, PrismContainerImpl.class, true);
     }
 
     public <T> PrismProperty<T> findOrCreateProperty(ItemPath propertyPath) throws SchemaException {
         return findCreateItem(propertyPath, PrismPropertyImpl.class, null, true);
     }
 
-    public PrismReference findOrCreateReference(UniformItemPath propertyPath) throws SchemaException {
+    public PrismReference findOrCreateReference(ItemPath propertyPath) throws SchemaException {
         return findCreateItem(propertyPath, PrismReferenceImpl.class, null, true);
-    }
-
-    public PrismReference findOrCreateReference(QName propertyName) throws SchemaException {
-        return findCreateItem(propertyName, PrismReferenceImpl.class, true);
     }
 
     /**
@@ -947,22 +939,22 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
 	 * Works recursively by sub-containers of this one.
 	 * USE WITH CARE. Make sure the definitions are not shared by other objects!
 	 */
-	public void trimDefinitionTree(Collection<UniformItemPath> alwaysKeep) {
+	public void trimDefinitionTree(Collection<? extends ItemPath> alwaysKeep) {
 		PrismContainerDefinition<C> def = getDefinition();
 		if (def == null || def.getComplexTypeDefinition() == null) {
 			return;
 		}
-		Set<UniformItemPath> allPaths = getAllItemPaths(alwaysKeep);
+		Set<ItemPath> allPaths = getAllItemPaths(alwaysKeep);
 		def.getComplexTypeDefinition().trimTo(allPaths);
 		values.forEach(v -> ((PrismContainerValueImpl<C>) v).trimItemsDefinitionsTrees(alwaysKeep));
 	}
 
 	// TODO implement more efficiently
-	private Set<UniformItemPath> getAllItemPaths(Collection<UniformItemPath> alwaysKeep) {
-		Set<UniformItemPath> paths = new HashSet<>(CollectionUtils.emptyIfNull(alwaysKeep));
+	private Set<ItemPath> getAllItemPaths(Collection<? extends ItemPath> alwaysKeep) {
+		Set<ItemPath> paths = new HashSet<>(CollectionUtils.emptyIfNull(alwaysKeep));
 		this.accept(v -> {
 			if (v instanceof PrismValue) {
-				paths.add(UniformItemPathImpl.fromItemPath(((PrismValue) v).getPath()));
+				paths.add(((PrismValue) v).getPath());
 			}
 		});
 		return paths;

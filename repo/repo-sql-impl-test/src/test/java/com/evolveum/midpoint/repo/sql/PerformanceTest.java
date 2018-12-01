@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -186,19 +187,19 @@ public class PerformanceTest extends BaseSQLRepoTest {
         final String NS_P = "http://example.com/p";
 
         PrismProperty property = prism.findOrCreateProperty(
-                prismContext.path(ObjectType.F_EXTENSION, new QName(NS_P, "weapon")));
+                ItemPath.create(ObjectType.F_EXTENSION, new QName(NS_P, "weapon")));
         property.setRealValue("Ak-47-" + new Random().nextInt(10));
 
         property = prism.findOrCreateProperty(
-                prismContext.path(ObjectType.F_EXTENSION, new QName(NS_P, "shipName")));
+                ItemPath.create(ObjectType.F_EXTENSION, new QName(NS_P, "shipName")));
         property.setRealValue("smallBoat-" + new Random().nextInt(10));
 
         property = prism.findOrCreateProperty(
-                prismContext.path(ObjectType.F_EXTENSION, new QName(NS_P, "loot")));
+                ItemPath.create(ObjectType.F_EXTENSION, new QName(NS_P, "loot")));
         property.setRealValue(new Random().nextInt(10000));
 
         property = prism.findOrCreateProperty(
-                prismContext.path(ObjectType.F_EXTENSION, new QName(NS_P, "funeralDate")));
+                ItemPath.create(ObjectType.F_EXTENSION, new QName(NS_P, "funeralDate")));
         property.setRealValue(XMLGregorianCalendarType.asXMLGregorianCalendar(new Date()));
 
         return user;

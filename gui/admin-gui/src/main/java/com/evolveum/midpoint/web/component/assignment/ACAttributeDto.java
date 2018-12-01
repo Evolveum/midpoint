@@ -129,7 +129,7 @@ public class ACAttributeDto implements Serializable {
         if (construction != null && construction.getRef() != null) {
             attrConstruction.setRef(construction.getRef());         // preserves original ref (including xmlns prefix!) - in order to avoid false deltas when comparing old and new values
         } else {
-            attrConstruction.setRef(new ItemPathType(prismContext.path(definition.getName()))); // todo
+            attrConstruction.setRef(new ItemPathType(definition.getName()));
         }
         MappingType outbound;
         if (construction != null && construction.getOutbound() != null) {

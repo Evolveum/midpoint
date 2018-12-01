@@ -201,7 +201,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
     	if (getChangeType() != ChangeType.MODIFY) {
     		throw new IllegalStateException("Cannot add modifications to "+getChangeType()+" delta");
     	}
-    	UniformItemPath itemPath = itemDelta.getPath();
+    	ItemPath itemPath = itemDelta.getPath();
 	    // We use 'strict' finding mode because of MID-4690 (TODO)
     	D existingModification = (D) findModification(itemPath, itemDelta.getClass(), true);
     	if (existingModification != null) {
@@ -250,8 +250,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
     }
 
     public <IV extends PrismValue,ID extends ItemDefinition, I extends Item<IV,ID>,DD extends ItemDelta<IV,ID>>
-    		DD findItemDelta(ItemPath simplePath, Class<DD> deltaType, Class<I> itemType, boolean strict) {
-		UniformItemPath propertyPath = UniformItemPathImpl.fromItemPath(simplePath);        // todo
+    		DD findItemDelta(ItemPath propertyPath, Class<DD> deltaType, Class<I> itemType, boolean strict) {
         if (changeType == ChangeType.ADD) {
             I item = objectToAdd.findItem(propertyPath, itemType);
             if (item == null) {
@@ -278,7 +277,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
             ItemDelta<IV,ID> itemDelta = item.createDelta();
             itemDelta.addValuesToAdd(item.getClonedValues());
             Collection<PartiallyResolvedDelta<IV,ID>> deltas = new ArrayList<>(1);
-            deltas.add(new PartiallyResolvedDelta<>(itemDelta, prismContext.path(partialValue.getResidualPath())));
+            deltas.add(new PartiallyResolvedDelta<>(itemDelta, partialValue.getResidualPath()));
             return deltas;
         } else if (changeType == ChangeType.MODIFY) {
         	Collection<PartiallyResolvedDelta<IV,ID>> deltas = new ArrayList<>();
@@ -1050,7 +1049,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
 	 * Currently compares paths by "equals" predicate -- in the future we might want to treat sub/super/equivalent paths!
 	 * So consider this method highly experimental.
 	 */
-	public ObjectDeltaImpl<O> subtract(@NotNull Collection<UniformItemPath> paths) {
+	public ObjectDeltaImpl<O> subtract(@NotNull Collection<ItemPath> paths) {
 		if (!isModify()) {
 			throw new UnsupportedOperationException("Only for MODIFY deltas, not for " + this);
 		}
@@ -1180,7 +1179,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
 				iterator.remove();
 			} else if (path.isSubPath(modification.getPath())) {
 				// e.g. factoring inducement, having REPLACE(inducement[x]/activation/validTo, ...) or ADD(inducement[x]/activation)
-				UniformItemPath remainingPath = modification.getPath().remainder(path);
+				ItemPath remainingPath = modification.getPath().remainder(path);
 				Long id = remainingPath.firstToIdOrNull();
 				modificationsForId.put(id, modification);
 				iterator.remove();
@@ -1234,7 +1233,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
 	 * @param dryRun only testing if value could be subtracted; not changing anything
 	 * @return true if the delta originally contained an instruction to add (or set) 'itemPath' to 'value'.
 	 */
-    public boolean subtract(@NotNull UniformItemPath itemPath, @NotNull PrismValue value, boolean fromMinusSet, boolean dryRun) {
+    public boolean subtract(@NotNull ItemPath itemPath, @NotNull PrismValue value, boolean fromMinusSet, boolean dryRun) {
 		if (isAdd()) {
 			return !fromMinusSet && subtractFromObject(objectToAdd, itemPath, value, dryRun);
 		} else {
@@ -1243,7 +1242,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
 	}
 
 	private static boolean subtractFromModifications(Collection<? extends ItemDelta<?, ?>> modifications,
-			@NotNull UniformItemPath itemPath, @NotNull PrismValue value, boolean fromMinusSet, boolean dryRun) {
+			@NotNull ItemPath itemPath, @NotNull PrismValue value, boolean fromMinusSet, boolean dryRun) {
 		if (modifications == null) {
 			return false;
 		}
@@ -1280,7 +1279,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
 		return wasPresent;
 	}
 
-	private static boolean subtractFromObject(@NotNull PrismObject<?> object, @NotNull UniformItemPath itemPath,
+	private static boolean subtractFromObject(@NotNull PrismObject<?> object, @NotNull ItemPath itemPath,
 			@NotNull PrismValue value, boolean dryRun) {
 		Item<PrismValue, ItemDefinition> item = object.findItem(itemPath);
 		if (item == null) {
@@ -1294,7 +1293,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
 	}
 
 	@NotNull
-	public List<UniformItemPath> getModifiedItems() {
+	public List<ItemPath> getModifiedItems() {
 		if (!isModify()) {
 			throw new UnsupportedOperationException("Supported only for modify deltas");
 		}
@@ -1333,7 +1332,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
 	 * (only ID could be provided on PCVs).
 	 */
 	@SuppressWarnings("unused")			// used from scripts
-	public List<PrismValue> getDeletedValuesFor(UniformItemPath itemPath) {
+	public List<PrismValue> getDeletedValuesFor(ItemPath itemPath) {
 		if (isAdd()) {
 			return Collections.emptyList();
 		} else if (isDelete()) {

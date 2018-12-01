@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
 import org.jetbrains.annotations.NotNull;
@@ -71,11 +70,6 @@ public interface LocalDefinitionStore {
 	<ID extends ItemDefinition> ID findNamedItemDefinition(@NotNull QName firstName, @NotNull ItemPath rest, @NotNull Class<ID> clazz);
 
 	// (2b) derived
-
-	@SuppressWarnings("unchecked")
-	default <ID extends ItemDefinition> ID findItemDefinition(@NotNull UniformItemPath path) {
-		return (ID) findItemDefinition(path, ItemDefinition.class);
-	}
 
 	@SuppressWarnings("unchecked")
 	default <T> PrismPropertyDefinition<T> findPropertyDefinition(@NotNull ItemPath path) {

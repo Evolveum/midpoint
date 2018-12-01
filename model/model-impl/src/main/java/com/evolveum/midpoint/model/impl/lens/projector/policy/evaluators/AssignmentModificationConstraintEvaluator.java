@@ -22,7 +22,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.policy.AssignmentPolicyRu
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -156,7 +156,7 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
 			}
 		}
 		for (ItemPathType path : constraint.getItem()) {
-			UniformItemPath itemPath = prismContext.toUniformPath(path);
+			ItemPath itemPath = prismContext.toPath(path);
 			if (ctx.inPlus && !pathMatches(ctx.evaluatedAssignment.getAssignmentType(false), itemPath) ||
 					ctx.inMinus && !pathMatches(ctx.evaluatedAssignment.getAssignmentType(true), itemPath) ||
 					ctx.inZero && !pathMatches(ctx.evaluatedAssignment.getAssignmentIdi().getSubItemDeltas(), itemPath, exactMatch)) {
@@ -166,11 +166,11 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
 		return true;
 	}
 
-	private boolean pathMatches(AssignmentType assignment, UniformItemPath path) throws SchemaException {
+	private boolean pathMatches(AssignmentType assignment, ItemPath path) throws SchemaException {
 		return assignment.asPrismContainerValue().containsItem(path, false);
 	}
 
-	private boolean pathMatches(Collection<? extends ItemDelta<?, ?>> deltas, UniformItemPath path, boolean exactMatch) {
+	private boolean pathMatches(Collection<? extends ItemDelta<?, ?>> deltas, ItemPath path, boolean exactMatch) {
 		return ItemDeltaCollectionsUtil.pathMatches(emptyIfNull(deltas), path, 2, exactMatch);
 	}
 }

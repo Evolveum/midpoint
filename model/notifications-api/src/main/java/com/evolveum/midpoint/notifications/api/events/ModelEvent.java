@@ -24,7 +24,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -197,7 +197,7 @@ public class ModelEvent extends BaseEvent {
     }
 
     @Override
-    public boolean isRelatedToItem(UniformItemPath itemPath) {
+    public boolean isRelatedToItem(ItemPath itemPath) {
         return containsItem(getFocusDeltas(), itemPath);
     }
 

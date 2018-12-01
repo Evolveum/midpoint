@@ -16,18 +16,16 @@
 package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
-import java.util.*;
-import java.util.function.Function;
+import java.util.Collection;
+import java.util.Map;
 
 /**
  * @author semancik
@@ -56,7 +54,7 @@ public interface PrismValue extends Visitable, PathVisitable, Serializable, Debu
 	void setParent(Itemable parent);
 
 	@NotNull
-	UniformItemPath getPath();
+	ItemPath getPath();
 
 	/**
 	 * Used when we are removing the value from the previous parent.

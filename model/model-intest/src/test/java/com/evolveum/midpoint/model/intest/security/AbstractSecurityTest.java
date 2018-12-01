@@ -1093,13 +1093,13 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         display("Guybrush", userGuybrush);
         PrismAsserts.assertPropertyValue(userGuybrush, UserType.F_NAME, PrismTestUtil.createPolyString(USER_GUYBRUSH_USERNAME));
         PrismAsserts.assertPropertyValue(userGuybrush, UserType.F_FULL_NAME, PrismTestUtil.createPolyString(USER_GUYBRUSH_FULL_NAME));
-        PrismAsserts.assertPropertyValue(userGuybrush, prismContext.path(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
+        PrismAsserts.assertPropertyValue(userGuybrush, ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
             	ActivationStatusType.ENABLED);
         PrismAsserts.assertNoItem(userGuybrush, UserType.F_GIVEN_NAME);
         PrismAsserts.assertNoItem(userGuybrush, UserType.F_FAMILY_NAME);
         PrismAsserts.assertNoItem(userGuybrush, UserType.F_ADDITIONAL_NAME);
         PrismAsserts.assertNoItem(userGuybrush, UserType.F_DESCRIPTION);
-        PrismAsserts.assertNoItem(userGuybrush, prismContext.path(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
+        PrismAsserts.assertNoItem(userGuybrush, ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
         assertAssignmentsWithTargets(userGuybrush, 1);
 
         assertAddDeny();
@@ -1123,13 +1123,13 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 
 		PrismAsserts.assertPropertyValue(userJack, UserType.F_NAME, PrismTestUtil.createPolyString(USER_JACK_USERNAME));
 		PrismAsserts.assertPropertyValue(userJack, UserType.F_FULL_NAME, PrismTestUtil.createPolyString(USER_JACK_FULL_NAME));
-		PrismAsserts.assertPropertyValue(userJack, prismContext.path(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
+		PrismAsserts.assertPropertyValue(userJack, ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
 			ActivationStatusType.ENABLED);
 		PrismAsserts.assertNoItem(userJack, UserType.F_GIVEN_NAME);
 		PrismAsserts.assertNoItem(userJack, UserType.F_FAMILY_NAME);
 		PrismAsserts.assertNoItem(userJack, UserType.F_ADDITIONAL_NAME);
 		PrismAsserts.assertNoItem(userJack, UserType.F_DESCRIPTION);
-		PrismAsserts.assertNoItem(userJack, prismContext.path(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
+		PrismAsserts.assertNoItem(userJack, ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
 		assertAssignmentsWithTargets(userJack, exprectedJackAssignments);
     }
 
@@ -1143,13 +1143,13 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		assertItemFlags(userJackEditSchema, UserType.F_FAMILY_NAME, false, false, false);
 		assertItemFlags(userJackEditSchema, UserType.F_ADDITIONAL_NAME, false, false, true);
 		assertItemFlags(userJackEditSchema, UserType.F_METADATA, false, false, false);
-		assertItemFlags(userJackEditSchema, prismContext.path(UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), false, false, false);
+		assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), false, false, false);
 		assertItemFlags(userJackEditSchema, UserType.F_ASSIGNMENT, true, false, false);
-		assertItemFlags(userJackEditSchema, prismContext.path(UserType.F_ASSIGNMENT, UserType.F_METADATA), true, false, false);
-		assertItemFlags(userJackEditSchema, prismContext.path(UserType.F_ASSIGNMENT, UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), true, false, false);
+		assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_ASSIGNMENT, UserType.F_METADATA), true, false, false);
+		assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_ASSIGNMENT, UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), true, false, false);
 		assertItemFlags(userJackEditSchema, UserType.F_ACTIVATION, true, false, true);
-		assertItemFlags(userJackEditSchema, prismContext.path(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), true, false, false);
-		assertItemFlags(userJackEditSchema, prismContext.path(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS), false, false, false);
+		assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), true, false, false);
+		assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS), false, false, false);
     }
 
 }

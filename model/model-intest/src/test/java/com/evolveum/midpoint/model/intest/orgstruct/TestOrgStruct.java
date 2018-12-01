@@ -540,9 +540,9 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 //        Long id = findAssignmentIdForTarget(jack, ORG_MINISTRY_OF_OFFENSE_OID);
 //        PrismReferenceDefinition referenceDefinition = getUserDefinition()
 //                .findItemDefinition(
-//                        prismContext.path(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF), PrismReferenceDefinition.class);
+//                        ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF), PrismReferenceDefinition.class);
 //        ReferenceDelta referenceDelta = new ReferenceDelta(
-//                prismContext.path(
+//                ItemPath.create(
 //                        new NameItemPathSegment(UserType.F_ASSIGNMENT),
 //                        new IdItemPathSegment(id),
 //                        new NameItemPathSegment(AssignmentType.F_TARGET_REF)), referenceDefinition, prismContext);
@@ -1450,7 +1450,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 
         PrismReferenceDefinition referenceDefinition = getUserDefinition()
                 .findItemDefinition(
-                        prismContext.path(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF), PrismReferenceDefinition.class);
+                        ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF), PrismReferenceDefinition.class);
         ReferenceDelta referenceDelta = new ReferenceDeltaImpl(
                 ItemPath.create(UserType.F_ASSIGNMENT, id, AssignmentType.F_TARGET_REF), referenceDefinition, prismContext);
         PrismReferenceValue oldValue = new PrismReferenceValueImpl(ORG_MINISTRY_OF_OFFENSE_OID, OrgType.COMPLEX_TYPE);

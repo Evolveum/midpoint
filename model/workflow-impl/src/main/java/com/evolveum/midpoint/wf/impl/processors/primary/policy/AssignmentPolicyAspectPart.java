@@ -32,7 +32,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.delta.builder.S_ValuesEntry;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -179,7 +179,7 @@ public class AssignmentPolicyAspectPart {
 			// Should never occur: assignments to be modified must have IDs.
 			throw new IllegalStateException("None or unnumbered assignment in " + evaluatedAssignment);
 		}
-		UniformItemPath assignmentValuePath = prismContext.path(FocusType.F_ASSIGNMENT, id);
+		ItemPath assignmentValuePath = ItemPath.create(FocusType.F_ASSIGNMENT, id);
 
 		ObjectDelta<T> focusDelta = objectTreeDeltas.getFocusChange();
 		assert focusDelta != null;
@@ -197,10 +197,10 @@ public class AssignmentPolicyAspectPart {
 		@SuppressWarnings("unchecked")
 		PrismContainerValue<AssignmentType> assignmentValue = evaluatedAssignment.getAssignmentType().asPrismContainerValue();
 		boolean assignmentRemoved = assignmentMode == MINUS;
-		boolean reallyRemoved = objectTreeDeltas.subtractFromFocusDelta(prismContext.path(FocusType.F_ASSIGNMENT), assignmentValue, assignmentRemoved, false);
+		boolean reallyRemoved = objectTreeDeltas.subtractFromFocusDelta(FocusType.F_ASSIGNMENT, assignmentValue, assignmentRemoved, false);
 		if (!reallyRemoved) {
 			ObjectDelta<?> secondaryDelta = ctx.modelContext.getFocusContext().getSecondaryDelta();
-			if (secondaryDelta != null && secondaryDelta.subtract(prismContext.path(FocusType.F_ASSIGNMENT), assignmentValue, assignmentRemoved, true)) {
+			if (secondaryDelta != null && secondaryDelta.subtract(FocusType.F_ASSIGNMENT, assignmentValue, assignmentRemoved, true)) {
 				LOGGER.trace("Assignment to be added/deleted was not found in primary delta. It is present in secondary delta, so there's nothing to be approved.");
 				return null;
 			}

@@ -26,7 +26,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -50,7 +50,7 @@ public class InactivateFocusAction extends BaseAction {
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		if (focusContext != null) {
 			PrismObject<F> objectCurrent = focusContext.getObjectCurrent();
-			UniformItemPath pathAdminStatus = getPrismContext().path(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
+			ItemPath pathAdminStatus = SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS;
 			if (objectCurrent != null) {
 				PrismProperty<Object> administrativeStatusProp = objectCurrent.findProperty(pathAdminStatus);
 				if (administrativeStatusProp != null) {

@@ -44,7 +44,7 @@
 	            	     Therefore in practice we may need to make sure that the HR status has really changed
 	            	     before setting new timestamp. This is quite a dark magic for now. But it works. -->
 	            	<code>
-						import com.evolveum.midpoint.prism.path.UniformItemPath
+						import com.evolveum.midpoint.prism.path.ItemPath
 
 						currentTimestamp = focus?.asPrismObject()?.findExtensionItem("hrStatusChangeTimestamp")
 						if (currentTimestamp == null) {
@@ -53,7 +53,7 @@
 						}
 
 						// Let's check whether the hrStatus is really changed
-						hrStatusDelta = midpoint.focusContext?.delta?.findPropertyDelta(prismContext.path("extension","hrStatus"))
+						hrStatusDelta = midpoint.focusContext?.delta?.findPropertyDelta(ItemPath.create("extension","hrStatus"))
 
 						if (hrStatusDelta == null) {
 						// No hrStatus delta. Therefore this is phantom invocation of this mapping. hrStatus is not really
@@ -66,7 +66,7 @@
 						creating new
 						// triggers indefinitely if we are not careful here.
 						timestampSecondaryDelta =
-						midpoint.focusContext?.secondaryDelta?.findPropertyDelta(prismContext.path("extension","hrStatusChangeTimestamp"))
+						midpoint.focusContext?.secondaryDelta?.findPropertyDelta(ItemPath.create("extension","hrStatusChangeTimestamp"))
 						if (timestampSecondaryDelta == null) {
 						// This is the "core" case: we really are changing hrStatus, and we do not have new timestamp
 

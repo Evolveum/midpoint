@@ -139,15 +139,15 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 
 	public static final ItemName USER_ACTIVATION_QNAME = new ItemName(NS_FOO,"activation");
 	public static final ItemName USER_ENABLED_QNAME = new ItemName(NS_FOO,"enabled");
-	public static final UniformItemPath USER_ENABLED_PATH = new UniformItemPathImpl(USER_ACTIVATION_QNAME, USER_ENABLED_QNAME);
+	public static final ItemPath USER_ENABLED_PATH = ItemPath.create(USER_ACTIVATION_QNAME, USER_ENABLED_QNAME);
 	public static final ItemName USER_VALID_FROM_QNAME = new ItemName(NS_FOO,"validFrom");
-	public static final UniformItemPath USER_VALID_FROM_PATH = new UniformItemPathImpl(USER_ACTIVATION_QNAME, USER_VALID_FROM_QNAME);
+	public static final ItemPath USER_VALID_FROM_PATH = ItemPath.create(USER_ACTIVATION_QNAME, USER_VALID_FROM_QNAME);
 	public static final ItemName USER_VALID_TO_QNAME = new ItemName(NS_FOO,"validTo");
 	public static final ItemName ACTIVATION_TYPE_QNAME = new ItemName(NS_FOO,"ActivationType");
 
 	public static final ItemName USER_ASSIGNMENT_QNAME = new ItemName(NS_FOO,"assignment");
 	public static final ItemName USER_DESCRIPTION_QNAME = new ItemName(NS_FOO,"description");
-	public static final UniformItemPath USER_ASSIGNMENT_DESCRIPTION_PATH = new UniformItemPathImpl(USER_ASSIGNMENT_QNAME, USER_DESCRIPTION_QNAME);
+	public static final ItemPath USER_ASSIGNMENT_DESCRIPTION_PATH = ItemPath.create(USER_ASSIGNMENT_QNAME, USER_DESCRIPTION_QNAME);
 	public static final ItemName ASSIGNMENT_TYPE_QNAME = new ItemName(NS_FOO,"AssignmentType");
 	public static final ItemName USER_ACCOUNT_CONSTRUCTION_QNAME = new ItemName(NS_FOO,"accountConstruction");
 	public static final Long USER_ASSIGNMENT_1_ID = 1111L;
@@ -310,7 +310,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 		assertPathVisitor(user, ItemPath.create(UserType.F_ASSIGNMENT, null), false, 2);
 		assertPathVisitor(user, ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_ENABLED), false, 1);
 		assertPathVisitor(user, UserType.F_EXTENSION, false, 1);
-//		assertPathVisitor(user, prismContext.path(
+//		assertPathVisitor(user, ItemPath.create(
 //				UserType.F_EXTENSION,
 //				NameItemPathSegment.WILDCARD), false, 5);
 	}
@@ -337,7 +337,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 		assertPropertyValue(user, "polyName", new PolyString("Džek Sperou","dzek sperou"));
 		assertPropertyDefinition(user, "polyName", PolyStringType.COMPLEX_TYPE, 0, 1);
 
-		UniformItemPath enabledPath = USER_ENABLED_PATH;
+		ItemPath enabledPath = USER_ENABLED_PATH;
 		PrismProperty<Boolean> enabledProperty1 = user.findProperty(enabledPath);
 		assertNotNull("No enabled property", enabledProperty1);
 		PrismAsserts.assertDefinition(enabledProperty1.getDefinition(), USER_ENABLED_QNAME, DOMUtil.XSD_BOOLEAN, 0, 1);
@@ -350,10 +350,9 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 
 		ItemName actName = new ItemName(NS_FOO,"activation");
 		// Use path
-		UniformItemPath actPath = prismContext.path(actName);
-		PrismContainer<ActivationType> actContainer1 = user.findContainer(actPath);
+		PrismContainer<ActivationType> actContainer1 = user.findContainer(actName);
 		assertContainerDefinition(actContainer1, "activation", ACTIVATION_TYPE_QNAME, 0, 1);
-		assertNotNull("Property "+actPath+" not found", actContainer1);
+		assertNotNull("Property "+ actName +" not found", actContainer1);
 		assertEquals("Wrong activation name",actName,actContainer1.getElementName());
 		// Use name
 		PrismContainer<ActivationType> actContainer2 = user.findContainer(actName);
@@ -375,12 +374,12 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 		PrismProperty<String> a2DescProperty = assContainer.getValue(USER_ASSIGNMENT_2_ID).findProperty(descriptionName);
 		assertEquals("Wrong assigment 2 description", "Assignment 2", a2DescProperty.getValue().getValue());
 
-		UniformItemPath a1Path = prismContext.path(assName, USER_ASSIGNMENT_1_ID, descriptionName);
+		ItemPath a1Path = ItemPath.create(assName, USER_ASSIGNMENT_1_ID, descriptionName);
 		PrismProperty a1Property = user.findProperty(a1Path);
 		assertNotNull("Property "+a1Path+" not found", a1Property);
 		PrismAsserts.assertPropertyValue(a1Property, "Assignment 1");
 
-        UniformItemPath a2Path = prismContext.path(assName, USER_ASSIGNMENT_2_ID, accountConstructionName);
+        ItemPath a2Path = ItemPath.create(assName, USER_ASSIGNMENT_2_ID, accountConstructionName);
         PrismProperty a2Property = user.findProperty(a2Path);
         assertNotNull("Property "+a2Path+" not found", a2Property);
         AccountConstructionType accountConstructionType = (AccountConstructionType) a2Property.getRealValue();
@@ -439,7 +438,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
         PrismAsserts.assertDefinition(indexedStringPropertyDef, EXTENSION_SINGLE_STRING_TYPE_ELEMENT, DOMUtil.XSD_STRING, 0, -1);
         assertEquals("'Indexed' attribute on 'singleStringType' property is wrong", Boolean.FALSE, indexedStringPropertyDef.isIndexed());
 
-		UniformItemPath barPath = prismContext.path(new QName(NS_FOO,"extension"), EXTENSION_BAR_ELEMENT);
+		ItemPath barPath = ItemPath.create(new QName(NS_FOO,"extension"), EXTENSION_BAR_ELEMENT);
 		PrismProperty<String> barProperty = user.findProperty(barPath);
 		assertNotNull("Property "+barPath+" not found", barProperty);
 		PrismAsserts.assertPropertyValue(barProperty, "BAR");

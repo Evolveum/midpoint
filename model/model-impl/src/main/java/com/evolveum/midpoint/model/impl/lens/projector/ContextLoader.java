@@ -1390,7 +1390,7 @@ public class ContextLoader {
 	private void applyAttributesToGet(LensProjectionContext projCtx, Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException {
 		if ( !LensUtil.isPasswordReturnedByDefault(projCtx)
 				&& LensUtil.needsFullShadowForCredentialProcessing(projCtx)) {
-			options.add(SelectorOptions.create(prismContext.path(SchemaConstants.PATH_PASSWORD_VALUE), GetOperationOptions.createRetrieve()));
+			options.add(SelectorOptions.create(prismContext.toUniformPath(SchemaConstants.PATH_PASSWORD_VALUE), GetOperationOptions.createRetrieve()));
 		}
 	}
 

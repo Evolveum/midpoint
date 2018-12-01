@@ -394,7 +394,7 @@ public class FocusProcessor {
 		}
 	}
 
-	private <O extends ObjectType> void checkItemLimitations(PrismObject<O> object, UniformItemPath path, PropertyLimitationsType limitation)
+	private <O extends ObjectType> void checkItemLimitations(PrismObject<O> object, ItemPath path, PropertyLimitationsType limitation)
 			throws SchemaException {
 		Object item = object.find(path);
 		if (isTrue(limitation.isIgnore())) {

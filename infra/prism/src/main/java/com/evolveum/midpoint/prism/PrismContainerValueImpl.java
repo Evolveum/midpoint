@@ -241,11 +241,11 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
 	}
 
 	@NotNull
-	public UniformItemPath getPath() {
+	public ItemPath getPath() {
 		Itemable parent = getParent();
-		@NotNull UniformItemPath parentPath = UniformItemPathImpl.EMPTY_PATH;
+		@NotNull ItemPath parentPath = ItemPath.EMPTY_PATH;
 		if (parent != null) {
-			parentPath = UniformItemPathImpl.fromItemPath(parent.getPath());
+			parentPath = parent.getPath();
 		}
 		if (getId() != null) {
 			return parentPath.append(getId());
@@ -1709,7 +1709,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
 		if (items != null) {
 			for (Iterator<Item<?, ?>> iterator = items.iterator(); iterator.hasNext(); ) {
 				Item<?, ?> item = iterator.next();
-				UniformItemPath itemPath = item.getPath().removeIds();
+				ItemPath itemPath = item.getPath().removeIds();
 				if (!ItemPathCollectionsUtil.containsSuperpathOrEquivalent(keep, itemPath)) {
 					iterator.remove();
 				} else {
@@ -1728,7 +1728,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
 		if (items != null) {
 			for (Iterator<Item<?, ?>> iterator = items.iterator(); iterator.hasNext(); ) {
 				Item<?, ?> item = iterator.next();
-				UniformItemPath itemPath = item.getPath().removeIds();
+				ItemPath itemPath = item.getPath().removeIds();
 				if (ItemPathCollectionsUtil.containsEquivalent(remove, itemPath)) {
 					iterator.remove();
 				} else if (ItemPathCollectionsUtil.containsSuperpath(remove, itemPath)) {
@@ -1741,11 +1741,11 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
 	}
 
 	// Removes all unused definitions, in order to conserve heap. Assumes that the definition is not shared. Use with care!
-	void trimItemsDefinitionsTrees(Collection<UniformItemPath> alwaysKeep) {
+	void trimItemsDefinitionsTrees(Collection<? extends ItemPath> alwaysKeep) {
 		// to play safe, we won't touch PCV-specific complexTypeDefinition
 		for (Item<?, ?> item : CollectionUtils.emptyIfNull(items)) {
 			if (item instanceof PrismContainer) {
-				Collection<UniformItemPath> alwaysKeepInSub = ItemPathCollectionsUtil.remainder(CollectionUtils.emptyIfNull(alwaysKeep),
+				Collection<ItemPath> alwaysKeepInSub = ItemPathCollectionsUtil.remainder(CollectionUtils.emptyIfNull(alwaysKeep),
 						item.getElementName(), false);
 				((PrismContainer<?>) item).trimDefinitionTree(alwaysKeepInSub);
 			}

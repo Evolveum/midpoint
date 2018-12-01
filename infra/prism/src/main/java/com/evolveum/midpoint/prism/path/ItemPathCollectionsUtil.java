@@ -117,9 +117,9 @@ public class ItemPathCollectionsUtil {
 	 *
 	 * @param alsoEquivalent If true, 'prefix' in paths is processed as well (resulting in empty path). Otherwise, it is skipped.
 	 */
-	public static List<UniformItemPath> remainder(Collection<UniformItemPath> paths, ItemPath prefix, boolean alsoEquivalent) {
-		List<UniformItemPath> rv = new ArrayList<>();
-		for (UniformItemPath path : paths) {
+	public static List<ItemPath> remainder(Collection<? extends ItemPath> paths, ItemPath prefix, boolean alsoEquivalent) {
+		List<ItemPath> rv = new ArrayList<>();
+		for (ItemPath path : paths) {
 			if (alsoEquivalent && path.isSuperPathOrEquivalent(prefix)
 					|| !alsoEquivalent && path.isSuperPath(prefix)) {
 				rv.add(path.remainder(prefix));
@@ -140,11 +140,20 @@ public class ItemPathCollectionsUtil {
 		return rv;
 	}
 
-	public static UniformItemPath[] asPathArray(QName... names) {
+	public static ItemPath[] asPathArray(QName... names) {
+		ItemPath[] paths = new ItemPath[names.length];
+		int i = 0;
+		for (QName name : names) {
+			paths[i++] = ItemName.fromQName(name);
+		}
+		return paths;
+	}
+
+	public static UniformItemPath[] asUniformPathArray(PrismContext prismContext, QName... names) {
 		UniformItemPath[] paths = new UniformItemPath[names.length];
 		int i = 0;
 		for (QName name : names) {
-			paths[i++] = new UniformItemPathImpl(name);
+			paths[i++] = prismContext.path(name);
 		}
 		return paths;
 	}

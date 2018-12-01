@@ -49,6 +49,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.task.api.TaskManagerException;
@@ -691,7 +692,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // via prisms
         PrismContainerValue configurationProperties = derbyResource.findContainer(
-                prismContext.path(
+                ItemPath.create(
                         ResourceType.F_CONNECTOR_CONFIGURATION,
                         new QName("configurationProperties")))
                 .getValue();
@@ -1859,7 +1860,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         accountRefToDelete.setOid(accountShadowOidDerby);
         RawType modificationValue = new RawType(((PrismContextImpl) prismContext).getBeanMarshaller().marshall(accountRefToDelete), prismContext);
         modificationDeleteAccountRef.getValue().add(modificationValue);
-        modificationDeleteAccountRef.setPath(new ItemPathType(prismContext.path(UserType.F_LINK_REF)));
+        modificationDeleteAccountRef.setPath(new ItemPathType(UserType.F_LINK_REF));
         objectChange.getItemDelta().add(modificationDeleteAccountRef);
         objectChange.setChangeType(ChangeTypeType.MODIFY);
         objectChange.setObjectType(UserType.COMPLEX_TYPE);
@@ -2421,10 +2422,10 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         ShadowType shadowType = shadow.asObjectable();
         QName employeeTypeQName = new QName(resourceTypeOpenDjrepo.getNamespace(), "employeeType");
-        UniformItemPath employeeTypePath = prismContext.path(ShadowType.F_ATTRIBUTES, employeeTypeQName);
+        ItemPath employeeTypePath = ItemPath.create(ShadowType.F_ATTRIBUTES, employeeTypeQName);
         PrismProperty item = shadow.findProperty(employeeTypePath);
 
-        PropertyDelta deleteDelta = new PropertyDeltaImpl(prismContext.path(ShadowType.F_ATTRIBUTES), item.getDefinition().getName(), item.getDefinition(), prismContext);
+        PropertyDelta deleteDelta = new PropertyDeltaImpl(ShadowType.F_ATTRIBUTES, item.getDefinition().getName(), item.getDefinition(), prismContext);
 //        PropertyDelta deleteDelta = PropertyDelta.createDelta(employeeTypePath, shadow.getDefinition());
 //        PrismPropertyValue valToDelte = new PrismPropertyValue("A");
 //        valToDelte.setParent(deleteDelta);
@@ -3834,7 +3835,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     	ItemDeltaType mod1 = new ItemDeltaType();
     	mod1.setModificationType(ModificationTypeType.REPLACE);
-    	ItemPathType path = new ItemPathType(prismContext.path(ShadowType.F_ATTRIBUTES, new QName(resourceTypeOpenDjrepo.getNamespace(), "givenName")));
+    	ItemPathType path = new ItemPathType(ItemPath.create(ShadowType.F_ATTRIBUTES, new QName(resourceTypeOpenDjrepo.getNamespace(), "givenName")));
     	mod1.setPath(path);
 
     	RawType value = new RawType(prismContext.xnodeFactory().primitive("newAngelika"), prismContext);

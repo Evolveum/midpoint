@@ -223,7 +223,7 @@ public class OrgPhotoTest extends BaseSQLRepoTest {
         Collection<SelectorOptions<GetOperationOptions>> options;
         if (loadPhoto) {
             options = Collections.singletonList(
-                    SelectorOptions.create(prismContext.path(FocusType.F_JPEG_PHOTO), GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
+                    SelectorOptions.create(prismContext.toUniformPath(FocusType.F_JPEG_PHOTO), GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
         } else {
             options = null;
         }
