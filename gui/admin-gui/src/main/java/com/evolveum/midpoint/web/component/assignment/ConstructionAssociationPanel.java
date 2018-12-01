@@ -16,8 +16,6 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -27,25 +25,17 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
 import com.evolveum.midpoint.web.component.form.multivalue.GenericMultiValueLabelEditPanel;
-import com.evolveum.midpoint.web.component.form.multivalue.MultiValueChoosePanel;
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.*;
@@ -274,7 +264,7 @@ public class ConstructionAssociationPanel<C extends Containerable, IW extends It
                 ((ResourceObjectAssociationType)newAssociation.asContainerable())
                         .setRef(new ItemPathType(new ItemPath(segment)));
                 ExpressionType newAssociationExpression = ((ResourceObjectAssociationType)newAssociation.asContainerable()).beginOutbound().beginExpression();
-                ExpressionUtil.createShadowRefEvaluatorValue(newAssociationExpression, object.getOid(),
+                ExpressionUtil.addShadowRefEvaluatorValue(newAssociationExpression, object.getOid(),
                         getPageBase().getPrismContext());
                 ContainerWrapperFactory factory = new ContainerWrapperFactory(getPageBase());
                 Task task = getPageBase().createAnonymousTask("Adding new shadow");

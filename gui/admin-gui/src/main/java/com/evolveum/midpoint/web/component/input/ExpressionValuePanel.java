@@ -24,7 +24,6 @@ import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -34,8 +33,6 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -48,7 +45,6 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChang
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.feedback.FeedbackMessage;
@@ -223,7 +219,7 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
 
             @Override
             protected void executeCustomAction(AjaxRequestTarget target, ShadowType object) {
-                ExpressionUtil.createShadowRefEvaluatorValue(ExpressionValuePanel.this.getModelObject(), object == null ? null : object.getOid(),
+                ExpressionUtil.addShadowRefEvaluatorValue(ExpressionValuePanel.this.getModelObject(), object == null ? null : object.getOid(),
                         pageBase.getPrismContext());
             }
 
@@ -388,7 +384,7 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
                                      if (getModelObject() == null) {
                                          getModel().setObject(new ExpressionType());
                                      }
-                                     ExpressionUtil.createShadowRefEvaluatorValue(getModelObject(), null, pageBase.getPrismContext());
+                                     ExpressionUtil.addShadowRefEvaluatorValue(getModelObject(), null, pageBase.getPrismContext());
                                      target.add(ExpressionValuePanel.this);
                                  }
                              };

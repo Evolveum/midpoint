@@ -31,17 +31,14 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueChoosePanel;
-import com.evolveum.midpoint.web.component.input.ExpressionValuePanel;
-import com.evolveum.midpoint.web.component.prism.ContainerValuePanel;
-import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -133,10 +130,9 @@ public class InducedEntitlementsPanel extends InducementsPanel{
             @Override
             public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId,
                                      final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-                AssignmentType assignment = rowModel.getObject().getContainerValue().asContainerable();
-                List<ShadowType> shadowsList = loadReferencedObjects(ExpressionUtil.getShadowRefValue(WebComponentUtil.getAssociationExpression(assignment)));
+                List<ShadowType> shadowsList = loadReferencedObjects(ExpressionUtil.getShadowRefValue(WebComponentUtil.getAssociationExpression(rowModel.getObject())));
                 MultiValueChoosePanel<ShadowType> valuesPanel = new MultiValueChoosePanel<ShadowType>(componentId,
-                        Model.ofList(shadowsList), Arrays.asList(ShadowType.class), true){
+                        Model.ofList(shadowsList), Arrays.asList(ShadowType.class), false){
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -144,8 +140,7 @@ public class InducedEntitlementsPanel extends InducementsPanel{
                         ObjectQuery query = new ObjectQuery();
 
                         ConstructionType construction = rowModel.getObject().getContainerValue().asContainerable().getConstruction();
-                        ExpressionType expression = WebComponentUtil.getAssociationExpression(rowModel.getObject().getContainerValue().asContainerable());
-                        if (expression == null || construction == null){
+                        if (construction == null){
                             return null;
                         }
                         PrismObject<ResourceType> resource = WebComponentUtil.getConstructionResource(construction, OPERATION_LOAD_RESOURCE_OBJECT,
@@ -181,6 +176,25 @@ public class InducedEntitlementsPanel extends InducementsPanel{
                         }
                         return query.getFilter();
                     }
+
+                    @Override
+                    protected void removePerformedHook(AjaxRequestTarget target, ShadowType shadow) {
+                        if (shadow != null && StringUtils.isNotEmpty(shadow.getOid())){
+                            ExpressionType expression = WebComponentUtil.getAssociationExpression(rowModel.getObject());
+                            ExpressionUtil.removeShadowRefEvaluatorValue(expression, shadow.getOid(), getPageBase().getPrismContext());
+                        }
+                    }
+
+                    @Override
+                    protected void choosePerformedHook(AjaxRequestTarget target, List<ShadowType> selectedList) {
+                        ShadowType shadow = selectedList != null && selectedList.size() > 0 ? selectedList.get(0) : null;
+                        if (shadow != null && StringUtils.isNotEmpty(shadow.getOid())){
+                            ExpressionType expression = WebComponentUtil.getAssociationExpression(rowModel.getObject(), true);
+                            ExpressionUtil.addShadowRefEvaluatorValue(expression, shadow.getOid(),
+                                    InducedEntitlementsPanel.this.getPageBase().getPrismContext());
+                        }
+                    }
+
                 };
                 valuesPanel.setOutputMarkupId(true);
                 item.add(valuesPanel);

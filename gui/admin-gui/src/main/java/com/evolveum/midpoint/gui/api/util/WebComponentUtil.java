@@ -2957,16 +2957,54 @@ public final class WebComponentUtil {
 		return sb.toString();
 	}
 
-	public static ExpressionType getAssociationExpression(AssignmentType assignment){
-		if (assignment == null || assignment.getConstruction() == null || assignment.getConstruction().getAssociation() == null
-				|| assignment.getConstruction().getAssociation().size() == 0){
+	public static ExpressionType getAssociationExpression(ContainerValueWrapper<AssignmentType> assignmentValueWrapper) {
+		return getAssociationExpression(assignmentValueWrapper, false);
+	}
+
+	public static ExpressionType getAssociationExpression(ContainerValueWrapper<AssignmentType> assignmentValueWrapper,
+														  boolean createIfNotExist){
+		if (assignmentValueWrapper == null){
 			return null;
 		}
-		ResourceObjectAssociationType association = assignment.getConstruction().getAssociation().get(0);
-		if (association == null || association.getOutbound() == null){
+
+		ContainerWrapper<ConstructionType> construction = assignmentValueWrapper
+				.findContainerWrapper(new ItemPath(assignmentValueWrapper.getPath(), AssignmentType.F_CONSTRUCTION));
+		if (construction == null){
 			return null;
 		}
-		return association.getOutbound().getExpression();
+		ContainerWrapper<ResourceObjectAssociationType> association = construction
+				.findContainerWrapper(new ItemPath(construction.getPath(), ConstructionType.F_ASSOCIATION));
+		if (association == null || association.getValues() == null || association.getValues().size() == 0){
+			return null;
+		}
+		//HACK not to add empty association value
+		if (ContainerStatus.ADDING.equals(association.getStatus())){
+			association.getItem().clear();
+		}
+		ContainerValueWrapper<ResourceObjectAssociationType> associationValueWrapper = association.getValues().get(0);
+		ContainerWrapper<MappingType> outbound =
+				associationValueWrapper.findContainerWrapper(new ItemPath(associationValueWrapper.getPath(), ResourceObjectAssociationType.F_OUTBOUND));
+
+		if (outbound == null){
+			return null;
+		}
+		PropertyOrReferenceWrapper expressionWrapper = outbound.findPropertyWrapper(MappingType.F_EXPRESSION);
+		if (expressionWrapper == null){
+			return null;
+		}
+		List<ValueWrapper<ExpressionType>> expressionValues = expressionWrapper.getValues();
+		if (expressionValues == null || expressionValues.size() == 0){
+			return null;
+		}
+		ExpressionType expression = expressionValues.get(0).getValue().getRealValue();
+		if (expression == null && createIfNotExist){
+			expression = new ExpressionType();
+			PrismPropertyValue<ExpressionType> exp = new PrismPropertyValue<>(expression);
+			ValueWrapper<ExpressionType> val = new ValueWrapper<>(expressionWrapper, exp);
+			expressionValues.remove(0);
+			expressionValues.add(0, val);
+		}
+		return expressionValues.get(0).getValue().getRealValue();
 	}
 
 	public static PrismObject<ResourceType> getConstructionResource(ConstructionType construction, String operation, PageBase pageBase){
