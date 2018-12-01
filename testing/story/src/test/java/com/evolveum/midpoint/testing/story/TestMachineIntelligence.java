@@ -28,6 +28,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -119,7 +120,8 @@ public class TestMachineIntelligence extends AbstractStoryTest {
         OperationResult result = task.getResult();
 		Object[] newRealValue = { sourceFilePath };
 
-        ObjectDelta<ResourceType> objectDelta = ObjectDelta.createModificationReplaceProperty(ResourceType.class, RESOURCE_HR_OID, prismContext.path(ResourceType.F_CONNECTOR_CONFIGURATION,
+        ObjectDelta<ResourceType> objectDelta = ObjectDeltaCreationUtil
+		        .createModificationReplaceProperty(ResourceType.class, RESOURCE_HR_OID, prismContext.path(ResourceType.F_CONNECTOR_CONFIGURATION,
 						SchemaConstants.ICF_CONFIGURATION_PROPERTIES, new QName(NS_RESOURCE_CSV, "filePath")), prismContext, newRealValue);
         provisioningService.applyDefinition(objectDelta, task, result);
         provisioningService.modifyObject(ResourceType.class, objectDelta.getOid(), objectDelta.getModifications(), null, null, task, result);

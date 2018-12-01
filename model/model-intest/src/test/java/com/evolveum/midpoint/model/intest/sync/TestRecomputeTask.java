@@ -24,6 +24,7 @@ import java.util.List;
 
 import javax.xml.bind.JAXBElement;
 
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 import com.evolveum.midpoint.prism.xnode.XNode;
@@ -147,7 +148,8 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         newAttrContainer.getValue().getOutbound().getExpression().getExpressionEvaluator().add(daggerExpressionEvalJaxbElement);
         newAttrContainer.getValue().getOutbound().setStrength(MappingStrengthType.STRONG);
 
-        ObjectDelta<RoleType> rolePirateDelta = ObjectDelta.createModificationDeleteContainer(RoleType.class, ROLE_PIRATE_OID,
+        ObjectDelta<RoleType> rolePirateDelta = ObjectDeltaCreationUtil
+		        .createModificationDeleteContainer(RoleType.class, ROLE_PIRATE_OID,
         		attrItemPath, prismContext, oldAttrContainer.getValue().clone());
         ResourceAttributeDefinitionType newAttrCVal = newAttrContainer.getValue();
         newAttrCVal.asPrismContainerValue().setId(null);

@@ -19,6 +19,7 @@ package com.evolveum.midpoint.prism;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaImpl;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.UniformItemPathImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -270,12 +271,12 @@ public class PrismObjectImpl<O extends Objectable> extends PrismContainerImpl<O>
 	@NotNull
 	public ObjectDelta<O> diff(PrismObject<O> other, boolean ignoreMetadata, boolean isLiteral) {
 		if (other == null) {
-			ObjectDelta<O> objectDelta = new ObjectDelta<>(getCompileTimeClass(), ChangeType.DELETE, getPrismContext());
+			ObjectDelta<O> objectDelta = new ObjectDeltaImpl<>(getCompileTimeClass(), ChangeType.DELETE, getPrismContext());
 			objectDelta.setOid(getOid());
 			return objectDelta;
 		}
 		// This must be a modify
-		ObjectDelta<O> objectDelta = new ObjectDelta<>(getCompileTimeClass(), ChangeType.MODIFY, getPrismContext());
+		ObjectDelta<O> objectDelta = new ObjectDeltaImpl<>(getCompileTimeClass(), ChangeType.MODIFY, getPrismContext());
 		objectDelta.setOid(getOid());
 
 		Collection<? extends ItemDelta> itemDeltas = new ArrayList<>();
@@ -301,7 +302,7 @@ public class PrismObjectImpl<O extends Objectable> extends PrismContainerImpl<O>
 	}
 	
 	public ObjectDelta<O> createDelta(ChangeType changeType) {
-		ObjectDelta<O> delta = new ObjectDelta<>(getCompileTimeClass(), changeType, getPrismContext());
+		ObjectDelta<O> delta = new ObjectDeltaImpl<>(getCompileTimeClass(), changeType, getPrismContext());
 		delta.setOid(getOid());
 		return delta;
 	}

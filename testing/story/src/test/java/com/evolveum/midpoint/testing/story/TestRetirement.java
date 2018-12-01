@@ -28,6 +28,7 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.springframework.test.annotation.DirtiesContext;
@@ -395,7 +396,8 @@ public class TestRetirement extends AbstractStoryTest {
 		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 		modifications.add(createAssignmentModification(orgCortuvHradOid, OrgType.COMPLEX_TYPE, null, null, null, false));
 		modifications.add(createAssignmentModification(ORG_RETIRED_OID, OrgType.COMPLEX_TYPE, null, null, null, true));
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(userGorcOid, modifications, UserType.class, prismContext);
+		ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil
+				.createModifyDelta(userGorcOid, modifications, UserType.class, prismContext);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
         // WHEN

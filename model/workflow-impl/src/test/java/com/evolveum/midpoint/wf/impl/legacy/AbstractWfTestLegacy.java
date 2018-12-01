@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -162,7 +163,8 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
         dummyApproverRef.setType(UserType.COMPLEX_TYPE);
         dummyApproverRef.setOid(DUMMYBOSS_OID);
         businessConfigurationType.getApproverRef().add(dummyApproverRef);
-        ObjectDelta objectDelta = ObjectDelta.createModificationAddContainer(ResourceType.class, RESOURCE_DUMMY_OID, prismContext.path(ResourceType.F_BUSINESS), prismContext, businessConfigurationType);
+        ObjectDelta objectDelta = ObjectDeltaCreationUtil
+		        .createModificationAddContainer(ResourceType.class, RESOURCE_DUMMY_OID, prismContext.path(ResourceType.F_BUSINESS), prismContext, businessConfigurationType);
         repositoryService.modifyObject(ResourceType.class, RESOURCE_DUMMY_OID, objectDelta.getModifications(), initResult);
 
         // check Role2 approver OID (it is filled-in using search filter)
@@ -239,7 +241,7 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
     protected void removeAllAssignments(String oid, OperationResult result) throws Exception {
         PrismObject<UserType> user = repositoryService.getObject(UserType.class, oid, null, result);
         for (AssignmentType at : user.asObjectable().getAssignment()) {
-            ObjectDelta delta = ObjectDelta.createModificationDeleteContainer(UserType.class, oid, UserType.F_ASSIGNMENT, prismContext, at.asPrismContainerValue().clone());
+            ObjectDelta delta = ObjectDeltaCreationUtil.createModificationDeleteContainer(UserType.class, oid, UserType.F_ASSIGNMENT, prismContext, at.asPrismContainerValue().clone());
             repositoryService.modifyObject(UserType.class, oid, delta.getModifications(), result);
             LOGGER.info("Removed assignment " + at + " from " + user);
         }
@@ -480,7 +482,7 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
             PrismObject<UserType> user = findUserInRepo(name, result);
 
             Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-            deltas.add(ObjectDelta.createDeleteDelta(UserType.class, user.getOid(), prismContext));
+            deltas.add(ObjectDeltaCreationUtil.createDeleteDelta(UserType.class, user.getOid(), prismContext));
             modelService.executeChanges(deltas, new ModelExecuteOptions(), t, result);
 
             LOGGER.info("User " + name + " was deleted");

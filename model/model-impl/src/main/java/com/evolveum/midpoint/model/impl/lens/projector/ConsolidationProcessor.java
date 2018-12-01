@@ -141,7 +141,7 @@ public class ConsolidationProcessor {
 
     	squeezeAll(context, projCtx);
         
-        ObjectDelta<ShadowType> objectDelta = new ObjectDelta<>(ShadowType.class, ChangeType.MODIFY, prismContext);
+        ObjectDelta<ShadowType> objectDelta = prismContext.deltaFactory().createObjectDelta(ShadowType.class, ChangeType.MODIFY);
         objectDelta.setOid(projCtx.getOid());
         ObjectDelta<ShadowType> existingDelta = projCtx.getDelta();
 
@@ -1027,7 +1027,7 @@ public class ConsolidationProcessor {
     	}
 
     	
-    	ObjectDelta<ShadowType> objectDelta = new ObjectDelta<>(ShadowType.class, ChangeType.MODIFY, prismContext);
+    	ObjectDelta<ShadowType> objectDelta = prismContext.deltaFactory().createObjectDelta(ShadowType.class, ChangeType.MODIFY);
     	objectDelta.setOid(projCtx.getOid());
     	ObjectDelta<ShadowType> existingDelta = projCtx.getDelta();
 

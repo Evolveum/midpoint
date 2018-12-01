@@ -243,7 +243,8 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         account.removeContainer(ShadowType.F_ATTRIBUTES);
         display("New account", account);
 
-        ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_GUYBRUSH_OID, prismContext);
+        ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil
+		        .createEmptyModifyDelta(UserType.class, USER_GUYBRUSH_OID, prismContext);
         PrismReferenceValue accountRefVal = new PrismReferenceValueImpl();
 		accountRefVal.setObject(account);
 		ReferenceDelta accountDelta = ReferenceDeltaImpl
@@ -351,7 +352,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		// Add to repo to avoid processing of the assignment
 		String userOtisOid = repositoryService.addObject(userOtis, null, result);
 
-        ObjectDelta<UserType> userDelta = ObjectDelta.createModificationDeleteContainer(UserType.class,
+        ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil.createModificationDeleteContainer(UserType.class,
         		userOtisOid, UserType.F_ASSIGNMENT, prismContext, assignmentType.asPrismContainerValue().clone());
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
@@ -400,7 +401,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		// Add to repo to avoid processing of the assignment
 		String userNavigatorOid = repositoryService.addObject(userNavigator, null, result);
 
-        ObjectDelta<UserType> userDelta = ObjectDelta.createDeleteDelta(UserType.class, userNavigatorOid, prismContext);
+        ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil.createDeleteDelta(UserType.class, userNavigatorOid, prismContext);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
 		// WHEN
@@ -755,7 +756,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
 
         PrismObject<UserType> user = PrismTestUtil.parseObject(USER_DEGHOULASH_FILE);
-        ObjectDelta<UserType> userAddDelta = ObjectDelta.createAddDelta(user);
+        ObjectDelta<UserType> userAddDelta = ObjectDeltaCreationUtil.createAddDelta(user);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userAddDelta);
 
 		// WHEN

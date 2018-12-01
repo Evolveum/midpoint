@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
@@ -89,9 +89,6 @@ import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.model.impl.visualizer.Visualizer;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AllFilter;
@@ -1648,7 +1645,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			
 			ProtectedStringType newProtectedPassword = new ProtectedStringType();
 			newProtectedPassword.setClearValue(executeCredentialResetRequest.getUserEntry());
-			userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, user.getOid(),
+			userDelta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, user.getOid(),
 					SchemaConstants.PATH_PASSWORD_VALUE, prismContext, newProtectedPassword);
 
 		}
@@ -1714,7 +1711,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			for (Item<?, ?> extensionItem : extensionItems) {
 				newTask.asPrismObject().getExtension().add(extensionItem.clone());
 			}
-			ObjectDelta<TaskType> taskAddDelta = ObjectDelta.createAddDelta(newTask.asPrismObject());
+			ObjectDelta<TaskType> taskAddDelta = ObjectDeltaCreationUtil.createAddDelta(newTask.asPrismObject());
 			modelService.executeChanges(singleton(taskAddDelta), null, opTask, result);
 			result.computeStatus();
 			return newTask;

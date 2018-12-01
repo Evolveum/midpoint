@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismReferenceValueImpl;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -94,7 +95,7 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 				.name("judge")
 				.riskLevel("high");
 
-		ObjectDelta<RoleType> addObjectDelta = ObjectDelta.createAddDelta(judge.asPrismObject());
+		ObjectDelta<RoleType> addObjectDelta = ObjectDeltaCreationUtil.createAddDelta(judge.asPrismObject());
 
 		executeTest(TEST_NAME, new TestDetails() {
 			@Override
@@ -286,7 +287,7 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 
 		deleteObject(UserType.class, userJudgeOwnerOid);
 
-		ObjectDelta<RoleType> deleteDelta = ObjectDelta.createDeleteDelta(RoleType.class, roleJudgeOid, prismContext);
+		ObjectDelta<RoleType> deleteDelta = ObjectDeltaCreationUtil.createDeleteDelta(RoleType.class, roleJudgeOid, prismContext);
 
 		executeTest(TEST_NAME, new TestDetails() {
 			@Override
@@ -355,7 +356,7 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 				.approverRef(new ObjectReferenceType().oid("oid1").type(UserType.COMPLEX_TYPE))
 				.approverRef(new ObjectReferenceType().oid("oid2").type(UserType.COMPLEX_TYPE));
 
-		ObjectDelta<RoleType> addObjectDelta = ObjectDelta.createAddDelta(captain.asPrismObject());
+		ObjectDelta<RoleType> addObjectDelta = ObjectDeltaCreationUtil.createAddDelta(captain.asPrismObject());
 
 		executeTest(TEST_NAME, new TestDetails() {
 			@Override
@@ -550,7 +551,7 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 				.approverRef(new ObjectReferenceType().oid("oid1").type(UserType.COMPLEX_TYPE))
 				.approverRef(new ObjectReferenceType().oid("oid2").type(UserType.COMPLEX_TYPE));
 
-		ObjectDelta<RoleType> addObjectDelta = ObjectDelta.createAddDelta(thief.asPrismObject());
+		ObjectDelta<RoleType> addObjectDelta = ObjectDeltaCreationUtil.createAddDelta(thief.asPrismObject());
 
 		executeTest(TEST_NAME, new TestDetails() {
 			@Override

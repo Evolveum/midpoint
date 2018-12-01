@@ -20,6 +20,7 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -411,7 +412,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 
 			@Override
 			protected ObjectDelta<UserType> getFocusDelta() throws Exception {
-				return ObjectDelta.summarize(deltaToApprove, delta0);
+				return ObjectDeltaCollectionsUtil.summarize(deltaToApprove, delta0);
 			}
 
 			@Override
@@ -531,7 +532,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 
 			@Override
 			protected ObjectDelta<UserType> getFocusDelta() throws Exception {
-				return ObjectDelta.summarize(deltaToApprove, delta0);
+				return ObjectDeltaCollectionsUtil.summarize(deltaToApprove, delta0);
 			}
 
 			@Override
@@ -661,7 +662,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 
 			@Override
 			protected ObjectDelta<UserType> getFocusDelta() throws Exception {
-				return ObjectDelta.summarize(deltaToApprove, delta0);
+				return ObjectDeltaCollectionsUtil.summarize(deltaToApprove, delta0);
 			}
 
 			@Override
@@ -776,7 +777,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 
 			@Override
 			protected ObjectDelta<UserType> getFocusDelta() throws Exception {
-				return ObjectDelta.summarize(deltaToApprove, delta0);
+				return ObjectDeltaCollectionsUtil.summarize(deltaToApprove, delta0);
 			}
 
 			@Override
@@ -886,7 +887,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 
 			@Override
 			protected ObjectDelta<UserType> getFocusDelta() throws Exception {
-				return ObjectDelta.summarize(deltaToApprove, delta0);
+				return ObjectDeltaCollectionsUtil.summarize(deltaToApprove, delta0);
 			}
 
 			@Override
@@ -1062,7 +1063,8 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 				.deltaFor(UserType.class)
 				.item(UserType.F_DESCRIPTION).replace(TEST_NAME)
 				.asObjectDelta(userJackOid);
-		ObjectDelta<UserType> primaryDelta = ObjectDelta.summarize(addRole1Delta, addRole2Delta, addRole3Delta, changeDescriptionDelta);
+		ObjectDelta<UserType> primaryDelta = ObjectDeltaCollectionsUtil
+				.summarize(addRole1Delta, addRole2Delta, addRole3Delta, changeDescriptionDelta);
 		ObjectDelta<UserType> delta0 = changeDescriptionDelta.clone();
 		String originalDescription = getUser(userJackOid).asObjectable().getDescription();
 		executeTest2(TEST_NAME, new TestDetails2<UserType>() {
@@ -1325,8 +1327,10 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 				.deltaFor(UserType.class)
 				.item(UserType.F_DESCRIPTION).replace(TEST_NAME)
 				.asObjectDelta(userJackOid);
-		ObjectDelta<UserType> primaryDelta = ObjectDelta.summarize(changeDescriptionDelta, deleteRole1Delta, deleteRole2Delta, deleteRole3Delta);
-		ObjectDelta<UserType> delta0 = ObjectDelta.summarize(changeDescriptionDelta, deleteRole1Delta, deleteRole2Delta);
+		ObjectDelta<UserType> primaryDelta = ObjectDeltaCollectionsUtil
+				.summarize(changeDescriptionDelta, deleteRole1Delta, deleteRole2Delta, deleteRole3Delta);
+		ObjectDelta<UserType> delta0 = ObjectDeltaCollectionsUtil
+				.summarize(changeDescriptionDelta, deleteRole1Delta, deleteRole2Delta);
 		String originalDescription = getUser(userJackOid).asObjectable().getDescription();
 		executeTest2(TEST_NAME, new TestDetails2<UserType>() {
 			@Override

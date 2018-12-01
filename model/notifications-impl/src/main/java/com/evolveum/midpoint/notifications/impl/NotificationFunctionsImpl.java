@@ -32,6 +32,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -365,7 +366,7 @@ public class NotificationFunctionsImpl implements NotificationFunctions {
 					for (PrismPropertyValue<ObjectDeltaType> change : changes) {
 						deltas.add((ObjectDelta) DeltaConvertor.createObjectDelta(change.getValue(), prismContext));
 					}
-					ObjectDelta<ShadowType> summarizedDelta = ObjectDelta.summarize(deltas);
+					ObjectDelta<ShadowType> summarizedDelta = ObjectDeltaCollectionsUtil.summarize(deltas);
 					rv.append(textFormatter.formatObjectModificationDelta(summarizedDelta, hiddenPaths, showAuxiliaryAttributes,
 							event.getAccountOperationDescription().getCurrentShadow(), null));
 				} catch (SchemaException e) {

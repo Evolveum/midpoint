@@ -26,6 +26,7 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -307,7 +308,8 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		attributeDefinitionType.setOutbound(mappingType);
 		constructionType.getAttribute().add(attributeDefinitionType);
 		modifications.add(createAssignmentModification(assignmentType, true));
-		ObjectDelta<UserType> accountAssignmentUserDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
+		ObjectDelta<UserType> accountAssignmentUserDelta = ObjectDeltaCreationUtil
+				.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
 
         deltas.add(accountAssignmentUserDelta);
 
@@ -508,7 +510,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		executeChanges(ObjectDelta.createAddDelta(userScrooge), null, task, result);
+		executeChanges(ObjectDeltaCreationUtil.createAddDelta(userScrooge), null, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -551,7 +553,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		userJoeHacker.asObjectable().getLink().add(newPinkyShadow.asObjectable());
 
 		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-		deltas.add(ObjectDelta.createAddDelta(userJoeHacker));
+		deltas.add(ObjectDeltaCreationUtil.createAddDelta(userJoeHacker));
 
 		// WHEN
 		displayWhen(TEST_NAME);
@@ -669,7 +671,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		executeChanges(ObjectDelta.createAddDelta(userJupiter), null, task, result);
+		executeChanges(ObjectDeltaCreationUtil.createAddDelta(userJupiter), null, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -1054,7 +1056,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 
 		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
 		PrismObject<UserType> userJupiter = PrismTestUtil.parseObject(USER_ALFRED_FILE);			// there is a linked account
-		ObjectDelta<UserType> delta = ObjectDelta.createAddDelta(userJupiter);
+		ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createAddDelta(userJupiter);
 
 		// WHEN
 		displayWhen(TEST_NAME);

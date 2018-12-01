@@ -29,6 +29,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -287,7 +288,7 @@ public class TestRbac extends AbstractRbacTest {
         		getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME),
         		DOMUtil.XSD_STRING, prismContext, ROLE_PIRATE_TITLE);
 
-		ObjectDelta<UserType> delta = ObjectDelta.createModificationAddReference(UserType.class, USER_JACK_OID,
+		ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createModificationAddReference(UserType.class, USER_JACK_OID,
 				UserType.F_LINK_REF, prismContext, account);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
 
@@ -1359,9 +1360,11 @@ public class TestRbac extends AbstractRbacTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         String accountOid = userJack.asObjectable().getLinkRef().iterator().next().getOid();
 
-        ObjectDelta<ShadowType> accountDelta = ObjectDelta.createDeleteDelta(ShadowType.class, accountOid, prismContext);
+        ObjectDelta<ShadowType> accountDelta = ObjectDeltaCreationUtil
+		        .createDeleteDelta(ShadowType.class, accountOid, prismContext);
         // Use modification of user to delete account. Deleting account directly is tested later.
-        ObjectDelta<UserType> userDelta = ObjectDelta.createModificationDeleteReference(UserType.class, USER_JACK_OID, UserType.F_LINK_REF, prismContext, accountOid);
+        ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil
+		        .createModificationDeleteReference(UserType.class, USER_JACK_OID, UserType.F_LINK_REF, prismContext, accountOid);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);
 
 		// WHEN
@@ -1423,11 +1426,13 @@ public class TestRbac extends AbstractRbacTest {
 
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
         modifications.add(createAssignmentModification(ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, null, null, null, false));
-        ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
+        ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil
+		        .createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         String accountOid = userJack.asObjectable().getLinkRef().iterator().next().getOid();
-        ObjectDelta<ShadowType> accountDelta = ObjectDelta.createDeleteDelta(ShadowType.class, accountOid, prismContext);
+        ObjectDelta<ShadowType> accountDelta = ObjectDeltaCreationUtil
+		        .createDeleteDelta(ShadowType.class, accountOid, prismContext);
         // This all goes in the same context with user, explicit unlink should not be necessary
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);
 
@@ -1475,7 +1480,7 @@ public class TestRbac extends AbstractRbacTest {
 
         ItemPath itemPath = ItemPath.create(UserType.F_ASSIGNMENT, user.asObjectable().getAssignment().get(0).getId(),
         		AssignmentType.F_DESCRIPTION);
-		ObjectDelta<UserType> assignmentDelta = ObjectDelta.createModificationReplaceProperty(
+		ObjectDelta<UserType> assignmentDelta = ObjectDeltaCreationUtil.createModificationReplaceProperty(
         		UserType.class, USER_JACK_OID, itemPath, prismContext, "soul");
 
         // WHEN
@@ -1510,7 +1515,7 @@ public class TestRbac extends AbstractRbacTest {
 
         AssignmentType assignmentType = new AssignmentType();
         assignmentType.setId(user.asObjectable().getAssignment().get(0).getId());
-		ObjectDelta<UserType> assignmentDelta = ObjectDelta.createModificationDeleteContainer(
+		ObjectDelta<UserType> assignmentDelta = ObjectDeltaCreationUtil.createModificationDeleteContainer(
         		UserType.class, USER_JACK_OID, UserType.F_ASSIGNMENT, prismContext, assignmentType);
 
         // WHEN
@@ -2456,7 +2461,8 @@ public class TestRbac extends AbstractRbacTest {
 		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 		modifications.add((createAssignmentModification(ROLE_CANNIBAL_OID, RoleType.COMPLEX_TYPE, SchemaConstants.ORG_OWNER, null, null, false)));
 		modifications.add((createAssignmentModification(ROLE_CANNIBAL_OID, RoleType.COMPLEX_TYPE, SchemaConstants.ORG_APPROVER, null, null, false)));
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(userBignoseOid, modifications, UserType.class, prismContext);
+		ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil
+				.createModifyDelta(userBignoseOid, modifications, UserType.class, prismContext);
 		
 		// WHEN
 		executeChanges(userDelta, getDefaultOptions(), task, result);
@@ -3020,7 +3026,7 @@ public class TestRbac extends AbstractRbacTest {
 
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 
-        ObjectDelta<UserType> delta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
+        ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
         
         // WHEN
         displayWhen(TEST_NAME);

@@ -385,24 +385,24 @@ public class PropertyDeltaImpl<T extends Object> extends ItemDeltaImpl<PrismProp
     // convenience method
 	@SafeVarargs
 	public final void setRealValuesToReplace(T... newValues) {
-		super.setValuesToReplace(PrismValueCollectionsUtil.wrap(newValues));
+		super.setValuesToReplace(PrismValueCollectionsUtil.wrap(getPrismContext(), newValues));
 	}
 
 	@SafeVarargs
 	public final void addRealValuesToAdd(T... newValues) {
-		super.addValuesToAdd(PrismValueCollectionsUtil.wrap(newValues));
+		super.addValuesToAdd(PrismValueCollectionsUtil.wrap(getPrismContext(), newValues));
 	}
 
 	@SafeVarargs
 	public final void addRealValuesToDelete(T... newValues) {
-		super.addValuesToDelete(PrismValueCollectionsUtil.wrap(newValues));
+		super.addValuesToDelete(PrismValueCollectionsUtil.wrap(getPrismContext(), newValues));
 	}
 
 	public final void addRealValuesToAdd(Collection<T> newValues) {
-		super.addValuesToAdd(PrismValueCollectionsUtil.wrap(newValues));
+		super.addValuesToAdd(PrismValueCollectionsUtil.wrap(getPrismContext(), newValues));
 	}
 
 	public final void addRealValuesToDelete(Collection<T> values) {
-		super.addValuesToDelete(PrismValueCollectionsUtil.wrap(values));
+		super.addValuesToDelete(PrismValueCollectionsUtil.wrap(getPrismContext(), values));
 	}
 }

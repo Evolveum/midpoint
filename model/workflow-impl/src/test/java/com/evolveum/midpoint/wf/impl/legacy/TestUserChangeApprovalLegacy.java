@@ -1028,7 +1028,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
                         validToDef, prismContext);
         validToDelta.setRealValuesToReplace(validTo);
 
-        ObjectDelta<UserType> userDelta = new ObjectDelta<>(UserType.class, ChangeType.MODIFY, prismContext);
+        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().createObjectDelta(UserType.class, ChangeType.MODIFY);
         userDelta.setOid(USER_JACK_OID);
         userDelta.addModification(validFromDelta);
         userDelta.addModification(validToDelta);
@@ -1225,7 +1225,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         attributeDefinitionType.setOutbound(outbound);
 
 
-        ObjectDelta<UserType> userDelta = new ObjectDelta<>(UserType.class, ChangeType.MODIFY, prismContext);
+        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().createObjectDelta(UserType.class, ChangeType.MODIFY);
         userDelta.setOid(USER_JACK_OID);
         userDelta.addModification(attributeDelta);
         addFocusDeltaToContext(context, userDelta);

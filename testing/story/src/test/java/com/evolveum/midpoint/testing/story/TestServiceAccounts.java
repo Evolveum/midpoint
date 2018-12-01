@@ -26,6 +26,7 @@ import static org.testng.AssertJUnit.assertNull;
 import java.io.File;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.delta.ReferenceDeltaImpl;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -164,7 +165,7 @@ public class TestServiceAccounts extends AbstractStoryTest {
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		
-		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
+		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
 				serviceAccountShadowOid, getDummyResourceController().getAttributeFullnamePath(), 
 				prismContext, "Where's all the rum?");
 
@@ -213,7 +214,7 @@ public class TestServiceAccounts extends AbstractStoryTest {
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		
-		ObjectDelta<ShadowType> delta = ObjectDelta.createDeleteDelta(ShadowType.class,
+		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createDeleteDelta(ShadowType.class,
 				serviceAccountShadowOid, prismContext);
 
 		try {
@@ -403,7 +404,8 @@ public class TestServiceAccounts extends AbstractStoryTest {
 		
 		PrismObject<ShadowType> account = prismContext.parseObject(ACCOUNT_BARELLIUM_DUMMY_FILE);
 
-        ObjectDelta<ServiceType> delta = ObjectDelta.createEmptyModifyDelta(ServiceType.class, SERVICE_BARELLIUM_OID, prismContext);
+        ObjectDelta<ServiceType> delta = ObjectDeltaCreationUtil
+		        .createEmptyModifyDelta(ServiceType.class, SERVICE_BARELLIUM_OID, prismContext);
         PrismReferenceValue accountRefVal = new PrismReferenceValueImpl();
 		accountRefVal.setObject(account);
 		ReferenceDelta accountDelta = ReferenceDeltaImpl

@@ -132,9 +132,9 @@ public class TestAddAssociationLegacy extends AbstractWfTestLegacy {
                 ModelContext taskModelContext = wfTaskUtil.getModelContext(rootTask, result);
                 IntegrationTestTools.display("model context from the root task", taskModelContext);
                 assertEquals("Wrong # of projection contexts in root task", 1, taskModelContext.getProjectionContexts().size());
-                assertTrue("There are modifications in primary focus delta", ObjectDelta.isNullOrEmpty(taskModelContext.getFocusContext().getPrimaryDelta()));
+                assertTrue("There are modifications in primary focus delta", ObjectDelta.isEmpty(taskModelContext.getFocusContext().getPrimaryDelta()));
                 assertTrue("There are modifications left in primary projection delta",
-                        ObjectDelta.isNullOrEmpty(
+                        ObjectDelta.isEmpty(
                                 ((LensProjectionContext) (taskModelContext.getProjectionContexts().iterator().next()))
                                         .getPrimaryDelta()));
                 ShadowType account = getObject(ShadowType.class, jackAccountShadowOid).asObjectable();
@@ -208,9 +208,9 @@ public class TestAddAssociationLegacy extends AbstractWfTestLegacy {
                 ModelContext taskModelContext = wfTaskUtil.getModelContext(rootTask, result);
                 IntegrationTestTools.display("model context from the root task", taskModelContext);
                 assertEquals("Wrong # of projection contexts in root task", 1, taskModelContext.getProjectionContexts().size());
-                assertTrue("There are modifications in primary focus delta", ObjectDelta.isNullOrEmpty(taskModelContext.getFocusContext().getPrimaryDelta()));
+                assertTrue("There are modifications in primary focus delta", ObjectDelta.isEmpty(taskModelContext.getFocusContext().getPrimaryDelta()));
                 assertTrue("There are modifications left in primary projection delta",
-                        ObjectDelta.isNullOrEmpty(
+                        ObjectDelta.isEmpty(
                                 ((LensProjectionContext) (taskModelContext.getProjectionContexts().iterator().next()))
                                         .getPrimaryDelta()));
                 ShadowType account = getObject(ShadowType.class, elisabethAccountShadowOid).asObjectable();

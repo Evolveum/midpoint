@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -915,7 +916,7 @@ public class IntegrationTestTools {
 		shadowRefType.setOid(groupOid);
 		shadowRefType.setType(ShadowType.COMPLEX_TYPE);
 		association.setShadowRef(shadowRefType);
-		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationAddContainer(ShadowType.class,
+		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationAddContainer(ShadowType.class,
 				accountOid, ShadowType.F_ASSOCIATION, prismContext, association);
 		return delta;
 	}
@@ -927,7 +928,7 @@ public class IntegrationTestTools {
 		shadowRefType.setOid(groupOid);
         shadowRefType.setType(ShadowType.COMPLEX_TYPE);
 		association.setShadowRef(shadowRefType);
-		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationDeleteContainer(ShadowType.class,
+		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationDeleteContainer(ShadowType.class,
 				accountOid, ShadowType.F_ASSOCIATION, prismContext, association);
 		return delta;
 	}

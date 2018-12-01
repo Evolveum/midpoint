@@ -16,12 +16,21 @@
 
 package com.evolveum.midpoint.prism.delta;
 
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
+import org.jetbrains.annotations.NotNull;
 
 /**
  *
  */
 public class DeltaFactoryImpl implements DeltaFactory {
+
+	@NotNull private final PrismContext prismContext;
+
+	public DeltaFactoryImpl(@NotNull PrismContext prismContext) {
+		this.prismContext = prismContext;
+	}
 
 	@Override
 	public <T> DeltaSetTriple<T> createDeltaSetTriple() {
@@ -31,5 +40,10 @@ public class DeltaFactoryImpl implements DeltaFactory {
 	@Override
 	public <V extends PrismValue> PrismValueDeltaSetTriple<V> createPrismValueDeltaSetTriple() {
 		return new PrismValueDeltaSetTripleImpl<>();
+	}
+
+	@Override
+	public <O extends Objectable> ObjectDelta<O> createObjectDelta(Class<O> type, ChangeType changeType) {
+		return new ObjectDeltaImpl<>(type, changeType, prismContext);
 	}
 }

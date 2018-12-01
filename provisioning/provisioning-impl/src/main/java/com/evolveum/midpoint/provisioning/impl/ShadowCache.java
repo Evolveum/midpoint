@@ -827,7 +827,7 @@ public class ShadowCache {
 			Task task,
 			OperationResult parentResult)
 					throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		ObjectDelta<ShadowType> delta = ObjectDelta.createAddDelta(addedShadow);
+		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createAddDelta(addedShadow);
 		ResourceOperationDescription operationDescription = createSuccessOperationDescription(ctx, addedShadow,
 				delta, parentResult);
 		
@@ -1030,7 +1030,7 @@ public class ShadowCache {
 			OperationResult parentResult) 
 					throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		
-		ObjectDelta<ShadowType> delta = ObjectDelta.createModifyDelta(repoShadow.getOid(), modifications,
+		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModifyDelta(repoShadow.getOid(), modifications,
 				repoShadow.getCompileTimeClass(), prismContext);
 		ResourceOperationDescription operationDescription = createSuccessOperationDescription(ctx, repoShadow,
 				delta, parentResult);
@@ -1271,7 +1271,7 @@ public class ShadowCache {
 			Task task,
 			OperationResult parentResult)
 					throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		ObjectDelta<ShadowType> delta = ObjectDelta.createDeleteDelta(shadow.getCompileTimeClass(),
+		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createDeleteDelta(shadow.getCompileTimeClass(),
 				shadow.getOid(), prismContext);
 		ResourceOperationDescription operationDescription = createSuccessOperationDescription(ctx, shadow,
 				delta, parentResult);

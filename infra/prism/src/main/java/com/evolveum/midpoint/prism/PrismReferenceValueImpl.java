@@ -507,15 +507,6 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
 		return false;
 	}
 
-	public static PrismReferenceValue createFromTarget(PrismObject<?> refTarget) {
-		PrismReferenceValue refVal = new PrismReferenceValueImpl(refTarget.getOid());
-		refVal.setObject(refTarget);
-		if (refTarget.getDefinition() != null) {
-			refVal.setTargetType(refTarget.getDefinition().getTypeName());
-		}
-		return refVal;
-	}
-
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();

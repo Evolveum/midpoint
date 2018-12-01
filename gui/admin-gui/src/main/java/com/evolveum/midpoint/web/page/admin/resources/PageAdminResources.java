@@ -22,6 +22,7 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
@@ -148,7 +149,7 @@ public class PageAdminResources extends PageAdmin {
         }
         Object value = property.getRealValue();
 
-        ObjectDelta<TaskType> delta = ObjectDelta.createModifyDelta(oldTask.getOid(),
+        ObjectDelta<TaskType> delta = ObjectDeltaCreationUtil.createModifyDelta(oldTask.getOid(),
                 PropertyDeltaImpl
                         .createModificationDeleteProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN), property.getDefinition(), value),
                 TaskType.class, getPrismContext());

@@ -233,7 +233,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     	UniformItemPath path = path(CREDENTIALS_PASSWORD_VALUE_PATH);
     	ProtectedStringType protectedString = new ProtectedStringType();
     	protectedString.setClearValue("abrakadabra");
-    	ObjectDelta<UserType> objectDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, "12345",
+    	ObjectDelta<UserType> objectDelta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, "12345",
     			path, getPrismContext(), protectedString);
 
     	System.out.println("ObjectDelta");
@@ -279,7 +279,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     	// GIVEN
     	final String OID = "13235545";
     	final String VALUE = "Very Costly Center";
-    	ObjectDelta<UserType> objectDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, OID,
+    	ObjectDelta<UserType> objectDelta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, OID,
     			UserType.F_COST_CENTER, getPrismContext(), VALUE);
 
     	System.out.println("ObjectDelta");
@@ -505,7 +505,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
 		user.setName(PolyStringType.fromOrig("john"));
 		user.setOid("1234567890");
 
-		ObjectDelta delta = ObjectDelta.createAddDelta(user.asPrismObject());
+		ObjectDelta delta = ObjectDeltaCreationUtil.createAddDelta(user.asPrismObject());
 		roundTrip(delta);
 	}
 

@@ -28,6 +28,7 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -428,7 +429,7 @@ public class PageSecurityQuestions extends PageBase {
 		PropertyDelta delta = PropertyDeltaImpl.createModificationReplaceProperty(valuePath, objDef, password);
 		Class<? extends ObjectType> type = UserType.class;
 
-		deltas.add(ObjectDelta.createModifyDelta(user.getOid(), delta, type, getPrismContext()));
+		deltas.add(ObjectDeltaCreationUtil.createModifyDelta(user.getOid(), delta, type, getPrismContext()));
 		try {
 
 			modelService.executeChanges(deltas, null, task, result);

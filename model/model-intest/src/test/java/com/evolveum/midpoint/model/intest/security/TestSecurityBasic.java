@@ -1676,9 +1676,10 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         Task task = createTask(TEST_NAME);
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_RED_FILE);
         account.setOid(accountRedOid);
-        ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
+        ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil
+		        .createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
 		ReferenceDelta accountDelta = ReferenceDeltaImpl
-				.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), account);
+				.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), account, prismContext);
 		userDelta.addModification(accountDelta);
 		executeChanges(userDelta, null, task, task.getResult());
 		
@@ -2211,7 +2212,8 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 				cval.setId(123L);
 				ContainerDelta<AssignmentType> assignmentDelta = assignmentDelta1;
 				modifications.add(assignmentDelta);
-				ObjectDelta<UserType> userDelta1 = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
+				ObjectDelta<UserType> userDelta1 = ObjectDeltaCreationUtil
+						.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
 				ObjectDelta<UserType> userDelta = userDelta1;
 				Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 				modelService.executeChanges(deltas, null, task, result);

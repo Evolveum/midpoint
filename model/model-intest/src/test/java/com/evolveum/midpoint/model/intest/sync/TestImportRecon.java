@@ -29,6 +29,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinitionImpl;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1666,7 +1667,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertPropertyValue(userRappBefore, UserType.F_ORGANIZATIONAL_UNIT,
         		PrismTestUtil.createPolyString("The crew of The Elaine"));
 
-        ObjectDelta<UserType> userRappDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, USER_RAPP_OID,
+        ObjectDelta<UserType> userRappDelta = ObjectDeltaCreationUtil
+		        .createModificationReplaceProperty(UserType.class, USER_RAPP_OID,
         		UserType.F_ORGANIZATIONAL_UNIT, prismContext, PrismTestUtil.createPolyString("The six feet under crew"));
 		repositoryService.modifyObject(UserType.class, USER_RAPP_OID, userRappDelta.getModifications(), result);
 

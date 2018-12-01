@@ -15,13 +15,12 @@
  */
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.prism.path.UniformItemPath;
-import com.evolveum.midpoint.prism.path.UniformItemPathImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
 /**
- * @author semancik
+ * TODO description
  *
+ * @author semancik
  */
 public class PartiallyResolvedItem<V extends PrismValue,D extends ItemDefinition> {
 
@@ -46,7 +45,7 @@ public class PartiallyResolvedItem<V extends PrismValue,D extends ItemDefinition
 		return residualPath;
 	}
 
-	public void setResidualPath(UniformItemPath residualPath) {
+	public void setResidualPath(ItemPath residualPath) {
 		this.residualPath = residualPath;
 	}
 
@@ -76,7 +75,7 @@ public class PartiallyResolvedItem<V extends PrismValue,D extends ItemDefinition
 		if (residualPath == null) {
 			if (other.residualPath != null)
 				return false;
-		} else if (!new UniformItemPathImpl(residualPath).equivalent(other.residualPath))        // TODO: ok?
+		} else if (!residualPath.equivalent(other.residualPath))
 			return false;
 		return true;
 	}

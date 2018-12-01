@@ -21,7 +21,6 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.*;
 import java.util.Collection;
 
 import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -83,7 +82,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 		PrismObject<SystemConfigurationType> systemConfiguration = PrismTestUtil.parseObject(SYSTEM_CONFIGURATION_FILE);
 		Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName()+"."+TEST_NAME);
 		OperationResult result = task.getResult();
-		ObjectDelta<SystemConfigurationType> systemConfigurationAddDelta = ObjectDelta.createAddDelta(systemConfiguration);
+		ObjectDelta<SystemConfigurationType> systemConfigurationAddDelta = ObjectDeltaCreationUtil.createAddDelta(systemConfiguration);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(systemConfigurationAddDelta);
 
 		// WHEN
@@ -174,7 +173,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 		assertBasicLogging(tailer);
 		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_TRACE, ProfilingDataManager.Subsystem.PROVISIONING.name());
 
-		ObjectDelta<SystemConfigurationType> delta = ObjectDelta.createAddDelta(systemConfiguration);
+		ObjectDelta<SystemConfigurationType> delta = ObjectDeltaCreationUtil.createAddDelta(systemConfiguration);
 		ModelExecuteOptions options = ModelExecuteOptions.createOverwrite();
 
 		// WHEN
@@ -230,7 +229,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 		modelSubSystemLogger.setLevel(LoggingLevelType.DEBUG);
 		logging.getSubSystemLogger().add(modelSubSystemLogger);
 
-		ObjectDelta<SystemConfigurationType> systemConfigDelta = ObjectDelta.createModificationReplaceContainer(SystemConfigurationType.class,
+		ObjectDelta<SystemConfigurationType> systemConfigDelta = ObjectDeltaCreationUtil.createModificationReplaceContainer(SystemConfigurationType.class,
 				AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_LOGGING, prismContext,
 				logging.clone());
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(systemConfigDelta);
@@ -318,7 +317,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 		classLogerCongif.setLevel(LoggingLevelType.ALL);
 		logging.getClassLogger().add(classLogerCongif );
 
-		ObjectDelta<SystemConfigurationType> systemConfigDelta = ObjectDelta.createModificationReplaceContainer(SystemConfigurationType.class,
+		ObjectDelta<SystemConfigurationType> systemConfigDelta = ObjectDeltaCreationUtil.createModificationReplaceContainer(SystemConfigurationType.class,
 				AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_LOGGING, prismContext,
 				logging.clone());
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(systemConfigDelta);
@@ -377,7 +376,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 		classLogerCongif.setLevel(LoggingLevelType.ALL);
 		logging.getClassLogger().add(classLogerCongif );
 
-		ObjectDelta<SystemConfigurationType> systemConfigDelta = ObjectDelta.createModificationReplaceContainer(SystemConfigurationType.class,
+		ObjectDelta<SystemConfigurationType> systemConfigDelta = ObjectDeltaCreationUtil.createModificationReplaceContainer(SystemConfigurationType.class,
 				AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_LOGGING, prismContext,
 				logging.clone());
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(systemConfigDelta);
@@ -442,7 +441,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 		auditingConfigurationType.setEnabled(true);
 		auditingConfigurationType.setDetails(false);
 
-		ObjectDelta<SystemConfigurationType> systemConfigDelta = ObjectDelta.createModificationReplaceContainer(SystemConfigurationType.class,
+		ObjectDelta<SystemConfigurationType> systemConfigDelta = ObjectDeltaCreationUtil.createModificationReplaceContainer(SystemConfigurationType.class,
 				AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_LOGGING, prismContext,
 				logging.clone());
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(systemConfigDelta);
@@ -459,7 +458,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 
 		// try do execute some change (add user object), it should be audited
 		PrismObject<UserType> user = PrismTestUtil.parseObject(AbstractInitializedModelIntegrationTest.USER_JACK_FILE);
-		deltas = MiscSchemaUtil.createCollection(ObjectDelta.createAddDelta(user));
+		deltas = MiscSchemaUtil.createCollection(ObjectDeltaCreationUtil.createAddDelta(user));
 
 		modelService.executeChanges(deltas, null, task, result);
 

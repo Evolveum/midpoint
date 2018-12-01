@@ -2210,19 +2210,22 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 	
 	protected ObjectDelta<UserType> createModifyUserReplaceDelta(String userOid, ItemPath propertyName, Object... newRealValue) {
-		return ObjectDelta.createModificationReplaceProperty(UserType.class, userOid, propertyName, prismContext, newRealValue);
+		return ObjectDeltaCreationUtil
+				.createModificationReplaceProperty(UserType.class, userOid, propertyName, prismContext, newRealValue);
 	}
 
 	protected ObjectDelta<UserType> createModifyUserAddDelta(String userOid, ItemPath propertyName, Object... newRealValue) {
-		return ObjectDelta.createModificationAddProperty(UserType.class, userOid, propertyName, prismContext, newRealValue);
+		return ObjectDeltaCreationUtil
+				.createModificationAddProperty(UserType.class, userOid, propertyName, prismContext, newRealValue);
 	}
 
 	protected ObjectDelta<UserType> createModifyUserDeleteDelta(String userOid, ItemPath propertyName, Object... newRealValue) {
-		return ObjectDelta.createModificationDeleteProperty(UserType.class, userOid, propertyName, prismContext, newRealValue);
+		return ObjectDeltaCreationUtil
+				.createModificationDeleteProperty(UserType.class, userOid, propertyName, prismContext, newRealValue);
 	}
 
 	protected ObjectDelta<ShadowType> createModifyAccountShadowEmptyDelta(String accountOid) {
-		return ObjectDelta.createEmptyModifyDelta(ShadowType.class, accountOid, prismContext);
+		return ObjectDeltaCreationUtil.createEmptyModifyDelta(ShadowType.class, accountOid, prismContext);
 	}
 
 	protected ObjectDelta<ShadowType> createModifyAccountShadowReplaceAttributeDelta(String accountOid,
@@ -2238,10 +2241,11 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected ObjectDelta<ShadowType> createModifyAccountShadowReplaceDelta(String accountOid, PrismObject<ResourceType> resource, ItemPath itemPath, Object... newRealValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
 		if (itemPath.startsWithName(ShadowType.F_ATTRIBUTES)) {
 			PropertyDelta<?> attributeDelta = createAttributeReplaceDelta(resource, ItemPath.toName(itemPath.last()), newRealValue);
-			ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModifyDelta(accountOid, attributeDelta, ShadowType.class, prismContext);
+			ObjectDelta<ShadowType> accountDelta = ObjectDeltaCreationUtil
+					.createModifyDelta(accountOid, attributeDelta, ShadowType.class, prismContext);
 			return accountDelta;
 		} else {
-			ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(
+			ObjectDelta<ShadowType> accountDelta = ObjectDeltaCreationUtil.createModificationReplaceProperty(
 					ShadowType.class, accountOid, itemPath, prismContext, newRealValue);
 			return accountDelta;
 		}
@@ -2296,7 +2300,8 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 
 	protected ObjectDelta<ShadowType> createModifyAccountShadowAddDelta(String accountOid, ItemPath propertyName, Object... newRealValue) {
-		return ObjectDelta.createModificationAddProperty(ShadowType.class, accountOid, propertyName, prismContext, newRealValue);
+		return ObjectDeltaCreationUtil
+				.createModificationAddProperty(ShadowType.class, accountOid, propertyName, prismContext, newRealValue);
 	}
 	
 	protected QName getAttributeQName(PrismObject<ResourceType> resource, String attributeLocalName) {

@@ -21,6 +21,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.component.progress.ProgressPanel;
@@ -472,7 +474,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
 			delta = objectWrapper.getObjectDelta();
 			if (objectWrapper.getOldDelta() != null) {
-				delta = ObjectDelta.summarize(objectWrapper.getOldDelta(), delta);
+				delta = ObjectDeltaCollectionsUtil.summarize(objectWrapper.getOldDelta(), delta);
 			}
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("User delta computed from form:\n{}", new Object[] { delta.debugDump(3) });
@@ -540,7 +542,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 					}
 
 					if (delta.isEmpty() && ModelExecuteOptions.isReconcile(options)) {
-						ObjectDelta emptyDelta = ObjectDelta.createEmptyModifyDelta(getCompileTimeClass(),
+						ObjectDelta emptyDelta = ObjectDeltaCreationUtil.createEmptyModifyDelta(getCompileTimeClass(),
 								objectWrapper.getObject().getOid(), getPrismContext());
 						deltas.add(emptyDelta);
 

@@ -774,10 +774,10 @@ public class ObjectTypeUtil {
 			if (entry.getValue() != null) {
 				if (entry.getValue() instanceof Collection) {
 					for (Object value : (Collection) entry.getValue()) {
-						addRealValue(extensionItem, value);
+						addRealValue(extensionItem, value, prismContext);
 					}
 				} else {
-					addRealValue(extensionItem, entry.getValue());
+					addRealValue(extensionItem, entry.getValue(), prismContext);
 				}
 			}
 			extensionItems.add(extensionItem);
@@ -785,9 +785,10 @@ public class ObjectTypeUtil {
 		return extensionItems;
 	}
 
-	private static void addRealValue(Item<PrismValue, ItemDefinition> extensionItem, Object value) throws SchemaException {
+	private static void addRealValue(Item<PrismValue, ItemDefinition> extensionItem, Object value,
+			PrismContext prismContext) throws SchemaException {
     	if (value != null) {
-		    extensionItem.add(PrismValue.fromRealValue(value).clone());
+		    extensionItem.add(prismContext.itemFactory().createPrismValue(value).clone());
 	    }
 	}
 

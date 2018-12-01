@@ -139,7 +139,7 @@
                             }
                             
                             if(!containsSameAssignment){
-                                delta = ObjectDelta.createModificationAddContainer(UserType.class, user.getOid(), UserType.F_ASSIGNMENT, midpoint.getPrismContext(), assignment);
+                                delta = ObjectDeltaCreationUtil.createModificationAddContainer(UserType.class, user.getOid(), UserType.F_ASSIGNMENT, midpoint.getPrismContext(), assignment);
 
                                 midpoint.executeChanges(delta)
                             }
@@ -222,7 +222,7 @@
                             }
                             
                             if(!containsSameAssignment){
-                                delta = ObjectDelta.createModificationAddContainer(OrgType.class, orgUnit.getOid(), UserType.F_ASSIGNMENT, midpoint.getPrismContext(), assignment);
+                                delta = ObjectDeltaCreationUtil.createModificationAddContainer(OrgType.class, orgUnit.getOid(), UserType.F_ASSIGNMENT, midpoint.getPrismContext(), assignment);
 
                                 midpoint.executeChanges(delta)
                             }

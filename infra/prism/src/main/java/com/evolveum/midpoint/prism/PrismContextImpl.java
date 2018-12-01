@@ -79,11 +79,13 @@ public class PrismContextImpl implements PrismContext {
 	@NotNull private final Miscellaneous miscellaneous;
 	@NotNull private final XNodeFactory xnodeFactory;
 	@NotNull private final DeltaFactory deltaFactory;
+	@NotNull private final ItemFactory itemFactory;
+	@NotNull private final DefinitionFactory definitionFactory;
 
 	private ParsingMigrator parsingMigrator;
 	private PrismMonitor monitor = null;
 
-	private SchemaDefinitionFactory definitionFactory;
+	private SchemaDefinitionFactory schemaDefinitionFactory;
 
 	@Autowired private Protector defaultProtector;
 
@@ -112,7 +114,9 @@ public class PrismContextImpl implements PrismContext {
 		this.jaxbDomHack = new JaxbDomHackImpl(lexicalProcessorRegistry.domProcessor(), this);
 		this.miscellaneous = new MiscellaneousImpl(this);
 		this.xnodeFactory = new XNodeFactoryImpl();
-		this.deltaFactory = new DeltaFactoryImpl();
+		this.deltaFactory = new DeltaFactoryImpl(this);
+		this.itemFactory = new ItemFactoryImpl(this);
+		this.definitionFactory = new DefinitionFactoryImpl(this);
 
 		try {
 			configurePolyStringNormalizer(null);
@@ -235,14 +239,14 @@ public class PrismContextImpl implements PrismContext {
 
 	@NotNull
 	public SchemaDefinitionFactory getDefinitionFactory() {
-		if (definitionFactory == null) {
-			definitionFactory = new SchemaDefinitionFactory();
+		if (schemaDefinitionFactory == null) {
+			schemaDefinitionFactory = new SchemaDefinitionFactory();
 		}
-		return definitionFactory;
+		return schemaDefinitionFactory;
 	}
 
-	public void setDefinitionFactory(SchemaDefinitionFactory definitionFactory) {
-		this.definitionFactory = definitionFactory;
+	public void setDefinitionFactory(SchemaDefinitionFactory schemaDefinitionFactory) {
+		this.schemaDefinitionFactory = schemaDefinitionFactory;
 	}
 
 	@NotNull
@@ -605,5 +609,17 @@ public class PrismContextImpl implements PrismContext {
 	@NotNull
 	public DeltaFactory deltaFactory() {
 		return deltaFactory;
+	}
+
+	@NotNull
+	@Override
+	public ItemFactory itemFactory() {
+		return itemFactory;
+	}
+
+	@NotNull
+	@Override
+	public DefinitionFactory definitionFactory() {
+		return definitionFactory;
 	}
 }

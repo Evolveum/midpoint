@@ -24,6 +24,7 @@ import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -796,7 +797,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         AssignmentType sailorAssignment = getUserAssignment(USER_BARBOSSA_OID, ROLE_SAILOR_OID);
 
         ObjectDelta<UserType> objectDelta =
-        		ObjectDelta.createModificationReplaceProperty(UserType.class,
+        		ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class,
         				USER_BARBOSSA_OID,
         				ItemPath.create(UserType.F_ASSIGNMENT, judgeAssignment.getId(),
                 				AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
@@ -842,7 +843,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         AssignmentType sailorAssignment = getUserAssignment(USER_BARBOSSA_OID, ROLE_SAILOR_OID);
 
         ObjectDelta<UserType> objectDelta =
-        		ObjectDelta.createModificationReplaceProperty(UserType.class,
+        		ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class,
         				USER_BARBOSSA_OID,
         				ItemPath.create(
                 				UserType.F_ASSIGNMENT,
@@ -907,7 +908,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         sailorAssignmentLight.setId(sailorAssignment.getId());
 
         ObjectDelta<UserType> objectDelta =
-        		ObjectDelta.createModificationReplaceProperty(UserType.class,
+        		ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class,
         				USER_BARBOSSA_OID,
         				ItemPath.create(
                 				UserType.F_ASSIGNMENT,
@@ -934,7 +935,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         assertNotAuthorized(principal, AUTZ_PUNISH_URL);
 
         objectDelta =
-        		ObjectDelta.createModificationDeleteContainer(UserType.class,
+        		ObjectDeltaCreationUtil.createModificationDeleteContainer(UserType.class,
         				USER_BARBOSSA_OID, UserType.F_ASSIGNMENT, prismContext, judgeAssignmentLight);
         objectDelta.addModificationDeleteContainer(UserType.F_ASSIGNMENT, sailorAssignmentLight);
 
@@ -1232,7 +1233,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         AssignmentType sailorAssignment = getUserAssignment(USER_BARBOSSA_OID, ROLE_RED_SAILOR_OID);
 
         ObjectDelta<UserType> objectDelta =
-        		ObjectDelta.createModificationReplaceProperty(UserType.class,
+        		ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class,
         				USER_BARBOSSA_OID,
         				ItemPath.create(
                 				UserType.F_ASSIGNMENT,
@@ -1288,7 +1289,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         AssignmentType sailorAssignment = getUserAssignment(USER_BARBOSSA_OID, ROLE_RED_SAILOR_OID);
 
         ObjectDelta<UserType> objectDelta =
-        		ObjectDelta.createModificationReplaceProperty(UserType.class,
+        		ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class,
         				USER_BARBOSSA_OID,
         				ItemPath.create(
                 				UserType.F_ASSIGNMENT,
@@ -1353,7 +1354,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         sailorAssignmentLight.setId(sailorAssignment.getId());
 
         ObjectDelta<UserType> objectDelta =
-        		ObjectDelta.createModificationReplaceProperty(UserType.class,
+        		ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class,
         				USER_BARBOSSA_OID,
 				        ItemPath.create(UserType.F_ASSIGNMENT, judgeAssignment.getId(),
                 				AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
@@ -1377,7 +1378,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         assertNotAuthorized(principal, AUTZ_PUNISH_URL);
 
         objectDelta =
-        		ObjectDelta.createModificationDeleteContainer(UserType.class,
+        		ObjectDeltaCreationUtil.createModificationDeleteContainer(UserType.class,
         				USER_BARBOSSA_OID, UserType.F_ASSIGNMENT, prismContext, judgeAssignmentLight);
         objectDelta.addModificationDeleteContainer(UserType.F_ASSIGNMENT, sailorAssignmentLight);
 

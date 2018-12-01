@@ -531,7 +531,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			if (accDto.getStatus() == UserDtoStatus.DELETE) {
 				ObjectWrapper accWrapper = accDto.getObject();
 				ReferenceDelta refDelta = ReferenceDeltaImpl.createModificationDelete(UserType.F_LINK_REF,
-						focusWrapper.getObject().getDefinition(), accWrapper.getObject());
+						focusWrapper.getObject().getDefinition(), accWrapper.getObject(), getPrismContext());
 				refDeltas.add(refDelta);
 			} else if (accDto.getStatus() == UserDtoStatus.UNLINK) {
 				ObjectWrapper accWrapper = accDto.getObject();
@@ -541,13 +541,13 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			}
 		}
 		if (!refDeltas.isEmpty()) {
-			forceDeleteDelta = ObjectDelta.createModifyDelta(focusWrapper.getObject().getOid(), refDeltas,
+			forceDeleteDelta = ObjectDeltaCreationUtil.createModifyDelta(focusWrapper.getObject().getOid(), refDeltas,
 					getCompileTimeClass(), getPrismContext());
 		}
 		PrismContainerDefinition def = focusWrapper.getObject().findContainer(UserType.F_ASSIGNMENT)
 				.getDefinition();
 		if (forceDeleteDelta == null) {
-			forceDeleteDelta = ObjectDelta.createEmptyModifyDelta(getCompileTimeClass(),
+			forceDeleteDelta = ObjectDeltaCreationUtil.createEmptyModifyDelta(getCompileTimeClass(),
 					focusWrapper.getObject().getOid(), getPrismContext());
 		}
 //perhaps not needed anymore
@@ -618,7 +618,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 				}
 
 				if (accountWrapper.getOldDelta() != null) {
-					delta = ObjectDelta.summarize(delta, accountWrapper.getOldDelta());
+					delta = ObjectDeltaCollectionsUtil.summarize(delta, accountWrapper.getOldDelta());
 				}
 
 				// what is this???
@@ -762,7 +762,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			ObjectWrapper<F> focusWrapper = getObjectWrapper();
 			delta = focusWrapper.getObjectDelta();
 			if (focusWrapper.getOldDelta() != null) {
-				delta = ObjectDelta.summarize(focusWrapper.getOldDelta(), delta);
+				delta = ObjectDeltaCollectionsUtil.summarize(focusWrapper.getOldDelta(), delta);
 			}
 
 			switch (focusWrapper.getStatus()) {

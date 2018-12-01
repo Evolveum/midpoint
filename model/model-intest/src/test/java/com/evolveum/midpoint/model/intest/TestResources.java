@@ -29,7 +29,7 @@ import java.util.Random;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -45,9 +45,6 @@ import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
 import com.evolveum.midpoint.common.validator.LegacyValidator;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.sql.testing.CarefulAnt;
@@ -1090,7 +1087,8 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 		PrismPropertyDefinition<String> propDef = new PrismPropertyDefinitionImpl<>(IntegrationTestTools.RESOURCE_DUMMY_CONFIGURATION_USELESS_STRING_ELEMENT_NAME,
 				DOMUtil.XSD_STRING, prismContext);
 		PropertyDelta<String> propDelta = PropertyDeltaImpl.createModificationReplaceProperty(propPath, propDef, newValue);
-    	ObjectDelta<ResourceType> resourceDelta = ObjectDelta.createModifyDelta(RESOURCE_DUMMY_OID, propDelta, ResourceType.class, prismContext);
+    	ObjectDelta<ResourceType> resourceDelta = ObjectDeltaCreationUtil
+			    .createModifyDelta(RESOURCE_DUMMY_OID, propDelta, ResourceType.class, prismContext);
     	display("Resource delta", resourceDelta);
     	return resourceDelta;
     }
@@ -1178,7 +1176,8 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 
     	// GIVEN
     	ItemDelta<?,?> itemDelta = ant.createDelta(iteration);
-		ObjectDelta<ResourceType> objectDelta = ObjectDelta.createModifyDelta(RESOURCE_DUMMY_OID, itemDelta, ResourceType.class, prismContext);
+		ObjectDelta<ResourceType> objectDelta = ObjectDeltaCreationUtil
+				.createModifyDelta(RESOURCE_DUMMY_OID, itemDelta, ResourceType.class, prismContext);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 
 		IntegrationTestTools.assertNoRepoCache();

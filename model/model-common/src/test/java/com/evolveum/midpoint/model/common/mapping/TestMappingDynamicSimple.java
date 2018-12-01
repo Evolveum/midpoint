@@ -56,10 +56,7 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.StringPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -661,7 +658,7 @@ public class TestMappingDynamicSimple {
     	TestUtil.displayTestTitle(TEST_NAME);
 
     	// GIVEN
-    	ObjectDelta<UserType> delta = ObjectDelta.createModificationDeleteProperty(UserType.class, evaluator.USER_OLD_OID,
+    	ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createModificationDeleteProperty(UserType.class, evaluator.USER_OLD_OID,
 				UserType.F_GIVEN_NAME, evaluator.getPrismContext(), PrismTestUtil.createPolyString("Jack"));
 
     	MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
@@ -689,7 +686,7 @@ public class TestMappingDynamicSimple {
     	TestUtil.displayTestTitle(TEST_NAME);
 
     	// GIVEN
-    	ObjectDelta<UserType> delta = ObjectDelta.createModificationDeleteProperty(UserType.class, evaluator.USER_OLD_OID,
+    	ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createModificationDeleteProperty(UserType.class, evaluator.USER_OLD_OID,
     			UserType.F_GIVEN_NAME, evaluator.getPrismContext(), PrismTestUtil.createPolyString("Jack"));
 
     	PrismObject<UserType> userOld = evaluator.getUserOld();
@@ -720,7 +717,7 @@ public class TestMappingDynamicSimple {
     	TestUtil.displayTestTitle(TEST_NAME);
 
     	// GIVEN
-    	ObjectDelta<UserType> delta = ObjectDelta.createModificationDeleteProperty(UserType.class, evaluator.USER_OLD_OID,
+    	ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createModificationDeleteProperty(UserType.class, evaluator.USER_OLD_OID,
 				UserType.F_GIVEN_NAME, evaluator.getPrismContext(), PrismTestUtil.createPolyString("Jack"));
     	delta.addModificationDeleteProperty(UserType.F_FAMILY_NAME, PrismTestUtil.createPolyString("Sparrow"));
 
@@ -884,7 +881,7 @@ public class TestMappingDynamicSimple {
     	PrismObject<UserType> user = evaluator.getUserOld();
     	user.asObjectable().getEmployeeType().clear();
     	user.asObjectable().getEmployeeType().add("CAPTAIN");
-    	ObjectDelta<UserType> delta = ObjectDelta.createAddDelta(user);
+    	ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createAddDelta(user);
 
 		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				"mapping-condition-nonempty.xml",
@@ -912,7 +909,7 @@ public class TestMappingDynamicSimple {
     	PrismObject<UserType> user = evaluator.getUserOld();
     	user.asObjectable().getEmployeeType().clear();
     	user.asObjectable().getEmployeeType().add("");
-    	ObjectDelta<UserType> delta = ObjectDelta.createAddDelta(user);
+    	ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createAddDelta(user);
 
 		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				"mapping-condition-nonempty.xml",
@@ -936,7 +933,7 @@ public class TestMappingDynamicSimple {
 
     	PrismObject<UserType> user = evaluator.getUserOld();
     	user.asObjectable().getEmployeeType().clear();
-    	ObjectDelta<UserType> delta = ObjectDelta.createAddDelta(user);
+    	ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createAddDelta(user);
 
 		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				"mapping-condition-nonempty.xml",
@@ -958,7 +955,8 @@ public class TestMappingDynamicSimple {
     	TestUtil.displayTestTitle(TEST_NAME);
 
     	// GIVEN
-    	ObjectDelta<UserType> delta = ObjectDelta.createEmptyModifyDelta(UserType.class, evaluator.USER_OLD_OID, evaluator.getPrismContext());
+    	ObjectDelta<UserType> delta = ObjectDeltaCreationUtil
+			    .createEmptyModifyDelta(UserType.class, evaluator.USER_OLD_OID, evaluator.getPrismContext());
     	PropertyDelta<String> propDelta = delta.createPropertyModification(evaluator.toPath("employeeType"));
     	propDelta.addRealValuesToAdd("CAPTAIN");
     	propDelta.addRealValuesToDelete("LANDLUBER");
@@ -998,7 +996,8 @@ public class TestMappingDynamicSimple {
     	TestUtil.displayTestTitle(TEST_NAME);
 
     	// GIVEN
-    	ObjectDelta<UserType> delta = ObjectDelta.createEmptyModifyDelta(UserType.class, evaluator.USER_OLD_OID, evaluator.getPrismContext());
+    	ObjectDelta<UserType> delta = ObjectDeltaCreationUtil
+			    .createEmptyModifyDelta(UserType.class, evaluator.USER_OLD_OID, evaluator.getPrismContext());
     	PropertyDelta<String> propDelta = delta.createPropertyModification(evaluator.toPath("employeeType"));
     	propDelta.setRealValuesToReplace("CAPTAIN");
     	delta.addModification(propDelta);

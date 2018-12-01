@@ -19,7 +19,7 @@ package com.evolveum.midpoint.web.page.self;
 import java.util.Arrays;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
@@ -174,7 +174,7 @@ public class PagePostAuthentication extends PageAbstractFlow {
 		
 		if (result.isAcceptable()) {
 			runPrivileged(() -> {
-				ObjectDelta<UserType> lifecycleDelta = ObjectDelta.createModificationDeleteProperty(UserType.class,
+				ObjectDelta<UserType> lifecycleDelta = ObjectDeltaCreationUtil.createModificationDeleteProperty(UserType.class,
 						userModel.getObject().getOid(), UserType.F_LIFECYCLE_STATE, getPrismContext(),
 						getPostAuthenticationConfiguration().getRequiredLifecycleState());
 				

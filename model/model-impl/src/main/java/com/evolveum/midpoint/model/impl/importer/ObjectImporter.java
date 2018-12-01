@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.PrismSchemaImpl;
@@ -377,7 +378,7 @@ public class ObjectImporter {
     private <T extends ObjectType> String addObject(PrismObject<T> object, boolean overwrite, ImportOptionsType importOptions,
 		    Task task, OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 
-    	ObjectDelta<T> delta = ObjectDelta.createAddDelta(object);
+    	ObjectDelta<T> delta = ObjectDeltaCreationUtil.createAddDelta(object);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
 		ModelExecuteOptions modelOptions;
 	    if (importOptions.getModelExecutionOptions() != null) {

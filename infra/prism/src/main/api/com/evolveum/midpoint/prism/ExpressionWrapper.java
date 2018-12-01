@@ -24,13 +24,21 @@ import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 
 /**
- * @author mederly
+ * Contains the expression that can be part of e.g. prism filters (or other data).
  */
 public class ExpressionWrapper implements Cloneable, Serializable {
 	private static final long serialVersionUID = 1L;
 
-	private QName elementName;
-    private Object expression;
+	/**
+	 * Name of the expression root element (e.g. "expression").
+	 */
+	private final QName elementName;
+
+	/**
+	 * Content of the expression.
+	 * TODO specify more precisely
+	 */
+    private final Object expression;
 
     public ExpressionWrapper(QName elementName, Object expression) {
 		super();
@@ -47,6 +55,7 @@ public class ExpressionWrapper implements Cloneable, Serializable {
     }
 
 	public ExpressionWrapper clone() {
+    	// todo call super.clone?
 		Object expressionClone = CloneUtil.clone(expression);
 		return new ExpressionWrapper(elementName, expressionClone);
 	}

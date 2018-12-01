@@ -152,7 +152,7 @@ public class ModelCrudService {
 		PrismObject<ShadowType> shadowToAdd;
 		if (deltaType != null){
 
-			delta = ObjectDelta.createEmptyDelta(ShadowType.class, deltaType.getOid(), prismContext, ChangeType.toChangeType(deltaType.getChangeType()));
+			delta = ObjectDeltaCreationUtil.createEmptyDelta(ShadowType.class, deltaType.getOid(), prismContext, ChangeType.toChangeType(deltaType.getChangeType()));
 
 			if (delta.getChangeType() == ChangeType.ADD) {
 //						LOGGER.trace("determined ADD change ");
@@ -276,7 +276,7 @@ public class ModelCrudService {
 				}
 			}
 
-			ObjectDelta<T> objectDelta = ObjectDelta.createAddDelta(object);
+			ObjectDelta<T> objectDelta = ObjectDeltaCreationUtil.createAddDelta(object);
 			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 			modelService.executeChanges(deltas, options, task, result);
 
@@ -335,7 +335,7 @@ public class ModelCrudService {
 		RepositoryCache.enter();
 
 		try {
-			ObjectDelta<T> objectDelta = new ObjectDelta<>(clazz, ChangeType.DELETE, prismContext);
+			ObjectDelta<T> objectDelta = prismContext.deltaFactory().createObjectDelta(clazz, ChangeType.DELETE);
 			objectDelta.setOid(oid);
 
 			LOGGER.trace("Deleting object with oid {}.", new Object[] { oid });
@@ -426,7 +426,7 @@ public class ModelCrudService {
 
 		try {
 
-			ObjectDelta<T> objectDelta = ObjectDelta.createModifyDelta(oid, modifications, type, prismContext);
+			ObjectDelta<T> objectDelta = ObjectDeltaCreationUtil.createModifyDelta(oid, modifications, type, prismContext);
 			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 			modelService.executeChanges(deltas, options, task, result);
 

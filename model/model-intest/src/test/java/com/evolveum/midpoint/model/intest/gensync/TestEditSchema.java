@@ -26,6 +26,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.*;
 import org.springframework.test.annotation.DirtiesContext;
@@ -478,7 +479,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         row.setKey("gi_GI");
         row.setValue("gi");
         row.setLabel(PrismTestUtil.createPolyStringType("Gibberish"));
-        ObjectDelta<LookupTableType> delta = ObjectDelta.createModificationAddContainer(LookupTableType.class,
+        ObjectDelta<LookupTableType> delta = ObjectDeltaCreationUtil.createModificationAddContainer(LookupTableType.class,
         		LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, prismContext, row);
 
 		// WHEN
@@ -525,7 +526,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         LookupTableRowType row = new LookupTableRowType();
         row.setKey("gi_GO");
         row.setLabel(PrismTestUtil.createPolyStringType("Gobbledygook"));
-        ObjectDelta<LookupTableType> delta = ObjectDelta.createModificationAddContainer(LookupTableType.class,
+        ObjectDelta<LookupTableType> delta = ObjectDeltaCreationUtil.createModificationAddContainer(LookupTableType.class,
         		LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, prismContext, row);
 
 		// WHEN
@@ -573,7 +574,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         LookupTableRowType row = new LookupTableRowType();
         row.setKey("gi_HU");
         row.setValue("gi");
-        ObjectDelta<LookupTableType> delta = ObjectDelta.createModificationAddContainer(LookupTableType.class,
+        ObjectDelta<LookupTableType> delta = ObjectDeltaCreationUtil.createModificationAddContainer(LookupTableType.class,
         		LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, prismContext, row);
 
 		// WHEN
@@ -623,7 +624,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         row.setKey("gi_HU");
         row.setValue("gi");
         row.setLabel(PrismTestUtil.createPolyStringType("Humbug"));
-        ObjectDelta<LookupTableType> delta = ObjectDelta.createModificationAddContainer(LookupTableType.class,
+        ObjectDelta<LookupTableType> delta = ObjectDeltaCreationUtil.createModificationAddContainer(LookupTableType.class,
         		LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, prismContext, row);
 
 		// WHEN
@@ -684,7 +685,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         row.setKey("sk_SK");
         row.setValue("sk");
         row.setLabel(PrismTestUtil.createPolyStringType("Slovak"));
-        ObjectDelta<LookupTableType> delta = ObjectDelta.createModificationDeleteContainer(LookupTableType.class,
+        ObjectDelta<LookupTableType> delta = ObjectDeltaCreationUtil.createModificationDeleteContainer(LookupTableType.class,
         		LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, prismContext, row);
 
 		// WHEN
@@ -733,7 +734,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         row.setValue("en");
         row.setLabel(PrismTestUtil.createPolyStringType("English (US)"));
         row.setId(1L);
-        ObjectDelta<LookupTableType> delta = ObjectDelta.createModificationDeleteContainer(LookupTableType.class,
+        ObjectDelta<LookupTableType> delta = ObjectDeltaCreationUtil.createModificationDeleteContainer(LookupTableType.class,
         		LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, prismContext, row);
 
 		// WHEN
@@ -776,7 +777,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
         LookupTableRowType row = new LookupTableRowType();
         row.setId(2L);
-        ObjectDelta<LookupTableType> delta = ObjectDelta.createModificationDeleteContainer(LookupTableType.class,
+        ObjectDelta<LookupTableType> delta = ObjectDeltaCreationUtil.createModificationDeleteContainer(LookupTableType.class,
         		LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, prismContext, row);
 
 		// WHEN
@@ -818,7 +819,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
         LookupTableRowType row = new LookupTableRowType();
         row.setKey("gi_GI");
-        ObjectDelta<LookupTableType> delta = ObjectDelta.createModificationDeleteContainer(LookupTableType.class,
+        ObjectDelta<LookupTableType> delta = ObjectDeltaCreationUtil.createModificationDeleteContainer(LookupTableType.class,
         		LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, prismContext, row);
 
 		// WHEN
@@ -872,7 +873,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         row3.setValue("en1");
         row3.setLabel(PrismTestUtil.createPolyStringType("English (pirate1)"));
 
-        ObjectDelta<LookupTableType> delta = ObjectDelta.createModificationReplaceContainer(LookupTableType.class,
+        ObjectDelta<LookupTableType> delta = ObjectDeltaCreationUtil.createModificationReplaceContainer(LookupTableType.class,
         		LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, prismContext, row1, row2, row3);
 
 		// WHEN
@@ -914,7 +915,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         OperationResult result = task.getResult();
 
         PrismObject<LookupTableType> replacement = PrismTestUtil.parseObject(LOOKUP_LANGUAGES_REPLACEMENT_FILE);
-        ObjectDelta<LookupTableType> delta = ObjectDelta.createAddDelta(replacement);
+        ObjectDelta<LookupTableType> delta = ObjectDeltaCreationUtil.createAddDelta(replacement);
 
         // WHEN
         displayWhen(TEST_NAME);

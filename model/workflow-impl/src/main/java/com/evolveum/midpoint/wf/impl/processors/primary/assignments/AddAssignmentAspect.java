@@ -266,7 +266,7 @@ public abstract class AddAssignmentAspect<T extends ObjectType, F extends FocusT
         addRoleDelta.addValueToAdd(assignmentValue);
 
         Class focusClass = primaryChangeAspectHelper.getFocusClass(modelContext);
-        return ObjectDelta.createModifyDelta(objectOid, addRoleDelta, focusClass, modelContext.getPrismContext());
+        return ObjectDeltaCreationUtil.createModifyDelta(objectOid, addRoleDelta, focusClass, modelContext.getPrismContext());
     }
 
     //endregion

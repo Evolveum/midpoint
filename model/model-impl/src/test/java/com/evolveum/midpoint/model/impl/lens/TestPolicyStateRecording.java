@@ -35,7 +35,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.evolveum.midpoint.model.api.ModelExecuteOptions.createReconcile;
-import static com.evolveum.midpoint.prism.delta.ObjectDelta.createEmptyModifyDelta;
+import static com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil.createEmptyModifyDelta;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentTo;
 import static org.testng.AssertJUnit.assertEquals;
 

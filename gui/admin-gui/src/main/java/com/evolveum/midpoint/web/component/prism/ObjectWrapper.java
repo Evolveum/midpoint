@@ -24,6 +24,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -324,8 +325,7 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 			LOGGER.trace("Wrapper before creating delta:\n{}", this.debugDump());
 		}
 
-		
-		ObjectDelta<O> delta = new ObjectDelta<>(object.getCompileTimeClass(), ChangeType.MODIFY, object.getPrismContext());
+		ObjectDelta<O> delta = object.getPrismContext().deltaFactory().createObjectDelta(object.getCompileTimeClass(), ChangeType.MODIFY);
 		delta.setOid(object.getOid());
 
 		List<ContainerWrapper<? extends Containerable>> containers = getContainers();
@@ -340,7 +340,7 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 			PrismObject<O> objectToModify = object.clone();
 			delta.applyTo(objectToModify);
 			cleanupEmptyContainers(objectToModify);
-			ObjectDelta<O> addDelta = ObjectDelta.createAddDelta(objectToModify);
+			ObjectDelta<O> addDelta = ObjectDeltaCreationUtil.createAddDelta(objectToModify);
 			if (object.getPrismContext() != null) {
 				// Make sure we have all the definitions
 				object.getPrismContext().adopt(delta);

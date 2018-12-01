@@ -24,7 +24,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
+import com.evolveum.midpoint.prism.delta.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -34,9 +34,6 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -341,7 +338,8 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		ProjectionPolicyType projectionPolicyType = new ProjectionPolicyType();
 		projectionPolicyType.setLegalize(true);
 
-		ObjectDelta<ResourceType> objectDelta = ObjectDelta.createModificationReplaceContainer(ResourceType.class, RESOURCE_DUMMY_OID,
+		ObjectDelta<ResourceType> objectDelta = ObjectDeltaCreationUtil
+				.createModificationReplaceContainer(ResourceType.class, RESOURCE_DUMMY_OID,
 				ResourceType.F_PROJECTION, prismContext, projectionPolicyType);
 
 		// WHEN
@@ -451,7 +449,8 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		ProjectionPolicyType projectionPolicyType = new ProjectionPolicyType();
 		projectionPolicyType.setLegalize(true);
 
-		ObjectDelta<ResourceType> objectDelta = ObjectDelta.createModificationReplaceContainer(ResourceType.class, RESOURCE_DUMMY_OID,
+		ObjectDelta<ResourceType> objectDelta = ObjectDeltaCreationUtil
+				.createModificationReplaceContainer(ResourceType.class, RESOURCE_DUMMY_OID,
 				ResourceType.F_PROJECTION, prismContext, projectionPolicyType);
 
 		// WHEN

@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
@@ -170,7 +171,7 @@ public class ModelEvent extends BaseEvent {
     }
 
     public ObjectDelta<? extends FocusType> getSummarizedFocusDeltas() throws SchemaException {
-        return ObjectDelta.summarize(getFocusDeltas());
+        return ObjectDeltaCollectionsUtil.summarize(getFocusDeltas());
     }
 
     public boolean hasFocusOfType(Class<? extends FocusType> clazz) {

@@ -917,7 +917,7 @@ public class TestParseDiffPatch {
     public void testReplaceModelOperationContext() throws Exception {
         PrismObject prismObject = PrismTestUtil.parseObject(new File(TEST_DIR, "task-modelOperationContext-before.xml"));
 
-        ObjectDelta delta = ObjectDelta.createEmptyModifyDelta(TaskType.class, prismObject.getOid(), getPrismContext());
+        ObjectDelta delta = ObjectDeltaCreationUtil.createEmptyModifyDelta(TaskType.class, prismObject.getOid(), getPrismContext());
         delta.addModificationReplaceContainer(TaskType.F_MODEL_OPERATION_CONTEXT);
 
         PrismObject changed = prismObject.clone();

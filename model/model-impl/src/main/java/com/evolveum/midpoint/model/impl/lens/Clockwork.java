@@ -807,7 +807,7 @@ public class Clockwork {
 			} else {
 				@SuppressWarnings({"unchecked", "raw"})
 				Class<F> fClass = (Class<F>) objectNew.asObjectable().getClass();
-				ObjectDelta<F> fakeDelta = new ObjectDelta<>(fClass, ChangeType.MODIFY, prismContext);
+				ObjectDelta<F> fakeDelta = prismContext.deltaFactory().createObjectDelta(fClass, ChangeType.MODIFY);
 				odo.setObjectDelta(fakeDelta);
 			}
 			odo.setExecutionResult(result);		// we rely on the fact that 'result' already contains record of the exception
@@ -970,7 +970,7 @@ public class Clockwork {
 	}
 
 	private <F extends ObjectType> ObjectDelta<F> simplifyDelta(ObjectDelta<F> delta) {
-		return new ObjectDelta<>(delta.getObjectTypeClass(), delta.getChangeType(), prismContext);
+		return prismContext.deltaFactory().createObjectDelta(delta.getObjectTypeClass(), delta.getChangeType());
 	}
 
 	private <F extends ObjectType> HookOperationMode triggerReconcileAffected(LensContext<F> context, Task task, OperationResult result) throws SchemaException {

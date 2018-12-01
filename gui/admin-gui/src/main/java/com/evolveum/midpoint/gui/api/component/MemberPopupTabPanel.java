@@ -18,6 +18,7 @@ package com.evolveum.midpoint.gui.api.component;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -85,7 +86,7 @@ public abstract class MemberPopupTabPanel<O extends ObjectType> extends Abstract
         ObjectDelta delta = null;
         try {
             Class classType = WebComponentUtil.qnameToClass(pageBase.getPrismContext(), getObjectType().getTypeQName());
-            delta =  ObjectDelta.createEmptyModifyDelta(classType, "fakeOid", pageBase.getPrismContext());
+            delta =  ObjectDeltaCreationUtil.createEmptyModifyDelta(classType, "fakeOid", pageBase.getPrismContext());
             AssignmentType newAssignment = new AssignmentType();
             ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(getAbstractRoleTypeObject(), getRelationValue());
             newAssignment.setTargetRef(ref);

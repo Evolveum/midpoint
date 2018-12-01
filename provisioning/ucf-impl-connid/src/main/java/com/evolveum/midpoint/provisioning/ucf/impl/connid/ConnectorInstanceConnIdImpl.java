@@ -2900,8 +2900,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			SyncDeltaType icfDeltaType = icfDelta.getDeltaType();
 			if (SyncDeltaType.DELETE.equals(icfDeltaType)) {
 				LOGGER.trace("START creating delta of type DELETE");
-				ObjectDelta<ShadowType> objectDelta = new ObjectDelta<>(
-                    ShadowType.class, ChangeType.DELETE, prismContext);
+				ObjectDelta<ShadowType> objectDelta = prismContext.deltaFactory().createObjectDelta(ShadowType.class, ChangeType.DELETE);
 				Collection<ResourceAttribute<?>> identifiers = ConnIdUtil.convertToIdentifiers(icfDelta.getUid(),
 						deltaObjClassDefinition, resourceSchema);
 				Change change = new Change(identifiers, objectDelta, getToken(icfDelta.getToken()));
@@ -2923,8 +2922,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 				Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getAllIdentifiers(currentShadow);
 
-				ObjectDelta<ShadowType> objectDelta = new ObjectDelta<>(
-                    ShadowType.class, ChangeType.ADD, prismContext);
+				ObjectDelta<ShadowType> objectDelta = prismContext.deltaFactory().createObjectDelta(ShadowType.class, ChangeType.ADD);
 				objectDelta.setObjectToAdd(currentShadow);
 
 				Change change = new Change(identifiers, objectDelta, getToken(icfDelta.getToken()));

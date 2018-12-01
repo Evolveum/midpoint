@@ -24,6 +24,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -670,7 +671,7 @@ public class PageTaskAdd extends PageAdminTasks {
 
     private List<ObjectDelta<? extends ObjectType>> prepareChangesToExecute(TaskType taskToBeAdded) {
         List<ObjectDelta<? extends ObjectType>> retval = new ArrayList<>();
-        retval.add(ObjectDelta.createAddDelta(taskToBeAdded.asPrismObject()));
+        retval.add(ObjectDeltaCreationUtil.createAddDelta(taskToBeAdded.asPrismObject()));
         return retval;
     }
 

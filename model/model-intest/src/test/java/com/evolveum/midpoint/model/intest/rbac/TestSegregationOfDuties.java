@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import org.springframework.test.annotation.DirtiesContext;
@@ -313,7 +314,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 		modifications.add((createAssignmentModification(ROLE_JUDGE_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
 		modifications.add((createAssignmentModification(ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
+		ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil
+				.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
 
         try {
         	modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
@@ -337,7 +339,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 		modifications.add((createAssignmentModification(ROLE_JUDGE_DEPRECATED_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
 		modifications.add((createAssignmentModification(ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
+		ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil
+				.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
 
         try {
         	modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
@@ -361,7 +364,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 		modifications.add((createAssignmentModification(ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
 		modifications.add((createAssignmentModification(ROLE_JUDGE_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
+		ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil
+				.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
 
         try {
         	modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
@@ -385,7 +389,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 		modifications.add((createAssignmentModification(ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
 		modifications.add((createAssignmentModification(ROLE_JUDGE_DEPRECATED_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
+		ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil
+				.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
 
         try {
         	modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
@@ -409,7 +414,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 		modifications.add((createAssignmentModification(ROLE_THIEF_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
 		modifications.add((createAssignmentModification(ROLE_JUDGE_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
+		ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil
+				.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
 
         try {
         	modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
@@ -433,7 +439,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 		modifications.add((createAssignmentModification(ROLE_JUDGE_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
 		modifications.add((createAssignmentModification(ROLE_THIEF_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
+		ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil
+				.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
 
         try {
         	modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
@@ -590,7 +597,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 		modifications.add((createAssignmentModification(ROLE_JUDGE_OID, RoleType.COMPLEX_TYPE, SchemaConstants.ORG_APPROVER, null, null, true)));
 		modifications.add((createAssignmentModification(ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
+		ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil
+				.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
 
 		try {
 			modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
@@ -613,7 +621,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 		modifications.add((createAssignmentModification(ROLE_JUDGE_DEPRECATED_OID, RoleType.COMPLEX_TYPE, SchemaConstants.ORG_APPROVER, null, null, true)));
 		modifications.add((createAssignmentModification(ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
+		ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil
+				.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
 
 		try {
 			modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
@@ -636,7 +645,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 		modifications.add((createAssignmentModification(ROLE_JUDGE_DEPRECATED_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
 		modifications.add((createAssignmentModification(ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, SchemaConstants.ORG_APPROVER, null, null, true)));
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
+		ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil
+				.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
 
 		try {
 			modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
@@ -659,7 +669,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 		modifications.add((createAssignmentModification(ROLE_JUDGE_OID, RoleType.COMPLEX_TYPE, SchemaConstants.ORG_APPROVER, null, null, true)));
 		modifications.add((createAssignmentModification(ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, SchemaConstants.ORG_APPROVER, null, null, true)));
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
+		ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil
+				.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
 
 		try {
 			modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
@@ -682,7 +693,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 		modifications.add((createAssignmentModification(ROLE_JUDGE_OID, RoleType.COMPLEX_TYPE, SchemaConstants.ORG_MANAGER, null, null, true)));
 		modifications.add((createAssignmentModification(ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT, null, null, true)));
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
+		ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil
+				.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
 
 		try {
 			modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);

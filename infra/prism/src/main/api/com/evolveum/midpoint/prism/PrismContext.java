@@ -36,6 +36,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringNormalizerConfigurationType;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
+import org.w3c.dom.ls.LSResourceResolver;
 import org.xml.sax.SAXException;
 
 import javax.xml.namespace.QName;
@@ -257,9 +258,10 @@ public interface PrismContext extends ProtectorCreator {
 	<O extends Objectable> O createKnownObjectable(@NotNull Class<O> clazz);
 
 	/**
-	 * TODO hide this from PrismContext interface?
+	 * Do not use.
 	 */
-	XmlEntityResolver getEntityResolver();
+	@Deprecated
+	LSResourceResolver getEntityResolver();
 
 	/**
 	 * TODO eliminate this method
@@ -333,4 +335,10 @@ public interface PrismContext extends ProtectorCreator {
 
 	@NotNull
 	DeltaFactory deltaFactory();
+
+	@NotNull
+	ItemFactory itemFactory();
+
+	@NotNull
+	DefinitionFactory definitionFactory();
 }

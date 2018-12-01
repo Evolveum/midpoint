@@ -2436,7 +2436,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         }
 
 
-        ObjectDelta delta = new ObjectDelta(ShadowType.class, ChangeType.MODIFY, prismContext);
+        ObjectDelta delta = prismContext.deltaFactory().createObjectDelta(ShadowType.class, ChangeType.MODIFY);
         delta.addModification(deleteDelta);
         delta.setOid(accountShadowOidGuybrushOpendj);
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();

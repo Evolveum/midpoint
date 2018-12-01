@@ -1087,7 +1087,7 @@ public class TestTrafo extends AbstractStoryTest {
 
         Collection<? extends ItemDelta> fullNameModification = PropertyDeltaImpl
 		        .createModificationReplacePropertyCollection(UserType.F_FAMILY_NAME, userSmith.getDefinition(), new PolyString("Smither", "smither"));
-        ObjectDelta.createModifyDelta(userSmith.getOid(), fullNameModification, UserType.class, prismContext);
+        ObjectDeltaCreationUtil.createModifyDelta(userSmith.getOid(), fullNameModification, UserType.class, prismContext);
 
 
 

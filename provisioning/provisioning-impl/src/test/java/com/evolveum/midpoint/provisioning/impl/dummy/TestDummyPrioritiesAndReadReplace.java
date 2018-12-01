@@ -19,6 +19,7 @@ package com.evolveum.midpoint.provisioning.impl.dummy;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -195,7 +196,7 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
 		syncServiceMock.reset();
 
 		// todo add correct definition
-		ObjectDelta<ShadowType> objectDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
+		ObjectDelta<ShadowType> objectDelta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
 				ACCOUNT_WILL_OID, dummyResourceCtl.getAttributeFullnamePath(), prismContext, "Pirate Master Will Turner");
 		PropertyDelta weaponDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributeWeaponPath());
 		weaponDelta.setDefinition(
@@ -293,7 +294,7 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
 
 		// NOT a read replace attribute
 		// todo add correct definition
-		ObjectDelta<ShadowType> objectDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
+		ObjectDelta<ShadowType> objectDelta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
 				ACCOUNT_WILL_OID, dummyResourceCtl.getAttributeFullnamePath(), prismContext, "Pirate Great Master Will Turner");
 		// read replace attribute, priority 0
 		PropertyDelta weaponDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributeWeaponPath());

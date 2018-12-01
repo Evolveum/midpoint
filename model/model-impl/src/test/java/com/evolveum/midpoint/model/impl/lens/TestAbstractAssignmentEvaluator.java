@@ -36,7 +36,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.RelationRegistry;
@@ -55,9 +55,6 @@ import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
 import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -216,7 +213,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 		user.asObjectable().getAssignment().add(assignmentType.clone());
 
 		ItemPath path = ItemPath.create(UserType.F_ASSIGNMENT, 123L, AssignmentType.F_DESCRIPTION);
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, USER_JACK_OID,
+		ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, USER_JACK_OID,
 				path, prismContext, "captain");
 		ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(user, userDelta, null);
 		userOdo.recompute();
@@ -282,7 +279,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 //		assignmentContainer.add(assignmentType.asPrismContainerValue().clone());
 
 		ItemPath path = ItemPath.create(UserType.F_ASSIGNMENT, 123L, AssignmentType.F_DESCRIPTION);
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, USER_JACK_OID,
+		ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, USER_JACK_OID,
 				path, prismContext, "sailor");
 		ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(user, userDelta, null);
 		userOdo.recompute();
@@ -514,7 +511,8 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
         AssignmentType assignmentForUser = assignmentType.clone();
         assignmentForUser.asPrismContainerValue().setParent(null);
-        ObjectDelta<UserType> userDelta = ObjectDelta.createModificationAddContainer(UserType.class, USER_JACK_OID, UserType.F_ASSIGNMENT, prismContext, assignmentForUser.asPrismContainerValue());
+        ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil
+		        .createModificationAddContainer(UserType.class, USER_JACK_OID, UserType.F_ASSIGNMENT, prismContext, assignmentForUser.asPrismContainerValue());
         ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(user, userDelta, null);
         userOdo.recompute();
         AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
@@ -589,7 +587,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         assignmentForUser.asPrismContainerValue().setParent(null);
         user.asObjectable().getAssignment().add(assignmentForUser);
 
-        ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, USER_JACK_OID,
+        ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, USER_JACK_OID,
                 UserType.F_COST_CENTER, prismContext, "management");
         ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(user, userDelta, null);
         userOdo.recompute();
@@ -655,7 +653,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         assignmentForUser.asPrismContainerValue().setParent(null);
         user.asObjectable().getAssignment().add(assignmentForUser);
 
-        ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, USER_JACK_OID,
+        ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, USER_JACK_OID,
                 UserType.F_COST_CENTER, prismContext);
         ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(user, userDelta, null);
         userOdo.recompute();

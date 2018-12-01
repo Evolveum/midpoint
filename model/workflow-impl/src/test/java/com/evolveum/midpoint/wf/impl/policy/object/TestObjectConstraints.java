@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismReferenceValueImpl;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -113,7 +114,7 @@ public class TestObjectConstraints extends AbstractWfTestPolicy {
 					@Override
 					protected LensContext createModelContext(OperationResult result) throws Exception {
 						LensContext<RoleType> lensContext = createLensContext(RoleType.class);
-						addFocusDeltaToContext(lensContext, ObjectDelta.createAddDelta(employee));
+						addFocusDeltaToContext(lensContext, ObjectDeltaCreationUtil.createAddDelta(employee));
 						return lensContext;
 					}
 

@@ -158,16 +158,6 @@ public interface PrismValue extends Visitable, PathVisitable, Serializable, Debu
 
 	QName getTypeName();
 
-	static PrismValue fromRealValue(Object realValue) {
-		if (realValue instanceof Containerable) {
-			return ((Containerable) realValue).asPrismContainerValue();
-		} else if (realValue instanceof Referencable) {
-			return ((Referencable) realValue).asReferenceValue();
-		} else {
-			return new PrismPropertyValueImpl<>(realValue);
-		}
-	}
-
 	// Path may contain ambiguous segments (e.g. assignment/targetRef when there are more assignments)
 	// Note that the path can contain name segments only (at least for now)
 	@NotNull

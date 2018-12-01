@@ -19,6 +19,7 @@ import com.evolveum.icf.dummy.resource.*;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -1450,7 +1451,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 						getGroupShadow(getDummyResourceController(RESOURCE_DUMMY_ORANGE_NAME), getDummyResourceController(RESOURCE_DUMMY_ORANGE_NAME).getGroupObjectClass(), "thug-wannabe", task, result) .getOid(),
 								prismContext);
 
-		ObjectDelta<ShadowType> delta = ObjectDelta.summarize(delta1, delta2);
+		ObjectDelta<ShadowType> delta = ObjectDeltaCollectionsUtil.summarize(delta1, delta2);
 
 		// WHEN
 		displayWhen(TEST_NAME);

@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.intest.rbac;
 
 import java.io.File;
 
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -183,7 +184,7 @@ public class TestAutoassign extends AbstractRbacTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-		ObjectDelta<UserType> objectDelta = ObjectDelta.createModificationAddProperty(UserType.class, 
+		ObjectDelta<UserType> objectDelta = ObjectDeltaCreationUtil.createModificationAddProperty(UserType.class,
 				USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, prismContext, createPolyString(UNIT_WORKER));
 		objectDelta.addModificationDeleteProperty(UserType.F_ORGANIZATIONAL_UNIT, createPolyString(UNIT_SLEEPER));
 		

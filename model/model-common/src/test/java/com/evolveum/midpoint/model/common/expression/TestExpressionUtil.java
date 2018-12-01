@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.common.expression;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.marshaller.ItemPathParserTemp;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
@@ -224,7 +225,7 @@ public class TestExpressionUtil {
 	private ExpressionVariables createVariablesOdo() throws SchemaException, IOException {
 		ExpressionVariables variables = new ExpressionVariables();
 		PrismObject<UserType> userOld = createUser();
-		ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class,
+		ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class,
 				userOld.getOid(), UserType.F_FULL_NAME, PrismTestUtil.getPrismContext(),
 				PrismTestUtil.createPolyString("Captain Jack Sparrow"));
 		ObjectDeltaObject<UserType> odo = new ObjectDeltaObject<>(userOld, delta, null);

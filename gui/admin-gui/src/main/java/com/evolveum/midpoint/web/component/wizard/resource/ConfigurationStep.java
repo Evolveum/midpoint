@@ -22,6 +22,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -276,7 +277,8 @@ public class ConfigurationStep extends WizardStep {
 		boolean saved = false;
         try {
             List<ContainerWrapper> wrappers = configurationPropertiesModel.getObject();
-			ObjectDelta delta = ObjectDelta.createEmptyModifyDelta(ResourceType.class, parentPage.getEditedResourceOid(), parentPage.getPrismContext());
+			ObjectDelta delta = ObjectDeltaCreationUtil
+					.createEmptyModifyDelta(ResourceType.class, parentPage.getEditedResourceOid(), parentPage.getPrismContext());
 			for (ContainerWrapper wrapper : wrappers) {
 				wrapper.collectModifications(delta);
 			}

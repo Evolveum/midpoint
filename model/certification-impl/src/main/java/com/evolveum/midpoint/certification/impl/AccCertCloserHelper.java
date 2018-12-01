@@ -310,8 +310,8 @@ public class AccCertCloserHelper {
 			OperationResult subresult = result.createMinorSubresult(OPERATION_DELETE_OBSOLETE_CAMPAIGN);
 			try {
 				LOGGER.debug("Deleting campaign {}", campaign);
-				ObjectDelta<AccessCertificationCampaignType> deleteDelta = new ObjectDelta<>(
-						AccessCertificationCampaignType.class, ChangeType.DELETE, prismContext);
+				ObjectDelta<AccessCertificationCampaignType> deleteDelta = prismContext.deltaFactory().createObjectDelta(
+						AccessCertificationCampaignType.class, ChangeType.DELETE);
 				deleteDelta.setOid(campaign.getOid());
 				modelService.executeChanges(singleton(deleteDelta), null, task, subresult);
 				deleted++;

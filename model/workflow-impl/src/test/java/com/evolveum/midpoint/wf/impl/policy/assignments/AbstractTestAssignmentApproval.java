@@ -21,6 +21,8 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -320,7 +322,8 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 
 			@Override
 			protected ObjectDelta<UserType> getExpectedDelta0() {
-				return ObjectDelta.createModifyDelta(jack.getOid(), Collections.emptyList(), UserType.class, prismContext);
+				return ObjectDeltaCreationUtil
+						.createModifyDelta(jack.getOid(), Collections.emptyList(), UserType.class, prismContext);
 			}
 
 			@Override
@@ -410,8 +413,9 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 				.deltaFor(UserType.class)
 				.item(UserType.F_DESCRIPTION).replace(TEST_NAME)
 				.asObjectDelta(userJackOid);
-		ObjectDelta<UserType> primaryDelta = ObjectDelta.summarize(addRole1Delta, addRole2Delta, addRole3Delta, addRole4Delta, changeDescriptionDelta);
-		ObjectDelta<UserType> delta0 = ObjectDelta.summarize(addRole4Delta, changeDescriptionDelta);
+		ObjectDelta<UserType> primaryDelta = ObjectDeltaCollectionsUtil
+				.summarize(addRole1Delta, addRole2Delta, addRole3Delta, addRole4Delta, changeDescriptionDelta);
+		ObjectDelta<UserType> delta0 = ObjectDeltaCollectionsUtil.summarize(addRole4Delta, changeDescriptionDelta);
 		String originalDescription = getUser(userJackOid).asObjectable().getDescription();
 		executeTest2(TEST_NAME, new TestDetails2<UserType>() {
 			@Override

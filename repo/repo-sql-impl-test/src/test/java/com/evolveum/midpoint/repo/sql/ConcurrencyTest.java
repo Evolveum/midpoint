@@ -451,7 +451,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
                     .item(UserType.F_NAME).eqPoly(name).matchingOrig().build(),
                 (object, parentResult) -> {
                     LOGGER.info("Handling " + object + "...");
-                    ObjectDelta delta = ObjectDelta.createModificationReplaceProperty(UserType.class, object.getOid(),
+                    ObjectDelta delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, object.getOid(),
 		                    UserType.F_FULL_NAME, prismContext, new PolyString(newFullName));
                     try {
                         repositoryService.modifyObject(UserType.class,

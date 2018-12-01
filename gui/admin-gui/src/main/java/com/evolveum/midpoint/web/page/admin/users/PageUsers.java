@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
@@ -450,7 +451,7 @@ public class PageUsers extends PageAdminUsers {
 			try {
 				Task task = createSimpleTask(OPERATION_DELETE_USER);
 
-				ObjectDelta delta = new ObjectDelta(UserType.class, ChangeType.DELETE, getPrismContext());
+				ObjectDelta delta = getPrismContext().deltaFactory().createObjectDelta(UserType.class, ChangeType.DELETE);
 				delta.setOid(user.getOid());
 
 				ExecuteChangeOptionsDto executeOptions = executeOptionsModel.getObject();
@@ -512,7 +513,7 @@ public class PageUsers extends PageAdminUsers {
 				// TODO skip the operation if the user has no password
 				// credentials specified (otherwise this would create
 				// almost-empty password container)
-				ObjectDelta delta = ObjectDelta.createModificationReplaceProperty(
+				ObjectDelta delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(
 						UserType.class, user.getOid(), ItemPath.create(UserType.F_ACTIVATION,
                                 ActivationType.F_LOCKOUT_STATUS),
 						getPrismContext(), LockoutStatusType.NORMAL);
@@ -546,7 +547,7 @@ public class PageUsers extends PageAdminUsers {
 			OperationResult opResult = result.createSubresult(getString(OPERATION_RECONCILE_USER, user));
 			try {
 				Task task = createSimpleTask(OPERATION_RECONCILE_USER + user);
-				ObjectDelta delta = ObjectDelta.createEmptyModifyDelta(UserType.class, user.getOid(),
+				ObjectDelta delta = ObjectDeltaCreationUtil.createEmptyModifyDelta(UserType.class, user.getOid(),
 						getPrismContext());
 				Collection<ObjectDelta<? extends ObjectType>> deltas = WebComponentUtil
 						.createDeltaCollection(delta);

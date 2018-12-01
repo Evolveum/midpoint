@@ -19,6 +19,7 @@ package com.evolveum.midpoint.schema;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaUtil;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -90,12 +91,12 @@ public class ObjectTreeDeltas<T extends ObjectType> implements DebugDumpable {
 			return true;
 		}
 		if (deltas.getFocusPrimaryDelta() != null) {
-			if (!ObjectDelta.isEmpty(deltas.getFocusPrimaryDelta())) {
+			if (!ObjectDeltaUtil.isEmpty(deltas.getFocusPrimaryDelta())) {
 				return false;
 			}
 		}
 		for (ProjectionObjectDeltaType projDelta: deltas.getProjectionPrimaryDelta()) {
-			if (!ObjectDelta.isEmpty(projDelta.getPrimaryDelta())) {
+			if (!ObjectDeltaUtil.isEmpty(projDelta.getPrimaryDelta())) {
 				return false;
 			}
 		}

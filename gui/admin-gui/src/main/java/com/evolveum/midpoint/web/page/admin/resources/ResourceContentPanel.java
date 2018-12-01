@@ -23,7 +23,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.PendingOperationPanel;
-import com.evolveum.midpoint.prism.delta.ReferenceDeltaImpl;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
@@ -65,9 +65,6 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -1016,7 +1013,7 @@ public abstract class ResourceContentPanel extends Panel {
 
 		for (ShadowType shadow : selected) {
 			try {
-				ObjectDelta<ShadowType> deleteDelta = ObjectDelta.createDeleteDelta(ShadowType.class,
+				ObjectDelta<ShadowType> deleteDelta = ObjectDeltaCreationUtil.createDeleteDelta(ShadowType.class,
 						shadow.getOid(), getPageBase().getPrismContext());
 				getPageBase().getModelService().executeChanges(
 						WebComponentUtil.createDeltaCollection(deleteDelta), opts, task, result);
@@ -1078,7 +1075,7 @@ public abstract class ResourceContentPanel extends Panel {
 			ActivationStatusType status = enabled ? ActivationStatusType.ENABLED
 					: ActivationStatusType.DISABLED;
 			try {
-				ObjectDelta<ShadowType> deleteDelta = ObjectDelta.createModificationReplaceProperty(
+				ObjectDelta<ShadowType> deleteDelta = ObjectDeltaCreationUtil.createModificationReplaceProperty(
 						ShadowType.class, shadow.getOid(),
 						SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
 						getPageBase().getPrismContext(), status);
@@ -1181,7 +1178,7 @@ public abstract class ResourceContentPanel extends Panel {
 			AjaxRequestTarget target) {
 		OperationResult result = new OperationResult(OPERATION_CHANGE_OWNER);
 		Task task = pageBase.createSimpleTask(OPERATION_CHANGE_OWNER);
-		ObjectDelta objectDelta = ObjectDelta.createModifyDelta(ownerOid, modifications, FocusType.class,
+		ObjectDelta objectDelta = ObjectDeltaCreationUtil.createModifyDelta(ownerOid, modifications, FocusType.class,
 				pageBase.getPrismContext());
 		Collection deltas = new ArrayList<>();
 		deltas.add(objectDelta);

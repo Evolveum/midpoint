@@ -270,7 +270,7 @@ public class ChangeExecutor {
 					ObjectDelta<ShadowType> projDelta = projCtx.getExecutableDelta();
 
 					if (shouldBeDeleted(projDelta, projCtx)) {
-						projDelta = ObjectDelta.createDeleteDelta(projCtx.getObjectTypeClass(), projCtx.getOid(),
+						projDelta = ObjectDeltaCreationUtil.createDeleteDelta(projCtx.getObjectTypeClass(), projCtx.getOid(),
 								prismContext);
 					}
 
@@ -281,7 +281,7 @@ public class ChangeExecutor {
 								&& context.getOptions() != null
 								&& ModelExecuteOptions.isForce(context.getOptions())) {
 							if (projDelta == null) {
-								projDelta = ObjectDelta.createDeleteDelta(projCtx.getObjectTypeClass(),
+								projDelta = ObjectDeltaCreationUtil.createDeleteDelta(projCtx.getObjectTypeClass(),
 										projCtx.getOid(), prismContext);
 							}
 						}
@@ -761,7 +761,7 @@ public class ChangeExecutor {
 			throw t;
 		} finally {
 			result.computeStatus();
-			ObjectDelta<F> userDelta = ObjectDelta.createModifyDelta(userOid, linkRefDeltas, typeClass,
+			ObjectDelta<F> userDelta = ObjectDeltaCreationUtil.createModifyDelta(userOid, linkRefDeltas, typeClass,
 					prismContext);
 			LensObjectDeltaOperation<F> userDeltaOp = LensUtil.createObjectDeltaOperation(userDelta, result,
 					focusContext, projCtx);
@@ -805,7 +805,7 @@ public class ChangeExecutor {
 			throw t;
 		} finally {
 			result.computeStatus();
-			ObjectDelta<F> userDelta = ObjectDelta.createModifyDelta(focusOid, accountRefDeltas, typeClass,
+			ObjectDelta<F> userDelta = ObjectDeltaCreationUtil.createModifyDelta(focusOid, accountRefDeltas, typeClass,
 					prismContext);
 			LensObjectDeltaOperation<F> userDeltaOp = LensUtil.createObjectDeltaOperation(userDelta, result,
 					focusContext, projCtx);

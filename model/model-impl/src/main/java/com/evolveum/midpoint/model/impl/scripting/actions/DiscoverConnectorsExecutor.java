@@ -22,6 +22,7 @@ import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDeltaImpl;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -136,7 +137,8 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
                     LOGGER.info("Rebinding " + msg);
                     ReferenceDelta refDelta = ReferenceDeltaImpl
                             .createModificationReplace(ResourceType.F_CONNECTOR_REF, resource.getDefinition(), newOid);
-                    ObjectDelta<ResourceType> objDelta = ObjectDelta.createModifyDelta(resource.getOid(), refDelta, ResourceType.class, prismContext);
+                    ObjectDelta<ResourceType> objDelta = ObjectDeltaCreationUtil
+		                    .createModifyDelta(resource.getOid(), refDelta, ResourceType.class, prismContext);
                     operationsHelper.applyDelta(objDelta, context, result);
                     context.println("Rebound " + msg);
                 }

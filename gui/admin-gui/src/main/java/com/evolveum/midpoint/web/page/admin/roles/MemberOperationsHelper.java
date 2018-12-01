@@ -8,6 +8,7 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
 import com.evolveum.midpoint.gui.api.component.ChooseMemberPopup;
@@ -283,7 +284,7 @@ public class MemberOperationsHelper {
 	}
 
 	protected static <R extends AbstractRoleType> ObjectDelta getAddAssignmentDelta(R targetObject, Collection<QName> relations, Class classType, PrismContext prismContext) throws SchemaException {
-		ObjectDelta delta = ObjectDelta.createEmptyModifyDelta(classType, "fakeOid", prismContext);
+		ObjectDelta delta = ObjectDeltaCreationUtil.createEmptyModifyDelta(classType, "fakeOid", prismContext);
 		if (relations == null || relations.isEmpty()) {
 			delta.addModificationAddContainer(FocusType.F_ASSIGNMENT, createAssignmentToModify(targetObject, null, prismContext));
 			return delta;
@@ -297,11 +298,11 @@ public class MemberOperationsHelper {
 	
 	protected static <R extends AbstractRoleType> ObjectDelta getDeleteAssignmentDelta(R targetObject, Collection<QName> relations, Class classType, PrismContext prismContext) throws SchemaException {
 		if (relations == null || relations.isEmpty()) {
-			return ObjectDelta.createModificationDeleteContainer(classType, "fakeOid",
+			return ObjectDeltaCreationUtil.createModificationDeleteContainer(classType, "fakeOid",
 					FocusType.F_ASSIGNMENT, prismContext, createAssignmentToModify(targetObject, null, prismContext));
 		}
 		
-		ObjectDelta delta =  ObjectDelta.createEmptyModifyDelta(classType, "fakeOid", prismContext);
+		ObjectDelta delta =  ObjectDeltaCreationUtil.createEmptyModifyDelta(classType, "fakeOid", prismContext);
 		
 		for (QName relation : relations) {
 			delta.addModificationDeleteContainer(FocusType.F_ASSIGNMENT, createAssignmentToModify(targetObject, relation, prismContext));
@@ -312,7 +313,7 @@ public class MemberOperationsHelper {
 	}
 	
 	protected static <R extends AbstractRoleType> ObjectDelta getAddParentOrgDelta(R targetObject, Collection<QName> relations, PrismContext prismContext) throws SchemaException {
-		ObjectDelta delta = ObjectDelta.createEmptyModifyDelta(ObjectType.class, "fakeOid", prismContext);
+		ObjectDelta delta = ObjectDeltaCreationUtil.createEmptyModifyDelta(ObjectType.class, "fakeOid", prismContext);
 		if (relations == null || relations.isEmpty()) {
 			delta.addModificationAddReference(ObjectType.F_PARENT_ORG_REF, ObjectTypeUtil.createObjectRef(targetObject,
 					prismContext).asReferenceValue());
@@ -327,11 +328,11 @@ public class MemberOperationsHelper {
  
 	protected static <R extends AbstractRoleType> ObjectDelta getDeleteParentOrgDelta(R targetObject,  Collection<QName> relations, PrismContext prismContext) throws SchemaException {
 		if (relations == null || relations.isEmpty()) {
-			return ObjectDelta.createModificationDeleteReference(ObjectType.class, "fakeOid",
+			return ObjectDeltaCreationUtil.createModificationDeleteReference(ObjectType.class, "fakeOid",
 					ObjectType.F_PARENT_ORG_REF, prismContext, ObjectTypeUtil.createObjectRef(targetObject, prismContext).asReferenceValue());
 		}
 		
-		ObjectDelta delta =  ObjectDelta.createEmptyModifyDelta(ObjectType.class, "fakeOid", prismContext);
+		ObjectDelta delta =  ObjectDeltaCreationUtil.createEmptyModifyDelta(ObjectType.class, "fakeOid", prismContext);
 		
 		for (QName relation : relations) {
 			delta.addModificationDeleteReference(ObjectType.F_PARENT_ORG_REF, MemberOperationsHelper.createReference(targetObject, relation).asReferenceValue());

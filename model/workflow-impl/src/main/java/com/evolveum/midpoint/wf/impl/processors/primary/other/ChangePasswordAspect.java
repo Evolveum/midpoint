@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -156,7 +157,8 @@ public class ChangePasswordAspect extends BasePrimaryChangeAspect {
     }
 
     private ObjectDelta<Objectable> itemDeltaToObjectDelta(String objectOid, ItemDelta delta) {
-        return (ObjectDelta<Objectable>) (ObjectDelta) ObjectDelta.createModifyDelta(objectOid, delta, UserType.class, prismContext);
+        return (ObjectDelta<Objectable>) (ObjectDelta) ObjectDeltaCreationUtil
+		        .createModifyDelta(objectOid, delta, UserType.class, prismContext);
     }
 
 }

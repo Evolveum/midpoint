@@ -28,23 +28,6 @@ import javax.xml.namespace.QName;
  */
 public class PrismValueUtil {
 
-	// todo move to factory
-	public static <T> PrismPropertyValue<T> createRaw(XNode rawElement) {
-		PrismPropertyValue<T> pval = new PrismPropertyValueImpl<T>();
-		pval.setRawElement(rawElement);
-		return pval;
-	}
-
-	// todo move to factory
-	public static PrismReferenceValue createFromTarget(PrismObject<?> refTarget) {
-		PrismReferenceValue refVal = new PrismReferenceValueImpl(refTarget.getOid());
-		refVal.setObject(refTarget);
-		if (refTarget.getDefinition() != null) {
-			refVal.setTargetType(refTarget.getDefinition().getTypeName());
-		}
-		return refVal;
-	}
-
 	public static PrismContainerValue<?> getParentContainerValue(PrismValue value) {
 		Itemable parent = value.getParent();
 		if (parent instanceof Item) {
@@ -58,14 +41,19 @@ public class PrismValueUtil {
 	public static <T> PrismProperty<T> createRaw(@NotNull XNode node, @NotNull QName itemName, PrismContext prismContext)
 			throws SchemaException {
 		Validate.isTrue(!(node instanceof RootXNode));
-		PrismProperty<T> property = new PrismPropertyImpl<T>(itemName, prismContext);
+		PrismProperty<T> property = prismContext.itemFactory().createPrismProperty(itemName);
 		if (node instanceof ListXNode) {
 			for (XNode subnode : ((ListXNode) node).asList()) {
-				property.add(createRaw(subnode));
+				property.add(createRaw(subnode, prismContext));
 			}
 		} else {
-			property.add(createRaw(node));
+			property.add(createRaw(node, prismContext));
 		}
 		return property;
 	}
+
+	private static <T> PrismPropertyValue<T> createRaw(XNode rawElement, PrismContext prismContext) {
+		return prismContext.itemFactory().createPrismPropertyValue(rawElement);
+	}
+
 }

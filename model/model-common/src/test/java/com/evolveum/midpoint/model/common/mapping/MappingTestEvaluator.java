@@ -25,6 +25,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -342,7 +343,8 @@ public class MappingTestEvaluator {
 	public <T,I> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateMappingDynamicAdd(String filename, String testName,
 			ItemPath defaultTargetPropertyPath,
 			String changedPropertyName, I... valuesToAdd) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, EncryptionException, SecurityViolationException, ConfigurationException, CommunicationException {
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationAddProperty(UserType.class, USER_OLD_OID, toPath(changedPropertyName),
+		ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil
+				.createModificationAddProperty(UserType.class, USER_OLD_OID, toPath(changedPropertyName),
 				prismContext, valuesToAdd);
 		MappingImpl<PrismPropertyValue<T>,PrismPropertyDefinition<T>> mapping = createMapping(filename, testName, defaultTargetPropertyPath, userDelta);
 		OperationResult opResult = new OperationResult(testName);
@@ -358,7 +360,8 @@ public class MappingTestEvaluator {
 	public <T,I> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateMappingDynamicDelete(String filename, String testName,
 			String defaultTargetPropertyName,
 			String changedPropertyName, I... valuesToAdd) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, EncryptionException, SecurityViolationException, ConfigurationException, CommunicationException {
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationDeleteProperty(UserType.class, USER_OLD_OID, toPath(changedPropertyName),
+		ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil
+				.createModificationDeleteProperty(UserType.class, USER_OLD_OID, toPath(changedPropertyName),
 				prismContext, valuesToAdd);
 		MappingImpl<PrismPropertyValue<T>,PrismPropertyDefinition<T>> mapping = createMapping(filename, testName, defaultTargetPropertyName, userDelta);
 		OperationResult opResult = new OperationResult(testName);
@@ -374,7 +377,8 @@ public class MappingTestEvaluator {
 	public <T,I> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateMappingDynamicReplace(String filename, String testName,
 			String defaultTargetPropertyName,
 			String changedPropertyName, I... valuesToReplace) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, EncryptionException, SecurityViolationException, ConfigurationException, CommunicationException {
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, USER_OLD_OID, toPath(changedPropertyName),
+		ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil
+				.createModificationReplaceProperty(UserType.class, USER_OLD_OID, toPath(changedPropertyName),
 				prismContext, valuesToReplace);
 		MappingImpl<PrismPropertyValue<T>,PrismPropertyDefinition<T>> mapping = createMapping(filename, testName, defaultTargetPropertyName, userDelta);
 		OperationResult opResult = new OperationResult(testName);
@@ -390,7 +394,8 @@ public class MappingTestEvaluator {
 	public <T,I> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateMappingDynamicReplace(String filename, String testName,
 			String defaultTargetPropertyName,
 			ItemPath changedPropertyName, I... valuesToReplace) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, EncryptionException, SecurityViolationException, ConfigurationException, CommunicationException {
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, USER_OLD_OID, changedPropertyName,
+		ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil
+				.createModificationReplaceProperty(UserType.class, USER_OLD_OID, changedPropertyName,
 				prismContext, valuesToReplace);
 		MappingImpl<PrismPropertyValue<T>,PrismPropertyDefinition<T>> mapping = createMapping(filename, testName, defaultTargetPropertyName, userDelta);
 		OperationResult opResult = new OperationResult(testName);
@@ -406,7 +411,8 @@ public class MappingTestEvaluator {
 	public <T,I> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateMappingDynamicReplace(String filename, String testName,
 			ItemPath defaultTargetPropertyName,
 			String changedPropertyName, I... valuesToReplace) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, EncryptionException, SecurityViolationException, ConfigurationException, CommunicationException {
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, USER_OLD_OID, toPath(changedPropertyName),
+		ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil
+				.createModificationReplaceProperty(UserType.class, USER_OLD_OID, toPath(changedPropertyName),
 				prismContext, valuesToReplace);
 		MappingImpl<PrismPropertyValue<T>,PrismPropertyDefinition<T>> mapping = createMapping(filename, testName, defaultTargetPropertyName, userDelta);
 		OperationResult opResult = new OperationResult(testName);
@@ -423,7 +429,8 @@ public class MappingTestEvaluator {
 	public <T,I> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateMappingDynamicReplace(String filename, String testName,
 			ItemPath defaultTargetPropertyName,
 			ItemPath changedPropertyName, I... valuesToReplace) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, EncryptionException, SecurityViolationException, ConfigurationException, CommunicationException {
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, USER_OLD_OID, changedPropertyName,
+		ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil
+				.createModificationReplaceProperty(UserType.class, USER_OLD_OID, changedPropertyName,
 				prismContext, valuesToReplace);
 		MappingImpl<PrismPropertyValue<T>,PrismPropertyDefinition<T>> mapping = createMapping(filename, testName, defaultTargetPropertyName, userDelta);
 		OperationResult opResult = new OperationResult(testName);

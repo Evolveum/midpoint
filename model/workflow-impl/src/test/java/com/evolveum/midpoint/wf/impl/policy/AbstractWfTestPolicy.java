@@ -27,6 +27,7 @@ import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.prism.util.PrismUtil;
@@ -305,7 +306,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	protected void removeAllAssignments(String oid, OperationResult result) throws Exception {
 		PrismObject<UserType> user = repositoryService.getObject(UserType.class, oid, null, result);
 		for (AssignmentType at : user.asObjectable().getAssignment()) {
-			ObjectDelta delta = ObjectDelta
+			ObjectDelta delta = ObjectDeltaCreationUtil
 					.createModificationDeleteContainer(UserType.class, oid, UserType.F_ASSIGNMENT, prismContext,
 							at.asPrismContainerValue().clone());
 			repositoryService.modifyObject(UserType.class, oid, delta.getModifications(), result);
@@ -314,7 +315,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	}
 
 	public void createObject(final String TEST_NAME, ObjectType object, boolean immediate, boolean approve, String assigneeOid) throws Exception {
-		ObjectDelta<RoleType> addObjectDelta = ObjectDelta.createAddDelta((PrismObject) object.asPrismObject());
+		ObjectDelta<RoleType> addObjectDelta = ObjectDeltaCreationUtil.createAddDelta((PrismObject) object.asPrismObject());
 
 		executeTest(TEST_NAME, new TestDetails() {
 			@Override
@@ -441,7 +442,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 			@Override
 			protected LensContext createModelContext(OperationResult result) throws Exception {
 				LensContext<T> lensContext = createLensContext(clazz);
-				ObjectDelta<T> deleteDelta = ObjectDelta.createDeleteDelta(clazz, objectOid, prismContext);
+				ObjectDelta<T> deleteDelta = ObjectDeltaCreationUtil.createDeleteDelta(clazz, objectOid, prismContext);
 				addFocusDeltaToContext(lensContext, deleteDelta);
 				return lensContext;
 			}

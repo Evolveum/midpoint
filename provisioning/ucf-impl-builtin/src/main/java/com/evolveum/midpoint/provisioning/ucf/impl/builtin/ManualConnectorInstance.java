@@ -27,6 +27,7 @@ import com.evolveum.midpoint.casemgmt.api.CaseManagerAware;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.ucf.api.connectors.AbstractManualConnectorInstance;
 import com.evolveum.midpoint.repo.api.RepositoryAware;
@@ -135,7 +136,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 			Collection<Operation> additionalOperations, OperationResult result) throws CommunicationException,
 			GenericFrameworkException, SchemaException, ObjectAlreadyExistsException, ConfigurationException {
 		LOGGER.debug("Creating case to add account\n{}", object.debugDump(1));
-		ObjectDelta<? extends ShadowType> objectDelta = ObjectDelta.createAddDelta(object);
+		ObjectDelta<? extends ShadowType> objectDelta = ObjectDeltaCreationUtil.createAddDelta(object);
 		ObjectDeltaType objectDeltaType = DeltaConvertor.toObjectDeltaType(objectDelta);
 		String shadowName;
 		if (object.getName() != null) {
@@ -163,7 +164,8 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 				.filter(change -> change != null)
 				.map(change -> ((PropertyModificationOperation)change).getPropertyDelta())
 				.collect(Collectors.toList());
-		ObjectDelta<? extends ShadowType> objectDelta = ObjectDelta.createModifyDelta("", changeDeltas, ShadowType.class, getPrismContext());
+		ObjectDelta<? extends ShadowType> objectDelta = ObjectDeltaCreationUtil
+				.createModifyDelta("", changeDeltas, ShadowType.class, getPrismContext());
 		ObjectDeltaType objectDeltaType = DeltaConvertor.toObjectDeltaType(objectDelta);
 		objectDeltaType.setOid(shadow.getOid());
 		String shadowName = shadow.getName().toString();

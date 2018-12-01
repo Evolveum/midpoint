@@ -25,6 +25,7 @@ import com.evolveum.midpoint.model.impl.sync.SynchronizationSituation;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -59,7 +60,7 @@ public class InactivateFocusAction extends BaseAction {
 					}
 				}
 			}
-			ObjectDelta<F> activationDelta = ObjectDelta.createModificationReplaceProperty(focusContext.getObjectTypeClass(),
+			ObjectDelta<F> activationDelta = ObjectDeltaCreationUtil.createModificationReplaceProperty(focusContext.getObjectTypeClass(),
 					focusContext.getOid(), pathAdminStatus, getPrismContext(), desiredStatus);
 			focusContext.setPrimaryDelta(activationDelta);
 		}

@@ -28,6 +28,7 @@ import java.util.Collection;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Listeners;
@@ -653,7 +654,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 		dummyResource.setBreakMode(BreakMode.NETWORK);
 		lastRequestStartTs = lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
 		
-		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
+		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
 				shadowMorganOid, dummyResourceCtl.getAttributeFullnamePath(), prismContext, ACCOUNT_MORGAN_FULLNAME_HM);
 		display("ObjectDelta", delta);
 
@@ -829,7 +830,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 		
 		lastRequestStartTs = lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
 		
-		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
+		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
 				shadowMorganOid, dummyResourceCtl.getAttributeFullnamePath(), prismContext, ACCOUNT_MORGAN_FULLNAME_CHM);
 		display("ObjectDelta", delta);
 
@@ -1017,7 +1018,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 		dummyResource.setBreakMode(BreakMode.NETWORK);
 		lastRequestStartTs = lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
 		
-		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
+		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
 				shadowMorganOid, dummyResourceCtl.getAttributeFullnamePath(), prismContext, ACCOUNT_MORGAN_FULLNAME_HM);
 		display("ObjectDelta", delta);
 
@@ -1191,7 +1192,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 		dummyResource.setBreakMode(BreakMode.NETWORK);
 		lastRequestStartTs = lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
 		
-		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
+		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
 				shadowMorganOid, dummyResourceCtl.getAttributeFullnamePath(), prismContext, ACCOUNT_MORGAN_FULLNAME_HM);
 		display("ObjectDelta", delta);
 
@@ -1698,7 +1699,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 		
 		dummyResourceCtl.addAccount(ACCOUNT_BETTY_USERNAME, ACCOUNT_BETTY_FULLNAME);
 		
-		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
+		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
 				ACCOUNT_ELIZABETH_OID, prismContext.path(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME), prismContext, ACCOUNT_BETTY_USERNAME);
 
 		// WHEN
@@ -1774,7 +1775,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 		syncServiceMock.reset();
 		dummyResource.resetBreakMode();
 		
-		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
+		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
 				ACCOUNT_ELIZABETH_OID, prismContext.path(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME), prismContext, ACCOUNT_BETTY_USERNAME);
 
 		// WHEN
@@ -1933,7 +1934,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 		dummyResource.resetBreakMode();
 		dummyResourceCtl.deleteAccount(ACCOUNT_WILL_USERNAME);
 		
-		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
+		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
 				ACCOUNT_WILL_OID, dummyResourceCtl.getAttributeFullnamePath(), prismContext, "Pirate Will Turner");
 
 		// WHEN

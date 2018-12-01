@@ -21,6 +21,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -131,7 +132,7 @@ public class ObjectMerger {
 		if (result.isSuccess()) {
 			// Do not delete the other object if the execution was not success.
 			// We might need to re-try the merge if it has failed and for that we need the right object.
-			ObjectDelta<O> deleteDelta = ObjectDelta.createDeleteDelta(type, rightOid, prismContext);
+			ObjectDelta<O> deleteDelta = ObjectDeltaCreationUtil.createDeleteDelta(type, rightOid, prismContext);
 			Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeleteDeltas = modelController.executeChanges(MiscSchemaUtil.createCollection(deleteDelta), null, task, result);
 			executedDeltas.addAll(executedDeleteDeltas);
 		}

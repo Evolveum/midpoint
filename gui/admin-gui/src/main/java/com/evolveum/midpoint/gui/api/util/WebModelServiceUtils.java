@@ -20,6 +20,7 @@ import java.util.*;
 
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -175,7 +176,7 @@ public class WebModelServiceUtils {
 
     public static String runTask(TaskType taskToRun, Task operationalTask, OperationResult parentResult, PageBase pageBase){
     	try {
-			ObjectDelta<TaskType> delta = ObjectDelta.createAddDelta(taskToRun.asPrismObject());
+			ObjectDelta<TaskType> delta = ObjectDeltaCreationUtil.createAddDelta(taskToRun.asPrismObject());
 			pageBase.getPrismContext().adopt(delta);
 			pageBase.getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null,
 					operationalTask, parentResult);
@@ -461,7 +462,7 @@ public class WebModelServiceUtils {
         try {
             Task task = createSimpleTask(result.getOperation(), principal, page.getTaskManager());
 
-            ObjectDelta delta = new ObjectDelta(type, ChangeType.DELETE, page.getPrismContext());
+            ObjectDelta delta = page.getPrismContext().deltaFactory().createObjectDelta(type, ChangeType.DELETE);
             delta.setOid(oid);
 
             page.getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), options, task, subResult);
@@ -534,7 +535,7 @@ public class WebModelServiceUtils {
 
         ItemPath path = SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS;
         ActivationStatusType status = enabled ? ActivationStatusType.ENABLED : ActivationStatusType.DISABLED;
-        ObjectDelta objectDelta = ObjectDelta.createModificationReplaceProperty(type, oid, path, context, status);
+        ObjectDelta objectDelta = ObjectDeltaCreationUtil.createModificationReplaceProperty(type, oid, path, context, status);
 
         return objectDelta;
     }

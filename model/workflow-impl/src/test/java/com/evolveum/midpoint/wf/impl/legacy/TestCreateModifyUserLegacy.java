@@ -19,6 +19,7 @@ package com.evolveum.midpoint.wf.impl.legacy;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -69,7 +70,7 @@ public class TestCreateModifyUserLegacy extends AbstractWfTestLegacy {
             @Override
             public LensContext createModelContext(Task task, OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserLensContext();
-                addFocusDeltaToContext(context, (ObjectDelta) ObjectDelta.createAddDelta(PrismTestUtil.parseObject(USER_ELISABETH_FILE)));
+                addFocusDeltaToContext(context, (ObjectDelta) ObjectDeltaCreationUtil.createAddDelta(PrismTestUtil.parseObject(USER_ELISABETH_FILE)));
                 return context;
             }
 

@@ -23,6 +23,7 @@ import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -151,7 +152,8 @@ public class AssignExecutor extends BaseActionExecutor {
             }
         }
 
-        ObjectDelta<? extends ObjectType> delta = ObjectDelta.createEmptyModifyDelta(objectType.getClass(), objectType.getOid(), prismContext);
+        ObjectDelta<? extends ObjectType> delta = ObjectDeltaCreationUtil
+		        .createEmptyModifyDelta(objectType.getClass(), objectType.getOid(), prismContext);
         try {
             delta.addModificationAddContainer(FocusType.F_ASSIGNMENT, assignments.toArray(new AssignmentType[0]));
         } catch (SchemaException e) {

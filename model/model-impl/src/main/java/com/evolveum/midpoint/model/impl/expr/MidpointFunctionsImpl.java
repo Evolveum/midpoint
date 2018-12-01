@@ -963,7 +963,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			ExpressionEvaluationException, CommunicationException,
 			ConfigurationException, PolicyViolationException,
 			SecurityViolationException {
-		ObjectDelta<T> delta = ObjectDelta.createAddDelta(newObject);
+		ObjectDelta<T> delta = ObjectDeltaCreationUtil.createAddDelta(newObject);
 		Collection<ObjectDelta<? extends ObjectType>> deltaCollection = MiscSchemaUtil.createCollection(delta);
 		modelService.executeChanges(deltaCollection, options, getCurrentTask(), getCurrentResult());
 		return delta.getOid();
@@ -1025,7 +1025,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			ExpressionEvaluationException, CommunicationException,
 			ConfigurationException, PolicyViolationException,
 			SecurityViolationException {
-		ObjectDelta<T> deleteDelta = ObjectDelta.createDeleteDelta(type, oid, prismContext);
+		ObjectDelta<T> deleteDelta = ObjectDeltaCreationUtil.createDeleteDelta(type, oid, prismContext);
 		Collection<ObjectDelta<? extends ObjectType>> deltaCollection = MiscSchemaUtil.createCollection(deleteDelta);
 		modelService.executeChanges(deltaCollection, options, getCurrentTask(), getCurrentResult());
 	}
@@ -1036,7 +1036,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			SchemaException, ExpressionEvaluationException,
 			CommunicationException, ConfigurationException,
 			PolicyViolationException, SecurityViolationException {
-		ObjectDelta<T> deleteDelta = ObjectDelta.createDeleteDelta(type, oid, prismContext);
+		ObjectDelta<T> deleteDelta = ObjectDeltaCreationUtil.createDeleteDelta(type, oid, prismContext);
 		Collection<ObjectDelta<? extends ObjectType>> deltaCollection = MiscSchemaUtil.createCollection(deleteDelta);
 		modelService.executeChanges(deltaCollection, null, getCurrentTask(), getCurrentResult());
 	}
@@ -1190,7 +1190,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 				deltas.add(lensProjectionContext.getDelta());   // union of primary and secondary deltas
 			}
 		}
-		ObjectDelta<ShadowType> sum = ObjectDelta.summarize(deltas);
+		ObjectDelta<ShadowType> sum = ObjectDeltaCollectionsUtil.summarize(deltas);
 		return DeltaConvertor.toObjectDeltaType(sum);
 	}
 
@@ -1638,7 +1638,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			optionsProperty.setRealValue(options.toModelExecutionOptionsType());
 			newTask.asPrismObject().addExtensionItem(optionsProperty);
 		}
-		ObjectDelta<TaskType> taskAddDelta = ObjectDelta.createAddDelta(newTask.asPrismObject());
+		ObjectDelta<TaskType> taskAddDelta = ObjectDeltaCreationUtil.createAddDelta(newTask.asPrismObject());
 		modelService.executeChanges(singleton(taskAddDelta), null, opTask, result);
 		return newTask;
 	}

@@ -8,6 +8,7 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ContainerDeltaImpl;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -169,7 +170,7 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 		try {
 			runAsChecked(() -> {
 				Task task = createSimpleTask(OPERATION_REMOVE_NONCE_AND_SET_LIFECYCLE_STATE);
-				ObjectDelta<UserType> delta = ObjectDelta.createModificationDeleteContainer(UserType.class, userOid,
+				ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createModificationDeleteContainer(UserType.class, userOid,
 						ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_NONCE), getPrismContext(), nonce);
 				delta.addModificationReplaceProperty(UserType.F_LIFECYCLE_STATE, SchemaConstants.LIFECYCLE_ACTIVE);
 				WebModelServiceUtils.save(delta, result, task, PageRegistrationConfirmation.this);
@@ -200,7 +201,7 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 				List<ItemDelta> userDeltas = new ArrayList<>();
 				userDeltas.add(ContainerDeltaImpl.createModificationAdd(UserType.F_ASSIGNMENT,
 						UserType.class, getPrismContext(), assignment));
-				assignRoleDelta = ObjectDelta.createModifyDelta(userOid, userDeltas, UserType.class, getPrismContext());
+				assignRoleDelta = ObjectDeltaCreationUtil.createModifyDelta(userOid, userDeltas, UserType.class, getPrismContext());
 				assignRoleDelta.setPrismContext(getPrismContext());
 				WebModelServiceUtils.save(assignRoleDelta, result, task, PageRegistrationConfirmation.this);
 				return null;

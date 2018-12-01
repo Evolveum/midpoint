@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.UniformItemPathImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -74,7 +75,8 @@ public class ObjectDeltaObject<O extends Objectable> extends ItemDeltaItem<Prism
 	// FIXME fragile!!! better don't use if you don't have to
 	public void update(ItemDelta<?, ?> itemDelta) throws SchemaException {
 		if (delta == null) {
-			delta = ObjectDelta.createModifyDelta(getAnyObject().getOid(), itemDelta, getAnyObject().getCompileTimeClass(), getAnyObject().getPrismContext());
+			delta = ObjectDeltaCreationUtil
+					.createModifyDelta(getAnyObject().getOid(), itemDelta, getAnyObject().getCompileTimeClass(), getAnyObject().getPrismContext());
 		} else {
 			delta.swallow(itemDelta);
 			itemDelta.applyTo(newObject);

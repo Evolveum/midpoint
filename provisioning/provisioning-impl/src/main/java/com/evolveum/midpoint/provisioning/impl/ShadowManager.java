@@ -546,7 +546,7 @@ public class ShadowManager {
 						return null;
 					}
 					
-					ObjectDelta.applyTo(newShadow, deadDeltas);
+					ObjectDeltaUtil.applyTo(newShadow, deadDeltas);
 				} 
 		}
 
@@ -1956,7 +1956,7 @@ public class ShadowManager {
 		
 		LOGGER.trace("Updating repository {} after DELETE operation {}, {} repository shadow modifications", oldRepoShadow, opState, internalShadowModifications.size());
 		modifyShadowAttributes(ctx, oldRepoShadow, internalShadowModifications, parentResult);
-		ObjectDelta.applyTo(oldRepoShadow, (List)internalShadowModifications);
+		ObjectDeltaUtil.applyTo(oldRepoShadow, (List)internalShadowModifications);
 		return oldRepoShadow;
 	}
 	
@@ -1982,7 +1982,7 @@ public class ShadowManager {
 			LOGGER.trace("Attempt to mark shadow {} as existent found that no such shadow exists", repoShadow);
 			return null;
 		}
-		ObjectDelta.applyTo(repoShadow, shadowChanges);
+		ObjectDeltaUtil.applyTo(repoShadow, shadowChanges);
 		return repoShadow;
 	}
 	
@@ -2005,7 +2005,7 @@ public class ShadowManager {
 			LOGGER.trace("Attempt to mark shadow {} as tombstone found that no such shadow exists", repoShadow);
 			return null;
 		}
-		ObjectDelta.applyTo(repoShadow, shadowChanges);
+		ObjectDeltaUtil.applyTo(repoShadow, shadowChanges);
 		return repoShadow;
 	}
 		

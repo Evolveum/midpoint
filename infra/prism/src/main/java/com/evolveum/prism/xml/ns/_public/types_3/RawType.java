@@ -161,7 +161,8 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
 				return (IV) parsed;
 			} else {
 				// we don't really want to set 'parsed', as we didn't performed real parsing
-				return (IV) PrismValueUtil.createRaw(xnode);
+				//noinspection unchecked
+				return (IV) prismContext.itemFactory().createPrismPropertyValue(xnode);
 			}
 		} else {
 		    return null;

@@ -16,7 +16,10 @@
 
 package com.evolveum.midpoint.prism;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -55,35 +58,34 @@ public class PrismValueCollectionsUtil {
 		return false;
 	}
 
-	public static <T> Collection<PrismPropertyValue<T>> createCollection(Collection<T> realValueCollection) {
+	public static <T> Collection<PrismPropertyValue<T>> createCollection(PrismContext prismContext,
+			Collection<T> realValueCollection) {
 		Collection<PrismPropertyValue<T>> pvalCol = new ArrayList<>(realValueCollection.size());
 		for (T realValue: realValueCollection) {
-			PrismPropertyValue<T> pval = new PrismPropertyValueImpl<>(realValue);
-			pvalCol.add(pval);
+			pvalCol.add(prismContext.itemFactory().createPrismPropertyValue(realValue));
 		}
 		return pvalCol;
 	}
 
-	public static <T> Collection<PrismPropertyValue<T>> createCollection(T[] realValueArray) {
+	public static <T> Collection<PrismPropertyValue<T>> createCollection(PrismContext prismContext, T[] realValueArray) {
 		Collection<PrismPropertyValue<T>> pvalCol = new ArrayList<>(realValueArray.length);
 		for (T realValue: realValueArray) {
-			PrismPropertyValue<T> pval = new PrismPropertyValueImpl<T>(realValue);
-			pvalCol.add(pval);
+			pvalCol.add(prismContext.itemFactory().createPrismPropertyValue(realValue));
 		}
 		return pvalCol;
 	}
 
-	public static <T> Collection<PrismPropertyValue<T>> wrap(@NotNull Collection<T> realValues) {
+	public static <T> Collection<PrismPropertyValue<T>> wrap(PrismContext prismContext, @NotNull Collection<T> realValues) {
 		return realValues.stream()
-				.map(val -> new PrismPropertyValueImpl<>(val))
+				.map(val -> prismContext.itemFactory().createPrismPropertyValue(val))
 				.collect(Collectors.toList());
 	}
 
 	@SafeVarargs
-	public static <T> PrismPropertyValue<T>[] wrap(T... realValues) {
+	public static <T> PrismPropertyValue<T>[] wrap(PrismContext prismContext, T... realValues) {
 		//noinspection unchecked
 		return Arrays.stream(realValues)
-				.map(val -> new PrismPropertyValueImpl<>(val))
+				.map(val -> prismContext.itemFactory().createPrismPropertyValue(val))
 				.toArray(PrismPropertyValue[]::new);
 	}
 
@@ -224,4 +226,25 @@ public class PrismValueCollectionsUtil {
 		return false;
 	}
 
+	public static <X> Collection<PrismPropertyValue<X>> toPrismPropertyValues(PrismContext prismContext, X... realValues) {
+    	Collection<PrismPropertyValue<X>> pvalues = new ArrayList<>(realValues.length);
+    	for (X val: realValues) {
+    		PrismUtil.recomputeRealValue(val, prismContext);
+    		PrismPropertyValue<X> pval = prismContext.itemFactory().createPrismPropertyValue(val);
+    		pvalues.add(pval);
+    	}
+    	return pvalues;
+    }
+
+	public static <O extends Objectable, C extends Containerable> Collection<PrismContainerValue<C>> toPrismContainerValues(
+			Class<O> type, ItemPath path, PrismContext prismContext, C... containerValues) throws SchemaException {
+    	Collection<PrismContainerValue<C>> pvalues = new ArrayList<>(containerValues.length);
+    	for (C val: containerValues) {
+    		prismContext.adopt(val, type, path);
+    		PrismUtil.recomputeRealValue(val, prismContext);
+    		PrismContainerValue<C> pval = val.asPrismContainerValue();
+    		pvalues.add(pval);
+    	}
+    	return pvalues;
+    }
 }

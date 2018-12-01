@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.web.page.forgetpassword;
 
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -64,7 +65,8 @@ public class PageResetPassword extends PageAbstractSelfCredentials{
 			if (userType.getCredentials() != null && userType.getCredentials().getNonce() != null) {
 
 				try {
-					ObjectDelta<UserType> deleteNonceDelta = ObjectDelta.createModificationDeleteContainer(UserType.class, userType.getOid(), SchemaConstants.PATH_NONCE, getPrismContext(), userType.getCredentials().getNonce().clone());
+					ObjectDelta<UserType> deleteNonceDelta = ObjectDeltaCreationUtil
+							.createModificationDeleteContainer(UserType.class, userType.getOid(), SchemaConstants.PATH_NONCE, getPrismContext(), userType.getCredentials().getNonce().clone());
 					WebModelServiceUtils.save(deleteNonceDelta, result, this);
 				} catch (SchemaException e) {
 					//nothing to do, just let the nonce here.. it will be invalid

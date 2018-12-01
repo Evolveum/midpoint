@@ -595,7 +595,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected <O extends ObjectType> void modifyObjectReplaceProperty(Class<O> type, String oid, ItemPath propertyPath, ModelExecuteOptions options, Task task, OperationResult result, Object... newRealValue)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
 			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
-		ObjectDelta<O> objectDelta = ObjectDelta.createModificationReplaceProperty(type, oid, propertyPath, prismContext, newRealValue);
+		ObjectDelta<O> objectDelta = ObjectDeltaCreationUtil
+				.createModificationReplaceProperty(type, oid, propertyPath, prismContext, newRealValue);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 		modelService.executeChanges(deltas, options, task, result);
 	}
@@ -603,7 +604,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected <O extends ObjectType> void modifyObjectDeleteProperty(Class<O> type, String oid, ItemPath propertyPath, Task task, OperationResult result, Object... newRealValue)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
 			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
-		ObjectDelta<O> objectDelta = ObjectDelta.createModificationDeleteProperty(type, oid, propertyPath, prismContext, newRealValue);
+		ObjectDelta<O> objectDelta = ObjectDeltaCreationUtil
+				.createModificationDeleteProperty(type, oid, propertyPath, prismContext, newRealValue);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 		modelService.executeChanges(deltas, null, task, result);
 	}
@@ -611,7 +613,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected <O extends ObjectType> void modifyObjectAddProperty(Class<O> type, String oid, ItemPath propertyPath, Task task, OperationResult result, Object... newRealValue)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
 			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
-		ObjectDelta<O> objectDelta = ObjectDelta.createModificationAddProperty(type, oid, propertyPath, prismContext, newRealValue);
+		ObjectDelta<O> objectDelta = ObjectDeltaCreationUtil
+				.createModificationAddProperty(type, oid, propertyPath, prismContext, newRealValue);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 		modelService.executeChanges(deltas, null, task, result);
 	}
@@ -619,7 +622,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected <O extends ObjectType, C extends Containerable> void modifyObjectReplaceContainer(Class<O> type, String oid, ItemPath propertyPath, Task task, OperationResult result, C... newRealValue)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
 			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
-		ObjectDelta<O> objectDelta = ObjectDelta.createModificationReplaceContainer(type, oid, propertyPath, prismContext, newRealValue);
+		ObjectDelta<O> objectDelta = ObjectDeltaCreationUtil
+				.createModificationReplaceContainer(type, oid, propertyPath, prismContext, newRealValue);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 		modelService.executeChanges(deltas, null, task, result);
 	}
@@ -627,7 +631,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected <O extends ObjectType, C extends Containerable> void modifyObjectAddContainer(Class<O> type, String oid, ItemPath propertyPath, Task task, OperationResult result, C... newRealValue)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
 			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
-		ObjectDelta<O> objectDelta = ObjectDelta.createModificationAddContainer(type, oid, propertyPath, prismContext, newRealValue);
+		ObjectDelta<O> objectDelta = ObjectDeltaCreationUtil
+				.createModificationAddContainer(type, oid, propertyPath, prismContext, newRealValue);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 		modelService.executeChanges(deltas, null, task, result);
 	}
@@ -635,7 +640,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected <O extends ObjectType, C extends Containerable> void modifyObjectDeleteContainer(Class<O> type, String oid, ItemPath propertyPath, Task task, OperationResult result, C... newRealValue)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
 			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
-		ObjectDelta<O> objectDelta = ObjectDelta.createModificationDeleteContainer(type, oid, propertyPath, prismContext, newRealValue);
+		ObjectDelta<O> objectDelta = ObjectDeltaCreationUtil
+				.createModificationDeleteContainer(type, oid, propertyPath, prismContext, newRealValue);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 		modelService.executeChanges(deltas, null, task, result);
 	}
@@ -643,7 +649,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected <O extends ObjectType> void modifyObjectReplaceReference(Class<O> type, String oid, ItemPath refPath, Task task, OperationResult result, PrismReferenceValue... refVals)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
 			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
-		ObjectDelta<O> objectDelta = ObjectDelta.createModificationReplaceReference(type, oid, refPath, prismContext, refVals);
+		ObjectDelta<O> objectDelta = ObjectDeltaCreationUtil
+				.createModificationReplaceReference(type, oid, refPath, prismContext, refVals);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 		modelService.executeChanges(deltas, null, task, result);
 	}
@@ -937,7 +944,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		if (modifications.isEmpty()) {
 			return;
 		}
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(userOid, modifications, UserType.class, prismContext);
+		ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil
+				.createModifyDelta(userOid, modifications, UserType.class, prismContext);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 		modelService.executeChanges(deltas, useRawPlusRecompute ? ModelExecuteOptions.createRaw() : null, task, result);
 		result.computeStatus();
@@ -1166,7 +1174,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		ContainerDelta<AssignmentType> assignmentDelta = ContainerDeltaImpl.createDelta(UserType.F_ASSIGNMENT, getUserDefinition());
 		assignmentDelta.addValuesToDelete(currentAssignment.asPrismContainerValue().clone());
 		modifications.add(assignmentDelta);
-		ObjectDelta<F> focusDelta = ObjectDelta.createModifyDelta(focusOid, modifications, focusClass, prismContext);
+		ObjectDelta<F> focusDelta = ObjectDeltaCreationUtil.createModifyDelta(focusOid, modifications, focusClass, prismContext);
 		executeChanges(focusDelta, options, task, result);
 	}
 	
@@ -1174,7 +1182,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			throws ObjectNotFoundException,
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 			PolicyViolationException, SecurityViolationException {
-		ObjectDelta<F> delta = ObjectDelta.createModificationDeleteReference(focusClass, focusOid, FocusType.F_LINK_REF, prismContext, targetOid);
+		ObjectDelta<F> delta = ObjectDeltaCreationUtil
+				.createModificationDeleteReference(focusClass, focusOid, FocusType.F_LINK_REF, prismContext, targetOid);
 		executeChanges(delta, null, task, result);
 	}
 	
@@ -1203,7 +1212,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		for (AssignmentType assignmentType: focusBefore.asObjectable().getAssignment()) {
 			modifications.add((createAssignmentModification(assignmentType.getId(), false)));
 		}
-		return ObjectDelta.createModifyDelta(focusBefore.getOid(), modifications, focusBefore.getCompileTimeClass(), prismContext);
+		return ObjectDeltaCreationUtil
+				.createModifyDelta(focusBefore.getOid(), modifications, focusBefore.getCompileTimeClass(), prismContext);
 	}
 
 	/**
@@ -1213,7 +1223,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			throws ObjectNotFoundException,
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 			PolicyViolationException, SecurityViolationException {
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceContainer(UserType.class, userOid,
+		ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil.createModificationReplaceContainer(UserType.class, userOid,
 				UserType.F_ASSIGNMENT, prismContext, new PrismContainerValueImpl[0]);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 		modelService.executeChanges(deltas, null, task, result);
@@ -1311,7 +1321,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			PrismContainer<?> extension, ActivationType activationType, boolean add) throws SchemaException {
 		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 		modifications.add((createAssignmentModification(roleOid, refType, relation, extension, activationType, add)));
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(userOid, modifications, UserType.class, prismContext);
+		ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil
+				.createModifyDelta(userOid, modifications, UserType.class, prismContext);
 		return userDelta;
 	}
 
@@ -1319,7 +1330,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			PrismContainer<?> extension, ActivationType activationType, boolean add) throws SchemaException {
 		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 		modifications.add((createAssignmentModification(roleOid, refType, relation, extension, activationType, add)));
-		return ObjectDelta.createModifyDelta(focusOid, modifications, focusClass, prismContext);
+		return ObjectDeltaCreationUtil.createModifyDelta(focusOid, modifications, focusClass, prismContext);
 	}
 
 	protected ObjectDelta<UserType> createAssignmentUserDelta(String userOid, String roleOid, QName refType, QName relation,
@@ -1336,13 +1347,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			Consumer<AssignmentType> modificationBlock, boolean add) throws SchemaException {
 		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 		modifications.add((createAssignmentModification(focusClass, elementName, roleOid, refType, relation, modificationBlock, add)));
-		return ObjectDelta.createModifyDelta(focusOid, modifications, focusClass, prismContext);
+		return ObjectDeltaCreationUtil.createModifyDelta(focusOid, modifications, focusClass, prismContext);
 	}
 
 	protected <F extends FocusType> ObjectDelta<F> createAssignmentFocusEmptyDeleteDelta(PrismObject<F> existingFocus, String roleOid, QName relation) throws SchemaException {
 		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 		modifications.add((createAssignmentEmptyDeleteModification(existingFocus, roleOid, relation)));
-		return ObjectDelta.createModifyDelta(existingFocus.getOid(), modifications, existingFocus.getCompileTimeClass(), prismContext);
+		return ObjectDeltaCreationUtil
+				.createModifyDelta(existingFocus.getOid(), modifications, existingFocus.getCompileTimeClass(), prismContext);
 	}
 	
 	protected ContainerDelta<AssignmentType> createAccountAssignmentModification(String resourceOid, String intent, boolean add) throws SchemaException {
@@ -1426,7 +1438,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
 
 		modifications.add(assignmentDelta);
-		return  ObjectDelta.createModifyDelta(userOid, modifications, UserType.class, prismContext);
+		return  ObjectDeltaCreationUtil.createModifyDelta(userOid, modifications, UserType.class, prismContext);
 	}
 
 	protected void assignParametricRole(String userOid, String roleOid, String orgOid, String tenantOid, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
@@ -1500,7 +1512,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
         modifications.add(acDelta);
-        ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(userOid, modifications, UserType.class, prismContext);
+        ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil
+		        .createModifyDelta(userOid, modifications, UserType.class, prismContext);
         return userDelta;
     }
 
@@ -1512,7 +1525,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			String resourceOid, ShadowKindType kind, String intent, boolean add) throws SchemaException {
 		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 		modifications.add(createAssignmentModification(resourceOid, kind, intent, add));
-		ObjectDelta<F> userDelta = ObjectDelta.createModifyDelta(focusOid, modifications, type, prismContext);
+		ObjectDelta<F> userDelta = ObjectDeltaCreationUtil.createModifyDelta(focusOid, modifications, type, prismContext);
 		return userDelta;
 	}
 
@@ -1584,7 +1597,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected <F extends FocusType> void assign(Class<F> type, String focusOid, AssignmentType assignmentType, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 		modifications.add(createAssignmentModification(assignmentType, true));
-		ObjectDelta<F> userDelta = ObjectDelta.createModifyDelta(focusOid, modifications, type, prismContext);
+		ObjectDelta<F> userDelta = ObjectDeltaCreationUtil.createModifyDelta(focusOid, modifications, type, prismContext);
 		executeChanges(userDelta, null, task, result);
 	}
 	
@@ -2730,7 +2743,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".purgeResourceSchema");
         OperationResult result = task.getResult();
 
-        ObjectDelta<ResourceType> resourceDelta = ObjectDelta.createModificationReplaceContainer(ResourceType.class,
+        ObjectDelta<ResourceType> resourceDelta = ObjectDeltaCreationUtil.createModificationReplaceContainer(ResourceType.class,
         		resourceOid, ResourceType.F_SCHEMA, prismContext, new PrismContainerValueImpl[0]);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(resourceDelta);
 
@@ -2799,7 +2812,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
 		account.asObjectable().setObjectClass(refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT).getObjectClassDefinition().getTypeName());
 
-		ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, userOid, prismContext);
+		ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil.createEmptyModifyDelta(UserType.class, userOid, prismContext);
         PrismReferenceValue accountRefVal = new PrismReferenceValueImpl();
 		accountRefVal.setObject(account);
 		ReferenceDelta accountDelta = ReferenceDeltaImpl.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
@@ -2820,7 +2833,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		String accountOid = getLinkRefOid(userOid, resourceOid);
 		PrismObject<ShadowType> account = getShadowModel(accountOid);
 
-		ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, userOid, prismContext);
+		ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil.createEmptyModifyDelta(UserType.class, userOid, prismContext);
         PrismReferenceValue accountRefVal = new PrismReferenceValueImpl();
 		accountRefVal.setObject(account);
 		ReferenceDelta accountDelta = ReferenceDeltaImpl.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
@@ -2832,7 +2845,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected ObjectDelta<UserType> createModifyUserUnlinkAccount(String userOid, PrismObject<ResourceType> resource) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		String accountOid = getLinkRefOid(userOid, resource.getOid());
 
-		ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, userOid, prismContext);
+		ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil.createEmptyModifyDelta(UserType.class, userOid, prismContext);
         PrismReferenceValue accountRefVal = new PrismReferenceValueImpl();
 		accountRefVal.setOid(accountOid);
 		ReferenceDelta accountDelta = ReferenceDeltaImpl.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
@@ -3540,19 +3553,19 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected <O extends ObjectType> void deleteObject(Class<O> type, String oid, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-		ObjectDelta<O> delta = ObjectDelta.createDeleteDelta(type, oid, prismContext);
+		ObjectDelta<O> delta = ObjectDeltaCreationUtil.createDeleteDelta(type, oid, prismContext);
 		executeChanges(delta, null, task, result);
 	}
 
 	protected <O extends ObjectType> void deleteObjectRaw(Class<O> type, String oid, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-		ObjectDelta<O> delta = ObjectDelta.createDeleteDelta(type, oid, prismContext);
+		ObjectDelta<O> delta = ObjectDeltaCreationUtil.createDeleteDelta(type, oid, prismContext);
 		executeChanges(delta, ModelExecuteOptions.createRaw(), task, result);
 	}
 
 	protected <O extends ObjectType> void deleteObject(Class<O> type, String oid) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		Task task = createTask(AbstractModelIntegrationTest.class.getName() + ".deleteObject");
 		OperationResult result = task.getResult();
-		ObjectDelta<O> delta = ObjectDelta.createDeleteDelta(type, oid, prismContext);
+		ObjectDelta<O> delta = ObjectDeltaCreationUtil.createDeleteDelta(type, oid, prismContext);
 		executeChanges(delta, null, task, result);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
@@ -3577,7 +3590,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected <O extends ObjectType> void forceDeleteObject(Class<O> type, String oid, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-		ObjectDelta<O> delta = ObjectDelta.createDeleteDelta(type, oid, prismContext);
+		ObjectDelta<O> delta = ObjectDeltaCreationUtil.createDeleteDelta(type, oid, prismContext);
 		ModelExecuteOptions options = ModelExecuteOptions.createForce();
 		executeChanges(delta, options, task, result);
 	}
@@ -3588,7 +3601,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         TriggerType triggerType = new TriggerType();
         triggerType.setTimestamp(timestamp);
         triggerType.setHandlerUri(uri);
-        ObjectDelta<ObjectType> delta = ObjectDelta.createModificationAddContainer(ObjectType.class, oid, ObjectType.F_TRIGGER, prismContext, triggerType);
+        ObjectDelta<ObjectType> delta = ObjectDeltaCreationUtil.createModificationAddContainer(ObjectType.class, oid, ObjectType.F_TRIGGER, prismContext, triggerType);
         executeChanges(delta, null, task, result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
@@ -4348,7 +4361,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         ObjectReferenceType resourceRedRef = new ObjectReferenceType();
         resourceRedRef.setOid(resourceOid);
 		construction.setResourceRef(resourceRedRef);
-        ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationAddContainer(RoleType.class, roleOid,
+        ObjectDelta<RoleType> roleDelta = ObjectDeltaCreationUtil.createModificationAddContainer(RoleType.class, roleOid,
         		ItemPath.create(RoleType.F_INDUCEMENT, inducementId, AssignmentType.F_CONSTRUCTION),
         		prismContext, construction);
         modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), null, task, result);
@@ -4366,7 +4379,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         ObjectReferenceType targetRef = new ObjectReferenceType();
         targetRef.setOid(targetOid);
         inducement.setTargetRef(targetRef);
-        ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationAddContainer(RoleType.class, roleOid,
+        ObjectDelta<RoleType> roleDelta = ObjectDeltaCreationUtil.createModificationAddContainer(RoleType.class, roleOid,
         		RoleType.F_INDUCEMENT, prismContext, inducement);
 		ModelExecuteOptions options = nullToEmpty(defaultOptions);
         options.setReconcileAffected(reconcileAffected);
@@ -4396,20 +4409,20 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assignment.setPolicyRule(exclusionPolicyRule);
 		ObjectDelta<RoleType> roleDelta;
 		if (add) {
-			roleDelta = ObjectDelta.createModificationAddContainer(RoleType.class, roleOid, RoleType.F_ASSIGNMENT, prismContext, assignment);
+			roleDelta = ObjectDeltaCreationUtil.createModificationAddContainer(RoleType.class, roleOid, RoleType.F_ASSIGNMENT, prismContext, assignment);
 		} else {
-			roleDelta = ObjectDelta.createModificationDeleteContainer(RoleType.class, roleOid, RoleType.F_ASSIGNMENT, prismContext, assignment);
+			roleDelta = ObjectDeltaCreationUtil.createModificationDeleteContainer(RoleType.class, roleOid, RoleType.F_ASSIGNMENT, prismContext, assignment);
 		}
         executeChanges(roleDelta, null, task, result);
 	}
 	
 	protected void modifyRoleAddAssignment(String roleOid, AssignmentType assignment, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-		ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationAddContainer(RoleType.class, roleOid, RoleType.F_ASSIGNMENT, prismContext, assignment);
+		ObjectDelta<RoleType> roleDelta = ObjectDeltaCreationUtil.createModificationAddContainer(RoleType.class, roleOid, RoleType.F_ASSIGNMENT, prismContext, assignment);
         executeChanges(roleDelta, null, task, result);
 	}
 	
 	protected void modifyRoleDeleteAssignment(String roleOid, AssignmentType assignment, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-		ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationDeleteContainer(RoleType.class, roleOid, RoleType.F_ASSIGNMENT, prismContext, assignment);
+		ObjectDelta<RoleType> roleDelta = ObjectDeltaCreationUtil.createModificationDeleteContainer(RoleType.class, roleOid, RoleType.F_ASSIGNMENT, prismContext, assignment);
         executeChanges(roleDelta, null, task, result);
 	}
 
@@ -4453,17 +4466,18 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected void modifyRoleAddPolicyException(String roleOid, PolicyExceptionType policyException, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-		ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationAddContainer(RoleType.class, roleOid, RoleType.F_POLICY_EXCEPTION, prismContext, policyException);
+		ObjectDelta<RoleType> roleDelta = ObjectDeltaCreationUtil.createModificationAddContainer(RoleType.class, roleOid, RoleType.F_POLICY_EXCEPTION, prismContext, policyException);
 		executeChanges(roleDelta, null, task, result);
 	}
 	
 	protected void modifyRoleDeletePolicyException(String roleOid, PolicyExceptionType policyException, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-		ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationDeleteContainer(RoleType.class, roleOid, RoleType.F_POLICY_EXCEPTION, prismContext, policyException);
+		ObjectDelta<RoleType> roleDelta = ObjectDeltaCreationUtil.createModificationDeleteContainer(RoleType.class, roleOid, RoleType.F_POLICY_EXCEPTION, prismContext, policyException);
         executeChanges(roleDelta, null, task, result);
 	}
 	
 	protected void modifyRoleReplacePolicyException(String roleOid, PolicyExceptionType policyException, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-		ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationReplaceContainer(RoleType.class, roleOid, RoleType.F_POLICY_EXCEPTION, prismContext, policyException);
+		ObjectDelta<RoleType> roleDelta = ObjectDeltaCreationUtil
+				.createModificationReplaceContainer(RoleType.class, roleOid, RoleType.F_POLICY_EXCEPTION, prismContext, policyException);
         executeChanges(roleDelta, null, task, result);
 	}
 	
@@ -4504,7 +4518,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		Task task = createTask(AbstractModelIntegrationTest.class.getName() + ".modifyRoleDeleteInducementTarget");
         OperationResult result = task.getResult();
         AssignmentType inducement = findInducementByTarget(roleOid, targetOid);
-        ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationDeleteContainer(RoleType.class, roleOid, RoleType.F_INDUCEMENT, prismContext, inducement.asPrismContainerValue().clone());
+        ObjectDelta<RoleType> roleDelta = ObjectDeltaCreationUtil.createModificationDeleteContainer(RoleType.class, roleOid, RoleType.F_INDUCEMENT, prismContext, inducement.asPrismContainerValue().clone());
         modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), options, task, result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
@@ -4519,7 +4533,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
 		AssignmentType inducement = new AssignmentType();
 		inducement.setId(inducementId);
-        ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationDeleteContainer(RoleType.class, roleOid,
+        ObjectDelta<RoleType> roleDelta = ObjectDeltaCreationUtil.createModificationDeleteContainer(RoleType.class, roleOid,
 				RoleType.F_INDUCEMENT, prismContext, inducement);
         ModelExecuteOptions options = nullToEmpty(defaultOptions);
         options.setReconcileAffected(reconcileAffected);
@@ -4540,7 +4554,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected void modifyUserAddAccount(String userOid, File accountFile, Task task, OperationResult result) throws SchemaException, IOException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		PrismObject<ShadowType> account = prismContext.parseObject(accountFile);
 
-        ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, userOid, prismContext);
+        ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil.createEmptyModifyDelta(UserType.class, userOid, prismContext);
         PrismReferenceValue accountRefVal = new PrismReferenceValueImpl();
 		accountRefVal.setObject(account);
 		ReferenceDelta accountDelta = ReferenceDeltaImpl.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
@@ -4824,12 +4838,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected void reconcileUser(String oid, ModelExecuteOptions options, Task task, OperationResult result) throws CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
-		ObjectDelta<UserType> emptyDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, oid, prismContext);
+		ObjectDelta<UserType> emptyDelta = ObjectDeltaCreationUtil.createEmptyModifyDelta(UserType.class, oid, prismContext);
 		modelService.executeChanges(MiscSchemaUtil.createCollection(emptyDelta), ModelExecuteOptions.createReconcile(options), task, result);
 	}
 
 	protected void reconcileOrg(String oid, Task task, OperationResult result) throws CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
-		ObjectDelta<OrgType> emptyDelta = ObjectDelta.createEmptyModifyDelta(OrgType.class, oid, prismContext);
+		ObjectDelta<OrgType> emptyDelta = ObjectDeltaCreationUtil.createEmptyModifyDelta(OrgType.class, oid, prismContext);
 		modelService.executeChanges(MiscSchemaUtil.createCollection(emptyDelta), ModelExecuteOptions.createReconcile(), task, result);
 	}
 
@@ -5863,7 +5877,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected <O extends ObjectType> void assertDeleteDeny(Class<O> type, String oid, ModelExecuteOptions options) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".assertDeleteDeny");
         OperationResult result = task.getResult();
-        ObjectDelta<O> delta = ObjectDelta.createDeleteDelta(type, oid, prismContext);
+        ObjectDelta<O> delta = ObjectDeltaCreationUtil.createDeleteDelta(type, oid, prismContext);
         try {
         	logAttempt("delete", type, oid, null);
     		modelService.executeChanges(MiscSchemaUtil.createCollection(delta), options, task, result);
@@ -5889,7 +5903,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected <O extends ObjectType> void assertDeleteAllow(Class<O> type, String oid, ModelExecuteOptions options) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".assertDeleteAllow");
         OperationResult result = task.getResult();
-        ObjectDelta<O> delta = ObjectDelta.createDeleteDelta(type, oid, prismContext);
+        ObjectDelta<O> delta = ObjectDeltaCreationUtil.createDeleteDelta(type, oid, prismContext);
         logAttempt("delete", type, oid, null);
         try {
         	modelService.executeChanges(MiscSchemaUtil.createCollection(delta), options, task, result);

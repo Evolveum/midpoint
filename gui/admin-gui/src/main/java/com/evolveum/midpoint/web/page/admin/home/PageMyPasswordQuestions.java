@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
 
 import org.apache.commons.lang.StringEscapeUtils;
@@ -584,7 +585,7 @@ private SecurityQuestionAnswerDTO checkIfQuestionisValidSingle(SecurityQuestionA
 
 			// fill in answerType data here
 			ItemPath path = ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_SECURITY_QUESTIONS, SecurityQuestionsCredentialsType.F_QUESTION_ANSWER);
-			ObjectDelta<UserType> objectDelta = ObjectDelta.createModificationReplaceContainer(UserType.class, useroid,
+			ObjectDelta<UserType> objectDelta = ObjectDeltaCreationUtil.createModificationReplaceContainer(UserType.class, useroid,
 					path, getPrismContext(), answerTypeList);
 
 			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);

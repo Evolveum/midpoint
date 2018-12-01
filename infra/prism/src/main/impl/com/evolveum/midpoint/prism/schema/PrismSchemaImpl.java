@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -123,7 +123,7 @@ public class PrismSchemaImpl implements PrismSchema {
 	// TODO: cleanup this chaos
 	// used for report, connector, resource schemas
 	public static PrismSchema parse(Element element, boolean isRuntime, String shortDescription, PrismContext prismContext) throws SchemaException {
-		return parse(element, prismContext.getEntityResolver(), new PrismSchemaImpl(prismContext), isRuntime, shortDescription,
+		return parse(element, ((PrismContextImpl) prismContext).getEntityResolver(), new PrismSchemaImpl(prismContext), isRuntime, shortDescription,
 				false, prismContext);
 	}
 
@@ -147,7 +147,7 @@ public class PrismSchemaImpl implements PrismSchema {
 
 	// used for connector and resource schemas
 	protected static PrismSchema parse(Element element, PrismSchemaImpl schema, boolean isRuntime, String shortDescription, PrismContext prismContext) throws SchemaException {
-		return parse(element, prismContext.getEntityResolver(), schema, isRuntime, shortDescription, false, prismContext);
+		return parse(element, ((PrismContextImpl) prismContext).getEntityResolver(), schema, isRuntime, shortDescription, false, prismContext);
 	}
 
 	private static PrismSchema parse(Element element, EntityResolver resolver, PrismSchemaImpl schema, boolean isRuntime,

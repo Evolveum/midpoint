@@ -26,11 +26,11 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -106,13 +106,13 @@ public class EnableDisableExecutor extends BaseActionExecutor {
     }
 
     private ObjectDelta<? extends ObjectType> createEnableDisableDelta(FocusType focus, boolean isEnable) {
-        return ObjectDelta.createModificationReplaceProperty(focus.getClass(),
+        return ObjectDeltaCreationUtil.createModificationReplaceProperty(focus.getClass(),
                 focus.getOid(), PATH_ACTIVATION_ADMINISTRATIVE_STATUS, prismContext,
                 isEnable ? ActivationStatusType.ENABLED : ActivationStatusType.DISABLED);
     }
 
     private ObjectDelta<? extends ObjectType> createEnableDisableDelta(ShadowType shadow, boolean isEnable) {
-        return ObjectDelta.createModificationReplaceProperty(shadow.getClass(),
+        return ObjectDeltaCreationUtil.createModificationReplaceProperty(shadow.getClass(),
                 shadow.getOid(), PATH_ACTIVATION_ADMINISTRATIVE_STATUS, prismContext,
                 isEnable ? ActivationStatusType.ENABLED : ActivationStatusType.DISABLED);
     }
