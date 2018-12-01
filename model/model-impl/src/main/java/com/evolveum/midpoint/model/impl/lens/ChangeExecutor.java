@@ -548,8 +548,10 @@ public class ChangeExecutor {
 
 	private boolean isEquivalentModifyDelta(Collection<? extends ItemDelta<?, ?>> modifications1,
 			Collection<? extends ItemDelta<?, ?>> modifications2) {
-		Collection<? extends ItemDelta<?, ?>> attrDeltas1 = ItemDelta.findItemDeltasSubPath(modifications1, ShadowType.F_ATTRIBUTES);
-		Collection<? extends ItemDelta<?, ?>> attrDeltas2 = ItemDelta.findItemDeltasSubPath(modifications2, ShadowType.F_ATTRIBUTES);
+		Collection<? extends ItemDelta<?, ?>> attrDeltas1 = ItemDeltaCollectionsUtil
+				.findItemDeltasSubPath(modifications1, ShadowType.F_ATTRIBUTES);
+		Collection<? extends ItemDelta<?, ?>> attrDeltas2 = ItemDeltaCollectionsUtil
+				.findItemDeltasSubPath(modifications2, ShadowType.F_ATTRIBUTES);
 		return MiscUtil.unorderedCollectionEquals(attrDeltas1, attrDeltas2);
 	}
 

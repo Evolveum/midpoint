@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,15 +65,6 @@ public interface PrismValue extends Visitable, PathVisitable, Serializable, Debu
 	 */
 	void clearParent();
 
-	static <T> void clearParent(List<PrismPropertyValue<T>> values) {
-		if (values == null) {
-			return;
-		}
-		for (PrismPropertyValue<T> val: values) {
-			val.clearParent();
-		}
-	}
-
 	PrismContext getPrismContext();
 
 	void applyDefinition(ItemDefinition definition) throws SchemaException;
@@ -111,70 +102,8 @@ public interface PrismValue extends Visitable, PathVisitable, Serializable, Debu
 	 */
 	boolean representsSameValue(PrismValue other, boolean lax);
 
-	static <V extends PrismValue> boolean containsRealValue(Collection<V> collection, V value) {
-		return containsRealValue(collection, value, Function.identity());
-	}
-
-	static <X, V extends PrismValue> boolean containsRealValue(Collection<X> collection, V value, Function<X, V> valueExtractor) {
-		if (collection == null) {
-			return false;
-		}
-
-		for (X colVal: collection) {
-			if (colVal == null) {
-				return value == null;
-			}
-		
-			if (valueExtractor.apply(colVal).equalsRealValue(value)) {
-
-				return true;
-			}
-		}
-		return false;
-	}
-
-	static <V extends PrismValue> boolean equalsRealValues(Collection<V> collection1, Collection<V> collection2) {
-		return MiscUtil.unorderedCollectionEquals(collection1, collection2, (v1, v2) -> v1.equalsRealValue(v2));
-	}
-
-	static <V extends PrismValue> boolean containsAll(Collection<V> thisSet, Collection<V> otherSet, boolean ignoreMetadata,
-			boolean isLiteral) {
-		if (thisSet == null && otherSet == null) {
-			return true;
-		}
-		if (otherSet == null) {
-			return true;
-		}
-		if (thisSet == null) {
-			return false;
-		}
-		for (V otherValue: otherSet) {
-			if (!contains(thisSet, otherValue, ignoreMetadata, isLiteral)) {
-				return false;
-			}
-		}
-		return true;
-	}
-
-	static <V extends PrismValue> boolean contains(Collection<V> thisSet, V otherValue, boolean ignoreMetadata, boolean isLiteral) {
-		for (V thisValue: thisSet) {
-			if (thisValue.equalsComplex(otherValue, ignoreMetadata, isLiteral)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
 	void normalize();
 
-	static <X extends PrismValue> Collection<X> cloneValues(Collection<X> values) {
-		Collection<X> clonedCollection = new ArrayList<>(values.size());
-		for (X val: values) {
-			clonedCollection.add((X) val.clone());
-		}
-		return clonedCollection;
-	}
-	
 	/**
      * Literal clone.
      */
@@ -185,33 +114,6 @@ public interface PrismValue extends Visitable, PathVisitable, Serializable, Debu
      * @see CloneStrategy
      */
     PrismValue cloneComplex(CloneStrategy strategy);
-
-	@NotNull
-	static <T extends PrismValue> Collection<T> cloneCollection(Collection<T> values) {
-		return cloneCollectionComplex(CloneStrategy.LITERAL, values);
-	}
-
-	@NotNull
-	static <T extends PrismValue> Collection<T> cloneCollectionComplex(CloneStrategy strategy, Collection<T> values) {
-		Collection<T> clones = new ArrayList<>();
-		if (values != null) {
-			for (T value : values) {
-				clones.add((T) value.cloneComplex(strategy));
-			}
-		}
-		return clones;
-	}
-
-	/**
-     * Sets all parents to null. This is good if the items are to be "transplanted" into a
-     * different Containerable.
-     */
-	static <T extends PrismValue> Collection<T> resetParentCollection(Collection<T> values) {
-    	for (T value: values) {
-    		value.setParent(null);
-    	}
-    	return values;
-	}
 
 	boolean equalsComplex(PrismValue other, boolean ignoreMetadata, boolean isLiteral);
 
@@ -235,28 +137,6 @@ public interface PrismValue extends Visitable, PathVisitable, Serializable, Debu
 	 */
 	Collection<? extends ItemDelta> diff(PrismValue otherValue, boolean ignoreMetadata, boolean isLiteral);
 
-    static <T> Set<T> getRealValuesOfCollection(Collection<? extends PrismValue> collection) {
-        Set<T> retval = new HashSet<>(collection.size());
-        for (PrismValue value : collection) {
-            retval.add(value.getRealValue());
-        }
-        return retval;
-    }
-
-
-	static <V extends PrismValue> boolean collectionContainsEquivalentValue(Collection<V> collection, V value) {
-		if (collection == null) {
-			return false;
-		}
-		for (V collectionVal: collection) {
-			if (collectionVal.equals(value, true)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-
 	boolean isImmutable();
 
 	void setImmutable(boolean immutable);
@@ -273,16 +153,6 @@ public interface PrismValue extends Visitable, PathVisitable, Serializable, Debu
 	//
 	// Generally, this method returns either "this" (PrismValue) or a PrismContainerValue.
 	PrismValue getRootValue();
-
-	static PrismContainerValue<?> getParentContainerValue(PrismValue value) {
-		Itemable parent = value.getParent();
-		if (parent instanceof Item) {
-			PrismValue parentParent = ((Item) parent).getParent();
-			return parentParent instanceof PrismContainerValue ? (PrismContainerValue) parentParent : null;
-		} else {
-			return null;
-		}
-	}
 
 	PrismContainerValue<?> getParentContainerValue();
 

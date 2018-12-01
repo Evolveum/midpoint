@@ -1241,7 +1241,7 @@ public class ShadowManager {
 	
 	private ObjectDelta<ShadowType> createModifyDelta(PrismObject<ShadowType> repoShadow, Collection<? extends ItemDelta> modifications) {
 		ObjectDelta<ShadowType> delta = repoShadow.createModifyDelta();
-		delta.addModifications(ItemDelta.cloneCollection(modifications));
+		delta.addModifications(ItemDeltaCollectionsUtil.cloneCollection(modifications));
 		return delta;
 	}
 	
@@ -1542,7 +1542,7 @@ public class ShadowManager {
 						throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException, ExpressionEvaluationException, EncryptionException {
 		
 		ObjectDelta<ShadowType> requestDelta = opState.getRepoShadow().createModifyDelta();
-		requestDelta.addModifications(ItemDelta.cloneCollection(requestedModifications));
+		requestDelta.addModifications(ItemDeltaCollectionsUtil.cloneCollection(requestedModifications));
 		
 		List<ItemDelta> internalShadowModifications = computeInternalShadowModifications(ctx, opState, requestDelta);
 		
@@ -1740,7 +1740,7 @@ public class ShadowManager {
 				normalizeAttribute(normalizedResourceAttribute, attrDef);
 				if (repoAttr == null) {
 					attrDelta = attrDef.createEmptyDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, attrDef.getName()));
-					attrDelta.setValuesToReplace(PrismValue.cloneCollection(normalizedResourceAttribute.getValues()));
+					attrDelta.setValuesToReplace(PrismValueCollectionsUtil.cloneCollection(normalizedResourceAttribute.getValues()));
 				} else {
 					attrDelta = repoAttr.diff(normalizedResourceAttribute);
 //					LOGGER.trace("DIFF:\n{}\n-\n{}\n=:\n{}", repoAttr==null?null:repoAttr.debugDump(1), normalizedResourceAttribute==null?null:normalizedResourceAttribute.debugDump(1), attrDelta==null?null:attrDelta.debugDump(1));
@@ -1835,7 +1835,7 @@ public class ShadowManager {
 						currentAttribute == null) {
 					// No definition for this property it should not be there or no current value: remove it from the shadow
 					PropertyDelta<?> oldRepoAttrPropDelta = oldRepoAttrProperty.createDelta();
-					oldRepoAttrPropDelta.addValuesToDelete((Collection) PrismPropertyValueImpl.cloneCollection(oldRepoAttrProperty.getValues()));
+					oldRepoAttrPropDelta.addValuesToDelete((Collection) PrismValueCollectionsUtil.cloneCollection(oldRepoAttrProperty.getValues()));
 					if (oldRepoAttrPropDelta.getDefinition().getTypeName() == null) {
 						throw new SchemaException("No definition in "+oldRepoAttrPropDelta);
 					}
@@ -1852,7 +1852,7 @@ public class ShadowManager {
 			shadowDelta.addModification(shadowNameDelta);
 		}
 		
-		PropertyDelta<QName> auxOcDelta = (PropertyDelta)PrismPropertyImpl.diff(
+		PropertyDelta<QName> auxOcDelta = (PropertyDelta) ItemUtil.diff(
 				oldRepoShadow.findProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS),
 				currentResourceShadow.findProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS));
 		if (auxOcDelta != null) {
@@ -1916,7 +1916,7 @@ public class ShadowManager {
 			ItemPath itemPath, PrismObject<ShadowType> currentResourceShadow, PrismObject<ShadowType> oldRepoShadow) {
 		PrismProperty<T> currentProperty = currentResourceShadow.findProperty(itemPath);
 		PrismProperty<T> oldProperty = oldRepoShadow.findProperty(itemPath);
-		PropertyDelta<T> itemDelta = PrismPropertyImpl.diff(oldProperty, currentProperty);
+		PropertyDelta<T> itemDelta = ItemUtil.diff(oldProperty, currentProperty);
 		if (itemDelta != null && !itemDelta.isEmpty()) {
 			shadowDelta.addModification(itemDelta);
 		}
@@ -2028,7 +2028,7 @@ public class ShadowManager {
 					if (attrDef == null) {
 						// No definition for this property, it should not be in the shadow
 						PropertyDelta<?> oldRepoAttrPropDelta = attrProperty.createDelta();
-						oldRepoAttrPropDelta.addValuesToDelete((Collection)PrismPropertyValueImpl.cloneCollection(attrProperty.getValues()));
+						oldRepoAttrPropDelta.addValuesToDelete((Collection) PrismValueCollectionsUtil.cloneCollection(attrProperty.getValues()));
 						shadowDelta.addModification(oldRepoAttrPropDelta);
 					} else {
 						attrProperty.applyDefinition(attrDef);
@@ -2213,7 +2213,8 @@ public class ShadowManager {
 	// Just minimal metadata for now, maybe we need to expand that later
 	// those are needed to properly manage dead shadows
 	private void addModifyMetadataDeltas(PrismObject<ShadowType> repoShadow, Collection<ItemDelta> shadowChanges) {
-		PropertyDelta<XMLGregorianCalendar> modifyTimestampDelta = ItemDelta.findPropertyDelta(shadowChanges, SchemaConstants.PATH_METADATA_MODIFY_TIMESTAMP);
+		PropertyDelta<XMLGregorianCalendar> modifyTimestampDelta = ItemDeltaCollectionsUtil
+				.findPropertyDelta(shadowChanges, SchemaConstants.PATH_METADATA_MODIFY_TIMESTAMP);
 		if (modifyTimestampDelta != null) {
 			return;
 		}

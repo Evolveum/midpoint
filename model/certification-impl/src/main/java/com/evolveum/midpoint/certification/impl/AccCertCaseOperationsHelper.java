@@ -18,10 +18,8 @@ package com.evolveum.midpoint.certification.impl;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
+import com.evolveum.midpoint.prism.PrismValueCollectionsUtil;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -107,7 +105,7 @@ public class AccCertCaseOperationsHelper {
 				.item(workItemPath.append(AccessCertificationWorkItemType.F_OUTPUT_CHANGE_TIMESTAMP)).replace(now)
 				.item(workItemPath.append(AccessCertificationWorkItemType.F_PERFORMER_REF)).replace(responderRef)
 				.asItemDeltas();
-		ItemDelta.applyTo(deltaList, campaign.asPrismContainerValue()); // to have data for outcome computation
+		ItemDeltaCollectionsUtil.applyTo(deltaList, campaign.asPrismContainerValue()); // to have data for outcome computation
 
 	    AccessCertificationResponseType newCurrentOutcome = computationHelper.computeOutcomeForStage(_case, campaign, campaign.getStageNumber());
 	    AccessCertificationResponseType newOverallOutcome = computationHelper.computeOverallOutcome(_case, campaign, campaign.getStageNumber(), newCurrentOutcome);
@@ -311,7 +309,7 @@ public class AccCertCaseOperationsHelper {
 			throws SchemaException {
 		deltas.add(prismContext.deltaFor(AccessCertificationCampaignType.class)
 				.item(F_CASE, aCase.getId(), F_WORK_ITEM, workItem.getId(), F_ASSIGNEE_REF)
-				.replace(PrismReferenceValue.asReferenceValues(newAssignees))
+				.replace(PrismValueCollectionsUtil.asReferenceValues(newAssignees))
 				.asItemDelta());
 		deltas.add(prismContext.deltaFor(AccessCertificationCampaignType.class)
 				.item(F_CASE, aCase.getId(), F_EVENT).add(event)

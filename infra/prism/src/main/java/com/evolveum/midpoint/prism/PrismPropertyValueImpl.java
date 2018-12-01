@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
 import com.evolveum.midpoint.prism.util.PrismUtil;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.prism.xnode.XNodeImpl;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -100,13 +101,6 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
     PrismPropertyValueImpl() {
     }
 
-	public static <T> PrismPropertyValueImpl<T> createRaw(XNodeImpl rawElement) {
-		PrismPropertyValueImpl<T> pval = new PrismPropertyValueImpl<>();
-		pval.setRawElement(rawElement);
-		return pval;
-	}
-
-
     public void setValue(T value) {
 		checkMutability();
         this.value = value;
@@ -157,20 +151,12 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
         return value;
     }
 
-    public static <T> Collection<T> getValues(Collection<PrismPropertyValue<T>> pvals) {
-    	Collection<T> realValues = new ArrayList<>(pvals.size());
-		for (PrismPropertyValue<T> pval: pvals) {
-			realValues.add(pval.getValue());
-		}
-		return realValues;
-    }
-
     public XNodeImpl getRawElement() {
 		return rawElement;
 	}
 
-	public void setRawElement(XNodeImpl rawElement) {
-		this.rawElement = rawElement;
+	public void setRawElement(XNode rawElement) {
+		this.rawElement = (XNodeImpl) rawElement;
 	}
 
 	@Override
@@ -359,42 +345,6 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
 			clone.expression = this.expression.clone();
 		}
 		clone.rawElement = this.rawElement;
-	}
-
-	public static boolean containsRealValue(Collection<PrismPropertyValue<?>> collection, PrismPropertyValue<?> value) {
-		for (PrismPropertyValue<?> colVal: collection) {
-			if (value.equalsRealValue(colVal)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	public static boolean containsValue(Collection<PrismPropertyValue> collection, PrismPropertyValue value, Comparator comparator) {
-		for (PrismPropertyValue<?> colVal: collection) {
-			if (comparator.compare(colVal, value) == 0) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	public static <T> Collection<PrismPropertyValue<T>> createCollection(Collection<T> realValueCollection) {
-		Collection<PrismPropertyValue<T>> pvalCol = new ArrayList<>(realValueCollection.size());
-		for (T realValue: realValueCollection) {
-			PrismPropertyValue<T> pval = new PrismPropertyValueImpl<>(realValue);
-			pvalCol.add(pval);
-		}
-		return pvalCol;
-	}
-
-	public static <T> Collection<PrismPropertyValue<T>> createCollection(T[] realValueArray) {
-		Collection<PrismPropertyValue<T>> pvalCol = new ArrayList<>(realValueArray.length);
-		for (T realValue: realValueArray) {
-			PrismPropertyValue<T> pval = new PrismPropertyValueImpl<>(realValue);
-			pvalCol.add(pval);
-		}
-		return pvalCol;
 	}
 
 	/**
@@ -727,17 +677,4 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
 		return (T) getValue();
 	}
 
-	public static <T> Collection<PrismPropertyValue<T>> wrap(@NotNull Collection<T> realValues) {
-		return realValues.stream()
-				.map(val -> new PrismPropertyValueImpl<>(val))
-				.collect(Collectors.toList());
-	}
-
-	@SafeVarargs
-	public static <T> PrismPropertyValue<T>[] wrap(T... realValues) {
-		//noinspection unchecked
-		return Arrays.stream(realValues)
-				.map(val -> new PrismPropertyValueImpl<>(val))
-				.toArray(PrismPropertyValue[]::new);
-	}
 }

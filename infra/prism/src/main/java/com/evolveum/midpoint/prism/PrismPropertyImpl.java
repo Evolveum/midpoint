@@ -413,19 +413,6 @@ public class PrismPropertyImpl<T> extends ItemImpl<PrismPropertyValue<T>,PrismPr
     	return (PropertyDelta<T>) super.diff(other, true, false);
     }
 
-    public static <T> PropertyDelta<T> diff(PrismProperty<T> a, PrismProperty<T> b) {
-		if (a == null) {
-			if (b == null) {
-				return null;
-			}
-			PropertyDelta<T> delta = b.createDelta();
-			delta.addValuesToAdd(PrismValue.cloneCollection(b.getValues()));
-			return delta;
-		} else {
-			return a.diff(b);
-		}
-	}
-
 	@Override
 	protected void checkDefinition(PrismPropertyDefinition<T> def) {
 		if (def == null) {
@@ -488,18 +475,6 @@ public class PrismPropertyImpl<T> extends ItemImpl<PrismPropertyValue<T>,PrismPr
         } else {
         	return super.fixupDelta(delta, otherItem, ignoreMetadata);
         }
-	}
-
-	public static boolean compareCollectionRealValues(Collection<? extends PrismProperty> col1, Collection<? extends PrismProperty> col2) {
-		return MiscUtil.unorderedCollectionEquals(col1, col2,
-				(p1, p2) -> {
-					if (!p1.getElementName().equals(p2.getElementName())) {
-						return false;
-					}
-					Collection p1RealVals = p1.getRealValues();
-					Collection p2RealVals = p2.getRealValues();
-					return MiscUtil.unorderedCollectionEquals(p1RealVals, p2RealVals);
-				});
 	}
 
 	@Override
@@ -658,21 +633,4 @@ public class PrismPropertyImpl<T> extends ItemImpl<PrismPropertyValue<T>,PrismPr
         return "PP";
     }
 
-	public static <T> PrismProperty<T> createRaw(@NotNull XNodeImpl node, @NotNull QName itemName, PrismContext prismContext)
-			throws SchemaException {
-		Validate.isTrue(!(node instanceof RootXNodeImpl));
-		PrismProperty<T> property = new PrismPropertyImpl<>(itemName, prismContext);
-		if (node instanceof ListXNodeImpl) {
-			for (XNodeImpl subnode : (ListXNodeImpl) node) {
-				property.add(PrismPropertyValue.createRaw(subnode));
-			}
-		} else {
-			property.add(PrismPropertyValue.createRaw(node));
-		}
-		return property;
-	}
-
-	public static <T> T getRealValue(PrismProperty<T> property) {
-    	return property != null ? property.getRealValue() : null;
-	}
 }

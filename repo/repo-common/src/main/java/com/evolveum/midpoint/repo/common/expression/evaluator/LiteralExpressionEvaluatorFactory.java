@@ -20,6 +20,7 @@ import java.util.Collection;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.ItemDeltaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +31,6 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.common.expression.AbstractAutowiredExpressionEvaluatorFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
@@ -75,7 +75,7 @@ public class LiteralExpressionEvaluatorFactory extends AbstractAutowiredExpressi
 
 		Item<V,D> output = StaticExpressionUtil.parseValueElements(evaluatorElements, outputDefinition, contextDescription);
 
-		PrismValueDeltaSetTriple<V> deltaSetTriple = ItemDelta.toDeltaSetTriple(output, null);
+		PrismValueDeltaSetTriple<V> deltaSetTriple = ItemDeltaUtil.toDeltaSetTriple(output, null, prismContext);
 
 		return new LiteralExpressionEvaluator<>(deltaSetTriple);
 	}

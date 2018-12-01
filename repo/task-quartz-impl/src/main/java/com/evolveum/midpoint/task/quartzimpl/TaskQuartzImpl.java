@@ -290,7 +290,7 @@ public class TaskQuartzImpl implements Task {
 	private final Collection<ItemDelta<?, ?>> pendingModifications = new ArrayList<>();
 
 	public void addPendingModification(ItemDelta<?, ?> delta) {
-		ItemDelta.merge(pendingModifications, delta);
+		ItemDeltaCollectionsUtil.merge(pendingModifications, delta);
 	}
 
 	@Override
@@ -1868,25 +1868,25 @@ public class TaskQuartzImpl implements Task {
 	@Override
 	public void setExtensionProperty(PrismProperty<?> property) throws SchemaException {
 		processModificationBatched(setExtensionPropertyAndPrepareDelta(property.getElementName(), property.getDefinition(),
-				PrismValue.cloneCollection(property.getValues())));
+				PrismValueCollectionsUtil.cloneCollection(property.getValues())));
 	}
 
 	@Override
 	public void setExtensionReference(PrismReference reference) throws SchemaException {
 		processModificationBatched(setExtensionReferenceAndPrepareDelta(reference.getElementName(), reference.getDefinition(),
-				PrismValue.cloneCollection(reference.getValues())));
+				PrismValueCollectionsUtil.cloneCollection(reference.getValues())));
 	}
 
 	@Override
 	public void addExtensionReference(PrismReference reference) throws SchemaException {
 		processModificationBatched(addExtensionReferenceAndPrepareDelta(reference.getElementName(), reference.getDefinition(),
-				PrismValue.cloneCollection(reference.getValues())));
+				PrismValueCollectionsUtil.cloneCollection(reference.getValues())));
 	}
 
 	@Override
 	public <C extends Containerable> void setExtensionContainer(PrismContainer<C> container) throws SchemaException {
 		processModificationBatched(setExtensionContainerAndPrepareDelta(container.getElementName(), container.getDefinition(),
-				PrismValue.cloneCollection(container.getValues())));
+				PrismValueCollectionsUtil.cloneCollection(container.getValues())));
 	}
 
 	// use this method to avoid cloning the value
@@ -1921,7 +1921,7 @@ public class TaskQuartzImpl implements Task {
 
 		Collection<ItemDelta<?, ?>> modifications = new ArrayList<>(1);
 		modifications.add(delta);
-		PropertyDeltaImpl.applyTo(modifications, taskPrism);
+		ItemDeltaCollectionsUtil.applyTo(modifications, taskPrism);
 	}
 
 	// use this method to avoid cloning the value
@@ -1941,13 +1941,13 @@ public class TaskQuartzImpl implements Task {
 	@Override
 	public void addExtensionProperty(PrismProperty<?> property) throws SchemaException {
 		processModificationBatched(addExtensionPropertyAndPrepareDelta(property.getElementName(), property.getDefinition(),
-				PrismValue.cloneCollection(property.getValues())));
+				PrismValueCollectionsUtil.cloneCollection(property.getValues())));
 	}
 
 	@Override
 	public void deleteExtensionProperty(PrismProperty<?> property) throws SchemaException {
 		processModificationBatched(deleteExtensionPropertyAndPrepareDelta(property.getElementName(), property.getDefinition(),
-				PrismValue.cloneCollection(property.getValues())));
+				PrismValueCollectionsUtil.cloneCollection(property.getValues())));
 	}
 
 	@Override
@@ -1964,7 +1964,7 @@ public class TaskQuartzImpl implements Task {
 			throws ObjectNotFoundException, SchemaException {
 		try {
 			processModificationNow(setExtensionPropertyAndPrepareDelta(property.getElementName(), property.getDefinition(),
-					PrismValue.cloneCollection(property.getValues())), parentResult);
+					PrismValueCollectionsUtil.cloneCollection(property.getValues())), parentResult);
 		} catch (ObjectAlreadyExistsException ex) {
 			throw new SystemException(ex);
 		}
@@ -2002,7 +2002,7 @@ public class TaskQuartzImpl implements Task {
 
 		Collection<ItemDelta<?, ?>> modifications = new ArrayList<>(1);
 		modifications.add(delta);
-		PropertyDeltaImpl.applyTo(modifications, taskPrism);        // i.e. here we apply changes only locally (in memory)
+		ItemDeltaCollectionsUtil.applyTo(modifications, taskPrism);        // i.e. here we apply changes only locally (in memory)
 
 		return isPersistent() ? delta : null;
 	}
@@ -2015,7 +2015,7 @@ public class TaskQuartzImpl implements Task {
 
 		Collection<ItemDelta<?, ?>> modifications = new ArrayList<>(1);
 		modifications.add(delta);
-		PropertyDeltaImpl.applyTo(modifications, taskPrism);        // i.e. here we apply changes only locally (in memory)
+		ItemDeltaCollectionsUtil.applyTo(modifications, taskPrism);        // i.e. here we apply changes only locally (in memory)
 
 		return isPersistent() ? delta : null;
 	}
@@ -2024,7 +2024,7 @@ public class TaskQuartzImpl implements Task {
 
 		Collection<ItemDelta<?, ?>> modifications = new ArrayList<>(1);
 		modifications.add(delta);
-		PropertyDeltaImpl.applyTo(modifications, taskPrism);        // i.e. here we apply changes only locally (in memory)
+		ItemDeltaCollectionsUtil.applyTo(modifications, taskPrism);        // i.e. here we apply changes only locally (in memory)
 
 		return isPersistent() ? delta : null;
 	}
@@ -2037,7 +2037,7 @@ public class TaskQuartzImpl implements Task {
 
 		Collection<ItemDelta<?, ?>> modifications = new ArrayList<>(1);
 		modifications.add(delta);
-		PropertyDeltaImpl.applyTo(modifications, taskPrism);        // i.e. here we apply changes only locally (in memory)
+		ItemDeltaCollectionsUtil.applyTo(modifications, taskPrism);        // i.e. here we apply changes only locally (in memory)
 
 		return isPersistent() ? delta : null;
 	}
@@ -2050,7 +2050,7 @@ public class TaskQuartzImpl implements Task {
 
 		Collection<ItemDelta<?, ?>> modifications = new ArrayList<>(1);
 		modifications.add(delta);
-		PropertyDeltaImpl.applyTo(modifications, taskPrism);        // i.e. here we apply changes only locally (in memory)
+		ItemDeltaCollectionsUtil.applyTo(modifications, taskPrism);        // i.e. here we apply changes only locally (in memory)
 
 		return isPersistent() ? delta : null;
 	}
@@ -3212,7 +3212,7 @@ public class TaskQuartzImpl implements Task {
 		if (isPersistent()) {
 			repositoryService.modifyObject(TaskType.class, getOid(), CloneUtil.cloneCollectionMembers(itemDeltas), result);
 		}
-		ItemDelta.applyTo(itemDeltas, taskPrism);
+		ItemDeltaCollectionsUtil.applyTo(itemDeltas, taskPrism);
 		synchronizeWithQuartzIfNeeded(pendingModifications, result);
 	}
 

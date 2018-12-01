@@ -428,7 +428,7 @@ public class MappingEvaluator {
 			            LOGGER.trace("{} resulted in null or empty value for {}, skipping", mappingDesc, targetContext);
 			            continue;
 			        }
-			        targetItemDelta.setValuesToReplace(PrismValue.cloneCollection(nonNegativeValues));
+			        targetItemDelta.setValuesToReplace(PrismValueCollectionsUtil.cloneCollection(nonNegativeValues));
 
 		        } else {
 
@@ -460,12 +460,12 @@ public class MappingEvaluator {
 
 		                if (hasFullTargetObject && targetContext.isFresh() && aPrioriTargetItem != null) {
 		                	Collection<V> valuesPresent = aPrioriTargetItem.getValues();
-		                	if (PrismValue.equalsRealValues(valuesPresent, valuesToReplace)) {
+		                	if (PrismValueCollectionsUtil.equalsRealValues(valuesPresent, valuesToReplace)) {
 		                        LOGGER.trace("{} resulted in existing values for {}, skipping creation of a delta", mappingDesc, targetContext);
 		                        continue;
 		                	}
 		                }
-		                targetItemDelta.setValuesToReplace(PrismValue.cloneCollection(valuesToReplace));
+		                targetItemDelta.setValuesToReplace(PrismValueCollectionsUtil.cloneCollection(valuesToReplace));
 		                
 		                applyEstematedOldValueInReplaceCase(targetItemDelta, outputTriple);
 
@@ -536,7 +536,7 @@ public class MappingEvaluator {
 		if (nonPositiveValues == null || nonPositiveValues.isEmpty()) {
 			return;
 		}
-		targetItemDelta.setEstimatedOldValues(PrismValue.cloneCollection(nonPositiveValues));
+		targetItemDelta.setEstimatedOldValues(PrismValueCollectionsUtil.cloneCollection(nonPositiveValues));
 	}
 
 	private <V extends PrismValue> boolean isMeaningful(PrismValueDeltaSetTriple<V> mappingOutputTriple) {
@@ -675,7 +675,7 @@ public class MappingEvaluator {
 		variables.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, configuration);
 		variables.addVariableDefinition(ExpressionConstants.VAR_OPERATION, context.getFocusContext().getOperation().getValue());
 
-		Collection<V> targetValues = ExpressionUtil.computeTargetValues(mappingType.getTarget(), defaultTargetObject, variables, mappingFactory.getObjectResolver(), contextDesc, task, result);
+		Collection<V> targetValues = ExpressionUtil.computeTargetValues(mappingType.getTarget(), defaultTargetObject, variables, mappingFactory.getObjectResolver(), contextDesc, prismContext, task, result);
 
 		MappingImpl.Builder<V,D> mappingBuilder = mappingFactory.<V,D>createMappingBuilder(mappingType, contextDesc)
 				.sourceContext(focusOdo)

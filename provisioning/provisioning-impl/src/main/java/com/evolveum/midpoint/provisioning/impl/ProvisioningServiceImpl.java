@@ -23,6 +23,7 @@ import java.util.Set;
 import javax.annotation.PreDestroy;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -608,7 +609,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		}
 
 		if (InternalsConfig.consistencyChecks) {
-			ItemDelta.checkConsistence(modifications);
+			ItemDeltaCollectionsUtil.checkConsistence(modifications);
 		}
 
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".modifyObject");

@@ -131,7 +131,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
 				visitor.visit(this);
 			}
 		} else {
-			ItemDelta.accept(getModifications(), visitor, path, recursive);
+			ItemDeltaCollectionsUtil.accept(getModifications(), visitor, path, recursive);
 		}
 	}
 
@@ -436,7 +436,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
 
     private <D extends ItemDelta> D findModification(ItemPath propertyPath, Class<D> deltaType, boolean strict) {
     	if (isModify()) {
-    		return ItemDelta.findItemDelta(modifications, propertyPath, deltaType, strict);
+    		return ItemDeltaCollectionsUtil.findItemDelta(modifications, propertyPath, deltaType, strict);
     	} else if (isAdd()) {
     		Item<PrismValue, ItemDefinition> item = getObjectToAdd().findItem(propertyPath);
     		if (item == null) {
@@ -466,16 +466,16 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
 	 * Returns all item deltas at or below a specified path.
 	 */
 	public Collection<? extends ItemDelta<?,?>> findItemDeltasSubPath(ItemPath itemPath) {
-		return ItemDelta.findItemDeltasSubPath(modifications, itemPath);
+		return ItemDeltaCollectionsUtil.findItemDeltasSubPath(modifications, itemPath);
 	}
 
 
     private <D extends ItemDelta> void removeModification(ItemPath propertyPath, Class<D> deltaType) {
-    	ItemDelta.removeItemDelta(modifications, propertyPath, deltaType);
+    	ItemDeltaCollectionsUtil.removeItemDelta(modifications, propertyPath, deltaType);
     }
 
     public <D extends ItemDelta> void removeModification(ItemDelta<?,?> itemDelta) {
-    	ItemDelta.removeItemDelta(modifications, itemDelta);
+    	ItemDeltaCollectionsUtil.removeItemDelta(modifications, itemDelta);
     }
 
     public void removeReferenceModification(ItemPath itemPath) {
@@ -515,7 +515,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
 			return deltaType.getObjectToAdd() == null || deltaType.getObjectToAdd().asPrismObject().isEmpty();
 		} else {
 			for (ItemDeltaType itemDeltaType : deltaType.getItemDelta()) {
-				if (!ItemDelta.isEmpty(itemDeltaType)) {
+				if (!ItemDeltaUtil.isEmpty(itemDeltaType)) {
 					return false;
 				}
 			}
@@ -557,7 +557,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
     	if (objectToAdd != null) {
     		objectToAdd.applyDefinition(definition);			// TODO tolerateNoDefinition
     	}
-    	ItemDelta.applyDefinitionIfPresent(getModifications(), definition, tolerateNoDefinition);
+    	ItemDeltaCollectionsUtil.applyDefinitionIfPresent(getModifications(), definition, tolerateNoDefinition);
     }
 
     /**
@@ -1379,7 +1379,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
                     throw new IllegalStateException("Null modification in MODIFY delta "+this);
                 }
             }
-			ItemDelta.checkConsistence(getModifications(), requireDefinition, prohibitRaw, scope);
+			ItemDeltaCollectionsUtil.checkConsistence(getModifications(), requireDefinition, prohibitRaw, scope);
 		} else if (getChangeType() == ChangeType.DELETE) {
             if (scope.isThorough()) {
                 if (requireOid && getOid() == null) {
@@ -1722,7 +1722,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
 		ObjectDeltaImpl<O> offspring = createOffspring();
 		for (Item<?, ?> item : itemsFound) {
 			remainder.getObjectToAdd().remove(item);
-			offspring.addModification(ItemDelta.createAddDeltaFor(item));
+			offspring.addModification(ItemDeltaUtil.createAddDeltaFor(item));
 		}
 		return new FactorOutResultSingle<>(remainder, offspring);
 	}
@@ -1811,7 +1811,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
 		FactorOutResultMulti<O> rv = new FactorOutResultMulti<>(remainder);
 		for (PrismValue value : item.getValues()) {
 			ObjectDeltaImpl<O> offspring = createOffspring();
-			offspring.addModification(ItemDelta.createAddDeltaFor(item, value));
+			offspring.addModification(ItemDeltaUtil.createAddDeltaFor(item, value));
 			rv.offsprings.add(offspring);
 		}
 		return rv;
@@ -1901,7 +1901,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
 		} else if (isDelete()) {
 			return Collections.emptyList();
 		} else {
-			ItemDelta itemDelta = ItemDelta.findItemDelta(modifications, itemPath, ItemDelta.class, false);
+			ItemDelta itemDelta = ItemDeltaCollectionsUtil.findItemDelta(modifications, itemPath, ItemDelta.class, false);
 			if (itemDelta != null) {
 				if (itemDelta.getValuesToReplace() != null) {
 					return (List<PrismValue>) itemDelta.getValuesToReplace();
@@ -1931,7 +1931,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements DebugDumpable, Vis
 		} else if (isDelete()) {
 			return Collections.emptyList();
 		} else {
-			ItemDelta itemDelta = ItemDelta.findItemDelta(modifications, itemPath, ItemDelta.class, false);
+			ItemDelta itemDelta = ItemDeltaCollectionsUtil.findItemDelta(modifications, itemPath, ItemDelta.class, false);
 			if (itemDelta != null) {
 				if (itemDelta.getValuesToDelete() != null) {
 					return (List<PrismValue>) itemDelta.getValuesToDelete();

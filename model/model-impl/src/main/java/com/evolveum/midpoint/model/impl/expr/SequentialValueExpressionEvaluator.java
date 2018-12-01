@@ -16,12 +16,12 @@
 package com.evolveum.midpoint.model.impl.expr;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ItemDeltaUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -67,7 +67,7 @@ public class SequentialValueExpressionEvaluator<V extends PrismValue, D extends 
 			throw new UnsupportedOperationException("Can only generate values of property, not "+output.getClass());
 		}
 
-		return ItemDelta.toDeltaSetTriple(output, null);
+		return ItemDeltaUtil.toDeltaSetTriple(output, null, prismContext);
 	}
 
 	public static long getSequenceCounter(String sequenceOid, RepositoryService repositoryService, OperationResult result) throws ObjectNotFoundException, SchemaException {

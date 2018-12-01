@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -433,7 +433,7 @@ public class PrismMarshaller {
             	// HACK. Sometimes happens that we have raw value even with a definition
             	// this is easy to work around
             	if (value.isRaw()) {
-            		xnode = value.getRawElement().clone();
+            		xnode = ((XNodeImpl) value.getRawElement()).clone();
             	} else {
             		throw new SchemaException("Cannot marshall property value "+value+": marshaller returned null");
             	}
@@ -461,7 +461,7 @@ public class PrismMarshaller {
 
     @NotNull
     private <T> XNodeImpl serializePropertyRawValue(PrismPropertyValue<T> value) throws SchemaException {
-        XNodeImpl rawElement = value.getRawElement();
+        XNodeImpl rawElement = (XNodeImpl) value.getRawElement();
         if (rawElement != null) {
             return rawElement;
         }

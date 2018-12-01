@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -109,7 +110,7 @@ public class AssociationTargetSearchExpressionEvaluator
 		try {
 
 			if (additionalAttributeDeltas != null) {
-				ItemDelta.applyTo(additionalAttributeDeltas, associationCVal);
+				ItemDeltaCollectionsUtil.applyTo(additionalAttributeDeltas, associationCVal);
 			}
 
 			getPrismContext().adopt(associationCVal, ShadowType.COMPLEX_TYPE, ShadowType.F_ASSOCIATION);

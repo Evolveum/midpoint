@@ -18,14 +18,8 @@ package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.xnode.ListXNodeImpl;
-import com.evolveum.midpoint.prism.xnode.RootXNodeImpl;
-import com.evolveum.midpoint.prism.xnode.XNodeImpl;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 
-import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.List;
 
@@ -176,20 +170,6 @@ public interface PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismProper
 	String debugDump(int indent);
 
 	String toHumanReadableString();
-
-	static <T> PrismProperty<T> createRaw(@NotNull XNodeImpl node, @NotNull QName itemName, PrismContext prismContext)
-			throws SchemaException {
-		Validate.isTrue(!(node instanceof RootXNodeImpl));
-		PrismProperty<T> property = new PrismPropertyImpl<T>(itemName, prismContext);
-		if (node instanceof ListXNodeImpl) {
-			for (XNodeImpl subnode : (ListXNodeImpl) node) {
-				property.add(PrismPropertyValue.createRaw(subnode));
-			}
-		} else {
-			property.add(PrismPropertyValue.createRaw(node));
-		}
-		return property;
-	}
 
 	static <T> T getRealValue(PrismProperty<T> property) {
     	return property != null ? property.getRealValue() : null;

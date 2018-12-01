@@ -104,7 +104,7 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
 
     @Override
     public <T> S_MatchingRuleEntry eq(PrismProperty<T> property) {
-        List<PrismPropertyValue<T>> clonedValues = (List<PrismPropertyValue<T>>) PrismPropertyValueImpl.cloneCollection(property.getValues());
+        List<PrismPropertyValue<T>> clonedValues = (List<PrismPropertyValue<T>>) PrismValueCollectionsUtil.cloneCollection(property.getValues());
         PrismPropertyDefinition<T> definition =
                 this.propertyDefinition != null ?
                         this.propertyDefinition : property.getDefinition();

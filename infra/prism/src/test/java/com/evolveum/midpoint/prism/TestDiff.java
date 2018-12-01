@@ -24,13 +24,11 @@ import static org.testng.AssertJUnit.assertNotNull;
 import java.io.IOException;
 import java.util.Collection;
 
+import com.evolveum.midpoint.prism.delta.*;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.foo.AssignmentType;
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -116,7 +114,7 @@ public class TestDiff {
 		PrismProperty<PolyString> user2NameProp = user2.findProperty(UserType.F_NAME);
 
 		// WHEN
-        PropertyDelta<PolyString> delta = PrismPropertyImpl.diff(user1NameProp, user2NameProp);
+        PropertyDelta<PolyString> delta = ItemUtil.diff(user1NameProp, user2NameProp);
 
         // THEN
         assertNull(delta);
@@ -191,7 +189,7 @@ public class TestDiff {
 		PrismProperty<PolyString> user2NameProp = user2.findProperty(UserType.F_NAME);
 
 		// WHEN
-		PropertyDelta<PolyString> delta = PrismPropertyImpl.diff(user1NameProp, user2NameProp);
+		PropertyDelta<PolyString> delta = ItemUtil.diff(user1NameProp, user2NameProp);
 
         // THEN
         assertNotNull(delta);
@@ -275,7 +273,7 @@ public class TestDiff {
 		additionalNamesProp2.addRealValue("bar");
 
 		// WHEN
-        PropertyDelta<String> delta = PrismPropertyImpl.diff(additionalNamesProp1, additionalNamesProp2);
+        PropertyDelta<String> delta = ItemUtil.diff(additionalNamesProp1, additionalNamesProp2);
 
         // THEN
         assertNull(delta);
@@ -364,7 +362,7 @@ public class TestDiff {
 		additionalNamesProp2.addRealValue("baz");
 
 		// WHEN
-		PropertyDelta<String> delta = PrismPropertyImpl.diff(additionalNamesProp1, additionalNamesProp2);
+		PropertyDelta<String> delta = ItemUtil.diff(additionalNamesProp1, additionalNamesProp2);
 
         // THEN
         assertNotNull(delta);
@@ -387,7 +385,7 @@ public class TestDiff {
 		additionalNamesProp2.addRealValue("bar");
 
 		// WHEN
-		PropertyDelta<String> delta = PrismPropertyImpl.diff(null, additionalNamesProp2);
+		PropertyDelta<String> delta = ItemUtil.diff(null, additionalNamesProp2);
 
         // THEN
         assertNotNull(delta);
@@ -410,7 +408,7 @@ public class TestDiff {
 		additionalNamesProp1.addRealValue("baz");
 
 		// WHEN
-		PropertyDelta<String> delta = PrismPropertyImpl.diff(additionalNamesProp1, null);
+		PropertyDelta<String> delta = ItemUtil.diff(additionalNamesProp1, null);
 
         // THEN
         assertNotNull(delta);
@@ -442,7 +440,7 @@ public class TestDiff {
         assertNotNull(modifications);
         System.out.println(DebugUtil.debugDump(modifications));
         assertEquals("Unexpected number of midifications", 0, modifications.size());
-    	ItemDelta.checkConsistence(modifications);
+    	ItemDeltaCollectionsUtil.checkConsistence(modifications);
     }
 
     @Test
@@ -474,7 +472,7 @@ public class TestDiff {
         		modifications,
 		        getPrismContext().path(UserType.F_ASSIGNMENT, 1L, AssignmentType.F_DESCRIPTION),
         		"chamalalia patlama paprtala");
-        ItemDelta.checkConsistence(modifications);
+        ItemDeltaCollectionsUtil.checkConsistence(modifications);
     }
 
     @Test
@@ -504,7 +502,7 @@ public class TestDiff {
         		modifications,
         		getPrismContext().path(UserType.F_ASSIGNMENT, AssignmentType.F_DESCRIPTION),
         		"chamalalia patlama paprtala");
-        ItemDelta.checkConsistence(modifications);
+        ItemDeltaCollectionsUtil.checkConsistence(modifications);
     }
 
 //    @Test

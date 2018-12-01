@@ -17,10 +17,7 @@
 package com.evolveum.midpoint.repo.sql.helpers;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDeltaImpl;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.*;
@@ -412,7 +409,7 @@ public class ObjectUpdater {
                 boolean shouldPhotoBeRemoved;
                 if (reindex) {
                     // old implementation start
-                    ItemDelta.applyTo(modifications, prismObject);
+                    ItemDeltaCollectionsUtil.applyTo(modifications, prismObject);
                     LOGGER.trace("OBJECT after:\n{}", prismObject.debugDumpLazily());
                     // Continuing the photo treatment: should we remove the (now obsolete) focus photo?
                     // We have to test prismObject at this place, because updateFullObject (below) removes photo property from the prismObject.

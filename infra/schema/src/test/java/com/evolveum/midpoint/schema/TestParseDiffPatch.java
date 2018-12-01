@@ -27,6 +27,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -44,11 +45,6 @@ import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.DiffUtil;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -152,7 +148,7 @@ public class TestParseDiffPatch {
 //        PrismAsserts.assertPropertyAdd(assignmentDelta, path, 1);
 //        path = prismContext.path(SchemaConstantsGenerated.C_CREDENTIALS,
 //        		CredentialsType.F_PASSWORD, PasswordType.F_FAILED_LOGINS);
-        PropertyDelta propertyDelta = ItemDelta.findPropertyDelta(userDelta, path);
+        PropertyDelta propertyDelta = ItemDeltaCollectionsUtil.findPropertyDelta(userDelta, path);
         assertNotNull("Property delta for "+path+" not found",propertyDelta);
 //        assertEquals(1, propertyDelta.getValuesToAdd().size());
 
@@ -179,7 +175,7 @@ public class TestParseDiffPatch {
 //      PrismAsserts.assertPropertyAdd(assignmentDelta, path, 1);
 //      path = prismContext.path(SchemaConstantsGenerated.C_CREDENTIALS,
 //      		CredentialsType.F_PASSWORD, PasswordType.F_FAILED_LOGINS);
-      propertyDelta = ItemDelta.findPropertyDelta(userDelta, path);
+      propertyDelta = ItemDeltaCollectionsUtil.findPropertyDelta(userDelta, path);
 
 
 
@@ -202,7 +198,7 @@ public class TestParseDiffPatch {
 //    PrismAsserts.assertPropertyAdd(assignmentDelta, path, 1);
 //    path = prismContext.path(SchemaConstantsGenerated.C_CREDENTIALS,
 //    		CredentialsType.F_PASSWORD, PasswordType.F_FAILED_LOGINS);
-    propertyDelta = ItemDelta.findPropertyDelta(userDelta, path);
+    propertyDelta = ItemDeltaCollectionsUtil.findPropertyDelta(userDelta, path);
 
     }
 
@@ -925,10 +921,10 @@ public class TestParseDiffPatch {
         delta.addModificationReplaceContainer(TaskType.F_MODEL_OPERATION_CONTEXT);
 
         PrismObject changed = prismObject.clone();
-        ItemDelta.applyTo(delta.getModifications(), changed);
+        ItemDeltaCollectionsUtil.applyTo(delta.getModifications(), changed);
         Collection<? extends ItemDelta> processedModifications = prismObject.diffModifications(changed, true, true);
 
-        ItemDelta.applyTo(processedModifications, prismObject);
+        ItemDeltaCollectionsUtil.applyTo(processedModifications, prismObject);
 
         assertNull(prismObject.findContainer(TaskType.F_MODEL_OPERATION_CONTEXT));
     }
@@ -944,7 +940,7 @@ public class TestParseDiffPatch {
 		System.out.println(differences.iterator().next().debugDump());
 
 		PrismObject<ResourceType> differencesApplied = before.clone();
-		ItemDelta.applyTo(differences, differencesApplied);
+		ItemDeltaCollectionsUtil.applyTo(differences, differencesApplied);
 
 		System.out.println(differencesApplied.debugDump());
 		assertEquals("'after' is different from the object with differences applied", after, differencesApplied);

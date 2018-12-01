@@ -642,8 +642,9 @@ public class ResourceObjectConverter {
 	        		LOGGER.trace("Determined side-effect changes by old-new diff:\n{}", resourceShadowDelta.debugDump());
 	        	}
 	        	for (ItemDelta modification: resourceShadowDelta.getModifications()) {
-	        		if (modification.getParentPath().startsWithName(ShadowType.F_ATTRIBUTES) && !ItemDelta.hasEquivalent(itemDeltas, modification)) {
-	        			ItemDelta.merge(sideEffectDeltas, modification);
+	        		if (modification.getParentPath().startsWithName(ShadowType.F_ATTRIBUTES) && !ItemDeltaCollectionsUtil
+					        .hasEquivalent(itemDeltas, modification)) {
+	        			ItemDeltaCollectionsUtil.merge(sideEffectDeltas, modification);
 	        		}
 	        	}
 	        	if (LOGGER.isTraceEnabled()) {
@@ -1002,7 +1003,7 @@ public class ResourceObjectConverter {
 		// add values that have to be added
 		if (propertyDelta.isAdd()) {
 			for (PrismPropertyValue valueToAdd : propertyDelta.getValuesToAdd()) {
-				if (!PrismPropertyValue.containsValue(currentValues, valueToAdd, comparator)) {
+				if (!PrismValueCollectionsUtil.containsValue(currentValues, valueToAdd, comparator)) {
 					currentValues.add(valueToAdd.clone());
 				} else {
 					LOGGER.warn("Attempting to add a value of {} that is already present in {}: {}",
@@ -1516,7 +1517,7 @@ public class ResourceObjectConverter {
 			return;
 		}
 		
-		PropertyDelta<T> simulatedActivationDelta = PropertyDeltaImpl.findPropertyDelta(objectChange, activationAttribute.getPath());
+		PropertyDelta<T> simulatedActivationDelta = ItemDeltaCollectionsUtil.findPropertyDelta(objectChange, activationAttribute.getPath());
 		if (simulatedActivationDelta == null) {
 			return;
 		}
@@ -1551,7 +1552,7 @@ public class ResourceObjectConverter {
 			return;
 		}
 		
-		PropertyDelta simulatedActivationDelta = PropertyDeltaImpl.findPropertyDelta(objectChange, activationAttribute.getPath());
+		PropertyDelta simulatedActivationDelta = ItemDeltaCollectionsUtil.findPropertyDelta(objectChange, activationAttribute.getPath());
 		PrismProperty simulatedActivationProperty = simulatedActivationDelta.getPropertyNewMatchingPath();
 		Collection realValues = simulatedActivationProperty.getRealValues();
 		if (realValues.isEmpty()) {

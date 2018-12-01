@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.prism.xnode.RootXNodeImpl;
+import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -193,7 +193,7 @@ public interface PrismParser {
 	 * But it is useful at some places.
 	 * @return RootXNode corresponding to the input.
 	 */
-	RootXNodeImpl parseToXNode() throws IOException, SchemaException;
+	RootXNode parseToXNode() throws IOException, SchemaException;
 
 	/**
 	 * Parses either an item, or a real value. It depends on the type declaration or item name in the source data.

@@ -183,7 +183,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         repositoryService.modifyObject(UserType.class, oid, deltas, getModifyOptions(), result);
 
-        PropertyDeltaImpl.applyTo(deltas, userOld);
+        ItemDeltaCollectionsUtil.applyTo(deltas, userOld);
 
         PrismObject<UserType> userNew = repositoryService.getObject(UserType.class, oid, null, result);
         ObjectDelta<UserType> delta = userOld.diff(userNew);
@@ -223,7 +223,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         // WHEN
         repositoryService.modifyObject(UserType.class, oid, deltas, getModifyOptions(), result);
 
-        PropertyDeltaImpl.applyTo(deltas, userOld);
+        ItemDeltaCollectionsUtil.applyTo(deltas, userOld);
 
         PrismObject<UserType> userNew = repositoryService.getObject(UserType.class, oid, null, result);
         ObjectDelta<UserType> delta = userOld.diff(userNew);
@@ -951,7 +951,7 @@ public class ModifyTest extends BaseSQLRepoTest {
                 .asItemDeltas();
         repositoryService.modifyObject(ObjectCollectionType.class, collection.getOid(), deltas1, result);
 
-        ItemDelta.applyTo(deltas1, collection.asPrismObject());
+        ItemDeltaCollectionsUtil.applyTo(deltas1, collection.asPrismObject());
         PrismObject<ObjectCollectionType> afterChange1 = repositoryService
                 .getObject(ObjectCollectionType.class, collection.getOid(), null, result);
         assertEquals("Objects differ after change 1", collection.asPrismObject(), afterChange1);
@@ -967,7 +967,7 @@ public class ModifyTest extends BaseSQLRepoTest {
                 .asItemDeltas();
         repositoryService.modifyObject(ObjectCollectionType.class, collection.getOid(), deltas2, result);
 
-        ItemDelta.applyTo(deltas2, collection.asPrismObject());
+        ItemDeltaCollectionsUtil.applyTo(deltas2, collection.asPrismObject());
         PrismObject<ObjectCollectionType> afterChange2 = repositoryService
                 .getObject(ObjectCollectionType.class, collection.getOid(), null, result);
 

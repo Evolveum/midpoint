@@ -21,10 +21,7 @@ import java.util.Collection;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.UniformItemPathImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -242,8 +239,8 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 		return subIdi;
 	}
 
-	public PrismValueDeltaSetTriple<V> toDeltaSetTriple() {
-		return ItemDelta.toDeltaSetTriple(itemOld, delta);
+	public PrismValueDeltaSetTriple<V> toDeltaSetTriple(PrismContext prismContext) {
+		return ItemDeltaUtil.toDeltaSetTriple(itemOld, delta, prismContext);
 	}
 
 	public boolean isContainer() {
@@ -374,7 +371,7 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 		clone.residualPath = this.residualPath;
 		clone.resolvePath = this.resolvePath;
 		if (this.subItemDeltas != null) {
-			clone.subItemDeltas = ItemDelta.cloneCollection(this.subItemDeltas);
+			clone.subItemDeltas = ItemDeltaCollectionsUtil.cloneCollection(this.subItemDeltas);
 		}
 	}
 

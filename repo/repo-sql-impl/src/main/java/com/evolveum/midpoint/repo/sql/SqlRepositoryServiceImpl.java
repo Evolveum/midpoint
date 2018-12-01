@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -537,9 +538,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
 
         if (InternalsConfig.consistencyChecks) {
-            ItemDelta.checkConsistence(modifications, ConsistencyCheckScope.THOROUGH);
+            ItemDeltaCollectionsUtil.checkConsistence(modifications, ConsistencyCheckScope.THOROUGH);
         } else {
-            ItemDelta.checkConsistence(modifications, ConsistencyCheckScope.MANDATORY_CHECKS_ONLY);
+            ItemDeltaCollectionsUtil.checkConsistence(modifications, ConsistencyCheckScope.MANDATORY_CHECKS_ONLY);
         }
 
         if (LOGGER.isTraceEnabled()) {

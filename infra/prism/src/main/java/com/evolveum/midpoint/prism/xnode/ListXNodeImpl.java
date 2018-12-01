@@ -193,4 +193,9 @@ public class ListXNodeImpl extends XNodeImpl implements List<XNodeImpl>, ListXNo
 	public boolean isHeterogeneousList() {
 		return subnodes.stream().anyMatch(n -> n != null && n.getElementName() != null);		// TODO - or allMatch?
 	}
+
+	@Override
+	public List<? extends XNode> asList() {
+		return this;
+	}
 }

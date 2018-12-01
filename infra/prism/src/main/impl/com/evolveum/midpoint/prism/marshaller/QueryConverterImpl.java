@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -292,7 +292,7 @@ public class QueryConverterImpl implements QueryConverter {
 				if (isEq) {
 					//noinspection unchecked
 					List<PrismPropertyValue<T>> values = item.getValues();
-					PrismValue.clearParent(values);
+					PrismValueCollectionsUtil.clearParent(values);
 					//noinspection unchecked
 					return EqualFilter.createEqual(itemPath, (PrismPropertyDefinition<T>)itemDefinition, matchingRule, prismContext, values);
 				}
@@ -505,7 +505,7 @@ public class QueryConverterImpl implements QueryConverter {
 			if (item.getValues().size() < 1) {
 				throw new IllegalStateException("No values to search specified for item " + itemName);
 			}
-			return RefFilter.createReferenceEqual(itemPath, (PrismReferenceDefinition) itemDefinition, PrismValue.cloneCollection(ref.getValues()));
+			return RefFilter.createReferenceEqual(itemPath, (PrismReferenceDefinition) itemDefinition, PrismValueCollectionsUtil.cloneCollection(ref.getValues()));
 		} else {
 			ExpressionWrapper expressionWrapper = parseExpression(clauseXMap);
 			if (expressionWrapper != null) {

@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.prism.xnode;
 
+import java.util.List;
+
 /**
  *
  */
@@ -23,4 +25,7 @@ public interface ListXNode {
 	boolean isEmpty();
 	int size();
 	XNode get(int i);
+
+	// todo reconsider this
+	List<? extends XNode> asList();
 }

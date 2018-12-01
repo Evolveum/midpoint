@@ -22,18 +22,12 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.*;
 import org.apache.commons.lang.BooleanUtils;
 
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.common.expression.evaluator.caching.AbstractSearchExpressionEvaluatorCache;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -477,7 +471,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 		}
 
 		ItemDelta<IV,ID> itemDelta = propOutputDefinition.createEmptyDelta(targetPath);
-		itemDelta.addValuesToAdd(PrismValue.cloneCollection(pvalues));
+		itemDelta.addValuesToAdd(PrismValueCollectionsUtil.cloneCollection(pvalues));
 
 		LOGGER.trace("Item delta:\n{}", itemDelta.debugDump());
 

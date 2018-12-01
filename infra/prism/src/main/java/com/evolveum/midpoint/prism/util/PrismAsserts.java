@@ -27,6 +27,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.Visitor;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.*;
 
 import com.evolveum.midpoint.prism.query.*;
@@ -35,14 +36,6 @@ import com.evolveum.midpoint.util.QNameUtil;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -390,19 +383,19 @@ public class PrismAsserts {
 	}
 
 	public static void assertPropertyReplace(Collection<? extends ItemDelta> modifications, UniformItemPath propertyPath, Object... expectedValues) {
-		PropertyDelta propertyDelta = ItemDelta.findPropertyDelta(modifications, propertyPath);
+		PropertyDelta propertyDelta = ItemDeltaCollectionsUtil.findPropertyDelta(modifications, propertyPath);
 		assertNotNull("Property delta for "+propertyPath+" not found",propertyDelta);
 		assertSet("delta "+propertyDelta+" for "+propertyPath.last(), "replace", propertyDelta.getValuesToReplace(), expectedValues);
 	}
 
 	public static void assertPropertyAdd(Collection<? extends ItemDelta> modifications, ItemPath propertyPath, Object... expectedValues) {
-		PropertyDelta propertyDelta = ItemDelta.findPropertyDelta(modifications, propertyPath);
+		PropertyDelta propertyDelta = ItemDeltaCollectionsUtil.findPropertyDelta(modifications, propertyPath);
 		assertNotNull("Property delta for "+propertyPath+" not found",propertyDelta);
 		assertSet("delta "+propertyDelta+" for "+propertyPath, "add", propertyDelta.getValuesToAdd(), expectedValues);
 	}
 
 	public static void assertPropertyDelete(Collection<? extends ItemDelta> modifications, UniformItemPath propertyPath, Object... expectedValues) {
-		PropertyDelta propertyDelta = ItemDelta.findPropertyDelta(modifications, propertyPath);
+		PropertyDelta propertyDelta = ItemDeltaCollectionsUtil.findPropertyDelta(modifications, propertyPath);
 		assertNotNull("Property delta for "+propertyPath+" not found",propertyDelta);
 		assertSet("delta "+propertyDelta+" for "+propertyPath.last(), "delete", propertyDelta.getValuesToDelete(), expectedValues);
 	}

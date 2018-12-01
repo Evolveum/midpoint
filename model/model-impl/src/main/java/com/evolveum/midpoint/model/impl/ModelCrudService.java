@@ -26,6 +26,7 @@ import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.crypto.Protector;
 
+import com.evolveum.midpoint.prism.delta.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,9 +37,6 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
@@ -418,7 +416,7 @@ public class ModelCrudService {
 			return;
 		}
 
-		ItemDelta.checkConsistence(modifications, ConsistencyCheckScope.THOROUGH);
+		ItemDeltaCollectionsUtil.checkConsistence(modifications, ConsistencyCheckScope.THOROUGH);
 		// TODO: check definitions, but tolerate missing definitions in <attributes>
 
 		OperationResult result = parentResult.createSubresult(MODIFY_OBJECT);

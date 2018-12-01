@@ -18,6 +18,7 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -689,7 +690,7 @@ public class CertificationTest extends BaseSQLRepoTest {
     private void checkCampaign(String campaignOid, OperationResult result, PrismObject<AccessCertificationCampaignType> expectedObject, List<ItemDelta> modifications, Integer expectedVersion) throws SchemaException, ObjectNotFoundException, IOException {
         expectedObject.setOid(campaignOid);
         if (modifications != null) {
-            ItemDelta.applyTo(modifications, expectedObject);
+            ItemDeltaCollectionsUtil.applyTo(modifications, expectedObject);
         }
 
         LOGGER.trace("Expected object = \n{}", expectedObject.debugDump());

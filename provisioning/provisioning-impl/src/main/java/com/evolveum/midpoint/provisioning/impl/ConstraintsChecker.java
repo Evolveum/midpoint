@@ -163,7 +163,7 @@ public class ConstraintsChecker {
 		//TODO: set matching rule instead of null
 		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
 				.itemWithDef(identifier.getDefinition(), ShadowType.F_ATTRIBUTES, identifier.getDefinition().getName())
-						.eq(PrismPropertyValueImpl.cloneCollection(identifierValues))
+						.eq(PrismValueCollectionsUtil.cloneCollection(identifierValues))
 				.and().item(ShadowType.F_OBJECT_CLASS).eq(accountDefinition.getObjectClassDefinition().getTypeName())
 				.and().item(ShadowType.F_RESOURCE_REF).ref(resourceType.getOid())
 				.and().block()

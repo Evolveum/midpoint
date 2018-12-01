@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -291,7 +292,7 @@ public class WorkersManager {
 
 	private void applyDeltas(TaskType worker, List<ItemDeltaType> deltas) throws SchemaException {
 		Collection<? extends ItemDelta> itemDeltas = DeltaConvertor.toModifications(deltas, worker.asPrismObject().getDefinition());
-		ItemDelta.applyTo(itemDeltas, worker.asPrismContainerValue());
+		ItemDeltaCollectionsUtil.applyTo(itemDeltas, worker.asPrismContainerValue());
 	}
 
 	private void moveWorker(Task worker, WorkerKey shouldBe, OperationResult result)

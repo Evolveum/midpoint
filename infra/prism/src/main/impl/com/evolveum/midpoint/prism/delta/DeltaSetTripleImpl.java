@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,38 +73,11 @@ public class DeltaSetTripleImpl<T> implements DeltaSetTriple<T> {
      */
     public static <T> DeltaSetTriple<T> diff(Collection<T> valuesOld, Collection<T> valuesNew) {
         DeltaSetTriple<T> triple = new DeltaSetTripleImpl<>();
-        diff(valuesOld, valuesNew, triple);
+        DeltaSetTripleUtil.diff(valuesOld, valuesNew, triple);
         return triple;
     }
 
-    protected static <T> void diff(Collection<T> valuesOld, Collection<T> valuesNew, DeltaSetTriple<T> triple) {
-        if (valuesOld == null && valuesNew == null) {
-        	// No values, no change -> empty triple
-        	return;
-        }
-        if (valuesOld == null) {
-        	triple.getPlusSet().addAll(valuesNew);
-        	return;
-        }
-        if (valuesNew == null) {
-        	triple.getMinusSet().addAll(valuesOld);
-        	return;
-        }
-        for (T val : valuesOld) {
-            if (valuesNew.contains(val)) {
-                triple.getZeroSet().add(val);
-            } else {
-                triple.getMinusSet().add(val);
-            }
-        }
-        for (T val : valuesNew) {
-            if (!valuesOld.contains(val)) {
-                triple.getPlusSet().add(val);
-            }
-        }
-    }
-
-    private Collection<T> createSet() {
+	private Collection<T> createSet() {
         return new ArrayList<>();
     }
 

@@ -18,8 +18,8 @@ package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.crypto.ProtectorCreator;
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.marshaller.JaxbDomHack;
 import com.evolveum.midpoint.prism.marshaller.ParsingMigrator;
@@ -329,8 +329,8 @@ public interface PrismContext extends ProtectorCreator {
 	 */
 	CanonicalItemPath createCanonicalItemPath(ItemPath itemPath);
 
-	default <C extends Containerable> S_ItemEntry deltaFor(Class<C> objectClass) throws SchemaException {
-		return new DeltaBuilder<>(objectClass, this);
-	}
+	<C extends Containerable> S_ItemEntry deltaFor(Class<C> objectClass) throws SchemaException;
 
+	@NotNull
+	DeltaFactory deltaFactory();
 }

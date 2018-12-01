@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDeltaUtil;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -36,7 +37,6 @@ import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -54,7 +54,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowDiscriminatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowIdentifiersType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.apache.commons.collections4.CollectionUtils;
@@ -165,7 +164,7 @@ public class AssociationFromLinkExpressionEvaluator
 		LOGGER.trace("Candidate shadow OIDs: {}", candidateShadowOidList);
 
 		selectMatchingShadows(candidateShadowOidList, output, resourceOid, kind, intent, assocName, context);
-		return ItemDelta.toDeltaSetTriple(output, null);
+		return ItemDeltaUtil.toDeltaSetTriple(output, null, prismContext);
 	}
 
 	private void selectMatchingShadows(List<String> candidateShadowsOidList,

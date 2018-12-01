@@ -167,7 +167,7 @@ public class ContainerDeltaImpl<V extends Containerable> extends ItemDeltaImpl<P
 			if (id == null || id.equals(cvalue.getId())) {
 				Item<?,?> item = cvalue.findItem(path);
 				if (item != null) {
-					subValues.addAll(PrismValue.cloneCollection(item.getValues()));
+					subValues.addAll(PrismValueCollectionsUtil.cloneCollection(item.getValues()));
 					foundValuesOnPath = true;
 				}
 			}

@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.commons.collections.CollectionUtils;
@@ -55,19 +56,6 @@ import com.evolveum.midpoint.model.impl.lens.projector.MappingInitializer;
 import com.evolveum.midpoint.model.impl.lens.projector.MappingOutputProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.MappingTimeEval;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsProcessor;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.OriginType;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
@@ -766,7 +754,8 @@ public class InboundProcessor {
 				.originObject(resource);
 		
 		if (!context.getFocusContext().isDelete()){
-				Collection<V> originalValues = ExpressionUtil.computeTargetValues(inboundMappingType.getTarget(), focusNew, variables, mappingFactory.getObjectResolver() , "resolving range", task, result);
+				Collection<V> originalValues = ExpressionUtil.computeTargetValues(inboundMappingType.getTarget(), focusNew, variables, mappingFactory.getObjectResolver() , "resolving range",
+						prismContext, task, result);
 				builder.originalTargetValues(originalValues);
 		}
 	
@@ -1115,7 +1104,7 @@ public class InboundProcessor {
 							}
 							for (Object shouldBeValueObj : shouldBeItem.getValues()) {
 								PrismValue shouldBeValue = (PrismValue) shouldBeValueObj;
-								if (!PrismValue.containsRealValue(diffDelta.getValuesToReplace(), shouldBeValue)) {
+								if (!PrismValueCollectionsUtil.containsRealValue(diffDelta.getValuesToReplace(), shouldBeValue)) {
 									diffDelta.addValueToReplace(shouldBeValue.clone());
 								}
 							}
@@ -1383,7 +1372,7 @@ public class InboundProcessor {
 
 		        PrismObjectDefinition<F> focusDefinition = context.getFocusContext().getObjectDefinition();
 		        PrismProperty result = focusDefinition.findPropertyDefinition(targetPath).instantiate();
-		    	result.addAll(PrismValue.cloneCollection(outputTriple.getNonNegativeValues()));
+		    	result.addAll(PrismValueCollectionsUtil.cloneCollection(outputTriple.getNonNegativeValues()));
 
 		    	PrismProperty targetPropertyNew = newUser.findOrCreateProperty(targetPath);
 		    	PropertyDelta<?> delta;

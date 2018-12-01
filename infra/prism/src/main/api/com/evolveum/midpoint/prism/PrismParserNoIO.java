@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.prism.xnode.RootXNodeImpl;
+import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -65,7 +65,7 @@ public interface PrismParserNoIO extends PrismParser {
 	<T> T parseRealValue(Class<T> clazz) throws SchemaException;
 	<T> T parseRealValue() throws SchemaException;
 	<T> JAXBElement<T> parseRealValueToJaxbElement() throws SchemaException;
-	RootXNodeImpl parseToXNode() throws SchemaException;
+	RootXNode parseToXNode() throws SchemaException;
 	Object parseItemOrRealValue() throws SchemaException;
 
 	// auxiliary methods

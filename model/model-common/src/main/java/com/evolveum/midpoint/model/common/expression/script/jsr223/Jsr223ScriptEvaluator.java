@@ -150,7 +150,7 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 				}
 			}
 		} else if (evalRawResult instanceof PrismProperty<?>) {
-			pvals.addAll((Collection<? extends V>) PrismPropertyValueImpl.cloneCollection(((PrismProperty<T>)evalRawResult).getValues()));
+			pvals.addAll((Collection<? extends V>) PrismValueCollectionsUtil.cloneCollection(((PrismProperty<T>)evalRawResult).getValues()));
 		} else {
 			T evalResult = convertScalarResult(javaReturnType, additionalConvertor, evalRawResult, contextDescription);
 			if (allowEmptyValues || !ExpressionUtil.isEmpty(evalResult)) {

@@ -292,7 +292,7 @@ public class ReconciliationProcessor {
 				return;
 			}
 			Collection<QName> auxOcsOld = auxOcPropOld.getRealValues();
-			Set<QName> auxOcsToReplace = PrismPropertyValueImpl.getRealValuesOfCollection(auxOcDelta.getValuesToReplace());
+			Set<QName> auxOcsToReplace = PrismValueCollectionsUtil.getRealValuesOfCollection(auxOcDelta.getValuesToReplace());
 			deletedAuxObjectClassNames = new ArrayList<>(auxOcsOld.size());
 			for (QName auxOcOld: auxOcsOld) {
 				if (!QNameUtil.contains(auxOcsToReplace, auxOcOld)) {
@@ -304,7 +304,7 @@ public class ReconciliationProcessor {
 			if (valuesToDelete == null || valuesToDelete.isEmpty()) {
 				return;
 			}
-			deletedAuxObjectClassNames = PrismPropertyValueImpl.getRealValuesOfCollection(valuesToDelete);
+			deletedAuxObjectClassNames = PrismValueCollectionsUtil.getRealValuesOfCollection(valuesToDelete);
 		}
 		LOGGER.trace("Deleted auxiliary object classes: {}", deletedAuxObjectClassNames);
 		if (deletedAuxObjectClassNames == null || deletedAuxObjectClassNames.isEmpty()) {
@@ -355,7 +355,7 @@ public class ReconciliationProcessor {
 				continue;
 			}
 			PropertyDelta<Object> attrDelta = attrToDelete.createDelta();
-			attrDelta.addValuesToDelete(PrismValue.cloneCollection(attrToDelete.getValues()));
+			attrDelta.addValuesToDelete(PrismValueCollectionsUtil.cloneCollection(attrToDelete.getValues()));
 			projCtx.swallowToSecondaryDelta(attrDelta);
 		}
 	}

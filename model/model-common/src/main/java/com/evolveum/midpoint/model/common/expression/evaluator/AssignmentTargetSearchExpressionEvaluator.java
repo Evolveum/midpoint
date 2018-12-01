@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
@@ -67,7 +68,7 @@ public class AssignmentTargetSearchExpressionEvaluator
 
 		try {
 			if (additionalAttributeDeltas != null) {
-				ItemDelta.applyTo(additionalAttributeDeltas, assignmentCVal);
+				ItemDeltaCollectionsUtil.applyTo(additionalAttributeDeltas, assignmentCVal);
 			}
 			getPrismContext().adopt(assignmentCVal, FocusType.COMPLEX_TYPE, FocusType.F_ASSIGNMENT);
 			if (InternalsConfig.consistencyChecks) {

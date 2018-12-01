@@ -30,4 +30,6 @@ public interface XNode extends DebugDumpable, Visitable, Cloneable, Serializable
 	boolean isEmpty();
 
 	QName getTypeQName();
+
+	RootXNode toRootXNode();
 }

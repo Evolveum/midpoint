@@ -229,7 +229,7 @@ public class JaxbDomHackImpl implements JaxbDomHack {
 		if (value instanceof PrismPropertyValue) {
 			PrismPropertyValue<Object> pval = (PrismPropertyValue)value;
 			if (pval.isRaw() && parent.getDefinition() == null) {
-				XNodeImpl rawElement = pval.getRawElement();
+				XNodeImpl rawElement = (XNodeImpl) pval.getRawElement();
 				if (rawElement instanceof MapXNodeImpl) {
 					return domParser.serializeXMapToElement((MapXNodeImpl)rawElement, elementName);
 				} else if (rawElement instanceof PrimitiveXNodeImpl<?>) {

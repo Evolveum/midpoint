@@ -27,7 +27,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTripleImpl;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -1131,7 +1130,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		}
 		//noinspection unchecked
 		Item<V,D> output = outputDefinition.instantiate();
-		output.addAll(PrismValue.cloneCollection(outputTriple.getNonNegativeValues()));
+		output.addAll(PrismValueCollectionsUtil.cloneCollection(outputTriple.getNonNegativeValues()));
 		return output;
 	}
 

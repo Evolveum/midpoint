@@ -18,6 +18,7 @@ package com.evolveum.midpoint.repo.sql.helpers;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
@@ -346,7 +347,7 @@ public class ObjectDeltaUpdater {
         object.setVersion(version);
 
         // apply modifications, ids' for new containers already filled in delta values
-        ItemDelta.applyTo(modifications, prismObject);
+        ItemDeltaCollectionsUtil.applyTo(modifications, prismObject);
 
         handleObjectTextInfoChanges(type, modifications, prismObject, object);
 

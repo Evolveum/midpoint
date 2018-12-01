@@ -22,6 +22,7 @@ import java.util.function.Consumer;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import org.apache.commons.lang.BooleanUtils;
@@ -32,15 +33,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -1705,7 +1697,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 					if (!prismContext.relationMatches(subjectRelation, subjectRoleMembershipRef.getRelation())) {
 						continue;
 					}
-					if (!PrismReferenceValue.containsOid(queryRoleRefs, subjectRoleMembershipRef.getOid())) {
+					if (!PrismValueCollectionsUtil.containsOid(queryRoleRefs, subjectRoleMembershipRef.getOid())) {
 						continue;
 					}
 					isRoleOidOk = true;

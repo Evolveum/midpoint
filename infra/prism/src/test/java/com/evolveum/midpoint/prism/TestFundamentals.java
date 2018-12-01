@@ -68,13 +68,13 @@ public class TestFundamentals {
 		PrismPropertyValue<String> valBaz = new PrismPropertyValueImpl<>("baz");
 
 		// WHEN - THEN
-		assert PrismValue.containsRealValue(collection, valFoo1);
-		assert PrismValue.containsRealValue(collection, valBar1);
-		assert PrismValue.containsRealValue(collection, valFoo2);
-		assert PrismValue.containsRealValue(collection, valBar2);
-		assert PrismValue.containsRealValue(collection, valFoo3);
-		assert PrismValue.containsRealValue(collection, valBar3);
-		assert !PrismValue.containsRealValue(collection, valBaz);
+		assert PrismValueCollectionsUtil.containsRealValue(collection, valFoo1);
+		assert PrismValueCollectionsUtil.containsRealValue(collection, valBar1);
+		assert PrismValueCollectionsUtil.containsRealValue(collection, valFoo2);
+		assert PrismValueCollectionsUtil.containsRealValue(collection, valBar2);
+		assert PrismValueCollectionsUtil.containsRealValue(collection, valFoo3);
+		assert PrismValueCollectionsUtil.containsRealValue(collection, valBar3);
+		assert !PrismValueCollectionsUtil.containsRealValue(collection, valBaz);
     }
 
 	@Test

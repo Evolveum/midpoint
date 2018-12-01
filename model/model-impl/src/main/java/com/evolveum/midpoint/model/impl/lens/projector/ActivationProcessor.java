@@ -749,7 +749,7 @@ public class ActivationProcessor {
 			}
 			
 			for (PrismPropertyValue<T> shouldHaveValue: shouldHaveValues) {
-				if (!PrismPropertyValueImpl.containsRealValue(hasValues, shouldHaveValue)) {
+				if (!PrismValueCollectionsUtil.containsRealValue(hasValues, shouldHaveValue)) {
 					if (targetItemDefinition.isSingleValue()) {
 						targetItemDelta.setValueToReplace(shouldHaveValue.clone());
 					} else {
@@ -764,7 +764,7 @@ public class ActivationProcessor {
 				}
 			} else {
 				for (PrismPropertyValue<T> hasValue: hasValues) {
-					if (!PrismPropertyValueImpl.containsRealValue(shouldHaveValues, hasValue)) {
+					if (!PrismValueCollectionsUtil.containsRealValue(shouldHaveValues, hasValue)) {
 						targetItemDelta.addValueToDelete(hasValue.clone());
 					}
 				}

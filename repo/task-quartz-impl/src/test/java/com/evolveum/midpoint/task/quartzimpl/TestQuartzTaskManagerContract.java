@@ -299,7 +299,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
         PropertyDelta delta = new PropertyDeltaImpl<>(prismContext.path(TaskType.F_EXTENSION, property.getElementName()), property.getDefinition(), prismContext);
         //delta.addV(property.getValues());
-        delta.setValuesToReplace(PrismValue.cloneCollection(property.getValues()));
+        delta.setValuesToReplace(PrismValueCollectionsUtil.cloneCollection(property.getValues()));
 
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>(1);
         modifications.add(delta);

@@ -20,14 +20,12 @@ import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.UniformItemPathImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.util.*;
-import java.util.function.Function;
 
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
@@ -139,15 +137,6 @@ public abstract class PrismValueImpl implements PrismValue {
 		parent = null;
 	}
 
-	public static <T> void clearParent(List<PrismPropertyValue<T>> values) {
-		if (values == null) {
-			return;
-		}
-		for (PrismPropertyValue<T> val: values) {
-			val.clearParent();
-		}
-	}
-
 	@Override
 	public PrismContext getPrismContext() {
 		if (prismContext != null) {
@@ -233,72 +222,11 @@ public abstract class PrismValueImpl implements PrismValue {
 		return false;
 	}
 
-	public static <V extends PrismValue> boolean containsRealValue(Collection<V> collection, V value) {
-		return containsRealValue(collection, value, Function.identity());
-	}
-
-	public static <X, V extends PrismValue> boolean containsRealValue(Collection<X> collection, V value, Function<X, V> valueExtractor) {
-		if (collection == null) {
-			return false;
-		}
-
-		for (X colVal: collection) {
-			if (colVal == null) {
-				return value == null;
-			}
-		
-			if (valueExtractor.apply(colVal).equalsRealValue(value)) {
-
-				return true;
-			}
-		}
-		return false;
-	}
-
-	public static <V extends PrismValue> boolean equalsRealValues(Collection<V> collection1, Collection<V> collection2) {
-		return MiscUtil.unorderedCollectionEquals(collection1, collection2, (v1, v2) -> v1.equalsRealValue(v2));
-	}
-
-	public static <V extends PrismValue> boolean containsAll(Collection<V> thisSet, Collection<V> otherSet, boolean ignoreMetadata, boolean isLiteral) {
-		if (thisSet == null && otherSet == null) {
-			return true;
-		}
-		if (otherSet == null) {
-			return true;
-		}
-		if (thisSet == null) {
-			return false;
-		}
-		for (V otherValue: otherSet) {
-			if (!contains(thisSet, otherValue, ignoreMetadata, isLiteral)) {
-				return false;
-			}
-		}
-		return true;
-	}
-
-	public static <V extends PrismValue> boolean contains(Collection<V> thisSet, V otherValue, boolean ignoreMetadata, boolean isLiteral) {
-		for (V thisValue: thisSet) {
-			if (thisValue.equalsComplex(otherValue, ignoreMetadata, isLiteral)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
 	@Override
 	public void normalize() {
 		// do nothing by default
 	}
 
-	public static <X extends PrismValue> Collection<X> cloneValues(Collection<X> values) {
-		Collection<X> clonedCollection = new ArrayList<>(values.size());
-		for (X val: values) {
-			clonedCollection.add((X) val.clone());
-		}
-		return clonedCollection;
-	}
-	
 	/**
      * Literal clone.
      */
@@ -320,33 +248,6 @@ public abstract class PrismValueImpl implements PrismValue {
 		if (clone.prismContext == null) {
 			clone.prismContext = this.prismContext;
 		}
-	}
-
-	@NotNull
-	public static <T extends PrismValue> Collection<T> cloneCollection(Collection<T> values) {
-		return cloneCollectionComplex(CloneStrategy.LITERAL, values);
-	}
-
-	@NotNull
-	public static <T extends PrismValue> Collection<T> cloneCollectionComplex(CloneStrategy strategy, Collection<T> values) {
-		Collection<T> clones = new ArrayList<>();
-		if (values != null) {
-			for (T value : values) {
-				clones.add((T) value.cloneComplex(strategy));
-			}
-		}
-		return clones;
-	}
-
-	/**
-     * Sets all parents to null. This is good if the items are to be "transplanted" into a
-     * different Containerable.
-     */
-	public static <T extends PrismValue> Collection<T> resetParentCollection(Collection<T> values) {
-    	for (T value: values) {
-    		value.setParent(null);
-    	}
-    	return values;
 	}
 
 	@Override
@@ -447,28 +348,6 @@ public abstract class PrismValueImpl implements PrismValue {
 		}
 	}
 
-    public static <T> Set<T> getRealValuesOfCollection(Collection<? extends PrismValue> collection) {
-        Set<T> retval = new HashSet<>(collection.size());
-        for (PrismValue value : collection) {
-            retval.add(value.getRealValue());
-        }
-        return retval;
-    }
-
-
-	public static <V extends PrismValue> boolean collectionContainsEquivalentValue(Collection<V> collection, V value) {
-		if (collection == null) {
-			return false;
-		}
-		for (V collectionVal: collection) {
-			if (collectionVal.equals(value, true)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-
 	@Override
 	public boolean isImmutable() {
 		return immutable;
@@ -500,7 +379,7 @@ public abstract class PrismValueImpl implements PrismValue {
 	public PrismValue getRootValue() {
 		PrismValue current = this;
 		for (;;) {
-			PrismContainerValue<?> parent = getParentContainerValue(current);
+			PrismContainerValue<?> parent = PrismValueUtil.getParentContainerValue(current);
 			if (parent == null) {
 				return current;
 			}
@@ -508,33 +387,13 @@ public abstract class PrismValueImpl implements PrismValue {
 		}
 	}
 
-	public static PrismContainerValue<?> getParentContainerValue(PrismValue value) {
-		Itemable parent = value.getParent();
-		if (parent instanceof Item) {
-			PrismValue parentParent = ((Item) parent).getParent();
-			return parentParent instanceof PrismContainerValue ? (PrismContainerValue) parentParent : null;
-		} else {
-			return null;
-		}
-	}
-
 	public PrismContainerValue<?> getParentContainerValue() {
-		return getParentContainerValue(this);
+		return PrismValueUtil.getParentContainerValue(this);
 	}
 
 	public QName getTypeName() {
 		ItemDefinition definition = getDefinition();
 		return definition != null ? definition.getTypeName() : null;
-	}
-
-	public static PrismValue fromRealValue(Object realValue) {
-		if (realValue instanceof Containerable) {
-			return ((Containerable) realValue).asPrismContainerValue();
-		} else if (realValue instanceof Referencable) {
-			return ((Referencable) realValue).asReferenceValue();
-		} else {
-			return new PrismPropertyValueImpl<>(realValue);
-		}
 	}
 
 	// Path may contain ambiguous segments (e.g. assignment/targetRef when there are more assignments)

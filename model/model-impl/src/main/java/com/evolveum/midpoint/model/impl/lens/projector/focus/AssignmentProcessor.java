@@ -31,7 +31,6 @@ import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -761,12 +760,12 @@ public class AssignmentProcessor {
 							switch (plusMinusZero) {
 								case PLUS:
 								case ZERO:
-									if (!PrismReferenceValueImpl.containsRealValue(shouldBeParentOrgRefs, val)) {
+									if (!PrismValueCollectionsUtil.containsRealValue(shouldBeParentOrgRefs, val)) {
 										throw new TunnelException(new PolicyViolationException("Attempt to add parentOrgRef "+val.getOid()+", but it is not allowed by assignments"));
 									}
 									break;
 								case MINUS:
-									if (PrismReferenceValueImpl.containsRealValue(shouldBeParentOrgRefs, val)) {
+									if (PrismValueCollectionsUtil.containsRealValue(shouldBeParentOrgRefs, val)) {
 										throw new TunnelException(new PolicyViolationException("Attempt to delete parentOrgRef "+val.getOid()+", but it is mandated by assignments"));
 									}
 									break;

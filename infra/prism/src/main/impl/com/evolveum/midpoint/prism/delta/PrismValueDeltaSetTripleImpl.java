@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,7 @@
  */
 package com.evolveum.midpoint.prism.delta;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.OriginType;
-import com.evolveum.midpoint.prism.Visitor;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.Processor;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -49,7 +44,7 @@ public class PrismValueDeltaSetTripleImpl<V extends PrismValue> extends DeltaSet
      */
     public static <V extends PrismValue> PrismValueDeltaSetTriple<V> diffPrismValueDeltaSetTriple(Collection<V> valuesOld, Collection<V> valuesNew) {
     	PrismValueDeltaSetTriple<V> triple = new PrismValueDeltaSetTripleImpl<>();
-        diff(valuesOld, valuesNew, triple);
+        DeltaSetTripleUtil.diff(valuesOld, valuesNew, triple);
         return triple;
     }
 
@@ -60,22 +55,22 @@ public class PrismValueDeltaSetTripleImpl<V extends PrismValue> extends DeltaSet
      */
     public <O extends PrismValue> void distributeAs(V myMember, PrismValueDeltaSetTriple<O> otherTriple, O otherMember) {
 	    otherTriple.getZeroSet();
-	    if (PrismValue.containsRealValue(otherTriple.getZeroSet(), otherMember)) {
+	    if (PrismValueCollectionsUtil.containsRealValue(otherTriple.getZeroSet(), otherMember)) {
             zeroSet.add(myMember);
         }
 	    otherTriple.getPlusSet();
-	    if (PrismValue.containsRealValue(otherTriple.getPlusSet(), otherMember)) {
+	    if (PrismValueCollectionsUtil.containsRealValue(otherTriple.getPlusSet(), otherMember)) {
             plusSet.add(myMember);
         }
 	    otherTriple.getMinusSet();
-	    if (PrismValue.containsRealValue(otherTriple.getMinusSet(), otherMember)) {
+	    if (PrismValueCollectionsUtil.containsRealValue(otherTriple.getMinusSet(), otherMember)) {
             minusSet.add(myMember);
         }
     }
     
     @Override
     protected boolean presentInSet(Collection<V> set, V item) {
-    	return PrismValue.containsRealValue(set, item);
+    	return PrismValueCollectionsUtil.containsRealValue(set, item);
     }
 
 	public Class<V> getValueClass() {

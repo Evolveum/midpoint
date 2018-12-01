@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.delta.ItemDeltaUtil;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTripleImpl;
@@ -74,7 +75,7 @@ public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
 		if (context.getSources() != null && context.getSources().size() == 1) {
 			Source<?,?> source = context.getSources().iterator().next();
 			if (path.isEmpty()) {
-				PrismValueDeltaSetTriple<V> outputTriple = (PrismValueDeltaSetTriple<V>) source.toDeltaSetTriple();
+				PrismValueDeltaSetTriple<V> outputTriple = (PrismValueDeltaSetTriple<V>) source.toDeltaSetTriple(prismContext);
 				return outputTriple.clone();
 			}
 			resolveContext = source;
@@ -137,8 +138,8 @@ public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
         	}
         }
 
-        PrismValueDeltaSetTriple<V> outputTriple = ItemDelta.toDeltaSetTriple((Item<V,D>)resolveContext.getItemOld(),
-        		(ItemDelta<V,D>)resolveContext.getDelta());
+        PrismValueDeltaSetTriple<V> outputTriple = ItemDeltaUtil.toDeltaSetTriple((Item<V,D>)resolveContext.getItemOld(),
+        		(ItemDelta<V,D>)resolveContext.getDelta(), prismContext);
 
         if (outputTriple == null) {
         	return null;

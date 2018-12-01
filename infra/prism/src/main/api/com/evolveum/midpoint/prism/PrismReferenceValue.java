@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -158,29 +158,10 @@ public interface PrismReferenceValue extends PrismValue, ShortDumpable {
 
 	boolean representsSameValue(PrismReferenceValue other);
 
-	static PrismReferenceValue createFromTarget(PrismObject<?> refTarget) {
-		PrismReferenceValue refVal = new PrismReferenceValueImpl(refTarget.getOid());
-		refVal.setObject(refTarget);
-		if (refTarget.getDefinition() != null) {
-			refVal.setTargetType(refTarget.getDefinition().getTypeName());
-		}
-		return refVal;
-	}
-
 	@Override
 	String toString();
 
 	Referencable asReferencable();
-
-	@NotNull
-	static List<Referencable> asReferencables(@NotNull Collection<PrismReferenceValue> values) {
-		return values.stream().map(prv -> prv.asReferencable()).collect(Collectors.toList());
-	}
-
-	@NotNull
-	static List<PrismReferenceValue> asReferenceValues(@NotNull Collection<? extends Referencable> referencables) {
-		return referencables.stream().map(ref -> ref.asReferenceValue()).collect(Collectors.toList());
-	}
 
 	@Override
 	String debugDump();
@@ -210,10 +191,6 @@ public interface PrismReferenceValue extends PrismValue, ShortDumpable {
 	@Nullable
 	@Override
 	Referencable getRealValue();
-
-	static boolean containsOid(Collection<PrismReferenceValue> values, @NotNull String oid) {
-		return values.stream().anyMatch(v -> oid.equals(v.getOid()));
-	}
 
 	@Override
 	void revive(PrismContext prismContext) throws SchemaException;

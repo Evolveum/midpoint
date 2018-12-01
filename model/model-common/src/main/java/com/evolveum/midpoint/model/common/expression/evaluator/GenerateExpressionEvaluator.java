@@ -23,6 +23,7 @@ import com.evolveum.midpoint.model.common.stringpolicy.UserValuePolicyOriginReso
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.delta.ItemDeltaUtil;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
@@ -30,7 +31,6 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.repo.common.expression.ValuePolicyResolver;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.util.RandomString;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -181,7 +181,7 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
 					"Can only generate values of property, not " + output.getClass());
 		}
 
-		return ItemDelta.toDeltaSetTriple(output, null);
+		return ItemDeltaUtil.toDeltaSetTriple(output, null, prismContext);
 	}
 
 	// determine object from the variables

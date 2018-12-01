@@ -246,9 +246,10 @@ public class ExpressionUtil {
 		}
 	}
 
-	public static <V extends PrismValue, F extends FocusType> Collection<V> computeTargetValues(VariableBindingDefinitionType target,
+	public static <V extends PrismValue, F extends FocusType> Collection<V> computeTargetValues(
+			VariableBindingDefinitionType target,
 			Object defaultTargetContext, ExpressionVariables variables, ObjectResolver objectResolver, String contextDesc,
-			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+			PrismContext prismContext, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		if (target == null) {
 			// Is this correct? What about default targets?
 			return null;
@@ -270,7 +271,7 @@ public class ExpressionUtil {
 			return (List<V>) Collections.singletonList((PrismValue) object);
 		} else if (object instanceof ItemDeltaItem) {
 			ItemDeltaItem<V, ?> idi = (ItemDeltaItem<V, ?>) object;
-			PrismValueDeltaSetTriple<V> triple = idi.toDeltaSetTriple();
+			PrismValueDeltaSetTriple<V> triple = idi.toDeltaSetTriple(prismContext);
 			return triple != null ? triple.getNonNegativeValues() : new ArrayList<>();
 		} else {
 			throw new IllegalStateException("Unsupported target value(s): " + object.getClass() + " (" + object + ")");
@@ -809,7 +810,7 @@ public class ExpressionUtil {
 			return null;
 		}
 
-		return PrismValue.getRealValuesOfCollection((Collection) nonNegativeValues);
+		return PrismValueCollectionsUtil.getRealValuesOfCollection((Collection) nonNegativeValues);
 		// return nonNegativeValues.iterator().next();
 	}
 

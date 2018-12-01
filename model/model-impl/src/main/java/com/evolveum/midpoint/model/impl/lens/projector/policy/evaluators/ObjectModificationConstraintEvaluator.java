@@ -22,7 +22,7 @@ import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -152,7 +152,7 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
 		} else if (delta.isDelete()) {
 			return objectOld != null && objectOld.containsItem(path, false);
 		} else {
-			return ItemDelta.pathMatches(emptyIfNull(delta.getModifications()), path, 0, exactPathMatch);
+			return ItemDeltaCollectionsUtil.pathMatches(emptyIfNull(delta.getModifications()), path, 0, exactPathMatch);
 		}
 	}
 

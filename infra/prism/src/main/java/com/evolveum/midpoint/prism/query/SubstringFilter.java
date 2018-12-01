@@ -120,7 +120,7 @@ public class SubstringFilter<T> extends PropertyValueFilter<T> {
 	}
 
 	private Set<T> toRealValues() {
-		 return PrismPropertyValueImpl.getRealValuesOfCollection(getValues());
+		 return PrismValueCollectionsUtil.getRealValuesOfCollection(getValues());
 	}
 
 	@Override

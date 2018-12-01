@@ -991,7 +991,7 @@ public class ShadowCache {
 					
 					Collection<PropertyDelta<PrismPropertyValue>> sideEffectChanges = asyncReturnValue.getReturnValue();
 					if (sideEffectChanges != null) {
-						ItemDelta.addAll(modifications, sideEffectChanges);
+						ItemDeltaCollectionsUtil.addAll(modifications, sideEffectChanges);
 					}
 					
 				} catch (Exception ex) {
@@ -1075,7 +1075,7 @@ public class ShadowCache {
 			
 			Collection<PropertyDelta<PrismPropertyValue>> sideEffectChanges = asyncReturnValue.getReturnValue();
 			if (sideEffectChanges != null) {
-				ItemDelta.addAll(modifications, sideEffectChanges);
+				ItemDeltaCollectionsUtil.addAll(modifications, sideEffectChanges);
 			}
 			
 		} catch (Exception ex) {
@@ -2723,7 +2723,7 @@ public class ShadowCache {
 		if (resourceAuxOcProp != null) {
 			PrismProperty<QName> resultAuxOcProp = resultShadow
 					.findOrCreateProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS);
-			resultAuxOcProp.addAll(PrismPropertyValueImpl.cloneCollection(resourceAuxOcProp.getValues()));
+			resultAuxOcProp.addAll(PrismValueCollectionsUtil.cloneCollection(resourceAuxOcProp.getValues()));
 			auxObjectClassQNames.addAll(resultAuxOcProp.getRealValues());
 		}
 
@@ -2959,7 +2959,7 @@ public class ShadowCache {
 					throws SchemaException, ObjectNotFoundException, ConfigurationException,
 					CommunicationException, ExpressionEvaluationException {
 		try {
-			ItemDelta.accept(modifications, 
+			ItemDeltaCollectionsUtil.accept(modifications,
 					(visitable) -> {
 						try {
 							preprocessEntitlement(ctx, (PrismContainerValue<ShadowAssociationType>) visitable, desc,

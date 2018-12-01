@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,45 +18,26 @@ package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.xnode.XNodeImpl;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.bind.JAXBElement;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.stream.Collectors;
 
 /**
  * @author lazyman
  */
 public interface PrismPropertyValue<T> extends DebugDumpable, Serializable, PrismValue {
-	
-	static <T> PrismPropertyValue<T> createRaw(XNodeImpl rawElement) {
-		PrismPropertyValue<T> pval = new PrismPropertyValueImpl<T>();
-		pval.setRawElement(rawElement);
-		return pval;
-	}
 
-    void setValue(T value);
+	void setValue(T value);
 
 	T getValue();
 
-	static <T> Collection<T> getValues(Collection<PrismPropertyValue<T>> pvals) {
-    	Collection<T> realValues = new ArrayList<>(pvals.size());
-		for (PrismPropertyValue<T> pval: pvals) {
-			realValues.add(pval.getValue());
-		}
-		return realValues;
-    }
+	XNode getRawElement();
 
-    XNodeImpl getRawElement();
-
-	void setRawElement(XNodeImpl rawElement);
+	void setRawElement(XNode rawElement);
 
 	boolean isRaw();
 
@@ -89,42 +70,6 @@ public interface PrismPropertyValue<T> extends DebugDumpable, Serializable, Pris
 	
 	@Override
 	PrismPropertyValue<T> cloneComplex(CloneStrategy strategy);
-
-	static boolean containsRealValue(Collection<PrismPropertyValue<?>> collection, PrismPropertyValue<?> value) {
-		for (PrismPropertyValue<?> colVal: collection) {
-			if (value.equalsRealValue(colVal)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	static boolean containsValue(Collection<PrismPropertyValue> collection, PrismPropertyValue value, Comparator comparator) {
-		for (PrismPropertyValue<?> colVal: collection) {
-			if (comparator.compare(colVal, value) == 0) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	static <T> Collection<PrismPropertyValue<T>> createCollection(Collection<T> realValueCollection) {
-		Collection<PrismPropertyValue<T>> pvalCol = new ArrayList<>(realValueCollection.size());
-		for (T realValue: realValueCollection) {
-			PrismPropertyValue<T> pval = new PrismPropertyValueImpl<>(realValue);
-			pvalCol.add(pval);
-		}
-		return pvalCol;
-	}
-
-	static <T> Collection<PrismPropertyValue<T>> createCollection(T[] realValueArray) {
-		Collection<PrismPropertyValue<T>> pvalCol = new ArrayList<>(realValueArray.length);
-		for (T realValue: realValueArray) {
-			PrismPropertyValue<T> pval = new PrismPropertyValueImpl<T>(realValue);
-			pvalCol.add(pval);
-		}
-		return pvalCol;
-	}
 
 	@Override
 	boolean equalsComplex(PrismValue other, boolean ignoreMetadata, boolean isLiteral);
@@ -167,9 +112,4 @@ public interface PrismPropertyValue<T> extends DebugDumpable, Serializable, Pris
 	@Override
 	<T> T getRealValue();
 
-	static <T> Collection<PrismPropertyValue<T>> wrap(@NotNull Collection<T> realValues) {
-		return realValues.stream()
-				.map(val -> new PrismPropertyValueImpl<>(val))
-				.collect(Collectors.toList());
-	}
 }

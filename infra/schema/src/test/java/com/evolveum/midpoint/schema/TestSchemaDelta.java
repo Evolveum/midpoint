@@ -18,6 +18,7 @@ package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.*;
 
+import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -177,7 +178,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
         		RoleType.F_INDUCEMENT, getPrismContext(), inducement);
 
 		// WHEN
-        PropertyDeltaImpl.applyTo(roleDelta.getModifications(), role);
+	    ItemDeltaCollectionsUtil.applyTo(roleDelta.getModifications(), role);
 
         // THEN
         System.out.println("Role after delta application:");

@@ -321,16 +321,16 @@ public class DeltaConvertor {
         Item item = RawTypeUtil.getParsedItem(containingPcd, propMod.getValue(), elementName, containerDef);//propMod.getValue().getParsedValue(containingPcd);
         ItemDelta<IV,ID> itemDelta = item.createDelta(parentPath);
         if (propMod.getModificationType() == ModificationTypeType.ADD) {
-        	itemDelta.addValuesToAdd(PrismValue.resetParentCollection(PrismValue.cloneCollection(item.getValues())));
+        	itemDelta.addValuesToAdd(PrismValueCollectionsUtil.resetParentCollection(PrismValueCollectionsUtil.cloneCollection(item.getValues())));
         } else if (propMod.getModificationType() == ModificationTypeType.DELETE) {
-        	itemDelta.addValuesToDelete(PrismValue.resetParentCollection(PrismValue.cloneCollection(item.getValues())));
+        	itemDelta.addValuesToDelete(PrismValueCollectionsUtil.resetParentCollection(PrismValueCollectionsUtil.cloneCollection(item.getValues())));
         } else if (propMod.getModificationType() == ModificationTypeType.REPLACE) {
-        	itemDelta.setValuesToReplace(PrismValue.resetParentCollection(PrismValue.cloneCollection(item.getValues())));
+        	itemDelta.setValuesToReplace(PrismValueCollectionsUtil.resetParentCollection(PrismValueCollectionsUtil.cloneCollection(item.getValues())));
         }
 
         if (!propMod.getEstimatedOldValue().isEmpty()) {
         	Item oldItem = RawTypeUtil.getParsedItem(containingPcd, propMod.getEstimatedOldValue(), elementName, containerDef);
-        	itemDelta.addEstimatedOldValues(PrismValue.resetParentCollection(PrismValue.cloneCollection(oldItem.getValues())));
+        	itemDelta.addEstimatedOldValues(PrismValueCollectionsUtil.resetParentCollection(PrismValueCollectionsUtil.cloneCollection(oldItem.getValues())));
         }
 
         return itemDelta;

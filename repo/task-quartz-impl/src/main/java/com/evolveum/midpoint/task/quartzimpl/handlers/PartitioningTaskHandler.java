@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
@@ -336,7 +337,7 @@ public class PartitioningTaskHandler implements TaskHandler {
 	}
 
 	private void applyDeltas(TaskType subtask, Collection<ItemDelta<?, ?>> deltas) throws SchemaException {
-		ItemDelta.applyTo(deltas, subtask.asPrismContainerValue());
+		ItemDeltaCollectionsUtil.applyTo(deltas, subtask.asPrismContainerValue());
 	}
 
     @Override

@@ -53,7 +53,7 @@ public class RawTypeUtil {
 
 		if (itemDefinition == null){
 			PrismProperty property = new PrismPropertyImpl(elementQName, prismContext);
-            property.addAll(PrismValue.cloneCollection(parsedValues));
+            property.addAll(PrismValueCollectionsUtil.cloneCollection(parsedValues));
             return property;
 		}
 

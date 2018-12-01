@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -465,7 +466,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 		} catch (PreconditionViolationException e) {
 			throw new IllegalStateException("Unexpected concurrent modification of work bucket " + bucket + " in " + ctx.coordinatorTask, e);
 		}
-		ItemDelta.applyTo(modifications, ctx.coordinatorTask.getTaskPrismObject());
+		ItemDeltaCollectionsUtil.applyTo(modifications, ctx.coordinatorTask.getTaskPrismObject());
 		compressCompletedBuckets(ctx.coordinatorTask, result);
 
 		TaskWorkStateType workerWorkState = getWorkState(ctx.workerTask);
@@ -492,7 +493,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 		}
 		Collection<ItemDelta<?, ?>> modifications = bucketStateChangeDeltas(bucket, WorkBucketStateType.COMPLETE);
 		repositoryService.modifyObject(TaskType.class, ctx.workerTask.getOid(), modifications, null, result);
-		ItemDelta.applyTo(modifications, ctx.workerTask.getTaskPrismObject());
+		ItemDeltaCollectionsUtil.applyTo(modifications, ctx.workerTask.getTaskPrismObject());
 		compressCompletedBuckets(ctx.workerTask, result);
 	}
 

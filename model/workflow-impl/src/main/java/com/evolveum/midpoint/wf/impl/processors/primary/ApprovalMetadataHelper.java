@@ -20,9 +20,7 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
@@ -96,7 +94,7 @@ public class ApprovalMetadataHelper {
                 }
             }
         }
-        ItemDelta.mergeAll(objectDelta.getModifications(), assignmentMetadataDeltas);
+        ItemDeltaCollectionsUtil.mergeAll(objectDelta.getModifications(), assignmentMetadataDeltas);
     }
 
     private void addAssignmentApprovalMetadataOnObjectAdd(PrismObject<?> object, Task task,

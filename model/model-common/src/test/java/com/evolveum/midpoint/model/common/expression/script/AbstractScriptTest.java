@@ -29,6 +29,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.KeyStoreBasedProtectorBuilder;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeClass;
@@ -38,11 +39,6 @@ import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryUtil;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.ItemDefinitionImpl;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.common.DirectoryFileObjectResolver;
@@ -314,7 +310,7 @@ public abstract class AbstractScriptTest {
 
 	private void evaluateAndAssertStringListExpresssion(String fileName, String testName, ExpressionVariables variables, String... expectedValues) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		List<PrismPropertyValue<String>> expressionResultList = evaluateStringExpresssion(fileName, testName, variables, true);
-		TestUtil.assertSetEquals("Expression "+testName+" resulted in wrong values", PrismPropertyValue.getValues(expressionResultList), expectedValues);
+		TestUtil.assertSetEquals("Expression "+testName+" resulted in wrong values", PrismValueCollectionsUtil.getValues(expressionResultList), expectedValues);
 	}
 	protected void evaluateAndAssertBooleanScalarExpresssion(String fileName, String testName, ExpressionVariables variables, Boolean expectedValue) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		List<PrismPropertyValue<Boolean>> expressionResultList = evaluateBooleanExpresssion(fileName, testName, variables, true);

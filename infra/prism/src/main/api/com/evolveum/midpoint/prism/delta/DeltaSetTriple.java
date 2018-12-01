@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.prism.delta;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.SimpleVisitable;
 import com.evolveum.midpoint.prism.SimpleVisitor;
 import com.evolveum.midpoint.util.*;
@@ -40,9 +41,9 @@ public interface DeltaSetTriple<T> extends DebugDumpable, ShortDumpable, Seriali
 	/**
 	 * Compares two (unordered) collections and creates a triple describing the differences.
 	 */
-	static <T> DeltaSetTriple<T> diff(Collection<T> valuesOld, Collection<T> valuesNew) {
-		DeltaSetTriple<T> triple = new DeltaSetTripleImpl<>();
-		DeltaSetTripleImpl.diff(valuesOld, valuesNew, triple);
+	static <T> DeltaSetTriple<T> diff(Collection<T> valuesOld, Collection<T> valuesNew, PrismContext prismContext) {
+		DeltaSetTriple<T> triple = prismContext.deltaFactory().createDeltaSetTriple();
+		DeltaSetTripleUtil.diff(valuesOld, valuesNew, triple);
 		return triple;
 	}
 

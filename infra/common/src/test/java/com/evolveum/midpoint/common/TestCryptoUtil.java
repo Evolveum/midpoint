@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.crypto.KeyStoreBasedProtectorBuilder;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
@@ -201,7 +202,7 @@ public class TestCryptoUtil {
 		System.out.println("Modifications for " + label + ":\n" + modifications);
 		assertEquals("Delta has wrong # of modifications: " + label, expectedModificationsCount, modifications.size());
 		PrismObject<T> patchedObject = oldObject.clone();
-		ItemDelta.applyTo(modifications, patchedObject);
+		ItemDeltaCollectionsUtil.applyTo(modifications, patchedObject);
 		int fixes = CryptoUtil.reencryptValues(protector, patchedObject);
 		assertEquals("Wrong # of re-encryption fixes on reencrypted object: " + label, 0, fixes);
 	}

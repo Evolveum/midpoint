@@ -18,6 +18,7 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -392,7 +393,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
         }
 
         if (modifications != null) {
-            ItemDelta.applyTo(modifications, expectedObject);
+            ItemDeltaCollectionsUtil.applyTo(modifications, expectedObject);
         }
 
         LOGGER.trace("Expected object = \n{}", expectedObject.debugDump());

@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.prism.*;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -32,17 +33,6 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.util.MergeDeltas;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.Visitable;
-import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -612,7 +602,7 @@ public class ObjectMerger {
 							SIDE_RIGHT, itemRight, rightStrategy, valueExpression, task, result);
 
 					for (PrismValue rightValueToTake: rightValuesToTake) {
-						if (!PrismValue.collectionContainsEquivalentValue(leftValuesToLeave, rightValueToTake)) {
+						if (!PrismValueCollectionsUtil.collectionContainsEquivalentValue(leftValuesToLeave, rightValueToTake)) {
 							itemDelta.addValueToAdd(rightValueToTake);
 						}
 					}
@@ -638,11 +628,11 @@ public class ObjectMerger {
 
 	private Collection<PrismValue> diffValues(List<PrismValue> currentValues, Collection<PrismValue> valuesToLeave) {
 		if (valuesToLeave == null || valuesToLeave.isEmpty()) {
-			return PrismValue.cloneCollection(currentValues);
+			return PrismValueCollectionsUtil.cloneCollection(currentValues);
 		}
 		Collection<PrismValue> diff = new ArrayList<>();
 		for (PrismValue currentValue: currentValues) {
-			if (!PrismValue.collectionContainsEquivalentValue(valuesToLeave, currentValue)) {
+			if (!PrismValueCollectionsUtil.collectionContainsEquivalentValue(valuesToLeave, currentValue)) {
 				diff.add(currentValue.clone());
 			}
 		}

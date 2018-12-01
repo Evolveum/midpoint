@@ -18,7 +18,7 @@ package com.evolveum.midpoint.model.common.expression.evaluator;
 import com.evolveum.midpoint.model.common.ConstantsManager;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ItemDeltaUtil;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
@@ -77,7 +77,7 @@ public class ConstExpressionEvaluator<V extends PrismValue, D extends ItemDefini
 					"Can only generate values of property, not " + output.getClass());
 		}
 
-		return ItemDelta.toDeltaSetTriple(output, null);
+		return ItemDeltaUtil.toDeltaSetTriple(output, null, prismContext);
 	}
 
 	/*

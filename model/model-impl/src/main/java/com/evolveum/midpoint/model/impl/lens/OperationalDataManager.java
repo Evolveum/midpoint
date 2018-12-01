@@ -20,6 +20,7 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -27,9 +28,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.ActivationComputer;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -123,7 +121,7 @@ public class OperationalDataManager {
 			XMLGregorianCalendar now, Task task, LensContext<F> context,
 			OperationResult result) throws SchemaException {
 
-		ItemDelta.mergeAll(objectDelta.getModifications(),
+		ItemDeltaCollectionsUtil.mergeAll(objectDelta.getModifications(),
 				createModifyMetadataDeltas(context, ObjectType.F_METADATA, objectTypeClass, now, task));
 
 		List<PrismReferenceValue> approverReferenceValues = new ArrayList<>();
@@ -134,7 +132,7 @@ public class OperationalDataManager {
 			}
 			approverComments.addAll(workflowManager.getApproverComments(task, result));
 		}
-		ItemDelta.mergeAll(objectDelta.getModifications(),
+		ItemDeltaCollectionsUtil.mergeAll(objectDelta.getModifications(),
 				prismContext.deltaFor(objectTypeClass)
 						.item(ObjectType.F_METADATA, MetadataType.F_MODIFY_APPROVER_REF).replace(approverReferenceValues)
 						.item(ObjectType.F_METADATA, MetadataType.F_MODIFY_APPROVAL_COMMENT).replaceRealValues(approverComments)
@@ -201,7 +199,7 @@ public class OperationalDataManager {
 					}
 				}
 			}
-			ItemDelta.mergeAll(objectDelta.getModifications(), assignmentMetadataDeltas);
+			ItemDeltaCollectionsUtil.mergeAll(objectDelta.getModifications(), assignmentMetadataDeltas);
 		}
 	}
 

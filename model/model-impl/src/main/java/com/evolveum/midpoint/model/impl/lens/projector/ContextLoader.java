@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -47,11 +48,6 @@ import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.SynchronizationIntent;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -593,7 +589,7 @@ public class ContextLoader {
 				return;
 			}
 			linkRefDelta = linkRef.createDelta(FocusType.F_LINK_REF);
-			linkRefDelta.addValuesToAdd(PrismValue.cloneValues(linkRef.getValues()));
+			linkRefDelta.addValuesToAdd(PrismValueCollectionsUtil.cloneValues(linkRef.getValues()));
 		} else if (focusPrimaryDelta.getChangeType() == ChangeType.MODIFY) {
 			linkRefDelta = focusPrimaryDelta.findReferenceModification(FocusType.F_LINK_REF);
 			if (linkRefDelta == null) {

@@ -16,7 +16,11 @@
 package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.crypto.*;
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
+import com.evolveum.midpoint.prism.delta.DeltaFactoryImpl;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.marshaller.*;
 import com.evolveum.midpoint.prism.lex.LexicalProcessor;
 import com.evolveum.midpoint.prism.lex.LexicalProcessorRegistry;
@@ -74,6 +78,7 @@ public class PrismContextImpl implements PrismContext {
 	@NotNull private final BeanUnmarshaller beanUnmarshaller;
 	@NotNull private final Miscellaneous miscellaneous;
 	@NotNull private final XNodeFactory xnodeFactory;
+	@NotNull private final DeltaFactory deltaFactory;
 
 	private ParsingMigrator parsingMigrator;
 	private PrismMonitor monitor = null;
@@ -107,6 +112,7 @@ public class PrismContextImpl implements PrismContext {
 		this.jaxbDomHack = new JaxbDomHackImpl(lexicalProcessorRegistry.domProcessor(), this);
 		this.miscellaneous = new MiscellaneousImpl(this);
 		this.xnodeFactory = new XNodeFactoryImpl();
+		this.deltaFactory = new DeltaFactoryImpl();
 
 		try {
 			configurePolyStringNormalizer(null);
@@ -588,5 +594,16 @@ public class PrismContextImpl implements PrismContext {
 	@Override
 	public CanonicalItemPath createCanonicalItemPath(ItemPath itemPath) {
 		return new CanonicalItemPathImpl(itemPath, null, null);
+	}
+
+	@Override
+	public <C extends Containerable> S_ItemEntry deltaFor(Class<C> objectClass) throws SchemaException {
+		return new DeltaBuilder<>(objectClass, this);
+	}
+
+	@Override
+	@NotNull
+	public DeltaFactory deltaFactory() {
+		return deltaFactory;
 	}
 }

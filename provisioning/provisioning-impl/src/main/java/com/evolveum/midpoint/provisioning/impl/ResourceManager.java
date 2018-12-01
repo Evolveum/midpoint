@@ -1127,7 +1127,7 @@ public class ResourceManager {
         
         //ItemDelta.findItemDelta(delta.getModifications(), ResourceType.F_SCHEMA, ContainerDelta.class) == null || 
        
-        ReferenceDelta connectorRefDelta = ReferenceDeltaImpl.findReferenceModification(delta.getModifications(), ResourceType.F_CONNECTOR_REF);
+        ReferenceDelta connectorRefDelta = ItemDeltaCollectionsUtil.findReferenceModification(delta.getModifications(), ResourceType.F_CONNECTOR_REF);
         if (connectorRefDelta != null){
         	Item<PrismReferenceValue,PrismReferenceDefinition> connectorRefNew = connectorRefDelta.getItemNewMatchingPath(null);
         	if (connectorRefNew.getValues().size() == 1){

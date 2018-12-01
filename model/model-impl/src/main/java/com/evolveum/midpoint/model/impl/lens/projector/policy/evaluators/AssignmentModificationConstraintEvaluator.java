@@ -21,6 +21,7 @@ import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.AssignmentPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -170,6 +171,6 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
 	}
 
 	private boolean pathMatches(Collection<? extends ItemDelta<?, ?>> deltas, UniformItemPath path, boolean exactMatch) {
-		return ItemDelta.pathMatches(emptyIfNull(deltas), path, 2, exactMatch);
+		return ItemDeltaCollectionsUtil.pathMatches(emptyIfNull(deltas), path, 2, exactMatch);
 	}
 }
