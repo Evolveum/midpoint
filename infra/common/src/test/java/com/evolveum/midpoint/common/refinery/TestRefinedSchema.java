@@ -181,7 +181,7 @@ public class TestRefinedSchema {
         assertEquals("findAccountDefinitionByObjectClass(ICF account) returned wrong value", rAccountDef, accountDefByIcfAccountObjectclass);
 
         assertRObjectClassDef(rAccountDef, resourceType, sourceLayer, validationLayer);
-        System.out.println("Refined account definitionn:");
+        System.out.println("Refined account definition:");
         System.out.println(rAccountDef.debugDump());
 
         assertEquals("Wrong kind", ShadowKindType.ACCOUNT, rAccountDef.getKind());

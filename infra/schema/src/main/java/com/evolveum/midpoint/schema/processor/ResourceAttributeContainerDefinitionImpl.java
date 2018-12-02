@@ -316,7 +316,12 @@ public class ResourceAttributeContainerDefinitionImpl extends PrismContainerDefi
 
 	@Override
 	public ResourceAttributeDefinition findAttributeDefinition(ItemPath elementPath) {
-		return findItemDefinition(elementPath, ResourceAttributeDefinition.class);
+		if (elementPath.isSingleName()) {
+			// this is a bit of hack
+			return findLocalItemDefinition(elementPath.asSingleNameOrFail(), ResourceAttributeDefinition.class, false);
+		} else {
+			return findItemDefinition(elementPath, ResourceAttributeDefinition.class);
+		}
 	}
 
 	@Override
