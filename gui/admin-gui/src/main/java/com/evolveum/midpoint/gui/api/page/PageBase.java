@@ -31,6 +31,7 @@ import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.*;
+import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.validator.ResourceValidator;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -633,7 +634,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return formValidatorRegistry;
     }
 
-    public MidPointPrincipal getPrincipal() {
+    public MidPointUserProfilePrincipal getPrincipal() {
         return SecurityUtils.getPrincipalUser();
     }
     
@@ -2314,7 +2315,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     protected void setTimeZone(PageBase page) {
         PrismObject<UserType> user = loadUserSelf();
         String timeZone = null;
-        MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
+        MidPointUserProfilePrincipal principal = SecurityUtils.getPrincipalUser();
         if (user != null && user.asObjectable().getTimezone() != null) {
             timeZone = user.asObjectable().getTimezone();
         } else if (principal != null && principal.getAdminGuiConfiguration() != null) {

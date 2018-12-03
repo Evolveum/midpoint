@@ -45,7 +45,6 @@ public class MidPointPrincipal implements UserDetails,  DebugDumpable, ShortDump
     @NotNull private final UserType user;
     private Collection<Authorization> authorizations = new ArrayList<>();
     private ActivationStatusType effectiveActivationStatus;
-    private AdminGuiConfigurationType adminGuiConfiguration;
     private SecurityPolicyType applicableSecurityPolicy;
     // TODO: or a set?
     @NotNull private final Collection<DelegatorWithOtherPrivilegesLimitations> delegatorWithOtherPrivilegesLimitationsCollection = new ArrayList<>();
@@ -192,14 +191,6 @@ public class MidPointPrincipal implements UserDetails,  DebugDumpable, ShortDump
 		this.previousPrincipal = previousPrincipal;
 	}
 
-	public AdminGuiConfigurationType getAdminGuiConfiguration() {
-		return adminGuiConfiguration;
-	}
-
-	public void setAdminGuiConfiguration(AdminGuiConfigurationType adminGuiConfiguration) {
-		this.adminGuiConfiguration = adminGuiConfiguration;
-	}
-
 	public SecurityPolicyType getApplicableSecurityPolicy() {
 		return applicableSecurityPolicy;
 	}
@@ -222,12 +213,15 @@ public class MidPointPrincipal implements UserDetails,  DebugDumpable, ShortDump
 	 */
 	public MidPointPrincipal clone() {
 		MidPointPrincipal clone = new MidPointPrincipal(this.user);
-		clone.adminGuiConfiguration = this.adminGuiConfiguration;
+		copyValues(clone);
+		return clone;
+	}
+	
+	protected void copyValues(MidPointPrincipal clone) {
 		clone.applicableSecurityPolicy = this.applicableSecurityPolicy;
 		clone.authorizations = cloneAuthorities();
 		clone.effectiveActivationStatus = this.effectiveActivationStatus;
-		clone.delegatorWithOtherPrivilegesLimitationsCollection.addAll(delegatorWithOtherPrivilegesLimitationsCollection);
-		return clone;
+		clone.delegatorWithOtherPrivilegesLimitationsCollection.addAll(this.delegatorWithOtherPrivilegesLimitationsCollection);
 	}
 
 	private Collection<Authorization> cloneAuthorities() {
@@ -242,17 +236,22 @@ public class MidPointPrincipal implements UserDetails,  DebugDumpable, ShortDump
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
-		DebugUtil.debugDumpLabelLn(sb, "MidPointPrincipal", indent);
+		DebugUtil.debugDumpLabelLn(sb, this.getClass().getSimpleName(), indent);
+		debugDumpInternal(sb, indent);
+		return sb.toString();
+	}
+	
+	protected void debugDumpInternal(StringBuilder sb, int indent) {
 		DebugUtil.debugDumpWithLabelLn(sb, "User", user.asPrismObject(), indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "Authorizations", authorizations, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "Delegators with other privilege limitations", delegatorWithOtherPrivilegesLimitationsCollection, indent + 1);
 		DebugUtil.debugDumpWithLabel(sb, "Attorney", attorney==null?null:attorney.asPrismObject(), indent + 1);
-		return sb.toString();
 	}
 
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder("MidPointPrincipal(");
+		StringBuilder sb = new StringBuilder();
+		sb.append(this.getClass().getSimpleName()).append("(");
 		sb.append(user);
 		if (attorney != null) {
 			sb.append(" [").append(attorney).append("]");

@@ -65,7 +65,7 @@ public class TestEmpty extends AbstractIntegrationTest {
 	private static final Trace LOGGER = TraceManager.getTrace(TestEmpty.class);
 
 	@Autowired(required=true)
-	private UserProfileServiceMock userProfileService;
+	private MidPointPrincipalManagerMock userProfileService;
 
 	@Autowired(required = true)
 	private Clock clock;

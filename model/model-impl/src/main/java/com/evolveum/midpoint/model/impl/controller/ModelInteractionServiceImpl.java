@@ -56,6 +56,8 @@ import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.ProgressListener;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
+import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
+import com.evolveum.midpoint.model.api.authentication.UserProfileService;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.model.api.context.ModelContext;
@@ -120,7 +122,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
-import com.evolveum.midpoint.security.api.UserProfileService;
+import com.evolveum.midpoint.security.api.MidPointPrincipalManager;
 import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.ObjectSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
@@ -800,14 +802,14 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			LOGGER.warn("Security violation while getting principlal to get GUI config: {}", e.getMessage(), e);
 		}
 
-		if (principal == null) {
+		if (principal == null || !(principal instanceof MidPointUserProfilePrincipal)) {
 			PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(parentResult);
 			if (systemConfiguration == null) {
 				return null;
 			}
 			return systemConfiguration.asObjectable().getAdminGuiConfiguration();
 		} else {
-			return principal.getAdminGuiConfiguration();
+			return ((MidPointUserProfilePrincipal)principal).getAdminGuiConfiguration();
 		}
 	}
 

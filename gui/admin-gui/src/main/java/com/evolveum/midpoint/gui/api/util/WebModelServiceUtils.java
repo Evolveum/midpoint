@@ -19,6 +19,7 @@ package com.evolveum.midpoint.gui.api.util;
 import java.util.*;
 
 import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.OrderDirection;
@@ -615,7 +616,7 @@ public class WebModelServiceUtils {
     }
 
     public static TimeZone getTimezone(UserType user) {
-        MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
+    	MidPointUserProfilePrincipal principal = SecurityUtils.getPrincipalUser();
         if (principal != null && user == null) {
             user = principal.getUser();
         }
