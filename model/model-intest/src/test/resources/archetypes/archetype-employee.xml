@@ -19,5 +19,14 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
     <name>Employee</name>
-    <!-- TODO -->
+    <archetypePolicy>
+    	<display>
+    		<label>Employee</label>
+    		<pluralLabel>Employees</pluralLabel>
+    		<icon>
+    			<cssClass>fe fe-employee</cssClass>
+    			<color>blue</color>
+    		</icon>
+    	</display>
+    </archetypePolicy>
 </archetype>

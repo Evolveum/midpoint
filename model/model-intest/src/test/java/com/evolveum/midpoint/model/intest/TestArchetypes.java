@@ -53,13 +53,15 @@ public class TestArchetypes extends AbstractInitializedModelIntegrationTest {
 	
 	public static final File ARCHETYPE_EMPLOYEE_FILE = new File(TEST_DIR, "archetype-employee.xml");
 	protected static final String ARCHETYPE_EMPLOYEE_OID = "7135e68c-ee53-11e8-8025-170b77da3fd6";
+	private static final String ARCHETYPE_EMPLOYEE_DISPLAY_LABEL = "Employee";
+	private static final String ARCHETYPE_EMPLOYEE_DISPLAY_PLURAL_LABEL = "Employees";
 	
 	public static final File ARCHETYPE_TEST_FILE = new File(TEST_DIR, "archetype-test.xml");
 	protected static final String ARCHETYPE_TEST_OID = "a8df34a8-f6f0-11e8-b98e-eb03652d943f";
 	
 	public static final File ROLE_EMPLOYEE_BASE_FILE = new File(TEST_DIR, "role-employee-base.xml");
 	protected static final String ROLE_EMPLOYEE_BASE_OID = "e869d6c4-f6ef-11e8-b51f-df3e51bba129";
-	
+
 	@Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -113,7 +115,7 @@ public class TestArchetypes extends AbstractInitializedModelIntegrationTest {
         displayThen(TEST_NAME);
         assertSuccess(result);
 
-        assertUserAfter(USER_JACK_OID)
+        PrismObject<UserType> userAfter = assertUserAfter(USER_JACK_OID)
         	.assignments()
         		.assertAssignments(1)
         		.assertArchetype(ARCHETYPE_EMPLOYEE_OID)
@@ -121,7 +123,15 @@ public class TestArchetypes extends AbstractInitializedModelIntegrationTest {
         	.assertArchetypeRef(ARCHETYPE_EMPLOYEE_OID)
         	.roleMembershipRefs()
         		.assertRoleMemberhipRefs(1)
-        		.assertArchetype(ARCHETYPE_EMPLOYEE_OID);
+        		.assertArchetype(ARCHETYPE_EMPLOYEE_OID)
+        		.end()
+        	.getObject();
+        
+        assertArchetypeSpec(userAfter)
+	        .archetypePolicy()
+	        	.displayType()
+	        		.assertLabel(ARCHETYPE_EMPLOYEE_DISPLAY_LABEL)
+	        		.assertPluralLabel(ARCHETYPE_EMPLOYEE_DISPLAY_PLURAL_LABEL);
     }
 	
 	@Test
@@ -141,13 +151,18 @@ public class TestArchetypes extends AbstractInitializedModelIntegrationTest {
         displayThen(TEST_NAME);
         assertSuccess(result);
 
-        assertUserAfter(USER_JACK_OID)
+        PrismObject<UserType> userAfter = assertUserAfter(USER_JACK_OID)
         	.assignments()
         		.assertAssignments(0)
         		.end()
         	.assertNoArchetypeRef()
         	.roleMembershipRefs()
-        		.assertRoleMemberhipRefs(0);
+        		.assertRoleMemberhipRefs(0)
+        		.end()
+        	.getObject();
+        
+        assertArchetypeSpec(userAfter)
+        	.assertNull();
     }
 	
 	@Test
@@ -273,5 +288,10 @@ public class TestArchetypes extends AbstractInitializedModelIntegrationTest {
 	// TODO: search by archetypeRef
 	
 	// TODO: object template in archetype
+	// TODO: correct application of object template for new object (not yet stored)
+	
+	// TODO: assertArchetypeSpec() for new object (not yet stored)
+	
+	// TODO: assignmentRelation (assertArchetypeSpec)
 
 }
