@@ -367,4 +367,12 @@ public class FocusAsserter<F extends FocusType,RA> extends PrismObjectAsserter<F
 		assertEquals("Wrong archetypeRef in "+desc(), expectedArchetypeOid, archetypeRefs.get(0).getOid());
 		return this;
 	}
+	
+	public FocusAsserter<F,RA> assertNoArchetypeRef() {
+		List<ObjectReferenceType> archetypeRefs = getObject().asObjectable().getArchetypeRef();
+		if (archetypeRefs != null && !archetypeRefs.isEmpty()) {
+			fail("Found archetypeRefs while not expected any: "+archetypeRefs);
+		}
+		return this;
+	}
 }

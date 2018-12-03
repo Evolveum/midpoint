@@ -329,4 +329,10 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
 		super.assertArchetypeRef(expectedArchetypeOid);
 		return this;
 	}
+	
+	@Override
+	public UserAsserter<RA> assertNoArchetypeRef() {
+		super.assertNoArchetypeRef();
+		return this;
+	}
 }

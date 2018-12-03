@@ -293,4 +293,10 @@ public class OrgAsserter<RA> extends AbstractRoleAsserter<OrgType,RA> {
 		super.assertArchetypeRef(expectedArchetypeOid);
 		return this;
 	}
+	
+	@Override
+	public OrgAsserter<RA> assertNoArchetypeRef() {
+		super.assertNoArchetypeRef();
+		return this;
+	}
 }

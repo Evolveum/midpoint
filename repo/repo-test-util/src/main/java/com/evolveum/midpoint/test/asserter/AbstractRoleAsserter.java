@@ -292,4 +292,10 @@ public class AbstractRoleAsserter<F extends AbstractRoleType, RA> extends FocusA
 		super.assertArchetypeRef(expectedArchetypeOid);
 		return this;
 	}
+	
+	@Override
+	public AbstractRoleAsserter<F,RA> assertNoArchetypeRef() {
+		super.assertNoArchetypeRef();
+		return this;
+	}
 }
