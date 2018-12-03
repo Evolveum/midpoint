@@ -29,7 +29,6 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.caching.AbstractCache;
@@ -125,7 +124,7 @@ public class FocusConstraintsChecker<F extends FocusType> {
 		}
 		String oid = objectNew.getOid();
 
-		ObjectQuery query = QueryBuilder.queryFor(objectNew.getCompileTimeClass(), prismContext)
+		ObjectQuery query = prismContext.queryFor(objectNew.getCompileTimeClass())
 				.itemAs(property)
 				.build();
 

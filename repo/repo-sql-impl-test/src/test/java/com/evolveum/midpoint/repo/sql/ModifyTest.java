@@ -50,11 +50,9 @@ import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.common.SynchronizationUtils;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -368,7 +366,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         assertEquals("wrong number of assignments", 3, modifiedUser.getAssignment().size());
 
         // MID-4820
-        ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+        ObjectQuery query = prismContext.queryFor(UserType.class)
                 .item(UserType.F_NAME).eqPoly("modifyUser")
                 .and().item(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref("12345678-d34d-b33f-f00d-987987987989")   // role-csv
                 .build();
@@ -595,7 +593,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         AssertJUnit.assertNotNull(afterModifytimestamp);
         assertEquals(afterSecondModifyType.getSynchronizationTimestamp(), description.getTimestamp());
 
-        ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+        ObjectQuery query = prismContext.queryFor(ShadowType.class)
                 .item(ShadowType.F_SYNCHRONIZATION_TIMESTAMP).lt(description.getTimestamp())
                 .build();
         List<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, query, null, result);
@@ -873,7 +871,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         }
         close(session);
 
-        ObjectQuery query1 = QueryBuilder.queryFor(ShadowType.class, prismContext)
+        ObjectQuery query1 = prismContext.queryFor(ShadowType.class)
                 .item(ItemPath.create(ShadowType.F_ATTRIBUTES, ATTR1_QNAME), def1).eq("value1")
                 .build();
         List list1 = repositoryService.searchObjects(ShadowType.class, query1, null, result);
@@ -957,7 +955,7 @@ public class ModifyTest extends BaseSQLRepoTest {
                 .getObject(ObjectCollectionType.class, collection.getOid(), null, result);
         assertEquals("Objects differ after change 1", collection.asPrismObject(), afterChange1);
 
-        ObjectFilter filter = QueryBuilder.queryFor(UserType.class, prismContext)
+        ObjectFilter filter = prismContext.queryFor(UserType.class)
                 .item(UserType.F_COST_CENTER).eq("100")
                 .buildFilter();
         SearchFilterType filterBean = prismContext.getQueryConverter().createSearchFilterType(filter);
@@ -1004,7 +1002,7 @@ public class ModifyTest extends BaseSQLRepoTest {
                 .asPrismObject();
         repositoryService.addObject(shadow, null, result);
 
-        ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+        ObjectQuery query = prismContext.queryFor(ShadowType.class)
                 .item(ShadowType.F_NAME).eqPoly("shadow1")
                 .and().exists(ShadowType.F_PENDING_OPERATION)
                 .build();
@@ -1046,7 +1044,7 @@ public class ModifyTest extends BaseSQLRepoTest {
                 .asPrismObject();
         repositoryService.addObject(shadow, null, result);
 
-        ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+        ObjectQuery query = prismContext.queryFor(ShadowType.class)
                 .item(ShadowType.F_NAME).eqPoly("shadow2")
                 .and().exists(ShadowType.F_PENDING_OPERATION)
                 .build();

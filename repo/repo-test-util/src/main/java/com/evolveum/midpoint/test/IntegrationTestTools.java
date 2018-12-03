@@ -29,7 +29,6 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.PrismSchemaImpl;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -614,13 +613,13 @@ public class IntegrationTestTools {
 	}
 
 	public static ObjectQuery createAllShadowsQuery(ResourceType resourceType, PrismContext prismContext) throws SchemaException {
-		return QueryBuilder.queryFor(ShadowType.class, prismContext)
+		return prismContext.queryFor(ShadowType.class)
 				.item(ShadowType.F_RESOURCE_REF).ref(resourceType.getOid())
 				.build();
 	}
 
 	public static ObjectQuery createAllShadowsQuery(ResourceType resourceType, QName objectClass, PrismContext prismContext) throws SchemaException {
-		return QueryBuilder.queryFor(ShadowType.class, prismContext)
+		return prismContext.queryFor(ShadowType.class)
 				.item(ShadowType.F_RESOURCE_REF).ref(resourceType.getOid())
 				.and().item(ShadowType.F_OBJECT_CLASS).eq(objectClass)
 				.build();
@@ -757,7 +756,7 @@ public class IntegrationTestTools {
 		}
 
 		PrismPropertyDefinition<String> identifierDef = identifier.getDefinition();
-		return QueryBuilder.queryFor(ShadowType.class, prismContext)
+		return prismContext.queryFor(ShadowType.class)
 				.item(ShadowType.F_RESOURCE_REF).ref(ShadowUtil.getResourceOid(resourceShadow))
 				.and().item(ItemPath.create(ShadowType.F_ATTRIBUTES, identifierDef.getName()), identifierDef).eq(identifierValue)
 				.build();

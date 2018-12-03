@@ -68,7 +68,6 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -1376,7 +1375,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		if (StringUtils.isEmpty(taskIdentifier)) {
 			return new ArrayList<>();
 		}
-		ObjectQuery query = QueryBuilder.queryFor(TaskType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(TaskType.class)
 				.item(TaskType.F_PARENT).eq(taskIdentifier)
 				.build();
 
@@ -2076,7 +2075,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         result.addParam("identifier", identifier);
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerQuartzImpl.class);
 
-		ObjectQuery query = QueryBuilder.queryFor(TaskType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(TaskType.class)
 				.item(TaskType.F_TASK_IDENTIFIER).eq(identifier)
 				.build();
 
@@ -2126,7 +2125,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
         List<PrismObject<TaskType>> obsoleteTasks;
         try {
-            ObjectQuery obsoleteTasksQuery = QueryBuilder.queryFor(TaskType.class, prismContext)
+            ObjectQuery obsoleteTasksQuery = prismContext.queryFor(TaskType.class)
 					.item(TaskType.F_COMPLETION_TIMESTAMP).le(timeXml)
 					.and().item(TaskType.F_PARENT).isNull()
 					.build();
@@ -2276,7 +2275,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     }
 
     private List<Task> listWaitingTasks(TaskWaitingReason reason, OperationResult result) throws SchemaException {
-		S_AtomicFilterEntry q = QueryBuilder.queryFor(TaskType.class, prismContext);
+		S_AtomicFilterEntry q = prismContext.queryFor(TaskType.class);
 		q = q.item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStatusType.WAITING).and();
 		if (reason != null) {
 			q = q.item(TaskType.F_WAITING_REASON).eq(reason.toTaskType()).and();

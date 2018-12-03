@@ -546,7 +546,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		ObjectFilter filter = null;
 		if (query != null) {
-			filter = ObjectQueryUtil.simplify(query.getFilter());
+			filter = ObjectQueryUtil.simplify(query.getFilter(), prismContext);
 			query = query.cloneEmpty();
 			query.setFilter(filter);
 		}
@@ -940,7 +940,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		ObjectFilter filter = null;
 		if (query != null) {
-			filter = ObjectQueryUtil.simplify(query.getFilter());
+			filter = ObjectQueryUtil.simplify(query.getFilter(), prismContext);
 			query = query.cloneEmpty();
 			query.setFilter(filter);
 		}

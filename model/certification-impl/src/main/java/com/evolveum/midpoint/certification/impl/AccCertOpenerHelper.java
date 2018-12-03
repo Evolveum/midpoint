@@ -30,7 +30,6 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryConverter;
 import com.evolveum.midpoint.prism.query.TypedObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -166,7 +165,7 @@ public class AccCertOpenerHelper {
 		}
 		Class<? extends ObjectType> focusClass = focus.asObjectable().getClass();
 		scope.setObjectType(ObjectTypes.getObjectType(focusClass).getTypeQName());
-		ObjectFilter objectFilter = QueryBuilder.queryFor(focusClass, prismContext).id(focus.getOid()).buildFilter();
+		ObjectFilter objectFilter = prismContext.queryFor(focusClass).id(focus.getOid()).buildFilter();
 		scope.setSearchFilter(getQueryConverter().createSearchFilterType(objectFilter));
 		return campaign;
 	}
@@ -366,7 +365,7 @@ public class AccCertOpenerHelper {
 		// TODO derive search filter from certification handler (e.g. select only objects having assignments with the proper policySituation)
 		// It is only an optimization but potentially a very strong one. Workaround: enter query filter manually into scope definition.
 		final SearchFilterType searchFilter = objectBasedScope != null ? objectBasedScope.getSearchFilter() : null;
-		ObjectQuery query = new ObjectQuery();
+		ObjectQuery query = prismContext.queryFactory().createObjectQuery();
 		if (searchFilter != null) {
 			query.setFilter(getQueryConverter().parseFilter(searchFilter, objectClass));
 		}
@@ -611,7 +610,7 @@ public class AccCertOpenerHelper {
 
 	private void createCasesReiterationDeltas(AccessCertificationCampaignType campaign, int newIteration,
 			ModificationsToExecute modifications, OperationResult result) throws SchemaException {
-		ObjectQuery unresolvedCasesQuery = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+		ObjectQuery unresolvedCasesQuery = prismContext.queryFor(AccessCertificationCaseType.class)
 				.item(AccessCertificationCaseType.F_OUTCOME).eq(SchemaConstants.MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE)
 				.build();
 		List<AccessCertificationCaseType> unresolvedCases = queryHelper

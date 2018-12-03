@@ -31,7 +31,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
-import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
@@ -84,7 +83,7 @@ public class AssociationTargetSearchExpressionEvaluator
 		ObjectFilter resourceFilter = ObjectQueryUtil.createResourceFilter(rAssocTargetDef.getResourceOid(), getPrismContext());
 		ObjectFilter objectClassFilter = ObjectQueryUtil.createObjectClassFilter(rAssocTargetDef.getObjectClassDefinition().getTypeName(),
 				getPrismContext());
-		ObjectFilter extendedFilter = AndFilter.createAnd(resourceFilter, objectClassFilter, query.getFilter());
+		ObjectFilter extendedFilter = getPrismContext().queryFactory().createAnd(resourceFilter, objectClassFilter, query.getFilter());
 		query.setFilter(extendedFilter);
 		return query;
 	}

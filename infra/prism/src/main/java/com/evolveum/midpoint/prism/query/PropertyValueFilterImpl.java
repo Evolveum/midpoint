@@ -28,9 +28,9 @@ import com.evolveum.midpoint.prism.util.PrismUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class PropertyValueFilter<T> extends ValueFilter<PrismPropertyValue<T>, PrismPropertyDefinition<T>> implements Itemable {
+public abstract class PropertyValueFilterImpl<T> extends ValueFilterImpl<PrismPropertyValue<T>, PrismPropertyDefinition<T>> implements PropertyValueFilter<T> {
 
-	PropertyValueFilter(@NotNull ItemPath path, @Nullable PrismPropertyDefinition<T> definition, @Nullable QName matchingRule,
+	PropertyValueFilterImpl(@NotNull ItemPath path, @Nullable PrismPropertyDefinition<T> definition, @Nullable QName matchingRule,
 			@Nullable List<PrismPropertyValue<T>> values, @Nullable ExpressionWrapper expression,
 			@Nullable ItemPath rightHandSidePath, @Nullable ItemDefinition rightHandSideDefinition) {
 		super(path, definition, matchingRule, values, expression, rightHandSidePath, rightHandSideDefinition);
@@ -144,6 +144,6 @@ public abstract class PropertyValueFilter<T> extends ValueFilter<PrismPropertyVa
 
 	// TODO cleanup this mess - how values are cloned, that expression is not cloned in LT/GT filter etc
 
-	public abstract PropertyValueFilter clone();
+	public abstract PropertyValueFilterImpl clone();
 
 }

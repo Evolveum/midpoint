@@ -240,7 +240,7 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
         List<ObjectReferenceType> references = new ArrayList<>();
 
         try{
-            policies = getPageBase().getModelService().searchObjects(ValuePolicyType.class, new ObjectQuery(), null, task, result);
+            policies = getPageBase().getModelService().searchObjects(ValuePolicyType.class, null, null, task, result);
             result.recomputeStatus();
         } catch (CommonException |RuntimeException e) {
             result.recordFatalError("Couldn't load password policies.", e);

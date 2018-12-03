@@ -22,17 +22,11 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismReferenceValueImpl;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -332,12 +326,11 @@ public class PageUser extends PageAdminFocus<UserType> {
                     UserType.COMPLEX_TYPE);
             referenceValue.setRelation(WebComponentUtil.getDefaultRelationOrFail(RelationKindType.DELEGATION));
 
-            ObjectFilter refFilter = QueryBuilder.queryFor(UserType.class, getPrismContext())
+            ObjectFilter refFilter = getPrismContext().queryFor(UserType.class)
                     .item(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(referenceValue)
                     .buildFilter();
 
-            ObjectQuery query = new ObjectQuery();
-            query.setFilter(refFilter);
+            ObjectQuery query = getPrismContext().queryFactory().createObjectQuery(refFilter);
 
             List<PrismObject<UserType>> usersList = getModelService().searchObjects(UserType.class, query, null, task, result);
             List<String> processedUsersOid = new ArrayList<>();

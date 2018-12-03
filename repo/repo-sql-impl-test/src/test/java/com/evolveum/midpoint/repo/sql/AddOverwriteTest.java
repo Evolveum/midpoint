@@ -22,10 +22,8 @@ import static org.testng.AssertJUnit.assertNull;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -121,7 +119,7 @@ public class AddOverwriteTest extends BaseSQLRepoTest {
     private PrismObject getCarla(OperationResult opResult) throws Exception {
         final String CARLA_NAME = "carla";
         PrismObjectDefinition userObjectDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-        ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+        ObjectQuery query = prismContext.queryFor(UserType.class)
                 .item(UserType.F_NAME).eq(CARLA_NAME)
                 .build();
         List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, opResult);

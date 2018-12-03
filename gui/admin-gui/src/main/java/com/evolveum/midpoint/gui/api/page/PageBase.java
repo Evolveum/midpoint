@@ -37,10 +37,8 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryConverter;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
@@ -362,7 +360,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             protected Integer load() {
                 try {
                     Task task = createSimpleTask(OPERATION_LOAD_WORK_ITEM_COUNT);
-                    S_FilterEntryOrEmpty q = QueryBuilder.queryFor(WorkItemType.class, getPrismContext());
+                    S_FilterEntryOrEmpty q = getPrismContext().queryFor(WorkItemType.class);
                     ObjectQuery query = QueryUtils.filterForAssignees(q, getPrincipal(),
                             OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, getRelationRegistry()).build();
                     return getModelService().countContainers(WorkItemType.class, query, null, task, task.getResult());
@@ -381,7 +379,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                     AccessCertificationService acs = getCertificationService();
                     Task task = createSimpleTask(OPERATION_LOAD_CERT_WORK_ITEM_COUNT);
                     OperationResult result = task.getResult();
-                    return acs.countOpenWorkItems(new ObjectQuery(), true, null, task, result);
+                    return acs.countOpenWorkItems(getPrismContext().queryFactory().createObjectQuery(), true, null, task, result);
                 } catch (SchemaException | SecurityViolationException | ObjectNotFoundException
                         | ConfigurationException | CommunicationException | ExpressionEvaluationException e) {
                     LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't load certification work item count", e);

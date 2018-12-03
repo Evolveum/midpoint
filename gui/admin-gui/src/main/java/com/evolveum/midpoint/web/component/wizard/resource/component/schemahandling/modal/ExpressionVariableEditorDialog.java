@@ -215,7 +215,7 @@ public class ExpressionVariableEditorDialog extends ModalWindow {
 		List<ObjectReferenceType> references = new ArrayList<>();
 
 		try {
-			objects = getPageBase().getModelService().searchObjects(ObjectType.class, new ObjectQuery(), null, task,
+			objects = getPageBase().getModelService().searchObjects(ObjectType.class, null, null, task,
 					result);
 			result.recomputeStatus();
 		} catch (CommonException|RuntimeException e) {

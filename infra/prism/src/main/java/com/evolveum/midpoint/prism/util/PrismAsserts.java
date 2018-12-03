@@ -971,18 +971,18 @@ public class PrismAsserts {
 	// Query asserts
 
 	public static void assertOrFilter(ObjectFilter filter, int conditions) {
-		assertEquals("Wrong filter class", OrFilter.class, filter.getClass());
+		assertEquals("Wrong filter class", OrFilterImpl.class, filter.getClass());
 		assertEquals("Wrong number of filter conditions", conditions, ((OrFilter) filter).getConditions().size());
 	}
 
 	public static void assertAndFilter(ObjectFilter filter, int conditions) {
-		assertEquals("Wrong filter class", AndFilter.class, filter.getClass());
+		assertEquals("Wrong filter class", AndFilterImpl.class, filter.getClass());
 		assertEquals("Wrong number of filter conditions", conditions, ((AndFilter) filter).getConditions().size());
 	}
 
 	public static void assertEqualsFilter(ObjectFilter objectFilter, QName expectedFilterDef,
 			QName expectedTypeName, ItemPath path) {
-		assertEquals("Wrong filter class", EqualFilter.class, objectFilter.getClass());
+		assertEquals("Wrong filter class", EqualFilterImpl.class, objectFilter.getClass());
 		EqualFilter filter = (EqualFilter) objectFilter;
 		//we don't have definition in all situation..this is almost OK..it will be computed dynamicaly
 		if (filter.getDefinition() != null){
@@ -1003,7 +1003,7 @@ public class PrismAsserts {
 
 	public static void assertRefFilter(ObjectFilter objectFilter, QName expectedFilterDef, QName expectedTypeName,
 			ItemPath path) {
-		assertEquals("Wrong filter class", RefFilter.class, objectFilter.getClass());
+		assertEquals("Wrong filter class", RefFilterImpl.class, objectFilter.getClass());
 		RefFilter filter = (RefFilter) objectFilter;
 		assertEquals("Wrong filter definition element name", expectedFilterDef, filter.getDefinition().getName());
 		assertEquals("Wrong filter definition type", expectedTypeName, filter.getDefinition().getTypeName());

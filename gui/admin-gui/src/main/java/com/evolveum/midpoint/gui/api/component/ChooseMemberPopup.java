@@ -19,10 +19,8 @@ import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
@@ -48,7 +46,6 @@ import org.apache.wicket.model.StringResourceModel;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -341,7 +338,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
             oids.add(((ObjectType) selectable).getOid());
         }
 
-        return ObjectQuery.createObjectQuery(InOidFilter.createInOid(oids));
+        return getPrismContext().queryFactory().createObjectQuery(getPrismContext().queryFactory().createInOid(oids));
     }
 
     private void selectedOrgsListUpdate(IModel<SelectableBean<OrgType>> rowModel){

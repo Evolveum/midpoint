@@ -30,7 +30,6 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
@@ -192,7 +191,7 @@ public class ObjectAlreadyExistHandler extends HardErrorHandler {
 	private ObjectQuery createQueryBySecondaryIdentifier(ShadowType shadow) throws SchemaException {
 		// TODO TODO TODO set matching rule instead of null in equlas filter
 		Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(shadow);
-		S_AtomicFilterEntry q = QueryBuilder.queryFor(ShadowType.class, prismContext);
+		S_AtomicFilterEntry q = prismContext.queryFor(ShadowType.class);
 		q = q.block();
 		if (secondaryIdentifiers.isEmpty()) {
 			for (ResourceAttribute<?> primaryIdentifier: ShadowUtil.getPrimaryIdentifiers(shadow)) {

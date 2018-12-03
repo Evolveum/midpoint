@@ -18,7 +18,6 @@ package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -416,13 +415,13 @@ public class CertCampaignTypeUtil {
     }
 
     public static ObjectQuery createCasesForCampaignQuery(String campaignOid, PrismContext prismContext) {
-        return QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+        return prismContext.queryFor(AccessCertificationCaseType.class)
                 .ownerId(campaignOid)
                 .build();
     }
 
     public static ObjectQuery createWorkItemsForCampaignQuery(String campaignOid, PrismContext prismContext) {
-        return QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
+        return prismContext.queryFor(AccessCertificationWorkItemType.class)
                 .exists(PrismConstants.T_PARENT)
                    .ownerId(campaignOid)
                 .build();

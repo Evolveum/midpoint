@@ -21,10 +21,8 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -1188,13 +1186,13 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
         taskManager.createTaskInstance((PrismObject<TaskType>) (PrismObject) addObjectFromFile(taskFilename(TEST_NAME)), result);
 
-        ObjectFilter filter1 = QueryBuilder.queryFor(TaskType.class, prismContext).item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStatusType.WAITING).buildFilter();
-        ObjectFilter filter2 = QueryBuilder.queryFor(TaskType.class, prismContext).item(TaskType.F_WAITING_REASON).eq(TaskWaitingReasonType.OTHER).buildFilter();
-        ObjectFilter filter3 = AndFilter.createAnd(filter1, filter2);
+        ObjectFilter filter1 = prismContext.queryFor(TaskType.class).item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStatusType.WAITING).buildFilter();
+        ObjectFilter filter2 = prismContext.queryFor(TaskType.class).item(TaskType.F_WAITING_REASON).eq(TaskWaitingReasonType.OTHER).buildFilter();
+        ObjectFilter filter3 = prismContext.queryFactory().createAnd(filter1, filter2);
 
-        List<PrismObject<TaskType>> prisms1 = repositoryService.searchObjects(TaskType.class, ObjectQuery.createObjectQuery(filter1), null, result);
-        List<PrismObject<TaskType>> prisms2 = repositoryService.searchObjects(TaskType.class, ObjectQuery.createObjectQuery(filter2), null, result);
-        List<PrismObject<TaskType>> prisms3 = repositoryService.searchObjects(TaskType.class, ObjectQuery.createObjectQuery(filter3), null, result);
+        List<PrismObject<TaskType>> prisms1 = repositoryService.searchObjects(TaskType.class, prismContext.queryFactory().createObjectQuery(filter1), null, result);
+        List<PrismObject<TaskType>> prisms2 = repositoryService.searchObjects(TaskType.class, prismContext.queryFactory().createObjectQuery(filter2), null, result);
+        List<PrismObject<TaskType>> prisms3 = repositoryService.searchObjects(TaskType.class, prismContext.queryFactory().createObjectQuery(filter3), null, result);
 
         assertFalse("There were no tasks with executionStatus == WAITING found", prisms1.isEmpty());
         assertFalse("There were no tasks with waitingReason == OTHER found", prisms2.isEmpty());

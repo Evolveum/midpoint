@@ -393,7 +393,7 @@ public class ExpressionUtil {
     public static void updateAssociationTargetSearchValue(ExpressionType expression, String newPath, String newValue,
                                                           PrismContext prismContext) throws SchemaException{
         SearchObjectExpressionEvaluatorType associationTargetSearchType = new SearchObjectExpressionEvaluatorType();
-        EqualFilter pathFilter = EqualFilter.createEqual(ItemPath.create(newPath), null, null, prismContext, newValue);
+        EqualFilter pathFilter = prismContext.queryFactory().createEqual(ItemPath.create(newPath), null, null, prismContext, newValue);
 
         SearchFilterType filterType = prismContext.getQueryConverter().createSearchFilterType(pathFilter);
         associationTargetSearchType.setFilter(filterType);

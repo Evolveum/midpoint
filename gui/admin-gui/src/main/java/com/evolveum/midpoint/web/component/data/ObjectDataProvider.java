@@ -118,7 +118,7 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
 
             ObjectQuery query = getQuery();
             if (query == null){
-            	query = new ObjectQuery();
+            	query = getPrismContext().queryFactory().createObjectQuery();
             }
             query.setPaging(paging);
 

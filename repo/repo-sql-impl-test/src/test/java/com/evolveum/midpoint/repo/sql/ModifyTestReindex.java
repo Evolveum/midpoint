@@ -16,13 +16,9 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -72,7 +68,7 @@ public class ModifyTestReindex extends ModifyTest {
 
 		repositoryService.modifyObject(UserType.class, oid, emptySet(), getModifyOptions(), result);
 
-		ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(UserType.class)
 				.item(UNSTABLE_PATH).eq("hi")
 				.build();
 		int count = repositoryService.countObjects(UserType.class, query, null, result);

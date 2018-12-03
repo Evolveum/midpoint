@@ -6,6 +6,7 @@ import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
@@ -51,8 +52,9 @@ public class DeleteRepositoryAction extends RepositoryAction<DeleteOptions> {
     }
 
     private void deleteByOid() throws SchemaException, IOException {
-        InOidFilter filter = InOidFilter.createInOid(options.getOid());
-        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+        QueryFactory queryFactory = context.getPrismContext().queryFactory();
+        InOidFilter filter = queryFactory.createInOid(options.getOid());
+        ObjectQuery query = queryFactory.createObjectQuery(filter);
 
         deleteByFilter(query);
     }

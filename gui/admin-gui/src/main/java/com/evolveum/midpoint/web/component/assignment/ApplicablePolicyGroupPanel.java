@@ -23,7 +23,6 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -78,7 +77,7 @@ public class ApplicablePolicyGroupPanel extends BasePanel<ObjectReferenceType>{
                 OperationResult result = new OperationResult(OPERATION_LOAD_POLICY_GROUP_MEMBERS);
 
                 ObjectReferenceType policyGroupObject = ApplicablePolicyGroupPanel.this.getModelObject();
-                ObjectQuery membersQuery = QueryBuilder.queryFor(AbstractRoleType.class, getPageBase().getPrismContext())
+                ObjectQuery membersQuery = getPageBase().getPrismContext().queryFor(AbstractRoleType.class)
                         .isChildOf(policyGroupObject.getOid())
                         .build();
                 List<PrismObject<AbstractRoleType>> policiesList = WebModelServiceUtils.searchObjects(AbstractRoleType.class, membersQuery, result, getPageBase());

@@ -18,7 +18,6 @@ package com.evolveum.midpoint.schema;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -259,7 +258,7 @@ public class TestParseTask {
 
 	@Test
 	public static void testSerializeTask() throws Exception {
-		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, getPrismContext())
+		ObjectQuery query = getPrismContext().queryFor(ShadowType.class)
 				.item(ShadowType.F_KIND).eq(ShadowKindType.ACCOUNT)
 				.build();
 

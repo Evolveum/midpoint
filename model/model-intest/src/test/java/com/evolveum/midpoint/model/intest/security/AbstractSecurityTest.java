@@ -32,6 +32,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -48,16 +49,9 @@ import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -1044,7 +1038,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 
 
 	protected <O extends ObjectType> ObjectQuery createMembersQuery(Class<O> resultType, String roleOid) {
-		return QueryBuilder.queryFor(resultType, prismContext).item(UserType.F_ROLE_MEMBERSHIP_REF).ref(roleOid).build();
+		return prismContext.queryFor(resultType).item(UserType.F_ROLE_MEMBERSHIP_REF).ref(roleOid).build();
 	}
 	
 	protected MidPointPrincipal assumePowerOfAttorneyAllow(String donorOid) throws Exception {

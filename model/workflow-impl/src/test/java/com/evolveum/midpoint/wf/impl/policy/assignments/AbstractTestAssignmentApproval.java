@@ -24,7 +24,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -379,7 +378,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 			return;
 		}
 		Task task = createTask("query");
-		ObjectQuery query = QueryBuilder.queryFor(WorkItemType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(WorkItemType.class)
 				.item(WorkItemType.F_ASSIGNEE_REF).ref(getPotentialAssignees(getUser(approverOid)))
 				.build();
 		List<WorkItemType> items = modelService.searchContainers(WorkItemType.class, query, null, task, task.getResult());

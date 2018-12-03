@@ -273,7 +273,7 @@ public class ResourceDependencyEditor extends BasePanel<List<ResourceObjectTypeD
         List<ObjectReferenceType> references = new ArrayList<>();
 
         try {
-            resources = getPageBase().getModelService().searchObjects(ResourceType.class, new ObjectQuery(), null, task, result);
+            resources = getPageBase().getModelService().searchObjects(ResourceType.class, null, null, task, result);
             result.recomputeStatus();
         } catch (CommonException|RuntimeException e){
             result.recordFatalError("Couldn't get resource list.", e);

@@ -18,7 +18,6 @@ package com.evolveum.midpoint.schema;
 import java.io.File;
 import java.io.IOException;
 
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import org.testng.annotations.BeforeSuite;
 import org.xml.sax.SAXException;
 
@@ -67,7 +66,7 @@ public abstract class AbstractSchemaTest {
 		System.out.println("===[ "+TEST_NAME+" ]====");
 	}
 
-	protected UniformItemPath path(Object... components) {
-		return getPrismContext().path(components);
-	}
+//	protected UniformItemPath path(Object... components) {
+//		return getPrismContext().path(components);
+//	}
 }

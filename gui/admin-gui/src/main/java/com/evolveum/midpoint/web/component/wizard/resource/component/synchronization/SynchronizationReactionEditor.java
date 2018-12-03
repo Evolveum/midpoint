@@ -260,7 +260,7 @@ public class SynchronizationReactionEditor extends BasePanel<SynchronizationReac
         List<ObjectReferenceType> references = new ArrayList<>();
 
         try{
-            templates = getPageBase().getModelService().searchObjects(ObjectTemplateType.class, new ObjectQuery(), null, task, result);
+            templates = getPageBase().getModelService().searchObjects(ObjectTemplateType.class, null, null, task, result);
             result.recomputeStatus();
         } catch (CommonException|RuntimeException e){
             result.recordFatalError("Couldn't load object templates from repository. ", e);

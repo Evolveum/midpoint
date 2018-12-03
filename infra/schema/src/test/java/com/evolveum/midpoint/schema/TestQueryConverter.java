@@ -21,7 +21,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ParentPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xnode.ListXNode;
@@ -52,7 +51,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_OWNER_REF;
 import static org.testng.AssertJUnit.*;
@@ -306,10 +304,10 @@ public class TestQueryConverter {
 		SearchFilterType filterType = PrismTestUtil.parseAtomicValue(FILTER_BY_TYPE_FILE, SearchFilterType.COMPLEX_TYPE);
 		ObjectQuery query;
 		try {
-			ObjectFilter kindFilter = QueryBuilder.queryFor(ShadowType.class, getPrismContext())
+			ObjectFilter kindFilter = getPrismContext().queryFor(ShadowType.class)
 					.item(ShadowType.F_KIND).eq(ShadowKindType.ACCOUNT)
 					.buildFilter();
-			query = ObjectQuery.createObjectQuery(kindFilter);
+			query = ObjectQueryImpl.createObjectQuery(kindFilter);
 			assertNotNull(query);
 			ObjectFilter filter = query.getFilter();
 			assertTrue("filter is not an instance of type filter", filter instanceof EqualFilter);
@@ -435,7 +433,7 @@ public class TestQueryConverter {
 
 	@Test
 	public void testConvertQueryNullFilter() throws Exception {
-		ObjectQuery query = ObjectQuery.createObjectQuery(ObjectPaging.createPaging(0, 10));
+		ObjectQuery query = ObjectQueryImpl.createObjectQuery(ObjectPagingImpl.createPaging(0, 10));
 		QueryType queryType = getQueryConverter().createQueryType(query);
 
 		assertNotNull(queryType);
@@ -483,7 +481,7 @@ public class TestQueryConverter {
 	public void test100All() throws Exception {
 		final String TEST_NAME = "test100All";
 		displayTestTitle(TEST_NAME);
-		ObjectQuery q = QueryBuilder.queryFor(UserType.class, getPrismContext()).all().build();
+		ObjectQuery q = getPrismContext().queryFor(UserType.class).all().build();
 		checkQueryRoundtripFile(UserType.class, q, TEST_NAME);
 	}
 
@@ -491,7 +489,7 @@ public class TestQueryConverter {
 	public void test110None() throws Exception {
 		final String TEST_NAME = "test110None";
 		displayTestTitle(TEST_NAME);
-		ObjectQuery q = QueryBuilder.queryFor(UserType.class, getPrismContext()).none().build();
+		ObjectQuery q = getPrismContext().queryFor(UserType.class).none().build();
 		checkQueryRoundtripFile(UserType.class, q, TEST_NAME);
 	}
 
@@ -499,7 +497,7 @@ public class TestQueryConverter {
 	public void test120Undefined() throws Exception {
 		final String TEST_NAME = "test120Undefined";
 		displayTestTitle(TEST_NAME);
-		ObjectQuery q = QueryBuilder.queryFor(UserType.class, getPrismContext()).undefined().build();
+		ObjectQuery q = getPrismContext().queryFor(UserType.class).undefined().build();
 		checkQueryRoundtripFile(UserType.class, q, TEST_NAME);
 	}
 
@@ -507,7 +505,7 @@ public class TestQueryConverter {
 	public void test200Equal() throws Exception {
 		final String TEST_NAME = "test200Equal";
 		displayTestTitle(TEST_NAME);
-		ObjectQuery q = QueryBuilder.queryFor(UserType.class, getPrismContext())
+		ObjectQuery q = getPrismContext().queryFor(UserType.class)
 				.item(UserType.F_NAME).eqPoly("some-name", "somename").matchingOrig()
 				.build();
 		checkQueryRoundtripFile(UserType.class, q, TEST_NAME);
@@ -517,7 +515,7 @@ public class TestQueryConverter {
 	public void test210EqualMultiple() throws Exception {
 		final String TEST_NAME = "test210EqualMultiple";
 		displayTestTitle(TEST_NAME);
-		ObjectQuery q = QueryBuilder.queryFor(UserType.class, getPrismContext())
+		ObjectQuery q = getPrismContext().queryFor(UserType.class)
 				.item(UserType.F_EMPLOYEE_TYPE).eq("STD", "TEMP")
 				.build();
 		checkQueryRoundtripFile(UserType.class, q, TEST_NAME);
@@ -527,7 +525,7 @@ public class TestQueryConverter {
 	public void test220EqualRightHandItem() throws Exception {
 		final String TEST_NAME = "test220EqualRightHandItem";
 		displayTestTitle(TEST_NAME);
-		ObjectQuery q = QueryBuilder.queryFor(UserType.class, getPrismContext())
+		ObjectQuery q = getPrismContext().queryFor(UserType.class)
 				.item(UserType.F_EMPLOYEE_NUMBER).eq().item(UserType.F_COST_CENTER)
 				.build();
 		checkQueryRoundtripFile(UserType.class, q, TEST_NAME);
@@ -537,7 +535,7 @@ public class TestQueryConverter {
 	public void test300Greater() throws Exception {
 		final String TEST_NAME = "test300Greater";
 		displayTestTitle(TEST_NAME);
-		ObjectQuery q = QueryBuilder.queryFor(UserType.class, getPrismContext())
+		ObjectQuery q = getPrismContext().queryFor(UserType.class)
 				.item(UserType.F_COST_CENTER).gt("100000")
 				.build();
 		checkQueryRoundtripFile(UserType.class, q, TEST_NAME);
@@ -547,7 +545,7 @@ public class TestQueryConverter {
 	public void test305GreaterLesserMatchingNorm() throws Exception {
 		final String TEST_NAME = "test305GreaterLesserMatchingNorm";
 		displayTestTitle(TEST_NAME);
-		ObjectQuery q = QueryBuilder.queryFor(UserType.class, getPrismContext())
+		ObjectQuery q = getPrismContext().queryFor(UserType.class)
 				.item(UserType.F_NAME).ge(new PolyString("00", "00")).matchingNorm()
 				.and().item(UserType.F_NAME).lt(new PolyString("0a", "0a")).matchingNorm()
 				.build();
@@ -558,7 +556,7 @@ public class TestQueryConverter {
 	public void test305GreaterOrEqual() throws Exception {
 		final String TEST_NAME = "test305GreaterOrEqual";
 		displayTestTitle(TEST_NAME);
-		ObjectQuery q = QueryBuilder.queryFor(UserType.class, getPrismContext())
+		ObjectQuery q = getPrismContext().queryFor(UserType.class)
 				.item(UserType.F_COST_CENTER).ge("100000")
 				.build();
 		checkQueryRoundtripFile(UserType.class, q, TEST_NAME);
@@ -568,7 +566,7 @@ public class TestQueryConverter {
 	public void test310AllComparisons() throws Exception {
 		final String TEST_NAME = "test310AllComparisons";
 		displayTestTitle(TEST_NAME);
-		ObjectQuery q = QueryBuilder.queryFor(UserType.class, getPrismContext())
+		ObjectQuery q = getPrismContext().queryFor(UserType.class)
 				.item(UserType.F_COST_CENTER).gt("100000")
 				.and().item(UserType.F_COST_CENTER).lt("999999")
 				.or()
@@ -582,7 +580,7 @@ public class TestQueryConverter {
 	public void test350Substring() throws Exception {
 		final String TEST_NAME = "test350Substring";
 		displayTestTitle(TEST_NAME);
-		ObjectQuery q = QueryBuilder.queryFor(UserType.class, getPrismContext())
+		ObjectQuery q = getPrismContext().queryFor(UserType.class)
 				.item(UserType.F_EMPLOYEE_TYPE).contains("A")
 				.or().item(UserType.F_EMPLOYEE_TYPE).startsWith("B")
 				.or().item(UserType.F_EMPLOYEE_TYPE).endsWith("C")
@@ -597,7 +595,7 @@ public class TestQueryConverter {
 		displayTestTitle(TEST_NAME);
 
 		// we test only parsing here, as there are more serialized forms used here
-		ObjectQuery q1object = QueryBuilder.queryFor(ShadowType.class, getPrismContext())
+		ObjectQuery q1object = getPrismContext().queryFor(ShadowType.class)
 				.item(ShadowType.F_RESOURCE_REF).ref("oid1")
 				.or().item(ShadowType.F_RESOURCE_REF).ref("oid2", ResourceType.COMPLEX_TYPE)
 				.or().item(ShadowType.F_RESOURCE_REF).ref("oid3")
@@ -627,7 +625,7 @@ public class TestQueryConverter {
 		displayTestTitle(TEST_NAME);
 		PrismReferenceValue reference3 = new PrismReferenceValueImpl("oid3", ResourceType.COMPLEX_TYPE).relation(new QName("test"));
 		PrismReferenceValue reference4 = new PrismReferenceValueImpl("oid4", ResourceType.COMPLEX_TYPE).relation(new QName("test"));
-		ObjectQuery q = QueryBuilder.queryFor(ShadowType.class, getPrismContext())
+		ObjectQuery q = getPrismContext().queryFor(ShadowType.class)
 				.item(ShadowType.F_RESOURCE_REF).ref("oid1")
 				.or().item(ShadowType.F_RESOURCE_REF).ref("oid2", ResourceType.COMPLEX_TYPE)
 				.or().item(ShadowType.F_RESOURCE_REF).ref(reference3, reference4)
@@ -639,7 +637,7 @@ public class TestQueryConverter {
 	public void test400OrgFilterRoot() throws Exception {
 		final String TEST_NAME = "test400OrgFilterRoot";
 		displayTestTitle(TEST_NAME);
-		ObjectQuery q = QueryBuilder.queryFor(OrgType.class, getPrismContext()).isRoot().build();
+		ObjectQuery q = getPrismContext().queryFor(OrgType.class).isRoot().build();
 		checkQueryRoundtripFile(OrgType.class, q, TEST_NAME);
 	}
 
@@ -647,7 +645,7 @@ public class TestQueryConverter {
 	public void test410OrgFilterSubtree() throws Exception {
 		final String TEST_NAME = "test410OrgFilterSubtree";
 		displayTestTitle(TEST_NAME);
-		ObjectQuery q = QueryBuilder.queryFor(OrgType.class, getPrismContext()).isChildOf("111").build();
+		ObjectQuery q = getPrismContext().queryFor(OrgType.class).isChildOf("111").build();
 		checkQueryRoundtripFile(OrgType.class, q, TEST_NAME);
 	}
 
@@ -655,7 +653,7 @@ public class TestQueryConverter {
 	public void test420OrgFilterDirect() throws Exception {
 		final String TEST_NAME = "test420OrgFilterDirect";
 		displayTestTitle(TEST_NAME);
-		ObjectQuery q = QueryBuilder.queryFor(OrgType.class, getPrismContext()).isDirectChildOf("222").build();
+		ObjectQuery q = getPrismContext().queryFor(OrgType.class).isDirectChildOf("222").build();
 		checkQueryRoundtripFile(OrgType.class, q, TEST_NAME);
 	}
 
@@ -675,7 +673,7 @@ public class TestQueryConverter {
 		ObjectQuery query = toObjectQuery(OrgType.class, queryJaxb);
 		displayQuery(query);
 
-		ObjectQuery expectedQuery = QueryBuilder.queryFor(OrgType.class, getPrismContext()).isChildOf("333").build();
+		ObjectQuery expectedQuery = getPrismContext().queryFor(OrgType.class).isChildOf("333").build();
 		assertEquals("Parsed query is wrong", expectedQuery.toString(), query.toString());			// primitive way of comparing queries
 
 		// now reserialize the parsed query and compare with XML - the XML contains explicit scope=SUBTREE (as this is set when parsing original queryXml)
@@ -686,7 +684,7 @@ public class TestQueryConverter {
 	public void test500InOid() throws Exception {
 		final String TEST_NAME = "test500InOid";
 		displayTestTitle(TEST_NAME);
-		ObjectQuery q = QueryBuilder.queryFor(UserType.class, getPrismContext())
+		ObjectQuery q = getPrismContext().queryFor(UserType.class)
 				.id("oid1", "oid2", "oid3")
 				.build();
 		checkQueryRoundtripFile(UserType.class, q, TEST_NAME);
@@ -696,7 +694,7 @@ public class TestQueryConverter {
 	public void test505InOidEmpty() throws Exception {
 		final String TEST_NAME = "test505InOidEmpty";
 		displayTestTitle(TEST_NAME);
-		ObjectQuery q = QueryBuilder.queryFor(UserType.class, getPrismContext())
+		ObjectQuery q = getPrismContext().queryFor(UserType.class)
 				.id(new String[0])
 				.build();
 		checkQueryRoundtripFile(UserType.class, q, TEST_NAME);
@@ -706,7 +704,7 @@ public class TestQueryConverter {
 	public void test510InOidContainer() throws Exception {
 		final String TEST_NAME = "test510InOidContainer";
 		displayTestTitle(TEST_NAME);
-		ObjectQuery q = QueryBuilder.queryFor(UserType.class, getPrismContext())
+		ObjectQuery q = getPrismContext().queryFor(UserType.class)
 				.id(1, 2, 3)
 				.and().ownerId("oid4")
 				.build();
@@ -717,7 +715,7 @@ public class TestQueryConverter {
 	public void test590Logicals() throws Exception {
 		final String TEST_NAME = "test590Logicals";
 		displayTestTitle(TEST_NAME);
-		ObjectQuery q = QueryBuilder.queryFor(UserType.class, getPrismContext())
+		ObjectQuery q = getPrismContext().queryFor(UserType.class)
 				.block()
 					.all()
 					.or().none()
@@ -738,7 +736,7 @@ public class TestQueryConverter {
 	public void test595Logicals2() throws Exception {
 		final String TEST_NAME = "test595Logicals2";
 		displayTestTitle(TEST_NAME);
-		ObjectQuery q = QueryBuilder.queryFor(UserType.class, getPrismContext())
+		ObjectQuery q = getPrismContext().queryFor(UserType.class)
 				.item(UserType.F_DESCRIPTION).eq("A")
 				.and().item(UserType.F_DESCRIPTION).eq("B")
 				.or().item(UserType.F_DESCRIPTION).eq("C")
@@ -758,7 +756,7 @@ public class TestQueryConverter {
 	public void test600Type() throws Exception {
 		final String TEST_NAME = "test600Type";
 		displayTestTitle(TEST_NAME);
-		ObjectQuery q = QueryBuilder.queryFor(ObjectType.class, getPrismContext())
+		ObjectQuery q = getPrismContext().queryFor(ObjectType.class)
 				.type(UserType.class)
 					.item(UserType.F_NAME).eqPoly("somename", "somename")
 				.build();
@@ -770,7 +768,7 @@ public class TestQueryConverter {
 		final String TEST_NAME = "test700Exists";
 		displayTestTitle(TEST_NAME);
 		PrismReferenceValue ownerRef = ObjectTypeUtil.createObjectRef("1234567890", ObjectTypes.USER).asReferenceValue();
-		ObjectQuery q = QueryBuilder.queryFor(AccessCertificationCaseType.class, getPrismContext())
+		ObjectQuery q = getPrismContext().queryFor(AccessCertificationCaseType.class)
 				.exists(new ParentPathSegment())        // if using T_PARENT then toString representation of paths is different
 					.block()
 						.id(123456L)

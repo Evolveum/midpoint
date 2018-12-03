@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -75,7 +76,7 @@ public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrWork
         try {
             ObjectPaging paging = createPaging(first, count);
             Collection<SelectorOptions<GetOperationOptions>> resolveNames = createCollection(createResolveNames());
-            List<AccessCertificationCaseType> caseList = searchCases(campaignOid, paging, resolveNames, task, result);
+            List<AccessCertificationCaseType> caseList = searchCases(campaignOid, paging, resolveNames, getPage().getPrismContext(), task, result);
             for (AccessCertificationCaseType _case : caseList) {
                 getAvailableData().add(new CertCaseDto(_case, getPage(), task, result));
             }
@@ -106,7 +107,7 @@ public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrWork
         OperationResult result = new OperationResult(OPERATION_COUNT_OBJECTS);
         try {
             Task task = getPage().createSimpleTask(OPERATION_COUNT_OBJECTS);
-            count = countCases(campaignOid, null, task, result);
+            count = countCases(campaignOid, null, getPage().getPrismContext(), task, result);
         } catch (Exception ex) {
             result.recordFatalError("Couldn't count objects.", ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count objects", ex);
@@ -132,32 +133,35 @@ public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrWork
         this.campaignOid = campaignOid;
     }
 
-    private List<AccessCertificationCaseType> searchCases(String campaignOid, ObjectPaging paging, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, CommunicationException {
-        InOidFilter inOidFilter = InOidFilter.createOwnerHasOidIn(campaignOid);
-        ObjectQuery query = createFinalQuery(inOidFilter);
+    private List<AccessCertificationCaseType> searchCases(String campaignOid, ObjectPaging paging,
+            Collection<SelectorOptions<GetOperationOptions>> options, PrismContext prismContext,
+            Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, CommunicationException {
+        InOidFilter inOidFilter = prismContext.queryFactory().createOwnerHasOidIn(campaignOid);
+        ObjectQuery query = createFinalQuery(inOidFilter, prismContext);
         query.setPaging(paging);
         return getModel().searchContainers(AccessCertificationCaseType.class, query, options, task, result);
     }
 
-    private int countCases(String campaignOid, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, CommunicationException {
-        InOidFilter inOidFilter = InOidFilter.createOwnerHasOidIn(campaignOid);
-        ObjectQuery query = createFinalQuery(inOidFilter);
+    private int countCases(String campaignOid, Collection<SelectorOptions<GetOperationOptions>> options,
+            PrismContext prismContext, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, CommunicationException {
+        InOidFilter inOidFilter = prismContext.queryFactory().createOwnerHasOidIn(campaignOid);
+        ObjectQuery query = createFinalQuery(inOidFilter, prismContext);
         return getModel().countContainers(AccessCertificationCaseType.class, query, options, task, result);
     }
 
     @NotNull
-    private ObjectQuery createFinalQuery(InOidFilter inOidFilter) {
+    private ObjectQuery createFinalQuery(InOidFilter inOidFilter, PrismContext prismContext) {
         ObjectQuery query = getQuery();
         if (query != null) {
             query = query.clone();
             if (query.getFilter() == null) {
                 query.setFilter(inOidFilter);
             } else {
-                query.setFilter(AndFilter.createAnd(query.getFilter(), inOidFilter));
+                query.setFilter(prismContext.queryFactory().createAnd(query.getFilter(), inOidFilter));
             }
         } else {
-            query = new ObjectQuery();
-            query.setFilter(inOidFilter);
+            query = getPrismContext().queryFactory().createObjectQuery(inOidFilter);
         }
         return query;
     }
@@ -165,7 +169,7 @@ public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrWork
     @NotNull
 	@Override
 	protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
-		return SearchingUtils.createObjectOrderings(sortParam, false);
+		return SearchingUtils.createObjectOrderings(sortParam, false, getPrismContext());
 	}
 
 }

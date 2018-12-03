@@ -20,7 +20,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.sql.data.common.ROrgClosure;
@@ -118,7 +117,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
         opResult.computeStatusIfUnknown();
         AssertJUnit.assertTrue(opResult.isSuccess());
 
-        List<PrismObject<OrgType>> orgTypes = repositoryService.searchObjects(OrgType.class, new ObjectQuery(), null, opResult);
+        List<PrismObject<OrgType>> orgTypes = repositoryService.searchObjects(OrgType.class, null, null, opResult);
         AssertJUnit.assertNotNull(orgTypes);
         AssertJUnit.assertEquals(9, orgTypes.size());
 
@@ -128,7 +127,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
         PrismObjectDefinition<UserType> userObjectDef = prismContext.getSchemaRegistry()
                 .findObjectDefinitionByCompileTimeClass(UserType.class);
 
-        ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+        ObjectQuery query = prismContext.queryFor(UserType.class)
                 .item(UserType.F_NAME).eq(ELAINE_NAME)
                 .build();
         List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, opResult);
@@ -268,7 +267,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
             orgClosure = criteria.list();
             AssertJUnit.assertEquals(3, orgClosure.size());
 
-            ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+            ObjectQuery query = prismContext.queryFor(UserType.class)
                     .item(UserType.F_NAME).eq(ELAINE_NAME1)
                     .build();
             List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, opResult);
@@ -480,7 +479,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
     public void test006searchOrgStructUserUnbounded() throws Exception {
         OperationResult parentResult = new OperationResult("test006searchOrgStructUserUnbounded");
 
-        ObjectQuery objectQuery = QueryBuilder.queryFor(ObjectType.class, prismContext)
+        ObjectQuery objectQuery = prismContext.queryFor(ObjectType.class)
                 .isChildOf(SEARCH_ORG_OID_UNBOUNDED_DEPTH)
                 .asc(ObjectType.F_NAME)
                 .build();
@@ -510,7 +509,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
             session.getTransaction().commit();
             session.close();
 
-            ObjectQuery objectQuery = QueryBuilder.queryFor(ObjectType.class, prismContext)
+            ObjectQuery objectQuery = prismContext.queryFor(ObjectType.class)
                     .isDirectChildOf(SEARCH_ORG_OID_DEPTH1)
                     .asc(ObjectType.F_NAME)
                     .build();
@@ -531,7 +530,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
     public void test008searchRootOrg() throws Exception {
         OperationResult parentResult = new OperationResult("test008searchRootOrg");
 
-        ObjectQuery qSearch = QueryBuilder.queryFor(ObjectType.class, prismContext)
+        ObjectQuery qSearch = prismContext.queryFor(ObjectType.class)
                 .isRoot()
                 .asc(ObjectType.F_NAME)
                 .build();
@@ -570,7 +569,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
     	TestUtil.displayTestTitle(TEST_NAME);
         OperationResult opResult = new OperationResult(TEST_NAME);
 
-        ObjectQuery query = QueryBuilder.queryFor(ObjectType.class, prismContext)
+        ObjectQuery query = prismContext.queryFor(ObjectType.class)
                 .isDirectChildOf(ORG_F001_OID)
                 .asc(ObjectType.F_NAME)
                 .build();
@@ -588,7 +587,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
     	TestUtil.displayTestTitle(TEST_NAME);
         OperationResult opResult = new OperationResult(TEST_NAME);
 
-        ObjectQuery query = QueryBuilder.queryFor(ObjectType.class, prismContext)
+        ObjectQuery query = prismContext.queryFor(ObjectType.class)
                 .item(ObjectType.F_PARENT_ORG_REF).ref(new PrismReferenceValueImpl(ORG_F001_OID))
                 .build();
 
@@ -607,7 +606,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
         PrismReferenceValue refVal = new PrismReferenceValueImpl(ORG_F001_OID);
         refVal.setRelation(SchemaConstants.ORG_MANAGER);
-        ObjectQuery query = QueryBuilder.queryFor(ObjectType.class, prismContext)
+        ObjectQuery query = prismContext.queryFor(ObjectType.class)
                 .item(ObjectType.F_PARENT_ORG_REF).ref(refVal)
                 .build();
 
@@ -626,7 +625,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
         PrismReferenceValue refVal = new PrismReferenceValueImpl(ORG_F001_OID);
         refVal.setRelation(PrismConstants.Q_ANY);
-        ObjectQuery query = QueryBuilder.queryFor(ObjectType.class, prismContext)
+        ObjectQuery query = prismContext.queryFor(ObjectType.class)
                 .item(ObjectType.F_PARENT_ORG_REF).ref(refVal)
                 .build();
 

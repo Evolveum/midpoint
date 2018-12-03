@@ -25,6 +25,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.api.component.PendingOperationPanel;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -65,10 +66,8 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -285,6 +284,7 @@ public abstract class ResourceContentPanel extends Panel {
 			@Override
 			protected ObjectQuery createContentQuery() {
 				ObjectQuery parentQuery = super.createContentQuery();
+				QueryFactory queryFactory = getPrismContext().queryFactory();
 
 				List<ObjectFilter> filters = new ArrayList<>();
 				if (parentQuery != null) {
@@ -295,20 +295,13 @@ public abstract class ResourceContentPanel extends Panel {
 				if (customQuery != null && customQuery.getFilter() != null) {
 					filters.add(customQuery.getFilter());
 				}
-				ObjectQuery query = new ObjectQuery();
 				if (filters.size() == 1) {
-					query = ObjectQuery.createObjectQuery(filters.iterator().next());
-//					setProviderAvailableDataSize(query);
-					return query;
+					return queryFactory.createObjectQuery(filters.iterator().next());
 				}
-
 				if (filters.size() == 0) {
-//					setProviderAvailableDataSize(query);
 					return null;
 				}
-				query = ObjectQuery.createObjectQuery(AndFilter.createAnd(filters));
-//				setProviderAvailableDataSize(query);
-				return query;
+				return queryFactory.createObjectQuery(queryFactory.createAnd(filters));
 			}
 
 			@Override
@@ -346,7 +339,7 @@ public abstract class ResourceContentPanel extends Panel {
 
 		List<PrismObject<TaskType>> tasks = WebModelServiceUtils
 				.searchObjects(TaskType.class,
-						QueryBuilder.queryFor(TaskType.class, getPageBase().getPrismContext())
+						getPageBase().getPrismContext().queryFor(TaskType.class)
 								.item(TaskType.F_OBJECT_REF).ref(getResourceModel().getObject().getOid())
 								.build(),
 						result, getPageBase());

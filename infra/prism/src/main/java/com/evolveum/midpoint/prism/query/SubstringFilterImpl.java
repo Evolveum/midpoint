@@ -28,12 +28,12 @@ import javax.xml.namespace.QName;
 import java.util.*;
 import java.util.regex.Pattern;
 
-public class SubstringFilter<T> extends PropertyValueFilter<T> {
+public class SubstringFilterImpl<T> extends PropertyValueFilterImpl<T> implements SubstringFilter<T> {
 
 	private boolean anchorStart;
 	private boolean anchorEnd;
 
-	public SubstringFilter(@NotNull ItemPath path, @Nullable PrismPropertyDefinition<T> definition,
+	private SubstringFilterImpl(@NotNull ItemPath path, @Nullable PrismPropertyDefinition<T> definition,
 			@Nullable QName matchingRule,
 			@Nullable List<PrismPropertyValue<T>> prismPropertyValues,
 			@Nullable ExpressionWrapper expression, boolean anchorStart, boolean anchorEnd) {
@@ -52,13 +52,13 @@ public class SubstringFilter<T> extends PropertyValueFilter<T> {
 														 @NotNull PrismContext prismContext,
 														 @Nullable QName matchingRule, Object anyValue, boolean anchorStart, boolean anchorEnd) {
 		List<PrismPropertyValue<T>> values = anyValueToPropertyValueList(prismContext, anyValue);
-		return new SubstringFilter<>(path, itemDefinition, matchingRule, values, null, anchorStart, anchorEnd);
+		return new SubstringFilterImpl<>(path, itemDefinition, matchingRule, values, null, anchorStart, anchorEnd);
 	}
 	
 	public static <T> SubstringFilter<T> createSubstring(@NotNull ItemPath path, @Nullable PrismPropertyDefinition<T> itemDefinition,
 			 @NotNull PrismContext prismContext,
 			 @Nullable QName matchingRule, ExpressionWrapper expressionWrapper, boolean anchorStart, boolean anchorEnd) {
-		return new SubstringFilter<>(path, itemDefinition, matchingRule, null, expressionWrapper, anchorStart, anchorEnd);
+		return new SubstringFilterImpl<>(path, itemDefinition, matchingRule, null, expressionWrapper, anchorStart, anchorEnd);
 	}
 
 	public boolean isAnchorStart() {
@@ -70,8 +70,8 @@ public class SubstringFilter<T> extends PropertyValueFilter<T> {
 	}
 
     @Override
-	public SubstringFilter<T> clone() {
-		return new SubstringFilter<>(getFullPath(), getDefinition(), getMatchingRule(), getClonedValues(),
+	public SubstringFilterImpl<T> clone() {
+		return new SubstringFilterImpl<>(getFullPath(), getDefinition(), getMatchingRule(), getClonedValues(),
 				getExpression(), anchorStart, anchorEnd);
 	}
 
@@ -131,7 +131,7 @@ public class SubstringFilter<T> extends PropertyValueFilter<T> {
 			return false;
 		if (!super.equals(o, exact))
 			return false;
-		SubstringFilter<?> that = (SubstringFilter<?>) o;
+		SubstringFilterImpl<?> that = (SubstringFilterImpl<?>) o;
 		return anchorStart == that.anchorStart &&
 				anchorEnd == that.anchorEnd;
 	}

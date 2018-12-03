@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
@@ -13,7 +14,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.jetbrains.annotations.NotNull;
 
-import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -38,7 +38,8 @@ public class SearchingUtils {
 	public static final String CAMPAIGN_NAME = "campaignName";
 
 	@NotNull
-	public static List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam, boolean isWorkItem) {
+	public static List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam, boolean isWorkItem,
+			PrismContext prismContext) {
 		if (sortParam == null || sortParam.getProperty() == null) {
 			return Collections.emptyList();
 		}
@@ -65,12 +66,12 @@ public class SearchingUtils {
 			primaryItemPath = new ItemName(SchemaConstantsGenerated.NS_COMMON, propertyName);
 		}
 		List<ObjectOrdering> rv = new ArrayList<>();
-		rv.add(ObjectOrdering.createOrdering(primaryItemPath, sortParam.isAscending() ? OrderDirection.ASCENDING : OrderDirection.DESCENDING));
+		rv.add(prismContext.queryFactory().createOrdering(primaryItemPath, sortParam.isAscending() ? OrderDirection.ASCENDING : OrderDirection.DESCENDING));
 		// additional criteria are used to avoid random shuffling if first criteria is too vague)
-		rv.add(ObjectOrdering.createOrdering(campaignPath.append(PrismConstants.T_ID), OrderDirection.ASCENDING)); 	// campaign OID
-		rv.add(ObjectOrdering.createOrdering(casePath.append(PrismConstants.T_ID), OrderDirection.ASCENDING));			// case ID
+		rv.add(prismContext.queryFactory().createOrdering(campaignPath.append(PrismConstants.T_ID), OrderDirection.ASCENDING)); 	// campaign OID
+		rv.add(prismContext.queryFactory().createOrdering(casePath.append(PrismConstants.T_ID), OrderDirection.ASCENDING));			// case ID
 		if (isWorkItem) {
-			rv.add(ObjectOrdering.createOrdering(ItemName.fromQName(PrismConstants.T_ID), OrderDirection.ASCENDING));			// work item ID
+			rv.add(prismContext.queryFactory().createOrdering(ItemName.fromQName(PrismConstants.T_ID), OrderDirection.ASCENDING));			// work item ID
 		}
 		return rv;
 	}

@@ -20,15 +20,11 @@ import cern.colt.matrix.DoubleMatrix2D;
 import cern.colt.matrix.impl.SparseDoubleMatrix2D;
 import cern.colt.matrix.linalg.Algebra;
 import cern.jet.math.Functions;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.repo.sql.BaseSQLRepoTest;
 import com.evolveum.midpoint.repo.sql.data.common.ROrgClosure;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
@@ -250,7 +246,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
     // checks org graph w.r.t. real org/parentref situation in repo
     protected void checkOrgGraph() throws SchemaException {
         OperationResult result = new OperationResult("temp");
-        int numberOfOrgsInRepo = repositoryService.countObjects(OrgType.class, new ObjectQuery(), null, result);
+        int numberOfOrgsInRepo = repositoryService.countObjects(OrgType.class, null, null, result);
         info("Checking graph with repo. Orgs in repo: " + numberOfOrgsInRepo + ", orgs in graph: " + orgGraph.vertexSet().size());
         assertTrue("# of orgs in repo (" + numberOfOrgsInRepo + ") is different from # of orgs in graph (" + orgGraph.vertexSet().size() + ")",
                 numberOfOrgsInRepo == orgGraph.vertexSet().size());
@@ -646,7 +642,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
 
     protected void removeOrgStructure(String nodeOid, OperationResult result) throws Exception {
         removeUsersFromOrg(nodeOid, result);
-        ObjectQuery query = QueryBuilder.queryFor(OrgType.class, prismContext)
+        ObjectQuery query = prismContext.queryFor(OrgType.class)
                 .isDirectChildOf(nodeOid)
                 .build();
         List<PrismObject<OrgType>> subOrgs = repositoryService.searchObjects(OrgType.class, query, null, result);
@@ -662,7 +658,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
     }
 
     protected void removeUsersFromOrg(String nodeOid, OperationResult result) throws Exception {
-        ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+        ObjectQuery query = prismContext.queryFor(UserType.class)
                 .isDirectChildOf(nodeOid)
                 .build();
         List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);

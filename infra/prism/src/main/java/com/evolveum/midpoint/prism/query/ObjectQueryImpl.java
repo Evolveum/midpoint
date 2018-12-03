@@ -27,13 +27,11 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 import java.io.Serializable;
 
-public class ObjectQuery implements DebugDumpable, Serializable {
+public class ObjectQueryImpl implements ObjectQuery {
 
 	private ObjectFilter filter;
 	private ObjectPaging paging;
 	private boolean allowPartialResults = false;
-
-	private boolean useNewQueryInterpreter = true;
 
 	public ObjectFilter getFilter() {
 		return filter;
@@ -59,68 +57,51 @@ public class ObjectQuery implements DebugDumpable, Serializable {
 		this.allowPartialResults = allowPartialResults;
 	}
 
-	public boolean isUseNewQueryInterpreter() {
-		return useNewQueryInterpreter;
-	}
-
-	public void setUseNewQueryInterpreter(boolean useNewQueryInterpreter) {
-		this.useNewQueryInterpreter = useNewQueryInterpreter;
+	public static ObjectQuery createObjectQuery() {
+		return new ObjectQueryImpl();
 	}
 
 	public static ObjectQuery createObjectQuery(ObjectFilter filter) {
-		ObjectQuery query = new ObjectQuery();
+		ObjectQueryImpl query = new ObjectQueryImpl();
 		query.setFilter(filter);
 		return query;
 	}
 	
 	public static ObjectQuery createObjectQuery(XNodeImpl condition, ObjectFilter filter) {
-		ObjectQuery query = new ObjectQuery();
+		ObjectQueryImpl query = new ObjectQueryImpl();
 		query.setFilter(filter);
 		return query;
 	}
 
 	public static ObjectQuery createObjectQuery(ObjectPaging paging) {
-		ObjectQuery query = new ObjectQuery();
+		ObjectQueryImpl query = new ObjectQueryImpl();
 		query.setPaging(paging);
 		return query;
 	}
 
 	public static ObjectQuery createObjectQuery(ObjectFilter filter, ObjectPaging paging) {
-		ObjectQuery query = new ObjectQuery();
+		ObjectQueryImpl query = new ObjectQueryImpl();
 		query.setFilter(filter);
 		query.setPaging(paging);
 		return query;
 	}
 
-	// although we do our best to match even incomplete relations (null, unqualified), ultimately
-	// it is the client's responsibility to ensure relations in object and filter are normalized (namely: null -> org:default)
-	public static <T extends Objectable> boolean match(PrismObject<T> object, ObjectFilter filter, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException{
-		return filter.match(object.getValue(), matchingRuleRegistry);
-	}
-
-	// although we do our best to match even incomplete relations (null, unqualified), ultimately
-	// it is the client's responsibility to ensure relations in object and filter are normalized (namely: null -> org:default)
-	public static boolean match(Containerable object, ObjectFilter filter, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException{
-		return filter.match(object.asPrismContainerValue(), matchingRuleRegistry);
-	}
-	
-	public ObjectQuery clone() {
-		ObjectQuery clone = cloneEmpty();
+	public ObjectQueryImpl clone() {
+		ObjectQueryImpl clone = cloneEmpty();
 		if (this.filter != null) {
 			clone.filter = this.filter.clone();
 		}
 		return clone;
 	}
 	
-	public ObjectQuery cloneEmpty() {
-		ObjectQuery clone = new ObjectQuery();
+	public ObjectQueryImpl cloneEmpty() {
+		ObjectQueryImpl clone = new ObjectQueryImpl();
 		if (this.paging != null) {
 			clone.paging = this.paging.clone();
 		}
 		if (this.allowPartialResults) {
 			clone.allowPartialResults = true;
 		}
-		clone.useNewQueryInterpreter = this.useNewQueryInterpreter;
 		return clone;
 	}	
 
@@ -187,7 +168,7 @@ public class ObjectQuery implements DebugDumpable, Serializable {
 		} else if (filter == null || filter instanceof AllFilter) {
 			setFilter(objectFilter);
 		} else {
-			setFilter(AndFilter.createAnd(objectFilter, filter));
+			setFilter(AndFilterImpl.createAnd(objectFilter, filter));
 		}
 	}
 
@@ -228,11 +209,9 @@ public class ObjectQuery implements DebugDumpable, Serializable {
 		if (o == null || getClass() != o.getClass())
 			return false;
 
-		ObjectQuery that = (ObjectQuery) o;
+		ObjectQueryImpl that = (ObjectQueryImpl) o;
 
 		if (allowPartialResults != that.allowPartialResults)
-			return false;
-		if (useNewQueryInterpreter != that.useNewQueryInterpreter)
 			return false;
 		if (filter != null ? !filter.equals(that.filter, exact) : that.filter != null)
 			return false;
@@ -245,7 +224,6 @@ public class ObjectQuery implements DebugDumpable, Serializable {
 		int result = filter != null ? filter.hashCode() : 0;
 		result = 31 * result + (paging != null ? paging.hashCode() : 0);
 		result = 31 * result + (allowPartialResults ? 1 : 0);
-		result = 31 * result + (useNewQueryInterpreter ? 1 : 0);
 		return result;
 	}
 }

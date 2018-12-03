@@ -376,7 +376,7 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 
 				try {
 					templateList = getPageBase().getModelService().searchObjects(ObjectTemplateType.class,
-							new ObjectQuery(), null, task, result);
+							null, null, task, result);
 					result.recomputeStatus();
 				} catch (Exception e) {
 					result.recordFatalError("Could not get list of object templates", e);

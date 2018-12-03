@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
+import com.evolveum.midpoint.prism.query.QueryFactory;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.validation.validator.RfcCompliantEmailAddressValidator;
@@ -34,10 +35,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -340,13 +339,14 @@ public class PageForgotPassword extends PageRegistrationBase {
 		}
 
 		List<EqualFilter> filters = new ArrayList<>();
+		QueryFactory queryFactory = getPrismContext().queryFactory();
 		for (ItemPath path : filledItems) {
 			PrismProperty property = user.findProperty(path);
-			EqualFilter filter = EqualFilter.createEqual(path, property.getDefinition(), null);
+			EqualFilter filter = queryFactory.createEqual(path, property.getDefinition(), null);
 			filter.setValue(property.getAnyValue().clone());
 			filters.add(filter);
 		}
-		return ObjectQuery.createObjectQuery(AndFilter.createAnd((List) filters));
+		return queryFactory.createObjectQuery(queryFactory.createAnd((List) filters));
 	}
 
 	private ObjectQuery createStaticFormQuery(Form form) {
@@ -369,11 +369,11 @@ public class PageForgotPassword extends PageRegistrationBase {
 
 		switch (method) {
 			case MAIL:
-				return QueryBuilder.queryFor(UserType.class, getPrismContext()).item(UserType.F_EMAIL_ADDRESS)
+				return getPrismContext().queryFor(UserType.class).item(UserType.F_EMAIL_ADDRESS)
 						.eq(email).matchingCaseIgnore().build();
 
 			case SECURITY_QUESTIONS:
-				return QueryBuilder.queryFor(UserType.class, getPrismContext()).item(UserType.F_NAME)
+				return getPrismContext().queryFor(UserType.class).item(UserType.F_NAME)
 						.eqPoly(username).matchingNorm().and().item(UserType.F_EMAIL_ADDRESS).eq(email)
 						.matchingCaseIgnore().build();
 

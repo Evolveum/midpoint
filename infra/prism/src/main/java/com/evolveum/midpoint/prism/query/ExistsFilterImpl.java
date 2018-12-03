@@ -30,13 +30,13 @@ import org.jetbrains.annotations.NotNull;
  * @author lazyman
  * @author mederly
  */
-public class ExistsFilter extends ObjectFilter implements ItemFilter {
+public class ExistsFilterImpl extends ObjectFilterImpl implements ExistsFilter {
 
 	@NotNull private final ItemPath fullPath;
     private ItemDefinition definition;
     private ObjectFilter filter;
 
-    public ExistsFilter(@NotNull ItemPath fullPath, ItemDefinition definition, ObjectFilter filter) {
+    private ExistsFilterImpl(@NotNull ItemPath fullPath, ItemDefinition definition, ObjectFilter filter) {
         this.fullPath = fullPath;
         this.definition = definition;
         this.filter = filter;
@@ -63,25 +63,25 @@ public class ExistsFilter extends ObjectFilter implements ItemFilter {
 
 	public static <C extends Containerable> ExistsFilter createExists(ItemPath itemPath, PrismContainerDefinition<C> containerDef,
                                                                       ObjectFilter filter) throws SchemaException {
-        ItemDefinition itemDefinition = FilterUtils.findItemDefinition(itemPath, containerDef);
-        return new ExistsFilter(itemPath, itemDefinition, filter);
+        ItemDefinition itemDefinition = FilterImplUtil.findItemDefinition(itemPath, containerDef);
+        return new ExistsFilterImpl(itemPath, itemDefinition, filter);
     }
 
     public static <C extends Containerable> ExistsFilter createExists(ItemPath itemPath, Class<C> clazz, PrismContext prismContext,
                                                                       ObjectFilter filter) {
-        ItemDefinition itemDefinition = FilterUtils.findItemDefinition(itemPath, clazz, prismContext);
-        return new ExistsFilter(itemPath, itemDefinition, filter);
+        ItemDefinition itemDefinition = FilterImplUtil.findItemDefinition(itemPath, clazz, prismContext);
+        return new ExistsFilterImpl(itemPath, itemDefinition, filter);
     }
 
     @SuppressWarnings("CloneDoesntCallSuperClone")
 	@Override
-    public ObjectFilter clone() {
+    public ExistsFilterImpl clone() {
         ObjectFilter f = filter != null ? filter.clone() : null;
-        return new ExistsFilter(fullPath, definition, f);
+        return new ExistsFilterImpl(fullPath, definition, f);
     }
 
 	public ExistsFilter cloneEmpty() {
-		return new ExistsFilter(fullPath, definition, null);
+		return new ExistsFilterImpl(fullPath, definition, null);
 	}
 
 	@Override
@@ -170,7 +170,7 @@ public class ExistsFilter extends ObjectFilter implements ItemFilter {
 		if (o == null || getClass() != o.getClass())
 			return false;
 
-		ExistsFilter that = (ExistsFilter) o;
+		ExistsFilterImpl that = (ExistsFilterImpl) o;
 
 		if (!fullPath.equals(that.fullPath, exact))
 			return false;

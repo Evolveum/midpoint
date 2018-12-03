@@ -45,7 +45,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -181,7 +180,7 @@ public class ResourceDetailsTabPanel extends Panel {
 		OperationResult result = new OperationResult(OPERATION_SEARCH_TASKS_FOR_RESOURCE);
 
 		List<PrismObject<TaskType>> tasks = WebModelServiceUtils.searchObjects(TaskType.class,
-				QueryBuilder.queryFor(TaskType.class, parentPage.getPrismContext())
+				parentPage.getPrismContext().queryFor(TaskType.class)
 						.item(TaskType.F_OBJECT_REF).ref(resource.getOid())
 						.build(),
 				result, parentPage);

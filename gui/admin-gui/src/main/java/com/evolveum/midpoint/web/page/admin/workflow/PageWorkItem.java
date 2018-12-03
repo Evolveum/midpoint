@@ -22,7 +22,6 @@ import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -139,7 +138,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         OperationResult result = task.getResult();
         WorkItemDto workItemDto = null;
         try {
-			final ObjectQuery query = QueryBuilder.queryFor(WorkItemType.class, getPrismContext())
+			final ObjectQuery query = getPrismContext().queryFor(WorkItemType.class)
 					.item(F_EXTERNAL_ID).eq(taskId)
 					.build();
 			final Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
@@ -172,7 +171,7 @@ public class PageWorkItem extends PageAdminWorkItems {
 				LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Access to the task {} was denied", e, taskOid);
 			}
 			if (taskType != null && taskType.getParent() != null) {
-				final ObjectQuery relatedTasksQuery = QueryBuilder.queryFor(TaskType.class, getPrismContext())
+				final ObjectQuery relatedTasksQuery = getPrismContext().queryFor(TaskType.class)
 						.item(F_PARENT).eq(taskType.getParent())
 						.build();
 				List<PrismObject<TaskType>> relatedTaskObjects = getModelService()

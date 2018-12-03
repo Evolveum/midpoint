@@ -50,7 +50,6 @@ import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -138,7 +137,7 @@ public class TestRbac extends AbstractRbacTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-        ObjectQuery query = QueryBuilder.queryFor(RoleType.class, prismContext)
+        ObjectQuery query = prismContext.queryFor(RoleType.class)
 				.item(RoleType.F_REQUESTABLE).eq(true)
 				.build();
 

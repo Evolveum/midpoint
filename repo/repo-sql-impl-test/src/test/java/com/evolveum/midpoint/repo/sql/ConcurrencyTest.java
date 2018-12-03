@@ -20,7 +20,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.sql.testing.SqlRepoTestUtil;
@@ -447,7 +446,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         String oid = repositoryService.addObject(user, null, result);
 
         repositoryService.searchObjectsIterative(UserType.class,
-                QueryBuilder.queryFor(UserType.class, prismContext)
+                prismContext.queryFor(UserType.class)
                     .item(UserType.F_NAME).eqPoly(name).matchingOrig().build(),
                 (object, parentResult) -> {
                     LOGGER.info("Handling " + object + "...");

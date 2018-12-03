@@ -18,14 +18,13 @@ package com.evolveum.midpoint.prism.query;
 
 import java.util.List;
 
-public abstract class NaryLogicalFilter extends LogicalFilter {
+public abstract class NaryLogicalFilterImpl extends LogicalFilterImpl implements NaryLogicalFilter {
 	
-	public NaryLogicalFilter() {
+	public NaryLogicalFilterImpl() {
 		super();
 	}
 	
-	public NaryLogicalFilter(List<ObjectFilter> conditions) {
-		super();
+	public NaryLogicalFilterImpl(List<ObjectFilter> conditions) {
 		setConditions(conditions);
 	}
 
@@ -37,5 +36,8 @@ public abstract class NaryLogicalFilter extends LogicalFilter {
 			return conditions.get(conditions.size()-1);
 		}
 	}
+
+	@Override
+	public abstract NaryLogicalFilterImpl clone();
 
 }

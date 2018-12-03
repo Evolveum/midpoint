@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.web.page.admin.cases.dto;
 
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.OrderDirection;
@@ -35,7 +36,8 @@ public class SearchingUtils {
     public static final String CASE_STATE = CaseType.F_STATE.getLocalPart();
 
     @NotNull
-    public static List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
+    public static List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam,
+            PrismContext prismContext) {
         if (sortParam == null || sortParam.getProperty() == null) {
             return Collections.emptyList();
         }
@@ -60,10 +62,10 @@ public class SearchingUtils {
         }
 
         List<ObjectOrdering> rv = new ArrayList<>();
-        rv.add(ObjectOrdering.createOrdering(primaryItemPath, sortParam.isAscending() ? OrderDirection.ASCENDING : OrderDirection.DESCENDING));
+        rv.add(prismContext.queryFactory().createOrdering(primaryItemPath, sortParam.isAscending() ? OrderDirection.ASCENDING : OrderDirection.DESCENDING));
         // additional criteria are used to avoid random shuffling if first criteria is too vague)
-        rv.add(ObjectOrdering.createOrdering(casePath.append(PrismConstants.T_ID), OrderDirection.ASCENDING));			// case ID
-        rv.add(ObjectOrdering.createOrdering(workItemPath.append(PrismConstants.T_ID), OrderDirection.ASCENDING));			// work item ID
+        rv.add(prismContext.queryFactory().createOrdering(casePath.append(PrismConstants.T_ID), OrderDirection.ASCENDING));			// case ID
+        rv.add(prismContext.queryFactory().createOrdering(workItemPath.append(PrismConstants.T_ID), OrderDirection.ASCENDING));			// work item ID
         return rv;
     }
 }

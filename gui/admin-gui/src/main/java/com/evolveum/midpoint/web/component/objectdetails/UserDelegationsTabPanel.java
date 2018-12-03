@@ -20,8 +20,6 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.InOidFilter;
-import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -116,8 +114,8 @@ public class UserDelegationsTabPanel<F extends FocusType> extends AbstractObject
                                 public void onClick(AjaxRequestTarget target) {
                                     List<QName> supportedTypes = new ArrayList<>();
                                     supportedTypes.add(UserType.COMPLEX_TYPE);
-                                    ObjectFilter filter = InOidFilter.createInOid(getObjectWrapper().getOid());
-                                    ObjectFilter notFilter = NotFilter.createNot(filter);
+                                    ObjectFilter filter = getPrismContext().queryFactory().createInOid(getObjectWrapper().getOid());
+                                    ObjectFilter notFilter = getPrismContext().queryFactory().createNot(filter);
                                     ObjectBrowserPanel<UserType> panel = new ObjectBrowserPanel<UserType>(
                                             pageBase.getMainPopupBodyId(), UserType.class,
                                             supportedTypes, false, pageBase, notFilter) {

@@ -29,7 +29,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -1029,7 +1028,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	protected void checkVisibleWorkItem(ExpectedWorkItem expectedWorkItem, int count, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, CommunicationException {
 		S_AtomicFilterExit q = QueryUtils
-				.filterForAssignees(QueryBuilder.queryFor(WorkItemType.class, prismContext), SecurityUtil.getPrincipal(),
+				.filterForAssignees(prismContext.queryFor(WorkItemType.class), SecurityUtil.getPrincipal(),
 						OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, relationRegistry);
 		List<WorkItemType> currentWorkItems = modelService.searchContainers(WorkItemType.class, q.build(), null, task, result);
 		long found = currentWorkItems.stream().filter(wi -> expectedWorkItem == null || expectedWorkItem.matches(wi)).count();

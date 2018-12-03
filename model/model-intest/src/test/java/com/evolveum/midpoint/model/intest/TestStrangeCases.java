@@ -23,7 +23,6 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -839,14 +838,14 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         // Simple query
-        ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+        ObjectQuery query = prismContext.queryFor(UserType.class)
                 .item(UserType.F_EXTENSION, propName).eq(propValue)
                 .build();
 		// WHEN, THEN
 		searchDeGhoulash(testName, query, task, result);
 
 		// Complex query, combine with a name. This results in join down in the database
-        query = QueryBuilder.queryFor(UserType.class, prismContext)
+        query = prismContext.queryFor(UserType.class)
                 .item(UserType.F_NAME).eq(USER_DEGHOULASH_NAME)
                 .and().item(UserType.F_EXTENSION, propName).eq(propValue)
                 .build();

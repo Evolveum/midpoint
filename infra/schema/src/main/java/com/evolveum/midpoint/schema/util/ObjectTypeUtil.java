@@ -23,7 +23,6 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -798,7 +797,7 @@ public class ObjectTypeUtil {
 	    Collection<QName> managerRelations = relationRegistry.getAllRelationsFor(RelationKindType.MANAGER);
 		if (managerRelations.isEmpty()) {
 			LOGGER.warn("No manager relation is defined");
-			return QueryBuilder.queryFor(objectTypeClass, prismContext).none().build();
+			return prismContext.queryFor(objectTypeClass).none().build();
 		}
 
 		List<PrismReferenceValue> referencesToFind = new ArrayList<>();
@@ -807,7 +806,7 @@ public class ObjectTypeUtil {
 	        parentOrgRefVal.setRelation(managerRelation);
 	        referencesToFind.add(parentOrgRefVal);
 	    }
-	    return QueryBuilder.queryFor(objectTypeClass, prismContext)
+	    return prismContext.queryFor(objectTypeClass)
 	            .item(ObjectType.F_PARENT_ORG_REF).ref(referencesToFind)
 	            .build();
 	}

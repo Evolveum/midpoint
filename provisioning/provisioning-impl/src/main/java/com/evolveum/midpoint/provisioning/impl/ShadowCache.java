@@ -1956,6 +1956,8 @@ public class ShadowCache {
 	}
 
 	ObjectQuery createAttributeQuery(ObjectQuery query) throws SchemaException {
+		QueryFactory queryFactory = prismContext.queryFactory();
+
 		ObjectFilter filter = null;
 		if (query != null) {
 			filter = query.getFilter();
@@ -1967,23 +1969,23 @@ public class ShadowCache {
 			List<? extends ObjectFilter> conditions = ((AndFilter) filter).getConditions();
 			List<ObjectFilter> attributeFilter = createAttributeQueryInternal(conditions);
 			if (attributeFilter.size() > 1) {
-				attributeQuery = ObjectQuery.createObjectQuery(AndFilter.createAnd(attributeFilter));
+				attributeQuery = queryFactory.createObjectQuery(queryFactory.createAnd(attributeFilter));
 			} else if (attributeFilter.size() < 1) {
 				LOGGER.trace("No attribute filter defined in the query.");
 			} else {
-				attributeQuery = ObjectQuery.createObjectQuery(attributeFilter.iterator().next());
+				attributeQuery = queryFactory.createObjectQuery(attributeFilter.iterator().next());
 			}
 		}
 
 		if (query != null && query.getPaging() != null) {
 			if (attributeQuery == null) {
-				attributeQuery = new ObjectQuery();
+				attributeQuery = queryFactory.createObjectQuery();
 			}
 			attributeQuery.setPaging(query.getPaging());
 		}
 		if (query != null && query.isAllowPartialResults()) {
 			if (attributeQuery == null) {
-				attributeQuery = new ObjectQuery();
+				attributeQuery = queryFactory.createObjectQuery();
 			}
 			attributeQuery.setAllowPartialResults(true);
 		}
@@ -2018,9 +2020,9 @@ public class ShadowCache {
 						((NaryLogicalFilter) f).getConditions());
 				if (subFilters.size() > 1) {
 					if (f instanceof OrFilter) {
-						attributeFilter.add(OrFilter.createOr(subFilters));
+						attributeFilter.add(prismContext.queryFactory().createOr(subFilters));
 					} else if (f instanceof AndFilter) {
-						attributeFilter.add(AndFilter.createAnd(subFilters));
+						attributeFilter.add(prismContext.queryFactory().createAnd(subFilters));
 					} else {
 						throw new IllegalArgumentException(
 								"Could not translate query filter. Unknown type: " + f);
@@ -2269,7 +2271,7 @@ public class ShadowCache {
 				};
 
 				query = query.clone();
-				ObjectPaging paging = ObjectPaging.createEmptyPaging();
+				ObjectPaging paging = prismContext.queryFactory().createPaging();
 				// Explicitly set offset. This makes a difference for some resources.
 				// E.g. LDAP connector will detect presence of an offset and it will initiate VLV search which
 				// can estimate number of results. If no offset is specified then continuous/linear search is

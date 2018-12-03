@@ -31,7 +31,6 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
@@ -120,8 +119,8 @@ public class ResourceObjectReferenceResolver {
 		ExpressionVariables variables = new ExpressionVariables();
 		ObjectQuery evaluatedRefQuery = ExpressionUtil.evaluateQueryExpressions(refQuery, variables, expressionFactory, prismContext, desc, ctx.getTask(), result);
 		ObjectFilter baseFilter = ObjectQueryUtil.createResourceAndObjectClassFilter(ctx.getResource().getOid(), objectClass, prismContext);
-		ObjectFilter filter = AndFilter.createAnd(baseFilter, evaluatedRefQuery.getFilter());
-		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+		ObjectFilter filter = prismContext.queryFactory().createAnd(baseFilter, evaluatedRefQuery.getFilter());
+		ObjectQuery query = prismContext.queryFactory().createObjectQuery(filter);
 
 		// TODO: implement "repo" search strategies, don't forget to apply definitions
 

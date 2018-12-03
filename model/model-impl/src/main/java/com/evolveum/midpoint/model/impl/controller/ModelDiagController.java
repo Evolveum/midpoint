@@ -26,7 +26,6 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.api.DataModelVisualizer;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
@@ -259,7 +258,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 				OperationResult subresult = result.createSubresult(result.getOperation()+".searchObjects.fullName");
 				try {
 
-					ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+					ObjectQuery query = prismContext.queryFor(UserType.class)
 							.item(UserType.F_FULL_NAME).eq(toPolyString(USER_FULL_NAME))
 							.build();
 					subresult.addParam("query", query);
@@ -283,7 +282,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 			{
 				OperationResult subresult = result.createSubresult(result.getOperation()+".searchObjects.employeeType");
 				try {
-					ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+					ObjectQuery query = prismContext.queryFor(UserType.class)
 							.item(UserType.F_EMPLOYEE_TYPE).eq(USER_EMPLOYEE_TYPE[0])
 							.build();
 					subresult.addParam("query", query);
@@ -307,7 +306,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 			{
 				OperationResult subresult = result.createSubresult(result.getOperation()+".searchObjects.organization");
 				try {
-					ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+					ObjectQuery query = prismContext.queryFor(UserType.class)
 							.item(UserType.F_ORGANIZATION).eq(toPolyString(USER_ORGANIZATION[1]))
 							.build();
 					subresult.addParam("query", query);

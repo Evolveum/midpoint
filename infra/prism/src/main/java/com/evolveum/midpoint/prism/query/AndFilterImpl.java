@@ -16,43 +16,39 @@
 
 package com.evolveum.midpoint.prism.query;
 
-import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class AndFilter extends NaryLogicalFilter {
-	
-	public static final QName ELEMENT_NAME = new QName(PrismConstants.NS_QUERY, "and");
+public class AndFilterImpl extends NaryLogicalFilterImpl implements AndFilter {
 
-	public AndFilter(List<ObjectFilter> condition) {
+	public AndFilterImpl(List<ObjectFilter> condition) {
 		super(condition);
 	}
 	
 	public static AndFilter createAnd(ObjectFilter... conditions){
 		List<ObjectFilter> filters = new ArrayList<>(conditions.length);
 		Collections.addAll(filters, conditions);
-		return new AndFilter(filters);
+		return new AndFilterImpl(filters);
 	}
 	
 	public static AndFilter createAnd(List<ObjectFilter> conditions){
-		return new AndFilter(conditions);
+		return new AndFilterImpl(conditions);
 	}
 	
 	@SuppressWarnings("CloneDoesntCallSuperClone")
 	@Override
-	public AndFilter clone() {
-		return new AndFilter(getClonedConditions());
+	public AndFilterImpl clone() {
+		return new AndFilterImpl(getClonedConditions());
 	}
 	
 	@Override
-	public AndFilter cloneEmpty() {
-		return new AndFilter(new ArrayList<>());
+	public AndFilterImpl cloneEmpty() {
+		return new AndFilterImpl(new ArrayList<>());
 	}
 	
 	@Override
@@ -63,7 +59,7 @@ public class AndFilter extends NaryLogicalFilter {
 	@Override
 	public boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
 		for (ObjectFilter filter : getConditions()){
-			if (!filter.match(value, matchingRuleRegistry)){
+			if (!filter.match(value, matchingRuleRegistry)) {
 				return false;
 			}
 		}

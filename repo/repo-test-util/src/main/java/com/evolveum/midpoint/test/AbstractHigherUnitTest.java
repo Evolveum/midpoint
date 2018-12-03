@@ -61,7 +61,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -738,7 +737,7 @@ public abstract class AbstractHigherUnitTest {
     }
 
 	protected S_FilterEntryOrEmpty queryFor(Class<? extends Containerable> queryClass) {
-		return QueryBuilder.queryFor(queryClass, getPrismContext());
+		return getPrismContext().queryFor(queryClass);
 	}
 
 	protected void assertMessageContains(String message, String string) {

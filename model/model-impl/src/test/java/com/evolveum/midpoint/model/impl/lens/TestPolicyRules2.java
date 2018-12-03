@@ -21,7 +21,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -108,7 +107,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-		ObjectFilter studentFilter = QueryBuilder.queryFor(RoleType.class, prismContext).id(roleStudentOid).buildFilter();
+		ObjectFilter studentFilter = prismContext.queryFor(RoleType.class).id(roleStudentOid).buildFilter();
 
 		GlobalPolicyRuleType hasStudentDisabled = new GlobalPolicyRuleType(prismContext)
 				.name("has-student-assignment-disabled")
@@ -445,7 +444,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		String approvalTaskOid = taskManager.addTask(approvalTask.asPrismObject(), result);
 		System.out.println("Approval task OID = " + approvalTaskOid);
 
-		ObjectQuery query = QueryBuilder.queryFor(TaskType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(TaskType.class)
 				.item(TaskType.F_OBJECT_REF).ref(USER_JACK_OID)
 				.and().item(TaskType.F_CATEGORY).eq(TaskCategory.WORKFLOW)
 				.and().item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStatusType.WAITING)

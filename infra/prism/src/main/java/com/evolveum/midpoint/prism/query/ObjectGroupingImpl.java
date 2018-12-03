@@ -23,19 +23,19 @@ import java.io.Serializable;
 /**
  * @author acope
  */
-public class ObjectGrouping implements Serializable {
+public class ObjectGroupingImpl implements ObjectGrouping {
 
     final private ItemPath groupBy;
 
-    ObjectGrouping(ItemPath groupBy) {
+    ObjectGroupingImpl(ItemPath groupBy) {
         if (ItemPath.isEmpty(groupBy)) {
             throw new IllegalArgumentException("Null or empty groupBy path is not supported.");
         }
         this.groupBy = groupBy;
     }
 
-    public static ObjectGrouping createGrouping(ItemPath groupBy) {
-        return new ObjectGrouping(groupBy);
+    public static ObjectGroupingImpl createGrouping(ItemPath groupBy) {
+        return new ObjectGroupingImpl(groupBy);
     }
 
     public ItemPath getGroupBy() {
@@ -59,7 +59,7 @@ public class ObjectGrouping implements Serializable {
         if (o == null || getClass() != o.getClass())
             return false;
 
-        ObjectGrouping that = (ObjectGrouping) o;
+        ObjectGroupingImpl that = (ObjectGroupingImpl) o;
 
         if (groupBy != null ? !groupBy.equals(that.groupBy, exact) : that.groupBy != null)
             return false;

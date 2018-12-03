@@ -3721,7 +3721,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         final OperationResult result = task.getResult();
 
         // WHEN
-        List<PrismObject<ResourceType>> resources = modelService.searchObjects(ResourceType.class, new ObjectQuery(), null, task, result);
+        List<PrismObject<ResourceType>> resources = modelService.searchObjects(ResourceType.class, null, null, task, result);
 
         // THEN
         assertNotNull("listObjects returned null list", resources);

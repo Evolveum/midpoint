@@ -39,7 +39,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
@@ -1783,7 +1782,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		if (name == null || name.getOrig() == null) {
 			throw new IllegalArgumentException("Neither OID nor name of the object is known.");
 		}
-		ObjectQuery nameQuery = QueryBuilder.queryFor(type, prismContext)
+		ObjectQuery nameQuery = prismContext.queryFor(type)
 				.item(ObjectType.F_NAME).eqPoly(name.getOrig())
 				.build();
 		List<PrismObject<T>> objects = searchObjects(type, nameQuery, readOptions, task, result);
@@ -1831,15 +1830,15 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		}
 		ObjectFilter secChildFilter;
 		if (secParentFilter instanceof NoneFilter) {
-			secChildFilter = NoneFilter.createNone();
+			secChildFilter = FilterCreationUtil.createNone(prismContext);
 		} else {
 			ObjectFilter origChildFilter = origQuery != null ? origQuery.getFilter() : null;
-			ObjectFilter secChildFilterParentPart = ExistsFilter.createExists(ItemName.fromQName(PrismConstants.T_PARENT),  // fixme
+			ObjectFilter secChildFilterParentPart = prismContext.queryFactory().createExists(ItemName.fromQName(PrismConstants.T_PARENT),  // fixme
 					containerType, prismContext, secParentFilter);
 			if (origChildFilter == null) {
 				secChildFilter = secChildFilterParentPart;
 			} else {
-				secChildFilter = AndFilter.createAnd(origChildFilter, secChildFilterParentPart);
+				secChildFilter = prismContext.queryFactory().createAnd(origChildFilter, secChildFilterParentPart);
 			}
 		}
 		return updateObjectQuery(origQuery, secChildFilter);
@@ -1852,9 +1851,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		} else if (updatedFilter == null) {
 			return null;
 		} else {
-			ObjectQuery objectQuery = new ObjectQuery();
-			objectQuery.setFilter(updatedFilter);
-			return objectQuery;
+			return getPrismContext().queryFactory().createObjectQuery(updatedFilter);
 		}
 	}
 
@@ -2049,7 +2046,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     public void stopProcessInstance(String instanceId, String username, Task task, OperationResult parentResult) throws SchemaException,
 			ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		if (!securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, task, parentResult)) {
-			ObjectQuery query = QueryBuilder.queryFor(TaskType.class, prismContext)
+			ObjectQuery query = prismContext.queryFor(TaskType.class)
 					.item(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_PROCESS_INSTANCE_ID).eq(instanceId)
 					.build();
 			List<PrismObject<TaskType>> tasks = cacheRepositoryService.searchObjects(TaskType.class, query, GetOperationOptions.createRawCollection(), parentResult);

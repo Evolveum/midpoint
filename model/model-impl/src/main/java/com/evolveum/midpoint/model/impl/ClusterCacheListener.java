@@ -32,7 +32,6 @@ import com.evolveum.midpoint.model.impl.security.RestAuthenticationMethod;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
 import com.evolveum.midpoint.repo.api.CacheListener;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -48,8 +47,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
@@ -91,7 +88,7 @@ public class ClusterCacheListener implements CacheListener {
 		
 		SearchResultList<PrismObject<NodeType>> otherClusterNodes;
 		try {
-			ObjectQuery query = QueryBuilder.queryFor(NodeType.class, prismContext).not().item(NodeType.F_NODE_IDENTIFIER).eq(nodeId).build();
+			ObjectQuery query = prismContext.queryFor(NodeType.class).not().item(NodeType.F_NODE_IDENTIFIER).eq(nodeId).build();
 			otherClusterNodes = modelService.searchObjects(NodeType.class, query, null, task, result);
 		} catch (SchemaException | ObjectNotFoundException | SecurityViolationException | CommunicationException
 				| ConfigurationException | ExpressionEvaluationException e) {

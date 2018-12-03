@@ -25,7 +25,6 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.model.RealContainerValueFromContainerValueWrapperModel;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -440,7 +439,7 @@ public class ContainerWrapperFactory {
 	     }
 
 		if (QNameUtil.match(AbstractRoleType.F_TENANT_REF, def.getName())) {
-			refWrapper.setFilter(EqualFilter.createEqual(OrgType.F_TENANT, null, null,
+			refWrapper.setFilter(modelServiceLocator.getPrismContext().queryFactory().createEqual(OrgType.F_TENANT, null, null,
 					modelServiceLocator.getPrismContext(), Boolean.TRUE));
 		}
 

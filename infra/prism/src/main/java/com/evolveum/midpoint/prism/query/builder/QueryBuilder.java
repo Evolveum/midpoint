@@ -66,7 +66,7 @@ public class QueryBuilder {
         }
     }
 
-    public Class<? extends Containerable> getQueryClass() {
+    Class<? extends Containerable> getQueryClass() {
         return queryClass;
     }
 
@@ -75,8 +75,7 @@ public class QueryBuilder {
     }
 
     public static S_FilterEntryOrEmpty queryFor(Class<? extends Containerable> queryClass, PrismContext prismContext) {
-        QueryBuilder builder = new QueryBuilder(queryClass, prismContext);
-        return R_Filter.create(builder);
+        return R_Filter.create(new QueryBuilder(queryClass, prismContext));
     }
 
 //    ItemDefinition findItemDefinition(ItemPath itemPath) throws SchemaException {

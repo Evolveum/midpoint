@@ -28,44 +28,44 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-public class InOidFilter extends ObjectFilter {
+public class InOidFilterImpl extends ObjectFilterImpl implements InOidFilter {
 
 	private List<String> oids;
 	private ExpressionWrapper expression;
 	private boolean considerOwner;				// temporary hack (checks owner OID)
 
-	private InOidFilter(boolean considerOwner, Collection<String> oids) {
+	private InOidFilterImpl(boolean considerOwner, Collection<String> oids) {
 		this.considerOwner = considerOwner;
 		setOids(oids);
 	}
 
-	private InOidFilter(boolean considerOwner, ExpressionWrapper expression){
+	private InOidFilterImpl(boolean considerOwner, ExpressionWrapper expression){
 		this.considerOwner = considerOwner;
 		this.expression = expression;
 	}
 
 	public static InOidFilter createInOid(boolean considerOwner, Collection<String> oids){
-		return new InOidFilter(considerOwner, oids);
+		return new InOidFilterImpl(considerOwner, oids);
 	}
 
 	public static InOidFilter createInOid(Collection<String> oids){
-		return new InOidFilter(false, oids);
+		return new InOidFilterImpl(false, oids);
 	}
 
 	public static InOidFilter createInOid(String... oids){
-		return new InOidFilter(false, Arrays.asList(oids));
+		return new InOidFilterImpl(false, Arrays.asList(oids));
 	}
 
 	public static InOidFilter createOwnerHasOidIn(Collection<String> oids){
-		return new InOidFilter(true, oids);
+		return new InOidFilterImpl(true, oids);
 	}
 
 	public static InOidFilter createOwnerHasOidIn(String... oids){
-		return new InOidFilter(true, Arrays.asList(oids));
+		return new InOidFilterImpl(true, Arrays.asList(oids));
 	}
 
 	public static InOidFilter createInOid(boolean considerOwner, ExpressionWrapper expression){
-		return new InOidFilter(considerOwner, expression);
+		return new InOidFilterImpl(considerOwner, expression);
 	}
 
 	public Collection<String> getOids() {
@@ -141,8 +141,8 @@ public class InOidFilter extends ObjectFilter {
 	}
 
 	@Override
-	public InOidFilter clone() {
-		InOidFilter inOid = new InOidFilter(considerOwner, getOids());
+	public InOidFilterImpl clone() {
+		InOidFilterImpl inOid = new InOidFilterImpl(considerOwner, getOids());
 		inOid.setExpression(getExpression());
 		return inOid;
 	}
@@ -185,7 +185,7 @@ public class InOidFilter extends ObjectFilter {
 		if (o == null || getClass() != o.getClass())
 			return false;
 
-		InOidFilter that = (InOidFilter) o;
+		InOidFilterImpl that = (InOidFilterImpl) o;
 
 		if (considerOwner != that.considerOwner)
 			return false;

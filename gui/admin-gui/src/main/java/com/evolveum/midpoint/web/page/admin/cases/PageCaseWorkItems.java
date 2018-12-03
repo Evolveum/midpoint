@@ -50,7 +50,6 @@ import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -135,7 +134,7 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
     private ObjectQuery createQuery() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         ObjectQuery query;
         boolean authorizedToSeeAll = isAuthorized(ModelAuthorizationAction.READ_ALL_WORK_ITEMS.getUrl());
-        S_FilterEntryOrEmpty q = QueryBuilder.queryFor(CaseWorkItemType.class, getPrismContext());
+        S_FilterEntryOrEmpty q = getPrismContext().queryFor(CaseWorkItemType.class);
 //        S_AtomicFilterExit query = queryStart.asc(PrismConstants.T_PARENT, CaseType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP).;
         if (all && authorizedToSeeAll) {
             query = q.build();
@@ -148,7 +147,7 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
         IsolatedCheckBoxPanel includeClosedCases = (IsolatedCheckBoxPanel) getCaseWorkItemsSearchField(ID_SEARCH_FILTER_INCLUDE_CLOSED_CASES);
         if (includeClosedCases == null || !includeClosedCases.getValue()) {
             query.addFilter(
-                QueryBuilder.queryFor(CaseWorkItemType.class, getPrismContext())
+                getPrismContext().queryFor(CaseWorkItemType.class)
                             .item(PrismConstants.T_PARENT, CaseType.F_STATE).eq("open").build().getFilter()
             );
         }
@@ -162,7 +161,7 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
                 if (resource != null) {
                     query.addFilter(
                             // TODO MID-3581
-                        QueryBuilder.queryFor(CaseWorkItemType.class, getPrismContext())
+                        getPrismContext().queryFor(CaseWorkItemType.class)
                                 .item(PrismConstants.T_PARENT, CaseType.F_OBJECT_REF).ref(ObjectTypeUtil.createObjectRef(resource,
 		                        getPrismContext()).asReferenceValue()).buildFilter()
                     );
@@ -179,7 +178,7 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
                 if (assignee != null) {
                     // TODO MID-3581
                     query.addFilter(
-                        QueryBuilder.queryFor(CaseWorkItemType.class, getPrismContext())
+                        getPrismContext().queryFor(CaseWorkItemType.class)
                                 .item(CaseWorkItemType.F_ASSIGNEE_REF).ref(ObjectTypeUtil.createObjectRef(assignee, getPrismContext()).asReferenceValue()).buildFilter()
                     );
                 }

@@ -24,31 +24,31 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-public class OrFilter extends NaryLogicalFilter {
+public class OrFilterImpl extends NaryLogicalFilterImpl implements OrFilter {
 
-	public OrFilter(List<ObjectFilter> condition) {
+	public OrFilterImpl(List<ObjectFilter> condition) {
 		super(condition);
 	}
 
 	public static OrFilter createOr(ObjectFilter... conditions){
 		List<ObjectFilter> filters = new ArrayList<>();
 		Collections.addAll(filters, conditions);
-		return new OrFilter(filters);
+		return new OrFilterImpl(filters);
 	}
 	
 	public static OrFilter createOr(List<ObjectFilter> conditions){	
-		return new OrFilter(conditions);
+		return new OrFilterImpl(conditions);
 	}
 	
 	@SuppressWarnings("CloneDoesntCallSuperClone")
 	@Override
-	public OrFilter clone() {
-		return new OrFilter(getClonedConditions());
+	public OrFilterImpl clone() {
+		return new OrFilterImpl(getClonedConditions());
 	}
 	
 	@Override
-	public OrFilter cloneEmpty() {
-		return new OrFilter(new ArrayList<>());
+	public OrFilterImpl cloneEmpty() {
+		return new OrFilterImpl(new ArrayList<>());
 	}
 
 	@Override

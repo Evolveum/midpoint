@@ -155,7 +155,7 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
             	if (emptyListOnNullQuery) {
             		return new ArrayList<SelectableBean<O>>().iterator();
             	}
-            	query = new ObjectQuery();
+            	query = getPrismContext().queryFactory().createObjectQuery();
             }
             query.setPaging(paging);
 

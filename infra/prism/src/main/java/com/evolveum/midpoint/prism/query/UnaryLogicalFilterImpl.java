@@ -18,11 +18,7 @@ package com.evolveum.midpoint.prism.query;
 
 import java.util.ArrayList;
 
-public abstract class UnaryLogicalFilter extends LogicalFilter {
-
-	UnaryLogicalFilter() {
-		super();
-	}
+public abstract class UnaryLogicalFilterImpl extends LogicalFilterImpl implements UnaryLogicalFilter {
 
 	public ObjectFilter getFilter() {
 		if (conditions == null) {
@@ -34,13 +30,15 @@ public abstract class UnaryLogicalFilter extends LogicalFilter {
 		if (conditions.size() == 1) {
 			return conditions.get(0);
 		}
-		throw new IllegalStateException("Unary logical filter can contains only one value, but contains "
-				+ conditions.size());
+		throw new IllegalStateException("Unary logical filter can contains only one value, but contains " + conditions.size());
 	}
 	
 	public void setFilter(ObjectFilter filter){
 		conditions = new ArrayList<>();
 		conditions.add(filter);
 	}
+
+	@Override
+	public abstract UnaryLogicalFilterImpl clone();
 
 }

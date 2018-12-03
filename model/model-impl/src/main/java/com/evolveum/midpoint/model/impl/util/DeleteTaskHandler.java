@@ -162,7 +162,7 @@ public class DeleteTaskHandler implements TaskHandler {
 		boolean countObjectsOnStart = true; // TODO
 
 		Integer maxSize = 100;
-		ObjectPaging paging = ObjectPaging.createPaging(0, maxSize);
+		ObjectPaging paging = prismContext.queryFactory().createPaging(0, maxSize);
 		query.setPaging(paging);
 		query.setAllowPartialResults(true);
 

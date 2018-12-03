@@ -526,12 +526,12 @@ public class CertificationManagerImpl implements CertificationManager {
 		S_FilterEntry entry;
 		if (stage != null) {
 			outcomeItem = AccessCertificationCaseType.F_CURRENT_STAGE_OUTCOME;
-			entry = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+			entry = prismContext.queryFor(AccessCertificationCaseType.class)
 					.item(AccessCertificationCaseType.F_STAGE_NUMBER).eq(stage)
 					.and();
 		} else {
 			outcomeItem = AccessCertificationCaseType.F_OUTCOME;
-			entry = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext);
+			entry = prismContext.queryFor(AccessCertificationCaseType.class);
 		}
 		S_AtomicFilterExit exit;
 		if (response == AccessCertificationResponseType.NO_RESPONSE) {

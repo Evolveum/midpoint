@@ -23,7 +23,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
@@ -519,7 +518,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
 
         repositoryService.modifyObject(UserType.class, userOid, deltas, result);
 
-        ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+        ObjectQuery query = prismContext.queryFor(UserType.class)
                 .item(ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_EXTENSION, SHIP_NAME_QNAME), def1).eq("otherString")
                 .build();
         List list = repositoryService.searchObjects(UserType.class, query, null, result);

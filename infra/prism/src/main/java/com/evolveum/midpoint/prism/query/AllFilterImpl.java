@@ -27,20 +27,20 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * 
  * @author Radovan Semancik
  */
-public class AllFilter extends ObjectFilter {
+public class AllFilterImpl extends ObjectFilterImpl implements AllFilter {
 
-	public AllFilter() {
+	public AllFilterImpl() {
 		super();
 	}
 
 	public static AllFilter createAll() {
-		return new AllFilter();
+		return new AllFilterImpl();
 	}
 	
 	@SuppressWarnings("CloneDoesntCallSuperClone")
 	@Override
-	public AllFilter clone() {
-		return new AllFilter();
+	public AllFilterImpl clone() {
+		return new AllFilterImpl();
 	}
 
 	@Override

@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.prism.query;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
 import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -24,24 +25,24 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 public class PagingConvertor {
 	
-	public static ObjectPaging createObjectPaging(PagingType pagingType){
+	public static ObjectPaging createObjectPaging(PagingType pagingType, PrismContext prismContext) {
 		if (pagingType == null) {
 			return null;
 		}
         if (pagingType.getOrderBy() != null && pagingType.getGroupBy() != null) {
-            return ObjectPaging.createPaging(pagingType.getOffset(), pagingType.getMaxSize(),
+            return prismContext.queryFactory().createPaging(pagingType.getOffset(), pagingType.getMaxSize(),
                     pagingType.getOrderBy().getItemPath(), toOrderDirection(pagingType.getOrderDirection()), pagingType.getGroupBy().getItemPath());
         }
 
 		if (pagingType.getOrderBy() != null) {
-			return ObjectPaging.createPaging(pagingType.getOffset(), pagingType.getMaxSize(),
+			return prismContext.queryFactory().createPaging(pagingType.getOffset(), pagingType.getMaxSize(),
 					pagingType.getOrderBy().getItemPath(), toOrderDirection(pagingType.getOrderDirection()));
 
 		} if (pagingType.getGroupBy() != null) {
-            return ObjectPaging.createPaging(pagingType.getGroupBy().getItemPath());
+            return prismContext.queryFactory().createPaging(pagingType.getGroupBy().getItemPath());
 
         } else {
-			return ObjectPaging.createPaging(pagingType.getOffset(), pagingType.getMaxSize());
+			return prismContext.queryFactory().createPaging(pagingType.getOffset(), pagingType.getMaxSize());
 		}
 	}
 

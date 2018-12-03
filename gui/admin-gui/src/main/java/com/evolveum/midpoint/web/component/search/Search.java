@@ -23,6 +23,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.query.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.ToStringBuilder;
 
@@ -35,12 +36,6 @@ import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrFilter;
-import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -202,14 +197,14 @@ public class Search implements Serializable, DebugDumpable {
             }
         }
 
+        QueryFactory queryFactory = ctx.queryFactory();
         switch (conditions.size()) {
             case 0:
                 return null;
             case 1:
-                return ObjectQuery.createObjectQuery(conditions.get(0));
+                return queryFactory.createObjectQuery(conditions.get(0));
             default:
-                AndFilter and = AndFilter.createAnd(conditions);
-                return ObjectQuery.createObjectQuery(and);
+                return queryFactory.createObjectQuery(queryFactory.createAnd(conditions));
         }
     }
 
@@ -236,7 +231,7 @@ public class Search implements Serializable, DebugDumpable {
             case 1:
                 return conditions.get(0);
             default:
-                return OrFilter.createOr(conditions);
+                return ctx.queryFactory().createOr(conditions);
         }
     }
 
@@ -251,7 +246,7 @@ public class Search implements Serializable, DebugDumpable {
         	if (refValue.isEmpty()) {
         		return null;
         	}
-            RefFilter refFilter =  (RefFilter) QueryBuilder.queryFor(ObjectType.class, ctx)
+            RefFilter refFilter =  (RefFilter) ctx.queryFor(ObjectType.class)
                     .item(path, definition).ref(refValue.clone())
                     .buildFilter();
             refFilter.setOidNullAsAny(true);
@@ -267,7 +262,7 @@ public class Search implements Serializable, DebugDumpable {
             //or if it's boolean value
             DisplayableValue displayableValue = (DisplayableValue) searchValue.getValue();
             Object value = displayableValue.getValue();
-            return QueryBuilder.queryFor(ObjectType.class, ctx)
+            return ctx.queryFor(ObjectType.class)
                     .item(path, propDef).eq(value).buildFilter();
         } else if (DOMUtil.XSD_INT.equals(propDef.getTypeName())
                 || DOMUtil.XSD_INTEGER.equals(propDef.getTypeName())
@@ -280,18 +275,18 @@ public class Search implements Serializable, DebugDumpable {
                 return null;
             }
             Object value = Long.parseLong((String) searchValue.getValue());
-            return QueryBuilder.queryFor(ObjectType.class, ctx)
+            return ctx.queryFor(ObjectType.class)
                     .item(path, propDef).eq(value).buildFilter();
         } else if (DOMUtil.XSD_STRING.equals(propDef.getTypeName())) {
             String text = (String) searchValue.getValue();
-            return QueryBuilder.queryFor(ObjectType.class, ctx)
+            return ctx.queryFor(ObjectType.class)
                     .item(path, propDef).contains(text).matchingCaseIgnore().buildFilter();
         } else if (SchemaConstants.T_POLY_STRING_TYPE.equals(propDef.getTypeName())) {
             //we're looking for string value, therefore substring filter should be used
             String text = (String) searchValue.getValue();
             PolyStringNormalizer normalizer = ctx.getDefaultPolyStringNormalizer();
             String value = normalizer.normalize(text);
-            return QueryBuilder.queryFor(ObjectType.class, ctx)
+            return ctx.queryFor(ObjectType.class)
                     .item(path, propDef).contains(text).matchingNorm().buildFilter();
         }
 
@@ -338,7 +333,7 @@ public class Search implements Serializable, DebugDumpable {
                 return null;
             }
 
-            return ObjectQuery.createObjectQuery(filter);
+            return ctx.queryFactory().createObjectQuery(filter);
         } catch (Exception ex) {
             advancedError = createErrorMessage(ex);
         }
@@ -350,7 +345,7 @@ public class Search implements Serializable, DebugDumpable {
         if (StringUtils.isEmpty(fullText)){
             return null;
         }
-        ObjectQuery query = QueryBuilder.queryFor(type, ctx)
+        ObjectQuery query = ctx.queryFor(type)
                 .fullText(fullText)
                 .build();
         return query;

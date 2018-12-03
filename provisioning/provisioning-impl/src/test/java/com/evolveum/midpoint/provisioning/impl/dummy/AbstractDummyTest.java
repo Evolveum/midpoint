@@ -45,7 +45,6 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.impl.AbstractProvisioningIntegrationTest;
@@ -257,7 +256,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 
 		LOGGER.info("item definition: {}", itemDef.debugDump());
 		//TODO: matching rule
-		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(ShadowType.class)
 				.itemWithDef(itemDef, ShadowType.F_ATTRIBUTES, itemDef.getName()).eq(getWillRepoIcfName())
 				.build();
 

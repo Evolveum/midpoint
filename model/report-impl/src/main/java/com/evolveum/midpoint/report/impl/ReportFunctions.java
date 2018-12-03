@@ -25,7 +25,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -314,13 +313,13 @@ public class ReportFunctions {
     }
 
     <C extends Containerable, T> ObjectFilter createEqualFilter(QName propertyName, Class<C> type, T realValue) throws SchemaException {
-        return QueryBuilder.queryFor(type, prismContext)
+        return prismContext.queryFor(type)
                 .item(propertyName).eq(realValue)
                 .buildFilter();
     }
 
     <C extends Containerable, T> ObjectFilter createEqualFilter(ItemPath propertyPath, Class<C> type, T realValue) throws SchemaException {
-        return QueryBuilder.queryFor(type, prismContext)
+        return prismContext.queryFor(type)
                 .item(propertyPath).eq(realValue)
                 .buildFilter();
     }
@@ -352,19 +351,19 @@ public class ReportFunctions {
             ConfigurationException, ExpressionEvaluationException, DatatypeConfigurationException {
         Task task = taskManager.createTaskInstance();
         OperationResult result = task.getResult();
-        ObjectQuery query = QueryBuilder.queryFor(AbstractWorkItemType.class, prismContext).build();
+        ObjectQuery query = prismContext.queryFor(AbstractWorkItemType.class).build();
         
         if (days > 0) {
             XMLGregorianCalendar since = (new Clock()).currentTimeXMLGregorianCalendar();
             DatatypeFactory df = DatatypeFactory.newInstance();        
             since.add (df.newDuration(false, 0, 0, days, 0, 0, 0));
 
-            query.addFilter(QueryBuilder.queryFor(AbstractWorkItemType.class, prismContext)
+            query.addFilter(prismContext.queryFor(AbstractWorkItemType.class)
                          .item(AbstractWorkItemType.F_CREATE_TIMESTAMP).lt(since).buildFilter());
         } 
         
         if (sortColumn != null) {
-            query.addFilter(QueryBuilder.queryFor(AbstractWorkItemType.class, prismContext)
+            query.addFilter(prismContext.queryFor(AbstractWorkItemType.class)
                         .asc(sortColumn)
                         .buildFilter());
         }
@@ -454,7 +453,7 @@ public class ReportFunctions {
             //query = null;
             return new ArrayList<>();
         } else {
-            query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+            query = prismContext.queryFor(AccessCertificationCaseType.class)
                     .item(PrismConstants.T_PARENT, F_NAME).eqPoly(campaignName, "").matchingOrig()
                     // TODO first by object/target type then by name (not supported by the repository as of now)
                     .asc(AccessCertificationCaseType.F_OBJECT_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME)
@@ -473,7 +472,7 @@ public class ReportFunctions {
             //query = null;
             return new ArrayList<>();
         } else {
-            query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+            query = prismContext.queryFor(AccessCertificationCaseType.class)
                     .item(PrismConstants.T_PARENT, F_NAME).eqPoly(campaignName, "").matchingOrig()
                     .and().item(AccessCertificationCaseType.F_CURRENT_STAGE_OUTCOME).eq(SchemaConstants.MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE)
                     // TODO first by object/target type then by name (not supported by the repository as of now)
@@ -517,7 +516,7 @@ public class ReportFunctions {
         if (StringUtils.isEmpty(campaignName)) {
             return null;
         }
-        ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCampaignType.class, prismContext)
+        ObjectQuery query = prismContext.queryFor(AccessCertificationCampaignType.class)
                 .item(AccessCertificationCampaignType.F_NAME).eqPoly(campaignName).matchingOrig()
                 .build();
         List<PrismObject<AccessCertificationCampaignType>> objects = model
@@ -556,12 +555,12 @@ public class ReportFunctions {
     public List<PrismObject<AccessCertificationCampaignType>> getCertificationCampaigns(Boolean alsoClosedCampaigns) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
         Task task = taskManager.createTaskInstance();
 
-        ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCampaignType.class, prismContext)
+        ObjectQuery query = prismContext.queryFor(AccessCertificationCampaignType.class)
                                 .asc(F_NAME)
                                 .build();
         if (!Boolean.TRUE.equals(alsoClosedCampaigns)) {
             query.addFilter(
-                    QueryBuilder.queryFor(AccessCertificationCampaignType.class, prismContext)
+                    prismContext.queryFor(AccessCertificationCampaignType.class)
                         .not().item(F_STATE).eq(CLOSED)
                         .buildFilter()
             );

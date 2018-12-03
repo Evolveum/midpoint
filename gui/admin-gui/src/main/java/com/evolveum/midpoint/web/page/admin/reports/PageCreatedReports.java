@@ -56,7 +56,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -243,11 +242,11 @@ public class PageCreatedReports extends PageAdminReports {
 					OrderDirection order = sortParam.isAscending() ? OrderDirection.ASCENDING : OrderDirection.DESCENDING;
 					if (sortParam.getProperty().equals("createTimestamp")) {
 						return Collections.singletonList(
-								ObjectOrdering.createOrdering(
+								getPrismContext().queryFactory().createOrdering(
 										ItemPath.create(ReportOutputType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), order));
 					}
 						return Collections.singletonList(
-								ObjectOrdering.createOrdering(
+								getPrismContext().queryFactory().createOrdering(
 										ItemPath.create(new QName(SchemaConstantsGenerated.NS_COMMON, sortParam.getProperty())), order));
 
 
@@ -488,7 +487,7 @@ public class PageCreatedReports extends PageAdminReports {
     private ObjectQuery appendTypeFilter(ObjectQuery query) {
     	DropDownChoicePanel<String> typeSelect = (DropDownChoicePanel<String>) get(createComponentPath(ID_MAIN_FORM, ID_REPORT_TYPE_SELECT));
     	String typeRef = (String) typeSelect.getBaseFormComponent().getModelObject();
-    	S_AtomicFilterEntry q = QueryBuilder.queryFor(ReportOutputType.class, getPrismContext());
+    	S_AtomicFilterEntry q = getPrismContext().queryFor(ReportOutputType.class);
 
     	S_AtomicFilterExit refF;
     	if (StringUtils.isNotBlank(typeRef)) {

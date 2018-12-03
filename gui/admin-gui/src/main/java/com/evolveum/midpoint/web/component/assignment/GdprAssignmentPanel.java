@@ -18,7 +18,6 @@ package com.evolveum.midpoint.web.component.assignment;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -98,7 +97,7 @@ public class GdprAssignmentPanel extends AbstractRoleAssignmentPanel {
 //	}
 
 	protected ObjectQuery createObjectQuery() {
-		return QueryBuilder.queryFor(AssignmentType.class, getParentPage().getPrismContext())
+		return getParentPage().getPrismContext().queryFor(AssignmentType.class)
 				.block()
 				.item(AssignmentType.F_TARGET_REF)
 				.ref(SchemaConstants.ORG_CONSENT)

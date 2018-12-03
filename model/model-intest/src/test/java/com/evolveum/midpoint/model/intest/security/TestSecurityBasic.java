@@ -936,7 +936,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertGetDeny(ShadowType.class, accountOid);
         assertGetDeny(ShadowType.class, ACCOUNT_SHADOW_ELAINE_DUMMY_OID);
 
-        assertSearch(ShadowType.class, ObjectQuery.createObjectQuery(
+        assertSearch(ShadowType.class, prismContext.queryFactory().createObjectQuery(
         		ObjectQueryUtil.createResourceAndObjectClassFilter(RESOURCE_DUMMY_OID,
         				new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), prismContext)), 0);
 
@@ -1141,7 +1141,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertGetDeny(ShadowType.class, accountOid);
         assertGetDeny(ShadowType.class, ACCOUNT_SHADOW_ELAINE_DUMMY_OID);
 
-        assertSearch(ShadowType.class, ObjectQuery.createObjectQuery(
+        assertSearch(ShadowType.class, prismContext.queryFactory().createObjectQuery(
         		ObjectQueryUtil.createResourceAndObjectClassFilter(RESOURCE_DUMMY_OID,
         				new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), prismContext)), 0);
 	}
@@ -1215,7 +1215,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
     	task = taskManager.createTaskInstance(TestSecurityBasic.class.getName() + "." + TEST_NAME);
         result = task.getResult();
 
-        ObjectQuery query = ObjectQuery.createObjectQuery(
+        ObjectQuery query = prismContext.queryFactory().createObjectQuery(
         		ObjectQueryUtil.createResourceAndObjectClassFilter(RESOURCE_DUMMY_OID,
         				new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), prismContext));
 
@@ -1299,7 +1299,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
     	Task task = taskManager.createTaskInstance(TestSecurityBasic.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
-        ObjectQuery query = ObjectQuery.createObjectQuery(
+        ObjectQuery query = prismContext.queryFactory().createObjectQuery(
         		ObjectQueryUtil.createResourceAndObjectClassFilter(RESOURCE_DUMMY_OID,
         				new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), prismContext));
 
@@ -2017,7 +2017,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 		RoleSelectionSpecification spec = getAssignableRoleSpecification(getUser(USER_JACK_OID));
 		assertRoleTypes(spec);
 
-		ObjectQuery query = new ObjectQuery();
+		ObjectQuery query = prismContext.queryFactory().createObjectQuery();
 
 		query.addFilter(spec.getFilter());
 		assertSearch(AbstractRoleType.class, query, 9);
@@ -2663,7 +2663,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
         Task task = taskManager.createTaskInstance();
         SearchResultList<PrismObject<AbstractRoleType>> assignableRolesJack =
-        		modelService.searchObjects(AbstractRoleType.class, ObjectQuery.createObjectQuery(specJack.getFilter()), null, task, task.getResult());
+        		modelService.searchObjects(AbstractRoleType.class, prismContext.queryFactory().createObjectQuery(specJack.getFilter()), null, task, task.getResult());
         display("Assignable roles", assignableRolesJack);
         assertObjectOids("Wrong assignable roles (jack)", assignableRolesJack, ROLE_BUSINESS_3_OID);
 
@@ -2672,7 +2672,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertRoleTypes(specRum);
 
         SearchResultList<PrismObject<AbstractRoleType>> assignableRolesRum =
-        		modelService.searchObjects(AbstractRoleType.class, ObjectQuery.createObjectQuery(specRum.getFilter()), null, task, task.getResult());
+        		modelService.searchObjects(AbstractRoleType.class, prismContext.queryFactory().createObjectQuery(specRum.getFilter()), null, task, task.getResult());
         display("Assignable roles", assignableRolesRum);
         assertObjectOids("Wrong assignable roles (rum)", assignableRolesRum, ROLE_BUSINESS_3_OID);
 

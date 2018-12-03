@@ -36,8 +36,6 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.query.InOidFilter;
-import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -135,7 +133,7 @@ public class ValueChoosePanel<T, O extends ObjectType> extends BasePanel<T> {
 
 	protected ObjectQuery createChooseQuery() {
 		ArrayList<String> oidList = new ArrayList<>();
-		ObjectQuery query = new ObjectQuery();
+		ObjectQuery query = getPrismContext().queryFactory().createObjectQuery();
 		// TODO we should add to filter currently displayed value
 		// not to be displayed on ObjectSelectionPanel instead of saved value
 		
@@ -150,8 +148,8 @@ public class ValueChoosePanel<T, O extends ObjectType> extends BasePanel<T> {
 			
 		}
 
-		ObjectFilter oidFilter = InOidFilter.createInOid(oidList);
-		query.setFilter(NotFilter.createNot(oidFilter));
+		ObjectFilter oidFilter = getPrismContext().queryFactory().createInOid(oidList);
+		query.setFilter(getPrismContext().queryFactory().createNot(oidFilter));
 
 		ObjectFilter customFilter = createCustomFilter();
 		if (customFilter != null) {

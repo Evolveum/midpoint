@@ -318,7 +318,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
 		TestUtil.assertSuccess("Import failed (result)", result, 2);
 
 		// list all users
-		List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, new ObjectQuery(), null, task, result);
+		List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, prismContext.queryFactory().createObjectQuery(), null, task, result);
 		// Three old users, one new
 		assertEquals(5,users.size());
 
@@ -383,7 +383,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
 		TestUtil.assertSuccess("Import failed (result)", result,1);
 
 		// list all users
-		List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, new ObjectQuery(), null, task, result);
+		List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, prismContext.queryFactory().createObjectQuery(), null, task, result);
 		// Three old users, one new
 		assertEquals(5,users.size());
 

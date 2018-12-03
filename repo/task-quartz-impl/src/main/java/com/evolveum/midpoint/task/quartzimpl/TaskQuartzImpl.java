@@ -21,7 +21,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.ModificationPrecondition;
@@ -2666,7 +2665,7 @@ public class TaskQuartzImpl implements Task {
 		result.addContext(OperationResult.CONTEXT_OID, getOid());
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
 
-		ObjectQuery query = QueryBuilder.queryFor(TaskType.class, getPrismContext())
+		ObjectQuery query = getPrismContext().queryFor(TaskType.class)
 				.item(TaskType.F_DEPENDENT).eq(getTaskIdentifier())
 				.build();
 

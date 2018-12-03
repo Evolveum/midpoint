@@ -32,7 +32,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDeltaUtil;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
@@ -172,7 +171,7 @@ public class AssociationFromLinkExpressionEvaluator
 			String intent, QName assocName, ExpressionEvaluationContext params)
 			throws SchemaException {
 
-		S_AtomicFilterExit filter = QueryBuilder.queryFor(ShadowType.class, prismContext)
+		S_AtomicFilterExit filter = prismContext.queryFor(ShadowType.class)
 				.id(candidateShadowsOidList.toArray(new String[0]))
 				.and().item(ShadowType.F_RESOURCE_REF).ref(resourceOid)
 				.and().item(ShadowType.F_KIND).eq(kind);

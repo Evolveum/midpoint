@@ -26,7 +26,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
@@ -76,7 +75,7 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 
 		ObjectQuery resourceQuery;
 		if (resourceOids != null) {
-			resourceQuery = QueryBuilder.queryFor(ResourceType.class, prismContext)
+			resourceQuery = prismContext.queryFor(ResourceType.class)
 					.id(resourceOids.toArray(new String[0]))
 					.build();
 		} else {

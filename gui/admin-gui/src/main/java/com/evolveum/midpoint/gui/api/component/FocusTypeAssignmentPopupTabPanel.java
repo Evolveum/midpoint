@@ -116,8 +116,8 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
             getPageBase().showResult(result);
         }
         
-        if (query == null){
-            query = new ObjectQuery();
+        if (query == null) {
+            query = getPrismContext().queryFactory().createObjectQuery();
         }
         query.addFilter(filter);
         return query;

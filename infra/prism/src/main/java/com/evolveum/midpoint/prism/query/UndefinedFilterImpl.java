@@ -20,19 +20,19 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-public class UndefinedFilter extends ObjectFilter {
+public class UndefinedFilterImpl extends ObjectFilterImpl implements UndefinedFilter {
 
-	public UndefinedFilter() {
+	public UndefinedFilterImpl() {
 		super();
 	}
 
 	public static UndefinedFilter createUndefined() {
-		return new UndefinedFilter();
+		return new UndefinedFilterImpl();
 	}
 
 	@Override
-	public UndefinedFilter clone() {
-		return new UndefinedFilter();
+	public UndefinedFilterImpl clone() {
+		return new UndefinedFilterImpl();
 	}
 
 	@Override

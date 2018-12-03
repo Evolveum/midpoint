@@ -21,28 +21,28 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 
-public class NotFilter extends UnaryLogicalFilter {
+public class NotFilterImpl extends UnaryLogicalFilterImpl implements NotFilter {
 
-	public NotFilter() {
+	public NotFilterImpl() {
 	}
 
-	public NotFilter(ObjectFilter filter) {
+	public NotFilterImpl(ObjectFilter filter) {
 		setFilter(filter);
 	}
 
 	public static NotFilter createNot(ObjectFilter filter) {
-		return new NotFilter(filter);
+		return new NotFilterImpl(filter);
 	}
 	
 	@SuppressWarnings("CloneDoesntCallSuperClone")
 	@Override
-	public NotFilter clone() {
-		return new NotFilter(getFilter().clone());
+	public NotFilterImpl clone() {
+		return new NotFilterImpl(getFilter().clone());
 	}
 	
 	@Override
 	public NotFilter cloneEmpty() {
-		return new NotFilter();
+		return new NotFilterImpl();
 	}
 
 	@Override

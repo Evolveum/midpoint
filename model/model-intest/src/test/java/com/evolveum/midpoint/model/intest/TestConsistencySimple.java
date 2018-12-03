@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
@@ -306,7 +305,7 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
 	}
 
 	private List<PrismObject<ShadowType>> getJacksShadows(OperationResult result) throws SchemaException {
-		ObjectQuery shadowQuery = QueryBuilder.queryFor(ShadowType.class, prismContext)
+		ObjectQuery shadowQuery = prismContext.queryFor(ShadowType.class)
 				.item(ShadowType.F_RESOURCE_REF).ref(RESOURCE_DUMMY_OID)
 				.and().item(ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME),
 						getAccountObjectClassDefinition().findAttributeDefinition(SchemaConstants.ICFS_NAME)).eq("jack")

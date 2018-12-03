@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -532,7 +531,7 @@ public class CertificationTest extends BaseSQLRepoTest {
     public void test730CurrentUnansweredCases() throws Exception {
         OperationResult result = new OperationResult("test730CurrentUnansweredCases");
 
-        ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+        ObjectQuery query = prismContext.queryFor(AccessCertificationCaseType.class)
                 .item(AccessCertificationCaseType.F_STAGE_NUMBER).eq().item(T_PARENT, AccessCertificationCampaignType.F_STAGE_NUMBER)
                 .and().item(T_PARENT, F_STATE).eq(IN_REVIEW_STAGE)
                 .and().exists(F_WORK_ITEM).block()
@@ -576,7 +575,7 @@ public class CertificationTest extends BaseSQLRepoTest {
     }
 
     private void checkCasesForCampaign(String oid, Integer expected, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+        ObjectQuery query = prismContext.queryFor(AccessCertificationCaseType.class)
                 .ownerId(oid)
                 .build();
         List<AccessCertificationCaseType> cases = repositoryService.searchContainers(AccessCertificationCaseType.class, query, null, result);
@@ -595,7 +594,7 @@ public class CertificationTest extends BaseSQLRepoTest {
     }
 
     private void checkWorkItemsForCampaign(String oid, int expected, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        ObjectQuery query = QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
+        ObjectQuery query = prismContext.queryFor(AccessCertificationWorkItemType.class)
                 .exists(T_PARENT)
                 .block()
                 .ownerId(oid)
@@ -609,7 +608,7 @@ public class CertificationTest extends BaseSQLRepoTest {
     }
 
     private void checkWorkItemsForCampaignAndCase(String oid, long caseId, int expected, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        ObjectQuery query = QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
+        ObjectQuery query = prismContext.queryFor(AccessCertificationWorkItemType.class)
                 .exists(T_PARENT)
                 .block()
                 .ownerId(oid)
@@ -624,7 +623,7 @@ public class CertificationTest extends BaseSQLRepoTest {
     }
 
     private void checkCasesTotal(int expected, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+        ObjectQuery query = prismContext.queryFor(AccessCertificationCaseType.class)
                 .build();
         List<AccessCertificationCaseType> cases = repositoryService.searchContainers(AccessCertificationCaseType.class, query, null, result);
         assertCasesFound(expected, cases, "");

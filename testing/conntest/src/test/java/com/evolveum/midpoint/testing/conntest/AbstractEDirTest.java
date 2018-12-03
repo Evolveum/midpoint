@@ -274,7 +274,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getGroupObjectClass(), prismContext);
-		ObjectQueryUtil.filterAnd(query.getFilter(), createAttributeFilter("cn", GROUP_PIRATES_NAME));
+		ObjectQueryUtil.filterAnd(query.getFilter(), createAttributeFilter("cn", GROUP_PIRATES_NAME), prismContext);
 
 		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
 		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);

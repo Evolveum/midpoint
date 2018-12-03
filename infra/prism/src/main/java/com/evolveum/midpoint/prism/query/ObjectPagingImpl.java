@@ -19,6 +19,7 @@ package com.evolveum.midpoint.prism.query;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
@@ -27,45 +28,45 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-public class ObjectPaging implements DebugDumpable, Serializable {
+public class ObjectPagingImpl implements ObjectPaging {
 	
 	private Integer offset;
 	private Integer maxSize;
-	@NotNull private final List<ObjectOrdering> ordering = new ArrayList<>();
-    private List<ObjectGrouping> grouping = new ArrayList<>();
+	@NotNull private final List<ObjectOrderingImpl> ordering = new ArrayList<>();
+    private List<ObjectGroupingImpl> grouping = new ArrayList<>();
 
 	private String cookie;
 	
-	protected ObjectPaging() {
+	private ObjectPagingImpl() {
 	}
 	
-	private ObjectPaging(Integer offset, Integer maxSize) {
+	private ObjectPagingImpl(Integer offset, Integer maxSize) {
 		this.offset = offset;
 		this.maxSize = maxSize;
 	}
 
-    private ObjectPaging(Integer offset, Integer maxSize, ItemPath groupBy) {
+    private ObjectPagingImpl(Integer offset, Integer maxSize, ItemPath groupBy) {
         this.offset = offset;
         this.maxSize = maxSize;
         setGrouping(groupBy);
     }
 
-	private ObjectPaging(ItemPath orderBy, OrderDirection direction) {
+	private ObjectPagingImpl(ItemPath orderBy, OrderDirection direction) {
 		setOrdering(orderBy, direction);
 	}
 
-    private ObjectPaging(ItemPath orderBy, OrderDirection direction, ItemPath groupBy) {
+    private ObjectPagingImpl(ItemPath orderBy, OrderDirection direction, ItemPath groupBy) {
         setOrdering(orderBy, direction);
         setGrouping(groupBy);
     }
 
-    private ObjectPaging(Integer offset, Integer maxSize, ItemPath orderBy, OrderDirection direction) {
+    private ObjectPagingImpl(Integer offset, Integer maxSize, ItemPath orderBy, OrderDirection direction) {
 		this.offset = offset;
 		this.maxSize = maxSize;
 		setOrdering(orderBy, direction);
 	}
 
-    private ObjectPaging(Integer offset, Integer maxSize, ItemPath orderBy, OrderDirection direction, ItemPath groupBy) {
+    private ObjectPagingImpl(Integer offset, Integer maxSize, ItemPath orderBy, OrderDirection direction, ItemPath groupBy) {
         this.offset = offset;
         this.maxSize = maxSize;
         setOrdering(orderBy, direction);
@@ -73,53 +74,53 @@ public class ObjectPaging implements DebugDumpable, Serializable {
         setGrouping(groupBy);
     }
 
-	private ObjectPaging(ItemPath groupBy) {
+	private ObjectPagingImpl(ItemPath groupBy) {
         setGrouping(groupBy);
     }
 	
 	public static ObjectPaging createPaging(Integer offset, Integer maxSize){
-		return new ObjectPaging(offset, maxSize);
+		return new ObjectPagingImpl(offset, maxSize);
 	}
 	
 	public static ObjectPaging createPaging(Integer offset, Integer maxSize, ItemPath orderBy, OrderDirection direction) {
-		return new ObjectPaging(offset, maxSize, orderBy, direction);
+		return new ObjectPagingImpl(offset, maxSize, orderBy, direction);
 	}
 
     public static ObjectPaging createPaging(Integer offset, Integer maxSize, ItemPath groupBy) {
-        return new ObjectPaging(offset, maxSize, groupBy);
+        return new ObjectPagingImpl(offset, maxSize, groupBy);
     }
 
     public static ObjectPaging createPaging(Integer offset, Integer maxSize, ItemPath orderBy, OrderDirection direction, ItemPath groupBy) {
-        return new ObjectPaging(offset, maxSize, orderBy, direction, groupBy);
+        return new ObjectPagingImpl(offset, maxSize, orderBy, direction, groupBy);
     }
 
     public static ObjectPaging createPaging(Integer offset, Integer maxSize, List<ObjectOrdering> orderings) {
-        ObjectPaging paging = new ObjectPaging(offset, maxSize);
+	    ObjectPagingImpl paging = new ObjectPagingImpl(offset, maxSize);
         paging.setOrdering(orderings);
         return paging;
     }
 
 	public static ObjectPaging createPaging(Integer offset, Integer maxSize, List<ObjectOrdering> orderings, List<ObjectGrouping> groupings) {
-		ObjectPaging paging = new ObjectPaging(offset, maxSize);
+		ObjectPagingImpl paging = new ObjectPagingImpl(offset, maxSize);
 		paging.setOrdering(orderings);
         paging.setGrouping(groupings);
 		return paging;
 	}
     
 	public static ObjectPaging createPaging(ItemPath orderBy, OrderDirection direction) {
-		return new ObjectPaging(orderBy, direction);
+		return new ObjectPagingImpl(orderBy, direction);
 	}
 
     public static ObjectPaging createPaging(ItemPath orderBy, OrderDirection direction, ItemPath groupBy) {
-        return new ObjectPaging(orderBy, direction, groupBy);
+        return new ObjectPagingImpl(orderBy, direction, groupBy);
     }
 
     public static ObjectPaging createPaging(ItemPath groupBy) {
-        return new ObjectPaging(groupBy);
+        return new ObjectPagingImpl(groupBy);
     }
 
 	public static ObjectPaging createEmptyPaging(){
-		return new ObjectPaging();
+		return new ObjectPagingImpl();
 	}
 
 	// TODO rename to getPrimaryOrderingDirection
@@ -156,11 +157,11 @@ public class ObjectPaging implements DebugDumpable, Serializable {
     }
 
 	// TODO name?
-	public List<ObjectOrdering> getOrderingInstructions() {
+	public List<? extends ObjectOrdering> getOrderingInstructions() {
 		return ordering;
 	}
 
-	public List<ObjectGrouping> getGroupingInstructions() {
+	public List<? extends ObjectGrouping> getGroupingInstructions() {
 		return grouping;
 	}
 
@@ -183,41 +184,40 @@ public class ObjectPaging implements DebugDumpable, Serializable {
     }
 
 	public void addOrderingInstruction(ItemPath orderBy, OrderDirection direction) {
-		this.ordering.add(new ObjectOrdering(orderBy, direction));
+		this.ordering.add(ObjectOrderingImpl.createOrdering(orderBy, direction));
 	}
 
 	@SuppressWarnings("NullableProblems")
 	public void setOrdering(ObjectOrdering... orderings) {
 		this.ordering.clear();
-		if (orderings != null) {
-			this.ordering.addAll(Arrays.asList(orderings));
+		for (ObjectOrdering ordering : orderings) {
+			this.ordering.add((ObjectOrderingImpl) ordering);
 		}
 	}
 
-	public void setOrdering(Collection<ObjectOrdering> orderings) {
+	public void setOrdering(Collection<? extends ObjectOrdering> orderings) {
 		this.ordering.clear();
-		if (orderings != null) {
-			this.ordering.addAll(orderings);
+		for (ObjectOrdering ordering : CollectionUtils.emptyIfNull(orderings)) {
+			this.ordering.add((ObjectOrderingImpl) ordering);
 		}
 	}
-
 
     public void addGroupingInstruction(ItemPath groupBy) {
-        this.grouping.add(new ObjectGrouping(groupBy));
+        this.grouping.add(ObjectGroupingImpl.createGrouping(groupBy));
     }
 
     public void setGrouping(ObjectGrouping... groupings) {
         this.grouping.clear();
-        if (groupings != null) {
-            this.grouping.addAll(Arrays.asList(groupings));
-        }
+	    for (ObjectGrouping grouping : groupings) {
+		    this.grouping.add((ObjectGroupingImpl) grouping);
+	    }
     }
 
     public void setGrouping(Collection<ObjectGrouping> groupings) {
         this.grouping.clear();
-        if (groupings != null) {
-            this.grouping.addAll(groupings);
-        }
+	    for (ObjectGrouping grouping : CollectionUtils.emptyIfNull(groupings)) {
+		    this.grouping.add((ObjectGroupingImpl) grouping);
+	    }
     }
 
 	public Integer getOffset() {
@@ -235,7 +235,12 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 	public void setMaxSize(Integer maxSize) {
 		this.maxSize = maxSize;
 	}
-	
+
+	@Override
+	public boolean hasCookie() {
+		return cookie != null;
+	}
+
 	/**
 	 * Returns the paging cookie. The paging cookie is used for optimization of paged searches.
 	 * The presence of the cookie may allow the data store to correlate queries and associate
@@ -267,12 +272,12 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 	}
 
 	public ObjectPaging clone() {
-		ObjectPaging clone = new ObjectPaging();
+		ObjectPagingImpl clone = new ObjectPagingImpl();
 		copyTo(clone);
 		return clone;
 	}
 
-	protected void copyTo(ObjectPaging clone) {
+	private void copyTo(ObjectPagingImpl clone) {
 		clone.offset = this.offset;
 		clone.maxSize = this.maxSize;
 		clone.ordering.clear();
@@ -368,7 +373,7 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 		if (o == null || getClass() != o.getClass())
 			return false;
 
-		ObjectPaging that = (ObjectPaging) o;
+		ObjectPagingImpl that = (ObjectPagingImpl) o;
 
 		if (offset != null ? !offset.equals(that.offset) : that.offset != null)
 			return false;

@@ -20,9 +20,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -170,13 +168,13 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
 
     private ObjectQuery createQuery(long first, long count, OperationResult result) throws SchemaException {
         ObjectQuery query = createQuery(result);
-        query.setPaging(ObjectPaging.createPaging(safeLongToInteger(first), safeLongToInteger(count), F_CREATE_TIMESTAMP, DESCENDING));
+        query.setPaging(getPrismContext().queryFactory().createPaging(safeLongToInteger(first), safeLongToInteger(count), F_CREATE_TIMESTAMP, DESCENDING));
         return query;
     }
 
     private ObjectQuery createQuery(OperationResult result) throws SchemaException {
         boolean authorizedToSeeAll = isAuthorized(ModelAuthorizationAction.READ_ALL_WORK_ITEMS.getUrl());
-        S_FilterEntryOrEmpty q = QueryBuilder.queryFor(WorkItemType.class, getPrismContext());
+        S_FilterEntryOrEmpty q = getPrismContext().queryFor(WorkItemType.class);
         if (WorkItemsPageType.ALL.equals(workItemsPageType) && authorizedToSeeAll) {
             return q.build();
         } else if (WorkItemsPageType.CLAIMABLE.equals(workItemsPageType)) {

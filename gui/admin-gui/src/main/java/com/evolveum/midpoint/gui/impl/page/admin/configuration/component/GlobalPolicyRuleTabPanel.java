@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -45,10 +46,6 @@ import com.evolveum.midpoint.gui.impl.model.RealValueOfSingleValuePropertyAsStri
 import com.evolveum.midpoint.gui.impl.model.RealContainerValueFromContainerValueWrapperModel;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.query.AllFilter;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -197,12 +194,14 @@ public class GlobalPolicyRuleTabPanel extends BasePanel<ContainerWrapper<GlobalP
 	}
     
     private ObjectQuery createQuery() {
-    	TypeFilter filter = TypeFilter.createType(GlobalPolicyRuleType.COMPLEX_TYPE, new AllFilter()); 
-    	return ObjectQuery.createObjectQuery(filter);
+	    QueryFactory factory = getPrismContext().queryFactory();
+	    TypeFilter filter = factory.createType(GlobalPolicyRuleType.COMPLEX_TYPE, factory.createAll());
+    	return factory.createObjectQuery(filter);
     }
     
     private void initPaging() {
-    	getPageBase().getSessionStorage().getGlobalPolicyRulesTabStorage().setPaging(ObjectPaging.createPaging(0, (int) ((PageBase)getPage()).getItemsPerPage(UserProfileStorage.TableId.GLOBAL_POLICY_RULES_TAB_TABLE)));
+    	getPageBase().getSessionStorage().getGlobalPolicyRulesTabStorage()
+			    .setPaging(getPrismContext().queryFactory().createPaging(0, (int) ((PageBase)getPage()).getItemsPerPage(UserProfileStorage.TableId.GLOBAL_POLICY_RULES_TAB_TABLE)));
     }
     
     private List<IColumn<ContainerValueWrapper<GlobalPolicyRuleType>, String>> initBasicColumns() {

@@ -33,7 +33,6 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -333,7 +332,7 @@ public class ModelRestService {
 			PrismObject<? extends ObjectType> object;
 			if (NodeType.class.equals(clazz) && CURRENT.equals(id)) {
 				String nodeId = taskManager.getNodeId();
-				ObjectQuery query = QueryBuilder.queryFor(NodeType.class, prismContext)
+				ObjectQuery query = prismContext.queryFor(NodeType.class)
 						.item(NodeType.F_NODE_IDENTIFIER).eq(nodeId)
 						.build();
 			 	List<PrismObject<NodeType>> objects = model.searchObjects(NodeType.class, query, getOptions, task, parentResult);

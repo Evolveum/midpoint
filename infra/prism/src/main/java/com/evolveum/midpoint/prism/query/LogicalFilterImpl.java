@@ -21,13 +21,9 @@ import java.util.List;
 
 import com.evolveum.midpoint.util.DebugUtil;
 
-public abstract class LogicalFilter extends ObjectFilter {
+public abstract class LogicalFilterImpl extends ObjectFilterImpl implements LogicalFilter {
 	
 	protected List<ObjectFilter> conditions;
-	
-	public LogicalFilter(){
-
-	}
 	
 	public List<ObjectFilter> getConditions() {
 		if (conditions == null){
@@ -108,7 +104,7 @@ public abstract class LogicalFilter extends ObjectFilter {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		LogicalFilter other = (LogicalFilter) obj;
+		LogicalFilterImpl other = (LogicalFilterImpl) obj;
 
 		if (conditions != null) {
 			if (conditions.size() != other.conditions.size()) {
@@ -153,4 +149,7 @@ public abstract class LogicalFilter extends ObjectFilter {
 	}
 	
 	protected abstract String getDebugDumpOperationName();
+
+	@Override
+	public abstract LogicalFilterImpl clone();
 }

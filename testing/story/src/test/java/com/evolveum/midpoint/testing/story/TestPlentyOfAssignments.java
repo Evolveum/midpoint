@@ -373,7 +373,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         	RoleType roleType = role.asObjectable();
         	ItemPathType assPath = new ItemPathType(ItemPath.create(RESOURCE_DUMMY_ASSOCIATION_GROUP_QNAME));
 			SearchObjectExpressionEvaluatorType associationTargetSearchType = new SearchObjectExpressionEvaluatorType();
-			EqualFilter<String> filter = EqualFilter.createEqual(nameAttributePath, null, null, prismContext, groupName);
+			EqualFilter<String> filter = prismContext.queryFactory().createEqual(nameAttributePath, null, null, prismContext, groupName);
 
 			SearchFilterType filterType = prismContext.getQueryConverter().createSearchFilterType(filter);
 			associationTargetSearchType.setFilter(filterType);

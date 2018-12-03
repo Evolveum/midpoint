@@ -47,7 +47,6 @@ import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
@@ -606,7 +605,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType);
 		RefinedObjectClassDefinition rAccountDef = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
 		RefinedAttributeDefinition attrDef = rAccountDef.findAttributeDefinition(attributeName);
-		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(ShadowType.class)
 				.itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getName()).eq(attributeValue)
 				.and().item(ShadowType.F_OBJECT_CLASS).eq(rAccountDef.getObjectClassDefinition().getTypeName())
 				.and().item(ShadowType.F_RESOURCE_REF).ref(resourceType.getOid())
@@ -668,7 +667,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 				matchingRule = PrismConstants.DEFAULT_MATCHING_RULE_NAME;
 			}
 		}
-		ObjectQuery query = QueryBuilder.queryFor(objectType.getClass(), prismContext)
+		ObjectQuery query = prismContext.queryFor(objectType.getClass())
 				.item(propertyPath, propertyDefinition).eq(propertyValue).matching(matchingRule)
 				.build();
 		if (LOGGER.isTraceEnabled()) {
@@ -721,7 +720,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType);
 		RefinedObjectClassDefinition rAccountDef = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
 		RefinedAttributeDefinition attrDef = rAccountDef.findAttributeDefinition(attributeName);
-		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(ShadowType.class)
 				.itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getName()).eq(attributeValue)
 				.and().item(ShadowType.F_OBJECT_CLASS).eq(rAccountDef.getObjectClassDefinition().getTypeName())
 				.and().item(ShadowType.F_RESOURCE_REF).ref(resourceType.getOid())
@@ -1400,7 +1399,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	@Override
 	public List<UserType> getMembers(String orgOid) throws SchemaException, ObjectNotFoundException, SecurityViolationException,
 			CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(UserType.class)
 				.isDirectChildOf(orgOid)
 				.build();
 		return searchObjects(UserType.class, query, null);

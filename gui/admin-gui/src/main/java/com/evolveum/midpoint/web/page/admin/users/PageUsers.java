@@ -23,8 +23,6 @@ import java.util.List;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.InOidFilter;
-import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.application.Url;
@@ -196,8 +194,8 @@ public class PageUsers extends PageAdminUsers {
 				ObjectQuery contentQuery = super.createContentQuery();
 				ObjectFilter usersViewFilter = getUsersViewFilter();
 				if (usersViewFilter != null){
-					if (contentQuery == null){
-						contentQuery = new ObjectQuery();
+					if (contentQuery == null) {
+						contentQuery = getPrismContext().queryFactory().createObjectQuery();
 					}
 					contentQuery.addFilter(usersViewFilter);
 				}
@@ -478,8 +476,8 @@ public class PageUsers extends PageAdminUsers {
     private void mergePerformed(AjaxRequestTarget target, final UserType selectedUser) {
         List<QName> supportedTypes = new ArrayList<>();
         supportedTypes.add(UserType.COMPLEX_TYPE);
-        ObjectFilter filter = InOidFilter.createInOid(selectedUser.getOid());
-        ObjectFilter notFilter = NotFilter.createNot(filter);
+        ObjectFilter filter = getPrismContext().queryFactory().createInOid(selectedUser.getOid());
+        ObjectFilter notFilter = getPrismContext().queryFactory().createNot(filter);
         ObjectBrowserPanel<UserType> panel = new ObjectBrowserPanel<UserType>(
                 getMainPopupBodyId(), UserType.class,
                 supportedTypes, false, PageUsers.this, notFilter) {

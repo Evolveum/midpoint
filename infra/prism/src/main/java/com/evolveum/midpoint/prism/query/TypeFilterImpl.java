@@ -31,14 +31,14 @@ import javax.xml.namespace.QName;
 /**
  * @author lazyman
  */
-public class TypeFilter extends ObjectFilter {
+public class TypeFilterImpl extends ObjectFilterImpl implements TypeFilter {
 
     private static final Trace LOGGER = TraceManager.getTrace(TypeFilter.class);
 
     @NotNull private final QName type;
     private ObjectFilter filter;
 
-    public TypeFilter(@NotNull QName type, ObjectFilter filter) {
+    public TypeFilterImpl(@NotNull QName type, ObjectFilter filter) {
         this.type = type;
         this.filter = filter;
     }
@@ -60,18 +60,18 @@ public class TypeFilter extends ObjectFilter {
     }
 
     public static TypeFilter createType(QName type, ObjectFilter filter) {
-        return new TypeFilter(type, filter);
+        return new TypeFilterImpl(type, filter);
     }
 
     @SuppressWarnings("CloneDoesntCallSuperClone")
     @Override
-    public ObjectFilter clone() {
+    public TypeFilterImpl clone() {
         ObjectFilter f = filter != null ? filter.clone() : null;
-        return new TypeFilter(type, f);
+        return new TypeFilterImpl(type, f);
     }
 
 	public TypeFilter cloneEmpty() {
-		return new TypeFilter(type, null);
+		return new TypeFilterImpl(type, null);
 	}
 
 	// untested; TODO test this method
@@ -140,7 +140,7 @@ public class TypeFilter extends ObjectFilter {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        TypeFilter that = (TypeFilter) o;
+        TypeFilterImpl that = (TypeFilterImpl) o;
 
         if (!type.equals(that.type)) return false;
         if (filter != null ? !filter.equals(that.filter, exact) : that.filter != null) return false;

@@ -37,14 +37,14 @@ import java.util.stream.Collectors;
  */
 public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_RightHandItemEntry {
 
-    final ItemPath itemPath;
-    final PrismPropertyDefinition propertyDefinition;
-    final PrismReferenceDefinition referenceDefinition;
-    final ValueFilter filter;
-    final R_Filter owner;
-    final boolean expectingRightSide;
+    private final ItemPath itemPath;
+    private final PrismPropertyDefinition propertyDefinition;
+    private final PrismReferenceDefinition referenceDefinition;
+    private final ValueFilter filter;
+    private final R_Filter owner;
+    private final boolean expectingRightSide;
 
-    R_AtomicFilter(ItemPath itemPath, ItemDefinition itemDefinition, R_Filter owner) {
+    private R_AtomicFilter(ItemPath itemPath, ItemDefinition itemDefinition, R_Filter owner) {
         Validate.notNull(itemPath);
         Validate.notNull(itemDefinition);
         Validate.notNull(owner);
@@ -63,7 +63,7 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
         this.expectingRightSide = false;
     }
 
-    R_AtomicFilter(R_AtomicFilter original, ValueFilter filter, boolean expectingRightSide) {
+    private R_AtomicFilter(R_AtomicFilter original, ValueFilter filter, boolean expectingRightSide) {
         Validate.notNull(original);
         Validate.notNull(filter);
         this.itemPath = original.itemPath;
@@ -84,7 +84,7 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
 
     @Override
     public S_AtomicFilterExit item(QName... names) {
-        return item(ItemPath.create(names), null);
+        return item(ItemPath.create((Object[]) names), null);
     }
 
     @Override
@@ -104,20 +104,21 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
     @Override
     public <T> S_MatchingRuleEntry eq(PrismProperty<T> property) {
         List<PrismPropertyValue<T>> clonedValues = (List<PrismPropertyValue<T>>) PrismValueCollectionsUtil.cloneCollection(property.getValues());
+        //noinspection unchecked
         PrismPropertyDefinition<T> definition =
                 this.propertyDefinition != null ?
                         this.propertyDefinition : property.getDefinition();
-        return new R_AtomicFilter(this, EqualFilter.createEqual(itemPath, definition, null, owner.getPrismContext(), clonedValues));
+        return new R_AtomicFilter(this, EqualFilterImpl.createEqual(itemPath, definition, null, owner.getPrismContext(), clonedValues));
     }
 
     @Override
     public S_MatchingRuleEntry eq(Object... values) {
-        return new R_AtomicFilter(this, EqualFilter.createEqual(itemPath, propertyDefinition, null, owner.getPrismContext(), values));
+        return new R_AtomicFilter(this, EqualFilterImpl.createEqual(itemPath, propertyDefinition, null, owner.getPrismContext(), values));
     }
 
     @Override
     public S_RightHandItemEntry eq() {
-        return new R_AtomicFilter(this, EqualFilter.createEqual(itemPath, propertyDefinition, null), true);
+        return new R_AtomicFilter(this, EqualFilterImpl.createEqual(itemPath, propertyDefinition, null), true);
     }
 
     @Override
@@ -132,49 +133,49 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
 
     @Override
     public S_MatchingRuleEntry gt(Object value) {
-        return new R_AtomicFilter(this, GreaterFilter.createGreater(itemPath, propertyDefinition, null, value,
+        return new R_AtomicFilter(this, GreaterFilterImpl.createGreater(itemPath, propertyDefinition, null, value,
                 false, owner.getPrismContext()));
     }
 
     @Override
     public S_RightHandItemEntry gt() {
-        return new R_AtomicFilter(this, GreaterFilter.createGreater(itemPath, propertyDefinition, false), true);
+        return new R_AtomicFilter(this, GreaterFilterImpl.createGreater(itemPath, propertyDefinition, false), true);
     }
 
     @Override
     public S_MatchingRuleEntry ge(Object value) {
-        return new R_AtomicFilter(this, GreaterFilter.createGreater(itemPath, propertyDefinition, null, value,
+        return new R_AtomicFilter(this, GreaterFilterImpl.createGreater(itemPath, propertyDefinition, null, value,
                 true, owner.getPrismContext()));
     }
 
     @Override
     public S_RightHandItemEntry ge() {
-        return new R_AtomicFilter(this, GreaterFilter.createGreater(itemPath, propertyDefinition, true), true);
+        return new R_AtomicFilter(this, GreaterFilterImpl.createGreater(itemPath, propertyDefinition, true), true);
     }
 
     @Override
     public S_MatchingRuleEntry lt(Object value) {
-        return new R_AtomicFilter(this, LessFilter.createLess(itemPath, propertyDefinition, null, value, false, owner.getPrismContext()));
+        return new R_AtomicFilter(this, LessFilterImpl.createLess(itemPath, propertyDefinition, null, value, false, owner.getPrismContext()));
     }
 
     @Override
     public S_RightHandItemEntry lt() {
-        return new R_AtomicFilter(this, LessFilter.createLess(itemPath, propertyDefinition, false), true);
+        return new R_AtomicFilter(this, LessFilterImpl.createLess(itemPath, propertyDefinition, false), true);
     }
 
     @Override
     public S_MatchingRuleEntry le(Object value) {
-        return new R_AtomicFilter(this, LessFilter.createLess(itemPath, propertyDefinition, null, value, true, owner.getPrismContext()));
+        return new R_AtomicFilter(this, LessFilterImpl.createLess(itemPath, propertyDefinition, null, value, true, owner.getPrismContext()));
     }
 
     @Override
     public S_RightHandItemEntry le() {
-        return new R_AtomicFilter(this, LessFilter.createLess(itemPath, propertyDefinition, true), true);
+        return new R_AtomicFilter(this, LessFilterImpl.createLess(itemPath, propertyDefinition, true), true);
     }
 
     @Override
     public S_MatchingRuleEntry startsWith(Object value) {
-        return new R_AtomicFilter(this, SubstringFilter.createSubstring(itemPath, propertyDefinition, owner.getPrismContext(), null, value, true, false));
+        return new R_AtomicFilter(this, SubstringFilterImpl.createSubstring(itemPath, propertyDefinition, owner.getPrismContext(), null, value, true, false));
     }
 
 	@Override
@@ -189,7 +190,7 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
 
 	@Override
     public S_MatchingRuleEntry endsWith(Object value) {
-        return new R_AtomicFilter(this, SubstringFilter.createSubstring(itemPath, propertyDefinition, owner.getPrismContext(), null, value, false, true));
+        return new R_AtomicFilter(this, SubstringFilterImpl.createSubstring(itemPath, propertyDefinition, owner.getPrismContext(), null, value, false, true));
     }
 
 	@Override
@@ -204,7 +205,7 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
 
     @Override
     public S_MatchingRuleEntry contains(Object value) {
-        return new R_AtomicFilter(this, SubstringFilter.createSubstring(itemPath, propertyDefinition, owner.getPrismContext(), null, value, false, false));
+        return new R_AtomicFilter(this, SubstringFilterImpl.createSubstring(itemPath, propertyDefinition, owner.getPrismContext(), null, value, false, false));
     }
 
 	@Override
@@ -225,7 +226,7 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
             ref.setRelation(relation);
             values.add(ref);
         }
-		RefFilter filter = RefFilter.createReferenceEqual(itemPath, referenceDefinition, values);
+		RefFilter filter = RefFilterImpl.createReferenceEqual(itemPath, referenceDefinition, values);
 		filter.setOidNullAsAny(true);
 		filter.setTargetTypeNullAsAny(true);
 		return new R_AtomicFilter(this, filter);
@@ -248,7 +249,7 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
 
 	@Override
 	public S_AtomicFilterExit ref(Collection<PrismReferenceValue> values, boolean nullTypeAsAny) {
-        RefFilter filter = RefFilter.createReferenceEqual(itemPath, referenceDefinition, values);
+        RefFilter filter = RefFilterImpl.createReferenceEqual(itemPath, referenceDefinition, values);
         filter.setTargetTypeNullAsAny(nullTypeAsAny);
         return new R_AtomicFilter(this, filter);
 	}
@@ -275,9 +276,9 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
     @Override
     public S_AtomicFilterExit isNull() {
         if (propertyDefinition != null) {
-            return new R_AtomicFilter(this, EqualFilter.createEqual(itemPath, propertyDefinition, null, owner.getPrismContext()));
+            return new R_AtomicFilter(this, EqualFilterImpl.createEqual(itemPath, propertyDefinition, null, owner.getPrismContext()));
         } else if (referenceDefinition != null) {
-            return new R_AtomicFilter(this, RefFilter.createReferenceEqual(itemPath, referenceDefinition, Collections.emptyList()));
+            return new R_AtomicFilter(this, RefFilterImpl.createReferenceEqual(itemPath, referenceDefinition, Collections.emptyList()));
         } else {
             throw new IllegalStateException("No definition");
         }

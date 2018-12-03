@@ -29,7 +29,11 @@ import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.polystring.AlphanumericPolyStringNormalizer;
 import com.evolveum.midpoint.prism.polystring.ConfigurableNormalizer;
+import com.evolveum.midpoint.prism.query.QueryFactory;
+import com.evolveum.midpoint.prism.query.QueryFactoryImpl;
 import com.evolveum.midpoint.prism.query.QueryConverter;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.schema.SchemaDefinitionFactory;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.schema.SchemaRegistryImpl;
@@ -80,6 +84,7 @@ public class PrismContextImpl implements PrismContext {
 	@NotNull private final Miscellaneous miscellaneous;
 	@NotNull private final XNodeFactory xnodeFactory;
 	@NotNull private final DeltaFactory deltaFactory;
+	@NotNull private final QueryFactory queryFactory;
 	@NotNull private final ItemFactory itemFactory;
 	@NotNull private final DefinitionFactory definitionFactory;
 	@NotNull private final ItemPathParser itemPathParser;
@@ -117,6 +122,7 @@ public class PrismContextImpl implements PrismContext {
 		this.miscellaneous = new MiscellaneousImpl(this);
 		this.xnodeFactory = new XNodeFactoryImpl();
 		this.deltaFactory = new DeltaFactoryImpl(this);
+		this.queryFactory = new QueryFactoryImpl(this);
 		this.itemFactory = new ItemFactoryImpl(this);
 		this.definitionFactory = new DefinitionFactoryImpl(this);
 		this.itemPathParser = new ItemPathParserImpl(this);
@@ -610,9 +616,20 @@ public class PrismContextImpl implements PrismContext {
 	}
 
 	@Override
+	public S_FilterEntryOrEmpty queryFor(Class<? extends Containerable> queryClass) {
+		return QueryBuilder.queryFor(queryClass, this);
+	}
+
+	@Override
 	@NotNull
 	public DeltaFactory deltaFactory() {
 		return deltaFactory;
+	}
+
+	@NotNull
+	@Override
+	public QueryFactory queryFactory() {
+		return queryFactory;
 	}
 
 	@NotNull

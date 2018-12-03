@@ -74,7 +74,7 @@ public class RepositoryObjectDataProvider
             ObjectPaging paging = createPaging(first, count);
 			ObjectQuery query = getQuery();
 			if (query == null) {
-				query = new ObjectQuery();
+				query = getPrismContext().queryFactory().createObjectQuery();
 			}
 			query.setPaging(paging);
 

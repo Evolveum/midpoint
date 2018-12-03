@@ -39,7 +39,6 @@ import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -473,7 +472,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		QName weaponQName = dummyResourceCtl.getAttributeWeaponQName();
 		ResourceAttributeDefinition<String> weaponDefinition = accountObjectClassDefinition.findAttributeDefinition(weaponQName);
 
-		ObjectQuery q = QueryBuilder.queryFor(ShadowType.class, prismContext)
+		ObjectQuery q = prismContext.queryFor(ShadowType.class)
 				.item(ShadowType.F_RESOURCE_REF).ref(RESOURCE_DUMMY_OID)
 				.and().item(ShadowType.F_OBJECT_CLASS).eq(accountObjectClassQName)
 				.and().item(ItemPath.create(ShadowType.F_ATTRIBUTES, weaponQName), weaponDefinition).eq("rum")
@@ -500,7 +499,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		QName weaponQName = dummyResourceCtl.getAttributeWeaponQName();
 		PrismPropertyDefinition<String> weaponFakeDef = new PrismPropertyDefinitionImpl<>(weaponQName, DOMUtil.XSD_STRING, prismContext);
 
-		ObjectQuery q = QueryBuilder.queryFor(ShadowType.class, prismContext)
+		ObjectQuery q = prismContext.queryFor(ShadowType.class)
 				.item(ShadowType.F_RESOURCE_REF).ref(RESOURCE_DUMMY_OID)
 				.and().item(ShadowType.F_OBJECT_CLASS).eq(accountObjectClassQName)
 				.and().item(ItemPath.create(ShadowType.F_ATTRIBUTES, weaponQName), weaponFakeDef).eq("rum")

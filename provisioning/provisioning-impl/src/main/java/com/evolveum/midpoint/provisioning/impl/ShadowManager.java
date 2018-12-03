@@ -46,7 +46,6 @@ import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.Visitor;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
@@ -366,7 +365,7 @@ public class ShadowManager {
 			return null;
 		}
 
-		S_FilterEntry q = QueryBuilder.queryFor(ShadowType.class, prismContext)
+		S_FilterEntry q = prismContext.queryFor(ShadowType.class)
 				.block();
 		for (ResourceAttribute<?> secondaryIdentifier : secondaryIdentifiers) {
 			// There may be identifiers that come from associations and they will have parent set to association/identifiers
@@ -403,7 +402,7 @@ public class ShadowManager {
 	
 	private <T> ObjectFilter createAttributeEqualFilter(ProvisioningContext ctx,
 			ResourceAttribute<T> secondaryIdentifier) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
-		return QueryBuilder.queryFor(ShadowType.class, prismContext)
+		return prismContext.queryFor(ShadowType.class)
 				.item(secondaryIdentifier.getPath(), secondaryIdentifier.getDefinition())
 				.eq(getNormalizedValue(secondaryIdentifier, ctx.getObjectClassDefinition()))
 				.buildFilter();
@@ -617,7 +616,7 @@ public class ShadowManager {
 	private ObjectQuery createSearchShadowQuery(ProvisioningContext ctx, Collection<ResourceAttribute<?>> identifiers, boolean primaryIdentifiersOnly,
 			PrismContext prismContext, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
 
-		S_AtomicFilterEntry q = QueryBuilder.queryFor(ShadowType.class, prismContext);
+		S_AtomicFilterEntry q = prismContext.queryFor(ShadowType.class);
 
 		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
 		for (PrismProperty<?> identifier : identifiers) {
@@ -677,7 +676,7 @@ public class ShadowManager {
 		try {
 			// TODO TODO TODO TODO: set matching rule instead of null
 			PrismPropertyDefinition def = identifier.getDefinition();
-			return QueryBuilder.queryFor(ShadowType.class, prismContext)
+			return prismContext.queryFor(ShadowType.class)
 					.itemWithDef(def, ShadowType.F_ATTRIBUTES, def.getName()).eq(getNormalizedValue(identifier, ctx.getObjectClassDefinition()))
 					.and().item(ShadowType.F_OBJECT_CLASS).eq(resourceShadow.getPropertyRealValue(ShadowType.F_OBJECT_CLASS, QName.class))
 					.and().item(ShadowType.F_RESOURCE_REF).ref(ctx.getResourceOid())

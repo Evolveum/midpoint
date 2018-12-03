@@ -27,7 +27,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.provisioning.api.ConstraintViolationConfirmer;
 import com.evolveum.midpoint.provisioning.api.ConstraintsCheckingResult;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -161,7 +160,7 @@ public class ConstraintsChecker {
 		}
 
 		//TODO: set matching rule instead of null
-		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(ShadowType.class)
 				.itemWithDef(identifier.getDefinition(), ShadowType.F_ATTRIBUTES, identifier.getDefinition().getName())
 						.eq(PrismValueCollectionsUtil.cloneCollection(identifierValues))
 				.and().item(ShadowType.F_OBJECT_CLASS).eq(accountDefinition.getObjectClassDefinition().getTypeName())

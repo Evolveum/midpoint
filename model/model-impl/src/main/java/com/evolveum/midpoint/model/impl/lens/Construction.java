@@ -261,7 +261,7 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 			LOGGER.info("Found object {}", object);
 			return results.add(object);
 		};
-		getObjectResolver().searchIterative(ResourceType.class, ObjectQuery.createObjectQuery(evaluatedFilter),
+		getObjectResolver().searchIterative(ResourceType.class, getPrismContext().queryFactory().createObjectQuery(evaluatedFilter),
 				null, handler, task, result);
 
 		if (org.apache.commons.collections.CollectionUtils.isEmpty(results)) {

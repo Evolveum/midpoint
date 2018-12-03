@@ -27,7 +27,7 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 /**
  * @author mederly
  */
-public class FilterUtils {
+class FilterImplUtil {
 
     static ItemDefinition findItemDefinition(ItemPath itemPath, PrismContainerDefinition<? extends Containerable> containerDef) {
         ItemDefinition itemDef = containerDef.findItemDefinition(itemPath);
@@ -57,7 +57,4 @@ public class FilterUtils {
         return findItemDefinition(parentPath, complexTypeDefinition);
     }
 
-	public static boolean isFilterEmpty(SearchFilterType filter) {
-		return filter == null || (filter.getDescription() == null && !filter.containsFilterClause());
-	}
 }

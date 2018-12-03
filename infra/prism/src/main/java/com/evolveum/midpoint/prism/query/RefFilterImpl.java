@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class RefFilter extends ValueFilter<PrismReferenceValue, PrismReferenceDefinition> {
+public class RefFilterImpl extends ValueFilterImpl<PrismReferenceValue, PrismReferenceDefinition> implements RefFilter {
 	private static final long serialVersionUID = 1L;
 
 	// these are currently supported only by built-in match(..) method; e.g. the repo query interpreter simply ignores them
@@ -36,24 +36,23 @@ public class RefFilter extends ValueFilter<PrismReferenceValue, PrismReferenceDe
 	private boolean targetTypeNullAsAny = false;
 	private boolean relationNullAsAny = false;          // currently not supported at all
 	
-
-	public RefFilter(@NotNull ItemPath fullPath, @Nullable PrismReferenceDefinition definition,
+	public RefFilterImpl(@NotNull ItemPath fullPath, @Nullable PrismReferenceDefinition definition,
 			@Nullable List<PrismReferenceValue> values, @Nullable ExpressionWrapper expression) {
 		super(fullPath, definition, null, values, expression, null, null);
 	}
 
 	public static RefFilter createReferenceEqual(ItemPath path, PrismReferenceDefinition definition, Collection<PrismReferenceValue> values) {
-		return new RefFilter(path, definition, values != null ? new ArrayList<>(values) : null, null);
+		return new RefFilterImpl(path, definition, values != null ? new ArrayList<>(values) : null, null);
 	}
 	
 	public static RefFilter createReferenceEqual(ItemPath path, PrismReferenceDefinition definition, ExpressionWrapper expression) {
-		return new RefFilter(path, definition, null, expression);
+		return new RefFilterImpl(path, definition, null, expression);
 	}
 		
 	@SuppressWarnings("CloneDoesntCallSuperClone")
 	@Override
-	public RefFilter clone() {
-		return new RefFilter(getFullPath(), getDefinition(), getClonedValues(), getExpression());
+	public RefFilterImpl clone() {
+		return new RefFilterImpl(getFullPath(), getDefinition(), getClonedValues(), getExpression());
 	}
 
 	@Override

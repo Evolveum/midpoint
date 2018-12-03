@@ -47,7 +47,6 @@ import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -73,6 +72,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -362,14 +362,14 @@ public class AssignmentEvaluator<F extends FocusType> {
 				return forcedRoles.add(object.asObjectable());
 			};
 			objectResolver.searchIterative(virtualAssignmenetSpecification.getType(), 
-					ObjectQuery.createObjectQuery(virtualAssignmenetSpecification.getFilter()), null, handler, ctx.task, ctx.result);
+					prismContext.queryFactory().createObjectQuery(virtualAssignmenetSpecification.getFilter()), null, handler, ctx.task, ctx.result);
 		} catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException
 				| SecurityViolationException | ExpressionEvaluationException e) {
 			LOGGER.error("Cannot search for forced roles", e);
 		}
 		
 		for (R forcedRole : forcedRoles) {
-			ObjectFilter filterTargetRef = QueryBuilder.queryFor(AssignmentType.class, prismContext)
+			ObjectFilter filterTargetRef = prismContext.queryFor(AssignmentType.class)
 					.item(AssignmentType.F_TARGET_REF).ref(forcedRole.getOid()).buildFilter();
 			AssignmentType assignmentType = getAssignmentType(segment, ctx);
 			try {
@@ -377,8 +377,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 					return true;
 				}
 			} catch (SchemaException e) {
-				LOGGER.error("Cannot evaluate filter {} for assignemnt {}", filterTargetRef, assignmentType);
-				continue;
+				LoggingUtils.logUnexpectedException(LOGGER, "Cannot evaluate filter {} for assignment {}", e, filterTargetRef, assignmentType);
 			}
 		}
 		
@@ -719,7 +718,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 				throw new SchemaException("The OID is null and filter could not be evaluated in assignment targetRef in "+segment.source);
 			}
 
-			return repository.searchObjects(targetClass, ObjectQuery.createObjectQuery(evaluatedFilter), null, ctx.result);
+			return repository.searchObjects(targetClass, prismContext.queryFactory().createObjectQuery(evaluatedFilter), null, ctx.result);
 			// we don't check for no targets here; as we don't care for referential integrity
 		} finally {
 			ModelExpressionThreadLocalHolder.popExpressionEnvironment();

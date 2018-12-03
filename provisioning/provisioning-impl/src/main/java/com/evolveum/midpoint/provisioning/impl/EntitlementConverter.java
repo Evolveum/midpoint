@@ -25,7 +25,6 @@ import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -312,7 +311,7 @@ class EntitlementConverter {
 		TA normalizedRealValue = matchingRule.normalize(converted.getValue());
 		PrismPropertyValue<TA> normalized = new PrismPropertyValueImpl<>(normalizedRealValue);
 		LOGGER.trace("Converted entitlement filter value: {} ({}) def={}", normalized, normalized.getValue().getClass(), assocAttrDef);
-		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(ShadowType.class)
 				.item(ItemPath.create(ShadowType.F_ATTRIBUTES, assocAttrDef.getName()), assocAttrDef).eq(normalized)
 				.build();
 		query.setAllowPartialResults(true);

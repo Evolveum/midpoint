@@ -29,7 +29,6 @@ import com.evolveum.midpoint.prism.delta.ContainerDeltaImpl;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -651,7 +650,7 @@ public class TreeTablePanel extends BasePanel<String> {
 	}
 
 	private boolean hasChildren(SelectableBean<OrgType> orgToDelete) {
-		ObjectQuery query = QueryBuilder.queryFor(ObjectType.class, getPageBase().getPrismContext())
+		ObjectQuery query = getPageBase().getPrismContext().queryFor(ObjectType.class)
 				.isChildOf(orgToDelete.getValue().getOid())			// TODO what if orgToDelete.getValue()==null
 				.build();
 		Task task = getPageBase().createSimpleTask(OPERATION_COUNT_CHILDREN);

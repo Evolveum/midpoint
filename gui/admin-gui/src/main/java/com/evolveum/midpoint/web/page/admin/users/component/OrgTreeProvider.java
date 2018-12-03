@@ -23,7 +23,6 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -111,7 +110,7 @@ public class OrgTreeProvider extends SortableTreeProvider<SelectableBean<OrgType
             LOGGER.debug("Loading fresh children for {}", node.getValue());
             OperationResult result = new OperationResult(LOAD_ORG_UNITS);
             try {
-                ObjectQuery query = QueryBuilder.queryFor(OrgType.class, getPageBase().getPrismContext())
+                ObjectQuery query = getPageBase().getPrismContext().queryFor(OrgType.class)
                         .isDirectChildOf(nodeOid)
                         .build();
                 ObjectFilter customFilter = getCustomFilter();

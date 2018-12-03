@@ -19,7 +19,6 @@ package com.evolveum.midpoint.wf.impl.policy.other;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -81,7 +80,7 @@ public class TestActivitiQuery extends AbstractWfTestPolicy {
 		}
 
 		{
-			ObjectQuery query2 = QueryBuilder.queryFor(WorkItemType.class, prismContext)
+			ObjectQuery query2 = prismContext.queryFor(WorkItemType.class)
 					.item(WorkItemType.F_ASSIGNEE_REF).ref(userLead1Oid)
 					.build();
 			SearchResultList<WorkItemType> items2 = modelService.searchContainers(WorkItemType.class, query2, null, task, result);
@@ -93,7 +92,7 @@ public class TestActivitiQuery extends AbstractWfTestPolicy {
 			refs.add(prv("oid-number-1"));
 			refs.add(prv(userLead1Oid));
 			refs.add(prv("oid-number-3"));
-			ObjectQuery query3 = QueryBuilder.queryFor(WorkItemType.class, prismContext)
+			ObjectQuery query3 = prismContext.queryFor(WorkItemType.class)
 					.item(WorkItemType.F_ASSIGNEE_REF).ref(refs)
 					.build();
 			SearchResultList<WorkItemType> items3 = modelService
@@ -119,7 +118,7 @@ public class TestActivitiQuery extends AbstractWfTestPolicy {
 
 		XMLGregorianCalendar created;
 		{
-			ObjectQuery query2 = QueryBuilder.queryFor(WorkItemType.class, prismContext)
+			ObjectQuery query2 = prismContext.queryFor(WorkItemType.class)
 					.item(WorkItemType.F_CREATE_TIMESTAMP).lt(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()))
 					.and().item(WorkItemType.F_CREATE_TIMESTAMP).gt(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()-300000))
 					.build();
@@ -130,7 +129,7 @@ public class TestActivitiQuery extends AbstractWfTestPolicy {
 		}
 
 		{
-			ObjectQuery query3 = QueryBuilder.queryFor(WorkItemType.class, prismContext)
+			ObjectQuery query3 = prismContext.queryFor(WorkItemType.class)
 					.item(WorkItemType.F_CREATE_TIMESTAMP).gt(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()))
 					.build();
 			SearchResultList<WorkItemType> items3 = modelService.searchContainers(WorkItemType.class, query3, null, task, result);
@@ -139,7 +138,7 @@ public class TestActivitiQuery extends AbstractWfTestPolicy {
 		}
 
 		{
-			ObjectQuery query4 = QueryBuilder.queryFor(WorkItemType.class, prismContext)
+			ObjectQuery query4 = prismContext.queryFor(WorkItemType.class)
 					.item(WorkItemType.F_CREATE_TIMESTAMP).eq(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()))
 					.build();
 			SearchResultList<WorkItemType> items4 = modelService.searchContainers(WorkItemType.class, query4, null, task, result);
@@ -149,7 +148,7 @@ public class TestActivitiQuery extends AbstractWfTestPolicy {
 
 		{
 			// hopefully the DBMS will match this!
-			ObjectQuery query5 = QueryBuilder.queryFor(WorkItemType.class, prismContext)
+			ObjectQuery query5 = prismContext.queryFor(WorkItemType.class)
 					.item(WorkItemType.F_CREATE_TIMESTAMP).eq(created)
 					.build();
 			SearchResultList<WorkItemType> items5 = modelService.searchContainers(WorkItemType.class, query5, null, task, result);
@@ -354,7 +353,7 @@ public class TestActivitiQuery extends AbstractWfTestPolicy {
 		assigneeRefs.add(prv("oid-number-5"));
 		assigneeRefs.add(prv("oid-number-6"));
 
-		ObjectQuery query = QueryBuilder.queryFor(WorkItemType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(WorkItemType.class)
 				.item(WorkItemType.F_ASSIGNEE_REF).ref(assigneeRefs)
 				.build();
 		SearchResultList<WorkItemType> items = modelService

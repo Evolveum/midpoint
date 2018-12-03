@@ -321,7 +321,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getGroupObjectClass(), prismContext);
-		ObjectQueryUtil.filterAnd(query.getFilter(), createAttributeFilter("cn", GROUP_PIRATES_NAME));
+		ObjectQueryUtil.filterAnd(query.getFilter(), createAttributeFilter("cn", GROUP_PIRATES_NAME), prismContext);
 
 		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
 		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
@@ -437,7 +437,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
 
-        ObjectPaging paging = ObjectPaging.createEmptyPaging();
+        ObjectPaging paging = prismContext.queryFactory().createPaging();
         paging.setMaxSize(2);
 		query.setPaging(paging);
 
@@ -468,7 +468,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
 
-        ObjectPaging paging = ObjectPaging.createEmptyPaging();
+        ObjectPaging paging = prismContext.queryFactory().createPaging();
         paging.setMaxSize(11);
 		query.setPaging(paging);
 
@@ -496,7 +496,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
 
-        ObjectPaging paging = ObjectPaging.createEmptyPaging();
+        ObjectPaging paging = prismContext.queryFactory().createPaging();
         paging.setOffset(0);
         paging.setMaxSize(2);
 		query.setPaging(paging);
@@ -530,7 +530,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
 
-        ObjectPaging paging = ObjectPaging.createPaging(1, 2);
+        ObjectPaging paging = prismContext.queryFactory().createPaging(1, 2);
 		query.setPaging(paging);
 
 		SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 2, task, result);
@@ -562,7 +562,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
 
-        ObjectPaging paging = ObjectPaging.createPaging(2, 11);
+        ObjectPaging paging = prismContext.queryFactory().createPaging(2, 11);
 		query.setPaging(paging);
 
 		allowDuplicateSearchResults = true;
@@ -600,7 +600,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
 
-        ObjectPaging paging = ObjectPaging.createPaging(1, 2);
+        ObjectPaging paging = prismContext.queryFactory().createPaging(1, 2);
         paging.setOrdering(getAttributePath(resource, "cn"), OrderDirection.ASCENDING);
 		query.setPaging(paging);
 
@@ -1286,7 +1286,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 
 	protected ObjectQuery createSamAccountNameQuery(String samAccountName) throws SchemaException {
 		ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
-		ObjectQueryUtil.filterAnd(query.getFilter(), createAttributeFilter(ATTRIBUTE_SAM_ACCOUNT_NAME_NAME, samAccountName));
+		ObjectQueryUtil.filterAnd(query.getFilter(), createAttributeFilter(ATTRIBUTE_SAM_ACCOUNT_NAME_NAME, samAccountName),
+				prismContext);
 		return query;
 	}
 

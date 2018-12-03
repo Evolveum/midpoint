@@ -21,7 +21,6 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -123,7 +122,7 @@ public class MidpointUtil {
 	}
 
 	private static Collection<ObjectReferenceType> expandAbstractRole(ObjectReferenceType approverRef, PrismContext prismContext) {
-		ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(UserType.class)
 				.item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(approverRef.asReferenceValue())
 				.build();
 		try {

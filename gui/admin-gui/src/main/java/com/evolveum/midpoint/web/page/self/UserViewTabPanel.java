@@ -18,10 +18,6 @@ package com.evolveum.midpoint.web.page.self;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.assignment.UserSelectionButton;
@@ -206,7 +202,7 @@ public class UserViewTabPanel extends AbstractShoppingCartTabPanel<AbstractRoleT
         if (getRoleCatalogStorage().getAssignmentsUserOwner() != null) {
             UserType assignmentsOwner =  getRoleCatalogStorage().getAssignmentsUserOwner();
             List<String> assignmentTargetObjectOidsList = collectTargetObjectOids(assignmentsOwner.getAssignment());
-            ObjectFilter oidsFilter = InOidFilter.createInOid(assignmentTargetObjectOidsList);
+            ObjectFilter oidsFilter = getPrismContext().queryFactory().createInOid(assignmentTargetObjectOidsList);
             query.addFilter(oidsFilter);
         }
         return query;

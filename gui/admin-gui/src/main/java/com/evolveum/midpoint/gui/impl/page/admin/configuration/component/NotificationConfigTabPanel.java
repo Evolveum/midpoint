@@ -130,7 +130,8 @@ public class NotificationConfigTabPanel extends BasePanel<ContainerWrapper<Notif
 	}
 	
 	private void initPaging() {
-    	getPageBase().getSessionStorage().getNotificationConfigurationTabMailServerTableStorage().setPaging(ObjectPaging.createPaging(0, (int) getPageBase().getItemsPerPage(UserProfileStorage.TableId.NOTIFICATION_TAB_MAIL_SERVER_TABLE)));
+    	getPageBase().getSessionStorage().getNotificationConfigurationTabMailServerTableStorage().setPaging(
+    			getPrismContext().queryFactory().createPaging(0, (int) getPageBase().getItemsPerPage(UserProfileStorage.TableId.NOTIFICATION_TAB_MAIL_SERVER_TABLE)));
     }
 
 	protected void initLayout() {

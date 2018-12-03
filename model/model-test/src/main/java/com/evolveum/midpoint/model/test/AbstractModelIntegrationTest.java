@@ -111,7 +111,6 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrgFilter;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -1483,14 +1482,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		PrismReferenceValue refVal = new PrismReferenceValueImpl();
 		refVal.setOid(targetOid);
 		refVal.setRelation(relation);
-		ObjectQuery query = QueryBuilder.queryFor(FocusType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(FocusType.class)
 				.item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(refVal)
 				.build();
 		return repositoryService.countObjects(FocusType.class, query, null, result);
 	}
 
 	protected SearchResultList<PrismObject<FocusType>> listAssignees(String targetOid, OperationResult result) throws SchemaException {
-		ObjectQuery query = QueryBuilder.queryFor(FocusType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(FocusType.class)
 				.item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(targetOid)
 				.build();
 		return repositoryService.searchObjects(FocusType.class, query, null, result);
@@ -1679,7 +1678,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         Collection<? extends ResourceAttributeDefinition> identifierDefs = rAccount.getPrimaryIdentifiers();
         assert identifierDefs.size() == 1 : "Unexpected identifier set in "+resource+" refined schema: "+identifierDefs;
         ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
-		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(ShadowType.class)
 				.item(ShadowType.F_OBJECT_CLASS).eq(rAccount.getObjectClassDefinition().getTypeName())
 				.and().item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
 				.build();
@@ -1776,7 +1775,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assert identifierDefs.size() == 1 : "Unexpected identifier set in "+resource+" refined schema: "+identifierDefs;
         ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
         //TODO: set matching rule instead of null
-		return QueryBuilder.queryFor(ShadowType.class, prismContext)
+		return prismContext.queryFor(ShadowType.class)
 				.itemWithDef(identifierDef, ShadowType.F_ATTRIBUTES, identifierDef.getName()).eq(username)
 				.and().item(ShadowType.F_OBJECT_CLASS).eq(rAccount.getObjectClassDefinition().getTypeName())
 				.and().item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
@@ -2172,14 +2171,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected List<PrismObject<OrgType>> getSubOrgs(String baseOrgOid, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		ObjectQuery query = QueryBuilder.queryFor(OrgType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(OrgType.class)
 				.isDirectChildOf(baseOrgOid)
 				.build();
 		return modelService.searchObjects(OrgType.class, query, null, task, result);
 	}
 	
 	protected List<PrismObject<UserType>> getSubOrgUsers(String baseOrgOid, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(UserType.class)
 				.isDirectChildOf(baseOrgOid)
 				.build();
 		return modelService.searchObjects(UserType.class, query, null, task, result);
@@ -2754,7 +2753,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
     protected List<PrismObject<OrgType>> searchOrg(String baseOrgOid, OrgFilter.Scope scope, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		ObjectQuery query = QueryBuilder.queryFor(OrgType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(OrgType.class)
 				.isInScopeOf(baseOrgOid, scope)
 				.build();
 		return modelService.searchObjects(OrgType.class, query, null, task, result);
@@ -4932,12 +4931,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected List<PrismObject<UserType>> findUserInRepoUnchecked(String name, OperationResult result) throws SchemaException {
-		ObjectQuery q = QueryBuilder.queryFor(UserType.class, prismContext).item(UserType.F_NAME).eqPoly(name).matchingOrig().build();
+		ObjectQuery q = prismContext.queryFor(UserType.class).item(UserType.F_NAME).eqPoly(name).matchingOrig().build();
 		return repositoryService.searchObjects(UserType.class, q, null, result);
 	}
 
 	protected List<PrismObject<RoleType>> findRoleInRepoUnchecked(String name, OperationResult result) throws SchemaException {
-		ObjectQuery q = QueryBuilder.queryFor(RoleType.class, prismContext).item(RoleType.F_NAME).eqPoly(name).matchingOrig().build();
+		ObjectQuery q = prismContext.queryFor(RoleType.class).item(RoleType.F_NAME).eqPoly(name).matchingOrig().build();
 		return repositoryService.searchObjects(RoleType.class, q, null, result);
 	}
 
@@ -5211,7 +5210,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
 			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
 			ConfigurationException, ExpressionEvaluationException {
-		ObjectQuery query = QueryBuilder.queryFor(TaskType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(TaskType.class)
 				.item(TaskType.F_OBJECT_REF).ref(new PrismReferenceValueImpl(oid, type))
 				.build();
 		return modelService.searchObjects(TaskType.class, query, options, task, result);
@@ -5668,7 +5667,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected <O extends ObjectType> void assertSearchFilter(Class<O> type, ObjectFilter filter, int expectedResults) throws Exception {
-		assertSearch(type, ObjectQuery.createObjectQuery(filter), null, expectedResults);
+		assertSearch(type, prismContext.queryFactory().createObjectQuery(filter), null, expectedResults);
 	}
 	
 	protected <O extends ObjectType> SearchResultList<PrismObject<O>> assertSearch(Class<O> type, ObjectQuery query, int expectedResults) throws Exception {
@@ -5723,11 +5722,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected <O extends ObjectType> void assertSearchFilter(Class<O> type, ObjectFilter filter,
 			Collection<SelectorOptions<GetOperationOptions>> options, String... expectedOids) throws Exception {
-		assertSearch(type, ObjectQuery.createObjectQuery(filter), options, expectedOids);
+		assertSearch(type, prismContext.queryFactory().createObjectQuery(filter), options, expectedOids);
 	}
 	
 	protected <O extends ObjectType> void assertSearchFilter(Class<O> type, ObjectFilter filter, String... expectedOids) throws Exception {
-		assertSearch(type, ObjectQuery.createObjectQuery(filter), expectedOids);
+		assertSearch(type, prismContext.queryFactory().createObjectQuery(filter), expectedOids);
 	}
 	
 	protected <O extends ObjectType> void assertSearch(Class<O> type, ObjectQuery query,

@@ -289,7 +289,7 @@ public class GetOperationOptionsBuilderImpl implements GetOperationOptionsBuilde
 	private ObjectPaging getOrCreatePaging() {
 		checkRelationalValueSearchQuery();
 		if (relationalValueSearchQuery.getPaging() == null) {
-			relationalValueSearchQuery.setPaging(ObjectPaging.createEmptyPaging());
+			relationalValueSearchQuery.setPaging(prismContext.queryFactory().createPaging());
 		}
 		return relationalValueSearchQuery.getPaging();
 	}

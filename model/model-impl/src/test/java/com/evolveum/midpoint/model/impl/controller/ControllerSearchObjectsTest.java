@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.impl.controller;
 
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -38,13 +39,10 @@ import org.testng.annotations.Test;
 @ContextConfiguration(locations = { "classpath:ctx-model-test-no-repo.xml" })
 public class ControllerSearchObjectsTest extends AbstractTestNGSpringContextTests {
 
-	@Autowired(required = true)
-	private ModelService controller;
-	@Autowired(required = true)
-	@Qualifier("cacheRepositoryService")
-	private RepositoryService repository;
-	@Autowired(required = true)
-	private ProvisioningService provisioning;
+	@Autowired private ModelService controller;
+	@Autowired @Qualifier("cacheRepositoryService") private RepositoryService repository;
+	@Autowired private ProvisioningService provisioning;
+	@Autowired private PrismContext prismContext;
 
 	@BeforeMethod
 	public void before() {
@@ -58,13 +56,13 @@ public class ControllerSearchObjectsTest extends AbstractTestNGSpringContextTest
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullPaging() throws Exception {
-		controller.searchObjects(null, new ObjectQuery(), null, null, null);
+		controller.searchObjects(null, prismContext.queryFactory().createObjectQuery(), null, null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullResult() throws Exception {
-		ObjectPaging paging = ObjectPaging.createPaging(0, Integer.MAX_VALUE, (ItemPath) null, null);
-		ObjectQuery query = ObjectQuery.createObjectQuery(paging);
+		ObjectPaging paging = prismContext.queryFactory().createPaging(0, Integer.MAX_VALUE, (ItemPath) null, null);
+		ObjectQuery query = prismContext.queryFactory().createObjectQuery(paging);
 		controller.searchObjects(null, query, null, null, null);
 	}
 }

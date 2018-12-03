@@ -21,6 +21,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.
 import java.util.*;
 
 import com.evolveum.midpoint.gui.api.PredefinedDashboardWidgetId;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
 import com.evolveum.midpoint.web.application.Url;
@@ -30,7 +31,6 @@ import org.apache.commons.lang.Validate;
 import org.apache.wicket.Application;
 import org.apache.wicket.Component;
 import org.apache.wicket.Session;
-import org.apache.wicket.ThreadContext;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.model.IModel;
@@ -42,13 +42,7 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
@@ -286,7 +280,7 @@ public class PageSelfDashboard extends PageSelf {
             // TODO try to use current state (user) instead of potentially obsolete principal
             // but this requires some computation (of deputy relation)
             // (Note that the current code is consistent with the other places where work items are displayed.)
-            S_FilterEntryOrEmpty q = QueryBuilder.queryFor(WorkItemType.class, getPrismContext());
+            S_FilterEntryOrEmpty q = getPrismContext().queryFor(WorkItemType.class);
             ObjectQuery query = QueryUtils.filterForAssignees(q, SecurityUtils.getPrincipalUser(),
                     OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, getRelationRegistry())
                     .desc(F_CREATE_TIMESTAMP)

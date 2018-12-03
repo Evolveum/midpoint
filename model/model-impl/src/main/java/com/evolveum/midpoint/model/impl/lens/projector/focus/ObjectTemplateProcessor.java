@@ -55,7 +55,6 @@ import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -66,7 +65,6 @@ import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -496,8 +494,8 @@ public class ObjectTemplateProcessor {
 			return;
 		}
 		
-		ObjectQuery query = QueryBuilder
-				.queryFor(AbstractRoleType.class, prismContext)
+		ObjectQuery query = prismContext
+				.queryFor(AbstractRoleType.class)
 				.item(SchemaConstants.PATH_AUTOASSIGN_ENABLED)
 				.eq(true)
 				.build();

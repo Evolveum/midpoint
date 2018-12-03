@@ -46,7 +46,6 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
@@ -252,7 +251,7 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         if (!isOrderingDisabled()) {
             orderings = createObjectOrderings(getSort());
         }
-        return ObjectPaging.createPaging(o, size, orderings);
+        return getPrismContext().queryFactory().createPaging(o, size, orderings);
     }
 
 	/**
@@ -263,7 +262,7 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
 		if (sortParam != null && sortParam.getProperty() != null) {
 			OrderDirection order = sortParam.isAscending() ? OrderDirection.ASCENDING : OrderDirection.DESCENDING;
 			return Collections.singletonList(
-					ObjectOrdering.createOrdering(
+					getPrismContext().queryFactory().createOrdering(
                             ItemPath.create(new QName(SchemaConstantsGenerated.NS_COMMON, sortParam.getProperty())), order));
 		} else {
 			return Collections.emptyList();

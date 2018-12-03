@@ -55,7 +55,6 @@ import com.evolveum.midpoint.gui.impl.model.RealValueFromSingleValuePropertyWrap
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -503,11 +502,13 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 	}
 
     private void initAppenderPaging() {
-    	getPageBase().getSessionStorage().getLoggingConfigurationTabAppenderTableStorage().setPaging(ObjectPaging.createPaging(0, (int) ((PageBase)getPage()).getItemsPerPage(UserProfileStorage.TableId.LOGGING_TAB_APPENDER_TABLE)));
+    	getPageBase().getSessionStorage().getLoggingConfigurationTabAppenderTableStorage().setPaging(
+    			getPrismContext().queryFactory().createPaging(0, (int) ((PageBase)getPage()).getItemsPerPage(UserProfileStorage.TableId.LOGGING_TAB_APPENDER_TABLE)));
     }
     
     private void initLoggerPaging() {
-    	getPageBase().getSessionStorage().getLoggingConfigurationTabLoggerTableStorage().setPaging(ObjectPaging.createPaging(0, (int) ((PageBase)getPage()).getItemsPerPage(UserProfileStorage.TableId.LOGGING_TAB_APPENDER_TABLE)));
+    	getPageBase().getSessionStorage().getLoggingConfigurationTabLoggerTableStorage().setPaging(
+    			getPrismContext().queryFactory().createPaging(0, (int) ((PageBase)getPage()).getItemsPerPage(UserProfileStorage.TableId.LOGGING_TAB_APPENDER_TABLE)));
     }
     
     private List<IColumn<ContainerValueWrapper<AppenderConfigurationType>, String>> initAppendersBasicColumns() {

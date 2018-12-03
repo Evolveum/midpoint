@@ -129,7 +129,7 @@ public class WorkItemProvider {
 	    final List<ObjectQueryUtil.FilterExtractor> EXTRACTORS = new ArrayList<>(ObjectQueryUtil.DEFAULT_EXTRACTORS);
 	    EXTRACTORS.add(CREATED_LT_GT_EXTRACTOR);
 
-	    FilterComponents components = factorOutQuery(query, EXTRACTORS, ASSIGNEE_PATH, CANDIDATE_PATH, WORK_ITEM_ID_PATH, CREATED_PATH);
+	    FilterComponents components = factorOutQuery(prismContext, query, EXTRACTORS, ASSIGNEE_PATH, CANDIDATE_PATH, WORK_ITEM_ID_PATH, CREATED_PATH);
 	    List<ObjectFilter> remainingClauses = components.getRemainderClauses();
 	    if (!remainingClauses.isEmpty()) {
 		    throw new SchemaException("Unsupported clause(s) in search filter: " + remainingClauses);

@@ -26,19 +26,19 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * 
  * @author Radovan Semancik
  */
-public class NoneFilter extends ObjectFilter {
+public class NoneFilterImpl extends ObjectFilterImpl implements NoneFilter {
 
-	public NoneFilter() {
+	public NoneFilterImpl() {
 		super();
 	}
 
 	public static NoneFilter createNone() {
-		return new NoneFilter();
+		return new NoneFilterImpl();
 	}
 	
 	@Override
-	public NoneFilter clone() {
-		return new NoneFilter();
+	public NoneFilterImpl clone() {
+		return new NoneFilterImpl();
 	}
 	
 	@Override

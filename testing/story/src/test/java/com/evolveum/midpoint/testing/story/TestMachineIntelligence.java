@@ -38,7 +38,6 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -163,7 +162,7 @@ public class TestMachineIntelligence extends AbstractStoryTest {
 
         //assert created organization
 		SearchResultList<PrismObject<OrgType>> orgs = modelService.searchObjects(
-				OrgType.class, QueryBuilder.queryFor(OrgType.class, prismContext).item(OrgType.F_NAME)
+				OrgType.class, prismContext.queryFor(OrgType.class).item(OrgType.F_NAME)
 						.eq("Universe").matching(PrismConstants.POLY_STRING_NORM_MATCHING_RULE_NAME).build(),
 				null, task, result);
         assertEquals("Found unexpected number of organizations, expected 1, found " + orgs.size(), 1, orgs.size());
@@ -197,7 +196,7 @@ public class TestMachineIntelligence extends AbstractStoryTest {
         //assert created organization
 		SearchResultList<PrismObject<OrgType>> orgs = modelService
 				.searchObjects(
-						OrgType.class, QueryBuilder.queryFor(OrgType.class, prismContext).item(OrgType.F_NAME)
+						OrgType.class, prismContext.queryFor(OrgType.class).item(OrgType.F_NAME)
 								.eq("Earth").matching(PrismConstants.POLY_STRING_NORM_MATCHING_RULE_NAME).build(),
 						null, task, result);
         assertEquals("Found unexpected number of organizations, expected 1, found " + orgs.size(), 1, orgs.size());

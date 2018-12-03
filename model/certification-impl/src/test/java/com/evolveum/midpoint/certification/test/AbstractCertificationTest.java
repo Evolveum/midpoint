@@ -22,7 +22,6 @@ import com.evolveum.midpoint.model.api.AccessCertificationService;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -51,7 +50,6 @@ import java.io.FileNotFoundException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.schema.RetrieveOption.INCLUDE;
 import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_CASE;
@@ -600,7 +598,7 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		Task task = taskManager.createTaskInstance(AbstractCertificationTest.class.getName() + ".countCampaignCases");
 		OperationResult result = task.getResult();
-		ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(AccessCertificationCaseType.class)
 				.ownerId(campaignOid)
 				.build();
 		int rv = modelService.countContainers(AccessCertificationCaseType.class, query, null, task, result);
@@ -747,7 +745,7 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 	}
 
 	protected void waitForCampaignTasks(String campaignOid, int timeout, OperationResult result) throws CommonException {
-    	ObjectQuery query = QueryBuilder.queryFor(TaskType.class, prismContext)
+    	ObjectQuery query = prismContext.queryFor(TaskType.class)
 			    .item(TaskType.F_OBJECT_REF).ref(campaignOid)
 			    .build();
 		SearchResultList<PrismObject<TaskType>> campaignTasks = repositoryService.searchObjects(TaskType.class, query, null, result);

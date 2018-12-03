@@ -40,7 +40,6 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryConverter;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -454,7 +453,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 	protected PrismObject<ConnectorType> findConnectorByType(String connectorType, OperationResult result)
 			throws SchemaException {
-		ObjectQuery query = QueryBuilder.queryFor(ConnectorType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(ConnectorType.class)
 				.item(ConnectorType.F_CONNECTOR_TYPE).eq(connectorType)
 				.build();
 		List<PrismObject<ConnectorType>> connectors = repositoryService.searchObjects(ConnectorType.class, query, null, result);
@@ -466,7 +465,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 	protected PrismObject<ConnectorType> findConnectorByTypeAndVersion(String connectorType, String connectorVersion, OperationResult result)
 			throws SchemaException {
-		ObjectQuery query = QueryBuilder.queryFor(ConnectorType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(ConnectorType.class)
 				.item(ConnectorType.F_CONNECTOR_TYPE).eq(connectorType)
 				.and().item(ConnectorType.F_CONNECTOR_VERSION).eq(connectorVersion)
 				.build();
@@ -1080,7 +1079,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         assert identifierDefs.size() == 1 : "Unexpected identifier set in "+resource+" refined schema: "+identifierDefs;
         ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
         //TODO: set matching rule instead of null
-		return QueryBuilder.queryFor(ShadowType.class, prismContext)
+		return prismContext.queryFor(ShadowType.class)
 				.itemWithDef(identifierDef, ShadowType.F_ATTRIBUTES, identifierDef.getName()).eq(identifier)
 				.and().item(ShadowType.F_OBJECT_CLASS).eq(rAccount.getObjectClassDefinition().getTypeName())
 				.and().item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
@@ -1098,7 +1097,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         assert identifierDefs.size() == 1 : "Unexpected identifier set in "+resource+" refined schema: "+identifierDefs;
         ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
 		//TODO: set matching rule instead of null
-		return QueryBuilder.queryFor(ShadowType.class, prismContext)
+		return prismContext.queryFor(ShadowType.class)
 				.itemWithDef(identifierDef, ShadowType.F_ATTRIBUTES, identifierDef.getName()).eq(identifier)
 				.and().item(ShadowType.F_OBJECT_CLASS).eq(rAccount.getTypeName())
 				.and().item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
@@ -1113,7 +1112,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 	protected ObjectQuery createShadowQueryByAttribute(ObjectClassComplexTypeDefinition rAccount, String attributeName, String attributeValue, PrismObject<ResourceType> resource) throws SchemaException {
         ResourceAttributeDefinition<Object> attrDef = rAccount.findAttributeDefinition(attributeName);
-		return QueryBuilder.queryFor(ShadowType.class, prismContext)
+		return prismContext.queryFor(ShadowType.class)
 				.itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getName()).eq(attributeValue)
 				.and().item(ShadowType.F_OBJECT_CLASS).eq(rAccount.getTypeName())
 				.and().item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
@@ -2123,7 +2122,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 
 	protected S_FilterEntryOrEmpty queryFor(Class<? extends Containerable> queryClass) {
-		return QueryBuilder.queryFor(queryClass, prismContext);
+		return prismContext.queryFor(queryClass);
 	}
 
 	protected void displayCounters(InternalCounters... counters) {

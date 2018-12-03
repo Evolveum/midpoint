@@ -481,7 +481,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getGroupObjectClass(), prismContext);
-		ObjectQueryUtil.filterAnd(query.getFilter(), createAttributeFilter("cn", GROUP_PIRATES_NAME));
+		ObjectQueryUtil.filterAnd(query.getFilter(), createAttributeFilter("cn", GROUP_PIRATES_NAME), prismContext);
 
 		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
 		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
@@ -603,7 +603,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
 
-        ObjectPaging paging = ObjectPaging.createEmptyPaging();
+        ObjectPaging paging = prismContext.queryFactory().createPaging();
         paging.setMaxSize(2);
 		query.setPaging(paging);
 
@@ -2346,7 +2346,8 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
 	protected ObjectQuery createSamAccountNameQuery(String samAccountName) throws SchemaException {
 		ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
-		ObjectQueryUtil.filterAnd(query.getFilter(), createAttributeFilter(ATTRIBUTE_SAM_ACCOUNT_NAME_NAME, samAccountName));
+		ObjectQueryUtil.filterAnd(query.getFilter(), createAttributeFilter(ATTRIBUTE_SAM_ACCOUNT_NAME_NAME, samAccountName),
+				prismContext);
 		return query;
 	}
 

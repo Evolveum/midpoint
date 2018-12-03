@@ -34,7 +34,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
-public abstract class ValueFilter<V extends PrismValue, D extends ItemDefinition> extends ObjectFilter implements Itemable, ItemFilter {
+public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefinition> extends ObjectFilterImpl implements ValueFilter<V, D> {
 	private static final long serialVersionUID = 1L;
 
 	@NotNull private final ItemPath fullPath;
@@ -55,11 +55,11 @@ public abstract class ValueFilter<V extends PrismValue, D extends ItemDefinition
 	 * that it is worth the discomfort of the clients (they cannot change they if the would wish).
 	 * Some of them like definition, matchingRule, and right-hand things are filled-in later in some cases (provisioning, query builder).
 	 */
-	protected ValueFilter(@NotNull ItemPath fullPath, @Nullable D definition) {
+	protected ValueFilterImpl(@NotNull ItemPath fullPath, @Nullable D definition) {
 		this(fullPath, definition, null, null, null, null, null);
 	}
 
-	protected ValueFilter(@NotNull ItemPath fullPath, @Nullable D definition, @Nullable QName matchingRule,
+	protected ValueFilterImpl(@NotNull ItemPath fullPath, @Nullable D definition, @Nullable QName matchingRule,
 			@Nullable List<V> values, @Nullable ExpressionWrapper expression,
 			@Nullable ItemPath rightHandSidePath, @Nullable ItemDefinition rightHandSideDefinition) {
 		Validate.isTrue(!ItemPath.isEmpty(fullPath), "path in filter is null or empty");
@@ -290,7 +290,7 @@ public abstract class ValueFilter<V extends PrismValue, D extends ItemDefinition
 	}
 
 	@Override
-	public abstract ValueFilter clone();
+	public abstract ValueFilterImpl clone();
 
 	@SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
 	@Override
@@ -304,7 +304,7 @@ public abstract class ValueFilter<V extends PrismValue, D extends ItemDefinition
 			return true;
 		if (o == null || getClass() != o.getClass())
 			return false;
-		ValueFilter<?, ?> that = (ValueFilter<?, ?>) o;
+		ValueFilterImpl<?, ?> that = (ValueFilterImpl<?, ?>) o;
 		return fullPath.equals(that.fullPath, exact) &&
 				(!exact || Objects.equals(definition, that.definition)) &&
 				Objects.equals(matchingRule, that.matchingRule) &&

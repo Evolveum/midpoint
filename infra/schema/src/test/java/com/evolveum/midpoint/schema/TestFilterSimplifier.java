@@ -17,7 +17,6 @@ package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -54,12 +53,12 @@ public class TestFilterSimplifier {
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 
 		// WHEN
-		ObjectFilter filter = QueryBuilder.queryFor(UserType.class, prismContext)
+		ObjectFilter filter = prismContext.queryFor(UserType.class)
 				.all().buildFilter();
 		System.out.println("Original filter:\n" + filter.debugDump());
 
 		// THEN
-		ObjectFilter simplified = ObjectQueryUtil.simplify(filter);
+		ObjectFilter simplified = ObjectQueryUtil.simplify(filter, prismContext);
 		System.out.println("Simplified filter:\n" + DebugUtil.debugDump(simplified));
 		assertTrue("Wrong simplified filter: " + simplified, simplified == null || simplified instanceof AllFilter);
     }
@@ -72,12 +71,12 @@ public class TestFilterSimplifier {
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 
 		// WHEN
-		ObjectFilter filter = QueryBuilder.queryFor(UserType.class, prismContext)
+		ObjectFilter filter = prismContext.queryFor(UserType.class)
 				.none().buildFilter();
 		System.out.println("Original filter:\n" + filter.debugDump());
 
 		// THEN
-		ObjectFilter simplified = ObjectQueryUtil.simplify(filter);
+		ObjectFilter simplified = ObjectQueryUtil.simplify(filter, prismContext);
 		System.out.println("Simplified filter:\n" + DebugUtil.debugDump(simplified));
 		assertTrue("Wrong simplified filter: " + simplified, simplified instanceof NoneFilter);
     }
@@ -90,12 +89,12 @@ public class TestFilterSimplifier {
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 
 		// WHEN
-		ObjectFilter filter = QueryBuilder.queryFor(UserType.class, prismContext)
+		ObjectFilter filter = prismContext.queryFor(UserType.class)
 				.undefined().buildFilter();
 		System.out.println("Original filter:\n" + filter.debugDump());
 
 		// THEN
-		ObjectFilter simplified = ObjectQueryUtil.simplify(filter);
+		ObjectFilter simplified = ObjectQueryUtil.simplify(filter, prismContext);
 		System.out.println("Simplified filter:\n" + DebugUtil.debugDump(simplified));
 		assertTrue("Wrong simplified filter: " + simplified, simplified == null || simplified instanceof AllFilter);
 	}
@@ -108,7 +107,7 @@ public class TestFilterSimplifier {
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 
 		// WHEN
-		ObjectFilter filter = QueryBuilder.queryFor(UserType.class, prismContext)
+		ObjectFilter filter = prismContext.queryFor(UserType.class)
 				.all()
 				.and().none()
 				.and().undefined()
@@ -116,7 +115,7 @@ public class TestFilterSimplifier {
 		System.out.println("Original filter:\n" + filter.debugDump());
 
 		// THEN
-		ObjectFilter simplified = ObjectQueryUtil.simplify(filter);
+		ObjectFilter simplified = ObjectQueryUtil.simplify(filter, prismContext);
 		System.out.println("Simplified filter:\n" + DebugUtil.debugDump(simplified));
 		assertTrue("Wrong simplified filter: " + simplified, simplified instanceof NoneFilter);
 	}
@@ -129,14 +128,14 @@ public class TestFilterSimplifier {
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 
 		// WHEN
-		ObjectFilter filter = QueryBuilder.queryFor(UserType.class, prismContext)
+		ObjectFilter filter = prismContext.queryFor(UserType.class)
 				.all()
 				.and().undefined()
 				.buildFilter();
 		System.out.println("Original filter:\n" + filter.debugDump());
 
 		// THEN
-		ObjectFilter simplified = ObjectQueryUtil.simplify(filter);
+		ObjectFilter simplified = ObjectQueryUtil.simplify(filter, prismContext);
 		System.out.println("Simplified filter:\n" + DebugUtil.debugDump(simplified));
 		assertTrue("Wrong simplified filter: " + simplified, simplified == null || simplified instanceof AllFilter);
 	}
@@ -149,11 +148,11 @@ public class TestFilterSimplifier {
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 
 		// WHEN
-		ObjectFilter filter = AndFilter.createAnd();
+		ObjectFilter filter = prismContext.queryFactory().createAnd();
 		System.out.println("Original filter:\n" + filter.debugDump());
 
 		// THEN
-		ObjectFilter simplified = ObjectQueryUtil.simplify(filter);
+		ObjectFilter simplified = ObjectQueryUtil.simplify(filter, prismContext);
 		System.out.println("Simplified filter:\n" + DebugUtil.debugDump(simplified));
 		assertTrue("Wrong simplified filter: " + simplified, simplified == null || simplified instanceof AllFilter);
 	}
@@ -166,7 +165,7 @@ public class TestFilterSimplifier {
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 
 		// WHEN
-		ObjectFilter filter = QueryBuilder.queryFor(UserType.class, prismContext)
+		ObjectFilter filter = prismContext.queryFor(UserType.class)
 				.all()
 				.or().none()
 				.or().undefined()
@@ -174,7 +173,7 @@ public class TestFilterSimplifier {
 		System.out.println("Original filter:\n" + filter.debugDump());
 
 		// THEN
-		ObjectFilter simplified = ObjectQueryUtil.simplify(filter);
+		ObjectFilter simplified = ObjectQueryUtil.simplify(filter, prismContext);
 		System.out.println("Simplified filter:\n" + DebugUtil.debugDump(simplified));
 		assertTrue("Wrong simplified filter: " + simplified, simplified == null || simplified instanceof AllFilter);
 	}
@@ -187,14 +186,14 @@ public class TestFilterSimplifier {
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 
 		// WHEN
-		ObjectFilter filter = QueryBuilder.queryFor(UserType.class, prismContext)
+		ObjectFilter filter = prismContext.queryFor(UserType.class)
 				.none()
 				.or().undefined()
 				.buildFilter();
 		System.out.println("Original filter:\n" + filter.debugDump());
 
 		// THEN
-		ObjectFilter simplified = ObjectQueryUtil.simplify(filter);
+		ObjectFilter simplified = ObjectQueryUtil.simplify(filter, prismContext);
 		System.out.println("Simplified filter:\n" + DebugUtil.debugDump(simplified));
 		assertTrue("Wrong simplified filter: " + simplified, simplified instanceof NoneFilter);
 	}
@@ -207,11 +206,11 @@ public class TestFilterSimplifier {
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 
 		// WHEN
-		ObjectFilter filter = OrFilter.createOr(UndefinedFilter.createUndefined());
+		ObjectFilter filter = OrFilterImpl.createOr(UndefinedFilterImpl.createUndefined());
 		System.out.println("Original filter:\n" + filter.debugDump());
 
 		// THEN
-		ObjectFilter simplified = ObjectQueryUtil.simplify(filter);
+		ObjectFilter simplified = ObjectQueryUtil.simplify(filter, prismContext);
 		System.out.println("Simplified filter:\n" + DebugUtil.debugDump(simplified));
 		assertTrue("Wrong simplified filter: " + simplified, simplified instanceof NoneFilter);
 	}
@@ -224,11 +223,11 @@ public class TestFilterSimplifier {
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 
 		// WHEN
-		ObjectFilter filter = OrFilter.createOr();
+		ObjectFilter filter = OrFilterImpl.createOr();
 		System.out.println("Original filter:\n" + filter.debugDump());
 
 		// THEN
-		ObjectFilter simplified = ObjectQueryUtil.simplify(filter);
+		ObjectFilter simplified = ObjectQueryUtil.simplify(filter, prismContext);
 		System.out.println("Simplified filter:\n" + DebugUtil.debugDump(simplified));
 		assertTrue("Wrong simplified filter: " + simplified, simplified instanceof NoneFilter);
 	}
@@ -241,7 +240,7 @@ public class TestFilterSimplifier {
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 
 		// WHEN
-		ObjectFilter filter = QueryBuilder.queryFor(UserType.class, prismContext)
+		ObjectFilter filter = prismContext.queryFor(UserType.class)
 				.all()
 				.and().undefined()
 				.and()
@@ -256,7 +255,7 @@ public class TestFilterSimplifier {
 		System.out.println("Original filter:\n" + filter.debugDump());
 
 		// THEN
-		ObjectFilter simplified = ObjectQueryUtil.simplify(filter);
+		ObjectFilter simplified = ObjectQueryUtil.simplify(filter, prismContext);
 		System.out.println("Simplified filter:\n" + DebugUtil.debugDump(simplified));
 		assertTrue("Wrong simplified filter: " + simplified, simplified instanceof NoneFilter);
 	}
@@ -269,7 +268,7 @@ public class TestFilterSimplifier {
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 
 		// WHEN
-		ObjectFilter filter = QueryBuilder.queryFor(UserType.class, prismContext)
+		ObjectFilter filter = prismContext.queryFor(UserType.class)
 				.none()
 				.or().undefined()
 				.or()
@@ -284,7 +283,7 @@ public class TestFilterSimplifier {
 		System.out.println("Original filter:\n" + filter.debugDump());
 
 		// THEN
-		ObjectFilter simplified = ObjectQueryUtil.simplify(filter);
+		ObjectFilter simplified = ObjectQueryUtil.simplify(filter, prismContext);
 		System.out.println("Simplified filter:\n" + DebugUtil.debugDump(simplified));
 		assertTrue("Wrong simplified filter: " + simplified, simplified instanceof NoneFilter);
 	}
@@ -297,13 +296,13 @@ public class TestFilterSimplifier {
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 
 		// WHEN
-		ObjectFilter filter = QueryBuilder.queryFor(UserType.class, prismContext)
+		ObjectFilter filter = prismContext.queryFor(UserType.class)
 				.not().all()
 				.buildFilter();
 		System.out.println("Original filter:\n" + filter.debugDump());
 
 		// THEN
-		ObjectFilter simplified = ObjectQueryUtil.simplify(filter);
+		ObjectFilter simplified = ObjectQueryUtil.simplify(filter, prismContext);
 		System.out.println("Simplified filter:\n" + DebugUtil.debugDump(simplified));
 		assertTrue("Wrong simplified filter: " + simplified, simplified instanceof NoneFilter);
 	}
@@ -316,13 +315,13 @@ public class TestFilterSimplifier {
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 
 		// WHEN
-		ObjectFilter filter = QueryBuilder.queryFor(UserType.class, prismContext)
+		ObjectFilter filter = prismContext.queryFor(UserType.class)
 				.not().none()
 				.buildFilter();
 		System.out.println("Original filter:\n" + filter.debugDump());
 
 		// THEN
-		ObjectFilter simplified = ObjectQueryUtil.simplify(filter);
+		ObjectFilter simplified = ObjectQueryUtil.simplify(filter, prismContext);
 		System.out.println("Simplified filter:\n" + DebugUtil.debugDump(simplified));
 		assertTrue("Wrong simplified filter: " + simplified, simplified == null || simplified instanceof AllFilter);
 	}
@@ -335,13 +334,13 @@ public class TestFilterSimplifier {
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 
 		// WHEN
-		ObjectFilter filter = QueryBuilder.queryFor(UserType.class, prismContext)
+		ObjectFilter filter = prismContext.queryFor(UserType.class)
 				.not().block().not().all().endBlock()
 				.buildFilter();
 		System.out.println("Original filter:\n" + filter.debugDump());
 
 		// THEN
-		ObjectFilter simplified = ObjectQueryUtil.simplify(filter);
+		ObjectFilter simplified = ObjectQueryUtil.simplify(filter, prismContext);
 		System.out.println("Simplified filter:\n" + DebugUtil.debugDump(simplified));
 		assertTrue("Wrong simplified filter: " + simplified, simplified == null || simplified instanceof AllFilter);
 	}
@@ -354,13 +353,13 @@ public class TestFilterSimplifier {
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 
 		// WHEN
-		ObjectFilter filter = QueryBuilder.queryFor(UserType.class, prismContext)
+		ObjectFilter filter = prismContext.queryFor(UserType.class)
 				.not().block().not().none().endBlock()
 				.buildFilter();
 		System.out.println("Original filter:\n" + filter.debugDump());
 
 		// THEN
-		ObjectFilter simplified = ObjectQueryUtil.simplify(filter);
+		ObjectFilter simplified = ObjectQueryUtil.simplify(filter, prismContext);
 		System.out.println("Simplified filter:\n" + DebugUtil.debugDump(simplified));
 		assertTrue("Wrong simplified filter: " + simplified, simplified instanceof NoneFilter);
 	}
@@ -373,13 +372,13 @@ public class TestFilterSimplifier {
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 
 		// WHEN
-		ObjectFilter filter = QueryBuilder.queryFor(UserType.class, prismContext)
+		ObjectFilter filter = prismContext.queryFor(UserType.class)
 				.type(UserType.class).all()
 				.buildFilter();
 		System.out.println("Original filter:\n" + filter.debugDump());
 
 		// THEN
-		ObjectFilter simplified = ObjectQueryUtil.simplify(filter);
+		ObjectFilter simplified = ObjectQueryUtil.simplify(filter, prismContext);
 		System.out.println("Simplified filter:\n" + DebugUtil.debugDump(simplified));
 		assertTrue("Wrong simplified filter: " + simplified, simplified instanceof TypeFilter);
 		TypeFilter typeSimplified = (TypeFilter) simplified;
@@ -395,13 +394,13 @@ public class TestFilterSimplifier {
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 
 		// WHEN
-		ObjectFilter filter = QueryBuilder.queryFor(UserType.class, prismContext)
+		ObjectFilter filter = prismContext.queryFor(UserType.class)
 				.type(UserType.class).none()
 				.buildFilter();
 		System.out.println("Original filter:\n" + filter.debugDump());
 
 		// THEN
-		ObjectFilter simplified = ObjectQueryUtil.simplify(filter);
+		ObjectFilter simplified = ObjectQueryUtil.simplify(filter, prismContext);
 		System.out.println("Simplified filter:\n" + DebugUtil.debugDump(simplified));
 		assertTrue("Wrong simplified filter: " + simplified, simplified instanceof NoneFilter);
 	}
@@ -414,13 +413,13 @@ public class TestFilterSimplifier {
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 
 		// WHEN
-		ObjectFilter filter = QueryBuilder.queryFor(UserType.class, prismContext)
+		ObjectFilter filter = prismContext.queryFor(UserType.class)
 				.type(UserType.class).undefined()
 				.buildFilter();
 		System.out.println("Original filter:\n" + filter.debugDump());
 
 		// THEN
-		ObjectFilter simplified = ObjectQueryUtil.simplify(filter);
+		ObjectFilter simplified = ObjectQueryUtil.simplify(filter, prismContext);
 		System.out.println("Simplified filter:\n" + DebugUtil.debugDump(simplified));
 		assertTrue("Wrong simplified filter: " + simplified, simplified instanceof TypeFilter);
 		TypeFilter typeSimplified = (TypeFilter) simplified;
@@ -436,13 +435,13 @@ public class TestFilterSimplifier {
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 
 		// WHEN
-		ObjectFilter filter = QueryBuilder.queryFor(UserType.class, prismContext)
+		ObjectFilter filter = prismContext.queryFor(UserType.class)
 				.exists(UserType.F_ASSIGNMENT).all()
 				.buildFilter();
 		System.out.println("Original filter:\n" + filter.debugDump());
 
 		// THEN
-		ObjectFilter simplified = ObjectQueryUtil.simplify(filter);
+		ObjectFilter simplified = ObjectQueryUtil.simplify(filter, prismContext);
 		System.out.println("Simplified filter:\n" + DebugUtil.debugDump(simplified));
 		assertTrue("Wrong simplified filter: " + simplified, simplified instanceof ExistsFilter);
 		ExistsFilter existsSimplified = (ExistsFilter) simplified;
@@ -458,13 +457,13 @@ public class TestFilterSimplifier {
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 
 		// WHEN
-		ObjectFilter filter = QueryBuilder.queryFor(UserType.class, prismContext)
+		ObjectFilter filter = prismContext.queryFor(UserType.class)
 				.exists(UserType.F_ASSIGNMENT).none()
 				.buildFilter();
 		System.out.println("Original filter:\n" + filter.debugDump());
 
 		// THEN
-		ObjectFilter simplified = ObjectQueryUtil.simplify(filter);
+		ObjectFilter simplified = ObjectQueryUtil.simplify(filter, prismContext);
 		System.out.println("Simplified filter:\n" + DebugUtil.debugDump(simplified));
 		assertTrue("Wrong simplified filter: " + simplified, simplified instanceof NoneFilter);
 	}
@@ -477,13 +476,13 @@ public class TestFilterSimplifier {
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 
 		// WHEN
-		ObjectFilter filter = QueryBuilder.queryFor(UserType.class, prismContext)
+		ObjectFilter filter = prismContext.queryFor(UserType.class)
 				.exists(UserType.F_ASSIGNMENT).undefined()
 				.buildFilter();
 		System.out.println("Original filter:\n" + filter.debugDump());
 
 		// THEN
-		ObjectFilter simplified = ObjectQueryUtil.simplify(filter);
+		ObjectFilter simplified = ObjectQueryUtil.simplify(filter, prismContext);
 		System.out.println("Simplified filter:\n" + DebugUtil.debugDump(simplified));
 		assertTrue("Wrong simplified filter: " + simplified, simplified instanceof ExistsFilter);
 		ExistsFilter existsSimplified = (ExistsFilter) simplified;

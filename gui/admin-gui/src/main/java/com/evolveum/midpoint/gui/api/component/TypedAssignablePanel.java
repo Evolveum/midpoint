@@ -461,7 +461,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
                     	TypedAssignablePanel.this.getPageBase().showResult(result);
                     }
                     if (query == null){
-                        query = new ObjectQuery();
+                        query = getPrismContext().queryFactory().createObjectQuery();
                     }
                     query.addFilter(filter);
                 }

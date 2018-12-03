@@ -57,7 +57,6 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -1317,7 +1316,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         QName objectClass = new QName(resourceNamespace, OBJECT_CLASS_INETORGPERSON_NAME);
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(resource.getOid(), objectClass, prismContext);
-        ObjectPaging paging = ObjectPaging.createPaging(2, 3);
+        ObjectPaging paging = prismContext.queryFactory().createPaging(2, 3);
 		query.setPaging(paging);
 
         final Collection<ObjectType> objects = new HashSet<>();
@@ -1365,7 +1364,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         QName objectClass = new QName(resourceNamespace, OBJECT_CLASS_INETORGPERSON_NAME);
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(resource.getOid(), objectClass, prismContext);
-        ObjectPaging paging = ObjectPaging.createPaging(null, 3);
+        ObjectPaging paging = prismContext.queryFactory().createPaging(null, 3);
 		query.setPaging(paging);
 
         final Collection<ObjectType> objects = new HashSet<>();
@@ -1852,7 +1851,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
 		ObjectQuery query = getQueryConverter().createObjectQuery(ShadowType.class, queryType);
 
-		ObjectPaging paging = ObjectPaging.createPaging(null, 3);
+		ObjectPaging paging = prismContext.queryFactory().createPaging(null, 3);
 		query.setPaging(paging);
 
 		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
@@ -1888,7 +1887,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
 		ObjectQuery query = getQueryConverter().createObjectQuery(ShadowType.class, queryType);
 
-		ObjectPaging paging = ObjectPaging.createPaging(0, 4);
+		ObjectPaging paging = prismContext.queryFactory().createPaging(0, 4);
 		query.setPaging(paging);
 
 		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
@@ -1924,7 +1923,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
 		ObjectQuery query = getQueryConverter().createObjectQuery(ShadowType.class, queryType);
 
-		ObjectPaging paging = ObjectPaging.createPaging(2, 5);
+		ObjectPaging paging = prismContext.queryFactory().createPaging(2, 5);
 		query.setPaging(paging);
 
 		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
@@ -1961,8 +1960,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
 		ObjectQuery query = getQueryConverter().createObjectQuery(ShadowType.class, queryType);
 
-		ObjectPaging paging = ObjectPaging.createPaging(null, 4);
-		paging.setOrdering(ObjectOrdering.createOrdering(
+		ObjectPaging paging = prismContext.queryFactory().createPaging(null, 4);
+		paging.setOrdering(prismContext.queryFactory().createOrdering(
 				ItemPath.create(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_NS, "sn")), OrderDirection.ASCENDING));
 		query.setPaging(paging);
 
@@ -2000,8 +1999,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
 		ObjectQuery query = getQueryConverter().createObjectQuery(ShadowType.class, queryType);
 
-		ObjectPaging paging = ObjectPaging.createPaging(2, 4);
-		paging.setOrdering(ObjectOrdering.createOrdering(
+		ObjectPaging paging = prismContext.queryFactory().createPaging(2, 4);
+		paging.setOrdering(prismContext.queryFactory().createOrdering(
 				ItemPath.create(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_NS, "sn")), OrderDirection.ASCENDING));
 		query.setPaging(paging);
 

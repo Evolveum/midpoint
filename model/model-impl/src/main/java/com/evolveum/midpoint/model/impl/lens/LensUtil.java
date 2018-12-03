@@ -576,7 +576,7 @@ public class LensUtil {
 	        };
 				
 	        objectResolver.searchIterative(virtualAssignmenetSpecification.getType(), 
-	       		ObjectQuery.createObjectQuery(virtualAssignmenetSpecification.getFilter()), null, handler, task, result);
+	       		prismContext.queryFactory().createObjectQuery(virtualAssignmenetSpecification.getFilter()), null, handler, task, result);
 	        
         }
         

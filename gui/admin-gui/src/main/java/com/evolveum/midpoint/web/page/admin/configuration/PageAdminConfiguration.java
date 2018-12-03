@@ -61,7 +61,7 @@ public class PageAdminConfiguration extends PageAdmin {
     	task.setHandlerUri(ModelPublicConstants.DELETE_TASK_HANDLER_URI);
 
 		if (objectQuery == null) {
-			objectQuery = new ObjectQuery();
+			objectQuery = getPrismContext().queryFactory().createObjectQuery();
 		}
 
 		QueryType query = getQueryConverter().createQueryType(objectQuery);

@@ -24,6 +24,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.FilterUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil;
 import com.evolveum.midpoint.task.api.*;
@@ -36,7 +37,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.query.FilterUtils;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -548,7 +548,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
     @NotNull
     protected ObjectQuery createQueryFromTask(H handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
 	    ObjectQuery query = createQueryFromTaskIfExists(handler, runResult, task, opResult);
-	    return query != null ? query : new ObjectQuery();
+	    return query != null ? query : prismContext.queryFactory().createObjectQuery();
     }
 
 	protected Collection<SelectorOptions<GetOperationOptions>> createSearchOptionsFromTask(H resultHandler, TaskRunResult runResult,
@@ -592,7 +592,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
     		return null;
     	}
     	SearchFilterType filterType = objectRef.getFilter();
-    	if (filterType == null || FilterUtils.isFilterEmpty(filterType)) {
+    	if (filterType == null || FilterUtil.isFilterEmpty(filterType)) {
     		return null;
     	}
     	QueryType queryType = new QueryType();

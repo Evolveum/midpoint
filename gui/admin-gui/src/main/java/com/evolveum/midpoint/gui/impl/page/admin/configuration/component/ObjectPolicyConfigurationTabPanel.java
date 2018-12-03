@@ -47,9 +47,7 @@ import com.evolveum.midpoint.gui.impl.model.RealContainerValueFromParentOfSingle
 import com.evolveum.midpoint.gui.impl.model.RealContainerValueFromContainerValueWrapperModel;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
@@ -199,13 +197,14 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
 	}
     
     private ObjectQuery createQuery() {
-    	return QueryBuilder.queryFor(ObjectPolicyConfigurationType.class, getPageBase().getPrismContext())
+    	return getPageBase().getPrismContext().queryFor(ObjectPolicyConfigurationType.class)
     			.all()
                 .build();
     }
     
     private void initPaging() {
-    	getPageBase().getSessionStorage().getObjectPoliciesConfigurationTabStorage().setPaging(ObjectPaging.createPaging(0, (int) ((PageBase)getPage()).getItemsPerPage(UserProfileStorage.TableId.OBJECT_POLICIES_TAB_TABLE)));
+    	getPageBase().getSessionStorage().getObjectPoliciesConfigurationTabStorage().setPaging(
+    			getPrismContext().queryFactory().createPaging(0, (int) ((PageBase)getPage()).getItemsPerPage(UserProfileStorage.TableId.OBJECT_POLICIES_TAB_TABLE)));
     }
     
     private List<IColumn<ContainerValueWrapper<ObjectPolicyConfigurationType>, String>> initBasicColumns() {

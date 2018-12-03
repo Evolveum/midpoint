@@ -23,36 +23,30 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-public class OrgFilter extends ObjectFilter {
-
-    public enum Scope {
-        ONE_LEVEL,
-        SUBTREE,
-        ANCESTORS       // EXPERIMENTAL; OID has to belong to an OrgType!
-    }
+public class OrgFilterImpl extends ObjectFilterImpl implements OrgFilter {
 
     private PrismReferenceValue baseOrgRef;
     private Scope scope;
     private boolean root;
 
-    private OrgFilter(PrismReferenceValue baseOrgRef, Scope scope) {
+    private OrgFilterImpl(PrismReferenceValue baseOrgRef, Scope scope) {
         this.baseOrgRef = baseOrgRef;
         this.scope = scope != null ? scope : Scope.SUBTREE;
     }
 
-    private OrgFilter() {
+    private OrgFilterImpl() {
     }
 
     public static OrgFilter createOrg(PrismReferenceValue baseOrgRef, Scope scope) {
-        return new OrgFilter(baseOrgRef, scope);
+        return new OrgFilterImpl(baseOrgRef, scope);
     }
 
     public static OrgFilter createOrg(String baseOrgOid, Scope scope) {
-        return new OrgFilter(new PrismReferenceValueImpl(baseOrgOid), scope);
+        return new OrgFilterImpl(new PrismReferenceValueImpl(baseOrgOid), scope);
     }
 
-    public static OrgFilter createRootOrg() {
-        OrgFilter filter = new OrgFilter();
+    public static OrgFilterImpl createRootOrg() {
+        OrgFilterImpl filter = new OrgFilterImpl();
         filter.setRoot(true);
         return filter;
     }
@@ -74,11 +68,11 @@ public class OrgFilter extends ObjectFilter {
     }
 
     @Override
-    public OrgFilter clone() {
+    public OrgFilterImpl clone() {
         if (isRoot()) {
             return createRootOrg();
         } else {
-            return new OrgFilter(getOrgRef(), getScope());
+            return new OrgFilterImpl(getOrgRef(), getScope());
         }
     }
     
@@ -109,7 +103,7 @@ public class OrgFilter extends ObjectFilter {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        OrgFilter other = (OrgFilter) obj;
+        OrgFilterImpl other = (OrgFilterImpl) obj;
         if (baseOrgRef == null) {
             if (other.baseOrgRef != null)
                 return false;

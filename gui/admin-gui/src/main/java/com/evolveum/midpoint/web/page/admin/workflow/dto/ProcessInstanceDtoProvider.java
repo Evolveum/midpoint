@@ -18,7 +18,6 @@ package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -129,7 +128,7 @@ public class ProcessInstanceDtoProvider extends BaseSortableDataProvider<Process
 
     private ObjectQuery getObjectQuery() throws SchemaException {
         String currentUserOid = currentUser();
-        S_FilterEntry q = QueryBuilder.queryFor(TaskType.class, getPrismContext());
+        S_FilterEntry q = getPrismContext().queryFor(TaskType.class);
         if (requestedBy) {
             q = q.item(F_WORKFLOW_CONTEXT, F_REQUESTER_REF).ref(currentUserOid).and();
         }

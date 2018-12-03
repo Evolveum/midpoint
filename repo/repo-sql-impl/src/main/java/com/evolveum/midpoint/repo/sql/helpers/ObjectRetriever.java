@@ -23,7 +23,6 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryObjectDiagnosticData;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.sql.ObjectPagingAfterOid;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
@@ -791,7 +790,7 @@ public class ObjectRetriever {
             throws SchemaException {
 
         try {
-            ObjectQuery pagedQuery = query != null ? query.clone() : new ObjectQuery();
+            ObjectQuery pagedQuery = query != null ? query.clone() : prismContext.queryFactory().createObjectQuery();
 
             int offset;
             int remaining;
@@ -800,7 +799,7 @@ public class ObjectRetriever {
             ObjectPaging paging = pagedQuery.getPaging();
 
             if (paging == null) {
-                paging = ObjectPaging.createPaging(0, 0);        // counts will be filled-in later
+                paging = prismContext.queryFactory().createPaging(0, 0);        // counts will be filled-in later
                 pagedQuery.setPaging(paging);
                 offset = 0;
                 remaining = repositoryService.countObjects(type, query, options, result);
@@ -873,16 +872,16 @@ main:       while (remaining > 0) {
 		        pagedQuery = query.clone();
 	        } else {
 		        maxSize = null;
-	        	pagedQuery = new ObjectQuery();
+	        	pagedQuery = prismContext.queryFactory().createObjectQuery();
 	        }
 
             String lastOid = null;
             final int batchSize = getConfiguration().getIterativeSearchByPagingBatchSize();
 
-            ObjectPagingAfterOid paging = new ObjectPagingAfterOid();
+            ObjectPaging paging = prismContext.queryFactory().createPaging();
             pagedQuery.setPaging(paging);
 main:       for (;;) {
-                paging.setOidGreaterThan(lastOid);
+                paging.setCookie(lastOid);
                 paging.setMaxSize(Math.min(batchSize, defaultIfNull(maxSize, Integer.MAX_VALUE)));
 
                 List<PrismObject<T>> objects = repositoryService.searchObjects(type, pagedQuery, options, result);

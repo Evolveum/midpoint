@@ -312,7 +312,7 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
 	}
 
 	private void executeFilter(ObjectFilter filter, int expectedNumberOfResults, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+		ObjectQuery query = prismContext.queryFactory().createObjectQuery(filter);
 		SearchResultList<PrismObject<UserType>> objects = modelService.searchObjects(UserType.class, query, null, task, result);
 		display("Found objects", objects);
 		assertEquals("Wrong number of results (found: "+objects+")", expectedNumberOfResults, objects.size());

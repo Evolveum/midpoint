@@ -439,7 +439,7 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
         orgGraph.removeAllVertices(new HashSet<>(orgGraph.vertexSet()));
         List<PrismObject> objects = null;
         try {
-            objects = (List) repositoryService.searchObjects(OrgType.class, new ObjectQuery(), null, result);
+            objects = (List) repositoryService.searchObjects(OrgType.class, null, null, result);
         } catch (SchemaException e) {
             throw new AssertionError(e);
         }

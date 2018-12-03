@@ -20,20 +20,16 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.icf.dummy.resource.ConflictException;
 import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -47,7 +43,6 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -196,7 +191,7 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 	private void searchFettucini(int expectedNumberOfFettucinis) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		Task task = createTask(TestDummy.class.getName() + ".searchFettucini");
 		OperationResult result = task.getResult();
-		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(ShadowType.class)
 				.item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
 				.and().item(ShadowType.F_OBJECT_CLASS).eq(new QName(dummyResourceCtl.getNamespace(), "AccountObjectClass"))
 				.and().itemWithDef(getIcfNameDefinition(), ShadowType.F_ATTRIBUTES, getIcfNameDefinition().getName()).eq(ACCOUNT_FETTUCINI_NAME)

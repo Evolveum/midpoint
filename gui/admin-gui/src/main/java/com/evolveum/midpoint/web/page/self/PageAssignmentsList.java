@@ -8,8 +8,8 @@ import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -560,7 +560,8 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         for (UserType user : userList){
             oids.add(user.getOid());
         }
-        return ObjectQuery.createObjectQuery(InOidFilter.createInOid(oids));
+        QueryFactory queryFactory = getPrismContext().queryFactory();
+        return queryFactory.createObjectQuery(queryFactory.createInOid(oids));
     }
 
     private PrismContainerValue[] getAddAssignmentContainerValues(List<AssignmentEditorDto> assignments) throws SchemaException {

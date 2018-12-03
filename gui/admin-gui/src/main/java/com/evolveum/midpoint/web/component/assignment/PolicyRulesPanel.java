@@ -42,9 +42,7 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 
@@ -129,7 +127,8 @@ public class PolicyRulesPanel extends AssignmentPanel {
 
 	@Override
 	protected void initCustomPaging() {
-		getAssignmentsTabStorage().setPaging(ObjectPaging.createPaging(0, ((int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.POLICY_RULES_TAB_TABLE))));
+		getAssignmentsTabStorage().setPaging(getPrismContext().queryFactory()
+				.createPaging(0, ((int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.POLICY_RULES_TAB_TABLE))));
 
 	}
 
@@ -150,7 +149,7 @@ public class PolicyRulesPanel extends AssignmentPanel {
 
 	@Override
 	protected ObjectQuery createObjectQuery() {
-        return QueryBuilder.queryFor(AssignmentType.class, getParentPage().getPrismContext())
+        return getParentPage().getPrismContext().queryFor(AssignmentType.class)
                 .exists(AssignmentType.F_POLICY_RULE)
                 .build();
     }

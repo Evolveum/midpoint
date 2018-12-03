@@ -204,7 +204,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 
 		// WHEN
 		List<PrismObject<ConnectorType>> connectors = repositoryService.searchObjects(ConnectorType.class,
-				new ObjectQuery(), null, result);
+				null, null, result);
 
 		// THEN
 		result.computeStatus();

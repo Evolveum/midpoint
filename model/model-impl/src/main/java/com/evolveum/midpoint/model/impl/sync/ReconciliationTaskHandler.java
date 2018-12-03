@@ -30,7 +30,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
@@ -545,7 +544,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 		LOGGER.trace("Shadow reconciliation starting for {}, {} -> {}", resource, startTimestamp, endTimestamp);
 		OperationResult opResult = result.createSubresult(OperationConstants.RECONCILIATION+".shadowReconciliation");
 
-		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(ShadowType.class)
 				.block()
 					.item(ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP).le(XmlTypeConverter.createXMLGregorianCalendar(startTimestamp))
 					.or().item(ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP).isNull()
@@ -687,7 +686,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 		OperationResult opResult = result.createSubresult(OperationConstants.RECONCILIATION+".repoReconciliation");
 		opResult.addParam("reconciled", true);
 
-		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(ShadowType.class)
 				.block().not().item(ShadowType.F_FAILED_OPERATION_TYPE).isNull().endBlock()
 				.and().item(ShadowType.F_RESOURCE_REF).ref(resourceOid)
 				.build();

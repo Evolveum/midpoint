@@ -31,7 +31,6 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -651,7 +650,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
 			@Override
 			protected ObjectQuery getChooseQuery() {
-				return QueryBuilder.queryFor(OrgType.class, getPageBase().getPrismContext())
+				return getPageBase().getPrismContext().queryFor(OrgType.class)
 						.item(OrgType.F_TENANT).eq(true)
 						.build();
 			}
@@ -692,7 +691,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
 			@Override
 			protected ObjectQuery getChooseQuery() {
-				return QueryBuilder.queryFor(OrgType.class, getPageBase().getPrismContext())
+				return getPageBase().getPrismContext().queryFor(OrgType.class)
 						.item(OrgType.F_TENANT).eq(false)
 						.or().item(OrgType.F_TENANT).isNull()
 						.build();

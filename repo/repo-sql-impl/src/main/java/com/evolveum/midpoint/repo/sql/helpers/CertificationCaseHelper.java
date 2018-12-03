@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
@@ -347,7 +346,7 @@ public class CertificationCaseHelper {
 		String caseKey = campaignOid + ":" + caseId;
 		PrismContainerValue<AccessCertificationCaseType> casePcv = casesCache.get(caseKey);
 		if (casePcv == null) {
-			ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+			ObjectQuery query = prismContext.queryFor(AccessCertificationCaseType.class)
 					.ownerId(campaignOid)
 					.and().id(caseId)
 					.build();

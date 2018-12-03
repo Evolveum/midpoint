@@ -17,7 +17,6 @@ package com.evolveum.midpoint.task.quartzimpl;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -793,7 +792,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 		addObjectFromFile(workerTaskFilename(TEST_NAME));
 
 		workBucketsTaskHandler.resetBeforeTest();
-		workBucketsTaskHandler.setDefaultQuery(new ObjectQuery());
+		workBucketsTaskHandler.setDefaultQuery(prismContext.queryFactory().createObjectQuery());
 
 		try {
 
@@ -816,15 +815,15 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 			List<ObjectQuery> qe = workBucketsTaskHandler.getQueriesExecuted();
 			display("Queries executed", qe);
 			assertEquals("Wrong # of queries", 3, qe.size());
-			ObjectQuery q1 = QueryBuilder.queryFor(UserType.class, prismContext)
+			ObjectQuery q1 = prismContext.queryFor(UserType.class)
 					.item(UserType.F_ITERATION).ge(BigInteger.valueOf(0))
 					.and().item(UserType.F_ITERATION).lt(BigInteger.valueOf(10))
 					.build();
-			ObjectQuery q2 = QueryBuilder.queryFor(UserType.class, prismContext)
+			ObjectQuery q2 = prismContext.queryFor(UserType.class)
 					.item(UserType.F_ITERATION).ge(BigInteger.valueOf(10))
 					.and().item(UserType.F_ITERATION).lt(BigInteger.valueOf(20))
 					.build();
-			ObjectQuery q3 = QueryBuilder.queryFor(UserType.class, prismContext)
+			ObjectQuery q3 = prismContext.queryFor(UserType.class)
 					.item(UserType.F_ITERATION).ge(BigInteger.valueOf(20))
 					.and().item(UserType.F_ITERATION).lt(BigInteger.valueOf(30))
 					.build();

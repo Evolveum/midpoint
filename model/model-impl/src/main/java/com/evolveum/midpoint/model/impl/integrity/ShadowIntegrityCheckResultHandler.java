@@ -30,7 +30,6 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeResultHandler;
@@ -477,7 +476,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
 
     private List<PrismObject<FocusType>> searchOwners(PrismObject<ShadowType> shadow, OperationResult result) {
         try {
-            ObjectQuery ownerQuery = QueryBuilder.queryFor(FocusType.class, prismContext)
+            ObjectQuery ownerQuery = prismContext.queryFor(FocusType.class)
                     .item(FocusType.F_LINK_REF).ref(shadow.getOid())
                     .build();
             List<PrismObject<FocusType>> owners = repositoryService.searchObjects(FocusType.class, ownerQuery, null, result);

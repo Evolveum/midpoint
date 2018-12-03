@@ -41,7 +41,7 @@ public class ImportRepositoryAction extends RepositoryAction<ImportOptions> {
 
         ImportProducerWorker producer;
         if (options.getOid() != null) {
-            InOidFilter filter = InOidFilter.createInOid(options.getOid());
+            InOidFilter filter = context.getPrismContext().queryFactory().createInOid(options.getOid());
             producer = importByFilter(filter, true, queue, progress);
         } else {
             ObjectFilter filter = NinjaUtils.createObjectFilter(options.getFilter(), context, ObjectType.class);    // todo ok? (ObjectType)

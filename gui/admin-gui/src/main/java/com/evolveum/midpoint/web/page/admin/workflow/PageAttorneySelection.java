@@ -132,7 +132,7 @@ public class PageAttorneySelection extends PageBase {
             @Override
             protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
                 if (query == null) {
-                    query = new ObjectQuery();
+                    query = getPrismContext().queryFactory().createObjectQuery();
                 }
 
                 ModelInteractionService service = getModelInteractionService();

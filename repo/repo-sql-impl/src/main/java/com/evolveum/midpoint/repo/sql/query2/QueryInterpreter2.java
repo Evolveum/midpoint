@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.repo.sql.ObjectPagingAfterOid;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
@@ -305,27 +304,25 @@ public class QueryInterpreter2 {
         RootHibernateQuery hibernateQuery = context.getHibernateQuery();
         String rootAlias = hibernateQuery.getPrimaryEntityAlias();
 
-        if (query != null && query.getPaging() instanceof ObjectPagingAfterOid) {
-            ObjectPagingAfterOid paging = (ObjectPagingAfterOid) query.getPaging();
-            if (paging.getOidGreaterThan() != null) {
-                Condition c = hibernateQuery.createSimpleComparisonCondition(rootAlias + ".oid", paging.getOidGreaterThan(), ">");
-                hibernateQuery.addCondition(c);
-            }
+        if (query != null && query.getPaging() != null && query.getPaging().hasCookie()) {
+            ObjectPaging paging = query.getPaging();
+	        Condition c = hibernateQuery.createSimpleComparisonCondition(rootAlias + ".oid", paging.getCookie(), ">");
+	        hibernateQuery.addCondition(c);
         }
 
         if (!countingObjects && query != null && query.getPaging() != null) {
-            if (query.getPaging() instanceof ObjectPagingAfterOid) {
-                updatePagingAndSortingByOid(hibernateQuery, (ObjectPagingAfterOid) query.getPaging());                // very special case - ascending ordering by OID (nothing more)
+            if (query.getPaging().hasCookie()) {
+                updatePagingAndSortingByOid(hibernateQuery, query.getPaging());                // very special case - ascending ordering by OID (nothing more)
             } else {
                 updatePagingAndSorting(context, query.getPaging());
             }
         }
     }
 
-    private void updatePagingAndSortingByOid(RootHibernateQuery hibernateQuery, ObjectPagingAfterOid paging) {
+    private void updatePagingAndSortingByOid(RootHibernateQuery hibernateQuery, ObjectPaging paging) {
         String rootAlias = hibernateQuery.getPrimaryEntityAlias();
         if (paging.getOrderBy() != null || paging.getDirection() != null || paging.getOffset() != null) {
-            throw new IllegalArgumentException("orderBy, direction nor offset is allowed on ObjectPagingAfterOid");
+            throw new IllegalArgumentException("orderBy, direction nor offset is allowed on ObjectPaging with cookie");
         }
         if (repoConfiguration.isUsingOracle()) {
 	        hibernateQuery.addOrdering("NLSSORT(" + rootAlias + ".oid, 'NLS_SORT=BINARY_AI')", OrderDirection.ASCENDING);

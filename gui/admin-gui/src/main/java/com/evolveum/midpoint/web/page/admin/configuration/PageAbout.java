@@ -24,13 +24,7 @@ import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
-import com.evolveum.midpoint.prism.query.AllFilter;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.NotFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.TypeFilter;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.LabeledString;
 import com.evolveum.midpoint.schema.ProvisioningDiag;
 import com.evolveum.midpoint.schema.RepositoryDiag;
@@ -463,16 +457,19 @@ public class PageAbout extends PageAdminConfiguration {
     	OperationResult result = new OperationResult(OPERATION_DELETE_ALL_OBJECTS);
 		String taskOid = null;
 		String taskName = "Delete all objects";
-		
-		TypeFilter nodeFilter = TypeFilter.createType(NodeType.COMPLEX_TYPE, new AllFilter());
-		final ObjectFilter taskFilter = QueryBuilder.queryFor(TaskType.class, getPrismContext())
+
+	    QueryFactory factory = getPrismContext().queryFactory();
+
+	    TypeFilter nodeFilter = factory.createType(NodeType.COMPLEX_TYPE, factory.createAll());
+		final ObjectFilter taskFilter = getPrismContext().queryFor(TaskType.class)
                 .item(TaskType.F_NAME).eq(taskName).buildFilter();
-		NotFilter notNodeFilter = new NotFilter(nodeFilter);
-		NotFilter notTaskFilter = new NotFilter(taskFilter);
+		NotFilter notNodeFilter = factory.createNot(nodeFilter);
+		NotFilter notTaskFilter = factory.createNot(taskFilter);
 		
 		try {
 			QName type = ObjectType.COMPLEX_TYPE;
-			taskOid = deleteObjectsAsync(type, ObjectQuery.createObjectQuery(AndFilter.createAnd(notTaskFilter, notNodeFilter)), true,
+			taskOid = deleteObjectsAsync(type, factory.createObjectQuery(
+					factory.createAnd(notTaskFilter, notNodeFilter)), true,
 					taskName, result);
 			
 		} catch (Exception ex) {

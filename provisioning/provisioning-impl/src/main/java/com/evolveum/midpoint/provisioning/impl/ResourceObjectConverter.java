@@ -24,7 +24,6 @@ import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.JavaTypeConverter;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
@@ -179,7 +178,7 @@ public class ResourceObjectConverter {
             } else {
                 secondaryIdentifierValue = null;
             }
-            ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+            ObjectQuery query = prismContext.queryFor(ShadowType.class)
 					.itemWithDef(secondaryIdentifierDef, ShadowType.F_ATTRIBUTES, secondaryIdentifierDef.getName()).eq(secondaryIdentifierValue)
 					.build();
 			final Holder<PrismObject<ShadowType>> shadowHolder = new Holder<>();

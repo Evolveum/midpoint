@@ -113,7 +113,6 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -2504,7 +2503,7 @@ public final class WebComponentUtil {
 		OperationResult result = new OperationResult("Search Members");
 		boolean atLeastOneWithMembers = false;
 		for (AR selectedRole : selectedRoles) {
-			ObjectQuery query = QueryBuilder.queryFor(FocusType.class, pageBase.getPrismContext())
+			ObjectQuery query = pageBase.getPrismContext().queryFor(FocusType.class)
 					.item(FocusType.F_ROLE_MEMBERSHIP_REF)// TODO MID-3581
 							.ref(ObjectTypeUtil.createObjectRef(selectedRole, pageBase.getPrismContext()).asReferenceValue())
 					.maxSize(1)
@@ -2693,11 +2692,11 @@ public final class WebComponentUtil {
 
 	public static ObjectFilter createAssociationShadowRefFilter(RefinedAssociationDefinition refinedAssocationDefinition, PrismContext prismContext,
 																String resourceOid){
-		S_FilterEntryOrEmpty atomicFilter = QueryBuilder.queryFor(ShadowType.class, prismContext);
+		S_FilterEntryOrEmpty atomicFilter = prismContext.queryFor(ShadowType.class);
 		List<ObjectFilter> orFilterClauses = new ArrayList<>();
 		refinedAssocationDefinition.getIntents()
 				.forEach(intent -> orFilterClauses.add(atomicFilter.item(ShadowType.F_INTENT).eq(intent).buildFilter()));
-		OrFilter intentFilter = OrFilter.createOr(orFilterClauses);
+		OrFilter intentFilter = prismContext.queryFactory().createOr(orFilterClauses);
 
 		AndFilter filter = (AndFilter) atomicFilter.item(ShadowType.F_KIND).eq(refinedAssocationDefinition.getKind()).and()
 				.item(ShadowType.F_RESOURCE_REF).ref(resourceOid, ResourceType.COMPLEX_TYPE).buildFilter();
@@ -2811,7 +2810,7 @@ public final class WebComponentUtil {
 				private Map<QName, Object> prepareExtensionValues(Collection<String> oids) throws SchemaException {
 					Map<QName, Object> extensionValues = new HashMap<>();
 					PrismContext prismContext = pageBase.getPrismContext();
-					ObjectQuery objectQuery = QueryBuilder.queryFor(ObjectType.class, prismContext)
+					ObjectQuery objectQuery = prismContext.queryFor(ObjectType.class)
 							.id(oids.toArray(new String[0]))
 							.build();
 					QueryType queryBean = pageBase.getQueryConverter().createQueryType(objectQuery);

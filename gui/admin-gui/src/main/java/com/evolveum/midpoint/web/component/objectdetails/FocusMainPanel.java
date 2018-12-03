@@ -26,7 +26,6 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -102,7 +101,7 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 		if (oid == null) {
 			oid = "non-existent"; // TODO !!!!!!!!!!!!!!!!!!!!
 		}
-		return QueryBuilder.queryFor(TaskType.class, page.getPrismContext())
+		return page.getPrismContext().queryFor(TaskType.class)
 				.item(TaskType.F_OBJECT_REF).ref(oid)
 				.and()
 					.block()

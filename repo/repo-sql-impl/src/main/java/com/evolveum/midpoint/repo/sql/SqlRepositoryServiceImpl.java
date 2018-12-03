@@ -304,7 +304,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     // returns null if the query is equivalent to NONE (TODO this is counter-intuitive, fix that)
     private ObjectQuery simplify(ObjectQuery query, OperationResult subResult) {
         ObjectFilter filter = query.getFilter();
-        filter = ObjectQueryUtil.simplify(filter);
+        filter = ObjectQueryUtil.simplify(filter, prismContext);
         if (filter instanceof NoneFilter) {
 			subResult.recordSuccess();
 			return null;
@@ -811,7 +811,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         if (query != null) {
             ObjectFilter filter = query.getFilter();
-            filter = ObjectQueryUtil.simplify(filter);
+            filter = ObjectQueryUtil.simplify(filter, prismContext);
             if (filter instanceof NoneFilter) {
                 subResult.recordSuccess();
                 return null;

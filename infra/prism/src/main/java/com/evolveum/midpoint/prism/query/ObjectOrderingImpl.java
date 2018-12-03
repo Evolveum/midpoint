@@ -18,17 +18,15 @@ package com.evolveum.midpoint.prism.query;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 
-import java.io.Serializable;
-
 /**
  * @author mederly
  */
-public class ObjectOrdering implements Serializable {
+public class ObjectOrderingImpl implements ObjectOrdering {
 
     final private ItemPath orderBy;
     final private OrderDirection direction;
 
-    ObjectOrdering(ItemPath orderBy, OrderDirection direction) {
+	private ObjectOrderingImpl(ItemPath orderBy, OrderDirection direction) {
         if (ItemPath.isEmpty(orderBy)) {
             throw new IllegalArgumentException("Null or empty ordering path is not supported.");
         }
@@ -36,8 +34,8 @@ public class ObjectOrdering implements Serializable {
         this.direction = direction;
     }
 
-    public static ObjectOrdering createOrdering(ItemPath orderBy, OrderDirection direction) {
-        return new ObjectOrdering(orderBy, direction);
+    public static ObjectOrderingImpl createOrdering(ItemPath orderBy, OrderDirection direction) {
+        return new ObjectOrderingImpl(orderBy, direction);
     }
 
     public ItemPath getOrderBy() {
@@ -53,6 +51,7 @@ public class ObjectOrdering implements Serializable {
         return orderBy.toString() + " " + direction;
     }
 
+	@SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
 	@Override
 	public boolean equals(Object o) {
 		return equals(o, true);
@@ -64,7 +63,7 @@ public class ObjectOrdering implements Serializable {
 		if (o == null || getClass() != o.getClass())
 			return false;
 
-		ObjectOrdering that = (ObjectOrdering) o;
+		ObjectOrderingImpl that = (ObjectOrderingImpl) o;
 
 		if (orderBy != null ? !orderBy.equals(that.orderBy, exact) : that.orderBy != null)
 			return false;

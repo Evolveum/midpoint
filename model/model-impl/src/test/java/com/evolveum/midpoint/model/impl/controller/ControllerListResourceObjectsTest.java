@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.impl.controller;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,13 +43,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 public class ControllerListResourceObjectsTest extends AbstractTestNGSpringContextTests {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ControllerListResourceObjectsTest.class);
-	@Autowired(required = true)
-	private ModelService controller;
-	@Autowired(required = true)
-	@Qualifier("cacheRepositoryService")
-	private RepositoryService repository;
-	@Autowired(required = true)
-	private ProvisioningService provisioning;
+	@Autowired private ModelService controller;
+	@Autowired @Qualifier("cacheRepositoryService") private RepositoryService repository;
+	@Autowired private ProvisioningService provisioning;
+	@Autowired private PrismContext prismContext;
 
 	@BeforeMethod
 	public void before() {
@@ -77,7 +75,7 @@ public class ControllerListResourceObjectsTest extends AbstractTestNGSpringConte
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullResult() throws Exception {
-		ObjectPaging paging = ObjectPaging.createPaging(0, Integer.MAX_VALUE, (ItemPath) null, null);
+		ObjectPaging paging = prismContext.queryFactory().createPaging(0, Integer.MAX_VALUE, (ItemPath) null, null);
 		controller.listResourceObjects("1", new QName("local name"), paging, null, null);
 	}
 }

@@ -16,13 +16,12 @@
 package com.evolveum.midpoint.web.page.admin.configuration;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.web.component.dialog.*;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.search.Search;
@@ -64,13 +63,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.InOidFilter;
-import com.evolveum.midpoint.prism.query.NotFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -574,7 +566,7 @@ public class PageDebugList extends PageAdminConfiguration {
 		List<ObjectFilter> filters = new ArrayList<>();
 		if (ObjectTypes.SHADOW.equals(dto.getType()) && dto.getResource() != null) {
 			String oid = dto.getResource().getOid();
-			ObjectFilter objectFilter = QueryBuilder.queryFor(ShadowType.class, getPrismContext())
+			ObjectFilter objectFilter = getPrismContext().queryFor(ShadowType.class)
 					.item(ShadowType.F_RESOURCE_REF).ref(oid)
 					.buildFilter();
 			filters.add(objectFilter);
@@ -588,11 +580,8 @@ public class PageDebugList extends PageAdminConfiguration {
 			return null;
 		}
 
-		ObjectFilter filter = filters.size() > 1 ? AndFilter.createAnd(filters) : filters.get(0);
-		ObjectQuery query = new ObjectQuery();
-		query.setFilter(filter);
-
-		return query;
+		ObjectFilter filter = filters.size() > 1 ? getPrismContext().queryFactory().createAnd(filters) : filters.get(0);
+		return getPrismContext().queryFactory().createObjectQuery(filter);
 	}
 
 	private void objectEditPerformed(AjaxRequestTarget target, String oid, Class<? extends ObjectType> type) {
@@ -678,27 +667,28 @@ public class PageDebugList extends PageAdminConfiguration {
 	}
 
 	private ObjectQuery createDeleteAllUsersQuery() {
-		InOidFilter inOid = InOidFilter.createInOid(SystemObjectsType.USER_ADMINISTRATOR.value());
-		NotFilter not = new NotFilter(inOid);
-
-		return ObjectQuery.createObjectQuery(not);
+		QueryFactory factory = getPrismContext().queryFactory();
+		InOidFilter inOid = factory.createInOid(SystemObjectsType.USER_ADMINISTRATOR.value());
+		NotFilter not = factory.createNot(inOid);
+		return factory.createObjectQuery(not);
 	}
 
 	private String deleteAllShadowsConfirmed(OperationResult result, boolean deleteAccountShadows)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
 
-		ObjectFilter kindFilter = QueryBuilder.queryFor(ShadowType.class, getPrismContext())
+		ObjectFilter kindFilter = getPrismContext().queryFor(ShadowType.class)
 				.item(ShadowType.F_KIND).eq(ShadowKindType.ACCOUNT)
 				.buildFilter();
 
 		String taskName;
 		ObjectQuery query;
+		QueryFactory factory = getPrismContext().queryFactory();
 		if (deleteAccountShadows) {
 			taskName = "Delete all account shadows";
-			query = ObjectQuery.createObjectQuery(kindFilter);
+			query = factory.createObjectQuery(kindFilter);
 		} else {
 			taskName = "Delete all non-account shadows";
-			query = ObjectQuery.createObjectQuery(NotFilter.createNot(kindFilter));
+			query = factory.createObjectQuery(factory.createNot(kindFilter));
 		}
 
 		return deleteObjectsAsync(ShadowType.COMPLEX_TYPE, query, true, taskName, result);
@@ -716,10 +706,9 @@ public class PageDebugList extends PageAdminConfiguration {
 			oids.add(dItem.getOid());
 		}
 
-		ObjectFilter filter = InOidFilter.createInOid(oids);
-
 		DebugSearchDto searchDto = searchModel.getObject();
-		initDownload(target, searchDto.getType().getClassDefinition(), ObjectQuery.createObjectQuery(filter));
+		QueryFactory factory = getPrismContext().queryFactory();
+		initDownload(target, searchDto.getType().getClassDefinition(), factory.createObjectQuery(factory.createInOid(oids)));
 	}
 
 	private void exportAllType(AjaxRequestTarget target) {
@@ -863,7 +852,7 @@ public class PageDebugList extends PageAdminConfiguration {
 			return;
 		}
 
-		ObjectQuery objectQuery = QueryBuilder.queryFor(ShadowType.class, getPrismContext())
+		ObjectQuery objectQuery = getPrismContext().queryFor(ShadowType.class)
 				.item(ShadowType.F_RESOURCE_REF).ref(dto.getResource().getOid())
 				.build();
 		initDownload(target, dto.getType().getClassDefinition(), objectQuery);
@@ -905,7 +894,7 @@ public class PageDebugList extends PageAdminConfiguration {
 		OperationResult result = new OperationResult(OPERATION_DELETE_SHADOWS);
 		String taskOid = null;
 		try {
-			ObjectQuery objectQuery = QueryBuilder.queryFor(ShadowType.class, getPrismContext())
+			ObjectQuery objectQuery = getPrismContext().queryFor(ShadowType.class)
 					.item(ShadowType.F_RESOURCE_REF).ref(dto.getResource().getOid())
 					.build();
 

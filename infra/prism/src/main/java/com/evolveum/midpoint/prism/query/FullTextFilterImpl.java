@@ -29,29 +29,29 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class FullTextFilter extends ObjectFilter {
+public class FullTextFilterImpl extends ObjectFilterImpl implements FullTextFilter {
 
 	private Collection<String> values;
 	private ExpressionWrapper expression;
 
-	private FullTextFilter(Collection<String> values) {
+	private FullTextFilterImpl(Collection<String> values) {
 		this.values = values;
 	}
 
-	private FullTextFilter(ExpressionWrapper expression) {
+	private FullTextFilterImpl(ExpressionWrapper expression) {
 		this.expression = expression;
 	}
 
 	public static FullTextFilter createFullText(Collection<String> values){
-		return new FullTextFilter(values);
+		return new FullTextFilterImpl(values);
 	}
 
 	public static FullTextFilter createFullText(String... values){
-		return new FullTextFilter(Arrays.asList(values));
+		return new FullTextFilterImpl(Arrays.asList(values));
 	}
 
 	public static FullTextFilter createFullText(@NotNull ExpressionWrapper expression) {
-		return new FullTextFilter(expression);
+		return new FullTextFilterImpl(expression);
 	}
 
 	public Collection<String> getValues() {
@@ -114,8 +114,8 @@ public class FullTextFilter extends ObjectFilter {
 	}
 
 	@Override
-	public FullTextFilter clone() {
-		FullTextFilter clone = new FullTextFilter(values);
+	public FullTextFilterImpl clone() {
+		FullTextFilterImpl clone = new FullTextFilterImpl(values);
 		clone.expression = expression;
 		return clone;
 	}
@@ -129,9 +129,9 @@ public class FullTextFilter extends ObjectFilter {
 	public boolean equals(Object o, boolean exact) {
 		if (this == o)
 			return true;
-		if (!(o instanceof FullTextFilter))
+		if (!(o instanceof FullTextFilterImpl))
 			return false;
-		FullTextFilter that = (FullTextFilter) o;
+		FullTextFilterImpl that = (FullTextFilterImpl) o;
 		return Objects.equals(values, that.values) &&
 				Objects.equals(expression, that.expression);
 	}

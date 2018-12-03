@@ -191,7 +191,7 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
 			protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
 				if (queryFilter != null) {
 					if (query == null) {
-						query = new ObjectQuery();
+						query = getPrismContext().queryFactory().createObjectQuery();
 					}
 					query.addFilter(queryFilter);
 				}

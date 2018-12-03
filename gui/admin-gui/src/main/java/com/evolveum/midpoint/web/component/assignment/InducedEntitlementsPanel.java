@@ -16,13 +16,8 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -40,7 +35,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulato
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
@@ -71,7 +65,8 @@ public class InducedEntitlementsPanel extends InducementsPanel{
 
     @Override
     protected void initCustomPaging() {
-        getInducedEntitlementsTabStorage().setPaging(ObjectPaging.createPaging(0, ((int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.INDUCED_ENTITLEMENTS_TAB_TABLE))));
+        getInducedEntitlementsTabStorage().setPaging(getPrismContext().queryFactory()
+                .createPaging(0, ((int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.INDUCED_ENTITLEMENTS_TAB_TABLE))));
     }
 
     @Override
@@ -125,7 +120,7 @@ public class InducedEntitlementsPanel extends InducementsPanel{
 
     @Override
     protected ObjectQuery createObjectQuery() {
-        return QueryBuilder.queryFor(AssignmentType.class, getParentPage().getPrismContext())
+        return getParentPage().getPrismContext().queryFor(AssignmentType.class)
                 .exists(AssignmentType.F_CONSTRUCTION)
                 .build();
     }

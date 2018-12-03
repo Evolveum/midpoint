@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
@@ -650,7 +649,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 		if (conjunctionMembers.isEmpty()) {
 			return query;
 		}
-		ObjectFilter existingFilter = query.getFilter();
+		ObjectFilter existingFilter = query != null ? query.getFilter() : null;
 		if (existingFilter != null) {
 			conjunctionMembers.add(existingFilter);
 		}
@@ -660,10 +659,10 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 		} else if (conjunctionMembers.size() == 1) {
 			updatedFilter = conjunctionMembers.get(0);
 		} else {
-			updatedFilter = AndFilter.createAnd(conjunctionMembers);
+			updatedFilter = prismContext.queryFactory().createAnd(conjunctionMembers);
 		}
 
-		ObjectQuery updatedQuery = query.clone();
+		ObjectQuery updatedQuery = query != null ? query.clone() : prismContext.queryFactory().createObjectQuery();
 		updatedQuery.setFilter(updatedFilter);
 
 		// TODO update sorting criteria

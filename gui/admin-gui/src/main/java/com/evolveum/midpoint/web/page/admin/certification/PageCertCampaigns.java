@@ -27,7 +27,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -276,7 +275,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 	}
 
 	private ObjectQuery createCampaignsQuery() {
-		S_AtomicFilterEntry q = QueryBuilder.queryFor(AccessCertificationCampaignType.class, getPrismContext());
+		S_AtomicFilterEntry q = getPrismContext().queryFor(AccessCertificationCampaignType.class);
 		if (definitionOid != null) {
 			q = q.item(AccessCertificationCampaignType.F_DEFINITION_REF).ref(definitionOid).and();
 		}

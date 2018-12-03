@@ -26,7 +26,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDeltaImpl;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -152,7 +151,7 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
             LOGGER.trace("Finding obsolete versions for connector: {}", connectorType.asPrismObject().debugDump());
         }
 
-        ObjectQuery query = QueryBuilder.queryFor(ConnectorType.class, prismContext)
+        ObjectQuery query = prismContext.queryFor(ConnectorType.class)
                 .item(SchemaConstants.C_CONNECTOR_FRAMEWORK).eq(connectorType.getFramework())
                 .and().item(SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE).eq(connectorType.getConnectorType())
                 .build();

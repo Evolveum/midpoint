@@ -29,11 +29,11 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 
-public abstract class ComparativeFilter<T extends Object> extends PropertyValueFilter<T> {
+public abstract class ComparativeFilterImpl<T> extends PropertyValueFilterImpl<T> implements PropertyValueFilter<T> {
 
 	private boolean equals;
 
-	ComparativeFilter(@NotNull ItemPath path,
+	ComparativeFilterImpl(@NotNull ItemPath path,
 			@Nullable PrismPropertyDefinition<T> definition,
 			@Nullable QName matchingRule,
 			@Nullable PrismPropertyValue<T> value,
@@ -73,7 +73,7 @@ public abstract class ComparativeFilter<T extends Object> extends PropertyValueF
 			return false;
 		if (!super.equals(o, exact))
 			return false;
-		ComparativeFilter<?> that = (ComparativeFilter<?>) o;
+		ComparativeFilterImpl<?> that = (ComparativeFilterImpl<?>) o;
 		return equals == that.equals;
 	}
 
@@ -86,4 +86,7 @@ public abstract class ComparativeFilter<T extends Object> extends PropertyValueF
 	public int hashCode() {
 		return Objects.hash(super.hashCode(), equals);
 	}
+
+	@Override
+	abstract public PropertyValueFilterImpl clone();
 }

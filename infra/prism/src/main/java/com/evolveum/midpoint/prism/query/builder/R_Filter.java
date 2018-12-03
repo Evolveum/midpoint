@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -48,7 +49,7 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
     public R_Filter(QueryBuilder queryBuilder) {
         this.queryBuilder = queryBuilder;
         this.currentClass = queryBuilder.getQueryClass();
-        this.currentFilter = OrFilter.createOr();
+        this.currentFilter = OrFilterImpl.createOr();
         this.lastLogicalSymbol = null;
         this.isNegated = false;
         this.parentFilter = null;
@@ -101,18 +102,18 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
                 throw new IllegalStateException("Type restriction with 2 filters?");
             }
             if (isNegated) {
-                subfilter = new NotFilter(subfilter);
+                subfilter = NotFilterImpl.createNot(subfilter);
             }
-            return parentFilter.addSubfilter(TypeFilter.createType(typeRestriction, subfilter));
+            return parentFilter.addSubfilter(TypeFilterImpl.createType(typeRestriction, subfilter));
         } else if (existsRestriction != null) {
             if (!currentFilter.isEmpty()) {
                 throw new IllegalStateException("Exists restriction with 2 filters?");
             }
             if (isNegated) {
-                subfilter = new NotFilter(subfilter);
+                subfilter = NotFilterImpl.createNot(subfilter);
             }
             return parentFilter.addSubfilter(
-                    ExistsFilter.createExists(
+                    ExistsFilterImpl.createExists(
                             existsRestriction,
                             parentFilter.currentClass,
                             queryBuilder.getPrismContext(),
@@ -125,11 +126,11 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
 
     private OrFilter appendAtomicFilter(ObjectFilter subfilter, boolean negated, LogicalSymbol logicalSymbol) {
         if (negated) {
-            subfilter = new NotFilter(subfilter);
+            subfilter = NotFilterImpl.createNot(subfilter);
         }
         OrFilter updatedFilter = currentFilter.clone();
         if (logicalSymbol == null || logicalSymbol == LogicalSymbol.OR) {
-            updatedFilter.addCondition(AndFilter.createAnd(subfilter));
+            updatedFilter.addCondition(AndFilterImpl.createAnd(subfilter));
         } else if (logicalSymbol == LogicalSymbol.AND) {
             ((AndFilter) updatedFilter.getLastCondition()).addCondition(subfilter);
         } else {
@@ -176,29 +177,29 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
 
     @Override
     public S_AtomicFilterExit all() {
-        return addSubfilter(AllFilter.createAll());
+        return addSubfilter(AllFilterImpl.createAll());
     }
 
     @Override
     public S_AtomicFilterExit none() {
-        return addSubfilter(NoneFilter.createNone());
+        return addSubfilter(NoneFilterImpl.createNone());
     }
 
     @Override
     public S_AtomicFilterExit undefined() {
-        return addSubfilter(UndefinedFilter.createUndefined());
+        return addSubfilter(UndefinedFilterImpl.createUndefined());
     }
     // TODO .............................................
 
     @Override
     public S_AtomicFilterExit id(String... identifiers) {
-        return addSubfilter(InOidFilter.createInOid(identifiers));
+        return addSubfilter(InOidFilterImpl.createInOid(identifiers));
     }
 
     @Override
     public S_AtomicFilterExit id(long... identifiers) {
         List<String> ids = longsToStrings(identifiers);
-        return addSubfilter(InOidFilter.createInOid(ids));
+        return addSubfilter(InOidFilterImpl.createInOid(ids));
     }
 
     private List<String> longsToStrings(long[] identifiers) {
@@ -211,75 +212,75 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
 
     @Override
     public S_AtomicFilterExit ownerId(String... identifiers) {
-        return addSubfilter(InOidFilter.createOwnerHasOidIn(identifiers));
+        return addSubfilter(InOidFilterImpl.createOwnerHasOidIn(identifiers));
     }
 
     @Override
     public S_AtomicFilterExit ownerId(long... identifiers) {
-        return addSubfilter(InOidFilter.createOwnerHasOidIn(longsToStrings(identifiers)));
+        return addSubfilter(InOidFilterImpl.createOwnerHasOidIn(longsToStrings(identifiers)));
     }
 
     @Override
     public S_AtomicFilterExit isDirectChildOf(PrismReferenceValue value) {
-        OrgFilter orgFilter = OrgFilter.createOrg(value, OrgFilter.Scope.ONE_LEVEL);
+        OrgFilter orgFilter = OrgFilterImpl.createOrg(value, OrgFilter.Scope.ONE_LEVEL);
         return addSubfilter(orgFilter);
     }
 
     @Override
     public S_AtomicFilterExit isChildOf(PrismReferenceValue value) {
-        OrgFilter orgFilter = OrgFilter.createOrg(value, OrgFilter.Scope.SUBTREE);
+        OrgFilter orgFilter = OrgFilterImpl.createOrg(value, OrgFilter.Scope.SUBTREE);
         return addSubfilter(orgFilter);
     }
 
     @Override
     public S_AtomicFilterExit isParentOf(PrismReferenceValue value) {
-        OrgFilter orgFilter = OrgFilter.createOrg(value, OrgFilter.Scope.ANCESTORS);
+        OrgFilter orgFilter = OrgFilterImpl.createOrg(value, OrgFilter.Scope.ANCESTORS);
         return addSubfilter(orgFilter);
     }
 
     @Override
     public S_AtomicFilterExit isDirectChildOf(String oid) {
-        OrgFilter orgFilter = OrgFilter.createOrg(oid, OrgFilter.Scope.ONE_LEVEL);
+        OrgFilter orgFilter = OrgFilterImpl.createOrg(oid, OrgFilter.Scope.ONE_LEVEL);
         return addSubfilter(orgFilter);
     }
 
     @Override
     public S_AtomicFilterExit isChildOf(String oid) {
-        OrgFilter orgFilter = OrgFilter.createOrg(oid, OrgFilter.Scope.SUBTREE);
+        OrgFilter orgFilter = OrgFilterImpl.createOrg(oid, OrgFilter.Scope.SUBTREE);
         return addSubfilter(orgFilter);
     }
 
     @Override
     public S_AtomicFilterExit isInScopeOf(String oid, OrgFilter.Scope scope) {
-        return addSubfilter(OrgFilter.createOrg(oid, scope));
+        return addSubfilter(OrgFilterImpl.createOrg(oid, scope));
     }
 
     @Override
     public S_AtomicFilterExit isInScopeOf(PrismReferenceValue value, OrgFilter.Scope scope) {
-        return addSubfilter(OrgFilter.createOrg(value, scope));
+        return addSubfilter(OrgFilterImpl.createOrg(value, scope));
     }
 
     @Override
     public S_AtomicFilterExit isParentOf(String oid) {
-        OrgFilter orgFilter = OrgFilter.createOrg(oid, OrgFilter.Scope.ANCESTORS);
+        OrgFilter orgFilter = OrgFilterImpl.createOrg(oid, OrgFilter.Scope.ANCESTORS);
         return addSubfilter(orgFilter);
     }
 
     @Override
     public S_AtomicFilterExit isRoot() {
-        OrgFilter orgFilter = OrgFilter.createRootOrg();
+        OrgFilter orgFilter = OrgFilterImpl.createRootOrg();
         return addSubfilter(orgFilter);
     }
 
     @Override
     public S_AtomicFilterExit fullText(String... words) {
-        FullTextFilter fullTextFilter = FullTextFilter.createFullText(words);
+        FullTextFilter fullTextFilter = FullTextFilterImpl.createFullText(words);
         return addSubfilter(fullTextFilter);
     }
 
     @Override
     public S_FilterEntryOrEmpty block() {
-        return new R_Filter(queryBuilder, currentClass, OrFilter.createOr(), null, false, this, null, null, null, null, null, null);
+        return new R_Filter(queryBuilder, currentClass, OrFilterImpl.createOr(), null, false, this, null, null, null, null, null, null);
     }
 
     @Override
@@ -292,7 +293,21 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
         if (typeName == null) {
             throw new IllegalStateException("No type name for " + ctd);
         }
-        return new R_Filter(queryBuilder, type, OrFilter.createOr(), null, false, this, typeName, null, null, null, null, null);
+        return new R_Filter(queryBuilder, type, OrFilterImpl.createOr(), null, false, this, typeName, null, null, null, null, null);
+    }
+
+    @Override
+    public S_FilterEntryOrEmpty type(@NotNull QName typeName) {
+        ComplexTypeDefinition ctd = queryBuilder.getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByType(typeName);
+        if (ctd == null) {
+            throw new IllegalArgumentException("Unknown type: " + typeName);
+        }
+        //noinspection unchecked
+        Class<? extends Containerable> type = (Class<? extends Containerable>) ctd.getCompileTimeClass();
+        if (type == null) {
+            throw new IllegalStateException("No compile time class for " + ctd);
+        }
+        return new R_Filter(queryBuilder, type, OrFilterImpl.createOr(), null, false, this, typeName, null, null, null, null, null);
     }
 
     @Override
@@ -310,7 +325,7 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
         if (clazz == null) {
             throw new IllegalArgumentException("Item path of '" + existsPath + "' in " + currentClass + " does not point to a valid prism container.");
         }
-        return new R_Filter(queryBuilder, clazz, OrFilter.createOr(), null, false, this, null, existsPath, null, null,null, null);
+        return new R_Filter(queryBuilder, clazz, OrFilterImpl.createOr(), null, false, this, null, existsPath, null, null,null, null);
     }
 
     private <ID extends ItemDefinition> ID resolveItemPath(ItemPath itemPath, Class<ID> type) {
@@ -419,7 +434,7 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
         if (names.length == 0) {
             throw new IllegalArgumentException("There must be at least one name for asc(...) ordering");
         }
-        return addOrdering(ObjectOrdering.createOrdering(ItemPath.create((Object[]) names), OrderDirection.ASCENDING));
+        return addOrdering(ObjectOrderingImpl.createOrdering(ItemPath.create((Object[]) names), OrderDirection.ASCENDING));
     }
 
     @Override
@@ -427,7 +442,7 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
         if (ItemPath.isEmpty(path)) {
             throw new IllegalArgumentException("There must be non-empty path for asc(...) ordering");
         }
-        return addOrdering(ObjectOrdering.createOrdering(path, OrderDirection.ASCENDING));
+        return addOrdering(ObjectOrderingImpl.createOrdering(path, OrderDirection.ASCENDING));
     }
 
     @Override
@@ -435,7 +450,7 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
         if (names.length == 0) {
             throw new IllegalArgumentException("There must be at least one name for asc(...) ordering");
         }
-        return addOrdering(ObjectOrdering.createOrdering(ItemPath.create((Object[]) names), OrderDirection.DESCENDING));
+        return addOrdering(ObjectOrderingImpl.createOrdering(ItemPath.create((Object[]) names), OrderDirection.DESCENDING));
     }
 
     @Override
@@ -443,7 +458,7 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
         if (ItemPath.isEmpty(path)) {
             throw new IllegalArgumentException("There must be non-empty path for desc(...) ordering");
         }
-        return addOrdering(ObjectOrdering.createOrdering(path, OrderDirection.DESCENDING));
+        return addOrdering(ObjectOrderingImpl.createOrdering(path, OrderDirection.DESCENDING));
     }
 
     @Override
@@ -451,7 +466,7 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
         if (names.length == 0) {
             throw new IllegalArgumentException("There must be at least one name for uniq(...) grouping");
         }
-        return addGrouping(ObjectGrouping.createGrouping(ItemPath.create((Object[]) names)));
+        return addGrouping(ObjectGroupingImpl.createGrouping(ItemPath.create((Object[]) names)));
     }
 
     @Override
@@ -459,7 +474,7 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
         if (ItemPath.isEmpty(path)) {
             throw new IllegalArgumentException("There must be non-empty path for uniq(...) grouping");
         }
-        return addGrouping(ObjectGrouping.createGrouping(path));
+        return addGrouping(ObjectGroupingImpl.createGrouping(path));
     }
 
     @Override
@@ -494,11 +509,11 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
             paging = createIfNeeded(paging);
             paging.setMaxSize(maxSize);
         }
-        return ObjectQuery.createObjectQuery(simplify(currentFilter), paging);
+        return ObjectQueryImpl.createObjectQuery(simplify(currentFilter), paging);
     }
 
     private ObjectPaging createIfNeeded(ObjectPaging paging) {
-        return paging != null ? paging : ObjectPaging.createEmptyPaging();
+        return paging != null ? paging : ObjectPagingImpl.createEmptyPaging();
     }
 
     @Override
@@ -512,7 +527,7 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
             return null;
         }
 
-        OrFilter simplified = OrFilter.createOr();
+        OrFilter simplified = OrFilterImpl.createOr();
 
         // step 1 - simplify conjunctions
         for (ObjectFilter condition : filter.getConditions()) {

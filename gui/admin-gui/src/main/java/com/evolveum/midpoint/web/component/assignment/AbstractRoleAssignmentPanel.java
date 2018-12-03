@@ -26,10 +26,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -272,7 +269,8 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
     }
 
     protected void initCustomPaging(){
-    	getAssignmentsTabStorage().setPaging(ObjectPaging.createPaging(0, (int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE)));
+    	getAssignmentsTabStorage().setPaging(getPrismContext().queryFactory()
+			    .createPaging(0, (int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE)));
     }
 
 	@Override
@@ -283,15 +281,15 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
     protected ObjectQuery createObjectQuery() {
 	    Collection<QName> delegationRelations = getParentPage().getRelationRegistry()
 			    .getAllRelationsFor(RelationKindType.DELEGATION);
-        ObjectFilter deputyFilter = QueryBuilder.queryFor(AssignmentType.class, getParentPage().getPrismContext())
+        ObjectFilter deputyFilter = getParentPage().getPrismContext().queryFor(AssignmentType.class)
                 .item(AssignmentType.F_TARGET_REF)
                 .ref(delegationRelations.toArray(new QName[0]))
                 .buildFilter();
-        ObjectQuery query = QueryBuilder.queryFor(AssignmentType.class, getParentPage().getPrismContext())
+        ObjectQuery query = getParentPage().getPrismContext().queryFor(AssignmentType.class)
                 .not()
                 .exists(AssignmentType.F_POLICY_RULE)
                 .build();
-        query.addFilter(NotFilter.createNot(deputyFilter));
+        query.addFilter(getPrismContext().queryFactory().createNot(deputyFilter));
         return query;
     }
 

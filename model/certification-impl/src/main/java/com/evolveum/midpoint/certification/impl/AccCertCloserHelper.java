@@ -24,7 +24,6 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
@@ -244,7 +243,7 @@ public class AccCertCloserHelper {
 		Set<String> poisonedCampaigns = new HashSet<>();
 		try {
 			for (;;) {
-				ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCampaignType.class, prismContext)
+				ObjectQuery query = prismContext.queryFor(AccessCertificationCampaignType.class)
 						.item(AccessCertificationCampaignType.F_STATE).eq(AccessCertificationCampaignStateType.CLOSED)
 						.and().not().id(poisonedCampaigns.toArray(new String[0]))   // hoping there are not many of these
 						.desc(AccessCertificationCampaignType.F_END_TIMESTAMP)
@@ -277,7 +276,7 @@ public class AccCertCloserHelper {
 		Set<String> poisonedCampaigns = new HashSet<>();
 		try {
 			for (;;) {
-				ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCampaignType.class, prismContext)
+				ObjectQuery query = prismContext.queryFor(AccessCertificationCampaignType.class)
 						.item(AccessCertificationCampaignType.F_STATE).eq(AccessCertificationCampaignStateType.CLOSED)
 						.and().item(AccessCertificationCampaignType.F_END_TIMESTAMP).lt(timeXml)
 						.and().not().id(poisonedCampaigns.toArray(new String[0]))   // hoping there are not many of these

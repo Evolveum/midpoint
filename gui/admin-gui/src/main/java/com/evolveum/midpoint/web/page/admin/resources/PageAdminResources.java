@@ -26,7 +26,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -120,7 +119,7 @@ public class PageAdminResources extends PageAdmin {
         PrismObject<TaskType> oldTask;
 
         OperationResult result = new OperationResult(OPERATION_DELETE_SYNC_TOKEN);
-        ObjectQuery query = QueryBuilder.queryFor(TaskType.class, getPrismContext())
+        ObjectQuery query = getPrismContext().queryFor(TaskType.class)
                 .item(TaskType.F_OBJECT_REF).ref(resourceOid)
                 .and().item(TaskType.F_HANDLER_URI).eq(handlerUri)
                 .build();

@@ -23,6 +23,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -47,16 +48,9 @@ import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPane
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.report.api.ReportConstants;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -372,7 +366,7 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
             Task task = createSimpleTask(OPERATION_LOAD_RESOURCES);
 
             Collection<PrismObject<O>> objects;
-            ObjectQuery query = QueryBuilder.queryFor(targetType, getPrismContext())
+            ObjectQuery query = getPrismContext().queryFor(targetType)
                     .item(new QName(SchemaConstants.NS_C, pLabel)).startsWith(input)
                         .matching(new QName(SchemaConstants.NS_MATCHING_RULE, "origIgnoreCase"))
                     .maxSize(AUTO_COMPLETE_BOX_SIZE)

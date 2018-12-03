@@ -28,7 +28,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -1650,7 +1649,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
         String category = dto.getCategory();
         boolean showSubtasks = dto.isShowSubtasks();
 
-        S_AtomicFilterEntry q = QueryBuilder.queryFor(TaskType.class, getPrismContext());
+        S_AtomicFilterEntry q = getPrismContext().queryFor(TaskType.class);
         if (status != null) {
             q = status.appendFilter(q);
         }

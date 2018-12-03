@@ -27,7 +27,9 @@ import com.evolveum.midpoint.prism.path.CanonicalItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
+import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.prism.query.QueryConverter;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismMonitor;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
@@ -338,8 +340,13 @@ public interface PrismContext extends ProtectorCreator {
 
 	<C extends Containerable> S_ItemEntry deltaFor(Class<C> objectClass) throws SchemaException;
 
+	S_FilterEntryOrEmpty queryFor(Class<? extends Containerable> queryClass);
+
 	@NotNull
 	DeltaFactory deltaFactory();
+
+	@NotNull
+	QueryFactory queryFactory();
 
 	@NotNull
 	ItemFactory itemFactory();
@@ -349,4 +356,5 @@ public interface PrismContext extends ProtectorCreator {
 
 	@NotNull
 	ItemPathParser itemPathParser();
+
 }

@@ -27,9 +27,9 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 
-public class LessFilter<T> extends ComparativeFilter<T> {
+public class LessFilterImpl<T> extends ComparativeFilterImpl<T> implements LessFilter<T> {
 
-	LessFilter(@NotNull ItemPath path, @Nullable PrismPropertyDefinition<T> definition,
+	private LessFilterImpl(@NotNull ItemPath path, @Nullable PrismPropertyDefinition<T> definition,
 			@Nullable QName matchingRule,
 			@Nullable PrismPropertyValue<T> value, @Nullable ExpressionWrapper expression,
 			@Nullable ItemPath rightHandSidePath, @Nullable ItemDefinition rightHandSideDefinition, boolean equals) {
@@ -41,7 +41,7 @@ public class LessFilter<T> extends ComparativeFilter<T> {
 	// empty (can be filled-in later)
 	@NotNull
 	public static <T> LessFilter<T> createLess(@NotNull ItemPath itemPath, PrismPropertyDefinition<T> definition, boolean equals) {
-		return new LessFilter<>(itemPath, definition, null, null, null, null, null, equals);
+		return new LessFilterImpl<>(itemPath, definition, null, null, null, null, null, equals);
 	}
 
 	// value
@@ -49,27 +49,27 @@ public class LessFilter<T> extends ComparativeFilter<T> {
 	public static <T> LessFilter<T> createLess(@NotNull ItemPath itemPath, PrismPropertyDefinition<T> definition,
 			QName matchingRule, Object anyValue, boolean equals, @NotNull PrismContext prismContext) {
 		PrismPropertyValue<T> propertyValue = anyValueToPropertyValue(prismContext, anyValue);
-		return new LessFilter<>(itemPath, definition, matchingRule, propertyValue, null, null, null, equals);
+		return new LessFilterImpl<>(itemPath, definition, matchingRule, propertyValue, null, null, null, equals);
 	}
 
 	// expression-related
 	@NotNull
 	public static <T> LessFilter<T> createLess(@NotNull ItemPath itemPath, PrismPropertyDefinition<T> itemDefinition, QName matchingRule,
 			@NotNull ExpressionWrapper expressionWrapper, boolean equals) {
-		return new LessFilter<>(itemPath, itemDefinition, matchingRule, null, expressionWrapper, null, null, equals);
+		return new LessFilterImpl<>(itemPath, itemDefinition, matchingRule, null, expressionWrapper, null, null, equals);
 	}
 
 	// right-side-related
 	@NotNull
 	public static <T> LessFilter<T> createLess(@NotNull ItemPath propertyPath, PrismPropertyDefinition<T> definition,
 			QName matchingRule, @NotNull ItemPath rightSidePath, ItemDefinition rightSideDefinition, boolean equals) {
-		return new LessFilter<>(propertyPath, definition, matchingRule, null, null, rightSidePath, rightSideDefinition, equals);
+		return new LessFilterImpl<>(propertyPath, definition, matchingRule, null, null, rightSidePath, rightSideDefinition, equals);
 	}
 
 	@SuppressWarnings("CloneDoesntCallSuperClone")
 	@Override
-	public LessFilter<T> clone() {
-		return new LessFilter<>(getFullPath(), getDefinition(), getMatchingRule(), getClonedValue(), getExpression(),
+	public LessFilterImpl<T> clone() {
+		return new LessFilterImpl<>(getFullPath(), getDefinition(), getMatchingRule(), getClonedValue(), getExpression(),
 				getRightHandSidePath(), getRightHandSideDefinition(), isEquals());
 	}
 

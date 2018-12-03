@@ -526,7 +526,7 @@ public class ExpressionUtil {
 				if (inOidFilter.getOids() != null && !inOidFilter.getOids().isEmpty()){
 					return filter.clone();
 				}
-				return NoneFilter.createNone();
+				return FilterCreationUtil.createNone(prismContext);
 			}
 
 			ExpressionType valueExpression = getExpression(expressionWrapper, shortDesc);
@@ -538,7 +538,7 @@ public class ExpressionUtil {
 				if (expressionResult == null || expressionResult.isEmpty()) {
 					LOGGER.debug("Result of search filter expression was null or empty. Expression: {}",
 							valueExpression);
-					return createFilterForNoValue(filter, valueExpression);
+					return createFilterForNoValue(filter, valueExpression, prismContext);
 				}
 				// TODO: log more context
 				LOGGER.trace("Search filter expression in the rule for {} evaluated to {}.", shortDesc, expressionResult);
@@ -566,7 +566,7 @@ public class ExpressionUtil {
 				if (expressionResult == null || expressionResult.isEmpty()) {
 					LOGGER.debug("Result of search filter expression was null or empty. Expression: {}",
 							valueExpression);
-					return createFilterForNoValue(filter, valueExpression);
+					return createFilterForNoValue(filter, valueExpression, prismContext);
 				}
 				// TODO: log more context
 				LOGGER.trace("Search filter expression in the rule for {} evaluated to {}.",
@@ -614,7 +614,7 @@ public class ExpressionUtil {
 					LOGGER.debug("Result of search filter expression was null or empty. Expression: {}",
 							valueExpression);
 
-					return createFilterForNoValue(valueFilter, valueExpression);
+					return createFilterForNoValue(valueFilter, valueExpression, prismContext);
 				}
 				// TODO: log more context
 				LOGGER.trace("Search filter expression in the rule for {} evaluated to {}.",
@@ -689,7 +689,8 @@ public class ExpressionUtil {
 		return (ExpressionType) expressionWrapper.getExpression();
 	}
 
-	private static ObjectFilter createFilterForNoValue(ObjectFilter filter, ExpressionType valueExpression) throws ExpressionEvaluationException {
+	private static ObjectFilter createFilterForNoValue(ObjectFilter filter, ExpressionType valueExpression,
+			PrismContext prismContext) throws ExpressionEvaluationException {
 		QueryInterpretationOfNoValueType queryInterpretationOfNoValue = valueExpression.getQueryInterpretationOfNoValue();
 		if (queryInterpretationOfNoValue == null) {
 			queryInterpretationOfNoValue = QueryInterpretationOfNoValueType.FILTER_EQUAL_NULL;
@@ -698,13 +699,13 @@ public class ExpressionUtil {
 		switch (queryInterpretationOfNoValue) {
 
 			case FILTER_UNDEFINED:
-				return UndefinedFilter.createUndefined();
+				return FilterCreationUtil.createUndefined(prismContext);
 
 			case FILTER_NONE:
-				return NoneFilter.createNone();
+				return FilterCreationUtil.createNone(prismContext);
 
 			case FILTER_ALL:
-				return AllFilter.createAll();
+				return FilterCreationUtil.createAll(prismContext);
 
 			case FILTER_EQUAL_NULL:
 				if (filter instanceof ValueFilter) {
@@ -712,9 +713,9 @@ public class ExpressionUtil {
 					evaluatedFilter.setExpression(null);
 					return evaluatedFilter;
 				} else if (filter instanceof InOidFilter) {
-					return NoneFilter.createNone();
+					return FilterCreationUtil.createNone(prismContext);
 				} else if (filter instanceof FullTextFilter) {
-					return NoneFilter.createNone(); // because full text search for 'no value' is meaningless
+					return FilterCreationUtil.createNone(prismContext); // because full text search for 'no value' is meaningless
 				} else {
 					throw new IllegalArgumentException("Unknown filter to evaluate: " + filter);
 				}

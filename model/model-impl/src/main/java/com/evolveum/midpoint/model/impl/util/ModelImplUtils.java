@@ -233,27 +233,6 @@ public class ModelImplUtils {
 		return null;
 	}
 
-
-	@Deprecated	// use RepositoryService.objectSearchIterative instead
-	public static <T extends ObjectType> void searchIterative(RepositoryService repositoryService, Class<T> type, ObjectQuery query,
-			Handler<PrismObject<T>> handler, int blockSize, OperationResult opResult) throws SchemaException {
-		ObjectQuery myQuery = query.clone();
-		// TODO: better handle original values in paging
-		ObjectPaging myPaging = ObjectPaging.createPaging(0, blockSize);
-		myQuery.setPaging(myPaging);
-		boolean cont = true;
-		while (cont) {
-			List<PrismObject<T>> objects = repositoryService.searchObjects(type, myQuery, null, opResult);
-			for (PrismObject<T> object: objects) {
-				if (!handler.handle(object)) {
-	                return;
-	            }
-			}
-			cont = objects.size() == blockSize;
-			myPaging.setOffset(myPaging.getOffset() + blockSize);
-		}
-	}
-
 	/**
 	 * Resolves references contained in given PrismObject.
 	 *
@@ -450,7 +429,7 @@ public class ModelImplUtils {
 		}
 	
 		try {
-			ObjectQuery query = ObjectQuery.createObjectQuery(objFilter);
+			ObjectQuery query = prismContext.queryFactory().createObjectQuery(objFilter);
 			objects = (List)repository.searchObjects(type, query, null, result);
 	
 		} catch (SchemaException e) {

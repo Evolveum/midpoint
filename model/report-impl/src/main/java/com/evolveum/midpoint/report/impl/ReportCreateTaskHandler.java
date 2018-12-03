@@ -70,7 +70,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.report.api.ReportConstants;
 import com.evolveum.midpoint.report.api.ReportService;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -505,7 +504,8 @@ public class ReportCreateTaskHandler implements TaskHandler {
         reportOutputType.setExportType(reportType.getExport());
 
 
-        SearchResultList<PrismObject<NodeType>> nodes = modelService.searchObjects(NodeType.class, QueryBuilder.queryFor(NodeType.class, prismContext).item(NodeType.F_NODE_IDENTIFIER).eq(task.getNode()).build(), null, task, parentResult);
+        SearchResultList<PrismObject<NodeType>> nodes = modelService.searchObjects(NodeType.class, prismContext
+		        .queryFor(NodeType.class).item(NodeType.F_NODE_IDENTIFIER).eq(task.getNode()).build(), null, task, parentResult);
         if (nodes == null || nodes.isEmpty()) {
         	LOGGER.error("Could not found node for storing the report.");
         	throw new ObjectNotFoundException("Could not find node where to save report");

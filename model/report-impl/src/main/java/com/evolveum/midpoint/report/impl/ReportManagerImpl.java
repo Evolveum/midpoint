@@ -30,7 +30,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.report.api.ReportManager;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -274,7 +273,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
 
         List<PrismObject<ReportOutputType>> obsoleteReportOutputs = new ArrayList<>();
         try {
-            ObjectQuery obsoleteReportOutputsQuery = QueryBuilder.queryFor(ReportOutputType.class, prismContext)
+            ObjectQuery obsoleteReportOutputsQuery = prismContext.queryFor(ReportOutputType.class)
 					.item(ReportOutputType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP).le(timeXml)
 					.build();
             obsoleteReportOutputs = modelService.searchObjects(ReportOutputType.class, obsoleteReportOutputsQuery, null, null, result);

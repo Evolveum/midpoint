@@ -31,6 +31,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 import com.evolveum.midpoint.repo.common.expression.*;
 import com.evolveum.midpoint.schema.*;
@@ -90,18 +91,6 @@ import com.evolveum.midpoint.model.impl.visualizer.Visualizer;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.AllFilter;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.InOidFilter;
-import com.evolveum.midpoint.prism.query.NoneFilter;
-import com.evolveum.midpoint.prism.query.NotFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrFilter;
-import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.prism.query.TypeFilter;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -471,7 +460,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		if (decision == AuthorizationDecisionType.DENY) {
 			result.recordSuccess();
 			spec.setNoRoleTypes();
-			spec.setFilter(NoneFilter.createNone());
+			spec.setFilter(FilterCreationUtil.createNone(prismContext));
 			return spec;
 		}
 		decision = securityConstraints.findAllItemsDecision(ModelAuthorizationAction.MODIFY.getUrl(), AuthorizationPhaseType.REQUEST);
@@ -483,13 +472,13 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		if (decision == AuthorizationDecisionType.DENY) {
 			result.recordSuccess();
 			spec.setNoRoleTypes();
-			spec.setFilter(NoneFilter.createNone());
+			spec.setFilter(FilterCreationUtil.createNone(prismContext));
 			return spec;
 		}
 
 		try {
 			ObjectFilter filter = securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ASSIGN,
-					AuthorizationPhaseType.REQUEST, targetType, focus, AllFilter.createAll(), null, task, result);
+					AuthorizationPhaseType.REQUEST, targetType, focus, FilterCreationUtil.createAll(prismContext), null, task, result);
 			LOGGER.trace("assignableRoleSpec filter: {}", filter);
 			spec.setFilter(filter);
 			if (filter instanceof NoneFilter) {
@@ -1436,7 +1425,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		List<PrismReferenceValue> assigneeReferencesToQuery = workItem.getAssigneeRef().stream()
 				.map(assigneeRef -> assigneeRef.clone().relation(PrismConstants.Q_ANY).asReferenceValue())
 				.collect(Collectors.toList());
-		ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(UserType.class)
 				.item(UserType.F_DELEGATED_REF).ref(assigneeReferencesToQuery)
 				.build();
 		SearchResultList<PrismObject<UserType>> potentialDeputies = cacheRepositoryService
@@ -1456,7 +1445,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			QName limitationItemName, Set<String> oidsToSkip,
 			Task task, OperationResult result) throws SchemaException {
 		PrismReferenceValue assigneeReferenceToQuery = assigneeRef.clone().relation(PrismConstants.Q_ANY).asReferenceValue();
-		ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(UserType.class)
 				.item(UserType.F_DELEGATED_REF).ref(assigneeReferenceToQuery)
 				.build();
 		SearchResultList<PrismObject<UserType>> potentialDeputies = cacheRepositoryService
