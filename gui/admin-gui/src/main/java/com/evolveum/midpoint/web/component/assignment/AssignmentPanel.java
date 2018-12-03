@@ -564,7 +564,7 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 		return Model.of();
 	}
 
-	private ItemVisibility getAssignmentBasicTabVisibity(ItemWrapper itemWrapper, ItemPath parentAssignmentPath, ItemPath assignmentPath, PrismContainerValue<AssignmentType> prismContainerValue) {
+	protected ItemVisibility getAssignmentBasicTabVisibity(ItemWrapper itemWrapper, ItemPath parentAssignmentPath, ItemPath assignmentPath, PrismContainerValue<AssignmentType> prismContainerValue) {
 
 		if (itemWrapper.getPath().equals(assignmentPath.append(AssignmentType.F_METADATA))){
 			return ItemVisibility.AUTO;

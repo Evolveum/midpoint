@@ -64,6 +64,7 @@ import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
 import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
+import com.evolveum.midpoint.web.component.input.ExpressionValuePanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.*;
@@ -305,6 +306,58 @@ public final class WebComponentUtil {
 			sb.append(emptyIfNull(createStringResourceStatic(null, descriptor.getLocalizationKey()).getString())).append(")");
 		}
 		return sb.toString();
+	}
+
+	public static <O extends ObjectType> List<O> loadReferencedObjectList(List<ObjectReferenceType> refList, String operation, PageBase pageBase){
+		List<O> loadedObjectsList = new ArrayList<>();
+		if (refList == null){
+			return loadedObjectsList;
+		}
+		refList.forEach(objectRef -> {
+			OperationResult result = new OperationResult(operation);
+			PrismObject<O> loadedObject = WebModelServiceUtils.resolveReferenceNoFetch(objectRef, pageBase, pageBase.createSimpleTask(operation), result);
+			if (loadedObject != null) {
+				loadedObjectsList.add(loadedObject.asObjectable());
+			}
+		});
+		return loadedObjectsList;
+	}
+
+	public static ObjectFilter getShadowTypeFilterForAssociation(ConstructionType construction, String operation, PageBase pageBase){
+		ObjectQuery query = new ObjectQuery();
+
+		if (construction == null){
+			return null;
+		}
+		PrismObject<ResourceType> resource = WebComponentUtil.getConstructionResource(construction, operation, pageBase);
+		if (resource == null){
+			return null;
+		}
+
+		try {
+			RefinedResourceSchema refinedResourceSchema = RefinedResourceSchema.getRefinedSchema(resource);
+			RefinedObjectClassDefinition oc = refinedResourceSchema.getRefinedDefinition(construction.getKind(), construction.getIntent());
+			if (oc == null){
+				return null;
+			}
+			Collection<RefinedAssociationDefinition> refinedAssociationDefinitions = oc.getAssociationDefinitions();
+
+			for (RefinedAssociationDefinition refinedAssociationDefinition : refinedAssociationDefinitions) {
+				S_FilterEntryOrEmpty atomicFilter = QueryBuilder.queryFor(ShadowType.class, pageBase.getPrismContext());
+				List<ObjectFilter> orFilterClauses = new ArrayList<>();
+				refinedAssociationDefinition.getIntents()
+						.forEach(intent -> orFilterClauses.add(atomicFilter.item(ShadowType.F_INTENT).eq(intent).buildFilter()));
+				OrFilter intentFilter = OrFilter.createOr(orFilterClauses);
+
+				AndFilter filter = (AndFilter) atomicFilter.item(ShadowType.F_KIND).eq(refinedAssociationDefinition.getKind()).and()
+						.item(ShadowType.F_RESOURCE_REF).ref(resource.getOid(), ResourceType.COMPLEX_TYPE).buildFilter();
+				filter.addCondition(intentFilter);
+				query.setFilter(filter);
+			}
+		} catch (SchemaException ex) {
+			LOGGER.error("Couldn't create query filter for ShadowType for association: {}" , ex.getErrorTypeMessage());
+		}
+		return query.getFilter();
 	}
 
 	public static void addAjaxOnUpdateBehavior(WebMarkupContainer container) {

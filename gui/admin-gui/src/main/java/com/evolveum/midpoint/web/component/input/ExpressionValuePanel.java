@@ -21,6 +21,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -36,6 +37,8 @@ import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.assignment.InducedEntitlementsPanel;
+import com.evolveum.midpoint.web.component.form.multivalue.MultiValueChoosePanel;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -45,6 +48,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChang
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.feedback.FeedbackMessage;
@@ -52,6 +56,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.boot.actuate.autoconfigure.metrics.MetricsProperties;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -85,6 +90,7 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
 
     ConstructionType construction;
     PageBase pageBase;
+    LoadableModel<List<ShadowType>> shadowsListModel;
 
     public ExpressionValuePanel(String id, IModel<ExpressionType> model, ConstructionType construction, PageBase pageBase){
         super(id, model);
@@ -212,67 +218,110 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
         });
         add(shadowRefValueContainer);
 
-
-
-        ChooseTypePanel<ShadowType> shadowRefPanel = new ChooseTypePanel<ShadowType>(ID_SHADOW_REF_VALUE_INPUT, getShadowRefValue()) {
+        shadowsListModel = new LoadableModel<List<ShadowType>>() {
+            @Override
+            protected List<ShadowType> load() {
+                return WebComponentUtil.loadReferencedObjectList(ExpressionUtil.getShadowRefValue(ExpressionValuePanel.this.getModelObject()),
+                        OPERATION_LOAD_SHADOW, pageBase);
+            }
+        };
+        MultiValueChoosePanel<ShadowType> shadowRefPanel = new MultiValueChoosePanel<ShadowType>(ID_SHADOW_REF_VALUE_INPUT,
+                shadowsListModel, Arrays.asList(ShadowType.class), false){
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void executeCustomAction(AjaxRequestTarget target, ShadowType object) {
-                ExpressionUtil.addShadowRefEvaluatorValue(ExpressionValuePanel.this.getModelObject(), object == null ? null : object.getOid(),
-                        pageBase.getPrismContext());
+            protected ObjectFilter getCustomFilter(){
+                return WebComponentUtil.getShadowTypeFilterForAssociation(construction, OPERATION_LOAD_RESOURCE, pageBase);
             }
 
             @Override
-            protected void executeCustomRemoveAction(AjaxRequestTarget target) {
-                ExpressionUtil.removeEvaluatorByName(ExpressionValuePanel.this.getModelObject(), SchemaConstantsGenerated.C_VALUE);
+            protected void removePerformedHook(AjaxRequestTarget target, ShadowType shadow) {
+                if (shadow != null && StringUtils.isNotEmpty(shadow.getOid())){
+                    ExpressionUtil.removeShadowRefEvaluatorValue(ExpressionValuePanel.this.getModelObject(), shadow.getOid(), pageBase.getPrismContext());
+                }
             }
 
             @Override
-            protected ObjectQuery getChooseQuery() {
-                ObjectQuery query = new ObjectQuery();
-
-                ExpressionType expression = ExpressionValuePanel.this.getModelObject();
-                if (expression == null || construction == null){
-                    return new ObjectQuery();
+            protected void choosePerformedHook(AjaxRequestTarget target, List<ShadowType> selectedList) {
+                ShadowType shadow = selectedList != null && selectedList.size() > 0 ? selectedList.get(0) : null;
+                if (shadow != null && StringUtils.isNotEmpty(shadow.getOid())){
+                    ExpressionUtil.addShadowRefEvaluatorValue(ExpressionValuePanel.this.getModelObject(), shadow.getOid(), pageBase.getPrismContext());
                 }
-                PrismObject<ResourceType> resource = WebComponentUtil.getConstructionResource(construction, OPERATION_LOAD_RESOURCE,
-                        ExpressionValuePanel.this.getPageBase());
-                if (resource == null){
-                    return new ObjectQuery();
-                }
-
-                try {
-                    RefinedResourceSchema refinedResourceSchema = RefinedResourceSchema.getRefinedSchema(resource);
-                    RefinedObjectClassDefinition oc = refinedResourceSchema.getRefinedDefinition(construction.getKind(), construction.getIntent());
-                    if (oc == null){
-                        return new ObjectQuery();
-                    }
-                    Collection<RefinedAssociationDefinition> refinedAssociationDefinitions = oc.getAssociationDefinitions();
-
-                    for (RefinedAssociationDefinition refinedAssociationDefinition : refinedAssociationDefinitions) {
-                        S_FilterEntryOrEmpty atomicFilter = QueryBuilder.queryFor(ShadowType.class, pageBase.getPrismContext());
-                        List<ObjectFilter> orFilterClauses = new ArrayList<>();
-                        refinedAssociationDefinition.getIntents()
-                                .forEach(intent -> orFilterClauses.add(atomicFilter.item(ShadowType.F_INTENT).eq(intent).buildFilter()));
-                        OrFilter intentFilter = OrFilter.createOr(orFilterClauses);
-
-                        AndFilter filter = (AndFilter) atomicFilter.item(ShadowType.F_KIND).eq(refinedAssociationDefinition.getKind()).and()
-                                .item(ShadowType.F_RESOURCE_REF).ref(resource.getOid(), ResourceType.COMPLEX_TYPE).buildFilter();
-                        filter.addCondition(intentFilter);
-                        query.setFilter(filter);
-                    }
-                } catch (SchemaException ex) {
-                    LOGGER.error("Couldn't create query filter for ShadowType popup list: {}" , ex.getErrorTypeMessage());
-                }
-                return query;
             }
 
             @Override
-            public Class<ShadowType> getObjectTypeClass() {
-                return ShadowType.class;
+            protected void selectPerformed(AjaxRequestTarget target, List<ShadowType> chosenValues) {
+                addPerformed(target, chosenValues);
             }
+
         };
+        shadowRefPanel.setOutputMarkupId(true);
+
+
+
+
+
+
+
+//        ChooseTypePanel<ShadowType> shadowRefPanel = new ChooseTypePanel<ShadowType>(ID_SHADOW_REF_VALUE_INPUT, getShadowRefValue()) {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            protected void executeCustomAction(AjaxRequestTarget target, ShadowType object) {
+//                ExpressionUtil.addShadowRefEvaluatorValue(ExpressionValuePanel.this.getModelObject(), object == null ? null : object.getOid(),
+//                        pageBase.getPrismContext());
+//            }
+//
+//            @Override
+//            protected void executeCustomRemoveAction(AjaxRequestTarget target) {
+//                ExpressionUtil.removeEvaluatorByName(ExpressionValuePanel.this.getModelObject(), SchemaConstantsGenerated.C_VALUE);
+//            }
+//
+//            @Override
+//            protected ObjectQuery getChooseQuery() {
+//                ObjectQuery query = new ObjectQuery();
+//
+//                ExpressionType expression = ExpressionValuePanel.this.getModelObject();
+//                if (expression == null || construction == null){
+//                    return new ObjectQuery();
+//                }
+//                PrismObject<ResourceType> resource = WebComponentUtil.getConstructionResource(construction, OPERATION_LOAD_RESOURCE,
+//                        ExpressionValuePanel.this.getPageBase());
+//                if (resource == null){
+//                    return new ObjectQuery();
+//                }
+//
+//                try {
+//                    RefinedResourceSchema refinedResourceSchema = RefinedResourceSchema.getRefinedSchema(resource);
+//                    RefinedObjectClassDefinition oc = refinedResourceSchema.getRefinedDefinition(construction.getKind(), construction.getIntent());
+//                    if (oc == null){
+//                        return new ObjectQuery();
+//                    }
+//                    Collection<RefinedAssociationDefinition> refinedAssociationDefinitions = oc.getAssociationDefinitions();
+//
+//                    for (RefinedAssociationDefinition refinedAssociationDefinition : refinedAssociationDefinitions) {
+//                        S_FilterEntryOrEmpty atomicFilter = QueryBuilder.queryFor(ShadowType.class, pageBase.getPrismContext());
+//                        List<ObjectFilter> orFilterClauses = new ArrayList<>();
+//                        refinedAssociationDefinition.getIntents()
+//                                .forEach(intent -> orFilterClauses.add(atomicFilter.item(ShadowType.F_INTENT).eq(intent).buildFilter()));
+//                        OrFilter intentFilter = OrFilter.createOr(orFilterClauses);
+//
+//                        AndFilter filter = (AndFilter) atomicFilter.item(ShadowType.F_KIND).eq(refinedAssociationDefinition.getKind()).and()
+//                                .item(ShadowType.F_RESOURCE_REF).ref(resource.getOid(), ResourceType.COMPLEX_TYPE).buildFilter();
+//                        filter.addCondition(intentFilter);
+//                        query.setFilter(filter);
+//                    }
+//                } catch (SchemaException ex) {
+//                    LOGGER.error("Couldn't create query filter for ShadowType popup list: {}" , ex.getErrorTypeMessage());
+//                }
+//                return query;
+//            }
+//
+//            @Override
+//            public Class<ShadowType> getObjectTypeClass() {
+//                return ShadowType.class;
+//            }
+//        };
         shadowRefValueContainer.add(shadowRefPanel);
 
         AjaxLink removeButton = new AjaxLink(ID_DELETE_SHADOW_REF_VALUE_BUTTON) {
@@ -358,18 +407,7 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
 
     }
 
-    private ObjectReferenceType getShadowRefValue() {
-        //TODO fix the panel
-//        ObjectReferenceType shadowRef = ExpressionUtil.getShadowRefValue(getModelObject());
-//        if (shadowRef == null || shadowRef.getOid() == null){
-            return null;
-//        }
-//        PolyStringType shadowName = new PolyStringType(WebModelServiceUtils.resolveReferenceName(shadowRef, pageBase));
-//        shadowRef.setTargetName(shadowName);
-//        return shadowRef;
-    }
-
-       private List<InlineMenuItem> createAddButtonInlineMenuItems(){
+    private List<InlineMenuItem> createAddButtonInlineMenuItems(){
         List<InlineMenuItem> menuList = new ArrayList<>();
         menuList.add(new InlineMenuItem(createStringResource("ExpressionValuePanel.addValueButtonDefaultTitle")) {
                          private static final long serialVersionUID = 1L;
