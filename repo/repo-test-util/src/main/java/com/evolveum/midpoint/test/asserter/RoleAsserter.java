@@ -278,4 +278,10 @@ public class RoleAsserter<RA> extends AbstractRoleAsserter<RoleType,RA> {
 		super.assertNoItem(itemPath);
 		return this;
 	}
+	
+	@Override
+	public RoleAsserter<RA> assertArchetypeRef(String expectedArchetypeOid) {
+		super.assertArchetypeRef(expectedArchetypeOid);
+		return this;
+	}
 }

@@ -323,4 +323,10 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
 		super.assertNoItem(itemPath);
 		return this;
 	}
+	
+	@Override
+	public UserAsserter<RA> assertArchetypeRef(String expectedArchetypeOid) {
+		super.assertArchetypeRef(expectedArchetypeOid);
+		return this;
+	}
 }

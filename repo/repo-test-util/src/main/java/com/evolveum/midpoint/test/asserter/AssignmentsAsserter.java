@@ -33,6 +33,7 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
@@ -158,4 +159,12 @@ public class AssignmentsAsserter<F extends FocusType, FA extends FocusAsserter<F
 		return this;
 	}
 
+	public AssignmentsAsserter<F,FA,RA> assertArchetype(String archetypeOid) throws ObjectNotFoundException, SchemaException {
+		by()
+			.targetOid(archetypeOid)
+			.targetType(ArchetypeType.COMPLEX_TYPE)
+			.find();
+		return this;
+	}
+	
 }
