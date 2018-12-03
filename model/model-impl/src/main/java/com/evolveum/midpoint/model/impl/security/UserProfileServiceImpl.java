@@ -16,44 +16,42 @@
 
 package com.evolveum.midpoint.model.impl.security;
 
-import com.evolveum.midpoint.common.ActivationComputer;
-import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.repo.cache.RepositoryCache;
-import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
-import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
-import com.evolveum.midpoint.model.api.util.DeputyUtils;
+import java.util.Collection;
+import java.util.List;
+
+import javax.naming.NamingException;
+import javax.naming.directory.Attribute;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
+import org.springframework.context.MessageSourceAware;
+import org.springframework.context.support.MessageSourceAccessor;
+import org.springframework.ldap.core.DirContextAdapter;
+import org.springframework.ldap.core.DirContextOperations;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.ldap.userdetails.UserDetailsContextMapper;
+import org.springframework.stereotype.Service;
+
 import com.evolveum.midpoint.model.api.util.ModelUtils;
-import com.evolveum.midpoint.model.common.SystemObjectCache;
-import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.UserComputer;
-import com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.LensContextPlaceholder;
-import com.evolveum.midpoint.model.impl.lens.LensUtil;
-import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.prism.util.ItemDeltaItem;
-import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
-import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationTransformer;
-import com.evolveum.midpoint.security.api.DelegatorWithOtherPrivilegesLimitations;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.task.api.Task;
@@ -63,35 +61,21 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.MessageSource;
-import org.springframework.context.MessageSourceAware;
-import org.springframework.context.support.MessageSourceAccessor;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.ldap.userdetails.UserDetailsContextMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.ldap.core.DirContextAdapter;
-import org.springframework.ldap.core.DirContextOperations;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import javax.naming.NamingException;
-import javax.naming.directory.Attribute;
-import org.springframework.beans.factory.annotation.Value;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author lazyman
@@ -107,14 +91,8 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
     private RepositoryService repositoryService;
 
 	@Autowired @Qualifier("modelObjectResolver") private ObjectResolver objectResolver;
-	@Autowired private SystemObjectCache systemObjectCache;
-	@Autowired private RelationRegistry relationRegistry;
-	@Autowired private MappingFactory mappingFactory;
-	@Autowired private MappingEvaluator mappingEvaluator;
-	@Autowired private SecurityHelper securityHelper;
+	@Autowired private UserProfileCompiler userProfileCompiler;
 	@Autowired private UserComputer userComputer;
-	@Autowired private ActivationComputer activationComputer;
-	@Autowired private Clock clock;
 	@Autowired private PrismContext prismContext;
 	@Autowired private TaskManager taskManager;
 
@@ -223,129 +201,9 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
     }
 
 	private void initializePrincipalFromAssignments(MidPointPrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, AuthorizationTransformer authorizationTransformer) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		UserType userType = principal.getUser();
-
-		Collection<Authorization> authorizations = principal.getAuthorities();
-		List<AdminGuiConfigurationType> adminGuiConfigurations = new ArrayList<>();
-
 		Task task = taskManager.createTaskInstance(UserProfileServiceImpl.class.getName() + ".initializePrincipalFromAssignments");
         OperationResult result = task.getResult();
-
-        principal.setApplicableSecurityPolicy(securityHelper.locateSecurityPolicy(userType.asPrismObject(), systemConfiguration, task, result));
-        
-		if (!userType.getAssignment().isEmpty()) {
-			LensContext<UserType> lensContext = createAuthenticationLensContext(userType.asPrismObject(), systemConfiguration);
-			AssignmentEvaluator.Builder<UserType> builder =
-					new AssignmentEvaluator.Builder<UserType>()
-							.repository(repositoryService)
-							.focusOdo(new ObjectDeltaObject<>(userType.asPrismObject(), null, userType.asPrismObject()))
-							.channel(null)
-							.objectResolver(objectResolver)
-							.systemObjectCache(systemObjectCache)
-							.relationRegistry(relationRegistry)
-							.prismContext(prismContext)
-							.mappingFactory(mappingFactory)
-							.mappingEvaluator(mappingEvaluator)
-							.activationComputer(activationComputer)
-							.now(clock.currentTimeXMLGregorianCalendar())
-							// We do need only authorizations + gui config. Therefore we not need to evaluate
-							// constructions and the like, so switching it off makes the evaluation run faster.
-							// It also avoids nasty problems with resources being down,
-							// resource schema not available, etc.
-							.loginMode(true)
-							// We do not have real lens context here. But the push methods in ModelExpressionThreadLocalHolder
-							// will need something to push on the stack. So give them context placeholder.
-							.lensContext(lensContext);
-
-			AssignmentEvaluator<UserType> assignmentEvaluator = builder.build();
-
-			Collection<AssignmentType> collectedAssignments = new HashSet<>();
-			collectedAssignments.addAll(userType.getAssignment());
-			
-			try {
-				Collection<AssignmentType> forcedAssignments = LensUtil.getForcedAssignments(lensContext.getFocusContext().getLifecycleModel(), 
-						userType.getLifecycleState(), objectResolver, prismContext, task, result);
-				if (forcedAssignments != null) {
-					collectedAssignments.addAll(forcedAssignments);
-				}
-			} catch (ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException
-					| ExpressionEvaluationException e1) {
-				LOGGER.error("Forced assignments defined for lifecycle {} won't be evaluated", userType.getLifecycleState(), e1);
-			}
-			
-			try {
-				RepositoryCache.enter();
-				for (AssignmentType assignmentType: collectedAssignments) {
-					try {
-						ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
-						assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
-						assignmentIdi.recompute();
-						EvaluatedAssignment<UserType> assignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userType, userType.toString(), task, result);
-						if (assignment.isValid()) {
-							addAuthorizations(authorizations, assignment.getAuthorizations(), authorizationTransformer);
-							adminGuiConfigurations.addAll(assignment.getAdminGuiConfigurations());
-						}
-						for (EvaluatedAssignmentTarget target : assignment.getRoles().getNonNegativeValues()) {
-							if (target.isValid() && target.getTarget() != null && target.getTarget().asObjectable() instanceof UserType
-									&& DeputyUtils.isDelegationPath(target.getAssignmentPath(), relationRegistry)) {
-								List<OtherPrivilegesLimitationType> limitations = DeputyUtils.extractLimitations(target.getAssignmentPath());
-								principal.addDelegatorWithOtherPrivilegesLimitations(new DelegatorWithOtherPrivilegesLimitations(
-										(UserType) target.getTarget().asObjectable(), limitations));
-							}
-						}
-					} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | PolicyViolationException | SecurityViolationException | ConfigurationException | CommunicationException e) {
-						LOGGER.error("Error while processing assignment of {}: {}; assignment: {}",
-								userType, e.getMessage(), assignmentType, e);
-					}
-				}
-			} finally {
-				RepositoryCache.exit();
-			}
-		}
-		if (userType.getAdminGuiConfiguration() != null) {
-			// config from the user object should go last (to be applied as the last one)
-			adminGuiConfigurations.add(userType.getAdminGuiConfiguration());
-		}
-        principal.setAdminGuiConfiguration(AdminGuiConfigTypeUtil.compileAdminGuiConfiguration(adminGuiConfigurations, systemConfiguration));
-	}
-
-	private LensContext<UserType> createAuthenticationLensContext(PrismObject<UserType> user, PrismObject<SystemConfigurationType> systemConfiguration) throws SchemaException {
-		LensContext<UserType> lensContext = new LensContextPlaceholder<>(user, prismContext);
-		if (systemConfiguration != null) {
-			ObjectPolicyConfigurationType policyConfigurationType = determineObjectPolicyConfiguration(user, systemConfiguration);
-			lensContext.getFocusContext().setObjectPolicyConfigurationType(policyConfigurationType);
-		}
-		return lensContext;
-	}
-
-	private ObjectPolicyConfigurationType determineObjectPolicyConfiguration(PrismObject<UserType> user, PrismObject<SystemConfigurationType> systemConfiguration) throws SchemaException {
-		ObjectPolicyConfigurationType policyConfigurationType;
-		try {
-			policyConfigurationType = ModelUtils.determineObjectPolicyConfiguration(user, systemConfiguration.asObjectable());
-		} catch (ConfigurationException e) {
-			throw new SchemaException(e.getMessage(), e);
-		}
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Selected policy configuration from subtypes {}:\n{}", 
-					FocusTypeUtil.determineSubTypes(user), policyConfigurationType==null?null:policyConfigurationType.asPrismContainerValue().debugDump(1));
-		}
-		
-		return policyConfigurationType;
-	}
-	private void addAuthorizations(Collection<Authorization> targetCollection, Collection<Authorization> sourceCollection, AuthorizationTransformer authorizationTransformer) {
-		if (sourceCollection == null) {
-			return;
-		}
-		for (Authorization autz: sourceCollection) {
-			if (authorizationTransformer == null) {
-				targetCollection.add(autz);
-			} else {
-				Collection<Authorization> transformedAutzs = authorizationTransformer.transform(autz);
-				if (transformedAutzs != null) {
-					targetCollection.addAll(transformedAutzs);
-				}
-			}
-		}
+        userProfileCompiler.compileUserProfile(principal, systemConfiguration, authorizationTransformer, task, result);
 	}
 
 	private MidPointPrincipal save(MidPointPrincipal person, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
