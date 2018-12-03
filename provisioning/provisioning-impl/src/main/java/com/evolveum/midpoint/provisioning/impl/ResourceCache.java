@@ -81,7 +81,7 @@ public class ResourceCache {
 		return get(resource.getOid(), resource.getVersion(), options);
 	}
 
-	public synchronized PrismObject<ResourceType> get(String oid, String version, GetOperationOptions options) throws SchemaException {
+	public synchronized PrismObject<ResourceType> get(String oid, String requestedVersion, GetOperationOptions options) throws SchemaException {
 		if (oid == null) {
 			return null;
 		}
@@ -91,7 +91,9 @@ public class ResourceCache {
 			return null;
 		}
 
-		if (!compareVersion(version, cachedResource.getVersion())) {
+		if (!compareVersion(requestedVersion, cachedResource.getVersion())) {
+			LOGGER.trace("Cached resource version {} does not match requested resource version {}, purging from cache", cachedResource.getVersion(), requestedVersion);
+			cache.remove(oid);
 			return null;
 		}
 

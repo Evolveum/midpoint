@@ -1016,13 +1016,23 @@ public class AssignmentProcessor {
 	}
 
     public <F extends ObjectType> void processMembershipAndDelegatedRefs(LensContext<F> context,
-			OperationResult result) throws SchemaException {
+			OperationResult result) throws SchemaException, PolicyViolationException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
-		if (focusContext == null || !FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
+		if (focusContext == null || !AssignmentHolderType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
 			return;
 		}
+		
+		ObjectDelta<F> focusPrimaryDelta = focusContext.getPrimaryDelta();
+		if (focusPrimaryDelta != null) {
+			ReferenceDelta archetypeRefDelta = focusPrimaryDelta.findReferenceModification(AssignmentHolderType.F_ARCHETYPE_REF);
+			if (archetypeRefDelta != null) {
+				throw new PolicyViolationException("Attempt to modify archetypeRef directly");
+			}
+		}
+		
 		Collection<PrismReferenceValue> shouldBeRoleRefs = new ArrayList<>();
 		Collection<PrismReferenceValue> shouldBeDelegatedRefs = new ArrayList<>();
+		Collection<PrismReferenceValue> shouldBeArchetypeRefs = new ArrayList<>();
 
 		DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
 		if (evaluatedAssignmentTriple == null) {
@@ -1032,11 +1042,13 @@ public class AssignmentProcessor {
 			if (evalAssignment.isValid()) {
 				addReferences(shouldBeRoleRefs, evalAssignment.getMembershipRefVals());
 				addReferences(shouldBeDelegatedRefs, evalAssignment.getDelegationRefVals());
+				addReferences(shouldBeArchetypeRefs, evalAssignment.getArchetypeRefVals());
 			}
 		}
 
-		setReferences(focusContext, FocusType.F_ROLE_MEMBERSHIP_REF, shouldBeRoleRefs);
-		setReferences(focusContext, FocusType.F_DELEGATED_REF, shouldBeDelegatedRefs);
+		setReferences(focusContext, AssignmentHolderType.F_ROLE_MEMBERSHIP_REF, shouldBeRoleRefs);
+		setReferences(focusContext, AssignmentHolderType.F_DELEGATED_REF, shouldBeDelegatedRefs);
+		setReferences(focusContext, AssignmentHolderType.F_ARCHETYPE_REF, shouldBeArchetypeRefs);
     }
 
 	private <F extends ObjectType> void setReferences(LensFocusContext<F> focusContext, QName itemName,

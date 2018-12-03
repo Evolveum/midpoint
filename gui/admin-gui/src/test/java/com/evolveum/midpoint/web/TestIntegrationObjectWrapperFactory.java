@@ -436,7 +436,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		ContainerWrapper<ShadowAttributesType> attributesContainerWrapper = objectWrapper.findContainerWrapper(new ItemPath(ShadowType.F_ATTRIBUTES));
 		assertEquals("wrong number of values in "+attributesContainerWrapper, 1, attributesContainerWrapper.getValues().size());
 		PrismContainer<ShadowAttributesType> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
-		WrapperTestUtil.assertWrapper(attributesContainerWrapper, "attributes", new ItemPath(ShadowType.F_ATTRIBUTES),
+		WrapperTestUtil.assertWrapper(attributesContainerWrapper, "Attributes", new ItemPath(ShadowType.F_ATTRIBUTES),
 				attributesContainer, false, ContainerStatus.MODIFYING);
 		ContainerValueWrapper<ShadowAttributesType> attributesContainerValueWrapper = attributesContainerWrapper.getValues().iterator().next();
 		WrapperTestUtil.assertPropertyWrapper(attributesContainerValueWrapper, dummyResourceCtl.getAttributeFullnameQName(), USER_JACK_FULL_NAME);
@@ -585,7 +585,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		assertEquals("wrong number of containers in "+objectWrapper, BASIC_SHADOW_CONTAINERS, objectWrapper.getContainers().size());
 
 		ContainerWrapper<ShadowAttributesType> attributesContainerWrapper = objectWrapper.findContainerWrapper(new ItemPath(ShadowType.F_ATTRIBUTES));
-		WrapperTestUtil.assertWrapper(attributesContainerWrapper, "attributes", new ItemPath(ShadowType.F_ATTRIBUTES), shadow.findContainer(ShadowType.F_ATTRIBUTES),
+		WrapperTestUtil.assertWrapper(attributesContainerWrapper, "Attributes", new ItemPath(ShadowType.F_ATTRIBUTES), shadow.findContainer(ShadowType.F_ATTRIBUTES),
 				false, ContainerStatus.MODIFYING);
 		assertEquals("wrong number of containers in "+attributesContainerWrapper, 1, attributesContainerWrapper.getValues().size());
 		ContainerValueWrapper<ShadowAttributesType> attributesContainerValueWrapper = attributesContainerWrapper.getValues().iterator().next();

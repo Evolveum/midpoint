@@ -69,6 +69,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	@NotNull private final DeltaSetTriple<PersonaConstruction<F>> personaConstructionTriple = new DeltaSetTriple<>();
 	@NotNull private final DeltaSetTriple<EvaluatedAssignmentTargetImpl> roles = new DeltaSetTriple<>();
 	@NotNull private final Collection<PrismReferenceValue> orgRefVals = new ArrayList<>();
+	@NotNull private final Collection<PrismReferenceValue> archetypeRefVals = new ArrayList<>();
 	@NotNull private final Collection<PrismReferenceValue> membershipRefVals = new ArrayList<>();
 	@NotNull private final Collection<PrismReferenceValue> delegationRefVals = new ArrayList<>();
 	@NotNull private final Collection<Authorization> authorizations = new ArrayList<>();
@@ -234,6 +235,15 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 
 	public void addOrgRefVal(PrismReferenceValue org) {
 		orgRefVals.add(org);
+	}
+	
+	@NotNull
+	public Collection<PrismReferenceValue> getArchetypeRefVals() {
+		return archetypeRefVals;
+	}
+
+	public void addArchetypeRefVal(PrismReferenceValue archetypeRefVal) {
+		archetypeRefVals.add(archetypeRefVal);
 	}
 
 	@NotNull

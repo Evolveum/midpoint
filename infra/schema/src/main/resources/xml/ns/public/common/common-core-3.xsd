@@ -15873,6 +15873,22 @@
 					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="color" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                    	Usual color used to render the icon. This color may be used in
+                    	situation when colorful presentation is appropriate. The color
+                    	may be used to color the icon itself, or it may also color the
+                    	background if icon is displayed with "inverted" color.
+                    	The color may also be ignored if monochrome presentation is
+                    	more appropriate.
+                    	Value of this element is HTML-like color name or code.
+                    </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>IconType.color</a:displayName>
+					</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 	
