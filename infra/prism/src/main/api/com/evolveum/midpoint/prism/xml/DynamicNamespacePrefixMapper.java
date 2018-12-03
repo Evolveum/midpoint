@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,8 @@ import java.util.Map;
  * avoid generation of prefixes.
  *
  * @see <a href="https://jira.evolveum.com/browse/MID-349">MID-349</a>
+ *
+ * TODO consider removal from the Prism API
  *
  * @author Igor Farinic
  * @author Radovan Semancik
