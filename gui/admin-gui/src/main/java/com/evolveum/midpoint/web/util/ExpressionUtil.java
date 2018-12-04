@@ -509,8 +509,13 @@ public class ExpressionUtil {
                 } else if (createIfNotExist) {
                     shadowRefNodes = new ListXNode();
                     ((MapXNode) node).put(SHADOW_REF_KEY, shadowRefNodes);
-
                 }
+            } else if (createIfNotExist) {
+                shadowRefNodes = new ListXNode();
+                raw = new RawType(new MapXNode(), prismContext);
+                node = raw.getXnode();
+                ((MapXNode) node).put(SHADOW_REF_KEY, shadowRefNodes);
+                element.setValue(raw);
             }
         }
         return shadowRefNodes;

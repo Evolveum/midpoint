@@ -290,21 +290,9 @@ public class InducedEntitlementsPanel extends InducementsPanel{
                     }
                     associations.forEach(association -> {
                         if (!filteredAssignments.contains(assignmentWrapper)) {
-                            if (association.getOutbound() == null && ValueStatus.ADDED.equals(assignmentWrapper.getStatus())) {
+                            if (association.getRef() != null && association.getRef().getItemPath() != null &&
+                                    !association.getRef().getItemPath().isEmpty()){
                                 filteredAssignments.add(assignmentWrapper);
-                                return;
-                            }
-                            if (association.getOutbound() != null && association.getOutbound().getExpression() != null) {
-                                List<ObjectReferenceType> shadowRefList = ExpressionUtil.getShadowRefValue(association.getOutbound().getExpression());
-                                if (shadowRefList == null){
-                                    return;
-                                }
-                                for (ObjectReferenceType shadowRef : shadowRefList){
-                                    if ((shadowRef != null || ValueStatus.ADDED.equals(assignmentWrapper.getStatus()))) {
-                                        filteredAssignments.add(assignmentWrapper);
-                                        break;
-                                    }
-                                }
                             }
                         }
                     });
