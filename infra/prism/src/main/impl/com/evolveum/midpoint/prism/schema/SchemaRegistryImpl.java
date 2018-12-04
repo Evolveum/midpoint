@@ -168,7 +168,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 	 * Must be called before call to initialize()
 	 */
 	public void registerSchemaResource(String resourcePath, String usualPrefix) throws SchemaException {
-		SchemaDescription desc = SchemaDescription.parseResource(resourcePath);
+		SchemaDescription desc = SchemaDescriptionImpl.parseResource(resourcePath);
 		desc.setUsualPrefix(usualPrefix);
 		registerSchemaDescription(desc);
 	}
@@ -177,14 +177,14 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 	 * Must be called before call to initialize()
 	 */
 	public void registerPrismSchemaResource(String resourcePath, String usualPrefix) throws SchemaException {
-		SchemaDescription desc = SchemaDescription.parseResource(resourcePath);
+		SchemaDescription desc = SchemaDescriptionImpl.parseResource(resourcePath);
 		desc.setUsualPrefix(usualPrefix);
 		desc.setPrismSchema(true);
 		registerSchemaDescription(desc);
 	}
 
     public void registerPrismSchemasFromWsdlResource(String resourcePath, List<Package> compileTimeClassesPackages) throws SchemaException {
-        List<SchemaDescription> descriptions = SchemaDescription.parseWsdlResource(resourcePath);
+        List<SchemaDescription> descriptions = SchemaDescriptionImpl.parseWsdlResource(resourcePath);
         Iterator<Package> pkgIterator = null;
         if (compileTimeClassesPackages != null) {
             if (descriptions.size() != compileTimeClassesPackages.size()) {
@@ -230,7 +230,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 	 */
 	public void registerPrismSchemaResource(String resourcePath, String usualPrefix, Package compileTimeClassesPackage,
 			boolean defaultSchema, boolean prefixDeclaredByDefault) throws SchemaException {
-		SchemaDescription desc = SchemaDescription.parseResource(resourcePath);
+		SchemaDescription desc = SchemaDescriptionImpl.parseResource(resourcePath);
 		desc.setUsualPrefix(usualPrefix);
 		desc.setPrismSchema(true);
 		desc.setDefault(defaultSchema);
@@ -244,7 +244,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 	 * @param node
 	 */
 	public void registerSchema(Node node, String sourceDescription) throws SchemaException {
-		SchemaDescription desc = SchemaDescription.parseNode(node, sourceDescription);
+		SchemaDescription desc = SchemaDescriptionImpl.parseNode(node, sourceDescription);
 		registerSchemaDescription(desc);
 	}
 
@@ -253,7 +253,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 	 * @param node
 	 */
 	public void registerSchema(Node node, String sourceDescription, String usualPrefix) throws SchemaException {
-		SchemaDescription desc = SchemaDescription.parseNode(node, sourceDescription);
+		SchemaDescription desc = SchemaDescriptionImpl.parseNode(node, sourceDescription);
 		desc.setUsualPrefix(usualPrefix);
 		registerSchemaDescription(desc);
 	}
@@ -272,7 +272,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
         	return null;
         }
 		LOGGER.debug("Loading schema from file {}", file);
-		SchemaDescription desc = SchemaDescription.parseFile(file);
+		SchemaDescription desc = SchemaDescriptionImpl.parseFile(file);
 		desc.setPrismSchema(true);
 		registerSchemaDescription(desc);
 		return desc;
@@ -280,7 +280,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 
 	public SchemaDescription loadPrismSchemaDescription(InputStream input, String sourceDescription)
 			throws SchemaException {
-		SchemaDescription desc = SchemaDescription.parseInputStream(input, sourceDescription);
+		SchemaDescription desc = SchemaDescriptionImpl.parseInputStream(input, sourceDescription);
 		desc.setPrismSchema(true);
 		registerSchemaDescription(desc);
 		return desc;
@@ -347,7 +347,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 	}
 
     public void loadPrismSchemaResource(String resourcePath) throws SchemaException {
-        SchemaDescription desc = SchemaDescription.parseResource(resourcePath);
+        SchemaDescription desc = SchemaDescriptionImpl.parseResource(resourcePath);
         desc.setPrismSchema(true);
         registerSchemaDescription(desc);
         parsePrismSchema(desc, false);

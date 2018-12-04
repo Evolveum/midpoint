@@ -16,17 +16,17 @@
 
 package com.evolveum.midpoint.prism.util;
 
-import com.evolveum.midpoint.prism.schema.SchemaProcessorUtil;
-
 /**
  *
  */
 public class DefinitionUtil {
+	public static final String MULTIPLICITY_UNBOUNDED = "unbounded";
+
 	public static Integer parseMultiplicity(String stringMultiplicity) {
 		if (stringMultiplicity == null) {
 			return null;
 		}
-		if (stringMultiplicity.equals(SchemaProcessorUtil.MULTIPLICITY_UNBOUNDED)) {
+		if (stringMultiplicity.equals(MULTIPLICITY_UNBOUNDED)) {
 			return -1;
 		}
 		return Integer.parseInt(stringMultiplicity);

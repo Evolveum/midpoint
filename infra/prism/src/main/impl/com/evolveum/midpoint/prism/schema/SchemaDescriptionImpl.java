@@ -37,11 +37,10 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-public class SchemaDescription implements DebugDumpable {
+public class SchemaDescriptionImpl implements SchemaDescription {
 
     private static final Trace LOGGER = TraceManager.getTrace(SchemaDescription.class);
 
@@ -58,7 +57,7 @@ public class SchemaDescription implements DebugDumpable {
 	private Package compileTimeClassesPackage;
 	private Map<QName, Class<?>> xsdTypeTocompileTimeClassMap;
 
-	private SchemaDescription(String sourceDescription) {
+	private SchemaDescriptionImpl(String sourceDescription) {
 		this.sourceDescription = sourceDescription;
 	}
 
@@ -147,7 +146,7 @@ public class SchemaDescription implements DebugDumpable {
 	}
 
 	public static SchemaDescription parseResource(final String resourcePath) throws SchemaException {
-		SchemaDescription desc = new SchemaDescription("system resource "+resourcePath);
+		SchemaDescriptionImpl desc = new SchemaDescriptionImpl("system resource "+resourcePath);
 		desc.path = resourcePath;
 		desc.streamable = new InputStreamable() {
 			@Override
@@ -191,7 +190,7 @@ public class SchemaDescription implements DebugDumpable {
             }
             int number = 1;
             for (Element schemaElement : schemaElements) {
-                SchemaDescription desc = new SchemaDescription("schema #" + (number++) + " in system resource " + resourcePath);
+	            SchemaDescriptionImpl desc = new SchemaDescriptionImpl("schema #" + (number++) + " in system resource " + resourcePath);
                 desc.node = schemaElement;
                 desc.fetchBasicInfoFromSchema();
                 schemaDescriptions.add(desc);
@@ -207,7 +206,7 @@ public class SchemaDescription implements DebugDumpable {
 		if (input == null) {
 			throw new NullPointerException("Input stream must not be null");
 		}
-		SchemaDescription desc = new SchemaDescription("inputStream " + description);
+		SchemaDescriptionImpl desc = new SchemaDescriptionImpl("inputStream " + description);
 		desc.path = null;
 		desc.streamable = () -> input;
 		desc.parseFromInputStream();
@@ -215,7 +214,7 @@ public class SchemaDescription implements DebugDumpable {
 	}
 
     public static SchemaDescription parseFile(final File file) throws FileNotFoundException, SchemaException {
-		SchemaDescription desc = new SchemaDescription("file "+file.getPath());
+	    SchemaDescriptionImpl desc = new SchemaDescriptionImpl("file "+file.getPath());
 		desc.path = file.getPath();
 		desc.streamable = new InputStreamable() {
 			@Override
@@ -244,7 +243,7 @@ public class SchemaDescription implements DebugDumpable {
 	}
 
 	public static SchemaDescription parseNode(Node node, String sourceDescription) throws SchemaException {
-		SchemaDescription desc = new SchemaDescription(sourceDescription);
+		SchemaDescriptionImpl desc = new SchemaDescriptionImpl(sourceDescription);
 		desc.node = node;
 		desc.fetchBasicInfoFromSchema();
 		return desc;
