@@ -31,7 +31,7 @@ import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.schema.SchemaProcessorUtil;
+import com.evolveum.midpoint.prism.util.DefinitionUtil;
 import com.evolveum.midpoint.util.exception.NoFocusNameSchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.BooleanUtils;
@@ -401,11 +401,11 @@ public class FocusProcessor {
 			return;
 		}
 		int count = getValueCount(item);
-		Integer min = SchemaProcessorUtil.parseMultiplicity(limitation.getMinOccurs());
+		Integer min = DefinitionUtil.parseMultiplicity(limitation.getMinOccurs());
 		if (min != null && min > 0 && count < min) {
 			throw new SchemaException("Expected at least " + min + " values of " + path + ", got " + count);
 		}
-		Integer max = SchemaProcessorUtil.parseMultiplicity(limitation.getMaxOccurs());
+		Integer max = DefinitionUtil.parseMultiplicity(limitation.getMaxOccurs());
 		if (max != null && max >= 0 && count > max) {
 			throw new SchemaException("Expected at most " + max + " values of " + path + ", got " + count);
 		}

@@ -27,11 +27,11 @@ import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.ItemProcessing;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.util.DefinitionUtil;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinitionImpl;
 import org.apache.commons.lang.BooleanUtils;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.schema.SchemaProcessorUtil;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -490,10 +490,10 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
 
 	private static void applyLimitationsType(PropertyLimitations limitations, PropertyLimitationsType layerLimitationsType) {
 		if (layerLimitationsType.getMinOccurs() != null) {
-			limitations.setMinOccurs(SchemaProcessorUtil.parseMultiplicity(layerLimitationsType.getMinOccurs()));
+			limitations.setMinOccurs(DefinitionUtil.parseMultiplicity(layerLimitationsType.getMinOccurs()));
 		}
 		if (layerLimitationsType.getMaxOccurs() != null) {
-			limitations.setMaxOccurs(SchemaProcessorUtil.parseMultiplicity(layerLimitationsType.getMaxOccurs()));
+			limitations.setMaxOccurs(DefinitionUtil.parseMultiplicity(layerLimitationsType.getMaxOccurs()));
 		}
 		if (layerLimitationsType.isIgnore() != null) {
 			limitations.setProcessing(ItemProcessing.IGNORE);

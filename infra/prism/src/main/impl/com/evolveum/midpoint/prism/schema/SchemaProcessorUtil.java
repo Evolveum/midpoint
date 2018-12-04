@@ -129,14 +129,4 @@ public class SchemaProcessorUtil {
 		return getAnnotationConverted(annotation, qname, Integer.class);
 	}
 
-	public static Integer parseMultiplicity(String stringMultiplicity) {
-		if (stringMultiplicity == null) {
-			return null;
-		}
-		if (stringMultiplicity.equals(MULTIPLICITY_UNBOUNDED)) {
-			return -1;
-		}
-		return Integer.parseInt(stringMultiplicity);
-	}
-
 }
