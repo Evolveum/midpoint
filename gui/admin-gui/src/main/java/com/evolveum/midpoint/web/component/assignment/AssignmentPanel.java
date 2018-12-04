@@ -27,7 +27,6 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -42,9 +41,6 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.admin.orgs.OrgTreePanel;
-import com.evolveum.midpoint.web.page.admin.users.dto.TreeStateSet;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
@@ -356,14 +352,9 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 			}
 
 			@Override
-			protected <F extends FocusType> PrismObject<F> getTargetedObject() {
-				ObjectWrapper<F> w = AssignmentPanel.this.getModelObject().getObjectWrapper();
-				if (w == null) {
-					return null;
-				}
-				return w.getObject();
+			protected ContainerWrapper<AssignmentType> getAssignmentWrapperModel() {
+				return AssignmentPanel.this.getModelObject();
 			}
-
 		};
 		popupPanel.setOutputMarkupId(true);
 		getPageBase().showMainPopup(popupPanel, target);
