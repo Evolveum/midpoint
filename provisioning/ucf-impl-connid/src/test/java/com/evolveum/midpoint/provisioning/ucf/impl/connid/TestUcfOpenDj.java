@@ -21,11 +21,10 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -741,7 +740,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		propMod.setPath(path);
 
 		//set the replace value
-        MapXNode passPsXnode = ((PrismContextImpl) prismContext).getBeanMarshaller().marshalProtectedDataType(passPs, null);
+        XNode passPsXnode = prismContext.xnodeSerializer().root(new QName("dummy")).serializeRealValue(passPs).getSubnode();
 		RawType value = new RawType(passPsXnode, prismContext);
 		propMod.getValue().add(value);
 

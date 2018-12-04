@@ -1469,7 +1469,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         passwordDelta.setPath(ModelClientUtil.createItemPathType("credentials/password/value", prismContext));
         ProtectedStringType pass = new ProtectedStringType();
         pass.setClearValue(NEW_PASSWORD);
-        XNode passValue = ((PrismContextImpl) prismContext).getBeanMarshaller().marshall(pass);
+        XNode passValue = prismContext.xnodeSerializer().root(new QName("dummy")).serializeRealValue(pass).getSubnode();
         System.out.println("PASSWORD VALUE: " + passValue.debugDump());
         RawType passwordValue = new RawType(passValue, prismContext);
         passwordDelta.getValue().add(passwordValue);
@@ -1858,7 +1858,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         modificationDeleteAccountRef.setModificationType(ModificationTypeType.DELETE);
         ObjectReferenceType accountRefToDelete = new ObjectReferenceType();
         accountRefToDelete.setOid(accountShadowOidDerby);
-        RawType modificationValue = new RawType(((PrismContextImpl) prismContext).getBeanMarshaller().marshall(accountRefToDelete), prismContext);
+        RawType modificationValue = new RawType(prismContext.xnodeSerializer().root(new QName("dummy")).serializeRealValue(accountRefToDelete).getSubnode(), prismContext);
         modificationDeleteAccountRef.getValue().add(modificationValue);
         modificationDeleteAccountRef.setPath(new ItemPathType(UserType.F_LINK_REF));
         objectChange.getItemDelta().add(modificationDeleteAccountRef);
@@ -3896,7 +3896,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         ItemDeltaType passwordDelta = new ItemDeltaType();
         passwordDelta.setModificationType(ModificationTypeType.REPLACE);
         passwordDelta.setPath(ModelClientUtil.createItemPathType("credentials/password/value", prismContext));
-        RawType passwordValue = new RawType(((PrismContextImpl) prismContext).getBeanMarshaller().marshall(ModelClientUtil.createProtectedString(newPassword)), prismContext);
+        RawType passwordValue = new RawType(prismContext.xnodeSerializer().root(new QName("dummy")).serializeRealValue(ModelClientUtil.createProtectedString(newPassword)).getSubnode(), prismContext);
         passwordDelta.getValue().add(passwordValue);
 
         delta.getItemDelta().add(passwordDelta);

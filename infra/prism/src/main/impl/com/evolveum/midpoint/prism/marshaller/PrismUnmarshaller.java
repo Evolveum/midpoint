@@ -149,7 +149,7 @@ public class PrismUnmarshaller {
     @NotNull
     private Item<?, ?> parseItemInternal(@NotNull XNodeImpl node,
             @NotNull QName itemName, ItemDefinition itemDefinition, @NotNull ParsingContext pc) throws SchemaException {
-        Validate.isTrue(!(node instanceof RootXNodeImpl));
+        Validate.isTrue(!(node instanceof RootXNode));
 
         // TODO execute this only if in checked mode
         if (itemDefinition == null && node.getTypeQName() != null) {

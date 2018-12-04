@@ -638,6 +638,7 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
 //		assertNotNull("Null resulting DOM element after DOM serialization", domElement);
 	}
 
+	// todo eliminate dependency on prism-impl
 	@Test
 	public void testParseResourceDom() throws Exception {
 		if (!"xml".equals(language)) {

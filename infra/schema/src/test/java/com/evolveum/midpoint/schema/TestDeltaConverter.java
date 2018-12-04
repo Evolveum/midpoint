@@ -207,7 +207,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
         ObjectReferenceType accountRefToDelete = new ObjectReferenceType();
         accountRefToDelete.setOid("54321");
         PrismContext prismContext = getPrismContext();
-        RawType modificationValue = new RawType(((PrismContextImpl) prismContext).getBeanMarshaller().marshall(accountRefToDelete), prismContext);
+        RawType modificationValue = new RawType(prismContext.xnodeSerializer().root(new QName("dummy")).serializeRealValue(accountRefToDelete).getSubnode(), prismContext);
         modificationDeleteAccountRef.getValue().add(modificationValue);
         objectChange.getItemDelta().add(modificationDeleteAccountRef);
         ItemPathType itemPathType = new ItemPathType(UserType.F_LINK_REF);
