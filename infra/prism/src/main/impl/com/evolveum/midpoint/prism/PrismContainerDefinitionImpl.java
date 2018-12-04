@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ import java.util.function.Consumer;
  * @author Radovan Semancik
  */
 public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemDefinitionImpl<PrismContainer<C>>
-		implements PrismContainerDefinition<C> {
+		implements MutablePrismContainerDefinition<C> {
 
     private static final long serialVersionUID = -5068923696147960699L;
 
@@ -365,7 +365,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
      * @param maxOccurs maximal number of occurrences (-1 means unbounded)
      * @return created property definition
      */
-    public PrismPropertyDefinition createPropertyDefinition(QName name, QName typeName,
+    public MutablePrismPropertyDefinition<?> createPropertyDefinition(QName name, QName typeName,
             int minOccurs, int maxOccurs) {
         PrismPropertyDefinitionImpl propDef = new PrismPropertyDefinitionImpl(name, typeName, prismContext);
         propDef.setMinOccurs(minOccurs);
@@ -392,7 +392,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
      * @param typeName  XSD type of the property
      * @return created property definition
      */
-    public PrismPropertyDefinition createPropertyDefinition(String localName, QName typeName) {
+    public MutablePrismPropertyDefinition<?> createPropertyDefinition(String localName, QName typeName) {
         QName name = new QName(getSchemaNamespace(), localName);
         return createPropertyDefinition(name, typeName);
     }
@@ -437,7 +437,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
     	return createContainerDefinition(name, typeName, 1, 1);
     }
 
-    public PrismContainerDefinition createContainerDefinition(QName name, QName typeName,
+    public MutablePrismContainerDefinition<?> createContainerDefinition(QName name, QName typeName,
             int minOccurs, int maxOccurs) {
     	PrismSchema typeSchema = prismContext.getSchemaRegistry().findSchemaByNamespace(typeName.getNamespaceURI());
     	if (typeSchema == null) {
@@ -450,7 +450,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
     	return createContainerDefinition(name, typeDefinition, minOccurs, maxOccurs);
     }
 
-    public PrismContainerDefinition<C> createContainerDefinition(QName name, ComplexTypeDefinition complexTypeDefinition,
+    public MutablePrismContainerDefinition<?> createContainerDefinition(QName name, ComplexTypeDefinition complexTypeDefinition,
             int minOccurs, int maxOccurs) {
     	PrismContainerDefinitionImpl<C> def = new PrismContainerDefinitionImpl<>(name, complexTypeDefinition, prismContext);
         def.setMinOccurs(minOccurs);
@@ -536,4 +536,8 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
         return "container";
     }
 
+	@Override
+	public MutablePrismContainerDefinition<C> toMutable() {
+		return this;
+	}
 }

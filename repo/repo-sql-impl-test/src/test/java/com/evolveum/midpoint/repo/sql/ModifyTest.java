@@ -430,7 +430,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         QName attrBazQName = new QName(MidPointConstants.NS_RI, "baz");
         PrismContainer<Containerable> attributesContainerBefore = shadowBefore.findContainer(ShadowType.F_ATTRIBUTES);
         PrismProperty<String> attrBazBefore = new PrismPropertyImpl<>(new QName(MidPointConstants.NS_RI, "baz"), prismContext);
-        PrismPropertyDefinitionImpl<String> attrBazDefBefore = new PrismPropertyDefinitionImpl<>(attrBazQName, DOMUtil.XSD_STRING, prismContext);
+        MutablePrismPropertyDefinition<String> attrBazDefBefore = prismContext.definitionFactory().createPropertyDefinition(attrBazQName, DOMUtil.XSD_STRING);
         attrBazDefBefore.setMaxOccurs(-1);
         // Unless marked as dynamic, the repo XML object will not have xsi:type (and so the repo will parse them as raw when
         // fetching). Normally, the provisioning module is responsible for applying the definition ... but we have
@@ -616,7 +616,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         repositoryService.addObject(account, null, result);
         accountOid = account.getOid();
 
-        PrismPropertyDefinition<String> definition = new PrismPropertyDefinitionImpl<>(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING, prismContext);
+        PrismPropertyDefinition<String> definition = prismContext.definitionFactory().createPropertyDefinition(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING);
 
         List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(ShadowType.class)
                 .item(ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME), definition)
@@ -640,7 +640,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         assertNotNull("account-attribute was not imported in previous tests", accountOid);
 
-        PrismPropertyDefinition<String> definition = new PrismPropertyDefinitionImpl<>(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING, prismContext);
+        PrismPropertyDefinition<String> definition = prismContext.definitionFactory().createPropertyDefinition(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING);
 
         List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(ShadowType.class)
                 .item(ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME), definition)
@@ -665,7 +665,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         PrismObject<UserType> user = prismContext.parseObject(new File(TEST_DIR, "user-with-assignment-extension.xml"));
         repositoryService.addObject(user, null, result);
 
-        PrismPropertyDefinition<String> definition = new PrismPropertyDefinitionImpl<>(QNAME_WEAPON, DOMUtil.XSD_STRING, prismContext);
+        PrismPropertyDefinition<String> definition = prismContext.definitionFactory().createPropertyDefinition(QNAME_WEAPON, DOMUtil.XSD_STRING);
 
         List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(UserType.class)
                 .item(ItemPath.create(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION, QNAME_WEAPON), definition)
@@ -848,7 +848,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         accountOid = account.getOid();
 
         QName ATTR1_QNAME = new QName(MidPointConstants.NS_RI, "attr1");
-        PrismPropertyDefinition<String> def1 = new PrismPropertyDefinitionImpl<>(ATTR1_QNAME, DOMUtil.XSD_STRING, prismContext);
+        PrismPropertyDefinition<String> def1 = prismContext.definitionFactory().createPropertyDefinition(ATTR1_QNAME, DOMUtil.XSD_STRING);
         ShadowAttributesType attributes = new ShadowAttributesType(prismContext);
         PrismProperty<String> attr1 = def1.instantiate();
         attr1.setRealValue("value1");

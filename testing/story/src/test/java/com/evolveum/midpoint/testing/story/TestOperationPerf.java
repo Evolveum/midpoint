@@ -20,6 +20,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -31,11 +32,6 @@ import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.common.util.ProfilingModelInspector;
 import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
 import com.evolveum.midpoint.model.test.ProfilingModelInspectorManager;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinitionImpl;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
@@ -109,7 +105,7 @@ public class TestOperationPerf extends AbstractStoryTest {
 
 	private void extendUserSchema(int numberOfProperties) {
 		PrismObjectDefinition<UserType> userDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-		PrismContainerDefinitionImpl<?> userExtensionDefinition = (PrismContainerDefinitionImpl<?>) userDefinition.getExtensionDefinition();
+		MutablePrismContainerDefinition<?> userExtensionDefinition = userDefinition.getExtensionDefinition().toMutable();
 		
 		for (int i=0; i<numberOfProperties; i++) {
 			String propName = String.format(USER_EXTENSION_PROPERTY_NAME_FORMAT, i);

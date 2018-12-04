@@ -78,5 +78,8 @@ public class ItemFactoryImpl implements ItemFactory {
 		}
 	}
 
-
+	@Override
+	public PrismContainer createPrismContainer(QName name) {
+		return new PrismContainerImpl(name, prismContext);
+	}
 }

@@ -21,7 +21,6 @@ import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
@@ -872,7 +871,7 @@ public class TestVillage extends AbstractStoryTest {
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassFilterPrefix(RESOURCE_OPENDJ_OID, GROUP_OF_UNIQUE_NAMES_OBJECTCLASS_QNAME, prismContext)
 				.and().itemWithDef(
-						new PrismPropertyDefinitionImpl<>(new QName(RESOURCE_OPENDJ_NAMESPACE, "cn"), DOMUtil.XSD_STRING, prismContext),
+				        prismContext.definitionFactory().createPropertyDefinition(new QName(RESOURCE_OPENDJ_NAMESPACE, "cn"), DOMUtil.XSD_STRING),
 						ShadowType.F_ATTRIBUTES, new QName(RESOURCE_OPENDJ_NAMESPACE, "cn")).eq("admins")
 				.build();
 

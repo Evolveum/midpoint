@@ -195,7 +195,7 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
         AssertJUnit.assertNotNull(def);
         PrismProperty item = (PrismProperty) def.instantiate();
         item.setRealValue(BeforeAfterType.AFTER);
-        ((ItemDefinitionImpl) def).setName(valueName);
+        def.toMutable().setName(valueName);
 
 
         RAnyConverter converter = new RAnyConverter(prismContext, extItemDictionary);

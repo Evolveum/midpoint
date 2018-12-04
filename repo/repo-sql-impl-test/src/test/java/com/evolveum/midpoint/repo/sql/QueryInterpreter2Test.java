@@ -70,29 +70,27 @@ import static com.evolveum.midpoint.prism.PrismConstants.T_ID;
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.prism.query.OrderDirection.ASCENDING;
 import static com.evolveum.midpoint.prism.query.OrderDirection.DESCENDING;
-import static com.evolveum.midpoint.schema.GetOperationOptions.*;
+import static com.evolveum.midpoint.schema.GetOperationOptions.createDistinct;
 import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
 import static com.evolveum.midpoint.util.QNameUtil.unqualify;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_STAGE_NUMBER;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REVIEW_STAGE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_OWNER_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_STATE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_WORK_ITEM;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType.F_CONSTRUCTION;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType.F_RESOURCE_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.F_ASSIGNMENT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType.F_CREATE_APPROVER_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType.F_CREATOR_REF;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType.F_TIMESTAMP;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.*;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
+import static org.testng.AssertJUnit.*;
 
 /**
  * @author lazyman
@@ -152,16 +150,16 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     }
 
     private void prepareItemDefinitions() {
-        fooDefinition = extItemDictionary.createOrFindItemDefinition(new PrismPropertyDefinitionImpl<String>(FOO_QNAME, DOMUtil.XSD_STRING, prismContext), false);
-        shoeSizeDefinition = extItemDictionary.createOrFindItemDefinition(new PrismPropertyDefinitionImpl<Integer>(SHOE_SIZE_QNAME, DOMUtil.XSD_INT, prismContext), false);
-        a1Definition = extItemDictionary.createOrFindItemDefinition(new PrismPropertyDefinitionImpl<String>(A1_QNAME, DOMUtil.XSD_STRING, prismContext), false);
-        stringTypeDefinition = extItemDictionary.findItemByDefinition(new PrismPropertyDefinitionImpl<Integer>(STRING_TYPE_QNAME, DOMUtil.XSD_STRING, prismContext));
-        intTypeDefinition = extItemDictionary.findItemByDefinition(new PrismPropertyDefinitionImpl<Integer>(INT_TYPE_QNAME, DOMUtil.XSD_INT, prismContext));
-        longTypeDefinition = extItemDictionary.findItemByDefinition(new PrismPropertyDefinitionImpl<Long>(LONG_TYPE_QNAME, DOMUtil.XSD_LONG, prismContext));
-        weaponDefinition = extItemDictionary.createOrFindItemDefinition(new PrismPropertyDefinitionImpl<Integer>(WEAPON_QNAME, DOMUtil.XSD_STRING, prismContext), false);
-        overrideActivationDefinition = extItemDictionary.createOrFindItemDefinition(new PrismPropertyDefinitionImpl<ActivationStatusType>(OVERRIDE_ACTIVATION_QNAME,
-                ACTIVATION_STATUS_TYPE_QNAME, prismContext), false);
-        skipAutogenerationDefinition = extItemDictionary.findItemByDefinition(new PrismPropertyDefinitionImpl<Boolean>(SKIP_AUTOGENERATION_QNAME, DOMUtil.XSD_BOOLEAN, prismContext));
+        DefinitionFactory factory = prismContext.definitionFactory();
+        fooDefinition = extItemDictionary.createOrFindItemDefinition(factory.createPropertyDefinition(FOO_QNAME, DOMUtil.XSD_STRING), false);
+        shoeSizeDefinition = extItemDictionary.createOrFindItemDefinition(factory.createPropertyDefinition(SHOE_SIZE_QNAME, DOMUtil.XSD_INT), false);
+        a1Definition = extItemDictionary.createOrFindItemDefinition(factory.createPropertyDefinition(A1_QNAME, DOMUtil.XSD_STRING), false);
+        stringTypeDefinition = extItemDictionary.findItemByDefinition(factory.createPropertyDefinition(STRING_TYPE_QNAME, DOMUtil.XSD_STRING));
+        intTypeDefinition = extItemDictionary.findItemByDefinition(factory.createPropertyDefinition(INT_TYPE_QNAME, DOMUtil.XSD_INT));
+        longTypeDefinition = extItemDictionary.findItemByDefinition(factory.createPropertyDefinition(LONG_TYPE_QNAME, DOMUtil.XSD_LONG));
+        weaponDefinition = extItemDictionary.createOrFindItemDefinition(factory.createPropertyDefinition(WEAPON_QNAME, DOMUtil.XSD_STRING), false);
+        overrideActivationDefinition = extItemDictionary.createOrFindItemDefinition(factory.createPropertyDefinition(OVERRIDE_ACTIVATION_QNAME, ACTIVATION_STATUS_TYPE_QNAME), false);
+        skipAutogenerationDefinition = extItemDictionary.findItemByDefinition(factory.createPropertyDefinition(SKIP_AUTOGENERATION_QNAME, DOMUtil.XSD_BOOLEAN));
     }
 
     @Test
@@ -2542,7 +2540,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         Session session = open();
 
         try {
-            TypeFilter type = TypeFilterImpl.createType(UserType.COMPLEX_TYPE, null);
+            TypeFilter type = prismContext.queryFactory().createType(UserType.COMPLEX_TYPE, null);
             String real = getInterpretedQuery2(session, ObjectType.class, prismContext.queryFactory().createObjectQuery(type));
             String expected = "select\n" +
                     "  o.oid, o.fullObject,\n" +
@@ -2568,7 +2566,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         Session session = open();
 
         try {
-            TypeFilter type = TypeFilterImpl.createType(AbstractRoleType.COMPLEX_TYPE, null);
+            TypeFilter type = prismContext.queryFactory().createType(AbstractRoleType.COMPLEX_TYPE, null);
             String real = getInterpretedQuery2(session, ObjectType.class, prismContext.queryFactory().createObjectQuery(type));
             String expected = "select\n" +
                     "  o.oid, o.fullObject,\n" +
@@ -3114,7 +3112,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             SchemaRegistry registry = prismContext.getSchemaRegistry();
             PrismObjectDefinition userDef = registry.findObjectDefinitionByCompileTimeClass(UserType.class);
             PrismContainerDefinition assignmentDef = userDef.findContainerDefinition(F_ASSIGNMENT);
-            PrismPropertyDefinition propDef = ((PrismContainerDefinitionImpl) assignmentDef).createPropertyDefinition(
+            PrismPropertyDefinition propDef = assignmentDef.toMutable().createPropertyDefinition(
                     SKIP_AUTOGENERATION_QNAME, DOMUtil.XSD_BOOLEAN);
 
             ObjectQuery objectQuery = prismContext.queryFor(UserType.class)
@@ -3302,7 +3300,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     public void test0710QueryCertCaseOwner() throws Exception {
         Session session = open();
         try {
-            InOidFilter filter = InOidFilterImpl.createOwnerHasOidIn("123456");
+            InOidFilter filter = prismContext.queryFactory().createOwnerHasOidIn("123456");
             ObjectQuery query = prismContext.queryFactory().createObjectQuery(filter);
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
             String expected = "select\n" +
@@ -3901,8 +3899,8 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             /*
              * ### User: preferredLanguage = 'SK', 'HU'
              */
-            PrismPropertyDefinitionImpl<String> multivalDef = new PrismPropertyDefinitionImpl<>(UserType.F_PREFERRED_LANGUAGE,
-					DOMUtil.XSD_STRING, prismContext);
+            MutablePrismPropertyDefinition<String> multivalDef = prismContext.definitionFactory().createPropertyDefinition(UserType.F_PREFERRED_LANGUAGE,
+					DOMUtil.XSD_STRING);
             multivalDef.setMaxOccurs(-1);
             PrismProperty<String> multivalProperty = multivalDef.instantiate();
             multivalProperty.addRealValue("SK");

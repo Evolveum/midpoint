@@ -267,19 +267,19 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
 		if (checkExpressions) {
 			PrismProperty<String> hostProp = findProp(ldapConfigPropItems, "host");
 			assertRaw(hostProp);
-			hostProp.applyDefinition(new PrismPropertyDefinitionImpl<>(new QName("whatever","host"), DOMUtil.XSD_STRING, prismContext));
+			hostProp.applyDefinition(prismContext.definitionFactory().createPropertyDefinition(new QName("whatever","host"), DOMUtil.XSD_STRING));
 			assertNotRaw(hostProp);
 			assertExpression(hostProp, "const");
 
 			PrismProperty<String> baseContextsProp = findProp(ldapConfigPropItems, "baseContexts");
 			assertRaw(baseContextsProp);
-			baseContextsProp.applyDefinition(new PrismPropertyDefinitionImpl<>(new QName("whatever","baseContexts"), DOMUtil.XSD_STRING, prismContext));
+			baseContextsProp.applyDefinition(prismContext.definitionFactory().createPropertyDefinition(new QName("whatever","baseContexts"), DOMUtil.XSD_STRING));
 			assertNotRaw(baseContextsProp);
 			assertExpression(baseContextsProp, "script");
 			
 			PrismProperty<ProtectedStringType> credentialsProp = findProp(ldapConfigPropItems, "credentials");
 			assertRaw(credentialsProp);
-			credentialsProp.applyDefinition(new PrismPropertyDefinitionImpl<>(new QName("whatever","credentials"), ProtectedStringType.COMPLEX_TYPE, prismContext));
+			credentialsProp.applyDefinition(prismContext.definitionFactory().createPropertyDefinition(new QName("whatever","credentials"), ProtectedStringType.COMPLEX_TYPE));
 			assertNotRaw(credentialsProp);
 			assertExpression(credentialsProp, "const");
 		}

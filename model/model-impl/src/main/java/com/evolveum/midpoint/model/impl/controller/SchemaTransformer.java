@@ -286,9 +286,9 @@ public class SchemaTransformer {
 	}
 	
 	public void setFullAccessFlags(ItemDefinition<?> itemDef) {		
-		itemDef.setCanRead(true);
-		itemDef.setCanAdd(true);
-		itemDef.setCanModify(true);
+		itemDef.toMutable().setCanRead(true);
+		itemDef.toMutable().setCanAdd(true);
+		itemDef.toMutable().setCanModify(true);
 	}
 
 	private <O extends ObjectType> void applySchemasAndSecurityPhase(PrismObject<O> object, ObjectSecurityConstraints securityConstraints, PrismObjectDefinition<O> objectDefinition,
@@ -362,13 +362,13 @@ public class SchemaTransformer {
 					itemPath, itemReadDecision, itemAddDecision, itemModifyDecision);
 			if (itemDef != null) {
 				if (itemReadDecision != AuthorizationDecisionType.ALLOW) {
-					((ItemDefinitionImpl) itemDef).setCanRead(false);
+					itemDef.toMutable().setCanRead(false);
 				}
 				if (itemAddDecision != AuthorizationDecisionType.ALLOW) {
-					((ItemDefinitionImpl) itemDef).setCanAdd(false);
+					itemDef.toMutable().setCanAdd(false);
 				}
 				if (itemModifyDecision != AuthorizationDecisionType.ALLOW) {
-					((ItemDefinitionImpl) itemDef).setCanModify(false);
+					itemDef.toMutable().setCanModify(false);
 				}
 			}
 			if (item instanceof PrismContainer<?>) {
@@ -471,23 +471,23 @@ public class SchemaTransformer {
 				nameOnlyItemPath, readDecision, addDecision, modifyDecision, anySubElementRead, anySubElementAdd, anySubElementModify);
 
 		if (readDecision != AuthorizationDecisionType.ALLOW) {
-			((ItemDefinitionImpl) itemDefinition).setCanRead(false);
+			itemDefinition.toMutable().setCanRead(false);
 		}
 		if (addDecision != AuthorizationDecisionType.ALLOW) {
-			((ItemDefinitionImpl) itemDefinition).setCanAdd(false);
+			itemDefinition.toMutable().setCanAdd(false);
 		}
 		if (modifyDecision != AuthorizationDecisionType.ALLOW) {
-			((ItemDefinitionImpl) itemDefinition).setCanModify(false);
+			itemDefinition.toMutable().setCanModify(false);
 		}
 		
 		if (anySubElementRead) {
-			((ItemDefinitionImpl) itemDefinition).setCanRead(true);
+			itemDefinition.toMutable().setCanRead(true);
 		}
 		if (anySubElementAdd) {
-			((ItemDefinitionImpl) itemDefinition).setCanAdd(true);
+			itemDefinition.toMutable().setCanAdd(true);
 		}
 		if (anySubElementModify) {
-			((ItemDefinitionImpl) itemDefinition).setCanModify(true);
+			itemDefinition.toMutable().setCanModify(true);
 		}
 	}
 
@@ -603,29 +603,31 @@ public class SchemaTransformer {
 			throw new SchemaException("No definition for "+desc);
 		}
 
+		MutableItemDefinition<?> mutableDef = itemDef.toMutable();
+
 		String displayName = templateItemDefType.getDisplayName();
 		if (displayName != null) {
-			((ItemDefinitionImpl) itemDef).setDisplayName(displayName);
+			mutableDef.setDisplayName(displayName);
 		}
 
 		Integer displayOrder = templateItemDefType.getDisplayOrder();
 		if (displayOrder != null) {
-			((ItemDefinitionImpl) itemDef).setDisplayOrder(displayOrder);
+			mutableDef.setDisplayOrder(displayOrder);
 		}
 
 		Boolean emphasized = templateItemDefType.isEmphasized();
 		if (emphasized != null) {
-			((ItemDefinitionImpl) itemDef).setEmphasized(emphasized);
+			mutableDef.setEmphasized(emphasized);
 		}
 		
 		Boolean deprecated = templateItemDefType.isDeprecated();
 		if (deprecated != null) {
-			((ItemDefinitionImpl) itemDef).setDeprecated(deprecated);
+			mutableDef.setDeprecated(deprecated);
 		}
 		
 		Boolean experimental = templateItemDefType.isExperimental();
 		if (experimental != null) {
-			((ItemDefinitionImpl) itemDef).setExperimental(experimental);
+			mutableDef.setExperimental(experimental);
 		}
 
 		List<PropertyLimitationsType> limitations = templateItemDefType.getLimitations();
@@ -633,24 +635,24 @@ public class SchemaTransformer {
 			PropertyLimitationsType limitationsType = MiscSchemaUtil.getLimitationsType(limitations, LayerType.PRESENTATION);
 			if (limitationsType != null) {
 				if (limitationsType.getMinOccurs() != null) {
-					((ItemDefinitionImpl) itemDef).setMinOccurs(XsdTypeMapper.multiplicityToInteger(limitationsType.getMinOccurs()));
+					mutableDef.setMinOccurs(XsdTypeMapper.multiplicityToInteger(limitationsType.getMinOccurs()));
 				}
 				if (limitationsType.getMaxOccurs() != null) {
-					((ItemDefinitionImpl) itemDef).setMaxOccurs(XsdTypeMapper.multiplicityToInteger(limitationsType.getMaxOccurs()));
+					mutableDef.setMaxOccurs(XsdTypeMapper.multiplicityToInteger(limitationsType.getMaxOccurs()));
 				}
 				if (limitationsType.getProcessing() != null) {
-					((ItemDefinitionImpl) itemDef).setProcessing(MiscSchemaUtil.toItemProcessing(limitationsType.getProcessing()));
+					mutableDef.setProcessing(MiscSchemaUtil.toItemProcessing(limitationsType.getProcessing()));
 				}
 				PropertyAccessType accessType = limitationsType.getAccess();
 				if (accessType != null) {
 					if (accessType.isAdd() != null) {
-						((ItemDefinitionImpl) itemDef).setCanAdd(accessType.isAdd());
+						mutableDef.setCanAdd(accessType.isAdd());
 					}
 					if (accessType.isModify() != null) {
-						((ItemDefinitionImpl) itemDef).setCanModify(accessType.isModify());
+						mutableDef.setCanModify(accessType.isModify());
 					}
 					if (accessType.isRead() != null) {
-						((ItemDefinitionImpl) itemDef).setCanRead(accessType.isRead());
+						mutableDef.setCanRead(accessType.isRead());
 					}
 				}
 			}
@@ -659,7 +661,7 @@ public class SchemaTransformer {
 		ObjectReferenceType valueEnumerationRef = templateItemDefType.getValueEnumerationRef();
 		if (valueEnumerationRef != null) {
 			PrismReferenceValue valueEnumerationRVal = MiscSchemaUtil.objectReferenceTypeToReferenceValue(valueEnumerationRef);
-			((ItemDefinitionImpl) itemDef).setValueEnumerationRef(valueEnumerationRVal);
+			mutableDef.setValueEnumerationRef(valueEnumerationRVal);
 		}
 		
 		FormItemValidationType templateValidation = templateItemDefType.getValidation();

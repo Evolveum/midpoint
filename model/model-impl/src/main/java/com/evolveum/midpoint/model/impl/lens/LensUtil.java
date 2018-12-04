@@ -266,8 +266,8 @@ public class LensUtil {
 		if (iterationOld == null) {
 			return accCtx.getIteration();
 		}
-		PrismPropertyDefinition<Integer> propDef = new PrismPropertyDefinitionImpl<>(ExpressionConstants.VAR_ITERATION,
-				DOMUtil.XSD_INT, accCtx.getPrismContext());
+		PrismPropertyDefinition<Integer> propDef = accCtx.getPrismContext().definitionFactory().createPropertyDefinition(ExpressionConstants.VAR_ITERATION,
+				DOMUtil.XSD_INT);
 		PrismProperty<Integer> propOld = propDef.instantiate();
 		propOld.setRealValue(iterationOld);
 		PropertyDelta<Integer> propDelta = propDef.createEmptyDelta(ExpressionConstants.VAR_ITERATION);
@@ -287,8 +287,8 @@ public class LensUtil {
 		if (iterationTokenOld == null) {
 			return accCtx.getIterationToken();
 		}
-		PrismPropertyDefinition<String> propDef = new PrismPropertyDefinitionImpl<>(
-				ExpressionConstants.VAR_ITERATION_TOKEN, DOMUtil.XSD_STRING, accCtx.getPrismContext());
+		PrismPropertyDefinition<String> propDef = accCtx.getPrismContext().definitionFactory().createPropertyDefinition(
+				ExpressionConstants.VAR_ITERATION_TOKEN, DOMUtil.XSD_STRING);
 		PrismProperty<String> propOld = propDef.instantiate();
 		propOld.setRealValue(iterationTokenOld);
 		PropertyDelta<String> propDelta = propDef.createEmptyDelta(ExpressionConstants.VAR_ITERATION_TOKEN);
@@ -467,13 +467,13 @@ public class LensUtil {
 		if (tokenExpressionType == null) {
 			return formatIterationTokenDefault(iteration);
 		}
-		PrismPropertyDefinition<String> outputDefinition = new PrismPropertyDefinitionImpl<>(ExpressionConstants.VAR_ITERATION_TOKEN,
-				DOMUtil.XSD_STRING, context.getPrismContext());
+		PrismPropertyDefinition<String> outputDefinition = context.getPrismContext().definitionFactory().createPropertyDefinition(ExpressionConstants.VAR_ITERATION_TOKEN,
+				DOMUtil.XSD_STRING);
 		Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(tokenExpressionType, outputDefinition , "iteration token expression in "+accountContext.getHumanReadableName(), task, result);
 
 		Collection<Source<?,?>> sources = new ArrayList<>();
-		PrismPropertyDefinitionImpl<Integer> inputDefinition = new PrismPropertyDefinitionImpl<>(ExpressionConstants.VAR_ITERATION,
-				DOMUtil.XSD_INT, context.getPrismContext());
+		MutablePrismPropertyDefinition<Integer> inputDefinition = context.getPrismContext().definitionFactory().createPropertyDefinition(ExpressionConstants.VAR_ITERATION,
+				DOMUtil.XSD_INT);
 		inputDefinition.setMaxOccurs(1);
 		PrismProperty<Integer> input = inputDefinition.instantiate();
 		input.add(new PrismPropertyValueImpl<>(iteration));
@@ -1025,8 +1025,8 @@ public class LensUtil {
 			OperationResult result, QName typeName,
 			T defaultValue, Function<Object, Object> additionalConvertor)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-		PrismPropertyDefinition<T> resultDef = new PrismPropertyDefinitionImpl<>(
-				new QName(SchemaConstants.NS_C, "result"), typeName, prismContext);
+		PrismPropertyDefinition<T> resultDef = prismContext.definitionFactory().createPropertyDefinition(
+				new QName(SchemaConstants.NS_C, "result"), typeName);
 		Expression<PrismPropertyValue<T>,PrismPropertyDefinition<T>> expression =
 				expressionFactory.makeExpression(expressionBean, resultDef, contextDescription, task, result);
 		ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, expressionVariables, contextDescription, task, result);

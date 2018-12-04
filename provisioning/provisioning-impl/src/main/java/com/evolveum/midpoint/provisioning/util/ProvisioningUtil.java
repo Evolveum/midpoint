@@ -35,14 +35,7 @@ import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -121,8 +114,8 @@ public class ProvisioningUtil {
 			ProvisioningScriptType scriptType, String desc, PrismContext prismContext) throws SchemaException {
 		ExecuteProvisioningScriptOperation scriptOperation = new ExecuteProvisioningScriptOperation();
 
-		PrismPropertyDefinitionImpl scriptArgumentDefinition = new PrismPropertyDefinitionImpl(
-				FAKE_SCRIPT_ARGUMENT_NAME, DOMUtil.XSD_STRING, prismContext);
+		MutablePrismPropertyDefinition scriptArgumentDefinition = prismContext.definitionFactory().createPropertyDefinition(
+				FAKE_SCRIPT_ARGUMENT_NAME, DOMUtil.XSD_STRING);
 		scriptArgumentDefinition.setMinOccurs(0);
 		scriptArgumentDefinition.setMaxOccurs(-1);
 

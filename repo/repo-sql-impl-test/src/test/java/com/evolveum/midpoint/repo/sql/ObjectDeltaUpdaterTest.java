@@ -505,7 +505,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         String userOid = user.getOid();
 
         QName SHIP_NAME_QNAME = new QName("http://example.com/p", "shipName");
-        PrismPropertyDefinition<String> def1 = new PrismPropertyDefinitionImpl<>(SHIP_NAME_QNAME, DOMUtil.XSD_STRING, prismContext);
+        PrismPropertyDefinition<String> def1 = prismContext.definitionFactory().createPropertyDefinition(SHIP_NAME_QNAME, DOMUtil.XSD_STRING);
         ExtensionType extension = new ExtensionType(prismContext);
         PrismProperty<String> loot = def1.instantiate();
         loot.setRealValue("otherString");

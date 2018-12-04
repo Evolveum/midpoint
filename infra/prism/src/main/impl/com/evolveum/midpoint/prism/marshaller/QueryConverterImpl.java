@@ -482,7 +482,7 @@ public class QueryConverterImpl implements QueryConverter {
 		// The reference definition in prism data might be single-valued. However, filters allow to look for multiple values.
 		if (itemDefinition != null && itemDefinition.getMaxOccurs() != -1) {
 			itemDefinition = itemDefinition.clone();
-			itemDefinition.setMaxOccurs(-1);
+			itemDefinition.toMutable().setMaxOccurs(-1);
 		}
 
 		XNodeImpl valueXnode = clauseXMap.get(ELEMENT_VALUE);

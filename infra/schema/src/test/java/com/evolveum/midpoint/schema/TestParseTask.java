@@ -264,8 +264,8 @@ public class TestParseTask {
 
 		QueryType queryType = getPrismContext().getQueryConverter().createQueryType(query);
 
-		PrismPropertyDefinition queryDef = new PrismPropertyDefinitionImpl(
-				SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY, QueryType.COMPLEX_TYPE, getPrismContext());
+		PrismPropertyDefinition queryDef = getPrismContext().definitionFactory().createPropertyDefinition(
+				SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY, QueryType.COMPLEX_TYPE);
 		PrismProperty<QueryType> queryProp = queryDef.instantiate();
 		queryProp.setRealValue(queryType);
 

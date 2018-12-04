@@ -25,6 +25,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.casemgmt.api.CaseManager;
 import com.evolveum.midpoint.casemgmt.api.CaseManagerAware;
+import com.evolveum.midpoint.prism.MutablePrismContainerDefinition;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskManagerAware;
 import org.springframework.beans.BeanWrapper;
@@ -37,7 +38,6 @@ import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerDefinitionImpl;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.PrismSchemaImpl;
@@ -186,7 +186,7 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
 
 		PrismSchema connectorSchema = new PrismSchemaImpl(struct.connectorObject.getNamespace(), prismContext);
 		// Create configuration type - the type used by the "configuration" element
-		PrismContainerDefinitionImpl<?> configurationContainerDef = ((PrismSchemaImpl) connectorSchema).createPropertyContainerDefinition(
+		MutablePrismContainerDefinition<?> configurationContainerDef = ((PrismSchemaImpl) connectorSchema).createPropertyContainerDefinition(
 				ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart(),
 				SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_TYPE_LOCAL_NAME);
 
@@ -205,7 +205,7 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
 		return connectorSchema;
 	}
 
-	private ItemDefinition<?> createPropertyDefinition(PrismContainerDefinitionImpl<?> configurationContainerDef,
+	private ItemDefinition<?> createPropertyDefinition(MutablePrismContainerDefinition<?> configurationContainerDef,
 			PropertyDescriptor prop) {
 		String propName = prop.getName();
 		Class<?> propertyType = prop.getPropertyType();

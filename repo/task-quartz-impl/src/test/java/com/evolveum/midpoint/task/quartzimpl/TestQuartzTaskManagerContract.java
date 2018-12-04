@@ -159,7 +159,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
         // property definition
         QName bigStringQName = new QName("http://midpoint.evolveum.com/repo/test", "bigString");
-        PrismPropertyDefinitionImpl bigStringDefinition = new PrismPropertyDefinitionImpl(bigStringQName, DOMUtil.XSD_STRING, taskManager.getPrismContext());
+        MutablePrismPropertyDefinition bigStringDefinition = prismContext.definitionFactory().createPropertyDefinition(bigStringQName, DOMUtil.XSD_STRING);
         bigStringDefinition.setIndexed(false);
         bigStringDefinition.setMinOccurs(0);
         bigStringDefinition.setMaxOccurs(1);
@@ -187,7 +187,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         task001.setExtensionProperty(bigStringProperty);
 
         // brutal hack, because task extension property has no "indexed" flag when retrieved from repo
-        ((PrismPropertyDefinitionImpl) task001.getExtensionProperty(bigStringQName).getDefinition()).setIndexed(false);
+        task001.getExtensionProperty(bigStringQName).getDefinition().toMutable().setIndexed(false);
 
         System.out.println("2nd round: Task before save = " + task001.debugDump());
         task001.savePendingModifications(result);   // however, this does not work, because 'modifyObject' in repo first reads object, overwriting any existing definitions ...
@@ -290,7 +290,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
         System.out.println("Task extension = " + task.getExtension());
 
-        PrismPropertyDefinition delayDefinition = new PrismPropertyDefinitionImpl(SchemaConstants.NOOP_DELAY_QNAME, DOMUtil.XSD_INT, taskManager.getPrismContext());
+        PrismPropertyDefinition delayDefinition = prismContext.definitionFactory().createPropertyDefinition(SchemaConstants.NOOP_DELAY_QNAME, DOMUtil.XSD_INT);
         System.out.println("property definition = " + delayDefinition);
 
         PrismProperty<Integer> property = (PrismProperty<Integer>) delayDefinition.instantiate();

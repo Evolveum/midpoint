@@ -153,5 +153,6 @@ public interface ComplexTypeDefinition extends TypeDefinition, LocalDefinitionSt
 	default boolean containsItemDefinition(QName itemName) {
 		return findItemDefinition(ItemName.fromQName(itemName)) != null;
 	}
-	
+
+	MutableComplexTypeDefinition toMutable();
 }

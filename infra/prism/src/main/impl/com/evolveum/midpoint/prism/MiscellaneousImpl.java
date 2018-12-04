@@ -18,6 +18,7 @@ package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.lex.dom.DomLexicalProcessor;
 import com.evolveum.midpoint.prism.marshaller.XNodeProcessorUtil;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.xnode.*;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -106,5 +107,15 @@ public class MiscellaneousImpl implements Miscellaneous {
 	public void setXNodeType(XNode node, QName explicitTypeName, boolean explicitTypeDeclaration) {
 		((XNodeImpl) node).setTypeQName(explicitTypeName);
 		((XNodeImpl) node).setExplicitTypeDeclaration(explicitTypeDeclaration);
+	}
+
+	@Override
+	public void addToDefinition(ComplexTypeDefinition ctd, ItemDefinition other) {
+		((ComplexTypeDefinitionImpl) ctd).add(other);
+	}
+
+	@Override
+	public void replaceDefinition(ComplexTypeDefinition ctd, ItemName name, ItemDefinition other) {
+		((ComplexTypeDefinitionImpl) ctd).replaceDefinition(name, other);
 	}
 }

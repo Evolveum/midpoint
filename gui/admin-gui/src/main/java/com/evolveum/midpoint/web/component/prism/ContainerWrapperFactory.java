@@ -113,7 +113,7 @@ public class ContainerWrapperFactory {
 		// we have single value ShadowAssociationType || ResourceObjectAssociationType, and from each shadowAssociationType we will create
     	// property - name of the property will be association type(QName) and the value will be shadowRef
     	PrismContainerDefinition<C> associationDefinition = association.getDefinition().clone();
-    	associationDefinition.setMaxOccurs(1);
+    	associationDefinition.toMutable().setMaxOccurs(1);
     	
     	RefinedResourceSchema refinedResourceSchema = RefinedResourceSchema.getRefinedSchema(resource);
 		RefinedObjectClassDefinition oc = refinedResourceSchema.getRefinedDefinition(kind, shadowIntent);
@@ -142,8 +142,8 @@ public class ContainerWrapperFactory {
 		
 		List<ItemWrapper> associationValuesWrappers = new ArrayList<>();
 		for (RefinedAssociationDefinition refinedAssocationDefinition: refinedAssociationDefinitions) {
-			PrismReferenceDefinitionImpl shadowRefDef = new PrismReferenceDefinitionImpl(refinedAssocationDefinition.getName(), ObjectReferenceType.COMPLEX_TYPE, modelServiceLocator.getPrismContext());
-			shadowRefDef.setMaxOccurs(-1);
+			MutablePrismReferenceDefinition shadowRefDef = modelServiceLocator.getPrismContext().definitionFactory().createReferenceDefinition(refinedAssocationDefinition.getName(), ObjectReferenceType.COMPLEX_TYPE);
+			shadowRefDef.toMutable().setMaxOccurs(-1);
 			shadowRefDef.setTargetTypeName(ShadowType.COMPLEX_TYPE);
 			PrismReference shadowAss = shadowRefDef.instantiate();
 			ItemPath itemPath = null;

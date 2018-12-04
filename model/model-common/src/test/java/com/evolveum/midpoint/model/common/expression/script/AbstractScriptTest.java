@@ -278,9 +278,9 @@ public abstract class AbstractScriptTest {
 
 	private <T> List<PrismPropertyValue<T>> evaluateExpression(ScriptExpressionEvaluatorType scriptType, QName typeName, boolean scalar,
 			ExpressionVariables variables, String shortDesc, OperationResult opResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-		ItemDefinition outputDefinition = new PrismPropertyDefinitionImpl(PROPERTY_NAME, typeName, PrismTestUtil.getPrismContext());
+		MutableItemDefinition outputDefinition = PrismTestUtil.getPrismContext().definitionFactory().createPropertyDefinition(PROPERTY_NAME, typeName);
 		if (!scalar) {
-			((ItemDefinitionImpl) outputDefinition).setMaxOccurs(-1);
+			outputDefinition.setMaxOccurs(-1);
 		}
 		return evaluateExpression(scriptType, outputDefinition, variables, shortDesc, opResult);
 	}

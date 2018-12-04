@@ -562,9 +562,7 @@ public class ActivationProcessor {
 	        return false;
 		});
 
-        PrismPropertyDefinitionImpl<Boolean> shadowExistenceTargetDef = new PrismPropertyDefinitionImpl<>(
-				SHADOW_EXISTS_PROPERTY_NAME,
-				DOMUtil.XSD_BOOLEAN, prismContext);
+        MutablePrismPropertyDefinition<Boolean> shadowExistenceTargetDef = prismContext.definitionFactory().createPropertyDefinition(SHADOW_EXISTS_PROPERTY_NAME, DOMUtil.XSD_BOOLEAN);
         shadowExistenceTargetDef.setMinOccurs(1);
         shadowExistenceTargetDef.setMaxOccurs(1);
         params.setTargetItemDefinition(shadowExistenceTargetDef);
@@ -789,7 +787,7 @@ public class ActivationProcessor {
 	@NotNull
 	private ItemDeltaItem<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> createBooleanIdi(
 			QName propertyName, Boolean old, Boolean current) throws SchemaException {
-		PrismPropertyDefinitionImpl<Boolean> definition = new PrismPropertyDefinitionImpl<>(propertyName, DOMUtil.XSD_BOOLEAN, prismContext);
+		MutablePrismPropertyDefinition<Boolean> definition = prismContext.definitionFactory().createPropertyDefinition(propertyName, DOMUtil.XSD_BOOLEAN);
 		definition.setMinOccurs(1);
 		definition.setMaxOccurs(1);
 		PrismProperty<Boolean> property = definition.instantiate();
@@ -830,8 +828,8 @@ public class ActivationProcessor {
 			}
 		}
 
-		PrismPropertyDefinitionImpl<Boolean> existsDef = new PrismPropertyDefinitionImpl<>(FOCUS_EXISTS_PROPERTY_NAME,
-				DOMUtil.XSD_BOOLEAN, prismContext);
+		MutablePrismPropertyDefinition<Boolean> existsDef = prismContext.definitionFactory().createPropertyDefinition(FOCUS_EXISTS_PROPERTY_NAME,
+				DOMUtil.XSD_BOOLEAN);
 		existsDef.setMinOccurs(1);
 		existsDef.setMaxOccurs(1);
 		PrismProperty<Boolean> existsProp = existsDef.instantiate();

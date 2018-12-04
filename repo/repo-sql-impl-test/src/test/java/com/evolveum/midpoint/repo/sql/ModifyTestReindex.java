@@ -64,7 +64,7 @@ public class ModifyTestReindex extends ModifyTest {
 		String oid = repositoryService.addObject(user, null, result);
 
 		// brutal hack -- may stop working in the future!
-		((PrismPropertyDefinitionImpl) unstableDef).setIndexed(true);
+		unstableDef.toMutable().setIndexed(true);
 
 		repositoryService.modifyObject(UserType.class, oid, emptySet(), getModifyOptions(), result);
 

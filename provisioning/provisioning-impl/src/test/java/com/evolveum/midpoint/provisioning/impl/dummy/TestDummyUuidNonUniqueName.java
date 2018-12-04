@@ -24,7 +24,6 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -203,8 +202,7 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 	}
 
 	private PrismPropertyDefinition<String> getIcfNameDefinition() {
-		return new PrismPropertyDefinitionImpl<>(SchemaConstants.ICFS_NAME,
-				DOMUtil.XSD_STRING, prismContext);
+		return prismContext.definitionFactory().createPropertyDefinition(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING);
 	}
 
 }

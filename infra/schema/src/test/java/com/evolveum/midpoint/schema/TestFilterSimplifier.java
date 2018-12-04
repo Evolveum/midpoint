@@ -206,7 +206,7 @@ public class TestFilterSimplifier {
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 
 		// WHEN
-		ObjectFilter filter = OrFilterImpl.createOr(UndefinedFilterImpl.createUndefined());
+		ObjectFilter filter = prismContext.queryFactory().createOr(prismContext.queryFactory().createUndefined());
 		System.out.println("Original filter:\n" + filter.debugDump());
 
 		// THEN
@@ -223,7 +223,7 @@ public class TestFilterSimplifier {
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 
 		// WHEN
-		ObjectFilter filter = OrFilterImpl.createOr();
+		ObjectFilter filter = prismContext.queryFactory().createOr();
 		System.out.println("Original filter:\n" + filter.debugDump());
 
 		// THEN

@@ -73,4 +73,7 @@ public interface PrismPropertyDefinition<T> extends ItemDefinition<PrismProperty
 
 	@Override
 	Class<T> getTypeClass();
+
+	@Override
+	MutablePrismPropertyDefinition<T> toMutable();
 }

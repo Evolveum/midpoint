@@ -1379,7 +1379,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		for (ItemDefinition itemDefinition : extensionDefs) {
 			if (itemDefinition.getName().equals(piracyShip)) {
 				//iterator.remove();	// not possible as the collection is unmodifiable
-				((ItemDefinitionImpl) itemDefinition).setName(piracyShipBroken);
+				itemDefinition.toMutable().setName(piracyShipBroken);
 			}
 		}
 	}

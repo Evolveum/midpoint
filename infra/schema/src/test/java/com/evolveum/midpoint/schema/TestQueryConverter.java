@@ -40,6 +40,7 @@ import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.io.FileUtils;
+import org.jetbrains.annotations.NotNull;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -307,7 +308,7 @@ public class TestQueryConverter {
 			ObjectFilter kindFilter = getPrismContext().queryFor(ShadowType.class)
 					.item(ShadowType.F_KIND).eq(ShadowKindType.ACCOUNT)
 					.buildFilter();
-			query = ObjectQueryImpl.createObjectQuery(kindFilter);
+			query = getQueryFactory().createObjectQuery(kindFilter);
 			assertNotNull(query);
 			ObjectFilter filter = query.getFilter();
 			assertTrue("filter is not an instance of type filter", filter instanceof EqualFilter);
@@ -433,7 +434,7 @@ public class TestQueryConverter {
 
 	@Test
 	public void testConvertQueryNullFilter() throws Exception {
-		ObjectQuery query = ObjectQueryImpl.createObjectQuery(ObjectPagingImpl.createPaging(0, 10));
+		ObjectQuery query = getQueryFactory().createObjectQuery(getQueryFactory().createPaging(0, 10));
 		QueryType queryType = getQueryConverter().createQueryType(query);
 
 		assertNotNull(queryType);
@@ -443,6 +444,11 @@ public class TestQueryConverter {
 		assertEquals(new Integer(0), paging.getOffset());
 		assertEquals(new Integer(10), paging.getMaxSize());
 
+	}
+
+	@NotNull
+	public QueryFactory getQueryFactory() {
+		return getPrismContext().queryFactory();
 	}
 
 	private void checkQuery(Class<? extends Containerable> objectClass, ObjectQuery q1object, String q2xml) throws Exception {

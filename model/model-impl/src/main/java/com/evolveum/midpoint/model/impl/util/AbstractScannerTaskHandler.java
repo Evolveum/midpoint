@@ -88,9 +88,9 @@ public abstract class AbstractScannerTaskHandler<O extends ObjectType, H extends
 			 *  and shouldStop() methods and use 'stop' flag at this place as well. Hopefully such stopping is (very probably)
 			 *  not requested by any scanner task handlers.
 			 */
-			PrismPropertyDefinition<XMLGregorianCalendar> lastScanTimestampDef = new PrismPropertyDefinitionImpl<>(
+			PrismPropertyDefinition<XMLGregorianCalendar> lastScanTimestampDef = prismContext.definitionFactory().createPropertyDefinition(
 					SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME,
-					DOMUtil.XSD_DATETIME, prismContext);
+					DOMUtil.XSD_DATETIME);
 			PropertyDelta<XMLGregorianCalendar> lastScanTimestampDelta = new PropertyDeltaImpl<>(
 					ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME),
 					lastScanTimestampDef, prismContext);

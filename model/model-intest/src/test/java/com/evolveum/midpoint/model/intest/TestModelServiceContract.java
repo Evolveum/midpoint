@@ -497,7 +497,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// create weapon attribute definition - NOT SUPPORTED, use only when you know what you're doing!
 		QName accountObjectClassQName = dummyResourceCtl.getAccountObjectClassQName();
 		QName weaponQName = dummyResourceCtl.getAttributeWeaponQName();
-		PrismPropertyDefinition<String> weaponFakeDef = new PrismPropertyDefinitionImpl<>(weaponQName, DOMUtil.XSD_STRING, prismContext);
+		PrismPropertyDefinition<String> weaponFakeDef = prismContext.definitionFactory().createPropertyDefinition(weaponQName, DOMUtil.XSD_STRING);
 
 		ObjectQuery q = prismContext.queryFor(ShadowType.class)
 				.item(ShadowType.F_RESOURCE_REF).ref(RESOURCE_DUMMY_OID)

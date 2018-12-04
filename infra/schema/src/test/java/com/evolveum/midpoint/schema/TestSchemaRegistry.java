@@ -120,7 +120,7 @@ public class TestSchemaRegistry {
         System.out.println("UserRef definition:");
         System.out.println(itemDefinition.debugDump());
 
-        assertEquals("Wrong userRef definition class", PrismReferenceDefinitionImpl.class, itemDefinition.getClass());
+        assertTrue("Wrong userRef definition class: " + itemDefinition.getClass(), itemDefinition instanceof PrismReferenceDefinition);
     }
 
     @Test

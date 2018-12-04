@@ -517,10 +517,11 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
                 }
 
                 QName typeName = getPrismContext().getSchemaRegistry().determineTypeForClass(paramClass);
-                PrismPropertyDefinitionImpl<?> def = new PrismPropertyDefinitionImpl<>(new QName(ReportConstants.NS_EXTENSION, paramDto.getName()), typeName, getPrismContext());
+                MutablePrismPropertyDefinition<Object> def = getPrismContext().definitionFactory().createPropertyDefinition(
+                		new QName(ReportConstants.NS_EXTENSION, paramDto.getName()), typeName);
                 def.setDynamic(true);
                 def.setRuntimeSchema(true);
-                def.setMaxOccurs(multivalue ? -1 : 1);			// TODO multivalue is always 'false' here ...
+                def.toMutable().setMaxOccurs(multivalue ? -1 : 1);			// TODO multivalue is always 'false' here ...
 
                 PrismProperty prop = def.instantiate();
 				for (JasperReportValueDto paramValue : values) {

@@ -37,7 +37,7 @@ import javax.xml.namespace.QName;
  * @author Radovan Semancik
  *
  */
-public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements ComplexTypeDefinition {
+public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements MutableComplexTypeDefinition {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ComplexTypeDefinitionImpl.class);
 
@@ -527,6 +527,11 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 				}
 			}
 		}
+	}
+
+	@Override
+	public MutableComplexTypeDefinition toMutable() {
+		return this;
 	}
 
 	//	@Override

@@ -97,8 +97,8 @@ public class CommandLineScriptExecutor {
     		
     		String expressionOutput = "";
     		
-    		PrismPropertyDefinitionImpl<String> outputDefinition = new PrismPropertyDefinitionImpl(
-    				ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_STRING, prismContext);
+    		MutablePrismPropertyDefinition<String> outputDefinition = prismContext.definitionFactory().createPropertyDefinition(
+    				ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_STRING);
     		outputDefinition.setMaxOccurs(1);
     		Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression = expressionFactory
     				.makeExpression(macroDef, outputDefinition, shortDesc, task, result);
@@ -113,8 +113,8 @@ public class CommandLineScriptExecutor {
 	    		if (defaultObject instanceof Item) {
 	    			sourceItem = (Item)defaultObject;
 	    		} else if (defaultObject instanceof String) {
-	    			PrismPropertyDefinitionImpl<String> sourceDefinition = new PrismPropertyDefinitionImpl(
-	        				ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_STRING, prismContext);
+	    			MutablePrismPropertyDefinition<String> sourceDefinition = prismContext.definitionFactory().createPropertyDefinition(
+	        				ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_STRING);
 	    			sourceDefinition.setMaxOccurs(1);
 	    			PrismProperty<String> sourceProperty = sourceDefinition.instantiate();
 	    			sourceProperty.setRealValue(defaultObject==null?null:defaultObject.toString());

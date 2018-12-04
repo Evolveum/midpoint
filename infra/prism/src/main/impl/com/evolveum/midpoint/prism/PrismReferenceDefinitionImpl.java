@@ -41,7 +41,7 @@ import org.jetbrains.annotations.NotNull;
  * @author Radovan Semancik
  *
  */
-public class PrismReferenceDefinitionImpl extends ItemDefinitionImpl<PrismReference> implements PrismReferenceDefinition {
+public class PrismReferenceDefinitionImpl extends ItemDefinitionImpl<PrismReference> implements MutablePrismReferenceDefinition {
 
 	private static final long serialVersionUID = 2427488779612517600L;
 	private QName targetTypeName;
@@ -153,6 +153,11 @@ public class PrismReferenceDefinitionImpl extends ItemDefinitionImpl<PrismRefere
 		} else {
 			return true;
 		}
+	}
+
+	@Override
+	public MutablePrismReferenceDefinition toMutable() {
+		return this;
 	}
 
 	@NotNull

@@ -328,8 +328,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 					}
 					RefinedObjectClassDefinition refinedObjectClassDefinition = getEditObjectClassDefinition(shadow, resource, phase, task, result);
 					if (refinedObjectClassDefinition != null) {
-						((ComplexTypeDefinitionImpl) objectDefinition.getComplexTypeDefinition()).replaceDefinition(ShadowType.F_ATTRIBUTES,
-							refinedObjectClassDefinition.toResourceAttributeContainerDefinition());
+						prismContext.misc().replaceDefinition(objectDefinition.getComplexTypeDefinition(), ShadowType.F_ATTRIBUTES,
+								refinedObjectClassDefinition.toResourceAttributeContainerDefinition());
 					}
 				}
 			}

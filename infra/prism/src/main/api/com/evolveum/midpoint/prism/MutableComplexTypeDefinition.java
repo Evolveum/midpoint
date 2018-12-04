@@ -17,23 +17,14 @@
 package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.util.DisplayableValue;
 
 import javax.xml.namespace.QName;
-import java.util.Collection;
 
 /**
- *  Factory for prism definitions (Definition and all its subtypes in prism-api).
+ *
  */
-public interface DefinitionFactory {
+public interface MutableComplexTypeDefinition extends ComplexTypeDefinition, MutableDefinition {
 
-	ComplexTypeDefinition createComplexTypeDefinition(QName name);
-
-	<T> MutablePrismPropertyDefinition<T> createPropertyDefinition(QName name, QName typeName);
-
-	MutablePrismReferenceDefinition createReferenceDefinition(QName name, QName typeName);
-
-	MutablePrismContainerDefinition<?> createContainerDefinition(QName name, ComplexTypeDefinition ctd);
-
-	<T> PrismPropertyDefinition<T> createPropertyDefinition(QName name, QName typeName, Collection<? extends DisplayableValue<T>> allowedValues, T defaultValue);
+	MutablePrismPropertyDefinition<?> createPropertyDefinition(QName name, QName typeName);
+	MutablePrismPropertyDefinition<?> createPropertyDefinition(String name, QName typeName);
 }

@@ -565,7 +565,7 @@ public class PolicyRuleProcessor {
 				.contextDescription("condition in global policy rule " + globalPolicyRule.getName())
 				.sourceContext(focusOdo)
 				.defaultTargetDefinition(
-						new PrismPropertyDefinitionImpl<>(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN, prismContext))
+						prismContext.definitionFactory().createPropertyDefinition(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN))
 				.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo)
 				.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo)
 				.addVariableDefinition(ExpressionConstants.VAR_TARGET, evaluatedAssignment != null ? evaluatedAssignment.getTarget() : null)

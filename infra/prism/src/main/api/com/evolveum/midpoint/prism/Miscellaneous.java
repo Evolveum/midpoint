@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.prism;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
@@ -52,4 +53,8 @@ public interface Miscellaneous {
 	Element serializeSingleElementMapToElement(MapXNode filterClauseXNode) throws SchemaException;
 
 	void setXNodeType(XNode node, QName explicitTypeName, boolean explicitTypeDeclaration);
+
+	void addToDefinition(ComplexTypeDefinition ctd, ItemDefinition other);
+
+	void replaceDefinition(ComplexTypeDefinition ctd, ItemName name, ItemDefinition other);
 }

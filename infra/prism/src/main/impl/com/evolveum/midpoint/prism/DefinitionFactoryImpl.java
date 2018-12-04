@@ -16,7 +16,11 @@
 
 package com.evolveum.midpoint.prism;
 
+import com.evolveum.midpoint.util.DisplayableValue;
 import org.jetbrains.annotations.NotNull;
+
+import javax.xml.namespace.QName;
+import java.util.Collection;
 
 /**
  *
@@ -27,5 +31,31 @@ public class DefinitionFactoryImpl implements DefinitionFactory {
 
 	public DefinitionFactoryImpl(@NotNull PrismContextImpl prismContext) {
 		this.prismContext = prismContext;
+	}
+
+	@Override
+	public ComplexTypeDefinitionImpl createComplexTypeDefinition(QName name) {
+		return new ComplexTypeDefinitionImpl(name, prismContext);
+	}
+
+	@Override
+	public MutablePrismPropertyDefinition createPropertyDefinition(QName name, QName typeName) {
+		return new PrismPropertyDefinitionImpl<>(name, typeName, prismContext);
+	}
+
+	@Override
+	public MutablePrismReferenceDefinition createReferenceDefinition(QName name, QName typeName) {
+		return new PrismReferenceDefinitionImpl(name, typeName, prismContext);
+	}
+
+	@Override
+	public MutablePrismContainerDefinition<?> createContainerDefinition(QName name, ComplexTypeDefinition ctd) {
+		return new PrismContainerDefinitionImpl<>(name, ctd, prismContext);
+	}
+
+	@Override
+	public <T> MutablePrismPropertyDefinition<T> createPropertyDefinition(QName name, QName typeName,
+			Collection<? extends DisplayableValue<T>> allowedValues, T defaultValue) {
+		return new PrismPropertyDefinitionImpl<>(name, typeName, prismContext, allowedValues, defaultValue);
 	}
 }

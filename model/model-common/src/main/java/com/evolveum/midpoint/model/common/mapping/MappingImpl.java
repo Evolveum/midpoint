@@ -545,7 +545,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		}
 		variables.addVariableDefinition(ExpressionConstants.VAR_VALUE, value);
 
-		PrismPropertyDefinition<Boolean> outputDef = new PrismPropertyDefinitionImpl<>(SchemaConstantsGenerated.C_VALUE, DOMUtil.XSD_BOOLEAN, getPrismContext(), null, false);
+		PrismPropertyDefinition<Boolean> outputDef = getPrismContext().definitionFactory().createPropertyDefinition(SchemaConstantsGenerated.C_VALUE, DOMUtil.XSD_BOOLEAN, null, false);
 		PrismPropertyValue<Boolean> rv = ExpressionUtil.evaluateExpression(variables, outputDef, range.getIsInSetExpression(), expressionFactory, "isInSet expression in " + contextDescription, task, result);
 
 		// but now remove the parent! TODO: PM: why???

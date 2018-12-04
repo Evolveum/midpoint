@@ -23,8 +23,7 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.IOException;
 
-import com.evolveum.midpoint.prism.PrismContainerDefinitionImpl;
-import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.schema.PrismSchemaImpl;
 import org.testng.annotations.BeforeSuite;
@@ -34,9 +33,6 @@ import org.testng.AssertJUnit;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.prism.ItemProcessing;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
@@ -94,7 +90,7 @@ public class SchemaProcessorTest {
 		schema.createPropertyDefinition("number1", DOMUtil.XSD_INT);
 
 		// Property container
-		PrismContainerDefinitionImpl containerDefinition = schema.createPropertyContainerDefinition("ContainerType");
+		MutablePrismContainerDefinition<?> containerDefinition = schema.createPropertyContainerDefinition("ContainerType");
 		// ... in it ordinary property
 		containerDefinition.createPropertyDefinition("login", DOMUtil.XSD_STRING);
 		// ... and local property with a type from another schema
@@ -103,7 +99,7 @@ public class SchemaProcessorTest {
 		containerDefinition.createPropertyDefinition(SchemaConstants.C_CREDENTIALS, CredentialsType.COMPLEX_TYPE);
 		// ... read-only int property
 		PrismPropertyDefinition counterProperty = containerDefinition.createPropertyDefinition("counter", DOMUtil.XSD_INT);
-		((PrismPropertyDefinitionImpl) counterProperty).setReadOnly();
+		counterProperty.toMutable().toMutable().setReadOnly();
 
 		System.out.println("Generic schema before serializing to XSD: ");
 		System.out.println(schema.debugDump());

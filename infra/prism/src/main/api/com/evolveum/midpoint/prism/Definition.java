@@ -200,4 +200,5 @@ public interface Definition extends Serializable, DebugDumpable, Revivable, Clon
 		return debugDump(indent);
 	}
 
+	MutableDefinition toMutable();
 }

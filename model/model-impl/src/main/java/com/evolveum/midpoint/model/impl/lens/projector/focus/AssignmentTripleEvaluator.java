@@ -469,7 +469,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 					.findItemDefinition(FocusType.F_ASSIGNMENT);
 		}
 		definition = definition.clone();
-		definition.setMaxOccurs(1);
+		definition.toMutable().setMaxOccurs(1);
 		return prismContext.deltaFor(FocusType.class)
 				.item(FocusType.F_ASSIGNMENT, definition);
 	}

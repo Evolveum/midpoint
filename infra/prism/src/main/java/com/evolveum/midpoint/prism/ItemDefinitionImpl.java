@@ -54,7 +54,7 @@ import org.jetbrains.annotations.NotNull;
  * @author Radovan Semancik
  *
  */
-public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl implements ItemDefinition<I> {
+public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl implements MutableItemDefinition<I> {
 
 	private static final long serialVersionUID = -2643332934312107274L;
 	@NotNull protected ItemName name;
@@ -191,6 +191,7 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
 		return operational;
 	}
 
+	@Override
 	public void setOperational(boolean operational) {
 		this.operational = operational;
 	}
@@ -285,6 +286,7 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
 		return valueEnumerationRef;
 	}
 
+	@Override
 	public void setValueEnumerationRef(PrismReferenceValue valueEnumerationRef) {
 		this.valueEnumerationRef = valueEnumerationRef;
 	}

@@ -803,9 +803,8 @@ public class TestParseDiffPatch {
         for (ItemDeltaType itemDeltaType : objectChange.getItemDelta()) {
             for (RawType rawType : itemDeltaType.getValue()) {
                 rawType.getParsedItem(
-                        new PrismPropertyDefinitionImpl(itemDeltaType.getPath().getItemPath().lastName(),
-                                rawType.getXnode().getTypeQName(),
-                                prismContext));
+                        prismContext.definitionFactory().createPropertyDefinition(itemDeltaType.getPath().getItemPath().lastName(),
+                                rawType.getXnode().getTypeQName()));
             }
         }
         return oldObject;

@@ -56,7 +56,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author Radovan Semancik
  */
-public class PrismPropertyDefinitionImpl<T> extends ItemDefinitionImpl<PrismProperty<T>> implements PrismPropertyDefinition<T> {
+public class PrismPropertyDefinitionImpl<T> extends ItemDefinitionImpl<PrismProperty<T>> implements PrismPropertyDefinition<T>, MutablePrismPropertyDefinition<T> {
 
     private static final long serialVersionUID = 7259761997904371009L;
     private QName valueType;
@@ -253,4 +253,9 @@ public class PrismPropertyDefinitionImpl<T> extends ItemDefinitionImpl<PrismProp
     public String getDocClassName() {
         return "property";
     }
+
+	@Override
+	public MutablePrismPropertyDefinition<T> toMutable() {
+		return this;
+	}
 }

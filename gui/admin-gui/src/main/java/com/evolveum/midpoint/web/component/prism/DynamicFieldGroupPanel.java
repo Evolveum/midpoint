@@ -18,10 +18,7 @@ package com.evolveum.midpoint.web.component.prism;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.ItemDefinitionImpl;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.util.FormTypeUtil;
@@ -155,7 +152,7 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 			return;
 		}
 
-		ItemDefinitionImpl itemDef = (ItemDefinitionImpl) itemWrapper.getItemDefinition();
+		MutableItemDefinition itemDef = itemWrapper.getItemDefinition().toMutable();
 		if (StringUtils.isNotEmpty(displayType.getLabel())) {
 			itemDef.setDisplayName(displayType.getLabel());
 		}

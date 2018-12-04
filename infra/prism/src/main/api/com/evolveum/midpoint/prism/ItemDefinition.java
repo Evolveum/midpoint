@@ -81,8 +81,6 @@ public interface ItemDefinition<I extends Item> extends Definition, Visitable {
 	 */
 	boolean canRead();
 	
-	void setCanRead(boolean val);
-
 	/**
 	 * Returns true if this item can be modified (updated).
 	 * In case of containers this means that the container itself should be displayed in modification forms
@@ -94,8 +92,6 @@ public interface ItemDefinition<I extends Item> extends Definition, Visitable {
 	 */
 	boolean canModify();
 	
-	void setCanModify(boolean val);
-
 	/**
 	 * Returns true if this item can be added: it can be part of an object that is created.
 	 * In case of containers this means that the container itself should be displayed in creation forms
@@ -107,8 +103,6 @@ public interface ItemDefinition<I extends Item> extends Definition, Visitable {
 	 */
 	boolean canAdd();
 	
-	void setCanAdd(boolean val);
-
 	/**
 	 * Returns the name of an element this one can be substituted for (e.g. c:user -&gt; c:object,
 	 * s:pipeline -&gt; s:expression, etc). EXPERIMENTAL
@@ -164,10 +158,9 @@ public interface ItemDefinition<I extends Item> extends Definition, Visitable {
 	 */
 	void debugDumpShortToString(StringBuilder sb);
 
-	// TODO remove this hack eventually
-	void setMaxOccurs(int maxOccurs);
-	
 	boolean canBeDefinitionOf(I item);
 	
 	boolean canBeDefinitionOf(PrismValue pvalue);
+
+	MutableItemDefinition<I> toMutable();
 }

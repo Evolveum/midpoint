@@ -127,7 +127,7 @@ public class ConfigurationStep extends WizardStep {
 			PrismContainerDefinition<ConnectorConfigurationType> definition = ConnectorTypeUtil.findConfigurationContainerDefinition(connectorType, schema);
 			// Fixing (errorneously) set maxOccurs = unbounded. See MID-2317 and related issues.
 			PrismContainerDefinition<ConnectorConfigurationType> definitionFixed = definition.clone();
-			((PrismContainerDefinitionImpl) definitionFixed).setMaxOccurs(1);
+			definitionFixed.toMutable().setMaxOccurs(1);
 			configuration = definitionFixed.instantiate();
 		}
 

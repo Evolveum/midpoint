@@ -151,9 +151,8 @@ public class CorrelationConfirmationEvaluator {
 		
 		ExpressionType condition = conditionalFilter.getCondition();
 		ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(null,currentShadow, resourceType, configurationType);
-		ItemDefinition outputDefinition = new PrismPropertyDefinitionImpl(
-				ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN,
-				prismContext);
+		ItemDefinition outputDefinition = prismContext.definitionFactory().createPropertyDefinition(
+				ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN);
 		PrismPropertyValue<Boolean> satisfy = (PrismPropertyValue) ExpressionUtil.evaluateExpression(variables,
 				outputDefinition, condition, expressionFactory, shortDesc, task, parentResult);
 		if (satisfy.getValue() == null) {
@@ -379,8 +378,8 @@ public class CorrelationConfirmationEvaluator {
 		ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(user, shadow, resource, configuration);
 		String shortDesc = "confirmation expression for "+resource.asPrismObject();
 		
-		PrismPropertyDefinition<Boolean> outputDefinition = new PrismPropertyDefinitionImpl<>(ExpressionConstants.OUTPUT_ELEMENT_NAME,
-				DOMUtil.XSD_BOOLEAN, prismContext);
+		PrismPropertyDefinition<Boolean> outputDefinition = prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME,
+				DOMUtil.XSD_BOOLEAN);
 		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType, 
 				outputDefinition, shortDesc, task, result);
 

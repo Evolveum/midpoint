@@ -1330,8 +1330,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         OperationResult topResult = task.getResult();
         try {
             ExpressionFactory factory = getExpressionFactory();
-            PrismPropertyDefinition<OperationResultType> outputDefinition = new PrismPropertyDefinitionImpl<>(
-                    ExpressionConstants.OUTPUT_ELEMENT_NAME, OperationResultType.COMPLEX_TYPE, getPrismContext());
+            PrismPropertyDefinition<OperationResultType> outputDefinition = getPrismContext().definitionFactory().createPropertyDefinition(
+                    ExpressionConstants.OUTPUT_ELEMENT_NAME, OperationResultType.COMPLEX_TYPE);
             Expression<PrismPropertyValue<OperationResultType>, PrismPropertyDefinition<OperationResultType>> expression = factory.makeExpression(expressionType, outputDefinition, contextDesc, task, topResult);
 
             ExpressionVariables variables = new ExpressionVariables();

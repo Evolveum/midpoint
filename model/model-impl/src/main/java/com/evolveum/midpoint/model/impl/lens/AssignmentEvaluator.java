@@ -1281,7 +1281,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 				.sourceContext(focusOdo)
 				.originType(OriginType.ASSIGNMENTS)
 				.originObject(source)
-				.defaultTargetDefinition(new PrismPropertyDefinitionImpl<>(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN, prismContext))
+				.defaultTargetDefinition(prismContext.definitionFactory().createPropertyDefinition(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN))
 				.addVariableDefinitions(getAssignmentEvaluationVariables().getMap())
 				.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo)
 				.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo)

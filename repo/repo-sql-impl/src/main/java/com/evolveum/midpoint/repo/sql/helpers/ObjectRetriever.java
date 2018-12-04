@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.MutablePrismReferenceDefinition;
 import com.evolveum.midpoint.repo.api.RepositoryObjectDiagnosticData;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
@@ -639,13 +640,13 @@ public class ObjectRetriever {
             if (item.getDefinition() == null) {
                 RItemKind rValType = extItem.getKind();
                 if (rValType == RItemKind.PROPERTY) {
-                    PrismPropertyDefinitionImpl<Object> def = new PrismPropertyDefinitionImpl<>(name, type, object.getPrismContext());
+                    MutablePrismPropertyDefinition<Object> def = object.getPrismContext().definitionFactory().createPropertyDefinition(name, type);
                     def.setMinOccurs(0);
                     def.setMaxOccurs(-1);
                     def.setRuntimeSchema(true);
                     item.applyDefinition(def, true);
                 } else if (rValType == RItemKind.REFERENCE) {
-                    PrismReferenceDefinitionImpl def = new PrismReferenceDefinitionImpl(name, type, object.getPrismContext());
+                    MutablePrismReferenceDefinition def = object.getPrismContext().definitionFactory().createReferenceDefinition(name, type);
 	                def.setMinOccurs(0);
 	                def.setMaxOccurs(-1);
 	                def.setRuntimeSchema(true);

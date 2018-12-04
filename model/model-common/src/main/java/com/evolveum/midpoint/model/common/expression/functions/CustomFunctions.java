@@ -94,12 +94,12 @@ public class CustomFunctions {
 			
 			D outputDefinition = (D) prismContext.getSchemaRegistry().findItemDefinitionByType(returnType);
 			if (outputDefinition == null) {
-				outputDefinition = (D) new PrismPropertyDefinitionImpl(SchemaConstantsGenerated.C_VALUE, returnType, prismContext);
+				outputDefinition = (D) prismContext.definitionFactory().createPropertyDefinition(SchemaConstantsGenerated.C_VALUE, returnType);
 			}
 			if (expressionType.getReturnMultiplicity() != null && expressionType.getReturnMultiplicity() == ExpressionReturnMultiplicityType.MULTI) {
-				outputDefinition.setMaxOccurs(-1);
+				outputDefinition.toMutable().setMaxOccurs(-1);
 			} else {
-				outputDefinition.setMaxOccurs(1);
+				outputDefinition.toMutable().setMaxOccurs(1);
 			}
 			String shortDesc = "custom function execute";
 			Expression<V, D> expression = expressionFactory.makeExpression(expressionType, outputDefinition,

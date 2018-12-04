@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,11 @@ public class DiffUtil {
 			if (newObject == null) {
 				return null;
 			}
-			ObjectDelta<T> objectDelta = new ObjectDeltaImpl<>(newObject.getCompileTimeClass(), ChangeType.ADD, getPrismContext(oldObject, newObject));
+			PrismContext prismContext = getPrismContext(oldObject, newObject);
+			if (prismContext == null) {
+				throw new IllegalStateException("No prismContext in DiffUtil.diff!");
+			}
+			ObjectDelta<T> objectDelta = prismContext.deltaFactory().createObjectDelta(newObject.getCompileTimeClass(), ChangeType.ADD);
 			objectDelta.setOid(newObject.getOid());
 			objectDelta.setObjectToAdd(newObject);
 			return objectDelta;
@@ -43,9 +47,9 @@ public class DiffUtil {
 		}
 	}
 
-	private static <T extends Objectable> PrismContext getPrismContext(PrismObject<T>... objects) {
-		for (PrismObject<T> object: objects) {
-			if (object != null) {
+	private static PrismContext getPrismContext(PrismObject<?>... objects) {
+		for (PrismObject<?> object: objects) {
+			if (object != null && object.getPrismContext() != null) {
 				return object.getPrismContext();
 			}
 		}

@@ -1711,8 +1711,8 @@ public class ChangeExecutor {
 
 		QName FAKE_SCRIPT_ARGUMENT_NAME = new QName(SchemaConstants.NS_C, "arg");
 
-		PrismPropertyDefinition<String> scriptArgumentDefinition = new PrismPropertyDefinitionImpl<>(
-				FAKE_SCRIPT_ARGUMENT_NAME, DOMUtil.XSD_STRING, prismContext);
+		PrismPropertyDefinition<String> scriptArgumentDefinition = prismContext.definitionFactory().createPropertyDefinition(
+				FAKE_SCRIPT_ARGUMENT_NAME, DOMUtil.XSD_STRING);
 
 		String shortDesc = "Provisioning script argument expression";
 		Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression = expressionFactory

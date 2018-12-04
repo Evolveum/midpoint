@@ -16,9 +16,9 @@
 
 package com.evolveum.midpoint.prism.query;
 
+import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismInternalTestUtil;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
 import com.evolveum.midpoint.prism.foo.AssignmentType;
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
@@ -89,7 +89,7 @@ public class TestObjectQuery {
 	@Test
 	public void testMatchEqualMultivalue() throws Exception {
 		PrismObject<UserType> user = PrismTestUtil.parseObject(PrismInternalTestUtil.USER_JACK_FILE_XML);
-		PrismPropertyDefinitionImpl def = new PrismPropertyDefinitionImpl(new QName("indexedString"), DOMUtil.XSD_STRING, getPrismContext());
+		MutablePrismPropertyDefinition<?> def = getPrismContext().definitionFactory().createPropertyDefinition(new QName("indexedString"), DOMUtil.XSD_STRING);
 		ObjectFilter filter = getPrismContext().queryFor(UserType.class)
 				.item(ItemPath.create(UserType.F_EXTENSION, "indexedString"), def).eq("alpha")
 				.buildFilter();

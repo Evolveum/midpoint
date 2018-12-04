@@ -22,7 +22,6 @@ import java.io.IOException;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import org.testng.annotations.BeforeClass;
@@ -164,9 +163,8 @@ public class TestMappingTime {
 
 		builder.setNow(TIME_PAST);
 
-		PrismPropertyDefinition<Boolean> existenceDef = new PrismPropertyDefinitionImpl<>(
-				ExpressionConstants.OUTPUT_ELEMENT_NAME,
-				DOMUtil.XSD_BOOLEAN, evaluator.getPrismContext());
+		PrismPropertyDefinition<Boolean> existenceDef = evaluator.getPrismContext().definitionFactory().createPropertyDefinition(
+				ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN);
 		builder.setDefaultTargetDefinition(existenceDef);
 
 		MappingImpl<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> mapping = builder.build();
@@ -195,9 +193,8 @@ public class TestMappingTime {
 
 		builder.setNow(TIME_FUTURE);
 
-		PrismPropertyDefinition<Boolean> existenceDef = new PrismPropertyDefinitionImpl<>(
-				ExpressionConstants.OUTPUT_ELEMENT_NAME,
-				DOMUtil.XSD_BOOLEAN, evaluator.getPrismContext());
+		PrismPropertyDefinition<Boolean> existenceDef = evaluator.getPrismContext().definitionFactory().createPropertyDefinition(
+				ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN);
 		builder.setDefaultTargetDefinition(existenceDef);
 
 		MappingImpl<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> mapping = builder.build();
@@ -232,9 +229,8 @@ public class TestMappingTime {
 
 		builder.setNow(TIME_PAST);
 
-		PrismPropertyDefinition<Boolean> existenceDef = new PrismPropertyDefinitionImpl<>(
-				ExpressionConstants.OUTPUT_ELEMENT_NAME,
-				DOMUtil.XSD_BOOLEAN, evaluator.getPrismContext());
+		PrismPropertyDefinition<Boolean> existenceDef = evaluator.getPrismContext().definitionFactory().createPropertyDefinition(
+				ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN);
 		builder.setDefaultTargetDefinition(existenceDef);
 
 		MappingImpl<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> mapping = builder.build();
@@ -272,9 +268,8 @@ public class TestMappingTime {
 
 		builder.setNow(TIME_PAST);
 
-		PrismPropertyDefinition<Boolean> existenceDef = new PrismPropertyDefinitionImpl<>(
-				ExpressionConstants.OUTPUT_ELEMENT_NAME,
-				DOMUtil.XSD_BOOLEAN, evaluator.getPrismContext());
+		PrismPropertyDefinition<Boolean> existenceDef = evaluator.getPrismContext().definitionFactory().createPropertyDefinition(
+				ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN);
 		builder.setDefaultTargetDefinition(existenceDef);
 
 		MappingImpl<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> mapping = builder.build();
@@ -311,9 +306,8 @@ public class TestMappingTime {
 
 		builder.setNow(TIME_FUTURE);
 
-		PrismPropertyDefinition<Boolean> existenceDef = new PrismPropertyDefinitionImpl<>(
-				ExpressionConstants.OUTPUT_ELEMENT_NAME,
-				DOMUtil.XSD_BOOLEAN, evaluator.getPrismContext());
+		PrismPropertyDefinition<Boolean> existenceDef = evaluator.getPrismContext().definitionFactory().createPropertyDefinition(
+				ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN);
 		builder.setDefaultTargetDefinition(existenceDef);
 
 		MappingImpl<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> mapping = builder.build();

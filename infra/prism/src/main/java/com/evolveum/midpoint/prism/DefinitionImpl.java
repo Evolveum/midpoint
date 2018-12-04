@@ -49,7 +49,7 @@ import javax.xml.namespace.QName;
  * @author Radovan Semancik
  *
  */
-public abstract class DefinitionImpl implements Definition {
+public abstract class DefinitionImpl implements MutableDefinition {
 
 	private static final long serialVersionUID = -2643332934312107274L;
 	@NotNull protected QName typeName;
@@ -112,6 +112,7 @@ public abstract class DefinitionImpl implements Definition {
 		return processing;
 	}
 
+	@Override
 	public void setProcessing(ItemProcessing processing) {
 		this.processing = processing;
 	}
@@ -130,6 +131,7 @@ public abstract class DefinitionImpl implements Definition {
 		return deprecated;
 	}
 
+	@Override
 	public void setDeprecated(boolean deprecated) {
 		this.deprecated = deprecated;
 	}
@@ -148,6 +150,7 @@ public abstract class DefinitionImpl implements Definition {
 		return experimental;
 	}
 
+	@Override
 	public void setExperimental(boolean experimental) {
 		this.experimental = experimental;
 	}
@@ -179,6 +182,7 @@ public abstract class DefinitionImpl implements Definition {
 		return emphasized;
 	}
 
+	@Override
 	public void setEmphasized(boolean emphasized) {
 		this.emphasized = emphasized;
 	}
@@ -188,6 +192,7 @@ public abstract class DefinitionImpl implements Definition {
 		return displayName;
 	}
 
+	@Override
 	public void setDisplayName(String displayName) {
 		this.displayName = displayName;
 	}
@@ -197,6 +202,7 @@ public abstract class DefinitionImpl implements Definition {
 		return displayOrder;
 	}
 
+	@Override
 	public void setDisplayOrder(Integer displayOrder) {
 		this.displayOrder = displayOrder;
 	}
@@ -206,6 +212,7 @@ public abstract class DefinitionImpl implements Definition {
 		return help;
 	}
 
+	@Override
 	public void setHelp(String help) {
 		this.help = help;
 	}

@@ -2992,7 +2992,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		QName type = XsdTypeMapper.toXsdType(object.getClass());
 
 		//noinspection unchecked
-		PrismPropertyDefinitionImpl<T> propDef = new PrismPropertyDefinitionImpl(SchemaConstants.SYNC_TOKEN, type, prismContext);
+		MutablePrismPropertyDefinition<T> propDef = prismContext.definitionFactory().createPropertyDefinition(SchemaConstants.SYNC_TOKEN, type);
 		propDef.setDynamic(true);
 		propDef.setMaxOccurs(1);
 		propDef.setIndexed(false);          // redundant, as dynamic extension items are not indexed by default

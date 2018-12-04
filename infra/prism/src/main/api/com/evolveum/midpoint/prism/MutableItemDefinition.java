@@ -16,28 +16,31 @@
 
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.prism.xnode.XNode;
-
 import javax.xml.namespace.QName;
 
 /**
- *  Factory for items (property, reference, container, object) and item values.
- *
- *  Eliminates the need of calls like "new PrismPropertyValue(...)" in midPoint 3.x.
+ *  EXPERIMENTAL
  */
-public interface ItemFactory {
+public interface MutableItemDefinition<I extends Item> extends ItemDefinition<I>, MutableDefinition {
 
-	PrismValue createPrismValue(Object realValue);
+	void setMinOccurs(int value);
 
-	<T> PrismProperty<T> createPrismProperty(QName itemName);
+	void setMaxOccurs(int value);
 
-	<T> PrismPropertyValue<T> createPrismPropertyValue(T content);
+	void setCanRead(boolean val);
 
-	<T> PrismPropertyValue<T> createPrismPropertyValue(XNode rawContent);
+	void setCanModify(boolean val);
 
-	PrismReferenceValue createPrismReferenceValue(PrismObject<?> target);
+	void setCanAdd(boolean val);
 
-	PrismReferenceValue createPrismReferenceValue(String targetOid);
+	void setValueEnumerationRef(PrismReferenceValue valueEnumerationRef);
 
-	PrismContainer createPrismContainer(QName name);
+	void setOperational(boolean operational);
+
+	void setDynamic(boolean value);
+
+	// use with care
+	void setName(QName name);
+
+	void setReadOnly();
 }

@@ -1084,8 +1084,8 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 
     private ObjectDelta<ResourceType> createConfigurationPropertyDelta(QName elementQName, String newValue) {
     	ItemPath propPath = getConfigurationPropertyPath(elementQName);
-		PrismPropertyDefinition<String> propDef = new PrismPropertyDefinitionImpl<>(IntegrationTestTools.RESOURCE_DUMMY_CONFIGURATION_USELESS_STRING_ELEMENT_NAME,
-				DOMUtil.XSD_STRING, prismContext);
+		PrismPropertyDefinition<String> propDef = prismContext.definitionFactory().createPropertyDefinition(IntegrationTestTools.RESOURCE_DUMMY_CONFIGURATION_USELESS_STRING_ELEMENT_NAME,
+				DOMUtil.XSD_STRING);
 		PropertyDelta<String> propDelta = PropertyDeltaImpl.createModificationReplaceProperty(propPath, propDef, newValue);
     	ObjectDelta<ResourceType> resourceDelta = ObjectDeltaCreationUtil
 			    .createModifyDelta(RESOURCE_DUMMY_OID, propDelta, ResourceType.class, prismContext);

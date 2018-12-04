@@ -23,7 +23,7 @@ import javax.xml.namespace.QName;
 /**
  * @author mederly
  */
-public class SimpleTypeDefinitionImpl extends TypeDefinitionImpl implements SimpleTypeDefinition {
+public class SimpleTypeDefinitionImpl extends TypeDefinitionImpl implements SimpleTypeDefinition, MutableDefinition {
 
 	private QName baseTypeName;
 	private DerivationMethod derivationMethod;		// usually RESTRICTION
@@ -64,5 +64,10 @@ public class SimpleTypeDefinitionImpl extends TypeDefinitionImpl implements Simp
 		SimpleTypeDefinitionImpl clone = new SimpleTypeDefinitionImpl(typeName, baseTypeName, derivationMethod, prismContext);
 		super.copyDefinitionData(clone);
 		return clone;
+	}
+
+	@Override
+	public MutableDefinition toMutable() {
+		return this;
 	}
 }

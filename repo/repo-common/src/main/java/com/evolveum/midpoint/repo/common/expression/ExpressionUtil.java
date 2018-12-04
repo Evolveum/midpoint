@@ -743,8 +743,8 @@ public class ExpressionUtil {
 		}
 
 		if (outputDefinition == null) {
-			outputDefinition = new PrismPropertyDefinitionImpl(ExpressionConstants.OUTPUT_ELEMENT_NAME,
-					DOMUtil.XSD_STRING, prismContext);
+			outputDefinition = prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME,
+					DOMUtil.XSD_STRING);
 		}
 
 		return (V) evaluateExpression(variables, outputDefinition, expressionType, expressionFactory, shortDesc,
@@ -792,8 +792,8 @@ public class ExpressionUtil {
 			String shortDesc, Task task, OperationResult parentResult)
 					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-		PrismPropertyDefinitionImpl<String> outputDefinition = new PrismPropertyDefinitionImpl(
-				ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_STRING, prismContext);
+		MutablePrismPropertyDefinition<String> outputDefinition = prismContext.definitionFactory().createPropertyDefinition(
+				ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_STRING);
 		outputDefinition.setMaxOccurs(-1);
 		Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression = expressionFactory
 				.makeExpression(expressionType, outputDefinition, shortDesc, task, parentResult);
@@ -820,9 +820,8 @@ public class ExpressionUtil {
 			ExpressionType expressionType, ExpressionFactory expressionFactory, String shortDesc, Task task,
 			OperationResult parentResult)
 					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-		ItemDefinition outputDefinition = new PrismPropertyDefinitionImpl(
-				ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN,
-				expressionFactory.getPrismContext());
+		ItemDefinition outputDefinition = expressionFactory.getPrismContext().definitionFactory().createPropertyDefinition(
+				ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN);
 		return (PrismPropertyValue<Boolean>) evaluateExpression(variables, outputDefinition, expressionType,
 				expressionFactory, shortDesc, task, parentResult);
 	}
@@ -1051,6 +1050,6 @@ public class ExpressionUtil {
 	}
 	
 	public static PrismPropertyDefinition<Boolean> createConditionOutputDefinition(PrismContext prismContext) {
-		return new PrismPropertyDefinitionImpl<>(ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN, prismContext);
+		return prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN);
 	}
 }

@@ -95,9 +95,8 @@ public class TestExpression {
     	ExpressionType expressionType = PrismTestUtil.parseAtomicValue(
     			EXPRESSION_ITERATION_CONDITION_FILE, ExpressionType.COMPLEX_TYPE);
 
-    	PrismPropertyDefinition<Boolean> outputDefinition = new PrismPropertyDefinitionImpl<>(
-				ExpressionConstants.OUTPUT_ELEMENT_NAME,
-				DOMUtil.XSD_BOOLEAN, prismContext);
+    	PrismPropertyDefinition<Boolean> outputDefinition = prismContext.definitionFactory().createPropertyDefinition(
+				ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN);
 		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType, outputDefinition , TEST_NAME, null, result);
 
 		ExpressionVariables variables = new ExpressionVariables();
