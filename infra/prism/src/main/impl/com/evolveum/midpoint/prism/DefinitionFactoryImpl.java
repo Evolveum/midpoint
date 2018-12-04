@@ -39,7 +39,7 @@ public class DefinitionFactoryImpl implements DefinitionFactory {
 	}
 
 	@Override
-	public MutablePrismPropertyDefinition createPropertyDefinition(QName name, QName typeName) {
+	public <T> MutablePrismPropertyDefinition<T> createPropertyDefinition(QName name, QName typeName) {
 		return new PrismPropertyDefinitionImpl<>(name, typeName, prismContext);
 	}
 
