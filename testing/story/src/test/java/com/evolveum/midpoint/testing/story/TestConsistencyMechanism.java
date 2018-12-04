@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.testing.story;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertAttributeNotNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertNoRepoCache;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayJaxb;
@@ -710,7 +711,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 			ReferenceDelta abombaDeleteAccDelta = ReferenceDeltaImpl
 					.createModificationDelete(ShadowType.class,
 							UserType.F_LINK_REF, prismContext,
-							new PrismReferenceValueImpl(abombaOid));
+							getPrismContext().itemFactory().createPrismReferenceValue(abombaOid));
 			ObjectDelta d = ObjectDeltaCreationUtil.createModifyDelta(USER_ABOMBA_OID,
 					abombaDeleteAccDelta, UserType.class, prismContext);
 			modelService.executeChanges(MiscSchemaUtil.createCollection(d), null, task,

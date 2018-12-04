@@ -930,7 +930,7 @@ public class ReconciliationProcessor {
 
 		PropertyDelta<T> attrDelta = new PropertyDeltaImpl<>(parentPath, attrDef.getName(),
 				attrDef, prismContext);
-		PrismPropertyValue<T> pValue = new PrismPropertyValueImpl<>(value, OriginType.RECONCILIATION,
+		PrismPropertyValue<T> pValue = prismContext.itemFactory().createPrismPropertyValue(value, OriginType.RECONCILIATION,
 				originObject);
 		if (changeType == ModificationType.ADD) {
 			attrDelta.addValueToAdd(pValue);

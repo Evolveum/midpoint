@@ -26,7 +26,6 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.PrismPropertyValueImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -293,7 +292,7 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
 		Map<QName, Object> params = new HashMap<>();
 		PrismPropertyValue<String> pval = null;
 		if (input != null) {
-			pval = new PrismPropertyValueImpl<>(input);
+			pval = prismContext.itemFactory().createPrismPropertyValue(input);
 		}
 		params.put(ExpressionConstants.VAR_INPUT, pval);
 

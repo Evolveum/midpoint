@@ -30,7 +30,6 @@ import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismReferenceValueImpl;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -1453,8 +1452,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
                         ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF), PrismReferenceDefinition.class);
         ReferenceDelta referenceDelta = new ReferenceDeltaImpl(
                 ItemPath.create(UserType.F_ASSIGNMENT, id, AssignmentType.F_TARGET_REF), referenceDefinition, prismContext);
-        PrismReferenceValue oldValue = new PrismReferenceValueImpl(ORG_MINISTRY_OF_OFFENSE_OID, OrgType.COMPLEX_TYPE);
-        PrismReferenceValue newValue = new PrismReferenceValueImpl(ORG_MINISTRY_OF_OFFENSE_OID, OrgType.COMPLEX_TYPE);
+        PrismReferenceValue oldValue = itemFactory().createPrismReferenceValue(ORG_MINISTRY_OF_OFFENSE_OID, OrgType.COMPLEX_TYPE);
+        PrismReferenceValue newValue = itemFactory().createPrismReferenceValue(ORG_MINISTRY_OF_OFFENSE_OID, OrgType.COMPLEX_TYPE);
         newValue.setRelation(SchemaConstants.ORG_MANAGER);
 
         referenceDelta.addValueToDelete(oldValue);

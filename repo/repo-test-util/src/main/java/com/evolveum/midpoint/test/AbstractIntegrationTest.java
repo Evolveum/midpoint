@@ -2423,7 +2423,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 	
 	protected <T> RawType rawize(QName attrName, T value) {
-		return new RawType(new PrismPropertyValueImpl<>(value), attrName, prismContext);
+		return new RawType(prismContext.itemFactory().createPrismPropertyValue(value), attrName, prismContext);
 	}
 	
 	protected void markShadowTombstone(String oid) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
@@ -2473,5 +2473,9 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	// use only if necessary (use ItemPath.create instead)
 	protected ItemPath path(Object... components) {
 		return ItemPath.create(components);
+	}
+
+	protected ItemFactory itemFactory() {
+		return prismContext.itemFactory();
 	}
 }

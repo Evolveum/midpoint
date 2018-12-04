@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.schema;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -263,8 +264,8 @@ public class TestJaxbSanity {
 		System.out.println(resource2Type.hashCode());
 		assertTrue("Resource hashcode does not match", resource1Type.hashCode() == resource2Type.hashCode());
 
-		PrismPropertyValue<Object> pv1 = new PrismPropertyValueImpl<>(resource1Type.getConnectorConfiguration());
-		PrismPropertyValue<Object> pv2 = new PrismPropertyValueImpl<>(resource2Type.getConnectorConfiguration());
+		PrismPropertyValue<Object> pv1 = getPrismContext().itemFactory().createPrismPropertyValue(resource1Type.getConnectorConfiguration());
+		PrismPropertyValue<Object> pv2 = getPrismContext().itemFactory().createPrismPropertyValue(resource2Type.getConnectorConfiguration());
 
 		assertTrue("Real property values not equal",pv1.equalsRealValue(pv2));
 	}
@@ -290,7 +291,7 @@ public class TestJaxbSanity {
 
 		//FIXME : modification value -> rawType...
         RawType rawType = mod.getItemDelta().get(0).getValue().get(0);
-        ItemDefinition assignmentDefinition = PrismTestUtil.getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(AssignmentType.class);
+        ItemDefinition assignmentDefinition = getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(AssignmentType.class);
         assertNotNull(assignmentDefinition);
 		AssignmentType assignmentType = ((PrismContainerValue<AssignmentType>) rawType.getParsedValue(assignmentDefinition, null)).getValue();
 //                was: (JAXBElement<AssignmentType>) mod.getItemDelta().get(0).getValue().get(0).getContent().get(0);
@@ -312,7 +313,7 @@ public class TestJaxbSanity {
 
         //GIVEN
         SystemConfigurationType config = new SystemConfigurationType();
-        PrismTestUtil.getPrismContext().adopt(config);
+        getPrismContext().adopt(config);
 
         //WHEN
         config.setGlobalPasswordPolicyRef(null);
@@ -327,7 +328,7 @@ public class TestJaxbSanity {
         configNew.setGlobalPasswordPolicyRef(ref);
         configNew.setGlobalPasswordPolicyRef(null);
 
-        PrismTestUtil.getPrismContext().adopt(configNew);
+        getPrismContext().adopt(configNew);
 
         assertTrue(config.equals(configNew));
     }

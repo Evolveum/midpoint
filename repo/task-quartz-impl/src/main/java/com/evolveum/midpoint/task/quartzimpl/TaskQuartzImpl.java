@@ -66,8 +66,7 @@ import java.util.concurrent.Future;
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_MODEL_OPERATION_CONTEXT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
-import static java.util.Collections.emptyMap;
-import static java.util.Collections.singleton;
+import static java.util.Collections.*;
 import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 
 /**
@@ -1899,28 +1898,24 @@ public class TaskQuartzImpl implements Task {
 
 		ArrayList<PrismPropertyValue<T>> values = new ArrayList<>(1);
 		if (value != null) {
-			values.add(new PrismPropertyValueImpl<>(value));
+			values.add(getPrismContext().itemFactory().createPrismPropertyValue(value));
 		}
 		processModificationBatched(setExtensionPropertyAndPrepareDelta(propertyName, propertyDef, values));
 	}
 
 	@Override
 	public <T> void setExtensionPropertyValueTransient(QName propertyName, T value) throws SchemaException {
-		PrismPropertyDefinition propertyDef = getPrismContext().getSchemaRegistry()
-				.findPropertyDefinitionByElementName(propertyName);
+		PrismContext prismContext = getPrismContext();
+		//noinspection unchecked
+		PrismPropertyDefinition<T> propertyDef = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(propertyName);
 		if (propertyDef == null) {
 			throw new SchemaException("Unknown property " + propertyName);
 		}
-		ArrayList<PrismPropertyValue<T>> values = new ArrayList<>(1);
-		if (value != null) {
-			values.add(new PrismPropertyValueImpl<>(value));
-		}
-		ItemDelta delta = new PropertyDeltaImpl<>(ItemPath.create(TaskType.F_EXTENSION, propertyName), propertyDef, getPrismContext());
-		delta.setValuesToReplace(values);
+		PropertyDelta<T> delta = prismContext.deltaFactory().createPropertyDelta(ItemPath.create(TaskType.F_EXTENSION, propertyName), propertyDef);
+		//noinspection unchecked
+		delta.setRealValuesToReplace(value);
 
-		Collection<ItemDelta<?, ?>> modifications = new ArrayList<>(1);
-		modifications.add(delta);
-		ItemDeltaCollectionsUtil.applyTo(modifications, taskPrism);
+		ItemDeltaCollectionsUtil.applyTo(singletonList(delta), taskPrism);
 	}
 
 	// use this method to avoid cloning the value

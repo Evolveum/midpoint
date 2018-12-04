@@ -642,13 +642,13 @@ public class ProjectionValuesProcessor {
 		}
 		PrismObjectDefinition<ShadowType> shadowDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
 
-		PrismPropertyValue<Integer> iterationVal = new PrismPropertyValueImpl<>(accountContext.getIteration());
+		PrismPropertyValue<Integer> iterationVal = prismContext.itemFactory().createPrismPropertyValue(accountContext.getIteration());
 		iterationVal.setOriginType(OriginType.OUTBOUND);
 		PropertyDelta<Integer> iterationDelta = PropertyDeltaImpl.createReplaceDelta(shadowDef,
 				ShadowType.F_ITERATION, iterationVal);
 		accountContext.swallowToSecondaryDelta(iterationDelta);
 
-		PrismPropertyValue<String> iterationTokenVal = new PrismPropertyValueImpl<>(accountContext.getIterationToken());
+		PrismPropertyValue<String> iterationTokenVal = prismContext.itemFactory().createPrismPropertyValue(accountContext.getIterationToken());
 		iterationTokenVal.setOriginType(OriginType.OUTBOUND);
 		PropertyDelta<String> iterationTokenDelta = PropertyDeltaImpl.createReplaceDelta(shadowDef,
 				ShadowType.F_ITERATION_TOKEN, iterationTokenVal);

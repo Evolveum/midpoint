@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-/**
- *
- */
 package com.evolveum.midpoint.model.intest.manual;
 
 import static org.testng.AssertJUnit.assertFalse;
@@ -162,9 +159,9 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
 		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowRepo, null, null, executionStage);
 		assertNotNull("No ID in pending operation", pendingOperation.getId());
 		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME,
-				new RawType(new PrismPropertyValueImpl<>(USER_BIGMOUTH_NAME.toLowerCase()), ATTR_USERNAME_QNAME, prismContext));
+				RawType.fromPropertyRealValue(USER_BIGMOUTH_NAME.toLowerCase(), ATTR_USERNAME_QNAME, prismContext));
 		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME,
-				new RawType(new PrismPropertyValueImpl<>(USER_BIGMOUTH_FULLNAME), ATTR_FULLNAME_QNAME, prismContext));
+				RawType.fromPropertyRealValue(USER_BIGMOUTH_FULLNAME, ATTR_FULLNAME_QNAME, prismContext));
 		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
 		assertShadowExists(shadowRepo, false);
 		assertNoShadowPassword(shadowRepo);
@@ -212,9 +209,9 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
 		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowRepo, null, null, executionStage);
 		assertNotNull("No ID in pending operation", pendingOperation.getId());
 		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME,
-				new RawType(new PrismPropertyValueImpl<>(USER_BIGMOUTH_NAME.toLowerCase()), ATTR_USERNAME_QNAME, prismContext));
+				RawType.fromPropertyRealValue(USER_BIGMOUTH_NAME.toLowerCase(), ATTR_USERNAME_QNAME, prismContext));
 		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME,
-				new RawType(new PrismPropertyValueImpl<>(USER_BIGMOUTH_FULLNAME), ATTR_FULLNAME_QNAME, prismContext));
+				RawType.fromPropertyRealValue(USER_BIGMOUTH_FULLNAME, ATTR_FULLNAME_QNAME, prismContext));
 		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
 		assertShadowExists(shadowRepo, false);
 		assertNoShadowPassword(shadowRepo);

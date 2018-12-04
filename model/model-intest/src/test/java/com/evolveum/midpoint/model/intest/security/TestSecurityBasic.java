@@ -2204,7 +2204,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         	(task, result) ->  {
 				Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 				ContainerDelta<AssignmentType> assignmentDelta1 = ContainerDeltaImpl.createDelta(UserType.F_ASSIGNMENT, getUserDefinition());
-				PrismContainerValue<AssignmentType> cval = new PrismContainerValueImpl<>(prismContext);
+				PrismContainerValue<AssignmentType> cval = prismContext.itemFactory().createPrismContainerValue();
 				assignmentDelta1.addValueToAdd(cval);
 				PrismReference targetRef = cval.findOrCreateReference(AssignmentType.F_TARGET_REF);
 				targetRef.getValue().setOid(ROLE_BUSINESS_2_OID);

@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.testing.story;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotEquals;
@@ -406,7 +407,7 @@ public class TestServiceAccounts extends AbstractStoryTest {
 
         ObjectDelta<ServiceType> delta = ObjectDeltaCreationUtil
 		        .createEmptyModifyDelta(ServiceType.class, SERVICE_BARELLIUM_OID, prismContext);
-        PrismReferenceValue accountRefVal = new PrismReferenceValueImpl();
+        PrismReferenceValue accountRefVal = getPrismContext().itemFactory().createPrismReferenceValue();
 		accountRefVal.setObject(account);
 		ReferenceDelta accountDelta = ReferenceDeltaImpl
 				.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);

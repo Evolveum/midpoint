@@ -27,6 +27,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.ItemFactory;
 import com.evolveum.midpoint.prism.PrismPropertyValueImpl;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -1021,7 +1022,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertNotNull("badLuck delta was not found", badLuckDelta);
         List<PrismValue> oldValues = (List<PrismValue>) badLuckDelta.getEstimatedOldValues();
         assertNotNull("badLuck delta has null estimatedOldValues field", oldValues);
-        PrismAsserts.assertEqualsCollectionUnordered("badLuck delta has wrong estimatedOldValues", oldValues, new PrismPropertyValueImpl<>(123L), new PrismPropertyValueImpl<>(456L));
+	    ItemFactory factory = prismContext.itemFactory();
+	    PrismAsserts.assertEqualsCollectionUnordered("badLuck delta has wrong estimatedOldValues", oldValues,
+			    factory.createPrismPropertyValue(123L), factory.createPrismPropertyValue(456L));
     }
 
     @Test

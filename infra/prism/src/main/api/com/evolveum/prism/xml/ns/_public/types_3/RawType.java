@@ -90,6 +90,10 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
 		}
 	}
 
+	public static RawType fromPropertyRealValue(Object realValue, QName explicitTypeName, @NotNull PrismContext prismContext) {
+		return new RawType(prismContext.itemFactory().createPrismPropertyValue(realValue), explicitTypeName, prismContext);
+	}
+
 	/**
 	 * TEMPORARY. EXPERIMENTAL. DO NOT USE.
 	 */

@@ -16,26 +16,39 @@
 package com.evolveum.midpoint.model.impl.filter;
 
 import com.evolveum.midpoint.common.filter.Filter;
-import com.evolveum.midpoint.model.impl.filter.PatternFilter;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismPropertyValueImpl;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 
+import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.evolveum.midpoint.model.impl.filter.PatternFilter.*;
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 
 /**
  * @author lazyman
  */
 public class PatternFilterTest {
+
+    @BeforeSuite
+    public void setup() throws SchemaException, SAXException, IOException {
+        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
+    }
 
     private static final String input = "midPoint";
     private static final String expected = "mxdPxxnt";
@@ -53,14 +66,14 @@ public class PatternFilterTest {
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void testEmptyParameters() {
-        PrismPropertyValue<String> value = new PrismPropertyValueImpl<>(input);
+        PrismPropertyValue<String> value = getPrismContext().itemFactory().createPrismPropertyValue(input);
         value = filter.apply(value);
         AssertJUnit.assertEquals(expected, value.getValue());
     }
 
     @Test
     public void testEmptyValue() {
-        PrismPropertyValue<String> value = new PrismPropertyValueImpl<>("");
+        PrismPropertyValue<String> value = getPrismContext().itemFactory().createPrismPropertyValue("");
         value = filter.apply(value);
         AssertJUnit.assertEquals("", value.getValue());
     }
@@ -70,7 +83,7 @@ public class PatternFilterTest {
         List<Object> parameters = createGoodParameters();
         filter.setParameters(parameters);
 
-        PrismPropertyValue<String> value = new PrismPropertyValueImpl<>(input);
+        PrismPropertyValue<String> value = getPrismContext().itemFactory().createPrismPropertyValue(input);
         value = filter.apply(value);
         AssertJUnit.assertEquals(expected, value.getValue());
     }
@@ -80,7 +93,7 @@ public class PatternFilterTest {
         List<Object> parameters = createBadParameters();
         filter.setParameters(parameters);
 
-        PrismPropertyValue<String> value = new PrismPropertyValueImpl<>(input);
+        PrismPropertyValue<String> value = getPrismContext().itemFactory().createPrismPropertyValue(input);
         value = filter.apply(value);
         AssertJUnit.assertEquals(expected, value.getValue());
     }
@@ -90,7 +103,7 @@ public class PatternFilterTest {
         List<Object> parameters = createBadParameters2();
         filter.setParameters(parameters);
 
-        PrismPropertyValue<String> value = new PrismPropertyValueImpl<>(input);
+        PrismPropertyValue<String> value = getPrismContext().itemFactory().createPrismPropertyValue(input);
         value = filter.apply(value);
         AssertJUnit.assertEquals(expected, value.getValue());
     }

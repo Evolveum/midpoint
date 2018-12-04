@@ -17,7 +17,6 @@ package com.evolveum.midpoint.wf.impl.policy.lifecycle;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismReferenceValueImpl;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -44,6 +43,7 @@ import java.io.File;
 import java.util.Collections;
 import java.util.HashSet;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static java.util.Collections.singleton;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNull;
@@ -102,7 +102,7 @@ public abstract class AbstractTestLifecycle extends AbstractWfTestPolicy {
 			rolePirateOid = pirate.getOid();
 		}
 
-		PrismReferenceValue pirateOwner = new PrismReferenceValueImpl(rolePirateOid, RoleType.COMPLEX_TYPE);
+		PrismReferenceValue pirateOwner = getPrismContext().itemFactory().createPrismReferenceValue(rolePirateOid, RoleType.COMPLEX_TYPE);
 		pirateOwner.setRelation(SchemaConstants.ORG_OWNER);
 		executeChanges(prismContext.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT).add(ObjectTypeUtil.createAssignmentTo(pirateOwner, prismContext))

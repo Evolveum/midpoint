@@ -18,6 +18,7 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ItemFactory;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
@@ -211,5 +212,9 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
 
 	protected GetOperationOptionsBuilder getOperationOptionsBuilder() {
     	return schemaHelper.getOperationOptionsBuilder();
+	}
+
+	protected ItemFactory itemFactory() {
+    	return prismContext.itemFactory();
 	}
 }

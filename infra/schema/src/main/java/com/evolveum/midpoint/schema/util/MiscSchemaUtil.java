@@ -295,11 +295,12 @@ public class MiscSchemaUtil {
 		return assignmentPolicyEnforcement;
 	}
 
-	public static PrismReferenceValue objectReferenceTypeToReferenceValue(ObjectReferenceType refType) {
+	public static PrismReferenceValue objectReferenceTypeToReferenceValue(ObjectReferenceType refType,
+			PrismContext prismContext) {
 		if (refType == null) {
 			return null;
 		}
-		PrismReferenceValue rval = new PrismReferenceValueImpl();
+		PrismReferenceValue rval = prismContext.itemFactory().createPrismReferenceValue();
 		rval.setOid(refType.getOid());
 		rval.setDescription(refType.getDescription());
 		rval.setFilter(refType.getFilter());

@@ -200,7 +200,7 @@ public class PipelineData implements DebugDumpable {
 					} else if (o instanceof Referencable) {
 						rv.addValue(((Referencable) o).asReferenceValue(), frozenInitialVariables);
 					} else {
-						rv.addValue(new PrismPropertyValueImpl<>(o, prismContext), frozenInitialVariables);
+						rv.addValue(prismContext.itemFactory().createPrismPropertyValue(o), frozenInitialVariables);
 					}
 				}
 			}

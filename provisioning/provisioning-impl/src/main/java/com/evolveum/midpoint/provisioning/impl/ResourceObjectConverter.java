@@ -1626,7 +1626,7 @@ public class ResourceObjectConverter {
 
 					Item existingSimulatedAttr = attributesContainer.findItem(newSimulatedAttr.getElementName());
 					if (!isBlank(newSimulatedAttrRealValue)) {
-						PrismPropertyValue newSimulatedAttrValue = new PrismPropertyValueImpl(newSimulatedAttrRealValue);
+						PrismPropertyValue newSimulatedAttrValue = prismContext.itemFactory().createPrismPropertyValue(newSimulatedAttrRealValue);
 						if (existingSimulatedAttr == null) {
 							newSimulatedAttr.add(newSimulatedAttrValue);
 							attributesContainer.add(newSimulatedAttr);
@@ -1655,7 +1655,7 @@ public class ResourceObjectConverter {
 				
 				if (activationSimulateAttribute != null) {
 					LockoutStatusType status = activation.getLockoutStatus();
-					String activationRealValue = null;
+					String activationRealValue;
 					if (status == LockoutStatusType.NORMAL) {
 						activationRealValue = getLockoutNormalValue(capActStatus);
 					} else {
@@ -1663,8 +1663,9 @@ public class ResourceObjectConverter {
 					}
 					Item existingAttribute = attributesContainer.findItem(activationSimulateAttribute.getElementName());
 					if (!StringUtils.isBlank(activationRealValue)) {
-						activationSimulateAttribute.add(new PrismPropertyValueImpl(activationRealValue));
-						if (attributesContainer.findItem(activationSimulateAttribute.getElementName()) == null){
+						//noinspection unchecked
+						((ResourceAttribute) activationSimulateAttribute).addRealValue(activationRealValue);
+						if (attributesContainer.findItem(activationSimulateAttribute.getElementName()) == null) {
 							attributesContainer.add(activationSimulateAttribute);
 						} else{
 							attributesContainer.findItem(activationSimulateAttribute.getElementName()).replace(activationSimulateAttribute.getValue());

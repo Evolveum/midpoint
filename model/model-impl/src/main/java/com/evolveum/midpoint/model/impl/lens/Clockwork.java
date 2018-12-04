@@ -1003,7 +1003,7 @@ public class Clockwork {
         // creating object query
         PrismPropertyDefinition propertyDef = prismContext.getSchemaRegistry()
                 .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
-        PrismReferenceValue referenceValue = new PrismReferenceValueImpl(context.getFocusContext().getOid(), RoleType.COMPLEX_TYPE);
+        PrismReferenceValue referenceValue = prismContext.itemFactory().createPrismReferenceValue(context.getFocusContext().getOid(), RoleType.COMPLEX_TYPE);
         ObjectFilter refFilter = prismContext.queryFor(FocusType.class)
 				.item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(referenceValue)
 				.buildFilter();
@@ -1124,7 +1124,7 @@ public class Clockwork {
 			checkNamesArePresent(clonedDeltas, primaryObject);
 			auditRecord.addDeltas(clonedDeltas);
 			if (auditRecord.getTarget() == null) {
-				auditRecord.setTarget(ModelImplUtils.determineAuditTargetDeltaOps(clonedDeltas));
+				auditRecord.setTarget(ModelImplUtils.determineAuditTargetDeltaOps(clonedDeltas, context.getPrismContext()));
 			}
 		} else if (stage == AuditEventStage.EXECUTION) {
 			auditRecord.setOutcome(result.getComputeStatus());

@@ -21,7 +21,6 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismReferenceValueImpl;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -45,6 +44,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.evolveum.midpoint.prism.util.CloneUtil.cloneCollectionMembers;
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 
@@ -164,7 +164,7 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 		PrismObject<RoleType> judgeAfter = searchObjectByName(RoleType.class, "judge");
 		roleJudgeOid = judgeAfter.getOid();
 
-		PrismReferenceValue judgeOwner = new PrismReferenceValueImpl(roleJudgeOid, RoleType.COMPLEX_TYPE);
+		PrismReferenceValue judgeOwner = getPrismContext().itemFactory().createPrismReferenceValue(roleJudgeOid, RoleType.COMPLEX_TYPE);
 		judgeOwner.setRelation(SchemaConstants.ORG_OWNER);
 		executeChanges(prismContext.deltaFor(UserType.class)
 						.item(UserType.F_ASSIGNMENT).add(ObjectTypeUtil.createAssignmentTo(judgeAfter, SchemaConstants.ORG_OWNER))

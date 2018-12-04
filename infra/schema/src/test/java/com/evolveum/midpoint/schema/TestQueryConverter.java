@@ -331,7 +331,7 @@ public class TestQueryConverter {
 	private void assertRefFilterValue(RefFilter filter, String oid) {
 		List<? extends PrismValue> values = filter.getValues();
 		assertEquals(1, values.size());
-		assertEquals(PrismReferenceValueImpl.class, values.get(0).getClass());
+		assertTrue(values.get(0) instanceof PrismReferenceValue);
 		PrismReferenceValue val = (PrismReferenceValue) values.get(0);
 
 		assertEquals(oid, val.getOid());
@@ -629,8 +629,8 @@ public class TestQueryConverter {
 	public void test365RefTwoWay() throws Exception {
 		final String TEST_NAME = "test365RefTwoWay";
 		displayTestTitle(TEST_NAME);
-		PrismReferenceValue reference3 = new PrismReferenceValueImpl("oid3", ResourceType.COMPLEX_TYPE).relation(new QName("test"));
-		PrismReferenceValue reference4 = new PrismReferenceValueImpl("oid4", ResourceType.COMPLEX_TYPE).relation(new QName("test"));
+		PrismReferenceValue reference3 = getPrismContext().itemFactory().createPrismReferenceValue("oid3", ResourceType.COMPLEX_TYPE).relation(new QName("test"));
+		PrismReferenceValue reference4 = getPrismContext().itemFactory().createPrismReferenceValue("oid4", ResourceType.COMPLEX_TYPE).relation(new QName("test"));
 		ObjectQuery q = getPrismContext().queryFor(ShadowType.class)
 				.item(ShadowType.F_RESOURCE_REF).ref("oid1")
 				.or().item(ShadowType.F_RESOURCE_REF).ref("oid2", ResourceType.COMPLEX_TYPE)

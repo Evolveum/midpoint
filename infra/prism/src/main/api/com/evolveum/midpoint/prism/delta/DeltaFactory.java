@@ -17,7 +17,9 @@
 package com.evolveum.midpoint.prism.delta;
 
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
 
 /**
  *
@@ -29,4 +31,6 @@ public interface DeltaFactory {
 	<V extends PrismValue> PrismValueDeltaSetTriple<V> createPrismValueDeltaSetTriple();
 
 	<O extends Objectable> ObjectDelta<O> createObjectDelta(Class<O> type, ChangeType changeType);
+
+	<T> PropertyDelta<T> createPropertyDelta(ItemPath path, PrismPropertyDefinition<T> definition);
 }

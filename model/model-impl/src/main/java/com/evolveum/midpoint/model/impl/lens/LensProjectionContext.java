@@ -820,7 +820,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             if (objectToAdd != null) {
                 PrismObjectDefinition<ShadowType> objectDefinition = objectToAdd.getDefinition();
                 // TODO: remove constructor, use some factory method instead
-                base = new PrismObjectImpl<>(objectToAdd.getElementName(), objectDefinition, getNotNullPrismContext());
+                base = getNotNullPrismContext().itemFactory().createPrismObject(objectToAdd.getElementName(), objectDefinition);
                 base = syncDelta.computeChangedObject(base);
             }
         }
@@ -928,7 +928,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
                     throw new IllegalStateException("Definition for account type " + getResourceShadowDiscriminator()
                     		+ " not found in the context, but it should be there");
                 }
-                PrismObject<ShadowType> newAccount = (PrismObject<ShadowType>) rObjectClassDef.createBlankShadow();
+                PrismObject<ShadowType> newAccount = rObjectClassDef.createBlankShadow();
                 addDelta.setObjectToAdd(newAccount);
 
                 if (origDelta != null) {

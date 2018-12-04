@@ -68,6 +68,8 @@ public abstract class MidPointQueryExecutor extends JRAbstractQueryExecuter {
 		return type;
 	}
 
+	protected abstract <T> PrismPropertyValue<T> createPropertyValue(T realValue);
+
 	protected Map<QName, Object> getParameters(){
 		JRParameter[] params = dataset.getParameters();
 		Map<QName, Object> expressionParameters = new HashMap<>();
@@ -78,7 +80,7 @@ public abstract class MidPointQueryExecutor extends JRAbstractQueryExecuter {
 			//LOGGER.trace(((JRBaseParameter)param).getName());
 			Object v = getParameterValue(param.getName());
 			try{
-			expressionParameters.put(new QName(param.getName()), new PrismPropertyValueImpl<>(v));
+			expressionParameters.put(new QName(param.getName()), createPropertyValue(v));
 			} catch (Exception e){
 				//just skip properties that are not important for midpoint
 			}
@@ -101,7 +103,7 @@ public abstract class MidPointQueryExecutor extends JRAbstractQueryExecuter {
 			//LOGGER.trace(((JRBaseParameter)param).getName());
 			Object v = getParameterValue(param.getName());
 			try{
-			expressionParameters.put(new QName(param.getName()), new PrismPropertyValueImpl<>(v));
+			expressionParameters.put(new QName(param.getName()), createPropertyValue(v));
 			} catch (Exception e){
 				//just skip properties that are not important for midpoint
 			}

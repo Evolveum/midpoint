@@ -174,8 +174,7 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
 
 
 		if (output instanceof PrismProperty) {
-			PrismPropertyValue<Object> pValue = new PrismPropertyValueImpl<>(value);
-			((PrismProperty<Object>) output).add(pValue);
+			((PrismProperty<Object>) output).addRealValue(value);
 		} else {
 			throw new UnsupportedOperationException(
 					"Can only generate values of property, not " + output.getClass());

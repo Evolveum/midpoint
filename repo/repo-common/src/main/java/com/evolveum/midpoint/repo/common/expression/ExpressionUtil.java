@@ -1017,7 +1017,7 @@ public class ExpressionUtil {
 			}
 			return (V) ((Containerable) value).asPrismContainerValue();
 		} else {
-			return (V) new PrismPropertyValueImpl<>(value);
+			return (V) prismContext.itemFactory().createPrismPropertyValue(value);
 		}
 	}
 

@@ -660,7 +660,7 @@ public class SchemaTransformer {
 
 		ObjectReferenceType valueEnumerationRef = templateItemDefType.getValueEnumerationRef();
 		if (valueEnumerationRef != null) {
-			PrismReferenceValue valueEnumerationRVal = MiscSchemaUtil.objectReferenceTypeToReferenceValue(valueEnumerationRef);
+			PrismReferenceValue valueEnumerationRVal = MiscSchemaUtil.objectReferenceTypeToReferenceValue(valueEnumerationRef, prismContext);
 			mutableDef.setValueEnumerationRef(valueEnumerationRVal);
 		}
 		

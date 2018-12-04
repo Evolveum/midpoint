@@ -262,7 +262,7 @@ public class ScriptingExpressionEvaluator {
                 } else if (object instanceof Containerable) {
                     value = ((Containerable) object).asPrismContainerValue();
                 } else {
-                    value = new PrismPropertyValueImpl<>(object);
+                    value = prismContext.itemFactory().createPrismPropertyValue(object);
                 }
             }
             if (value.isRaw()) {
@@ -277,7 +277,7 @@ public class ScriptingExpressionEvaluator {
     public PipelineData evaluateConstantStringExpression(RawType constant, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
         try {
             String value = constant.getParsedRealValue(String.class);
-            return PipelineData.createItem(new PrismPropertyValueImpl<>(value), context.getInitialVariables());
+            return PipelineData.createItem(prismContext.itemFactory().createPrismPropertyValue(value), context.getInitialVariables());
         } catch (SchemaException e) {
             throw new ScriptExecutionException(e.getMessage(), e);
         }

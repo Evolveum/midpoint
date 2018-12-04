@@ -17,6 +17,7 @@ package com.evolveum.midpoint.prism;
 
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 import java.io.IOException;
@@ -234,7 +235,7 @@ public class TestPrismObjectConstruction {
 		PrismAsserts.assertParentConsistency(user);
 
 		// assignment values: construct assignment value as a new container value "out of the blue" and then add it.
-		PrismContainerValue<AssignmentType> assCyanContainerValue = new PrismContainerValueImpl<>();
+		PrismContainerValue<AssignmentType> assCyanContainerValue = getPrismContext().itemFactory().createPrismContainerValue();
 		PrismProperty<String> assCyanDescriptionProperty = assCyanContainerValue.findOrCreateProperty(USER_DESCRIPTION_QNAME);
 		assCyanDescriptionProperty.addRealValue("Assignment created out of the cyan");
 		assignmentContainer.mergeValue(assCyanContainerValue);

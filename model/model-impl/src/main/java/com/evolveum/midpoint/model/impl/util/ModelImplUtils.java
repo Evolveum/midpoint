@@ -56,7 +56,6 @@ import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.Handler;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -723,17 +722,19 @@ public class ModelImplUtils {
 		}
 	}
 
-	public static PrismReferenceValue determineAuditTargetDeltaOps(Collection<ObjectDeltaOperation<? extends ObjectType>> deltaOps) {
+	public static PrismReferenceValue determineAuditTargetDeltaOps(
+			Collection<ObjectDeltaOperation<? extends ObjectType>> deltaOps,
+			PrismContext prismContext) {
 		if (deltaOps == null || deltaOps.isEmpty()) {
 			return null;
 		}
 		if (deltaOps.size() == 1) {
 			ObjectDeltaOperation<? extends ObjectType> deltaOp = deltaOps.iterator().next();
-			return getAditTarget(deltaOp.getObjectDelta());
+			return getAuditTarget(deltaOp.getObjectDelta(), prismContext);
 		}
 		for (ObjectDeltaOperation<? extends ObjectType> deltaOp: deltaOps) {
 			if (!ShadowType.class.isAssignableFrom(deltaOp.getObjectDelta().getObjectTypeClass())) {
-				return getAditTarget(deltaOp.getObjectDelta());
+				return getAuditTarget(deltaOp.getObjectDelta(), prismContext);
 			}
 		}
 		// Several raw operations, all on shadows, no focus ... this should not happen
@@ -742,17 +743,18 @@ public class ModelImplUtils {
 		return null;
 	}
 
-	public static PrismReferenceValue determineAuditTarget(Collection<ObjectDelta<? extends ObjectType>> deltas) {
+	public static PrismReferenceValue determineAuditTarget(Collection<ObjectDelta<? extends ObjectType>> deltas,
+			PrismContext prismContext) {
 		if (deltas == null || deltas.isEmpty()) {
 			return null;
 		}
 		if (deltas.size() == 1) {
 			ObjectDelta<? extends ObjectType> delta = deltas.iterator().next();
-			return getAditTarget(delta);
+			return getAuditTarget(delta, prismContext);
 		}
 		for (ObjectDelta<? extends ObjectType> delta: deltas) {
 			if (!ShadowType.class.isAssignableFrom(delta.getObjectTypeClass())) {
-				return getAditTarget(delta);
+				return getAuditTarget(delta, prismContext);
 			}
 		}
 		// Several raw operations, all on shadows, no focus ... this should not happen
@@ -761,8 +763,9 @@ public class ModelImplUtils {
 		return null;
 	}
 
-	public static PrismReferenceValue getAditTarget(ObjectDelta<? extends ObjectType> delta) {
-		PrismReferenceValue targetRef = new PrismReferenceValueImpl(delta.getOid());
+	private static PrismReferenceValue getAuditTarget(ObjectDelta<? extends ObjectType> delta,
+			PrismContext prismContext) {
+		PrismReferenceValue targetRef = prismContext.itemFactory().createPrismReferenceValue(delta.getOid());
 		targetRef.setTargetType(ObjectTypes.getObjectType(delta.getObjectTypeClass()).getTypeQName());
 		if (delta.isAdd()) {
 			targetRef.setObject(delta.getObjectToAdd());

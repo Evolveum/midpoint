@@ -814,8 +814,8 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 			PrismPropertyValue<String> pval = (PrismPropertyValue<String>) values.get(0).getValue();
 			pval.setValue(newValue);
 		} else if (values.isEmpty()) {
-			PrismPropertyValue<String> pval = new PrismPropertyValueImpl<>(newValue);
-			ValueWrapper newValueWrapper = new ValueWrapper<>(propertyWrapper, pval);
+			PrismPropertyValue<String> pval = prismContext.itemFactory().createPrismPropertyValue(newValue);
+			ValueWrapper newValueWrapper = new ValueWrapper<>(propertyWrapper, pval, prismContext);
 			values.add(newValueWrapper);
 			newValueWrapper.setStatus(ValueStatus.ADDED);
 		} else {

@@ -19,9 +19,26 @@ import com.evolveum.midpoint.common.filter.Filter;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 
 import com.evolveum.midpoint.prism.PrismPropertyValueImpl;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
+import org.xml.sax.SAXException;
+
+import java.io.IOException;
+
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 
 /**
  * @author lazyman
@@ -31,6 +48,12 @@ public class DiacriticsFilterTest {
     private static final String input = "čišćeľščťžýáíéäöåøřĺąćęłńóśźżrůāēīūŗļķņģšžčāäǟḑēīļņōȯȱõȭŗšțūžÇĞIİÖŞÜáàâéèêíìîóòôúùûáâãçéêíóôõú";
     private static final String expected = "ciscelsctzyaieaoaørlacełnoszzruaeiurlkngszcaaadeilnooooorstuzCGIIOSUaaaeeeiiiooouuuaaaceeiooou";
     private Filter filter;
+
+    @BeforeSuite
+    public void setup() throws SchemaException, SAXException, IOException {
+        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
+    }
 
     @BeforeMethod
     public void before() {
@@ -44,14 +67,14 @@ public class DiacriticsFilterTest {
 
     @Test
     public void testEmptyValue() {
-        PrismPropertyValue<String> value = new PrismPropertyValueImpl<>("");
+        PrismPropertyValue<String> value = getPrismContext().itemFactory().createPrismPropertyValue("");
         value = filter.apply(value);
         AssertJUnit.assertEquals("", value.getValue());
     }
 
     @Test
     public void testValueTextNode() {
-        PrismPropertyValue<String> value = new PrismPropertyValueImpl<>(input);
+        PrismPropertyValue<String> value = getPrismContext().itemFactory().createPrismPropertyValue(input);
         value = filter.apply(value);
         AssertJUnit.assertEquals(expected, value.getValue());
     }

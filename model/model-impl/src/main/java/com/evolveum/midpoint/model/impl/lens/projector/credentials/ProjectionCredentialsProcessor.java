@@ -251,7 +251,7 @@ public class ProjectionCredentialsProcessor {
 								try {
 									if (oldUserPassword.canGetCleartext() && protector.compare(oldUserPassword, oldProjectionPassword)) {
 										outputTriple.clearMinusSet();
-										outputTriple.addToMinusSet(new PrismPropertyValueImpl<>(oldUserPassword));
+										outputTriple.addToMinusSet(prismContext.itemFactory().createPrismPropertyValue(oldUserPassword));
 									}
 								} catch (EncryptionException e) {
 									throw new SystemException(e.getMessage(), e);

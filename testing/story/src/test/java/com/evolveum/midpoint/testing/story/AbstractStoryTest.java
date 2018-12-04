@@ -158,7 +158,7 @@ public class AbstractStoryTest extends AbstractModelIntegrationTest {
 	}
 
 	protected PrismReference ref(List<ObjectReferenceType> orts) {
-		PrismReference rv = new PrismReferenceImpl(new QName("dummy"));
+		PrismReference rv = prismContext.itemFactory().createPrismReference(new QName("dummy"));
 		orts.forEach(ort -> rv.add(ort.asReferenceValue().clone()));
 		return rv;
 	}

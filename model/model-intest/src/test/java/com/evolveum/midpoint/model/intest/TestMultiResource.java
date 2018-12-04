@@ -1252,7 +1252,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_FILE);
         ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil
 		        .createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
-        PrismReferenceValue accountRefVal = new PrismReferenceValueImpl();
+        PrismReferenceValue accountRefVal = itemFactory().createPrismReferenceValue();
 		accountRefVal.setObject(account);
 		ReferenceDelta accountDelta = ReferenceDeltaImpl
 				.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
@@ -2623,7 +2623,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userBefore = createUser(USER_WORLD_NAME, USER_WORLD_FULL_NAME, true);
         userBefore.asObjectable().getOrganizationalUnit().add(PrismTestUtil.createPolyStringType("stone"));
 
-        PrismContainerValue<AssignmentType> cval = new PrismContainerValueImpl<>(prismContext);
+        PrismContainerValue<AssignmentType> cval = prismContext.itemFactory().createPrismContainerValue();
 		PrismReference targetRef = cval.findOrCreateReference(AssignmentType.F_TARGET_REF);
 		targetRef.getValue().setOid(ROLE_FIGHT_OID);
 		targetRef.getValue().setTargetType(RoleType.COMPLEX_TYPE);

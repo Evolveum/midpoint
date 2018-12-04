@@ -24,7 +24,6 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismReferenceValueImpl;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
@@ -51,7 +50,7 @@ public class ReferenceSearchExpressionEvaluator
 	}
 
 	protected PrismReferenceValue createPrismValue(String oid, QName targetTypeQName, List<ItemDelta<PrismReferenceValue, PrismReferenceDefinition>> additionalAttributeValues, ExpressionEvaluationContext params) {
-		PrismReferenceValue refVal = new PrismReferenceValueImpl();
+		PrismReferenceValue refVal = getPrismContext().itemFactory().createPrismReferenceValue();
 
 		refVal.setOid(oid);
 		refVal.setTargetType(targetTypeQName);

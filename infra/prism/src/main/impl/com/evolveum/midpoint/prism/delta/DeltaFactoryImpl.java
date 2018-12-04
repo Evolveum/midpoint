@@ -18,7 +18,9 @@ package com.evolveum.midpoint.prism.delta;
 
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -45,5 +47,10 @@ public class DeltaFactoryImpl implements DeltaFactory {
 	@Override
 	public <O extends Objectable> ObjectDelta<O> createObjectDelta(Class<O> type, ChangeType changeType) {
 		return new ObjectDeltaImpl<>(type, changeType, prismContext);
+	}
+
+	@Override
+	public <T> PropertyDelta<T> createPropertyDelta(ItemPath path, PrismPropertyDefinition<T> definition) {
+		return new PropertyDeltaImpl<>(path, definition, prismContext);
 	}
 }

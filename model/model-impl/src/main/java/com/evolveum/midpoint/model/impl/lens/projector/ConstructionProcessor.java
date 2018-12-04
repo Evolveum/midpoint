@@ -19,7 +19,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.function.Function;
 
-import com.evolveum.midpoint.prism.PrismPropertyValueImpl;
 import com.evolveum.midpoint.prism.delta.DeltaMapTripleImpl;
 import org.springframework.stereotype.Component;
 
@@ -252,7 +251,7 @@ public class ConstructionProcessor {
                 constructionMap.put(key, constructionPack);
             }
 
-            constructionPack.add(new PrismPropertyValueImpl<>(construction));
+            constructionPack.add(context.getPrismContext().itemFactory().createPrismPropertyValue(construction));
             if (evaluatedAssignment.isValid()) {
             	constructionPack.setHasValidAssignment(true);
             }

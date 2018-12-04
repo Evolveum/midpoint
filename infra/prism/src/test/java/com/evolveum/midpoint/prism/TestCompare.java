@@ -312,7 +312,7 @@ public abstract class TestCompare extends AbstractPrismTest {
 
 		PrismReferenceDefinitionImpl ref1Def = new PrismReferenceDefinitionImpl(REF_QNAME, REF_TYPE_QNAME, prismContext);
 		ref1Def.setTargetTypeName(ACCOUNT_TYPE_QNAME);
-		PrismReference ref1 = new PrismReferenceImpl(REF_QNAME, ref1Def, prismContext);
+		PrismReference ref1 = prismContext.itemFactory().createPrismReference(REF_QNAME, ref1Def);
 
 		PrismReferenceValue val11 = new PrismReferenceValueImpl("oid1");
 		val11.setTargetType(ACCOUNT_TYPE_QNAME);
@@ -330,9 +330,9 @@ public abstract class TestCompare extends AbstractPrismTest {
 		// No type
 		ref1.add(val14);
 
-		PrismReferenceDefinition ref2Def = new PrismReferenceDefinitionImpl(REF_QNAME, REF_TYPE_QNAME, prismContext);
+		PrismReferenceDefinition ref2Def = prismContext.definitionFactory().createReferenceDefinition(REF_QNAME, REF_TYPE_QNAME);
 		// no target type def
-		PrismReference ref2 = new PrismReferenceImpl(REF_QNAME, ref2Def, prismContext);
+		PrismReference ref2 = prismContext.itemFactory().createPrismReference(REF_QNAME, ref2Def);
 
 		PrismReferenceValue val21 = new PrismReferenceValueImpl("oid1");
 		val21.setTargetType(ACCOUNT_TYPE_QNAME);

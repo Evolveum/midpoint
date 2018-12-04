@@ -94,7 +94,7 @@ public abstract class AbstractScannerTaskHandler<O extends ObjectType, H extends
 			PropertyDelta<XMLGregorianCalendar> lastScanTimestampDelta = new PropertyDeltaImpl<>(
 					ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME),
 					lastScanTimestampDef, prismContext);
-			lastScanTimestampDelta.setValueToReplace(new PrismPropertyValueImpl<>(handler.getThisScanTimestamp()));
+			lastScanTimestampDelta.setRealValuesToReplace(handler.getThisScanTimestamp());
 			task.modifyExtension(lastScanTimestampDelta);
 		}
 	}

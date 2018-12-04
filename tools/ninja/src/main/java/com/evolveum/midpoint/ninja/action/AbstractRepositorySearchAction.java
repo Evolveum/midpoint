@@ -206,12 +206,12 @@ public abstract class AbstractRepositorySearchAction<OP extends ExportOptions> e
     }
 
     private RefFilter createResourceRefFilter(String oid) throws SchemaException {
+        PrismContext prismContext = context.getPrismContext();
         List<PrismReferenceValue> values = new ArrayList<>();
         if (oid != null) {
-            values.add(new PrismReferenceValueImpl(oid, ResourceType.COMPLEX_TYPE));
+            values.add(prismContext.itemFactory().createPrismReferenceValue(oid, ResourceType.COMPLEX_TYPE));
         }
 
-        PrismContext prismContext = context.getPrismContext();
         SchemaRegistry registry = prismContext.getSchemaRegistry();
         PrismReferenceDefinition def = registry.findItemDefinitionByFullPath(ShadowType.class,
                 PrismReferenceDefinition.class, ShadowType.F_RESOURCE_REF);

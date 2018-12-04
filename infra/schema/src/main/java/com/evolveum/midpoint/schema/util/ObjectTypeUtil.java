@@ -802,7 +802,7 @@ public class ObjectTypeUtil {
 
 		List<PrismReferenceValue> referencesToFind = new ArrayList<>();
 	    for (QName managerRelation : managerRelations) {
-	        PrismReferenceValue parentOrgRefVal = new PrismReferenceValueImpl(orgOid, OrgType.COMPLEX_TYPE);
+	        PrismReferenceValue parentOrgRefVal = prismContext.itemFactory().createPrismReferenceValue(orgOid, OrgType.COMPLEX_TYPE);
 	        parentOrgRefVal.setRelation(managerRelation);
 	        referencesToFind.add(parentOrgRefVal);
 	    }

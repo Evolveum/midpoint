@@ -1041,7 +1041,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		if (conditionExpressionType == null) {
 			// True -> True
 			conditionOutputTriple = new PrismValueDeltaSetTripleImpl<>();
-			conditionOutputTriple.addToZeroSet(new PrismPropertyValueImpl<>(Boolean.TRUE));
+			conditionOutputTriple.addToZeroSet(getPrismContext().itemFactory().createPrismPropertyValue(Boolean.TRUE));
 			return;
 		}
 		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression =

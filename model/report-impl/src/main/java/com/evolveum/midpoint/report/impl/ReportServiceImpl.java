@@ -320,4 +320,9 @@ public class ReportServiceImpl implements ReportService {
 		functions.add(midPointLib);
 		return functions;
 	}
+
+	@Override
+	public PrismContext getPrismContext() {
+		return prismContext;
+	}
 }

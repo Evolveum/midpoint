@@ -81,7 +81,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
 
     /**
      * The constructors should be used only occasionally (if used at all).
-     * Use the factory methods in the ResourceObjectDefintion instead.
+     * Use the factory methods in the ResourceObjectDefinition instead.
      */
     ItemImpl(QName elementName, D definition, PrismContext prismContext) {
         super();

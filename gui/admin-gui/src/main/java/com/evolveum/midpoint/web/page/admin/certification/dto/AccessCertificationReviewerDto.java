@@ -72,8 +72,8 @@ public class AccessCertificationReviewerDto implements Serializable {
 			additionalReviewersReference = additionalReviewerDef.instantiate();
 			reviewerExpressionList = new ArrayList<>();
 		}
-		setDefaultReviewers(new ReferenceWrapper(null, defaultReviewersReference, false, ValueStatus.NOT_CHANGED));
-		setAdditionalReviewers(new ReferenceWrapper(null, additionalReviewersReference, false, ValueStatus.NOT_CHANGED));
+		setDefaultReviewers(new ReferenceWrapper(null, defaultReviewersReference, false, ValueStatus.NOT_CHANGED, prismContext));
+		setAdditionalReviewers(new ReferenceWrapper(null, additionalReviewersReference, false, ValueStatus.NOT_CHANGED, prismContext));
 	}
 
 	public String getName() {

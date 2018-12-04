@@ -70,8 +70,7 @@ public class ConstExpressionEvaluator<V extends PrismValue, D extends ItemDefini
 		Object value = ExpressionUtil.convertToOutputValue(stringValue, outputDefinition, protector);
 
 		if (output instanceof PrismProperty) {
-			PrismPropertyValue<Object> pValue = new PrismPropertyValueImpl<>(value);
-			((PrismProperty<Object>) output).add(pValue);
+			((PrismProperty<Object>) output).addRealValue(value);
 		} else {
 			throw new UnsupportedOperationException(
 					"Can only generate values of property, not " + output.getClass());

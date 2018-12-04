@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.wf.impl.processors.primary.aspect;
 
-import com.evolveum.midpoint.prism.PrismReferenceValueImpl;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.api.context.ModelContext;
@@ -241,7 +240,7 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
             }
             S_AtomicFilterExit q = prismContext.queryFor(FocusType.class).none();
             for (QName approverRelation : relations) {
-                PrismReferenceValue approverReference = new PrismReferenceValueImpl(object.getOid());
+                PrismReferenceValue approverReference = prismContext.itemFactory().createPrismReferenceValue(object.getOid());
                 approverReference.setRelation(relationRegistry.normalizeRelation(approverRelation));
                 q = q.or().item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(approverReference);
             }

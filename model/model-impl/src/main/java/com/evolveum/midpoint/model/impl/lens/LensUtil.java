@@ -31,7 +31,6 @@ import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProduc
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.polystring.AlphanumericPolyStringNormalizer;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -220,8 +219,10 @@ public class LensUtil {
 		return null;
 	}
 
-    public static PropertyDelta<XMLGregorianCalendar> createActivationTimestampDelta(ActivationStatusType status, XMLGregorianCalendar now,
-    		PrismContainerDefinition<ActivationType> activationDefinition, OriginType origin) {
+    public static PropertyDelta<XMLGregorianCalendar> createActivationTimestampDelta(ActivationStatusType status,
+		    XMLGregorianCalendar now,
+		    PrismContainerDefinition<ActivationType> activationDefinition, OriginType origin,
+		    PrismContext prismContext) {
     	ItemName timestampPropertyName;
 		if (status == null || status == ActivationStatusType.ENABLED) {
 			timestampPropertyName = ActivationType.F_ENABLE_TIMESTAMP;
@@ -236,7 +237,7 @@ public class LensUtil {
 		PrismPropertyDefinition<XMLGregorianCalendar> timestampDef = activationDefinition.findPropertyDefinition(timestampPropertyName);
 		PropertyDelta<XMLGregorianCalendar> timestampDelta
 				= timestampDef.createEmptyDelta(FocusType.F_ACTIVATION.append(timestampPropertyName));
-		timestampDelta.setValueToReplace(new PrismPropertyValueImpl<>(now, origin, null));
+		timestampDelta.setValueToReplace(prismContext.itemFactory().createPrismPropertyValue(now, origin, null));
 		return timestampDelta;
     }
 
@@ -271,7 +272,7 @@ public class LensUtil {
 		PrismProperty<Integer> propOld = propDef.instantiate();
 		propOld.setRealValue(iterationOld);
 		PropertyDelta<Integer> propDelta = propDef.createEmptyDelta(ExpressionConstants.VAR_ITERATION);
-		propDelta.setValueToReplace(new PrismPropertyValueImpl<>(accCtx.getIteration()));
+		propDelta.setRealValuesToReplace(accCtx.getIteration());
 		PrismProperty<Integer> propNew = propDef.instantiate();
 		propNew.setRealValue(accCtx.getIteration());
 		ItemDeltaItem<PrismPropertyValue<Integer>,PrismPropertyDefinition<Integer>> idi = new ItemDeltaItem<>(propOld, propDelta, propNew);
@@ -292,7 +293,7 @@ public class LensUtil {
 		PrismProperty<String> propOld = propDef.instantiate();
 		propOld.setRealValue(iterationTokenOld);
 		PropertyDelta<String> propDelta = propDef.createEmptyDelta(ExpressionConstants.VAR_ITERATION_TOKEN);
-		propDelta.setValueToReplace(new PrismPropertyValueImpl<>(accCtx.getIterationToken()));
+		propDelta.setRealValuesToReplace(accCtx.getIterationToken());
 		PrismProperty<String> propNew = propDef.instantiate();
 		propNew.setRealValue(accCtx.getIterationToken());
 		ItemDeltaItem<PrismPropertyValue<String>,PrismPropertyDefinition<String>> idi = new ItemDeltaItem<>(propOld, propDelta, propNew);
@@ -467,16 +468,17 @@ public class LensUtil {
 		if (tokenExpressionType == null) {
 			return formatIterationTokenDefault(iteration);
 		}
-		PrismPropertyDefinition<String> outputDefinition = context.getPrismContext().definitionFactory().createPropertyDefinition(ExpressionConstants.VAR_ITERATION_TOKEN,
+	    PrismContext prismContext = context.getPrismContext();
+	    PrismPropertyDefinition<String> outputDefinition = prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.VAR_ITERATION_TOKEN,
 				DOMUtil.XSD_STRING);
 		Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(tokenExpressionType, outputDefinition , "iteration token expression in "+accountContext.getHumanReadableName(), task, result);
 
 		Collection<Source<?,?>> sources = new ArrayList<>();
-		MutablePrismPropertyDefinition<Integer> inputDefinition = context.getPrismContext().definitionFactory().createPropertyDefinition(ExpressionConstants.VAR_ITERATION,
+		MutablePrismPropertyDefinition<Integer> inputDefinition = prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.VAR_ITERATION,
 				DOMUtil.XSD_INT);
 		inputDefinition.setMaxOccurs(1);
 		PrismProperty<Integer> input = inputDefinition.instantiate();
-		input.add(new PrismPropertyValueImpl<>(iteration));
+		input.addRealValue(iteration);
 		ItemDeltaItem<PrismPropertyValue<Integer>,PrismPropertyDefinition<Integer>> idi = new ItemDeltaItem<>(input);
 		Source<PrismPropertyValue<Integer>,PrismPropertyDefinition<Integer>> iterationSource = new Source<>(idi, ExpressionConstants.VAR_ITERATION);
 		sources.add(iterationSource);
