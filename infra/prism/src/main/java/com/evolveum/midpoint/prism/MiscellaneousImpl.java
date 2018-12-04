@@ -18,7 +18,6 @@ package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.lex.dom.DomLexicalProcessor;
 import com.evolveum.midpoint.prism.marshaller.XNodeProcessorUtil;
-import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xnode.*;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -95,8 +94,12 @@ public class MiscellaneousImpl implements Miscellaneous {
 
 	@Override
 	public Element serializeSingleElementMapToElement(MapXNode filterClauseXNode) throws SchemaException {
-		DomLexicalProcessor domParser = PrismUtil.getDomParser(prismContext);
+		DomLexicalProcessor domParser = getDomParser(prismContext);
 		return domParser.serializeSingleElementMapToElement(filterClauseXNode);
+	}
+
+	private static DomLexicalProcessor getDomParser(@NotNull PrismContext prismContext) {
+		return ((PrismContextImpl) prismContext).getParserDom();
 	}
 
 	@Override

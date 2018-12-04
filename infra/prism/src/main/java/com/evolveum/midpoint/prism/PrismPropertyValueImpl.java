@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
 import com.evolveum.midpoint.prism.util.PrismUtil;
+import com.evolveum.midpoint.prism.util.PrismUtilInternal;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.prism.xnode.XNodeImpl;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -38,7 +39,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 import org.apache.commons.lang.StringUtils;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jvnet.jaxb2_commons.lang.Equals;
 import org.w3c.dom.Element;
@@ -46,11 +46,7 @@ import org.w3c.dom.Element;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.stream.Collectors;
 
 /**
  * @author lazyman
@@ -181,7 +177,7 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
 			if (value ==  null) {
 				// Be careful here. Expression element can be legal sub-element of complex properties.
             	// Therefore parse expression only if there is no legal value.
-				expression = PrismUtil.parseExpression(rawElement, prismContext);
+				expression = PrismUtilInternal.parseExpression(rawElement, prismContext);
 			}
 			rawElement = null;
 		}

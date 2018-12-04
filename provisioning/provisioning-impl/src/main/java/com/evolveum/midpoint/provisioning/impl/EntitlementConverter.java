@@ -307,7 +307,7 @@ class EntitlementConverter {
 	private <TV,TA> ObjectQuery createQuery(RefinedAssociationDefinition assocDefType, RefinedAttributeDefinition<TA> assocAttrDef, ResourceAttribute<TV> valueAttr) throws SchemaException{
 		MatchingRule<TA> matchingRule = matchingRuleRegistry.getMatchingRule(assocDefType.getResourceObjectAssociationType().getMatchingRule(),
 				assocAttrDef.getTypeName());
-		PrismPropertyValue<TA> converted = PrismUtil.convertPropertyValue(valueAttr.getValue(0), valueAttr.getDefinition(), assocAttrDef);
+		PrismPropertyValue<TA> converted = PrismUtil.convertPropertyValue(valueAttr.getValue(0), valueAttr.getDefinition(), assocAttrDef, prismContext);
 		TA normalizedRealValue = matchingRule.normalize(converted.getValue());
 		PrismPropertyValue<TA> normalized = new PrismPropertyValueImpl<>(normalizedRealValue);
 		LOGGER.trace("Converted entitlement filter value: {} ({}) def={}", normalized, normalized.getValue().getClass(), assocAttrDef);
@@ -728,7 +728,7 @@ class EntitlementConverter {
 				attributeDelta = assocAttrDef.createEmptyDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, assocAttrName));
 			}
 
-			PrismProperty<TA> changedAssocAttr = PrismUtil.convertProperty(valueAttr, assocAttrDef);
+			PrismProperty<TA> changedAssocAttr = PrismUtil.convertProperty(valueAttr, assocAttrDef, prismContext);
 
 			if (modificationType == ModificationType.ADD) {
 				attributeDelta.addValuesToAdd(changedAssocAttr.getClonedValues());

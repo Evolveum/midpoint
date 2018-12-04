@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismUtil;
+import com.evolveum.midpoint.prism.util.PrismUtilInternal;
 import com.evolveum.midpoint.prism.xnode.*;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -375,7 +376,7 @@ public class PrismUnmarshaller {
             if (realValue == null) {
             	// Be careful here. Expression element can be legal sub-element of complex properties.
             	// Therefore parse expression only if there is no legal value.
-            	ExpressionWrapper expression = PrismUtil.parseExpression(node, prismContext);
+            	ExpressionWrapper expression = PrismUtilInternal.parseExpression(node, prismContext);
             	if (expression != null) {
             		PrismPropertyValue<T> ppv = new PrismPropertyValueImpl<>(null, prismContext, null, null, expression);
             		return ppv;

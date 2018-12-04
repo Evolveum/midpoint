@@ -24,6 +24,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.util.PrismUtilInternal;
 import com.evolveum.midpoint.prism.xnode.*;
 import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
@@ -34,7 +35,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectReferenceType;
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.prism.query.OrgFilter.Scope;
-import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -527,7 +527,7 @@ public class QueryConverterImpl implements QueryConverter {
 	private ExpressionWrapper parseExpression(MapXNodeImpl xmap) throws SchemaException {
 		Entry<QName, XNodeImpl> expressionEntry = xmap.getSingleEntryThatDoesNotMatch(
 				ELEMENT_VALUE, ELEMENT_MATCHING, ELEMENT_ANCHOR_START, ELEMENT_ANCHOR_END, ELEMENT_PATH);
-		return PrismUtil.parseExpression(expressionEntry, prismContext);
+		return PrismUtilInternal.parseExpression(expressionEntry, prismContext);
 	}
 
 	private <C extends Containerable> SubstringFilter parseSubstringFilter(MapXNodeImpl clauseXMap, PrismContainerDefinition<C> pcd,
@@ -889,7 +889,7 @@ public class QueryConverterImpl implements QueryConverter {
 
 		ExpressionWrapper xexpression = filter.getExpression();
 		if (xexpression != null) {
-			map.merge(PrismUtil.serializeExpression(xexpression, xnodeSerializer));
+			map.merge(PrismUtilInternal.serializeExpression(xexpression, xnodeSerializer));
 		}
 
 		return map;

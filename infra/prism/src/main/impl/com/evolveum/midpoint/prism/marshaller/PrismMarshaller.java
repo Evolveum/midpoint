@@ -19,7 +19,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.prism.util.PrismUtil;
+import com.evolveum.midpoint.prism.util.PrismUtilInternal;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xnode.*;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -492,7 +492,7 @@ public class PrismMarshaller {
 
     @NotNull
     private XNodeImpl createExpressionXNode(@NotNull ExpressionWrapper expression) throws SchemaException {
-		return PrismUtil.serializeExpression(expression, beanMarshaller);
+		return PrismUtilInternal.serializeExpression(expression, beanMarshaller);
 	}
 
 	@NotNull

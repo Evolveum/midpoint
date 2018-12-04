@@ -36,6 +36,8 @@ import java.util.GregorianCalendar;
  * need much more now. If more complex thing will be needed, we will extend the
  * implementation later.
  *
+ * TODO clean this up as it is now part of prism-api!
+ *
  * @author Radovan Semancik
  */
 public class XmlTypeConverter {
@@ -55,14 +57,17 @@ public class XmlTypeConverter {
         return datatypeFactory;
     }
 
+    @Deprecated // do NOT use form the outside of prism
 	public static boolean canConvert(Class<?> clazz) {
         return (XsdTypeMapper.getJavaToXsdMapping(clazz) != null);
     }
 
+	@Deprecated // do NOT use form the outside of prism
     public static boolean canConvert(QName xsdType) {
         return (XsdTypeMapper.getXsdToJavaMapping(xsdType) != null);
     }
 
+    // TODO consider moving this to better place
 	public static boolean isMatchingType(Class<?> expectedClass, Class<?> actualClass) {
 		if (expectedClass.isAssignableFrom(actualClass)) {
 			return true;

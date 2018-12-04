@@ -41,6 +41,7 @@ import org.jetbrains.annotations.Nullable;
  * many scripting languages (e.g. perl) where the programmer does not really care about the type
  * and the type conversion is done automatically.
  *
+ * TODO clean this up as it is now part of prism-api!
  * @author Radovan Semancik
  */
 public class JavaTypeConverter {
