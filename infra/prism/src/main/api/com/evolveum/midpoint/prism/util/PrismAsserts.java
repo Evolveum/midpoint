@@ -956,13 +956,10 @@ public class PrismAsserts {
 		assert expectedClass.isAssignableFrom(xsubnode.getClass()) : "Wrong class of subnode "+key+" in "+xmap+"; expected "+expectedClass+", got "+xsubnode.getClass();
 	}
 
-	public static void assertAllParsedNodes(XNodeImpl xnode) {
-		Visitor visitor = new Visitor() {
-			@Override
-			public void visit(Visitable visitable) {
-				if ((visitable instanceof PrimitiveXNodeImpl<?>)) {
-					assert ((PrimitiveXNodeImpl<?>)visitable).isParsed() : "Xnode "+visitable+" is not parsed";
-				}
+	public static void assertAllParsedNodes(XNode xnode) {
+		Visitor visitor = visitable -> {
+			if ((visitable instanceof PrimitiveXNode<?>)) {
+				assert ((PrimitiveXNode<?>)visitable).isParsed() : "Xnode "+visitable+" is not parsed";
 			}
 		};
 		xnode.accept(visitor);
@@ -995,7 +992,7 @@ public class PrismAsserts {
 	public static <T> void assertEqualsFilterValue(EqualFilter filter, T value) {
 		List<? extends PrismValue> values = filter.getValues();
 		assertEquals("Wrong number of filter values", 1, values.size());
-		assertEquals("Wrong filter value class", PrismPropertyValueImpl.class, values.get(0).getClass());   // todo "Impl"
+		assertTrue("Wrong filter value class: " + values.get(0).getClass(), values.get(0) instanceof PrismPropertyValue);
 		PrismPropertyValue val = (PrismPropertyValue) values.get(0);
 		assertEquals("Wrong filter value", value, val.getValue());
 	}

@@ -193,10 +193,6 @@ public class PrismContextImpl implements PrismContext {
 		return extraValidation;
 	}
 
-	public static void setExtraValidation(boolean extraValidation) {
-		PrismContextImpl.extraValidation = extraValidation;
-	}
-
 	@Override
 	public XmlEntityResolver getEntityResolver() {
 		return schemaRegistry.getEntityResolver();
@@ -648,5 +644,11 @@ public class PrismContextImpl implements PrismContext {
 	@Override
 	public ItemPathParser itemPathParser() {
 		return itemPathParser;
+	}
+
+	// This is instance method to allow calling it via PrismContext interface
+	@Override
+	public void setExtraValidation(boolean value) {
+		PrismContextImpl.extraValidation = value;
 	}
 }

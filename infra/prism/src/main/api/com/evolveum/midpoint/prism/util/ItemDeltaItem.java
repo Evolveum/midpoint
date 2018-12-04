@@ -285,11 +285,12 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 
 	// Assumes that this IDI represents structured property
 	public <X> ItemDeltaItem<PrismPropertyValue<X>,PrismPropertyDefinition<X>> resolveStructuredProperty(
-			ItemPath resolvePath, PrismPropertyDefinition outputDefinition, ItemPath outputPath) {
+			ItemPath resolvePath, PrismPropertyDefinition outputDefinition, ItemPath outputPath,
+			PrismContext prismContext) {
 		ItemDeltaItem<PrismPropertyValue<Structured>,PrismPropertyDefinition<Structured>> thisIdi = (ItemDeltaItem<PrismPropertyValue<Structured>,PrismPropertyDefinition<Structured>>)this;
 		PrismProperty<X> outputPropertyNew = resolveStructuredPropertyItem((PrismProperty<Structured>) thisIdi.getItemNew(), resolvePath, outputDefinition);
 		PrismProperty<X> outputPropertyOld = resolveStructuredPropertyItem((PrismProperty<Structured>) thisIdi.getItemOld(), resolvePath, outputDefinition);
-		PropertyDelta<X> outputDelta = resolveStructuredPropertyDelta((PropertyDelta<Structured>) thisIdi.getDelta(), resolvePath, outputDefinition, outputPath);
+		PropertyDelta<X> outputDelta = resolveStructuredPropertyDelta((PropertyDelta<Structured>) thisIdi.getDelta(), resolvePath, outputDefinition, outputPath, prismContext);
 		return new ItemDeltaItem<>(outputPropertyOld, outputDelta, outputPropertyNew);
 	}
 
@@ -305,27 +306,31 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 		return outputProperty;
 	}
 
-	private <X> PropertyDelta<X> resolveStructuredPropertyDelta(PropertyDelta<Structured> sourceDelta, ItemPath resolvePath, PrismPropertyDefinition outputDefinition, ItemPath outputPath) {
+	private <X> PropertyDelta<X> resolveStructuredPropertyDelta(PropertyDelta<Structured> sourceDelta, ItemPath resolvePath,
+			PrismPropertyDefinition outputDefinition, ItemPath outputPath, PrismContext prismContext) {
 		if (sourceDelta == null) {
 			return null;
 		}
 		PropertyDelta<X> outputDelta = (PropertyDelta<X>) outputDefinition.createEmptyDelta(outputPath);
-		Collection<PrismPropertyValue<X>> outputValuesToAdd = resolveStructuredDeltaSet(sourceDelta.getValuesToAdd(), resolvePath);
+		Collection<PrismPropertyValue<X>> outputValuesToAdd = resolveStructuredDeltaSet(sourceDelta.getValuesToAdd(), resolvePath, prismContext);
 		if (outputValuesToAdd != null) {
 			outputDelta.addValuesToAdd(outputValuesToAdd);
 		}
-		Collection<PrismPropertyValue<X>> outputValuesToDelete = resolveStructuredDeltaSet(sourceDelta.getValuesToDelete(), resolvePath);
+		Collection<PrismPropertyValue<X>> outputValuesToDelete = resolveStructuredDeltaSet(sourceDelta.getValuesToDelete(), resolvePath,
+				prismContext);
 		if (outputValuesToDelete != null) {
 			outputDelta.addValuesToDelete(outputValuesToDelete);
 		}
-		Collection<PrismPropertyValue<X>> outputValuesToReplace = resolveStructuredDeltaSet(sourceDelta.getValuesToReplace(), resolvePath);
+		Collection<PrismPropertyValue<X>> outputValuesToReplace = resolveStructuredDeltaSet(sourceDelta.getValuesToReplace(), resolvePath,
+				prismContext);
 		if (outputValuesToReplace != null) {
 			outputDelta.setValuesToReplace(outputValuesToReplace);
 		}
 		return outputDelta;
 	}
 
-	private <X> Collection<PrismPropertyValue<X>> resolveStructuredDeltaSet(Collection<PrismPropertyValue<Structured>> set, ItemPath resolvePath) {
+	private <X> Collection<PrismPropertyValue<X>> resolveStructuredDeltaSet(Collection<PrismPropertyValue<Structured>> set,
+			ItemPath resolvePath, PrismContext prismContext) {
 		if (set == null) {
 			return null;
 		}
@@ -333,7 +338,7 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 		for (PrismPropertyValue<Structured> structuredPVal: set) {
 			Structured structured = structuredPVal.getValue();
 			X outputRval = (X) structured.resolve(resolvePath);
-			outputSet.add(new PrismPropertyValueImpl<>(outputRval));
+			outputSet.add(prismContext.itemFactory().createPrismPropertyValue(outputRval));
 		}
 		return outputSet;
 	}

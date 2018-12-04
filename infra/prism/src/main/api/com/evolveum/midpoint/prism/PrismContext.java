@@ -357,4 +357,6 @@ public interface PrismContext extends ProtectorCreator {
 	@NotNull
 	ItemPathParser itemPathParser();
 
+	// TEMPORARY/EXPERIMENTAL
+	void setExtraValidation(boolean value);
 }

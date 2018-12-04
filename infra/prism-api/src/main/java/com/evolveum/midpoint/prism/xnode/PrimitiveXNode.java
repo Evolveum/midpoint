@@ -41,4 +41,6 @@ public interface PrimitiveXNode<T> extends XNode {
 	T getValue();
 
 	ValueParser<T> getValueParser();
+
+	boolean isParsed();
 }

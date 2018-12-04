@@ -23,8 +23,6 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
-import com.evolveum.midpoint.prism.xnode.MapXNodeImpl;
-import com.evolveum.midpoint.prism.xnode.RootXNodeImpl;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -88,9 +86,10 @@ public class PrismTestUtil {
     	if (prismContextFactory == null) {
     		throw new IllegalStateException("Cannot create prism context, no prism factory is set");
     	}
-		PrismContextImpl.setExtraValidation(true);
-        return prismContextFactory.createPrismContext();
-    }
+		PrismContext prismContext = prismContextFactory.createPrismContext();
+		prismContext.setExtraValidation(true);
+		return prismContext;
+	}
 
     public static PrismContext createInitializedPrismContext() throws SchemaException, SAXException, IOException {
     	PrismContext newPrismContext = createPrismContext();
@@ -288,7 +287,8 @@ public class PrismTestUtil {
         LOGGER.info(dumpX);
         System.out.println("filter clause xnode:\n" + dumpX + "\n");
 
-        String dumpXml = prismContext.xmlSerializer().serialize(new RootXNodeImpl(new QName("filterClauseXNode"), mapXNode));
+        String dumpXml = prismContext.xmlSerializer().serialize(
+        		prismContext.xnodeFactory().root(new QName("filterClauseXNode"), mapXNode));
         System.out.println("filter clause xnode serialized:\n" + dumpXml + "\n");
 	}
 
