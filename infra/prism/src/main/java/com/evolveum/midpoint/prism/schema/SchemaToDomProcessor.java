@@ -29,13 +29,13 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverterInternal;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -243,7 +243,7 @@ public class SchemaToDomProcessor {
 		}
 
 		if (definition.isIndexed() != null) {
-			addAnnotation(A_INDEXED, XmlTypeConverter.toXmlTextContent(definition.isIndexed(), A_INDEXED), appinfo);
+			addAnnotation(A_INDEXED, XmlTypeConverterInternal.toXmlTextContent(definition.isIndexed(), A_INDEXED), appinfo);
 		}
 
 		if (definition.getMatchingRuleQName() != null) {

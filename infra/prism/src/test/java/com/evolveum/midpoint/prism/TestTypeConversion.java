@@ -22,6 +22,7 @@ import static com.evolveum.midpoint.prism.PrismInternalTestUtil.DEFAULT_NAMESPAC
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.xml.XmlTypeConverterInternal;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -60,10 +61,10 @@ public class TestTypeConversion {
 	public void testXmlDateTimeValue() throws Exception {
 		String stringDate = "1975-05-30T21:30:00.000Z";
 		Element xmlElement = createElement(stringDate);
-		Object javaValue = XmlTypeConverter.toJavaValue(xmlElement, DOMUtil.XSD_DATETIME);
+		Object javaValue = XmlTypeConverterInternal.toJavaValue(xmlElement, DOMUtil.XSD_DATETIME);
 		XMLGregorianCalendar xmlCal = XmlTypeConverter.createXMLGregorianCalendar(1975, 5, 30, 21, 30, 0);
 		PrismAsserts.assertEquals("Wrong java value", xmlCal, javaValue);
-		String xmlTextContent = XmlTypeConverter.toXmlTextContent(xmlCal, MY_ELEMENT_QNAME);
+		String xmlTextContent = XmlTypeConverterInternal.toXmlTextContent(xmlCal, MY_ELEMENT_QNAME);
 		assertEquals("Wrong xml value", stringDate, xmlTextContent);
 	}
 

@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.DefinitionImpl;
+import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -97,8 +97,8 @@ public class CloneUtil {
 		if (orig instanceof ItemDelta<?,?>) {
 			return (T) ((ItemDelta<?,?>)orig).clone();
 		}
-		if (orig instanceof DefinitionImpl) {
-			return (T) ((DefinitionImpl)orig).clone();
+		if (orig instanceof Definition) {
+			return (T) ((Definition)orig).clone();
 		}
 		/*
 		 * In some environments we cannot clone XMLGregorianCalendar because of this:

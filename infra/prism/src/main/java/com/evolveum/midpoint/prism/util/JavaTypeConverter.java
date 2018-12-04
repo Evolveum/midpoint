@@ -81,19 +81,19 @@ public class JavaTypeConverter {
 
 		// boolean
 		if (expectedType == boolean.class && rawValue instanceof Boolean) {
-			return ((Boolean)rawValue);
+			return rawValue;
 		}
 		if (expectedType == Boolean.class && rawValue instanceof String) {
-			return (Boolean)Boolean.parseBoolean((((String)rawValue)).trim());
+			return Boolean.parseBoolean((((String)rawValue)).trim());
 		}
 		if (expectedType == Boolean.class && rawValue instanceof PolyString) {
-			return (Boolean)Boolean.parseBoolean((rawValue.toString().trim()));
+			return Boolean.parseBoolean((rawValue.toString().trim()));
 		}
 		if (expectedType == boolean.class && rawValue instanceof String) {
-			return (Boolean)Boolean.parseBoolean(((String)rawValue).trim());
+			return Boolean.parseBoolean(((String)rawValue).trim());
 		}
 		if (expectedType == boolean.class && rawValue instanceof PolyString) {
-			return (Boolean)Boolean.parseBoolean((rawValue).toString().trim());
+			return Boolean.parseBoolean((rawValue).toString().trim());
 		}
 		if (expectedType == String.class && rawValue instanceof Boolean) {
 			return rawValue.toString();
@@ -101,68 +101,68 @@ public class JavaTypeConverter {
 
 		// int
 		if (expectedType == int.class && rawValue instanceof Integer) {
-			return ((Integer)rawValue);
+			return rawValue;
 		}
 		if (expectedType == Integer.class && rawValue instanceof String) {
-			return (Integer)Integer.parseInt(((String)rawValue).trim());
+			return Integer.parseInt(((String)rawValue).trim());
 		}
 		if (expectedType == int.class && rawValue instanceof String) {
-			return (Integer)Integer.parseInt(((String)rawValue).trim());
+			return Integer.parseInt(((String)rawValue).trim());
 		}
 		if (expectedType == String.class && rawValue instanceof Integer) {
 			return rawValue.toString();
 		}
 		if (expectedType == int.class && rawValue instanceof Long) {
-			return (Integer)((Long)rawValue).intValue();
+			return ((Long)rawValue).intValue();
 		}
 
 		if (expectedType == long.class && rawValue instanceof Long) {
 			return (rawValue);
 		}
 		if (expectedType == Long.class && rawValue instanceof String) {
-			return (Long)Long.parseLong(((String)rawValue).trim());
+			return Long.parseLong(((String)rawValue).trim());
 		}
 		if (expectedType == long.class && rawValue instanceof String) {
-			return (Long)Long.parseLong(((String)rawValue).trim());
+			return Long.parseLong(((String)rawValue).trim());
 		}
 		if (expectedType == String.class && rawValue instanceof Long) {
 			return rawValue.toString();
 		}
 
 		if (expectedType == float.class && rawValue instanceof Float) {
-			return ((Float)rawValue);
+			return rawValue;
 		}
 		if (expectedType == Float.class && rawValue instanceof String) {
-			return (Float)Float.parseFloat(((String)rawValue).trim());
+			return Float.parseFloat(((String)rawValue).trim());
 		}
 		if (expectedType == float.class && rawValue instanceof String) {
-			return (Float)Float.parseFloat(((String)rawValue).trim());
+			return Float.parseFloat(((String)rawValue).trim());
 		}
 		if (expectedType == String.class && rawValue instanceof Float) {
 			return rawValue.toString();
 		}
 
 		if (expectedType == double.class && rawValue instanceof Double) {
-			return ((Double)rawValue);
+			return rawValue;
 		}
 		if (expectedType == Double.class && rawValue instanceof String) {
-			return (Double)Double.parseDouble(((String)rawValue).trim());
+			return Double.parseDouble(((String)rawValue).trim());
 		}
 		if (expectedType == double.class && rawValue instanceof String) {
-			return (Double)Double.parseDouble(((String)rawValue).trim());
+			return Double.parseDouble(((String)rawValue).trim());
 		}
-		if (expectedType == String.class && rawValue instanceof Float) {
+		if (expectedType == String.class && rawValue instanceof Double) {
 			return rawValue.toString();
 		}
 
 		if (expectedType == byte.class && rawValue instanceof Byte) {
-			return ((Byte)rawValue);
+			return rawValue;
 		}
 		if (expectedType == Byte.class && rawValue instanceof String) {
-			return (Byte)Byte.parseByte(((String)rawValue));
+			return Byte.parseByte(((String)rawValue));
 		}
 		if (expectedType == byte.class && rawValue instanceof String) {
-			return (Byte)Byte.parseByte(((String)rawValue));
+			return Byte.parseByte(((String)rawValue));
 		}
 		if (expectedType == String.class && rawValue instanceof Byte) {
 			return rawValue.toString();
@@ -179,7 +179,7 @@ public class JavaTypeConverter {
 			return new BigDecimal(((String)rawValue).trim());
 		}
 		if (expectedType == String.class && rawValue instanceof BigDecimal) {
-			return ((BigDecimal)rawValue).toString().trim();
+			return rawValue.toString().trim();
 		}
 
 		if (expectedType == PolyString.class && rawValue instanceof String) {
@@ -224,7 +224,7 @@ public class JavaTypeConverter {
 			return ((XMLGregorianCalendar)rawValue).toXMLFormat();
 		}
 		if (expectedType == Long.class && rawValue instanceof XMLGregorianCalendar) {
-			return (Long) XmlTypeConverter.toMillis((XMLGregorianCalendar)rawValue);
+			return XmlTypeConverter.toMillis((XMLGregorianCalendar)rawValue);
 		}
 
 		// XML Enums (JAXB)

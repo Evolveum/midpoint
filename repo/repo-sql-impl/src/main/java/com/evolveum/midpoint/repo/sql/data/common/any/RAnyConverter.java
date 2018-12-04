@@ -287,7 +287,7 @@ public class RAnyConverter {
 
         Object object = value.getValue();
         if (object instanceof Element) {
-            object = getRealRepoValue(definition, (Element) object);
+            object = getRealRepoValue(definition, (Element) object, prismContext);
         } else if (object instanceof RawType) {
             RawType raw = (RawType) object;
             object = raw.getParsedRealValue(returnType);        // todo this can return null!
@@ -353,37 +353,37 @@ public class RAnyConverter {
      * <p>
      * Expects only property values (references are handled at other place).
      *
-     * @param definition
-     * @param value
-     * @return
+     * [pm] is this method really used? i.e. do we ever try to store PrismPropertyValue<Element>?
      */
     @NotNull
-    public static Object getRealRepoValue(ItemDefinition definition, Element value) throws SchemaException {
-        ValueType willBeSaveAs = definition == null ? null : getValueType(definition.getTypeName());
-        QName typeName = definition == null ? DOMUtil.resolveXsiType(value) : definition.getTypeName();
+    public static Object getRealRepoValue(ItemDefinition definition, Element value, PrismContext prismContext) throws SchemaException {
+        ValueType willBeSavedAs;
+        QName typeName;
+        if (definition != null) {
+            willBeSavedAs = getValueType(definition.getTypeName());
+            typeName = definition.getTypeName();
+        } else {
+            willBeSavedAs = null;
+            typeName = DOMUtil.resolveXsiType(value);
+        }
 
         Validate.notNull(typeName, "Definition was not defined for element value '"
                 + DOMUtil.getQNameWithoutPrefix(value) + "' and it doesn't have xsi:type.");
 
-        Object object;
-        if (ValueType.STRING.equals(willBeSaveAs)) {
+        if (willBeSavedAs == ValueType.STRING) {
             if (DOMUtil.listChildElements(value).isEmpty()) {
-                //simple values
-                return value.getTextContent();
+                return value.getTextContent();                  //simple values
             } else {
-                //composite elements or containers
-                return DOMUtil.serializeDOMToString(value);
+                return DOMUtil.serializeDOMToString(value);     //composite elements or containers
             }
         } else {
-            object = XmlTypeConverter.toJavaValue(value, typeName);
+            Object object = prismContext.parserFor(value).type(typeName).parseRealValue();
+            object = getAggregatedRepoObject(object);
+            if (object == null) {
+                throw new IllegalStateException("Can't extract value for saving from prism property value\n" + value);
+            }
+            return object;
         }
-
-        object = getAggregatedRepoObject(object);
-        if (object == null) {
-            throw new IllegalStateException("Can't extract value for saving from prism property value\n" + value);
-        }
-
-        return object;
     }
 
     /**
@@ -400,8 +400,9 @@ public class RAnyConverter {
             object = object.toString();
         } else if (object instanceof BigInteger) {
             object = object.toString();
-        } else if (object instanceof BigDecimal)
+        } else if (object instanceof BigDecimal) {
             object = object.toString();
+        }
 
         //check short/integer to long
         if (object instanceof Short) {

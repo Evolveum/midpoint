@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.lex.dom.DomLexicalProcessor;
 
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverterInternal;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
@@ -246,7 +247,7 @@ public class JaxbDomHackImpl implements JaxbDomHack {
 				Object realValue = pval.getValue();
 				if (XmlTypeConverter.canConvert(realValue.getClass())) {
 					// Always record xsi:type. This is FIXME, but should work OK for now (until we put definition into deltas)
-					return XmlTypeConverter.toXsdElement(realValue, elementName, DOMUtil.getDocument(), true);
+					return XmlTypeConverterInternal.toXsdElement(realValue, elementName, DOMUtil.getDocument(), true);
 				} else {
 					return wrapIfNeeded(realValue, elementName);
 				}

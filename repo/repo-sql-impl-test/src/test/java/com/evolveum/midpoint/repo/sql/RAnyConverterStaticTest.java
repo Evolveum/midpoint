@@ -78,7 +78,7 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
         poly.appendChild(orig);
         poly.appendChild(norm);
 
-        Object realValue = RAnyConverter.getRealRepoValue(def, poly);
+        Object realValue = RAnyConverter.getRealRepoValue(def, poly, prismContext);
         AssertJUnit.assertEquals(new PolyString("Foo_Bar", "foo bar"), realValue);
 
         session.close();
@@ -95,7 +95,7 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
         Element value = DOMUtil.createElement(DOMUtil.getDocument(), valueName);
         value.setTextContent("123");
 
-        Object realValue = RAnyConverter.getRealRepoValue(def, value);
+        Object realValue = RAnyConverter.getRealRepoValue(def, value, prismContext);
         AssertJUnit.assertEquals(123L, realValue);
 
         session.close();
@@ -112,7 +112,7 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
         Element value = DOMUtil.createElement(DOMUtil.getDocument(), valueName);
         value.setTextContent("123");
 
-        Object realValue = RAnyConverter.getRealRepoValue(def, value);
+        Object realValue = RAnyConverter.getRealRepoValue(def, value, prismContext);
         AssertJUnit.assertEquals(123L, realValue);
 
         session.close();
@@ -129,7 +129,7 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
         Element value = DOMUtil.createElement(DOMUtil.getDocument(), valueName);
         value.setTextContent("123");
 
-        Object realValue = RAnyConverter.getRealRepoValue(def, value);
+        Object realValue = RAnyConverter.getRealRepoValue(def, value, prismContext);
         AssertJUnit.assertEquals(123L, realValue);
 
         session.close();
@@ -146,7 +146,7 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
         Element value = DOMUtil.createElement(DOMUtil.getDocument(), valueName);
         value.setTextContent("123.1");
 
-        Object realValue = RAnyConverter.getRealRepoValue(def, value);
+        Object realValue = RAnyConverter.getRealRepoValue(def, value, prismContext);
         AssertJUnit.assertEquals("123.1", realValue);
 
         session.close();
@@ -163,7 +163,7 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
         Element value = DOMUtil.createElement(DOMUtil.getDocument(), valueName);
         value.setTextContent("123.1");
 
-        Object realValue = RAnyConverter.getRealRepoValue(def, value);
+        Object realValue = RAnyConverter.getRealRepoValue(def, value, prismContext);
         AssertJUnit.assertEquals("123.1", realValue);
 
         session.close();
@@ -180,7 +180,7 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
         Element value = DOMUtil.createElement(DOMUtil.getDocument(), valueName);
         value.setTextContent("example");
 
-        Object realValue = RAnyConverter.getRealRepoValue(def, value);
+        Object realValue = RAnyConverter.getRealRepoValue(def, value, prismContext);
         AssertJUnit.assertEquals("example", realValue);
 
         session.close();
@@ -228,7 +228,7 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
         Element value = DOMUtil.createElement(DOMUtil.getDocument(), valueName);
         value.setTextContent("1234");
 
-        Object realValue = RAnyConverter.getRealRepoValue(def, value);
+        Object realValue = RAnyConverter.getRealRepoValue(def, value, prismContext);
         AssertJUnit.assertEquals("1234", realValue);
 
         session.close();
@@ -249,7 +249,7 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
         location.setAttribute("key", "heaven");
         location.setTextContent("somewhere above");
 
-        Object realValue = RAnyConverter.getRealRepoValue(def, value);
+        Object realValue = RAnyConverter.getRealRepoValue(def, value, prismContext);
         //asserting simple dom
         document = DOMUtil.parseDocument((String) realValue);
         Element root = document.getDocumentElement();
@@ -279,7 +279,7 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
 
         Element value = createAttributeValue(valueName, "xsd:string", "some uid");
 
-        Object realValue = RAnyConverter.getRealRepoValue(def, value);
+        Object realValue = RAnyConverter.getRealRepoValue(def, value, prismContext);
         AssertJUnit.assertEquals("some uid", realValue);
 
         session.close();
@@ -295,7 +295,7 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
 
         Element value = createAttributeValue(valueName, "xsd:double", "123.1");
 
-        Object realValue = RAnyConverter.getRealRepoValue(def, value);
+        Object realValue = RAnyConverter.getRealRepoValue(def, value, prismContext);
         AssertJUnit.assertEquals("123.1", realValue);
 
         session.close();
@@ -320,7 +320,7 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
 
         Element value = createAttributeValue(valueName, "xsd:long", "123");
 
-        Object realValue = RAnyConverter.getRealRepoValue(def, value);
+        Object realValue = RAnyConverter.getRealRepoValue(def, value, prismContext);
         AssertJUnit.assertEquals(123L, realValue);
 
         session.close();
@@ -341,7 +341,7 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
         value.appendChild(orig);
         value.appendChild(norm);
 
-        Object realValue = RAnyConverter.getRealRepoValue(def, value);
+        Object realValue = RAnyConverter.getRealRepoValue(def, value, prismContext);
         AssertJUnit.assertEquals(new PolyString("john example", "john example"), realValue);
 
         session.close();

@@ -25,9 +25,9 @@ import java.io.Serializable;
 import java.util.IdentityHashMap;
 
 /**
- * @author mederly
+ *
  */
-public interface Definition extends Serializable, DebugDumpable, Revivable {
+public interface Definition extends Serializable, DebugDumpable, Revivable, Cloneable {
 
 	/**
 	 * Returns a name of the type for this definition.
