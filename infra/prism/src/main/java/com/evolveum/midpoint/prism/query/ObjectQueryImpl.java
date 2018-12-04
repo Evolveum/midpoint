@@ -177,9 +177,9 @@ public class ObjectQueryImpl implements ObjectQuery {
 		if (paging == null) {
 			return null;
 		}
-		if (paging.getCookie() != null) {
-			throw new UnsupportedOperationException("Paging cookie is not supported here.");
-		}
+//		if (paging.getCookie() != null) {
+//			throw new UnsupportedOperationException("Paging cookie is not supported here.");
+//		}
 		return paging.getOffset();
 	}
 
@@ -188,9 +188,9 @@ public class ObjectQueryImpl implements ObjectQuery {
 		if (paging == null) {
 			return null;
 		}
-		if (paging.getCookie() != null) {
-			throw new UnsupportedOperationException("Paging cookie is not supported here.");
-		}
+//		if (paging.getCookie() != null) {
+//			throw new UnsupportedOperationException("Paging cookie is not supported here.");
+//		}
 		return paging.getMaxSize();
 	}
 

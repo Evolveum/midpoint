@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
+import com.evolveum.midpoint.repo.sql.helpers.ObjectRetriever;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.definition.*;
 import com.evolveum.midpoint.repo.sql.query2.hqm.CountProjectionElement;
@@ -304,7 +305,8 @@ public class QueryInterpreter2 {
         RootHibernateQuery hibernateQuery = context.getHibernateQuery();
         String rootAlias = hibernateQuery.getPrimaryEntityAlias();
 
-        if (query != null && query.getPaging() != null && query.getPaging().hasCookie()) {
+	    //noinspection StringEquality
+	    if (query != null && query.getPaging() != null && query.getPaging().hasCookie() && query.getPaging().getCookie() != ObjectRetriever.NULL_OID_MARKER) {
             ObjectPaging paging = query.getPaging();
 	        Condition c = hibernateQuery.createSimpleComparisonCondition(rootAlias + ".oid", paging.getCookie(), ">");
 	        hibernateQuery.addCondition(c);

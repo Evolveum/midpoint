@@ -950,7 +950,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			filter.checkConsistence(false);
 		}
 
-		if (filter != null && filter instanceof NoneFilter) {
+		if (filter instanceof NoneFilter) {
 			result.recordSuccessIfUnknown();
 			result.cleanupResult();
 			SearchResultMetadata metadata = new SearchResultMetadata();

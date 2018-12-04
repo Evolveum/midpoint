@@ -78,6 +78,8 @@ public class ObjectRetriever {
     private static final Trace LOGGER = TraceManager.getTrace(ObjectRetriever.class);
     private static final Trace LOGGER_PERFORMANCE = TraceManager.getTrace(SqlRepositoryServiceImpl.PERFORMANCE_LOG_NAME);
 
+    public static final String NULL_OID_MARKER = "###null-oid###";     // brutal hack (TODO)
+
     @Autowired private LookupTableHelper lookupTableHelper;
 	@Autowired private CertificationCaseHelper caseHelper;
 	@Autowired private CaseManagementHelper caseManagementHelper;
@@ -881,7 +883,7 @@ main:       while (remaining > 0) {
             ObjectPaging paging = prismContext.queryFactory().createPaging();
             pagedQuery.setPaging(paging);
 main:       for (;;) {
-                paging.setCookie(lastOid);
+                paging.setCookie(lastOid != null ? lastOid : NULL_OID_MARKER);
                 paging.setMaxSize(Math.min(batchSize, defaultIfNull(maxSize, Integer.MAX_VALUE)));
 
                 List<PrismObject<T>> objects = repositoryService.searchObjects(type, pagedQuery, options, result);
