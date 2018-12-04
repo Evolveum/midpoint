@@ -445,22 +445,8 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
                     LOGGER.debug("Loading roles which the current user has right to assign");
                     Task task = TypedAssignablePanel.this.getPageBase().createSimpleTask(OPERATION_LOAD_ASSIGNABLE_ROLES);
                     OperationResult result = task.getResult();
-                    ObjectFilter filter = null;
-                    try {
-                        ModelInteractionService mis = TypedAssignablePanel.this.getPageBase().getModelInteractionService();
-                        // TODO: set proper assignmentOrder (MID-5005)
-                        RoleSelectionSpecification roleSpec =
-                                mis.getAssignableRoleSpecification(SecurityUtils.getPrincipalUser().getUser().asPrismObject(), AbstractRoleType.class, 0, task, result);
-                        filter = roleSpec.getFilter();
-                    } catch (Exception ex) {
-                        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load available roles", ex);
-                        result.recordFatalError("Couldn't load available roles", ex);
-                    } finally {
-                        result.recomputeStatus();
-                    }
-                    if (!result.isSuccess() && !result.isHandledError()) {
-                    	TypedAssignablePanel.this.getPageBase().showResult(result);
-                    }
+                    ObjectFilter filter = WebComponentUtil.getAssignableRolesFilter(SecurityUtils.getPrincipalUser().getUser().asPrismObject(), AbstractRoleType.class,
+							WebComponentUtil.AssignmentOrder.ASSIGNMENT, result, task, TypedAssignablePanel.this.getPageBase());
                     if (query == null){
                         query = new ObjectQuery();
                     }

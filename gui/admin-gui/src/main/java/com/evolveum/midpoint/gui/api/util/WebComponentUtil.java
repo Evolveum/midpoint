@@ -257,6 +257,22 @@ public final class WebComponentUtil {
 
 	}
 
+	public enum AssignmentOrder{
+
+		ASSIGNMENT(0),
+		INDUCEMENT(1);
+
+		private int order;
+
+		AssignmentOrder(int order){
+			this.order = order;
+		}
+
+		public int getOrder() {
+			return order;
+		}
+	}
+
 	public static String nl2br(String text) {
 		if (text == null) {
 			return null;
@@ -2862,15 +2878,14 @@ public final class WebComponentUtil {
 		WebComponentUtil.staticallyProvidedRelationRegistry = staticallyProvidedRelationRegistry;
 	}
 
-	public static ObjectFilter getAssignableRolesFilter(PrismObject<? extends FocusType> focusObject, Class<? extends AbstractRoleType> type,
+	public static ObjectFilter getAssignableRolesFilter(PrismObject<? extends FocusType> focusObject, Class<? extends AbstractRoleType> type, AssignmentOrder assignmentOrder,
 														OperationResult result, Task task, PageBase pageBase) {
 		ObjectFilter filter = null;
 		LOGGER.debug("Loading objects which can be assigned");
 		try {
 			ModelInteractionService mis = pageBase.getModelInteractionService();
-			// TODO: set proper assignmentOrder (MID-5005)
 			RoleSelectionSpecification roleSpec =
-					mis.getAssignableRoleSpecification(focusObject, type, 0, task, result);
+					mis.getAssignableRoleSpecification(focusObject, type, assignmentOrder.getOrder(), task, result);
 			filter = roleSpec.getFilter();
 		} catch (Exception ex) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load available roles", ex);
