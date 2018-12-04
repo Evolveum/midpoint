@@ -671,6 +671,11 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	}
 
 	@Override
+	public MutableComplexTypeDefinition toMutable() {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
 	public boolean isShared() {
 		if (refinedObjectClassDefinition != null) {
 			return refinedObjectClassDefinition.isShared();

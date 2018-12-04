@@ -171,17 +171,17 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 		return refinedAttributeDefinition.canModify(layer);
 	}
 	
-	@Override
+//	@Override
 	public void setCanRead(boolean val) {
 		throw new UnsupportedOperationException("read only");
 	}
 
-	@Override
+	//@Override
 	public void setCanModify(boolean val) {
 		throw new UnsupportedOperationException("read only");
 	}
 
-	@Override
+	//@Override
 	public void setCanAdd(boolean val) {
 		throw new UnsupportedOperationException("read only");
 	}
@@ -320,6 +320,11 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 	@Override
 	public Class getTypeClass() {
 		return refinedAttributeDefinition.getTypeClass();
+	}
+
+	@Override
+	public MutablePrismPropertyDefinition<T> toMutable() {
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
@@ -650,10 +655,10 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 
 	//endregion
 
-	@Override
-	public void setMaxOccurs(int maxOccurs) {
-		refinedAttributeDefinition.setMaxOccurs(maxOccurs);
-	}
+	//@Override
+	//public void setMaxOccurs(int maxOccurs) {
+	//	refinedAttributeDefinition.setMaxOccurs(maxOccurs);
+	//}
 
 	@Override
 	public boolean canBeDefinitionOf(PrismProperty<T> item) {

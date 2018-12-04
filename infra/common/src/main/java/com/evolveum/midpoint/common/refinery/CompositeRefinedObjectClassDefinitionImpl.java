@@ -757,6 +757,11 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 		auxiliaryObjectClassDefinitions.forEach(def -> def.trimTo(paths));
 	}
 
+	@Override
+	public MutableComplexTypeDefinition toMutable() {
+		throw new UnsupportedOperationException();
+	}
+
 	// TODO
 	@Override
 	public boolean isShared() {

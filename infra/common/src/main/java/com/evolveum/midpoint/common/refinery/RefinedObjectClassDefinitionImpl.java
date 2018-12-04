@@ -17,8 +17,8 @@ package com.evolveum.midpoint.common.refinery;
 
 import com.evolveum.midpoint.common.ResourceObjectPattern;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
@@ -1359,6 +1359,11 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 				.collect(Collectors.toList());
 		attributeDefinitions.removeIf(itemDefinition -> !QNameUtil.contains(names, itemDefinition.getName()));
 		associationDefinitions.removeIf(itemDefinition -> !QNameUtil.contains(names, itemDefinition.getName()));
+	}
+
+	@Override
+	public MutableComplexTypeDefinition toMutable() {
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
