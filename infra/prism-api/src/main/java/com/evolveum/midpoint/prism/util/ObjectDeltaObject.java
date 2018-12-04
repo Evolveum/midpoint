@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import org.apache.commons.collections4.CollectionUtils;
 
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 
@@ -344,7 +345,7 @@ public class ObjectDeltaObject<O extends Objectable> extends ItemDeltaItem<Prism
 		}
 		boolean foundIdOnlyDeletion = false;
 		main: for (ItemDelta<?, ?> itemDelta : delta.getModifications()) {
-			for (PrismValue valueToDelete : emptyIfNull(itemDelta.getValuesToDelete())) {
+			for (PrismValue valueToDelete : CollectionUtils.emptyIfNull(itemDelta.getValuesToDelete())) {
 				if (valueToDelete instanceof PrismContainerValue && ((PrismContainerValue) valueToDelete).isIdOnly()) {
 					foundIdOnlyDeletion = true;
 					break main;

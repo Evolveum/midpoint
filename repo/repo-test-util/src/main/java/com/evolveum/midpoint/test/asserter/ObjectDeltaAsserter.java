@@ -95,10 +95,6 @@ public class ObjectDeltaAsserter<O extends ObjectType,RA> extends AbstractAssert
 		return this;
 	}
 	
-	public <C extends Containerable> ContainerDeltaAsserter<C,ObjectDeltaAsserter<O,RA>> container(QName qname) {
-		return container((ItemPath) ItemName.fromQName(qname));
-	}
-	
 	public <C extends Containerable> ContainerDeltaAsserter<C,ObjectDeltaAsserter<O,RA>> container(ItemPath path) {
 		ContainerDelta<C> containerDelta = delta.findContainerDelta(path);
 		assertNotNull("No container delta for path "+path+" in "+desc(), containerDelta);

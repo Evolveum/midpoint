@@ -207,7 +207,7 @@
 						<configuration>
 							<sources>
 								<source>src/main/impl</source>
-								<source>src/main/api</source>
+								<!--<source>src/main/api</source>-->
 							</sources>
 						</configuration>
 					</execution>
