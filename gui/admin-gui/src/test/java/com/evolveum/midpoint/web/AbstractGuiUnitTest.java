@@ -24,6 +24,7 @@ import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
@@ -77,8 +78,8 @@ public abstract class AbstractGuiUnitTest extends AbstractHigherUnitTest {
 
 			@NotNull
 			@Override
-			public AdminGuiConfigurationType getAdminGuiConfiguration() {
-				return new AdminGuiConfigurationType();
+			public CompiledUserProfile getCompiledUserProfile() {
+				return new CompiledUserProfile();
 			}
 
 			@Override

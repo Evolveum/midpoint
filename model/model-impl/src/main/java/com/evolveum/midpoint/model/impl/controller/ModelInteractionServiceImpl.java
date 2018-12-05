@@ -56,6 +56,7 @@ import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.ProgressListener;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
+import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
 import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
 import com.evolveum.midpoint.model.api.authentication.UserProfileService;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
@@ -85,6 +86,7 @@ import com.evolveum.midpoint.model.impl.lens.OperationalDataManager;
 import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
+import com.evolveum.midpoint.model.impl.security.UserProfileCompiler;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.model.impl.visualizer.Visualizer;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -197,7 +199,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	@Autowired private ActivationComputer activationComputer;
 	@Autowired private Clock clock;
 	@Autowired private HookRegistry hookRegistry;
-	@Autowired UserProfileService userProfileService;
+	@Autowired private UserProfileService userProfileService;
+	@Autowired private UserProfileCompiler userProfileCompiler;
 	@Autowired private ExpressionFactory expressionFactory;
 	@Autowired private OperationalDataManager metadataManager;
 
@@ -789,12 +792,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
 	@NotNull
 	@Override
-	public AdminGuiConfigurationType getAdminGuiConfiguration(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		AdminGuiConfigurationType config = getAdminGuiConfigurationInternal(task, parentResult);
-		return config != null ? config : new AdminGuiConfigurationType();
-	}
-
-	public AdminGuiConfigurationType getAdminGuiConfigurationInternal(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+	public CompiledUserProfile getCompiledUserProfile(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		MidPointPrincipal principal = null;
 		try {
 			principal = securityContextManager.getPrincipal();
@@ -803,13 +801,10 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		}
 
 		if (principal == null || !(principal instanceof MidPointUserProfilePrincipal)) {
-			PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(parentResult);
-			if (systemConfiguration == null) {
-				return null;
-			}
-			return systemConfiguration.asObjectable().getAdminGuiConfiguration();
+			// May be used for unathenticated user, error pages and so on
+			return userProfileCompiler.getGlobalCompiledUserProfile(parentResult);
 		} else {
-			return ((MidPointUserProfilePrincipal)principal).getAdminGuiConfiguration();
+			return ((MidPointUserProfilePrincipal)principal).getCompiledUserProfile();
 		}
 	}
 

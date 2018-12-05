@@ -46,7 +46,7 @@ public class ClassDefinitionParser {
 
     public <T extends RObject> EntityDefinition parseObjectTypeClass(Class<T> type) {
         ObjectTypes objectType = ClassMapper.getObjectTypeForHQLType(type);
-        QName jaxbName = objectType.getQName();
+        QName jaxbName = objectType.getElementName();
         Class jaxbType = objectType.getClassDefinition();
 
         EntityDefinition entityDefinition = new EntityDefinition(jaxbName, jaxbType, type.getSimpleName(), type);

@@ -19,6 +19,7 @@ package com.evolveum.midpoint.gui.api.util;
 import java.util.*;
 
 import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
 import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
@@ -625,8 +626,8 @@ public class WebModelServiceUtils {
         if (user != null && StringUtils.isNotEmpty(user.getTimezone())) {
             timeZone = user.getTimezone();
         } else {
-            timeZone = principal != null && principal.getAdminGuiConfiguration() != null ?
-                    principal.getAdminGuiConfiguration().getDefaultTimezone() : "";
+            timeZone = principal != null && principal.getCompiledUserProfile() != null ?
+                    principal.getCompiledUserProfile().getDefaultTimezone() : "";
         }
         try {
             if (timeZone != null) {
@@ -749,9 +750,9 @@ public class WebModelServiceUtils {
 		
 		ModelInteractionService mInteractionService = pageBase.getModelInteractionService();
 		
-		AdminGuiConfigurationType adminGuiConfig = null;
+		CompiledUserProfile adminGuiConfig = null;
 		try {
-			adminGuiConfig = mInteractionService.getAdminGuiConfiguration(task, result);
+			adminGuiConfig = mInteractionService.getCompiledUserProfile(task, result);
 			result.recomputeStatus();
 			result.recordSuccessIfUnknown();
 		} catch (Exception e) {

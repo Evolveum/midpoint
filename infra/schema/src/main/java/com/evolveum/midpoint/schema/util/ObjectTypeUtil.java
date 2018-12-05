@@ -212,7 +212,7 @@ public class ObjectTypeUtil {
 	public static String getShortTypeName(Class<? extends ObjectType> type) {
 		ObjectTypes objectTypeType = ObjectTypes.getObjectType(type);
         if (objectTypeType != null) {
-            return objectTypeType.getQName().getLocalPart();
+            return objectTypeType.getElementName().getLocalPart();
         } else {
             return type.getSimpleName();
         }

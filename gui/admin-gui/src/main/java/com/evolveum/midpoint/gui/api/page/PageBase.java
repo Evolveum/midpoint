@@ -31,6 +31,8 @@ import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.*;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
 import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.validator.ResourceValidator;
@@ -316,7 +318,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     private LoadableModel<Integer> certWorkItemCountModel;
 
     // No need to store this in the session. Retrieval is cheap.
-    private transient AdminGuiConfigurationType adminGuiConfiguration;
+    private transient CompiledUserProfile compiledUserProfile;
 
     // No need for this to store in session. It is used only during single init and render.
     private transient Task pageTask;
@@ -558,25 +560,26 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public CacheDispatcher getCacheDispatcher() {
         return cacheDispatcher;
     }
-
+    
     @NotNull
     @Override
-    public AdminGuiConfigurationType getAdminGuiConfiguration() {
-        if (adminGuiConfiguration == null) {
-            Task task = createSimpleTask(PageBase.DOT_CLASS + "getAdminGuiConfiguration");
+    public CompiledUserProfile getCompiledUserProfile() {
+    	// TODO: may need to always go to ModelInteractionService to make sure the setting is up to date
+    	if (compiledUserProfile == null) {
+            Task task = createSimpleTask(PageBase.DOT_CLASS + "getCompiledUserProfile");
             try {
-                adminGuiConfiguration = modelInteractionService.getAdminGuiConfiguration(task, task.getResult());
+            	compiledUserProfile = modelInteractionService.getCompiledUserProfile(task, task.getResult());
             } catch (ObjectNotFoundException | SchemaException e) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Cannot retrieve admin GUI configuration", e);
+                LoggingUtils.logUnexpectedException(LOGGER, "Cannot retrieve compiled user profile", e);
                 if (InternalsConfig.nonCriticalExceptionsAreFatal()) {
-                    throw new SystemException("Cannot retrieve admin GUI configuration: " + e.getMessage(), e);
+                    throw new SystemException("Cannot retrieve compiled user profile: " + e.getMessage(), e);
                 } else {
                     // Just return empty admin GUI config, so the GUI can go on (and the problem may get fixed)
-                    return new AdminGuiConfigurationType();
+                    return new CompiledUserProfile();
                 }
             }
         }
-        return adminGuiConfiguration;
+        return compiledUserProfile;
     }
 
     @Override
@@ -1322,7 +1325,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     private OperationResult executeResultScriptHook(OperationResult result) {
-        AdminGuiConfigurationType adminGuiConfiguration = getAdminGuiConfiguration();
+        CompiledUserProfile adminGuiConfiguration = getCompiledUserProfile();
         if (adminGuiConfiguration.getFeedbackMessagesHook() == null) {
             return result;
         }
@@ -1904,8 +1907,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     private void createAdditionalMenu(SideBarMenuItem menu) {
-        AdminGuiConfigurationType adminGuiConfig = loadAdminGuiConfiguration();
-        List<RichHyperlinkType> menuList = adminGuiConfig.getAdditionalMenuLink();
+        CompiledUserProfile userProfile = getCompiledUserProfile();
+        List<RichHyperlinkType> menuList = userProfile.getAdditionalMenuLink();
 
         Map<String, Class> urlClassMap = DescriptorLoader.getUrlClassMap();
         if (menuList != null && menuList.size() > 0 && urlClassMap != null && urlClassMap.size() > 0) {
@@ -2082,19 +2085,20 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     private void addUsersViewMenuItems(List<MenuItem> menu) {
-        List<GuiObjectListViewType> objectListViews = getObjectViewsList();
-        if (objectListViews == null) {
+        List<CompiledObjectCollectionView> objectViews = getCompiledUserProfile().findAllApplicableObjectCollectionViews(UserType.COMPLEX_TYPE);
+        if (objectViews == null) {
             return;
         }
-        objectListViews.forEach(objectListView -> {
+        objectViews.forEach(objectView -> {
             //objectlistView.getType() might be null - from documentation:
             // It may not be present in case that the type is defined in a referenced object colleciton.
 
-            if (objectListView.getType() != null && !QNameUtil.match(objectListView.getType(), UserType.COMPLEX_TYPE)) {
-                return;
-            }
-
-            ObjectReferenceType collectionRef = objectListView.getCollectionRef();
+        	CollectionSpecificationType collection = objectView.getCollection();
+        	if (collection == null) {
+        		return;
+        	}
+        	
+            ObjectReferenceType collectionRef = collection.getCollectionRef();
             if (collectionRef == null) {
                 return;
             }
@@ -2115,7 +2119,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             if (!QNameUtil.match(collectionValue.getType(), UserType.COMPLEX_TYPE)) {
                 return;
             }
-            DisplayType viewDisplayType = objectListView.getDisplay();
+            DisplayType viewDisplayType = objectView.getDisplay();
 
             PageParameters pageParameters = new PageParameters();
             pageParameters.add(PageUsersView.PARAMETER_OBJECT_COLLECTION_TYPE_OID, collectionValue.getOid());
@@ -2126,14 +2130,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             menu.add(userViewMenu);
 
         });
-    }
-
-    private List<GuiObjectListViewType> getObjectViewsList() {
-        GuiObjectListViewsType objectListViews = getAdminGuiConfiguration().getObjectLists();
-        if (objectListViews == null) {
-            return null;
-        }
-        return objectListViews.getObjectList();
     }
 
     public PrismObject<UserType> loadUserSelf() {
@@ -2163,27 +2159,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 return false;
             }
         };
-    }
-
-    @NotNull
-    public AdminGuiConfigurationType loadAdminGuiConfiguration() {
-        MidPointPrincipal user = SecurityUtils.getPrincipalUser();
-        AdminGuiConfigurationType adminGuiConfig = new AdminGuiConfigurationType();
-        if (user == null) {
-            return adminGuiConfig;
-        } else {
-            OperationResult result = new OperationResult(OPERATION_GET_SYSTEM_CONFIG);
-            Task task = createSimpleTask(OPERATION_GET_SYSTEM_CONFIG);
-            try {
-                adminGuiConfig = getModelInteractionService().getAdminGuiConfiguration(task, result);
-                LOGGER.trace("Admin GUI config: {}", adminGuiConfig);
-                result.recordSuccess();
-            } catch (Exception ex) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load system configuration", ex);
-                result.recordFatalError("Couldn't load system configuration.", ex);
-            }
-            return adminGuiConfig;
-        }
     }
 
     public DeploymentInformationType loadDeploymentInformationType() {
@@ -2318,8 +2293,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         MidPointUserProfilePrincipal principal = SecurityUtils.getPrincipalUser();
         if (user != null && user.asObjectable().getTimezone() != null) {
             timeZone = user.asObjectable().getTimezone();
-        } else if (principal != null && principal.getAdminGuiConfiguration() != null) {
-            timeZone = principal.getAdminGuiConfiguration().getDefaultTimezone();
+        } else if (principal != null && principal.getCompiledUserProfile() != null) {
+            timeZone = principal.getCompiledUserProfile().getDefaultTimezone();
         }
         if (timeZone != null) {
             WebSession.get().getClientInfo().getProperties().
@@ -2431,7 +2406,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     protected String determineDataLanguage() {
-        AdminGuiConfigurationType config = loadAdminGuiConfiguration();
+        CompiledUserProfile config = getCompiledUserProfile();
         if (config.getPreferredDataLanguage() != null) {
             if (PrismContext.LANG_JSON.equals(config.getPreferredDataLanguage())) {
                 return PrismContext.LANG_JSON;

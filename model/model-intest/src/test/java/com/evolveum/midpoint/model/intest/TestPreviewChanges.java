@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.intest;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
 import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
@@ -411,19 +412,18 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         OperationResult result = task.getResult();
 
 		// WHEN
-		AdminGuiConfigurationType adminGuiConfiguration = modelInteractionService.getAdminGuiConfiguration(task, result);
+		CompiledUserProfile compiledUserProfile = modelInteractionService.getCompiledUserProfile(task, result);
 
 		// THEN
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
-		assertAdminGuiConfigurations(adminGuiConfiguration, 0, 1, 3, 1, 0);
+		assertCompiledUserProfile(compiledUserProfile, 0, 1, 3, 1, 0);
 
-		RichHyperlinkType link = adminGuiConfiguration.getUserDashboardLink().get(0);
+		RichHyperlinkType link = compiledUserProfile.getUserDashboardLink().get(0);
 		assertEquals("Bad link label", "Foo", link.getLabel());
 		assertEquals("Bad link targetUrl", "/foo", link.getTargetUrl());
 
-		assertEquals("Bad timezone targetUrl", "Jamaica", adminGuiConfiguration.getDefaultTimezone());
+		assertEquals("Bad timezone targetUrl", "Jamaica", compiledUserProfile.getDefaultTimezone());
 	}
 
 	@Test

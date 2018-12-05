@@ -23,6 +23,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+import javax.xml.namespace.QName;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -30,6 +32,8 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
 import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
@@ -54,12 +58,10 @@ import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationTransformer;
 import com.evolveum.midpoint.security.api.DelegatorWithOtherPrivilegesLimitations;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -75,17 +77,23 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractObjectTypeCo
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationRoleManagementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardLayoutType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DistinctSearchOptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectColumnType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsPageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsSetType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewAdditionalPanelsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OtherPrivilegesLimitationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceFeatureType;
@@ -121,13 +129,20 @@ public class UserProfileCompiler {
     private RepositoryService repositoryService;
 	
 	public void compileUserProfile(MidPointUserProfilePrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, AuthorizationTransformer authorizationTransformer, Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		UserType userType = principal.getUser();
+		
+        principal.setApplicableSecurityPolicy(securityHelper.locateSecurityPolicy(principal.getUser().asPrismObject(), systemConfiguration, task, result));
 
 		Collection<Authorization> authorizations = principal.getAuthorities();
 		List<AdminGuiConfigurationType> adminGuiConfigurations = new ArrayList<>();
+		collect(adminGuiConfigurations, principal, systemConfiguration, authorizationTransformer, task, result);
+		
+		CompiledUserProfile compiledUserProfile = compileUserProfile(adminGuiConfigurations, systemConfiguration);
+		principal.setCompiledUserProfile(compiledUserProfile);
+	}
 
-        principal.setApplicableSecurityPolicy(securityHelper.locateSecurityPolicy(userType.asPrismObject(), systemConfiguration, task, result));
-        
+	private void collect(List<AdminGuiConfigurationType> adminGuiConfigurations, MidPointUserProfilePrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, AuthorizationTransformer authorizationTransformer, Task task, OperationResult result) throws SchemaException {
+		UserType userType = principal.getUser();
+		Collection<Authorization> authorizations = principal.getAuthorities();
 		if (!userType.getAssignment().isEmpty()) {
 			LensContext<UserType> lensContext = createAuthenticationLensContext(userType.asPrismObject(), systemConfiguration);
 			AssignmentEvaluator.Builder<UserType> builder =
@@ -201,7 +216,7 @@ public class UserProfileCompiler {
 			// config from the user object should go last (to be applied as the last one)
 			adminGuiConfigurations.add(userType.getAdminGuiConfiguration());
 		}
-        principal.setAdminGuiConfiguration(compileAdminGuiConfiguration(adminGuiConfigurations, systemConfiguration));
+
 	}
 
 	private LensContext<UserType> createAuthenticationLensContext(PrismObject<UserType> user, PrismObject<SystemConfigurationType> systemConfiguration) throws SchemaException {
@@ -244,7 +259,7 @@ public class UserProfileCompiler {
 		}
 	}
 	
-	public AdminGuiConfigurationType compileAdminGuiConfiguration(@NotNull List<AdminGuiConfigurationType> adminGuiConfigurations,
+	public CompiledUserProfile compileUserProfile(@NotNull List<AdminGuiConfigurationType> adminGuiConfigurations,
 			PrismObject<SystemConfigurationType> systemConfiguration) {
 
 		// if there's no admin config at all, return null (to preserve original behavior)
@@ -253,7 +268,7 @@ public class UserProfileCompiler {
 			return null;
 		}
 
-		AdminGuiConfigurationType composite = new AdminGuiConfigurationType();
+		CompiledUserProfile composite = new CompiledUserProfile();
 		if (systemConfiguration != null) {
 			applyAdminGuiConfiguration(composite, systemConfiguration.asObjectable().getAdminGuiConfiguration());
 		}
@@ -263,7 +278,7 @@ public class UserProfileCompiler {
 		return composite;
 	}
 
-	private void applyAdminGuiConfiguration(AdminGuiConfigurationType composite, AdminGuiConfigurationType adminGuiConfiguration) {
+	private void applyAdminGuiConfiguration(CompiledUserProfile composite, AdminGuiConfigurationType adminGuiConfiguration) {
 		if (adminGuiConfiguration == null) {
 			return;
 		}
@@ -281,15 +296,10 @@ public class UserProfileCompiler {
 		if (adminGuiConfiguration.getDefaultExportSettings() != null) {
 			composite.setDefaultExportSettings(adminGuiConfiguration.getDefaultExportSettings().clone());
 		}
-		if (adminGuiConfiguration.getObjectLists() != null) {
-			if (composite.getObjectLists() == null) {
-				composite.setObjectLists(adminGuiConfiguration.getObjectLists().clone());
-			} else {
-				for (GuiObjectListViewType objectList: adminGuiConfiguration.getObjectLists().getObjectList()) {
-					mergeList(composite.getObjectLists(), objectList.clone());
-				}
-			}
-		}
+		
+		applyViews(composite, adminGuiConfiguration.getObjectLists()); // Compatibility, deprecated
+		applyViews(composite, adminGuiConfiguration.getObjectCollectionViews());
+		
 		if (adminGuiConfiguration.getObjectForms() != null) {
 			if (composite.getObjectForms() == null) {
 				composite.setObjectForms(adminGuiConfiguration.getObjectForms().clone());
@@ -313,24 +323,14 @@ public class UserProfileCompiler {
 				composite.setUserDashboard(adminGuiConfiguration.getUserDashboard().clone());
 			} else {
 				for (DashboardWidgetType widget: adminGuiConfiguration.getUserDashboard().getWidget()) {
-					mergeWidget(composite.getUserDashboard(), widget);
+					mergeWidget(composite, widget);
 				}
 			}
 		}
 		for (UserInterfaceFeatureType feature: adminGuiConfiguration.getFeature()) {
-			mergeFeature(composite.getFeature(), feature.clone());
+			mergeFeature(composite, feature.clone());
 		}
-		if (composite.getObjectLists() != null && composite.getObjectLists().getObjectList() != null){
-			for (GuiObjectListViewType objectListType : composite.getObjectLists().getObjectList()){
-				if (objectListType.getColumn() != null) {
-//					objectListType.getColumn().clear();
-//					objectListType.getColumn().addAll(orderCustomColumns(objectListType.getColumn()));
-					List<GuiObjectColumnType> orderedList = orderCustomColumns(objectListType.getColumn());
-					objectListType.getColumn().clear();
-					objectListType.getColumn().addAll(orderedList);
-				}
-			}
-		}
+		
 
 		if (adminGuiConfiguration.getFeedbackMessagesHook() != null) {
 			composite.setFeedbackMessagesHook(adminGuiConfiguration.getFeedbackMessagesHook().clone());
@@ -353,6 +353,152 @@ public class UserProfileCompiler {
 			}
 		}
 	}
+
+	private void applyViews(CompiledUserProfile composite, GuiObjectListViewsType viewsType) {
+		if (viewsType == null) {
+			return;
+		}
+		
+		if (viewsType.getDefault() != null) {
+			if (composite.getDefaultObjectCollectionView() == null) {
+				composite.setDefaultObjectCollectionView(new CompiledObjectCollectionView());
+			}
+			compileView(composite.getDefaultObjectCollectionView(), viewsType.getDefault());
+		}
+		
+		for (GuiObjectListViewType objectCollectionView : viewsType.getObjectCollectionView()) {
+			applyView(composite, objectCollectionView);
+		}
+	}
+	
+	private void applyView(CompiledUserProfile composite, GuiObjectListViewType objectListViewType) {
+		CompiledObjectCollectionView existingView = findOrCreateMatchingView(composite, objectListViewType);
+		compileView(existingView, objectListViewType);
+	}
+	
+	
+	private CompiledObjectCollectionView findOrCreateMatchingView(CompiledUserProfile composite, GuiObjectListViewType objectListViewType) {
+		QName objectType = objectListViewType.getType();
+		String viewName = determineViewName(objectListViewType);
+		CompiledObjectCollectionView existingView = composite.findObjectCollectionView(objectType, viewName);
+		if (existingView == null) {
+			existingView = new CompiledObjectCollectionView(objectType, viewName);
+			composite.getObjectCollectionViews().add(existingView);
+		}
+		return existingView;
+	}
+
+	private String determineViewName(GuiObjectListViewType objectListViewType) {
+		String viewName = objectListViewType.getName();
+		if (viewName != null) {
+			return viewName;
+		}
+		CollectionSpecificationType collection = objectListViewType.getCollection();
+		if (collection == null) {
+			return objectListViewType.getType().getLocalPart();
+		}
+		ObjectReferenceType collectionRef = collection.getCollectionRef();
+		if (collectionRef == null) {
+			return objectListViewType.getType().getLocalPart();
+		}
+		return collectionRef.getOid();
+	}
+
+	private void compileView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
+		compileActions(existingView, objectListViewType);
+		compileAdditionalPanels(existingView, objectListViewType);
+		compileCollection(existingView, objectListViewType);
+		compileColumns(existingView, objectListViewType);
+		compileDisplay(existingView, objectListViewType);
+		compileDistinct(existingView, objectListViewType);
+		compileSorting(existingView, objectListViewType);
+		compileSearchBox(existingView, objectListViewType);
+	}
+	
+	private void compileActions(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
+		List<GuiActionType> newActions = objectListViewType.getAction();
+		for (GuiActionType newAction: newActions) {
+			// TODO: check for action duplication/override
+			existingView.getActions().add(newAction); // No need to clone, CompiledObjectCollectionView is not prism
+		}
+		
+	}
+	
+	private void compileAdditionalPanels(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
+		GuiObjectListViewAdditionalPanelsType newAdditionalPanels = objectListViewType.getAdditionalPanels();
+		if (newAdditionalPanels == null) {
+			return;
+		}
+		// TODO: later: merge additional panel definitions
+		existingView.setAdditionalPanels(newAdditionalPanels);
+	}
+
+	
+	private void compileCollection(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
+		CollectionSpecificationType collection = objectListViewType.getCollection();
+		if (collection == null) {
+			ObjectReferenceType collectionRef = objectListViewType.getCollectionRef();
+			if (collectionRef == null) {
+				return;
+			}
+			// Legacy, deprecated
+			collection = new CollectionSpecificationType();
+			collection.setCollectionRef(collectionRef.clone());
+		}
+		if (existingView.getCollection() != null) {
+			LOGGER.debug("Redefining collection in view {}", existingView.getViewName());
+		}
+		// TODO: resolve collection, apply filter
+		existingView.setCollection(collection);
+	}
+	
+	private void compileColumns(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
+		List<GuiObjectColumnType> newColumns = objectListViewType.getColumn();
+		if (newColumns == null || newColumns.isEmpty()) {
+			return;
+		}
+		// Not very efficient algorithm. But must do for now.
+		List<GuiObjectColumnType> existingColumns = existingView.getColumns();
+		existingColumns.addAll(newColumns);
+		List<GuiObjectColumnType> orderedList = orderCustomColumns(existingColumns);
+		existingColumns.clear();
+		existingColumns.addAll(orderedList);
+	}
+
+	private void compileDisplay(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
+		DisplayType newDisplay = objectListViewType.getDisplay();
+		if (newDisplay == null) {
+			return;
+		}
+		// TODO: later: merge display definitions (e.g. keep icon for user, but apply color change)
+		existingView.setDisplay(newDisplay);
+	}
+
+	private void compileDistinct(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
+		DistinctSearchOptionType newDistinct = objectListViewType.getDistinct();
+		if (newDistinct == null) {
+			return;
+		}
+		existingView.setDistinct(newDistinct);
+	}
+
+	private void compileSorting(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
+		Boolean newDisableSorting = objectListViewType.isDisableSorting();
+		if (newDisableSorting != null) {
+			existingView.setDisableSorting(newDisableSorting);
+		}
+	}
+	
+	private void compileSearchBox(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
+		SearchBoxConfigurationType newSearchBoxConfig = objectListViewType.getSearchBoxConfiguration();
+		if (newSearchBoxConfig == null) {
+			return;
+		}
+		// TODO: merge
+		existingView.setSearchBoxConfiguration(newSearchBoxConfig);
+	}
+
+
 
 	private void joinForms(ObjectFormsType objectForms, ObjectFormType newForm) {
 		objectForms.getObjectForm().removeIf(currentForm -> isTheSameObjectForm(currentForm, newForm));
@@ -400,18 +546,11 @@ public class UserProfileCompiler {
 		return false;
 	}
 
-	private void mergeList(GuiObjectListViewsType objectLists, GuiObjectListViewType newList) {
-		// We support only the default object lists now, so simply replace the existing definition with the
-		// latest definition. We will need a more sophisticated merging later.
-		objectLists.getObjectList().removeIf(currentList -> currentList.getType().equals(newList.getType()));
-		objectLists.getObjectList().add(newList.clone());
-	}
-
-	private void mergeWidget(DashboardLayoutType compositeDashboard, DashboardWidgetType newWidget) {
+	private void mergeWidget(CompiledUserProfile composite, DashboardWidgetType newWidget) {
 		String newWidgetIdentifier = newWidget.getIdentifier();
-		DashboardWidgetType compositeWidget = AdminGuiConfigTypeUtil.findWidget(compositeDashboard, newWidgetIdentifier);
+		DashboardWidgetType compositeWidget = composite.findUserDashboardWidget(newWidgetIdentifier);
 		if (compositeWidget == null) {
-			compositeDashboard.getWidget().add(newWidget.clone());
+			composite.getUserDashboard().getWidget().add(newWidget.clone());
 		} else {
 			mergeWidget(compositeWidget, newWidget);
 		}
@@ -422,11 +561,11 @@ public class UserProfileCompiler {
 		// merge other widget properties (in the future)
 	}
 
-	private void mergeFeature(List<UserInterfaceFeatureType> compositeFeatures, UserInterfaceFeatureType newFeature) {
+	private void mergeFeature(CompiledUserProfile composite, UserInterfaceFeatureType newFeature) {
 		String newIdentifier = newFeature.getIdentifier();
-		UserInterfaceFeatureType compositeFeature = AdminGuiConfigTypeUtil.findFeature(compositeFeatures, newIdentifier);
+		UserInterfaceFeatureType compositeFeature = composite.findFeature(newIdentifier);
 		if (compositeFeature == null) {
-			compositeFeatures.add(newFeature.clone());
+			composite.getFeatures().add(newFeature.clone());
 		} else {
 			mergeFeature(compositeFeature, newFeature, UserInterfaceElementVisibilityType.AUTOMATIC);
 		}
@@ -503,6 +642,19 @@ public class UserProfileCompiler {
 			temp.clear();
 		}
 		return customColumnsList;
+	}
+
+	public CompiledUserProfile getGlobalCompiledUserProfile(OperationResult parentResult) throws SchemaException {
+		PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(parentResult);
+		if (systemConfiguration == null) {
+			return null;
+		}
+		AdminGuiConfigurationType globalAdminGuiConfiguration = systemConfiguration.asObjectable().getAdminGuiConfiguration();
+		List<AdminGuiConfigurationType> adminGuiConfigurations = new ArrayList<>();
+		adminGuiConfigurations.add(globalAdminGuiConfiguration);
+		CompiledUserProfile compiledUserProfile = compileUserProfile(adminGuiConfigurations, systemConfiguration);
+		// TODO: cache compiled profile
+		return compiledUserProfile;
 	}
 
 

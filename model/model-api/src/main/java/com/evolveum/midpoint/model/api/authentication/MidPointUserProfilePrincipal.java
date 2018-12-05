@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,24 +37,30 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
- * @author semancik
- *
+ * Principal that extends simple MidPointPrincipal with user interface concepts (user profile).
+ * 
+ * @since 4.0
+ * @author Radovan Semancik
  */
 public class MidPointUserProfilePrincipal extends MidPointPrincipal {
 	private static final long serialVersionUID = 1L;
 	
-    private AdminGuiConfigurationType adminGuiConfiguration;
+	private CompiledUserProfile compiledUserProfile;	
 
     public MidPointUserProfilePrincipal(@NotNull UserType user) {
     	super(user);
     }
-
-	public AdminGuiConfigurationType getAdminGuiConfiguration() {
-		return adminGuiConfiguration;
+    
+    @NotNull
+	public CompiledUserProfile getCompiledUserProfile() {
+		if (compiledUserProfile == null) {
+			compiledUserProfile = new CompiledUserProfile();
+		}
+		return compiledUserProfile;
 	}
 
-	public void setAdminGuiConfiguration(AdminGuiConfigurationType adminGuiConfiguration) {
-		this.adminGuiConfiguration = adminGuiConfiguration;
+	public void setCompiledUserProfile(CompiledUserProfile compiledUserProfile) {
+		this.compiledUserProfile = compiledUserProfile;
 	}
 
 	/**
@@ -68,14 +74,15 @@ public class MidPointUserProfilePrincipal extends MidPointPrincipal {
 	
 	protected void copyValues(MidPointUserProfilePrincipal clone) {
 		super.copyValues(clone);
-		clone.adminGuiConfiguration = this.adminGuiConfiguration;
+		// No need to clone user profile here. It is essentially read-only.
+		clone.compiledUserProfile = this.compiledUserProfile;
 	}
 	
 	@Override
 	protected void debugDumpInternal(StringBuilder sb, int indent) {
 		super.debugDumpInternal(sb, indent);
-//		sb.append("\n");
-//		DebugUtil.debugDumpWithLabel(sb, "adminGuiConfiguration", adminGuiConfiguration, indent + 1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "compiledUserProfile", compiledUserProfile, indent + 1);
 	}
 
 }

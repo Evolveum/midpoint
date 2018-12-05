@@ -93,6 +93,7 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
+import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
 import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
 import com.evolveum.midpoint.model.api.authentication.UserProfileService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
@@ -4732,44 +4733,44 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 	}
 
-	protected AdminGuiConfigurationType assertAdminGuiConfigurations(MidPointPrincipal principal, int expectedMenuLinks,
+	protected CompiledUserProfile assertCompiledUserProfile(MidPointPrincipal principal, int expectedMenuLinks,
 			int expectedDashboardLinks, int expectedObjectLists, int expectedObjectForms, int expecteduserDashboardWidgets) {
 		if (!(principal instanceof MidPointUserProfilePrincipal)) {
 			fail("Expected MidPointUserProfilePrincipal, but got "+principal.getClass());
 		}
-		AdminGuiConfigurationType adminGuiConfiguration = ((MidPointUserProfilePrincipal)principal).getAdminGuiConfiguration();
-		display("Admin GUI config for "+principal.getUsername(), adminGuiConfiguration);
-		assertAdminGuiConfigurations(adminGuiConfiguration,
+		CompiledUserProfile compiledUserProfile = ((MidPointUserProfilePrincipal)principal).getCompiledUserProfile();
+		display("Compiled user profile for "+principal.getUsername(), compiledUserProfile);
+		assertCompiledUserProfile(compiledUserProfile,
 				expectedMenuLinks, expectedDashboardLinks, expectedObjectLists, expectedObjectForms, expecteduserDashboardWidgets);
-		return adminGuiConfiguration;
+		return compiledUserProfile;
 	}
 
-	protected void assertAdminGuiConfigurations(AdminGuiConfigurationType adminGuiConfiguration,
+	protected void assertCompiledUserProfile(CompiledUserProfile compiledUserProfile,
 			int expectedMenuLinks, int expectedDashboardLinks, int expectedObjectLists, int expectedObjectForms, int expecteduserDashboardWidgets) {
-		assertNotNull("No admin GUI configuration", adminGuiConfiguration);
+		assertNotNull("No admin GUI configuration", compiledUserProfile);
 		assertEquals("Wrong number of menu links in",
-				expectedMenuLinks, adminGuiConfiguration.getAdditionalMenuLink().size());
+				expectedMenuLinks, compiledUserProfile.getAdditionalMenuLink().size());
 		assertEquals("Wrong number of menu links in",
-				expectedDashboardLinks, adminGuiConfiguration.getUserDashboardLink().size());
-		if ( adminGuiConfiguration.getObjectLists() == null ) {
+				expectedDashboardLinks, compiledUserProfile.getUserDashboardLink().size());
+		if ( compiledUserProfile.getObjectCollectionViews() == null ) {
 			if (expectedObjectLists != 0) {
-				AssertJUnit.fail("Wrong number of object lists in user dashboard admin GUI configuration, expected "
+				AssertJUnit.fail("Wrong number of object views in user profile, expected "
 						+ expectedObjectLists + " but there was none");
 			}
 		} else {
 			assertEquals("Wrong number of object lists in admin GUI configuration",
-				expectedObjectLists, adminGuiConfiguration.getObjectLists().getObjectList().size());
+				expectedObjectLists, compiledUserProfile.getObjectCollectionViews().size());
 		}
 		assertEquals("Wrong number of object forms in admin GUI configuration",
-				expectedObjectForms, adminGuiConfiguration.getObjectForms().getObjectForm().size());
-		if ( adminGuiConfiguration.getUserDashboard() == null) {
+				expectedObjectForms, compiledUserProfile.getObjectForms().getObjectForm().size());
+		if ( compiledUserProfile.getUserDashboard() == null) {
 			if (expecteduserDashboardWidgets != 0) {
 				AssertJUnit.fail("Wrong number of widgets in user dashboard admin GUI configuration, expected "
 						+ expecteduserDashboardWidgets + " but there was none");
 			}
 		} else {
 			assertEquals("Wrong number of widgets in user dashboard admin GUI configuration",
-				expectedObjectForms, adminGuiConfiguration.getUserDashboard().getWidget().size());
+				expectedObjectForms, compiledUserProfile.getUserDashboard().getWidget().size());
 		}
 	}
 

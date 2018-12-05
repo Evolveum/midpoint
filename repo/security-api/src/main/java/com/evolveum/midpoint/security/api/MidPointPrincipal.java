@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,8 +35,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
- * @author semancik
- *
+ * Simple midPoint principal. This principal should contain only the concepts that are
+ * essential for midPoint core to work. It should not contain user interface concepts
+ * (e.g. adminGuiConfig). For that see MidPointUserProfilePrincipal.
+ * 
+ * @author Radovan Semancik
  */
 public class MidPointPrincipal implements UserDetails,  DebugDumpable, ShortDumpable {
 	private static final long serialVersionUID = 8299738301872077768L;

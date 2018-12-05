@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016-2017 Evolveum
+ * Copyright (c) 2016-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,9 @@
 package com.evolveum.midpoint.web.component;
 
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
+import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
 import com.evolveum.midpoint.web.model.ContainerableFromPrismObjectModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsPageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SummaryPanelSpecificationType;
@@ -30,11 +29,11 @@ public abstract class ObjectSummaryPanel<O extends ObjectType> extends AbstractS
 	private static final long serialVersionUID = -3755521482914447912L;
 
 	public ObjectSummaryPanel(String id, Class<O> type, final IModel<PrismObject<O>> model, ModelServiceLocator serviceLocator) {
-		super(id, new ContainerableFromPrismObjectModel<>(model), serviceLocator, determineConfig(type, serviceLocator.getAdminGuiConfiguration()));
+		super(id, new ContainerableFromPrismObjectModel<>(model), serviceLocator, determineConfig(type, serviceLocator.getCompiledUserProfile()));
 	}
 
-	private static <O extends ObjectType> SummaryPanelSpecificationType determineConfig(Class<O> type, AdminGuiConfigurationType adminGuiConfig) {
-		GuiObjectDetailsPageType guiObjectDetailsType = AdminGuiConfigTypeUtil.findObjectConfiguration(type, adminGuiConfig);
+	private static <O extends ObjectType> SummaryPanelSpecificationType determineConfig(Class<O> type, CompiledUserProfile compiledUserProfile) {
+		GuiObjectDetailsPageType guiObjectDetailsType = compiledUserProfile.findObjectDetailsConfiguration(type);
 		if (guiObjectDetailsType == null) {
 			return null;
 		}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import java.util.*;
 import com.evolveum.midpoint.gui.api.PredefinedDashboardWidgetId;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
-import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.wf.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -42,6 +41,7 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -120,10 +120,10 @@ public class PageSelfDashboard extends PageSelf {
     private static final int MAX_REQUESTS = 1000;
 
     private final Model<PrismObject<UserType>> principalModel = new Model<>();
-    private AdminGuiConfigurationType adminGuiConfig;
+    private CompiledUserProfile compiledUserProfile;
 
     public PageSelfDashboard() {
-        adminGuiConfig = getPrincipal().getAdminGuiConfiguration();
+        compiledUserProfile = getPrincipal().getCompiledUserProfile();
         principalModel.setObject(loadUser());
         setTimeZone(PageSelfDashboard.this);
         initLayout();
@@ -358,7 +358,7 @@ public class PageSelfDashboard extends PageSelf {
         if (user == null) {
             return new ArrayList<>();
         } else {
-            return ((PageBase) getPage()).loadAdminGuiConfiguration().getUserDashboardLink();
+            return ((PageBase) getPage()).getCompiledUserProfile().getUserDashboardLink();
         }
     }
 
@@ -619,15 +619,14 @@ public class PageSelfDashboard extends PageSelf {
     }
 
 	private UserInterfaceElementVisibilityType getComponentVisibility(PredefinedDashboardWidgetId componentId){
-        if (adminGuiConfig == null || adminGuiConfig.getUserDashboard() == null) {
+        if (compiledUserProfile == null || compiledUserProfile.getUserDashboard() == null) {
             return UserInterfaceElementVisibilityType.AUTOMATIC;
         }
-        List<DashboardWidgetType> widgetsList = adminGuiConfig.getUserDashboard().getWidget();
+        List<DashboardWidgetType> widgetsList = compiledUserProfile.getUserDashboard().getWidget();
         if (widgetsList == null || widgetsList.size() == 0){
             return UserInterfaceElementVisibilityType.VACANT;
         }
-        DashboardWidgetType widget = AdminGuiConfigTypeUtil.findWidget(adminGuiConfig.getUserDashboard(),
-                componentId.getUri());
+        DashboardWidgetType widget = compiledUserProfile.findUserDashboardWidget(componentId.getUri());
         if (widget == null || widget.getVisibility() == null){
             return UserInterfaceElementVisibilityType.HIDDEN;
         } else {

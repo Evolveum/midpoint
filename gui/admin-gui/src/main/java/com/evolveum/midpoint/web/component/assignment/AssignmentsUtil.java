@@ -26,6 +26,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerValueWrapperModel;
+import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -413,7 +414,7 @@ public class AssignmentsUtil {
     public static int loadAssignmentsLimit(OperationResult result, PageBase pageBase){
         int assignmentsLimit = -1;
         try {
-            AdminGuiConfigurationType adminGuiConfig = pageBase.getModelInteractionService().getAdminGuiConfiguration(
+            CompiledUserProfile adminGuiConfig = pageBase.getModelInteractionService().getCompiledUserProfile(
                     pageBase.createSimpleTask(result.getOperation()), result);//pageBase.loadUserSelf().asObjectable().getAdminGuiConfiguration();
             if (adminGuiConfig != null && adminGuiConfig.getRoleManagement() != null){
                 assignmentsLimit = adminGuiConfig.getRoleManagement().getAssignmentApprovalRequestLimit();

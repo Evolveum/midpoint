@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.api;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.util.MergeDeltas;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
@@ -33,6 +34,7 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteCredentialResetRequestType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteCredentialResetResponseType;
@@ -52,12 +54,12 @@ import java.util.Map;
  * services. It should only provide access to read-only data or provide a temporary (throw-away) previews
  * of data. It should not change the state of IDM repository, resources or tasks.
  *
- * UNSTABLE: This is likely to change
- * PRIVATE: This interface is not supposed to be used outside of midPoint
+ * EXPERIMENTAL/UNSTABLE: This is likely to change at any moment without a notice. Depend on this interface on your own risk.
  *
  * @author Radovan Semancik
  *
  */
+@Experimental
 public interface ModelInteractionService {
 
 	String CLASS_NAME_WITH_DOT = ModelInteractionService.class.getName() + ".";
@@ -246,14 +248,14 @@ public interface ModelInteractionService {
     CredentialsPolicyType getCredentialsPolicy(PrismObject<UserType> user, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
     /**
-     * Returns currently applicable admin GUI configuration. The implementation will do all steps necessary to construct
-     * applicable configuration, e.g. reading from system configuration, merging with user preferences, etc.
+     * Returns currently applicable user profile, compiled for efficient use in the user interface.
+     * Use profile contains configuration, customization and user preferences for the user interface.
      * Note: This operation bypasses the authorizations. It will always return the value regardless whether
      * the current user is authorized to read the underlying objects or not. However, it will always return only
      * values applicable for current user, therefore the authorization might be considered to be implicit in this case.
      */
     @NotNull
-    AdminGuiConfigurationType getAdminGuiConfiguration(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+    CompiledUserProfile getCompiledUserProfile(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
     SystemConfigurationType getSystemConfiguration(OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 

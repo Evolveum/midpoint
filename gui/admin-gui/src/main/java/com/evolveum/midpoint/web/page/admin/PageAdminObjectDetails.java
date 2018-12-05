@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.component.progress.ProgressPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -38,6 +37,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -703,9 +703,9 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 	public List<ObjectFormType> getObjectFormTypes() {
 		Task task = createSimpleTask(OPERATION_LOAD_GUI_CONFIGURATION);
 		OperationResult result = task.getResult();
-		AdminGuiConfigurationType adminGuiConfiguration;
+		CompiledUserProfile adminGuiConfiguration;
 		try {
-			adminGuiConfiguration = getModelInteractionService().getAdminGuiConfiguration(task, result);
+			adminGuiConfiguration = getModelInteractionService().getCompiledUserProfile(task, result);
 		} catch (ObjectNotFoundException | SchemaException e) {
 			throw new SystemException("Cannot load GUI configuration: "+e.getMessage(), e);
 		}
@@ -739,8 +739,8 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		return saveOnConfigure;
 	}
 
-	public boolean isForcedPreview(){
-		GuiObjectDetailsPageType objectDetails = AdminGuiConfigTypeUtil.findObjectConfiguration(getCompileTimeClass(), getAdminGuiConfiguration());
+	public boolean isForcedPreview() {
+		GuiObjectDetailsPageType objectDetails = getCompiledUserProfile().findObjectDetailsConfiguration(getCompileTimeClass());
 		return objectDetails != null && DetailsPageSaveMethodType.FORCED_PREVIEW.equals(objectDetails.getSaveMethod());
 	}
 
