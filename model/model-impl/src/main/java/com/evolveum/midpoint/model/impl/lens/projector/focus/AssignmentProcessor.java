@@ -434,7 +434,7 @@ public class AssignmentProcessor {
 				public void after(ResourceShadowDiscriminator rat, String desc,
 						DeltaMapTriple<ResourceShadowDiscriminator, ConstructionPack<Construction<F>>> constructionMapTriple) {
 					PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> projectionConstructionDeltaSetTriple =
-							new PrismValueDeltaSetTripleImpl<>(
+							prismContext.deltaFactory().createPrismValueDeltaSetTriple(
 									getConstructions(constructionMapTriple.getZeroMap().get(rat), true),
 									getConstructions(constructionMapTriple.getPlusMap().get(rat), true),
 									getConstructions(constructionMapTriple.getMinusMap().get(rat), false));
@@ -974,7 +974,8 @@ public class AssignmentProcessor {
 			for (MappingImpl<V,D> mapping: focusMappings) {
 
 				ItemPath itemPath = mapping.getOutputPath();
-				DeltaSetTriple<ItemValueWithOrigin<V,D>> outputTriple = ItemValueWithOrigin.createOutputTriple(mapping);
+				DeltaSetTriple<ItemValueWithOrigin<V,D>> outputTriple = ItemValueWithOrigin.createOutputTriple(mapping,
+						prismContext);
 				if (outputTriple == null) {
 					continue;
 				}

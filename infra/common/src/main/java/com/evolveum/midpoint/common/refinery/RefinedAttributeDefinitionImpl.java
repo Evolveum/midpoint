@@ -546,9 +546,9 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
 
     @NotNull
 	@Override
-	public RefinedAttributeDefinition<T> clone() {
+	public RefinedAttributeDefinitionImpl<T> clone() {
     	ResourceAttributeDefinition<T> attrDefClone = this.attributeDefinition.clone();
-		RefinedAttributeDefinitionImpl<T> clone = new RefinedAttributeDefinitionImpl<>(attrDefClone, prismContext);
+		RefinedAttributeDefinitionImpl<T> clone = new RefinedAttributeDefinitionImpl<>(attrDefClone, getPrismContext());
 		copyDefinitionData(clone);
 		return clone;
 	}
@@ -607,7 +607,7 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
      * Return a human readable name of this class suitable for logs.
      */
     @Override
-    protected String getDebugDumpClassName() {
+    public String getDebugDumpClassName() {
         return "rRAD";
     }
 

@@ -744,7 +744,7 @@ public class ConsolidationProcessor {
 					}
 					@Override
 					public PrismValueDeltaSetTriple<PrismPropertyValue<QName>> getOutputTriple() {
-						PrismValueDeltaSetTriple<PrismPropertyValue<QName>> triple = new PrismValueDeltaSetTripleImpl<>();
+						PrismValueDeltaSetTriple<PrismPropertyValue<QName>> triple = prismContext.deltaFactory().createPrismValueDeltaSetTriple();
 						if (construction.getAuxiliaryObjectClassDefinitions() != null) {
 							for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition: construction.getAuxiliaryObjectClassDefinitions()) {
 								triple.addToZeroSet(prismContext.itemFactory().createPrismPropertyValue(auxiliaryObjectClassDefinition.getTypeName()));
@@ -994,7 +994,7 @@ public class ConsolidationProcessor {
 			Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedMap, QName itemName) {
 		DeltaSetTriple<ItemValueWithOrigin<V,D>> triple = squeezedMap.get(itemName);
 		if (triple == null) {
-			triple = new DeltaSetTripleImpl<>();
+			triple = prismContext.deltaFactory().createDeltaSetTriple();
 			squeezedMap.put(itemName, triple);
 		}
 		return triple;

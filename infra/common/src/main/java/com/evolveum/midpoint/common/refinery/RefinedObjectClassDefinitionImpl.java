@@ -1367,6 +1367,16 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 	}
 
 	@Override
+	public void extendDumpHeader(StringBuilder sb) {
+		originalObjectClassDefinition.extendDumpHeader(sb);
+	}
+
+	@Override
+	public void extendDumpDefinition(StringBuilder sb, ItemDefinition<?> def) {
+		originalObjectClassDefinition.extendDumpDefinition(sb, def);
+	}
+
+	@Override
 	public boolean isShared() {
 		return shared;
 	}

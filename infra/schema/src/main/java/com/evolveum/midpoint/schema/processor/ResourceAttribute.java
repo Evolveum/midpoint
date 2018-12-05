@@ -18,9 +18,8 @@ package com.evolveum.midpoint.schema.processor;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.CloneStrategy;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismPropertyImpl;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.extensions.AbstractDelegatedPrismProperty;
 
 /**
  * Resource Object Attribute is a Property of Resource Object. All that applies
@@ -36,24 +35,18 @@ import com.evolveum.midpoint.prism.PrismPropertyImpl;
  *
  * @author Radovan Semancik
  */
-public class ResourceAttribute<T> extends PrismPropertyImpl<T> {
+public class ResourceAttribute<T> extends AbstractDelegatedPrismProperty<T> {
     private static final long serialVersionUID = -6149194956029296486L;
 
     public ResourceAttribute(QName name, ResourceAttributeDefinition<T> definition, PrismContext prismContext) {
         super(name, definition, prismContext);
     }
 
-//    /**
-//     * The constructors should be used only occasionally (if used at all).
-//     * Use the factory methods in the ResourceObjectDefintion instead.
-//     *
-//     * @param name attribute name (element name)
-//     */
-//    public ResourceObjectAttribute(QName name) {
-//        super(name);
-//    }
+	public ResourceAttribute(PrismProperty<T> inner) {
+		super(inner);
+	}
 
-    public ResourceAttributeDefinition<T> getDefinition() {
+	public ResourceAttributeDefinition<T> getDefinition() {
         return (ResourceAttributeDefinition<T>) super.getDefinition();
     }
 
@@ -88,20 +81,13 @@ public class ResourceAttribute<T> extends PrismPropertyImpl<T> {
     
     @Override
 	public ResourceAttribute<T> cloneComplex(CloneStrategy strategy) {
-    	ResourceAttribute<T> clone = new ResourceAttribute<>(getElementName(), getDefinition(), getPrismContext());
-    	copyValues(strategy, clone);
-    	return clone;
-	}
-
-	protected void copyValues(CloneStrategy strategy, ResourceAttribute<T> clone) {
-		super.copyValues(strategy, clone);
-		// Nothing to copy
+    	return new ResourceAttribute<>(inner.cloneComplex(strategy));
 	}
 
 	/**
      * Return a human readable name of this class suitable for logs.
      */
-    protected String getDebugDumpClassName() {
+    public String getDebugDumpClassName() {
         return "RA";
     }
 

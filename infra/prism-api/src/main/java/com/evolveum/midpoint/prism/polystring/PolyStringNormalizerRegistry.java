@@ -13,25 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.evolveum.midpoint.prism.polystring;
 
-import com.evolveum.midpoint.prism.PrismConstants;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 
 /**
- * @author semancik
  *
  */
-public class PassThroughPolyStringNormalizer extends AbstractPolyStringNormalizer {
+public interface PolyStringNormalizerRegistry {
 
-	@Override
-	protected String normalizeCore(String s) {
-		return s;
-	}
-
-	@Override
-	public QName getName() {
-		return PrismConstants.PASSTHROUGH_POLY_STRING_NORMALIZER;
-	}
+	@NotNull
+	PolyStringNormalizer getNormalizer(@Nullable QName name);
 }

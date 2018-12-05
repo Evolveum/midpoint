@@ -41,6 +41,7 @@ import javax.net.ssl.TrustManager;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.schema.MutablePrismSchema;
 import com.evolveum.midpoint.util.MiscUtil;
 import org.apache.commons.configuration.Configuration;
 import org.identityconnectors.common.Version;
@@ -416,17 +417,17 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 			return null;
 		}
 
-		PrismSchema connectorSchema = new PrismSchemaImpl(connectorType.getNamespace(), prismContext);
+		MutablePrismSchema connectorSchema = prismContext.schemaFactory().createPrismSchema(connectorType.getNamespace());
 
 		// Create configuration type - the type used by the "configuration"
 		// element
-		MutablePrismContainerDefinition<?> configurationContainerDef = ((PrismSchemaImpl) connectorSchema).createPropertyContainerDefinition(
+		MutablePrismContainerDefinition<?> configurationContainerDef = connectorSchema.createPropertyContainerDefinition(
 				ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart(),
 				SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_TYPE_LOCAL_NAME);
 
 		// element with "ConfigurationPropertiesType" - the dynamic part of
 		// configuration schema
-		ComplexTypeDefinition configPropertiesTypeDef = ((PrismSchemaImpl) connectorSchema).createComplexTypeDefinition(new QName(
+		ComplexTypeDefinition configPropertiesTypeDef = connectorSchema.createComplexTypeDefinition(new QName(
 				connectorType.getNamespace(),
 				ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME));
 

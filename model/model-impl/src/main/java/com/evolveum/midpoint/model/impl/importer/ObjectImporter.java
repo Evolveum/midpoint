@@ -30,8 +30,8 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.schema.MutablePrismSchema;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.prism.schema.PrismSchemaImpl;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
@@ -468,14 +468,15 @@ public class ObjectImporter {
             }
 
             Element connectorSchemaElement = ConnectorTypeUtil.getConnectorXsdSchema(connector);
-            PrismSchema connectorSchema;
+            MutablePrismSchema connectorSchema;
             if (connectorSchemaElement == null) {
             	// No schema to validate with
             	result.recordSuccessIfUnknown();
             	return;
             }
 			try {
-				connectorSchema = PrismSchemaImpl.parse(connectorSchemaElement, true, "schema for " + connector, prismContext);
+				connectorSchema = prismContext.schemaFactory().createPrismSchema();
+				connectorSchema.parseThis(connectorSchemaElement, true, "schema for " + connector, prismContext);
 			} catch (SchemaException e) {
 				result.recordFatalError("Error parsing connector schema for " + connector + ": "+e.getMessage(), e);
 				return;
@@ -532,7 +533,8 @@ public class ObjectImporter {
         }
 
         try {
-            PrismSchemaImpl.parse(xsdElement, true, schemaName, prismContext);
+        	prismContext.schemaFactory().createPrismSchema()
+                    .parseThis(xsdElement, true, schemaName, prismContext);
         } catch (SchemaException e) {
             result.recordFatalError("Error during " + schemaName + " schema integrity check: " + e.getMessage(), e);
             return;

@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.delta.ContainerDeltaImpl;
 import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.util.DefinitionUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -269,7 +270,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
     	if (isAbstract()) {
 			throw new SchemaException("Cannot instantiate abstract definition "+this);
 		}
-        elementName = addNamespaceIfApplicable(elementName);
+        elementName = DefinitionUtil.addNamespaceIfApplicable(elementName, this.name);
         return new PrismContainerImpl<>(elementName, this, prismContext);
     }
 
@@ -527,7 +528,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
      * Return a human readable name of this class suitable for logs.
      */
     @Override
-    protected String getDebugDumpClassName() {
+    public String getDebugDumpClassName() {
         return "PCD";
     }
 

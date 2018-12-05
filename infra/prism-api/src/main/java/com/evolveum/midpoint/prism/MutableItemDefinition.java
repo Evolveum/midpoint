@@ -43,4 +43,14 @@ public interface MutableItemDefinition<I extends Item> extends ItemDefinition<I>
 	void setName(QName name);
 
 	void setReadOnly();
+
+	void setDeprecatedSince(String value);
+
+	void setPlannedRemoval(String value);
+
+	void setElaborate(boolean value);
+
+	void setHeterogeneousListItem(boolean value);
+
+	void setSubstitutionHead(QName value);
 }

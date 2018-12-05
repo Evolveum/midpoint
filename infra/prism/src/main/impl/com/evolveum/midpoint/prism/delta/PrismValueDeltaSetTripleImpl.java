@@ -39,16 +39,7 @@ public class PrismValueDeltaSetTripleImpl<V extends PrismValue> extends DeltaSet
     	super(zeroSet, plusSet, minusSet);
     }
 
-    /**
-     * Compares two (unordered) collections and creates a triple describing the differences.
-     */
-    public static <V extends PrismValue> PrismValueDeltaSetTriple<V> diffPrismValueDeltaSetTriple(Collection<V> valuesOld, Collection<V> valuesNew) {
-    	PrismValueDeltaSetTriple<V> triple = new PrismValueDeltaSetTripleImpl<>();
-        DeltaSetTripleUtil.diff(valuesOld, valuesNew, triple);
-        return triple;
-    }
-
-    /**
+	/**
      * Distributes a value in this triple similar to the placement of other value in the other triple.
      * E.g. if the value "otherMember" is in the zero set in "otherTriple" then "myMember" will be placed
      * in zero set in this triple.

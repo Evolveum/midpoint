@@ -57,12 +57,6 @@ public class ReferenceDeltaFactoryImpl implements DeltaFactory.Reference {
 	}
 
 	@Override
-	public ReferenceDelta createModificationReplace(QName name, PrismObjectDefinition<? extends Objectable> objectDefinition,
-			PrismReferenceValue referenceValue) {
-		return ReferenceDeltaImpl.createModificationReplace(ItemName.fromQName(name), objectDefinition, referenceValue);
-	}
-
-	@Override
 	public ReferenceDelta createModificationReplace(ItemPath path, PrismObjectDefinition<?> objectDefinition, String oid) {
 		return ReferenceDeltaImpl.createModificationReplace(path, objectDefinition, oid);
 	}

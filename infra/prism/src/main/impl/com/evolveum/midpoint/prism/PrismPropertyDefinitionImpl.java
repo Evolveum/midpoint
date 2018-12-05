@@ -23,6 +23,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.DefinitionUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 
 import org.jetbrains.annotations.NotNull;
@@ -129,6 +130,7 @@ public class PrismPropertyDefinitionImpl<T> extends ItemDefinitionImpl<PrismProp
 		return matchingRuleQName;
 	}
 
+	@Override
 	public void setMatchingRuleQName(QName matchingRuleQName) {
 		this.matchingRuleQName = matchingRuleQName;
 	}
@@ -142,7 +144,7 @@ public class PrismPropertyDefinitionImpl<T> extends ItemDefinitionImpl<PrismProp
     @NotNull
 	@Override
     public PrismProperty<T> instantiate(QName name) {
-        name = addNamespaceIfApplicable(name);
+        name = DefinitionUtil.addNamespaceIfApplicable(name, this.name);
         return new PrismPropertyImpl<>(name, this, prismContext);
     }
 
@@ -173,7 +175,7 @@ public class PrismPropertyDefinitionImpl<T> extends ItemDefinitionImpl<PrismProp
 
 	@NotNull
 	@Override
-	public PrismPropertyDefinition<T> clone() {
+	public PrismPropertyDefinitionImpl<T> clone() {
 		PrismPropertyDefinitionImpl<T> clone = new PrismPropertyDefinitionImpl<>(getName(), getTypeName(), getPrismContext());
 		copyDefinitionData(clone);
 		return clone;
@@ -188,7 +190,7 @@ public class PrismPropertyDefinitionImpl<T> extends ItemDefinitionImpl<PrismProp
 	}
 
     @Override
-	protected void extendToString(StringBuilder sb) {
+    public void extendToString(StringBuilder sb) {
 		super.extendToString(sb);
 		if (indexed != null && indexed) {
 			sb.append(",I");
@@ -245,7 +247,7 @@ public class PrismPropertyDefinitionImpl<T> extends ItemDefinitionImpl<PrismProp
      * Return a human readable name of this class suitable for logs.
      */
     @Override
-    protected String getDebugDumpClassName() {
+    public String getDebugDumpClassName() {
         return "PPD";
     }
 

@@ -485,16 +485,4 @@ public class DeltaSetTripleImpl<T> implements DeltaSetTriple<T> {
 		sb.append(item);
 	}
 
-	public static <T> DeltaSetTriple<? extends T> find(Map<? extends ItemPath, DeltaSetTriple<? extends T>> tripleMap, ItemPath path) {
-		List<Map.Entry<? extends ItemPath, DeltaSetTriple<? extends T>>> matching = tripleMap.entrySet().stream()
-				.filter(e -> path.equivalent(e.getKey()))
-				.collect(Collectors.toList());
-		if (matching.isEmpty()) {
-			return null;
-		} else if (matching.size() == 1) {
-			return matching.get(0).getValue();
-		} else {
-			throw new IllegalStateException("Multiple matching entries for key '" + path + "' in " + tripleMap);
-		}
-	}
 }

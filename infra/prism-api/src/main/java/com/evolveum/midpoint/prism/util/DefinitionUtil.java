@@ -16,6 +16,11 @@
 
 package com.evolveum.midpoint.prism.util;
 
+import com.evolveum.midpoint.util.QNameUtil;
+import org.apache.commons.lang.StringUtils;
+
+import javax.xml.namespace.QName;
+
 /**
  *
  */
@@ -31,4 +36,14 @@ public class DefinitionUtil {
 		}
 		return Integer.parseInt(stringMultiplicity);
 	}
+
+	// add namespace from the definition if it's safe to do so
+    public static QName addNamespaceIfApplicable(QName name, QName definitionName) {
+        if (StringUtils.isEmpty(name.getNamespaceURI())) {
+            if (QNameUtil.match(name, definitionName)) {
+                return definitionName;
+            }
+        }
+        return name;
+    }
 }

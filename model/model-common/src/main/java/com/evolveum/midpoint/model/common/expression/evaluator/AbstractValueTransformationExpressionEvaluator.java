@@ -56,16 +56,19 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 
 	protected SecurityContextManager securityContextManager;
     protected LocalizationService localizationService;
+	protected PrismContext prismContext;
 
 	private E expressionEvaluatorType;
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractValueTransformationExpressionEvaluator.class);
 
     protected AbstractValueTransformationExpressionEvaluator(E expressionEvaluatorType,
-		    SecurityContextManager securityContextManager, LocalizationService localizationService) {
+		    SecurityContextManager securityContextManager, LocalizationService localizationService,
+		    PrismContext prismContext) {
     	this.expressionEvaluatorType = expressionEvaluatorType;
         this.securityContextManager = securityContextManager;
         this.localizationService = localizationService;
+        this.prismContext = prismContext;
     }
 
     public E getExpressionEvaluatorType() {
@@ -127,7 +130,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 			return sourceTriples;
 		}
 		for (Source<?,?> source: sources) {
-			SourceTriple<?,?> sourceTriple = new SourceTriple<>(source);
+			SourceTriple<?,?> sourceTriple = new SourceTriple<>(source, prismContext);
 			ItemDelta<?,?> delta = source.getDelta();
 			if (delta != null) {
 				sourceTriple.merge((DeltaSetTriple) delta.toDeltaSetTriple((Item) source.getItemOld()));
@@ -186,12 +189,12 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 				outputSetNew = evaluateScriptExpression(sources, variables, contextDescription, true, params, task, result);
 			}
 
-			outputTriple = PrismValueDeltaSetTripleImpl.diffPrismValueDeltaSetTriple(outputSetOld, outputSetNew);
+			outputTriple = DeltaSetTripleUtil.diffPrismValueDeltaSetTriple(outputSetOld, outputSetNew, prismContext);
 
 		} else {
 			// No need to execute twice. There is no change.
 			Collection<V> outputSetNew = evaluateScriptExpression(sources, variables, contextDescription, true, params, task, result);
-			outputTriple = new PrismValueDeltaSetTripleImpl<>();
+			outputTriple = prismContext.deltaFactory().createPrismValueDeltaSetTriple();
 			outputTriple.addAllToZeroSet(outputSetNew);
 		}
 
@@ -332,7 +335,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 			valueCollections.add(values);
 		}
 
-		final PrismValueDeltaSetTriple<V> outputTriple = new PrismValueDeltaSetTripleImpl<>();
+		final PrismValueDeltaSetTriple<V> outputTriple = prismContext.deltaFactory().createPrismValueDeltaSetTriple();
 
 		Expression<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> conditionExpression;
 		if (expressionEvaluatorType.getCondition() != null) {

@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
+import java.util.Collection;
 
 /**
  *
@@ -68,8 +69,23 @@ public class DeltaFactoryImpl implements DeltaFactory {
 	}
 
 	@Override
+	public <V> DeltaSetTriple<V> createDeltaSetTriple(Collection<V> zeroSet, Collection<V> plusSet, Collection<V> minusSet) {
+		return new DeltaSetTripleImpl<>(zeroSet, plusSet, minusSet);
+	}
+
+	@Override
 	public <V extends PrismValue> PrismValueDeltaSetTriple<V> createPrismValueDeltaSetTriple() {
 		return new PrismValueDeltaSetTripleImpl<>();
 	}
 
+	@Override
+	public <V extends PrismValue> PrismValueDeltaSetTriple<V> createPrismValueDeltaSetTriple(Collection<V> zeroSet,
+			Collection<V> plusSet, Collection<V> minusSet) {
+		return new PrismValueDeltaSetTripleImpl<>(zeroSet, plusSet, minusSet);
+	}
+
+	@Override
+	public <K, V> DeltaMapTriple<K, V> createDeltaMapTriple() {
+		return new DeltaMapTripleImpl<>();
+	}
 }

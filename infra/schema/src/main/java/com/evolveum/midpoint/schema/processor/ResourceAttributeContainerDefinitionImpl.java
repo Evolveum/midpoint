@@ -25,6 +25,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.util.DefinitionUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -292,7 +293,7 @@ public class ResourceAttributeContainerDefinitionImpl extends PrismContainerDefi
 	@NotNull
 	@Override
 	public ResourceAttributeContainer instantiate(QName name) {
-        name = addNamespaceIfApplicable(name);
+        name = DefinitionUtil.addNamespaceIfApplicable(name, this.name);
 		return new ResourceAttributeContainer(name, this, prismContext);
 	}
 

@@ -417,7 +417,7 @@ public class PrismObjectImpl<O extends Objectable> extends PrismContainerImpl<O>
 	 * Return a human readable name of this class suitable for logs.
 	 */
 	@Override
-	protected String getDebugDumpClassName() {
+	public String getDebugDumpClassName() {
 		return "PO";
 	}
 

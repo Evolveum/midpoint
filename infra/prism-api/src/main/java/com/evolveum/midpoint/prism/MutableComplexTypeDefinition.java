@@ -17,14 +17,43 @@
 package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.path.ItemName;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
+import java.util.List;
 
 /**
  *
  */
-public interface MutableComplexTypeDefinition extends ComplexTypeDefinition, MutableDefinition {
+public interface MutableComplexTypeDefinition extends ComplexTypeDefinition, MutableTypeDefinition {
+
+	void add(ItemDefinition<?> definition);
 
 	MutablePrismPropertyDefinition<?> createPropertyDefinition(QName name, QName typeName);
 	MutablePrismPropertyDefinition<?> createPropertyDefinition(String name, QName typeName);
+
+	@NotNull
+	MutableComplexTypeDefinition clone();
+
+	void setExtensionForType(QName type);
+
+	void setAbstract(boolean value);
+
+	void setSuperType(QName superType);
+
+	void setObjectMarker(boolean value);
+
+	void setContainerMarker(boolean value);
+
+	void setReferenceMarker(boolean value);
+
+	void setDefaultNamespace(String namespace);
+
+	void setIgnoredNamespaces(@NotNull List<String> ignoredNamespaces);
+
+	void setXsdAnyMarker(boolean value);
+
+	void setListMarker(boolean value);
+
+	void setCompileTimeClass(Class<?> compileTimeClass);
 }

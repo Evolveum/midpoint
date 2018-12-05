@@ -20,26 +20,26 @@ import java.util.Collection;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTripleImpl;
+import com.evolveum.midpoint.prism.extensions.AbstractDelegatedPrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
- * todo prism-api
  */
-public class SourceTriple<V extends PrismValue,D extends ItemDefinition> extends PrismValueDeltaSetTripleImpl<V> {
+public class SourceTriple<V extends PrismValue,D extends ItemDefinition> extends AbstractDelegatedPrismValueDeltaSetTriple<V> {
 
 	private Source<V,D> source;
 
-	public SourceTriple(Source<V,D> source) {
-		super();
+	public SourceTriple(Source<V, D> source, PrismContext prismContext) {
+		super(prismContext);
 		this.source = source;
 	}
 
-	public SourceTriple(Source<V,D> source, @NotNull Collection<V> zeroSet, @NotNull Collection<V> plusSet, @NotNull Collection<V> minusSet) {
-		super(zeroSet, plusSet, minusSet);
+	public SourceTriple(Source<V,D> source, @NotNull Collection<V> zeroSet, @NotNull Collection<V> plusSet, @NotNull Collection<V> minusSet, PrismContext prismContext) {
+		super(zeroSet, plusSet, minusSet, prismContext);
 		this.source = source;
 	}
 

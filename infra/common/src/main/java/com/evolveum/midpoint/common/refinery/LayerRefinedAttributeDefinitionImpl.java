@@ -236,7 +236,7 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 	/**
      * Return a human readable name of this class suitable for logs.
      */
-    protected String getDebugDumpClassName() {
+	public String getDebugDumpClassName() {
         return "LRRAD";
     }
 
@@ -611,6 +611,11 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 	@Override
 	public boolean isOperational() {
 		return refinedAttributeDefinition.isOperational();
+	}
+
+	@Override
+	public void extendToString(StringBuilder sb) {
+		refinedAttributeDefinition.extendToString(sb);
 	}
 
 	@Override

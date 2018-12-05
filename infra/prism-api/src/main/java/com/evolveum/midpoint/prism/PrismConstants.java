@@ -60,6 +60,14 @@ public class PrismConstants {
 
 	public static final String PREFIX_NS_MATCHING = "mr";
 
+	public static final String NS_POLY_STRING_NORMALIZER = NS_PREFIX + "poly-string-normalizer-3";
+
+	public static final QName ALPHANUMERIC_POLY_STRING_NORMALIZER = new QName(NS_POLY_STRING_NORMALIZER, "alphanumeric");
+	public static final QName ASCII7_POLY_STRING_NORMALIZER = new QName(NS_POLY_STRING_NORMALIZER, "ascii7");
+	public static final QName PASSTHROUGH_POLY_STRING_NORMALIZER = new QName(NS_POLY_STRING_NORMALIZER, "passthrough");
+
+	public static final String PREFIX_NS_POLY_STRING_NORMALIZER = "psn";
+
 	public static final String NS_PREFIX_CRYPTO = NS_PREFIX + "crypto/";
 	public static final String NS_PREFIX_CRYPTO_ALGORITHM = NS_PREFIX_CRYPTO + "algorithm/";
 	public static final String NS_CRYPTO_ALGORITHM_PBKD = NS_PREFIX_CRYPTO_ALGORITHM + "pbkd-3";

@@ -13,25 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.prism.polystring;
 
-import com.evolveum.midpoint.prism.PrismConstants;
-
-import javax.xml.namespace.QName;
+package com.evolveum.midpoint.prism;
 
 /**
- * @author semancik
  *
  */
-public class PassThroughPolyStringNormalizer extends AbstractPolyStringNormalizer {
-
-	@Override
-	protected String normalizeCore(String s) {
-		return s;
-	}
-
-	@Override
-	public QName getName() {
-		return PrismConstants.PASSTHROUGH_POLY_STRING_NORMALIZER;
-	}
+public interface MutableTypeDefinition extends MutableDefinition {
+	void setInstantiationOrder(Integer order);
 }

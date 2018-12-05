@@ -15,6 +15,9 @@
  */
 package com.evolveum.midpoint.prism.polystring;
 
+import com.evolveum.midpoint.prism.PrismConstants;
+
+import javax.xml.namespace.QName;
 import java.util.regex.Pattern;
 
 /**
@@ -22,6 +25,7 @@ import java.util.regex.Pattern;
  *
  */
 public class AlphanumericPolyStringNormalizer extends AbstractPolyStringNormalizer {
+
 	private static final String MALFORMED_REGEX = "[^\\w\\s\\d]";
 	private static final Pattern MALFORMED_PATTERN = Pattern.compile(MALFORMED_REGEX);
 	
@@ -31,4 +35,8 @@ public class AlphanumericPolyStringNormalizer extends AbstractPolyStringNormaliz
 		return s;
 	}
 
+	@Override
+	public QName getName() {
+		return PrismConstants.ALPHANUMERIC_POLY_STRING_NORMALIZER;
+	}
 }

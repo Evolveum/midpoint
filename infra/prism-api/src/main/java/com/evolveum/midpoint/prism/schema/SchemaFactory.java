@@ -21,7 +21,7 @@ package com.evolveum.midpoint.prism.schema;
  */
 public interface SchemaFactory {
 
-	PrismSchema createPrismSchema();
+	MutablePrismSchema createPrismSchema();
 
-	PrismSchema createPrismSchema(String namespace);
+	MutablePrismSchema createPrismSchema(String namespace);
 }

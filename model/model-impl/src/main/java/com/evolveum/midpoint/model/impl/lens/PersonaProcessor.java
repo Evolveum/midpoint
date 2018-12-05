@@ -132,7 +132,7 @@ public class PersonaProcessor {
 			return HookOperationMode.FOREGROUND;
 		}
 
-		DeltaSetTriple<PersonaKey> activePersonaKeyTriple = new DeltaSetTripleImpl<>();
+		DeltaSetTriple<PersonaKey> activePersonaKeyTriple = context.getPrismContext().deltaFactory().createDeltaSetTriple();
 
 		ComplexConstructionConsumer<PersonaKey,PersonaConstruction<F>> consumer = new ComplexConstructionConsumer<PersonaKey,PersonaConstruction<F>>() {
 

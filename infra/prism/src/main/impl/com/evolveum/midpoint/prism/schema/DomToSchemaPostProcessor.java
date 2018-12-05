@@ -59,7 +59,7 @@ class DomToSchemaPostProcessor {
 
 	private final XSSchemaSet xsSchemaSet;
 	private final PrismContext prismContext;
-	private PrismSchemaImpl schema;
+	private MutablePrismSchema schema;
 	private String shortDescription;
 	private boolean isRuntime;
 	private boolean allowDelayedItemDefinitions;
@@ -88,7 +88,7 @@ class DomToSchemaPostProcessor {
 	/**
 	 * Main entry point.
 	 */
-	void postprocessSchema(PrismSchemaImpl prismSchema, boolean isRuntime, boolean allowDelayedItemDefinitions, String shortDescription) throws SchemaException {
+	void postprocessSchema(MutablePrismSchema prismSchema, boolean isRuntime, boolean allowDelayedItemDefinitions, String shortDescription) throws SchemaException {
 		this.schema = prismSchema;
 		this.isRuntime = isRuntime;
 		this.allowDelayedItemDefinitions = allowDelayedItemDefinitions;
@@ -152,8 +152,7 @@ class DomToSchemaPostProcessor {
 			throws SchemaException {
 
 		SchemaDefinitionFactory definitionFactory = getDefinitionFactory();
-		ComplexTypeDefinitionImpl ctd = (ComplexTypeDefinitionImpl) definitionFactory.createComplexTypeDefinition(complexType, prismContext,
-				complexType.getAnnotation());
+		MutableComplexTypeDefinition ctd = definitionFactory.createComplexTypeDefinition(complexType, prismContext, complexType.getAnnotation());
 
 		ComplexTypeDefinition existingComplexTypeDefinition = schema
 				.findComplexTypeDefinition(ctd.getTypeName());
@@ -256,7 +255,7 @@ class DomToSchemaPostProcessor {
 
 	}
 
-	private void setInstantiationOrder(TypeDefinitionImpl typeDefinition, XSAnnotation annotation) throws SchemaException {
+	private void setInstantiationOrder(MutableTypeDefinition typeDefinition, XSAnnotation annotation) throws SchemaException {
 		Integer order = SchemaProcessorUtil.getAnnotationInteger(annotation, A_INSTANTIATION_ORDER);
 		typeDefinition.setInstantiationOrder(order);
 	}
@@ -314,7 +313,7 @@ class DomToSchemaPostProcessor {
 			// The documentation may be HTML-formatted. Therefore we want to
 			// keep the formatting and tag names
 			String documentationText = DOMUtil.serializeElementContent(documentationElement);
-			((DefinitionImpl) definition).setDocumentation(documentationText);
+			definition.toMutable().setDocumentation(documentationText);
 		}
 	}
 
@@ -335,7 +334,7 @@ class DomToSchemaPostProcessor {
 	 *            Explicit (i.e. non-inherited) content of the type being parsed
 	 *            - filled-in only for subtypes!
 	 */
-	private void addPropertyDefinitionListFromGroup(XSModelGroup group, ComplexTypeDefinition ctd,
+	private void addPropertyDefinitionListFromGroup(XSModelGroup group, MutableComplexTypeDefinition ctd,
 			Boolean inherited, XSContentType explicitContent) throws SchemaException {
 
 		XSParticle[] particles = group.getChildren();
@@ -375,12 +374,12 @@ class DomToSchemaPostProcessor {
 							PrismContainerDefinition<?> containerDefinition = createPropertyContainerDefinition(
 									xsType, p, null, containerAnnotation, false);
 							containerDefinition.toMutable().setInherited(particleInherited);
-							((ComplexTypeDefinitionImpl) ctd).add(containerDefinition);
+							ctd.add(containerDefinition);
 						} else {
-							PrismPropertyDefinitionImpl propDef = createPropertyDefinition(xsType, elementName,
+							MutablePrismPropertyDefinition propDef = createPropertyDefinition(xsType, elementName,
 									DOMUtil.XSD_ANY, ctd, annotation, p);
 							propDef.setInherited(particleInherited);
-							((ComplexTypeDefinitionImpl) ctd).add(propDef);
+							ctd.add(propDef);
 						}
 					}
 
@@ -416,7 +415,7 @@ class DomToSchemaPostProcessor {
 //						((PrismContainerDefinitionImpl) containerDefinition).setDynamic(true);
 //					}
 					containerDefinition.toMutable().setInherited(particleInherited);
-					((ComplexTypeDefinitionImpl) ctd).add(containerDefinition);
+					ctd.add(containerDefinition);
 
 				} else {
 
@@ -424,10 +423,10 @@ class DomToSchemaPostProcessor {
 					// complex type)
 					QName typeName = new QName(xsType.getTargetNamespace(), xsType.getName());
 
-					PrismPropertyDefinitionImpl propDef = createPropertyDefinition(xsType, elementName, typeName,
+					MutablePrismPropertyDefinition propDef = createPropertyDefinition(xsType, elementName, typeName,
 							ctd, annotation, p);
 					propDef.setInherited(particleInherited);
-					((ComplexTypeDefinitionImpl) ctd).add(propDef);
+					ctd.add(propDef);
 				}
 			}
 		}
@@ -455,7 +454,7 @@ class DomToSchemaPostProcessor {
 					containingCtd, prismContext, annotation, elementParticle);
 			definition.setInherited(inherited);
 			if (containingCtd != null) {
-				((ComplexTypeDefinitionImpl) containingCtd).add(definition);
+				containingCtd.toMutable().add(definition);
 			}
 		}
 		if (hasExplicitPrimaryElementName) {
@@ -493,23 +492,23 @@ class DomToSchemaPostProcessor {
 		return definition;
 	}
 
-	private void setMultiplicity(ItemDefinition itemDef, XSParticle particle, XSAnnotation annotation,
+	private void setMultiplicity(MutableItemDefinition itemDef, XSParticle particle, XSAnnotation annotation,
 			boolean topLevel) {
 		if (topLevel || particle == null) {
-			((ItemDefinitionImpl) itemDef).setMinOccurs(0);
+			itemDef.setMinOccurs(0);
 			Element maxOccursAnnotation = SchemaProcessorUtil.getAnnotationElement(annotation, A_MAX_OCCURS);
 			if (maxOccursAnnotation != null) {
 				String maxOccursString = maxOccursAnnotation.getTextContent();
 				int maxOccurs = XsdTypeMapper.multiplicityToInteger(maxOccursString);
-				((ItemDefinitionImpl) itemDef).setMaxOccurs(maxOccurs);
+				itemDef.setMaxOccurs(maxOccurs);
 			} else {
-				((ItemDefinitionImpl) itemDef).setMaxOccurs(-1);
+				itemDef.setMaxOccurs(-1);
 			}
 		} else {
 			// itemDef.setMinOccurs(particle.getMinOccurs());
 			// itemDef.setMaxOccurs(particle.getMaxOccurs());
-			((ItemDefinitionImpl) itemDef).setMinOccurs(particle.getMinOccurs().intValue());
-			((ItemDefinitionImpl) itemDef).setMaxOccurs(particle.getMaxOccurs().intValue());
+			itemDef.setMinOccurs(particle.getMinOccurs().intValue());
+			itemDef.setMaxOccurs(particle.getMaxOccurs().intValue());
 		}
 	}
 
@@ -554,7 +553,7 @@ class DomToSchemaPostProcessor {
 					// {"+xsType.getTargetNamespace()+"}"+xsType.getName());
 				}
 				XSAnnotation annotation = xsElementDecl.getAnnotation();
-				ItemDefinitionImpl definition;
+				MutableItemDefinition definition;
 
 				if (isPropertyContainer(xsElementDecl) || isObjectDefinition(xsType)) {
 					ComplexTypeDefinition complexTypeDefinition = findComplexTypeDefinition(typeQName);
@@ -829,13 +828,13 @@ class DomToSchemaPostProcessor {
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private PrismContainerDefinitionImpl<?> createPropertyContainerDefinition(XSType xsType,
+	private MutablePrismContainerDefinition<?> createPropertyContainerDefinition(XSType xsType,
 			XSElementDecl elementDecl, ComplexTypeDefinition complexTypeDefinition,
 			XSAnnotation annotation, XSParticle elementParticle, boolean topLevel)
 					throws SchemaException {
 
 		QName elementName = new QName(elementDecl.getTargetNamespace(), elementDecl.getName());
-		PrismContainerDefinitionImpl<?> pcd;
+		MutablePrismContainerDefinition<?> pcd;
 
 		SchemaDefinitionFactory definitionFactory = getDefinitionFactory();
 
@@ -871,10 +870,10 @@ class DomToSchemaPostProcessor {
 	 * of the schema. This method is also processing annotations and other fancy
 	 * property-relates stuff.
 	 */
-	private <T> PrismPropertyDefinitionImpl<T> createPropertyDefinition(XSType xsType, QName elementName,
+	private <T> MutablePrismPropertyDefinition<T> createPropertyDefinition(XSType xsType, QName elementName,
 			QName typeName, ComplexTypeDefinition ctd, XSAnnotation annotation, XSParticle elementParticle)
 					throws SchemaException {
-		PrismPropertyDefinitionImpl<T> propDef;
+		MutablePrismPropertyDefinition<T> propDef;
 
 		SchemaDefinitionFactory definitionFactory = getDefinitionFactory();
 
@@ -883,7 +882,7 @@ class DomToSchemaPostProcessor {
 
 		Object defaultValue = parseDefaultValue(elementParticle, typeName);
 
-		propDef = (PrismPropertyDefinitionImpl) definitionFactory.createPropertyDefinition(elementName, typeName, ctd, prismContext,
+		propDef = definitionFactory.createPropertyDefinition(elementName, typeName, ctd, prismContext,
 				annotation, elementParticle, allowedValues, null);
 		setMultiplicity(propDef, elementParticle, annotation, ctd == null);
 
@@ -1031,7 +1030,7 @@ class DomToSchemaPostProcessor {
 		return null;
 	}
 
-	private void parseItemDefinitionAnnotations(ItemDefinitionImpl itemDef, XSAnnotation annotation)
+	private void parseItemDefinitionAnnotations(MutableItemDefinition itemDef, XSAnnotation annotation)
 			throws SchemaException {
 		if (annotation == null || annotation.getAnnotation() == null) {
 			return;
@@ -1172,7 +1171,7 @@ class DomToSchemaPostProcessor {
 
 	private void markRuntime(Definition def) {
 		if (isRuntime) {
-			((DefinitionImpl) def).setRuntimeSchema(true);
+			def.toMutable().setRuntimeSchema(true);
 		}
 	}
 

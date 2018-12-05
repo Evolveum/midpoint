@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
  * @author Radovan Semancik
  *
  */
-public class PrismSchemaImpl implements PrismSchema {
+public class PrismSchemaImpl implements MutablePrismSchema {
 
 	//private static final long serialVersionUID = 5068618465625931984L;
 
@@ -71,6 +71,7 @@ public class PrismSchemaImpl implements PrismSchema {
 		return namespace;
 	}
 
+	@Override
 	public void setNamespace(@NotNull String namespace) {
 		this.namespace = namespace;
 	}
@@ -91,7 +92,7 @@ public class PrismSchemaImpl implements PrismSchema {
 				.collect(Collectors.toList());
 	}
 
-	void addDelayedItemDefinition(DefinitionSupplier supplier) {
+	public void addDelayedItemDefinition(DefinitionSupplier supplier) {
 		delayedItemDefinitions.add(supplier);
 	}
 
@@ -105,6 +106,7 @@ public class PrismSchemaImpl implements PrismSchema {
 		return definitions.isEmpty();
 	}
 
+	@Override
 	public void add(@NotNull Definition def) {
 		definitions.add(def);
 		if (def instanceof ItemDefinition) {
@@ -146,8 +148,9 @@ public class PrismSchemaImpl implements PrismSchema {
 	}
 
 	// used for connector and resource schemas
-	protected static PrismSchema parse(Element element, PrismSchemaImpl schema, boolean isRuntime, String shortDescription, PrismContext prismContext) throws SchemaException {
-		return parse(element, ((PrismContextImpl) prismContext).getEntityResolver(), schema, isRuntime, shortDescription, false, prismContext);
+	@Override
+	public void parseThis(Element element, boolean isRuntime, String shortDescription, PrismContext prismContext) throws SchemaException {
+		parse(element, ((PrismContextImpl) prismContext).getEntityResolver(), this, isRuntime, shortDescription, false, prismContext);
 	}
 
 	private static PrismSchema parse(Element element, EntityResolver resolver, PrismSchemaImpl schema, boolean isRuntime,
@@ -189,6 +192,7 @@ public class PrismSchemaImpl implements PrismSchema {
 	 *            type name "relative" to schema namespace
 	 * @return new property container definition
 	 */
+	@Override
 	public PrismContainerDefinitionImpl createPropertyContainerDefinition(String localTypeName) {
 		QName typeName = new QName(getNamespace(), localTypeName);
 		QName name = new QName(getNamespace(), toElementName(localTypeName));
@@ -199,6 +203,7 @@ public class PrismSchemaImpl implements PrismSchema {
 		return def;
 	}
 
+	@Override
 	public PrismContainerDefinitionImpl createPropertyContainerDefinition(String localElementName, String localTypeName) {
 		QName typeName = new QName(getNamespace(), localTypeName);
 		QName name = new QName(getNamespace(), localElementName);
@@ -212,6 +217,7 @@ public class PrismSchemaImpl implements PrismSchema {
 		return def;
 	}
 
+	@Override
 	public ComplexTypeDefinition createComplexTypeDefinition(QName typeName) {
 		ComplexTypeDefinition cTypeDef = new ComplexTypeDefinitionImpl(typeName, prismContext);
 		add(cTypeDef);
@@ -229,6 +235,7 @@ public class PrismSchemaImpl implements PrismSchema {
 	 *            XSD type name of the element
 	 * @return new property definition
 	 */
+	@Override
 	public PrismPropertyDefinition createPropertyDefinition(String localName, QName typeName) {
 		QName name = new QName(getNamespace(), localName);
 		return createPropertyDefinition(name, typeName);
@@ -262,6 +269,7 @@ public class PrismSchemaImpl implements PrismSchema {
 	 *            XSD type name of the element
 	 * @return new property definition
 	 */
+	@Override
 	public PrismPropertyDefinition createPropertyDefinition(QName name, QName typeName) {
 		PrismPropertyDefinition def = new PrismPropertyDefinitionImpl(name, typeName, prismContext);
 		add(def);

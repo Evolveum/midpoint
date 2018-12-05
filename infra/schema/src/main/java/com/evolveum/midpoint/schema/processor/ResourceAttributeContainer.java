@@ -24,6 +24,7 @@ import java.util.Set;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.extensions.AbstractDelegatedPrismContainer;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -42,7 +43,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
  *
  */
 @SuppressWarnings("rawtypes")
-public final class ResourceAttributeContainer extends PrismContainerImpl {      // todo
+public final class ResourceAttributeContainer extends AbstractDelegatedPrismContainer {
     private static final long serialVersionUID = 8878851067509560312L;
 
     /**
@@ -51,6 +52,10 @@ public final class ResourceAttributeContainer extends PrismContainerImpl {      
 	 */
 	public ResourceAttributeContainer(QName name, ResourceAttributeContainerDefinition definition, PrismContext prismContext) {
 		super(name, definition, prismContext);
+	}
+
+	public ResourceAttributeContainer(PrismContainer inner) {
+		super(inner);
 	}
 
 	@Override
@@ -401,16 +406,8 @@ public final class ResourceAttributeContainer extends PrismContainerImpl {      
 	
 	@Override
 	public ResourceAttributeContainer cloneComplex(CloneStrategy strategy) {
-		ResourceAttributeContainer clone = new ResourceAttributeContainer(getElementName(), getDefinition(), getPrismContext());
-		copyValues(strategy, clone);
-		return clone;
+		return new ResourceAttributeContainer(inner.cloneComplex(strategy));
 	}
-
-	protected void copyValues(CloneStrategy strategy, ResourceAttributeContainer clone) {
-		super.copyValues(strategy, clone);
-		// Nothing to copy
-	}
-
 
 	@Override
 	public void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw,
@@ -441,7 +438,7 @@ public final class ResourceAttributeContainer extends PrismContainerImpl {      
 	/**
 	 * Return a human readable name of this class suitable for logs.
 	 */
-	protected String getDebugDumpClassName() {
+	public String getDebugDumpClassName() {
 		return "RAC";
 	}
 

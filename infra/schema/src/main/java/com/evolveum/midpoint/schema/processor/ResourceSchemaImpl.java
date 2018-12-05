@@ -17,7 +17,7 @@ package com.evolveum.midpoint.schema.processor;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.schema.PrismSchemaImpl;
+import com.evolveum.midpoint.prism.extensions.AbstractDelegatedMutablePrismSchema;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
@@ -30,7 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
  * @author semancik
  *
  */
-public class ResourceSchemaImpl extends PrismSchemaImpl implements ResourceSchema {
+public class ResourceSchemaImpl extends AbstractDelegatedMutablePrismSchema implements ResourceSchema {
 
 	protected ResourceSchemaImpl(PrismContext prismContext) {
 		super(prismContext);
@@ -41,8 +41,10 @@ public class ResourceSchemaImpl extends PrismSchemaImpl implements ResourceSchem
 	}
 
 	public static ResourceSchemaImpl parse(Element element, String shortDesc, PrismContext prismContext) throws SchemaException {
+		ResourceSchemaImpl rv = new ResourceSchemaImpl(prismContext);
 		// TODO: make sure correct parser plugins are used
-		return (ResourceSchemaImpl) PrismSchemaImpl.parse(element, new ResourceSchemaImpl(prismContext), true, shortDesc, prismContext);
+		rv.parseThis(element, true, shortDesc, prismContext);
+		return rv;
 	}
 
 	@Override

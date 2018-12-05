@@ -82,7 +82,7 @@ public class RefinedConnectorSchemaImpl extends ConnectorSchemaImpl implements R
 
 	@Override
 	public String toString() {
-		return "rSchema(ns=" + namespace + ")";
+		return "rSchema(ns=" + getNamespace() + ")";
 	}
 
 }

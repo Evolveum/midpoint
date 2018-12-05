@@ -346,11 +346,6 @@ public abstract class DefinitionImpl implements MutableDefinition {
 	}
 
 	/**
-     * Return a human readable name of this class suitable for logs. (e.g. "PPD")
-     */
-    protected abstract String getDebugDumpClassName();
-
-    /**
      * Returns human-readable name of this class suitable for documentation. (e.g. "property")
      */
     public abstract String getDocClassName();

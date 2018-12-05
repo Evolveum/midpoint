@@ -946,7 +946,8 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
 	/**
      * Return a human readable name of this class suitable for logs.
      */
-    protected String getDebugDumpClassName() {
+	@Override
+    public String getDebugDumpClassName() {
         return "Item";
     }
 

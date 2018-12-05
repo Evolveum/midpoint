@@ -155,4 +155,9 @@ public interface ComplexTypeDefinition extends TypeDefinition, LocalDefinitionSt
 	}
 
 	MutableComplexTypeDefinition toMutable();
+
+	void extendDumpHeader(StringBuilder sb);
+
+	void extendDumpDefinition(StringBuilder sb, ItemDefinition<?> def);
+
 }

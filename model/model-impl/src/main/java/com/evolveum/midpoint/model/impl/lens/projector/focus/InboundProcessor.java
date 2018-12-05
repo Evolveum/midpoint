@@ -807,12 +807,13 @@ public class InboundProcessor {
 			
 			List<MappingImpl<V, D>> mappings = mappingEntry.getValue();
 			Iterator<MappingImpl<V, D>> mappingIterator = mappings.iterator();
-			DeltaSetTriple<ItemValueWithOrigin<V, D>> allTriples = new DeltaSetTripleImpl<>();
+			DeltaSetTriple<ItemValueWithOrigin<V, D>> allTriples = prismContext.deltaFactory().createDeltaSetTriple();
 			while (mappingIterator.hasNext()) {
 				MappingImpl<V, D> mapping = mappingIterator.next();
 				mappingEvaluator.evaluateMapping(mapping, context, projectionCtx, task, result);
 				
-				DeltaSetTriple<ItemValueWithOrigin<V, D>> itemValueWithOrigin = ItemValueWithOrigin.createOutputTriple(mapping);
+				DeltaSetTriple<ItemValueWithOrigin<V, D>> itemValueWithOrigin = ItemValueWithOrigin.createOutputTriple(mapping,
+						prismContext);
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Inbound mapping for {}\nreturned triple:\n{}", mapping.getDefaultSource().debugDump(),
 							itemValueWithOrigin == null ? "null" : itemValueWithOrigin.debugDump());
@@ -982,7 +983,7 @@ public class InboundProcessor {
 			}
 		}
 		
-		DeltaSetTriple<ItemValueWithOrigin<V, D>> consolidatedTriples = new DeltaSetTripleImpl<>();
+		DeltaSetTriple<ItemValueWithOrigin<V, D>> consolidatedTriples = prismContext.deltaFactory().createDeltaSetTriple();
 		consolidatedTriples.addAllToMinusSet(consolidatedMinusSet);
 		consolidatedTriples.addAllToPlusSet(consolidatedPlusSet);
 		consolidatedTriples.addAllToZeroSet(consolidatedZeroSet);

@@ -90,7 +90,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 			D outputDefinition, Protector protector, ObjectResolver objectResolver,
 			ModelService modelService, PrismContext prismContext, SecurityContextManager securityContextManager,
 			LocalizationService localizationService) {
-		super(expressionEvaluatorType, securityContextManager, localizationService);
+		super(expressionEvaluatorType, securityContextManager, localizationService, prismContext);
 		this.outputDefinition = outputDefinition;
 		this.prismContext = prismContext;
 		this.protector = protector;

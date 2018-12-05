@@ -313,17 +313,7 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
 		setMaxOccurs(otherDef.getMaxOccurs());
 	}
 
-	// add namespace from the definition if it's safe to do so
-    protected QName addNamespaceIfApplicable(QName name) {
-        if (StringUtils.isEmpty(name.getNamespaceURI())) {
-            if (QNameUtil.match(name, this.name)) {
-                return this.name;
-            }
-        }
-        return name;
-    }
-
-    @Override
+	@Override
 	public <T extends ItemDefinition> T findItemDefinition(@NotNull ItemPath path, @NotNull Class<T> clazz) {
         if (path.isEmpty()) {
         	if (clazz.isAssignableFrom(this.getClass())) {
@@ -502,7 +492,8 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
         return sb.toString();
     }
 
-	protected void extendToString(StringBuilder sb) {
+    @Override
+	public void extendToString(StringBuilder sb) {
 		sb.append(",");
 		if (canRead()) {
 			sb.append("R");

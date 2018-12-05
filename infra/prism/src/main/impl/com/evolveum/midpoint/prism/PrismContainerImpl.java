@@ -919,7 +919,7 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
      * Return a human readable name of this class suitable for logs.
      */
     @Override
-    protected String getDebugDumpClassName() {
+    public String getDebugDumpClassName() {
         return "PC";
     }
 

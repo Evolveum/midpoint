@@ -29,7 +29,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.schema.PrismSchemaImpl;
+import com.evolveum.midpoint.prism.schema.MutablePrismSchema;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
@@ -1158,13 +1158,14 @@ public class ResourceManager {
         }
         
         Element connectorSchemaElement = ConnectorTypeUtil.getConnectorXsdSchema(connector);
-        PrismSchema connectorSchema = null;
+        MutablePrismSchema connectorSchema = null;
         if (connectorSchemaElement == null) {
         	// No schema to validate with
         	return;
         }
 		try {
-			connectorSchema = PrismSchemaImpl.parse(connectorSchemaElement, true, "schema for " + connector, prismContext);
+			connectorSchema = prismContext.schemaFactory().createPrismSchema();
+			connectorSchema.parseThis(connectorSchemaElement, true, "schema for " + connector, prismContext);
 		} catch (SchemaException e) {
 			objectResult.recordFatalError("Error parsing connector schema for " + connector + ": "+e.getMessage(), e);
 			return;

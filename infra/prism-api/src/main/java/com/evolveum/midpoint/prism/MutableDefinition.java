@@ -40,4 +40,6 @@ public interface MutableDefinition extends Definition {
 	void setRuntimeSchema(boolean value);
 
 	void setTypeName(QName typeName);
+
+	void setDocumentation(String value);
 }

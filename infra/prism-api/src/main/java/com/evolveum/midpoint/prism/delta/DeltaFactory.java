@@ -19,6 +19,7 @@ package com.evolveum.midpoint.prism.delta;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.HumanReadableDescribable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import javax.xml.namespace.QName;
@@ -95,8 +96,6 @@ public interface DeltaFactory {
 
 		ReferenceDelta create(ItemPath parentPath, QName name, PrismReferenceDefinition itemDefinition,
 				PrismContext prismContext);
-
-		ReferenceDelta createModificationReplace(QName name, PrismObjectDefinition<? extends Objectable> objectDefinition, PrismReferenceValue referenceValue);
 
 		ReferenceDelta createModificationReplace(ItemPath path, PrismObjectDefinition<?> objectDefinition, String oid);
 
@@ -238,6 +237,14 @@ public interface DeltaFactory {
 
 	<T> DeltaSetTriple<T> createDeltaSetTriple();
 
+	<V> DeltaSetTriple<V> createDeltaSetTriple(Collection<V> zeroSet, Collection<V> plusSet, Collection<V> minusSet);
+
 	<V extends PrismValue> PrismValueDeltaSetTriple<V> createPrismValueDeltaSetTriple();
+
+	<V extends PrismValue> PrismValueDeltaSetTriple<V> createPrismValueDeltaSetTriple(Collection<V> zeroSet,
+			Collection<V> plusSet, Collection<V> minusSet);
+
+	<K, V> DeltaMapTriple<K, V> createDeltaMapTriple();
+
 
 }

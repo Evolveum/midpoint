@@ -231,7 +231,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		assertSourceNotNull(source, assignmentIdi);
 
 		EvaluationContext ctx = new EvaluationContext(
-				new EvaluatedAssignmentImpl<>(assignmentIdi, evaluateOld),
+				new EvaluatedAssignmentImpl<>(assignmentIdi, evaluateOld, prismContext),
 				new AssignmentPathImpl(prismContext),
 				primaryAssignmentMode, evaluateOld, task, result);
 

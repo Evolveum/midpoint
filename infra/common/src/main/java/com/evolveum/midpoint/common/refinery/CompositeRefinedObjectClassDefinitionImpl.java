@@ -762,6 +762,16 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 		throw new UnsupportedOperationException();
 	}
 
+	@Override
+	public void extendDumpHeader(StringBuilder sb) {
+		structuralObjectClassDefinition.extendDumpHeader(sb);       // todo
+	}
+
+	@Override
+	public void extendDumpDefinition(StringBuilder sb, ItemDefinition<?> def) {
+		structuralObjectClassDefinition.extendDumpDefinition(sb, def);      // todo
+	}
+
 	// TODO
 	@Override
 	public boolean isShared() {

@@ -17,12 +17,12 @@
 package com.evolveum.midpoint.repo.sql.helpers;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.polystring.AlphanumericPolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.repo.sql.data.common.RLookupTable;
@@ -70,6 +70,7 @@ public class LookupTableHelper {
     private static final Trace LOGGER = TraceManager.getTrace(LookupTableHelper.class);
 
     @Autowired private GeneralHelper generalHelper;
+    @Autowired private PrismContext prismContext;
 
     public void addLookupTableRows(Session session, RObject object, boolean deleteBeforeAdd) {
         if (!(object instanceof RLookupTable)) {
@@ -255,9 +256,8 @@ public class LookupTableHelper {
             String value = queryDef.getSearchValue();
             if (LookupTableRowType.F_LABEL.equals(queryDef.getColumn())) {
                 param = root.get("label").get("norm");
-
                 PolyString poly = new PolyString(value);
-                poly.recompute(new AlphanumericPolyStringNormalizer());
+                poly.recompute(prismContext.getDefaultPolyStringNormalizer());
                 value = poly.getNorm();
             } else {
                 param = root.get(queryDef.getColumn().getLocalPart());

@@ -289,7 +289,7 @@ public class PrismReferenceImpl extends ItemImpl<PrismReferenceValue,PrismRefere
      * Return a human readable name of this class suitable for logs.
      */
     @Override
-    protected String getDebugDumpClassName() {
+    public String getDebugDumpClassName() {
         return "PR";
     }
 }

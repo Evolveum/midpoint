@@ -15,10 +15,8 @@
  */
 package com.evolveum.midpoint.schema.processor;
 
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.ComplexTypeDefinitionImpl;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.extensions.AbstractDelegatedMutableComplexTypeDefinition;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -37,7 +35,8 @@ import java.util.stream.Collectors;
  * @author semancik
  *
  */
-public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionImpl implements ObjectClassComplexTypeDefinition {
+public class ObjectClassComplexTypeDefinitionImpl extends AbstractDelegatedMutableComplexTypeDefinition
+		implements ObjectClassComplexTypeDefinition, MutableComplexTypeDefinition {
 	private static final long serialVersionUID = 1L;
 
 	@NotNull private final Collection<ResourceAttributeDefinition<?>> identifiers = new ArrayList<>(1);
@@ -53,6 +52,10 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 
 	public ObjectClassComplexTypeDefinitionImpl(QName typeName, PrismContext prismContext) {
 		super(typeName, prismContext);
+	}
+
+	public ObjectClassComplexTypeDefinitionImpl(MutableComplexTypeDefinition inner) {
+		super(inner);
 	}
 
 	@NotNull
@@ -181,7 +184,7 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 	}
 
 	public <X> ResourceAttributeDefinitionImpl<X> createAttributeDefinition(QName name, QName typeName) {
-		ResourceAttributeDefinitionImpl<X> propDef = new ResourceAttributeDefinitionImpl<>(name, typeName, prismContext);
+		ResourceAttributeDefinitionImpl<X> propDef = new ResourceAttributeDefinitionImpl<>(name, typeName, getPrismContext());
 		add(propDef);
 		return propDef;
 	}
@@ -189,6 +192,10 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 	public <X> ResourceAttributeDefinitionImpl<X> createAttributeDefinition(String localName, QName typeName) {
 		QName name = new QName(getSchemaNamespace(),localName);
 		return createAttributeDefinition(name,typeName);
+	}
+
+	private String getSchemaNamespace() {
+		return getTypeName().getNamespaceURI();
 	}
 
 	public <X> ResourceAttributeDefinition<X> createAttributeDefinition(String localName, String localTypeName) {
@@ -224,10 +231,8 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 	@NotNull
 	@Override
 	public ObjectClassComplexTypeDefinitionImpl clone() {
-		ObjectClassComplexTypeDefinitionImpl clone = new ObjectClassComplexTypeDefinitionImpl(
-				getTypeName(), prismContext);
+		ObjectClassComplexTypeDefinitionImpl clone = new ObjectClassComplexTypeDefinitionImpl(inner.clone());
 		copyDefinitionData(clone);
-		clone.shared = false;
 		return clone;
 	}
 
@@ -238,7 +243,6 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 	}
 
 	protected void copyDefinitionData(ObjectClassComplexTypeDefinitionImpl clone) {
-		super.copyDefinitionData(clone);
 		clone.kind = this.kind;
 		clone.intent = this.intent;
 		clone.defaultInAKind = this.defaultInAKind;
@@ -334,12 +338,12 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 	}
 
 	@Override
-	protected String getDebugDumpClassName() {
+	public String getDebugDumpClassName() {
 		return "OCD";
 	}
 
 	@Override
-	protected void extendDumpHeader(StringBuilder sb) {
+	public void extendDumpHeader(StringBuilder sb) {
 		super.extendDumpHeader(sb);
 		if (defaultInAKind) {
 			sb.append(" def");
@@ -356,7 +360,7 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 	}
 
 	@Override
-	protected void extendDumpDefinition(StringBuilder sb, ItemDefinition<?> def) {
+	public void extendDumpDefinition(StringBuilder sb, ItemDefinition<?> def) {
 		super.extendDumpDefinition(sb, def);
 		if (getPrimaryIdentifiers().contains(def)) {
 			sb.append(",primID");

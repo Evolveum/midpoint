@@ -15,23 +15,18 @@
  */
 package com.evolveum.midpoint.prism.polystring;
 
-import com.evolveum.midpoint.prism.PrismConstants;
-
-import javax.xml.namespace.QName;
-
 /**
- * @author semancik
  *
  */
-public class PassThroughPolyStringNormalizer extends AbstractPolyStringNormalizer {
+public class PolyStringNormalizerRegistryFactory {
 
-	@Override
-	protected String normalizeCore(String s) {
-		return s;
+	public static PolyStringNormalizerRegistry createRegistry() {
+
+		PolyStringNormalizerRegistryImpl registry = new PolyStringNormalizerRegistryImpl();
+		registry.registerDefaultNormalizer(new AlphanumericPolyStringNormalizer());
+		registry.registerNormalizer(new Ascii7PolyStringNormalizer());
+		registry.registerNormalizer(new PassThroughPolyStringNormalizer());
+		return registry;
 	}
 
-	@Override
-	public QName getName() {
-		return PrismConstants.PASSTHROUGH_POLY_STRING_NORMALIZER;
-	}
 }

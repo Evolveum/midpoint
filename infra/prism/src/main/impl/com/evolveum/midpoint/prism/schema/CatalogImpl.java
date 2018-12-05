@@ -24,8 +24,10 @@ import org.apache.xml.resolver.Catalog;
 import java.net.URI;
 
 /**
- * Created by Viliam Repan (lazyman).
+ *
  */
+
+@SuppressWarnings("unused")     // Referenced in MidPointSpringApplication by name.
 public class CatalogImpl extends Catalog {
 
     private static final Trace LOGGER = TraceManager.getTrace(CatalogImpl.class);

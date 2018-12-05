@@ -676,6 +676,16 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	}
 
 	@Override
+	public void extendDumpHeader(StringBuilder sb) {
+		refinedObjectClassDefinition.extendDumpHeader(sb);
+	}
+
+	@Override
+	public void extendDumpDefinition(StringBuilder sb, ItemDefinition<?> def) {
+		refinedObjectClassDefinition.extendDumpDefinition(sb, def);
+	}
+
+	@Override
 	public boolean isShared() {
 		if (refinedObjectClassDefinition != null) {
 			return refinedObjectClassDefinition.isShared();

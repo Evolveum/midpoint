@@ -670,7 +670,7 @@ public class ObjectTemplateProcessor {
 			if (outputPath == null) {
                 continue;
             }
-			DeltaSetTriple<ItemValueWithOrigin<V,D>> outputTriple = ItemValueWithOrigin.createOutputTriple(mapping);
+			DeltaSetTriple<ItemValueWithOrigin<V,D>> outputTriple = ItemValueWithOrigin.createOutputTriple(mapping, prismContext);
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Output triple for {}:\n{}", mapping, DebugUtil.debugDump(outputTriple));
 			}
@@ -702,7 +702,7 @@ public class ObjectTemplateProcessor {
 			if (path.startsWithVariable()) {
 				continue;
 			}
-			DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>> triple = DeltaSetTripleImpl.find(outputTripleMap, path);
+			DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>> triple = DeltaSetTripleUtil.find(outputTripleMap, path);
 			if (triple == null) {
 				continue;
 			}

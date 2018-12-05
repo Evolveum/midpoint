@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.prism.polystring;
 
+import javax.xml.namespace.QName;
+
 /**
  * Normalizer for PolyStrings. Classes implementing this interface are able to take an
  * original string (in the PolyString sense) and return a normalized version of the
@@ -23,13 +25,13 @@ package com.evolveum.midpoint.prism.polystring;
  * @see PolyString
  * @author Radovan Semancik
  */
-@FunctionalInterface
 public interface PolyStringNormalizer {
 
 	/**
 	 * Returns a normalized version of the string.
 	 * @return normalized version of the string
 	 */
-	public String normalize(String orig);
+	String normalize(String orig);
 
+	QName getName();
 }

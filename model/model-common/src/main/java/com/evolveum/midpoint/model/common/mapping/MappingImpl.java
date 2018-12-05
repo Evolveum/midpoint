@@ -26,7 +26,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTripleImpl;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -512,7 +511,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		}
 		// remove it!
 		if (outputTriple == null) {
-			outputTriple = new PrismValueDeltaSetTripleImpl<>();
+			outputTriple = getPrismContext().deltaFactory().createPrismValueDeltaSetTriple();
 		}
 		LOGGER.trace("Original value is in the mapping range (while not in mapping result), adding it to minus set: {}", originalValue);
 		outputTriple.addToMinusSet((V)originalValue.clone());
@@ -1040,7 +1039,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		ExpressionType conditionExpressionType = mappingType.getCondition();
 		if (conditionExpressionType == null) {
 			// True -> True
-			conditionOutputTriple = new PrismValueDeltaSetTripleImpl<>();
+			conditionOutputTriple = getPrismContext().deltaFactory().createPrismValueDeltaSetTriple();
 			conditionOutputTriple.addToZeroSet(getPrismContext().itemFactory().createPrismPropertyValue(Boolean.TRUE));
 			return;
 		}
@@ -1088,7 +1087,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 				// so the mapping is applicable.
 				// Returning null would mean that the mapping is not applicable
 				// at all.
-				outputTriple = new PrismValueDeltaSetTripleImpl<>();
+				outputTriple = getPrismContext().deltaFactory().createPrismValueDeltaSetTriple();
 			}
 
 		} else {

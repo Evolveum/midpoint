@@ -17,15 +17,11 @@ package com.evolveum.midpoint.schema.processor;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.schema.SchemaDefinitionFactory;
 import com.evolveum.midpoint.prism.schema.SchemaProcessorUtil;
 import com.evolveum.midpoint.prism.schema.SchemaToDomProcessor;
@@ -47,7 +43,7 @@ import java.util.Collection;
 public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 
 	@Override
-	public ComplexTypeDefinition createComplexTypeDefinition(XSComplexType complexType,
+	public MutableComplexTypeDefinition createComplexTypeDefinition(XSComplexType complexType,
 			PrismContext prismContext, XSAnnotation annotation) throws SchemaException {
 		if (isResourceObject(annotation)) {
 			return createObjectClassDefinition(complexType, prismContext, annotation);
@@ -55,7 +51,7 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 		return super.createComplexTypeDefinition(complexType, prismContext, annotation);
 	}
 
-	private ComplexTypeDefinition createObjectClassDefinition(XSComplexType complexType,
+	private MutableComplexTypeDefinition createObjectClassDefinition(XSComplexType complexType,
 			PrismContext prismContext, XSAnnotation annotation) throws SchemaException {
 		QName typeName = new QName(complexType.getTargetNamespace(),complexType.getName());
 
@@ -253,7 +249,7 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 	}
 
 	@Override
-	public <T> PrismPropertyDefinition<T> createPropertyDefinition(QName elementName, QName typeName,
+	public <T> MutablePrismPropertyDefinition<T> createPropertyDefinition(QName elementName, QName typeName,
 			ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext, XSAnnotation annotation,
 			XSParticle elementParticle, Collection<? extends DisplayableValue<T>> allowedValues, T defaultValue) throws SchemaException {
 		if (complexTypeDefinition != null && complexTypeDefinition instanceof ObjectClassComplexTypeDefinition) {
@@ -263,7 +259,7 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 		return super.createPropertyDefinition(elementName, typeName, complexTypeDefinition, prismContext, annotation, elementParticle, allowedValues, defaultValue);
 	}
 
-	private PrismPropertyDefinition createResourceAttributeDefinition(QName elementName, QName typeName,
+	private MutablePrismPropertyDefinition createResourceAttributeDefinition(QName elementName, QName typeName,
 			PrismContext prismContext, XSAnnotation annotation) throws SchemaException {
 		ResourceAttributeDefinitionImpl attrDef = new ResourceAttributeDefinitionImpl(elementName, typeName, prismContext);
 

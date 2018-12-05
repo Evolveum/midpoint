@@ -21,10 +21,10 @@ import java.util.Collection;
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
 import com.evolveum.midpoint.model.impl.lens.projector.ValueMatcher;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.DeltaSetTripleImpl;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -109,7 +109,8 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
 		clone.construction = this.construction;
 	}
 
-	public static <V extends PrismValue, D extends ItemDefinition> DeltaSetTriple<ItemValueWithOrigin<V,D>> createOutputTriple(PrismValueDeltaSetTripleProducer<V, D> mapping) {
+	public static <V extends PrismValue, D extends ItemDefinition> DeltaSetTriple<ItemValueWithOrigin<V,D>> createOutputTriple(
+			PrismValueDeltaSetTripleProducer<V, D> mapping, PrismContext prismContext) {
 		PrismValueDeltaSetTriple<V> outputTriple = mapping.getOutputTriple();
 		if (outputTriple == null) {
 			return null;
@@ -117,7 +118,7 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
 		Collection<ItemValueWithOrigin<V,D>> zeroIvwoSet = convertSet(outputTriple.getZeroSet(), mapping);
 		Collection<ItemValueWithOrigin<V,D>> plusIvwoSet = convertSet(outputTriple.getPlusSet(), mapping);
 		Collection<ItemValueWithOrigin<V,D>> minusIvwoSet = convertSet(outputTriple.getMinusSet(), mapping);
-		DeltaSetTriple<ItemValueWithOrigin<V,D>> ivwoTriple = new DeltaSetTripleImpl<>(zeroIvwoSet, plusIvwoSet, minusIvwoSet);
+		DeltaSetTriple<ItemValueWithOrigin<V,D>> ivwoTriple = prismContext.deltaFactory().createDeltaSetTriple(zeroIvwoSet, plusIvwoSet, minusIvwoSet);
 		return ivwoTriple;
 	}
 

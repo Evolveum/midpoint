@@ -21,6 +21,7 @@ import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.util.DefinitionUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 
@@ -65,7 +66,7 @@ public class PrismObjectDefinitionImpl<O extends Objectable> extends PrismContai
 		if (isAbstract()) {
 			throw new SchemaException("Cannot instantiate abstract definition "+this);
 		}
-        name = addNamespaceIfApplicable(name);
+        name = DefinitionUtil.addNamespaceIfApplicable(name, this.name);
 		return new PrismObjectImpl<>(name, this, prismContext);
 	}
 
@@ -147,7 +148,7 @@ public class PrismObjectDefinitionImpl<O extends Objectable> extends PrismContai
 //	}
 
 	@Override
-	protected String getDebugDumpClassName() {
+	public String getDebugDumpClassName() {
 		return "POD";
 	}
 

@@ -31,12 +31,12 @@ public class SchemaFactoryImpl implements SchemaFactory {
 	}
 
 	@Override
-	public PrismSchema createPrismSchema() {
+	public MutablePrismSchema createPrismSchema() {
 		return new PrismSchemaImpl(prismContext);
 	}
 
 	@Override
-	public PrismSchema createPrismSchema(String namespace) {
+	public MutablePrismSchema createPrismSchema(String namespace) {
 		return new PrismSchemaImpl(namespace, prismContext);
 	}
 }

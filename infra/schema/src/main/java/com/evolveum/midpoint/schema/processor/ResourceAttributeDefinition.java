@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import org.jetbrains.annotations.NotNull;
 

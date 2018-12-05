@@ -27,7 +27,7 @@ import java.util.Collection;
  */
 public interface DefinitionFactory {
 
-	ComplexTypeDefinition createComplexTypeDefinition(QName name);
+	MutableComplexTypeDefinition createComplexTypeDefinition(QName name);
 
 	<T> MutablePrismPropertyDefinition<T> createPropertyDefinition(QName name, QName typeName);
 

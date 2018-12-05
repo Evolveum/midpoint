@@ -21,6 +21,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.DefinitionUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -95,16 +96,9 @@ public class PrismReferenceDefinitionImpl extends ItemDefinitionImpl<PrismRefere
 
 	@Override
 	public boolean isValidFor(@NotNull QName elementQName, @NotNull Class<? extends ItemDefinition> clazz, boolean caseInsensitive) {
-		if (!clazz.isAssignableFrom(this.getClass())) {
-    		return false;
-    	}
-        if (QNameUtil.match(elementQName, getName(), caseInsensitive)) {
-        	return true;
-        }
-        if (QNameUtil.match(elementQName, getCompositeObjectElementName(), caseInsensitive)) {
-        	return true;
-        }
-        return false;
+		return clazz.isAssignableFrom(this.getClass()) &&
+				(QNameUtil.match(elementQName, getName(), caseInsensitive) ||
+						QNameUtil.match(elementQName, getCompositeObjectElementName(), caseInsensitive));
 	}
 
 	@Override
@@ -127,7 +121,7 @@ public class PrismReferenceDefinitionImpl extends ItemDefinitionImpl<PrismRefere
     @NotNull
 	@Override
     public PrismReference instantiate(QName name) {
-        name = addNamespaceIfApplicable(name);
+        name = DefinitionUtil.addNamespaceIfApplicable(name, this.name);
         return new PrismReferenceImpl(name, this, prismContext);
     }
 
@@ -179,7 +173,7 @@ public class PrismReferenceDefinitionImpl extends ItemDefinitionImpl<PrismRefere
      * Return a human readable name of this class suitable for logs.
      */
     @Override
-    protected String getDebugDumpClassName() {
+    public String getDebugDumpClassName() {
         return "PRD";
     }
 
@@ -189,7 +183,7 @@ public class PrismReferenceDefinitionImpl extends ItemDefinitionImpl<PrismRefere
     }
 
 	@Override
-	protected void extendToString(StringBuilder sb) {
+	public void extendToString(StringBuilder sb) {
 		super.extendToString(sb);
 		if (isComposite) {
 			sb.append(",composite");

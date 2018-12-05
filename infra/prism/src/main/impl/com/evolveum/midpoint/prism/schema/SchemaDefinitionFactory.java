@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ import static com.evolveum.midpoint.prism.SimpleTypeDefinition.DerivationMethod.
  */
 public class SchemaDefinitionFactory {
 
-	public ComplexTypeDefinition createComplexTypeDefinition(XSComplexType complexType,
+	public MutableComplexTypeDefinition createComplexTypeDefinition(XSComplexType complexType,
 			PrismContext prismContext, XSAnnotation annotation) throws SchemaException {
 
 		QName typeName = new QName(complexType.getTargetNamespace(),complexType.getName());
@@ -64,7 +64,7 @@ public class SchemaDefinitionFactory {
 		return new PrismPropertyDefinitionImpl<>(elementName, typeName, prismContext);
 	}
 
-	public <T> PrismPropertyDefinition<T> createPropertyDefinition(QName elementName, QName typeName, ComplexTypeDefinition complexTypeDefinition,
+	public <T> MutablePrismPropertyDefinition<T> createPropertyDefinition(QName elementName, QName typeName, ComplexTypeDefinition complexTypeDefinition,
 			PrismContext prismContext, XSAnnotation annotation, XSParticle elementParticle, Collection<? extends DisplayableValue<T>> allowedValues, T defaultValue) throws SchemaException {
 		return new PrismPropertyDefinitionImpl<>(elementName, typeName, prismContext, allowedValues, defaultValue);
 	}

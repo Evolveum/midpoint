@@ -80,6 +80,7 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
 		return Collections.unmodifiableList(itemDefinitions);
 	}
 
+	@Override
 	public void add(ItemDefinition<?> definition) {
 		itemDefinitions.add(definition);
 	}
@@ -488,11 +489,13 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
 		return sb.toString();
 	}
 
-	protected void extendDumpHeader(StringBuilder sb) {
+	@Override
+	public void extendDumpHeader(StringBuilder sb) {
 		// Do nothing
 	}
 
-	protected void extendDumpDefinition(StringBuilder sb, ItemDefinition<?> def) {
+	@Override
+	public void extendDumpDefinition(StringBuilder sb, ItemDefinition<?> def) {
 		// Do nothing
 	}
 
@@ -500,7 +503,7 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
      * Return a human readable name of this class suitable for logs.
      */
     @Override
-    protected String getDebugDumpClassName() {
+    public String getDebugDumpClassName() {
         return "CTD";
     }
 

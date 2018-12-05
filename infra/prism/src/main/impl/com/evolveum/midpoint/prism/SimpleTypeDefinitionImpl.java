@@ -23,7 +23,7 @@ import javax.xml.namespace.QName;
 /**
  * @author mederly
  */
-public class SimpleTypeDefinitionImpl extends TypeDefinitionImpl implements SimpleTypeDefinition, MutableDefinition {
+public class SimpleTypeDefinitionImpl extends TypeDefinitionImpl implements SimpleTypeDefinition, MutableTypeDefinition {
 
 	private QName baseTypeName;
 	private DerivationMethod derivationMethod;		// usually RESTRICTION
@@ -40,7 +40,7 @@ public class SimpleTypeDefinitionImpl extends TypeDefinitionImpl implements Simp
 	}
 
 	@Override
-	protected String getDebugDumpClassName() {
+	public String getDebugDumpClassName() {
 		return "STD";
 	}
 

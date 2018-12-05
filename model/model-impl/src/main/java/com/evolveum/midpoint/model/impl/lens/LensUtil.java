@@ -32,7 +32,6 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
-import com.evolveum.midpoint.prism.polystring.AlphanumericPolyStringNormalizer;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.util.*;
@@ -869,9 +868,9 @@ public class LensUtil {
 
 	// projCtx may or may not be present (object itself can be focus or projection)
 	public static <T extends ObjectType> LensObjectDeltaOperation<T> createObjectDeltaOperation(ObjectDelta<T> objectDelta, OperationResult result,
-																								LensElementContext<T> objectContext,
-																								LensProjectionContext projCtx,
-																								ResourceType resource) {
+			LensElementContext<T> objectContext,
+			LensProjectionContext projCtx,
+			ResourceType resource) {
 		LensObjectDeltaOperation<T> objectDeltaOp = new LensObjectDeltaOperation<>(objectDelta.clone());
 		objectDeltaOp.setExecutionResult(result);
 		PrismObject<T> object = objectContext.getObjectAny();
@@ -883,7 +882,7 @@ public class LensUtil {
 					if (name == null) {
 						LOGGER.debug("No name for shadow:\n{}", object.debugDump());
 					} else if (name.getNorm() == null) {
-						name.recompute(new AlphanumericPolyStringNormalizer());
+						name.recompute(objectContext.getPrismContext().getDefaultPolyStringNormalizer());
 					}
 				} catch (SchemaException e) {
 					LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine name for shadow -- continuing with no name; shadow:\n{}", e, object.debugDump());

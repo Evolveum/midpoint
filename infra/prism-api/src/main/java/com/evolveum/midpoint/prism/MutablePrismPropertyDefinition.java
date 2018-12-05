@@ -16,6 +16,10 @@
 
 package com.evolveum.midpoint.prism;
 
+import org.jetbrains.annotations.NotNull;
+
+import javax.xml.namespace.QName;
+
 /**
  *
  */
@@ -23,4 +27,11 @@ public interface MutablePrismPropertyDefinition<T> extends PrismPropertyDefiniti
 
 	void setIndexed(Boolean value);
 
+	void setMatchingRuleQName(QName matchingRuleQName);
+
+	@NotNull
+	@Override
+	MutablePrismPropertyDefinition<T> clone();
+
+	void setInherited(boolean value);
 }
