@@ -131,4 +131,8 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
     }
 
     protected abstract ObjectTypes getObjectType();
+
+    protected boolean isInducement(){
+        return false;
+    }
 }
