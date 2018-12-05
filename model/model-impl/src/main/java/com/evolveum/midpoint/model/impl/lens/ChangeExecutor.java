@@ -743,7 +743,7 @@ public class ChangeExecutor {
 		PrismReferenceValue linkRef = prismContext.itemFactory().createPrismReferenceValue();
 		linkRef.setOid(shadowOid);
 		linkRef.setTargetType(ShadowType.COMPLEX_TYPE);
-		Collection<? extends ItemDelta> linkRefDeltas = ReferenceDeltaImpl
+		Collection<? extends ItemDelta> linkRefDeltas = prismContext.deltaFactory().reference()
 				.createModificationAddCollection(FocusType.F_LINK_REF, getUserDefinition(), linkRef);
 
 		try {
@@ -786,7 +786,7 @@ public class ChangeExecutor {
 
 		LOGGER.debug("Unlinking shadow " + accountRef.getOid() + " from focus " + focusOid);
 		OperationResult result = parentResult.createSubresult(OPERATION_UNLINK_ACCOUNT);
-		Collection<? extends ItemDelta> accountRefDeltas = ReferenceDeltaImpl.createModificationDeleteCollection(
+		Collection<? extends ItemDelta> accountRefDeltas = prismContext.deltaFactory().reference().createModificationDeleteCollection(
 				FocusType.F_LINK_REF, getUserDefinition(), accountRef.clone());
 
 		try {

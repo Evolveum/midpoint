@@ -767,11 +767,11 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
 
             for (PrismObject owner : owners) {
                 List<ItemDelta> modifications = new ArrayList<>(2);
-                ReferenceDelta deleteDelta = ReferenceDeltaImpl.createModificationDelete(FocusType.F_LINK_REF, owner.getDefinition(),
+                ReferenceDelta deleteDelta = prismContext.deltaFactory().reference().createModificationDelete(FocusType.F_LINK_REF, owner.getDefinition(),
                         prismContext.itemFactory().createPrismReferenceValue(oid, ShadowType.COMPLEX_TYPE));
                 modifications.add(deleteDelta);
                 if (shadowOidToReplaceDeleted != null) {
-                    ReferenceDelta addDelta = ReferenceDeltaImpl.createModificationAdd(FocusType.F_LINK_REF, owner.getDefinition(),
+                    ReferenceDelta addDelta = prismContext.deltaFactory().reference().createModificationAdd(FocusType.F_LINK_REF, owner.getDefinition(),
                             prismContext.itemFactory().createPrismReferenceValue(shadowOidToReplaceDeleted, ShadowType.COMPLEX_TYPE));
                     modifications.add(addDelta);
                 }

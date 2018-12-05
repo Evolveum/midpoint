@@ -24,7 +24,7 @@ import javax.xml.namespace.QName;
 import java.util.Collection;
 
 /**
- *
+ * TODO clean up these interfaces!
  */
 public interface DeltaFactory {
 
@@ -88,7 +88,84 @@ public interface DeltaFactory {
 
 		ReferenceDelta create(ItemPath path, PrismReferenceDefinition definition);
 
+		ReferenceDelta create(PrismReferenceDefinition itemDefinition, PrismContext prismContext);
+
+		ReferenceDelta create(ItemPath propertyPath, PrismReferenceDefinition itemDefinition, PrismContext prismContext);
+
+		ReferenceDelta create(ItemPath parentPath, QName name, PrismReferenceDefinition itemDefinition,
+				PrismContext prismContext);
+
 		ReferenceDelta createModificationReplace(QName name, PrismObjectDefinition<? extends Objectable> objectDefinition, PrismReferenceValue referenceValue);
+
+		ReferenceDelta createModificationReplace(ItemPath path, PrismObjectDefinition<?> objectDefinition, String oid);
+
+		<O extends Objectable> ReferenceDelta createModificationReplace(ItemPath path, Class<O> type, PrismContext ctx,
+				String oid);
+
+		ReferenceDelta createModificationReplace(ItemPath path, PrismObjectDefinition<?> objectDefinition,
+				PrismReferenceValue refValue);
+
+		ReferenceDelta createModificationReplace(ItemPath path, PrismObjectDefinition<?> objectDefinition,
+				Collection<PrismReferenceValue> refValues);
+
+		Collection<? extends ItemDelta> createModificationAddCollection(ItemName propertyName,
+				PrismObjectDefinition<?> objectDefinition, PrismReferenceValue refValue);
+
+		ReferenceDelta createModificationAdd(ItemPath path, PrismObjectDefinition<?> objectDefinition,
+				String oid);
+
+		ReferenceDelta createModificationAdd(ItemPath path, PrismObjectDefinition<?> objectDefinition,
+				PrismReferenceValue refValue);
+
+		ReferenceDelta createModificationAdd(ItemPath path, PrismObjectDefinition<?> objectDefinition,
+				Collection<PrismReferenceValue> refValues);
+
+		<T extends Objectable> ReferenceDelta createModificationAdd(Class<T> type, ItemName refName, PrismContext prismContext,
+				PrismReferenceValue refValue);
+
+		<T extends Objectable> Collection<? extends ItemDelta> createModificationAddCollection(Class<T> type, ItemName refName,
+				PrismContext prismContext,
+				String targetOid);
+
+		<T extends Objectable> Collection<? extends ItemDelta> createModificationAddCollection(Class<T> type, ItemName refName,
+				PrismContext prismContext,
+				PrismReferenceValue refValue);
+
+		<T extends Objectable> ReferenceDelta createModificationAdd(Class<T> type, ItemName refName, PrismContext prismContext,
+				PrismObject<?> refTarget);
+
+		<T extends Objectable> Collection<? extends ItemDelta> createModificationAddCollection(Class<T> type, ItemName refName,
+				PrismContext prismContext,
+				PrismObject<?> refTarget);
+
+		Collection<? extends ItemDelta> createModificationDeleteCollection(QName propertyName,
+				PrismObjectDefinition<?> objectDefinition, PrismReferenceValue refValue);
+
+		ReferenceDelta createModificationDelete(ItemPath path, PrismObjectDefinition<?> objectDefinition,
+				Collection<PrismReferenceValue> refValues);
+
+		ReferenceDelta createModificationDelete(QName refName, PrismObjectDefinition<?> objectDefinition,
+				String oid);
+
+		ReferenceDelta createModificationDelete(QName refName, PrismObjectDefinition<?> objectDefinition,
+				PrismObject<?> refTarget, PrismContext prismContext);
+
+		ReferenceDelta createModificationDelete(QName refName, PrismObjectDefinition<?> objectDefinition,
+				PrismReferenceValue refValue);
+
+		<T extends Objectable> ReferenceDelta createModificationDelete(Class<T> type, QName refName, PrismContext prismContext,
+				PrismReferenceValue refValue);
+
+		<T extends Objectable> Collection<? extends ItemDelta> createModificationDeleteCollection(Class<T> type, QName refName,
+				PrismContext prismContext,
+				PrismReferenceValue refValue);
+
+		<T extends Objectable> ReferenceDelta createModificationDelete(Class<T> type, QName refName, PrismContext prismContext,
+				PrismObject<?> refTarget);
+
+		<T extends Objectable> Collection<? extends ItemDelta> createModificationDeleteCollection(Class<T> type, QName refName,
+				PrismContext prismContext,
+				PrismObject<?> refTarget);
 	}
 
 	interface Container {

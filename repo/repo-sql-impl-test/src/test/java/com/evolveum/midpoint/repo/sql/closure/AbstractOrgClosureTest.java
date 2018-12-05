@@ -22,7 +22,6 @@ import cern.colt.matrix.linalg.Algebra;
 import cern.jet.math.Functions;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.sql.BaseSQLRepoTest;
@@ -294,7 +293,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
         List<ItemDelta> modifications = new ArrayList<>();
         if (!useReplace) {          // standard case
             PrismReferenceValue existingValue = parentOrgRef.asReferenceValue();
-            ItemDelta removeParent = ReferenceDeltaImpl.createModificationDelete(object.getClass(), OrgType.F_PARENT_ORG_REF, prismContext, existingValue.clone());
+            ItemDelta removeParent = prismContext.deltaFactory().reference().createModificationDelete(object.getClass(), OrgType.F_PARENT_ORG_REF, prismContext, existingValue.clone());
             modifications.add(removeParent);
         } else {                    // using REPLACE modification
             List<PrismReferenceValue> newValues = new ArrayList<>();
@@ -304,7 +303,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
                 }
             }
             PrismObjectDefinition objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(object.getClass());
-            ItemDelta replaceParent = ReferenceDeltaImpl.createModificationReplace(OrgType.F_PARENT_ORG_REF, objectDefinition, newValues);
+            ItemDelta replaceParent = prismContext.deltaFactory().reference().createModificationReplace(OrgType.F_PARENT_ORG_REF, objectDefinition, newValues);
             modifications.add(replaceParent);
         }
         repositoryService.modifyObject(object.getClass(), object.getOid(), modifications, opResult);
@@ -319,7 +318,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
         PrismReferenceValue existingValue = parentOrgRef.asReferenceValue();
         ItemDelta itemDelta;
         if (!useReplace) {
-            itemDelta = ReferenceDeltaImpl.createModificationAdd(OrgType.class, OrgType.F_PARENT_ORG_REF, prismContext, existingValue.clone());
+            itemDelta = prismContext.deltaFactory().reference().createModificationAdd(OrgType.class, OrgType.F_PARENT_ORG_REF, prismContext, existingValue.clone());
         } else {
             List<PrismReferenceValue> newValues = new ArrayList<>();
             for (ObjectReferenceType ort : org.getParentOrgRef()) {
@@ -327,7 +326,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
             }
             newValues.add(existingValue.clone());
             PrismObjectDefinition objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(OrgType.class);
-            itemDelta = ReferenceDeltaImpl.createModificationReplace(OrgType.F_PARENT_ORG_REF, objectDefinition, newValues);
+            itemDelta = prismContext.deltaFactory().reference().createModificationReplace(OrgType.F_PARENT_ORG_REF, objectDefinition, newValues);
         }
         modifications.add(itemDelta);
         repositoryService.modifyObject(OrgType.class, org.getOid(), modifications, opResult);
@@ -337,7 +336,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
     protected void addUserParent(UserType user, ObjectReferenceType parentOrgRef, OperationResult opResult) throws Exception {
         List<ItemDelta> modifications = new ArrayList<>();
         PrismReferenceValue existingValue = parentOrgRef.asReferenceValue();
-        ItemDelta readdParent = ReferenceDeltaImpl.createModificationAdd(UserType.class, UserType.F_PARENT_ORG_REF, prismContext, existingValue.clone());
+        ItemDelta readdParent = prismContext.deltaFactory().reference().createModificationAdd(UserType.class, UserType.F_PARENT_ORG_REF, prismContext, existingValue.clone());
         modifications.add(readdParent);
         repositoryService.modifyObject(UserType.class, user.getOid(), modifications, opResult);
     }
@@ -1021,7 +1020,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
         ObjectReferenceType ort = new ObjectReferenceType();
         ort.setOid(childOid);
         ort.setType(OrgType.COMPLEX_TYPE);
-        ItemDelta addParent = ReferenceDeltaImpl.createModificationAdd(OrgType.class, OrgType.F_PARENT_ORG_REF, prismContext, ort.asReferenceValue());
+        ItemDelta addParent = prismContext.deltaFactory().reference().createModificationAdd(OrgType.class, OrgType.F_PARENT_ORG_REF, prismContext, ort.asReferenceValue());
         modifications.add(addParent);
         try {
             repositoryService.modifyObject(OrgType.class, parentOid, modifications, opResult);

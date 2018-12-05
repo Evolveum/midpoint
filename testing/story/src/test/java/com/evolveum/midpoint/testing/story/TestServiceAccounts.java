@@ -28,7 +28,6 @@ import java.io.File;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
-import com.evolveum.midpoint.prism.delta.ReferenceDeltaImpl;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -409,7 +408,7 @@ public class TestServiceAccounts extends AbstractStoryTest {
 		        .createEmptyModifyDelta(ServiceType.class, SERVICE_BARELLIUM_OID, prismContext);
         PrismReferenceValue accountRefVal = getPrismContext().itemFactory().createPrismReferenceValue();
 		accountRefVal.setObject(account);
-		ReferenceDelta accountDelta = ReferenceDeltaImpl
+		ReferenceDelta accountDelta = prismContext.deltaFactory().reference()
 				.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
 		delta.addModification(accountDelta);
 

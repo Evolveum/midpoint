@@ -18,9 +18,6 @@ package com.evolveum.midpoint.repo.sql.closure;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDeltaImpl;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -284,7 +281,7 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
         ObjectReferenceType parentOrgRef = new ObjectReferenceType();
         parentOrgRef.setType(OrgType.COMPLEX_TYPE);
         parentOrgRef.setOid(edge.getAncestor());
-        ItemDelta removeParent = ReferenceDeltaImpl
+        ItemDelta removeParent = prismContext.deltaFactory().reference()
                 .createModificationDelete(OrgType.class, OrgType.F_PARENT_ORG_REF, prismContext, parentOrgRef.asReferenceValue());
         modifications.add(removeParent);
         repositoryService.modifyObject(OrgType.class, edge.getDescendant(), modifications, new OperationResult("dummy"));
@@ -298,7 +295,7 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
         ObjectReferenceType parentOrgRef = new ObjectReferenceType();
         parentOrgRef.setType(OrgType.COMPLEX_TYPE);
         parentOrgRef.setOid(edge.getAncestor());
-        ItemDelta itemDelta = ReferenceDeltaImpl.createModificationAdd(OrgType.class, OrgType.F_PARENT_ORG_REF, prismContext, parentOrgRef.asReferenceValue());
+        ItemDelta itemDelta = prismContext.deltaFactory().reference().createModificationAdd(OrgType.class, OrgType.F_PARENT_ORG_REF, prismContext, parentOrgRef.asReferenceValue());
         modifications.add(itemDelta);
         repositoryService.modifyObject(OrgType.class, edge.getDescendant(), modifications, new OperationResult("dummy"));
         synchronized(this) {

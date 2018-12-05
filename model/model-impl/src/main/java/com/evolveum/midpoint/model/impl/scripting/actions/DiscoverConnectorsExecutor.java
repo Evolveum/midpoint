@@ -24,7 +24,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDeltaImpl;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -134,7 +133,7 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
                 if (newOid != null) {
                     String msg = "resource " + resource + " from connector " + connectorOid + " to new one: " + newOid;
                     LOGGER.info("Rebinding " + msg);
-                    ReferenceDelta refDelta = ReferenceDeltaImpl
+                    ReferenceDelta refDelta = prismContext.deltaFactory().reference()
                             .createModificationReplace(ResourceType.F_CONNECTOR_REF, resource.getDefinition(), newOid);
                     ObjectDelta<ResourceType> objDelta = ObjectDeltaCreationUtil
 		                    .createModifyDelta(resource.getOid(), refDelta, ResourceType.class, prismContext);

@@ -708,7 +708,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 			assertShadowName(abomShadow,
 					"uid=abomba1,OU=people,DC=example,DC=com");
 
-			ReferenceDelta abombaDeleteAccDelta = ReferenceDeltaImpl
+			ReferenceDelta abombaDeleteAccDelta = prismContext.deltaFactory().reference()
 					.createModificationDelete(ShadowType.class,
 							UserType.F_LINK_REF, prismContext,
 							getPrismContext().itemFactory().createPrismReferenceValue(abombaOid));
@@ -722,7 +722,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 			repositoryService.getObject(ShadowType.class, abombaOid, null,
 					parentResult);
 
-			ReferenceDelta abomDeleteAccDelta = ReferenceDeltaImpl
+			ReferenceDelta abomDeleteAccDelta = prismContext.deltaFactory().reference()
 					.createModificationDelete(ShadowType.class,
 							UserType.F_LINK_REF, prismContext,
 							abomShadow.asPrismObject());

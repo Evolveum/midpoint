@@ -246,7 +246,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		        .createEmptyModifyDelta(UserType.class, USER_GUYBRUSH_OID, prismContext);
         PrismReferenceValue accountRefVal = itemFactory().createPrismReferenceValue();
 		accountRefVal.setObject(account);
-		ReferenceDelta accountDelta = ReferenceDeltaImpl
+		ReferenceDelta accountDelta = prismContext.deltaFactory().reference()
 				.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountDelta);
 		
@@ -1560,7 +1560,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	private void addBrokenAccountRef(String userOid) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		OperationResult result = new OperationResult(TestStrangeCases.class.getName() + ".addBrokenAccountRef");
 
-		Collection<? extends ItemDelta> modifications = ReferenceDeltaImpl.createModificationAddCollection(UserType.class,
+		Collection<? extends ItemDelta> modifications = prismContext.deltaFactory().reference().createModificationAddCollection(UserType.class,
 				UserType.F_LINK_REF, prismContext, NON_EXISTENT_ACCOUNT_OID);
 		repositoryService.modifyObject(UserType.class, userOid, modifications , result);
 

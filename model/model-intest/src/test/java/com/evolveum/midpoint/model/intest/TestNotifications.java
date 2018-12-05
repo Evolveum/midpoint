@@ -24,7 +24,6 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDeltaImpl;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
@@ -236,7 +235,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
 		ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil
 				.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
-		ReferenceDelta accountDelta = ReferenceDeltaImpl
+		ReferenceDelta accountDelta = prismContext.deltaFactory().reference()
 				.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), account, prismContext);
 		userDelta.addModification(accountDelta);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);

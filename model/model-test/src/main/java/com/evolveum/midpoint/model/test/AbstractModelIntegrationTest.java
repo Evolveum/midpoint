@@ -2638,7 +2638,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
 		Collection modifications = new ArrayList<>();
 
-		ReferenceDelta refDelta = ReferenceDeltaImpl.createModificationReplace(SystemConfigurationType.F_GLOBAL_SECURITY_POLICY_REF,
+		ReferenceDelta refDelta = prismContext.deltaFactory().reference().createModificationReplace(SystemConfigurationType.F_GLOBAL_SECURITY_POLICY_REF,
 				SystemConfigurationType.class, prismContext, securityPolicyOid);
 		modifications.add(refDelta);
 
@@ -2814,7 +2814,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil.createEmptyModifyDelta(UserType.class, userOid, prismContext);
         PrismReferenceValue accountRefVal = itemFactory().createPrismReferenceValue();
 		accountRefVal.setObject(account);
-		ReferenceDelta accountDelta = ReferenceDeltaImpl.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
+		ReferenceDelta accountDelta = prismContext.deltaFactory().reference().createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountDelta);
 
 		return userDelta;
@@ -2835,7 +2835,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil.createEmptyModifyDelta(UserType.class, userOid, prismContext);
         PrismReferenceValue accountRefVal = itemFactory().createPrismReferenceValue();
 		accountRefVal.setObject(account);
-		ReferenceDelta accountDelta = ReferenceDeltaImpl.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
+		ReferenceDelta accountDelta = prismContext.deltaFactory().reference().createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountDelta);
 
 		return userDelta;
@@ -2847,7 +2847,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil.createEmptyModifyDelta(UserType.class, userOid, prismContext);
         PrismReferenceValue accountRefVal = itemFactory().createPrismReferenceValue();
 		accountRefVal.setOid(accountOid);
-		ReferenceDelta accountDelta = ReferenceDeltaImpl.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
+		ReferenceDelta accountDelta = prismContext.deltaFactory().reference().createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountDelta);
 
 		return userDelta;
@@ -4556,7 +4556,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil.createEmptyModifyDelta(UserType.class, userOid, prismContext);
         PrismReferenceValue accountRefVal = itemFactory().createPrismReferenceValue();
 		accountRefVal.setObject(account);
-		ReferenceDelta accountDelta = ReferenceDeltaImpl.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
+		ReferenceDelta accountDelta = prismContext.deltaFactory().reference().createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountDelta);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
 

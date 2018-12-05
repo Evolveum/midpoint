@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.delta.ReferenceDeltaImpl;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -36,7 +35,6 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
@@ -112,7 +110,7 @@ public class ListAccountShadowOwnerTest extends BaseSQLRepoTest {
         assertNull("Account has owner and should not have (precondition)", accountOwnerOid);
 
         // WHEN (link account)
-        Collection<? extends ItemDelta> modifications = ReferenceDeltaImpl.createModificationAddCollection(UserType.class,
+        Collection<? extends ItemDelta> modifications = prismContext.deltaFactory().reference().createModificationAddCollection(UserType.class,
                 UserType.F_LINK_REF, prismContext, account);
         repositoryService.modifyObject(UserType.class, userOid, modifications, result);
         // THEN
@@ -120,7 +118,7 @@ public class ListAccountShadowOwnerTest extends BaseSQLRepoTest {
         assertEquals("listAccountShadowOwner returned wrong value", userOid, accountOwnerOid);
 
         // WHEN (unlink account)
-        modifications = ReferenceDeltaImpl.createModificationDeleteCollection(UserType.class, UserType.F_LINK_REF,
+        modifications = prismContext.deltaFactory().reference().createModificationDeleteCollection(UserType.class, UserType.F_LINK_REF,
                 prismContext, account);
         repositoryService.modifyObject(UserType.class, userOid, modifications, result);
         // THEN

@@ -21,7 +21,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -367,7 +366,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         AssertJUnit.assertNull("global password policy not null", repoSystemConfig.asObjectable()
                 .getGlobalPasswordPolicyRef());
 
-        ReferenceDelta refDelta = ReferenceDeltaImpl.createModificationAdd(
+        ReferenceDelta refDelta = prismContext.deltaFactory().reference().createModificationAdd(
                 SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY_REF, repoSystemConfig.getDefinition(),
                 prismContext.itemFactory().createPrismReferenceValue(repoPasswordPolicy));
         List<ReferenceDelta> refDeltas = new ArrayList<>();

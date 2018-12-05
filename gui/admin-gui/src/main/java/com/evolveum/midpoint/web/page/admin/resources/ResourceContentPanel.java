@@ -1118,7 +1118,7 @@ public abstract class ResourceContentPanel extends Panel {
 					modifications = new ArrayList<>();
 					FocusType owner = loadShadowOwner(shadow.getOid());
 					if (owner != null) {
-						delta = ReferenceDeltaImpl.createModificationDelete(FocusType.F_LINK_REF,
+						delta = getPageBase().getPrismContext().deltaFactory().reference().createModificationDelete(FocusType.F_LINK_REF,
 								getFocusDefinition(),
 								ObjectTypeUtil.createObjectRef(shadow, getPageBase().getPrismContext()).asReferenceValue());
 
@@ -1135,7 +1135,7 @@ public abstract class ResourceContentPanel extends Panel {
 				ShadowType shadow = selectedShadow.iterator().next();
 				FocusType owner = loadShadowOwner(shadow.getOid());
 				if (owner != null) {
-					delta = ReferenceDeltaImpl.createModificationDelete(FocusType.F_LINK_REF,
+					delta = getPageBase().getPrismContext().deltaFactory().reference().createModificationDelete(FocusType.F_LINK_REF,
 							getFocusDefinition(), ObjectTypeUtil.createObjectRef(shadow, getPageBase().getPrismContext()).asReferenceValue());
 
 					((Collection) modifications).add(delta);
@@ -1143,7 +1143,7 @@ public abstract class ResourceContentPanel extends Panel {
 				}
 				modifications = new ArrayList<>();
 
-				delta = ReferenceDeltaImpl.createModificationAdd(FocusType.F_LINK_REF, getFocusDefinition(),
+				delta = getPageBase().getPrismContext().deltaFactory().reference().createModificationAdd(FocusType.F_LINK_REF, getFocusDefinition(),
 						ObjectTypeUtil.createObjectRef(shadow, getPageBase().getPrismContext()).asReferenceValue());
 				((Collection) modifications).add(delta);
 				changeOwnerInternal(ownerToChange.getOid(), modifications, target);

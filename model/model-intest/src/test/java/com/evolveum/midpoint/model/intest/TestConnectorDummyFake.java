@@ -273,10 +273,10 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
 		        .createEmptyModifyDelta(ResourceType.class, RESOURCE_DUMMY_FAKE_OID,
         		prismContext);
         PrismReference connectorRef = resourceDummyFake.findReference(ResourceType.F_CONNECTOR_REF);
-        ReferenceDelta connectorRefDeltaDel = ReferenceDeltaImpl.createModificationDelete(ResourceType.F_CONNECTOR_REF,
+        ReferenceDelta connectorRefDeltaDel = prismContext.deltaFactory().reference().createModificationDelete(ResourceType.F_CONNECTOR_REF,
         		getResourceDefinition(), connectorRef.getValue().clone());
         resourceDelta.addModification(connectorRefDeltaDel);
-        ReferenceDelta connectorRefDeltaAdd = ReferenceDeltaImpl.createModificationAdd(ResourceType.F_CONNECTOR_REF,
+        ReferenceDelta connectorRefDeltaAdd = prismContext.deltaFactory().reference().createModificationAdd(ResourceType.F_CONNECTOR_REF,
         		getResourceDefinition(), connectorDummyOid);
 		resourceDelta.addModification(connectorRefDeltaAdd);
 		// Purge the schema. New connector schema is not compatible.
@@ -310,10 +310,10 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         ObjectDelta<ResourceType> resourceDelta = ObjectDeltaCreationUtil
 		        .createEmptyModifyDelta(ResourceType.class, RESOURCE_DUMMY_FAKE_OID,
         		prismContext);
-        ReferenceDelta connectorRefDeltaDel = ReferenceDeltaImpl.createModificationDelete(ResourceType.F_CONNECTOR_REF,
+        ReferenceDelta connectorRefDeltaDel = prismContext.deltaFactory().reference().createModificationDelete(ResourceType.F_CONNECTOR_REF,
         		getResourceDefinition(), connectorDummyOid);
         resourceDelta.addModification(connectorRefDeltaDel);
-        ReferenceDelta connectorRefDeltaAdd = ReferenceDeltaImpl.createModificationAdd(ResourceType.F_CONNECTOR_REF,
+        ReferenceDelta connectorRefDeltaAdd = prismContext.deltaFactory().reference().createModificationAdd(ResourceType.F_CONNECTOR_REF,
         		getResourceDefinition(), connectorDummyFakeOid);
 		resourceDelta.addModification(connectorRefDeltaAdd);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(resourceDelta);
@@ -343,7 +343,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         ObjectDelta<ResourceType> resourceDelta = ObjectDeltaCreationUtil
 		        .createEmptyModifyDelta(ResourceType.class, RESOURCE_DUMMY_FAKE_OID,
         		prismContext);
-        ReferenceDelta connectorRefDeltaReplace = ReferenceDeltaImpl.createModificationReplace(ResourceType.F_CONNECTOR_REF,
+        ReferenceDelta connectorRefDeltaReplace = prismContext.deltaFactory().reference().createModificationReplace(ResourceType.F_CONNECTOR_REF,
         		getResourceDefinition(), connectorDummyOid);
 		resourceDelta.addModification(connectorRefDeltaReplace);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(resourceDelta);
@@ -374,7 +374,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         ObjectDelta<ResourceType> resourceDelta = ObjectDeltaCreationUtil
 		        .createEmptyModifyDelta(ResourceType.class, RESOURCE_DUMMY_FAKE_OID,
         		prismContext);
-        ReferenceDelta connectorRefDeltaReplace = ReferenceDeltaImpl.createModificationReplace(ResourceType.F_CONNECTOR_REF,
+        ReferenceDelta connectorRefDeltaReplace = prismContext.deltaFactory().reference().createModificationReplace(ResourceType.F_CONNECTOR_REF,
         		getResourceDefinition(), connectorDummyFakeOid);
 		resourceDelta.addModification(connectorRefDeltaReplace);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(resourceDelta);
@@ -404,10 +404,10 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         ObjectDelta<ResourceType> resourceDelta = ObjectDeltaCreationUtil
 		        .createEmptyModifyDelta(ResourceType.class, RESOURCE_DUMMY_FAKE_OID,
         		prismContext);
-        ReferenceDelta connectorRefDeltaDel = ReferenceDeltaImpl.createModificationDelete(ResourceType.F_CONNECTOR_REF,
+        ReferenceDelta connectorRefDeltaDel = prismContext.deltaFactory().reference().createModificationDelete(ResourceType.F_CONNECTOR_REF,
         		getResourceDefinition(), connectorDummyFakeOid);
         resourceDelta.addModification(connectorRefDeltaDel);
-        ReferenceDelta connectorRefDeltaAdd = ReferenceDeltaImpl.createModificationAdd(ResourceType.F_CONNECTOR_REF,
+        ReferenceDelta connectorRefDeltaAdd = prismContext.deltaFactory().reference().createModificationAdd(ResourceType.F_CONNECTOR_REF,
         		getResourceDefinition(), connectorDummyOid);
 		resourceDelta.addModification(connectorRefDeltaAdd);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(resourceDelta);
@@ -440,10 +440,10 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         ObjectDelta<ResourceType> resourceDelta = ObjectDeltaCreationUtil
 		        .createEmptyModifyDelta(ResourceType.class, RESOURCE_DUMMY_FAKE_OID,
         		prismContext);
-        ReferenceDelta connectorRefDeltaDel = ReferenceDeltaImpl.createModificationDelete(ResourceType.F_CONNECTOR_REF,
+        ReferenceDelta connectorRefDeltaDel = prismContext.deltaFactory().reference().createModificationDelete(ResourceType.F_CONNECTOR_REF,
         		getResourceDefinition(), connectorDummyOid);
         resourceDelta.addModification(connectorRefDeltaDel);
-        ReferenceDelta connectorRefDeltaAdd = ReferenceDeltaImpl.createModificationAdd(ResourceType.F_CONNECTOR_REF,
+        ReferenceDelta connectorRefDeltaAdd = prismContext.deltaFactory().reference().createModificationAdd(ResourceType.F_CONNECTOR_REF,
         		getResourceDefinition(), connectorDummyFakeOid);
 		resourceDelta.addModification(connectorRefDeltaAdd);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(resourceDelta);
@@ -475,7 +475,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         ObjectDelta<ResourceType> resourceDelta = ObjectDeltaCreationUtil
 		        .createEmptyModifyDelta(ResourceType.class, RESOURCE_DUMMY_FAKE_OID,
         		prismContext);
-        ReferenceDelta connectorRefDeltaReplace = ReferenceDeltaImpl.createModificationReplace(ResourceType.F_CONNECTOR_REF,
+        ReferenceDelta connectorRefDeltaReplace = prismContext.deltaFactory().reference().createModificationReplace(ResourceType.F_CONNECTOR_REF,
         		getResourceDefinition(), connectorDummyOid);
 		resourceDelta.addModification(connectorRefDeltaReplace);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(resourceDelta);
@@ -508,7 +508,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         ObjectDelta<ResourceType> resourceDelta = ObjectDeltaCreationUtil
 		        .createEmptyModifyDelta(ResourceType.class, RESOURCE_DUMMY_FAKE_OID,
         		prismContext);
-        ReferenceDelta connectorRefDeltaReplace = ReferenceDeltaImpl.createModificationReplace(ResourceType.F_CONNECTOR_REF,
+        ReferenceDelta connectorRefDeltaReplace = prismContext.deltaFactory().reference().createModificationReplace(ResourceType.F_CONNECTOR_REF,
         		getResourceDefinition(), connectorDummyFakeOid);
 		resourceDelta.addModification(connectorRefDeltaReplace);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(resourceDelta);

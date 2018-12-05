@@ -1679,7 +1679,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         account.setOid(accountRedOid);
         ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil
 		        .createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
-		ReferenceDelta accountDelta = ReferenceDeltaImpl
+		ReferenceDelta accountDelta = prismContext.deltaFactory().reference()
 				.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), account, prismContext);
 		userDelta.addModification(accountDelta);
 		executeChanges(userDelta, null, task, task.getResult());

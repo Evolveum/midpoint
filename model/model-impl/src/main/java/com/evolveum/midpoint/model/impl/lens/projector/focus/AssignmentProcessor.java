@@ -862,19 +862,19 @@ public class AssignmentProcessor {
 				return;
 			} else {
 				LOGGER.trace("Setting tenantRef to {}", tenantOid);
-				ReferenceDelta tenantRefDelta = ReferenceDeltaImpl
+				ReferenceDelta tenantRefDelta = prismContext.deltaFactory().reference()
 						.createModificationReplace(ObjectType.F_TENANT_REF, focusContext.getObjectDefinition(), tenantOid);
 				focusContext.swallowToProjectionWaveSecondaryDelta(tenantRefDelta);
 			}
 		} else {
 			if (tenantOid == null) {
 				LOGGER.trace("Clearing tenantRef");
-				ReferenceDelta tenantRefDelta = ReferenceDeltaImpl.createModificationReplace(ObjectType.F_TENANT_REF, focusContext.getObjectDefinition(), (PrismReferenceValue)null);
+				ReferenceDelta tenantRefDelta = prismContext.deltaFactory().reference().createModificationReplace(ObjectType.F_TENANT_REF, focusContext.getObjectDefinition(), (PrismReferenceValue)null);
 				focusContext.swallowToProjectionWaveSecondaryDelta(tenantRefDelta);
 			} else {
 				if (!tenantOid.equals(currentTenantRef.getOid())) {
 					LOGGER.trace("Changing tenantRef to {}", tenantOid);
-					ReferenceDelta tenantRefDelta = ReferenceDeltaImpl.createModificationReplace(ObjectType.F_TENANT_REF, focusContext.getObjectDefinition(), tenantOid);
+					ReferenceDelta tenantRefDelta = prismContext.deltaFactory().reference().createModificationReplace(ObjectType.F_TENANT_REF, focusContext.getObjectDefinition(), tenantOid);
 					focusContext.swallowToProjectionWaveSecondaryDelta(tenantRefDelta);
 				}
 			}
@@ -1051,7 +1051,7 @@ public class AssignmentProcessor {
 		}
 
 		PrismReferenceDefinition itemDef = focusContext.getObjectDefinition().findItemDefinition(itemName, PrismReferenceDefinition.class);
-		ReferenceDelta itemDelta = new ReferenceDeltaImpl(itemName, itemDef, focusContext.getObjectDefinition().getPrismContext());
+		ReferenceDelta itemDelta = prismContext.deltaFactory().reference().create(itemName, itemDef, focusContext.getObjectDefinition().getPrismContext());
 		itemDelta.setValuesToReplace(targetState);
 		focusContext.swallowToSecondaryDelta(itemDelta);
 	}

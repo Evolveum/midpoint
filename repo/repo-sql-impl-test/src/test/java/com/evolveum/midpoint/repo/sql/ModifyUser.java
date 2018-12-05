@@ -196,11 +196,11 @@ public class ModifyUser extends BaseSQLRepoTest {
     @Test
     public void test100ModifyUserApproverMetadata() throws Exception {
         PrismObjectDefinition userDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-        ReferenceDelta delta1 = ReferenceDeltaImpl.createModificationAdd(
+        ReferenceDelta delta1 = prismContext.deltaFactory().reference().createModificationAdd(
                 ItemPath.create(UserType.F_METADATA, MetadataType.F_CREATE_APPROVER_REF),
                 userDefinition,
                 itemFactory().createPrismReferenceValue("target-oid-1", UserType.COMPLEX_TYPE));
-        ReferenceDelta delta2 = ReferenceDeltaImpl.createModificationAdd(
+        ReferenceDelta delta2 = prismContext.deltaFactory().reference().createModificationAdd(
                 ItemPath.create(UserType.F_METADATA, MetadataType.F_MODIFY_APPROVER_REF),
                 userDefinition,
                 itemFactory().createPrismReferenceValue("target-oid-1", UserType.COMPLEX_TYPE));            // the same as in delta1

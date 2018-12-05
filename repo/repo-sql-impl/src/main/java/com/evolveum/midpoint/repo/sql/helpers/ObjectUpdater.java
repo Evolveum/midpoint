@@ -219,7 +219,7 @@ public class ObjectUpdater {
         }
 
         PrismObjectDefinition def = object.getDefinition();
-        ReferenceDelta delta = ReferenceDeltaImpl.createModificationAdd(ObjectType.F_PARENT_ORG_REF,
+        ReferenceDelta delta = prismContext.deltaFactory().reference().createModificationAdd(ObjectType.F_PARENT_ORG_REF,
                 def, parentOrgRef.getClonedValues());
 
         return Collections.singletonList(delta);
