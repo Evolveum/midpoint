@@ -1029,7 +1029,7 @@ public class ResourceObjectConverter {
 				}
 			}
 		}
-		PropertyDelta resultingDelta = new PropertyDeltaImpl(propertyDelta.getPath(), propertyDelta.getPropertyDefinition(), propertyDelta.getPrismContext());
+		PropertyDelta resultingDelta = prismContext.deltaFactory().property().create(propertyDelta.getPath(), propertyDelta.getPropertyDefinition());
 		resultingDelta.setValuesToReplace(currentValues);
 		return new PropertyModificationOperation(resultingDelta);
 	}
@@ -1425,7 +1425,7 @@ public class ResourceObjectConverter {
 		ActivationCapabilityType activationCapability = CapabilityUtil.getEffectiveCapability(connectorCapabilities, ActivationCapabilityType.class);
 
 		// administrativeStatus
-		PropertyDelta<ActivationStatusType> enabledPropertyDelta = PropertyDeltaImpl.findPropertyDelta(objectChange,
+		PropertyDelta<ActivationStatusType> enabledPropertyDelta = PropertyDeltaCollectionsUtil.findPropertyDelta(objectChange,
 				SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
 		if (enabledPropertyDelta != null) {
 			if (activationCapability == null) {
@@ -1451,7 +1451,7 @@ public class ResourceObjectConverter {
 		}
 		
 		// validFrom
-		PropertyDelta<XMLGregorianCalendar> validFromPropertyDelta = PropertyDeltaImpl.findPropertyDelta(objectChange,
+		PropertyDelta<XMLGregorianCalendar> validFromPropertyDelta = PropertyDeltaCollectionsUtil.findPropertyDelta(objectChange,
 				SchemaConstants.PATH_ACTIVATION_VALID_FROM);
 		if (validFromPropertyDelta != null) {
 			if (CapabilityUtil.getEffectiveActivationValidFrom(activationCapability) == null) {
@@ -1465,7 +1465,7 @@ public class ResourceObjectConverter {
 		}
 
 		// validTo
-		PropertyDelta<XMLGregorianCalendar> validToPropertyDelta = PropertyDeltaImpl.findPropertyDelta(objectChange,
+		PropertyDelta<XMLGregorianCalendar> validToPropertyDelta = PropertyDeltaCollectionsUtil.findPropertyDelta(objectChange,
 				SchemaConstants.PATH_ACTIVATION_VALID_TO);
 		if (validToPropertyDelta != null) {
 			if (CapabilityUtil.getEffectiveActivationValidTo(activationCapability) == null) {
@@ -1478,7 +1478,7 @@ public class ResourceObjectConverter {
 				operations.add(new PropertyModificationOperation(validToPropertyDelta));
 		}
 		
-		PropertyDelta<LockoutStatusType> lockoutPropertyDelta = PropertyDeltaImpl.findPropertyDelta(objectChange,
+		PropertyDelta<LockoutStatusType> lockoutPropertyDelta = PropertyDeltaCollectionsUtil.findPropertyDelta(objectChange,
 				SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS);
 		if (lockoutPropertyDelta != null) {
 			if (activationCapability == null) {
@@ -2216,7 +2216,7 @@ public class ResourceObjectConverter {
 		PropertyDelta<?> simulatedAttrDelta;
 		if (status == null && activationDelta.isDelete()){
 			LOGGER.trace("deleting activation property.");
-			simulatedAttrDelta = PropertyDeltaImpl.createModificationDeleteProperty(
+			simulatedAttrDelta = prismContext.deltaFactory().property().createModificationDeleteProperty(
 					ItemPath.create(ShadowType.F_ATTRIBUTES, simulatedAttribute.getElementName()), simulatedAttribute.getDefinition(), simulatedAttribute.getRealValue());
 		} else if (status == ActivationStatusType.ENABLED) {
 			Object enableValue = getEnableValue(capActStatus, simulatedAttrValueClass);
@@ -2248,7 +2248,7 @@ public class ResourceObjectConverter {
 		
 		if (status == null && activationDelta.isDelete()){
 			LOGGER.trace("deleting activation property.");
-			lockoutAttributeDelta = PropertyDeltaImpl.createModificationDeleteProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, activationAttribute.getElementName()), activationAttribute.getDefinition(), activationAttribute.getRealValue());
+			lockoutAttributeDelta = prismContext.deltaFactory().property().createModificationDeleteProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, activationAttribute.getElementName()), activationAttribute.getDefinition(), activationAttribute.getRealValue());
 			
 		} else if (status == LockoutStatusType.NORMAL) {
 			String normalValue = getLockoutNormalValue(capActStatus);
@@ -2264,10 +2264,10 @@ public class ResourceObjectConverter {
 	
 	private PropertyDelta<?> createActivationPropDelta(QName attrName, ResourceAttributeDefinition attrDef, Object value) {
 		if (isBlank(value)) {
-			return PropertyDeltaImpl.createModificationReplaceProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, attrName),
+			return prismContext.deltaFactory().property().createModificationReplaceProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, attrName),
 					attrDef);
 		} else {
-			return PropertyDeltaImpl.createModificationReplaceProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, attrName),
+			return prismContext.deltaFactory().property().createModificationReplaceProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, attrName),
 					attrDef, value);
 		}
 	}

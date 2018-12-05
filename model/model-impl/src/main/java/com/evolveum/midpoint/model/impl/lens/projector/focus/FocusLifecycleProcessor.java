@@ -157,7 +157,7 @@ public class FocusLifecycleProcessor {
 	}
 
 	private <F extends FocusType> void recordLifecycleTransitionDelta(LensFocusContext<F> focusContext, String targetLifecycleState) throws SchemaException {
-		PropertyDelta<String> lifecycleDelta = PropertyDeltaImpl
+		PropertyDelta<String> lifecycleDelta = focusContext.getPrismContext().deltaFactory().property()
 				.createModificationReplaceProperty(ObjectType.F_LIFECYCLE_STATE, focusContext.getObjectDefinition(),
 				targetLifecycleState);
 		focusContext.swallowToSecondaryDelta(lifecycleDelta);

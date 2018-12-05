@@ -2425,7 +2425,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         ItemPath employeeTypePath = ItemPath.create(ShadowType.F_ATTRIBUTES, employeeTypeQName);
         PrismProperty item = shadow.findProperty(employeeTypePath);
 
-        PropertyDelta deleteDelta = new PropertyDeltaImpl(ShadowType.F_ATTRIBUTES, item.getDefinition().getName(), item.getDefinition(), prismContext);
+        PropertyDelta deleteDelta = prismContext.deltaFactory().property().create(ShadowType.F_ATTRIBUTES, item.getDefinition().getName(), item.getDefinition());
 //        PropertyDelta deleteDelta = PropertyDelta.createDelta(employeeTypePath, shadow.getDefinition());
 //        PrismPropertyValue valToDelte = new PrismPropertyValue("A");
 //        valToDelte.setParent(deleteDelta);
@@ -2437,7 +2437,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         }
 
 
-        ObjectDelta delta = prismContext.deltaFactory().createObjectDelta(ShadowType.class, ChangeType.MODIFY);
+        ObjectDelta delta = prismContext.deltaFactory().object().create(ShadowType.class, ChangeType.MODIFY);
         delta.addModification(deleteDelta);
         delta.setOid(accountShadowOidGuybrushOpendj);
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();

@@ -169,7 +169,7 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 			// We should provide shadow in the state before the change. But we are
 			// pretending that it has
 			// not existed before, so we will not provide it.
-			ObjectDelta<ShadowType> shadowDelta = accountShadow.getPrismContext().deltaFactory().createObjectDelta(
+			ObjectDelta<ShadowType> shadowDelta = accountShadow.getPrismContext().deltaFactory().object().create(
                 ShadowType.class, ChangeType.ADD);
 			//PrismObject<AccountShadowType> shadowToAdd = refinedAccountDefinition.getObjectDefinition().parseObjectType(newShadowType);
 			PrismObject<ShadowType> shadowToAdd = newShadowType.asPrismObject();

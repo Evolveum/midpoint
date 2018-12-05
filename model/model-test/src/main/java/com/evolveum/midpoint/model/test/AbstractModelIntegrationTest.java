@@ -1361,7 +1361,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected <V> PropertyDelta<V> createUserPropertyReplaceModification(QName propertyName, V... values) {
-		return PropertyDeltaImpl.createReplaceDelta(getUserDefinition(), propertyName, values);
+		return prismContext.deltaFactory().property().createReplaceDelta(getUserDefinition(), propertyName, values);
 	}
 
 	protected ContainerDelta<AssignmentType> createAssignmentModification(String resourceOid, ShadowKindType kind,

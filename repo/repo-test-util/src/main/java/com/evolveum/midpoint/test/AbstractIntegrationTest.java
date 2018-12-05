@@ -2259,7 +2259,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		if (attributeDefinition == null) {
 			throw new SchemaException("No definition for attribute "+ attributeQName+ " in " + resource);
 		}
-		return PropertyDeltaImpl.createModificationReplaceProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, attributeQName),
+		return prismContext.deltaFactory().property().createModificationReplaceProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, attributeQName),
 				attributeDefinition, newRealValue);
 	}
 
@@ -2272,7 +2272,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		if (attributeDefinition == null) {
 			throw new SchemaException("No definition for attribute "+ attributeQName+ " in " + resource);
 		}
-		return PropertyDeltaImpl.createModificationAddProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, attributeQName),
+		return prismContext.deltaFactory().property().createModificationAddProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, attributeQName),
 				attributeDefinition, newRealValue);
 	}
 
@@ -2285,7 +2285,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		if (attributeDefinition == null) {
 			throw new SchemaException("No definition for attribute "+ attributeQName+ " in " + resource);
 		}
-		return PropertyDeltaImpl.createModificationDeleteProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, attributeQName),
+		return prismContext.deltaFactory().property().createModificationDeleteProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, attributeQName),
 				attributeDefinition, newRealValue);
 	}
 

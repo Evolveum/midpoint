@@ -462,7 +462,7 @@ public class WebModelServiceUtils {
         try {
             Task task = createSimpleTask(result.getOperation(), principal, page.getTaskManager());
 
-            ObjectDelta delta = page.getPrismContext().deltaFactory().createObjectDelta(type, ChangeType.DELETE);
+            ObjectDelta delta = page.getPrismContext().deltaFactory().object().create(type, ChangeType.DELETE);
             delta.setOid(oid);
 
             page.getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), options, task, subResult);

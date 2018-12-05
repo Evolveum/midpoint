@@ -52,7 +52,7 @@ public class TestDelta extends AbstractPrismTest {
 
 		PrismPropertyDefinition<String> descDefinition = prismContext.definitionFactory().createPropertyDefinition(UserType.F_DESCRIPTION,
 				DOMUtil.XSD_STRING);
-		PropertyDelta<String> delta1 = new PropertyDeltaImpl<>(descDefinition, PrismTestUtil.getPrismContext());
+		PropertyDelta<String> delta1 = prismContext.deltaFactory().property().create(descDefinition);
 		delta1.addRealValuesToAdd("add1");
 		assertPath(delta1, UserType.F_DESCRIPTION);
 
@@ -81,11 +81,11 @@ public class TestDelta extends AbstractPrismTest {
 		PrismPropertyDefinition<String> assDescDefinition = prismContext.definitionFactory().createPropertyDefinition(AssignmentType.F_DESCRIPTION,
 				DOMUtil.XSD_STRING);
 		ItemPath itemPathAssDescNoId = ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_DESCRIPTION);
-		PropertyDelta<String> propDelta2 = new PropertyDeltaImpl<>(itemPathAssDescNoId, descDefinition, PrismTestUtil.getPrismContext());
+		PropertyDelta<String> propDelta2 = prismContext.deltaFactory().property().create(itemPathAssDescNoId, descDefinition);
 		assertPath(propDelta2, itemPathAssDescNoId);
 
 		ItemPath itemPathAssDesc1Id = ItemPath.create(UserType.F_ASSIGNMENT, USER_ASSIGNMENT_1_ID, AssignmentType.F_DESCRIPTION);
-		PropertyDelta<String> propDelta3 = new PropertyDeltaImpl<>(itemPathAssDesc1Id, descDefinition, PrismTestUtil.getPrismContext());
+		PropertyDelta<String> propDelta3 = prismContext.deltaFactory().property().create(itemPathAssDesc1Id, descDefinition);
 		assertPath(propDelta3, itemPathAssDesc1Id);
 
 	}
@@ -1261,7 +1261,7 @@ public class TestDelta extends AbstractPrismTest {
     			UserType.F_FULL_NAME, PrismTestUtil.getPrismContext(), PrismTestUtil.createPolyString("baz"));
 
 
-    	PropertyDelta<PolyString> fullNameDelta2 = PropertyDeltaImpl.createDelta(UserType.F_FULL_NAME, UserType.class,
+    	PropertyDelta<PolyString> fullNameDelta2 = getPrismContext().deltaFactory().property().createDelta(UserType.F_FULL_NAME, UserType.class,
     			PrismTestUtil.getPrismContext());
     	PrismPropertyValue<PolyString> fullNameValue2 = new PrismPropertyValueImpl<>(PrismTestUtil.createPolyString("baz"));
     	// Set some metadata to spoil usual equals

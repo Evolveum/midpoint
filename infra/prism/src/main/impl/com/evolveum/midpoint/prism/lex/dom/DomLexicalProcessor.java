@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.marshaller.ItemPathHolder;
 import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverterInternal;
 import com.evolveum.midpoint.prism.xnode.*;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -476,7 +475,7 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 			} else if (DOMUtil.XSD_QNAME.equals(typeName)) {
 				return (T) DOMUtil.getQNameValue(element);
 			} else if (XmlTypeConverter.canConvert(typeName)) {
-				return (T) XmlTypeConverterInternal.toJavaValue(element, typeName);
+				return (T) XmlTypeConverter.toJavaValue(element, typeName);
 			} else if (DOMUtil.XSD_ANYTYPE.equals(typeName)) {
 				return (T) element.getTextContent();                // if parsing primitive as xsd:anyType, we can safely parse it as string
 			} else {
@@ -513,7 +512,7 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 		if (XmlTypeConverter.canConvert(typeName)) {
 			String stringValue = attr.getTextContent();
 			try {
-				return XmlTypeConverterInternal.toJavaValue(stringValue, typeName);
+				return XmlTypeConverter.toJavaValue(stringValue, typeName);
 			} catch (IllegalArgumentException e) {
 				return processIllegalArgumentException(attr.getTextContent(), typeName, e, mode);		// primitive way of ensuring compatibility mode
 			}

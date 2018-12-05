@@ -19,7 +19,6 @@ package com.evolveum.midpoint.prism.schema;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverterInternal;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
@@ -919,13 +918,13 @@ class DomToSchemaPostProcessor {
 
 		Element indexableElement = SchemaProcessorUtil.getAnnotationElement(annotation, A_INDEXED);
 		if (indexableElement != null) {
-			Boolean indexable = XmlTypeConverterInternal.toJavaValue(indexableElement, Boolean.class);
+			Boolean indexable = XmlTypeConverter.toJavaValue(indexableElement, Boolean.class);
 			propDef.setIndexed(indexable);
 		}
 
 		Element matchingRuleElement = SchemaProcessorUtil.getAnnotationElement(annotation, A_MATCHING_RULE);
 		if (matchingRuleElement != null) {
-			QName matchingRule = XmlTypeConverterInternal.toJavaValue(matchingRuleElement, QName.class);
+			QName matchingRule = XmlTypeConverter.toJavaValue(matchingRuleElement, QName.class);
 			propDef.setMatchingRuleQName(matchingRule);
 		}
 
@@ -957,7 +956,7 @@ class DomToSchemaPostProcessor {
 		}
 		if (elementDecl.getDefaultValue() != null) {
 			if (XmlTypeConverter.canConvert(typeName)) {
-				return XmlTypeConverterInternal.toJavaValue(elementDecl.getDefaultValue().value, typeName);
+				return XmlTypeConverter.toJavaValue(elementDecl.getDefaultValue().value, typeName);
 			}
 			return elementDecl.getDefaultValue().value;
 		}

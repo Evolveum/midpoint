@@ -38,7 +38,7 @@ public class DiffUtil {
 			if (prismContext == null) {
 				throw new IllegalStateException("No prismContext in DiffUtil.diff!");
 			}
-			ObjectDelta<T> objectDelta = prismContext.deltaFactory().createObjectDelta(newObject.getCompileTimeClass(), ChangeType.ADD);
+			ObjectDelta<T> objectDelta = prismContext.deltaFactory().object().create(newObject.getCompileTimeClass(), ChangeType.ADD);
 			objectDelta.setOid(newObject.getOid());
 			objectDelta.setObjectToAdd(newObject);
 			return objectDelta;

@@ -979,7 +979,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 				ShadowType.F_ATTRIBUTES, getSecondaryIdentifierQName());
 		PrismPropertyDefinition icfNameDef = object
 				.asPrismObject().getDefinition().findPropertyDefinition(icfNamePath);
-		ItemDelta renameDelta = PropertyDeltaImpl
+		ItemDelta renameDelta = prismContext.deltaFactory().property()
 				.createModificationReplaceProperty(icfNamePath, icfNameDef, "uid=rename,ou=People,dc=example,dc=com");
 		((Collection)delta.getModifications()).add(renameDelta);
 
@@ -1040,8 +1040,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		display("Bytes in", MiscUtil.binaryToHex(bytesIn));
 
 		ItemName jpegPhotoQName = new ItemName(RESOURCE_OPENDJ_NS, "jpegPhoto");
-		PropertyDelta<byte[]> jpegPhotoDelta = new PropertyDeltaImpl<>(ItemPath.create(ShadowType.F_ATTRIBUTES, jpegPhotoQName),
-				null , prismContext);
+		PropertyDelta<byte[]> jpegPhotoDelta = prismContext.deltaFactory().property().create(ItemPath.create(ShadowType.F_ATTRIBUTES, jpegPhotoQName),
+				null);
 		jpegPhotoDelta.setRealValuesToReplace(bytesIn);
 
 		Collection<? extends ItemDelta> modifications = MiscSchemaUtil.createCollection(jpegPhotoDelta);
@@ -1093,16 +1093,16 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		PropertyDelta<String> givenNameDelta = new PropertyDeltaImpl<>(
+		PropertyDelta<String> givenNameDelta = prismContext.deltaFactory().property().create(
 				ItemPath.create(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_OPENDJ_NS, "givenName")),
-				null , prismContext);
+				null);
 		givenNameDelta.addRealValuesToAdd("Jack");
 
 		// Also make an ordinary non-conflicting modification. We need to make sure that
 		// the operation was not ignored as a whole
-		PropertyDelta<String> titleDelta = new PropertyDeltaImpl<>(
+		PropertyDelta<String> titleDelta = prismContext.deltaFactory().property().create(
 				ItemPath.create(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_OPENDJ_NS, "title")),
-				null , prismContext);
+				null);
 		titleDelta.addRealValuesToAdd("Great Captain");
 
 		Collection<? extends ItemDelta> modifications = MiscSchemaUtil.createCollection(givenNameDelta, titleDelta);
@@ -2944,7 +2944,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		addResourceFromFile(new File(TEST_DIR, "/resource-opendj-no-update.xml"), IntegrationTestTools.CONNECTOR_LDAP_TYPE, true, result);
 
 		try {
-			PropertyDelta delta = PropertyDeltaImpl.createModificationReplaceProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, new QName(resourceType.getNamespace(), "sn")), prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class), "doesnotmatter");
+			PropertyDelta delta = prismContext.deltaFactory().property().createModificationReplaceProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, new QName(resourceType.getNamespace(), "sn")), prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class), "doesnotmatter");
 			Collection modifications = MiscUtil.createCollection(delta);
 			provisioningService.modifyObject(ShadowType.class, ACCOUNT_WILL_OID, modifications, null, null, task, result);
 			AssertJUnit

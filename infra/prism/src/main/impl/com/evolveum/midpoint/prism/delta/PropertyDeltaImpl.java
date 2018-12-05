@@ -361,26 +361,7 @@ public class PropertyDeltaImpl<T extends Object> extends ItemDeltaImpl<PrismProp
     	return modifications;
     }
 
-	public static <T> PropertyDelta<T> findPropertyDelta(Collection<? extends ItemDelta> modifications, ItemPath propertyPath) {
-    	for (ItemDelta delta: modifications) {
-    		if (delta instanceof PropertyDelta && delta.getPath().equivalent(propertyPath)) {
-    			return (PropertyDelta) delta;
-    		}
-    	}
-    	return null;
-    }
-
-    public static <T> PropertyDelta<T> findPropertyDelta(Collection<? extends ItemDelta> modifications, QName propertyName) {
-    	for (ItemDelta delta: modifications) {
-    		if (delta instanceof PropertyDelta && delta.getParentPath().isEmpty() &&
-    				QNameUtil.match(delta.getElementName(), propertyName)) {
-    			return (PropertyDelta) delta;
-    		}
-    	}
-    	return null;
-    }
-
-    // convenience method
+	// convenience method
 	@SafeVarargs
 	public final void setRealValuesToReplace(T... newValues) {
 		super.setValuesToReplace(PrismValueCollectionsUtil.wrap(getPrismContext(), newValues));

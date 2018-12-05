@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -273,7 +272,7 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 
 		ResourceType resourceType = parseObjectType(RESOURCE_DUMMY_FILE, ResourceType.class);
 		userType.asObjectable().setName(new PolyStringType("JACK"));
-		Collection<? extends ItemDelta> modifications = PropertyDeltaImpl
+		Collection<? extends ItemDelta> modifications = prismContext.deltaFactory().property()
 				.createModificationReplacePropertyCollection(UserType.F_NAME, userType.getDefinition(), new PolyString("JACK", "jack"));
 		repositoryService.modifyObject(UserType.class, USER_JACK_OID, modifications, result);
 

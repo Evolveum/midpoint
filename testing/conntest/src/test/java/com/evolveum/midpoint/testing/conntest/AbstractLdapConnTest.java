@@ -33,7 +33,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
-import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.MiscUtil;
 
@@ -745,7 +744,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
 		        .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid, prismContext);
         QName attrQName = new QName(MidPointConstants.NS_RI, "title");
         ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
-        PropertyDelta<String> attrDelta = PropertyDeltaImpl.createModificationReplaceProperty(
+        PropertyDelta<String> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
 		        ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "Captain");
         delta.addModification(attrDelta);
 
@@ -785,7 +784,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
 		        .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid, prismContext);
         QName attrQName = new QName(MidPointConstants.NS_RI, "title");
         ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
-        PropertyDelta<String> attrDelta = PropertyDeltaImpl.createModificationAddProperty(
+        PropertyDelta<String> attrDelta = prismContext.deltaFactory().property().createModificationAddProperty(
 		        ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "Captain");
         delta.addModification(attrDelta);
 
@@ -825,7 +824,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
 		        .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid, prismContext);
         QName attrQName = new QName(MidPointConstants.NS_RI, "title");
         ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
-        PropertyDelta<String> attrDelta = PropertyDeltaImpl.createModificationAddProperty(
+        PropertyDelta<String> attrDelta = prismContext.deltaFactory().property().createModificationAddProperty(
 		        ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "CAPTAIN");
         delta.addModification(attrDelta);
 

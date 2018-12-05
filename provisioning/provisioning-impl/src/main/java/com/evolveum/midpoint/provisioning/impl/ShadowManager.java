@@ -1122,7 +1122,7 @@ public class ShadowManager {
 	
 	private <T> PropertyDelta<T> createPendingOperationDelta(PrismContainerDefinition<PendingOperationType> containerDefinition, ItemPath containerPath, QName propName, T valueToReplace) {
 		PrismPropertyDefinition<T> propDef = containerDefinition.findPropertyDefinition(ItemName.fromQName(propName));
-		PropertyDelta<T> propDelta = new PropertyDeltaImpl<>(containerPath.append(propName), propDef, prismContext);
+		PropertyDelta<T> propDelta = prismContext.deltaFactory().property().create(containerPath.append(propName), propDef);
 		if (valueToReplace == null) {
 			propDelta.setValueToReplace();
 		} else {
@@ -1388,9 +1388,9 @@ public class ShadowManager {
 		ItemPath propPath = containerPath.append(propertyName);
 		PropertyDelta<T> delta;
 		if (propertyValue == null) {
-			delta = PropertyDeltaImpl.createModificationReplaceProperty(propPath, shadowDef /* no value */);
+			delta = prismContext.deltaFactory().property().createModificationReplaceProperty(propPath, shadowDef /* no value */);
 		} else {
-			delta = PropertyDeltaImpl.createModificationReplaceProperty(propPath, shadowDef,
+			delta = prismContext.deltaFactory().property().createModificationReplaceProperty(propPath, shadowDef,
 				propertyValue);
 		}
 		repoDeltas.add(delta);
@@ -1634,7 +1634,7 @@ public class ShadowManager {
 					} else if (itemDelta.getValuesToAdd() != null && !itemDelta.getValuesToAdd().isEmpty()) {
 						newName = ((PrismPropertyValue)itemDelta.getValuesToAdd().iterator().next()).getValue().toString();
 					}
-					PropertyDelta<PolyString> nameDelta = PropertyDeltaImpl.createReplaceDelta(shadow.getDefinition(), ShadowType.F_NAME, new PolyString(newName));
+					PropertyDelta<PolyString> nameDelta = prismContext.deltaFactory().property().createReplaceDelta(shadow.getDefinition(), ShadowType.F_NAME, new PolyString(newName));
 					repoChanges.add(nameDelta);
 				}
 				if (!ProvisioningUtil.shouldStoreAtributeInShadow(objectClassDefinition, attrName, cachingStrategy)) {
@@ -1845,7 +1845,7 @@ public class ShadowManager {
 		PolyString currentShadowName = ShadowUtil.determineShadowName(currentResourceShadow);
 		PolyString oldRepoShadowName = oldRepoShadow.getName();
 		if (!currentShadowName.equalsOriginalValue(oldRepoShadowName)) {			
-			PropertyDelta<?> shadowNameDelta = PropertyDeltaImpl.createModificationReplaceProperty(ShadowType.F_NAME,
+			PropertyDelta<?> shadowNameDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(ShadowType.F_NAME,
 					oldRepoShadow.getDefinition(),currentShadowName);
 			shadowDelta.addModification(shadowNameDelta);
 		}

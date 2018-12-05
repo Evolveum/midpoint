@@ -61,7 +61,7 @@ public class TestTypeConversion {
 	public void testXmlDateTimeValue() throws Exception {
 		String stringDate = "1975-05-30T21:30:00.000Z";
 		Element xmlElement = createElement(stringDate);
-		Object javaValue = XmlTypeConverterInternal.toJavaValue(xmlElement, DOMUtil.XSD_DATETIME);
+		Object javaValue = XmlTypeConverter.toJavaValue(xmlElement, DOMUtil.XSD_DATETIME);
 		XMLGregorianCalendar xmlCal = XmlTypeConverter.createXMLGregorianCalendar(1975, 5, 30, 21, 30, 0);
 		PrismAsserts.assertEquals("Wrong java value", xmlCal, javaValue);
 		String xmlTextContent = XmlTypeConverterInternal.toXmlTextContent(xmlCal, MY_ELEMENT_QNAME);

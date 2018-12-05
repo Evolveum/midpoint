@@ -20,7 +20,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.xml.XmlTypeConverterInternal;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -104,7 +104,7 @@ public class SchemaProcessorUtil {
 		if (textContent == null || textContent.isEmpty()) {
 			return true;
 		}
-		return XmlTypeConverterInternal.toJavaValue(element, Boolean.class);
+		return XmlTypeConverter.toJavaValue(element, Boolean.class);
 	}
 
 	public static <T> T getAnnotationConverted(XSAnnotation annotation, QName qname, Class<T> type) throws SchemaException {
@@ -116,7 +116,7 @@ public class SchemaProcessorUtil {
 		if (textContent == null || textContent.isEmpty()) {
 			return null;
 		}
-		return XmlTypeConverterInternal.toJavaValue(element, type);
+		return XmlTypeConverter.toJavaValue(element, type);
 	}
 
 	public static Boolean getAnnotationBoolean(XSAnnotation annotation, QName qname) throws SchemaException {

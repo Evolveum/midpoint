@@ -50,7 +50,6 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
-import static com.evolveum.midpoint.prism.delta.PropertyDeltaImpl.createModificationReplaceProperty;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createDistinct;
 import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
@@ -130,8 +129,8 @@ public class CertificationTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("test200ModifyCampaignProperties");
 
         List<ItemDelta<?, ?>> modifications = new ArrayList<>();
-        modifications.add(createModificationReplaceProperty(F_NAME, campaignDef, new PolyString("Campaign 1+", "campaign 1")));
-        modifications.add(createModificationReplaceProperty(F_STATE, campaignDef, IN_REVIEW_STAGE));
+        modifications.add(prismContext.deltaFactory().property().createModificationReplaceProperty(F_NAME, campaignDef, new PolyString("Campaign 1+", "campaign 1")));
+        modifications.add(prismContext.deltaFactory().property().createModificationReplaceProperty(F_STATE, campaignDef, IN_REVIEW_STAGE));
 
         executeAndCheckModification(modifications, result, 1);
         checksCountsStandard(result);
@@ -143,8 +142,8 @@ public class CertificationTest extends BaseSQLRepoTest {
 
         List<ItemDelta<?, ?>> modifications = new ArrayList<>();
         ItemPath case1 = ItemPath.create(F_CASE, 1L);
-        modifications.add(createModificationReplaceProperty(case1.append(F_CURRENT_STAGE_OUTCOME), campaignDef, SchemaConstants.MODEL_CERTIFICATION_OUTCOME_REDUCE));
-        modifications.add(createModificationReplaceProperty(case1.append(AccessCertificationCaseType.F_STAGE_NUMBER), campaignDef, 300));
+        modifications.add(prismContext.deltaFactory().property().createModificationReplaceProperty(case1.append(F_CURRENT_STAGE_OUTCOME), campaignDef, SchemaConstants.MODEL_CERTIFICATION_OUTCOME_REDUCE));
+        modifications.add(prismContext.deltaFactory().property().createModificationReplaceProperty(case1.append(AccessCertificationCaseType.F_STAGE_NUMBER), campaignDef, 300));
 
         executeAndCheckModification(modifications, result, 0);
         checksCountsStandard(result);

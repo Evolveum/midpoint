@@ -268,7 +268,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 
 	public void swallowToPrimaryDelta(ItemDelta<?,?> itemDelta) throws SchemaException {
         if (primaryDelta == null) {
-        	primaryDelta = getPrismContext().deltaFactory().createObjectDelta(getObjectTypeClass(), ChangeType.MODIFY);
+        	primaryDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(), ChangeType.MODIFY);
         	primaryDelta.setOid(oid);
         }
         primaryDelta.swallow(itemDelta);
@@ -279,7 +279,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	// TODO deduplicate with swallowToSecondaryDelta in LensFocusContext
 	public ObjectDelta<O> swallowToDelta(ObjectDelta<O> originalDelta, ItemDelta<?,?> propDelta) throws SchemaException {
 		if (originalDelta == null) {
-			originalDelta = getPrismContext().deltaFactory().createObjectDelta(getObjectTypeClass(), ChangeType.MODIFY);
+			originalDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(), ChangeType.MODIFY);
 			originalDelta.setOid(getOid());
 		} else if (originalDelta.containsModification(propDelta, true, true)) {
 			return originalDelta;

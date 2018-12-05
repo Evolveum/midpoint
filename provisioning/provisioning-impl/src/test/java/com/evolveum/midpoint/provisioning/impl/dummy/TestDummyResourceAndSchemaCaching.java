@@ -586,7 +586,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 	}
 
 	private PropertyDelta<String> createUselessStringDelta(String newVal) {
-		PropertyDelta<String> uselessStringDelta = PropertyDeltaImpl.createModificationReplaceProperty(
+		PropertyDelta<String> uselessStringDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
 				ItemPath.create(ResourceType.F_CONNECTOR_CONFIGURATION,
 						SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME,
 						DummyResourceContoller.CONNECTOR_DUMMY_USELESS_STRING_QNAME),

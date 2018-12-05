@@ -1036,7 +1036,7 @@ public class TestMappingDynamicSimple {
 
     	PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(MappingTestEvaluator.TEST_DIR + "/account-inbound-mapping.xml"));
     	Item oldItem = account.findItem(ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaTestConstants.ICFS_NAME));
-    	ItemDelta delta = PropertyDeltaImpl.createModificationAddProperty(SchemaTestConstants.ICFS_NAME_PATH_PARTS, (PrismPropertyDefinition) oldItem.getDefinition(), ((PrismPropertyValue) oldItem.getValue(0)).getValue());
+    	ItemDelta delta = prismContext.deltaFactory().property().createModificationAddProperty(SchemaTestConstants.ICFS_NAME_PATH_PARTS, (PrismPropertyDefinition) oldItem.getDefinition(), ((PrismPropertyValue) oldItem.getValue(0)).getValue());
 
     	PrismObject<UserType> user = evaluator.getUserDefinition().instantiate();
 

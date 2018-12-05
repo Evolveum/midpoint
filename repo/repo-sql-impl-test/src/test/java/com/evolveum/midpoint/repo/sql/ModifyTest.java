@@ -466,13 +466,13 @@ public class ModifyTest extends BaseSQLRepoTest {
         PrismObjectDefinition<ShadowType> accountDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
 
         Collection<ItemDelta> modifications = new ArrayList<>();
-        PropertyDelta pdelta = PropertyDeltaImpl.createModificationReplaceProperty(
+        PropertyDelta pdelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
         		(ItemPath.create(ObjectType.F_METADATA, MetadataType.F_MODIFY_CHANNEL)), accountDefinition, "channel");
         modifications.add(pdelta);
 
         XMLGregorianCalendar modifyTimestampBefore = XmlTypeConverter
                 .createXMLGregorianCalendar(System.currentTimeMillis());
-		pdelta = PropertyDeltaImpl.createModificationReplaceProperty((ItemPath.create(ObjectType.F_METADATA,
+		pdelta = prismContext.deltaFactory().property().createModificationReplaceProperty((ItemPath.create(ObjectType.F_METADATA,
                 MetadataType.F_MODIFY_TIMESTAMP)), accountDefinition, modifyTimestampBefore);
         modifications.add(pdelta);
 
@@ -500,7 +500,8 @@ public class ModifyTest extends BaseSQLRepoTest {
         XMLGregorianCalendar now = XmlTypeConverter
                 .createXMLGregorianCalendar(System.currentTimeMillis());
 		List<PropertyDelta<?>> syncSituationDeltas = SynchronizationUtils
-				.createSynchronizationSituationAndDescriptionDelta(repoShadow, SynchronizationSituationType.LINKED, null, false, now);
+				.createSynchronizationSituationAndDescriptionDelta(repoShadow, SynchronizationSituationType.LINKED, null, false, now,
+						prismContext);
         
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -535,7 +536,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         Collection<ItemDelta> modifications = new ArrayList<>();
         ItemPath path = ItemPath.create(UserType.F_EXTENSION, QNAME_LOOT);
         PrismProperty loot = user.findProperty(path);
-        PropertyDelta lootDelta = new PropertyDeltaImpl(path, loot.getDefinition(), prismContext);
+        PropertyDelta lootDelta = prismContext.deltaFactory().property().create(path, loot.getDefinition());
         lootDelta.setRealValuesToReplace(456);
         modifications.add(lootDelta);
 
@@ -566,7 +567,8 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         XMLGregorianCalendar timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
         List<PropertyDelta<?>> syncSituationDeltas = SynchronizationUtils.
-                createSynchronizationSituationAndDescriptionDelta(account, SynchronizationSituationType.LINKED, null, false, timestamp);
+                createSynchronizationSituationAndDescriptionDelta(account, SynchronizationSituationType.LINKED, null, false, timestamp,
+		                prismContext);
 
         repositoryService.modifyObject(ShadowType.class, account.getOid(), syncSituationDeltas, getModifyOptions(), result);
 
@@ -579,7 +581,8 @@ public class ModifyTest extends BaseSQLRepoTest {
 
 
         timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
-        syncSituationDeltas = SynchronizationUtils.createSynchronizationSituationAndDescriptionDelta(afterFirstModify, null, null, false, timestamp);
+        syncSituationDeltas = SynchronizationUtils.createSynchronizationSituationAndDescriptionDelta(afterFirstModify, null, null, false, timestamp,
+		        prismContext);
 
         repositoryService.modifyObject(ShadowType.class, account.getOid(), syncSituationDeltas, getModifyOptions(), result);
 

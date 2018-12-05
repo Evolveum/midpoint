@@ -400,7 +400,7 @@ public class ResourceManager {
 				if (schemaCachingMetadata == null) {
 					schemaCachingMetadata = MiscSchemaUtil.generateCachingMetadata();
 					modifications.add(
-							PropertyDeltaImpl.createModificationReplaceProperty(
+							prismContext.deltaFactory().property().createModificationReplaceProperty(
 								ItemPath.create(ResourceType.F_SCHEMA, CapabilitiesType.F_CACHING_METADATA),
 								resource.getDefinition(),
 								schemaCachingMetadata)
@@ -461,7 +461,7 @@ public class ResourceManager {
 				if (cachingMetadata == null) {
 					cachingMetadata = MiscSchemaUtil.generateCachingMetadata();
 					modifications.add(
-							PropertyDeltaImpl.createModificationReplaceProperty(
+							prismContext.deltaFactory().property().createModificationReplaceProperty(
 								ItemPath.create(ResourceType.F_CAPABILITIES, CapabilitiesType.F_CACHING_METADATA),
 								connectorSpec.getResource().getDefinition(),
 								cachingMetadata)
@@ -1004,7 +1004,7 @@ public class ResourceManager {
 		}
 	
 	private PropertyDelta<AvailabilityStatusType> createResourceAvailabilityStatusDelta(PrismObject<ResourceType> resource, AvailabilityStatusType status) {
-		return PropertyDeltaImpl.createModificationReplaceProperty(SchemaConstants.PATH_OPERATIONAL_STATE_LAST_AVAILABILITY_STATUS, resource.getDefinition(), status);
+		return prismContext.deltaFactory().property().createModificationReplaceProperty(SchemaConstants.PATH_OPERATIONAL_STATE_LAST_AVAILABILITY_STATUS, resource.getDefinition(), status);
 	}
 
 	/**

@@ -191,7 +191,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		        .createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
         userDelta.addModification(accountDelta);
         // the following modifies nothing but it is used to produce a user-level notification (LINK_REF by itself causes no such notification)
-        PropertyDelta<String> attributeDelta = PropertyDeltaImpl.createReplaceDeltaOrEmptyDelta(getUserDefinition(), UserType.F_TELEPHONE_NUMBER, "555-1234");
+        PropertyDelta<String> attributeDelta = prismContext.deltaFactory().property().createReplaceDeltaOrEmptyDelta(getUserDefinition(), UserType.F_TELEPHONE_NUMBER, "555-1234");
         userDelta.addModification(attributeDelta);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 

@@ -524,7 +524,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
         }
         if (syncCtx.hasApplicablePolicy()) {
             if (syncCtx.getIntent() != null) {
-                PropertyDelta<String> delta = PropertyDeltaImpl
+                PropertyDelta<String> delta = prismContext.deltaFactory().property()
                         .createReplaceDelta(fullShadow.getDefinition(), ShadowType.F_INTENT, syncCtx.getIntent());
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Intent fix delta (not executed now) = \n{}", delta.debugDump());
@@ -848,7 +848,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
         }
         checkResult.recordWarning(ShadowStatistics.EXTRA_ACTIVATION_DATA, "Unexpected activation item: " + property);
         if (fixExtraData) {
-            PropertyDelta delta = PropertyDeltaImpl.createReplaceEmptyDelta(shadow.getDefinition(), ItemPath.create(ShadowType.F_ACTIVATION, itemName));
+            PropertyDelta delta = prismContext.deltaFactory().property().createReplaceEmptyDelta(shadow.getDefinition(), ItemPath.create(ShadowType.F_ACTIVATION, itemName));
             checkResult.addFixDelta(delta, ShadowStatistics.EXTRA_ACTIVATION_DATA);
         }
     }

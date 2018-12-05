@@ -22,7 +22,6 @@ import static org.testng.AssertJUnit.assertNull;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -149,7 +148,7 @@ public class AddOverwriteTest extends BaseSQLRepoTest {
 
         PrismObjectDefinition def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(OrgType.class);
         Collection deltas = new ArrayList();
-        deltas.add(PropertyDeltaImpl.createAddDelta(def, OrgType.F_ORG_TYPE, "asdf"));
+        deltas.add(prismContext.deltaFactory().property().createAddDelta(def, OrgType.F_ORG_TYPE, "asdf"));
         repositoryService.modifyObject(OrgType.class, ORG_OID, deltas, result);
 
         version = repositoryService.getVersion(OrgType.class, ORG_OID, result);

@@ -720,7 +720,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 				task.recordIterativeOperationEnd(shadow.asObjectable(), started, ex);
 				processedFailure++;
 				opResult.recordFatalError("Failed to finish operation with shadow: " + ObjectTypeUtil.toShortString(shadow.asObjectable()) +". Reason: " + ex.getMessage(), ex);
-				Collection<? extends ItemDelta> modifications = PropertyDeltaImpl
+				Collection<? extends ItemDelta> modifications = prismContext.deltaFactory().property()
 						.createModificationReplacePropertyCollection(ShadowType.F_ATTEMPT_NUMBER,
 								shadow.getDefinition(), shadow.asObjectable().getAttemptNumber() + 1);
 				try {

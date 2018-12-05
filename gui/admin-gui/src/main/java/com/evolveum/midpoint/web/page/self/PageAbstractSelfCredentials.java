@@ -22,7 +22,6 @@ import java.util.List;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
-import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
 import com.evolveum.prism.xml.ns._public.types_3.EncryptedDataType;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -345,7 +344,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
                             registry.findObjectDefinitionByCompileTimeClass(UserType.class) :
                             registry.findObjectDefinitionByCompileTimeClass(ShadowType.class);
 
-                    PropertyDelta<ProtectedStringType> delta = PropertyDeltaImpl
+                    PropertyDelta<ProtectedStringType> delta = getPrismContext().deltaFactory().property()
                             .createModificationReplaceProperty(valuePath, objDef, password);
                     if (oldPassword != null) {
                     	delta.addEstimatedOldValue(getPrismContext().itemFactory().createPrismPropertyValue(oldPassword));

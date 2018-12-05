@@ -18,11 +18,9 @@ package com.evolveum.midpoint.task.quartzimpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -296,7 +294,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         PrismProperty<Integer> property = (PrismProperty<Integer>) delayDefinition.instantiate();
         property.setRealValue(100);
 
-        PropertyDelta delta = new PropertyDeltaImpl<>(ItemPath.create(TaskType.F_EXTENSION, property.getElementName()), property.getDefinition(), prismContext);
+        PropertyDelta delta = prismContext.deltaFactory().property().create(ItemPath.create(TaskType.F_EXTENSION, property.getElementName()), property.getDefinition());
         //delta.addV(property.getValues());
         delta.setValuesToReplace(PrismValueCollectionsUtil.cloneCollection(property.getValues()));
 
@@ -341,12 +339,14 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         ScheduleType st1 = new ScheduleType();
         st1.setInterval(1);
         st1.setMisfireAction(MisfireActionType.RESCHEDULE);
-        task.pushHandlerUri("http://no-handler.org/1", st1, TaskBinding.TIGHT, createExtensionDelta(delayDefinition, 1));
+        task.pushHandlerUri("http://no-handler.org/1", st1, TaskBinding.TIGHT, createExtensionDelta(delayDefinition, 1,
+		        prismContext));
 
         ScheduleType st2 = new ScheduleType();
         st2.setInterval(2);
         st2.setMisfireAction(MisfireActionType.EXECUTE_IMMEDIATELY);
-        task.pushHandlerUri("http://no-handler.org/2", st2, TaskBinding.LOOSE, createExtensionDelta(delayDefinition, 2));
+        task.pushHandlerUri("http://no-handler.org/2", st2, TaskBinding.LOOSE, createExtensionDelta(delayDefinition, 2,
+		        prismContext));
 
         task.setRecurrenceStatus(TaskRecurrence.RECURRING);
 

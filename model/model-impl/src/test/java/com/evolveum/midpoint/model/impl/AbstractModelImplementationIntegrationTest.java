@@ -28,7 +28,6 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -268,7 +267,7 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
 		assertNotNull("No definition of attribute "+attrQName+" in account def "+refinedAccountDefinition, attrDef);
 		ObjectDelta<ShadowType> accountDelta = ObjectDeltaCreationUtil
 				.createEmptyModifyDelta(ShadowType.class, accountOid, prismContext);
-		PropertyDelta<T> attrDelta = new PropertyDeltaImpl<T>(attrPath, attrDef, prismContext);
+		PropertyDelta<T> attrDelta = prismContext.deltaFactory().property().create(attrPath, attrDef);
 		attrDelta.setValuesToReplace(PrismValueCollectionsUtil.createCollection(prismContext, propertyValues));
 		accountDelta.addModification(attrDelta);
 		return accountDelta;

@@ -1018,17 +1018,17 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
         Long assignmentId = jack.getAssignment().get(0).getId();
         PrismPropertyDefinition<XMLGregorianCalendar> validFromDef = activationDef.findPropertyDefinition(ActivationType.F_VALID_FROM);
-        PropertyDelta<XMLGregorianCalendar> validFromDelta = new PropertyDeltaImpl<>(
+        PropertyDelta<XMLGregorianCalendar> validFromDelta = prismContext.deltaFactory().property().create(
                 ItemPath.create(UserType.F_ASSIGNMENT, assignmentId, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM),
-                        validFromDef, prismContext);
+                        validFromDef);
         validFromDelta.setRealValuesToReplace(validFrom);
         PrismPropertyDefinition<XMLGregorianCalendar> validToDef = activationDef.findPropertyDefinition(ActivationType.F_VALID_TO);
-        PropertyDelta<XMLGregorianCalendar> validToDelta = new PropertyDeltaImpl<>(
+        PropertyDelta<XMLGregorianCalendar> validToDelta = prismContext.deltaFactory().property().create(
                 ItemPath.create(UserType.F_ASSIGNMENT, assignmentId, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO),
-                        validToDef, prismContext);
+                        validToDef);
         validToDelta.setRealValuesToReplace(validTo);
 
-        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().createObjectDelta(UserType.class, ChangeType.MODIFY);
+        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().create(UserType.class, ChangeType.MODIFY);
         userDelta.setOid(USER_JACK_OID);
         userDelta.addModification(validFromDelta);
         userDelta.addModification(validToDelta);
@@ -1225,7 +1225,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         attributeDefinitionType.setOutbound(outbound);
 
 
-        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().createObjectDelta(UserType.class, ChangeType.MODIFY);
+        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().create(UserType.class, ChangeType.MODIFY);
         userDelta.setOid(USER_JACK_OID);
         userDelta.addModification(attributeDelta);
         addFocusDeltaToContext(context, userDelta);

@@ -1909,7 +1909,7 @@ public class ShadowCache {
 					objResult.recordSuccessIfUnknown();
 
                     if (!objResult.isSuccess() && !objResult.isHandledError()) {
-                        Collection<? extends ItemDelta> shadowModificationType = PropertyDeltaImpl
+                        Collection<? extends ItemDelta> shadowModificationType = prismContext.deltaFactory().property()
                                 .createModificationReplacePropertyCollection(ShadowType.F_RESULT,
                                         getResourceObjectShadowDefinition(), objResult.createOperationResultType());
                         try {
@@ -2560,11 +2560,11 @@ public class ShadowCache {
 		PrismObjectDefinition<ShadowType> shadowDefinition = getResourceObjectShadowDefinition();
 
 		Collection<ItemDelta> modifications = new ArrayList<>();
-		PropertyDelta resultDelta = PropertyDeltaImpl.createModificationReplaceProperty(ShadowType.F_RESULT,
+		PropertyDelta resultDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(ShadowType.F_RESULT,
 				shadowDefinition, shadowResult.createOperationResultType());
 		modifications.add(resultDelta);
 		if (change.getObjectDelta() != null && change.getObjectDelta().getChangeType() == ChangeType.DELETE) {
-			PropertyDelta failedOperationTypeDelta = PropertyDeltaImpl.createModificationReplaceProperty(
+			PropertyDelta failedOperationTypeDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
 					ShadowType.F_FAILED_OPERATION_TYPE, shadowDefinition, FailedOperationTypeType.DELETE);
 			modifications.add(failedOperationTypeDelta);
 		}

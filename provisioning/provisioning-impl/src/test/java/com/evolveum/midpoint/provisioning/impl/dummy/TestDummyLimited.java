@@ -22,7 +22,6 @@ import static org.testng.AssertJUnit.assertTrue;
 import java.io.File;
 
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
-import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -350,7 +349,7 @@ public class TestDummyLimited extends TestDummy {
 				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_VALID_TO, prismContext,
 				XmlTypeConverter.createXMLGregorianCalendar(VALID_TO_MILLIS));
 		PrismObjectDefinition def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
-		PropertyDelta validFromDelta = PropertyDeltaImpl.createModificationDeleteProperty(SchemaConstants.PATH_ACTIVATION_VALID_FROM,
+		PropertyDelta validFromDelta = prismContext.deltaFactory().property().createModificationDeleteProperty(SchemaConstants.PATH_ACTIVATION_VALID_FROM,
 				def.findPropertyDefinition(SchemaConstants.PATH_ACTIVATION_VALID_FROM),
 				XmlTypeConverter.createXMLGregorianCalendar(VALID_FROM_MILLIS));
 		delta.addModification(validFromDelta);

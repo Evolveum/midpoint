@@ -767,7 +767,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 							ResourceType.F_SCHEMA_HANDLING,
 							resourceTypeOpenDjrepo.asPrismObject()
 									.getDefinition(), oldSchemaHandling.asPrismContainerValue().clone());
-			PropertyDelta syncDelta = PropertyDeltaImpl
+			PropertyDelta syncDelta = prismContext.deltaFactory().property()
 					.createModificationReplaceProperty(
 							ResourceType.F_SYNCHRONIZATION,
 							resourceTypeOpenDjrepo.asPrismObject()
@@ -1209,11 +1209,11 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		
 		Collection<PropertyDelta> modifications = new ArrayList<>();
 		
-		PropertyDelta fullNameDelta = PropertyDeltaImpl.createModificationReplaceProperty(UserType.F_FULL_NAME, getUserDefinition(), new PolyString("jackNew2"));
+		PropertyDelta fullNameDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(UserType.F_FULL_NAME, getUserDefinition(), new PolyString("jackNew2"));
 		modifications.add(fullNameDelta);
 		
 		PrismPropertyValue<ActivationStatusType> enabledUserAction = new PrismPropertyValueImpl<>(ActivationStatusType.ENABLED, OriginType.USER_ACTION, null);
-		PropertyDelta<ActivationStatusType> enabledDelta = PropertyDeltaImpl.createDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, getUserDefinition());
+		PropertyDelta<ActivationStatusType> enabledDelta = prismContext.deltaFactory().property().createDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, getUserDefinition());
 		enabledDelta.addValueToAdd(enabledUserAction);
 		modifications.add(enabledDelta);
 		
@@ -1236,15 +1236,15 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		
 		
 		Collection<PropertyDelta> newModifications = new ArrayList<>();
-		PropertyDelta fullNameDeltaNew = PropertyDeltaImpl.createModificationReplaceProperty(UserType.F_FULL_NAME, getUserDefinition(), new PolyString("jackNew2a"));
+		PropertyDelta fullNameDeltaNew = prismContext.deltaFactory().property().createModificationReplaceProperty(UserType.F_FULL_NAME, getUserDefinition(), new PolyString("jackNew2a"));
 		newModifications.add(fullNameDeltaNew);
 		
 		
-		PropertyDelta givenNameDeltaNew = PropertyDeltaImpl.createModificationReplaceProperty(UserType.F_GIVEN_NAME, getUserDefinition(), new PolyString("jackNew2a"));
+		PropertyDelta givenNameDeltaNew = prismContext.deltaFactory().property().createModificationReplaceProperty(UserType.F_GIVEN_NAME, getUserDefinition(), new PolyString("jackNew2a"));
 		newModifications.add(givenNameDeltaNew);
 		
 		PrismPropertyValue<ActivationStatusType> enabledOutboundAction = new PrismPropertyValueImpl<>(ActivationStatusType.ENABLED, OriginType.USER_ACTION, null);
-		PropertyDelta<ActivationStatusType> enabledDeltaNew = PropertyDeltaImpl.createDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, getUserDefinition());
+		PropertyDelta<ActivationStatusType> enabledDeltaNew = prismContext.deltaFactory().property().createDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, getUserDefinition());
 		enabledDeltaNew.addValueToAdd(enabledOutboundAction);
 		newModifications.add(enabledDeltaNew);
 		
@@ -1477,7 +1477,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		
 		OperationResult modifyGivenNameResult = new OperationResult("execute changes -> modify user's given name");
 		LOGGER.trace("execute changes -> modify user's given name");
-		Collection<? extends ItemDelta> givenNameDelta = PropertyDeltaImpl.createModificationReplacePropertyCollection(UserType.F_GIVEN_NAME, getUserDefinition(), new PolyString("Bob"));
+		Collection<? extends ItemDelta> givenNameDelta = prismContext.deltaFactory().property().createModificationReplacePropertyCollection(UserType.F_GIVEN_NAME, getUserDefinition(), new PolyString("Bob"));
 		ObjectDelta familyNameD = ObjectDeltaCreationUtil
 				.createModifyDelta(USER_BOB_NO_GIVEN_NAME_OID, givenNameDelta, UserType.class, prismContext);
 		Collection<ObjectDelta<? extends ObjectType>> modifyFamilyNameDelta = MiscSchemaUtil.createCollection(familyNameD);
@@ -2571,7 +2571,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 	}
 
 	private void modifyResourceAvailabilityStatus(AvailabilityStatusType status, OperationResult parentResult) throws Exception {
-		PropertyDelta resourceStatusDelta = PropertyDeltaImpl.createModificationReplaceProperty(ItemPath.create(
+		PropertyDelta resourceStatusDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(ItemPath.create(
 				ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS),
 				resourceTypeOpenDjrepo.asPrismObject().getDefinition(), status);
 		Collection<PropertyDelta> modifications = new ArrayList<>();

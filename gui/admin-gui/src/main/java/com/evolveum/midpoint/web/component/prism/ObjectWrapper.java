@@ -325,7 +325,7 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 			LOGGER.trace("Wrapper before creating delta:\n{}", this.debugDump());
 		}
 
-		ObjectDelta<O> delta = object.getPrismContext().deltaFactory().createObjectDelta(object.getCompileTimeClass(), ChangeType.MODIFY);
+		ObjectDelta<O> delta = object.getPrismContext().deltaFactory().object().create(object.getCompileTimeClass(), ChangeType.MODIFY);
 		delta.setOid(object.getOid());
 
 		List<ContainerWrapper<? extends Containerable>> containers = getContainers();

@@ -810,13 +810,13 @@ public class FocusProcessor {
 
 		PrismPropertyValue<Integer> iterationVal = prismContext.itemFactory().createPrismPropertyValue(iteration);
 		iterationVal.setOriginType(OriginType.USER_POLICY);
-		PropertyDelta<Integer> iterationDelta = PropertyDeltaImpl.createReplaceDelta(objDef,
+		PropertyDelta<Integer> iterationDelta = prismContext.deltaFactory().property().createReplaceDelta(objDef,
 				FocusType.F_ITERATION, iterationVal);
 		focusContext.swallowToSecondaryDelta(iterationDelta);
 
 		PrismPropertyValue<String> iterationTokenVal = prismContext.itemFactory().createPrismPropertyValue(iterationToken);
 		iterationTokenVal.setOriginType(OriginType.USER_POLICY);
-		PropertyDelta<String> iterationTokenDelta = PropertyDeltaImpl.createReplaceDelta(objDef,
+		PropertyDelta<String> iterationTokenDelta = prismContext.deltaFactory().property().createReplaceDelta(objDef,
 				FocusType.F_ITERATION_TOKEN, iterationTokenVal);
 		focusContext.swallowToSecondaryDelta(iterationTokenDelta);
 

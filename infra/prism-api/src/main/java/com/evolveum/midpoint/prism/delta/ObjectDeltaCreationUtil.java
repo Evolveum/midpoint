@@ -41,7 +41,7 @@ public class ObjectDeltaCreationUtil {
     @SafeVarargs
     public static <O extends Objectable, X> ObjectDelta<O> createModificationReplaceProperty(Class<O> type, String oid,
 		    ItemPath propertyPath, PrismContext prismContext, X... propertyValues) {
-    	ObjectDelta<O> objectDelta = prismContext.deltaFactory().createObjectDelta(type, ChangeType.MODIFY);
+    	ObjectDelta<O> objectDelta = prismContext.deltaFactory().object().create(type, ChangeType.MODIFY);
     	objectDelta.setOid(oid);
     	fillInModificationReplaceProperty(objectDelta, propertyPath, propertyValues);
     	return objectDelta;
@@ -52,7 +52,7 @@ public class ObjectDeltaCreationUtil {
 	 */
 	public static <O extends Objectable> ObjectDelta<O> createModificationReplaceReference(Class<O> type, String oid,
 			ItemPath refPath, PrismContext prismContext, PrismReferenceValue... refValues) {
-		ObjectDelta<O> objectDelta = prismContext.deltaFactory().createObjectDelta(type, ChangeType.MODIFY);
+		ObjectDelta<O> objectDelta = prismContext.deltaFactory().object().create(type, ChangeType.MODIFY);
 		objectDelta.setOid(oid);
 		fillInModificationReplaceReference(objectDelta, refPath, refValues);
 		return objectDelta;
@@ -62,7 +62,7 @@ public class ObjectDeltaCreationUtil {
 	public static <O extends Objectable, C extends Containerable> ObjectDelta<O> createModificationReplaceContainer(Class<O> type,
 			String oid,
 			ItemPath propertyPath, PrismContext prismContext, C... containerValues) throws SchemaException {
-		ObjectDelta<O> objectDelta = prismContext.deltaFactory().createObjectDelta(type, ChangeType.MODIFY);
+		ObjectDelta<O> objectDelta = prismContext.deltaFactory().object().create(type, ChangeType.MODIFY);
 		objectDelta.setOid(oid);
 		fillInModificationReplaceContainer(objectDelta, propertyPath, containerValues);
 		return objectDelta;
@@ -135,7 +135,7 @@ public class ObjectDeltaCreationUtil {
 	public static <O extends Objectable, C extends Containerable> ObjectDelta<O> createModificationAddContainer(Class<O> type,
 			String oid,
 			ItemPath propertyPath, PrismContext prismContext, PrismContainerValue<C>... containerValues) {
-		ObjectDelta<O> objectDelta = prismContext.deltaFactory().createObjectDelta(type, ChangeType.MODIFY);
+		ObjectDelta<O> objectDelta = prismContext.deltaFactory().object().create(type, ChangeType.MODIFY);
 		objectDelta.setOid(oid);
 		fillInModificationAddContainer(objectDelta, propertyPath, containerValues);
 		return objectDelta;
@@ -145,7 +145,7 @@ public class ObjectDeltaCreationUtil {
 	public static <O extends Objectable, C extends Containerable> ObjectDelta<O> createModificationAddContainer(Class<O> type,
 			String oid,
 			ItemPath propertyPath, PrismContext prismContext, C... containerValues) throws SchemaException {
-		ObjectDelta<O> objectDelta = prismContext.deltaFactory().createObjectDelta(type, ChangeType.MODIFY);
+		ObjectDelta<O> objectDelta = prismContext.deltaFactory().object().create(type, ChangeType.MODIFY);
 		objectDelta.setOid(oid);
 		PrismContainerValue<C>[] containerPValues = new PrismContainerValue[containerValues.length];
 		for (int i=0; i<containerValues.length; i++) {
@@ -161,7 +161,7 @@ public class ObjectDeltaCreationUtil {
 	public static <O extends Objectable, C extends Containerable> ObjectDelta<O> createModificationDeleteContainer(Class<O> type,
 			String oid, ItemPath containerPath,
 			PrismContext prismContext, PrismContainerValue<C>... containerValues) {
-		ObjectDelta<O> objectDelta = prismContext.deltaFactory().createObjectDelta(type, ChangeType.MODIFY);
+		ObjectDelta<O> objectDelta = prismContext.deltaFactory().object().create(type, ChangeType.MODIFY);
 		objectDelta.setOid(oid);
 		fillInModificationDeleteContainer(objectDelta, containerPath, containerValues);
 		return objectDelta;
@@ -171,7 +171,7 @@ public class ObjectDeltaCreationUtil {
 	public static <O extends Objectable, C extends Containerable> ObjectDelta<O> createModificationDeleteContainer(Class<O> type,
 			String oid,
 			ItemPath propertyPath, PrismContext prismContext, C... containerValues) throws SchemaException {
-		ObjectDelta<O> objectDelta = prismContext.deltaFactory().createObjectDelta(type, ChangeType.MODIFY);
+		ObjectDelta<O> objectDelta = prismContext.deltaFactory().object().create(type, ChangeType.MODIFY);
 		objectDelta.setOid(oid);
 		PrismContainerValue<C>[] containerPValues = new PrismContainerValue[containerValues.length];
 		for (int i=0; i<containerValues.length; i++) {
@@ -197,7 +197,7 @@ public class ObjectDeltaCreationUtil {
 	public static <O extends Objectable, C extends Containerable> ObjectDelta<O> createModificationReplaceContainer(Class<O> type,
 			String oid, ItemPath containerPath,
 			PrismContext prismContext, PrismContainerValue<C>... containerValues) {
-		ObjectDelta<O> objectDelta = prismContext.deltaFactory().createObjectDelta(type, ChangeType.MODIFY);
+		ObjectDelta<O> objectDelta = prismContext.deltaFactory().object().create(type, ChangeType.MODIFY);
 		objectDelta.setOid(oid);
 		fillInModificationReplaceContainer(objectDelta, containerPath, containerValues);
 		return objectDelta;
@@ -274,7 +274,7 @@ public class ObjectDeltaCreationUtil {
 	public static <O extends Objectable> ObjectDelta<O> createModificationAddReference(Class<O> type, String oid,
 			QName propertyName,
 			PrismContext prismContext, PrismObject<?>... referenceObjects) {
-		ObjectDelta<O> objectDelta = prismContext.deltaFactory().createObjectDelta(type, ChangeType.MODIFY);
+		ObjectDelta<O> objectDelta = prismContext.deltaFactory().object().create(type, ChangeType.MODIFY);
 		objectDelta.setOid(oid);
 		PrismObjectDefinition<O> objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
 		PrismReferenceDefinition refDef = objDef.findReferenceDefinition(ItemName.fromQName(propertyName));
@@ -304,7 +304,7 @@ public class ObjectDeltaCreationUtil {
 	public static <O extends Objectable> ObjectDelta<O> createModificationAddReference(Class<O> type, String oid,
 			QName propertyName,
 			PrismContext prismContext, PrismReferenceValue... referenceValues) {
-		ObjectDelta<O> objectDelta = prismContext.deltaFactory().createObjectDelta(type, ChangeType.MODIFY);
+		ObjectDelta<O> objectDelta = prismContext.deltaFactory().object().create(type, ChangeType.MODIFY);
 		objectDelta.setOid(oid);
 		PrismObjectDefinition<O> objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
 		PrismReferenceDefinition refDef = objDef.findReferenceDefinition(ItemName.fromQName(propertyName));
@@ -334,7 +334,7 @@ public class ObjectDeltaCreationUtil {
 	public static <O extends Objectable> ObjectDelta<O> createModificationDeleteReference(Class<O> type, String oid,
 			QName propertyName,
 			PrismContext prismContext, PrismReferenceValue... referenceValues) {
-		ObjectDelta<O> objectDelta = prismContext.deltaFactory().createObjectDelta(type, ChangeType.MODIFY);
+		ObjectDelta<O> objectDelta = prismContext.deltaFactory().object().create(type, ChangeType.MODIFY);
 		objectDelta.setOid(oid);
 		PrismObjectDefinition<O> objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
 		PrismReferenceDefinition refDef = objDef.findReferenceDefinition(ItemName.fromQName(propertyName));
@@ -357,7 +357,7 @@ public class ObjectDeltaCreationUtil {
 	public static <T extends Objectable> ObjectDelta<T> createModifyDelta(String oid,
 			Collection<? extends ItemDelta> modifications,
 			Class<T> objectTypeClass, PrismContext prismContext) {
-		ObjectDelta<T> objectDelta = prismContext.deltaFactory().createObjectDelta(objectTypeClass, ChangeType.MODIFY);
+		ObjectDelta<T> objectDelta = prismContext.deltaFactory().object().create(objectTypeClass, ChangeType.MODIFY);
 		objectDelta.addModifications(modifications);
 		objectDelta.setOid(oid);
 		return objectDelta;
@@ -383,20 +383,20 @@ public class ObjectDeltaCreationUtil {
 
 	public static <O extends Objectable> ObjectDelta<O> createEmptyDelta(Class<O> type, String oid, PrismContext prismContext,
 			ChangeType changeType) {
-		ObjectDelta<O> objectDelta = prismContext.deltaFactory().createObjectDelta(type, changeType);
+		ObjectDelta<O> objectDelta = prismContext.deltaFactory().object().create(type, changeType);
 		objectDelta.setOid(oid);
 		return objectDelta;
 	}
 
 	public static <O extends Objectable> ObjectDelta<O> createAddDelta(PrismObject<O> objectToAdd) {
-		ObjectDelta<O> objectDelta = objectToAdd.getPrismContext().deltaFactory().createObjectDelta(objectToAdd.getCompileTimeClass(), ChangeType.ADD);
+		ObjectDelta<O> objectDelta = objectToAdd.getPrismContext().deltaFactory().object().create(objectToAdd.getCompileTimeClass(), ChangeType.ADD);
 		objectDelta.setOid(objectToAdd.getOid());
 		objectDelta.setObjectToAdd(objectToAdd);
 		return objectDelta;
 	}
 
 	public static <O extends Objectable> ObjectDelta<O> createDeleteDelta(Class<O> type, String oid, PrismContext prismContext) {
-		ObjectDelta<O> objectDelta = prismContext.deltaFactory().createObjectDelta(type, ChangeType.DELETE);
+		ObjectDelta<O> objectDelta = prismContext.deltaFactory().object().create(type, ChangeType.DELETE);
 		objectDelta.setOid(oid);
 		return objectDelta;
 	}
@@ -404,7 +404,7 @@ public class ObjectDeltaCreationUtil {
 	@SafeVarargs
 	public static <O extends Objectable, X> ObjectDelta<O> createModificationAddProperty(Class<O> type, String oid,
 			ItemPath propertyPath, PrismContext prismContext, X... propertyValues) {
-    	ObjectDelta<O> objectDelta = prismContext.deltaFactory().createObjectDelta(type, ChangeType.MODIFY);
+    	ObjectDelta<O> objectDelta = prismContext.deltaFactory().object().create(type, ChangeType.MODIFY);
     	objectDelta.setOid(oid);
     	fillInModificationAddProperty(objectDelta, propertyPath, propertyValues);
     	return objectDelta;
@@ -413,7 +413,7 @@ public class ObjectDeltaCreationUtil {
 	@SafeVarargs
 	public static <O extends Objectable, X> ObjectDelta<O> createModificationDeleteProperty(Class<O> type, String oid,
 			ItemPath propertyPath, PrismContext prismContext, X... propertyValues) {
-    	ObjectDelta<O> objectDelta = prismContext.deltaFactory().createObjectDelta(type, ChangeType.MODIFY);
+    	ObjectDelta<O> objectDelta = prismContext.deltaFactory().object().create(type, ChangeType.MODIFY);
     	objectDelta.setOid(oid);
     	fillInModificationDeleteProperty(objectDelta, propertyPath, propertyValues);
     	return objectDelta;

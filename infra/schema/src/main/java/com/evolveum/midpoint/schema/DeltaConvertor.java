@@ -69,7 +69,7 @@ public class DeltaConvertor {
 
     public static <T extends Objectable> ObjectDelta<T> createObjectDelta(ObjectModificationType objectModification,
             PrismObjectDefinition<T> objDef) throws SchemaException {
-        ObjectDelta<T> objectDelta = objDef.getPrismContext().deltaFactory().createObjectDelta(objDef.getCompileTimeClass(), ChangeType.MODIFY);
+        ObjectDelta<T> objectDelta = objDef.getPrismContext().deltaFactory().object().create(objDef.getCompileTimeClass(), ChangeType.MODIFY);
         objectDelta.setOid(objectModification.getOid());
 
         for (ItemDeltaType propMod : objectModification.getItemDelta()) {
@@ -91,7 +91,7 @@ public class DeltaConvertor {
     	Class<T> type = objDef.getCompileTimeClass();
 
         if (objectDeltaType.getChangeType() == ChangeTypeType.ADD) {
-        	ObjectDelta<T> objectDelta = prismContext.deltaFactory().createObjectDelta(type, ChangeType.ADD);
+        	ObjectDelta<T> objectDelta = prismContext.deltaFactory().object().create(type, ChangeType.ADD);
             objectDelta.setOid(objectDeltaType.getOid());
             ObjectType objectToAddElement = objectDeltaType.getObjectToAdd();
 //            PrismObject<T> objectToAdd = prismContext.getXnodeProcessor().parseObject(objectToAddElement.getXnode());
@@ -101,7 +101,7 @@ public class DeltaConvertor {
             }
             return objectDelta;
         } else if (objectDeltaType.getChangeType() == ChangeTypeType.MODIFY) {
-        	ObjectDelta<T> objectDelta = prismContext.deltaFactory().createObjectDelta(type, ChangeType.MODIFY);
+        	ObjectDelta<T> objectDelta = prismContext.deltaFactory().object().create(type, ChangeType.MODIFY);
             objectDelta.setOid(objectDeltaType.getOid());
 	        for (ItemDeltaType propMod : objectDeltaType.getItemDelta()) {
 	            ItemDelta itemDelta = createItemDelta(propMod, objDef, allowRawValues);
@@ -111,7 +111,7 @@ public class DeltaConvertor {
 	        }
 	        return objectDelta;
         } else if (objectDeltaType.getChangeType() == ChangeTypeType.DELETE) {
-        	ObjectDelta<T> objectDelta = prismContext.deltaFactory().createObjectDelta(type, ChangeType.DELETE);
+        	ObjectDelta<T> objectDelta = prismContext.deltaFactory().object().create(type, ChangeType.DELETE);
             objectDelta.setOid(objectDeltaType.getOid());
             return objectDelta;
         } else {

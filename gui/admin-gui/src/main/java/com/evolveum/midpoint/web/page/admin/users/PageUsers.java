@@ -449,7 +449,7 @@ public class PageUsers extends PageAdminUsers {
 			try {
 				Task task = createSimpleTask(OPERATION_DELETE_USER);
 
-				ObjectDelta delta = getPrismContext().deltaFactory().createObjectDelta(UserType.class, ChangeType.DELETE);
+				ObjectDelta delta = getPrismContext().deltaFactory().object().create(UserType.class, ChangeType.DELETE);
 				delta.setOid(user.getOid());
 
 				ExecuteChangeOptionsDto executeOptions = executeOptionsModel.getObject();

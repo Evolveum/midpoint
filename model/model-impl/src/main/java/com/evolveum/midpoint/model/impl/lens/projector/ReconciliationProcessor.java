@@ -928,8 +928,7 @@ public class ReconciliationProcessor {
 					PrettyPrinter.prettyPrint(attrDef.getName()), value, reason);
 		}
 
-		PropertyDelta<T> attrDelta = new PropertyDeltaImpl<>(parentPath, attrDef.getName(),
-				attrDef, prismContext);
+		PropertyDelta<T> attrDelta = prismContext.deltaFactory().property().create(parentPath, attrDef.getName(), attrDef);
 		PrismPropertyValue<T> pValue = prismContext.itemFactory().createPrismPropertyValue(value, OriginType.RECONCILIATION,
 				originObject);
 		if (changeType == ModificationType.ADD) {

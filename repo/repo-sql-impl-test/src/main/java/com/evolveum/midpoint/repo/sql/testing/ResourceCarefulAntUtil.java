@@ -54,7 +54,7 @@ public class ResourceCarefulAntUtil {
 		ants.add(new CarefulAnt<ResourceType>() {
 			@Override
 			public ItemDelta<?,?> createDelta(int iteration) {
-				return  PropertyDeltaImpl.createModificationReplaceProperty(ResourceType.F_DESCRIPTION,
+				return  prismContext.deltaFactory().property().createModificationReplaceProperty(ResourceType.F_DESCRIPTION,
 		    			resourceDef, "Blah "+iteration);
 			}
 
@@ -89,7 +89,7 @@ public class ResourceCarefulAntUtil {
 			@Override
 			public ItemDelta<?,?> createDelta(int iteration) throws SchemaException {
 				xmlSchemaDef = createNewXmlSchemaDef(resourceFile, iteration, prismContext);
-				return PropertyDeltaImpl.createModificationReplaceProperty(
+				return prismContext.deltaFactory().property().createModificationReplaceProperty(
 						ItemPath.create(ResourceType.F_SCHEMA, XmlSchemaType.F_DEFINITION),
 						resourceDef, xmlSchemaDef);
 			}

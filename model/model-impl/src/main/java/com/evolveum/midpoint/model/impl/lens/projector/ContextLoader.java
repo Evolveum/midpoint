@@ -931,7 +931,7 @@ public class ContextLoader {
 			return;
 		}
 		Collection<? extends ItemDelta<?, ?>> modifications = MiscSchemaUtil.createCollection(
-				PropertyDeltaImpl.createReplaceDelta(prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class),
+				prismContext.deltaFactory().property().createReplaceDelta(prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class),
 				ShadowType.F_DEAD, true));
 		try {
 			cacheRepositoryService.modifyObject(ShadowType.class, oid, modifications, result);

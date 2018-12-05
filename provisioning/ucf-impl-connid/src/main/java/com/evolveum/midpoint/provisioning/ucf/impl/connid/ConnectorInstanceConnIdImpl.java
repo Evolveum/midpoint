@@ -28,7 +28,6 @@ import java.util.Set;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.commons.lang.BooleanUtils;
@@ -1740,8 +1739,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 					if(definition == null){
 						throw new ObjectNotFoundException("Returned delta attribute with name: "+ name +" for which, has not been found ResourceAttributeDefinition.");
 					}
-					PropertyDelta<Object> delta = new PropertyDeltaImpl<>(ItemPath.create(ShadowType.F_ATTRIBUTES,
-							definition.getName()), definition, prismContext);
+					PropertyDelta<Object> delta = prismContext.deltaFactory().property().create(ItemPath.create(ShadowType.F_ATTRIBUTES,
+							definition.getName()), definition);
 					if(attrDeltaSideEffect.getValuesToReplace() != null){
 						delta.setRealValuesToReplace(attrDeltaSideEffect.getValuesToReplace().get(0));
 					} else {
@@ -2034,15 +2033,15 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	}
 
 	private PropertyDelta<String> createNameDelta(Name name, ResourceAttributeDefinition nameDefinition) {
-		PropertyDelta<String> uidDelta = new PropertyDeltaImpl<>(ItemPath.create(ShadowType.F_ATTRIBUTES, nameDefinition.getName()),
-				nameDefinition, prismContext);
+		PropertyDelta<String> uidDelta = prismContext.deltaFactory().property().create(ItemPath.create(ShadowType.F_ATTRIBUTES, nameDefinition.getName()),
+				nameDefinition);
 		uidDelta.setRealValuesToReplace(name.getNameValue());
 		return uidDelta;
 	}
 	
 	private PropertyDelta<String> createUidDelta(Uid uid, ResourceAttributeDefinition uidDefinition) {
-		PropertyDelta<String> uidDelta = new PropertyDeltaImpl<>(ItemPath.create(ShadowType.F_ATTRIBUTES, uidDefinition.getName()),
-				uidDefinition, prismContext);
+		PropertyDelta<String> uidDelta = prismContext.deltaFactory().property().create(ItemPath.create(ShadowType.F_ATTRIBUTES, uidDefinition.getName()),
+				uidDefinition);
 		uidDelta.setRealValuesToReplace(uid.getUidValue());
 		return uidDelta;
 	}
@@ -2900,7 +2899,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			SyncDeltaType icfDeltaType = icfDelta.getDeltaType();
 			if (SyncDeltaType.DELETE.equals(icfDeltaType)) {
 				LOGGER.trace("START creating delta of type DELETE");
-				ObjectDelta<ShadowType> objectDelta = prismContext.deltaFactory().createObjectDelta(ShadowType.class, ChangeType.DELETE);
+				ObjectDelta<ShadowType> objectDelta = prismContext.deltaFactory().object().create(ShadowType.class, ChangeType.DELETE);
 				Collection<ResourceAttribute<?>> identifiers = ConnIdUtil.convertToIdentifiers(icfDelta.getUid(),
 						deltaObjClassDefinition, resourceSchema);
 				Change change = new Change(identifiers, objectDelta, getToken(icfDelta.getToken()));
@@ -2922,7 +2921,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 				Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getAllIdentifiers(currentShadow);
 
-				ObjectDelta<ShadowType> objectDelta = prismContext.deltaFactory().createObjectDelta(ShadowType.class, ChangeType.ADD);
+				ObjectDelta<ShadowType> objectDelta = prismContext.deltaFactory().object().create(ShadowType.class, ChangeType.ADD);
 				objectDelta.setObjectToAdd(currentShadow);
 
 				Change change = new Change(identifiers, objectDelta, getToken(icfDelta.getToken()));

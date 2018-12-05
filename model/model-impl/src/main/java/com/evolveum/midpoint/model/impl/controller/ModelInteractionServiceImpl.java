@@ -1072,7 +1072,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			return;
 		}
 		if (object != null) {
-			PropertyDelta<?> propertyDelta = PropertyDeltaImpl
+			PropertyDelta<?> propertyDelta = prismContext.deltaFactory().property()
 					.createModificationReplaceProperty(path, object.getDefinition(), value);
 			propertyDelta.applyTo(object); // in bulk actions we need to modify original objects - hope that REST is OK with this
 			if (BooleanUtils.isTrue(policyItemDefinition.isExecute())) {

@@ -1746,7 +1746,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_VALID_TO, prismContext,
 				XmlTypeConverter.createXMLGregorianCalendar(VALID_TO_MILLIS));
 		PrismObjectDefinition<ShadowType> def = accountType.asPrismObject().getDefinition();
-		PropertyDelta<XMLGregorianCalendar> validFromDelta = PropertyDeltaImpl.createModificationDeleteProperty(
+		PropertyDelta<XMLGregorianCalendar> validFromDelta = prismContext.deltaFactory().property().createModificationDeleteProperty(
 				SchemaConstants.PATH_ACTIVATION_VALID_FROM,
 				def.findPropertyDefinition(SchemaConstants.PATH_ACTIVATION_VALID_FROM),
 				XmlTypeConverter.createXMLGregorianCalendar(VALID_FROM_MILLIS));

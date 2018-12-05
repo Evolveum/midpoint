@@ -360,7 +360,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
 
     	// GIVEN
     	PrismObjectDefinition<UserType> userDef = getUserDefinition();
-    	PropertyDelta<String> deltaBefore = PropertyDeltaImpl.createReplaceEmptyDelta(userDef, UserType.F_COST_CENTER);
+    	PropertyDelta<String> deltaBefore = getPrismContext().deltaFactory().property().createReplaceEmptyDelta(userDef, UserType.F_COST_CENTER);
     	deltaBefore.setRealValuesToReplace("foo");
 
 		// WHEN
@@ -388,7 +388,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
 
     	// GIVEN
     	PrismObjectDefinition<UserType> userDef = getUserDefinition();
-    	PropertyDelta<String> deltaBefore = PropertyDeltaImpl.createReplaceEmptyDelta(userDef, UserType.F_COST_CENTER);
+    	PropertyDelta<String> deltaBefore = getPrismContext().deltaFactory().property().createReplaceEmptyDelta(userDef, UserType.F_COST_CENTER);
     	deltaBefore.setRealValuesToReplace("foo");
     	deltaBefore.addEstimatedOldValue(getPrismContext().itemFactory().createPrismPropertyValue("BAR"));
 
@@ -418,7 +418,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
 
     	// GIVEN
     	PrismObjectDefinition<UserType> userDef = getUserDefinition();
-    	PropertyDelta<String> deltaBefore = PropertyDeltaImpl.createReplaceEmptyDelta(userDef, UserType.F_COST_CENTER);
+    	PropertyDelta<String> deltaBefore = getPrismContext().deltaFactory().property().createReplaceEmptyDelta(userDef, UserType.F_COST_CENTER);
 //    	deltaBefore.setValueToReplace(new PrismPropertyValue<String>(""));
 
 		// WHEN
@@ -444,7 +444,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
 
     	// GIVEN
     	PrismObjectDefinition<UserType> userDef = getUserDefinition();
-    	PropertyDelta<String> deltaBefore = PropertyDeltaImpl.createReplaceEmptyDelta(userDef, UserType.F_COST_CENTER);
+    	PropertyDelta<String> deltaBefore = getPrismContext().deltaFactory().property().createReplaceEmptyDelta(userDef, UserType.F_COST_CENTER);
     	// The delta remains empty
 
 		// WHEN

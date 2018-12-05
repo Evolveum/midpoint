@@ -43,7 +43,7 @@ public class ShadowDiscriminatorObjectDelta<T extends Objectable> implements Obj
 	private ResourceShadowDiscriminator discriminator;
 
 	private ShadowDiscriminatorObjectDelta(Class<T> objectTypeClass, ChangeType changeType, PrismContext prismContext) {
-		objectDelta = prismContext.deltaFactory().createObjectDelta(objectTypeClass, changeType);
+		objectDelta = prismContext.deltaFactory().object().create(objectTypeClass, changeType);
 	}
 
 	private ShadowDiscriminatorObjectDelta(ObjectDelta<T> objectDelta,

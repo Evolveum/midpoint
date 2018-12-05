@@ -41,7 +41,6 @@ import javax.net.ssl.TrustManager;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.schema.PrismSchemaImpl;
 import com.evolveum.midpoint.util.MiscUtil;
 import org.apache.commons.configuration.Configuration;
 import org.identityconnectors.common.Version;

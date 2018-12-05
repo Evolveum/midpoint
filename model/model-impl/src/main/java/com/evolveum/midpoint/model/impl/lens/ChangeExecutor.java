@@ -502,7 +502,7 @@ public class ChangeExecutor {
 			
 		} else if (focusDelta.isModify()) {
 			
-			PropertyDelta<XMLGregorianCalendar> provTimestampDelta = PropertyDeltaImpl.createModificationReplaceProperty(
+			PropertyDelta<XMLGregorianCalendar> provTimestampDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
 					ItemPath.create(ObjectType.F_METADATA, MetadataType.F_LAST_PROVISIONING_TIMESTAMP),
 					context.getFocusContext().getObjectDefinition(), 
 					clock.currentTimeXMLGregorianCalendar());
@@ -858,7 +858,7 @@ public class ChangeExecutor {
 		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
 		List<PropertyDelta<?>> syncSituationDeltas = SynchronizationUtils
 				.createSynchronizationSituationAndDescriptionDelta(currentShadow, newSituation, task.getChannel(),
-						projectionCtx.hasFullShadow(), now);
+						projectionCtx.hasFullShadow(), now, prismContext);
 
 		try {
 			ModelImplUtils.setRequestee(task, focusContext);

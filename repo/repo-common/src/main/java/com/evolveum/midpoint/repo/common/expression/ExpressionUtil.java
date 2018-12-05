@@ -41,7 +41,6 @@ import com.evolveum.midpoint.prism.util.JavaTypeConverter;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverterInternal;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -978,7 +977,7 @@ public class ExpressionUtil {
 		} else if (XmlTypeConverter.canConvert(outputType)) {
 			Class<?> outputJavaType = XsdTypeMapper.toJavaType(outputType);
 			try {
-				return XmlTypeConverterInternal.toJavaValue(stringValue, outputJavaType, true);
+				return XmlTypeConverter.toJavaValue(stringValue, outputJavaType, true);
 			} catch (NumberFormatException e) {
 				throw new SchemaException("Cannot convert string '" + stringValue + "' to data type "
 						+ outputType + ": invalid number format", e);

@@ -32,7 +32,6 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
-import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.commons.lang.StringUtils;
 import org.apache.directory.api.ldap.model.cursor.CursorException;
@@ -683,7 +682,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 		        .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid, prismContext);
         QName attrQName = new QName(MidPointConstants.NS_RI, "title");
         ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
-        PropertyDelta<String> attrDelta = PropertyDeltaImpl.createModificationReplaceProperty(
+        PropertyDelta<String> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
 		        ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "Captain");
         delta.addModification(attrDelta);
 
@@ -720,7 +719,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 		        .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid, prismContext);
         QName attrQName = new QName(MidPointConstants.NS_RI, "showInAdvancedViewOnly");
         ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
-        PropertyDelta<Boolean> attrDelta = PropertyDeltaImpl.createModificationReplaceProperty(
+        PropertyDelta<Boolean> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
 		        ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, Boolean.TRUE);
         delta.addModification(attrDelta);
 
@@ -761,7 +760,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 		        .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid, prismContext);
         QName attrQName = new QName(MidPointConstants.NS_RI, "showInAdvancedViewOnly");
         ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
-        PropertyDelta<Boolean> attrDelta = PropertyDeltaImpl.createModificationReplaceProperty(
+        PropertyDelta<Boolean> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
 		        ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, Boolean.TRUE);
         delta.addModification(attrDelta);
 

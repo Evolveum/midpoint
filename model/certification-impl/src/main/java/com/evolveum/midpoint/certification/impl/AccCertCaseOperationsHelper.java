@@ -120,7 +120,7 @@ public class AccCertCaseOperationsHelper {
     // TODO temporary implementation - should be done somehow in batches in order to improve performance
 	void markCaseAsRemedied(@NotNull String campaignOid, long caseId, Task task, OperationResult parentResult)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
-        PropertyDelta<XMLGregorianCalendar> remediedDelta = PropertyDeltaImpl.createModificationReplaceProperty(
+        PropertyDelta<XMLGregorianCalendar> remediedDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
                 ItemPath.create(F_CASE, caseId, AccessCertificationCaseType.F_REMEDIED_TIMESTAMP),
                 generalHelper.getCampaignObjectDefinition(), XmlTypeConverter.createXMLGregorianCalendar(new Date()));
 

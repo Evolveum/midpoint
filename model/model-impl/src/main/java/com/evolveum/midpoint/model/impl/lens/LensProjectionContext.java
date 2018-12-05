@@ -276,7 +276,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 	@Override
 	public void swallowToSecondaryDelta(ItemDelta<?,?> itemDelta) throws SchemaException {
 		if (secondaryDelta == null) {
-			secondaryDelta = getPrismContext().deltaFactory().createObjectDelta(getObjectTypeClass(), ChangeType.MODIFY);
+			secondaryDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(), ChangeType.MODIFY);
 			secondaryDelta.setOid(getOid());
 		}
 		LensUtil.setDeltaOldValue(this, itemDelta);
@@ -920,7 +920,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 			origDelta = getDelta();
             if (origDelta == null || origDelta.isModify()) {
             	// We need to convert modify delta to ADD
-            	ObjectDelta<ShadowType> addDelta = getPrismContext().deltaFactory().createObjectDelta(getObjectTypeClass(),
+            	ObjectDelta<ShadowType> addDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(),
                     ChangeType.ADD);
                 RefinedObjectClassDefinition rObjectClassDef = getCompositeObjectClassDefinition();
 
@@ -939,7 +939,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         } else if (policyDecision == SynchronizationPolicyDecision.KEEP) {
             // Any delta is OK
         } else if (policyDecision == SynchronizationPolicyDecision.DELETE) {
-        	ObjectDelta<ShadowType> deleteDelta = getPrismContext().deltaFactory().createObjectDelta(getObjectTypeClass(),
+        	ObjectDelta<ShadowType> deleteDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(),
                 ChangeType.DELETE);
             String oid = getOid();
             if (oid == null) {

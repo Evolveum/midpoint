@@ -172,7 +172,7 @@ public class ModifyUser extends BaseSQLRepoTest {
     @Test
     public void test050ModifyBigUser() throws Exception {
         PrismObjectDefinition def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-        PropertyDelta delta = PropertyDeltaImpl.createModificationReplaceProperty(ObjectType.F_DESCRIPTION, def,
+        PropertyDelta delta = prismContext.deltaFactory().property().createModificationReplaceProperty(ObjectType.F_DESCRIPTION, def,
                 "new description");
 
         repositoryService.modifyObject(UserType.class, userBigOid, Arrays.asList(delta), new OperationResult("asdf"));

@@ -28,7 +28,6 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.delta.PropertyDeltaImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -1062,7 +1061,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
 		SynchronizationType resourceSync = resource.getSynchronization();
         resourceSync.getObjectSynchronization().get(0).setObjectTemplateRef(ObjectTypeUtil.createObjectRef(templateOid, ObjectTypes.OBJECT_TEMPLATE));
 
-        Collection<? extends ItemDelta> refDelta = PropertyDeltaImpl
+        Collection<? extends ItemDelta> refDelta = prismContext.deltaFactory().property()
 		        .createModificationReplacePropertyCollection(ResourceType.F_SYNCHRONIZATION, resource.asPrismObject().getDefinition(), resourceSync);
         repositoryService.modifyObject(ResourceType.class, resource.getOid(), refDelta, result);
 

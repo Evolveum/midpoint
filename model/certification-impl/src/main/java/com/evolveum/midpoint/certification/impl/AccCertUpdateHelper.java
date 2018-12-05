@@ -116,11 +116,11 @@ public class AccCertUpdateHelper {
     }
 
     PropertyDelta<Integer> createStageNumberDelta(int number) {
-        return PropertyDeltaImpl.createReplaceDelta(generalHelper.getCampaignObjectDefinition(), AccessCertificationCampaignType.F_STAGE_NUMBER, number);
+        return prismContext.deltaFactory().property().createReplaceDelta(generalHelper.getCampaignObjectDefinition(), AccessCertificationCampaignType.F_STAGE_NUMBER, number);
     }
 
     PropertyDelta<AccessCertificationCampaignStateType> createStateDelta(AccessCertificationCampaignStateType state) {
-        return PropertyDeltaImpl.createReplaceDelta(generalHelper.getCampaignObjectDefinition(), AccessCertificationCampaignType.F_STATE, state);
+        return prismContext.deltaFactory().property().createReplaceDelta(generalHelper.getCampaignObjectDefinition(), AccessCertificationCampaignType.F_STATE, state);
     }
 
     ItemDelta<?, ?> createStartTimeDelta(XMLGregorianCalendar date) throws SchemaException {

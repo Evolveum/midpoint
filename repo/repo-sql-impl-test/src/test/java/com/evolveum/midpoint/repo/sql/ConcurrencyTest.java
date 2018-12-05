@@ -302,7 +302,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
             if (propertyDefinition1 == null) {
                 throw new IllegalArgumentException("No definition for " + attribute1 + " in " + userPrismDefinition);
             }
-            PropertyDelta<Object> delta1 = new PropertyDeltaImpl(attribute1, propertyDefinition1, prismContext);
+            PropertyDelta delta1 = prismContext.deltaFactory().property().create(attribute1, propertyDefinition1);
             //noinspection unchecked
             delta1.setRealValuesToReplace(poly ? new PolyString(dataWritten) : dataWritten);
             List<ItemDelta> deltas = new ArrayList<>();
@@ -319,7 +319,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
                 if (propertyDefinition2 instanceof PrismContainerDefinition) {
                 	delta2 = new ContainerDeltaImpl(attribute2, (PrismContainerDefinition) propertyDefinition2, prismContext);
                 } else {
-                    delta2 = new PropertyDeltaImpl(attribute2, (PrismPropertyDefinition) propertyDefinition2, prismContext);
+                    delta2 = prismContext.deltaFactory().property().create(attribute2, (PrismPropertyDefinition) propertyDefinition2);
                 }
                 if (ConstructionType.COMPLEX_TYPE.equals(propertyDefinition2.getTypeName())) {
                     ConstructionType act = new ConstructionType();

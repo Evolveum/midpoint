@@ -335,7 +335,7 @@ public class ModelCrudService {
 		RepositoryCache.enter();
 
 		try {
-			ObjectDelta<T> objectDelta = prismContext.deltaFactory().createObjectDelta(clazz, ChangeType.DELETE);
+			ObjectDelta<T> objectDelta = prismContext.deltaFactory().object().create(clazz, ChangeType.DELETE);
 			objectDelta.setOid(oid);
 
 			LOGGER.trace("Deleting object with oid {}.", new Object[] { oid });
