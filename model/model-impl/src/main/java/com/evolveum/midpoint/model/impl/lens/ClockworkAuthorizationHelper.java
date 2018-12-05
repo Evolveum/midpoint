@@ -161,7 +161,8 @@ public class ClockworkAuthorizationHelper {
 					if (credentialsContainer != null) {
 						List<ItemPath> pathsToRemove = new ArrayList<>();
 						for (Item<?,?> item: credentialsContainer.getValue().getItems()) {
-							ContainerDelta<?> cdelta = new ContainerDeltaImpl(item.getPath(), (PrismContainerDefinition)item.getDefinition(), prismContext);
+							ContainerDelta<?> cdelta = prismContext.deltaFactory().container().create
+									(item.getPath(), (PrismContainerDefinition)item.getDefinition(), prismContext);
 							cdelta.addValuesToAdd(((PrismContainer)item).getValue().clone());
 							AuthorizationDecisionType cdecision = evaluateCredentialDecision(context, securityConstraints, cdelta);
 							LOGGER.trace("AUTZ: credential add {} decision: {}", item.getPath(), cdecision);

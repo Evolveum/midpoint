@@ -1124,7 +1124,7 @@ public class ResourceObjectConverter {
 				
 			} else {
 			
-				ContainerDelta<ShadowAssociationType> associationDelta = ContainerDeltaImpl.createDelta(ShadowType.F_ASSOCIATION, subjectShadowBefore.getDefinition());
+				ContainerDelta<ShadowAssociationType> associationDelta = prismContext.deltaFactory().container().createDelta(ShadowType.F_ASSOCIATION, subjectShadowBefore.getDefinition());
 				PrismContainer<ShadowAssociationType> associationContainer = subjectShadowBefore.findContainer(ShadowType.F_ASSOCIATION);
 				if (associationContainer == null || associationContainer.isEmpty()){
 					LOGGER.trace("No shadow association container in old shadow. Skipping processing entitlements change for {}.", subjectItemPath);

@@ -351,7 +351,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
 
     private ContainerDelta handleAssignmentDeltas(ObjectDelta<UserType> focusDelta,
                                                   List<AssignmentEditorDto> assignments, PrismContainerDefinition def) throws SchemaException {
-        ContainerDelta assDelta = new ContainerDeltaImpl(ItemPath.EMPTY_PATH, def.getName(), def, getPrismContext());
+        ContainerDelta assDelta = getPrismContext().deltaFactory().container().create(ItemPath.EMPTY_PATH, def.getName(), def, getPrismContext());
 
         for (AssignmentEditorDto assDto : assignments) {
             PrismContainerValue newValue = assDto.getNewValue(getPrismContext());

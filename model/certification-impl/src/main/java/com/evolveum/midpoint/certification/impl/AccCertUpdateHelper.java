@@ -136,7 +136,8 @@ public class AccCertUpdateHelper {
 	}
 
     ContainerDelta createTriggerDeleteDelta() {
-        return ContainerDeltaImpl.createModificationReplace(ObjectType.F_TRIGGER, generalHelper.getCampaignObjectDefinition());
+        return prismContext.deltaFactory().container()
+		        .createModificationReplace(ObjectType.F_TRIGGER, generalHelper.getCampaignObjectDefinition());
     }
 
     List<ItemDelta<?, ?>> createTriggerReplaceDelta(Collection<TriggerType> triggers) throws SchemaException {

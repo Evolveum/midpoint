@@ -416,7 +416,7 @@ public class ProjectionCredentialsProcessor {
 
 		if (projectionContext.isAdd()) {
 			MetadataType metadataType = operationalDataManager.createCreateMetadata(context, now, task);
-			ContainerDelta<MetadataType> metadataDelta = ContainerDeltaImpl
+			ContainerDelta<MetadataType> metadataDelta = prismContext.deltaFactory().container()
 					.createDelta(SchemaConstants.PATH_PASSWORD_METADATA, projectionContext.getObjectDefinition());
 			PrismContainerValue cval = metadataType.asPrismContainerValue();
 			cval.setOriginTypeRecursive(OriginType.OUTBOUND);

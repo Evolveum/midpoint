@@ -122,7 +122,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 
 		PrismObjectDefinition<SystemConfigurationType> systemConfigurationTypeDefinition =
 			prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(SystemConfigurationType.class);
-		Collection<? extends ItemDelta> modifications =	ContainerDeltaImpl.createModificationReplaceContainerCollection(SystemConfigurationType.F_LOGGING,
+		Collection<? extends ItemDelta> modifications =	prismContext.deltaFactory().container().createModificationReplaceContainerCollection(SystemConfigurationType.F_LOGGING,
 					systemConfigurationTypeDefinition, logging.asPrismContainerValue().clone());
 		
 		// Modify directly in repository, so the logging code in model will not notice the change

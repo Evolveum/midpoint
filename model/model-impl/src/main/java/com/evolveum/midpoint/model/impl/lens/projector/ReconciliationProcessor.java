@@ -970,7 +970,8 @@ public class ReconciliationProcessor {
         PrismContainerDefinition<ShadowAssociationType> associationDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class)
                 .findContainerDefinition(ShadowType.F_ASSOCIATION);
 
-        ContainerDelta assocDelta = new ContainerDeltaImpl(SchemaConstants.PATH_ASSOCIATION, associationDefinition, prismContext);
+        ContainerDelta assocDelta = prismContext.deltaFactory().container().create(
+        		SchemaConstants.PATH_ASSOCIATION, associationDefinition, prismContext);
 
         PrismContainerValue cValue = value.asPrismContainerValue().clone();
         cValue.setOriginType(OriginType.RECONCILIATION);

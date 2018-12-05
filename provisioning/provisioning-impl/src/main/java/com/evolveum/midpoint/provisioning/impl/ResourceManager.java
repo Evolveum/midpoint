@@ -520,7 +520,7 @@ public class ResourceManager {
 		}
 		CachingMetadataType cachingMetadata = MiscSchemaUtil.generateCachingMetadata();
 
-		ContainerDelta<XmlSchemaType> schemaContainerDelta = ContainerDeltaImpl.createDelta(
+		ContainerDelta<XmlSchemaType> schemaContainerDelta = prismContext.deltaFactory().container().createDelta(
 				ResourceType.F_SCHEMA, ResourceType.class, prismContext);
 		PrismContainerValue<XmlSchemaType> cval = prismContext.itemFactory().createPrismContainerValue();
 		schemaContainerDelta.setValueToReplace(cval);

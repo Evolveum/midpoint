@@ -604,7 +604,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
     }
 
 	private <F extends FocusType> ContainerDelta<AssignmentType> createEmptyAssignmentDelta(LensFocusContext<F> focusContext) {
-        return new ContainerDeltaImpl<>(getAssignmentContainerDefinition(focusContext), prismContext);
+        return prismContext.deltaFactory().container().create(getAssignmentContainerDefinition(focusContext), prismContext);
     }
 
 	private <F extends FocusType> PrismContainerDefinition<AssignmentType> getAssignmentContainerDefinition(LensFocusContext<F> focusContext) {

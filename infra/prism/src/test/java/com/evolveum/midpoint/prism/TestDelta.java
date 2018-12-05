@@ -647,7 +647,7 @@ public class TestDelta extends AbstractPrismTest {
     	PrismContainerValue<AssignmentType> assignmentValue2 = getPrismContext().itemFactory().createPrismContainerValue();
     	// The value id is null
     	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, ASSIGNMENT_PATLAMA_DESCRIPTION, PrismTestUtil.getPrismContext());
-    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDeltaImpl.createDelta(UserType.F_ASSIGNMENT, getUserTypeDefinition());
+    	ContainerDelta<AssignmentType> containerDelta2 = getPrismContext().deltaFactory().container().createDelta(UserType.F_ASSIGNMENT, getUserTypeDefinition());
     	containerDelta2.addValueToAdd(assignmentValue2);
 
 		// WHEN

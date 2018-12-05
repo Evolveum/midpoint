@@ -762,7 +762,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 			display(result);
 			
 			// return the previous changes of resource back
-			Collection<? extends ItemDelta> schemaHandlingDelta = ContainerDeltaImpl
+			Collection<? extends ItemDelta> schemaHandlingDelta = prismContext.deltaFactory().container()
 					.createModificationReplaceContainerCollection(
 							ResourceType.F_SCHEMA_HANDLING,
 							resourceTypeOpenDjrepo.asPrismObject()

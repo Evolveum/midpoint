@@ -2203,7 +2203,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertDeny("assign application role to jack",
         	(task, result) ->  {
 				Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
-				ContainerDelta<AssignmentType> assignmentDelta1 = ContainerDeltaImpl.createDelta(UserType.F_ASSIGNMENT, getUserDefinition());
+				ContainerDelta<AssignmentType> assignmentDelta1 = prismContext.deltaFactory().container().createDelta(UserType.F_ASSIGNMENT, getUserDefinition());
 				PrismContainerValue<AssignmentType> cval = prismContext.itemFactory().createPrismContainerValue();
 				assignmentDelta1.addValueToAdd(cval);
 				PrismReference targetRef = cval.findOrCreateReference(AssignmentType.F_TARGET_REF);

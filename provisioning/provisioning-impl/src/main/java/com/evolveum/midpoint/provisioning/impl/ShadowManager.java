@@ -1058,7 +1058,8 @@ public class ShadowManager {
 		for (PendingOperationType pendingOperation: opState.getPendingOperations()) {
 			if (pendingOperation.asPrismContainerValue().getId() == null) {
 				// This must be a new operation
-				ContainerDelta<PendingOperationType> cdelta = new ContainerDeltaImpl<>(ShadowType.F_PENDING_OPERATION, containerDefinition, prismContext);
+				ContainerDelta<PendingOperationType> cdelta = prismContext.deltaFactory().container().create(
+						ShadowType.F_PENDING_OPERATION, containerDefinition, prismContext);
 				cdelta.addValuesToAdd(pendingOperation.asPrismContainerValue());
 				shadowChanges.add(cdelta);
 			} else {
@@ -1311,7 +1312,7 @@ public class ShadowManager {
 		}
 		
 		Collection repoDeltas = new ArrayList<>(1);
-		ContainerDelta<PendingOperationType> cdelta = ContainerDeltaImpl.createDelta(ShadowType.F_PENDING_OPERATION, shadow.getDefinition());
+		ContainerDelta<PendingOperationType> cdelta = prismContext.deltaFactory().container().createDelta(ShadowType.F_PENDING_OPERATION, shadow.getDefinition());
 		cdelta.addValuesToAdd(pendingOperation.asPrismContainerValue());
 		repoDeltas.add(cdelta);
 		

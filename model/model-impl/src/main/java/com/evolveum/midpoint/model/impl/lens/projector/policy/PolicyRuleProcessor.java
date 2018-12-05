@@ -475,7 +475,7 @@ public class PolicyRuleProcessor {
 						PrismContainerValue<AssignmentType> assignmentValueToRemove = conflictingAssignment.getAssignmentType()
 								.asPrismContainerValue().clone();
 						PrismObjectDefinition<F> focusDef = context.getFocusContext().getObjectDefinition();
-						ContainerDelta<AssignmentType> assignmentDelta = ContainerDeltaImpl
+						ContainerDelta<AssignmentType> assignmentDelta = prismContext.deltaFactory().container()
 								.createDelta(FocusType.F_ASSIGNMENT, focusDef);
 						assignmentDelta.addValuesToDelete(assignmentValueToRemove);
 						context.getFocusContext().swallowToSecondaryDelta(assignmentDelta);

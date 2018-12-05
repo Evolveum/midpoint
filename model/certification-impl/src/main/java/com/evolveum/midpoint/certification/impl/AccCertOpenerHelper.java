@@ -23,7 +23,6 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ContainerDeltaImpl;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -308,7 +307,7 @@ public class AccCertOpenerHelper {
 		assert norm(campaign.getIteration()) == 1;
 
 		for (AccessCertificationCaseType _case : caseList) {
-			ContainerDelta<AccessCertificationCaseType> caseDelta = ContainerDeltaImpl.createDelta(F_CASE,
+			ContainerDelta<AccessCertificationCaseType> caseDelta = prismContext.deltaFactory().container().createDelta(F_CASE,
 					AccessCertificationCampaignType.class, prismContext);
 			_case.setIteration(1);
 			_case.setStageNumber(1);
@@ -516,7 +515,8 @@ public class AccCertOpenerHelper {
                 }
             }
 
-            ContainerDelta<TriggerType> triggerDelta = ContainerDeltaImpl.createModificationReplace(ObjectType.F_TRIGGER, AccessCertificationCampaignType.class, prismContext, triggers);
+            ContainerDelta<TriggerType> triggerDelta = prismContext.deltaFactory().container()
+		            .createModificationReplace(ObjectType.F_TRIGGER, AccessCertificationCampaignType.class, prismContext, triggers);
             itemDeltaList.add(triggerDelta);
         }
         return itemDeltaList;

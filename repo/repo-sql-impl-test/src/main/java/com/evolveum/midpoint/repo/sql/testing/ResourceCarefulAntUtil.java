@@ -69,7 +69,7 @@ public class ResourceCarefulAntUtil {
 			@Override
 			public ItemDelta<?,?> createDelta(int iteration) throws SchemaException {
 				schemaHandling = createNewSchemaHandling(resourceFile, iteration, prismContext);
-				return ContainerDeltaImpl.createModificationReplace(ResourceType.F_SCHEMA_HANDLING,
+				return prismContext.deltaFactory().container().createModificationReplace(ResourceType.F_SCHEMA_HANDLING,
 						prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceType.class),
 						schemaHandling.asPrismContainerValue().clone());
 			}

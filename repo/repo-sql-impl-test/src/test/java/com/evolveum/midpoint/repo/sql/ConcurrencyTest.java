@@ -317,7 +317,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
                 
                 ItemDelta delta2;
                 if (propertyDefinition2 instanceof PrismContainerDefinition) {
-                	delta2 = new ContainerDeltaImpl(attribute2, (PrismContainerDefinition) propertyDefinition2, prismContext);
+                	delta2 = prismContext.deltaFactory().container().create(attribute2, (PrismContainerDefinition) propertyDefinition2, prismContext);
                 } else {
                     delta2 = prismContext.deltaFactory().property().create(attribute2, (PrismPropertyDefinition) propertyDefinition2);
                 }

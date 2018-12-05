@@ -22,7 +22,6 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.delta.ContainerDeltaImpl;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;

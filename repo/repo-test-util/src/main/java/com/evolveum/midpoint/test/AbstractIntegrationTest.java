@@ -583,7 +583,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		ProjectionPolicyType syncSettings = new ProjectionPolicyType();
         syncSettings.setAssignmentPolicyEnforcement(policy);
         syncSettings.setLegalize(Boolean.valueOf(legalize));
-		ContainerDelta<ProjectionPolicyType> deleteAssigmentEnforcement = ContainerDeltaImpl
+		ContainerDelta<ProjectionPolicyType> deleteAssigmentEnforcement = prismContext.deltaFactory().container()
 				.createModificationDelete(ResourceType.F_PROJECTION, ResourceType.class, prismContext,
 						syncSettings.clone());
 
@@ -612,7 +612,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		PrismObjectDefinition<?> objectDefinition = prismContext.getSchemaRegistry()
 				.findObjectDefinitionByCompileTimeClass(clazz);
 
-		Collection<? extends ItemDelta> modifications = ContainerDeltaImpl
+		Collection<? extends ItemDelta> modifications = prismContext.deltaFactory().container()
 				.createModificationReplaceContainerCollection(itemName, objectDefinition, syncSettings.asPrismContainerValue());
 
 		OperationResult result = new OperationResult("Aplying sync settings");

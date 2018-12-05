@@ -19,6 +19,7 @@ package com.evolveum.midpoint.prism.delta;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 import javax.xml.namespace.QName;
 import java.util.Collection;
@@ -171,6 +172,58 @@ public interface DeltaFactory {
 	interface Container {
 		<C extends Containerable> ContainerDelta<C> create(ItemPath path, PrismContainerDefinition<C> definition);
 
+		<C extends Containerable> ContainerDelta<C>  create(PrismContainerDefinition itemDefinition, PrismContext prismContext);
+
+		<C extends Containerable> ContainerDelta<C> create(ItemPath propertyPath, PrismContainerDefinition itemDefinition, PrismContext prismContext);
+
+		<C extends Containerable> ContainerDelta<C> create(ItemPath parentPath, QName name, PrismContainerDefinition itemDefinition,
+				PrismContext prismContext);
+
+		<T extends Containerable,O extends Objectable> ContainerDelta<T> createDelta(ItemPath containerPath,
+				Class<O> type, PrismContext prismContext);
+
+		<T extends Containerable,O extends Objectable> ContainerDelta<T> createDelta(ItemPath containerPath,
+				PrismObjectDefinition<O> objectDefinition);
+
+		<T extends Containerable,O extends Objectable> ContainerDelta<T> createDelta(ItemPath containerPath,
+				PrismContainerDefinition<O> objectDefinition);
+
+		<T extends Containerable,O extends Objectable> ContainerDelta<T> createModificationAdd(
+				ItemPath containerPath,
+				Class<O> type, PrismContext prismContext, T containerable) throws SchemaException;
+
+		<T extends Containerable,O extends Objectable> ContainerDelta<T> createModificationAdd(
+				ItemPath containerPath,
+				Class<O> type, PrismContext prismContext, PrismContainerValue<T> cValue) throws SchemaException;
+
+		<T extends Containerable,O extends Objectable> ContainerDelta<T> createModificationDelete(
+				ItemPath containerPath,
+				Class<O> type, PrismContext prismContext, T containerable) throws SchemaException;
+
+		<T extends Containerable,O extends Objectable> ContainerDelta<T> createModificationDelete(
+				ItemPath containerPath,
+				Class<O> type, PrismContext prismContext, PrismContainerValue<T> cValue) throws SchemaException;
+
+		<T extends Containerable,O extends Objectable> ContainerDelta<T> createModificationReplace(
+				ItemPath containerPath,
+				Class<O> type, PrismContext prismContext, T containerable) throws SchemaException;
+
+		<T extends Containerable,O extends Objectable> ContainerDelta<T> createModificationReplace(ItemPath containerPath,
+				Class<O> type, PrismContext prismContext, Collection<T> containerables) throws SchemaException;
+
+		<T extends Containerable,O extends Objectable> ContainerDelta<T> createModificationReplace(
+				ItemPath containerPath,
+				Class<O> type, PrismContext prismContext, PrismContainerValue<T> cValue) throws SchemaException;
+
+		// cValues should be parent-less
+		@Deprecated
+		Collection<? extends ItemDelta> createModificationReplaceContainerCollection(ItemName containerName,
+				PrismObjectDefinition<?> objectDefinition, PrismContainerValue... cValues);
+
+		// cValues should be parent-less
+		@Deprecated
+		<T extends Containerable> ContainerDelta<T> createModificationReplace(ItemName containerName,
+				PrismObjectDefinition<?> objectDefinition, PrismContainerValue... cValues);
 	}
 
 	interface Object {

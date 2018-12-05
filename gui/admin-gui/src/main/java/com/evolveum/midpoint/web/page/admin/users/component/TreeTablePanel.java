@@ -25,7 +25,6 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.delta.ContainerDeltaImpl;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -511,7 +510,7 @@ public class TreeTablePanel extends BasePanel<String> {
 				AssignmentType oldRoot = new AssignmentType();
 				oldRoot.setTargetRef(ObjectTypeUtil.createObjectRef(parentOrg, getPageBase().getPrismContext()));
 
-				moveOrgDelta.addModification(ContainerDeltaImpl.createModificationDelete(OrgType.F_ASSIGNMENT,
+				moveOrgDelta.addModification(getPrismContext().deltaFactory().container().createModificationDelete(OrgType.F_ASSIGNMENT,
 						OrgType.class, getPageBase().getPrismContext(), oldRoot.asPrismContainerValue()));
 				// moveOrgDelta.addModification(ReferenceDelta.createModificationDelete(OrgType.F_PARENT_ORG_REF,
 				// toMove.asPrismObject().getDefinition(),
@@ -520,7 +519,7 @@ public class TreeTablePanel extends BasePanel<String> {
 
 			AssignmentType newRoot = new AssignmentType();
 			newRoot.setTargetRef(ObjectTypeUtil.createObjectRef(selected.getValue(), getPageBase().getPrismContext()));
-			moveOrgDelta.addModification(ContainerDeltaImpl.createModificationAdd(OrgType.F_ASSIGNMENT,
+			moveOrgDelta.addModification(getPrismContext().deltaFactory().container().createModificationAdd(OrgType.F_ASSIGNMENT,
 					OrgType.class, getPageBase().getPrismContext(), newRoot.asPrismContainerValue()));
 			// moveOrgDelta.addModification(ReferenceDelta.createModificationAdd(OrgType.F_PARENT_ORG_REF,
 			// toMove.asPrismObject().getDefinition(),
@@ -563,7 +562,7 @@ public class TreeTablePanel extends BasePanel<String> {
 				AssignmentType oldRoot = new AssignmentType();
 				oldRoot.setTargetRef(parentOrg);
 
-				moveOrgDelta.addModification(ContainerDeltaImpl.createModificationDelete(OrgType.F_ASSIGNMENT,
+				moveOrgDelta.addModification(getPrismContext().deltaFactory().container().createModificationDelete(OrgType.F_ASSIGNMENT,
 						OrgType.class, getPageBase().getPrismContext(), oldRoot.asPrismContainerValue()));
 			}
 

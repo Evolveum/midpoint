@@ -410,7 +410,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	protected ContainerDelta handleAssignmentDeltas(ObjectDelta<F> focusDelta,
 			List<AssignmentEditorDto> assignments, PrismContainerDefinition def,
 													boolean isDelegation) throws SchemaException {
-		ContainerDelta assDelta = new ContainerDeltaImpl(ItemPath.EMPTY_PATH, def.getName(), def, getPrismContext());
+		ContainerDelta assDelta = getPrismContext().deltaFactory().container().create(ItemPath.EMPTY_PATH, def.getName(), def, getPrismContext());
 
 		for (AssignmentEditorDto assDto : assignments) {
 			PrismContainerValue newValue = assDto.getNewValue(getPrismContext());
@@ -461,7 +461,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	protected ContainerDelta<AssignmentType> handleAssignmentExperimentalDeltas(ObjectDelta<F> focusDelta,
 											List<ContainerValueWrapper<AssignmentType>> assignments, PrismContainerDefinition def,
 																				boolean isDelegation) throws SchemaException {
-		ContainerDelta<AssignmentType> assDelta = new ContainerDeltaImpl(ItemPath.EMPTY_PATH, def.getName(), def, getPrismContext());
+		ContainerDelta<AssignmentType> assDelta = getPrismContext().deltaFactory().container().create(ItemPath.EMPTY_PATH, def.getName(), def, getPrismContext());
 
 
 		if (!assDelta.isEmpty()) {

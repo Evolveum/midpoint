@@ -1207,7 +1207,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         assertNotNull("no attributeDef", attributeDef);
 
         Long assignmentId = jack.getAssignment().get(0).getId();
-        ContainerDelta<ResourceAttributeDefinitionType> attributeDelta = new ContainerDeltaImpl<>(
+        ContainerDelta<ResourceAttributeDefinitionType> attributeDelta = prismContext.deltaFactory().container().create(
             ItemPath.create(UserType.F_ASSIGNMENT, assignmentId, AssignmentType.F_CONSTRUCTION, ConstructionType.F_ATTRIBUTE),
             attributeDef, prismContext);
         ResourceAttributeDefinitionType attributeDefinitionType = new ResourceAttributeDefinitionType();

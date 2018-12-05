@@ -7,7 +7,6 @@ import java.util.stream.Collectors;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ContainerDeltaImpl;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -199,7 +198,7 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 				assignment.setTargetRef(ObjectTypeUtil.createObjectRef(nonceType.getName(), ObjectTypes.ABSTRACT_ROLE));
 				getPrismContext().adopt(assignment);
 				List<ItemDelta> userDeltas = new ArrayList<>();
-				userDeltas.add(ContainerDeltaImpl.createModificationAdd(UserType.F_ASSIGNMENT,
+				userDeltas.add(getPrismContext().deltaFactory().container().createModificationAdd(UserType.F_ASSIGNMENT,
 						UserType.class, getPrismContext(), assignment));
 				assignRoleDelta = ObjectDeltaCreationUtil.createModifyDelta(userOid, userDeltas, UserType.class, getPrismContext());
 				assignRoleDelta.setPrismContext(getPrismContext());
