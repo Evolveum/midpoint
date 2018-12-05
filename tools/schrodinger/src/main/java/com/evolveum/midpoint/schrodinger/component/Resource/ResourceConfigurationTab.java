@@ -5,6 +5,7 @@ import com.evolveum.midpoint.schrodinger.component.Component;
 import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
 import com.evolveum.midpoint.schrodinger.page.resource.EditResourceConfigurationPage;
 
+
 /**
  * Created by matus on 3/28/2018.
  */
@@ -20,7 +21,6 @@ public class ResourceConfigurationTab extends Component<EditResourceConfiguratio
     public PrismForm<ResourceConfigurationTab> form() {
 
         SelenideElement element = null;
-
         return new PrismForm<>(this, element);
     }
 }
