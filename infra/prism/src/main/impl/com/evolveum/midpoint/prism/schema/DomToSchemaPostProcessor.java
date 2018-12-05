@@ -374,7 +374,7 @@ class DomToSchemaPostProcessor {
 							XSAnnotation containerAnnotation = xsType.getAnnotation();
 							PrismContainerDefinition<?> containerDefinition = createPropertyContainerDefinition(
 									xsType, p, null, containerAnnotation, false);
-							((PrismContainerDefinitionImpl) containerDefinition).setInherited(particleInherited);
+							containerDefinition.toMutable().setInherited(particleInherited);
 							((ComplexTypeDefinitionImpl) ctd).add(containerDefinition);
 						} else {
 							PrismPropertyDefinitionImpl propDef = createPropertyDefinition(xsType, elementName,
@@ -415,7 +415,7 @@ class DomToSchemaPostProcessor {
 //						((PrismContainerDefinitionImpl) containerDefinition).setRuntimeSchema(true);
 //						((PrismContainerDefinitionImpl) containerDefinition).setDynamic(true);
 //					}
-					((PrismContainerDefinitionImpl) containerDefinition).setInherited(particleInherited);
+					containerDefinition.toMutable().setInherited(particleInherited);
 					((ComplexTypeDefinitionImpl) ctd).add(containerDefinition);
 
 				} else {

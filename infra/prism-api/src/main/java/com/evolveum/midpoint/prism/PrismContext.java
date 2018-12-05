@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.prism.query.QueryConverter;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
+import com.evolveum.midpoint.prism.schema.SchemaFactory;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismMonitor;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
@@ -359,4 +360,7 @@ public interface PrismContext extends ProtectorCreator {
 
 	// TEMPORARY/EXPERIMENTAL
 	void setExtraValidation(boolean value);
+
+	@NotNull
+	SchemaFactory schemaFactory();
 }

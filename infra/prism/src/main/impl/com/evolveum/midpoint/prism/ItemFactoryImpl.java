@@ -38,6 +38,11 @@ public class ItemFactoryImpl implements ItemFactory {
 	}
 
 	@Override
+	public <T> PrismProperty<T> createPrismProperty(QName itemName, PrismPropertyDefinition<T> definition) {
+		return new PrismPropertyImpl<>(itemName, definition, prismContext);
+	}
+
+	@Override
 	public <T> PrismPropertyValue<T> createPrismPropertyValue() {
 		return new PrismPropertyValueImpl<>(null, prismContext);
 	}
@@ -120,6 +125,11 @@ public class ItemFactoryImpl implements ItemFactory {
 	@Override
 	public PrismContainer createPrismContainer(QName name) {
 		return new PrismContainerImpl(name, prismContext);
+	}
+
+	@Override
+	public <C extends Containerable> PrismContainer<C> createPrismContainer(QName name, PrismContainerDefinition<C> definition) {
+		return new PrismContainerImpl<>(name, definition, prismContext);
 	}
 
 	@Override

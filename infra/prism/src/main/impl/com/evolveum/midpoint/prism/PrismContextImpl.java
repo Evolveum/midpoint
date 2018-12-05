@@ -34,9 +34,7 @@ import com.evolveum.midpoint.prism.query.QueryFactoryImpl;
 import com.evolveum.midpoint.prism.query.QueryConverter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
-import com.evolveum.midpoint.prism.schema.SchemaDefinitionFactory;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.prism.schema.SchemaRegistryImpl;
+import com.evolveum.midpoint.prism.schema.*;
 import com.evolveum.midpoint.prism.util.PrismMonitor;
 import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
@@ -88,6 +86,7 @@ public class PrismContextImpl implements PrismContext {
 	@NotNull private final ItemFactory itemFactory;
 	@NotNull private final DefinitionFactory definitionFactory;
 	@NotNull private final ItemPathParser itemPathParser;
+	@NotNull private final SchemaFactory schemaFactory;
 
 	private ParsingMigrator parsingMigrator;
 	private PrismMonitor monitor = null;
@@ -126,6 +125,7 @@ public class PrismContextImpl implements PrismContext {
 		this.itemFactory = new ItemFactoryImpl(this);
 		this.definitionFactory = new DefinitionFactoryImpl(this);
 		this.itemPathParser = new ItemPathParserImpl(this);
+		this.schemaFactory = new SchemaFactoryImpl(this);
 
 		try {
 			configurePolyStringNormalizer(null);
@@ -650,5 +650,11 @@ public class PrismContextImpl implements PrismContext {
 	@Override
 	public void setExtraValidation(boolean value) {
 		PrismContextImpl.extraValidation = value;
+	}
+
+	@NotNull
+	@Override
+	public SchemaFactory schemaFactory() {
+		return schemaFactory;
 	}
 }

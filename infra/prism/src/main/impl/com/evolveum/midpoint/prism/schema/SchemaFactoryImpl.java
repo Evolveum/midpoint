@@ -14,30 +14,29 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.prism;
+package com.evolveum.midpoint.prism.schema;
 
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.prism.PrismContext;
+import org.jetbrains.annotations.NotNull;
 
 /**
  *
  */
-public interface MutableDefinition extends Definition {
+public class SchemaFactoryImpl implements SchemaFactory {
 
-	void setProcessing(ItemProcessing processing);
+	@NotNull private final PrismContext prismContext;
 
-	void setDeprecated(boolean deprecated);
+	public SchemaFactoryImpl(@NotNull PrismContext prismContext) {
+		this.prismContext = prismContext;
+	}
 
-	void setExperimental(boolean experimental);
+	@Override
+	public PrismSchema createPrismSchema() {
+		return new PrismSchemaImpl(prismContext);
+	}
 
-	void setEmphasized(boolean emphasized);
-
-	void setDisplayName(String displayName);
-
-	void setDisplayOrder(Integer displayOrder);
-
-	void setHelp(String help);
-
-	void setRuntimeSchema(boolean value);
-
-	void setTypeName(QName typeName);
+	@Override
+	public PrismSchema createPrismSchema(String namespace) {
+		return new PrismSchemaImpl(namespace, prismContext);
+	}
 }

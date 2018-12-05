@@ -552,8 +552,8 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 			if (extensionContainer == null) {
 				throw new SchemaException("Attempt to extend type "+typeQName+" with "+extensionCtd.getTypeClass()+" but the original type does not have extension container");
 			}
-			((PrismContainerDefinitionImpl) extensionContainer).setComplexTypeDefinition(extensionCtd.clone());
-			((PrismContainerDefinitionImpl) extensionContainer).setTypeName(extensionCtd.getTypeName());
+			extensionContainer.toMutable().setComplexTypeDefinition(extensionCtd.clone());
+			extensionContainer.toMutable().setTypeName(extensionCtd.getTypeName());
 		}
 	}
 

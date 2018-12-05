@@ -14,30 +14,14 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.prism;
-
-import javax.xml.namespace.QName;
+package com.evolveum.midpoint.prism.schema;
 
 /**
  *
  */
-public interface MutableDefinition extends Definition {
+public interface SchemaFactory {
 
-	void setProcessing(ItemProcessing processing);
+	PrismSchema createPrismSchema();
 
-	void setDeprecated(boolean deprecated);
-
-	void setExperimental(boolean experimental);
-
-	void setEmphasized(boolean emphasized);
-
-	void setDisplayName(String displayName);
-
-	void setDisplayOrder(Integer displayOrder);
-
-	void setHelp(String help);
-
-	void setRuntimeSchema(boolean value);
-
-	void setTypeName(QName typeName);
+	PrismSchema createPrismSchema(String namespace);
 }

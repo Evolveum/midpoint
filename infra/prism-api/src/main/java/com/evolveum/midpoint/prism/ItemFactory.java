@@ -33,6 +33,8 @@ public interface ItemFactory {
 
 	<T> PrismProperty<T> createPrismProperty(QName itemName);
 
+	<T> PrismProperty<T> createPrismProperty(QName itemName, PrismPropertyDefinition<T> definition);
+
 	<T> PrismPropertyValue<T> createPrismPropertyValue();
 
 	<T> PrismPropertyValue<T> createPrismPropertyValue(T content);
@@ -56,6 +58,8 @@ public interface ItemFactory {
 	PrismReferenceValue createPrismReferenceValue(String oid, QName targetType);
 
 	PrismContainer createPrismContainer(QName name);
+
+	<C extends Containerable> PrismContainer<C> createPrismContainer(QName name, PrismContainerDefinition<C> definition);
 
 	<O extends Objectable> PrismObject<O> createPrismObject(QName name, PrismObjectDefinition<O> definition);
 

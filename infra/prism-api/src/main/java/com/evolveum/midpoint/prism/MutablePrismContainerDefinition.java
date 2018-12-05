@@ -30,4 +30,8 @@ public interface MutablePrismContainerDefinition<C extends Containerable> extend
 
 	MutablePrismContainerDefinition<?> createContainerDefinition(QName name, QName typeName, int minOccurs, int maxOccurs);
 	MutablePrismContainerDefinition<?> createContainerDefinition(QName name, ComplexTypeDefinition ctd, int minOccurs, int maxOccurs);
+
+	void setInherited(boolean value);
+
+	void setComplexTypeDefinition(ComplexTypeDefinition complexTypeDefinition);
 }
