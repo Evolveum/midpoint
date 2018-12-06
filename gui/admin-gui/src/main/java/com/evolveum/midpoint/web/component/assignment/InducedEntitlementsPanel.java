@@ -130,51 +130,18 @@ public class InducedEntitlementsPanel extends InducementsPanel{
             @Override
             public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId,
                                      final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-                List<ShadowType> shadowsList = loadReferencedObjects(ExpressionUtil.getShadowRefValue(WebComponentUtil.getAssociationExpression(rowModel.getObject())));
+                List<ShadowType> shadowsList =
+                        WebComponentUtil.loadReferencedObjectList(ExpressionUtil.getShadowRefValue(WebComponentUtil.getAssociationExpression(rowModel.getObject())),
+                                OPERATION_LOAD_SHADOW_OBJECT, InducedEntitlementsPanel.this.getPageBase());
                 MultiValueChoosePanel<ShadowType> valuesPanel = new MultiValueChoosePanel<ShadowType>(componentId,
                         Model.ofList(shadowsList), Arrays.asList(ShadowType.class), false){
                     private static final long serialVersionUID = 1L;
 
                     @Override
                     protected ObjectFilter getCustomFilter(){
-                        ObjectQuery query = new ObjectQuery();
-
                         ConstructionType construction = rowModel.getObject().getContainerValue().asContainerable().getConstruction();
-                        if (construction == null){
-                            return null;
-                        }
-                        PrismObject<ResourceType> resource = WebComponentUtil.getConstructionResource(construction, OPERATION_LOAD_RESOURCE_OBJECT,
+                        return WebComponentUtil.getShadowTypeFilterForAssociation(construction, OPERATION_LOAD_RESOURCE_OBJECT,
                                 InducedEntitlementsPanel.this.getPageBase());
-                        if (resource == null){
-                            return null;
-                        }
-
-                        try {
-                            RefinedResourceSchema refinedResourceSchema = RefinedResourceSchema.getRefinedSchema(resource);
-                            RefinedObjectClassDefinition oc = refinedResourceSchema.getRefinedDefinition(construction.getKind(), construction.getIntent());
-                            if (oc == null){
-                                return null;
-                            }
-                            Collection<RefinedAssociationDefinition> refinedAssociationDefinitions = oc.getAssociationDefinitions();
-
-                            for (RefinedAssociationDefinition refinedAssociationDefinition : refinedAssociationDefinitions) {
-                                S_FilterEntryOrEmpty atomicFilter = QueryBuilder.queryFor(ShadowType.class,
-
-                                        InducedEntitlementsPanel.this.getPageBase().getPrismContext());
-                                List<ObjectFilter> orFilterClauses = new ArrayList<>();
-                                refinedAssociationDefinition.getIntents()
-                                        .forEach(intent -> orFilterClauses.add(atomicFilter.item(ShadowType.F_INTENT).eq(intent).buildFilter()));
-                                OrFilter intentFilter = OrFilter.createOr(orFilterClauses);
-
-                                AndFilter filter = (AndFilter) atomicFilter.item(ShadowType.F_KIND).eq(refinedAssociationDefinition.getKind()).and()
-                                        .item(ShadowType.F_RESOURCE_REF).ref(resource.getOid(), ResourceType.COMPLEX_TYPE).buildFilter();
-                                filter.addCondition(intentFilter);
-                                query.setFilter(filter);
-                            }
-                        } catch (SchemaException ex) {
-                            LOGGER.error("Couldn't create query filter for ShadowType popup list: {}" , ex.getErrorTypeMessage());
-                        }
-                        return query.getFilter();
                     }
 
                     @Override
@@ -195,6 +162,11 @@ public class InducedEntitlementsPanel extends InducementsPanel{
                         }
                     }
 
+                    @Override
+                    protected void selectPerformed(AjaxRequestTarget target, List<ShadowType> chosenValues) {
+                        addPerformed(target, chosenValues);
+                    }
+
                 };
                 valuesPanel.setOutputMarkupId(true);
                 item.add(valuesPanel);
@@ -202,22 +174,6 @@ public class InducedEntitlementsPanel extends InducementsPanel{
         });
 
         return columns;
-    }
-
-    private List<ShadowType> loadReferencedObjects(List<ObjectReferenceType> shadowRefList){
-        List<ShadowType> shadowsList = new ArrayList<>();
-        if (shadowRefList == null){
-            return shadowsList;
-        }
-        shadowRefList.forEach(shadowRef -> {
-            OperationResult result = new OperationResult(OPERATION_LOAD_SHADOW_OBJECT);
-            PrismObject<ShadowType> shadow = WebModelServiceUtils.resolveReferenceNoFetch(shadowRef, getPageBase(), getPageBase().createSimpleTask(OPERATION_LOAD_SHADOW_OBJECT), //loadObject(shadowRef, getPageBase(), getPageBase().createSimpleTask(OPERATION_LOAD_SHADOW_OBJECT),
-                    result);
-            if (shadow != null) {
-                shadowsList.add(shadow.asObjectable());
-            }
-        });
-        return shadowsList;
     }
 
     @Override
@@ -334,21 +290,9 @@ public class InducedEntitlementsPanel extends InducementsPanel{
                     }
                     associations.forEach(association -> {
                         if (!filteredAssignments.contains(assignmentWrapper)) {
-                            if (association.getOutbound() == null && ValueStatus.ADDED.equals(assignmentWrapper.getStatus())) {
+                            if (association.getRef() != null && association.getRef().getItemPath() != null &&
+                                    !association.getRef().getItemPath().isEmpty()){
                                 filteredAssignments.add(assignmentWrapper);
-                                return;
-                            }
-                            if (association.getOutbound() != null && association.getOutbound().getExpression() != null) {
-                                List<ObjectReferenceType> shadowRefList = ExpressionUtil.getShadowRefValue(association.getOutbound().getExpression());
-                                if (shadowRefList == null){
-                                    return;
-                                }
-                                for (ObjectReferenceType shadowRef : shadowRefList){
-                                    if ((shadowRef != null || ValueStatus.ADDED.equals(assignmentWrapper.getStatus()))) {
-                                        filteredAssignments.add(assignmentWrapper);
-                                        break;
-                                    }
-                                }
                             }
                         }
                     });

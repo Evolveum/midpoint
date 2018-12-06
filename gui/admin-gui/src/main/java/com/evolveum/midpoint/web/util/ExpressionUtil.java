@@ -363,6 +363,7 @@ public class ExpressionUtil {
                        XNode shadowRefNode = it.next();
                        if (shadowRefNode instanceof MapXNode && shadowRefOid.equals(getShadowRefNodeOid((MapXNode) shadowRefNode))) {
                            it.remove();
+                           break;
                        }
                    }
                }
@@ -503,12 +504,18 @@ public class ExpressionUtil {
                         MapXNode shadowRef = (MapXNode) ((MapXNode) node).get(SHADOW_REF_KEY);
                         shadowRefNodes = new ListXNode();
                         shadowRefNodes.add(shadowRef);
+                        ((MapXNode) node).put(SHADOW_REF_KEY, shadowRefNodes);
                     }
                 } else if (createIfNotExist) {
                     shadowRefNodes = new ListXNode();
                     ((MapXNode) node).put(SHADOW_REF_KEY, shadowRefNodes);
-
                 }
+            } else if (createIfNotExist) {
+                shadowRefNodes = new ListXNode();
+                raw = new RawType(new MapXNode(), prismContext);
+                node = raw.getXnode();
+                ((MapXNode) node).put(SHADOW_REF_KEY, shadowRefNodes);
+                element.setValue(raw);
             }
         }
         return shadowRefNodes;
@@ -530,14 +537,6 @@ public class ExpressionUtil {
         shadowRefNode.put(SHADOW_TYPE_KEY, new PrimitiveXNode<>(ShadowType.COMPLEX_TYPE.getLocalPart()));
 
         shadowRefNodes.add(shadowRefNode);
-//        MapXNode valueNode = new MapXNode();
-//        valueNode.put(SHADOW_REF_KEY, shadowRefNode);
-
-//        RawType expressionValue = new RawType(valueNode, prismContext);
-//        valueElement.setValue(expressionValue);
-
-//        removeEvaluatorByName(expression, SchemaConstants.C_VALUE);
-//        expression.getExpressionEvaluator().add(valueElement);
     }
 
     public static List<String> getLiteralExpressionValues(ExpressionType expression) throws SchemaException{

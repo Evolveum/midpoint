@@ -247,7 +247,7 @@ public class MultiValueChoosePanel<T extends ObjectType> extends BasePanel<List<
 			modelList = new ArrayList<>();
 		}
 		addedValues.removeAll(modelList); // add values not already in
-		modelList.addAll(addedValues);
+		modelList.addAll(0, addedValues);
 		getModel().setObject(modelList);
 		choosePerformedHook(target, modelList);
 
