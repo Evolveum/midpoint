@@ -103,6 +103,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		this.constructionTriple = prismContext.deltaFactory().createDeltaSetTriple();
 		this.personaConstructionTriple = prismContext.deltaFactory().createDeltaSetTriple();
 		this.roles = prismContext.deltaFactory().createDeltaSetTriple();
+		this.prismContext = prismContext;
 	}
 
 	@NotNull

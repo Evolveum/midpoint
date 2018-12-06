@@ -330,7 +330,7 @@ public class IntegrationTestTools {
                                                        Class<?> expetcedAttributeDefinitionClass, QName objectClass) {
         // Check attribute definition
         PrismContainer attributesContainer = account.findContainer(ShadowType.F_ATTRIBUTES);
-        assertEquals("Wrong attributes container class", ResourceAttributeContainer.class, attributesContainer.getClass());
+        PrismAsserts.assertClass("Wrong attributes container class", ResourceAttributeContainer.class, attributesContainer);
         ResourceAttributeContainer rAttributesContainer = (ResourceAttributeContainer)attributesContainer;
         PrismContainerDefinition attrsDef = attributesContainer.getDefinition();
         assertNotNull("No attributes container definition", attrsDef);

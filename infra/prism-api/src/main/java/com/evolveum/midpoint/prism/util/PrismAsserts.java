@@ -668,6 +668,13 @@ public class PrismAsserts {
 
 	// Misc
 
+	public static void assertClass(String message, Class<?> expectedClass, Object actualObject) {
+		if (!expectedClass.isInstance(actualObject)) {
+			fail(message + ": expected class = " + expectedClass + ", actual class = " +
+					(actualObject != null ? actualObject.getClass() : "(null)"));
+		}
+	}
+
 	public static void assertClass(String message, Class<?> expectedClass, PrismObject<?> actualObject) {
 		assert actualObject != null : message + "is null";
 		Class<?> actualCompileTimeClass = actualObject.getCompileTimeClass();
