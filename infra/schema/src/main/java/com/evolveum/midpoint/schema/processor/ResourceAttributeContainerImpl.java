@@ -42,14 +42,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
  *
  */
 @SuppressWarnings("rawtypes")
-public final class ResourceAttributeContainer extends PrismContainerImpl {      // todo
+public final class ResourceAttributeContainerImpl extends PrismContainerImpl implements ResourceAttributeContainer {
     private static final long serialVersionUID = 8878851067509560312L;
 
     /**
 	 * The constructors should be used only occasionally (if used at all).
 	 * Use the factory methods in the ResourceObjectDefintion instead.
 	 */
-	public ResourceAttributeContainer(QName name, ResourceAttributeContainerDefinition definition, PrismContext prismContext) {
+	public ResourceAttributeContainerImpl(QName name, ResourceAttributeContainerDefinition definition, PrismContext prismContext) {
 		super(name, definition, prismContext);
 	}
 
@@ -75,12 +75,14 @@ public final class ResourceAttributeContainer extends PrismContainerImpl {      
 	 *
 	 * @return set of resource object attributes.
 	 */
+	@Override
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Collection<ResourceAttribute<?>> getAttributes() {
 		// TODO: Iterate over the list to assert correct types
 		return (Set) getValue().getProperties();
 	}
 
+	@Override
 	public void add(ResourceAttribute<?> attribute) throws SchemaException {
 		super.add(attribute);
 	}
@@ -103,6 +105,7 @@ public final class ResourceAttributeContainer extends PrismContainerImpl {      
 	 * @throws IllegalStateException
 	 *             if resource object has multiple identifiers
 	 */
+	@Override
 	public PrismProperty<?> getPrimaryIdentifier() {
 		Collection<ResourceAttribute<?>> attrDefs = getPrimaryIdentifiers();
 		if (attrDefs.size() > 1){
@@ -133,6 +136,7 @@ public final class ResourceAttributeContainer extends PrismContainerImpl {      
 	 *
 	 * @return set of identifier properties
 	 */
+	@Override
 	public Collection<ResourceAttribute<?>> getPrimaryIdentifiers() {
 		return extractAttributesByDefinitions(getDefinition().getPrimaryIdentifiers());
 	}
@@ -154,6 +158,7 @@ public final class ResourceAttributeContainer extends PrismContainerImpl {      
 	 * @throws IllegalStateException
 	 *             if resource object has multiple secondary identifiers
 	 */
+	@Override
 	public <T> PrismProperty<T> getSecondaryIdentifier() {
 		Collection<ResourceAttribute<?>> secondaryIdentifiers = getSecondaryIdentifiers();
 		if (secondaryIdentifiers.size() > 1){
@@ -179,15 +184,19 @@ public final class ResourceAttributeContainer extends PrismContainerImpl {      
 	 *
 	 * @return set of secondary identifier properties
 	 */
+	@Override
 	public Collection<ResourceAttribute<?>> getSecondaryIdentifiers() {
 		return extractAttributesByDefinitions(getDefinition().getSecondaryIdentifiers());
 	}
 
+	@Override
 	public Collection<ResourceAttribute<?>> getAllIdentifiers() {
 		return extractAttributesByDefinitions(getDefinition().getAllIdentifiers());
 	}
 
-	private Collection<ResourceAttribute<?>> extractAttributesByDefinitions(Collection<? extends ResourceAttributeDefinition> definitions) {
+	@Override
+	public Collection<ResourceAttribute<?>> extractAttributesByDefinitions(
+			Collection<? extends ResourceAttributeDefinition> definitions) {
 		Collection<ResourceAttribute<?>> attributes = new ArrayList<>(definitions.size());
 		for (ResourceAttributeDefinition attrDef : definitions) {
 			for (ResourceAttribute<?> property : getAttributes()){
@@ -214,6 +223,7 @@ public final class ResourceAttributeContainer extends PrismContainerImpl {      
 	 * @throws IllegalStateException
 	 *             if there is no definition for the referenced attributed
 	 */
+	@Override
 	public ResourceAttribute<String> getDescriptionAttribute() {
 		if (getDefinition() == null) {
 			return null;
@@ -235,6 +245,7 @@ public final class ResourceAttributeContainer extends PrismContainerImpl {      
 	 * @return attribute that should be used as a "technical" name
 	 * 				for the account.
 	 */
+	@Override
 	public ResourceAttribute<String> getNamingAttribute() {
 		if (getDefinition() == null) {
 			return null;
@@ -259,6 +270,7 @@ public final class ResourceAttributeContainer extends PrismContainerImpl {      
 	 * @throws IllegalStateException
 	 *             if there is no definition for the referenced attributed
 	 */
+	@Override
 	public ResourceAttribute getDisplayNameAttribute() {
 		if (getDefinition() == null) {
 			return null;
@@ -286,10 +298,12 @@ public final class ResourceAttributeContainer extends PrismContainerImpl {      
 	 * @throws IllegalStateException
 	 *             if there is more than one description attribute.
 	 */
+	@Override
 	public String getNativeObjectClass() {
 		return getDefinition() == null ? null : getDefinition().getNativeObjectClass();
 	}
 
+	@Override
 	public ShadowKindType getKind() {
 		ResourceAttributeContainerDefinition definition = getDefinition();
 		return (definition != null ? definition.getKind() : null);
@@ -316,6 +330,7 @@ public final class ResourceAttributeContainer extends PrismContainerImpl {      
 	 * @throws IllegalStateException
 	 *             if more than one default account is suggested in the schema.
 	 */
+	@Override
 	public boolean isDefaultInAKind() {
 		ResourceAttributeContainerDefinition definition = getDefinition();
 		return (definition != null ? definition.isDefaultInAKind() : null);
@@ -330,6 +345,7 @@ public final class ResourceAttributeContainer extends PrismContainerImpl {      
 	 *            attribute name to find.
 	 * @return found attribute or null
 	 */
+	@Override
 	@SuppressWarnings("unchecked")
 	public <X> ResourceAttribute<X> findAttribute(QName attributeQName) {
 		return (ResourceAttribute<X>) super.findProperty(ItemName.fromQName(attributeQName));
@@ -344,54 +360,24 @@ public final class ResourceAttributeContainer extends PrismContainerImpl {      
 	 *            attribute definition to find.
 	 * @return found attribute or null
 	 */
+	@Override
 	public <X> ResourceAttribute<X> findAttribute(ResourceAttributeDefinition attributeDefinition) {
 		return (ResourceAttribute<X>) getValue().findProperty(attributeDefinition);
 	}
 
+	@Override
 	public <X> ResourceAttribute<X> findOrCreateAttribute(ResourceAttributeDefinition attributeDefinition) throws SchemaException {
 		return (ResourceAttribute<X>) getValue().findOrCreateProperty(attributeDefinition);
 	}
 
+	@Override
 	public <X> ResourceAttribute<X> findOrCreateAttribute(QName attributeName) throws SchemaException {
 		return (ResourceAttribute<X>) getValue().findOrCreateProperty(ItemName.fromQName(attributeName));
 	}
 
+	@Override
 	public <T> boolean contains(ResourceAttribute<T> attr) {
 		return getValue().contains(attr);
-	}
-
-	public static ResourceAttributeContainer convertFromContainer(PrismContainer<?> origAttrContainer,
-			ObjectClassComplexTypeDefinition objectClassDefinition) throws SchemaException {
-		if (origAttrContainer == null || origAttrContainer.getValue() == null) {
-			return null;
-		}
-		QName elementName = origAttrContainer.getElementName();
-		ResourceAttributeContainer attributesContainer = createEmptyContainer(elementName, objectClassDefinition);
-		for (Item item: origAttrContainer.getValue().getItems()) {
-			if (item instanceof PrismProperty) {
-				PrismProperty<?> property = (PrismProperty)item;
-				QName attributeName = property.getElementName();
-				ResourceAttributeDefinition attributeDefinition = objectClassDefinition.findAttributeDefinition(attributeName);
-				if (attributeDefinition == null) {
-					throw new SchemaException("No definition for attribute "+attributeName+" in object class "+objectClassDefinition);
-				}
-				ResourceAttribute attribute = new ResourceAttribute(attributeName, attributeDefinition , property.getPrismContext());
-				for(PrismPropertyValue pval: property.getValues()) {
-					attribute.add(pval.clone());
-				}
-				attributesContainer.add(attribute);
-				attribute.applyDefinition(attributeDefinition);
-			} else {
-				throw new SchemaException("Cannot process item of type "+item.getClass().getSimpleName()+", attributes can only be properties");
-			}
-		}
-		return attributesContainer;
-	}
-
-	public static ResourceAttributeContainer createEmptyContainer(QName elementName, ObjectClassComplexTypeDefinition objectClassDefinition) {
-		ResourceAttributeContainerDefinition attributesContainerDefinition = new ResourceAttributeContainerDefinitionImpl(elementName,
-				objectClassDefinition, objectClassDefinition.getPrismContext());
-		return new ResourceAttributeContainer(elementName, attributesContainerDefinition , objectClassDefinition.getPrismContext());
 	}
 
 	@Override
@@ -400,13 +386,13 @@ public final class ResourceAttributeContainer extends PrismContainerImpl {      
 	}
 	
 	@Override
-	public ResourceAttributeContainer cloneComplex(CloneStrategy strategy) {
-		ResourceAttributeContainer clone = new ResourceAttributeContainer(getElementName(), getDefinition(), getPrismContext());
+	public ResourceAttributeContainerImpl cloneComplex(CloneStrategy strategy) {
+		ResourceAttributeContainerImpl clone = new ResourceAttributeContainerImpl(getElementName(), getDefinition(), getPrismContext());
 		copyValues(strategy, clone);
 		return clone;
 	}
 
-	protected void copyValues(CloneStrategy strategy, ResourceAttributeContainer clone) {
+	protected void copyValues(CloneStrategy strategy, ResourceAttributeContainerImpl clone) {
 		super.copyValues(strategy, clone);
 		// Nothing to copy
 	}

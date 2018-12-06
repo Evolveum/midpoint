@@ -14,24 +14,18 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.prism;
+package com.evolveum.midpoint.schema.processor;
 
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
 
 /**
  *
  */
-public interface MutablePrismPropertyDefinition<T> extends PrismPropertyDefinition<T>, MutableItemDefinition<PrismProperty<T>> {
+public interface MutableResourceAttributeDefinition<T> extends ResourceAttributeDefinition<T>, MutablePrismPropertyDefinition<T> {
 
-	void setIndexed(Boolean value);
+	void setReturnedByDefault(Boolean returnedByDefault);
 
-	void setMatchingRuleQName(QName matchingRuleQName);
+	void setNativeAttributeName(String nativeAttributeName);
 
-	@NotNull
-	@Override
-	PrismPropertyDefinition<T> clone();
-
-	void setInherited(boolean value);
+	void setFrameworkAttributeName(String frameworkAttributeName);
 }

@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.processor.ObjectFactory;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -366,8 +367,8 @@ public class ShadowUtil {
 	private static void applyObjectClass(PrismObject<? extends ShadowType> shadow,
 			ObjectClassComplexTypeDefinition objectClassDefinition) throws SchemaException {
 		PrismContainer<?> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
-		ResourceAttributeContainerDefinition racDef = new ResourceAttributeContainerDefinitionImpl(ShadowType.F_ATTRIBUTES,
-				objectClassDefinition, objectClassDefinition.getPrismContext());
+		ResourceAttributeContainerDefinition racDef = ObjectFactory.createResourceAttributeContainerDefinition(
+				ShadowType.F_ATTRIBUTES, objectClassDefinition, objectClassDefinition.getPrismContext());
 		attributesContainer.applyDefinition((PrismContainerDefinition) racDef, true);
 	}
 
@@ -719,7 +720,7 @@ public class ShadowUtil {
 			return attribute;
 		}
 		ResourceAttribute<?> fixedAttribute = attribute.clone();
-		ResourceAttributeContainer container = new ResourceAttributeContainer(ShadowType.F_ATTRIBUTES, null, attribute.getPrismContext());
+		ResourceAttributeContainer container = ObjectFactory.createResourceAttributeContainer(ShadowType.F_ATTRIBUTES, null, attribute.getPrismContext());
 		container.createNewValue().add(fixedAttribute);
 		return fixedAttribute;
 	}

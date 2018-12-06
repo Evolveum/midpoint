@@ -1362,7 +1362,7 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 	}
 
 	@Override
-	public MutableComplexTypeDefinition toMutable() {
+	public MutableObjectClassComplexTypeDefinition toMutable() {
 		throw new UnsupportedOperationException();
 	}
 
@@ -1385,5 +1385,6 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 	public Integer getInstantiationOrder() {
 		return null;
 	}
+
 
 }

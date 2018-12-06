@@ -25,6 +25,7 @@ import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.processor.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -42,10 +43,6 @@ import com.evolveum.midpoint.provisioning.ucf.api.Operation;
 import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ShadowResultHandler;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
-import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
-import com.evolveum.midpoint.schema.processor.SearchHierarchyConstraints;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -191,7 +188,7 @@ class EntitlementConverter {
 
             PrismContainerValue<ShadowAssociationType> associationCVal = associationContainer.createNewValue();
             associationCVal.asContainerable().setName(associationName);
-            ResourceAttributeContainer identifiersContainer = new ResourceAttributeContainer(
+            ResourceAttributeContainer identifiersContainer = ObjectFactory.createResourceAttributeContainer(
                     ShadowAssociationType.F_IDENTIFIERS, entitlementDef.toResourceAttributeContainerDefinition(), prismContext);
             associationCVal.add(identifiersContainer);
             identifiersContainer.add(valueAttribute);
@@ -267,7 +264,7 @@ class EntitlementConverter {
 				associationCVal.asContainerable().setName(associationName);
 				Collection<ResourceAttribute<?>> entitlementIdentifiers = ShadowUtil.getAllIdentifiers(entitlementShadow);
 				try {
-					ResourceAttributeContainer identifiersContainer = new ResourceAttributeContainer(
+					ResourceAttributeContainer identifiersContainer = ObjectFactory.createResourceAttributeContainer(
 							ShadowAssociationType.F_IDENTIFIERS, entitlementDef.toResourceAttributeContainerDefinition(), prismContext);
 					associationCVal.add(identifiersContainer);
 					identifiersContainer.getValue().addAll(Item.cloneCollection(entitlementIdentifiers));

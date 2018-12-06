@@ -294,7 +294,7 @@ public class ResourceAttributeContainerDefinitionImpl extends PrismContainerDefi
 	@Override
 	public ResourceAttributeContainer instantiate(QName name) {
         name = DefinitionUtil.addNamespaceIfApplicable(name, this.name);
-		return new ResourceAttributeContainer(name, this, prismContext);
+		return new ResourceAttributeContainerImpl(name, this, prismContext);
 	}
 
 	@NotNull

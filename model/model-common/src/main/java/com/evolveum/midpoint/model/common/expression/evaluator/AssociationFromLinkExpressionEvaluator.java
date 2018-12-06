@@ -40,6 +40,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.processor.ObjectFactory;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
@@ -201,7 +202,7 @@ public class AssociationFromLinkExpressionEvaluator
 		// This is not a clean systemic solution. But there was no time for a better solution before 3.9 release.
 		try {
 			ResourceAttributeContainer shadowAttributesContainer = ShadowUtil.getAttributesContainer(shadow);
-			ResourceAttributeContainer identifiersContainer = new ResourceAttributeContainer(
+			ResourceAttributeContainer identifiersContainer = ObjectFactory.createResourceAttributeContainer(
                     ShadowAssociationType.F_IDENTIFIERS, shadowAttributesContainer.getDefinition(), prismContext);
 			shadowAssociationType.asPrismContainerValue().add(identifiersContainer);
 			Collection<ResourceAttribute<?>> shadowIdentifiers = ShadowUtil.getAllIdentifiers(shadow);

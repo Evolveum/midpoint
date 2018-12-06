@@ -36,10 +36,11 @@ import com.evolveum.midpoint.prism.PrismPropertyImpl;
  *
  * @author Radovan Semancik
  */
-public class ResourceAttribute<T> extends PrismPropertyImpl<T> {
+public class ResourceAttributeImpl<T> extends PrismPropertyImpl<T> implements ResourceAttribute<T> {
+
     private static final long serialVersionUID = -6149194956029296486L;
 
-    public ResourceAttribute(QName name, ResourceAttributeDefinition<T> definition, PrismContext prismContext) {
+    public ResourceAttributeImpl(QName name, ResourceAttributeDefinition<T> definition, PrismContext prismContext) {
         super(name, definition, prismContext);
     }
 
@@ -53,6 +54,7 @@ public class ResourceAttribute<T> extends PrismPropertyImpl<T> {
 //        super(name);
 //    }
 
+	@Override
 	public ResourceAttributeDefinition<T> getDefinition() {
         return (ResourceAttributeDefinition<T>) super.getDefinition();
     }
@@ -76,6 +78,7 @@ public class ResourceAttribute<T> extends PrismPropertyImpl<T> {
      *
      * @return native attribute name
      */
+    @Override
     public String getNativeAttributeName() {
         return getDefinition() == null ? null : getDefinition()
                 .getNativeAttributeName();
@@ -88,12 +91,12 @@ public class ResourceAttribute<T> extends PrismPropertyImpl<T> {
     
     @Override
 	public ResourceAttribute<T> cloneComplex(CloneStrategy strategy) {
-    	ResourceAttribute<T> clone = new ResourceAttribute<>(getElementName(), getDefinition(), getPrismContext());
+	    ResourceAttributeImpl<T> clone = new ResourceAttributeImpl<>(getElementName(), getDefinition(), getPrismContext());
     	copyValues(strategy, clone);
     	return clone;
 	}
 
-	protected void copyValues(CloneStrategy strategy, ResourceAttribute<T> clone) {
+	protected void copyValues(CloneStrategy strategy, ResourceAttributeImpl<T> clone) {
 		super.copyValues(strategy, clone);
 		// Nothing to copy
 	}

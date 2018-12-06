@@ -1033,7 +1033,7 @@ public class ResourceManager {
 							.findAttributeDefinition(attributeName);
 					if (attributeDefinition != null) {
 						if (ignore == null || ignore.booleanValue()) {
-							((ResourceAttributeDefinitionImpl) attributeDefinition).setProcessing(ItemProcessing.IGNORE);
+							((MutableItemDefinition) attributeDefinition).setProcessing(ItemProcessing.IGNORE);
 						}
 					} else {
 						// simulated activation attribute points to something that is not in the schema

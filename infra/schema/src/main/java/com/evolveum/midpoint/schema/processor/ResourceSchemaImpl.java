@@ -30,7 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
  * @author semancik
  *
  */
-public class ResourceSchemaImpl extends PrismSchemaImpl implements ResourceSchema {
+public class ResourceSchemaImpl extends PrismSchemaImpl implements MutableResourceSchema {
 
 	protected ResourceSchemaImpl(PrismContext prismContext) {
 		super(prismContext);
@@ -42,11 +42,16 @@ public class ResourceSchemaImpl extends PrismSchemaImpl implements ResourceSchem
 
 	private ResourceSchemaImpl(Element element, String shortDesc, PrismContext prismContext) throws SchemaException {
 		super(prismContext);
-		parseThis(element, true, shortDesc, prismContext);
+		parseThis(element, shortDesc, prismContext);
 	}
 
 	public static ResourceSchemaImpl parse(Element element, String shortDesc, PrismContext prismContext) throws SchemaException {
 		return new ResourceSchemaImpl(element, shortDesc, prismContext);
+	}
+
+	@Override
+	public void parseThis(Element element, String shortDesc, PrismContext prismContext) throws SchemaException {
+		parseThis(element, true, shortDesc, prismContext);
 	}
 
 	@Override
@@ -96,7 +101,8 @@ public class ResourceSchemaImpl extends PrismSchemaImpl implements ResourceSchem
 	 *            type name "relative" to schema namespace
 	 * @return new resource object definition
 	 */
-	public ObjectClassComplexTypeDefinition createObjectClassDefinition(String localTypeName) {
+	@Override
+	public MutableObjectClassComplexTypeDefinition createObjectClassDefinition(String localTypeName) {
 		QName typeName = new QName(getNamespace(), localTypeName);
 		return createObjectClassDefinition(typeName);
 	}
@@ -110,11 +116,16 @@ public class ResourceSchemaImpl extends PrismSchemaImpl implements ResourceSchem
 	 *            type QName
 	 * @return new resource object definition
 	 */
-	public ObjectClassComplexTypeDefinition createObjectClassDefinition(QName typeName) {
-		ObjectClassComplexTypeDefinition cTypeDef = new ObjectClassComplexTypeDefinitionImpl(typeName, getPrismContext());
+	@Override
+	public MutableObjectClassComplexTypeDefinition createObjectClassDefinition(QName typeName) {
+		ObjectClassComplexTypeDefinitionImpl cTypeDef = new ObjectClassComplexTypeDefinitionImpl(typeName, getPrismContext());
 		add(cTypeDef);
 		return cTypeDef;
 	}
 
+	@Override
+	public MutableResourceSchema toMutable() {
+		return this;
+	}
 
 }

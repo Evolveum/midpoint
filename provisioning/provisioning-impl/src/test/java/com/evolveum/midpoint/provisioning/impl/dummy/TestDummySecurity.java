@@ -27,6 +27,7 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
+import com.evolveum.midpoint.schema.processor.ObjectFactory;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -99,7 +100,7 @@ public class TestDummySecurity extends AbstractDummyTest {
 
 	private <T> void setAttribute(PrismObject<ShadowType> account, String attrName, T val) throws SchemaException {
 		PrismContainer<Containerable> attrsCont = account.findContainer(ShadowType.F_ATTRIBUTES);
-		ResourceAttribute<T> attr = new ResourceAttribute<>(
+		ResourceAttribute<T> attr = ObjectFactory.createResourceAttribute(
             dummyResourceCtl.getAttributeQName(attrName), null, prismContext);
 		attr.setRealValue(val);
 		attrsCont.add(attr);

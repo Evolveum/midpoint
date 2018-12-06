@@ -171,8 +171,10 @@ public class ResourceObjectReferenceResolver {
 		for (PrismProperty property: attributesContainer.getValue().getProperties()) {
 			if (ocDef.isPrimaryIdentifier(property.getElementName())) {
 				RefinedAttributeDefinition<?> attrDef = ocDef.findAttributeDefinition(property.getElementName());
-				ResourceAttribute primaryIdentifier = new ResourceAttribute<>(property.getElementName(),
-						attrDef, prismContext);
+				if (attrDef == null) {
+					throw new IllegalStateException("No definition for attribute " + property);
+				}
+				ResourceAttribute primaryIdentifier = attrDef.instantiate();
 				primaryIdentifier.setRealValue(property.getRealValue());
 				primaryIdentifiers.add(primaryIdentifier);
 			}
@@ -210,9 +212,11 @@ public class ResourceObjectReferenceResolver {
 		for (PrismProperty<?> property: attributesContainer.getValue().getProperties()) {
 			if (ocDef.isPrimaryIdentifier(property.getElementName())) {
 				RefinedAttributeDefinition<?> attrDef = ocDef.findAttributeDefinition(property.getElementName());
+				if (attrDef == null) {
+					throw new IllegalStateException("No definition for attribute " + property);
+				}
 				@SuppressWarnings("rawtypes")
-				ResourceAttribute primaryIdentifier = new ResourceAttribute<>(property.getElementName(),
-						attrDef, prismContext);
+				ResourceAttribute primaryIdentifier = attrDef.instantiate();
 				primaryIdentifier.setRealValue(property.getRealValue());
 				primaryIdentifiers.add(primaryIdentifier);
 			}

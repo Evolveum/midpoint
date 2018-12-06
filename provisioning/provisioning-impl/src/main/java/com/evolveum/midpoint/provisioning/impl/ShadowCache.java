@@ -43,6 +43,7 @@ import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.processor.ObjectFactory;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -3024,7 +3025,7 @@ public class ShadowCache {
 				.findContainer(ShadowAssociationType.F_IDENTIFIERS);
 		if (identifiersContainer == null) {
 			ResourceAttributeContainer origContainer = ShadowUtil.getAttributesContainer(repoShadow);
-			identifiersContainer = new ResourceAttributeContainer(ShadowAssociationType.F_IDENTIFIERS,
+			identifiersContainer = ObjectFactory.createResourceAttributeContainer(ShadowAssociationType.F_IDENTIFIERS,
 					origContainer.getDefinition(), prismContext);
 			association.add(identifiersContainer);
 		}

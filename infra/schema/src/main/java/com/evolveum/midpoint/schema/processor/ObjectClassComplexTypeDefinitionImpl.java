@@ -15,10 +15,7 @@
  */
 package com.evolveum.midpoint.schema.processor;
 
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.ComplexTypeDefinitionImpl;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -37,7 +34,7 @@ import java.util.stream.Collectors;
  * @author semancik
  *
  */
-public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionImpl implements ObjectClassComplexTypeDefinition {
+public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionImpl implements MutableObjectClassComplexTypeDefinition {
 	private static final long serialVersionUID = 1L;
 
 	@NotNull private final Collection<ResourceAttributeDefinition<?>> identifiers = new ArrayList<>(1);
@@ -81,6 +78,7 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 		return identifiers;
 	}
 
+	@Override
 	public void addPrimaryIdentifier(ResourceAttributeDefinition<?> identifier) {
 		identifiers.add(identifier);
 	}
@@ -91,6 +89,7 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 		return secondaryIdentifiers;
 	}
 
+	@Override
 	public void addSecondaryIdentifier(ResourceAttributeDefinition<?> identifier) {
 		secondaryIdentifiers.add(identifier);
 	}
@@ -100,7 +99,8 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 		return descriptionAttribute;
 	}
 
-	void setDescriptionAttribute(ResourceAttributeDefinition<?> descriptionAttribute) {
+	@Override
+	public void setDescriptionAttribute(ResourceAttributeDefinition<?> descriptionAttribute) {
 		this.descriptionAttribute = descriptionAttribute;
 	}
 
@@ -109,10 +109,12 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 		return namingAttribute;
 	}
 
+	@Override
 	public void setNamingAttribute(ResourceAttributeDefinition<?> namingAttribute) {
 		this.namingAttribute = namingAttribute;
 	}
 
+	@Override
 	public void setNamingAttribute(QName namingAttribute) {
 		setNamingAttribute(findAttributeDefinition(namingAttribute));
 	}
@@ -122,6 +124,7 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 		return nativeObjectClass;
 	}
 
+	@Override
 	public void setNativeObjectClass(String nativeObjectClass) {
 		this.nativeObjectClass = nativeObjectClass;
 	}
@@ -131,6 +134,7 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 		return auxiliary;
 	}
 
+	@Override
 	public void setAuxiliary(boolean auxiliary) {
 		this.auxiliary = auxiliary;
 	}
@@ -140,6 +144,7 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 		return kind;
 	}
 
+	@Override
 	public void setKind(ShadowKindType kind) {
 		this.kind = kind;
 	}
@@ -149,6 +154,7 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 		return defaultInAKind;
 	}
 
+	@Override
 	public void setDefaultInAKind(boolean defaultAccountType) {
 		this.defaultInAKind = defaultAccountType;
 	}
@@ -158,6 +164,7 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 		return intent;
 	}
 
+	@Override
 	public void setIntent(String intent) {
 		this.intent = intent;
 	}
@@ -167,6 +174,7 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 		return displayNameAttribute;
 	}
 
+	@Override
 	public void setDisplayNameAttribute(ResourceAttributeDefinition<?> displayName) {
 		this.displayNameAttribute = displayName;
 	}
@@ -176,21 +184,25 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 	 *
 	 * Convenience method. It will internally look up the correct definition.
 	 */
+	@Override
 	public void setDisplayNameAttribute(QName displayName) {
 		setDisplayNameAttribute(findAttributeDefinition(displayName));
 	}
 
+	@Override
 	public <X> ResourceAttributeDefinitionImpl<X> createAttributeDefinition(QName name, QName typeName) {
 		ResourceAttributeDefinitionImpl<X> propDef = new ResourceAttributeDefinitionImpl<>(name, typeName, prismContext);
 		add(propDef);
 		return propDef;
 	}
 
+	@Override
 	public <X> ResourceAttributeDefinitionImpl<X> createAttributeDefinition(String localName, QName typeName) {
 		QName name = new QName(getSchemaNamespace(),localName);
 		return createAttributeDefinition(name,typeName);
 	}
 
+	@Override
 	public <X> ResourceAttributeDefinition<X> createAttributeDefinition(String localName, String localTypeName) {
 		QName name = new QName(getSchemaNamespace(),localName);
 		QName typeName = new QName(getSchemaNamespace(),localTypeName);
@@ -218,7 +230,7 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 
 	public static ResourceAttributeContainer instantiate(QName elementName, ObjectClassComplexTypeDefinition ocdef) {
 		ResourceAttributeContainerDefinition racDef = ocdef.toResourceAttributeContainerDefinition(elementName);
-		return new ResourceAttributeContainer(elementName, racDef, ocdef.getPrismContext());
+		return new ResourceAttributeContainerImpl(elementName, racDef, ocdef.getPrismContext());
 	}
 
 	@NotNull
@@ -365,4 +377,8 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 		}
 	}
 
+	@Override
+	public MutableObjectClassComplexTypeDefinition toMutable() {
+		return this;
+	}
 }

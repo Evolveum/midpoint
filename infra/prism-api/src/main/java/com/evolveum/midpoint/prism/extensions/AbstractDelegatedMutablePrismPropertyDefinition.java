@@ -95,7 +95,7 @@ public class AbstractDelegatedMutablePrismPropertyDefinition<T> implements Mutab
 
 	@Override
 	@NotNull
-	public MutablePrismPropertyDefinition<T> clone() {
+	public PrismPropertyDefinition<T> clone() {
 		return inner.clone();
 	}
 

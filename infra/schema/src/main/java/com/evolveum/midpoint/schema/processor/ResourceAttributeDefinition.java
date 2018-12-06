@@ -50,4 +50,6 @@ public interface ResourceAttributeDefinition<T> extends PrismPropertyDefinition<
 	@NotNull
 	@Override
 	ResourceAttributeDefinition<T> clone();
+
+	MutableResourceAttributeDefinition<T> toMutable();
 }

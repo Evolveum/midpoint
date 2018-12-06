@@ -116,7 +116,7 @@ public class AbstractDelegatedMutableComplexTypeDefinition implements MutableCom
 
 	@Override
 	@NotNull
-	public MutableComplexTypeDefinition clone() {
+	public ComplexTypeDefinition clone() {
 		return inner.clone();
 	}
 

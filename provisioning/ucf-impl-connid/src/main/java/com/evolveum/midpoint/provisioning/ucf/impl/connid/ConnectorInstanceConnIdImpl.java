@@ -30,6 +30,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.processor.*;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.Validate;
 import org.identityconnectors.common.pooling.ObjectPoolConfiguration;
@@ -112,17 +113,6 @@ import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinitionImpl;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinitionImpl;
-import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaImpl;
-import com.evolveum.midpoint.schema.processor.SearchHierarchyConstraints;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -690,7 +680,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		AttributeInfo auxiliaryObjectClasseAttributeInfo = null;
 
 		// New instance of midPoint schema object
-		setResourceSchema(new ResourceSchemaImpl(getSchemaNamespace(), prismContext));
+		setResourceSchema(ObjectFactory.createResourceSchema(getSchemaNamespace(), prismContext));
 
 		if (legacySchema == null) {
 			legacySchema = detectLegacySchema(connIdSchema);
@@ -716,14 +706,13 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			// object class.
 			// The important thing here is the last "type" parameter
 			// (objectClassXsdName). The rest is more-or-less cosmetics.
-			ObjectClassComplexTypeDefinition ocDef = ((ResourceSchemaImpl) resourceSchema)
-					.createObjectClassDefinition(objectClassXsdName);
+			MutableObjectClassComplexTypeDefinition ocDef = resourceSchema.toMutable().createObjectClassDefinition(objectClassXsdName);
 
 			// The __ACCOUNT__ objectclass in ConnId is a default account
 			// objectclass. So mark it appropriately.
 			if (ObjectClass.ACCOUNT_NAME.equals(objectClassInfo.getType())) {
-				((ObjectClassComplexTypeDefinitionImpl) ocDef).setKind(ShadowKindType.ACCOUNT);
-				((ObjectClassComplexTypeDefinitionImpl) ocDef).setDefaultInAKind(true);
+				ocDef.setKind(ShadowKindType.ACCOUNT);
+				ocDef.setDefaultInAKind(true);
 			}
 
 			ResourceAttributeDefinition<String> uidDefinition = null;
@@ -790,7 +779,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 				// Create ResourceObjectAttributeDefinition, which is midPoint
 				// way how to express attribute schema.
-				ResourceAttributeDefinitionImpl attrDef = new ResourceAttributeDefinitionImpl(
+				MutableResourceAttributeDefinition attrDef = ObjectFactory.createResourceAttributeDefinition(
 						attrXsdName, attrXsdType, prismContext);
 
 				attrDef.setMatchingRuleQName(icfAttributeInfoToMatchingRule(attributeInfo));
@@ -816,7 +805,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 					ResourceAttributeDefinition existingDefinition = ocDef.findAttributeDefinition(attrXsdName);
 					if (existingDefinition != null) {
 						hasUidDefinition = true;
-						((ResourceAttributeDefinitionImpl) existingDefinition).setDisplayOrder(ConnectorFactoryConnIdImpl.ICFS_UID_DISPLAY_ORDER);
+						existingDefinition.toMutable().setDisplayOrder(ConnectorFactoryConnIdImpl.ICFS_UID_DISPLAY_ORDER);
 						uidDefinition = existingDefinition;
 						continue;
 					} else {
@@ -877,37 +866,36 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 				attrDef.setCanRead(canRead);
 
 				if (!Uid.NAME.equals(icfName)) {
-					((ObjectClassComplexTypeDefinitionImpl) ocDef).add(attrDef);
+					ocDef.add(attrDef);
 				}
 			}
 
 			if (uidDefinition == null) {
 				// Every object has UID in ConnId, therefore add a default definition if no other was specified
-				uidDefinition = new ResourceAttributeDefinitionImpl<>(
-						SchemaConstants.ICFS_UID, DOMUtil.XSD_STRING, prismContext);
+				uidDefinition = ObjectFactory.createResourceAttributeDefinition(SchemaConstants.ICFS_UID, DOMUtil.XSD_STRING, prismContext);
 				// DO NOT make it mandatory. It must not be present on create hence it cannot be mandatory.
-				((ResourceAttributeDefinitionImpl) uidDefinition).setMinOccurs(0);
-				((ResourceAttributeDefinitionImpl) uidDefinition).setMaxOccurs(1);
+				uidDefinition.toMutable().setMinOccurs(0);
+				uidDefinition.toMutable().setMaxOccurs(1);
 				// Make it read-only
-				((ResourceAttributeDefinitionImpl) uidDefinition).setReadOnly();
+				uidDefinition.toMutable().setReadOnly();
 				// Set a default display name
-				((ResourceAttributeDefinitionImpl) uidDefinition).setDisplayName(ConnectorFactoryConnIdImpl.ICFS_UID_DISPLAY_NAME);
-				((ResourceAttributeDefinitionImpl) uidDefinition).setDisplayOrder(ConnectorFactoryConnIdImpl.ICFS_UID_DISPLAY_ORDER);
+				uidDefinition.toMutable().setDisplayName(ConnectorFactoryConnIdImpl.ICFS_UID_DISPLAY_NAME);
+				uidDefinition.toMutable().setDisplayOrder(ConnectorFactoryConnIdImpl.ICFS_UID_DISPLAY_ORDER);
 				// Uid is a primary identifier of every object (this is the ConnId way)
 			}
 			if (!hasUidDefinition) {
-				((ObjectClassComplexTypeDefinitionImpl) ocDef).add(uidDefinition);
+				ocDef.toMutable().add(uidDefinition);
 			}
-			((ObjectClassComplexTypeDefinitionImpl)ocDef).addPrimaryIdentifier(uidDefinition);
+			ocDef.toMutable().addPrimaryIdentifier(uidDefinition);
 			if (uidDefinition != nameDefinition) {
-				((ObjectClassComplexTypeDefinitionImpl)ocDef).addSecondaryIdentifier(nameDefinition);
+				ocDef.toMutable().addSecondaryIdentifier(nameDefinition);
 			}
 
 			// Add schema annotations
-			((ObjectClassComplexTypeDefinitionImpl) ocDef).setNativeObjectClass(objectClassInfo.getType());
-			((ObjectClassComplexTypeDefinitionImpl) ocDef).setDisplayNameAttribute(nameDefinition.getName());
-			((ObjectClassComplexTypeDefinitionImpl) ocDef).setNamingAttribute(nameDefinition.getName());
-			((ObjectClassComplexTypeDefinitionImpl) ocDef).setAuxiliary(objectClassInfo.isAuxiliary());
+			ocDef.toMutable().setNativeObjectClass(objectClassInfo.getType());
+			ocDef.toMutable().setDisplayNameAttribute(nameDefinition.getName());
+			ocDef.toMutable().setNamingAttribute(nameDefinition.getName());
+			ocDef.toMutable().setAuxiliary(objectClassInfo.isAuxiliary());
 
 			LOGGER.trace("  ... converted object class {}: {}", objectClassInfo.getType(), ocDef);
 		}

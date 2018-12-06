@@ -33,7 +33,7 @@ public interface MutableComplexTypeDefinition extends ComplexTypeDefinition, Mut
 	MutablePrismPropertyDefinition<?> createPropertyDefinition(String name, QName typeName);
 
 	@NotNull
-	MutableComplexTypeDefinition clone();
+	ComplexTypeDefinition clone();
 
 	void setExtensionForType(QName type);
 

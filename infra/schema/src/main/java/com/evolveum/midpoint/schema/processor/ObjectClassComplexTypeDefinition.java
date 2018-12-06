@@ -18,7 +18,6 @@ package com.evolveum.midpoint.schema.processor;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -228,7 +227,7 @@ public interface ObjectClassComplexTypeDefinition extends ComplexTypeDefinition 
 	}
 
 	default ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition(QName elementName) {
-		return new ResourceAttributeContainerDefinitionImpl(elementName, this, getPrismContext());
+		return ObjectFactory.createResourceAttributeContainerDefinition(elementName, this, getPrismContext());
 	}
 
 	default ObjectQuery createShadowSearchQuery(String resourceOid) throws SchemaException {
@@ -245,4 +244,6 @@ public interface ObjectClassComplexTypeDefinition extends ComplexTypeDefinition 
 	ObjectClassComplexTypeDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath, Consumer<ItemDefinition> postCloneAction);
 
 	boolean matches(ShadowType shadowType);
+
+	MutableObjectClassComplexTypeDefinition toMutable();
 }

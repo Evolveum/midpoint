@@ -43,7 +43,7 @@ import static com.evolveum.midpoint.prism.util.DefinitionUtil.addNamespaceIfAppl
  * @author Radovan Semancik
  *
  */
-public class ResourceAttributeDefinitionImpl<T> extends PrismPropertyDefinitionImpl<T> implements ResourceAttributeDefinition<T> {
+public class ResourceAttributeDefinitionImpl<T> extends PrismPropertyDefinitionImpl<T> implements MutableResourceAttributeDefinition<T> {
 
 	private static final long serialVersionUID = -1756347754109326906L;
 	private String nativeAttributeName;
@@ -64,7 +64,7 @@ public class ResourceAttributeDefinitionImpl<T> extends PrismPropertyDefinitionI
 	@Override
 	public ResourceAttribute<T> instantiate(QName name) {
         name = addNamespaceIfApplicable(name, this.name);
-		return new ResourceAttribute<>(name, this, prismContext);
+		return new ResourceAttributeImpl<>(name, this, prismContext);
 	}
 
 	@Override
@@ -81,6 +81,7 @@ public class ResourceAttributeDefinitionImpl<T> extends PrismPropertyDefinitionI
 		}
 	}
 
+	@Override
 	public void setReturnedByDefault(Boolean returnedByDefault) {
 		this.returnedByDefault = returnedByDefault;
 	}
@@ -141,6 +142,7 @@ public class ResourceAttributeDefinitionImpl<T> extends PrismPropertyDefinitionI
 		return nativeAttributeName;
 	}
 
+	@Override
 	public void setNativeAttributeName(String nativeAttributeName) {
 		this.nativeAttributeName = nativeAttributeName;
 	}
@@ -156,6 +158,7 @@ public class ResourceAttributeDefinitionImpl<T> extends PrismPropertyDefinitionI
 		return frameworkAttributeName;
 	}
 
+	@Override
 	public void setFrameworkAttributeName(String frameworkAttributeName) {
 		this.frameworkAttributeName = frameworkAttributeName;
 	}
@@ -235,4 +238,8 @@ public class ResourceAttributeDefinitionImpl<T> extends PrismPropertyDefinitionI
         return "RAD";
     }
 
+	@Override
+	public MutableResourceAttributeDefinition<T> toMutable() {
+		return this;
+	}
 }

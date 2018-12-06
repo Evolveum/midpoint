@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.processor.MutableObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinitionImpl;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
@@ -757,7 +758,7 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	}
 
 	@Override
-	public MutableComplexTypeDefinition toMutable() {
+	public MutableObjectClassComplexTypeDefinition toMutable() {
 		throw new UnsupportedOperationException();
 	}
 

@@ -56,6 +56,7 @@ import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.processor.ObjectFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
@@ -294,7 +295,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		PrismContainer<Containerable> attrCont = object.findContainer(ShadowType.F_ATTRIBUTES);
 		for (PrismProperty<?> attr: attrCont.getValue().getProperties()) {
 			if (attr.getDefinition() == null) {
-				ResourceAttributeDefinition<String> attrDef = new ResourceAttributeDefinitionImpl<>(attr.getElementName(),
+				ResourceAttributeDefinition<String> attrDef = ObjectFactory.createResourceAttributeDefinition(attr.getElementName(),
 						DOMUtil.XSD_STRING, prismContext);
 				attr.setDefinition((PrismPropertyDefinition) attrDef);
 			}
