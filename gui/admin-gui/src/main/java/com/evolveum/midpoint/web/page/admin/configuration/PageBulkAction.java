@@ -116,12 +116,12 @@ public class PageBulkAction extends PageAdminConfiguration {
         try {
             parsed = getPrismContext().parserFor(bulkActionDto.getScript()).parseRealValue();
             if (parsed == null) {
-                result.recordFatalError("No bulk action object was provided.");
+            	result.recordFatalError(createStringResource("PageBulkAction.message.startPerformed.fatalError.provided").getString());
             } else if (!(parsed instanceof ExecuteScriptType) && !(parsed instanceof ScriptingExpressionType)) {
-                result.recordFatalError("Provided text is not a bulk action object. An instance of {scripting-3}ScriptingExpressionType is expected; you have provided " + parsed.getClass() + " instead.");
+            	result.recordFatalError(createStringResource("PageBulkAction.message.startPerformed.fatalError.notBulkAction", "{scripting-3}ScriptingExpressionType", parsed.getClass()).getString());
             }
         } catch (SchemaException|RuntimeException e) {
-            result.recordFatalError("Couldn't parse bulk action object", e);
+        	result.recordFatalError(createStringResource("PageBulkAction.message.startPerformed.fatalError.parse").getString(), e);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't parse bulk action object", e);
         }
 
@@ -134,9 +134,9 @@ public class PageBulkAction extends PageAdminConfiguration {
                         //noinspection ConstantConditions
                         getScriptingService().evaluateExpressionInBackground((ScriptingExpressionType) parsed, task, result);
                     }
-                    result.recordStatus(OperationResultStatus.IN_PROGRESS, task.getName() + " has been successfully submitted to execution");   // todo 18n
+                    result.recordStatus(OperationResultStatus.IN_PROGRESS, createStringResource("PageBulkAction.message.startPerformed.inProgress", task.getName()).getString());
                 } catch (SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
-                    result.recordFatalError("Couldn't submit bulk action to execution", e);
+                	result.recordFatalError(createStringResource("PageBulkAction.message.startPerformed.fatalError.submit").getString(), e);
                     LoggingUtils.logUnexpectedException(LOGGER, "Couldn't submit bulk action to execution", e);
                 }
             } else {
@@ -147,11 +147,11 @@ public class PageBulkAction extends PageAdminConfiguration {
                                     getScriptingService().evaluateExpression((ExecuteScriptType) parsed, Collections.emptyMap(),
                                             false, task, result) :
                                     getScriptingService().evaluateExpression((ScriptingExpressionType) parsed, task, result);
-                    result.recordStatus(OperationResultStatus.SUCCESS, "Action executed. Returned " + executionResult.getDataOutput().size() + " item(s). Console and data output available via 'Export to XML' function.");
+                    result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("PageBulkAction.message.startPerformed.success", executionResult.getDataOutput().size()).getString());
                     result.addReturn("console", executionResult.getConsoleOutput());
                     result.addArbitraryObjectCollectionAsReturn("data", executionResult.getDataOutput());
                 } catch (ScriptExecutionException | SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
-                    result.recordFatalError("Couldn't execute bulk action", e);
+                    result.recordFatalError(createStringResource("PageBulkAction.message.startPerformed.fatalError.execute").getString(), e);
                     LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute bulk action", e);
                 }
             }

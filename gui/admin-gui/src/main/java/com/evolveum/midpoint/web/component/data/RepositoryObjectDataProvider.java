@@ -86,7 +86,7 @@ public class RepositoryObjectDataProvider
                 getAvailableData().add(createItem(object, result));
             }
         } catch (Exception ex) {
-            result.recordFatalError("Couldn't list objects.", ex);
+        	result.recordFatalError(getPage().createStringResource("ObjectDataProvider.message.listObjects.fatalError").getString(), ex);
         } finally {
             result.computeStatusIfUnknown();
         }
@@ -162,7 +162,7 @@ public class RepositoryObjectDataProvider
             subResult.recordSuccess();
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load resource for account", ex);
-            subResult.recordFatalError("Couldn't load resource for account.");
+            result.recordFatalError(getPage().createStringResource("ObjectDataProvider.message.loadResourceForAccount.fatalError").getString(), ex);
         } finally {
             subResult.recomputeStatus();
         }
@@ -179,7 +179,7 @@ public class RepositoryObjectDataProvider
             count = getModel().countObjects(type, getQuery(), getOptions(),
                     getPage().createSimpleTask(OPERATION_COUNT_OBJECTS), result);
         } catch (Exception ex) {
-            result.recordFatalError("Couldn't count objects.", ex);
+        	result.recordFatalError(getPage().createStringResource("ObjectDataProvider.message.countObjects.fatalError").getString(), ex);
         } finally {
             result.computeStatusIfUnknown();
         }

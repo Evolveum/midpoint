@@ -217,7 +217,7 @@ public abstract class PageWorkItems extends PageAdminWorkItems {
                     workflowService.completeWorkItem(workItemDto.getWorkItemId(), approve, null, null, result);
                     result.computeStatus();
                 } catch (Exception e) {
-                    result.recordPartialError("Couldn't approve/reject work item due to an unexpected exception.", e);
+                    result.recordPartialError(createStringResource("pageWorkItems.message.partialError.approved").getString(), e);
                 }
             }
         } finally {
@@ -265,7 +265,7 @@ public abstract class PageWorkItems extends PageAdminWorkItems {
                 workflowService.claimWorkItem(workItemDto.getWorkItemId(), result);
                 result.computeStatusIfUnknown();
             } catch (ObjectNotFoundException | SecurityViolationException | RuntimeException e) {
-                result.recordPartialError("Couldn't claim work item due to an unexpected exception.", e);
+                result.recordPartialError(createStringResource("pageWorkItems.message.partialError.claimed").getString(), e);
             }
         }
         if (mainResult.isUnknown()) {
@@ -301,7 +301,7 @@ public abstract class PageWorkItems extends PageAdminWorkItems {
                     applicable++;
                 }
             } catch (ObjectNotFoundException | SecurityViolationException | RuntimeException e) {
-                result.recordPartialError("Couldn't release work item due to an unexpected exception.", e);
+                result.recordPartialError(createStringResource("pageWorkItems.message.partialError.released").getString(), e);
             }
         }
         if (mainResult.isUnknown()) {

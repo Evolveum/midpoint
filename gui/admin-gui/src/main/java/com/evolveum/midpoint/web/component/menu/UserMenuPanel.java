@@ -107,7 +107,7 @@ public class UserMenuPanel extends BasePanel {
 
             @Override
             protected List<SecurityQuestionDefinitionType> load() {
-                return loadSecurityPloicyQuestionsModel();
+                return loadSecurityPolicyQuestionsModel();
             }
         };
     }
@@ -239,14 +239,14 @@ public class UserMenuPanel extends BasePanel {
         securityPolicyQuestionsModel = new LoadableModel<List<SecurityQuestionDefinitionType>>(false) {
             @Override
             protected List<SecurityQuestionDefinitionType> load() {
-                return loadSecurityPloicyQuestionsModel();
+                return loadSecurityPolicyQuestionsModel();
             }
         };
         editPasswordQ.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
                 if (securityPolicyQuestionsModel == null || securityPolicyQuestionsModel.getObject() == null) {
-                    loadSecurityPloicyQuestionsModel();
+                    loadSecurityPolicyQuestionsModel();
                 }
                 return hasQuestions() || (securityPolicyQuestionsModel.getObject() != null &&
                         securityPolicyQuestionsModel.getObject().size() > 0);
@@ -350,7 +350,7 @@ public class UserMenuPanel extends BasePanel {
     }
 
 
-    private List<SecurityQuestionDefinitionType> loadSecurityPloicyQuestionsModel() {
+    private List<SecurityQuestionDefinitionType> loadSecurityPolicyQuestionsModel() {
         List<SecurityQuestionDefinitionType> questionList = new ArrayList<>();
         OperationResult result = new OperationResult(OPERATION_LOAD_QUESTION_POLICY);
         try {
@@ -361,7 +361,7 @@ public class UserMenuPanel extends BasePanel {
                 questionList = credPolicy.getSecurityQuestions().getQuestion();
             }
         } catch (Exception ex) {
-            result.recordFatalError("Couldn't load system security policy" + ex.getMessage(), ex);
+            result.recordFatalError(createStringResource("UserMenuPanel.message.loadSecurityPolicyQuestionsModel.fatalError", ex.getMessage()).getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load system security policy", ex);
         }finally {
             result.computeStatus();

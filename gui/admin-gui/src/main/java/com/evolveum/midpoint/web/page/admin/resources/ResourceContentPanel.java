@@ -965,7 +965,7 @@ public abstract class ResourceContentPanel extends Panel {
 		Task task = pageBase.createSimpleTask(OPERATION_IMPORT_OBJECT);
 
 		if (selectedShadows == null || selectedShadows.isEmpty()) {
-			result.recordWarning("Nothing select to import");
+			result.recordWarning(createStringResource("ResourceContentPanel.message.importResourceObject.warning").getString());
 			getPageBase().showResult(result);
 			target.add(getPageBase().getFeedbackPanel());
 			return;
@@ -976,7 +976,7 @@ public abstract class ResourceContentPanel extends Panel {
 				getPageBase().getModelService().importFromResource(shadow.getOid(), task, result);
 			} catch (ObjectNotFoundException | SchemaException | SecurityViolationException
 					| CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
-				result.recordPartialError("Could not import account " + shadow, e);
+				result.recordPartialError(pageBase.createStringResource("ResourceContentPanel.message.importResourceObject.partialError", shadow).getString(), e);
 				LOGGER.error("Could not import account {} ", shadow, e);
 			}
 		}
@@ -993,7 +993,7 @@ public abstract class ResourceContentPanel extends Panel {
 		final OperationResult result = new OperationResult(OPERATION_DELETE_OBJECT);
 
 		if (selectedShadow == null || selectedShadow.isEmpty()) {
-			result.recordWarning("Nothing selected to delete");
+			result.recordWarning(createStringResource("ResourceContentPanel.message.deleteResourceObjectPerformed.warning").getString());
 			getPageBase().showResult(result);
 			target.add(getPageBase().getFeedbackPanel());
 			return;
@@ -1068,7 +1068,7 @@ public abstract class ResourceContentPanel extends Panel {
 		Task task = pageBase.createSimpleTask(OPERATION_UPDATE_STATUS);
 
 		if (selectedShadow == null || selectedShadow.isEmpty()) {
-			result.recordWarning("Nothing selected to update status");
+			result.recordWarning(createStringResource("updateResourceObjectStatusPerformed.warning").getString());
 			getPageBase().showResult(result);
 			target.add(getPageBase().getFeedbackPanel());
 			return;
@@ -1090,7 +1090,7 @@ public abstract class ResourceContentPanel extends Panel {
 					| ExpressionEvaluationException | CommunicationException | ConfigurationException
 					| PolicyViolationException | SecurityViolationException e) {
 				// TODO Auto-generated catch block
-				result.recordPartialError("Could not update status (to " + status + ") for " + shadow, e);
+				result.recordPartialError(pageBase.createStringResource("ResourceContentPanel.message.updateResourceObjectStatusPerformed.partialError", status, shadow).getString(), e);
 				LOGGER.error("Could not update status (to {}) for {}, using option {}", status, shadow, opts,
 						e);
 				continue;

@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.schrodinger.page.resource;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.common.FeedbackBox;
@@ -19,7 +20,10 @@ public class ViewResourcePage extends BasicPage {
 
         $(Schrodinger.byDataResourceKey("a", "pageResource.button.configurationEdit")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
-        return new ResourceConfigurationTab(new EditResourceConfigurationPage(), null);
+      SelenideElement element=  $(By.cssSelector(".tab-pane.active"))
+              .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+
+        return new ResourceConfigurationTab(new EditResourceConfigurationPage(), element);
     }
 
     public ResourceWizardPage clickShowUsingWizard() {
