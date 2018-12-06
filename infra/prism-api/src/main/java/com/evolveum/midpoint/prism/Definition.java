@@ -193,11 +193,6 @@ public interface Definition extends Serializable, DebugDumpable, Revivable, Clon
 	<A> A getAnnotation(QName qname);
 	<A> void setAnnotation(QName qname, A value);
 
-	/**
-     * Return a human readable name of this class suitable for logs. (e.g. "PPD")
-     */
-	String getDebugDumpClassName();
-
 	@NotNull
 	Definition clone();
 

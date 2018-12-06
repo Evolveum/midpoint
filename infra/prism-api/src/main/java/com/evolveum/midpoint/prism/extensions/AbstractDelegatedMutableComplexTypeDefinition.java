@@ -168,8 +168,8 @@ public class AbstractDelegatedMutableComplexTypeDefinition implements MutableCom
 	}
 
 	@Override
-	public boolean canRepresent(QName specTypeQName) {
-		return inner.canRepresent(specTypeQName);
+	public boolean canRepresent(QName typeName) {
+		return inner.canRepresent(typeName);
 	}
 
 	@Override
@@ -282,11 +282,6 @@ public class AbstractDelegatedMutableComplexTypeDefinition implements MutableCom
 	@Override
 	public <A> void setAnnotation(QName qname, A value) {
 		inner.setAnnotation(qname, value);
-	}
-
-	@Override
-	public String getDebugDumpClassName() {
-		return inner.getDebugDumpClassName();
 	}
 
 	@Override
@@ -429,16 +424,6 @@ public class AbstractDelegatedMutableComplexTypeDefinition implements MutableCom
 
 	public void setTypeName(QName typeName) {
 		inner.setTypeName(typeName);
-	}
-
-	@Override
-	public void extendDumpHeader(StringBuilder sb) {
-		inner.extendDumpHeader(sb);
-	}
-
-	@Override
-	public void extendDumpDefinition(StringBuilder sb, ItemDefinition<?> def) {
-		inner.extendDumpDefinition(sb, def);
 	}
 
 	@Override

@@ -481,8 +481,8 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 	}
 	
 	@Override
-	public boolean canRepresent(QName specTypeQName) {
-		return complexTypeDefinition.canRepresent(specTypeQName);
+	public boolean canRepresent(@NotNull QName typeName) {
+		return QNameUtil.match(this.typeName, typeName) || complexTypeDefinition.canRepresent(typeName);
 	}
 
 	@Override
@@ -527,7 +527,6 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
     /**
      * Return a human readable name of this class suitable for logs.
      */
-    @Override
     public String getDebugDumpClassName() {
         return "PCD";
     }

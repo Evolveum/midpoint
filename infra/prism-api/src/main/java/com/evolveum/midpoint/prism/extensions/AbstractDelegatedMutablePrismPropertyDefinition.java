@@ -401,11 +401,6 @@ public class AbstractDelegatedMutablePrismPropertyDefinition<T> implements Mutab
 	}
 
 	@Override
-	public void extendToString(StringBuilder sb) {
-		inner.extendToString(sb);
-	}
-
-	@Override
 	public void setMinOccurs(int value) {
 		inner.setMinOccurs(value);
 	}
@@ -540,8 +535,4 @@ public class AbstractDelegatedMutablePrismPropertyDefinition<T> implements Mutab
 		inner.setMatchingRuleQName(matchingRuleQName);
 	}
 
-	@Override
-	public String getDebugDumpClassName() {
-		return inner.getDebugDumpClassName();
-	}
 }

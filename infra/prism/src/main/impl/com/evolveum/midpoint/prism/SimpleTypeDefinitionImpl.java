@@ -39,7 +39,6 @@ public class SimpleTypeDefinitionImpl extends TypeDefinitionImpl implements Simp
 	public void revive(PrismContext prismContext) {
 	}
 
-	@Override
 	public String getDebugDumpClassName() {
 		return "STD";
 	}

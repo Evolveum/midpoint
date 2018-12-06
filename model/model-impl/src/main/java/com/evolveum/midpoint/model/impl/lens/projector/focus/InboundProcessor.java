@@ -1023,7 +1023,7 @@ public class InboundProcessor {
 						targetFocusItem = focusNew.findItem(originMapping.getOutputPath());
 					}
 					V value = valueWithOrigin.getItemValue();
-					if (targetFocusItem != null && targetFocusItem.hasRealValue(value)) {
+					if (targetFocusItem != null && targetFocusItem.hasValueIgnoringMetadata(value)) {
 						continue;
 					}
 
@@ -1057,7 +1057,7 @@ public class InboundProcessor {
 				for (ItemValueWithOrigin<V, D> valueWithOrigin : consolidatedTriples.getMinusSet()) {
 					V value = valueWithOrigin.getItemValue();
 
-					if (targetFocusItem == null || targetFocusItem.hasRealValue(value)) {
+					if (targetFocusItem == null || targetFocusItem.hasValueIgnoringMetadata(value)) {
 						if (!outputFocusItemDelta.isReplace()) {
 							// This is not needed if we are going to
 							// replace. In fact it might cause an error.

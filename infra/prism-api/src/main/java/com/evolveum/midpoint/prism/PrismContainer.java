@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 
@@ -29,69 +30,50 @@ import java.util.function.Consumer;
 
 /**
  * <p>
- * Property container groups properties into logical blocks.The reason for
+ * Prism container groups items into logical blocks. The reason for
  * grouping may be as simple as better understandability of data structure. But
  * the group usually means different meaning, source or structure of the data.
- * For example, the property container is frequently used to hold properties
+ * For example, the a container is frequently used to hold properties
  * that are dynamic, not fixed by a static schema. Such grouping also naturally
  * translates to XML and helps to "quarantine" such properties to avoid Unique
  * Particle Attribute problems.
  * </p><p>
- * Property Container contains a set of (potentially multi-valued) properties or inner property containers.
- * The order of properties is not significant, regardless of the fact that it
- * may be fixed in the XML representation. In the XML representation, each
- * element inside Property Container must be either Property or a Property
- * Container.
+ * Container contains a set of (potentially multi-valued) properties, references,
+ * or inner containers. The order of properties is not significant, regardless
+ * of the fact that it may be fixed in the XML representation. In the XML representation,
+ * each element inside the container must be either property, reference, or a container.
  * </p><p>
- * Property Container is mutable.
+ * A container is mutable.
  * </p>
  *
  * @author Radovan Semancik
  */
-public interface PrismContainer<C extends Containerable> extends Item<PrismContainerValue<C>,PrismContainerDefinition<C>>, PrismContainerable<C> {
+public interface PrismContainer<C extends Containerable>
+		extends Item<PrismContainerValue<C>, PrismContainerDefinition<C>>, PrismContainerable<C> {
 
-//    public PrismContainer(QName name) {
-//        super(name);
-//    }
-//
-//    public PrismContainer(QName name, PrismContext prismContext) {
-//        super(name, prismContext);
-//    }
-//
-//    public PrismContainer(QName name, Class<C> compileTimeClass) {
-//        super(name);
-//		if (Modifier.isAbstract(compileTimeClass.getModifiers())) {
-//            throw new IllegalArgumentException("Can't use class '" + compileTimeClass.getSimpleName() + "' as compile-time class for "+name+"; the class is abstract.");
-//        }
-//        this.compileTimeClass = compileTimeClass;
-//    }
-//
-//    public PrismContainer(QName name, Class<C> compileTimeClass, PrismContext prismContext) {
-//        this(name, compileTimeClass);
-//        this.prismContext = prismContext;
-//		if (prismContext != null) {
-//			try {
-//				prismContext.adopt(this);
-//			} catch (SchemaException e) {
-//				throw new SystemException("Schema exception when adopting freshly created PrismContainer: " + this);
-//			}
-//		}
-//    }
-//
-//
-//    public PrismContainer(QName name, PrismContainerDefinition<C> definition, PrismContext prismContext) {
-//        super(name, definition, prismContext);
-//    }
-
+	/**
+	 * Returns the static type of data represented by values of this container,
+	 * if known and applicable. (There are containers that are purely dynamic, i.e.
+	 * without any compile time class.)
+	 */
+	@Nullable
     Class<C> getCompileTimeClass();
 
 	/**
-	 * Returns true if this object can represent specified compile-time class.
-	 * I.e. this object can be presented in the compile-time form that is an
-	 * instance of a specified class.
+	 * Returns true if values of this container can be represented as specified compile-time class.
+	 * For example, PrismContainer of AbstractRoleType has:
+	 * - canRepresent(AbstractRoleType.class) = true
+	 * - canRepresent(FocusType.class) = true
+	 * - canRepresent(ObjectType.class) = true
+	 * - canRepresent(TaskType.class) = false
+	 * - canRepresent(RoleType.class) = false
 	 */
-	boolean canRepresent(Class<?> compileTimeClass);
+	boolean canRepresent(@NotNull Class<?> compileTimeClass);
 
+	/**
+	 * Returns true if values of this container can be presented as specified type (from compile-time or runtime schema).
+	 * In particular, returns true if type of this container or any of its supertypes match given type.
+	 */
 	boolean canRepresent(QName type);
 
 	@NotNull

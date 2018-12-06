@@ -42,29 +42,6 @@ import java.util.function.Function;
  */
 public interface Item<V extends PrismValue, D extends ItemDefinition> extends Itemable, DebugDumpable, Visitable, PathVisitable, Serializable, Revivable {
 
-//    Item(QName elementName) {
-//        super();
-//        this.elementName = elementName;
-//    }
-//
-//    Item(QName elementName, PrismContext prismContext) {
-//        super();
-//        this.elementName = elementName;
-//        this.prismContext = prismContext;
-//    }
-//
-//
-//    /**
-//     * The constructors should be used only occasionally (if used at all).
-//     * Use the factory methods in the ResourceObjectDefintion instead.
-//     */
-//    Item(QName elementName, D definition, PrismContext prismContext) {
-//        super();
-//        this.elementName = elementName;
-//        this.definition = definition;
-//        this.prismContext = prismContext;
-//    }
-
     /**
      * Returns applicable property definition.
      * <p>
@@ -183,28 +160,34 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
     @NotNull
     Collection<?> getRealValues();
 
-    boolean hasValue(PrismValue value, boolean ignoreMetadata);
-
-    boolean hasValue(PrismValue value);
-
-    boolean hasRealValue(PrismValue value);
 
 	// TODO what about dynamic definitions? See MID-3922
     boolean isSingleValue();
 
-    /**
+
+	boolean hasValue(PrismValue value, boolean ignoreMetadata);
+
+	boolean hasValue(PrismValue value);
+
+	/**
+	 * Returns true if this item has a given value (ignoring metadata).
+	 */
+	boolean hasValueIgnoringMetadata(PrismValue value);
+
+	/**
      * Returns value that is equal or equivalent to the provided value.
      * The returned value is an instance stored in this item, while the
      * provided value argument may not be.
      */
     PrismValue findValue(PrismValue value, boolean ignoreMetadata);
 
-    List<? extends PrismValue> findValuesIgnoreMetadata(PrismValue value);
+    List<? extends PrismValue> findValuesIgnoringMetadata(PrismValue value);
 
     /**
      * Returns value that is previous to the specified value.
      * Note that the order is semantically insignificant and this is used only
      * for presentation consistency in order-sensitive formats such as XML or JSON.
+     * TODO consider removing because it's not used
      */
     PrismValue getPreviousValue(PrismValue value);
 
@@ -212,6 +195,7 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
      * Returns values that is following the specified value.
      * Note that the order is semantically insignificant and this is used only
      * for presentation consistency in order-sensitive formats such as XML or JSON.
+     * TODO consider removing because it's not used
      */
     PrismValue getNextValue(PrismValue value);
 
@@ -258,7 +242,10 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
      */
     void merge(Item<V,D> otherItem) throws SchemaException;
 
-    Object find(ItemPath path);
+	/**
+	 * Returns object (Item or PrismValue) pointed to by the given path.
+	 */
+	Object find(ItemPath path);
 
     <IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path);
 
@@ -325,21 +312,7 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
     	return items;
 	}
 
-    static <T extends Item> T createNewDefinitionlessItem(QName name, Class<T> type, PrismContext prismContext) {
-    	T item = null;
-		try {
-			Constructor<T> constructor = type.getConstructor(QName.class);
-			item = constructor.newInstance(name);
-            if (prismContext != null) {
-                item.revive(prismContext);
-            }
-		} catch (Exception e) {
-			throw new SystemException("Error creating new definitionless "+type.getSimpleName()+": "+e.getClass().getName()+" "+e.getMessage(),e);
-		}
-    	return item;
-    }
-
-    void checkConsistence(boolean requireDefinitions, ConsistencyCheckScope scope);
+	void checkConsistence(boolean requireDefinitions, ConsistencyCheckScope scope);
 
 	void checkConsistence(boolean requireDefinitions, boolean prohibitRaw);
 
@@ -384,11 +357,6 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
 	 * for metadata-insensitive comparisons and hashCode functions.
 	 */
 	boolean isMetadata();
-
-	// Do not call from the outside
-	// todo reconsider this method
-	//  (it is here because we need to override it in delegation-based subclasses)
-	String getDebugDumpClassName();
 
 	boolean isImmutable();
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,9 @@ package com.evolveum.midpoint.prism;
 public interface PrismContainerable<T extends Containerable> extends Itemable {
 
 	@Override
-	public PrismContainerDefinition<T> getDefinition();
+	PrismContainerDefinition<T> getDefinition();
 
-	public Class<T> getCompileTimeClass();
+	Class<T> getCompileTimeClass();
 
 	default ComplexTypeDefinition getComplexTypeDefinition() {
 		PrismContainerDefinition def = getDefinition();

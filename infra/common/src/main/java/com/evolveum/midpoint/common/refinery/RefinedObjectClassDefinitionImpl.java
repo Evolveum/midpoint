@@ -327,8 +327,8 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 	}
 	
 	@Override
-	public boolean canRepresent(QName specTypeQName) {
-		return originalObjectClassDefinition.canRepresent(specTypeQName);
+	public boolean canRepresent(QName typeName) {
+		return originalObjectClassDefinition.canRepresent(typeName);
 	}
 	
 	//endregion
@@ -1364,16 +1364,6 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 	@Override
 	public MutableComplexTypeDefinition toMutable() {
 		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public void extendDumpHeader(StringBuilder sb) {
-		originalObjectClassDefinition.extendDumpHeader(sb);
-	}
-
-	@Override
-	public void extendDumpDefinition(StringBuilder sb, ItemDefinition<?> def) {
-		originalObjectClassDefinition.extendDumpDefinition(sb, def);
 	}
 
 	@Override

@@ -107,6 +107,7 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
 		}
     }
 
+    @Override
 	public Class<C> getCompileTimeClass() {
 		if (this.compileTimeClass != null) {
 			return compileTimeClass;
@@ -117,16 +118,12 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
 		return null;
 	}
 
-    /**
-	 * Returns true if this object can represent specified compile-time class.
-	 * I.e. this object can be presented in the compile-time form that is an
-	 * instance of a specified class.
-	 */
-	public boolean canRepresent(Class<?> compileTimeClass) {
-		return (compileTimeClass.isAssignableFrom(getCompileTimeClass()));
+	public boolean canRepresent(@NotNull Class<?> compileTimeClass) {
+		Class<C> currentClass = getCompileTimeClass();
+		return currentClass != null && compileTimeClass.isAssignableFrom(currentClass);
 	}
 	
-	public boolean canRepresent(QName type) {
+	public boolean canRepresent(@NotNull QName type) {
 		PrismContainerDefinition<C> definition = getDefinition();
 		if (definition == null) {
 			throw new IllegalStateException("No definition in "+this+", cannot evaluate type equivalence");
@@ -582,17 +579,16 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
         return findCreateItem(containerPath, type, definition, true);
     }
 
-    // todo get rid of Impl classes here (problem is in com.evolveum.midpoint.prism.Item.createNewDefinitionlessItem(Item.java:330))
     public <T extends Containerable> PrismContainer<T> findOrCreateContainer(ItemPath containerPath) throws SchemaException {
-        return findCreateItem(containerPath, PrismContainerImpl.class, null, true);
+        return findCreateItem(containerPath, PrismContainer.class, null, true);
     }
 
     public <T> PrismProperty<T> findOrCreateProperty(ItemPath propertyPath) throws SchemaException {
-        return findCreateItem(propertyPath, PrismPropertyImpl.class, null, true);
+        return findCreateItem(propertyPath, PrismProperty.class, null, true);
     }
 
     public PrismReference findOrCreateReference(ItemPath propertyPath) throws SchemaException {
-        return findCreateItem(propertyPath, PrismReferenceImpl.class, null, true);
+        return findCreateItem(propertyPath, PrismReference.class, null, true);
     }
 
     /**
@@ -918,8 +914,7 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
     /**
      * Return a human readable name of this class suitable for logs.
      */
-    @Override
-    public String getDebugDumpClassName() {
+    protected String getDebugDumpClassName() {
         return "PC";
     }
 

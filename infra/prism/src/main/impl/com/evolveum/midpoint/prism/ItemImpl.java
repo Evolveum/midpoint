@@ -24,10 +24,12 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
+import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -90,7 +92,34 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
         this.prismContext = prismContext;
     }
 
-    /**
+	static <T extends Item> T createNewDefinitionlessItem(QName name, Class<T> type, PrismContext prismContext) {
+		T item;
+			try {
+				//noinspection unchecked
+				Constructor<T> constructor = toImplClass(type).getConstructor(QName.class);
+				item = constructor.newInstance(name);
+	        if (prismContext != null) {
+	            item.revive(prismContext);
+	        }
+			} catch (Exception e) {
+				throw new SystemException("Error creating new definitionless "+type.getSimpleName()+": "+e.getClass().getName()+" "+e.getMessage(),e);
+			}
+		return item;
+	}
+
+	private static <T> Class toImplClass(Class<T> type) {
+		if (PrismProperty.class.equals(type)) {
+			return PrismPropertyImpl.class;
+		} else if (PrismReference.class.equals(type)) {
+			return PrismReferenceImpl.class;
+		} else if (PrismContainer.class.equals(type)) {
+			return PrismContainerImpl.class;
+		} else {
+			return type;    // or throw an exception?
+		}
+	}
+
+	/**
      * Returns applicable property definition.
      * <p>
      * May return null if no definition is applicable or the definition is not
@@ -279,14 +308,14 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
 	}
 
     public boolean hasValue(PrismValue value, boolean ignoreMetadata) {
-    	return (findValue(value, ignoreMetadata) != null);
+    	return findValue(value, ignoreMetadata) != null;
     }
 
     public boolean hasValue(PrismValue value) {
         return hasValue(value, false);
     }
 
-    public boolean hasRealValue(PrismValue value) {
+    public boolean hasValueIgnoringMetadata(PrismValue value) {
     	return hasValue(value, true);
     }
 
@@ -300,11 +329,6 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
 		return values.size() <= 1;
 	}
 
-    /**
-     * Returns value that is equal or equivalent to the provided value.
-     * The returned value is an instance stored in this item, while the
-     * provided value argument may not be.
-     */
     public PrismValue findValue(PrismValue value, boolean ignoreMetadata) {
         for (PrismValue myVal : getValues()) {
             if (myVal.equalsComplex(value, ignoreMetadata, false)) {
@@ -314,17 +338,12 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
         return null;
     }
 
-    public List<? extends PrismValue> findValuesIgnoreMetadata(PrismValue value) {
+    public List<? extends PrismValue> findValuesIgnoringMetadata(PrismValue value) {
     	return getValues().stream()
 			    .filter(v -> v.equalsComplex(value, true, false))
 			    .collect(Collectors.toList());
     }
 
-    /**
-     * Returns value that is previous to the specified value.
-     * Note that the order is semantically insignificant and this is used only
-     * for presentation consistency in order-sensitive formats such as XML or JSON.
-     */
     public PrismValue getPreviousValue(PrismValue value) {
     	PrismValue previousValue = null;
     	for (PrismValue myVal : getValues()) {
@@ -336,11 +355,6 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
     	throw new IllegalStateException("The value "+value+" is not any of "+this+" values, therefore cannot determine previous value");
     }
 
-    /**
-     * Returns values that is following the specified value.
-     * Note that the order is semantically insignificant and this is used only
-     * for presentation consistency in order-sensitive formats such as XML or JSON.
-     */
     public PrismValue getNextValue(PrismValue value) {
     	Iterator<V> iterator = getValues().iterator();
     	while (iterator.hasNext()) {
@@ -811,34 +825,17 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
 			return true;
 		if (obj == null)
 			return false;
-		if (getClass() != obj.getClass())
+		if (!(obj instanceof Item)) {       // todo should we compare classes and element names here? probably not
 			return false;
-		ItemImpl<?,?> other = (ItemImpl<?,?>) obj;
-		if (elementName == null) {
-			if (other.elementName != null)
-				return false;
-		} else if (!elementName.equals(other.elementName))
-			return false;
+		}
+		Item<?,?> other = (Item<?,?>) obj;
 		// Do not compare parent at all. This is not relevant.
-		if (values == null) {
-			if (other.values != null)
-				return false;
-		} else if (!equalsRealValues(this.values, other.values))
-			return false;
-		return true;
+		return equalsRealValues(this.values, other.getValues());
 	}
 
 	private boolean equalsRealValues(List<V> thisValue, List<?> otherValues) {
 		return MiscUtil.unorderedCollectionEquals(thisValue, otherValues,
-				(o1, o2) -> {
-					if (o1 instanceof PrismValue && o2 instanceof PrismValue) {
-						PrismValue v1 = (PrismValue)o1;
-						PrismValue v2 = (PrismValue)o2;
-						return v1.equalsRealValue(v2);
-					} else {
-						return false;
-					}
-				});
+				(o1, o2) -> o1 != null && o2 instanceof PrismValue && o1.equalsRealValue((PrismValue) o2));
 	}
 
 	private boolean match(List<V> thisValue, List<?> otherValues) {
@@ -946,8 +943,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
 	/**
      * Return a human readable name of this class suitable for logs.
      */
-	@Override
-    public String getDebugDumpClassName() {
+    protected String getDebugDumpClassName() {
         return "Item";
     }
 

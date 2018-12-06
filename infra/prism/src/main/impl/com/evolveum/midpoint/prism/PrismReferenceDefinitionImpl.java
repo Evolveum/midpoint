@@ -172,7 +172,6 @@ public class PrismReferenceDefinitionImpl extends ItemDefinitionImpl<PrismRefere
 	/**
      * Return a human readable name of this class suitable for logs.
      */
-    @Override
     public String getDebugDumpClassName() {
         return "PRD";
     }
@@ -182,8 +181,7 @@ public class PrismReferenceDefinitionImpl extends ItemDefinitionImpl<PrismRefere
         return "reference";
     }
 
-	@Override
-	public void extendToString(StringBuilder sb) {
+	protected void extendToString(StringBuilder sb) {
 		super.extendToString(sb);
 		if (isComposite) {
 			sb.append(",composite");

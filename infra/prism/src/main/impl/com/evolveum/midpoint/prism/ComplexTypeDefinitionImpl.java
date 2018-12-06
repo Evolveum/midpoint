@@ -489,21 +489,18 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
 		return sb.toString();
 	}
 
-	@Override
-	public void extendDumpHeader(StringBuilder sb) {
+	protected void extendDumpHeader(StringBuilder sb) {
 		// Do nothing
 	}
 
-	@Override
-	public void extendDumpDefinition(StringBuilder sb, ItemDefinition<?> def) {
+	protected void extendDumpDefinition(StringBuilder sb, ItemDefinition<?> def) {
 		// Do nothing
 	}
 
 	/**
      * Return a human readable name of this class suitable for logs.
      */
-    @Override
-    public String getDebugDumpClassName() {
+    protected String getDebugDumpClassName() {
         return "CTD";
     }
 

@@ -708,7 +708,6 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
     /**
      * Return a human readable name of this class suitable for logs.
      */
-//    @Override
     public String getDebugDumpClassName() {
         return "crOCD";
     }
@@ -762,16 +761,6 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 		throw new UnsupportedOperationException();
 	}
 
-	@Override
-	public void extendDumpHeader(StringBuilder sb) {
-		structuralObjectClassDefinition.extendDumpHeader(sb);       // todo
-	}
-
-	@Override
-	public void extendDumpDefinition(StringBuilder sb, ItemDefinition<?> def) {
-		structuralObjectClassDefinition.extendDumpDefinition(sb, def);      // todo
-	}
-
 	// TODO
 	@Override
 	public boolean isShared() {
@@ -805,12 +794,12 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	}
 
 	@Override
-	public boolean canRepresent(QName specTypeQName) {
-		if (structuralObjectClassDefinition.canRepresent(specTypeQName)) {
+	public boolean canRepresent(QName typeName) {
+		if (structuralObjectClassDefinition.canRepresent(typeName)) {
 			return true;
 		}
 		for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition : auxiliaryObjectClassDefinitions) {
-			if (auxiliaryObjectClassDefinition.canRepresent(specTypeQName)) {
+			if (auxiliaryObjectClassDefinition.canRepresent(typeName)) {
 				return true;
 			}
 		}

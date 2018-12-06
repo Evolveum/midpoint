@@ -614,11 +614,6 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 	}
 
 	@Override
-	public void extendToString(StringBuilder sb) {
-		refinedAttributeDefinition.extendToString(sb);
-	}
-
-	@Override
 	public PropertyDelta<T> createEmptyDelta(ItemPath path) {
 		return refinedAttributeDefinition.createEmptyDelta(path);
 	}

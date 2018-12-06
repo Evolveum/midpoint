@@ -57,7 +57,7 @@ public class AbstractDelegatedPrismContainer<C extends Containerable> implements
 	}
 
 	@Override
-	public boolean canRepresent(Class<?> compileTimeClass) {
+	public boolean canRepresent(@NotNull Class<?> compileTimeClass) {
 		return inner.canRepresent(compileTimeClass);
 	}
 
@@ -531,8 +531,8 @@ public class AbstractDelegatedPrismContainer<C extends Containerable> implements
 	}
 
 	@Override
-	public boolean hasRealValue(PrismValue value) {
-		return inner.hasRealValue(value);
+	public boolean hasValueIgnoringMetadata(PrismValue value) {
+		return inner.hasValueIgnoringMetadata(value);
 	}
 
 	@Override
@@ -546,9 +546,8 @@ public class AbstractDelegatedPrismContainer<C extends Containerable> implements
 	}
 
 	@Override
-	public List<? extends PrismValue> findValuesIgnoreMetadata(
-			PrismValue value) {
-		return inner.findValuesIgnoreMetadata(value);
+	public List<? extends PrismValue> findValuesIgnoringMetadata(PrismValue value) {
+		return inner.findValuesIgnoringMetadata(value);
 	}
 
 	@Override
@@ -682,15 +681,6 @@ public class AbstractDelegatedPrismContainer<C extends Containerable> implements
 		return Item.cloneCollection(items);
 	}
 
-	public static <T extends Item> Collection<T> resetParentCollection(Collection<T> items) {
-		return Item.resetParentCollection(items);
-	}
-
-	public static <T extends Item> T createNewDefinitionlessItem(QName name,
-			Class<T> type, PrismContext prismContext) {
-		return Item.createNewDefinitionlessItem(name, type, prismContext);
-	}
-
 	@Override
 	public void checkConsistence(boolean requireDefinitions, ConsistencyCheckScope scope) {
 		inner.checkConsistence(requireDefinitions, scope);
@@ -759,11 +749,6 @@ public class AbstractDelegatedPrismContainer<C extends Containerable> implements
 	@Override
 	public boolean isMetadata() {
 		return inner.isMetadata();
-	}
-
-	@Override
-	public String getDebugDumpClassName() {
-		return inner.getDebugDumpClassName();
 	}
 
 	@Override

@@ -18,6 +18,7 @@ package com.evolveum.midpoint.schema.processor;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -45,7 +46,7 @@ public interface ObjectClassComplexTypeDefinition extends ComplexTypeDefinition 
 
 	/**
 	 * Returns all attribute definitions as an unmodifiable collection.
-	 * (Should be the same content as returned by getDefinitions().)
+	 * Should be the same content as returned by getDefinitions().
 	 */
 	@NotNull
 	Collection<? extends ResourceAttributeDefinition<?>> getAttributeDefinitions();

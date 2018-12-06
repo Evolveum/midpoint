@@ -84,15 +84,16 @@ public abstract class TypeDefinitionImpl extends DefinitionImpl implements TypeD
 	}
 	
 	@Override
-	public boolean canRepresent(QName specTypeQName) {
-		if (QNameUtil.match(specTypeQName, getTypeName())) {
+	public boolean canRepresent(QName typeName) {
+		if (QNameUtil.match(typeName, getTypeName())) {
 			return true;
 		}
 		if (superType != null) {
 			ComplexTypeDefinition supertypeDef = getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByType(superType);
-			return supertypeDef.canRepresent(specTypeQName);
+			return supertypeDef.canRepresent(typeName);
+		} else {
+			return false;
 		}
-		return false;
 	}
 
 	@Override

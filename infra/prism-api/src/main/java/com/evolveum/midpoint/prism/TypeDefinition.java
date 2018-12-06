@@ -49,5 +49,5 @@ public interface TypeDefinition extends Definition {
 
 	Integer getInstantiationOrder();
 	
-	boolean canRepresent(QName specTypeQName);
+	boolean canRepresent(QName typeName);
 }

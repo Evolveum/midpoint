@@ -734,7 +734,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
     			return createSubItem(subName, type, itemDefinition);
     		} else {
 	    		// Go deeper
-    			PrismContainer<?> subItem = createSubItem(subName, PrismContainerImpl.class, null);
+    			PrismContainer<?> subItem = createSubItem(subName, PrismContainer.class, null);
 	        	return subItem.findCreateItem(rest, type, itemDefinition, create);
     		}
     	} else {
@@ -788,7 +788,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
 		}
 
 		if (itemDefinition != null) {
-			if (StringUtils.isNotBlank(name.getNamespaceURI())){
+			if (StringUtils.isNotBlank(name.getNamespaceURI())) {
 				newItem = (I) itemDefinition.instantiate(name);
 			} else {
 				QName computed = new QName(itemDefinition.getNamespace(), name.getLocalPart());
@@ -798,7 +798,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
 				throw new IllegalStateException("PrismObject instantiated as a subItem in "+this+" from definition "+itemDefinition);
 			}
 		} else {
-			newItem = Item.createNewDefinitionlessItem(name, type, prismContext);
+			newItem = ItemImpl.createNewDefinitionlessItem(name, type, prismContext);
 			if (newItem instanceof PrismObject) {
 				throw new IllegalStateException("PrismObject instantiated as a subItem in "+this+" as definitionless instance of class "+type);
 			}
@@ -807,20 +807,20 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
 			return newItem;
 		} else {
 			throw new IllegalStateException("The " + type.getSimpleName() + " cannot be created because the item should be of type "
-					+ newItem.getClass().getSimpleName() + " ("+newItem.getElementName()+")");
+					+ newItem.getClass().getSimpleName() + " (item: "+newItem.getElementName()+")");
 		}
 	}
 
 	public <T extends Containerable> PrismContainer<T> findOrCreateContainer(QName containerName) throws SchemaException {
-    	return findCreateItem(containerName, PrismContainerImpl.class, null, true);
+    	return findCreateItem(containerName, PrismContainer.class, null, true);
     }
 
     public PrismReference findOrCreateReference(QName referenceName) throws SchemaException {
-    	return findCreateItem(referenceName, PrismReferenceImpl.class, null, true);
+    	return findCreateItem(referenceName, PrismReference.class, null, true);
     }
 
     public <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> findOrCreateItem(QName containerName) throws SchemaException {
-    	return findCreateItem(containerName, ItemImpl.class, null, true);
+    	return findCreateItem(containerName, Item.class, null, true);
     }
 
     public <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findOrCreateItem(QName containerName, Class<I> type) throws SchemaException {
@@ -840,7 +840,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
 //    }
 
     public <X> PrismProperty<X> findOrCreateProperty(ItemPath propertyPath) throws SchemaException {
-        return findOrCreateItem(propertyPath, PrismPropertyImpl.class, null);
+        return findOrCreateItem(propertyPath, PrismProperty.class, null);
     }
 
     public <X> PrismProperty<X> findOrCreateProperty(PrismPropertyDefinition propertyDef) throws SchemaException {

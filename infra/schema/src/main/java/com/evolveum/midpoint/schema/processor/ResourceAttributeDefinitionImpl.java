@@ -17,9 +17,8 @@
 package com.evolveum.midpoint.schema.processor;
 
 import com.evolveum.midpoint.prism.Definition;
-import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.extensions.AbstractDelegatedMutablePrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
@@ -44,7 +43,7 @@ import static com.evolveum.midpoint.prism.util.DefinitionUtil.addNamespaceIfAppl
  * @author Radovan Semancik
  *
  */
-public class ResourceAttributeDefinitionImpl<T> extends AbstractDelegatedMutablePrismPropertyDefinition<T> implements ResourceAttributeDefinition<T> {
+public class ResourceAttributeDefinitionImpl<T> extends PrismPropertyDefinitionImpl<T> implements ResourceAttributeDefinition<T> {
 
 	private static final long serialVersionUID = -1756347754109326906L;
 	private String nativeAttributeName;
@@ -53,10 +52,6 @@ public class ResourceAttributeDefinitionImpl<T> extends AbstractDelegatedMutable
 
 	public ResourceAttributeDefinitionImpl(QName elementName, QName typeName, PrismContext prismContext) {
 		super(elementName, typeName, prismContext);
-	}
-
-	public ResourceAttributeDefinitionImpl(MutablePrismPropertyDefinition<T> inner) {
-		super(inner);
 	}
 
 	@NotNull
@@ -68,8 +63,8 @@ public class ResourceAttributeDefinitionImpl<T> extends AbstractDelegatedMutable
 	@NotNull
 	@Override
 	public ResourceAttribute<T> instantiate(QName name) {
-        name = addNamespaceIfApplicable(name, inner.getName());
-		return new ResourceAttribute<>(name, this, getPrismContext());
+        name = addNamespaceIfApplicable(name, this.name);
+		return new ResourceAttribute<>(name, this, prismContext);
 	}
 
 	@Override
@@ -168,12 +163,13 @@ public class ResourceAttributeDefinitionImpl<T> extends AbstractDelegatedMutable
 	@NotNull
 	@Override
 	public ResourceAttributeDefinitionImpl<T> clone() {
-		ResourceAttributeDefinitionImpl<T> clone = new ResourceAttributeDefinitionImpl<>(inner.clone());
+		ResourceAttributeDefinitionImpl<T> clone = new ResourceAttributeDefinitionImpl<>(getName(), getTypeName(), getPrismContext());
 		copyDefinitionData(clone);
 		return clone;
 	}
 
 	protected void copyDefinitionData(ResourceAttributeDefinitionImpl<T> clone) {
+		super.copyDefinitionData(clone);
 		clone.nativeAttributeName = this.nativeAttributeName;
 		clone.frameworkAttributeName = this.frameworkAttributeName;
 		clone.returnedByDefault = this.returnedByDefault;
@@ -216,8 +212,7 @@ public class ResourceAttributeDefinitionImpl<T> extends AbstractDelegatedMutable
 		return true;
 	}
 
-	@Override
-	public void extendToString(StringBuilder sb) {
+	protected void extendToString(StringBuilder sb) {
 		super.extendToString(sb);
 		if (getNativeAttributeName()!=null) {
 			sb.append(" native=");
@@ -236,8 +231,7 @@ public class ResourceAttributeDefinitionImpl<T> extends AbstractDelegatedMutable
 	/**
      * Return a human readable name of this class suitable for logs.
      */
-    @Override
-    public String getDebugDumpClassName() {
+    protected String getDebugDumpClassName() {
         return "RAD";
     }
 

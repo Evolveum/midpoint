@@ -189,8 +189,7 @@ public class PrismPropertyDefinitionImpl<T> extends ItemDefinitionImpl<PrismProp
 		clone.valueType = this.valueType;
 	}
 
-    @Override
-    public void extendToString(StringBuilder sb) {
+	protected void extendToString(StringBuilder sb) {
 		super.extendToString(sb);
 		if (indexed != null && indexed) {
 			sb.append(",I");
@@ -246,8 +245,7 @@ public class PrismPropertyDefinitionImpl<T> extends ItemDefinitionImpl<PrismProp
 	/**
      * Return a human readable name of this class suitable for logs.
      */
-    @Override
-    public String getDebugDumpClassName() {
+    protected String getDebugDumpClassName() {
         return "PPD";
     }
 

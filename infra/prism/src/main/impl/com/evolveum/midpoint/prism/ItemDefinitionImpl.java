@@ -492,8 +492,7 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
         return sb.toString();
     }
 
-    @Override
-	public void extendToString(StringBuilder sb) {
+	protected void extendToString(StringBuilder sb) {
 		sb.append(",");
 		if (canRead()) {
 			sb.append("R");

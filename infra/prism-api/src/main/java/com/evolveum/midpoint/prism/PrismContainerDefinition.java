@@ -58,7 +58,7 @@ public interface PrismContainerDefinition<C extends Containerable> extends ItemD
 
 	boolean isEmpty();
 
-	boolean canRepresent(QName type);
+	boolean canRepresent(@NotNull QName type);
 
 	@Override
 	MutablePrismContainerDefinition<C> toMutable();

@@ -50,8 +50,6 @@ public interface ItemDefinition<I extends Item> extends Definition, Visitable {
 
 	boolean isOperational();
 
-	void extendToString(StringBuilder sb);
-
 	/**
 	 * Whether an item is inherited from a supertype.
 	 */

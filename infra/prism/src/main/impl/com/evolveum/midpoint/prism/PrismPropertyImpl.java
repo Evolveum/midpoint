@@ -628,8 +628,7 @@ public class PrismPropertyImpl<T> extends ItemImpl<PrismPropertyValue<T>,PrismPr
     /**
      * Return a human readable name of this class suitable for logs.
      */
-    @Override
-    public String getDebugDumpClassName() {
+    protected String getDebugDumpClassName() {
         return "PP";
     }
 

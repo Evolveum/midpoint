@@ -18,8 +18,9 @@ package com.evolveum.midpoint.schema.processor;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.extensions.AbstractDelegatedPrismProperty;
+import com.evolveum.midpoint.prism.CloneStrategy;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismPropertyImpl;
 
 /**
  * Resource Object Attribute is a Property of Resource Object. All that applies
@@ -35,16 +36,22 @@ import com.evolveum.midpoint.prism.extensions.AbstractDelegatedPrismProperty;
  *
  * @author Radovan Semancik
  */
-public class ResourceAttribute<T> extends AbstractDelegatedPrismProperty<T> {
+public class ResourceAttribute<T> extends PrismPropertyImpl<T> {
     private static final long serialVersionUID = -6149194956029296486L;
 
     public ResourceAttribute(QName name, ResourceAttributeDefinition<T> definition, PrismContext prismContext) {
         super(name, definition, prismContext);
     }
 
-	public ResourceAttribute(PrismProperty<T> inner) {
-		super(inner);
-	}
+//    /**
+//     * The constructors should be used only occasionally (if used at all).
+//     * Use the factory methods in the ResourceObjectDefintion instead.
+//     *
+//     * @param name attribute name (element name)
+//     */
+//    public ResourceObjectAttribute(QName name) {
+//        super(name);
+//    }
 
 	public ResourceAttributeDefinition<T> getDefinition() {
         return (ResourceAttributeDefinition<T>) super.getDefinition();
@@ -81,13 +88,20 @@ public class ResourceAttribute<T> extends AbstractDelegatedPrismProperty<T> {
     
     @Override
 	public ResourceAttribute<T> cloneComplex(CloneStrategy strategy) {
-    	return new ResourceAttribute<>(inner.cloneComplex(strategy));
+    	ResourceAttribute<T> clone = new ResourceAttribute<>(getElementName(), getDefinition(), getPrismContext());
+    	copyValues(strategy, clone);
+    	return clone;
+	}
+
+	protected void copyValues(CloneStrategy strategy, ResourceAttribute<T> clone) {
+		super.copyValues(strategy, clone);
+		// Nothing to copy
 	}
 
 	/**
      * Return a human readable name of this class suitable for logs.
      */
-    public String getDebugDumpClassName() {
+    protected String getDebugDumpClassName() {
         return "RA";
     }
 
