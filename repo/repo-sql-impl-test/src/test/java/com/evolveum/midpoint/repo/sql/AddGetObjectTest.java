@@ -154,8 +154,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         long time = System.currentTimeMillis();
         for (int i = 0; i < elements.size(); i++) {
             PrismObject object = elements.get(i);
-            LOGGER.info("Adding object {}, type {}", new Object[]{(i + 1),
-                    object.getCompileTimeClass().getSimpleName()});
+            LOGGER.info("Adding object {}, type {}", i + 1, object.getCompileTimeClass().getSimpleName());
             oids.add(repositoryService.addObject(object, null, result));
         }
         LOGGER.info("Time to add objects ({}): {}", elements.size(), System.currentTimeMillis() - time);

@@ -70,12 +70,12 @@ public class AssignmentFinder<F extends FocusType, FA extends FocusAsserter<F, R
 					found = assignment;
 					foundTarget = assignmentTarget;
 				} else {
-					fail("Found more than one link that matches search criteria");
+					fail("Found more than one assignment that matches search criteria");
 				}
 			}
 		}
 		if (found == null) {
-			fail("Found no link that matches search criteria");
+			fail("Found no assignment that matches search criteria");
 		}
 		return assignmentsAsserter.forAssignment(found, foundTarget);
 	}

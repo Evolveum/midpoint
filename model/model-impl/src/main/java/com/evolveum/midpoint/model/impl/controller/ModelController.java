@@ -1823,14 +1823,14 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		if (GetOperationOptions.isExecutionPhase(rootOptions)) {
 			phase = AuthorizationPhaseType.EXECUTION;
 		}
-		ObjectFilter secFilter = securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.AUTZ_ACTIONS_URLS_SEARCH, phase, objectType, null, origFilter, null, task, result);
+		ObjectFilter secFilter = securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.AUTZ_ACTIONS_URLS_SEARCH, phase, objectType, null, origFilter, null, null, task, result);
 		return updateObjectQuery(origQuery, secFilter);
 	}
 	
 	// we expect that objectType is a direct parent of containerType
 	private <C extends Containerable, O extends ObjectType> ObjectQuery preProcessSubobjectQuerySecurity(Class<C> containerType, Class<O> objectType, ObjectQuery origQuery, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		// Search containers is an operation on one object. Therefore even if it works with a search filter, it requires GET authorizations
-		ObjectFilter secParentFilter = securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, null, objectType, null, null, null, task, result);
+		ObjectFilter secParentFilter = securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, null, objectType, null, null, null, null, task, result);
 		if (secParentFilter == null || secParentFilter instanceof AllFilter) {
 			return origQuery;				// no need to update the query
 		}

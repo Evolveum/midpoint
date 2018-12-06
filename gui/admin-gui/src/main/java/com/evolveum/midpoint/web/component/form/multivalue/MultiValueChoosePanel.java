@@ -65,7 +65,7 @@ public class MultiValueChoosePanel<T extends ObjectType> extends BasePanel<List<
 	private static final String ID_TEXT_WRAPPER = "textWrapper";
 	private static final String ID_TEXT = "text";
 	private static final String ID_FEEDBACK = "feedback";
-	private static final String ID_EDIT = "edit";
+	private static final String ID_ADD_BUTTON = "addButton";
     private static final String ID_REMOVE = "remove";
     private static final String ID_BUTTON_GROUP = "buttonGroup";
 
@@ -118,7 +118,7 @@ public class MultiValueChoosePanel<T extends ObjectType> extends BasePanel<List<
     private void initLayout(final IModel<List<T>> chosenValues, final List<PrismReferenceValue> filterValues,
 			final boolean required, final boolean multiselect) {
 
-		AjaxLink<String> edit = new AjaxLink<String>(ID_EDIT) {
+		AjaxLink<String> addButton = new AjaxLink<String>(ID_ADD_BUTTON) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -126,8 +126,8 @@ public class MultiValueChoosePanel<T extends ObjectType> extends BasePanel<List<
 				editValuePerformed(chosenValues.getObject(), filterValues, target, multiselect);
 			}
 		};
-		edit.setOutputMarkupPlaceholderTag(true);
-		add(edit);
+		addButton.setOutputMarkupPlaceholderTag(true);
+		add(addButton);
 
 		ListView<T> selectedRowsList = new ListView<T>(ID_SELECTED_ROWS, chosenValues) {
 
@@ -204,7 +204,7 @@ public class MultiValueChoosePanel<T extends ObjectType> extends BasePanel<List<
 
 		ObjectBrowserPanel<T> objectBrowserPanel = new ObjectBrowserPanel<T>(
 				getPageBase().getMainPopupBodyId(), defaultType, typeQNames, multiselect, getPageBase(),
-				null, chosenValues) {
+				getCustomFilter(), chosenValues) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -230,6 +230,10 @@ public class MultiValueChoosePanel<T extends ObjectType> extends BasePanel<List<
 
 	}
 
+	protected ObjectFilter getCustomFilter(){
+		return null;
+	}
+
 	protected void selectPerformed(AjaxRequestTarget target, List<T> chosenValues) {
 		getModel().setObject(chosenValues);
 		choosePerformedHook(target, chosenValues);
@@ -243,7 +247,7 @@ public class MultiValueChoosePanel<T extends ObjectType> extends BasePanel<List<
 			modelList = new ArrayList<>();
 		}
 		addedValues.removeAll(modelList); // add values not already in
-		modelList.addAll(addedValues);
+		modelList.addAll(0, addedValues);
 		getModel().setObject(modelList);
 		choosePerformedHook(target, modelList);
 

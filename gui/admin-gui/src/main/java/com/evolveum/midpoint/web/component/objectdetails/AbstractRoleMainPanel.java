@@ -201,7 +201,14 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 			@Override
 			public WebMarkupContainer createPanel(String panelId) {
 				SwitchAssignmentTypePanel panel = new SwitchAssignmentTypePanel(panelId,
-						new ContainerWrapperFromObjectWrapperModel<>(getObjectModel(), new ItemPath(AbstractRoleType.F_INDUCEMENT)));
+						new ContainerWrapperFromObjectWrapperModel<>(getObjectModel(), new ItemPath(AbstractRoleType.F_INDUCEMENT))){
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					protected boolean isInducement(){
+						return true;
+					}
+				};
 				return panel;
 //				return new AbstractRoleInducementPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
 			}
@@ -212,23 +219,24 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 			}
 
 		});
-		authorization = new FocusTabVisibleBehavior<>(unwrapModel(),
-				ComponentConstants.UI_ROLE_TAB_INDUCED_ENTITLEMENTS_URL, false, isFocusHistoryPage(), parentPage);
-		tabs.add(new CountablePanelTab(parentPage.createStringResource("AbstractRoleMainPanel.inducedEntitlements"), authorization) {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public WebMarkupContainer createPanel(String panelId) {
-				return new InducedEntitlementsTabPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
-			}
-
-			@Override
-			public String getCount(){
-				return getInducedEntitlementsCount();
-			}
-
-		});
+		//TODO remove after "switch assignment type" style is totally approved
+//		authorization = new FocusTabVisibleBehavior<>(unwrapModel(),
+//				ComponentConstants.UI_ROLE_TAB_INDUCED_ENTITLEMENTS_URL, false, isFocusHistoryPage(), parentPage);
+//		tabs.add(new CountablePanelTab(parentPage.createStringResource("AbstractRoleMainPanel.inducedEntitlements"), authorization) {
+//
+//			private static final long serialVersionUID = 1L;
+//
+//			@Override
+//			public WebMarkupContainer createPanel(String panelId) {
+//				return new InducedEntitlementsTabPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
+//			}
+//
+//			@Override
+//			public String getCount(){
+//				return getInducedEntitlementsCount();
+//			}
+//
+//		});
 
 		if (WebComponentUtil.isAuthorized(ModelAuthorizationAction.AUDIT_READ.getUrl()) && getObjectWrapper().getStatus() != ContainerStatus.ADDING){
 			authorization = new FocusTabVisibleBehavior<>(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_OBJECT_HISTORY_URL, false, isFocusHistoryPage(), parentPage);
@@ -365,21 +373,22 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 				return "";
 			}
 			int count = 0;
-			for (AssignmentType inducement : inducements){
-				if (inducement.getConstruction() == null){
-					continue;
-				}
-				if (inducement.getConstruction().getAssociation() == null || inducement.getConstruction().getAssociation().size() == 0){
-					continue;
-				}
-				for (ResourceObjectAssociationType association : inducement.getConstruction().getAssociation()){
-					if (association.getOutbound() != null && association.getOutbound().getExpression() != null
-							&& ExpressionUtil.getShadowRefValue(association.getOutbound().getExpression()) != null){
-						count++;
-						break;
-					}
-				}
-			}
+			//TODO the whole tab will be removed
+//			for (AssignmentType inducement : inducements){
+//				if (inducement.getConstruction() == null){
+//					continue;
+//				}
+//				if (inducement.getConstruction().getAssociation() == null || inducement.getConstruction().getAssociation().size() == 0){
+//					continue;
+//				}
+//				for (ResourceObjectAssociationType association : inducement.getConstruction().getAssociation()){
+//					if (association.getOutbound() != null && association.getOutbound().getExpression() != null
+//							&& ExpressionUtil.getShadowRefValue(association.getOutbound().getExpression()) != null){
+//						count++;
+//						break;
+//					}
+//				}
+//			}
 			return Integer.toString(count);
 	}
 }

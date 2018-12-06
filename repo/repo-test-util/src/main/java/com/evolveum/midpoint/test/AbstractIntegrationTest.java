@@ -2422,7 +2422,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected void assertRelationDef(List<RelationDefinitionType> relations, QName qname, String expectedLabel) {
     	RelationDefinitionType relDef = ObjectTypeUtil.findRelationDefinition(relations, qname);
     	assertNotNull("No definition for relation "+qname, relDef);
-    	assertEquals("Wrong relation "+qname+" label", expectedLabel, relDef.getDisplay().getLabel());
+    	assertEquals("Wrong relation "+qname+" label", expectedLabel, relDef.getDisplay().getLabel().getOrig());
 	}
 	
 	protected ShadowAsserter<Void> assertRepoShadow(String oid) throws ObjectNotFoundException, SchemaException {

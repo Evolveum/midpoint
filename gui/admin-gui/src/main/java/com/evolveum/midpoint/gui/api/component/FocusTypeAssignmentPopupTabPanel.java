@@ -30,7 +30,10 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.assignment.AssignmentPanel;
 import com.evolveum.midpoint.web.component.input.RelationDropDownChoicePanel;
+import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
+import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
@@ -100,31 +103,38 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
         LOGGER.debug("Loading roles which the current user has right to assign");
         Task task = getPageBase().createSimpleTask(OPERATION_LOAD_ASSIGNABLE_ROLES);
         OperationResult result = task.getResult();
-        ObjectFilter filter = null;
-        try {
-            ModelInteractionService mis = getPageBase().getModelInteractionService();
-            RoleSelectionSpecification roleSpec =
-                    mis.getAssignableRoleSpecification(getTargetedAssignemntObject(), (Class<AbstractRoleType>) getObjectType().getClassDefinition(), task, result);
-            filter = roleSpec.getFilter();
-        } catch (Exception ex) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load available roles", ex);
-            result.recordFatalError(createStringResource("FocusTypeAssignmentPopupTabPanel.message.addFilterToContentQuery.fatalError").getString(), ex);
-        } finally {
-            result.recomputeStatus();
-        }
-        if (!result.isSuccess() && !result.isHandledError()) {
-            getPageBase().showResult(result);
-        }
-        
+
+        ObjectFilter filter = WebComponentUtil.getAssignableRolesFilter(getTargetedAssignemntObject(), (Class<AbstractRoleType>) getObjectType().getClassDefinition(),
+                isInducement() ? WebComponentUtil.AssignmentOrder.INDUCEMENT : WebComponentUtil.AssignmentOrder.ASSIGNMENT, result, task, getPageBase());
         if (query == null){
             query = new ObjectQuery();
         }
         query.addFilter(filter);
         return query;
     }
-    
+
+    protected boolean isInducement(){
+        ContainerWrapper<AssignmentType> assignmentWrapper = getAssignmentWrapperModel();
+        if (assignmentWrapper != null && assignmentWrapper.getPath() != null && assignmentWrapper.getPath().containsName(AbstractRoleType.F_INDUCEMENT)){
+            return true;
+        }
+        return false;
+    }
+
     protected <O extends FocusType> PrismObject<O> getTargetedAssignemntObject() {
-    	return null;
+        ContainerWrapper<AssignmentType> assignmentWrapper = getAssignmentWrapperModel();
+        if (assignmentWrapper == null){
+            return null;
+        }
+        ObjectWrapper<O> w = assignmentWrapper.getObjectWrapper();
+        if (w == null) {
+            return null;
+        }
+        return w.getObject();
+    }
+
+    protected ContainerWrapper<AssignmentType> getAssignmentWrapperModel() {
+        return null;
     }
 
     @Override

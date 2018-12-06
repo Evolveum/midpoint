@@ -27,6 +27,8 @@ import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -301,5 +303,13 @@ public class PrismUtil {
 		}
 		xmap.merge(expressionWrapper.getElementName(), xroot.getSubnode());
 		return xmap;
+	}
+	
+	public static void debugDumpWithLabel(StringBuilder sb, String label, Containerable cc, int indent) {
+		if (cc == null) {
+			DebugUtil.debugDumpWithLabel(sb, label, (DebugDumpable)null, indent);
+		} else {
+			DebugUtil.debugDumpWithLabel(sb, label, cc.asPrismContainerValue(), indent);
+		}
 	}
 }

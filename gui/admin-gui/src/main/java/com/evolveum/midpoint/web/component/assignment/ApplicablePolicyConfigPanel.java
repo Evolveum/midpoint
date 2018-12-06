@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.assignment;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.ArchetypeInteractionSpecification;
 import com.evolveum.midpoint.model.api.util.ModelContextUtil;
 import com.evolveum.midpoint.model.api.util.ModelUtils;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -70,17 +71,17 @@ public class ApplicablePolicyConfigPanel extends BasePanel<ContainerWrapper<Assi
                 List<ObjectReferenceType> policyGroupsList = new ArrayList<>();
                 OperationResult result = new OperationResult(OPERATION_LOAD_SYS_CONFIG);
                 try {
-                    SystemConfigurationType sysConfig = getPageBase().getModelInteractionService().getSystemConfiguration(result);
-                    if (sysConfig == null){
+                	ArchetypeInteractionSpecification archetypeSpec = getPageBase().getModelInteractionService().getInteractionSpecification(getMainPanelFocusObject(), result);
+                    if (archetypeSpec == null){
                         return policyGroupsList;
                     } else {
-                        ObjectPolicyConfigurationType policyConfig = ModelUtils.determineObjectPolicyConfiguration(getMainPanelFocusObject(), sysConfig);
-                        if (policyConfig != null && policyConfig.getApplicablePolicies() != null){
-                            return policyConfig.getApplicablePolicies().getPolicyGroupRef();
+                    	ArchetypePolicyType archetypePolicy = archetypeSpec.getArchetypePolicy();
+                        if (archetypePolicy != null && archetypePolicy.getApplicablePolicies() != null){
+                            return archetypePolicy.getApplicablePolicies().getPolicyGroupRef();
                         }
                     }
                 } catch (Exception ex){
-                    LoggingUtils.logUnexpectedException(LOGGER, "Cannot retrieve system configuration", ex);
+                    LoggingUtils.logUnexpectedException(LOGGER, "Cannot retrieve archetype policy for " + getMainPanelFocusObject(), ex);
                 }
                 return policyGroupsList;
             }

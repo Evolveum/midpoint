@@ -147,8 +147,9 @@ public interface ModelInteractionService {
      * Returns an object that defines which roles can be assigned by the currently logged-in user.
      *
      * @param focus Object of the operation. The object (usually user) to whom the roles should be assigned.
+     * @param assignmentOrder order=0 means assignment, order>0 means inducement
      */
-    <F extends FocusType, R extends AbstractRoleType> RoleSelectionSpecification getAssignableRoleSpecification(PrismObject<F> focus, Class<R> targetType, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException;
+    <F extends FocusType, R extends AbstractRoleType> RoleSelectionSpecification getAssignableRoleSpecification(PrismObject<F> focus, Class<R> targetType, int assignmentOrder, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException;
 
     /**
      * Returns filter for lookup of donors or power of attorney. The donors are the users that have granted
@@ -366,4 +367,15 @@ public interface ModelInteractionService {
 	TaskType submitTaskFromTemplate(String templateTaskOid, Map<QName, Object> extensionValues, Task opTask, OperationResult result)
 			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
 			ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
+	
+	/**
+	 * Efficiently determines information about all archetype-related interactions for a particular object.
+	 * This include archetype policies, assignments, relations, etc. Returns null if no archetype policy is applicable.
+	 * This is a "one stop" method for archetype information in the GUI. The method returns archetype policy even
+	 * for "legacy" situations, e.g. if the policy needs to be determined from system configuration using legacy subtype.
+	 * GUI should not need to to any other processing to determine archetype-like information.
+	 * 
+	 * This method is supposed to be very efficient, it should be using caching as much as possible.
+	 */
+	<O extends ObjectType> ArchetypeInteractionSpecification getInteractionSpecification(PrismObject<O> object, OperationResult result) throws SchemaException, ConfigurationException;
 }

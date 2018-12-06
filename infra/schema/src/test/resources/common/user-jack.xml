@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2018 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -43,6 +43,18 @@
 			<t:clearValue>openS3zam3</t:clearValue>
 		</foo:password>
 	</extension>
+	
+	<assignment id="111">
+    	<extension>
+    		<ext:intType>42</ext:intType>
+    	</extension>
+    	<construction>
+			<resourceRef oid="2f9b9299-5555-5555-5555-000000001111" type="c:ResourceType"/>    		
+    	</construction>
+    	<activation>
+    		<administrativeStatus>enabled</administrativeStatus>
+    	</activation>
+    </assignment>
 
     <!-- Account as composite object, resource as reference -->
     <link oid="2f9b9299-6f45-498f-aaaa-000000001111">
@@ -77,18 +89,6 @@
             </q:equal>
     	</filter>
     </linkRef>
-
-   <assignment id="111">
-    	<extension>
-    		<ext:intType>42</ext:intType>
-    	</extension>
-    	<construction>
-			<resourceRef oid="2f9b9299-5555-5555-5555-000000001111" type="c:ResourceType"/>    		
-    	</construction>
-    	<activation>
-    		<administrativeStatus>enabled</administrativeStatus>
-    	</activation>
-    </assignment>
     
     <activation>
         <administrativeStatus>enabled</administrativeStatus>

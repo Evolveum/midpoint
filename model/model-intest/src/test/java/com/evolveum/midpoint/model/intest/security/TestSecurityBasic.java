@@ -42,6 +42,8 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.AllFilter;
+import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
@@ -1983,9 +1985,14 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         user = getUser(USER_JACK_OID);
         assertAssignments(user, 1);
 
-        RoleSelectionSpecification spec = getAssignableRoleSpecification(getUser(USER_JACK_OID));
-        assertRoleTypes(spec);
-        assertFilter(spec.getFilter(), TypeFilter.class);
+        RoleSelectionSpecification assignableSpec = getAssignableRoleSpecification(getUser(USER_JACK_OID), 0);
+        assertRoleTypes(assignableSpec);
+        assertFilter(assignableSpec.getFilter(), TypeFilter.class);
+        
+        RoleSelectionSpecification induceableSpec = getAssignableRoleSpecification(getRole(ROLE_ASSIGN_REQUESTABLE_ROLES_OID), RoleType.class, 1);
+        display("Induceable role spec", induceableSpec);
+        assertRoleTypes(induceableSpec);
+        assertFilter(induceableSpec.getFilter(), NoneFilter.class);
 
         assertGlobalStateUntouched();
 	}
@@ -2033,6 +2040,62 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 		assertAssignments(user, OrgType.class,0);
 
 		assertGlobalStateUntouched();
+	}
+	
+	/**
+	 * MID-5005
+	 */
+	@Test
+    public void test275cAutzJackAssignRequestableRolesAndInduceAnyRole() throws Exception {
+		final String TEST_NAME = "test275cAutzJackAssignRequestableRolesAndInduceAnything";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_ASSIGN_REQUESTABLE_ROLES_OID);
+        assignRole(USER_JACK_OID, ROLE_INDUCE_ANY_ROLE_OID);
+
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        assertReadAllow(NUMBER_OF_ALL_USERS + 1);
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        assertAssignments(user, 2);
+        assertAssignedRole(user, ROLE_ASSIGN_REQUESTABLE_ROLES_OID);
+
+        assertAllow("assign business role to jack",
+        		(task, result) -> assignRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, task, result));
+
+        user = getUser(USER_JACK_OID);
+        assertAssignments(user, 3);
+        assertAssignedRole(user, ROLE_BUSINESS_1_OID);
+
+        assertDeny("assign application role to jack",
+        		(task, result) -> assignRole(USER_JACK_OID, ROLE_BUSINESS_2_OID, task, result));
+
+        assertAllow("unassign business role from jack",
+        		(task, result) -> unassignRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, task, result));
+
+        user = getUser(USER_JACK_OID);
+        assertAssignments(user, 2);
+
+        RoleSelectionSpecification assignableSpec = getAssignableRoleSpecification(getUser(USER_JACK_OID), 0);
+        assertRoleTypes(assignableSpec);
+        assertFilter(assignableSpec.getFilter(), TypeFilter.class);
+        
+        RoleSelectionSpecification induceableSpec = getAssignableRoleSpecification(getRole(ROLE_ASSIGN_REQUESTABLE_ROLES_OID), RoleType.class, 1);
+        display("Induceable role spec", induceableSpec);
+        assertRoleTypes(induceableSpec);
+        assertFilter(induceableSpec.getFilter(), null);
+
+        assertGlobalStateUntouched();
 	}
 
 	/**

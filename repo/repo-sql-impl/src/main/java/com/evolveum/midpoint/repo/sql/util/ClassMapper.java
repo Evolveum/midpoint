@@ -20,6 +20,8 @@ import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.commons.lang.Validate;
@@ -35,6 +37,8 @@ import java.util.Map;
  * @author lazyman
  */
 public final class ClassMapper {
+
+    private static final Trace LOGGER = TraceManager.getTrace(ClassMapper.class);
 
     private static final Map<ObjectTypes, RObjectType> types = new HashMap<>();
 
@@ -70,11 +74,13 @@ public final class ClassMapper {
         types.put(ObjectTypes.CASE, RObjectType.CASE);
         types.put(ObjectTypes.FUNCTION_LIBRARY, RObjectType.FUNCTION_LIBRARY);
         types.put(ObjectTypes.OBJECT_COLLECTION, RObjectType.OBJECT_COLLECTION);
+        types.put(ObjectTypes.ARCHETYPE, RObjectType.ARCHETYPE);
 
         for (ObjectTypes type : ObjectTypes.values()) {
             if (!types.containsKey(type)) {
                 String message = "Not all object types are mapped by sql repo impl. Found '" + type + "' unmapped.";
                 System.err.println(message);
+                LOGGER.error(message);
                 throw new IllegalStateException(message);
             }
         }

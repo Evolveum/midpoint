@@ -1135,6 +1135,10 @@ public class AssignmentEvaluator<F extends FocusType> {
 			addIfNotThere(ctx.evalAssignment.getOrgRefVals(), ctx.evalAssignment::addOrgRefVal, membershipRefVal,
 					"orgRef", targetDesc);
 		}
+		if (ArchetypeType.class.isAssignableFrom(targetClass)) {
+			addIfNotThere(ctx.evalAssignment.getArchetypeRefVals(), ctx.evalAssignment::addArchetypeRefVal, membershipRefVal,
+					"archetypeRef", targetDesc);
+		}
 	}
 
 	private void addIfNotThere(Collection<PrismReferenceValue> collection, Consumer<PrismReferenceValue> setter,

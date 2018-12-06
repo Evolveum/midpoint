@@ -20,14 +20,9 @@ public class SynchronizationTests extends TestBase {
 
     private static File CSV_TARGET_FILE;
 
-    private static final File CSV_SOURCE_FILE = new File("./src/test/resources/midpoint-gorups-authoritative.csv");
-    private static final File CSV_INITIAL_SOURCE_FILE = new File("./src/test/resources/midpoint-gorups-authoritative-initial.csv");
-    private static final File CSV_UPDATED_SOURCE_FILE = new File("./src/test/resources/midpoint-gorups-authoritative-updated.csv");
-    private static final File RESOURCE_CSV_GROUPS_AUTHORITATIVE_FILE = new File("./src/test/resources/resource-csv-groups-authoritative.xml");
 
-    protected static final String RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME = "CSV (target with groups) authoritative";
-    protected static final String TEST_USER_DON_NAME= "donatello";
-    protected static final String TEST_USER_PROTECTED_NAME= "chief";
+    private static final File CSV_INITIAL_SOURCE_FILE = new File("./src/test/resources/midpoint-groups-authoritative-initial.csv");
+    private static final File CSV_UPDATED_SOURCE_FILE = new File("./src/test/resources/midpoint-groups-authoritative-updated.csv");
 
     private static final String RESOURCE_AND_SYNC_TASK_SETUP_DEPENDENCY = "setUpResourceAndSynchronizationTask";
     private static final String NEW_USER_AND_ACCOUNT_CREATED_DEPENDENCY = "newResourceAccountUserCreated";
@@ -47,15 +42,19 @@ public class SynchronizationTests extends TestBase {
         CSV_TARGET_FILE = new File(CSV_TARGET_DIR, FILE_RESOUCE_NAME);
         FileUtils.copyFile(CSV_INITIAL_SOURCE_FILE,CSV_TARGET_FILE);
 
-        importObject(RESOURCE_CSV_GROUPS_AUTHORITATIVE_FILE,true);
-        importObject(OrganizationStructureTests.USER_TEST_RAPHAEL_FILE,true);
+        importObject(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_FILE,true);
+        importObject(ScenariosCommons.USER_TEST_RAPHAEL_FILE,true);
 
-        changeResourceFilePath(RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME, AccountTests.CSV_SOURCE_OLDVALUE, CSV_TARGET_FILE.getAbsolutePath(), true);
-        refreshResourceSchema(RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME);
+        //changeResourceFilePath(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME, ScenariosCommons.CSV_SOURCE_OLDVALUE, CSV_TARGET_FILE.getAbsolutePath(), true);
+
+        changeResourceAttribute(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, CSV_TARGET_FILE.getAbsolutePath(), true);
+
+
+        refreshResourceSchema(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME);
         ListResourcesPage listResourcesPage = basicPage.listResources();
         listResourcesPage
                 .table()
-                    .clickByName(RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
+                    .clickByName(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
                         .clicAccountsTab()
                         .liveSyncTask()
                             .clickCreateNew()
@@ -75,7 +74,7 @@ public class SynchronizationTests extends TestBase {
     @Test (dependsOnMethods = {RESOURCE_AND_SYNC_TASK_SETUP_DEPENDENCY})
     public void newResourceAccountUserCreated() throws IOException {
 
-    FileUtils.copyFile(CSV_SOURCE_FILE,CSV_TARGET_FILE);
+    FileUtils.copyFile(ScenariosCommons.CSV_SOURCE_FILE,CSV_TARGET_FILE);
         Selenide.sleep(3000);
 
         ListUsersPage usersPage = basicPage.listUsers();
@@ -84,10 +83,10 @@ public class SynchronizationTests extends TestBase {
                 .table()
                     .search()
                         .byName()
-                        .inputValue(TEST_USER_DON_NAME)
+                        .inputValue(ScenariosCommons.TEST_USER_DON_NAME)
                     .updateSearch()
                 .and()
-                .currentTableContains(TEST_USER_DON_NAME)
+                .currentTableContains(ScenariosCommons.TEST_USER_DON_NAME)
         );
     }
 
@@ -100,10 +99,10 @@ public class SynchronizationTests extends TestBase {
                 .table()
                     .search()
                         .byName()
-                        .inputValue(TEST_USER_PROTECTED_NAME)
+                        .inputValue(ScenariosCommons.TEST_USER_PROTECTED_NAME)
                     .updateSearch()
                 .and()
-                .currentTableContains(TEST_USER_PROTECTED_NAME)
+                .currentTableContains(ScenariosCommons.TEST_USER_PROTECTED_NAME)
         );
         ListResourcesPage resourcesPage = basicPage.listResources();
 
@@ -113,14 +112,14 @@ public class SynchronizationTests extends TestBase {
                     .table()
                         .search()
                             .byName()
-                            .inputValue(RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
+                            .inputValue(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
                         .updateSearch()
                     .and()
-                    .clickByName(RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
+                    .clickByName(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
                         .clicAccountsTab()
                         .clickSearchInResource()
                             .table()
-                            .currentTableContains(TEST_USER_PROTECTED_NAME)
+                            .currentTableContains(ScenariosCommons.TEST_USER_PROTECTED_NAME)
         );
 
     }
@@ -134,13 +133,13 @@ public class SynchronizationTests extends TestBase {
                 .table()
                     .search()
                         .byName()
-                        .inputValue(TEST_USER_DON_NAME)
+                        .inputValue(ScenariosCommons.TEST_USER_DON_NAME)
                     .updateSearch()
                 .and()
-                    .clickByName(TEST_USER_DON_NAME)
+                    .clickByName(ScenariosCommons.TEST_USER_DON_NAME)
                         .selectTabProjections()
                             .table()
-                                .selectCheckboxByName(RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
+                                .selectCheckboxByName(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
                         .and()
                             .clickCog()
                                 .delete()
@@ -151,7 +150,7 @@ public class SynchronizationTests extends TestBase {
                             .feedback()
                             .isSuccess();
 
-        FileUtils.copyFile(CSV_SOURCE_FILE,CSV_TARGET_FILE);
+        FileUtils.copyFile(ScenariosCommons.CSV_SOURCE_FILE,CSV_TARGET_FILE);
         Selenide.sleep(3000);
 
         usersPage = basicPage.listUsers();
@@ -160,13 +159,13 @@ public class SynchronizationTests extends TestBase {
                 .table()
                     .search()
                         .byName()
-                        .inputValue(TEST_USER_DON_NAME)
+                        .inputValue(ScenariosCommons.TEST_USER_DON_NAME)
                     .updateSearch()
                 .and()
-                .clickByName(TEST_USER_DON_NAME)
+                .clickByName(ScenariosCommons.TEST_USER_DON_NAME)
                       .selectTabProjections()
                         .table()
-                        .currentTableContains(RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
+                        .currentTableContains(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
         );
 
     }
@@ -183,10 +182,10 @@ public class SynchronizationTests extends TestBase {
                     .table()
                         .search()
                             .byName()
-                            .inputValue(TEST_USER_DON_NAME)
+                            .inputValue(ScenariosCommons.TEST_USER_DON_NAME)
                         .updateSearch()
                     .and()
-                    .clickByName(TEST_USER_DON_NAME)
+                    .clickByName(ScenariosCommons.TEST_USER_DON_NAME)
                         .selectTabBasic()
                             .form()
                                 .compareInputAttributeValue("Given name","Donato")
@@ -205,10 +204,10 @@ public class SynchronizationTests extends TestBase {
                     .table()
                         .search()
                             .byName()
-                            .inputValue(TEST_USER_DON_NAME)
+                            .inputValue(ScenariosCommons.TEST_USER_DON_NAME)
                         .updateSearch()
                     .and()
-                    .currentTableContains(TEST_USER_DON_NAME)
+                    .currentTableContains(ScenariosCommons.TEST_USER_DON_NAME)
         );
     }
 
@@ -227,7 +226,7 @@ public class SynchronizationTests extends TestBase {
                         .clickByName("raphael")
                             .selectTabProjections()
                                 .table()
-                                .currentTableContains(RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
+                                .currentTableContains(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
         );
 
         ListResourcesPage resourcesPage = basicPage.listResources();
@@ -236,10 +235,10 @@ public class SynchronizationTests extends TestBase {
                     .table()
                         .search()
                             .byName()
-                            .inputValue(RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
+                            .inputValue(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
                         .updateSearch()
                     .and()
-                    .clickByName(RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
+                    .clickByName(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
                         .clicAccountsTab()
                         .clickSearchInResource()
                             .table()
@@ -265,18 +264,18 @@ public class SynchronizationTests extends TestBase {
                         .clickByName("raphael")
                             .selectTabProjections()
                                 .table()
-                                .currentTableContains(RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
+                                .currentTableContains(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
         );
     }
 
 
 
-@Test (dependsOnMethods = {LINKED_USER_ACCOUNT_DELETED})
+@Test(dependsOnMethods = {LINKED_USER_ACCOUNT_DELETED})
     public void resourceAccountCreatedWhenResourceUnreachable() throws IOException {
 
-        changeResourceFilePath(RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME, AccountTests.CSV_SOURCE_OLDVALUE, CSV_TARGET_FILE.getAbsolutePath()+"err", false);
+        changeResourceAttribute(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME,  ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, CSV_TARGET_FILE.getAbsolutePath()+"err", false);
 
-        FileUtils.copyFile(CSV_SOURCE_FILE,CSV_TARGET_FILE);
+        FileUtils.copyFile(ScenariosCommons.CSV_SOURCE_FILE,CSV_TARGET_FILE);
 
         Selenide.sleep(3000);
 
@@ -286,15 +285,16 @@ public class SynchronizationTests extends TestBase {
                     .table()
                         .search()
                             .byName()
-                            .inputValue(TEST_USER_DON_NAME)
+                            .inputValue(ScenariosCommons.TEST_USER_DON_NAME)
                         .updateSearch()
                     .and()
-                    .currentTableContains(TEST_USER_DON_NAME)
+                    .currentTableContains(ScenariosCommons.TEST_USER_DON_NAME)
         );
 
-        changeResourceFilePath(RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME, AccountTests.CSV_SOURCE_OLDVALUE, CSV_TARGET_FILE.getAbsolutePath(), true);
+    changeResourceAttribute(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, CSV_TARGET_FILE.getAbsolutePath(), true);
 
-        ListTasksPage  tasksPage = basicPage.listTasks();
+
+    ListTasksPage  tasksPage = basicPage.listTasks();
         tasksPage
             .table()
                 .clickByName("LiveSyncTest")
@@ -309,10 +309,10 @@ public class SynchronizationTests extends TestBase {
                     .table()
                         .search()
                             .byName()
-                            .inputValue(TEST_USER_DON_NAME)
+                            .inputValue(ScenariosCommons.TEST_USER_DON_NAME)
                         .updateSearch()
                     .and()
-                    .currentTableContains(TEST_USER_DON_NAME)
+                    .currentTableContains(ScenariosCommons.TEST_USER_DON_NAME)
         );
     }
 
@@ -325,13 +325,13 @@ public class SynchronizationTests extends TestBase {
                     .table()
                         .search()
                             .byName()
-                            .inputValue(OrganizationStructureTests.TEST_USER_RAPHAEL_NAME)
+                            .inputValue(ScenariosCommons.TEST_USER_RAPHAEL_NAME)
                         .updateSearch()
                     .and()
-                        .clickByName(OrganizationStructureTests.TEST_USER_RAPHAEL_NAME)
+                        .clickByName(ScenariosCommons.TEST_USER_RAPHAEL_NAME)
                             .selectTabProjections()
                                 .table()
-                                .selectCheckboxByName(RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
+                                .selectCheckboxByName(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
                             .and()
                                 .clickCog()
                                     .delete()
@@ -343,11 +343,11 @@ public class SynchronizationTests extends TestBase {
                     .isSuccess()
         );
 
-        changeResourceFilePath(RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME ,AccountTests.CSV_SOURCE_OLDVALUE, CSV_TARGET_FILE.getAbsolutePath()+"err",false);
+        changeResourceAttribute(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME , ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, CSV_TARGET_FILE.getAbsolutePath()+"err",false);
 
-        FileUtils.copyFile(CSV_SOURCE_FILE,CSV_TARGET_FILE);
+        FileUtils.copyFile(ScenariosCommons.CSV_SOURCE_FILE,CSV_TARGET_FILE);
 
-        changeResourceFilePath(RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME ,AccountTests.CSV_SOURCE_OLDVALUE, CSV_TARGET_FILE.getAbsolutePath(),true);
+        changeResourceAttribute(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME , ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, CSV_TARGET_FILE.getAbsolutePath(),true);
 
 
         ListTasksPage  tasksPage = basicPage.listTasks();
@@ -364,47 +364,13 @@ public class SynchronizationTests extends TestBase {
                     .table()
                         .search()
                             .byName()
-                            .inputValue(OrganizationStructureTests.TEST_USER_RAPHAEL_NAME)
+                            .inputValue(ScenariosCommons.TEST_USER_RAPHAEL_NAME)
                         .updateSearch()
                     .and()
-                    .clickByName(OrganizationStructureTests.TEST_USER_RAPHAEL_NAME)
+                    .clickByName(ScenariosCommons.TEST_USER_RAPHAEL_NAME)
                             .selectTabProjections()
                                 .table()
-                        .currentTableContains(RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
+                        .currentTableContains(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
         );
-
     }
-
-      public void changeResourceFilePath(String resourceName,String oldValue, String newValue, Boolean shouldBeSuccess){
-        ListResourcesPage listResourcesPage = basicPage.listResources();
-
-        if(shouldBeSuccess){
-            Assert.assertTrue(
-                    listResourcesPage
-                        .table()
-                            .clickByName(resourceName)
-                                .clickEditResourceConfiguration()
-                                    .form()
-                                    .changeAttributeValue("File path",oldValue, newValue)
-                                .and()
-                            .and()
-                                .clickSaveAndTestConnection()
-                                .isTestSuccess()
-            );
-          }else{
-            Assert.assertTrue(
-                    listResourcesPage
-                        .table()
-                            .clickByName(resourceName)
-                                .clickEditResourceConfiguration()
-                                    .form()
-                                    .changeAttributeValue("File path",oldValue, newValue)
-                                .and()
-                            .and()
-                                .clickSaveAndTestConnection()
-                                .isTestFailure()
-            );
-        }
-      }
-
 }

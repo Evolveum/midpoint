@@ -431,12 +431,10 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 	/**
 	 * Modify resource (but make sure that connector configuration is the same).
 	 * Make just small an unimportant change in the connector. That should increase the version
-	 * number which should purge all the caches. Therefore a new connector instance should be used
-	 * (new connector instance number).
-	 * The problem with MID-3104 was, that midPoint caches got purged. But as the configuration
-	 * of old and new connector was the same, then ConnId assumed that it is still the same
-	 * connector and reused the pooled instances.
-	 * MID-3104
+	 * number which should purge resource caches. But the connector instance should still be the
+	 * same because connector configuration haven't changed. We do NOT want to purge connector cache
+	 * (and re-create connector) after every minor change to the resource. In that case change in
+	 * resource availability status can trigger quite a lot of connector re-initializations. 
 	 */
 	@Test
     public void test506ModifyResourceGetAccountJackResourceScripty() throws Exception {
@@ -471,7 +469,8 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 
 		Integer dummyConnectorNumber = ShadowUtil.getAttributeValue(accountShadow, 
 				getDummyResourceController(RESOURCE_DUMMY_SCRIPTY_NAME).getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEALTH_NAME));
-		assertFalse("Connector number is still the same: "+dummyConnectorNumber, lastDummyConnectorNumber == dummyConnectorNumber);
+		assertTrue("Connector number hash changed: "+lastDummyConnectorNumber+" -> "+dummyConnectorNumber,
+				lastDummyConnectorNumber.equals(dummyConnectorNumber));
 	}
 	
 

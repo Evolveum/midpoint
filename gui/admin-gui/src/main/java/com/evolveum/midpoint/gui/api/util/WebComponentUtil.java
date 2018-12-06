@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.SubscriptionType;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyValueModel;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -52,6 +54,7 @@ import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.model.api.util.ResourceUtils;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
+import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -61,6 +64,7 @@ import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
 import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
+import com.evolveum.midpoint.web.component.input.ExpressionValuePanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.*;
@@ -257,6 +261,22 @@ public final class WebComponentUtil {
 
 	}
 
+	public enum AssignmentOrder{
+
+		ASSIGNMENT(0),
+		INDUCEMENT(1);
+
+		private int order;
+
+		AssignmentOrder(int order){
+			this.order = order;
+		}
+
+		public int getOrder() {
+			return order;
+		}
+	}
+
 	public static String nl2br(String text) {
 		if (text == null) {
 			return null;
@@ -302,6 +322,58 @@ public final class WebComponentUtil {
 			sb.append(emptyIfNull(createStringResourceStatic(null, descriptor.getLocalizationKey()).getString())).append(")");
 		}
 		return sb.toString();
+	}
+
+	public static <O extends ObjectType> List<O> loadReferencedObjectList(List<ObjectReferenceType> refList, String operation, PageBase pageBase){
+		List<O> loadedObjectsList = new ArrayList<>();
+		if (refList == null){
+			return loadedObjectsList;
+		}
+		refList.forEach(objectRef -> {
+			OperationResult result = new OperationResult(operation);
+			PrismObject<O> loadedObject = WebModelServiceUtils.resolveReferenceNoFetch(objectRef, pageBase, pageBase.createSimpleTask(operation), result);
+			if (loadedObject != null) {
+				loadedObjectsList.add(loadedObject.asObjectable());
+			}
+		});
+		return loadedObjectsList;
+	}
+
+	public static ObjectFilter getShadowTypeFilterForAssociation(ConstructionType construction, String operation, PageBase pageBase){
+		ObjectQuery query = new ObjectQuery();
+
+		if (construction == null){
+			return null;
+		}
+		PrismObject<ResourceType> resource = WebComponentUtil.getConstructionResource(construction, operation, pageBase);
+		if (resource == null){
+			return null;
+		}
+
+		try {
+			RefinedResourceSchema refinedResourceSchema = RefinedResourceSchema.getRefinedSchema(resource);
+			RefinedObjectClassDefinition oc = refinedResourceSchema.getRefinedDefinition(construction.getKind(), construction.getIntent());
+			if (oc == null){
+				return null;
+			}
+			Collection<RefinedAssociationDefinition> refinedAssociationDefinitions = oc.getAssociationDefinitions();
+
+			for (RefinedAssociationDefinition refinedAssociationDefinition : refinedAssociationDefinitions) {
+				S_FilterEntryOrEmpty atomicFilter = QueryBuilder.queryFor(ShadowType.class, pageBase.getPrismContext());
+				List<ObjectFilter> orFilterClauses = new ArrayList<>();
+				refinedAssociationDefinition.getIntents()
+						.forEach(intent -> orFilterClauses.add(atomicFilter.item(ShadowType.F_INTENT).eq(intent).buildFilter()));
+				OrFilter intentFilter = OrFilter.createOr(orFilterClauses);
+
+				AndFilter filter = (AndFilter) atomicFilter.item(ShadowType.F_KIND).eq(refinedAssociationDefinition.getKind()).and()
+						.item(ShadowType.F_RESOURCE_REF).ref(resource.getOid(), ResourceType.COMPLEX_TYPE).buildFilter();
+				filter.addCondition(intentFilter);
+				query.setFilter(filter);
+			}
+		} catch (SchemaException ex) {
+			LOGGER.error("Couldn't create query filter for ShadowType for association: {}" , ex.getErrorTypeMessage());
+		}
+		return query.getFilter();
 	}
 
 	public static void addAjaxOnUpdateBehavior(WebMarkupContainer container) {
@@ -1761,7 +1833,7 @@ public final class WebComponentUtil {
 	public static String getRelationHeaderLabelKeyIfKnown(QName relation) {
 		RelationDefinitionType definition = getRelationRegistry().getRelationDefinition(relation);
 		if (definition != null && definition.getDisplay() != null && definition.getDisplay().getLabel() != null) {
-			return definition.getDisplay().getLabel();
+			return definition.getDisplay().getLabel().getOrig();
 		} else {
 			return null;
 		}
@@ -2790,8 +2862,8 @@ public final class WebComponentUtil {
 			if (StringUtils.isEmpty(templateOid)) {
 				return;
 			}
-			String label = action.getDisplay() != null && StringUtils.isNotEmpty(action.getDisplay().getLabel()) ?
-					action.getDisplay().getLabel() : action.getName();
+			String label = action.getDisplay() != null && PolyStringUtils.isNotEmpty(action.getDisplay().getLabel()) ?
+					action.getDisplay().getLabel().getOrig() : action.getName();
 			menuItems.add(new InlineMenuItem(Model.of(label)) {
 				private static final long serialVersionUID = 1L;
 
@@ -2860,14 +2932,14 @@ public final class WebComponentUtil {
 		WebComponentUtil.staticallyProvidedRelationRegistry = staticallyProvidedRelationRegistry;
 	}
 
-	public static ObjectFilter getAssignableRolesFilter(PrismObject<? extends FocusType> focusObject, Class<? extends AbstractRoleType> type,
+	public static ObjectFilter getAssignableRolesFilter(PrismObject<? extends FocusType> focusObject, Class<? extends AbstractRoleType> type, AssignmentOrder assignmentOrder,
 														OperationResult result, Task task, PageBase pageBase) {
 		ObjectFilter filter = null;
 		LOGGER.debug("Loading objects which can be assigned");
 		try {
 			ModelInteractionService mis = pageBase.getModelInteractionService();
 			RoleSelectionSpecification roleSpec =
-					mis.getAssignableRoleSpecification(focusObject, type, task, result);
+					mis.getAssignableRoleSpecification(focusObject, type, assignmentOrder.getOrder(), task, result);
 			filter = roleSpec.getFilter();
 		} catch (Exception ex) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load available roles", ex);
@@ -2913,5 +2985,106 @@ public final class WebComponentUtil {
         duration = StringUtils.replaceOnce(duration, "day", pageBase.createStringResource("WebComponentUtil.formatDurationWordsForLocal.day").getString());
 		
 		return duration;
+	}
+
+	public static List<RefinedAssociationDefinition> getRefinedAssociationDefinition(ResourceType resource, ShadowKindType kind, String intent){
+		List<RefinedAssociationDefinition> associationDefinitions = new ArrayList<>();
+
+		try {
+
+			if (resource == null) {
+				return associationDefinitions;
+			}
+			RefinedResourceSchema refinedResourceSchema = RefinedResourceSchema.getRefinedSchema(resource.asPrismObject());
+			RefinedObjectClassDefinition oc = refinedResourceSchema.getRefinedDefinition(kind, intent);
+			if (oc == null) {
+				LOGGER.debug("Association for {}/{} not supported by resource {}", kind, intent, resource);
+				return associationDefinitions;
+			}
+			associationDefinitions.addAll(oc.getAssociationDefinitions());
+
+			if (CollectionUtils.isEmpty(associationDefinitions)) {
+				LOGGER.debug("Association for {}/{} not supported by resource {}", kind, intent, resource);
+				return associationDefinitions;
+			}
+		} catch (Exception ex) {
+			LOGGER.error("Association for {}/{} not supported by resource {}", kind, intent, resource, ex.getLocalizedMessage());
+		}
+		return associationDefinitions;
+	}
+
+	public static String getAssociationDisplayName(RefinedAssociationDefinition assocDef) {
+		if (assocDef == null){
+			return "";
+		}
+		StringBuilder sb = new StringBuilder();
+		if (assocDef.getDisplayName() != null) {
+			sb.append(assocDef.getDisplayName()).append(", ");
+		}
+		if (assocDef.getResourceObjectAssociationType() != null && assocDef.getResourceObjectAssociationType().getRef() != null) {
+			sb.append("ref: ").append(assocDef.getResourceObjectAssociationType().getRef().getItemPath().toString());
+		}
+		return sb.toString();
+	}
+
+	public static ExpressionType getAssociationExpression(ContainerValueWrapper<AssignmentType> assignmentValueWrapper) {
+		return getAssociationExpression(assignmentValueWrapper, false);
+	}
+
+	public static ExpressionType getAssociationExpression(ContainerValueWrapper<AssignmentType> assignmentValueWrapper,
+														  boolean createIfNotExist){
+		if (assignmentValueWrapper == null){
+			return null;
+		}
+
+		ContainerWrapper<ConstructionType> construction = assignmentValueWrapper
+				.findContainerWrapper(new ItemPath(assignmentValueWrapper.getPath(), AssignmentType.F_CONSTRUCTION));
+		if (construction == null){
+			return null;
+		}
+		ContainerWrapper<ResourceObjectAssociationType> association = construction
+				.findContainerWrapper(new ItemPath(construction.getPath(), ConstructionType.F_ASSOCIATION));
+		if (association == null || association.getValues() == null || association.getValues().size() == 0){
+			return null;
+		}
+		//HACK not to add empty association value
+		if (ContainerStatus.ADDING.equals(association.getStatus())){
+			association.getItem().clear();
+		}
+		ContainerValueWrapper<ResourceObjectAssociationType> associationValueWrapper = association.getValues().get(0);
+		ContainerWrapper<MappingType> outbound =
+				associationValueWrapper.findContainerWrapper(new ItemPath(associationValueWrapper.getPath(), ResourceObjectAssociationType.F_OUTBOUND));
+
+		if (outbound == null){
+			return null;
+		}
+		PropertyOrReferenceWrapper expressionWrapper = outbound.findPropertyWrapper(MappingType.F_EXPRESSION);
+		if (expressionWrapper == null){
+			return null;
+		}
+		List<ValueWrapper<ExpressionType>> expressionValues = expressionWrapper.getValues();
+		if (expressionValues == null || expressionValues.size() == 0){
+			return null;
+		}
+		ExpressionType expression = expressionValues.get(0).getValue().getRealValue();
+		if (expression == null && createIfNotExist){
+			expression = new ExpressionType();
+			PrismPropertyValue<ExpressionType> exp = new PrismPropertyValue<>(expression);
+			ValueWrapper<ExpressionType> val = new ValueWrapper<>(expressionWrapper, exp);
+			expressionValues.remove(0);
+			expressionValues.add(0, val);
+		}
+		return expressionValues.get(0).getValue().getRealValue();
+	}
+
+	public static PrismObject<ResourceType> getConstructionResource(ConstructionType construction, String operation, PageBase pageBase){
+		ResourceType resource = construction.getResource();
+		if (resource != null){
+			return resource.asPrismObject();
+		}
+		ObjectReferenceType resourceRef = construction.getResourceRef();
+		OperationResult result = new OperationResult(operation);
+		Task task = pageBase.createSimpleTask(operation);
+		return WebModelServiceUtils.resolveReferenceNoFetch(resourceRef, pageBase, task, result);
 	}
 }
