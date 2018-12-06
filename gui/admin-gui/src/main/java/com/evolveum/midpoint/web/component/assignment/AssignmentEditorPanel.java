@@ -857,7 +857,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 			result.recordSuccess();
 		} catch (Exception ex) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Exception occurred during assignment attribute loading", ex);
-			result.recordFatalError("Exception occurred during assignment attribute loading.", ex);
+			result.recordFatalError(createStringResource("AssignmentEditorPanel.message.loadAttributes.fatalError").getString(), ex);
 		} finally {
 			result.recomputeStatus();
 		}
@@ -904,7 +904,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 			subResult.recordSuccess();
 		} catch (Exception ex) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get account construction resource ref", ex);
-			subResult.recordFatalError("Couldn't get account construction resource ref.", ex);
+			subResult.recordFatalError(createStringResource("AssignmentEditorPanel.message.getReference.fatalError").getString(), ex);
 		}
 
 		return target;

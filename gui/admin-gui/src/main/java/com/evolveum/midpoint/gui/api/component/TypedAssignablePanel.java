@@ -453,7 +453,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
                         filter = roleSpec.getFilter();
                     } catch (Exception ex) {
                         LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load available roles", ex);
-                        result.recordFatalError("Couldn't load available roles", ex);
+                        result.recordFatalError(createStringResource("TypedAssignablePanel.message.addFilterToContentQuery.fatalError").getString(), ex);
                     } finally {
                         result.recomputeStatus();
                     }

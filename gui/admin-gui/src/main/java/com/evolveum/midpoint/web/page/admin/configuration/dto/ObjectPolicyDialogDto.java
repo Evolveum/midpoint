@@ -61,11 +61,13 @@ public class ObjectPolicyDialogDto implements Serializable{
     private QName type;
     private String subtype;
     private ObjectTemplateConfigTypeReferenceDto templateRef;
+    PageBase page;
 
     public ObjectPolicyDialogDto(ObjectPolicyConfigurationType config, PageBase page) {
         this.config = config;
         type = config.getType();
         subtype = config.getSubtype();
+        this.page =page;
 
 //        for (PropertyConstraintType constraint : config.getPropertyConstraint()) {
 //        	propertyConstraintsList.add(new PropertyConstraintTypeDto(constraint));
@@ -89,7 +91,7 @@ public class ObjectPolicyDialogDto implements Serializable{
         for (PropertyConstraintType constraintType : propertyConstraintsList) {
         		PrismContainerValue<PropertyConstraintType> constraint = constraintType.asPrismContainerValue();
         		if (BooleanUtils.isTrue(constraintType.isOidBound()) && constraintType.getPath() == null) {
-        			result.recordWarning("Skipping setting property constraint, no path was defined.");
+        			result.recordWarning(page.createStringResource("ObjectPolicyDialogDto.message.preparePolicyConfig.warning").getString());
         		}
         		if (!constraint.isEmpty() && constraintType.getPath() != null) {
         			newConfig.getPropertyConstraint().add(constraint.clone().asContainerable());

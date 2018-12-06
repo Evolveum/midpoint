@@ -108,7 +108,7 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
             filter = roleSpec.getFilter();
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load available roles", ex);
-            result.recordFatalError("Couldn't load available roles", ex);
+            result.recordFatalError(createStringResource("FocusTypeAssignmentPopupTabPanel.message.addFilterToContentQuery.fatalError").getString(), ex);
         } finally {
             result.recomputeStatus();
         }

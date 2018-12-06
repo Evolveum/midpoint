@@ -104,7 +104,7 @@ public abstract class DataLanguagePanel<T> extends MultiStateHorizontalButton {
 				target.add(pageBase.getFeedbackPanel());
 			}
 		} catch (Exception ex) {
-			result.recordFatalError("Couldn't change the language.", ex);
+			result.recordFatalError(createStringResource("DataLanguagePanel.message.onStateChanged.fatalError").getString(), ex);
 			pageBase.showResult(result);
 			target.add(this);
 			target.add(pageBase.getFeedbackPanel());
