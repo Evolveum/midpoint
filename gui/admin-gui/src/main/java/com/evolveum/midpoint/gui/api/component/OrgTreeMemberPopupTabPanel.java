@@ -62,6 +62,11 @@ public abstract class OrgTreeMemberPopupTabPanel extends MemberPopupTabPanel<Org
             protected boolean isAssignButtonVisible(){
                 return false;
             }
+
+            @Override
+            protected boolean isInducement(){
+                return OrgTreeMemberPopupTabPanel.this.isInducement();
+            }
         };
         orgTreePanel.setOutputMarkupId(true);
         add(orgTreePanel);

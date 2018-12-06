@@ -200,7 +200,12 @@ public class OrgTreeAssignablePanel  extends BasePanel<OrgType> implements Popup
 		Task task = getPageBase().createSimpleTask(OPERATION_LOAD_ASSIGNABLE_ITEMS);
 		OperationResult result = task.getResult();
 		return WebComponentUtil.getAssignableRolesFilter(getAssignmentOwnerObject().asPrismObject(), OrgType.class,
+				isInducement() ? WebComponentUtil.AssignmentOrder.INDUCEMENT : WebComponentUtil.AssignmentOrder.ASSIGNMENT,
 				result, task, getPageBase());
+	}
+
+	protected boolean isInducement(){
+		return false;
 	}
 
 	protected <F extends FocusType> F getAssignmentOwnerObject(){

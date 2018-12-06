@@ -445,7 +445,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	}
 
 	@Override
-	public <F extends FocusType, R extends AbstractRoleType> RoleSelectionSpecification getAssignableRoleSpecification(PrismObject<F> focus, Class<R> targetType, Task task, OperationResult parentResult)
+	public <F extends FocusType, R extends AbstractRoleType> RoleSelectionSpecification getAssignableRoleSpecification(PrismObject<F> focus, Class<R> targetType, int assignmentOrder, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
 		OperationResult result = parentResult.createMinorSubresult(GET_ASSIGNABLE_ROLE_SPECIFICATION);
 
@@ -458,13 +458,23 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			result.recordFatalError(e);
 			throw e;
 		}
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Security constrains for getAssignableRoleSpecification on {}:\n{}", focus, securityConstraints==null?null:securityConstraints.debugDump(1));
+		}
 		if (securityConstraints == null) {
 			return null;
 		}
-		AuthorizationDecisionType decision = securityConstraints.findItemDecision(SchemaConstants.PATH_ASSIGNMENT,
+		ItemPath assignmentPath;
+		if (assignmentOrder == 0) {
+			assignmentPath = SchemaConstants.PATH_ASSIGNMENT;
+		} else {
+			assignmentPath = SchemaConstants.PATH_INDUCEMENT;
+		}
+		AuthorizationDecisionType decision = securityConstraints.findItemDecision(assignmentPath,
 				ModelAuthorizationAction.MODIFY.getUrl(), AuthorizationPhaseType.REQUEST);
+		LOGGER.trace("getAssignableRoleSpecification decision for {}:{}", assignmentPath, decision);
 		if (decision == AuthorizationDecisionType.ALLOW) {
-			 getAllRoleTypesSpec(spec, result);
+			getAllRoleTypesSpec(spec, result);
 			result.recordSuccess();
 			return spec;
 		}
@@ -487,9 +497,13 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			return spec;
 		}
 
+		OrderConstraintsType orderConstraints = new OrderConstraintsType();
+		orderConstraints.setOrder(assignmentOrder);
+		List<OrderConstraintsType> orderConstraintsList = new ArrayList<>(1);
+		orderConstraintsList.add(orderConstraints);
 		try {
 			ObjectFilter filter = securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ASSIGN,
-					AuthorizationPhaseType.REQUEST, targetType, focus, AllFilter.createAll(), null, task, result);
+					AuthorizationPhaseType.REQUEST, targetType, focus, AllFilter.createAll(), null, orderConstraintsList, task, result);
 			LOGGER.trace("assignableRoleSpec filter: {}", filter);
 			spec.setFilter(filter);
 			if (filter instanceof NoneFilter) {
@@ -678,7 +692,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
 	@Override
 	public <T extends ObjectType> ObjectFilter getDonorFilter(Class<T> searchResultType, ObjectFilter origFilter, String targetAuthorizationAction, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-		return securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ATTORNEY, null, searchResultType, null, origFilter, targetAuthorizationAction, task, parentResult);
+		return securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ATTORNEY, null, searchResultType, null, origFilter, targetAuthorizationAction, null, task, parentResult);
 	}
 
 	@Override

@@ -167,13 +167,9 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
                }
                
                @Override
-            protected <F extends FocusType> PrismObject<F> getTargetedObject() {
-				ObjectWrapper<F> w = AbstractRoleAssignmentPanel.this.getModelObject().getObjectWrapper();
-				if (w == null) {
-					return null;
-				}
-            	return w.getObject();
-            }
+               protected ContainerWrapper<AssignmentType> getAssignmentWrapperModel() {
+                   return AbstractRoleAssignmentPanel.this.getModelObject();
+               }
                
            };
            popupPanel.setOutputMarkupId(true);

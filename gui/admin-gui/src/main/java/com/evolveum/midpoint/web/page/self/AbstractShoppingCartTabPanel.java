@@ -310,7 +310,7 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
         Task task = getPageBase().createSimpleTask(OPERATION_LOAD_ASSIGNABLE_ROLES);
         OperationResult result = task.getResult();
         return WebComponentUtil.getAssignableRolesFilter(getTargetUser().asPrismObject(), (Class) ObjectTypes.getObjectTypeClass(getQueryType()),
-                result, task, getPageBase());
+                WebComponentUtil.AssignmentOrder.ASSIGNMENT, result, task, getPageBase());
     }
 
     protected abstract QName getQueryType();
