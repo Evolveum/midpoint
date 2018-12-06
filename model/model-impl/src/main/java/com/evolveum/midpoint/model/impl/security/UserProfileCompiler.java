@@ -262,15 +262,18 @@ public class UserProfileCompiler {
 	public CompiledUserProfile compileUserProfile(@NotNull List<AdminGuiConfigurationType> adminGuiConfigurations,
 			PrismObject<SystemConfigurationType> systemConfiguration) {
 
+		AdminGuiConfigurationType globalAdminGuiConfig = null;
+		if (systemConfiguration != null) {
+			globalAdminGuiConfig = systemConfiguration.asObjectable().getAdminGuiConfiguration();
+		}
 		// if there's no admin config at all, return null (to preserve original behavior)
-		if (adminGuiConfigurations.isEmpty() &&
-				(systemConfiguration == null || systemConfiguration.asObjectable().getAdminGuiConfiguration() == null)) {
+		if (adminGuiConfigurations.isEmpty() && globalAdminGuiConfig == null) {
 			return null;
 		}
 
 		CompiledUserProfile composite = new CompiledUserProfile();
-		if (systemConfiguration != null) {
-			applyAdminGuiConfiguration(composite, systemConfiguration.asObjectable().getAdminGuiConfiguration());
+		if (globalAdminGuiConfig != null) {
+			applyAdminGuiConfiguration(composite, globalAdminGuiConfig);
 		}
 		for (AdminGuiConfigurationType adminGuiConfiguration: adminGuiConfigurations) {
 			applyAdminGuiConfiguration(composite, adminGuiConfiguration);
@@ -364,6 +367,10 @@ public class UserProfileCompiler {
 				composite.setDefaultObjectCollectionView(new CompiledObjectCollectionView());
 			}
 			compileView(composite.getDefaultObjectCollectionView(), viewsType.getDefault());
+		}
+		
+		for (GuiObjectListViewType objectCollectionView : viewsType.getObjectList()) { // Compatibility, legacy
+			applyView(composite, objectCollectionView);
 		}
 		
 		for (GuiObjectListViewType objectCollectionView : viewsType.getObjectCollectionView()) {
@@ -649,9 +656,7 @@ public class UserProfileCompiler {
 		if (systemConfiguration == null) {
 			return null;
 		}
-		AdminGuiConfigurationType globalAdminGuiConfiguration = systemConfiguration.asObjectable().getAdminGuiConfiguration();
 		List<AdminGuiConfigurationType> adminGuiConfigurations = new ArrayList<>();
-		adminGuiConfigurations.add(globalAdminGuiConfiguration);
 		CompiledUserProfile compiledUserProfile = compileUserProfile(adminGuiConfigurations, systemConfiguration);
 		// TODO: cache compiled profile
 		return compiledUserProfile;

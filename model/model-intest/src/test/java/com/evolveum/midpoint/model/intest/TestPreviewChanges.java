@@ -410,7 +410,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-
+        
 		// WHEN
 		CompiledUserProfile compiledUserProfile = modelInteractionService.getCompiledUserProfile(task, result);
 
