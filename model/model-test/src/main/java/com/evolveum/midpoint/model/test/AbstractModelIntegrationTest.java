@@ -105,6 +105,7 @@ import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.stringpolicy.UserValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.model.test.asserter.ArchetypeInteractionSpecificationAsserter;
+import com.evolveum.midpoint.model.test.asserter.CompiledUserProfileAsserter;
 import com.evolveum.midpoint.model.test.asserter.ModelContextAsserter;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.transports.Message;
@@ -4733,45 +4734,22 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 	}
 
-	protected CompiledUserProfile assertCompiledUserProfile(MidPointPrincipal principal, int expectedMenuLinks,
-			int expectedDashboardLinks, int expectedObjectLists, int expectedObjectForms, int expecteduserDashboardWidgets) {
+	protected CompiledUserProfileAsserter<Void> assertCompiledUserProfile(MidPointPrincipal principal) {
 		if (!(principal instanceof MidPointUserProfilePrincipal)) {
 			fail("Expected MidPointUserProfilePrincipal, but got "+principal.getClass());
 		}
 		CompiledUserProfile compiledUserProfile = ((MidPointUserProfilePrincipal)principal).getCompiledUserProfile();
-		display("Compiled user profile for "+principal.getUsername(), compiledUserProfile);
-		assertCompiledUserProfile(compiledUserProfile,
-				expectedMenuLinks, expectedDashboardLinks, expectedObjectLists, expectedObjectForms, expecteduserDashboardWidgets);
-		return compiledUserProfile;
+		CompiledUserProfileAsserter<Void> asserter = new CompiledUserProfileAsserter<>(compiledUserProfile, null, "in principal "+principal);
+		initializeAsserter(asserter);
+		asserter.display();
+		return asserter;
 	}
-
-	protected void assertCompiledUserProfile(CompiledUserProfile compiledUserProfile,
-			int expectedMenuLinks, int expectedDashboardLinks, int expectedObjectLists, int expectedObjectForms, int expecteduserDashboardWidgets) {
-		assertNotNull("No admin GUI configuration", compiledUserProfile);
-		assertEquals("Wrong number of menu links in",
-				expectedMenuLinks, compiledUserProfile.getAdditionalMenuLink().size());
-		assertEquals("Wrong number of menu links in",
-				expectedDashboardLinks, compiledUserProfile.getUserDashboardLink().size());
-		if ( compiledUserProfile.getObjectCollectionViews() == null ) {
-			if (expectedObjectLists != 0) {
-				AssertJUnit.fail("Wrong number of object views in user profile, expected "
-						+ expectedObjectLists + " but there was none");
-			}
-		} else {
-			assertEquals("Wrong number of object lists in admin GUI configuration",
-				expectedObjectLists, compiledUserProfile.getObjectCollectionViews().size());
-		}
-		assertEquals("Wrong number of object forms in admin GUI configuration",
-				expectedObjectForms, compiledUserProfile.getObjectForms().getObjectForm().size());
-		if ( compiledUserProfile.getUserDashboard() == null) {
-			if (expecteduserDashboardWidgets != 0) {
-				AssertJUnit.fail("Wrong number of widgets in user dashboard admin GUI configuration, expected "
-						+ expecteduserDashboardWidgets + " but there was none");
-			}
-		} else {
-			assertEquals("Wrong number of widgets in user dashboard admin GUI configuration",
-				expectedObjectForms, compiledUserProfile.getUserDashboard().getWidget().size());
-		}
+	
+	protected CompiledUserProfileAsserter<Void> assertCompiledUserProfile(CompiledUserProfile compiledUserProfile) {
+		CompiledUserProfileAsserter<Void> asserter = new CompiledUserProfileAsserter<>(compiledUserProfile, null, null);
+		initializeAsserter(asserter);
+		asserter.display();
+		return asserter;
 	}
 
 	protected void createSecurityContext(MidPointPrincipal principal) {

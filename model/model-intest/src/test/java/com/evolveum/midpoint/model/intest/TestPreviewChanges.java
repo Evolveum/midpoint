@@ -417,7 +417,12 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		// THEN
 		assertSuccess(result);
 
-		assertCompiledUserProfile(compiledUserProfile, 0, 1, 3, 1, 0);
+		assertCompiledUserProfile(compiledUserProfile)
+			.assertAdditionalMenuLinks(0)
+			.assertUserDashboardLinks(1)
+			.assertObjectForms(1)
+			.assertUserDashboardWidgets(0)
+			.assertObjectCollectionViews(3);
 
 		RichHyperlinkType link = compiledUserProfile.getUserDashboardLink().get(0);
 		assertEquals("Bad link label", "Foo", link.getLabel());
