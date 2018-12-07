@@ -18,7 +18,7 @@ package com.evolveum.midpoint.model.common.expression;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 
-import com.evolveum.midpoint.prism.marshaller.ItemPathParserTemp;
+import com.evolveum.midpoint.prism.impl.marshaller.ItemPathParserTemp;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;

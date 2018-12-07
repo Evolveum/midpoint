@@ -22,9 +22,9 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.prism.schema.SchemaDefinitionFactory;
-import com.evolveum.midpoint.prism.schema.SchemaProcessorUtil;
-import com.evolveum.midpoint.prism.schema.SchemaToDomProcessor;
+import com.evolveum.midpoint.prism.impl.schema.SchemaDefinitionFactory;
+import com.evolveum.midpoint.prism.impl.schema.SchemaProcessorUtil;
+import com.evolveum.midpoint.prism.impl.schema.SchemaToDomProcessor;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DisplayableValue;

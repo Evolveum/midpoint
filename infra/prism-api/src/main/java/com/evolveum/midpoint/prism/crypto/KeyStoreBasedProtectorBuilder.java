@@ -25,13 +25,13 @@ import java.util.List;
  *  Builder for KeyStoreBasedProtector implementation.
  */
 public final class KeyStoreBasedProtectorBuilder {
-    String keyStorePath;
-    String keyStorePassword;
-    String encryptionKeyAlias;
-    String requestedJceProviderName;
-    String encryptionAlgorithm;
-    String digestAlgorithm;
-    List<TrustManager> trustManagers;
+    private String keyStorePath;
+    private String keyStorePassword;
+    private String encryptionKeyAlias;
+    private String requestedJceProviderName;
+    private String encryptionAlgorithm;
+    private String digestAlgorithm;
+    private List<TrustManager> trustManagers;
 
     @NotNull private final ProtectorCreator protectorCreator;
 
@@ -76,6 +76,34 @@ public final class KeyStoreBasedProtectorBuilder {
     public KeyStoreBasedProtectorBuilder trustManagers(List<TrustManager> val) {
         trustManagers = val;
         return this;
+    }
+
+    public String getKeyStorePath() {
+        return keyStorePath;
+    }
+
+    public String getKeyStorePassword() {
+        return keyStorePassword;
+    }
+
+    public String getEncryptionKeyAlias() {
+        return encryptionKeyAlias;
+    }
+
+    public String getRequestedJceProviderName() {
+        return requestedJceProviderName;
+    }
+
+    public String getEncryptionAlgorithm() {
+        return encryptionAlgorithm;
+    }
+
+    public String getDigestAlgorithm() {
+        return digestAlgorithm;
+    }
+
+    public List<TrustManager> getTrustManagers() {
+        return trustManagers;
     }
 
     public Protector initialize() {

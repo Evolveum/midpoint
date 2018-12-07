@@ -110,7 +110,7 @@
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
-            <artifactId>prism</artifactId>
+            <artifactId>prism-impl</artifactId>
             <version>${midpoint.version}</version>
         </dependency>
         <dependency>

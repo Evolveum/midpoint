@@ -133,7 +133,7 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
     @Autowired NodeAuthenticationEvaluator nodeAuthenticator;
     
     public static void main(String[] args) {
-        System.setProperty("xml.catalog.className", "com.evolveum.midpoint.prism.schema.CatalogImpl");
+        System.setProperty("xml.catalog.className", "com.evolveum.midpoint.prism.impl.schema.CatalogImpl");
         String mode = args != null && args.length > 0 ? args[0] : null;
         
         if(LOGGER.isDebugEnabled()){

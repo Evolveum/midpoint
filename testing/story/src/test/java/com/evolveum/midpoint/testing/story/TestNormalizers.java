@@ -31,7 +31,7 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.polystring.Ascii7PolyStringNormalizer;
+import com.evolveum.midpoint.prism.impl.polystring.Ascii7PolyStringNormalizer;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.schema.result.OperationResult;

@@ -29,9 +29,9 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.util.JaxbTestUtil;
+import com.evolveum.midpoint.prism.impl.util.JaxbTestUtil;
 
-import com.evolveum.midpoint.prism.xml.XmlTypeConverterInternal;
+import com.evolveum.midpoint.prism.impl.xml.XmlTypeConverterInternal;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;

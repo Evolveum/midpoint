@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
  *
  */
 public class DeltaSetTripleUtil {
-	protected static <T> void diff(Collection<T> valuesOld, Collection<T> valuesNew, DeltaSetTriple<T> triple) {
+	public static <T> void diff(Collection<T> valuesOld, Collection<T> valuesNew, DeltaSetTriple<T> triple) {
 	    if (valuesOld == null && valuesNew == null) {
 		    // No values, no change -> empty triple
 		    return;

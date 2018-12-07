@@ -37,7 +37,7 @@ import org.apache.commons.lang.mutable.MutableBoolean;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
-import com.evolveum.midpoint.prism.polystring.AlphanumericPolyStringNormalizer;
+import com.evolveum.midpoint.prism.impl.polystring.AlphanumericPolyStringNormalizer;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;

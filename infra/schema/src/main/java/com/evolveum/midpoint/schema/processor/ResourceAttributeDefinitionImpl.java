@@ -18,7 +18,7 @@ package com.evolveum.midpoint.schema.processor;
 
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
+import com.evolveum.midpoint.prism.impl.PrismPropertyDefinitionImpl;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;

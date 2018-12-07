@@ -22,9 +22,9 @@ Used when building via xjc.
 -->
 <catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog" prefer="public">
 
-    <public publicId="http://prism.evolveum.com/xml/ns/public/annotation-3" uri="../../../target/midpoint-schema/prism/xml/ns/public/annotation-3.xsd" />
-    <public publicId="http://prism.evolveum.com/xml/ns/public/types-3" uri="../../../target/midpoint-schema/prism/xml/ns/public/types-3.xsd" />
-    <public publicId="http://prism.evolveum.com/xml/ns/public/query-3" uri="../../../target/midpoint-schema/prism/xml/ns/public/query-3.xsd" />
+    <public publicId="http://prism.evolveum.com/xml/ns/public/annotation-3" uri="../../../target/midpoint-schema/prism-impl/xml/ns/public/annotation-3.xsd" />
+    <public publicId="http://prism.evolveum.com/xml/ns/public/types-3" uri="../../../target/midpoint-schema/prism-impl/xml/ns/public/types-3.xsd" />
+    <public publicId="http://prism.evolveum.com/xml/ns/public/query-3" uri="../../../target/midpoint-schema/prism-impl/xml/ns/public/query-3.xsd" />
 
     <!-- common schema and its components; as they are included, use 'system' element to declare them -->
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/common/common-3" uri="../../../target/midpoint-schema/xml/ns/public/common/common-3.xsd" />
@@ -67,16 +67,16 @@ Used when building via xjc.
     <public publicId="http://midpoint.evolveum.com/xml/ns/experimental/ldap-resource-1.xsd" uri="../../../target/midpoint-schema/xml/ns/experimental/ldap-resource-1.xsd" />
 
     <!-- Bundled standard schemas -->
-    <public publicId="datatypes" uri="../../../target/midpoint-schema/prism/xml/ns/standard/datatypes.dtd" />
-    <public publicId="-//W3C//DTD XMLSchema 200102//EN" uri="../../../target/midpoint-schema/prism/xml/ns/standard/XMLSchema.dtd" />
-    <public publicId="-//W3C//DTD XMLSCHEMA 200102//EN" uri="../../../target/midpoint-schema/prism/xml/ns/standard/XMLSchema.dtd" />
-    <public publicId="http://www.w3.org/2001/XMLSchema" uri="../../../target/midpoint-schema/prism/xml/ns/standard/XMLSchema.xsd" />
-    <public publicId="XMLSchema.dtd" uri="../../../target/midpoint-schema/prism/xml/ns/standard/XMLSchema.dtd" />
-    <public publicId="http://www.w3.org/2001/04/xmlenc#" uri="../../../target/midpoint-schema/prism/xml/ns/standard/xenc-schema.xsd" />
-    <public publicId="http://www.w3.org/2001/04/xmlenc" uri="../../../target/midpoint-schema/prism/xml/ns/standard/xenc-schema.xsd" />
-    <public publicId="http://www.w3.org/2000/09/xmldsig#" uri="../../../target/midpoint-schema/prism/xml/ns/standard/xmldsig-core-schema.xsd" />
-    <public publicId="http://www.w3.org/2000/09/xmldsig" uri="../../../target/midpoint-schema/prism/xml/ns/standard/xmldsig-core-schema.xsd" />
-    <public publicId="http://www.w3.org/XML/1998/namespace" uri="../../../target/midpoint-schema/prism/xml/ns/standard/xml.xsd" />
-    <public publicId="xml.xsd" uri="../../../target/midpoint-schema/prism/xml/ns/standard/xml.xsd" />
+    <public publicId="datatypes" uri="../../../target/midpoint-schema/prism-impl/xml/ns/standard/datatypes.dtd" />
+    <public publicId="-//W3C//DTD XMLSchema 200102//EN" uri="../../../target/midpoint-schema/prism-impl/xml/ns/standard/XMLSchema.dtd" />
+    <public publicId="-//W3C//DTD XMLSCHEMA 200102//EN" uri="../../../target/midpoint-schema/prism-impl/xml/ns/standard/XMLSchema.dtd" />
+    <public publicId="http://www.w3.org/2001/XMLSchema" uri="../../../target/midpoint-schema/prism-impl/xml/ns/standard/XMLSchema.xsd" />
+    <public publicId="XMLSchema.dtd" uri="../../../target/midpoint-schema/prism-impl/xml/ns/standard/XMLSchema.dtd" />
+    <public publicId="http://www.w3.org/2001/04/xmlenc#" uri="../../../target/midpoint-schema/prism-impl/xml/ns/standard/xenc-schema.xsd" />
+    <public publicId="http://www.w3.org/2001/04/xmlenc" uri="../../../target/midpoint-schema/prism-impl/xml/ns/standard/xenc-schema.xsd" />
+    <public publicId="http://www.w3.org/2000/09/xmldsig#" uri="../../../target/midpoint-schema/prism-impl/xml/ns/standard/xmldsig-core-schema.xsd" />
+    <public publicId="http://www.w3.org/2000/09/xmldsig" uri="../../../target/midpoint-schema/prism-impl/xml/ns/standard/xmldsig-core-schema.xsd" />
+    <public publicId="http://www.w3.org/XML/1998/namespace" uri="../../../target/midpoint-schema/prism-impl/xml/ns/standard/xml.xsd" />
+    <public publicId="xml.xsd" uri="../../../target/midpoint-schema/prism-impl/xml/ns/standard/xml.xsd" />
 
 </catalog>

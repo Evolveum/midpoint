@@ -17,10 +17,11 @@
 package com.evolveum.midpoint.schema.xjc.schema;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.impl.*;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.xjc.PrismContainerArrayList;
-import com.evolveum.midpoint.prism.xjc.PrismForJAXBUtil;
-import com.evolveum.midpoint.prism.xjc.PrismReferenceArrayList;
+import com.evolveum.midpoint.prism.impl.xjc.PrismContainerArrayList;
+import com.evolveum.midpoint.prism.impl.xjc.PrismForJAXBUtil;
+import com.evolveum.midpoint.prism.impl.xjc.PrismReferenceArrayList;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.xjc.PrefixMapper;
 import com.evolveum.midpoint.schema.xjc.Processor;

@@ -19,6 +19,6 @@ package com.evolveum.midpoint.prism.query.builder;
 /**
  * @author Pavol
  */
-enum LogicalSymbol {
+public enum LogicalSymbol {
     AND, OR
 }

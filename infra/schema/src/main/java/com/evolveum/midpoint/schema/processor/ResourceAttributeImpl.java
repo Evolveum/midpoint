@@ -20,7 +20,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.CloneStrategy;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismPropertyImpl;
+import com.evolveum.midpoint.prism.impl.PrismPropertyImpl;
 
 /**
  * Resource Object Attribute is a Property of Resource Object. All that applies

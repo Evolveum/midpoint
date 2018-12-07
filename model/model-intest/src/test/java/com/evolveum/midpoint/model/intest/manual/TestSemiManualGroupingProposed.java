@@ -23,7 +23,6 @@ import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
 
-import com.evolveum.midpoint.prism.PrismPropertyValueImpl;
 import com.evolveum.midpoint.prism.query.FilterUtil;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.springframework.test.annotation.DirtiesContext;

@@ -29,7 +29,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.util.JaxbTestUtil;
+import com.evolveum.midpoint.prism.impl.util.JaxbTestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.testng.AssertJUnit;

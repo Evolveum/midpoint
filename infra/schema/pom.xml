@@ -39,7 +39,7 @@
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
-            <artifactId>prism</artifactId>
+            <artifactId>prism-impl</artifactId>
             <version>4.0-SNAPSHOT</version>
         </dependency>
         <dependency>
@@ -172,14 +172,14 @@
                             <artifactItems>
                                 <artifactItem>
                                     <groupId>com.evolveum.midpoint.infra</groupId>
-                                    <artifactId>prism</artifactId>
+                                    <artifactId>prism-impl</artifactId>
                                     <version>${project.version}</version>
                                     <type>jar</type>
                                 </artifactItem>
                             </artifactItems>
                             <translateSchemaLocation>false</translateSchemaLocation>
                             <includes>**/*.xsd,**/*.dtd,**/*.wsdl</includes>
-                            <outputDirectory>${project.basedir}/target/additional-schemas/prism</outputDirectory>
+                            <outputDirectory>${project.basedir}/target/additional-schemas/prism-impl</outputDirectory>
                         </configuration>
                     </execution>
                 </executions>

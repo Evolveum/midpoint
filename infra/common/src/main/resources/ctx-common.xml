@@ -26,11 +26,11 @@
     <context:component-scan base-package="com.evolveum.midpoint.common"/>
     <context:spring-configured/>
 
-    <bean id="matchingRuleRegistry" class="com.evolveum.midpoint.prism.match.MatchingRuleRegistryFactory"
+    <bean id="matchingRuleRegistry" class="com.evolveum.midpoint.prism.impl.match.MatchingRuleRegistryFactory"
     	factory-method="createRegistry">
     </bean>
     
-    <bean id="polyStringNormalizerRegistry" class="com.evolveum.midpoint.prism.polystring.PolyStringNormalizerRegistryFactory"
+    <bean id="polyStringNormalizerRegistry" class="com.evolveum.midpoint.prism.impl.polystring.PolyStringNormalizerRegistryFactory"
     	factory-method="createRegistry">
     </bean>
 

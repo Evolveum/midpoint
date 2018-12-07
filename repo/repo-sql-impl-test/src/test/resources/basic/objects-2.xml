@@ -28,7 +28,7 @@
          xmlns:p="http://example.com/p"
          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
          xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-core-3.xsd
-         http://prism.evolveum.com/xml/ns/public/query-3 ../../../../../../infra/prism/src/main/resources/xml/ns/public/query-3.xsd">
+         http://prism.evolveum.com/xml/ns/public/query-3 ../../../../../../infra/prism-impl/src/main/resources/xml/ns/public/query-3.xsd">
 
     <task oid="777">
         <name>Task with no owner</name>

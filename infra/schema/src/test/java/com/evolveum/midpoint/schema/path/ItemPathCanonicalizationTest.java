@@ -22,7 +22,7 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import com.evolveum.midpoint.prism.Containerable;
 
-import com.evolveum.midpoint.prism.path.CanonicalItemPathImpl;
+import com.evolveum.midpoint.prism.impl.path.CanonicalItemPathImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;

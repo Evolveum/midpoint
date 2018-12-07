@@ -26,7 +26,7 @@ import java.util.Objects;
 /**
  *
  */
-class ItemPathComparatorUtil {
+public class ItemPathComparatorUtil {
 
 	/**
 	 * Alternative to normalization: reads the same sequence of segments of 'path' as segments of 'path.normalize()'

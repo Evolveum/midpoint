@@ -17,7 +17,8 @@ package com.evolveum.midpoint.schema.parser;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.lex.dom.DomLexicalProcessor;
+import com.evolveum.midpoint.prism.impl.PrismContextImpl;
+import com.evolveum.midpoint.prism.impl.lex.dom.DomLexicalProcessor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.VariableItemPathSegment;
 import com.evolveum.midpoint.prism.query.EqualFilter;

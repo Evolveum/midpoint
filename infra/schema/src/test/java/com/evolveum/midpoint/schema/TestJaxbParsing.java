@@ -22,6 +22,7 @@ package com.evolveum.midpoint.schema;
 import static com.evolveum.midpoint.prism.util.PrismAsserts.assertPropertyValue;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.impl.PrismContextImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -58,7 +59,6 @@ import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
 
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
