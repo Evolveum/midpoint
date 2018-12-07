@@ -17,11 +17,11 @@ package com.evolveum.midpoint.prism.lex;
 
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.USER_JACK_FILE_BASENAME;
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.displayTestTitle;
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.createDefaultParsingContext;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.IOException;
 
-import com.evolveum.midpoint.prism.ParsingContext;
 import com.evolveum.midpoint.prism.lex.dom.DomLexicalProcessor;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
@@ -29,11 +29,11 @@ import org.xml.sax.SAXException;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.prism.xnode.ListXNode;
-import com.evolveum.midpoint.prism.xnode.MapXNode;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
-import com.evolveum.midpoint.prism.xnode.RootXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.prism.xnode.ListXNodeImpl;
+import com.evolveum.midpoint.prism.xnode.MapXNodeImpl;
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNodeImpl;
+import com.evolveum.midpoint.prism.xnode.RootXNodeImpl;
+import com.evolveum.midpoint.prism.xnode.XNodeImpl;
 
 /**
  * @author semancik
@@ -65,23 +65,23 @@ public class TestDomParser extends AbstractLexicalProcessorTest {
 		DomLexicalProcessor parser = createParser();
 
 		// WHEN
-		XNode xnode = parser.read(getFile(USER_JACK_FILE_BASENAME), ParsingContext.createDefault());
+		XNodeImpl xnode = parser.read(getFile(USER_JACK_FILE_BASENAME), createDefaultParsingContext());
 
 		// THEN
 		System.out.println("Parsed XNode:");
 		System.out.println(xnode.debugDump());
 
-		RootXNode root = getAssertXNode("root node", xnode, RootXNode.class);
+		RootXNodeImpl root = getAssertXNode("root node", xnode, RootXNodeImpl.class);
 
-		MapXNode rootMap = getAssertXNode("root subnode", root.getSubnode(), MapXNode.class);
-		PrimitiveXNode<String> xname = getAssertXMapSubnode("root map", rootMap, UserType.F_NAME, PrimitiveXNode.class);
+		MapXNodeImpl rootMap = getAssertXNode("root subnode", root.getSubnode(), MapXNodeImpl.class);
+		PrimitiveXNodeImpl<String> xname = getAssertXMapSubnode("root map", rootMap, UserType.F_NAME, PrimitiveXNodeImpl.class);
 		// TODO: assert value
 
-		ListXNode xass = getAssertXMapSubnode("root map", rootMap, UserType.F_ASSIGNMENT, ListXNode.class);
+		ListXNodeImpl xass = getAssertXMapSubnode("root map", rootMap, UserType.F_ASSIGNMENT, ListXNodeImpl.class);
 		assertEquals("assignment size", 2, xass.size());
 		// TODO: asserts
 
-		MapXNode xextension = getAssertXMapSubnode("root map", rootMap, UserType.F_EXTENSION, MapXNode.class);
+		MapXNodeImpl xextension = getAssertXMapSubnode("root map", rootMap, UserType.F_EXTENSION, MapXNodeImpl.class);
 
 	}
 

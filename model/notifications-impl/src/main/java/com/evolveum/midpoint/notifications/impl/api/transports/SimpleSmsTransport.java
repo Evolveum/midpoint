@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.notifications.impl.api.transports;
 
 import com.evolveum.midpoint.notifications.impl.util.HttpUtil;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
@@ -28,10 +29,6 @@ import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
 import com.evolveum.midpoint.notifications.impl.NotificationFunctionsImpl;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -317,7 +314,7 @@ public class SimpleSmsTransport implements Transport {
     		return multipleValues ? emptyList() : singletonList(null);
 	    }
         QName resultName = new QName(SchemaConstants.NS_C, "result");
-        PrismPropertyDefinition<String> resultDef = new PrismPropertyDefinitionImpl<>(resultName, DOMUtil.XSD_STRING, prismContext);
+        MutablePrismPropertyDefinition<String> resultDef = prismContext.definitionFactory().createPropertyDefinition(resultName, DOMUtil.XSD_STRING);
         if (multipleValues) {
         	resultDef.setMaxOccurs(-1);
         }

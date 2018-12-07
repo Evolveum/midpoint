@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -116,10 +117,10 @@ public class WorkItemProvider {
 	// primitive 'query interpreter'
 	// returns null if no results should be returned
     private TaskQuery createTaskQuery(ObjectQuery query, boolean includeVariables, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
-        final ItemPath WORK_ITEM_ID_PATH = new ItemPath(F_EXTERNAL_ID);
-        final ItemPath ASSIGNEE_PATH = new ItemPath(F_ASSIGNEE_REF);
-        final ItemPath CANDIDATE_PATH = new ItemPath(F_CANDIDATE_REF);
-        final ItemPath CREATED_PATH = new ItemPath(WorkItemType.F_CREATE_TIMESTAMP);
+        final UniformItemPath WORK_ITEM_ID_PATH = prismContext.toUniformPath(F_EXTERNAL_ID);
+        final UniformItemPath ASSIGNEE_PATH = prismContext.toUniformPath(F_ASSIGNEE_REF);
+        final UniformItemPath CANDIDATE_PATH = prismContext.toUniformPath(F_CANDIDATE_REF);
+        final UniformItemPath CREATED_PATH = prismContext.toUniformPath(WorkItemType.F_CREATE_TIMESTAMP);
 
 	    final ObjectQueryUtil.FilterExtractor CREATED_LT_GT_EXTRACTOR = new ObjectQueryUtil.FilterExtractor(
 	    		filter -> filter instanceof ComparativeFilter && !((ComparativeFilter) filter).isEquals(),
@@ -128,7 +129,7 @@ public class WorkItemProvider {
 	    final List<ObjectQueryUtil.FilterExtractor> EXTRACTORS = new ArrayList<>(ObjectQueryUtil.DEFAULT_EXTRACTORS);
 	    EXTRACTORS.add(CREATED_LT_GT_EXTRACTOR);
 
-	    FilterComponents components = factorOutQuery(query, EXTRACTORS, ASSIGNEE_PATH, CANDIDATE_PATH, WORK_ITEM_ID_PATH, CREATED_PATH);
+	    FilterComponents components = factorOutQuery(prismContext, query, EXTRACTORS, ASSIGNEE_PATH, CANDIDATE_PATH, WORK_ITEM_ID_PATH, CREATED_PATH);
 	    List<ObjectFilter> remainingClauses = components.getRemainderClauses();
 	    if (!remainingClauses.isEmpty()) {
 		    throw new SchemaException("Unsupported clause(s) in search filter: " + remainingClauses);
@@ -200,8 +201,8 @@ public class WorkItemProvider {
 
                 switch (paging.getDirection()) {
                     case DESCENDING: taskQuery = taskQuery.desc(); break;
-                    case ASCENDING:
-                        default: taskQuery = taskQuery.asc(); break;
+	                case ASCENDING:
+	                default: taskQuery = taskQuery.asc(); break;
                 }
             }
         }

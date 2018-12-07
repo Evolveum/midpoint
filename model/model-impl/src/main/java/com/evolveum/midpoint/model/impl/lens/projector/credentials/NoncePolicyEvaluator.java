@@ -29,7 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 public class NoncePolicyEvaluator extends CredentialPolicyEvaluator<NonceType,NonceCredentialsPolicyType> {
 
-	private static final ItemPath NONCE_CONTAINER_PATH = new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_NONCE);
+	private static final ItemPath NONCE_CONTAINER_PATH = UserType.F_CREDENTIALS.append(CredentialsType.F_NONCE);
 
 	@Override
 	public ItemPath getCredentialsContainerPath() {

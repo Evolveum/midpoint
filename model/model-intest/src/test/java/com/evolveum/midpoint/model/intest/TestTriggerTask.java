@@ -25,7 +25,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConflictResolutionActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -276,7 +275,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 		// -------------------- re-run the handler
 
 		// remove all traces of failures in order to "waitForTaskNextRunAssertSuccess" be happy
-		List<ItemDelta<?, ?>> modifications = DeltaBuilder.deltaFor(TaskType.class, prismContext)
+		List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(TaskType.class)
 				.item(TaskType.F_RESULT).replace()
 				.item(TaskType.F_RESULT_STATUS).replace()
 				.asItemDeltas();

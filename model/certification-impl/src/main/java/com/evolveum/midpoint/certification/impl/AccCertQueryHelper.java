@@ -17,11 +17,7 @@
 package com.evolveum.midpoint.certification.impl;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.InOidFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RelationRegistry;
@@ -63,14 +59,14 @@ public class AccCertQueryHelper {
     // public because of certification tests
     public List<AccessCertificationCaseType> searchCases(String campaignOid, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
-        InOidFilter campaignFilter = InOidFilter.createOwnerHasOidIn(campaignOid);
+        InOidFilter campaignFilter = prismContext.queryFactory().createOwnerHasOidIn(campaignOid);
 	    ObjectQuery newQuery = addFilter(query, campaignFilter);
 		return repositoryService.searchContainers(AccessCertificationCaseType.class, newQuery, options, result);
     }
 
     List<AccessCertificationCaseType> getAllCurrentIterationCases(String campaignOid, int iteration,
 		    Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
-	    ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+	    ObjectQuery query = prismContext.queryFor(AccessCertificationCaseType.class)
 			    .ownerId(campaignOid)
 			    .and().item(AccessCertificationCaseType.F_ITERATION).eq(iteration)
 			    .build();
@@ -79,14 +75,15 @@ public class AccCertQueryHelper {
 
     private ObjectQuery addFilter(ObjectQuery query, ObjectFilter additionalFilter) {
         ObjectQuery newQuery;
-        if (query == null) {
-            newQuery = ObjectQuery.createObjectQuery(additionalFilter);
+	    QueryFactory queryFactory = prismContext.queryFactory();
+	    if (query == null) {
+            newQuery = queryFactory.createObjectQuery(additionalFilter);
         } else {
             newQuery = query.clone();
             if (query.getFilter() == null) {
                 newQuery.setFilter(additionalFilter);
             } else {
-                newQuery.setFilter(AndFilter.createAnd(query.getFilter(), additionalFilter));
+                newQuery.setFilter(queryFactory.createAnd(query.getFilter(), additionalFilter));
             }
         }
         return newQuery;
@@ -107,10 +104,10 @@ public class AccCertQueryHelper {
 
 		ObjectFilter filter;
 		if (notDecidedOnly) {
-			ObjectFilter noResponseFilter = QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
+			ObjectFilter noResponseFilter = prismContext.queryFor(AccessCertificationWorkItemType.class)
 					.item(F_OUTPUT, F_OUTCOME).isNull()
 					.buildFilter();
-			filter = AndFilter.createAnd(reviewerAndEnabledFilter, noResponseFilter);
+			filter = prismContext.queryFactory().createAnd(reviewerAndEnabledFilter, noResponseFilter);
 		} else {
 			filter = reviewerAndEnabledFilter;
 		}
@@ -126,7 +123,7 @@ public class AccCertQueryHelper {
     }
 
     private ObjectFilter getReviewerAndEnabledFilter(String reviewerOid) {
-        return QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+        return prismContext.queryFor(AccessCertificationCaseType.class)
 					.exists(F_WORK_ITEM)
 					.block()
 						.item(F_ASSIGNEE_REF).ref(reviewerOid, UserType.COMPLEX_TYPE)
@@ -138,14 +135,14 @@ public class AccCertQueryHelper {
     private ObjectFilter getReviewerAndEnabledFilterForWI(MidPointPrincipal principal) throws SchemaException {
         if (principal != null) {
 			return QueryUtils.filterForAssignees(
-						QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext),
+						prismContext.queryFor(AccessCertificationWorkItemType.class),
 						principal,
 						OtherPrivilegesLimitationType.F_CERTIFICATION_WORK_ITEMS,
 						relationRegistry)
 					.and().item(F_CLOSE_TIMESTAMP).isNull()
 					.buildFilter();
         } else {
-            return QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
+            return prismContext.queryFor(AccessCertificationWorkItemType.class)
                     .item(F_CLOSE_TIMESTAMP).isNull()
                     .buildFilter();
         }
@@ -156,16 +153,17 @@ public class AccCertQueryHelper {
 		    String reviewerOid, OperationResult result) throws SchemaException {
 	    // note: this is OK w.r.t. iterations, as we are looking for cases with non-closed work items here
         ObjectFilter filter = getReviewerAndEnabledFilter(reviewerOid);
-		return searchCases(campaign.getOid(), ObjectQuery.createObjectQuery(filter), null, result);
+		return searchCases(campaign.getOid(), prismContext.queryFactory().createObjectQuery(filter), null, result);
     }
 
     public AccessCertificationCaseType getCase(String campaignOid, long caseId, @SuppressWarnings("unused") Task task,
 		    OperationResult result) throws SchemaException {
-        ObjectFilter filter = AndFilter.createAnd(
-                InOidFilter.createOwnerHasOidIn(campaignOid),
-                InOidFilter.createInOid(String.valueOf(caseId))
+	    QueryFactory queryFactory = prismContext.queryFactory();
+	    ObjectFilter filter = queryFactory.createAnd(
+		        queryFactory.createOwnerHasOidIn(campaignOid),
+		        queryFactory.createInOid(String.valueOf(caseId))
         );
-        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+        ObjectQuery query = queryFactory.createObjectQuery(filter);
 
         List<AccessCertificationCaseType> caseList = repositoryService.searchContainers(AccessCertificationCaseType.class, query, null, result);
         if (caseList.isEmpty()) {
@@ -195,7 +193,7 @@ public class AccCertQueryHelper {
     }
 
 	boolean hasNoResponseCases(String campaignOid, OperationResult result) {
-		ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(AccessCertificationCaseType.class)
 				.ownerId(campaignOid)
 				.and().item(AccessCertificationCaseType.F_OUTCOME).eq(SchemaConstants.MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE)
 				.build();

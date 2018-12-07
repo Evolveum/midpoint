@@ -19,9 +19,7 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -62,25 +60,25 @@ public class PageAdminConfiguration extends PageAdmin {
     	task.setHandlerUri(ModelPublicConstants.DELETE_TASK_HANDLER_URI);
 
 		if (objectQuery == null) {
-			objectQuery = new ObjectQuery();
+			objectQuery = getPrismContext().queryFactory().createObjectQuery();
 		}
 
-		QueryType query = QueryJaxbConvertor.createQueryType(objectQuery, getPrismContext());
+		QueryType query = getQueryConverter().createQueryType(objectQuery);
 
-		PrismPropertyDefinition queryDef = new PrismPropertyDefinitionImpl(
-				SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY, QueryType.COMPLEX_TYPE, getPrismContext());
+		PrismPropertyDefinition queryDef = getPrismContext().definitionFactory().createPropertyDefinition(
+				SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY, QueryType.COMPLEX_TYPE);
 		PrismProperty<QueryType> queryProp = queryDef.instantiate();
 		queryProp.setRealValue(query);
 		task.setExtensionProperty(queryProp);
 
-		PrismPropertyDefinition typeDef = new PrismPropertyDefinitionImpl(
-				SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE, DOMUtil.XSD_QNAME, getPrismContext());
+		PrismPropertyDefinition typeDef = getPrismContext().definitionFactory().createPropertyDefinition(
+				SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE, DOMUtil.XSD_QNAME);
 		PrismProperty<QName> typeProp = typeDef.instantiate();
 		typeProp.setRealValue(type);
 		task.setExtensionProperty(typeProp);
 
-		PrismPropertyDefinition rawDef = new PrismPropertyDefinitionImpl(
-				SchemaConstants.MODEL_EXTENSION_OPTION_RAW, DOMUtil.XSD_BOOLEAN, getPrismContext());
+		PrismPropertyDefinition rawDef = getPrismContext().definitionFactory().createPropertyDefinition(
+				SchemaConstants.MODEL_EXTENSION_OPTION_RAW, DOMUtil.XSD_BOOLEAN);
 		PrismProperty<Boolean> rawProp = rawDef.instantiate();
 		rawProp.setRealValue(raw);
 		task.setExtensionProperty(rawProp);

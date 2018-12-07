@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import org.jetbrains.annotations.NotNull;
 
@@ -49,4 +50,6 @@ public interface ResourceAttributeDefinition<T> extends PrismPropertyDefinition<
 	@NotNull
 	@Override
 	ResourceAttributeDefinition<T> clone();
+
+	MutableResourceAttributeDefinition<T> toMutable();
 }

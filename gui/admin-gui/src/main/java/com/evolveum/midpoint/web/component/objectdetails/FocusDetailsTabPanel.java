@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.web.component.objectdetails;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
@@ -66,9 +65,11 @@ public class FocusDetailsTabPanel<F extends FocusType> extends AbstractFocusTabP
 	
 	private List<ItemPath> getVisibleContainers() {
 		List<ItemPath> paths = new ArrayList<>();
-		paths.addAll(Arrays.asList(ItemPath.EMPTY_PATH, SchemaConstants.PATH_ACTIVATION, SchemaConstants.PATH_PASSWORD));
+		paths.add(ItemPath.EMPTY_PATH);
+		paths.add(SchemaConstants.PATH_ACTIVATION);
+		paths.add(SchemaConstants.PATH_PASSWORD);
 		if (WebModelServiceUtils.isEnableExperimentalFeature(getPageBase())) {
-			paths.add(new ItemPath(AbstractRoleType.F_DATA_PROTECTION));
+			paths.add(AbstractRoleType.F_DATA_PROTECTION);
 		}
 		return paths;
 	}

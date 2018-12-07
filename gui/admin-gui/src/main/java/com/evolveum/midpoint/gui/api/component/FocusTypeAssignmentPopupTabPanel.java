@@ -106,8 +106,8 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
 
         ObjectFilter filter = WebComponentUtil.getAssignableRolesFilter(getTargetedAssignemntObject(), (Class<AbstractRoleType>) getObjectType().getClassDefinition(),
                 isInducement() ? WebComponentUtil.AssignmentOrder.INDUCEMENT : WebComponentUtil.AssignmentOrder.ASSIGNMENT, result, task, getPageBase());
-        if (query == null){
-            query = new ObjectQuery();
+        if (query == null) {
+            query = getPrismContext().queryFactory().createObjectQuery();
         }
         query.addFilter(filter);
         return query;

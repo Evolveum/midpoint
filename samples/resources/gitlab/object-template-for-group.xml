@@ -144,7 +144,7 @@
                             }
                             
                             if(!containsSameAssignment){
-                                delta = ObjectDelta.createModificationAddContainer(UserType.class, user.getOid(), UserType.F_ASSIGNMENT, midpoint.getPrismContext(), assignment);
+                                delta = ObjectDeltaCreationUtil.createModificationAddContainer(UserType.class, user.getOid(), UserType.F_ASSIGNMENT, midpoint.getPrismContext(), assignment);
 
                                 midpoint.executeChanges(delta)
                             }

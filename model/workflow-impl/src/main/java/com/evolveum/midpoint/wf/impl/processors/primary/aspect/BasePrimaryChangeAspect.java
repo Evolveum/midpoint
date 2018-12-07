@@ -28,10 +28,8 @@ import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
@@ -187,7 +185,7 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
 			PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
 			ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(getFocusObjectable(lensContext), null, null, systemConfiguration.asObjectable());
 
-			ObjectFilter origFilter = QueryConvertor.parseFilter(filter, clazz, prismContext);
+			ObjectFilter origFilter = prismContext.getQueryConverter().parseFilter(filter, clazz);
 			ObjectFilter evaluatedFilter = ExpressionUtil
 					.evaluateFilterExpressions(origFilter, variables, mappingFactory.getExpressionFactory(), prismContext, " evaluating approverRef filter expression ", task, result);
 
@@ -195,7 +193,7 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
 				throw new SchemaException("Filter could not be evaluated in approverRef in "+sourceDescription+"; original filter = "+origFilter);
 			}
 
-			SearchResultList<PrismObject<O>> targets = repositoryService.searchObjects(clazz, ObjectQuery.createObjectQuery(evaluatedFilter), null, result);
+			SearchResultList<PrismObject<O>> targets = repositoryService.searchObjects(clazz, prismContext.queryFactory().createObjectQuery(evaluatedFilter), null, result);
 
 			return targets.stream()
 					.map(object -> ObjectTypeUtil.createObjectRef(object, prismContext))
@@ -240,9 +238,9 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
             if (object == null || object.getOid() == null || relations.isEmpty()) {
                 return Collections.emptyList();
             }
-            S_AtomicFilterExit q = QueryBuilder.queryFor(FocusType.class, prismContext).none();
+            S_AtomicFilterExit q = prismContext.queryFor(FocusType.class).none();
             for (QName approverRelation : relations) {
-                PrismReferenceValue approverReference = new PrismReferenceValue(object.getOid());
+                PrismReferenceValue approverReference = prismContext.itemFactory().createPrismReferenceValue(object.getOid());
                 approverReference.setRelation(relationRegistry.normalizeRelation(approverRelation));
                 q = q.or().item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(approverReference);
             }

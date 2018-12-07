@@ -23,8 +23,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -51,6 +50,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieve;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_WORK_ITEM;
@@ -114,7 +114,7 @@ public class TestObjectConstraints extends AbstractWfTestPolicy {
 					@Override
 					protected LensContext createModelContext(OperationResult result) throws Exception {
 						LensContext<RoleType> lensContext = createLensContext(RoleType.class);
-						addFocusDeltaToContext(lensContext, ObjectDelta.createAddDelta(employee));
+						addFocusDeltaToContext(lensContext, ObjectDeltaCreationUtil.createAddDelta(employee));
 						return lensContext;
 					}
 
@@ -133,7 +133,7 @@ public class TestObjectConstraints extends AbstractWfTestPolicy {
 								Collections.singletonList(expectedWorkItem));
 
 						Collection<SelectorOptions<GetOperationOptions>> options =
-								SelectorOptions.createCollection(new ItemPath(F_WORKFLOW_CONTEXT, F_WORK_ITEM), createRetrieve());
+								SelectorOptions.createCollection(prismContext.path(F_WORKFLOW_CONTEXT, F_WORK_ITEM), createRetrieve());
 						Task opTask = taskManager.createTaskInstance();
 						TaskType subtask = modelService.getObject(TaskType.class, subtasks.get(0).getOid(), options, opTask, result).asObjectable();
 
@@ -176,8 +176,8 @@ public class TestObjectConstraints extends AbstractWfTestPolicy {
 
 		roleEmployeeOid = searchObjectByName(RoleType.class, "employee").getOid();
 
-		PrismReferenceValue employeeOwner = new PrismReferenceValue(roleEmployeeOid, RoleType.COMPLEX_TYPE).relation(SchemaConstants.ORG_OWNER);
-		executeChanges(DeltaBuilder.deltaFor(UserType.class, prismContext)
+		PrismReferenceValue employeeOwner = getPrismContext().itemFactory().createPrismReferenceValue(roleEmployeeOid, RoleType.COMPLEX_TYPE).relation(SchemaConstants.ORG_OWNER);
+		executeChanges(prismContext.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT).add(ObjectTypeUtil.createAssignmentTo(employeeOwner, prismContext))
 				.asObjectDelta(userEmployeeOwnerOid),
 				null, task, result);
@@ -195,7 +195,7 @@ public class TestObjectConstraints extends AbstractWfTestPolicy {
 		OperationResult result = task.getResult();
 
 		@SuppressWarnings({"unchecked", "raw"})
-		ObjectDelta<RoleType> activateRoleDelta = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+		ObjectDelta<RoleType> activateRoleDelta = prismContext.deltaFor(RoleType.class)
 				.item(RoleType.F_LIFECYCLE_STATE).replace(SchemaConstants.LIFECYCLE_ACTIVE)
 				.asObjectDelta(roleEmployeeOid);
 
@@ -230,7 +230,7 @@ public class TestObjectConstraints extends AbstractWfTestPolicy {
 		OperationResult result = task.getResult();
 
 		@SuppressWarnings({"unchecked", "raw"})
-		ObjectDelta<RoleType> activateRoleDelta = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+		ObjectDelta<RoleType> activateRoleDelta = prismContext.deltaFor(RoleType.class)
 				.item(RoleType.F_LIFECYCLE_STATE).replace(SchemaConstants.LIFECYCLE_ACTIVE)
 				.item(RoleType.F_DESCRIPTION).replace("hi")
 				.asObjectDelta(roleEmployeeOid);
@@ -278,7 +278,7 @@ public class TestObjectConstraints extends AbstractWfTestPolicy {
 		OperationResult result = task.getResult();
 
 		@SuppressWarnings({"unchecked", "raw"})
-		ObjectDelta<RoleType> activateRoleDelta = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+		ObjectDelta<RoleType> activateRoleDelta = prismContext.deltaFor(RoleType.class)
 				.item(RoleType.F_LIFECYCLE_STATE).replace(SchemaConstants.LIFECYCLE_ACTIVE)
 				.item(RoleType.F_DESCRIPTION).replace("hi")
 				.asObjectDelta(roleEmployeeOid);
@@ -305,7 +305,7 @@ public class TestObjectConstraints extends AbstractWfTestPolicy {
 //						Collections.singletonList(expectedWorkItem));
 
 				Collection<SelectorOptions<GetOperationOptions>> options =
-						SelectorOptions.createCollection(new ItemPath(F_WORKFLOW_CONTEXT, F_WORK_ITEM), createRetrieve());
+						SelectorOptions.createCollection(prismContext.path(F_WORKFLOW_CONTEXT, F_WORK_ITEM), createRetrieve());
 				Task opTask = taskManager.createTaskInstance();
 				TaskType subtask = modelService.getObject(TaskType.class, subtasks.get(0).getOid(), options, opTask, result).asObjectable();
 				display("subtask", subtask);

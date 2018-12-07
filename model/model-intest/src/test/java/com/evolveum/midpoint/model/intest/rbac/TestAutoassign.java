@@ -17,6 +17,8 @@ package com.evolveum.midpoint.model.intest.rbac;
 
 import java.io.File;
 
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -24,7 +26,6 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -71,8 +72,8 @@ public class TestAutoassign extends AbstractRbacTest {
 		repoAddObjectFromFile(ROLE_UNIT_SLEEPER_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_UNIT_WALKER_FILE, RoleType.class, initResult);
 		
-		modifyObjectReplaceProperty(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), 
-				new ItemPath(SystemConfigurationType.F_ROLE_MANAGEMENT, RoleManagementConfigurationType.F_AUTOASSIGN_ENABLED),
+		modifyObjectReplaceProperty(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+				ItemPath.create(SystemConfigurationType.F_ROLE_MANAGEMENT, RoleManagementConfigurationType.F_AUTOASSIGN_ENABLED),
 				initTask, initResult, Boolean.TRUE);
 	}
 
@@ -184,7 +185,7 @@ public class TestAutoassign extends AbstractRbacTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-		ObjectDelta<UserType> objectDelta = ObjectDelta.createModificationAddProperty(UserType.class, 
+		ObjectDelta<UserType> objectDelta = ObjectDeltaCreationUtil.createModificationAddProperty(UserType.class,
 				USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, prismContext, createPolyString(UNIT_WORKER));
 		objectDelta.addModificationDeleteProperty(UserType.F_ORGANIZATIONAL_UNIT, createPolyString(UNIT_SLEEPER));
 		

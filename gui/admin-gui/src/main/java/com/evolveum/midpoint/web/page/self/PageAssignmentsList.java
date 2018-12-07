@@ -6,19 +6,15 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -34,8 +30,6 @@ import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
-import com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.page.self.dto.AssignmentConflictDto;
@@ -356,7 +350,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
 
     private ContainerDelta handleAssignmentDeltas(ObjectDelta<UserType> focusDelta,
                                                   List<AssignmentEditorDto> assignments, PrismContainerDefinition def) throws SchemaException {
-        ContainerDelta assDelta = new ContainerDelta(ItemPath.EMPTY_PATH, def.getName(), def, getPrismContext());
+        ContainerDelta assDelta = getPrismContext().deltaFactory().container().create(ItemPath.EMPTY_PATH, def.getName(), def, getPrismContext());
 
         for (AssignmentEditorDto assDto : assignments) {
             PrismContainerValue newValue = assDto.getNewValue(getPrismContext());
@@ -425,7 +419,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             ItemPath deltaPath = delta.getPath().rest();
             ItemDefinition deltaDef = assignmentDef.findItemDefinition(deltaPath);
 
-            delta.setParentPath(WebComponentUtil.joinPath(oldValue.getPath(), delta.getPath().allExceptLast()));
+            delta.setParentPath(WebComponentUtil.joinPath(oldValue.getPath(), delta.getPath().allExceptLast(), getPrismContext()));
             delta.applyDefinition(deltaDef);
 
             focusDelta.addModification(delta);
@@ -539,7 +533,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
     private ObjectDelta prepareDelta(PrismObject<UserType> user, OperationResult result) {
         ObjectDelta delta = null;
         try{
-            delta = ObjectDelta.createModificationAddContainer(UserType.class, user == null ? "fakeOid" : user.getOid(),
+            delta = ObjectDeltaCreationUtil.createModificationAddContainer(UserType.class, user == null ? "fakeOid" : user.getOid(),
                 FocusType.F_ASSIGNMENT, getPrismContext(), getAddAssignmentContainerValues(assignmentsModel.getObject()));
             if (!getSessionStorage().getRoleCatalog().isMultiUserRequest()) {
                 delta.addModificationDeleteContainer(FocusType.F_ASSIGNMENT,
@@ -565,7 +559,8 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         for (UserType user : userList){
             oids.add(user.getOid());
         }
-        return ObjectQuery.createObjectQuery(InOidFilter.createInOid(oids));
+        QueryFactory queryFactory = getPrismContext().queryFactory();
+        return queryFactory.createObjectQuery(queryFactory.createInOid(oids));
     }
 
     private PrismContainerValue[] getAddAssignmentContainerValues(List<AssignmentEditorDto> assignments) throws SchemaException {
@@ -577,7 +572,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             }
 
         }
-        return addContainerValues.toArray(new PrismContainerValue[addContainerValues.size()]);
+        return addContainerValues.toArray(new PrismContainerValue[0]);
     }
 
     private PrismContainerValue[] getDeleteAssignmentContainerValues(UserType user) throws SchemaException {
@@ -585,7 +580,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         for (AssignmentEditorDto assDto : getAssignmentsToRemoveList(user)) {
             deleteAssignmentValues.add(assDto.getNewValue(getPrismContext()));
         }
-        return deleteAssignmentValues.toArray(new PrismContainerValue[deleteAssignmentValues.size()]);
+        return deleteAssignmentValues.toArray(new PrismContainerValue[0]);
     }
 
     private List<AssignmentEditorDto> getAssignmentsToRemoveList(UserType user){

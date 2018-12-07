@@ -54,7 +54,7 @@ public class PropertyWrapperFromContainerValueWrapperModel<T,C extends Container
 
 	@Override
 	public PropertyWrapper<T> getObject() {
-		return (PropertyWrapper<T>)value.findPropertyWrapper(new ItemPath(value.getPath(), item));
+		return (PropertyWrapper<T>)value.findPropertyWrapper(ItemPath.create(value.getPath(), item));
 	}
 
 	@Override

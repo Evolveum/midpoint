@@ -20,11 +20,9 @@ package com.evolveum.midpoint.web.page.admin.configuration.component;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.Validate;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -39,7 +37,6 @@ import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.PasswordTextField;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -48,19 +45,15 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
-import org.apache.wicket.util.convert.IConverter;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.path.ItemPathDto;
-import com.evolveum.midpoint.gui.api.component.path.ItemPathPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -73,7 +66,6 @@ import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.component.input.ChoiceableChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ObjectPolicyDialogDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ObjectTemplateConfigTypeReferenceDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
@@ -214,7 +206,7 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 						String newValue = (String) component.getDefaultModelObject();
 						ItemPathType itemPathType = null;
 						if (StringUtils.isNotBlank(newValue)) {
-						  itemPathType = new ItemPathType(newValue);
+						  itemPathType = getPrismContext().itemPathParser().asItemPathType(newValue);
 						} 
 						item.getModelObject().setPath(itemPathType);
 					}
@@ -294,7 +286,7 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 		AjaxLink add = new AjaxLink(ID_BUTTON_ADD) {
 
 			private static final long serialVersionUID = 1L;
-			
+
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				addPerformed(target);
@@ -313,7 +305,7 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 		AjaxLink remove = new AjaxLink(ID_BUTTON_REMOVE) {
 
 			private static final long serialVersionUID = 1L;
-			
+
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				removePerformed(target, item);
@@ -387,7 +379,7 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 
 				try {
 					templateList = getPageBase().getModelService().searchObjects(ObjectTemplateType.class,
-							new ObjectQuery(), null, task, result);
+							null, null, task, result);
 					result.recomputeStatus();
 				} catch (Exception e) {
 					result.recordFatalError("Could not get list of object templates", e);

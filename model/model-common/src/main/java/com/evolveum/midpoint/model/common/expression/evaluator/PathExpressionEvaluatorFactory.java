@@ -20,6 +20,7 @@ import java.util.Collection;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.task.api.Task;
 import org.apache.commons.lang.Validate;
 
@@ -27,7 +28,6 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.expression.AbstractObjectResolvableExpressionEvaluatorFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
@@ -62,7 +62,7 @@ public class PathExpressionEvaluatorFactory extends AbstractObjectResolvableExpr
 	 */
 	@Override
 	public <V extends PrismValue, D extends ItemDefinition> ExpressionEvaluator<V,D> createEvaluator(Collection<JAXBElement<?>> evaluatorElements,
-																									 D outputDefinition, ExpressionFactory factory, String contextDescription, Task task, OperationResult result) throws SchemaException {
+			D outputDefinition, ExpressionFactory factory, String contextDescription, Task task, OperationResult result) throws SchemaException {
 
         Validate.notNull(outputDefinition, "output definition must be specified for path expression evaluator");
 
@@ -72,14 +72,12 @@ public class PathExpressionEvaluatorFactory extends AbstractObjectResolvableExpr
 		JAXBElement<?> evaluatorElement = evaluatorElements.iterator().next();
 
 		Object evaluatorElementObject = evaluatorElement.getValue();
-		 if (!(evaluatorElementObject instanceof ItemPathType)) {
-		        throw new IllegalArgumentException("Path expression cannot handle elements of type "
-		        		+ evaluatorElementObject.getClass().getName()+" in "+contextDescription);
+		if (!(evaluatorElementObject instanceof ItemPathType)) {
+			throw new IllegalArgumentException("Path expression cannot handle elements of type "
+					+ evaluatorElementObject.getClass().getName()+" in "+contextDescription);
 		}
         ItemPath path = ((ItemPathType)evaluatorElementObject).getItemPath();
-
         return new PathExpressionEvaluator<>(path, getObjectResolver(), outputDefinition, protector, prismContext);
-
 	}
 
 }

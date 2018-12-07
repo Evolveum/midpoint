@@ -16,9 +16,8 @@
 package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -248,25 +247,25 @@ public class TestParseTask {
 
 	private void assertPropertyDefinition(PrismContainer<?> container, String propName, QName xsdType, int minOccurs,
 			int maxOccurs) {
-		QName propQName = new QName(SchemaConstantsGenerated.NS_COMMON, propName);
+		ItemName propQName = new ItemName(SchemaConstantsGenerated.NS_COMMON, propName);
 		PrismAsserts.assertPropertyDefinition(container, propQName, xsdType, minOccurs, maxOccurs);
 	}
 
 	public static void assertPropertyValue(PrismContainer<?> container, String propName, Object propValue) {
-		QName propQName = new QName(SchemaConstantsGenerated.NS_COMMON, propName);
+		ItemName propQName = new ItemName(SchemaConstantsGenerated.NS_COMMON, propName);
 		PrismAsserts.assertPropertyValue(container, propQName, propValue);
 	}
 
 	@Test
 	public static void testSerializeTask() throws Exception {
-		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, getPrismContext())
+		ObjectQuery query = getPrismContext().queryFor(ShadowType.class)
 				.item(ShadowType.F_KIND).eq(ShadowKindType.ACCOUNT)
 				.build();
 
-		QueryType queryType = QueryJaxbConvertor.createQueryType(query, getPrismContext());
+		QueryType queryType = getPrismContext().getQueryConverter().createQueryType(query);
 
-		PrismPropertyDefinition queryDef = new PrismPropertyDefinitionImpl(
-				SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY, QueryType.COMPLEX_TYPE, getPrismContext());
+		PrismPropertyDefinition queryDef = getPrismContext().definitionFactory().createPropertyDefinition(
+				SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY, QueryType.COMPLEX_TYPE);
 		PrismProperty<QueryType> queryProp = queryDef.instantiate();
 		queryProp.setRealValue(queryType);
 

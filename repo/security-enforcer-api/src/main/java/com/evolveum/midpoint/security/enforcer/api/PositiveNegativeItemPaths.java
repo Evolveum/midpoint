@@ -21,9 +21,10 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.ShortDumpable;
+
+import static com.evolveum.midpoint.prism.path.ItemPath.*;
 
 /**
  * @author semancik
@@ -39,15 +40,15 @@ public class PositiveNegativeItemPaths implements ShortDumpable {
 		return allItems;
 	}
 	
-	protected List<ItemPath> getIncludedItems() {
+	protected List<? extends ItemPath> getIncludedItems() {
 		return includedItems;
 	}
 
-	protected List<ItemPath> getExcludedItems() {
+	protected List<? extends ItemPath> getExcludedItems() {
 		return excludedItems;
 	}
 
-	public void collectItemPaths(Collection<ItemPath> newIncludedItems, Collection<ItemPath> newExcludedItems) {
+	public void collectItemPaths(Collection<? extends ItemPath> newIncludedItems, Collection<? extends ItemPath> newExcludedItems) {
 		if (allItems) {
 			return;
 		}
@@ -127,7 +128,7 @@ public class PositiveNegativeItemPaths implements ShortDumpable {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append(this.getClass().getSimpleName()).append("(");;
+		sb.append(this.getClass().getSimpleName()).append("(");
 		shortDump(sb);
 		sb.append(")");
 		return sb.toString();
@@ -149,11 +150,11 @@ public class PositiveNegativeItemPaths implements ShortDumpable {
 		}
 	}
 
-	protected void dumpItems(StringBuilder sb, List<ItemPath> items) {
+	protected void dumpItems(StringBuilder sb, List<? extends ItemPath> items) {
 		if (items.isEmpty()) {
 			sb.append("[none]");
 		} else {
-			Iterator<ItemPath> iterator = items.iterator();
+			Iterator<? extends ItemPath> iterator = items.iterator();
 			while (iterator.hasNext()) {
 				sb.append(PrettyPrinter.prettyPrint(iterator.next()));
 				if (iterator.hasNext()) {

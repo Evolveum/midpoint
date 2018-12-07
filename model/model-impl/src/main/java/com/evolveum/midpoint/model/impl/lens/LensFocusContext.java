@@ -17,6 +17,8 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import java.util.*;
 
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.model.api.util.ModelUtils;
@@ -57,7 +59,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 
 	// extracted from the template(s)
 	// this is not to be serialized into XML, but let's not mark it as transient
-	@NotNull private Map<ItemPath, ObjectTemplateItemDefinitionType> itemDefinitionsMap = new HashMap<>();
+	@NotNull private Map<UniformItemPath, ObjectTemplateItemDefinitionType> itemDefinitionsMap = new HashMap<>();
 
 	public LensFocusContext(Class<O> objectTypeClass, LensContext<O> lensContext) {
 		super(objectTypeClass, lensContext);
@@ -179,7 +181,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 		ObjectDelta<O> secondaryDelta = getProjectionWaveSecondaryDelta();
 
 		if (secondaryDelta == null) {
-            secondaryDelta = new ObjectDelta<>(getObjectTypeClass(), ChangeType.MODIFY, getPrismContext());
+            secondaryDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(), ChangeType.MODIFY);
             secondaryDelta.setOid(getOid());
             setProjectionWaveSecondaryDelta(secondaryDelta);
         } else if (secondaryDelta.containsModification(propDelta, true, true)) {
@@ -192,7 +194,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     public void swallowToSecondaryDelta(ItemDelta<?,?> propDelta) throws SchemaException {
       	ObjectDelta<O> secondaryDelta = getSecondaryDelta(0);
       	if (secondaryDelta == null) {
-            secondaryDelta = new ObjectDelta<>(getObjectTypeClass(), ChangeType.MODIFY, getPrismContext());
+            secondaryDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(), ChangeType.MODIFY);
             secondaryDelta.setOid(getOid());
             setSecondaryDelta(secondaryDelta, 0);
         } else if (secondaryDelta.containsModification(propDelta, true, true)) {
@@ -242,7 +244,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     public ObjectDelta<O> getWaveDelta(int wave) throws SchemaException {
     	if (wave == 0) {
     		// Primary delta is executed only in the first wave (wave 0)
-    		return ObjectDelta.union(getFixedPrimaryDelta(), getWaveSecondaryDelta(wave));
+    		return ObjectDeltaCollectionsUtil.union(getFixedPrimaryDelta(), getWaveSecondaryDelta(wave));
     	} else {
     		return getWaveSecondaryDelta(wave);
     	}
@@ -346,7 +348,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 			if (itemDelta != null && !itemDelta.isEmpty()) {
 				if (wavePrimaryDelta == null || !wavePrimaryDelta.containsModification(itemDelta)) {
 					if (waveSecondaryDelta == null) {
-						waveSecondaryDelta = new ObjectDelta<>(getObjectTypeClass(), ChangeType.MODIFY, getPrismContext());
+						waveSecondaryDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(), ChangeType.MODIFY);
 						if (getObjectNew() != null && getObjectNew().getOid() != null){
 							waveSecondaryDelta.setOid(getObjectNew().getOid());
 						}
@@ -578,12 +580,12 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         }
     }
 
-	public void setItemDefinitionsMap(@NotNull Map<ItemPath, ObjectTemplateItemDefinitionType> itemDefinitionsMap) {
+	public void setItemDefinitionsMap(@NotNull Map<UniformItemPath, ObjectTemplateItemDefinitionType> itemDefinitionsMap) {
 		this.itemDefinitionsMap = itemDefinitionsMap;
 	}
 
 	@NotNull
-	public Map<ItemPath, ObjectTemplateItemDefinitionType> getItemDefinitionsMap() {
+	public Map<UniformItemPath, ObjectTemplateItemDefinitionType> getItemDefinitionsMap() {
 		return itemDefinitionsMap;
 	}
 }

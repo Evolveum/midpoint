@@ -22,20 +22,15 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.delta.builder.S_MaybeDelete;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -44,7 +39,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -56,51 +50,54 @@ public class SynchronizationUtils {
 	private static final Trace LOGGER = TraceManager.getTrace(SynchronizationUtils.class);
 	
 	private static PropertyDelta<SynchronizationSituationType> createSynchronizationSituationDelta(
-			PrismObject<ShadowType> shadow, SynchronizationSituationType situation) {
+			PrismObject<ShadowType> shadow, SynchronizationSituationType situation,
+			PrismContext prismContext) {
 		
 		if (situation == null) {
 			SynchronizationSituationType oldValue = shadow.asObjectable().getSynchronizationSituation();
-			return PropertyDelta.createModificationDeleteProperty(new ItemPath(ShadowType.F_SYNCHRONIZATION_SITUATION), shadow.getDefinition(), oldValue);
+			return prismContext.deltaFactory().property().createModificationDeleteProperty(ShadowType.F_SYNCHRONIZATION_SITUATION, shadow.getDefinition(), oldValue);
 		}
 
-		return PropertyDelta.createModificationReplaceProperty(ShadowType.F_SYNCHRONIZATION_SITUATION, shadow.getDefinition(), situation);
+		return prismContext.deltaFactory().property().createModificationReplaceProperty(ShadowType.F_SYNCHRONIZATION_SITUATION, shadow.getDefinition(), situation);
 	}
 
 	private static PropertyDelta<XMLGregorianCalendar> createSynchronizationTimestampDelta(PrismObject<ShadowType> object,
-			QName propName, XMLGregorianCalendar timestamp) {
-		PropertyDelta<XMLGregorianCalendar> syncSituationDelta = PropertyDelta
+			QName propName, XMLGregorianCalendar timestamp, PrismContext prismContext) {
+		PropertyDelta<XMLGregorianCalendar> syncSituationDelta = prismContext.deltaFactory().property()
 				.createReplaceDelta(object.getDefinition(), propName, timestamp);
 		return syncSituationDelta;
 	}
 
 	public static List<PropertyDelta<?>> createSynchronizationSituationAndDescriptionDelta(PrismObject<ShadowType> shadow,
-			SynchronizationSituationType situation, String sourceChannel, boolean full, XMLGregorianCalendar timestamp) throws SchemaException {
+			SynchronizationSituationType situation, String sourceChannel, boolean full, XMLGregorianCalendar timestamp,
+			PrismContext prismContext) throws SchemaException {
 		
 		List<PropertyDelta<?>> propertyDeltas = new ArrayList<>();
 		
 		PropertyDelta<SynchronizationSituationDescriptionType> syncDescriptionDelta = createSynchronizationSituationDescriptionDelta(shadow, situation,
-				timestamp, sourceChannel, full);
+				timestamp, sourceChannel, full, prismContext);
 		propertyDeltas.add(syncDescriptionDelta);
 		
 		
-		propertyDeltas.addAll(createSynchronizationTimestampsDelta(shadow, timestamp, full));
+		propertyDeltas.addAll(createSynchronizationTimestampsDelta(shadow, timestamp, full, prismContext));
 
-		PropertyDelta<SynchronizationSituationType> syncSituationDelta = createSynchronizationSituationDelta(shadow, situation);
+		PropertyDelta<SynchronizationSituationType> syncSituationDelta = createSynchronizationSituationDelta(shadow, situation, prismContext);
 		propertyDeltas.add(syncSituationDelta);
 		
 		return propertyDeltas;
 	}
 	
-	private static PropertyDelta<SynchronizationSituationDescriptionType> createSynchronizationSituationDescriptionDelta(PrismObject<ShadowType> shadow,
+	private static PropertyDelta<SynchronizationSituationDescriptionType> createSynchronizationSituationDescriptionDelta(
+			PrismObject<ShadowType> shadow,
 			SynchronizationSituationType situation, XMLGregorianCalendar timestamp, String sourceChannel,
-			boolean full) throws SchemaException {
+			boolean full, PrismContext prismContext) throws SchemaException {
 		SynchronizationSituationDescriptionType syncSituationDescription = new SynchronizationSituationDescriptionType();
 		syncSituationDescription.setSituation(situation);
 		syncSituationDescription.setChannel(sourceChannel);
 		syncSituationDescription.setTimestamp(timestamp);
 		syncSituationDescription.setFull(full);
 
-		S_MaybeDelete builder = DeltaBuilder.deltaFor(ShadowType.class, shadow.getPrismContext())
+		S_MaybeDelete builder = prismContext.deltaFor(ShadowType.class)
 			.item(ShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION).add(syncSituationDescription);
 		
 		
@@ -113,23 +110,24 @@ public class SynchronizationUtils {
 		return (PropertyDelta<SynchronizationSituationDescriptionType>) builder.asItemDelta();
 	}
 	
-		public static List<PropertyDelta<?>> createSynchronizationTimestampsDelta(
-			PrismObject<ShadowType> shadow) {
+	public static List<PropertyDelta<?>> createSynchronizationTimestampsDelta(
+			PrismObject<ShadowType> shadow, PrismContext prismContext) {
 			XMLGregorianCalendar timestamp = XmlTypeConverter
 					.createXMLGregorianCalendar(System.currentTimeMillis());
-		return createSynchronizationTimestampsDelta(shadow, timestamp, true);
+		return createSynchronizationTimestampsDelta(shadow, timestamp, true, prismContext);
 	}
 	
-	private static List<PropertyDelta<?>> createSynchronizationTimestampsDelta(PrismObject<ShadowType> shadow, XMLGregorianCalendar timestamp, boolean full) {
+	private static List<PropertyDelta<?>> createSynchronizationTimestampsDelta(PrismObject<ShadowType> shadow,
+			XMLGregorianCalendar timestamp, boolean full, PrismContext prismContext) {
 		
 		List<PropertyDelta<?>> deltas = new ArrayList<>();
 		PropertyDelta<XMLGregorianCalendar> timestampDelta = createSynchronizationTimestampDelta(shadow,
-				ShadowType.F_SYNCHRONIZATION_TIMESTAMP, timestamp);
+				ShadowType.F_SYNCHRONIZATION_TIMESTAMP, timestamp, prismContext);
 		deltas.add(timestampDelta);
 
 		if (full) {
 			timestampDelta = createSynchronizationTimestampDelta(shadow,
-					ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP, timestamp);
+					ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP, timestamp, prismContext);
 			deltas.add(timestampDelta);
 		}
 		return deltas;

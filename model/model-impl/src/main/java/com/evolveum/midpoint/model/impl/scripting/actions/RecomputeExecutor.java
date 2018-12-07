@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -78,7 +79,8 @@ public class RecomputeExecutor extends BaseActionExecutor {
                     if (LOGGER.isTraceEnabled()) {
                         LOGGER.trace("Recomputing object {} with dryRun={}", focalPrismObject, dryRun);
                     }
-                    ObjectDelta<? extends FocusType> emptyDelta = ObjectDelta.createEmptyDelta(focusType.getClass(), focusType.getOid(), prismContext, ChangeType.MODIFY);
+                    ObjectDelta<? extends FocusType> emptyDelta = ObjectDeltaCreationUtil
+		                    .createEmptyDelta(focusType.getClass(), focusType.getOid(), prismContext, ChangeType.MODIFY);
                     operationsHelper.applyDelta(emptyDelta, ModelExecuteOptions.createReconcile(), dryRun, context, result);
                     LOGGER.trace("Recomputing of object {}: {}", focalPrismObject, result.getStatus());
                     operationsHelper.recordEnd(context, focusType, started, null);

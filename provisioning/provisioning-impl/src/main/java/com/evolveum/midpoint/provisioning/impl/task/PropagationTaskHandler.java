@@ -23,7 +23,6 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.impl.ShadowCache;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeTaskHandler;
@@ -108,8 +107,8 @@ public class PropagationTaskHandler extends AbstractSearchIterativeTaskHandler<S
 	@Override
 	protected ObjectQuery createQuery(PropagationResultHandler handler, TaskRunResult runResult, Task coordinatorTask,
 			OperationResult opResult) {
-		ObjectQuery query = new ObjectQuery();
-		ObjectFilter filter = QueryBuilder.queryFor(ShadowType.class, prismContext)
+		ObjectQuery query = prismContext.queryFactory().createObjectQuery();
+		ObjectFilter filter = prismContext.queryFor(ShadowType.class)
 				.item(ShadowType.F_RESOURCE_REF).ref(handler.getResource().getOid())
 				.and()
 				.exists(ShadowType.F_PENDING_OPERATION)

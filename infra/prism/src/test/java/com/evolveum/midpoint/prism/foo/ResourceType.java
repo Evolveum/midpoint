@@ -13,8 +13,8 @@ import java.io.Serializable;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlType;
-import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
 
@@ -44,7 +44,7 @@ import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 public class ResourceType extends ObjectType implements Serializable {
     private final static long serialVersionUID = 201202081233L;
 
-    public final static QName F_SCHEMA = new QName(NS_FOO, "schema");
+    public final static ItemName F_SCHEMA = new ItemName(NS_FOO, "schema");
 
     protected SchemaDefinitionType schema;
 

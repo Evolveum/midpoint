@@ -21,14 +21,9 @@ import com.evolveum.midpoint.model.common.stringpolicy.AbstractValuePolicyOrigin
 import com.evolveum.midpoint.model.common.stringpolicy.ShadowValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.UserValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.delta.ItemDeltaUtil;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
@@ -36,7 +31,6 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.repo.common.expression.ValuePolicyResolver;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.util.RandomString;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -180,14 +174,13 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
 
 
 		if (output instanceof PrismProperty) {
-			PrismPropertyValue<Object> pValue = new PrismPropertyValue<>(value);
-			((PrismProperty<Object>) output).add(pValue);
+			((PrismProperty<Object>) output).addRealValue(value);
 		} else {
 			throw new UnsupportedOperationException(
 					"Can only generate values of property, not " + output.getClass());
 		}
 
-		return ItemDelta.toDeltaSetTriple(output, null);
+		return ItemDeltaUtil.toDeltaSetTriple(output, null, prismContext);
 	}
 
 	// determine object from the variables

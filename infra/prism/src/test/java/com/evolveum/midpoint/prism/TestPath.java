@@ -16,24 +16,25 @@
 package com.evolveum.midpoint.prism;
 
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.*;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -46,6 +47,14 @@ public class TestPath {
 
 	private static final String NS = "http://example.com/";
 
+	private static Map<Character, Function<Object[], ItemPath>> creators = new HashMap<>();
+	static {
+		creators.put('C', seq -> getPrismContext().path(seq));
+		creators.put('S', ItemPath::create);
+		creators.put('N', seq -> seq.length == 1 ? ItemName.fromQName((QName) seq[0]) : ItemPath.create(seq));
+		creators.put('R', seq -> creators.get("CSN".charAt((int) (Math.random() * 3))).apply(seq));
+	}
+
 	@BeforeSuite
 	public void setupDebug() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
@@ -53,29 +62,28 @@ public class TestPath {
 	}
 
 	@Test
-    public void testPathNormalize() throws Exception {
+    public void testPathNormalize() {
 		System.out.println("\n\n===[ testPathNormalize ]===\n");
 
+		PrismContext prismContext = getPrismContext();
+
 		// GIVEN
-		ItemPath path1 = new ItemPath(new QName(NS, "foo"), new QName(NS, "bar"));
-		ItemPath path2 = new ItemPath(new NameItemPathSegment(new QName(NS, "foo")), new IdItemPathSegment(123L),
-									  new NameItemPathSegment(new QName(NS, "bar")));
-		ItemPath path22 = new ItemPath(new NameItemPathSegment(new QName(NS, "foo")), new IdItemPathSegment(123L),
-				  new NameItemPathSegment(new QName(NS, "bar")), new IdItemPathSegment(null));
-		ItemPath path3 = new ItemPath(new NameItemPathSegment(new QName(NS, "foo")), new IdItemPathSegment(123L),
-				  					  new NameItemPathSegment(new QName(NS, "bar")), new IdItemPathSegment(333L));
-		ItemPath path4 = new ItemPath(new QName(NS, "x"));
-		ItemPath path5 = new ItemPath(new NameItemPathSegment(new QName(NS, "foo")), new IdItemPathSegment(123L));
-		ItemPath pathE = ItemPath.EMPTY_PATH;
+		UniformItemPath path1 = prismContext.path(new QName(NS, "foo"), new QName(NS, "bar"));
+		UniformItemPath path2 = prismContext.path(new QName(NS, "foo"), 123L, new QName(NS, "bar"));
+		UniformItemPath path22 = prismContext.path(new QName(NS, "foo"), 123L, new QName(NS, "bar"), null);
+		UniformItemPath path3 = prismContext.path(new QName(NS, "foo"), 123L, new QName(NS, "bar"), 333L);
+		UniformItemPath path4 = prismContext.path(new QName(NS, "x"));
+		UniformItemPath path5 = prismContext.path(new QName(NS, "foo"), 123L);
+		UniformItemPath pathE = prismContext.emptyPath();
 
 		// WHEN
-		ItemPath normalized1 = path1.normalize();
-		ItemPath normalized2 = path2.normalize();
-		ItemPath normalized22 = path22.normalize();
-		ItemPath normalized3 = path3.normalize();
-		ItemPath normalized4 = path4.normalize();
-		ItemPath normalized5 = path5.normalize();
-		ItemPath normalizedE = pathE.normalize();
+		UniformItemPath normalized1 = path1.normalize();
+		UniformItemPath normalized2 = path2.normalize();
+		UniformItemPath normalized22 = path22.normalize();
+		UniformItemPath normalized3 = path3.normalize();
+		UniformItemPath normalized4 = path4.normalize();
+		UniformItemPath normalized5 = path5.normalize();
+		UniformItemPath normalizedE = pathE.normalize();
 
 		// THEN
 		System.out.println("Normalized path 1:" + normalized1);
@@ -95,47 +103,83 @@ public class TestPath {
 		assert normalizedE.isEmpty() : "normalizedE is not empty";
 	}
 
+	@SuppressWarnings("SpellCheckingInspection")
 	@Test
-    public void testPathCompare() throws Exception {
-		System.out.println("\n\n===[ testPathCompare ]===\n");
+    public void testPathCompareComplex() {
+		testPathCompare("CCCCCCCCCCCC");
+	}
+
+	@SuppressWarnings("SpellCheckingInspection")
+	@Test
+    public void testPathCompareSimple() {
+		testPathCompare("SSSSSSSSSSSS");
+	}
+
+	@SuppressWarnings("SpellCheckingInspection")
+	@Test
+    public void testPathCompareSingleNames() {
+		testPathCompare("NNNNNNNNNNNN");
+	}
+
+	@SuppressWarnings("SpellCheckingInspection")
+	@Test
+    public void testPathCompareRandom() {
+		testPathCompare("RRRRRRRRRRRR");
+	}
+
+	@SuppressWarnings("SpellCheckingInspection")
+	@Test
+	public void testPathCompareHalf1() {
+		testPathCompare("CCCCCCSSSSSS");
+	}
+
+	@SuppressWarnings("SpellCheckingInspection")
+	@Test
+	public void testPathCompareHalf2() {
+		testPathCompare("SSSSSSNNNNNN");
+	}
+
+	private void testPathCompare(String source) {
+		System.out.println("\n\n===[ testPathCompare (" + source + ") ]===\n");
 
 		// GIVEN
 		
 		// /foo
-		ItemPath pathFoo = new ItemPath(new QName(NS, "foo"));
+		ItemPath pathFoo = create(source, 0, new QName(NS, "foo"));
 		
 		// /foo/
-		ItemPath pathFooNull = new ItemPath(new NameItemPathSegment(new QName(NS, "foo")), new IdItemPathSegment());
+		ItemPath pathFooNull = create(source, 1, new QName(NS, "foo"), null);
 		
 		// /foo/[123]
-		ItemPath pathFoo123 = new ItemPath(new NameItemPathSegment(new QName(NS, "foo")), new IdItemPathSegment(123L));
+		ItemPath pathFoo123 = create(source, 2, new QName(NS, "foo"), 123L);
 		
 		// /foo/bar
-		ItemPath pathFooBar = new ItemPath(new QName(NS, "foo"), new QName(NS, "bar"));
+		ItemPath pathFooBar = create(source, 3, new QName(NS, "foo"), new QName(NS, "bar"));
 		
 		// /foo/[123]/bar
-		ItemPath pathFoo123Bar = new ItemPath(new NameItemPathSegment(new QName(NS, "foo")), new IdItemPathSegment(123L), new QName(NS, "bar"));
+		ItemPath pathFoo123Bar = create(source, 4, new QName(NS, "foo"), 123L, new QName(NS, "bar"));
 		
 		// /foo/bar/baz
-		ItemPath pathFooBarBaz = new ItemPath(new QName(NS, "foo"), new QName(NS, "bar"), new QName(NS, "baz"));
+		ItemPath pathFooBarBaz = create(source, 5, new QName(NS, "foo"), new QName(NS, "bar"), new QName(NS, "baz"));
 		
 		// /foo/[123]/bar/baz
-		ItemPath pathFoo123BarBaz = new ItemPath(new QName(NS, "foo"), new IdItemPathSegment(123L), new QName(NS, "bar"), new QName(NS, "baz"));
+		ItemPath pathFoo123BarBaz = create(source, 6, new QName(NS, "foo"), 123L, new QName(NS, "bar"), new QName(NS, "baz"));
 		
 		// /foo/baz/baz
-		ItemPath pathFooBazBaz = new ItemPath(new QName(NS, "foo"), new QName(NS, "baz"), new QName(NS, "baz"));
+		ItemPath pathFooBazBaz = create(source, 7, new QName(NS, "foo"), new QName(NS, "baz"), new QName(NS, "baz"));
 
 		// /foo/[123]/baz/baz
-		ItemPath pathFoo123BazBaz = new ItemPath(new QName(NS, "foo"), new IdItemPathSegment(123L), new QName(NS, "baz"), new QName(NS, "baz"));
+		ItemPath pathFoo123BazBaz = create(source, 8, new QName(NS, "foo"), 123L, new QName(NS, "baz"), new QName(NS, "baz"));
 		
 		// /foo//bar
-		ItemPath pathFooNullBar = new ItemPath(new NameItemPathSegment(new QName(NS, "foo")), new IdItemPathSegment(),
-												new NameItemPathSegment(new QName(NS, "bar")));
+		ItemPath pathFooNullBar = create(source, 9, new QName(NS, "foo"), null, new QName(NS, "bar"));
 		
 		// /zoo
-		ItemPath pathZoo = new ItemPath(new QName(NS, "zoo"));
+		ItemPath pathZoo = create(source, 10, new QName(NS, "zoo"));
 
-		List<ItemPath> onlyEmpty = Collections.singletonList(ItemPath.EMPTY_PATH);
+		ItemPath empty = create(source, 11);
+
+		List<ItemPath> onlyEmpty = Collections.singletonList(empty);
 		List<ItemPath> onlyFoo = Collections.singletonList(pathFoo);
 		List<ItemPath> onlyFooBar = Collections.singletonList(pathFooBar);
 
@@ -146,8 +190,8 @@ public class TestPath {
 		assertTrue(pathFoo.isSubPath(pathFooBar));
 		assertTrue(pathFooBar.isSuperPath(pathFoo));
 		assertTrue(pathFooBar.equivalent(pathFooNullBar));
-		assertTrue(ItemPath.EMPTY_PATH.isSubPath(pathFoo));
-		assertFalse(pathFoo.isSubPath(ItemPath.EMPTY_PATH));
+		assertTrue(empty.isSubPath(pathFoo));
+		assertFalse(pathFoo.isSubPath(empty));
 		
 		assertTrue(pathFoo123Bar.isSubPathOrEquivalent(pathFoo123BarBaz));
 		assertFalse(pathFoo123Bar.isSubPathOrEquivalent(pathZoo));
@@ -163,76 +207,82 @@ public class TestPath {
 		assertFalse(pathFooBar.isSubPathOrEquivalent(pathZoo));
 		assertFalse(pathFooBar.isSubPathOrEquivalent(pathFooBazBaz));
 
-		assertTrue(ItemPath.containsSubpathOrEquivalent(onlyEmpty, pathFoo));
-		assertTrue(ItemPath.containsSubpath(onlyEmpty, pathFoo));
-		assertFalse(ItemPath.containsSuperpathOrEquivalent(onlyEmpty, pathFoo));
-		assertFalse(ItemPath.containsSuperpath(onlyEmpty, pathFoo));
+		assertTrue(ItemPathCollectionsUtil.containsSubpathOrEquivalent(onlyEmpty, pathFoo));
+		assertTrue(ItemPathCollectionsUtil.containsSubpath(onlyEmpty, pathFoo));
+		assertFalse(ItemPathCollectionsUtil.containsSuperpathOrEquivalent(onlyEmpty, pathFoo));
+		assertFalse(ItemPathCollectionsUtil.containsSuperpath(onlyEmpty, pathFoo));
 
-		assertTrue(ItemPath.containsSubpathOrEquivalent(onlyEmpty, ItemPath.EMPTY_PATH));
-		assertFalse(ItemPath.containsSubpath(onlyEmpty, ItemPath.EMPTY_PATH));
-		assertTrue(ItemPath.containsSuperpathOrEquivalent(onlyEmpty, ItemPath.EMPTY_PATH));
-		assertFalse(ItemPath.containsSuperpath(onlyEmpty, ItemPath.EMPTY_PATH));
+		assertTrue(ItemPathCollectionsUtil.containsSubpathOrEquivalent(onlyEmpty, empty));
+		assertFalse(ItemPathCollectionsUtil.containsSubpath(onlyEmpty, empty));
+		assertTrue(ItemPathCollectionsUtil.containsSuperpathOrEquivalent(onlyEmpty, empty));
+		assertFalse(ItemPathCollectionsUtil.containsSuperpath(onlyEmpty, empty));
 
-		assertTrue(ItemPath.containsSubpathOrEquivalent(onlyFoo, pathFoo));
-		assertFalse(ItemPath.containsSubpath(onlyFoo, pathFoo));
-		assertTrue(ItemPath.containsSuperpathOrEquivalent(onlyFoo, pathFoo));
-		assertFalse(ItemPath.containsSuperpath(onlyFoo, pathFoo));
+		assertTrue(ItemPathCollectionsUtil.containsSubpathOrEquivalent(onlyFoo, pathFoo));
+		assertFalse(ItemPathCollectionsUtil.containsSubpath(onlyFoo, pathFoo));
+		assertTrue(ItemPathCollectionsUtil.containsSuperpathOrEquivalent(onlyFoo, pathFoo));
+		assertFalse(ItemPathCollectionsUtil.containsSuperpath(onlyFoo, pathFoo));
 
-		assertFalse(ItemPath.containsSubpathOrEquivalent(onlyFoo, ItemPath.EMPTY_PATH));
-		assertFalse(ItemPath.containsSubpath(onlyFoo, ItemPath.EMPTY_PATH));
-		assertTrue(ItemPath.containsSuperpathOrEquivalent(onlyFoo, ItemPath.EMPTY_PATH));
-		assertTrue(ItemPath.containsSuperpath(onlyFoo, ItemPath.EMPTY_PATH));
+		assertFalse(ItemPathCollectionsUtil.containsSubpathOrEquivalent(onlyFoo, empty));
+		assertFalse(ItemPathCollectionsUtil.containsSubpath(onlyFoo, empty));
+		assertTrue(ItemPathCollectionsUtil.containsSuperpathOrEquivalent(onlyFoo, empty));
+		assertTrue(ItemPathCollectionsUtil.containsSuperpath(onlyFoo, empty));
 
-		assertFalse(ItemPath.containsSubpathOrEquivalent(onlyFoo, pathZoo));
-		assertFalse(ItemPath.containsSubpath(onlyFoo, pathZoo));
-		assertFalse(ItemPath.containsSuperpathOrEquivalent(onlyFoo, pathZoo));
-		assertFalse(ItemPath.containsSuperpath(onlyFoo, pathZoo));
+		assertFalse(ItemPathCollectionsUtil.containsSubpathOrEquivalent(onlyFoo, pathZoo));
+		assertFalse(ItemPathCollectionsUtil.containsSubpath(onlyFoo, pathZoo));
+		assertFalse(ItemPathCollectionsUtil.containsSuperpathOrEquivalent(onlyFoo, pathZoo));
+		assertFalse(ItemPathCollectionsUtil.containsSuperpath(onlyFoo, pathZoo));
 
-		assertFalse(ItemPath.containsSubpathOrEquivalent(onlyFooBar, pathFoo));
-		assertFalse(ItemPath.containsSubpath(onlyFooBar, pathFoo));
-		assertTrue(ItemPath.containsSuperpathOrEquivalent(onlyFooBar, pathFoo));
-		assertTrue(ItemPath.containsSuperpath(onlyFooBar, pathFoo));
+		assertFalse(ItemPathCollectionsUtil.containsSubpathOrEquivalent(onlyFooBar, pathFoo));
+		assertFalse(ItemPathCollectionsUtil.containsSubpath(onlyFooBar, pathFoo));
+		assertTrue(ItemPathCollectionsUtil.containsSuperpathOrEquivalent(onlyFooBar, pathFoo));
+		assertTrue(ItemPathCollectionsUtil.containsSuperpath(onlyFooBar, pathFoo));
 
-		assertTrue(ItemPath.containsSubpathOrEquivalent(onlyFooBar, pathFooBarBaz));
-		assertTrue(ItemPath.containsSubpath(onlyFooBar, pathFooBarBaz));
-		assertFalse(ItemPath.containsSuperpathOrEquivalent(onlyFooBar, pathFooBarBaz));
-		assertFalse(ItemPath.containsSuperpath(onlyFooBar, pathFooBarBaz));
+		assertTrue(ItemPathCollectionsUtil.containsSubpathOrEquivalent(onlyFooBar, pathFooBarBaz));
+		assertTrue(ItemPathCollectionsUtil.containsSubpath(onlyFooBar, pathFooBarBaz));
+		assertFalse(ItemPathCollectionsUtil.containsSuperpathOrEquivalent(onlyFooBar, pathFooBarBaz));
+		assertFalse(ItemPathCollectionsUtil.containsSuperpath(onlyFooBar, pathFooBarBaz));
+	}
+
+	private ItemPath create(String source, int index, Object... components) {
+		return creators.get(source.charAt(index)).apply(components);
 	}
 
 	@Test
     public void testPathRemainder() throws Exception {
 		System.out.println("\n\n===[ testPathRemainder ]===\n");
 
+		PrismContext prismContext = getPrismContext();
+
 		// GIVEN
-		ItemPath pathFoo = new ItemPath(new QName(NS, "foo"));
-		ItemPath pathBar = new ItemPath(new QName(NS, "bar"));
-		ItemPath pathFooNull = new ItemPath(new NameItemPathSegment(new QName(NS, "foo")), new IdItemPathSegment());
-		ItemPath pathFoo123 = new ItemPath(new NameItemPathSegment(new QName(NS, "foo")), new IdItemPathSegment(123L));
-		ItemPath pathFooBar = new ItemPath(new QName(NS, "foo"), new QName(NS, "bar"));
-		ItemPath pathFooNullBar = new ItemPath(new NameItemPathSegment(new QName(NS, "foo")), new IdItemPathSegment(),
-												new NameItemPathSegment(new QName(NS, "bar")));
+		UniformItemPath pathFoo = prismContext.path(new QName(NS, "foo"));
+		UniformItemPath pathBar = prismContext.path(new QName(NS, "bar"));
+		UniformItemPath pathFooNull = prismContext.path(new QName(NS, "foo"), null);
+		UniformItemPath pathFoo123 = prismContext.path(new QName(NS, "foo"), 123L);
+		UniformItemPath pathFooBar = prismContext.path(new QName(NS, "foo"), new QName(NS, "bar"));
+		UniformItemPath pathFooNullBar = prismContext.path(new QName(NS, "foo"), null,
+												new QName(NS, "bar"));
 
 		// WHEN
-		ItemPath remainder1 = pathFooBar.remainder(pathFooNull);
+		UniformItemPath remainder1 = pathFooBar.remainder(pathFooNull);
 
 		// THEN
 		assertEquals("Remainder fooBar, fooNull", pathBar, remainder1);
 	}
 
-	private void assertNormalizedPath(ItemPath normalized, Object... expected) {
+	private void assertNormalizedPath(UniformItemPath normalized, Object... expected) {
 		assertEquals("wrong path length",normalized.size(), expected.length);
 		for(int i=0; i<normalized.size(); i+=2) {
-			ItemPathSegment nameSegment = normalized.getSegments().get(i);
-			assert nameSegment instanceof NameItemPathSegment : "Expected name segment but it was "+nameSegment.getClass();
-			QName name = ((NameItemPathSegment)nameSegment).getName();
+			ItemPathSegment nameSegment = normalized.getSegment(i);
+			assert ItemPath.isName(nameSegment) : "Expected name segment but it was "+nameSegment.getClass();
+			QName name = ItemPath.toName(nameSegment);
 			assert name != null : "name is null";
 			assert name.getNamespaceURI().equals(NS) : "wrong namespace: "+name.getNamespaceURI();
 			assert name.getLocalPart().equals(expected[i]) : "wrong local name, expected "+expected[i]+", was "+name.getLocalPart();
 
 			if (i + 1 < expected.length) {
-				ItemPathSegment idSegment = normalized.getSegments().get(i+1);
-				assert idSegment instanceof IdItemPathSegment : "Expected is segment but it was "+nameSegment.getClass();
-				Long id = ((IdItemPathSegment)idSegment).getId();
+				Object idSegment = normalized.getSegment(i+1);
+				assert ItemPath.isId(idSegment) : "Expected is segment but it was "+idSegment.getClass();
+				Long id = ItemPath.toId(idSegment);
 				assertId(id, (Long)expected[i+1]);
 			}
 		}

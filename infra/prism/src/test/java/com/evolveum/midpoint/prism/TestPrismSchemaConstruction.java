@@ -27,6 +27,7 @@ import java.util.Iterator;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.schema.PrismSchemaImpl;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -49,7 +50,7 @@ public class TestPrismSchemaConstruction {
 	private static final String NS_MY_SCHEMA = "http://midpoint.evolveum.com/xml/ns/test/my-1";
 	private static final String WEAPON_TYPE_LOCAL_NAME = "WeaponType";
 	private static final QName WEAPON_TYPE_QNAME = new QName(NS_MY_SCHEMA, WEAPON_TYPE_LOCAL_NAME);
-	private static final QName WEAPON_KIND_QNAME = new QName(NS_MY_SCHEMA, "kind");
+	private static final ItemName WEAPON_KIND_QNAME = new ItemName(NS_MY_SCHEMA, "kind");
 	private static final QName WEAPON_CREATE_TIMESTAMP_QNAME = new QName(NS_MY_SCHEMA, "createTimestamp");
 	private static final String WEAPON_LOCAL_NAME = "weapon";
 	private static final String WEAPON_BRAND_LOCAL_NAME = "brand";
@@ -139,13 +140,13 @@ public class TestPrismSchemaConstruction {
 	private PrismSchema constructSchema(PrismContext prismContext) {
 		PrismSchemaImpl schema = new PrismSchemaImpl(NS_MY_SCHEMA, prismContext);
 
-		ComplexTypeDefinitionImpl weaponTypeDef = (ComplexTypeDefinitionImpl) schema.createComplexTypeDefinition(WEAPON_TYPE_QNAME);
-		PrismPropertyDefinitionImpl kindPropertyDef = weaponTypeDef.createPropertyDefinition(WEAPON_KIND_QNAME, DOMUtil.XSD_STRING);
+		MutableComplexTypeDefinition weaponTypeDef = schema.createComplexTypeDefinition(WEAPON_TYPE_QNAME).toMutable();
+		MutablePrismPropertyDefinition<?> kindPropertyDef = weaponTypeDef.createPropertyDefinition(WEAPON_KIND_QNAME, DOMUtil.XSD_STRING);
 		kindPropertyDef.setDisplayName("Weapon kind");
 		weaponTypeDef.createPropertyDefinition(WEAPON_BRAND_LOCAL_NAME, PrismInternalTestUtil.WEAPONS_WEAPON_BRAND_TYPE_QNAME);
 		weaponTypeDef.createPropertyDefinition(WEAPON_PASSWORD_LOCAL_NAME, PrismInternalTestUtil.DUMMY_PROTECTED_STRING_TYPE);
 		weaponTypeDef.createPropertyDefinition(WEAPON_BLADE_LOCAL_NAME, PrismInternalTestUtil.EXTENSION_BLADE_TYPE_QNAME);
-		PrismPropertyDefinitionImpl createTimestampPropertyDef = weaponTypeDef.createPropertyDefinition(WEAPON_CREATE_TIMESTAMP_QNAME, DOMUtil.XSD_DATETIME);
+		MutablePrismPropertyDefinition<?> createTimestampPropertyDef = weaponTypeDef.createPropertyDefinition(WEAPON_CREATE_TIMESTAMP_QNAME, DOMUtil.XSD_DATETIME);
 		createTimestampPropertyDef.setDisplayName("Create timestamp");
 		createTimestampPropertyDef.setOperational(true);
 

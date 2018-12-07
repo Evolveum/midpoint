@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -250,7 +251,7 @@ public class PageCertDefinition extends PageAdminCertification {
 			if (oldObject.getOid() != null) {
 				delta = DiffUtil.diff(oldObject, newObject);
 			} else {
-				delta = ObjectDelta.createAddDelta(newObject.asPrismObject());
+				delta = ObjectDeltaCreationUtil.createAddDelta(newObject.asPrismObject());
 			}
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Access definition delta:\n{}", delta.debugDump());

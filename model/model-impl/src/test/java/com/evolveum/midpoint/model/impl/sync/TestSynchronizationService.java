@@ -21,8 +21,8 @@ import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertFalse;
 
 import java.io.File;
-import java.util.List;
 
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -38,12 +38,9 @@ import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.impl.sync.action.UnlinkAction;
 import com.evolveum.midpoint.model.impl.util.mock.MockLensDebugListener;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
@@ -383,7 +380,8 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
         change.setCurrentShadow(shadow);
         change.setResource(getDummyResourceObject());
-        ObjectDelta<ShadowType> syncDelta = ObjectDelta.createDeleteDelta(ShadowType.class, accountShadowJackDummyOid, prismContext);
+        ObjectDelta<ShadowType> syncDelta = ObjectDeltaCreationUtil
+		        .createDeleteDelta(ShadowType.class, accountShadowJackDummyOid, prismContext);
 		change.setObjectDelta(syncDelta);
 
 		// WHEN
@@ -495,7 +493,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         // Lets make this a bit more interesting by setting up a fake situation in the shadow
         ObjectDelta<ShadowType> objectDelta = createModifyAccountShadowReplaceDelta(accountShadowCalypsoDummyOid,
-        		getDummyResourceObject(), new ItemPath(ShadowType.F_SYNCHRONIZATION_SITUATION), SynchronizationSituationType.DISPUTED);
+        		getDummyResourceObject(), ShadowType.F_SYNCHRONIZATION_SITUATION, SynchronizationSituationType.DISPUTED);
         repositoryService.modifyObject(ShadowType.class, accountShadowCalypsoDummyOid, objectDelta.getModifications(), result);
 
         PrismObject<ShadowType> accountShadowCalypso = getShadowModelNoFetch(accountShadowCalypsoDummyOid);
@@ -619,7 +617,8 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
         change.setCurrentShadow(shadow);
         change.setResource(getDummyResourceObject());
-        ObjectDelta<ShadowType> syncDelta = ObjectDelta.createDeleteDelta(ShadowType.class, accountShadowJackDummyOid, prismContext);
+        ObjectDelta<ShadowType> syncDelta = ObjectDeltaCreationUtil
+		        .createDeleteDelta(ShadowType.class, accountShadowJackDummyOid, prismContext);
 		change.setObjectDelta(syncDelta);
 
 		repositoryService.deleteObject(ShadowType.class, accountShadowJackDummyOid, result);

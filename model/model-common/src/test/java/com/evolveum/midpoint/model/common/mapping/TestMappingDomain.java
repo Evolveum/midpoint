@@ -20,6 +20,7 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import java.io.IOException;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
@@ -70,7 +71,7 @@ public class TestMappingDomain {
     	employeeTypeOld.clear();
     	employeeTypeOld.add("1234567890");
 
-    	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
+    	ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
     			UserType.F_ADDITIONAL_NAME, evaluator.getPrismContext(), "Jackie");
     	delta.addModificationReplaceProperty(UserType.F_EMPLOYEE_TYPE, "321");
 
@@ -108,7 +109,7 @@ public class TestMappingDomain {
     	employeeTypeOld.add("002");
     	employeeTypeOld.add("003");
 
-    	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
+    	ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
     			UserType.F_ADDITIONAL_NAME, evaluator.getPrismContext(), "Jackie");
     	delta.addModificationReplaceProperty(UserType.F_EMPLOYEE_TYPE, "991", "992");
 
@@ -149,7 +150,7 @@ public class TestMappingDomain {
     	employeeTypeOld.add("B03");
     	employeeTypeOld.add("004");
 
-    	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
+    	ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
     			UserType.F_ADDITIONAL_NAME, evaluator.getPrismContext(), "Jackie");
     	delta.addModificationReplaceProperty(UserType.F_EMPLOYEE_TYPE, "X91", "992", "Y93", "994");
 
@@ -193,7 +194,7 @@ public class TestMappingDomain {
     	employeeTypeOld.add("B03");
     	employeeTypeOld.add("004");
 
-    	ObjectDelta<UserType> delta = ObjectDelta.createModificationAddProperty(UserType.class, evaluator.USER_OLD_OID,
+    	ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createModificationAddProperty(UserType.class, evaluator.USER_OLD_OID,
     			UserType.F_EMPLOYEE_TYPE, evaluator.getPrismContext(), "X91", "992", "Y93", "994");
 
 		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
@@ -239,7 +240,7 @@ public class TestMappingDomain {
     	employeeTypeOld.add("C06");
     	employeeTypeOld.add("007");
 
-    	ObjectDelta<UserType> delta = ObjectDelta.createModificationDeleteProperty(UserType.class, evaluator.USER_OLD_OID,
+    	ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createModificationDeleteProperty(UserType.class, evaluator.USER_OLD_OID,
     			UserType.F_EMPLOYEE_TYPE, evaluator.getPrismContext(), "005", "C06", "007");
 
 		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(

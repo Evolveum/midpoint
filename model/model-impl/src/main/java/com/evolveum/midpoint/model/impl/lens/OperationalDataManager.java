@@ -19,24 +19,15 @@ import java.util.*;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.ActivationComputer;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -129,19 +120,19 @@ public class OperationalDataManager {
 			XMLGregorianCalendar now, Task task, LensContext<F> context,
 			OperationResult result) throws SchemaException {
 
-		ItemDelta.mergeAll(objectDelta.getModifications(),
-				createModifyMetadataDeltas(context, new ItemPath(ObjectType.F_METADATA), objectTypeClass, now, task));
+		ItemDeltaCollectionsUtil.mergeAll(objectDelta.getModifications(),
+				createModifyMetadataDeltas(context, ObjectType.F_METADATA, objectTypeClass, now, task));
 
 		List<PrismReferenceValue> approverReferenceValues = new ArrayList<>();
 		List<String> approverComments = new ArrayList<>();
 		if (workflowManager != null) {
 			for (ObjectReferenceType approverRef : workflowManager.getApprovedBy(task, result)) {
-				approverReferenceValues.add(new PrismReferenceValue(approverRef.getOid()));
+				approverReferenceValues.add(prismContext.itemFactory().createPrismReferenceValue(approverRef.getOid()));
 			}
 			approverComments.addAll(workflowManager.getApproverComments(task, result));
 		}
-		ItemDelta.mergeAll(objectDelta.getModifications(),
-				DeltaBuilder.deltaFor(objectTypeClass, prismContext)
+		ItemDeltaCollectionsUtil.mergeAll(objectDelta.getModifications(),
+				prismContext.deltaFor(objectTypeClass)
 						.item(ObjectType.F_METADATA, MetadataType.F_MODIFY_APPROVER_REF).replace(approverReferenceValues)
 						.item(ObjectType.F_METADATA, MetadataType.F_MODIFY_APPROVAL_COMMENT).replaceRealValues(approverComments)
 						.asItemDeltas());
@@ -193,21 +184,21 @@ public class OperationalDataManager {
 						}
 					}
 				} else if (comparison == SUPERPATH) {
-					ItemPathSegment secondSegment = deltaPath.rest().first();
-					if (!(secondSegment instanceof IdItemPathSegment)) {
+					Object secondSegment = deltaPath.rest().first();
+					if (!ItemPath.isId(secondSegment)) {
 						throw new IllegalStateException("Assignment modification contains no assignment ID. Offending path = " + deltaPath);
 					}
-					Long id = ((IdItemPathSegment) secondSegment).getId();
+					Long id = ItemPath.toId(secondSegment);
 					if (id == null) {
 						throw new IllegalStateException("Assignment modification contains no assignment ID. Offending path = " + deltaPath);
 					}
 					if (processedIds.add(id)) {
 						assignmentMetadataDeltas.addAll(createModifyMetadataDeltas(context,
-								new ItemPath(FocusType.F_ASSIGNMENT, id, AssignmentType.F_METADATA), context.getFocusClass(), now, task));
+								ItemPath.create(FocusType.F_ASSIGNMENT, id, AssignmentType.F_METADATA), context.getFocusClass(), now, task));
 					}
 				}
 			}
-			ItemDelta.mergeAll(objectDelta.getModifications(), assignmentMetadataDeltas);
+			ItemDeltaCollectionsUtil.mergeAll(objectDelta.getModifications(), assignmentMetadataDeltas);
 		}
 	}
 
@@ -261,11 +252,11 @@ public class OperationalDataManager {
 
 	public <F extends ObjectType, T extends ObjectType> Collection<ItemDelta<?,?>> createModifyMetadataDeltas(LensContext<F> context,
 			ItemPath metadataPath, Class<T> objectType, XMLGregorianCalendar now, Task task) throws SchemaException {
-		return DeltaBuilder.deltaFor(objectType, prismContext)
-				.item(metadataPath.subPath(MetadataType.F_MODIFY_CHANNEL)).replace(LensUtil.getChannel(context, task))
-				.item(metadataPath.subPath(MetadataType.F_MODIFY_TIMESTAMP)).replace(now)
-				.item(metadataPath.subPath(MetadataType.F_MODIFIER_REF)).replace(createObjectRef(task.getOwner(), prismContext))
-				.item(metadataPath.subPath(MetadataType.F_MODIFY_TASK_REF)).replaceRealValues(
+		return prismContext.deltaFor(objectType)
+				.item(metadataPath.append(MetadataType.F_MODIFY_CHANNEL)).replace(LensUtil.getChannel(context, task))
+				.item(metadataPath.append(MetadataType.F_MODIFY_TIMESTAMP)).replace(now)
+				.item(metadataPath.append(MetadataType.F_MODIFIER_REF)).replace(createObjectRef(task.getOwner(), prismContext))
+				.item(metadataPath.append(MetadataType.F_MODIFY_TASK_REF)).replaceRealValues(
 						task.getOid() != null ? singleton(createObjectRef(task.getTaskPrismObject(), prismContext)) : emptySet())
 				.asItemDeltas();
 	}

@@ -379,7 +379,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 		OperationResult result = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
 
 		// WHEN
-		cc.search(accountDefinition, new ObjectQuery(), handler, null, null, null, null, result);
+		cc.search(accountDefinition, null, handler, null, null, null, null, result);
 
 		// THEN
 		assertEquals("Unexpected number of search results", 1, searchResults.size());

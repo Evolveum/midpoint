@@ -18,6 +18,9 @@ package com.evolveum.midpoint.gui.api.component;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.SchemaHelper;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
@@ -79,7 +82,7 @@ public class BasePanel<T> extends Panel {
                 .setParameters(objects);
 //    	return StringResourceModelMigration.of(resourceKey, this, null, resourceKey, objects);
     }
-    
+
     public StringResourceModel createStringResource(PolyString polystringKey, Object... objects) {
     	String resourceKey = null;
     	if (polystringKey != null) {
@@ -90,7 +93,7 @@ public class BasePanel<T> extends Panel {
                 .setDefaultValue(resourceKey)
                 .setParameters(objects);
     }
-    
+
     public StringResourceModel createStringResource(PolyStringType polystringKey, Object... objects) {
     	String resourceKey = null;
     	if (polystringKey != null) {
@@ -132,6 +135,14 @@ public class BasePanel<T> extends Panel {
 
     public PageBase getPageBase() {
         return WebComponentUtil.getPageBase(this);
+    }
+
+    public PrismContext getPrismContext() {
+        return getPageBase().getPrismContext();
+    }
+
+    public SchemaHelper getSchemaHelper() {
+        return getPageBase().getSchemaHelper();
     }
 
     protected String createComponentPath(String... components) {

@@ -28,8 +28,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.namespace.QName;
-
+import com.evolveum.midpoint.prism.path.ItemName;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -94,7 +93,7 @@ public class BasicValidatorTest {
 				object.checkConsistence();
 
 				PrismContainer<?> extensionContainer = object.getExtension();
-				PrismProperty<Integer> menProp = extensionContainer.findProperty(new QName("http://myself.me/schemas/whatever","menOnChest"));
+				PrismProperty<Integer> menProp = extensionContainer.findProperty(new ItemName("http://myself.me/schemas/whatever","menOnChest"));
 				assertNotNull("No men on a dead man chest!", menProp);
 				assertEquals("Wrong number of men on a dead man chest", (Integer)15, menProp.getAnyRealValue());
 				PrismPropertyDefinition menPropDef = menProp.getDefinition();

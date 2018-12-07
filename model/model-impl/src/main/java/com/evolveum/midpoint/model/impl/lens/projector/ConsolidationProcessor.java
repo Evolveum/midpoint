@@ -25,23 +25,8 @@ import com.evolveum.midpoint.model.impl.lens.IvwoConsolidator;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.StrengthSelector;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
@@ -156,7 +141,7 @@ public class ConsolidationProcessor {
 
     	squeezeAll(context, projCtx);
         
-        ObjectDelta<ShadowType> objectDelta = new ObjectDelta<>(ShadowType.class, ChangeType.MODIFY, prismContext);
+        ObjectDelta<ShadowType> objectDelta = prismContext.deltaFactory().object().create(ShadowType.class, ChangeType.MODIFY);
         objectDelta.setOid(projCtx.getOid());
         ObjectDelta<ShadowType> existingDelta = projCtx.getDelta();
 
@@ -212,15 +197,14 @@ public class ConsolidationProcessor {
         Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>>>> squeezedAuxiliaryObjectClasses = projCtx.getSqueezedAuxiliaryObjectClasses();
 
         // AUXILIARY OBJECT CLASSES
-        ItemPath auxiliaryObjectClassItemPath = new ItemPath(ShadowType.F_AUXILIARY_OBJECT_CLASS);
-        PrismPropertyDefinition<QName> auxiliaryObjectClassPropertyDef = projCtx.getObjectDefinition().findPropertyDefinition(auxiliaryObjectClassItemPath);
+        PrismPropertyDefinition<QName> auxiliaryObjectClassPropertyDef = projCtx.getObjectDefinition().findPropertyDefinition(ShadowType.F_AUXILIARY_OBJECT_CLASS);
         PropertyDelta<QName> auxiliaryObjectClassAPrioriDelta = null;
         RefinedResourceSchema refinedSchema = projCtx.getRefinedResourceSchema();
         List<QName> auxOcNames = new ArrayList<>();
         List<RefinedObjectClassDefinition> auxOcDefs = new ArrayList<>();
         ObjectDelta<ShadowType> projDelta = projCtx.getDelta();
         if (projDelta != null) {
-        	auxiliaryObjectClassAPrioriDelta = projDelta.findPropertyDelta(auxiliaryObjectClassItemPath);
+        	auxiliaryObjectClassAPrioriDelta = projDelta.findPropertyDelta(ShadowType.F_AUXILIARY_OBJECT_CLASS);
         }
         for (Entry<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>>>> entry : squeezedAuxiliaryObjectClasses.entrySet()) {
         	DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>>> ivwoTriple = entry.getValue();
@@ -246,7 +230,7 @@ public class ConsolidationProcessor {
         	}
 
         	IvwoConsolidator<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>, ItemValueWithOrigin<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>>> consolidator = new IvwoConsolidator<>();
-        	consolidator.setItemPath(auxiliaryObjectClassItemPath);
+        	consolidator.setItemPath(ShadowType.F_AUXILIARY_OBJECT_CLASS);
         	consolidator.setIvwoTriple(ivwoTriple);
         	consolidator.setItemDefinition(auxiliaryObjectClassPropertyDef);
         	consolidator.setAprioriItemDelta(auxiliaryObjectClassAPrioriDelta);
@@ -312,7 +296,7 @@ public class ConsolidationProcessor {
 
     	RefinedAttributeDefinition<T> attributeDefinition = triple.getAnyValue().getConstruction().findAttributeDefinition(itemName);
 
-    	ItemPath itemPath = new ItemPath(ShadowType.F_ATTRIBUTES, itemName);
+    	ItemPath itemPath = ItemPath.create(ShadowType.F_ATTRIBUTES, itemName);
 
         if (attributeDefinition.isIgnored(LayerType.MODEL)) {
         	LOGGER.trace("Skipping processing mappings for attribute {} because it is ignored", itemName);
@@ -346,7 +330,6 @@ public class ConsolidationProcessor {
 			DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>> triple,
 			StrengthSelector strengthSelector) throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
 
-    	ItemPath itemPath = new ItemPath(ShadowType.F_ASSOCIATION);
     	PrismContainerDefinition<ShadowAssociationType> asspcContainerDef = getAssociationDefinition();
     	RefinedAssociationDefinition associationDef = rOcDef.findAssociationDefinition(associationName);
 
@@ -385,7 +368,7 @@ public class ConsolidationProcessor {
 		};
 
 		ContainerDelta<ShadowAssociationType> delta = (ContainerDelta<ShadowAssociationType>) consolidateItem(rOcDef, discr, existingDelta,
-    			projCtx, addUnchangedValues, associationDef.isExclusiveStrong(), itemPath,
+    			projCtx, addUnchangedValues, associationDef.isExclusiveStrong(), ShadowType.F_ASSOCIATION,
         		asspcContainerDef, triple, null, comparator, strengthSelector, "association "+associationName);
 
     	if (delta != null) {
@@ -556,7 +539,7 @@ public class ConsolidationProcessor {
 				}
 				ObjectDelta<ShadowType> projectionDelta = accCtx.getDelta();
 				if (projectionDelta != null) {
-					PropertyDelta<?> aPrioriAttributeDelta = projectionDelta.findPropertyDelta(new ItemPath(ShadowType.F_ATTRIBUTES, entry.getKey()));
+					PropertyDelta<?> aPrioriAttributeDelta = projectionDelta.findPropertyDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, entry.getKey()));
 					if (aPrioriAttributeDelta != null && aPrioriAttributeDelta.isDelete()) {
 						return true;
 					}
@@ -761,10 +744,10 @@ public class ConsolidationProcessor {
 					}
 					@Override
 					public PrismValueDeltaSetTriple<PrismPropertyValue<QName>> getOutputTriple() {
-						PrismValueDeltaSetTriple<PrismPropertyValue<QName>> triple = new PrismValueDeltaSetTriple<>();
+						PrismValueDeltaSetTriple<PrismPropertyValue<QName>> triple = prismContext.deltaFactory().createPrismValueDeltaSetTriple();
 						if (construction.getAuxiliaryObjectClassDefinitions() != null) {
 							for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition: construction.getAuxiliaryObjectClassDefinitions()) {
-								triple.addToZeroSet(new PrismPropertyValue<>(auxiliaryObjectClassDefinition.getTypeName()));
+								triple.addToZeroSet(prismContext.itemFactory().createPrismPropertyValue(auxiliaryObjectClassDefinition.getTypeName()));
 							}
 						}
 						return triple;
@@ -1011,7 +994,7 @@ public class ConsolidationProcessor {
 			Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedMap, QName itemName) {
 		DeltaSetTriple<ItemValueWithOrigin<V,D>> triple = squeezedMap.get(itemName);
 		if (triple == null) {
-			triple = new DeltaSetTriple<>();
+			triple = prismContext.deltaFactory().createDeltaSetTriple();
 			squeezedMap.put(itemName, triple);
 		}
 		return triple;
@@ -1044,7 +1027,7 @@ public class ConsolidationProcessor {
     	}
 
     	
-    	ObjectDelta<ShadowType> objectDelta = new ObjectDelta<>(ShadowType.class, ChangeType.MODIFY, prismContext);
+    	ObjectDelta<ShadowType> objectDelta = prismContext.deltaFactory().object().create(ShadowType.class, ChangeType.MODIFY);
     	objectDelta.setOid(projCtx.getOid());
     	ObjectDelta<ShadowType> existingDelta = projCtx.getDelta();
 

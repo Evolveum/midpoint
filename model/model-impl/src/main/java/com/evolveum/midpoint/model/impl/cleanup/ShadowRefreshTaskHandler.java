@@ -26,7 +26,6 @@ import com.evolveum.midpoint.model.impl.util.AbstractScannerTaskHandler;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -80,8 +79,8 @@ public class ShadowRefreshTaskHandler extends AbstractScannerTaskHandler<ShadowT
 	@Override
 	protected ObjectQuery createQuery(AbstractScannerResultHandler<ShadowType> handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
 
-		ObjectQuery query = new ObjectQuery();
-		ObjectFilter filter = QueryBuilder.queryFor(ShadowType.class, prismContext)
+		ObjectQuery query = getPrismContext().queryFactory().createObjectQuery();
+		ObjectFilter filter = prismContext.queryFor(ShadowType.class)
 				.exists(ShadowType.F_PENDING_OPERATION)
 			.buildFilter();
 

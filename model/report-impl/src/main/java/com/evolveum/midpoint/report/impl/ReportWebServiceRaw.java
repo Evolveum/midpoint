@@ -13,7 +13,7 @@ import javax.xml.ws.Holder;
 import javax.xml.ws.Provider;
 import javax.xml.ws.soap.SOAPFaultException;
 
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
@@ -143,21 +143,9 @@ public class ReportWebServiceRaw implements Provider<DOMSource> {
 	    }
 
 		private void serializeFaultMessage(Detail detail, FaultMessage faultMessage) {
-			MiscSchemaUtil.serializeFaultMessage(detail, faultMessage, prismContext, LOGGER);
+			prismContext.misc()
+					.serializeFaultMessage(detail, faultMessage.getFaultInfo(), SchemaConstants.FAULT_MESSAGE_ELEMENT_NAME, LOGGER);
 		}
-
-//	    private DOMSource serializeFaultMessage(FaultMessage faultMessage) {
-//	        Element faultElement = DOMUtil.createElement(SOAP11_FAULT);
-//	        Element faultCodeElement = DOMUtil.createSubElement(faultElement, SOAP11_FAULTCODE);
-//	        faultCodeElement.setTextContent(SOAP11_FAULTCODE_SERVER);           // todo here is a constant until we have a mechanism to determine the correct value (client / server)
-//	        Element faultStringElement = DOMUtil.createSubElement(faultElement, SOAP11_FAULTSTRING);
-//	        faultStringElement.setTextContent(faultMessage.getMessage());
-//	        Element faultActorElement = DOMUtil.createSubElement(faultElement, SOAP11_FAULTACTOR);
-//	        faultActorElement.setTextContent("TODO");               // todo
-//	        Element faultDetailElement = DOMUtil.createSubElement(faultElement, SOAP11_FAULT_DETAIL);
-//	        faultDetailElement.setTextContent(getStackTraceAsString(faultMessage));
-//	        return new DOMSource(faultElement.getOwnerDocument());
-//	    }
 
 	    private String getStackTraceAsString(FaultMessage faultMessage) {
 	        StringWriter sw = new StringWriter();

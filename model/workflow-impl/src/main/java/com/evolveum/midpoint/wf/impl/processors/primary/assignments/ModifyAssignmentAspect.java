@@ -25,9 +25,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -110,9 +109,7 @@ public abstract class ModifyAssignmentAspect<T extends ObjectType, F extends Foc
 
         List<ApprovalRequest<AssignmentModification>> approvalRequestList = new ArrayList<>();
 
-        final ItemPath ASSIGNMENT_PATH = new ItemPath(UserType.F_ASSIGNMENT);
-
-        PrismContainer<AssignmentType> assignmentsOld = focusOld.findContainer(ASSIGNMENT_PATH);
+        PrismContainer<AssignmentType> assignmentsOld = focusOld.findContainer(UserType.F_ASSIGNMENT);
 
         // deltas sorted by assignment to which they are related
         Map<Long,List<ItemDeltaType>> deltasById = new HashMap<>();
@@ -120,7 +117,7 @@ public abstract class ModifyAssignmentAspect<T extends ObjectType, F extends Foc
         Iterator<? extends ItemDelta> deltaIterator = change.getModifications().iterator();
         while (deltaIterator.hasNext()) {
             ItemDelta delta = deltaIterator.next();
-            if (!ASSIGNMENT_PATH.isSubPath(delta.getPath())) {
+            if (!UserType.F_ASSIGNMENT.isSubPath(delta.getPath())) {
                 continue;
             }
 
@@ -165,10 +162,10 @@ public abstract class ModifyAssignmentAspect<T extends ObjectType, F extends Foc
 
     // path's first segment is "assignment"
     public static Long getAssignmentIdFromDeltaPath(PrismContainer<AssignmentType> assignmentsOld, ItemPath path) throws SchemaException {
-        assert path.getSegments().size() > 1;
-        ItemPathSegment idSegment = path.getSegments().get(1);
-        if (idSegment instanceof IdItemPathSegment) {
-            return ((IdItemPathSegment) idSegment).getId();
+        assert path.size() > 1;
+        Object idSegment = path.getSegment(1);
+        if (ItemPath.isId(idSegment)) {
+            return ItemPath.toId(idSegment);
         }
         // id-less path, e.g. assignment/validFrom -- we try to determine ID from the objectOld.
         if (assignmentsOld.size() == 0) {
@@ -249,7 +246,7 @@ public abstract class ModifyAssignmentAspect<T extends ObjectType, F extends Foc
         for (ItemDeltaType itemDeltaType : approvalRequest.getItemToApprove().getModifications()) {
             modifications.add(DeltaConvertor.createItemDelta(itemDeltaType, focusClass, prismContext));
         }
-        return ObjectDelta.createModifyDelta(objectOid, modifications, focusClass, ((LensContext) modelContext).getPrismContext());
+        return ObjectDeltaCreationUtil.createModifyDelta(objectOid, modifications, focusClass, ((LensContext) modelContext).getPrismContext());
     }
     //endregion
 

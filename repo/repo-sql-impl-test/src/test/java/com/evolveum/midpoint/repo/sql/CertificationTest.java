@@ -16,17 +16,12 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
+import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -52,15 +47,10 @@ import org.testng.annotations.Test;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
-import static com.evolveum.midpoint.prism.delta.PropertyDelta.createModificationReplaceProperty;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createDistinct;
-import static com.evolveum.midpoint.schema.RetrieveOption.INCLUDE;
 import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType.F_OUTCOME;
@@ -139,8 +129,8 @@ public class CertificationTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("test200ModifyCampaignProperties");
 
         List<ItemDelta<?, ?>> modifications = new ArrayList<>();
-        modifications.add(createModificationReplaceProperty(F_NAME, campaignDef, new PolyString("Campaign 1+", "campaign 1")));
-        modifications.add(createModificationReplaceProperty(F_STATE, campaignDef, IN_REVIEW_STAGE));
+        modifications.add(prismContext.deltaFactory().property().createModificationReplaceProperty(F_NAME, campaignDef, new PolyString("Campaign 1+", "campaign 1")));
+        modifications.add(prismContext.deltaFactory().property().createModificationReplaceProperty(F_STATE, campaignDef, IN_REVIEW_STAGE));
 
         executeAndCheckModification(modifications, result, 1);
         checksCountsStandard(result);
@@ -151,9 +141,9 @@ public class CertificationTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("test210ModifyCaseProperties");
 
         List<ItemDelta<?, ?>> modifications = new ArrayList<>();
-        ItemPath case1 = new ItemPath(F_CASE).subPath(new IdItemPathSegment(1L));
-        modifications.add(createModificationReplaceProperty(case1.subPath(F_CURRENT_STAGE_OUTCOME), campaignDef, SchemaConstants.MODEL_CERTIFICATION_OUTCOME_REDUCE));
-        modifications.add(createModificationReplaceProperty(case1.subPath(AccessCertificationCaseType.F_STAGE_NUMBER), campaignDef, 300));
+        ItemPath case1 = ItemPath.create(F_CASE, 1L);
+        modifications.add(prismContext.deltaFactory().property().createModificationReplaceProperty(case1.append(F_CURRENT_STAGE_OUTCOME), campaignDef, SchemaConstants.MODEL_CERTIFICATION_OUTCOME_REDUCE));
+        modifications.add(prismContext.deltaFactory().property().createModificationReplaceProperty(case1.append(AccessCertificationCaseType.F_STAGE_NUMBER), campaignDef, 300));
 
         executeAndCheckModification(modifications, result, 0);
         checksCountsStandard(result);
@@ -212,7 +202,7 @@ public class CertificationTest extends BaseSQLRepoTest {
                 .end();
         case100.setStageNumber(1);
 
-        List<ItemDelta<?, ?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(AccessCertificationCampaignType.class)
                 .item(F_CASE).add(caseNoId, case100)
                 .asItemDeltas();
 
@@ -295,7 +285,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         assertNotNull("No new work item", workItem);
 
         XMLGregorianCalendar closedTimestamp = XmlTypeConverter.createXMLGregorianCalendar(new Date());
-        List<ItemDelta<?, ?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(AccessCertificationCampaignType.class)
                 .item(F_CASE, NEW_CASE_ID, F_WORK_ITEM, workItem.getId(), AccessCertificationWorkItemType.F_CLOSE_TIMESTAMP)
                 .replace(closedTimestamp)
                 .asItemDeltas();
@@ -324,7 +314,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         AccessCertificationWorkItemType workItem = case100.getWorkItem().stream().filter(wi -> wi.getOriginalAssigneeRef() != null).findFirst().orElse(null);
         assertNotNull("No new work item", workItem);
 
-        List<ItemDelta<?, ?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(AccessCertificationCampaignType.class)
                 .item(F_CASE, NEW_CASE_ID, F_WORK_ITEM).delete(workItem.clone())
                 .asItemDeltas();
 
@@ -363,7 +353,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         AccessCertificationCaseType case100 = new AccessCertificationCaseType();
         case100.setId(NEW_CASE_ID);
 
-        List<ItemDelta<?, ?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(AccessCertificationCampaignType.class)
                 .item(F_CASE).add(caseNoId, case110).delete(case100)
                 .item(F_CASE, 3, AccessCertificationCaseType.F_STAGE_NUMBER).replace(400)
                 .asItemDeltas();
@@ -395,7 +385,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         AccessCertificationWorkItemType wi1 = new AccessCertificationWorkItemType();
         wi1.setId(1L);
 
-        List<ItemDelta<?, ?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(AccessCertificationCampaignType.class)
                 .item(F_CASE, 6, F_WORK_ITEM).add(wiNoId, wi200)
                 .item(F_CASE, 6, F_WORK_ITEM).delete(wi1)
                 .item(F_CASE, 6, F_WORK_ITEM, 2, F_OUTPUT, F_OUTCOME).replace(SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT)
@@ -420,7 +410,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         wi200.setStageNumber(44);
         wi200.assigneeRef(createObjectRef("999999", ObjectTypes.USER));
 
-        List<ItemDelta<?, ?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(AccessCertificationCampaignType.class)
                 .item(F_CASE, 6, F_WORK_ITEM).replace(wi200)
                 .asItemDeltas();
 
@@ -447,7 +437,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         wi251.setId(251L);
         wi251.setStageNumber(1);
 
-        List<ItemDelta<?, ?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(AccessCertificationCampaignType.class)
                 .item(F_CASE, 6, F_WORK_ITEM).replace(wi250, wi251)
                 .asItemDeltas();
 
@@ -486,7 +476,7 @@ public class CertificationTest extends BaseSQLRepoTest {
                 .workItem(wiNoId)
                 .stageNumber(1);
 
-        List<ItemDelta<?, ?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(AccessCertificationCampaignType.class)
                 .item(F_CASE).replace(caseNoId)
                 .asItemDeltas();
 
@@ -540,7 +530,7 @@ public class CertificationTest extends BaseSQLRepoTest {
     public void test730CurrentUnansweredCases() throws Exception {
         OperationResult result = new OperationResult("test730CurrentUnansweredCases");
 
-        ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+        ObjectQuery query = prismContext.queryFor(AccessCertificationCaseType.class)
                 .item(AccessCertificationCaseType.F_STAGE_NUMBER).eq().item(T_PARENT, AccessCertificationCampaignType.F_STAGE_NUMBER)
                 .and().item(T_PARENT, F_STATE).eq(IN_REVIEW_STAGE)
                 .and().exists(F_WORK_ITEM).block()
@@ -584,7 +574,7 @@ public class CertificationTest extends BaseSQLRepoTest {
     }
 
     private void checkCasesForCampaign(String oid, Integer expected, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+        ObjectQuery query = prismContext.queryFor(AccessCertificationCaseType.class)
                 .ownerId(oid)
                 .build();
         List<AccessCertificationCaseType> cases = repositoryService.searchContainers(AccessCertificationCaseType.class, query, null, result);
@@ -603,7 +593,7 @@ public class CertificationTest extends BaseSQLRepoTest {
     }
 
     private void checkWorkItemsForCampaign(String oid, int expected, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        ObjectQuery query = QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
+        ObjectQuery query = prismContext.queryFor(AccessCertificationWorkItemType.class)
                 .exists(T_PARENT)
                 .block()
                 .ownerId(oid)
@@ -617,7 +607,7 @@ public class CertificationTest extends BaseSQLRepoTest {
     }
 
     private void checkWorkItemsForCampaignAndCase(String oid, long caseId, int expected, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        ObjectQuery query = QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
+        ObjectQuery query = prismContext.queryFor(AccessCertificationWorkItemType.class)
                 .exists(T_PARENT)
                 .block()
                 .ownerId(oid)
@@ -632,7 +622,7 @@ public class CertificationTest extends BaseSQLRepoTest {
     }
 
     private void checkCasesTotal(int expected, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+        ObjectQuery query = prismContext.queryFor(AccessCertificationCaseType.class)
                 .build();
         List<AccessCertificationCaseType> cases = repositoryService.searchContainers(AccessCertificationCaseType.class, query, null, result);
         assertCasesFound(expected, cases, "");
@@ -698,7 +688,7 @@ public class CertificationTest extends BaseSQLRepoTest {
     private void checkCampaign(String campaignOid, OperationResult result, PrismObject<AccessCertificationCampaignType> expectedObject, List<ItemDelta> modifications, Integer expectedVersion) throws SchemaException, ObjectNotFoundException, IOException {
         expectedObject.setOid(campaignOid);
         if (modifications != null) {
-            ItemDelta.applyTo(modifications, expectedObject);
+            ItemDeltaCollectionsUtil.applyTo(modifications, expectedObject);
         }
 
         LOGGER.trace("Expected object = \n{}", expectedObject.debugDump());
@@ -714,8 +704,10 @@ public class CertificationTest extends BaseSQLRepoTest {
     }
 
     private PrismObject<AccessCertificationCampaignType> getFullCampaign(String campaignOid, OperationResult result) throws ObjectNotFoundException, SchemaException {
-        SelectorOptions<GetOperationOptions> retrieve = SelectorOptions.create(F_CASE, GetOperationOptions.createRetrieve(INCLUDE));
-        return repositoryService.getObject(AccessCertificationCampaignType.class, campaignOid, Collections.singletonList(retrieve), result);
+        Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
+                .item(F_CASE).retrieve()
+                .build();
+        return repositoryService.getObject(AccessCertificationCampaignType.class, campaignOid, options, result);
     }
 
     private PrismObject<AccessCertificationCampaignType> getFullCampaign(String oid) throws ObjectNotFoundException, SchemaException {

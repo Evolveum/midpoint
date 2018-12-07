@@ -25,13 +25,10 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -50,13 +47,10 @@ import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.admin.orgs.AbstractOrgTabPanel;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreeAssignablePanel;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreePanel;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
-import com.evolveum.midpoint.web.security.GuiAuthorizationConstants;
-import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.RestartResponseException;
@@ -177,9 +171,10 @@ public class TreeTablePanel extends BasePanel<String> {
 			ObjectQuery managersQuery = createManagerQuery(org);
 			
 			OperationResult searchManagersResult = new OperationResult(OPERATION_SEARCH_MANAGERS);
-			Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
-					FocusType.F_JPEG_PHOTO, GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
-			options.add(SelectorOptions.create(GetOperationOptions.createDistinct()));
+			Collection<SelectorOptions<GetOperationOptions>> options = getSchemaHelper().getOperationOptionsBuilder()
+					.distinct()
+					.item(FocusType.F_JPEG_PHOTO).retrieve()
+					.build();
 			List<PrismObject<FocusType>> managers = WebModelServiceUtils.searchObjects(FocusType.class,
 					managersQuery, options, searchManagersResult, getPageBase());
 			Task task = getPageBase().createSimpleTask(OPERATION_LOAD_MANAGERS);
@@ -506,7 +501,7 @@ public class TreeTablePanel extends BasePanel<String> {
 		if (toMove == null || selected.getValue() == null) {
 			return;
 		}
-		ObjectDelta<OrgType> moveOrgDelta = ObjectDelta.createEmptyModifyDelta(OrgType.class, toMove.getOid(),
+		ObjectDelta<OrgType> moveOrgDelta = ObjectDeltaCreationUtil.createEmptyModifyDelta(OrgType.class, toMove.getOid(),
 				getPageBase().getPrismContext());
 
 		try {
@@ -514,7 +509,7 @@ public class TreeTablePanel extends BasePanel<String> {
 				AssignmentType oldRoot = new AssignmentType();
 				oldRoot.setTargetRef(ObjectTypeUtil.createObjectRef(parentOrg, getPageBase().getPrismContext()));
 
-				moveOrgDelta.addModification(ContainerDelta.createModificationDelete(OrgType.F_ASSIGNMENT,
+				moveOrgDelta.addModification(getPrismContext().deltaFactory().container().createModificationDelete(OrgType.F_ASSIGNMENT,
 						OrgType.class, getPageBase().getPrismContext(), oldRoot.asPrismContainerValue()));
 				// moveOrgDelta.addModification(ReferenceDelta.createModificationDelete(OrgType.F_PARENT_ORG_REF,
 				// toMove.asPrismObject().getDefinition(),
@@ -523,7 +518,7 @@ public class TreeTablePanel extends BasePanel<String> {
 
 			AssignmentType newRoot = new AssignmentType();
 			newRoot.setTargetRef(ObjectTypeUtil.createObjectRef(selected.getValue(), getPageBase().getPrismContext()));
-			moveOrgDelta.addModification(ContainerDelta.createModificationAdd(OrgType.F_ASSIGNMENT,
+			moveOrgDelta.addModification(getPrismContext().deltaFactory().container().createModificationAdd(OrgType.F_ASSIGNMENT,
 					OrgType.class, getPageBase().getPrismContext(), newRoot.asPrismContainerValue()));
 			// moveOrgDelta.addModification(ReferenceDelta.createModificationAdd(OrgType.F_PARENT_ORG_REF,
 			// toMove.asPrismObject().getDefinition(),
@@ -558,7 +553,7 @@ public class TreeTablePanel extends BasePanel<String> {
 		if (toMove == null) {
 			return;
 		}
-		ObjectDelta<OrgType> moveOrgDelta = ObjectDelta.createEmptyModifyDelta(OrgType.class, toMove.getOid(),
+		ObjectDelta<OrgType> moveOrgDelta = ObjectDeltaCreationUtil.createEmptyModifyDelta(OrgType.class, toMove.getOid(),
 				getPageBase().getPrismContext());
 
 		try {
@@ -566,7 +561,7 @@ public class TreeTablePanel extends BasePanel<String> {
 				AssignmentType oldRoot = new AssignmentType();
 				oldRoot.setTargetRef(parentOrg);
 
-				moveOrgDelta.addModification(ContainerDelta.createModificationDelete(OrgType.F_ASSIGNMENT,
+				moveOrgDelta.addModification(getPrismContext().deltaFactory().container().createModificationDelete(OrgType.F_ASSIGNMENT,
 						OrgType.class, getPageBase().getPrismContext(), oldRoot.asPrismContainerValue()));
 			}
 
@@ -603,7 +598,7 @@ public class TreeTablePanel extends BasePanel<String> {
 			return;
 		}
 		try {
-			ObjectDelta emptyDelta = ObjectDelta.createEmptyModifyDelta(OrgType.class,
+			ObjectDelta emptyDelta = ObjectDeltaCreationUtil.createEmptyModifyDelta(OrgType.class,
 					orgToRecompute.getValue().getOid(), getPageBase().getPrismContext());
 			ModelExecuteOptions options = new ModelExecuteOptions();
 			options.setReconcile(true);
@@ -653,7 +648,7 @@ public class TreeTablePanel extends BasePanel<String> {
 	}
 
 	private boolean hasChildren(SelectableBean<OrgType> orgToDelete) {
-		ObjectQuery query = QueryBuilder.queryFor(ObjectType.class, getPageBase().getPrismContext())
+		ObjectQuery query = getPageBase().getPrismContext().queryFor(ObjectType.class)
 				.isChildOf(orgToDelete.getValue().getOid())			// TODO what if orgToDelete.getValue()==null
 				.build();
 		Task task = getPageBase().createSimpleTask(OPERATION_COUNT_CHILDREN);

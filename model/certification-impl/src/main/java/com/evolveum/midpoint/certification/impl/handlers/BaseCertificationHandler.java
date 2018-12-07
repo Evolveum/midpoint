@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -112,12 +113,12 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
 
 		ContainerDelta assignmentDelta;
 		if (Boolean.TRUE.equals(assignmentCase.isIsInducement())) {
-			assignmentDelta = ContainerDelta.createModificationDelete(AbstractRoleType.F_INDUCEMENT, clazz, prismContext, cval);
+			assignmentDelta = prismContext.deltaFactory().container().createModificationDelete(AbstractRoleType.F_INDUCEMENT, clazz, prismContext, cval);
 		} else {
-			assignmentDelta = ContainerDelta.createModificationDelete(FocusType.F_ASSIGNMENT, clazz, prismContext, cval);
+			assignmentDelta = prismContext.deltaFactory().container().createModificationDelete(FocusType.F_ASSIGNMENT, clazz, prismContext, cval);
 		}
 		@SuppressWarnings({ "unchecked", "raw" })
-		ObjectDelta<? extends ObjectType> objectDelta = (ObjectDelta<? extends ObjectType>) ObjectDelta.createModifyDelta(objectOid,
+		ObjectDelta<? extends ObjectType> objectDelta = (ObjectDelta<? extends ObjectType>) ObjectDeltaCreationUtil.createModifyDelta(objectOid,
 				Collections.singletonList(assignmentDelta), clazz, prismContext);
 		LOGGER.info("Going to execute delta: {}", objectDelta.debugDump());
 		modelService.executeChanges(Collections.singletonList(objectDelta), null, task, caseResult);

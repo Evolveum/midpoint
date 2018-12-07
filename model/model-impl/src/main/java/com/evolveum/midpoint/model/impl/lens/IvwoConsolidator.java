@@ -23,22 +23,15 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.commons.lang.mutable.MutableBoolean;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
 import com.evolveum.midpoint.model.impl.lens.projector.ValueMatcher;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.OriginType;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.SimpleVisitor;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -177,7 +170,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
 			return null;
 		}
 		
-		boolean isAssignment = new ItemPath(FocusType.F_ASSIGNMENT).equivalent(itemPath);
+		boolean isAssignment = FocusType.F_ASSIGNMENT.equivalent(itemPath);
 
 		ItemDelta<V,D> itemDelta = itemDefinition.createEmptyDelta(itemPath);
 
@@ -421,7 +414,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
 		if (itemExisting != null) {
 			List<V> existingValues = itemExisting.getValues();
 			if (existingValues != null) {
-				itemDelta.setEstimatedOldValues(PrismValue.cloneCollection(existingValues));
+				itemDelta.setEstimatedOldValues(PrismValueCollectionsUtil.cloneCollection(existingValues));
 			}
 		}
 
@@ -444,7 +437,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
         for (ItemValueWithOrigin<V,D> pvwo : collection) {
         	V pval = pvwo.getItemValue();
         	if (valueMatcher == null) {
-	        	if (!PrismValue.containsRealValue(allValues, pval)) {
+	        	if (!PrismValueCollectionsUtil.containsRealValue(allValues, pval)) {
 	        		allValues.add(pval);
 	        	}
         	} else {

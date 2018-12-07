@@ -95,7 +95,7 @@
                             assignment.setTargetRef(orgOrt);
                         
                         
-                            delta = ObjectDelta.createModificationAddContainer(UserType.class, user.getOid(), UserType.F_ASSIGNMENT, midpoint.getPrismContext(), assignment);
+                            delta = ObjectDeltaCreationUtil.createModificationAddContainer(UserType.class, user.getOid(), UserType.F_ASSIGNMENT, midpoint.getPrismContext(), assignment);
 
                             midpoint.executeChanges(delta)
                         }
@@ -138,7 +138,7 @@
                             assignment.setTargetRef(orgOrt);
                         
                         
-                            delta = ObjectDelta.createModificationAddContainer(RoleType.class, group.getOid(), RoleType.F_ASSIGNMENT, midpoint.getPrismContext(), assignment);
+                            delta = ObjectDeltaCreationUtil.createModificationAddContainer(RoleType.class, group.getOid(), RoleType.F_ASSIGNMENT, midpoint.getPrismContext(), assignment);
 
                             midpoint.executeChanges(delta)
                         }
@@ -185,7 +185,7 @@
                             assignment.setTargetRef(orgOrt);
                         
                         
-                            delta = ObjectDelta.createModificationAddContainer(UserType.class, user.getOid(), UserType.F_ASSIGNMENT, midpoint.getPrismContext(), assignment);
+                            delta = ObjectDeltaCreationUtil.createModificationAddContainer(UserType.class, user.getOid(), UserType.F_ASSIGNMENT, midpoint.getPrismContext(), assignment);
 
                             midpoint.executeChanges(delta)
                         }
@@ -231,7 +231,7 @@
                             assignment.setTargetRef(orgOrt);
                         
                         
-                            delta = ObjectDelta.createModificationAddContainer(RoleType.class, group.getOid(), RoleType.F_ASSIGNMENT, midpoint.getPrismContext(), assignment);
+                            delta = ObjectDeltaCreationUtil.createModificationAddContainer(RoleType.class, group.getOid(), RoleType.F_ASSIGNMENT, midpoint.getPrismContext(), assignment);
 
                             midpoint.executeChanges(delta)
                         }

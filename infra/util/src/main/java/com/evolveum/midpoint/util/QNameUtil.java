@@ -365,7 +365,7 @@ public class QNameUtil {
 		return false;
 	}
 
-	public static boolean remove(Collection<QName> col, QName qname) {
+	public static boolean remove(Collection<? extends QName> col, QName qname) {
 		return col != null && col.removeIf(e -> match(e, qname));
 	}
 

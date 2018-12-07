@@ -8,6 +8,9 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
+import com.evolveum.midpoint.prism.query.QueryFactory;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
 import com.evolveum.midpoint.gui.api.component.ChooseMemberPopup;
@@ -21,10 +24,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.TypeFilter;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -157,11 +157,15 @@ public class MemberOperationsHelper {
 	}
 	
 	public static <R extends AbstractRoleType> ObjectQuery createDirectMemberQuery(R targetObject, QName objectType, Collection<QName> relations, ObjectViewDto<OrgType> tenant, ObjectViewDto<OrgType> project, PrismContext prismContext) {
-		ObjectQuery query;
-
 		// We assume tenantRef.relation and orgRef.relation are always default ones (see also MID-3581)
-		S_AtomicFilterExit q = QueryBuilder.queryFor(FocusType.class, prismContext)
-				.item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)
+		S_FilterEntry q0;
+		if (objectType == null || FocusType.COMPLEX_TYPE.equals(objectType)) {
+			q0 = prismContext.queryFor(FocusType.class);
+		} else {
+			q0 = prismContext.queryFor(FocusType.class)
+					.type(objectType);
+		}
+		S_AtomicFilterExit q = q0.item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)
 				.ref(createReferenceValuesList(targetObject, relations));
 		if (tenant != null && tenant.getObjectType() != null) {
 			q = q.and().item(FocusType.F_ASSIGNMENT, AssignmentType.F_TENANT_REF).ref(ObjectTypeUtil.createObjectRef(tenant.getObjectType(),
@@ -173,16 +177,11 @@ public class MemberOperationsHelper {
 					prismContext).asReferenceValue());
 		}
 
-		query = q.build();
+		ObjectQuery query = q.build();
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Searching members of role {} with query:\n{}", targetObject.getOid(), query.debugDump());
 		}
-
-		if (objectType == null || FocusType.COMPLEX_TYPE.equals(objectType)) {
-			return query;
-		} else {
-			return ObjectQuery.createObjectQuery(TypeFilter.createType(objectType, query.getFilter()));
-		}
+		return query;
 	}
 	
 	public static <R extends AbstractRoleType> List<PrismReferenceValue> createReferenceValuesList(R targetObject, Collection<QName> relations) {
@@ -191,10 +190,11 @@ public class MemberOperationsHelper {
 		return referenceValuesList;
 	}
 	
-	public static <O extends ObjectType> ObjectQuery createSelectedObjectsQuery(List<O> selectedObjects) {
+	public static <O extends ObjectType> ObjectQuery createSelectedObjectsQuery(List<O> selectedObjects,
+			PrismContext prismContext) {
 		Set<String> oids = getFocusOidToRecompute(selectedObjects);
-		ObjectQuery query = ObjectQuery.createObjectQuery(InOidFilter.createInOid(oids));
-		return query;
+		QueryFactory queryFactory = prismContext.queryFactory();
+		return queryFactory.createObjectQuery(queryFactory.createInOid(oids));
 	}
 
 	public static <O extends ObjectType> Set<String> getFocusOidToRecompute(List<O> selectedObjects) {
@@ -283,7 +283,7 @@ public class MemberOperationsHelper {
 	}
 
 	protected static <R extends AbstractRoleType> ObjectDelta getAddAssignmentDelta(R targetObject, Collection<QName> relations, Class classType, PrismContext prismContext) throws SchemaException {
-		ObjectDelta delta = ObjectDelta.createEmptyModifyDelta(classType, "fakeOid", prismContext);
+		ObjectDelta delta = ObjectDeltaCreationUtil.createEmptyModifyDelta(classType, "fakeOid", prismContext);
 		if (relations == null || relations.isEmpty()) {
 			delta.addModificationAddContainer(FocusType.F_ASSIGNMENT, createAssignmentToModify(targetObject, null, prismContext));
 			return delta;
@@ -297,11 +297,11 @@ public class MemberOperationsHelper {
 	
 	protected static <R extends AbstractRoleType> ObjectDelta getDeleteAssignmentDelta(R targetObject, Collection<QName> relations, Class classType, PrismContext prismContext) throws SchemaException {
 		if (relations == null || relations.isEmpty()) {
-			return ObjectDelta.createModificationDeleteContainer(classType, "fakeOid",
+			return ObjectDeltaCreationUtil.createModificationDeleteContainer(classType, "fakeOid",
 					FocusType.F_ASSIGNMENT, prismContext, createAssignmentToModify(targetObject, null, prismContext));
 		}
 		
-		ObjectDelta delta =  ObjectDelta.createEmptyModifyDelta(classType, "fakeOid", prismContext);
+		ObjectDelta delta =  ObjectDeltaCreationUtil.createEmptyModifyDelta(classType, "fakeOid", prismContext);
 		
 		for (QName relation : relations) {
 			delta.addModificationDeleteContainer(FocusType.F_ASSIGNMENT, createAssignmentToModify(targetObject, relation, prismContext));
@@ -312,7 +312,7 @@ public class MemberOperationsHelper {
 	}
 	
 	protected static <R extends AbstractRoleType> ObjectDelta getAddParentOrgDelta(R targetObject, Collection<QName> relations, PrismContext prismContext) throws SchemaException {
-		ObjectDelta delta = ObjectDelta.createEmptyModifyDelta(ObjectType.class, "fakeOid", prismContext);
+		ObjectDelta delta = ObjectDeltaCreationUtil.createEmptyModifyDelta(ObjectType.class, "fakeOid", prismContext);
 		if (relations == null || relations.isEmpty()) {
 			delta.addModificationAddReference(ObjectType.F_PARENT_ORG_REF, ObjectTypeUtil.createObjectRef(targetObject,
 					prismContext).asReferenceValue());
@@ -327,11 +327,11 @@ public class MemberOperationsHelper {
  
 	protected static <R extends AbstractRoleType> ObjectDelta getDeleteParentOrgDelta(R targetObject,  Collection<QName> relations, PrismContext prismContext) throws SchemaException {
 		if (relations == null || relations.isEmpty()) {
-			return ObjectDelta.createModificationDeleteReference(ObjectType.class, "fakeOid",
+			return ObjectDeltaCreationUtil.createModificationDeleteReference(ObjectType.class, "fakeOid",
 					ObjectType.F_PARENT_ORG_REF, prismContext, ObjectTypeUtil.createObjectRef(targetObject, prismContext).asReferenceValue());
 		}
 		
-		ObjectDelta delta =  ObjectDelta.createEmptyModifyDelta(ObjectType.class, "fakeOid", prismContext);
+		ObjectDelta delta =  ObjectDeltaCreationUtil.createEmptyModifyDelta(ObjectType.class, "fakeOid", prismContext);
 		
 		for (QName relation : relations) {
 			delta.addModificationDeleteReference(ObjectType.F_PARENT_ORG_REF, MemberOperationsHelper.createReference(targetObject, relation).asReferenceValue());

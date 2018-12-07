@@ -69,7 +69,7 @@ public class CaseWorkItemDtoProvider extends BaseSortableDataProvider<CaseWorkIt
             Task task = getPage().createSimpleTask(OPERATION_SEARCH_OBJECTS);
 
             ObjectQuery caseQuery = getQuery();
-            caseQuery = caseQuery != null ? caseQuery.clone() : new ObjectQuery();
+            caseQuery = caseQuery != null ? caseQuery.clone() : getPrismContext().queryFactory().createObjectQuery();
             caseQuery.setPaging(paging);
 
             Collection<SelectorOptions<GetOperationOptions>> resolveNames = createCollection(createResolveNames());
@@ -128,7 +128,7 @@ public class CaseWorkItemDtoProvider extends BaseSortableDataProvider<CaseWorkIt
     @NotNull
     @Override
     protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
-        return SearchingUtils.createObjectOrderings(sortParam);
+        return SearchingUtils.createObjectOrderings(sortParam, getPrismContext());
     }
 
 }

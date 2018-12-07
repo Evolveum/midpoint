@@ -21,7 +21,6 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.assertAttributeNot
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertNoRepoCache;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertNotEmpty;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayJaxb;
-import static com.evolveum.midpoint.test.IntegrationTestTools.getAttributeValue;
 import static com.evolveum.midpoint.test.IntegrationTestTools.getAttributeValues;
 import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
 import static org.testng.AssertJUnit.assertEquals;
@@ -48,6 +47,11 @@ import javax.xml.ws.Holder;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.task.api.TaskManagerException;
 import com.evolveum.midpoint.util.exception.*;
 import org.apache.commons.lang.StringUtils;
@@ -72,28 +76,16 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
-import com.evolveum.midpoint.prism.marshaller.XNodeProcessorUtil;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.prism.xnode.MapXNode;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -313,8 +305,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
     private static final Trace LOGGER = TraceManager.getTrace(TestSanity.class);
 
 	private static final String NS_MY = "http://whatever.com/my";
-	private static final QName MY_SHIP_STATE = new QName(NS_MY, "shipState");
-	private static final QName MY_DEAD = new QName(NS_MY, "dead");
+	private static final ItemName MY_SHIP_STATE = new ItemName(NS_MY, "shipState");
+	private static final ItemName MY_DEAD = new ItemName(NS_MY, "dead");
 
 	private static final long WAIT_FOR_LOOP_SLEEP_MILIS = 1000;
 
@@ -617,7 +609,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 		assertNotNull("No configuration properties container in "+resource+" from "+source, configPropsContainer);
 		List<? extends Item<?,?>> configProps = configPropsContainer.getValue().getItems();
 		assertEquals("Wrong number of config properties in "+resource+" from "+source, numConfigProps, configProps.size());
-		PrismProperty<Object> credentialsProp = configPropsContainer.findProperty(new QName(connectorNamespace,credentialsPropertyName));
+		PrismProperty<Object> credentialsProp = configPropsContainer.findProperty(new ItemName(connectorNamespace,credentialsPropertyName));
 		if (credentialsProp == null) {
 			// The is the heisenbug we are looking for. Just dump the entire damn thing.
 			display("Configuration with the heisenbug", configurationContainer.debugDump());
@@ -633,7 +625,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 			MapXNode xmap = (MapXNode) rawElement;
 			try{
 			ProtectedStringType protectedType = new ProtectedStringType();
-			XNodeProcessorUtil.parseProtectedType(protectedType, xmap, prismContext);
+			prismContext.misc().parseProtectedType(protectedType, xmap, prismContext, prismContext.getDefaultParsingContext());
 	//		display("LDAP credentials raw element", DOMUtil.serializeDOMToString(rawDomElement));
 //			assertEquals("Wrong credentials element namespace in "+resource+" from "+source, connectorNamespace, rawDomElement.getNamespaceURI());
 //			assertEquals("Wrong credentials element local name in "+resource+" from "+source, credentialsPropertyName, rawDomElement.getLocalName());
@@ -700,11 +692,11 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // via prisms
         PrismContainerValue configurationProperties = derbyResource.findContainer(
-                new ItemPath(
+                ItemPath.create(
                         ResourceType.F_CONNECTOR_CONFIGURATION,
                         new QName("configurationProperties")))
                 .getValue();
-        PrismProperty password = configurationProperties.findProperty(new QName(dbConnector.asObjectable().getNamespace(), "password"));
+        PrismProperty password = configurationProperties.findProperty(new ItemName(dbConnector.asObjectable().getNamespace(), "password"));
         System.out.println("Password property: " + password);
 	}
 
@@ -1289,10 +1281,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         QName objectClass = refinedAccountDefinition.getObjectClassDefinition().getTypeName();
         ObjectQuery q = ObjectQueryUtil.createResourceAndObjectClassQuery(resourceTypeOpenDjrepo.getOid(), objectClass, prismContext);
-//        ObjectQuery q = QueryConvertor.createObjectQuery(ResourceObjectShadowType.class, query, prismContext);
 
         final Collection<ObjectType> objects = new HashSet<>();
-        final MatchingRule caseIgnoreMatchingRule = matchingRuleRegistry.getMatchingRule(StringIgnoreCaseMatchingRule.NAME, DOMUtil.XSD_STRING);
+        final MatchingRule caseIgnoreMatchingRule = matchingRuleRegistry.getMatchingRule(PrismConstants.STRING_IGNORE_CASE_MATCHING_RULE_NAME, DOMUtil.XSD_STRING);
         ResultHandler handler = new ResultHandler<ObjectType>() {
 
             @Override
@@ -1475,10 +1466,10 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         ItemDeltaType passwordDelta = new ItemDeltaType();
         passwordDelta.setModificationType(ModificationTypeType.REPLACE);
-        passwordDelta.setPath(ModelClientUtil.createItemPathType("credentials/password/value"));
+        passwordDelta.setPath(ModelClientUtil.createItemPathType("credentials/password/value", prismContext));
         ProtectedStringType pass = new ProtectedStringType();
         pass.setClearValue(NEW_PASSWORD);
-        XNode passValue = ((PrismContextImpl) prismContext).getBeanMarshaller().marshall(pass);
+        XNode passValue = prismContext.xnodeSerializer().root(new QName("dummy")).serializeRealValue(pass).getSubnode();
         System.out.println("PASSWORD VALUE: " + passValue.debugDump());
         RawType passwordValue = new RawType(passValue, prismContext);
         passwordDelta.getValue().add(passwordValue);
@@ -1867,9 +1858,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
         modificationDeleteAccountRef.setModificationType(ModificationTypeType.DELETE);
         ObjectReferenceType accountRefToDelete = new ObjectReferenceType();
         accountRefToDelete.setOid(accountShadowOidDerby);
-        RawType modificationValue = new RawType(((PrismContextImpl) prismContext).getBeanMarshaller().marshall(accountRefToDelete), prismContext);
+        RawType modificationValue = new RawType(prismContext.xnodeSerializer().root(new QName("dummy")).serializeRealValue(accountRefToDelete).getSubnode(), prismContext);
         modificationDeleteAccountRef.getValue().add(modificationValue);
-        modificationDeleteAccountRef.setPath(new ItemPathType(new ItemPath(UserType.F_LINK_REF)));
+        modificationDeleteAccountRef.setPath(new ItemPathType(UserType.F_LINK_REF));
         objectChange.getItemDelta().add(modificationDeleteAccountRef);
         objectChange.setChangeType(ChangeTypeType.MODIFY);
         objectChange.setObjectType(UserType.COMPLEX_TYPE);
@@ -2431,10 +2422,10 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         ShadowType shadowType = shadow.asObjectable();
         QName employeeTypeQName = new QName(resourceTypeOpenDjrepo.getNamespace(), "employeeType");
-        ItemPath employeeTypePath = new ItemPath(ShadowType.F_ATTRIBUTES, employeeTypeQName);
+        ItemPath employeeTypePath = ItemPath.create(ShadowType.F_ATTRIBUTES, employeeTypeQName);
         PrismProperty item = shadow.findProperty(employeeTypePath);
 
-        PropertyDelta deleteDelta = new PropertyDelta(new ItemPath(ShadowType.F_ATTRIBUTES), item.getDefinition().getName(), item.getDefinition(), prismContext);
+        PropertyDelta deleteDelta = prismContext.deltaFactory().property().create(ShadowType.F_ATTRIBUTES, item.getDefinition().getName(), item.getDefinition());
 //        PropertyDelta deleteDelta = PropertyDelta.createDelta(employeeTypePath, shadow.getDefinition());
 //        PrismPropertyValue valToDelte = new PrismPropertyValue("A");
 //        valToDelte.setParent(deleteDelta);
@@ -2446,7 +2437,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         }
 
 
-        ObjectDelta delta = new ObjectDelta(ShadowType.class, ChangeType.MODIFY, prismContext);
+        ObjectDelta delta = prismContext.deltaFactory().object().create(ShadowType.class, ChangeType.MODIFY);
         delta.addModification(deleteDelta);
         delta.setOid(accountShadowOidGuybrushOpendj);
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
@@ -2827,8 +2818,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // Check task status
 
-        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(TaskType.F_RESULT, GetOperationOptions.createRetrieve());
-		Task task = taskManager.getTask(TASK_OPENDJ_SYNC_OID, options, result);
+	    Task task = taskManager.getTask(TASK_OPENDJ_SYNC_OID, retrieveTaskResult(), result);
         result.computeStatus();
         display("getTask result", result);
         TestUtil.assertSuccess("getTask has failed", result);
@@ -2886,7 +2876,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
          
     }
 
-    /**
+	/**
      * Create LDAP object. That should be picked up by liveSync and a user
      * should be created in repo.
      */
@@ -3382,8 +3372,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // Check task status
 
-        Collection<SelectorOptions<GetOperationOptions>> taskOptions = SelectorOptions.createCollection(TaskType.F_RESULT, GetOperationOptions.createRetrieve());
-        Task task = taskManager.getTask(TASK_USER_RECOMPUTE_OID, taskOptions, result);
+        Task task = taskManager.getTask(TASK_USER_RECOMPUTE_OID, retrieveTaskResult(), result);
         result.computeStatus();
         display("getTask result", result);
         TestUtil.assertSuccess("getTask has failed", result);
@@ -3732,7 +3721,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         final OperationResult result = task.getResult();
 
         // WHEN
-        List<PrismObject<ResourceType>> resources = modelService.searchObjects(ResourceType.class, new ObjectQuery(), null, task, result);
+        List<PrismObject<ResourceType>> resources = modelService.searchObjects(ResourceType.class, null, null, task, result);
 
         // THEN
         assertNotNull("listObjects returned null list", resources);
@@ -3783,8 +3772,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         ShadowType anglicaAccount = parseObjectType(new File(ACCOUNT_ANGELIKA_FILENAME), ShadowType.class);
         PrismProperty<String> prop = anglicaAccount.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES).getValue().createProperty(
-        		new PrismPropertyDefinitionImpl<>(getOpenDjPrimaryIdentifierQName(), DOMUtil.XSD_STRING, prismContext));
-    	prop.setValue(new PrismPropertyValue<>(entryUuid));
+		        prismContext.definitionFactory().createPropertyDefinition(getOpenDjPrimaryIdentifierQName(), DOMUtil.XSD_STRING));
+    	prop.setRealValue(entryUuid);
     	anglicaAccount.setResourceRef(ObjectTypeUtil.createObjectRef(RESOURCE_OPENDJ_OID, ObjectTypes.RESOURCE));
 
     	display("Angelica shadow: ", anglicaAccount.asPrismObject().debugDump());
@@ -3846,10 +3835,10 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     	ItemDeltaType mod1 = new ItemDeltaType();
     	mod1.setModificationType(ModificationTypeType.REPLACE);
-    	ItemPathType path = new ItemPathType(new ItemPath(ShadowType.F_ATTRIBUTES, new QName(resourceTypeOpenDjrepo.getNamespace(), "givenName")));
+    	ItemPathType path = new ItemPathType(ItemPath.create(ShadowType.F_ATTRIBUTES, new QName(resourceTypeOpenDjrepo.getNamespace(), "givenName")));
     	mod1.setPath(path);
 
-    	RawType value = new RawType(new PrimitiveXNode<>("newAngelika"), prismContext);
+    	RawType value = new RawType(prismContext.xnodeFactory().primitive("newAngelika"), prismContext);
         mod1.getValue().add(value);
 
     	delta.getItemDelta().add(mod1);
@@ -3906,8 +3895,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         ItemDeltaType passwordDelta = new ItemDeltaType();
         passwordDelta.setModificationType(ModificationTypeType.REPLACE);
-        passwordDelta.setPath(ModelClientUtil.createItemPathType("credentials/password/value"));
-        RawType passwordValue = new RawType(((PrismContextImpl) prismContext).getBeanMarshaller().marshall(ModelClientUtil.createProtectedString(newPassword)), prismContext);
+        passwordDelta.setPath(ModelClientUtil.createItemPathType("credentials/password/value", prismContext));
+        RawType passwordValue = new RawType(prismContext.xnodeSerializer().root(new QName("dummy")).serializeRealValue(ModelClientUtil.createProtectedString(newPassword)).getSubnode(), prismContext);
         passwordDelta.getValue().add(passwordValue);
 
         delta.getItemDelta().add(passwordDelta);
@@ -4070,7 +4059,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 //        QueryType query = new QueryType();
 //        query.setFilter(filter);
     	ObjectQuery q = ObjectQueryUtil.createNameQuery(UserType.class, prismContext, name);
-    	QueryType query = QueryJaxbConvertor.createQueryType(q, prismContext);
+    	QueryType query = prismContext.getQueryConverter().createQueryType(q);
         OperationResultType resultType = new OperationResultType();
         Holder<OperationResultType> resultHolder = new Holder<>(resultType);
         Holder<ObjectListType> listHolder = new Holder<>();
@@ -4159,7 +4148,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 		String value = getAttributeValue(repoShadow, name);
 
 		RefinedAttributeDefinition idDef = objClassDef.getPrimaryIdentifiers().iterator().next();
-		if (idDef.getMatchingRuleQName() != null && idDef.getMatchingRuleQName().equals(StringIgnoreCaseMatchingRule.NAME)){
+		if (idDef.getMatchingRuleQName() != null && idDef.getMatchingRuleQName().equals(PrismConstants.STRING_IGNORE_CASE_MATCHING_RULE_NAME)){
 			return value.toLowerCase();
 		}
 

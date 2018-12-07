@@ -24,15 +24,12 @@ import com.evolveum.midpoint.model.impl.sync.SynchronizationContext;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationService;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeResultHandler;
@@ -243,7 +240,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
     }
 
     private boolean contains(PrismProperty<String> property, String keyword) {
-        return property.containsRealValue(new PrismPropertyValue<>(keyword));
+        return property.containsRealValue(prismContext.itemFactory().createPrismPropertyValue(keyword));
     }
 
     @Override
@@ -479,7 +476,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
 
     private List<PrismObject<FocusType>> searchOwners(PrismObject<ShadowType> shadow, OperationResult result) {
         try {
-            ObjectQuery ownerQuery = QueryBuilder.queryFor(FocusType.class, prismContext)
+            ObjectQuery ownerQuery = prismContext.queryFor(FocusType.class)
                     .item(FocusType.F_LINK_REF).ref(shadow.getOid())
                     .build();
             List<PrismObject<FocusType>> owners = repositoryService.searchObjects(FocusType.class, ownerQuery, null, result);
@@ -527,7 +524,8 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
         }
         if (syncCtx.hasApplicablePolicy()) {
             if (syncCtx.getIntent() != null) {
-                PropertyDelta<String> delta = PropertyDelta.createReplaceDelta(fullShadow.getDefinition(), ShadowType.F_INTENT, syncCtx.getIntent());
+                PropertyDelta<String> delta = prismContext.deltaFactory().property()
+                        .createReplaceDelta(fullShadow.getDefinition(), ShadowType.F_INTENT, syncCtx.getIntent());
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Intent fix delta (not executed now) = \n{}", delta.debugDump());
                 }
@@ -601,8 +599,8 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
                         + ": " + value + " (normalized form: " + normalizedValue + ")"));
 
         if (fixNormalization) {
-            PropertyDelta delta = identifier.createEmptyDelta(new ItemPath(ShadowType.F_ATTRIBUTES, identifier.getName()));
-            delta.setValueToReplace(new PrismPropertyValue<>(normalizedStringValue));
+            PropertyDelta delta = identifier.createEmptyDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, identifier.getName()));
+            delta.setRealValuesToReplace(normalizedStringValue);
             checkResult.addFixDelta(delta, ShadowStatistics.NON_NORMALIZED_IDENTIFIER_VALUE);
         }
     }
@@ -769,12 +767,12 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
 
             for (PrismObject owner : owners) {
                 List<ItemDelta> modifications = new ArrayList<>(2);
-                ReferenceDelta deleteDelta = ReferenceDelta.createModificationDelete(FocusType.F_LINK_REF, owner.getDefinition(),
-                        new PrismReferenceValue(oid, ShadowType.COMPLEX_TYPE));
+                ReferenceDelta deleteDelta = prismContext.deltaFactory().reference().createModificationDelete(FocusType.F_LINK_REF, owner.getDefinition(),
+                        prismContext.itemFactory().createPrismReferenceValue(oid, ShadowType.COMPLEX_TYPE));
                 modifications.add(deleteDelta);
                 if (shadowOidToReplaceDeleted != null) {
-                    ReferenceDelta addDelta = ReferenceDelta.createModificationAdd(FocusType.F_LINK_REF, owner.getDefinition(),
-                            new PrismReferenceValue(shadowOidToReplaceDeleted, ShadowType.COMPLEX_TYPE));
+                    ReferenceDelta addDelta = prismContext.deltaFactory().reference().createModificationAdd(FocusType.F_LINK_REF, owner.getDefinition(),
+                            prismContext.itemFactory().createPrismReferenceValue(shadowOidToReplaceDeleted, ShadowType.COMPLEX_TYPE));
                     modifications.add(addDelta);
                 }
                 LOGGER.info("Executing modify delta{} for owner {}:\n{}", skippedForDryRun(), ObjectTypeUtil.toShortString(owner), DebugUtil.debugDump(modifications));
@@ -843,14 +841,14 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
         checkOrFixActivationItem(checkResult, shadow, activation.asPrismContainerValue(), ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP);
     }
 
-    private void checkOrFixActivationItem(ShadowCheckResult checkResult, PrismObject<ShadowType> shadow, PrismContainerValue<ActivationType> activation, QName itemName) {
-        PrismProperty property = activation.findProperty(new ItemPath(itemName));
+    private void checkOrFixActivationItem(ShadowCheckResult checkResult, PrismObject<ShadowType> shadow, PrismContainerValue<ActivationType> activation, ItemName itemName) {
+        PrismProperty property = activation.findProperty(itemName);
         if (property == null || property.isEmpty()) {
             return;
         }
         checkResult.recordWarning(ShadowStatistics.EXTRA_ACTIVATION_DATA, "Unexpected activation item: " + property);
         if (fixExtraData) {
-            PropertyDelta delta = PropertyDelta.createReplaceEmptyDelta(shadow.getDefinition(), new ItemPath(ShadowType.F_ACTIVATION, itemName));
+            PropertyDelta delta = prismContext.deltaFactory().property().createReplaceEmptyDelta(shadow.getDefinition(), ItemPath.create(ShadowType.F_ACTIVATION, itemName));
             checkResult.addFixDelta(delta, ShadowStatistics.EXTRA_ACTIVATION_DATA);
         }
     }

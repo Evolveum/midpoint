@@ -70,10 +70,6 @@ public class FlexibleLabelModel<C extends Containerable> implements IModel<Strin
     private GuiFlexibleLabelType configuration;
     private ModelServiceLocator serviceLocator;
 
-    public FlexibleLabelModel(IModel<C> model, QName item, ModelServiceLocator serviceLocator, GuiFlexibleLabelType configuration) {
-        this(model, new ItemPath(item), serviceLocator, configuration);
-    }
-
     public FlexibleLabelModel(IModel<C> model, ItemPath path, ModelServiceLocator serviceLocator, GuiFlexibleLabelType configuration) {
         Validate.notNull(model, "Containerable model must not be null.");
         Validate.notNull(path, "Item path must not be null.");
@@ -129,8 +125,9 @@ public class FlexibleLabelModel<C extends Containerable> implements IModel<Strin
 
     	C object = model.getObject();
     	ExpressionFactory expressionFactory = serviceLocator.getExpressionFactory();
-    	PrismPropertyDefinition<String> outputDefinition = new PrismPropertyDefinitionImpl<>(ExpressionConstants.OUTPUT_ELEMENT_NAME,
-    			DOMUtil.XSD_STRING, object.asPrismContainerValue().getPrismContext());
+	    PrismContext prismContext = object.asPrismContainerValue().getPrismContext();
+	    PrismPropertyDefinition<String> outputDefinition = prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME,
+    			DOMUtil.XSD_STRING);
 		Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(expressionType, outputDefinition, contextDesc, task, result);
 		ExpressionVariables variables = new ExpressionVariables();
 		variables.addVariableDefinition(ExpressionConstants.VAR_OBJECT, object);

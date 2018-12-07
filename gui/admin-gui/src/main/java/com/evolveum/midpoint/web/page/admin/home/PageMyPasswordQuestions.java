@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
 
 import org.apache.commons.lang.StringEscapeUtils;
@@ -39,9 +40,6 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.RetrieveOption;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -478,9 +476,9 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 		PrismObject<UserType> user = null;
 		Task task = createSimpleTask(OPERATION_LOAD_USER);
 		try {
-			Collection options = SelectorOptions.createCollection(UserType.F_CREDENTIALS,
-					GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
-
+			Collection options = getOperationOptionsBuilder()
+					.item(UserType.F_CREDENTIALS).retrieve()
+					.build();
 			user = getModelService().getObject(UserType.class, SecurityUtils.getPrincipalUser().getOid(), options, task, result);
 
 
@@ -586,8 +584,8 @@ private SecurityQuestionAnswerDTO checkIfQuestionisValidSingle(SecurityQuestionA
 
 
 			// fill in answerType data here
-			ItemPath path = new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_SECURITY_QUESTIONS, SecurityQuestionsCredentialsType.F_QUESTION_ANSWER);
-			ObjectDelta<UserType> objectDelta = ObjectDelta.createModificationReplaceContainer(UserType.class, useroid,
+			ItemPath path = ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_SECURITY_QUESTIONS, SecurityQuestionsCredentialsType.F_QUESTION_ANSWER);
+			ObjectDelta<UserType> objectDelta = ObjectDeltaCreationUtil.createModificationReplaceContainer(UserType.class, useroid,
 					path, getPrismContext(), answerTypeList);
 
 			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
@@ -600,7 +598,7 @@ private SecurityQuestionAnswerDTO checkIfQuestionisValidSingle(SecurityQuestionA
 			 PrismObjectDefinition objDef =registry.findObjectDefinitionByCompileTimeClass(UserType.class);
 			 Class<? extends ObjectType> type =  UserType.class;
 
-			 final ItemPath valuePath = new ItemPath(SchemaConstantsGenerated.C_CREDENTIALS,
+			 final ItemPath valuePath = ItemPath.create(SchemaConstantsGenerated.C_CREDENTIALS,
 	                  CredentialsType.F_SECURITY_QUESTIONS, SecurityQuestionsCredentialsType.F_QUESTION_ANSWER);
 			 SecurityQuestionAnswerType secQuesAnsType= new SecurityQuestionAnswerType();
 			 ProtectedStringType protStrType= new ProtectedStringType();

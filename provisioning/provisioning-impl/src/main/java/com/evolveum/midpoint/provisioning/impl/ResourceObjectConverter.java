@@ -19,19 +19,14 @@ package com.evolveum.midpoint.provisioning.impl;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.JavaTypeConverter;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
-import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
@@ -183,7 +178,7 @@ public class ResourceObjectConverter {
             } else {
                 secondaryIdentifierValue = null;
             }
-            ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+            ObjectQuery query = prismContext.queryFor(ShadowType.class)
 					.itemWithDef(secondaryIdentifierDef, ShadowType.F_ATTRIBUTES, secondaryIdentifierDef.getName()).eq(secondaryIdentifierValue)
 					.build();
 			final Holder<PrismObject<ShadowType>> shadowHolder = new Holder<>();
@@ -528,10 +523,10 @@ public class ResourceObjectConverter {
 			boolean hasResourceModification = false;
 			for (ItemDelta modification: itemDeltas) {
 				ItemPath path = modification.getPath();
-				QName firstPathName = ItemPath.getFirstName(path);
+				QName firstPathName = path.firstName();
 				if (ProvisioningUtil.isAttributeModification(firstPathName)) {
 					hasResourceModification = true;
-					QName attrName = ItemPath.getFirstName(path.rest());
+					QName attrName = path.rest().firstNameOrFail();
 					RefinedAttributeDefinition<Object> attrDef = ctx.getObjectClassDefinition().findAttributeDefinition(attrName);
 					if (attrDef.isVolatilityTrigger()) {
 						LOGGER.trace("Will pre-read and re-read object because volatility trigger attribute {} has changed", attrName);
@@ -645,8 +640,9 @@ public class ResourceObjectConverter {
 	        		LOGGER.trace("Determined side-effect changes by old-new diff:\n{}", resourceShadowDelta.debugDump());
 	        	}
 	        	for (ItemDelta modification: resourceShadowDelta.getModifications()) {
-	        		if (modification.getParentPath().startsWithName(ShadowType.F_ATTRIBUTES) && !ItemDelta.hasEquivalent(itemDeltas, modification)) {
-	        			ItemDelta.merge(sideEffectDeltas, modification);
+	        		if (modification.getParentPath().startsWithName(ShadowType.F_ATTRIBUTES) && !ItemDeltaCollectionsUtil
+					        .hasEquivalent(itemDeltas, modification)) {
+	        			ItemDeltaCollectionsUtil.merge(sideEffectDeltas, modification);
 	        		}
 	        	}
 	        	if (LOGGER.isTraceEnabled()) {
@@ -1005,7 +1001,7 @@ public class ResourceObjectConverter {
 		// add values that have to be added
 		if (propertyDelta.isAdd()) {
 			for (PrismPropertyValue valueToAdd : propertyDelta.getValuesToAdd()) {
-				if (!PrismPropertyValue.containsValue(currentValues, valueToAdd, comparator)) {
+				if (!PrismValueCollectionsUtil.containsValue(currentValues, valueToAdd, comparator)) {
 					currentValues.add(valueToAdd.clone());
 				} else {
 					LOGGER.warn("Attempting to add a value of {} that is already present in {}: {}",
@@ -1033,7 +1029,7 @@ public class ResourceObjectConverter {
 				}
 			}
 		}
-		PropertyDelta resultingDelta = new PropertyDelta(propertyDelta.getPath(), propertyDelta.getPropertyDefinition(), propertyDelta.getPrismContext());
+		PropertyDelta resultingDelta = prismContext.deltaFactory().property().create(propertyDelta.getPath(), propertyDelta.getPropertyDefinition());
 		resultingDelta.setValuesToReplace(currentValues);
 		return new PropertyModificationOperation(resultingDelta);
 	}
@@ -1121,14 +1117,14 @@ public class ResourceObjectConverter {
 		for (ItemDelta subjectDelta : subjectDeltas) {
 			ItemPath subjectItemPath = subjectDelta.getPath();
 			
-			if (new ItemPath(ShadowType.F_ASSOCIATION).equivalent(subjectItemPath)) {
+			if (ShadowType.F_ASSOCIATION.equivalent(subjectItemPath)) {
 				ContainerDelta<ShadowAssociationType> containerDelta = (ContainerDelta<ShadowAssociationType>)subjectDelta;				
 				subjectShadowAfter = entitlementConverter.collectEntitlementsAsObjectOperation(ctx, roMap, containerDelta,
                         subjectShadowBefore, subjectShadowAfter, parentResult);
 				
 			} else {
 			
-				ContainerDelta<ShadowAssociationType> associationDelta = ContainerDelta.createDelta(ShadowType.F_ASSOCIATION, subjectShadowBefore.getDefinition());
+				ContainerDelta<ShadowAssociationType> associationDelta = prismContext.deltaFactory().container().createDelta(ShadowType.F_ASSOCIATION, subjectShadowBefore.getDefinition());
 				PrismContainer<ShadowAssociationType> associationContainer = subjectShadowBefore.findContainer(ShadowType.F_ASSOCIATION);
 				if (associationContainer == null || associationContainer.isEmpty()){
 					LOGGER.trace("No shadow association container in old shadow. Skipping processing entitlements change for {}.", subjectItemPath);
@@ -1427,9 +1423,9 @@ public class ResourceObjectConverter {
 		
 		CapabilitiesType connectorCapabilities = ctx.getConnectorCapabilities(UpdateCapabilityType.class);
 		ActivationCapabilityType activationCapability = CapabilityUtil.getEffectiveCapability(connectorCapabilities, ActivationCapabilityType.class);
-		
+
 		// administrativeStatus
-		PropertyDelta<ActivationStatusType> enabledPropertyDelta = PropertyDelta.findPropertyDelta(objectChange,
+		PropertyDelta<ActivationStatusType> enabledPropertyDelta = PropertyDeltaCollectionsUtil.findPropertyDelta(objectChange,
 				SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
 		if (enabledPropertyDelta != null) {
 			if (activationCapability == null) {
@@ -1455,7 +1451,7 @@ public class ResourceObjectConverter {
 		}
 		
 		// validFrom
-		PropertyDelta<XMLGregorianCalendar> validFromPropertyDelta = PropertyDelta.findPropertyDelta(objectChange,
+		PropertyDelta<XMLGregorianCalendar> validFromPropertyDelta = PropertyDeltaCollectionsUtil.findPropertyDelta(objectChange,
 				SchemaConstants.PATH_ACTIVATION_VALID_FROM);
 		if (validFromPropertyDelta != null) {
 			if (CapabilityUtil.getEffectiveActivationValidFrom(activationCapability) == null) {
@@ -1469,7 +1465,7 @@ public class ResourceObjectConverter {
 		}
 
 		// validTo
-		PropertyDelta<XMLGregorianCalendar> validToPropertyDelta = PropertyDelta.findPropertyDelta(objectChange,
+		PropertyDelta<XMLGregorianCalendar> validToPropertyDelta = PropertyDeltaCollectionsUtil.findPropertyDelta(objectChange,
 				SchemaConstants.PATH_ACTIVATION_VALID_TO);
 		if (validToPropertyDelta != null) {
 			if (CapabilityUtil.getEffectiveActivationValidTo(activationCapability) == null) {
@@ -1482,7 +1478,7 @@ public class ResourceObjectConverter {
 				operations.add(new PropertyModificationOperation(validToPropertyDelta));
 		}
 		
-		PropertyDelta<LockoutStatusType> lockoutPropertyDelta = PropertyDelta.findPropertyDelta(objectChange,
+		PropertyDelta<LockoutStatusType> lockoutPropertyDelta = PropertyDeltaCollectionsUtil.findPropertyDelta(objectChange,
 				SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS);
 		if (lockoutPropertyDelta != null) {
 			if (activationCapability == null) {
@@ -1519,7 +1515,7 @@ public class ResourceObjectConverter {
 			return;
 		}
 		
-		PropertyDelta<T> simulatedActivationDelta = PropertyDelta.findPropertyDelta(objectChange, activationAttribute.getPath());
+		PropertyDelta<T> simulatedActivationDelta = ItemDeltaCollectionsUtil.findPropertyDelta(objectChange, activationAttribute.getPath());
 		if (simulatedActivationDelta == null) {
 			return;
 		}
@@ -1554,7 +1550,7 @@ public class ResourceObjectConverter {
 			return;
 		}
 		
-		PropertyDelta simulatedActivationDelta = PropertyDelta.findPropertyDelta(objectChange, activationAttribute.getPath());
+		PropertyDelta simulatedActivationDelta = ItemDeltaCollectionsUtil.findPropertyDelta(objectChange, activationAttribute.getPath());
 		PrismProperty simulatedActivationProperty = simulatedActivationDelta.getPropertyNewMatchingPath();
 		Collection realValues = simulatedActivationProperty.getRealValues();
 		if (realValues.isEmpty()) {
@@ -1630,7 +1626,7 @@ public class ResourceObjectConverter {
 
 					Item existingSimulatedAttr = attributesContainer.findItem(newSimulatedAttr.getElementName());
 					if (!isBlank(newSimulatedAttrRealValue)) {
-						PrismPropertyValue newSimulatedAttrValue = new PrismPropertyValue(newSimulatedAttrRealValue);
+						PrismPropertyValue newSimulatedAttrValue = prismContext.itemFactory().createPrismPropertyValue(newSimulatedAttrRealValue);
 						if (existingSimulatedAttr == null) {
 							newSimulatedAttr.add(newSimulatedAttrValue);
 							attributesContainer.add(newSimulatedAttr);
@@ -1659,7 +1655,7 @@ public class ResourceObjectConverter {
 				
 				if (activationSimulateAttribute != null) {
 					LockoutStatusType status = activation.getLockoutStatus();
-					String activationRealValue = null;
+					String activationRealValue;
 					if (status == LockoutStatusType.NORMAL) {
 						activationRealValue = getLockoutNormalValue(capActStatus);
 					} else {
@@ -1667,8 +1663,9 @@ public class ResourceObjectConverter {
 					}
 					Item existingAttribute = attributesContainer.findItem(activationSimulateAttribute.getElementName());
 					if (!StringUtils.isBlank(activationRealValue)) {
-						activationSimulateAttribute.add(new PrismPropertyValue(activationRealValue));
-						if (attributesContainer.findItem(activationSimulateAttribute.getElementName()) == null){
+						//noinspection unchecked
+						((ResourceAttribute) activationSimulateAttribute).addRealValue(activationRealValue);
+						if (attributesContainer.findItem(activationSimulateAttribute.getElementName()) == null) {
 							attributesContainer.add(activationSimulateAttribute);
 						} else{
 							attributesContainer.findItem(activationSimulateAttribute.getElementName()).replace(activationSimulateAttribute.getValue());
@@ -1710,11 +1707,11 @@ public class ResourceObjectConverter {
 	private boolean hasChangesOnResource(
 			Collection<? extends ItemDelta> itemDeltas) {
 		for (ItemDelta itemDelta : itemDeltas) {
-			if (isAttributeDelta(itemDelta) || SchemaConstants.PATH_PASSWORD.equals(itemDelta.getParentPath())) {
+			if (isAttributeDelta(itemDelta) || SchemaConstants.PATH_PASSWORD.equivalent(itemDelta.getParentPath())) {
 				return true;
 			} else if (SchemaConstants.PATH_ACTIVATION.equivalent(itemDelta.getParentPath())){
 				return true;
-			} else if (new ItemPath(ShadowType.F_ASSOCIATION).equivalent(itemDelta.getPath())) {
+			} else if (ShadowType.F_ASSOCIATION.equivalent(itemDelta.getPath())) {
 				return true;				
 			}
 		}
@@ -1758,13 +1755,13 @@ public class ResourceObjectConverter {
 					}
 					activationProcessed = true;
 				}
-			} else if (new ItemPath(ShadowType.F_ASSOCIATION).equivalent(itemDelta.getPath())) {
+			} else if (ShadowType.F_ASSOCIATION.equivalent(itemDelta.getPath())) {
 				if (itemDelta instanceof ContainerDelta) {
 					entitlementConverter.collectEntitlementChange(ctx, (ContainerDelta<ShadowAssociationType>)itemDelta, operations);
 				} else {
 					throw new UnsupportedOperationException("Not supported delta: " + itemDelta);
 				}
-			} else if (new ItemPath(ShadowType.F_AUXILIARY_OBJECT_CLASS).equivalent(itemDelta.getPath())) {
+			} else if (ShadowType.F_AUXILIARY_OBJECT_CLASS.equivalent(itemDelta.getPath())) {
 				if (itemDelta instanceof PropertyDelta) {
 					PropertyModificationOperation attributeModification = new PropertyModificationOperation(
 							(PropertyDelta) itemDelta);
@@ -1780,7 +1777,7 @@ public class ResourceObjectConverter {
 	}
 
 	private boolean isAttributeDelta(ItemDelta itemDelta) {
-		return new ItemPath(ShadowType.F_ATTRIBUTES).equivalent(itemDelta.getParentPath());
+		return ShadowType.F_ATTRIBUTES.equivalent(itemDelta.getParentPath());
 	}
 
 	public List<Change> fetchChanges(ProvisioningContext ctx, PrismProperty<?> lastToken,
@@ -2219,7 +2216,8 @@ public class ResourceObjectConverter {
 		PropertyDelta<?> simulatedAttrDelta;
 		if (status == null && activationDelta.isDelete()){
 			LOGGER.trace("deleting activation property.");
-			simulatedAttrDelta = PropertyDelta.createModificationDeleteProperty(new ItemPath(ShadowType.F_ATTRIBUTES, simulatedAttribute.getElementName()), simulatedAttribute.getDefinition(), simulatedAttribute.getRealValue());
+			simulatedAttrDelta = prismContext.deltaFactory().property().createModificationDeleteProperty(
+					ItemPath.create(ShadowType.F_ATTRIBUTES, simulatedAttribute.getElementName()), simulatedAttribute.getDefinition(), simulatedAttribute.getRealValue());
 		} else if (status == ActivationStatusType.ENABLED) {
 			Object enableValue = getEnableValue(capActStatus, simulatedAttrValueClass);
 			simulatedAttrDelta = createActivationPropDelta(simulatedAttribute.getElementName(), simulatedAttribute.getDefinition(), enableValue);
@@ -2250,7 +2248,7 @@ public class ResourceObjectConverter {
 		
 		if (status == null && activationDelta.isDelete()){
 			LOGGER.trace("deleting activation property.");
-			lockoutAttributeDelta = PropertyDelta.createModificationDeleteProperty(new ItemPath(ShadowType.F_ATTRIBUTES, activationAttribute.getElementName()), activationAttribute.getDefinition(), activationAttribute.getRealValue());
+			lockoutAttributeDelta = prismContext.deltaFactory().property().createModificationDeleteProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, activationAttribute.getElementName()), activationAttribute.getDefinition(), activationAttribute.getRealValue());
 			
 		} else if (status == LockoutStatusType.NORMAL) {
 			String normalValue = getLockoutNormalValue(capActStatus);
@@ -2266,10 +2264,10 @@ public class ResourceObjectConverter {
 	
 	private PropertyDelta<?> createActivationPropDelta(QName attrName, ResourceAttributeDefinition attrDef, Object value) {
 		if (isBlank(value)) {
-			return PropertyDelta.createModificationReplaceProperty(new ItemPath(ShadowType.F_ATTRIBUTES, attrName), 
+			return prismContext.deltaFactory().property().createModificationReplaceProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, attrName),
 					attrDef);
 		} else {
-			return PropertyDelta.createModificationReplaceProperty(new ItemPath(ShadowType.F_ATTRIBUTES, attrName), 
+			return prismContext.deltaFactory().property().createModificationReplaceProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, attrName),
 					attrDef, value);
 		}
 	}

@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.schema.constants;
 
+import com.evolveum.midpoint.prism.path.ItemName;
+
 import javax.xml.namespace.QName;
 
 /**
@@ -82,14 +84,14 @@ public class ExpressionConstants {
 	 * Numeric value describing the current iteration. It starts with 0 and increments on every iteration.
 	 * Iterations are used to find unique values for an account, to resolve naming conflicts, etc.
 	 */
-	public static final QName VAR_ITERATION = new QName(SchemaConstants.NS_C, "iteration");
+	public static final ItemName VAR_ITERATION = new ItemName(SchemaConstants.NS_C, "iteration");
 
 	/**
 	 * String value describing the current iteration. It is usually suffix that is appended to the username
 	 * or a similar "extension" of the value. It should have different value for every iteration. The actual
 	 * value is determined by the iteration settings.
 	 */
-	public static final QName VAR_ITERATION_TOKEN = new QName(SchemaConstants.NS_C, "iterationToken");
+	public static final ItemName VAR_ITERATION_TOKEN = new ItemName(SchemaConstants.NS_C, "iterationToken");
 
 	// Variables used in object merging expressions
 	public static final QName VAR_SIDE = new QName(SchemaConstants.NS_C, "side");

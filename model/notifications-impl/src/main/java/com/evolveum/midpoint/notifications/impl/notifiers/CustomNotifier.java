@@ -32,7 +32,6 @@ import com.evolveum.midpoint.notifications.impl.formatters.TextFormatter;
 import com.evolveum.midpoint.notifications.impl.handlers.AggregatedEventHandler;
 import com.evolveum.midpoint.notifications.impl.handlers.BaseHandler;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -169,7 +168,7 @@ public class CustomNotifier extends BaseHandler {
 
 		QName resultName = new QName(SchemaConstants.NS_C, "result");
 		PrismPropertyDefinition<NotificationMessageType> resultDef =
-				new PrismPropertyDefinitionImpl<>(resultName, NotificationMessageType.COMPLEX_TYPE, prismContext);
+				prismContext.definitionFactory().createPropertyDefinition(resultName, NotificationMessageType.COMPLEX_TYPE);
 
 		Expression<PrismPropertyValue<NotificationMessageType>,PrismPropertyDefinition<NotificationMessageType>> expression =
 				expressionFactory.makeExpression(expressionType, resultDef, shortDesc, task, result);

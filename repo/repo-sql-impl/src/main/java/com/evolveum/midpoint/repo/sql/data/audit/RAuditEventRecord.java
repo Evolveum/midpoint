@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.audit;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditReferenceValue;
@@ -26,7 +27,6 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.CanonicalItemPath;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
@@ -519,7 +519,7 @@ public class RAuditEventRecord implements Serializable {
                 for (ItemDelta<?, ?> itemDelta : objectDelta.getModifications()) {
                     ItemPath path = itemDelta.getPath();
                     if (path != null) {        // TODO what if empty?
-                        CanonicalItemPath canonical = CanonicalItemPath.create(path, objectDelta.getObjectTypeClass(), prismContext);
+                        CanonicalItemPath canonical = prismContext.createCanonicalItemPath(path, objectDelta.getObjectTypeClass());
                         for (int i = 0; i < canonical.size(); i++) {
                             RAuditItem changedItem = RAuditItem.toRepo(repo, canonical.allUpToIncluding(i).asString());
                             changedItem.setTransient(isTransient);

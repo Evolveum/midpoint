@@ -18,7 +18,7 @@ package com.evolveum.midpoint.wf.impl.policy.lifecycle;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -43,6 +43,7 @@ import java.io.File;
 import java.util.Collections;
 import java.util.HashSet;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static java.util.Collections.singleton;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNull;
@@ -101,9 +102,9 @@ public abstract class AbstractTestLifecycle extends AbstractWfTestPolicy {
 			rolePirateOid = pirate.getOid();
 		}
 
-		PrismReferenceValue pirateOwner = new PrismReferenceValue(rolePirateOid, RoleType.COMPLEX_TYPE);
+		PrismReferenceValue pirateOwner = getPrismContext().itemFactory().createPrismReferenceValue(rolePirateOid, RoleType.COMPLEX_TYPE);
 		pirateOwner.setRelation(SchemaConstants.ORG_OWNER);
-		executeChanges(DeltaBuilder.deltaFor(UserType.class, prismContext)
+		executeChanges(prismContext.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT).add(ObjectTypeUtil.createAssignmentTo(pirateOwner, prismContext))
 				.asObjectDelta(userPirateOwnerOid),
 				null, task, result);
@@ -128,10 +129,11 @@ public abstract class AbstractTestLifecycle extends AbstractWfTestPolicy {
 		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
-		ObjectDelta<RoleType> descriptionDelta = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+		ObjectDelta<RoleType> descriptionDelta = prismContext.deltaFor(RoleType.class)
 				.item(RoleType.F_DESCRIPTION).replace("Bloody pirate")
 				.asObjectDelta(rolePirateOid);
-		ObjectDelta<RoleType> delta0 = ObjectDelta.createModifyDelta(rolePirateOid, Collections.emptyList(), RoleType.class, prismContext);
+		ObjectDelta<RoleType> delta0 = ObjectDeltaCreationUtil
+				.createModifyDelta(rolePirateOid, Collections.emptyList(), RoleType.class, prismContext);
 		//noinspection UnnecessaryLocalVariable
 		ObjectDelta<RoleType> delta1 = descriptionDelta;
 		ExpectedTask expectedTask = new ExpectedTask(null, "Modifying role \"pirate\"");

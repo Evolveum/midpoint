@@ -20,14 +20,10 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
+import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.resolution.DataSearchResult;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.jetbrains.annotations.NotNull;
@@ -146,14 +142,14 @@ public class JpaEntityDefinition extends JpaDataNodeDefinition implements DebugD
     @Override
     public DataSearchResult<?> nextLinkDefinition(ItemPath path, ItemDefinition<?> itemDefinition, PrismContext prismContext) throws QueryException {
 
-        if (ItemPath.isNullOrEmpty(path)) {     // doesn't fulfill precondition
+        if (ItemPath.isEmpty(path)) {     // doesn't fulfill precondition
             return null;
         }
 
-        ItemPathSegment first = path.first();
-        if (first instanceof IdItemPathSegment) {
+        Object first = path.first();
+        if (ItemPath.isId(first)) {
             throw new QueryException("ID item path segments are not allowed in query: " + path);
-        } else if (first instanceof ObjectReferencePathSegment) {
+        } else if (ItemPath.isObjectReference(first)) {
             throw new QueryException("'@' path segment cannot be used in the context of an entity " + this);
         }
 
@@ -162,7 +158,7 @@ public class JpaEntityDefinition extends JpaDataNodeDefinition implements DebugD
             return null;
         } else {
             link.resolveEntityPointer();
-            return new DataSearchResult<>(link, path.tail(link.getItemPath().size()));
+            return new DataSearchResult<>(link, path.rest(link.getItemPath().size()));
         }
     }
 

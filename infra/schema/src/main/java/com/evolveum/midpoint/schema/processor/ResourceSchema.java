@@ -58,4 +58,6 @@ public interface ResourceSchema extends PrismSchema {
 		}
 		return rv;
 	}
+
+	MutableResourceSchema toMutable();
 }

@@ -20,7 +20,6 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -31,9 +30,9 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.opends.server.types.Entry;
-import org.opends.server.util.LDIFException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -50,7 +49,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -212,8 +210,9 @@ public class TestLdap extends AbstractLongTest {
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_JPEG_PHOTO, task, result,
         		photoIn);
 
-        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
-        		UserType.F_JPEG_PHOTO, GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
+        Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
+		       .item(UserType.F_JPEG_PHOTO).retrieve()
+		       .build();
 		PrismObject<UserType> userBefore = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, options, task, result);
         display("User before", userBefore);
         byte[] userJpegPhotoBefore = userBefore.asObjectable().getJpegPhoto();
@@ -240,7 +239,7 @@ public class TestLdap extends AbstractLongTest {
 		PrismObject<ShadowType> shadow = getShadowModel(accountOid);
 
 		PrismContainer<?> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
-		QName jpegPhotoQName = new QName(RESOURCE_OPENDJ_NAMESPACE, "jpegPhoto");
+		ItemName jpegPhotoQName = new ItemName(RESOURCE_OPENDJ_NAMESPACE, "jpegPhoto");
 		PrismProperty<byte[]> jpegPhotoAttr = attributesContainer.findProperty(jpegPhotoQName);
 		byte[] photoBytesOut = jpegPhotoAttr.getValues().get(0).getValue();
 

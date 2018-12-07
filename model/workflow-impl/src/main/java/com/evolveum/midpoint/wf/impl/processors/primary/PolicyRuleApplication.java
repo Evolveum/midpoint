@@ -18,6 +18,7 @@ package com.evolveum.midpoint.wf.impl.processors.primary;
 
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 import org.jetbrains.annotations.NotNull;

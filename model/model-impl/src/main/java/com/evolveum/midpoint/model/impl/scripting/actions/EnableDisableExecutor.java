@@ -26,12 +26,11 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -41,6 +40,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS;
 
 /**
  * @author mederly
@@ -105,14 +106,14 @@ public class EnableDisableExecutor extends BaseActionExecutor {
     }
 
     private ObjectDelta<? extends ObjectType> createEnableDisableDelta(FocusType focus, boolean isEnable) {
-        return ObjectDelta.createModificationReplaceProperty(focus.getClass(),
-                focus.getOid(), new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), prismContext,
+        return ObjectDeltaCreationUtil.createModificationReplaceProperty(focus.getClass(),
+                focus.getOid(), PATH_ACTIVATION_ADMINISTRATIVE_STATUS, prismContext,
                 isEnable ? ActivationStatusType.ENABLED : ActivationStatusType.DISABLED);
     }
 
     private ObjectDelta<? extends ObjectType> createEnableDisableDelta(ShadowType shadow, boolean isEnable) {
-        return ObjectDelta.createModificationReplaceProperty(shadow.getClass(),
-                shadow.getOid(), new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), prismContext,
+        return ObjectDeltaCreationUtil.createModificationReplaceProperty(shadow.getClass(),
+                shadow.getOid(), PATH_ACTIVATION_ADMINISTRATIVE_STATUS, prismContext,
                 isEnable ? ActivationStatusType.ENABLED : ActivationStatusType.DISABLED);
     }
 

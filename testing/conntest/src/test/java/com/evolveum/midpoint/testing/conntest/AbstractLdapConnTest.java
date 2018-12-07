@@ -16,6 +16,7 @@ package com.evolveum.midpoint.testing.conntest;
  */
 
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_CREDENTIALS_PASSWORD_VALUE;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
@@ -26,20 +27,19 @@ import static org.testng.AssertJUnit.assertEquals;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.apache.commons.lang.mutable.MutableInt;
@@ -49,7 +49,6 @@ import org.apache.directory.api.ldap.model.exception.LdapException;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
@@ -79,11 +78,8 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -313,7 +309,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
 
-        ObjectPaging paging = ObjectPaging.createEmptyPaging();
+        ObjectPaging paging = prismContext.queryFactory().createPaging();
         paging.setMaxSize(50);
 		query.setPaging(paging);
 
@@ -347,7 +343,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
 
-        ObjectPaging paging = ObjectPaging.createEmptyPaging();
+        ObjectPaging paging = prismContext.queryFactory().createPaging();
         paging.setMaxSize(222);
 		query.setPaging(paging);
 
@@ -381,7 +377,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
 
-        ObjectPaging paging = ObjectPaging.createEmptyPaging();
+        ObjectPaging paging = prismContext.queryFactory().createPaging();
         paging.setOffset(getNumberOfAllAccounts() - 150);
         paging.setMaxSize(333);
 		query.setPaging(paging);
@@ -413,7 +409,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
 
-        ObjectPaging paging = ObjectPaging.createEmptyPaging();
+        ObjectPaging paging = prismContext.queryFactory().createPaging();
         paging.setOffset(getNumberOfAllAccounts() + 50);
         paging.setMaxSize(123);
 		query.setPaging(paging);
@@ -448,7 +444,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
 
-        ObjectPaging paging = ObjectPaging.createEmptyPaging();
+        ObjectPaging paging = prismContext.queryFactory().createPaging();
         paging.setOffset(0);
         paging.setMaxSize(50);
 		query.setPaging(paging);
@@ -485,7 +481,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
 
-        ObjectPaging paging = ObjectPaging.createPaging(20, 50);
+        ObjectPaging paging = prismContext.queryFactory().createPaging(20, 50);
 		query.setPaging(paging);
 
 		SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 50, task, result);
@@ -517,7 +513,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
 
-        ObjectPaging paging = ObjectPaging.createPaging(20, 222);
+        ObjectPaging paging = prismContext.queryFactory().createPaging(20, 222);
 		query.setPaging(paging);
 
 		SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 222, task, result);
@@ -549,7 +545,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
 
-        ObjectPaging paging = ObjectPaging.createPaging(20, 50);
+        ObjectPaging paging = prismContext.queryFactory().createPaging(20, 50);
         paging.setOrdering(getAttributePath(resource, "uid"), OrderDirection.ASCENDING);
 		query.setPaging(paging);
 
@@ -585,7 +581,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
 
-        ObjectPaging paging = ObjectPaging.createPaging(20, 222);
+        ObjectPaging paging = prismContext.queryFactory().createPaging(20, 222);
         paging.setOrdering(getAttributePath(resource, "uid"), OrderDirection.ASCENDING);
 		query.setPaging(paging);
 
@@ -664,7 +660,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
     }
 
 	private void singleInfernoSearch(ObjectQuery query, int expectedNumberOfResults, Integer offset, Integer maxSize, String sortAttrName, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		ObjectPaging paging = ObjectPaging.createPaging(offset, maxSize);
+		ObjectPaging paging = prismContext.queryFactory().createPaging(offset, maxSize);
         paging.setOrdering(getAttributePath(resource, sortAttrName), OrderDirection.ASCENDING);
 		query.setPaging(paging);
 
@@ -744,11 +740,12 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-        ObjectDelta<ShadowType> delta = ObjectDelta.createEmptyModifyDelta(ShadowType.class, accountBarbossaOid, prismContext);
+        ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil
+		        .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid, prismContext);
         QName attrQName = new QName(MidPointConstants.NS_RI, "title");
         ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
-        PropertyDelta<String> attrDelta = PropertyDelta.createModificationReplaceProperty(
-        		new ItemPath(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "Captain");
+        PropertyDelta<String> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
+		        ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "Captain");
         delta.addModification(attrDelta);
 
         // WHEN
@@ -783,11 +780,12 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-        ObjectDelta<ShadowType> delta = ObjectDelta.createEmptyModifyDelta(ShadowType.class, accountBarbossaOid, prismContext);
+        ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil
+		        .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid, prismContext);
         QName attrQName = new QName(MidPointConstants.NS_RI, "title");
         ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
-        PropertyDelta<String> attrDelta = PropertyDelta.createModificationAddProperty(
-        		new ItemPath(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "Captain");
+        PropertyDelta<String> attrDelta = prismContext.deltaFactory().property().createModificationAddProperty(
+		        ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "Captain");
         delta.addModification(attrDelta);
 
         // WHEN
@@ -822,11 +820,12 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-        ObjectDelta<ShadowType> delta = ObjectDelta.createEmptyModifyDelta(ShadowType.class, accountBarbossaOid, prismContext);
+        ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil
+		        .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid, prismContext);
         QName attrQName = new QName(MidPointConstants.NS_RI, "title");
         ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
-        PropertyDelta<String> attrDelta = PropertyDelta.createModificationAddProperty(
-        		new ItemPath(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "CAPTAIN");
+        PropertyDelta<String> attrDelta = prismContext.deltaFactory().property().createModificationAddProperty(
+		        ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "CAPTAIN");
         delta.addModification(attrDelta);
 
         // WHEN
@@ -862,9 +861,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
 
         // WHEN
         displayWhen(TEST_NAME);
-        modifyUserReplace(USER_BARBOSSA_OID,
-        		new ItemPath(UserType.F_CREDENTIALS,  CredentialsType.F_PASSWORD, PasswordType.F_VALUE),
-        		task, result, userPasswordPs);
+        modifyUserReplace(USER_BARBOSSA_OID, PATH_CREDENTIALS_PASSWORD_VALUE, task, result, userPasswordPs);
 
         // THEN
         displayThen(TEST_NAME);
@@ -1250,7 +1247,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 		ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getGroupObjectClass(), prismContext);
-		ObjectQueryUtil.filterAnd(query.getFilter(), createAttributeFilter("cn", GROUP_EVIL_CN));
+		ObjectQueryUtil.filterAnd(query.getFilter(), createAttributeFilter("cn", GROUP_EVIL_CN), prismContext);
 
 		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
 		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);

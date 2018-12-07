@@ -26,12 +26,8 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.ObjectPolicyConfigurationTabPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -155,7 +151,7 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
 			return false;
 		}
 		if (AbstractRoleType.class.isAssignableFrom(getModelObject().getClass())) {
-			return getModelObject().asPrismContainerValue().findProperty(new ItemPath(AbstractRoleType.F_IDENTIFIER)) != null;
+			return getModelObject().asPrismContainerValue().findProperty(AbstractRoleType.F_IDENTIFIER) != null;
 		}
 		return false;
 	}

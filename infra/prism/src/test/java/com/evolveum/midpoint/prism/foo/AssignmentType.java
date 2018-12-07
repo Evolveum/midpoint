@@ -29,11 +29,10 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlType;
-import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-
+import com.evolveum.midpoint.prism.path.ItemName;
 
 /**
  * <p>Java class for AssignmentType complex type.
@@ -67,10 +66,10 @@ public class AssignmentType
 {
 
 	// This is NOT GENERATED. It is supplied here manually for the testing.
-	public final static QName F_DESCRIPTION = new QName(ObjectType.NS_FOO, "description");
-    public final static QName F_NOTE = new QName(ObjectType.NS_FOO, "note");
-	public final static QName F_ACCOUNT_CONSTRUCTION = new QName(ObjectType.NS_FOO, "accountConstruction");
-	public final static QName F_ACTIVATION = new QName(ObjectType.NS_FOO, "activation");
+	public final static ItemName F_DESCRIPTION = new ItemName(ObjectType.NS_FOO, "description");
+    public final static ItemName F_NOTE = new ItemName(ObjectType.NS_FOO, "note");
+	public final static ItemName F_ACCOUNT_CONSTRUCTION = new ItemName(ObjectType.NS_FOO, "accountConstruction");
+	public final static ItemName F_ACTIVATION = new ItemName(ObjectType.NS_FOO, "activation");
 
 	private final static long serialVersionUID = 201202081233L;
     protected String description;

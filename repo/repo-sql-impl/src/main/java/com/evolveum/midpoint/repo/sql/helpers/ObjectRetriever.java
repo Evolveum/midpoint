@@ -18,12 +18,12 @@ package com.evolveum.midpoint.repo.sql.helpers;
 
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.MutablePrismReferenceDefinition;
 import com.evolveum.midpoint.repo.api.RepositoryObjectDiagnosticData;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.sql.ObjectPagingAfterOid;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
@@ -78,6 +78,8 @@ public class ObjectRetriever {
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectRetriever.class);
     private static final Trace LOGGER_PERFORMANCE = TraceManager.getTrace(SqlRepositoryServiceImpl.PERFORMANCE_LOG_NAME);
+
+    public static final String NULL_OID_MARKER = "###null-oid###";     // brutal hack (TODO)
 
     @Autowired private LookupTableHelper lookupTableHelper;
 	@Autowired private CertificationCaseHelper caseHelper;
@@ -510,7 +512,7 @@ public class ObjectRetriever {
         PrismObject<T> prismObject;
         try {
             // "Postel mode": be tolerant what you read. We need this to tolerate (custom) schema changes
-			ParsingContext parsingContext = ParsingContext.forMode(XNodeProcessorEvaluationMode.COMPAT);
+			ParsingContext parsingContext = prismContext.createParsingContextForCompatibilityMode();
             prismObject = prismContext.parserFor(xml).context(parsingContext).parse();
 			if (parsingContext.hasWarnings()) {
 				LOGGER.warn("Object {} parsed with {} warnings", ObjectTypeUtil.toShortString(prismObject), parsingContext.getWarnings().size());
@@ -625,7 +627,7 @@ public class ObjectRetriever {
 	        if (extItem == null) {
 	        	continue;
 	        }
-	        QName name = RUtil.stringToQName(extItem.getName());
+	        ItemName name = RUtil.stringToQName(extItem.getName());
             QName type = RUtil.stringToQName(extItem.getType());
             Item item = attributes.findItem(name);
 
@@ -638,13 +640,13 @@ public class ObjectRetriever {
             if (item.getDefinition() == null) {
                 RItemKind rValType = extItem.getKind();
                 if (rValType == RItemKind.PROPERTY) {
-                    PrismPropertyDefinitionImpl<Object> def = new PrismPropertyDefinitionImpl<>(name, type, object.getPrismContext());
+                    MutablePrismPropertyDefinition<Object> def = object.getPrismContext().definitionFactory().createPropertyDefinition(name, type);
                     def.setMinOccurs(0);
                     def.setMaxOccurs(-1);
                     def.setRuntimeSchema(true);
                     item.applyDefinition(def, true);
                 } else if (rValType == RItemKind.REFERENCE) {
-                    PrismReferenceDefinitionImpl def = new PrismReferenceDefinitionImpl(name, type, object.getPrismContext());
+                    MutablePrismReferenceDefinition def = object.getPrismContext().definitionFactory().createReferenceDefinition(name, type);
 	                def.setMinOccurs(0);
 	                def.setMaxOccurs(-1);
 	                def.setRuntimeSchema(true);
@@ -791,7 +793,7 @@ public class ObjectRetriever {
             throws SchemaException {
 
         try {
-            ObjectQuery pagedQuery = query != null ? query.clone() : new ObjectQuery();
+            ObjectQuery pagedQuery = query != null ? query.clone() : prismContext.queryFactory().createObjectQuery();
 
             int offset;
             int remaining;
@@ -800,7 +802,7 @@ public class ObjectRetriever {
             ObjectPaging paging = pagedQuery.getPaging();
 
             if (paging == null) {
-                paging = ObjectPaging.createPaging(0, 0);        // counts will be filled-in later
+                paging = prismContext.queryFactory().createPaging(0, 0);        // counts will be filled-in later
                 pagedQuery.setPaging(paging);
                 offset = 0;
                 remaining = repositoryService.countObjects(type, query, options, result);
@@ -873,16 +875,16 @@ main:       while (remaining > 0) {
 		        pagedQuery = query.clone();
 	        } else {
 		        maxSize = null;
-	        	pagedQuery = new ObjectQuery();
+	        	pagedQuery = prismContext.queryFactory().createObjectQuery();
 	        }
 
             String lastOid = null;
             final int batchSize = getConfiguration().getIterativeSearchByPagingBatchSize();
 
-            ObjectPagingAfterOid paging = new ObjectPagingAfterOid();
+            ObjectPaging paging = prismContext.queryFactory().createPaging();
             pagedQuery.setPaging(paging);
 main:       for (;;) {
-                paging.setOidGreaterThan(lastOid);
+                paging.setCookie(lastOid != null ? lastOid : NULL_OID_MARKER);
                 paging.setMaxSize(Math.min(batchSize, defaultIfNull(maxSize, Integer.MAX_VALUE)));
 
                 List<PrismObject<T>> objects = repositoryService.searchObjects(type, pagedQuery, options, result);

@@ -122,11 +122,11 @@ public class PageCertDecisions extends PageAdminCertification {
     }
 
     private ObjectQuery createCaseQuery() {
-		return new ObjectQuery();
+		return getPrismContext().queryFactory().createObjectQuery();
     }
 
     private ObjectQuery createCampaignQuery() {
-		return new ObjectQuery();
+		return getPrismContext().queryFactory().createObjectQuery();
     }
 
     private String getCurrentUserOid() {

@@ -20,7 +20,6 @@
 package com.evolveum.midpoint.schema.util;
 
 import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
@@ -32,12 +31,12 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 
+import com.evolveum.midpoint.prism.xml.XmlTypeConverterInternal;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -58,23 +57,23 @@ public class XsdTypeConverterTest {
 	private static final QName BAR_QNAME = new QName(FOO_NAMESPACE,"bar");
 
 
-	@Test(enabled=false)
-	public void testConvertFromProtectedString() throws SchemaException {
-		Document document = DOMUtil.parseDocument(
-				"<password xmlns=\""+FOO_NAMESPACE+"\" "+
-				"xmlns:c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-3\" "+
-				"xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "+
-				"xsi:type=\"c:ProtectedStringType\">"+
-				"<c:clearValue>3lizab3th</c:clearValue></password>");
-		Element element = DOMUtil.getFirstChildElement(document);
-
-		Object value = XmlTypeConverter.toJavaValue(element);
-
-		System.out.println("XML -> ProtectedStringType: "+value);
-		assertNotNull(value);
-		assertTrue(value instanceof ProtectedStringType);
-		assertEquals("3lizab3th",((ProtectedStringType)value).getClearValue());
-	}
+//	@Test(enabled=false)
+//	public void testConvertFromProtectedString() throws SchemaException {
+//		Document document = DOMUtil.parseDocument(
+//				"<password xmlns=\""+FOO_NAMESPACE+"\" "+
+//				"xmlns:c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-3\" "+
+//				"xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "+
+//				"xsi:type=\"c:ProtectedStringType\">"+
+//				"<c:clearValue>3lizab3th</c:clearValue></password>");
+//		Element element = DOMUtil.getFirstChildElement(document);
+//
+//		Object value = XmlTypeConverter.toJavaValue(element);
+//
+//		System.out.println("XML -> ProtectedStringType: "+value);
+//		assertNotNull(value);
+//		assertTrue(value instanceof ProtectedStringType);
+//		assertEquals("3lizab3th",((ProtectedStringType)value).getClearValue());
+//	}
 
 	@Test(enabled=false)
 	public void testConvertToProtectedString() throws JAXBException, SchemaException {
@@ -82,7 +81,7 @@ public class XsdTypeConverterTest {
 		ps.setClearValue("abra kadabra");
 		Document doc = DOMUtil.getDocument();
 
-		Object xsdElement = XmlTypeConverter.toXsdElement(ps, FOO_QNAME, doc, true);
+		Object xsdElement = XmlTypeConverterInternal.toXsdElement(ps, FOO_QNAME, doc, true);
 
 		System.out.println("ProtectedStringType -> XML");
 		System.out.println(xsdElement);
@@ -108,7 +107,7 @@ public class XsdTypeConverterTest {
 		JAXBElement<ProtectedStringType> pse = new JAXBElement<>(FOO_QNAME, ProtectedStringType.class, ps);
 		shadow.getAttributes().getAny().add(pse);
 
-		shadow.getAttributes().getAny().add(XmlTypeConverter.toXsdElement(42, BAR_QNAME, null, true));
+		shadow.getAttributes().getAny().add(XmlTypeConverterInternal.toXsdElement(42, BAR_QNAME, null, true));
 
 		Document doc = DOMUtil.getDocument();
 		JAXBElement<ShadowType> accountElement =

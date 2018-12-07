@@ -208,7 +208,7 @@ public class UserViewTabPanel extends AbstractShoppingCartTabPanel<AbstractRoleT
         if (getRoleCatalogStorage().getAssignmentsUserOwner() != null) {
             UserType assignmentsOwner =  getRoleCatalogStorage().getAssignmentsUserOwner();
             List<String> assignmentTargetObjectOidsList = collectTargetObjectOids(assignmentsOwner.getAssignment());
-            ObjectFilter oidsFilter = InOidFilter.createInOid(assignmentTargetObjectOidsList);
+            ObjectFilter oidsFilter = getPrismContext().queryFactory().createInOid(assignmentTargetObjectOidsList);
             query.addFilter(oidsFilter);
         }
         return query;

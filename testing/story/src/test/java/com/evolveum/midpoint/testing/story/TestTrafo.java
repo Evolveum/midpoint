@@ -25,6 +25,8 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -35,11 +37,7 @@ import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -67,7 +65,7 @@ public class TestTrafo extends AbstractStoryTest {
 	public static final String NS_TRAFO_EXT = "http://midpoint.evolveum.com/xml/ns/story/trafo/ext";
 	private static final QName TRAFO_EXTENSION_HOMEDIR_QNAME = new QName(NS_TRAFO_EXT, "homedir");
 	private static final QName TRAFO_EXTENSION_UID_QNAME = new QName(NS_TRAFO_EXT, "uid");
-	private static final ItemPath TRAFO_EXTENSION_HOMEDIR_PATH = new ItemPath(UserType.F_EXTENSION, TRAFO_EXTENSION_HOMEDIR_QNAME);
+	private static final ItemPath TRAFO_EXTENSION_HOMEDIR_PATH = ItemPath.create(UserType.F_EXTENSION, TRAFO_EXTENSION_HOMEDIR_QNAME);
 
 	private static final String TRAFO_MAIL_DOMAIN = "trafo.xx";
 
@@ -440,7 +438,7 @@ public class TestTrafo extends AbstractStoryTest {
  		// Set by inbound mappings
  		PrismAsserts.assertPropertyValue(userJack, UserType.F_EMAIL_ADDRESS, "Jack.Sparrow@" + TRAFO_MAIL_DOMAIN);
  		PrismAsserts.assertPropertyValue(userJack,
- 				new ItemPath(UserType.F_EXTENSION, TRAFO_EXTENSION_HOMEDIR_QNAME), "c:\\install\\test-id-folder");
+			    ItemPath.create(UserType.F_EXTENSION, TRAFO_EXTENSION_HOMEDIR_QNAME), "c:\\install\\test-id-folder");
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -515,7 +513,7 @@ public class TestTrafo extends AbstractStoryTest {
  		// Set by inbound mappings
  		PrismAsserts.assertPropertyValue(userJack, UserType.F_EMAIL_ADDRESS, "Jack.Sparrow@" + TRAFO_MAIL_DOMAIN);
  		PrismAsserts.assertPropertyValue(userJack,
- 				new ItemPath(UserType.F_EXTENSION, TRAFO_EXTENSION_HOMEDIR_QNAME), "c:\\install\\test-id-folder");
+			    ItemPath.create(UserType.F_EXTENSION, TRAFO_EXTENSION_HOMEDIR_QNAME), "c:\\install\\test-id-folder");
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -675,7 +673,7 @@ public class TestTrafo extends AbstractStoryTest {
  		// Set by inbound mappings
  		PrismAsserts.assertPropertyValue(userJack, UserType.F_EMAIL_ADDRESS, "Jack.Sparrow@" + TRAFO_MAIL_DOMAIN);
  		PrismAsserts.assertPropertyValue(userJack,
- 				new ItemPath(UserType.F_EXTENSION, TRAFO_EXTENSION_HOMEDIR_QNAME), "c:\\install\\test-id-folder");
+			    ItemPath.create(UserType.F_EXTENSION, TRAFO_EXTENSION_HOMEDIR_QNAME), "c:\\install\\test-id-folder");
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -791,7 +789,7 @@ public class TestTrafo extends AbstractStoryTest {
  		// Set by inbound mappings
  		PrismAsserts.assertPropertyValue(userAngelica, UserType.F_EMAIL_ADDRESS, "Jack.Sparrow2@" + TRAFO_MAIL_DOMAIN);
  		PrismAsserts.assertPropertyValue(userAngelica,
- 				new ItemPath(UserType.F_EXTENSION, TRAFO_EXTENSION_HOMEDIR_QNAME), "c:\\install\\test-id-folder");
+			    ItemPath.create(UserType.F_EXTENSION, TRAFO_EXTENSION_HOMEDIR_QNAME), "c:\\install\\test-id-folder");
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -910,7 +908,7 @@ public class TestTrafo extends AbstractStoryTest {
  		// Set by inbound mappings
  		PrismAsserts.assertPropertyValue(userSmith, UserType.F_EMAIL_ADDRESS, "John.Smith@" + TRAFO_MAIL_DOMAIN);
  		PrismAsserts.assertPropertyValue(userSmith,
- 				new ItemPath(UserType.F_EXTENSION, TRAFO_EXTENSION_HOMEDIR_QNAME), "\\\\medusa\\User\\Smith_smith111");
+			    ItemPath.create(UserType.F_EXTENSION, TRAFO_EXTENSION_HOMEDIR_QNAME), "\\\\medusa\\User\\Smith_smith111");
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -1031,7 +1029,7 @@ public class TestTrafo extends AbstractStoryTest {
  		// Set by inbound mappings
  		PrismAsserts.assertPropertyValue(userSmith, UserType.F_EMAIL_ADDRESS, "John.Smith2@" + TRAFO_MAIL_DOMAIN);
  		PrismAsserts.assertPropertyValue(userSmith,
- 				new ItemPath(UserType.F_EXTENSION, TRAFO_EXTENSION_HOMEDIR_QNAME), "\\\\medusa\\User\\Smith_smith222");
+			    ItemPath.create(UserType.F_EXTENSION, TRAFO_EXTENSION_HOMEDIR_QNAME), "\\\\medusa\\User\\Smith_smith222");
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -1088,8 +1086,9 @@ public class TestTrafo extends AbstractStoryTest {
 		result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        Collection<? extends ItemDelta> fullNameModification = PropertyDelta.createModificationReplacePropertyCollection(UserType.F_FAMILY_NAME, userSmith.getDefinition(), new PolyString("Smither", "smither"));
-        ObjectDelta.createModifyDelta(userSmith.getOid(), fullNameModification, UserType.class, prismContext);
+        Collection<? extends ItemDelta> fullNameModification = prismContext.deltaFactory().property()
+		        .createModificationReplacePropertyCollection(UserType.F_FAMILY_NAME, userSmith.getDefinition(), new PolyString("Smither", "smither"));
+        ObjectDeltaCreationUtil.createModifyDelta(userSmith.getOid(), fullNameModification, UserType.class, prismContext);
 
 
 
@@ -1170,7 +1169,7 @@ public class TestTrafo extends AbstractStoryTest {
 		// [pmed] This is nondeterministic: extension/homedir is filled-in from both AD and Mail resources. (With different values.)
 		// So it's hard to say which value will be there in the end.
  		// PrismAsserts.assertPropertyValue(userSmithAfter,
- 		//		new ItemPath(UserType.F_EXTENSION, TRAFO_EXTENSION_HOMEDIR_QNAME), "\\\\medusa\\User\\Smither_smith111");
+ 		//		prismContext.path(UserType.F_EXTENSION, TRAFO_EXTENSION_HOMEDIR_QNAME), "\\\\medusa\\User\\Smither_smith111");
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -1295,7 +1294,7 @@ public class TestTrafo extends AbstractStoryTest {
 		// [pmed] This is nondeterministic: extension/homedir is filled-in from both AD and Mail resources. (With different values.)
 		// So it's hard to say which value will be there in the end.
  		// PrismAsserts.assertPropertyValue(userSmithAfter,
- 		//		new ItemPath(UserType.F_EXTENSION, TRAFO_EXTENSION_HOMEDIR_QNAME), "\\\\medusa\\User\\Smither_smith222");
+ 		//		prismContext.path(UserType.F_EXTENSION, TRAFO_EXTENSION_HOMEDIR_QNAME), "\\\\medusa\\User\\Smither_smith222");
 
         // Check audit
         display("Audit", dummyAuditService);

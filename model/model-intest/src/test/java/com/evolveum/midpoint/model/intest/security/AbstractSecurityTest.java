@@ -26,18 +26,19 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
@@ -48,23 +49,13 @@ import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.NoneFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
@@ -78,7 +69,6 @@ import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.Holder;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -375,7 +365,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 
     protected static final File CAMPAIGNS_FILE = new File(TEST_DIR, "campaigns.xml");
 
-    protected static final ItemPath PASSWORD_PATH = new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
+    protected static final ItemPath PASSWORD_PATH = ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
 
 	protected static final XMLGregorianCalendar JACK_VALID_FROM_LONG_AGO = XmlTypeConverter.createXMLGregorianCalendar(10000L);
 	protected static final XMLGregorianCalendar JACK_VALID_TO_LONG_AGEAD = XmlTypeConverter.createXMLGregorianCalendar(10000000000000L);
@@ -571,10 +561,6 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         assertFilter(roleSpec.getFilter(), NoneFilter.class);
 
         assertAuditReadDeny();
-	}
-
-	protected <O extends ObjectType> void assertItemFlags(PrismObjectDefinition<O> editSchema, QName itemName, boolean expectedRead, boolean expectedAdd, boolean expectedModify) {
-		assertItemFlags(editSchema, new ItemPath(itemName), expectedRead, expectedAdd, expectedModify);
 	}
 
 	protected <O extends ObjectType> void assertItemFlags(PrismObjectDefinition<O> editSchema, ItemPath itemPath, boolean expectedRead, boolean expectedAdd, boolean expectedModify) {
@@ -858,15 +844,11 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         assertModifyAllow(type, oid, PASSWORD_PATH, passwordPs);
 	}
 
-	protected <O extends ObjectType> void assertModifyDeny(Class<O> type, String oid, QName propertyName, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-		assertModifyDenyOptions(type, oid, propertyName, null, newRealValue);
-	}
-	
-	protected <O extends ObjectType> void assertModifyDenyRaw(Class<O> type, String oid, QName propertyName, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+	protected <O extends ObjectType> void assertModifyDenyRaw(Class<O> type, String oid, ItemName propertyName, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		assertModifyDenyOptions(type, oid, propertyName, ModelExecuteOptions.createRaw(), newRealValue);
 	}
 	
-	protected <O extends ObjectType> void assertModifyDenyPartial(Class<O> type, String oid, QName propertyName, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+	protected <O extends ObjectType> void assertModifyDenyPartial(Class<O> type, String oid, ItemName propertyName, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		PartialProcessingOptionsType partialProcessing = new PartialProcessingOptionsType();
 		partialProcessing.setApprovals(PartialProcessingTypeType.SKIP);
 		assertModifyDenyOptions(type, oid, propertyName, ModelExecuteOptions.createPartialProcessing(partialProcessing), newRealValue);
@@ -876,14 +858,11 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		assertModifyDenyOptions(type, oid, itemPath, null, newRealValue);
 	}
 
-	protected <O extends ObjectType> void assertModifyDenyOptions(Class<O> type, String oid, QName propertyName, ModelExecuteOptions options, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-		assertModifyDenyOptions(type, oid, new ItemPath(propertyName), options, newRealValue);
-	}
-
 	protected <O extends ObjectType> void assertModifyDenyOptions(Class<O> type, String oid, ItemPath itemPath, ModelExecuteOptions options, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".assertModifyDeny");
         OperationResult result = task.getResult();
-        ObjectDelta<O> objectDelta = ObjectDelta.createModificationReplaceProperty(type, oid, itemPath, prismContext, newRealValue);
+        ObjectDelta<O> objectDelta = ObjectDeltaCreationUtil
+		        .createModificationReplaceProperty(type, oid, itemPath, prismContext, newRealValue);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
         try {
         	logAttempt("modify", type, oid, itemPath);
@@ -901,24 +880,17 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		assertModifyAllowOptions(type, oid, itemPath, null, newRealValue);
 	}
 
-	protected <O extends ObjectType> void assertModifyAllow(Class<O> type, String oid, QName propertyName, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-		assertModifyAllowOptions(type, oid, propertyName, null, newRealValue);
-	}
-	
-	protected <O extends ObjectType> void assertModifyAllowPartial(Class<O> type, String oid, QName propertyName, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+	protected <O extends ObjectType> void assertModifyAllowPartial(Class<O> type, String oid, ItemName propertyName, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		PartialProcessingOptionsType partialProcessing = new PartialProcessingOptionsType();
 		partialProcessing.setApprovals(PartialProcessingTypeType.SKIP);
 		assertModifyAllowOptions(type, oid, propertyName, ModelExecuteOptions.createPartialProcessing(partialProcessing), newRealValue);
 	}
 
-	protected <O extends ObjectType> void assertModifyAllowOptions(Class<O> type, String oid, QName propertyName, ModelExecuteOptions options, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-		assertModifyAllowOptions(type, oid, new ItemPath(propertyName), options, newRealValue);
-	}
-
 	protected <O extends ObjectType> void assertModifyAllowOptions(Class<O> type, String oid, ItemPath itemPath, ModelExecuteOptions options, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".assertModifyAllow");
         OperationResult result = task.getResult();
-        ObjectDelta<O> objectDelta = ObjectDelta.createModificationReplaceProperty(type, oid, itemPath, prismContext, newRealValue);
+        ObjectDelta<O> objectDelta = ObjectDeltaCreationUtil
+		        .createModificationReplaceProperty(type, oid, itemPath, prismContext, newRealValue);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 		try {
 			logAttempt("modify", type, oid, itemPath);
@@ -1070,7 +1042,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 
 
 	protected <O extends ObjectType> ObjectQuery createMembersQuery(Class<O> resultType, String roleOid) {
-		return QueryBuilder.queryFor(resultType, prismContext).item(UserType.F_ROLE_MEMBERSHIP_REF).ref(roleOid).build();
+		return prismContext.queryFor(resultType).item(UserType.F_ROLE_MEMBERSHIP_REF).ref(roleOid).build();
 	}
 	
 	protected MidPointPrincipal assumePowerOfAttorneyAllow(String donorOid) throws Exception {
@@ -1119,13 +1091,13 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         display("Guybrush", userGuybrush);
         PrismAsserts.assertPropertyValue(userGuybrush, UserType.F_NAME, PrismTestUtil.createPolyString(USER_GUYBRUSH_USERNAME));
         PrismAsserts.assertPropertyValue(userGuybrush, UserType.F_FULL_NAME, PrismTestUtil.createPolyString(USER_GUYBRUSH_FULL_NAME));
-        PrismAsserts.assertPropertyValue(userGuybrush, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
+        PrismAsserts.assertPropertyValue(userGuybrush, ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
             	ActivationStatusType.ENABLED);
         PrismAsserts.assertNoItem(userGuybrush, UserType.F_GIVEN_NAME);
         PrismAsserts.assertNoItem(userGuybrush, UserType.F_FAMILY_NAME);
         PrismAsserts.assertNoItem(userGuybrush, UserType.F_ADDITIONAL_NAME);
         PrismAsserts.assertNoItem(userGuybrush, UserType.F_DESCRIPTION);
-        PrismAsserts.assertNoItem(userGuybrush, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
+        PrismAsserts.assertNoItem(userGuybrush, ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
         assertAssignmentsWithTargets(userGuybrush, 1);
 
         assertAddDeny();
@@ -1149,13 +1121,13 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 
 		PrismAsserts.assertPropertyValue(userJack, UserType.F_NAME, PrismTestUtil.createPolyString(USER_JACK_USERNAME));
 		PrismAsserts.assertPropertyValue(userJack, UserType.F_FULL_NAME, PrismTestUtil.createPolyString(USER_JACK_FULL_NAME));
-		PrismAsserts.assertPropertyValue(userJack, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
+		PrismAsserts.assertPropertyValue(userJack, ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
 			ActivationStatusType.ENABLED);
 		PrismAsserts.assertNoItem(userJack, UserType.F_GIVEN_NAME);
 		PrismAsserts.assertNoItem(userJack, UserType.F_FAMILY_NAME);
 		PrismAsserts.assertNoItem(userJack, UserType.F_ADDITIONAL_NAME);
 		PrismAsserts.assertNoItem(userJack, UserType.F_DESCRIPTION);
-		PrismAsserts.assertNoItem(userJack, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
+		PrismAsserts.assertNoItem(userJack, ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
 		assertAssignmentsWithTargets(userJack, exprectedJackAssignments);
     }
 
@@ -1169,13 +1141,13 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		assertItemFlags(userJackEditSchema, UserType.F_FAMILY_NAME, false, false, false);
 		assertItemFlags(userJackEditSchema, UserType.F_ADDITIONAL_NAME, false, false, true);
 		assertItemFlags(userJackEditSchema, UserType.F_METADATA, false, false, false);
-		assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), false, false, false);
+		assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), false, false, false);
 		assertItemFlags(userJackEditSchema, UserType.F_ASSIGNMENT, true, false, false);
-		assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_ASSIGNMENT, UserType.F_METADATA), true, false, false);
-		assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_ASSIGNMENT, UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), true, false, false);
+		assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_ASSIGNMENT, UserType.F_METADATA), true, false, false);
+		assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_ASSIGNMENT, UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), true, false, false);
 		assertItemFlags(userJackEditSchema, UserType.F_ACTIVATION, true, false, true);
-		assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), true, false, false);
-		assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS), false, false, false);
+		assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), true, false, false);
+		assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS), false, false, false);
     }
 
 }

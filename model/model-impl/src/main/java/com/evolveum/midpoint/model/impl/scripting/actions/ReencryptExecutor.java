@@ -21,10 +21,7 @@ import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectValue;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -87,7 +84,7 @@ public class ReencryptExecutor extends BaseActionExecutor {
                     Throwable exception = processActionException(ex, NAME, value, context);
                     context.println("Couldn't reencrypt " + prismObject.toString() + drySuffix(dryRun) + exceptionSuffix(exception));
                 }
-                PrismPropertyValue<String> oidVal = new PrismPropertyValue<>(objectBean.getOid());
+                PrismPropertyValue<String> oidVal = prismContext.itemFactory().createPrismPropertyValue(objectBean.getOid());
                 output.add(new PipelineItem(oidVal, item.getResult()));
             } else {
 				//noinspection ThrowableNotThrown

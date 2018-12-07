@@ -16,8 +16,6 @@
 
 package com.evolveum.midpoint.wf.impl.policy.assignments.plain;
 
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.wf.impl.policy.assignments.AbstractTestAssignmentApproval;
@@ -59,7 +57,7 @@ public class TestAssignmentApprovalPlainExplicit extends AbstractTestAssignmentA
 	@Override
 	protected void importLead10(Task task, OperationResult result) throws Exception {
 		super.importLead10(task, result);
-		executeChangesAssertSuccess(DeltaBuilder.deltaFor(RoleType.class, prismContext)
+		executeChangesAssertSuccess(prismContext.deltaFor(RoleType.class)
 				.item(RoleType.F_APPROVER_REF)
 						.add(prv(userLead10Oid))
 				.asObjectDelta(getRoleOid(10)), null, task, result);

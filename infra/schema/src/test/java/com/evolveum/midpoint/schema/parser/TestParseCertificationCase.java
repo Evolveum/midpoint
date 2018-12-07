@@ -29,6 +29,7 @@ import javax.xml.namespace.QName;
 
 import java.io.File;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static com.evolveum.midpoint.schema.TestConstants.CERTIFICATION_CASE_FILE_BASENAME;
 import static org.testng.AssertJUnit.*;
 
@@ -82,10 +83,10 @@ public class TestParseCertificationCase extends AbstractContainerValueParserTest
 
 	private void assertJaxb(AccessCertificationCaseType aCase) throws SchemaException {
 		PrismAsserts.assertRefEquivalent("Wrong objectRef",
-				new PrismReferenceValue("ee53eba7-5c16-4c16-ad15-dd6a2360ab1a", UserType.COMPLEX_TYPE),
+				getPrismContext().itemFactory().createPrismReferenceValue("ee53eba7-5c16-4c16-ad15-dd6a2360ab1a", UserType.COMPLEX_TYPE),
 				aCase.getObjectRef().asReferenceValue());
 		PrismAsserts.assertRefEquivalent("Wrong targetRef",
-				new PrismReferenceValue("ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2", ResourceType.COMPLEX_TYPE),
+				getPrismContext().itemFactory().createPrismReferenceValue("ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2", ResourceType.COMPLEX_TYPE),
 				aCase.getTargetRef().asReferenceValue());
 
 		assertTrue(aCase instanceof AccessCertificationAssignmentCaseType);
@@ -94,7 +95,7 @@ public class TestParseCertificationCase extends AbstractContainerValueParserTest
 		assertNotNull("no assignment", assignmentCase.getAssignment());
 		assertEquals((Long) 1L, assignmentCase.getAssignment().getId());
 		PrismAsserts.assertRefEquivalent("Wrong resourceRef in assignment",
-				new PrismReferenceValue("ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2", ResourceType.COMPLEX_TYPE),
+				getPrismContext().itemFactory().createPrismReferenceValue("ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2", ResourceType.COMPLEX_TYPE),
 				assignmentCase.getAssignment().getConstruction().getResourceRef().asReferenceValue());
 		assertEquals("wrong isInducement", Boolean.FALSE, assignmentCase.isIsInducement());
 	}

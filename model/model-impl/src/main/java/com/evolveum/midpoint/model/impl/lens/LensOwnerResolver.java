@@ -20,7 +20,6 @@ import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.OwnerResolver;
@@ -100,7 +99,7 @@ public class LensOwnerResolver<F extends ObjectType> implements OwnerResolver {
 				return (PrismObject<FO>) context.getCachedOwner();
 			}
 			
-			ObjectQuery query = QueryBuilder.queryFor(UserType.class, context.getPrismContext())
+			ObjectQuery query = context.getPrismContext().queryFor(UserType.class)
 					.item(FocusType.F_PERSONA_REF).ref(object.getOid()).build();
 			List<PrismObject<UserType>> owners = new ArrayList<>();
 			try {

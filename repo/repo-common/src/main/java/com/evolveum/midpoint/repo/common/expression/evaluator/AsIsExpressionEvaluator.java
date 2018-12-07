@@ -19,12 +19,12 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.delta.ItemDeltaUtil;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.Source;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -67,7 +67,8 @@ public class AsIsExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
     	} else {
     		source = (Source<V,D>) context.getSources().iterator().next();
     	}
-        PrismValueDeltaSetTriple<V> sourceTriple = ItemDelta.toDeltaSetTriple(source.getItemOld(), source.getDelta());
+        PrismValueDeltaSetTriple<V> sourceTriple = ItemDeltaUtil.toDeltaSetTriple(source.getItemOld(), source.getDelta(),
+		        prismContext);
 
         if (sourceTriple == null) {
         	return null;

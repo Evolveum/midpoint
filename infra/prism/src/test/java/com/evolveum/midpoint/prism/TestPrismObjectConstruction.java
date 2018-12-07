@@ -17,6 +17,7 @@ package com.evolveum.midpoint.prism;
 
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 import java.io.IOException;
@@ -94,7 +95,7 @@ public class TestPrismObjectConstruction {
 		// No context needed
 
 		// WHEN
-		PrismObject<UserType> user = new PrismObject<>(USER_QNAME, UserType.class);
+		PrismObject<UserType> user = new PrismObjectImpl<>(USER_QNAME, UserType.class);
 		// Fill-in object values, no schema checking
 		fillInUserDrake(user, false);
 
@@ -117,7 +118,7 @@ public class TestPrismObjectConstruction {
 
 		// GIVEN
 		// No context needed (yet)
-		PrismObject<UserType> user = new PrismObject<>(USER_QNAME, UserType.class);
+		PrismObject<UserType> user = new PrismObjectImpl<>(USER_QNAME, UserType.class);
 		// Fill-in object values, no schema checking
 		fillInUserDrake(user, false);
 		// Make sure the object is OK
@@ -189,7 +190,7 @@ public class TestPrismObjectConstruction {
 		assertEquals(USER_FULLNAME_QNAME, fullNameProperty.getElementName());
 		PrismAsserts.assertParentConsistency(user);
 		if (assertDefinitions) PrismAsserts.assertDefinition(fullNameProperty, DOMUtil.XSD_STRING, 1, 1);
-		fullNameProperty.setValue(new PrismPropertyValue<>("Sir Fancis Drake"));
+		fullNameProperty.setRealValue("Sir Fancis Drake");
 		PrismProperty<String> fullNamePropertyAgain = user.findOrCreateProperty(USER_FULLNAME_QNAME);
 		// The "==" is there by purpose. We really want to make sure that is the same *instance*, that is was not created again
 		assertTrue("Property not the same", fullNameProperty == fullNamePropertyAgain);
@@ -208,7 +209,7 @@ public class TestPrismObjectConstruction {
 		assertEquals(USER_ENABLED_QNAME, enabledProperty.getElementName());
 		PrismAsserts.assertParentConsistency(user);
 		if (assertDefinitions) PrismAsserts.assertDefinition(enabledProperty, DOMUtil.XSD_BOOLEAN, 0, 1);
-		enabledProperty.setValue(new PrismPropertyValue<>(true));
+		enabledProperty.setRealValue(true);
 		PrismProperty<Boolean> enabledPropertyAgain = activationContainer.findOrCreateProperty(USER_ENABLED_QNAME);
 		// The "==" is there by purpose. We really want to make sure that is the same *instance*, that is was not created again
 		assertTrue("Property not the same", enabledProperty == enabledPropertyAgain);
@@ -225,18 +226,18 @@ public class TestPrismObjectConstruction {
 		assertEquals("Wrong number of assignment values (empty)", 0, assignmentContainer.getValues().size());
 
 		// assignment values: construct assignment value as a new container "out of the blue" and then add it.
-		PrismContainer<AssignmentType> assBlueContainer = new PrismContainer<>(USER_ASSIGNMENT_QNAME);
+		PrismContainer<AssignmentType> assBlueContainer = new PrismContainerImpl<>(USER_ASSIGNMENT_QNAME);
 		PrismProperty<String> assBlueDescriptionProperty = assBlueContainer.findOrCreateProperty(USER_DESCRIPTION_QNAME);
-		assBlueDescriptionProperty.addValue(new PrismPropertyValue<>("Assignment created out of the blue"));
+		assBlueDescriptionProperty.addRealValue("Assignment created out of the blue");
 		PrismAsserts.assertParentConsistency(user);
 		assignmentContainer.mergeValues(assBlueContainer);
 		assertEquals("Wrong number of assignment values (after blue)", 1, assignmentContainer.getValues().size());
 		PrismAsserts.assertParentConsistency(user);
 
 		// assignment values: construct assignment value as a new container value "out of the blue" and then add it.
-		PrismContainerValue<AssignmentType> assCyanContainerValue = new PrismContainerValue<>();
+		PrismContainerValue<AssignmentType> assCyanContainerValue = getPrismContext().itemFactory().createPrismContainerValue();
 		PrismProperty<String> assCyanDescriptionProperty = assCyanContainerValue.findOrCreateProperty(USER_DESCRIPTION_QNAME);
-		assCyanDescriptionProperty.addValue(new PrismPropertyValue<>("Assignment created out of the cyan"));
+		assCyanDescriptionProperty.addRealValue("Assignment created out of the cyan");
 		assignmentContainer.mergeValue(assCyanContainerValue);
 		assertEquals("Wrong number of assignment values (after cyan)", 2, assignmentContainer.getValues().size());
 		PrismAsserts.assertParentConsistency(user);
@@ -244,7 +245,7 @@ public class TestPrismObjectConstruction {
 		// assignment values: construct assignment value from existing container
 		PrismContainerValue<AssignmentType> assRedContainerValue = assignmentContainer.createNewValue();
 		PrismProperty<String> assRedDescriptionProperty = assRedContainerValue.findOrCreateProperty(USER_DESCRIPTION_QNAME);
-		assRedDescriptionProperty.addValue(new PrismPropertyValue<>("Assignment created out of the red"));
+		assRedDescriptionProperty.addRealValue("Assignment created out of the red");
 		assertEquals("Wrong number of assignment values (after red)", 3, assignmentContainer.getValues().size());
 		PrismAsserts.assertParentConsistency(user);
 
@@ -252,8 +253,8 @@ public class TestPrismObjectConstruction {
 		PrismReference accountRef = user.findOrCreateReference(USER_ACCOUNTREF_QNAME);
 		assertEquals(USER_ACCOUNTREF_QNAME, accountRef.getElementName());
 		if (assertDefinitions) PrismAsserts.assertDefinition(accountRef, OBJECT_REFERENCE_TYPE_QNAME, 0, -1);
-		accountRef.add(new PrismReferenceValue(ACCOUNT1_OID));
-		accountRef.add(new PrismReferenceValue(ACCOUNT2_OID));
+		accountRef.add(new PrismReferenceValueImpl(ACCOUNT1_OID));
+		accountRef.add(new PrismReferenceValueImpl(ACCOUNT2_OID));
 		PrismReference accountRefAgain = user.findOrCreateReference(USER_ACCOUNTREF_QNAME);
 		// The "==" is there by purpose. We really want to make sure that is the same *instance*, that is was not created again
 		assertTrue("Property not the same", accountRef == accountRefAgain);

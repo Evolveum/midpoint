@@ -70,7 +70,6 @@ import org.springframework.web.filter.DelegatingFilterProxy;
 import com.evolveum.midpoint.gui.impl.util.ReportPeerQueryInterceptor;
 import com.evolveum.midpoint.init.StartupConfiguration;
 import com.evolveum.midpoint.model.api.authentication.NodeAuthenticationEvaluator;
-import com.evolveum.midpoint.prism.schema.CatalogImpl;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.util.MidPointProfilingServletFilter;
@@ -134,7 +133,7 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
     @Autowired NodeAuthenticationEvaluator nodeAuthenticator;
     
     public static void main(String[] args) {
-        System.setProperty("xml.catalog.className", CatalogImpl.class.getName());
+        System.setProperty("xml.catalog.className", "com.evolveum.midpoint.prism.schema.CatalogImpl");
         String mode = args != null && args.length > 0 ? args[0] : null;
         
         if(LOGGER.isDebugEnabled()){

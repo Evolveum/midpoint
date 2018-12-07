@@ -18,7 +18,6 @@ package com.evolveum.midpoint.web.component.objectdetails;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.assignment.*;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
@@ -47,7 +46,7 @@ public class FocusApplicablePoliciesTabPanel <F extends FocusType> extends Abstr
         add(applicablePoliciesContainer);
 
         ApplicablePolicyConfigPanel applicablePolicyPanel = new ApplicablePolicyConfigPanel(ID_APPLICABLE_POLICIES_PANEL,
-                new ContainerWrapperFromObjectWrapperModel<>(getObjectWrapperModel(), new ItemPath(FocusType.F_ASSIGNMENT)));
+                new ContainerWrapperFromObjectWrapperModel<>(getObjectWrapperModel(), FocusType.F_ASSIGNMENT));
 
         applicablePoliciesContainer.add(applicablePolicyPanel);
     }

@@ -30,7 +30,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-
+import com.evolveum.midpoint.prism.path.ItemName;
 
 /**
  * @author semancik
@@ -51,7 +51,7 @@ public class PrismContainerValueAsserter<C extends Containerable, RA> extends Pr
 	}
 	
 	public <T> PrismContainerValueAsserter<C,RA> assertPropertyEquals(QName propName, T expected) {
-		PrismProperty<T> prop = getPrismValue().findProperty(propName);
+		PrismProperty<T> prop = getPrismValue().findProperty(ItemName.fromQName(propName));
 		if (prop == null && expected == null) {
 			return this;
 		}

@@ -63,7 +63,7 @@ public class GenericHandlerDto extends HandlerDto {
 		for (Item item : items) {
 			PrismProperty<?> property = taskDto.getExtensionProperty(item.name);
 			if (property != null) {
-				PropertyWrapper propertyWrapper = new PropertyWrapper<>(null, property, true, ValueStatus.NOT_CHANGED);
+				PropertyWrapper propertyWrapper = new PropertyWrapper<>(null, property, true, ValueStatus.NOT_CHANGED, pageBase.getPrismContext());
 				propertyWrappers.add(propertyWrapper);
 			} else {
 				// TODO create empty property?
@@ -72,18 +72,18 @@ public class GenericHandlerDto extends HandlerDto {
 		ContainerWrapperFactory cwf = new ContainerWrapperFactory(pageBase);
 
 		final PrismContext prismContext = pageBase.getPrismContext();
-		PrismContainer container = new PrismContainer(new QName("test"), prismContext);
-		ComplexTypeDefinitionImpl ctd = new ComplexTypeDefinitionImpl(new QName("Test"), prismContext);
+		PrismContainer container = prismContext.itemFactory().createPrismContainer(new QName("test"));
+		ComplexTypeDefinition ctd = prismContext.definitionFactory().createComplexTypeDefinition(new QName("Test"));
 		int displayOrder = 1;
 		for (Item item : items) {
 			PrismProperty<?> property = taskDto.getExtensionProperty(item.name);
-			PrismPropertyDefinitionImpl<?> clonedDefinition = null;
+			MutablePrismPropertyDefinition<?> clonedDefinition = null;
 			if (property != null) {
 				try {
 					PrismProperty<?> clonedProperty = property.clone();
 					container.add(clonedProperty);
 					if (clonedProperty.getDefinition() != null) {
-						clonedDefinition = (PrismPropertyDefinitionImpl) clonedProperty.getDefinition().clone();
+						clonedDefinition = clonedProperty.getDefinition().clone().toMutable();
 						clonedProperty.setDefinition((PrismPropertyDefinition) clonedDefinition);
 					}
 				} catch (SchemaException e) {
@@ -91,7 +91,7 @@ public class GenericHandlerDto extends HandlerDto {
 				}
 			}
 			if (clonedDefinition == null) {
-				clonedDefinition = CloneUtil.clone((PrismPropertyDefinitionImpl) prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(item.name));
+				clonedDefinition = CloneUtil.clone(prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(item.name)).toMutable();
 			}
 			if (clonedDefinition == null) {
 				System.out.println("Definition-less property " + item.name);        // TODO
@@ -99,11 +99,11 @@ public class GenericHandlerDto extends HandlerDto {
 				clonedDefinition.setCanAdd(false);
 				clonedDefinition.setCanModify(false);
 				clonedDefinition.setDisplayOrder(displayOrder);
-				ctd.add(clonedDefinition);
+				prismContext.misc().addToDefinition(ctd, clonedDefinition);
 			}
 			displayOrder++;
 		}
-		PrismContainerDefinition<?> containerDefinition = new PrismContainerDefinitionImpl<>(new QName("Handler data"), ctd, prismContext);
+		MutablePrismContainerDefinition<?> containerDefinition = prismContext.definitionFactory().createContainerDefinition(new QName("Handler data"), ctd);
 		container.setDefinition(containerDefinition);
 		Task task = pageBase.createSimpleTask("Adding new container wrapper");
 		containerWrapper = cwf.createContainerWrapper(null, container, ContainerStatus.MODIFYING, ItemPath.EMPTY_PATH, true, task);

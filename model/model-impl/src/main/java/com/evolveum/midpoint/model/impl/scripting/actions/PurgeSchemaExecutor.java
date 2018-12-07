@@ -23,6 +23,7 @@ import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -92,7 +93,7 @@ public class PurgeSchemaExecutor extends BaseActionExecutor {
         if (schemaContainer == null || schemaContainer.isEmpty()) {
             return null;
         }
-        return ObjectDelta.createModificationDeleteContainer(
+        return ObjectDeltaCreationUtil.createModificationDeleteContainer(
                 ResourceType.class,
                 resourceType.getOid(),
                 ResourceType.F_SCHEMA,

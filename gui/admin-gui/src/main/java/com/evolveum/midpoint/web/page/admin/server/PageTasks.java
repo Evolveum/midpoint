@@ -25,12 +25,11 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -256,7 +255,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 						Task task = createSimpleTask("load task");
 						OperationResult result = task.getResult();
 						PrismObject<TaskType> taskType = WebModelServiceUtils
-								.loadObject(TaskType.class, oid, GetOperationOptions.retrieveItemsNamed(TaskType.F_RESULT),
+								.loadObject(TaskType.class, oid, retrieveItemsNamed(TaskType.F_RESULT),
 										PageTasks.this, task, result);
 						if (taskType == null) {
 							return null;
@@ -1472,7 +1471,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 
         for (NodeDto nodeDto : nodes) {
             Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-            deltas.add(ObjectDelta.createDeleteDelta(NodeType.class, nodeDto.getOid(), getPrismContext()));
+            deltas.add(ObjectDeltaCreationUtil.createDeleteDelta(NodeType.class, nodeDto.getOid(), getPrismContext()));
             try {
                 getModelService().executeChanges(deltas, null, task, result);
             } catch (Exception e) {     // until java 7 we do it in this way
@@ -1649,7 +1648,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
         String category = dto.getCategory();
         boolean showSubtasks = dto.isShowSubtasks();
 
-        S_AtomicFilterEntry q = QueryBuilder.queryFor(TaskType.class, getPrismContext());
+        S_AtomicFilterEntry q = getPrismContext().queryFor(TaskType.class);
         if (status != null) {
             q = status.appendFilter(q);
         }

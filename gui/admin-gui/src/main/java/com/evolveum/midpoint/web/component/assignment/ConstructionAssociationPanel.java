@@ -22,10 +22,9 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.util.ItemPathUtil;
+import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -206,7 +205,7 @@ public class ConstructionAssociationPanel<C extends Containerable, IW extends It
                             && !ValueStatus.ADDED.equals(((ContainerValueWrapper) associationValueWrapper).getStatus()))) {
                         return;
                     }
-                    QName assocRef = ItemPathUtil.getOnlySegmentQName(assoc.getRef());
+                    QName assocRef = ItemPathTypeUtil.asSingleNameOrFailNullSafe(assoc.getRef());
                     if ((defName != null && defName.equals(assocRef))
                             || (assocRef == null && ValueStatus.ADDED.equals(((ContainerValueWrapper) associationValueWrapper).getStatus()))) {
                         shadowsList.addAll(ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression()));
@@ -231,7 +230,7 @@ public class ConstructionAssociationPanel<C extends Containerable, IW extends It
                 return;
             }
             if (compareName) {
-                QName assocRef = ItemPathUtil.getOnlySegmentQName(assoc.getRef());
+                QName assocRef = ItemPathTypeUtil.asSingleNameOrFailNullSafe(assoc.getRef());
                 if (name != null && name.equals(assocRef)) {
                     shadowsList.addAll(ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression()));
                 }
@@ -259,10 +258,9 @@ public class ConstructionAssociationPanel<C extends Containerable, IW extends It
                 ContainerWrapper associationWrapper = constructionContainerWrapper.findContainerWrapper(constructionContainerWrapper
                         .getPath().append(ConstructionType.F_ASSOCIATION));
                 PrismContainerValue newAssociation = associationWrapper.getItem().createNewValue();
-                QName associationRefPath = def.getName();
-                NameItemPathSegment segment = new NameItemPathSegment(associationRefPath);
+                ItemName associationRefPath = def.getName();
                 ((ResourceObjectAssociationType)newAssociation.asContainerable())
-                        .setRef(new ItemPathType(new ItemPath(segment)));
+                        .setRef(new ItemPathType(associationRefPath));
                 ExpressionType newAssociationExpression = ((ResourceObjectAssociationType)newAssociation.asContainerable()).beginOutbound().beginExpression();
                 ExpressionUtil.addShadowRefEvaluatorValue(newAssociationExpression, object.getOid(),
                         getPageBase().getPrismContext());

@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -76,7 +77,8 @@ public class InducedEntitlementsPanel extends InducementsPanel{
 
     @Override
     protected void initCustomPaging() {
-        getInducedEntitlementsTabStorage().setPaging(ObjectPaging.createPaging(0, ((int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.INDUCED_ENTITLEMENTS_TAB_TABLE))));
+        getInducedEntitlementsTabStorage().setPaging(getPrismContext().queryFactory()
+                .createPaging(0, ((int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.INDUCED_ENTITLEMENTS_TAB_TABLE))));
     }
 
     @Override
@@ -178,7 +180,7 @@ public class InducedEntitlementsPanel extends InducementsPanel{
 
     @Override
     protected ObjectQuery createObjectQuery() {
-        return QueryBuilder.queryFor(AssignmentType.class, getParentPage().getPrismContext())
+        return getParentPage().getPrismContext().queryFor(AssignmentType.class)
                 .exists(AssignmentType.F_CONSTRUCTION)
                 .build();
     }

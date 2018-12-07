@@ -15,14 +15,12 @@
  */
 package com.evolveum.midpoint.prism.lex;
 
-import com.evolveum.midpoint.prism.ParsingContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismContextImpl;
 import com.evolveum.midpoint.prism.PrismInternalTestUtil;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.marshaller.XNodeProcessorUtil;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.MapXNodeImpl;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -36,6 +34,7 @@ import java.io.IOException;
 
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.DEFAULT_NAMESPACE_PREFIX;
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.displayTestTitle;
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.createDefaultParsingContext;
 import static org.testng.AssertJUnit.assertEquals;
 
 /**
@@ -63,12 +62,12 @@ public class TestProtectedString {
 
         // WHEN
 
-        MapXNode protectedStringTypeXNode = ((PrismContextImpl) prismContext).getBeanMarshaller().marshalProtectedDataType(protectedStringType, null);
+        MapXNodeImpl protectedStringTypeXNode = ((PrismContextImpl) prismContext).getBeanMarshaller().marshalProtectedDataType(protectedStringType, null);
         System.out.println("Protected string type XNode: " + protectedStringTypeXNode.debugDump());
 
         // THEN
         ProtectedStringType unmarshalled = new ProtectedStringType();
-        XNodeProcessorUtil.parseProtectedType(unmarshalled, protectedStringTypeXNode, prismContext, ParsingContext.createDefault());
+        prismContext.misc().parseProtectedType(unmarshalled, protectedStringTypeXNode, prismContext, createDefaultParsingContext());
         System.out.println("Unmarshalled value: " + unmarshalled);
         assertEquals("Unmarshalled value differs from the original", protectedStringType, unmarshalled);
     }
@@ -88,12 +87,12 @@ public class TestProtectedString {
 
         // WHEN
 
-        MapXNode protectedStringTypeXNode = ((PrismContextImpl) prismContext).getBeanMarshaller().marshalProtectedDataType(protectedStringType, null);
+        MapXNodeImpl protectedStringTypeXNode = ((PrismContextImpl) prismContext).getBeanMarshaller().marshalProtectedDataType(protectedStringType, null);
         System.out.println("Protected string type XNode: " + protectedStringTypeXNode.debugDump());
 
         // THEN
         ProtectedStringType unmarshalled = new ProtectedStringType();
-        XNodeProcessorUtil.parseProtectedType(unmarshalled, protectedStringTypeXNode, prismContext, ParsingContext.createDefault());
+		prismContext.misc().parseProtectedType(unmarshalled, protectedStringTypeXNode, prismContext, createDefaultParsingContext());
         System.out.println("Unmarshalled value: " + unmarshalled);
         assertEquals("Unmarshalled value differs from the original", protectedStringType, unmarshalled);
     }

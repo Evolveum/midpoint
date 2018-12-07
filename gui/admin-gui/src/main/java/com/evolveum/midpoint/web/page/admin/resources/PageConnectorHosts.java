@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.page.admin.resources;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.search.*;
@@ -272,7 +273,7 @@ public class PageConnectorHosts extends PageAdminResources {
 				Task task = createSimpleTask(OPERATION_DELETE_HOSTS);
 
 				if (selectable.getValue() != null) {
-					ObjectDelta<ConnectorHostType> delta = ObjectDelta.createDeleteDelta(ConnectorHostType.class,
+					ObjectDelta<ConnectorHostType> delta = ObjectDeltaCreationUtil.createDeleteDelta(ConnectorHostType.class,
 							selectable.getValue().getOid(), getPrismContext());
 					getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task,
 							result);

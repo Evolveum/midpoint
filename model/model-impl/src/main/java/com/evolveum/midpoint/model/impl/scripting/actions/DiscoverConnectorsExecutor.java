@@ -22,9 +22,9 @@ import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -133,8 +133,10 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
                 if (newOid != null) {
                     String msg = "resource " + resource + " from connector " + connectorOid + " to new one: " + newOid;
                     LOGGER.info("Rebinding " + msg);
-                    ReferenceDelta refDelta = ReferenceDelta.createModificationReplace(ResourceType.F_CONNECTOR_REF, resource.getDefinition(), newOid);
-                    ObjectDelta<ResourceType> objDelta = ObjectDelta.createModifyDelta(resource.getOid(), refDelta, ResourceType.class, prismContext);
+                    ReferenceDelta refDelta = prismContext.deltaFactory().reference()
+                            .createModificationReplace(ResourceType.F_CONNECTOR_REF, resource.getDefinition(), newOid);
+                    ObjectDelta<ResourceType> objDelta = ObjectDeltaCreationUtil
+		                    .createModifyDelta(resource.getOid(), refDelta, ResourceType.class, prismContext);
                     operationsHelper.applyDelta(objDelta, context, result);
                     context.println("Rebound " + msg);
                 }
@@ -148,7 +150,7 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
             LOGGER.trace("Finding obsolete versions for connector: {}", connectorType.asPrismObject().debugDump());
         }
 
-        ObjectQuery query = QueryBuilder.queryFor(ConnectorType.class, prismContext)
+        ObjectQuery query = prismContext.queryFor(ConnectorType.class)
                 .item(SchemaConstants.C_CONNECTOR_FRAMEWORK).eq(connectorType.getFramework())
                 .and().item(SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE).eq(connectorType.getConnectorType())
                 .build();

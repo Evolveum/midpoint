@@ -176,7 +176,7 @@ public class ReportTypeUtil {
         	if (itemDelta.hasCompleteDefinition()){
         		continue;
         	}
-        	ItemDefinition def = definition.findItemDefinition(itemDelta.getPath().tail());
+        	ItemDefinition def = definition.findItemDefinition(itemDelta.getPath().rest());
         	if (def != null){
         		itemDelta.applyDefinition(def);
         	}

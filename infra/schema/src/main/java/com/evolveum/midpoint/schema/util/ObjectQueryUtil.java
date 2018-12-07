@@ -23,9 +23,11 @@ import java.util.function.Predicate;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.Visitor;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -33,7 +35,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.mutable.MutableBoolean;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.polystring.AlphanumericPolyStringNormalizer;
@@ -74,13 +75,13 @@ public class ObjectQueryUtil {
     }
 
     public static ObjectQuery createNameQuery(PolyString name, PrismContext prismContext) throws SchemaException {
-		return QueryBuilder.queryFor(ObjectType.class, prismContext)
+		return prismContext.queryFor(ObjectType.class)
 				.item(ObjectType.F_NAME).eq(name)
 				.build();
 	}
 
     public static ObjectQuery createOrigNameQuery(PolyString name, PrismContext prismContext) throws SchemaException {
-		return QueryBuilder.queryFor(ObjectType.class, prismContext)
+		return prismContext.queryFor(ObjectType.class)
 				.item(ObjectType.F_NAME).eq(name).matchingOrig()
 				.build();
     }
@@ -88,7 +89,7 @@ public class ObjectQueryUtil {
     public static ObjectQuery createNormNameQuery(PolyString name, PrismContext prismContext) throws SchemaException {
         PolyStringNormalizer normalizer = new AlphanumericPolyStringNormalizer();
         name.recompute(normalizer);
-		return QueryBuilder.queryFor(ObjectType.class, prismContext)
+		return prismContext.queryFor(ObjectType.class)
 				.item(ObjectType.F_NAME).eq(name).matchingNorm()
 				.build();
     }
@@ -102,14 +103,14 @@ public class ObjectQueryUtil {
 	}
 	
 	public static ObjectQuery createResourceAndObjectClassQuery(String resourceOid, QName objectClass, PrismContext prismContext) throws SchemaException {
-		return ObjectQuery.createObjectQuery(createResourceAndObjectClassFilter(resourceOid, objectClass, prismContext));
+		return prismContext.queryFactory().createObjectQuery(createResourceAndObjectClassFilter(resourceOid, objectClass, prismContext));
 	}
 
 	public static ObjectFilter createResourceAndObjectClassFilter(String resourceOid, QName objectClass, PrismContext prismContext) throws SchemaException {
 		Validate.notNull(resourceOid, "Resource where to search must not be null.");
 		Validate.notNull(objectClass, "Object class to search must not be null.");
 		Validate.notNull(prismContext, "Prism context must not be null.");
-		AndFilter and = AndFilter.createAnd(
+		AndFilter and = prismContext.queryFactory().createAnd(
 				createResourceFilter(resourceOid, prismContext), 
 				createObjectClassFilter(objectClass, prismContext));
 		return and;
@@ -119,24 +120,24 @@ public class ObjectQueryUtil {
 		Validate.notNull(resourceOid, "Resource where to search must not be null.");
 		Validate.notNull(objectClass, "Object class to search must not be null.");
 		Validate.notNull(prismContext, "Prism context must not be null.");
-		return QueryBuilder.queryFor(ShadowType.class, prismContext)
+		return prismContext.queryFor(ShadowType.class)
 				.item(ShadowType.F_RESOURCE_REF).ref(resourceOid)
 				.and().item(ShadowType.F_OBJECT_CLASS).eq(objectClass);
 	}
 
 	public static ObjectQuery createResourceAndKindIntent(String resourceOid, ShadowKindType kind, String intent, PrismContext prismContext) throws SchemaException {
-		return ObjectQuery.createObjectQuery(createResourceAndKindIntentFilter(resourceOid, kind, intent, prismContext));
+		return prismContext.queryFactory().createObjectQuery(createResourceAndKindIntentFilter(resourceOid, kind, intent, prismContext));
 	}
 	
 	public static ObjectQuery createResourceAndKind(String resourceOid, ShadowKindType kind, PrismContext prismContext) throws SchemaException {
-		return ObjectQuery.createObjectQuery(createResourceAndKindFilter(resourceOid, kind, prismContext));
+		return prismContext.queryFactory().createObjectQuery(createResourceAndKindFilter(resourceOid, kind, prismContext));
 	}
 	
 	public static ObjectFilter createResourceAndKindIntentFilter(String resourceOid, ShadowKindType kind, String intent, PrismContext prismContext) throws SchemaException {
 		Validate.notNull(resourceOid, "Resource where to search must not be null.");
 		Validate.notNull(kind, "Kind to search must not be null.");
 		Validate.notNull(prismContext, "Prism context must not be null.");
-		return QueryBuilder.queryFor(ShadowType.class, prismContext)
+		return prismContext.queryFor(ShadowType.class)
 				.item(ShadowType.F_RESOURCE_REF).ref(resourceOid)
 				.and().item(ShadowType.F_KIND).eq(kind)
 				.and().item(ShadowType.F_INTENT).eq(intent)
@@ -147,7 +148,7 @@ public class ObjectQueryUtil {
 		Validate.notNull(resourceOid, "Resource where to search must not be null.");
 		Validate.notNull(kind, "Kind to search must not be null.");
 		Validate.notNull(prismContext, "Prism context must not be null.");
-		return QueryBuilder.queryFor(ShadowType.class, prismContext)
+		return prismContext.queryFor(ShadowType.class)
 				.item(ShadowType.F_RESOURCE_REF).ref(resourceOid)
 				.and().item(ShadowType.F_KIND).eq(kind)
 				.buildFilter();
@@ -156,35 +157,35 @@ public class ObjectQueryUtil {
     public static ObjectQuery createResourceQuery(String resourceOid, PrismContext prismContext) throws SchemaException {
         Validate.notNull(resourceOid, "Resource where to search must not be null.");
         Validate.notNull(prismContext, "Prism context must not be null.");
-        return ObjectQuery.createObjectQuery(createResourceFilter(resourceOid, prismContext));
+        return prismContext.queryFactory().createObjectQuery(createResourceFilter(resourceOid, prismContext));
     } 
 
     public static ObjectFilter createResourceFilter(String resourceOid, PrismContext prismContext) throws SchemaException {
-		return QueryBuilder.queryFor(ShadowType.class, prismContext)
+		return prismContext.queryFor(ShadowType.class)
 				.item(ShadowType.F_RESOURCE_REF).ref(resourceOid)
 				.buildFilter();
 	}
 	
 	public static ObjectFilter createObjectClassFilter(QName objectClass, PrismContext prismContext) {
-		return QueryBuilder.queryFor(ShadowType.class, prismContext)
+		return prismContext.queryFor(ShadowType.class)
 				.item(ShadowType.F_OBJECT_CLASS).eq(objectClass)
 				.buildFilter();
 	}
 	
 	public static <T extends ObjectType> ObjectQuery createNameQuery(Class<T> clazz, PrismContext prismContext, String name) throws SchemaException {
-		return QueryBuilder.queryFor(clazz, prismContext)
+		return prismContext.queryFor(clazz)
 				.item(ObjectType.F_NAME).eqPoly(name)
 				.build();
 	}
 	
 	public static ObjectQuery createOrgSubtreeQuery(PrismContext prismContext, String orgOid) throws SchemaException {
-		return QueryBuilder.queryFor(ObjectType.class, prismContext)
+		return prismContext.queryFor(ObjectType.class)
 				.isChildOf(orgOid)
 				.build();
 	}
 	
 	public static ObjectQuery createRootOrgQuery(PrismContext prismContext) throws SchemaException {
-		return QueryBuilder.queryFor(ObjectType.class, prismContext).isRoot().build();
+		return prismContext.queryFor(ObjectType.class).isRoot().build();
 	}
 	
 	public static boolean hasAllDefinitions(ObjectQuery query) {
@@ -247,9 +248,11 @@ public class ObjectQueryUtil {
 	}
 
 	/**
-	 * Merges the two provided arguments into one AND filter in the most efficient way. 
+	 * Merges the two provided arguments into one AND filter in the most efficient way.
+	 * TODO consider moving to QueryFactory
 	 */
-	public static ObjectFilter filterAnd(ObjectFilter origFilter, ObjectFilter additionalFilter) {
+	public static ObjectFilter filterAnd(ObjectFilter origFilter, ObjectFilter additionalFilter,
+			PrismContext prismContext) {
 		if (origFilter == additionalFilter) {
 			// AND with itself
 			return origFilter;
@@ -278,13 +281,15 @@ public class ObjectQueryUtil {
 			}
 			return origFilter;
 		}
-		return AndFilter.createAnd(origFilter, additionalFilter);
+		return prismContext.queryFactory().createAnd(origFilter, additionalFilter);
 	}
 	
 	/**
-	 * Merges the two provided arguments into one OR filter in the most efficient way. 
+	 * Merges the two provided arguments into one OR filter in the most efficient way.
+	 * TODO consider moving to QueryFactory
 	 */
-	public static ObjectFilter filterOr(ObjectFilter origFilter, ObjectFilter additionalFilter) {
+	public static ObjectFilter filterOr(ObjectFilter origFilter, ObjectFilter additionalFilter,
+			PrismContext prismContext) {
 		if (origFilter == additionalFilter) {
 			// OR with itself
 			return origFilter;
@@ -313,7 +318,7 @@ public class ObjectQueryUtil {
 			}
 			return origFilter;
 		}
-		return OrFilter.createOr(origFilter, additionalFilter);
+		return prismContext.queryFactory().createOr(origFilter, additionalFilter);
 	}
 
 	public static boolean isAll(ObjectFilter filter) {
@@ -326,7 +331,7 @@ public class ObjectQueryUtil {
 
 	// returns ALL, NONE only at the top level (never inside the filter)
 	// never returns UNDEFINED
-	public static ObjectFilter simplify(ObjectFilter filter) {
+	public static ObjectFilter simplify(ObjectFilter filter, PrismContext prismContext) {
 		if (filter == null) {
 			return null;
 		}
@@ -336,13 +341,13 @@ public class ObjectQueryUtil {
 			for (ObjectFilter subfilter: conditions) {
 				if (subfilter instanceof NoneFilter) {
 					// AND with "false"
-					return NoneFilter.createNone();
+					return FilterCreationUtil.createNone(prismContext);
 				} else if (subfilter instanceof AllFilter || subfilter instanceof UndefinedFilter) {
 					// AND with "true", just skip it
 				} else {
-					ObjectFilter simplifiedSubfilter = simplify(subfilter);
+					ObjectFilter simplifiedSubfilter = simplify(subfilter, prismContext);
 					if (simplifiedSubfilter instanceof NoneFilter) {
-						return NoneFilter.createNone();
+						return FilterCreationUtil.createNone(prismContext);
 					} else if (simplifiedSubfilter == null || simplifiedSubfilter instanceof AllFilter) {
 						// skip
 					} else {
@@ -351,7 +356,7 @@ public class ObjectQueryUtil {
 				}
 			}
 			if (simplifiedFilter.isEmpty()) {
-				return AllFilter.createAll();
+				return FilterCreationUtil.createAll(prismContext);
 			} else if (simplifiedFilter.getConditions().size() == 1) {
 				return simplifiedFilter.getConditions().iterator().next();
 			} else {
@@ -366,20 +371,20 @@ public class ObjectQueryUtil {
 					// OR with "false", just skip it
 				} else if (subfilter instanceof AllFilter) {
 					// OR with "true"
-					return AllFilter.createAll();
+					return FilterCreationUtil.createAll(prismContext);
 				} else {
-					ObjectFilter simplifiedSubfilter = simplify(subfilter);
+					ObjectFilter simplifiedSubfilter = simplify(subfilter, prismContext);
 					if (simplifiedSubfilter instanceof NoneFilter) {
 						// skip
 					} else if (simplifiedSubfilter == null || simplifiedSubfilter instanceof AllFilter) {
-						return NoneFilter.createNone();
+						return FilterCreationUtil.createNone(prismContext);
 					} else {
 						simplifiedFilter.addCondition(simplifiedSubfilter);
 					}
 				}
 			}
 			if (simplifiedFilter.isEmpty()) {
-				return NoneFilter.createNone();
+				return FilterCreationUtil.createNone(prismContext);
 			} else if (simplifiedFilter.getConditions().size() == 1) {
 				return simplifiedFilter.getConditions().iterator().next();
 			} else {
@@ -388,11 +393,11 @@ public class ObjectQueryUtil {
 
 		} else if (filter instanceof NotFilter) {
 			ObjectFilter subfilter = ((NotFilter)filter).getFilter();
-			ObjectFilter simplifiedSubfilter = simplify(subfilter);
+			ObjectFilter simplifiedSubfilter = simplify(subfilter, prismContext);
 			if (simplifiedSubfilter instanceof NoneFilter) {
-				return AllFilter.createAll();
+				return FilterCreationUtil.createAll(prismContext);
 			} else if (simplifiedSubfilter == null || simplifiedSubfilter instanceof AllFilter) {
-				return NoneFilter.createNone();
+				return FilterCreationUtil.createNone(prismContext);
 			} else {
 				NotFilter simplifiedFilter = ((NotFilter)filter).cloneEmpty();
 				simplifiedFilter.setFilter(simplifiedSubfilter);
@@ -400,22 +405,22 @@ public class ObjectQueryUtil {
 			}
 		} else if (filter instanceof TypeFilter) {
 			ObjectFilter subFilter = ((TypeFilter) filter).getFilter();
-			ObjectFilter simplifiedSubfilter = simplify(subFilter);
+			ObjectFilter simplifiedSubfilter = simplify(subFilter, prismContext);
 			if (simplifiedSubfilter instanceof AllFilter) {
 				simplifiedSubfilter = null;
 			} else if (simplifiedSubfilter instanceof NoneFilter) {
-				return NoneFilter.createNone();
+				return FilterCreationUtil.createNone(prismContext);
 			}
 			TypeFilter simplifiedFilter = ((TypeFilter) filter).cloneEmpty();
 			simplifiedFilter.setFilter(simplifiedSubfilter);
 			return simplifiedFilter;
 		} else if (filter instanceof ExistsFilter) {
 			ObjectFilter subFilter = ((ExistsFilter) filter).getFilter();
-			ObjectFilter simplifiedSubfilter = simplify(subFilter);
+			ObjectFilter simplifiedSubfilter = simplify(subFilter, prismContext);
 			if (simplifiedSubfilter instanceof AllFilter) {
 				simplifiedSubfilter = null;
 			} else if (simplifiedSubfilter instanceof NoneFilter) {
-				return NoneFilter.createNone();
+				return FilterCreationUtil.createNone(prismContext);
 			}
 			ExistsFilter simplifiedFilter = ((ExistsFilter) filter).cloneEmpty();
 			simplifiedFilter.setFilter(simplifiedSubfilter);
@@ -428,7 +433,7 @@ public class ObjectQueryUtil {
 				// As a general rule we can assume that these filters would always yield zero records
 				// so they can be replaced by None filter. Should this assumption turn out to be invalid,
 				// remove this optimization and implement correct behavior in repo query interpreter.
-				return NoneFilter.createNone();
+				return FilterCreationUtil.createNone(prismContext);
 			} else {
 				return filter.clone();
 			}
@@ -438,24 +443,25 @@ public class ObjectQueryUtil {
 		}
  	}
 
-	public static PrismValue getValueFromQuery(ObjectQuery query, QName itemName) throws SchemaException {
-		if (query != null) {
-			return getValueFromFilter(query.getFilter(), itemName);
-		} else {
-			return null;
-		}
-	}
+//	public static PrismValue getValueFromQuery(ObjectQuery query, QName itemName) throws SchemaException {
+//		if (query != null) {
+//			return getValueFromFilter(query.getFilter(), itemName);
+//		} else {
+//			return null;
+//		}
+//	}
 
-	public static <T extends PrismValue> Collection<T> getValuesFromQuery(ObjectQuery query, QName itemName) throws SchemaException {
-		if (query != null) {
-			return getValuesFromFilter(query.getFilter(), itemName);
-		} else {
-			return null;
-		}
-	}
+//	public static <T extends PrismValue> Collection<T> getValuesFromQuery(ObjectQuery query, QName itemName) throws SchemaException {
+//		if (query != null) {
+//			return getValuesFromFilter(query.getFilter(), itemName);
+//		} else {
+//			return null;
+//		}
+//	}
 
-	private static PrismValue getValueFromFilter(ObjectFilter filter, QName itemName) throws SchemaException {
-		Collection<PrismValue> values = getValuesFromFilter(filter, itemName);
+	private static PrismValue getValueFromFilter(ObjectFilter filter, QName itemName,
+			PrismContext prismContext) throws SchemaException {
+		Collection<PrismValue> values = getValuesFromFilter(filter, itemName, prismContext);
 		if (values == null || values.size() == 0) {
 			return null;
 		} else if (values.size() > 1) {
@@ -465,25 +471,26 @@ public class ObjectQueryUtil {
 		}
 	}
 
-	private static <T extends PrismValue> Collection<T> getValuesFromFilter(ObjectFilter filter, QName itemName) throws SchemaException {
-		ItemPath propertyPath = new ItemPath(itemName);
+	private static <T extends PrismValue> Collection<T> getValuesFromFilter(ObjectFilter filter, QName itemName,
+			PrismContext prismContext) throws SchemaException {
+		ItemPath propertyPath = ItemName.fromQName(itemName);
 		if (filter instanceof EqualFilter && propertyPath.equivalent(((EqualFilter) filter).getFullPath())) {
 			return ((EqualFilter) filter).getValues();
 		} else if (filter instanceof RefFilter && propertyPath.equivalent(((RefFilter) filter).getFullPath())) {
 			return (Collection<T>) ((RefFilter) filter).getValues();
 		} else if (filter instanceof AndFilter) {
-			return getValuesFromFilter(((NaryLogicalFilter) filter).getConditions(), itemName);
+			return getValuesFromFilter(((NaryLogicalFilter) filter).getConditions(), itemName, prismContext);
 		} else if (filter instanceof TypeFilter) {
-			return getValuesFromFilter(((TypeFilter) filter).getFilter(), itemName);
+			return getValuesFromFilter(((TypeFilter) filter).getFilter(), itemName, prismContext);
 		} else {
 			return null;
 		}
 	}
 
-	private static <T extends PrismValue> Collection<T> getValuesFromFilter(List<? extends ObjectFilter> conditions, QName propertyName)
+	private static <T extends PrismValue> Collection<T> getValuesFromFilter(List<? extends ObjectFilter> conditions, QName propertyName, PrismContext prismContext)
 			throws SchemaException {
 		for (ObjectFilter f : conditions) {
-			Collection<T> values = getValuesFromFilter(f, propertyName);
+			Collection<T> values = getValuesFromFilter(f, propertyName, prismContext);
 			if (values != null) {
 				return values;
 			}
@@ -491,21 +498,22 @@ public class ObjectQueryUtil {
 		return null;
 	}
 
-	private static String getResourceOidFromFilter(ObjectFilter filter) throws SchemaException {
-		PrismReferenceValue referenceValue = (PrismReferenceValue) getValueFromFilter(filter, ShadowType.F_RESOURCE_REF);
+	private static String getResourceOidFromFilter(ObjectFilter filter, PrismContext prismContext) throws SchemaException {
+		PrismReferenceValue referenceValue = (PrismReferenceValue) getValueFromFilter(filter, ShadowType.F_RESOURCE_REF, prismContext);
 		return referenceValue != null ? referenceValue.getOid() : null;
 	}
 
-	private static <T> T getPropertyRealValueFromFilter(ObjectFilter filter, QName propertyName) throws SchemaException {
-		PrismPropertyValue<T> propertyValue = (PrismPropertyValue<T>) getValueFromFilter(filter, propertyName);
+	private static <T> T getPropertyRealValueFromFilter(ObjectFilter filter, QName propertyName, PrismContext prismContext) throws SchemaException {
+		PrismPropertyValue<T> propertyValue = (PrismPropertyValue<T>) getValueFromFilter(filter, propertyName, prismContext);
 		return propertyValue != null ? propertyValue.getValue() : null;
 	}
 
-	public static ResourceShadowDiscriminator getCoordinates(ObjectFilter filter) throws SchemaException {
-		String resourceOid = getResourceOidFromFilter(filter);
-        QName objectClass = getPropertyRealValueFromFilter(filter, ShadowType.F_OBJECT_CLASS);
-        ShadowKindType kind = getPropertyRealValueFromFilter(filter, ShadowType.F_KIND);
-        String intent = getPropertyRealValueFromFilter(filter, ShadowType.F_INTENT);
+	public static ResourceShadowDiscriminator getCoordinates(ObjectFilter filter,
+			PrismContext prismContext) throws SchemaException {
+		String resourceOid = getResourceOidFromFilter(filter, prismContext);
+        QName objectClass = getPropertyRealValueFromFilter(filter, ShadowType.F_OBJECT_CLASS, prismContext);
+        ShadowKindType kind = getPropertyRealValueFromFilter(filter, ShadowType.F_KIND, prismContext);
+        String intent = getPropertyRealValueFromFilter(filter, ShadowType.F_INTENT, prismContext);
 
         if (resourceOid == null) {
             throw new SchemaException("Resource not defined in a search query");
@@ -519,36 +527,38 @@ public class ObjectQueryUtil {
         return coordinates;
 	}
 
-	public static FilterComponents factorOutQuery(ObjectQuery query, QName... names) {
-		return factorOutQuery(query, ItemPath.asPathArray(names));
+	// TODO better API for all this
+
+//	public static FilterComponents factorOutQuery(ObjectQuery query, QName... names) {
+//		return factorOutQuery(query, ItemPathCollectionsUtil.asUniformPathArray(names));
+//	}
+
+//	public static FilterComponents factorOutQuery(ObjectQuery query, ItemPath... paths) {
+//		return factorOutQuery(null, query, DEFAULT_EXTRACTORS, paths);
+//	}
+
+	public static FilterComponents factorOutQuery(PrismContext prismContext, ObjectQuery query, List<FilterExtractor> extractors, ItemPath... paths) {
+		return factorOutFilter(prismContext, query != null ? query.getFilter() : null, extractors, paths);
 	}
 
-	public static FilterComponents factorOutQuery(ObjectQuery query, ItemPath... paths) {
-		return factorOutQuery(query, DEFAULT_EXTRACTORS, paths);
-	}
+//	@SuppressWarnings("unused")
+//	public static FilterComponents factorOutFilter(PrismContext prismContext, ObjectFilter filter, ItemPath... paths) {
+//		return factorOutFilter(prismContext, filter, DEFAULT_EXTRACTORS, paths);
+//	}
 
-	public static FilterComponents factorOutQuery(ObjectQuery query, List<FilterExtractor> extractors, ItemPath... paths) {
-		return factorOutFilter(query != null ? query.getFilter() : null, extractors, paths);
-	}
-
-	@SuppressWarnings("unused")
-	public static FilterComponents factorOutFilter(ObjectFilter filter, ItemPath... paths) {
-		return factorOutFilter(filter, DEFAULT_EXTRACTORS, paths);
-	}
-
-	public static FilterComponents factorOutFilter(ObjectFilter filter, List<FilterExtractor> extractors, ItemPath... paths) {
+	private static FilterComponents factorOutFilter(PrismContext prismContext, ObjectFilter filter, List<FilterExtractor> extractors, ItemPath... paths) {
 		FilterComponents components = new FilterComponents();
-		factorOutFilter(components, simplify(filter), extractors, Arrays.asList(paths), true);
+		factorOutFilter(components, simplify(filter, prismContext), extractors, Arrays.asList(paths), true);
 		return components;
 	}
 
-	// TODO better API
-	@SuppressWarnings("unused")
-	public static FilterComponents factorOutOrFilter(ObjectFilter filter, ItemPath... paths) {
-		FilterComponents components = new FilterComponents();
-		factorOutFilter(components, simplify(filter), DEFAULT_EXTRACTORS, Arrays.asList(paths), false);
-		return components;
-	}
+//	// TODO better API
+//	@SuppressWarnings("unused")
+//	public static FilterComponents factorOutOrFilter(ObjectFilter filter, ItemPath... paths) {
+//		FilterComponents components = new FilterComponents();
+//		factorOutFilter(components, simplify(filter, prismContext), DEFAULT_EXTRACTORS, Arrays.asList(paths), false);
+//		return components;
+//	}
 
 	// Creates references for querying
 	public static List<PrismReferenceValue> createReferences(String oid, RelationKindType kind,
@@ -614,7 +624,7 @@ public class ObjectQueryUtil {
 			for (FilterExtractor extractor : extractors) {
 				if (extractor.selector.test(filter)) {
 					ItemPath filterPath = extractor.pathExtractor.apply(filter);
-					if (ItemPath.containsEquivalent(paths, filterPath)) {
+					if (ItemPathCollectionsUtil.containsEquivalent(paths, filterPath)) {
 						filterComponents.addToKnown(filterPath, extractor.valueExtractor.apply(filter), filter);
 						found = true;
 						break;
@@ -659,16 +669,16 @@ public class ObjectQueryUtil {
 			return knownComponentFilters;
 		}
 
-		@SuppressWarnings("unused")
-		public ObjectFilter getRemainder() {
-			if (remainderClauses.size() == 0) {
-				return null;
-			} else if (remainderClauses.size() == 1) {
-				return remainderClauses.get(0);
-			} else {
-				return AndFilter.createAnd(remainderClauses);
-			}
-		}
+//		@SuppressWarnings("unused")
+//		public ObjectFilter getRemainder() {
+//			if (remainderClauses.size() == 0) {
+//				return null;
+//			} else if (remainderClauses.size() == 1) {
+//				return remainderClauses.get(0);
+//			} else {
+//				return prismContext.queryFactory().createAnd(remainderClauses);
+//			}
+//		}
 
 		void addToKnown(ItemPath path, List<? extends PrismValue> values, ObjectFilter filter) {
 			Map.Entry<ItemPath, Collection<? extends PrismValue>> entry = getKnownComponent(path);

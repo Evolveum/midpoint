@@ -15,10 +15,8 @@
  */
 package com.evolveum.midpoint.web.page.admin.users;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -31,11 +29,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.apache.catalina.User;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 
@@ -88,7 +83,7 @@ public class PageUsersView extends PageUsers {
         }
         ObjectFilter filter = null;
         try {
-            filter = QueryConvertor.parseFilter(collectionValue.getFilter(), UserType.class, getPrismContext());
+            filter = getQueryConverter().parseFilter(collectionValue.getFilter(), UserType.class);
         } catch (SchemaException ex){
             result.recomputeStatus();
             result.recordFatalError("Couldn't parse filter. Filter: " + collectionValue.getFilter(), ex);

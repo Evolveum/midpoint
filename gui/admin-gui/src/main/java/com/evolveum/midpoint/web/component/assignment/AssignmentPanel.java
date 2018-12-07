@@ -506,11 +506,11 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 	}
 
 	private ItemVisibility getActivationVisibileItems(ItemPath pathToCheck, ItemPath assignmentPath) {
-		if (assignmentPath.append(new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP)).equivalent(pathToCheck)) {
+		if (assignmentPath.append(ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP)).equivalent(pathToCheck)) {
 			return ItemVisibility.HIDDEN;
 		}
 
-		if (assignmentPath.append(new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS)).equivalent(pathToCheck)) {
+		if (assignmentPath.append(ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS)).equivalent(pathToCheck)) {
 			return ItemVisibility.HIDDEN;
 		}
 
@@ -522,7 +522,6 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 		specificContainers.add(getSpecificContainerPanel(modelObject));
 		return specificContainers;
 	}
-
 	protected PrismContainerPanel getSpecificContainerPanel(ContainerValueWrapper<AssignmentType> modelObject) {
 		Form form = new Form<>("form");
 		ItemPath assignmentPath = modelObject.getPath();
@@ -534,17 +533,17 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 	}
 
 	protected ItemVisibility getSpecificContainersItemsVisibility(ItemWrapper itemWrapper, ItemPath parentAssignmentPath) {
-		if(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_ATTRIBUTE).append(ResourceAttributeDefinitionType.F_INBOUND).removeIdentifiers().isSubPathOrEquivalent(itemWrapper.getPath().removeIdentifiers())
-				|| parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_ASSOCIATION).append(ResourceAttributeDefinitionType.F_INBOUND).removeIdentifiers().isSubPathOrEquivalent(itemWrapper.getPath().removeIdentifiers())) {
+		if(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_ATTRIBUTE).append(ResourceAttributeDefinitionType.F_INBOUND).namedSegmentsOnly().isSubPathOrEquivalent(itemWrapper.getPath().namedSegmentsOnly())
+				|| parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_ASSOCIATION).append(ResourceAttributeDefinitionType.F_INBOUND).namedSegmentsOnly().isSubPathOrEquivalent(itemWrapper.getPath().namedSegmentsOnly())) {
 			return ItemVisibility.HIDDEN;
 		}
 		if (ContainerWrapper.class.isAssignableFrom(itemWrapper.getClass())){
 			return ItemVisibility.AUTO;
 		}
 		List<ItemPath> pathsToHide = new ArrayList<>();
-		pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_RESOURCE_REF).removeIdentifiers());
-		pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_AUXILIARY_OBJECT_CLASS).removeIdentifiers());
-		if (PropertyOrReferenceWrapper.class.isAssignableFrom(itemWrapper.getClass()) && !WebComponentUtil.isItemVisible(pathsToHide, itemWrapper.getPath().removeIdentifiers())) {
+		pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_RESOURCE_REF).namedSegmentsOnly());
+		pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_AUXILIARY_OBJECT_CLASS).namedSegmentsOnly());
+		if (PropertyOrReferenceWrapper.class.isAssignableFrom(itemWrapper.getClass()) && !WebComponentUtil.isItemVisible(pathsToHide, itemWrapper.getPath().namedSegmentsOnly())) {
 			return ItemVisibility.AUTO;
 		} else {
 			return ItemVisibility.HIDDEN;
@@ -700,13 +699,13 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 	}
 
 	private IModel<String> getActivationLabelModel(ContainerValueWrapper<AssignmentType> assignmentContainer){
-		ContainerWrapper<ActivationType> activationContainer = assignmentContainer.findContainerWrapper(assignmentContainer.getPath().append(new ItemPath(AssignmentType.F_ACTIVATION)));
+		ContainerWrapper<ActivationType> activationContainer = assignmentContainer.findContainerWrapper(assignmentContainer.getPath().append(AssignmentType.F_ACTIVATION));
 		ActivationStatusType administrativeStatus = null;
 		XMLGregorianCalendar validFrom = null;
 		XMLGregorianCalendar validTo = null;
 		ActivationType activation = null;
 		String lifecycleStatus = "";
-		PropertyOrReferenceWrapper lifecycleStatusProperty = assignmentContainer.findPropertyWrapper(AssignmentType.F_LIFECYCLE_STATE);
+		PropertyOrReferenceWrapper lifecycleStatusProperty = assignmentContainer.findPropertyWrapperByName(AssignmentType.F_LIFECYCLE_STATE);
 		if (lifecycleStatusProperty != null && lifecycleStatusProperty.getValues() != null){
 			Iterator<ValueWrapper> iter = lifecycleStatusProperty.getValues().iterator();
 			if (iter.hasNext()){

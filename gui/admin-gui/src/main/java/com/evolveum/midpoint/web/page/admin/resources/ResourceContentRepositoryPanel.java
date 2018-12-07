@@ -19,6 +19,8 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
@@ -27,10 +29,8 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -133,7 +133,8 @@ public class ResourceContentRepositoryPanel extends ResourceContentPanel {
 	        	private static final long serialVersionUID = 1L;
 	            @Override
 	            protected Integer load() {
-	                ObjectFilter resourceFilter =  QueryBuilder.queryFor(ShadowType.class, getPageBase().getPrismContext())
+		            PrismContext prismContext = getPageBase().getPrismContext();
+		            ObjectFilter resourceFilter =  prismContext.queryFor(ShadowType.class)
 	                        .item(ShadowType.F_RESOURCE_REF).ref(ResourceContentRepositoryPanel.this.getResourceModel().getObject().getOid())
 	                        .buildFilter();
 
@@ -150,10 +151,11 @@ public class ResourceContentRepositoryPanel extends ResourceContentPanel {
 	                Task task = getPageBase().createSimpleTask(OPERATION_GET_TOTALS);
 	                OperationResult result = new OperationResult(OPERATION_GET_TOTALS);
 	                try {
-	                    ObjectFilter situationFilter = QueryBuilder.queryFor(ShadowType.class, getPageBase().getPrismContext())
+	                    ObjectFilter situationFilter = prismContext.queryFor(ShadowType.class)
 	                            .item(ShadowType.F_SYNCHRONIZATION_SITUATION).eq(situation)
 	                            .buildFilter();
-	                    ObjectQuery query = ObjectQuery.createObjectQuery(AndFilter.createAnd(filter, situationFilter));
+	                    ObjectQuery query = prismContext.queryFactory().createObjectQuery(
+			                    prismContext.queryFactory().createAnd(filter, situationFilter));
 	                    return getPageBase().getModelService().countObjects(ShadowType.class, query, options, task, result);
 	                } catch (CommonException|RuntimeException ex) {
 	                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count shadows", ex);
@@ -165,8 +167,8 @@ public class ResourceContentRepositoryPanel extends ResourceContentPanel {
 	    }
 
 	@Override
-	protected SelectorOptions<GetOperationOptions> addAdditionalOptions() {
-		return new SelectorOptions<>(GetOperationOptions.createNoFetch());
+	protected GetOperationOptionsBuilder addAdditionalOptions(GetOperationOptionsBuilder builder) {
+		return builder.root().noFetch();
 	}
 
 	@Override

@@ -15,30 +15,18 @@
  */
 package com.evolveum.midpoint.schema.util;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-
-import javax.xml.namespace.QName;
-
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.VirtualAssignmenetSpecification;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualAssignmentSpecificationType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author semancik
@@ -88,7 +76,7 @@ public class LifecycleUtil {
         virtualAssignmenetSpecification.setType(targetClass);
         
         
-        ObjectFilter objectFilter = QueryConvertor.parseFilter(filter, targetClass, prismContext);
+        ObjectFilter objectFilter = prismContext.getQueryConverter().parseFilter(filter, targetClass);
         virtualAssignmenetSpecification.setFilter(objectFilter);
         
         return virtualAssignmenetSpecification;

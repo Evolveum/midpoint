@@ -41,8 +41,6 @@ import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.InOidFilter;
-import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -165,14 +163,14 @@ public class MultiValueChoosePanel<T extends ObjectType> extends BasePanel<List<
 
 	protected ObjectQuery createChooseQuery(List<PrismReferenceValue> values) {
 		ArrayList<String> oidList = new ArrayList<>();
-		ObjectQuery query = new ObjectQuery();
+		ObjectQuery query = getPrismContext().queryFactory().createObjectQuery();
 
 		if (oidList.isEmpty()) {
 			return null;
 		}
 
-		ObjectFilter oidFilter = InOidFilter.createInOid(oidList);
-		query.setFilter(NotFilter.createNot(oidFilter));
+		ObjectFilter oidFilter = getPrismContext().queryFactory().createInOid(oidList);
+		query.setFilter(getPrismContext().queryFactory().createNot(oidFilter));
 
 		return query;
 	}

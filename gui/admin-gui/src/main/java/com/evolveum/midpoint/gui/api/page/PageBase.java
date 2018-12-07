@@ -40,7 +40,7 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.query.QueryConverter;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
@@ -49,7 +49,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.report.api.ReportManager;
-import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
@@ -339,7 +339,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     @Override
-    protected void onInitialize(){
+    protected void onInitialize() {
         super.onInitialize();
         initLayout();
     }
@@ -364,7 +364,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             protected Integer load() {
                 try {
                     Task task = createSimpleTask(OPERATION_LOAD_WORK_ITEM_COUNT);
-                    S_FilterEntryOrEmpty q = QueryBuilder.queryFor(WorkItemType.class, getPrismContext());
+                    S_FilterEntryOrEmpty q = getPrismContext().queryFor(WorkItemType.class);
                     ObjectQuery query = QueryUtils.filterForAssignees(q, getPrincipal(),
                             OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, getRelationRegistry()).build();
                     return getModelService().countContainers(WorkItemType.class, query, null, task, task.getResult());
@@ -383,7 +383,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                     AccessCertificationService acs = getCertificationService();
                     Task task = createSimpleTask(OPERATION_LOAD_CERT_WORK_ITEM_COUNT);
                     OperationResult result = task.getResult();
-                    return acs.countOpenWorkItems(new ObjectQuery(), true, null, task, result);
+                    return acs.countOpenWorkItems(getPrismContext().queryFactory().createObjectQuery(), true, null, task, result);
                 } catch (SchemaException | SecurityViolationException | ObjectNotFoundException
                         | ConfigurationException | CommunicationException | ExpressionEvaluationException e) {
                     LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't load certification work item count", e);
@@ -470,6 +470,22 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     public PrismContext getPrismContext() {
         return getMidpointApplication().getPrismContext();
+    }
+
+    public SchemaHelper getSchemaHelper() {
+        return getMidpointApplication().getSchemaHelper();
+    }
+
+    public GetOperationOptionsBuilder getOperationOptionsBuilder() {
+        return getSchemaHelper().getOperationOptionsBuilder();
+    }
+
+    public Collection<SelectorOptions<GetOperationOptions>> retrieveItemsNamed(Object... items) {
+        return getOperationOptionsBuilder().items(items).retrieve().build();
+    }
+
+    public QueryConverter getQueryConverter() {
+        return getPrismContext().getQueryConverter();
     }
 
     public RelationRegistry getRelationRegistry() {
@@ -1338,8 +1354,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         OperationResult topResult = task.getResult();
         try {
             ExpressionFactory factory = getExpressionFactory();
-            PrismPropertyDefinition<OperationResultType> outputDefinition = new PrismPropertyDefinitionImpl<>(
-                    ExpressionConstants.OUTPUT_ELEMENT_NAME, OperationResultType.COMPLEX_TYPE, getPrismContext());
+            PrismPropertyDefinition<OperationResultType> outputDefinition = getPrismContext().definitionFactory().createPropertyDefinition(
+                    ExpressionConstants.OUTPUT_ELEMENT_NAME, OperationResultType.COMPLEX_TYPE);
             Expression<PrismPropertyValue<OperationResultType>, PrismPropertyDefinition<OperationResultType>> expression = factory.makeExpression(expressionType, outputDefinition, contextDesc, task, topResult);
 
             ExpressionVariables variables = new ExpressionVariables();
@@ -2456,5 +2472,4 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public Locale getLocale() {
         return getSession().getLocale();
     }
-
 }

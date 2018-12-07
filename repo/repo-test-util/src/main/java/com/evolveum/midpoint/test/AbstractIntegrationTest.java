@@ -28,47 +28,25 @@ import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.prism.ConsistencyCheckScope;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.ExpressionWrapper;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.query.QueryConverter;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SearchResultMetadata;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -78,6 +56,7 @@ import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.processor.ObjectFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
@@ -88,7 +67,6 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.SimpleObjectResolver;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.test.asserter.FocusAsserter;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.DerbyController;
@@ -105,10 +83,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
-import com.fasterxml.jackson.databind.util.RawValue;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
+import org.jetbrains.annotations.NotNull;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchResultEntry;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -185,6 +163,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	@Autowired protected Protector protector;
 	@Autowired protected Clock clock;
 	@Autowired protected PrismContext prismContext;
+	@Autowired protected SchemaHelper schemaHelper;
 	@Autowired protected MatchingRuleRegistry matchingRuleRegistry;
 	@Autowired protected LocalizationService localizationService;
 	
@@ -257,7 +236,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	};
 	
 	public <C extends Containerable> S_ItemEntry deltaFor(Class<C> objectClass) throws SchemaException {
-		return DeltaBuilder.deltaFor(objectClass, prismContext);
+		return prismContext.deltaFor(objectClass);
 	}
 
 	protected <T extends ObjectType> PrismObject<T> repoAddObjectFromFile(String filePath,
@@ -316,7 +295,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		PrismContainer<Containerable> attrCont = object.findContainer(ShadowType.F_ATTRIBUTES);
 		for (PrismProperty<?> attr: attrCont.getValue().getProperties()) {
 			if (attr.getDefinition() == null) {
-				ResourceAttributeDefinition<String> attrDef = new ResourceAttributeDefinitionImpl<>(attr.getElementName(),
+				ResourceAttributeDefinition<String> attrDef = ObjectFactory.createResourceAttributeDefinition(attr.getElementName(),
 						DOMUtil.XSD_STRING, prismContext);
 				attr.setDefinition((PrismPropertyDefinition) attrDef);
 			}
@@ -475,7 +454,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 	protected PrismObject<ConnectorType> findConnectorByType(String connectorType, OperationResult result)
 			throws SchemaException {
-		ObjectQuery query = QueryBuilder.queryFor(ConnectorType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(ConnectorType.class)
 				.item(ConnectorType.F_CONNECTOR_TYPE).eq(connectorType)
 				.build();
 		List<PrismObject<ConnectorType>> connectors = repositoryService.searchObjects(ConnectorType.class, query, null, result);
@@ -487,7 +466,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 	protected PrismObject<ConnectorType> findConnectorByTypeAndVersion(String connectorType, String connectorVersion, OperationResult result)
 			throws SchemaException {
-		ObjectQuery query = QueryBuilder.queryFor(ConnectorType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(ConnectorType.class)
 				.item(ConnectorType.F_CONNECTOR_TYPE).eq(connectorType)
 				.and().item(ConnectorType.F_CONNECTOR_VERSION).eq(connectorVersion)
 				.build();
@@ -566,7 +545,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 					.beginConflictResolution()
 						.action(action)
 					.end();
-			itemDeltas.add(DeltaBuilder.deltaFor(SystemConfigurationType.class, prismContext)
+			itemDeltas.add(prismContext.deltaFor(SystemConfigurationType.class)
 					.item(SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION)
 					.add(newPolicy)
 					.deleteRealValues(current)
@@ -578,7 +557,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 					.beginConflictResolution()
 						.action(ACTION_FOR_TASKS)
 					.end();
-			itemDeltas.add(DeltaBuilder.deltaFor(SystemConfigurationType.class, prismContext)
+			itemDeltas.add(prismContext.deltaFor(SystemConfigurationType.class)
 					.item(SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION)
 					.add(newPolicyForTasks)
 					.deleteRealValues(currentForTasks)
@@ -605,8 +584,8 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		ProjectionPolicyType syncSettings = new ProjectionPolicyType();
         syncSettings.setAssignmentPolicyEnforcement(policy);
         syncSettings.setLegalize(Boolean.valueOf(legalize));
-		ContainerDelta<ProjectionPolicyType> deleteAssigmentEnforcement = ContainerDelta
-				.createModificationDelete(new ItemPath(ResourceType.F_PROJECTION), ResourceType.class, prismContext,
+		ContainerDelta<ProjectionPolicyType> deleteAssigmentEnforcement = prismContext.deltaFactory().container()
+				.createModificationDelete(ResourceType.F_PROJECTION, ResourceType.class, prismContext,
 						syncSettings.clone());
 
 		Collection<ItemDelta> modifications = new ArrayList<>();
@@ -628,16 +607,14 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		return globalAccountSynchronizationSettings.getAssignmentPolicyEnforcement();
 	}
 
-	protected void applySyncSettings(Class clazz, String oid, QName path, ProjectionPolicyType syncSettings)
+	protected void applySyncSettings(Class clazz, String oid, ItemName itemName, ProjectionPolicyType syncSettings)
 			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 
 		PrismObjectDefinition<?> objectDefinition = prismContext.getSchemaRegistry()
 				.findObjectDefinitionByCompileTimeClass(clazz);
 
-		Collection<? extends ItemDelta> modifications = ContainerDelta
-				.createModificationReplaceContainerCollection(
-						path,
-						objectDefinition, syncSettings.asPrismContainerValue());
+		Collection<? extends ItemDelta> modifications = prismContext.deltaFactory().container()
+				.createModificationReplaceContainerCollection(itemName, objectDefinition, syncSettings.asPrismContainerValue());
 
 		OperationResult result = new OperationResult("Aplying sync settings");
 
@@ -920,7 +897,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		PrismContainer<Containerable> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
 		assertNotNull("Null attributes in "+shadow, attributesContainer);
 		assertFalse("Empty attributes in "+shadow, attributesContainer.isEmpty());
-		PrismProperty<String> icfUidProp = attributesContainer.findProperty(new QName(SchemaConstants.NS_ICF_SCHEMA,"uid"));
+		PrismProperty<String> icfUidProp = attributesContainer.findProperty(new ItemName(SchemaConstants.NS_ICF_SCHEMA, "uid"));
 		assertNotNull("No ICF name attribute in "+shadow, icfUidProp);
 		return icfUidProp.getRealValue();
 	}
@@ -1103,7 +1080,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         assert identifierDefs.size() == 1 : "Unexpected identifier set in "+resource+" refined schema: "+identifierDefs;
         ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
         //TODO: set matching rule instead of null
-		return QueryBuilder.queryFor(ShadowType.class, prismContext)
+		return prismContext.queryFor(ShadowType.class)
 				.itemWithDef(identifierDef, ShadowType.F_ATTRIBUTES, identifierDef.getName()).eq(identifier)
 				.and().item(ShadowType.F_OBJECT_CLASS).eq(rAccount.getObjectClassDefinition().getTypeName())
 				.and().item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
@@ -1121,7 +1098,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         assert identifierDefs.size() == 1 : "Unexpected identifier set in "+resource+" refined schema: "+identifierDefs;
         ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
 		//TODO: set matching rule instead of null
-		return QueryBuilder.queryFor(ShadowType.class, prismContext)
+		return prismContext.queryFor(ShadowType.class)
 				.itemWithDef(identifierDef, ShadowType.F_ATTRIBUTES, identifierDef.getName()).eq(identifier)
 				.and().item(ShadowType.F_OBJECT_CLASS).eq(rAccount.getTypeName())
 				.and().item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
@@ -1136,7 +1113,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 	protected ObjectQuery createShadowQueryByAttribute(ObjectClassComplexTypeDefinition rAccount, String attributeName, String attributeValue, PrismObject<ResourceType> resource) throws SchemaException {
         ResourceAttributeDefinition<Object> attrDef = rAccount.findAttributeDefinition(attributeName);
-		return QueryBuilder.queryFor(ShadowType.class, prismContext)
+		return prismContext.queryFor(ShadowType.class)
 				.itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getName()).eq(attributeValue)
 				.and().item(ShadowType.F_OBJECT_CLASS).eq(rAccount.getTypeName())
 				.and().item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
@@ -1313,7 +1290,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 
 	protected ItemPath getExtensionPath(QName propName) {
-		return new ItemPath(ObjectType.F_EXTENSION, propName);
+		return ItemPath.create(ObjectType.F_EXTENSION, propName);
 	}
 
 	protected void assertNumberOfAttributes(PrismObject<ShadowType> shadow, Integer expectedNumberOfAttributes) {
@@ -1862,7 +1839,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		if (attributesContainer == null || attributesContainer.isEmpty()) {
 			return;
 		}
-		PrismProperty attribute = attributesContainer.findProperty(attrQname);
+		PrismProperty attribute = attributesContainer.findProperty(ItemName.fromQName(attrQname));
 		assertNull("Unexpected attribute "+attrQname+" in "+shadow+": "+attribute, attribute);
 	}
 
@@ -1889,13 +1866,13 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		Collection modifications = new ArrayList<>(1);
 
 		PrismPropertyDefinition<String> statePropertyDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(CaseType.class).findPropertyDefinition(CaseType.F_STATE);
-		PropertyDelta<String> statusDelta = statePropertyDef.createEmptyDelta(new ItemPath(CaseType.F_STATE));
-		statusDelta.addValueToReplace(new PrismPropertyValue<>(SchemaConstants.CASE_STATE_CLOSED));
+		PropertyDelta<String> statusDelta = statePropertyDef.createEmptyDelta(CaseType.F_STATE);
+		statusDelta.setRealValuesToReplace(SchemaConstants.CASE_STATE_CLOSED);
 		modifications.add(statusDelta);
 
 		PrismPropertyDefinition<String> outcomePropertyDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(CaseType.class).findPropertyDefinition(CaseType.F_OUTCOME);
-		PropertyDelta<String> outcomeDelta = outcomePropertyDef.createEmptyDelta(new ItemPath(CaseType.F_OUTCOME));
-		outcomeDelta.addValueToReplace(new PrismPropertyValue<>(OperationResultStatusType.SUCCESS.value()));
+		PropertyDelta<String> outcomeDelta = outcomePropertyDef.createEmptyDelta(CaseType.F_OUTCOME);
+		outcomeDelta.setRealValuesToReplace(OperationResultStatusType.SUCCESS.value());
 		modifications.add(outcomeDelta);
 
 		repositoryService.modifyObject(CaseType.class, caseOid, modifications, null, result);
@@ -2146,7 +2123,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 
 	protected S_FilterEntryOrEmpty queryFor(Class<? extends Containerable> queryClass) {
-		return QueryBuilder.queryFor(queryClass, prismContext);
+		return prismContext.queryFor(queryClass);
 	}
 
 	protected void displayCounters(InternalCounters... counters) {
@@ -2212,7 +2189,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 	
 	protected ItemPath getMetadataPath(QName propName) {
-		return new ItemPath(ObjectType.F_METADATA, propName);
+		return ItemPath.create(ObjectType.F_METADATA, propName);
 	}
 	
 	protected boolean isOsUnix() {
@@ -2232,24 +2209,23 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertEquals("Wrong message", expectedMessage, realMessage);
 	}
 	
-	protected ObjectDelta<UserType> createModifyUserReplaceDelta(String userOid, QName propertyName, Object... newRealValue) {
-		return createModifyUserReplaceDelta(userOid, new ItemPath(propertyName), newRealValue);
-	}
-
 	protected ObjectDelta<UserType> createModifyUserReplaceDelta(String userOid, ItemPath propertyName, Object... newRealValue) {
-		return ObjectDelta.createModificationReplaceProperty(UserType.class, userOid, propertyName, prismContext, newRealValue);
+		return ObjectDeltaCreationUtil
+				.createModificationReplaceProperty(UserType.class, userOid, propertyName, prismContext, newRealValue);
 	}
 
 	protected ObjectDelta<UserType> createModifyUserAddDelta(String userOid, ItemPath propertyName, Object... newRealValue) {
-		return ObjectDelta.createModificationAddProperty(UserType.class, userOid, propertyName, prismContext, newRealValue);
+		return ObjectDeltaCreationUtil
+				.createModificationAddProperty(UserType.class, userOid, propertyName, prismContext, newRealValue);
 	}
 
 	protected ObjectDelta<UserType> createModifyUserDeleteDelta(String userOid, ItemPath propertyName, Object... newRealValue) {
-		return ObjectDelta.createModificationDeleteProperty(UserType.class, userOid, propertyName, prismContext, newRealValue);
+		return ObjectDeltaCreationUtil
+				.createModificationDeleteProperty(UserType.class, userOid, propertyName, prismContext, newRealValue);
 	}
 
 	protected ObjectDelta<ShadowType> createModifyAccountShadowEmptyDelta(String accountOid) {
-		return ObjectDelta.createEmptyModifyDelta(ShadowType.class, accountOid, prismContext);
+		return ObjectDeltaCreationUtil.createEmptyModifyDelta(ShadowType.class, accountOid, prismContext);
 	}
 
 	protected ObjectDelta<ShadowType> createModifyAccountShadowReplaceAttributeDelta(String accountOid,
@@ -2259,16 +2235,17 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 	protected ObjectDelta<ShadowType> createModifyAccountShadowReplaceAttributeDelta(String accountOid,
 			PrismObject<ResourceType> resource, QName attributeName, Object... newRealValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
-		return createModifyAccountShadowReplaceDelta(accountOid, resource, new ItemPath(ShadowType.F_ATTRIBUTES, attributeName), newRealValue);
+		return createModifyAccountShadowReplaceDelta(accountOid, resource, ItemPath.create(ShadowType.F_ATTRIBUTES, attributeName), newRealValue);
 	}
 
 	protected ObjectDelta<ShadowType> createModifyAccountShadowReplaceDelta(String accountOid, PrismObject<ResourceType> resource, ItemPath itemPath, Object... newRealValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
-		if (ShadowType.F_ATTRIBUTES.equals(ItemPath.getName(itemPath.first()))) {
-			PropertyDelta<?> attributeDelta = createAttributeReplaceDelta(resource, ((NameItemPathSegment)itemPath.last()).getName(), newRealValue);
-			ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModifyDelta(accountOid, attributeDelta, ShadowType.class, prismContext);
+		if (itemPath.startsWithName(ShadowType.F_ATTRIBUTES)) {
+			PropertyDelta<?> attributeDelta = createAttributeReplaceDelta(resource, ItemPath.toName(itemPath.last()), newRealValue);
+			ObjectDelta<ShadowType> accountDelta = ObjectDeltaCreationUtil
+					.createModifyDelta(accountOid, attributeDelta, ShadowType.class, prismContext);
 			return accountDelta;
 		} else {
-			ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(
+			ObjectDelta<ShadowType> accountDelta = ObjectDeltaCreationUtil.createModificationReplaceProperty(
 					ShadowType.class, accountOid, itemPath, prismContext, newRealValue);
 			return accountDelta;
 		}
@@ -2283,7 +2260,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		if (attributeDefinition == null) {
 			throw new SchemaException("No definition for attribute "+ attributeQName+ " in " + resource);
 		}
-		return PropertyDelta.createModificationReplaceProperty(new ItemPath(ShadowType.F_ATTRIBUTES, attributeQName),
+		return prismContext.deltaFactory().property().createModificationReplaceProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, attributeQName),
 				attributeDefinition, newRealValue);
 	}
 
@@ -2296,7 +2273,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		if (attributeDefinition == null) {
 			throw new SchemaException("No definition for attribute "+ attributeQName+ " in " + resource);
 		}
-		return PropertyDelta.createModificationAddProperty(new ItemPath(ShadowType.F_ATTRIBUTES, attributeQName),
+		return prismContext.deltaFactory().property().createModificationAddProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, attributeQName),
 				attributeDefinition, newRealValue);
 	}
 
@@ -2309,7 +2286,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		if (attributeDefinition == null) {
 			throw new SchemaException("No definition for attribute "+ attributeQName+ " in " + resource);
 		}
-		return PropertyDelta.createModificationDeleteProperty(new ItemPath(ShadowType.F_ATTRIBUTES, attributeQName),
+		return prismContext.deltaFactory().property().createModificationDeleteProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, attributeQName),
 				attributeDefinition, newRealValue);
 	}
 
@@ -2323,7 +2300,8 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 
 	protected ObjectDelta<ShadowType> createModifyAccountShadowAddDelta(String accountOid, ItemPath propertyName, Object... newRealValue) {
-		return ObjectDelta.createModificationAddProperty(ShadowType.class, accountOid, propertyName, prismContext, newRealValue);
+		return ObjectDeltaCreationUtil
+				.createModificationAddProperty(ShadowType.class, accountOid, propertyName, prismContext, newRealValue);
 	}
 	
 	protected QName getAttributeQName(PrismObject<ResourceType> resource, String attributeLocalName) {
@@ -2332,7 +2310,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 
 	protected ItemPath getAttributePath(PrismObject<ResourceType> resource, String attributeLocalName) {
-		return new ItemPath(ShadowType.F_ATTRIBUTES, getAttributeQName(resource, attributeLocalName));
+		return ItemPath.create(ShadowType.F_ATTRIBUTES, getAttributeQName(resource, attributeLocalName));
 	}
 	
 	protected ObjectDelta<ShadowType> createAccountPaswordDelta(String shadowOid, String newPassword, String oldPassword) throws SchemaException {
@@ -2446,7 +2424,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 	
 	protected <T> RawType rawize(QName attrName, T value) {
-		return new RawType(new PrismPropertyValue(value), attrName, prismContext);
+		return new RawType(prismContext.itemFactory().createPrismPropertyValue(value), attrName, prismContext);
 	}
 	
 	protected void markShadowTombstone(String oid) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
@@ -2470,5 +2448,35 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	
 	protected void displayCurrentTime() {
 		display("Current time", clock.currentTimeXMLGregorianCalendar());
+	}
+
+	protected QueryConverter getQueryConverter() {
+		return prismContext.getQueryConverter();
+	}
+
+	protected Collection<SelectorOptions<GetOperationOptions>> retrieveItemsNamed(Object... items) {
+		return schemaHelper.getOperationOptionsBuilder()
+				.items(items).retrieve()
+				.build();
+	}
+
+	protected GetOperationOptionsBuilder getOperationOptionsBuilder() {
+		return schemaHelper.getOperationOptionsBuilder();
+	}
+
+	@NotNull
+	protected Collection<SelectorOptions<GetOperationOptions>> retrieveTaskResult() {
+		return getOperationOptionsBuilder()
+			       .item(TaskType.F_RESULT).retrieve()
+			       .build();
+	}
+
+	// use only if necessary (use ItemPath.create instead)
+	protected ItemPath path(Object... components) {
+		return ItemPath.create(components);
+	}
+
+	protected ItemFactory itemFactory() {
+		return prismContext.itemFactory();
 	}
 }

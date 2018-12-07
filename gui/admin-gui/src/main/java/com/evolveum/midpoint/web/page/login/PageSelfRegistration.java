@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.web.page.login;
 
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
@@ -31,7 +32,6 @@ import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 
-import com.evolveum.midpoint.gui.api.component.captcha.CaptchaPanel;
 import com.evolveum.midpoint.gui.api.component.password.PasswordPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -404,21 +404,20 @@ public class PageSelfRegistration extends PageAbstractFlow {
 		if (getOidFromParams(getPageParameters()) == null) {
 			LOGGER.trace("Preparing user ADD delta (new user registration)");
 			UserType userType = prepareUserToSave(task, result);
-			ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(userType.asPrismObject());
+			ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil.createAddDelta(userType.asPrismObject());
 			LOGGER.trace("Going to register user {}", userDelta);
 			return userDelta;
 		} else {
 			LOGGER.trace("Preparing user MODIFY delta (preregistered user registration)");
 			ObjectDelta<UserType> delta = null;
 			if (!isCustomFormDefined()) {
-				delta = ObjectDelta.createEmptyModifyDelta(UserType.class,
+				delta = ObjectDeltaCreationUtil.createEmptyModifyDelta(UserType.class,
 						getOidFromParams(getPageParameters()), getPrismContext());
 				if (getSelfRegistrationConfiguration().getInitialLifecycleState() != null) {
 					delta.addModificationReplaceProperty(UserType.F_LIFECYCLE_STATE,
 							getSelfRegistrationConfiguration().getInitialLifecycleState());
 				}
-				 delta.addModificationReplaceProperty(SchemaConstants.PATH_PASSWORD_VALUE,
-				 createPassword().getValue());
+				delta.addModificationReplaceProperty(SchemaConstants.PATH_PASSWORD_VALUE, createPassword().getValue());
 			} else {
 				delta = getDynamicFormPanel().getObjectDelta();
 			}

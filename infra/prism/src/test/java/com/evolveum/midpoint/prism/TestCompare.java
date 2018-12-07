@@ -25,6 +25,7 @@ import java.io.IOException;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
@@ -32,9 +33,6 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.foo.UserType;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -121,8 +119,8 @@ public abstract class TestCompare extends AbstractPrismTest {
 
 		PrismAsserts.assertPropertyReplace(jackDelta, USER_FULLNAME_QNAME, "Jack Sparrow");
 
-		PrismAsserts.assertPropertyDelete(jackDelta, new ItemPath(USER_EXTENSION_QNAME, EXTENSION_MULTI_ELEMENT), "dva");
-		PrismAsserts.assertPropertyAdd(jackDelta, new ItemPath(USER_EXTENSION_QNAME, EXTENSION_MULTI_ELEMENT), "osem");
+		PrismAsserts.assertPropertyDelete(jackDelta, ItemPath.create(USER_EXTENSION_QNAME, EXTENSION_MULTI_ELEMENT), "dva");
+		PrismAsserts.assertPropertyAdd(jackDelta, ItemPath.create(USER_EXTENSION_QNAME, EXTENSION_MULTI_ELEMENT), "osem");
 		// TODO: assert BAR
 
 		PrismAsserts.assertPropertyDelete(jackDelta, USER_ADDITIONALNAMES_QNAME, "Captain");
@@ -134,13 +132,10 @@ public abstract class TestCompare extends AbstractPrismTest {
 		PrismAsserts.assertNoItemDelta(jackDelta, USER_VALID_FROM_PATH);
 
 		PrismAsserts.assertPropertyReplace(jackDelta,
-				new ItemPath(
-						new NameItemPathSegment(USER_ASSIGNMENT_QNAME),
-						new IdItemPathSegment(USER_ASSIGNMENT_2_ID),
-						new NameItemPathSegment(USER_DESCRIPTION_QNAME)),
+				ItemPath.create(USER_ASSIGNMENT_QNAME, USER_ASSIGNMENT_2_ID, USER_DESCRIPTION_QNAME),
 				"Assignment II");
 
-		ContainerDelta<?> assignment3Delta = PrismAsserts.assertContainerAddGetContainerDelta(jackDelta, new ItemPath(USER_ASSIGNMENT_QNAME));
+		ContainerDelta<?> assignment3Delta = PrismAsserts.assertContainerAddGetContainerDelta(jackDelta, USER_ASSIGNMENT_QNAME);
 		PrismContainerValue<?> assignment3DeltaAddValue = assignment3Delta.getValuesToAdd().iterator().next();
 		assertEquals("Assignment 3 wrong ID", USER_ASSIGNMENT_3_ID, assignment3DeltaAddValue.getId());
 
@@ -181,8 +176,8 @@ public abstract class TestCompare extends AbstractPrismTest {
 
 		PrismAsserts.assertPropertyReplace(jackDelta, USER_FULLNAME_QNAME, "Jack Sparrow");
 
-		PrismAsserts.assertPropertyDelete(jackDelta, new ItemPath(USER_EXTENSION_QNAME, EXTENSION_MULTI_ELEMENT), "dva");
-		PrismAsserts.assertPropertyAdd(jackDelta, new ItemPath(USER_EXTENSION_QNAME, EXTENSION_MULTI_ELEMENT), "osem");
+		PrismAsserts.assertPropertyDelete(jackDelta, ItemPath.create(USER_EXTENSION_QNAME, EXTENSION_MULTI_ELEMENT), "dva");
+		PrismAsserts.assertPropertyAdd(jackDelta, ItemPath.create(USER_EXTENSION_QNAME, EXTENSION_MULTI_ELEMENT), "osem");
 		// TODO: assert BAR
 
 		PrismAsserts.assertPropertyDelete(jackDelta, USER_ADDITIONALNAMES_QNAME, "Captain");
@@ -193,13 +188,10 @@ public abstract class TestCompare extends AbstractPrismTest {
 		PrismAsserts.assertPropertyDelete(jackDelta, USER_VALID_FROM_PATH, USER_JACK_VALID_FROM);
 
 		PrismAsserts.assertPropertyReplace(jackDelta,
-				new ItemPath(
-						new NameItemPathSegment(USER_ASSIGNMENT_QNAME),
-						new IdItemPathSegment(USER_ASSIGNMENT_2_ID),
-						new NameItemPathSegment(USER_DESCRIPTION_QNAME)),
+				ItemPath.create(USER_ASSIGNMENT_QNAME, USER_ASSIGNMENT_2_ID, USER_DESCRIPTION_QNAME),
 				"Assignment II");
 
-		ContainerDelta<?> assignment3Delta = PrismAsserts.assertContainerAddGetContainerDelta(jackDelta, new ItemPath(USER_ASSIGNMENT_QNAME));
+		ContainerDelta<?> assignment3Delta = PrismAsserts.assertContainerAddGetContainerDelta(jackDelta, USER_ASSIGNMENT_QNAME);
 		PrismContainerValue<?> assignment3DeltaAddValue = assignment3Delta.getValuesToAdd().iterator().next();
 		assertEquals("Assignment 3 wrong ID", USER_ASSIGNMENT_3_ID, assignment3DeltaAddValue.getId());
 
@@ -243,42 +235,42 @@ public abstract class TestCompare extends AbstractPrismTest {
 
 		PrismContext prismContext = constructInitializedPrismContext();
 
-		PrismReferenceValue val11 = new PrismReferenceValue("oid1");
+		PrismReferenceValue val11 = new PrismReferenceValueImpl("oid1");
 		val11.setTargetType(ACCOUNT_TYPE_QNAME);
 
-		PrismReferenceValue val12 = new PrismReferenceValue("oid1");
+		PrismReferenceValue val12 = new PrismReferenceValueImpl("oid1");
 		val12.setTargetType(ACCOUNT_TYPE_QNAME);
 
-		PrismReferenceValue val13 = new PrismReferenceValue("oid1");
+		PrismReferenceValue val13 = new PrismReferenceValueImpl("oid1");
 		// No type
 
-		PrismReferenceValue val21 = new PrismReferenceValue();
+		PrismReferenceValue val21 = new PrismReferenceValueImpl();
 		val21.setTargetType(ACCOUNT_TYPE_QNAME);
 
-		PrismReferenceValue val22 = new PrismReferenceValue();
+		PrismReferenceValue val22 = new PrismReferenceValueImpl();
 		val22.setTargetType(ACCOUNT_TYPE_QNAME);
 
-		PrismReferenceValue val23 = new PrismReferenceValue();
+		PrismReferenceValue val23 = new PrismReferenceValueImpl();
 		// No type
 
 		PrismObject<UserType> user = prismContext.parseObject(getFile(USER_JACK_FILE_BASENAME));
 
-		PrismReferenceValue val31 = new PrismReferenceValue();
+		PrismReferenceValue val31 = new PrismReferenceValueImpl();
 		val31.setObject(user);
 
-		PrismReferenceValue val32 = new PrismReferenceValue();
+		PrismReferenceValue val32 = new PrismReferenceValueImpl();
 		val32.setObject(user.clone());
 
-		PrismReferenceValue val33 = new PrismReferenceValue();
+		PrismReferenceValue val33 = new PrismReferenceValueImpl();
 		// No type, no object
 
-		PrismReferenceValue val34 = new PrismReferenceValue();
+		PrismReferenceValue val34 = new PrismReferenceValueImpl();
 		PrismObject<UserType> differentUser = user.clone();
 		differentUser.setOid(null);
 		differentUser.setPropertyRealValue(UserType.F_FULL_NAME, "Jack Different");
 		val34.setObject(differentUser);
 
-		PrismReferenceValue val35 = new PrismReferenceValue();
+		PrismReferenceValue val35 = new PrismReferenceValueImpl();
 		PrismObject<UserType> yetAnotherDifferentUser = user.clone();
 		yetAnotherDifferentUser.setOid(null);
 		yetAnotherDifferentUser.setPropertyRealValue(UserType.F_FULL_NAME, "John J Random");
@@ -320,49 +312,49 @@ public abstract class TestCompare extends AbstractPrismTest {
 
 		PrismReferenceDefinitionImpl ref1Def = new PrismReferenceDefinitionImpl(REF_QNAME, REF_TYPE_QNAME, prismContext);
 		ref1Def.setTargetTypeName(ACCOUNT_TYPE_QNAME);
-		PrismReference ref1 = new PrismReference(REF_QNAME, ref1Def, prismContext);
+		PrismReference ref1 = prismContext.itemFactory().createPrismReference(REF_QNAME, ref1Def);
 
-		PrismReferenceValue val11 = new PrismReferenceValue("oid1");
+		PrismReferenceValue val11 = new PrismReferenceValueImpl("oid1");
 		val11.setTargetType(ACCOUNT_TYPE_QNAME);
 		ref1.add(val11);
 
-		PrismReferenceValue val12 = new PrismReferenceValue("oid1");
+		PrismReferenceValue val12 = new PrismReferenceValueImpl("oid1");
 		val12.setTargetType(ACCOUNT_TYPE_QNAME);
 		ref1.add(val12);
 
-		PrismReferenceValue val13 = new PrismReferenceValue("oid1");
+		PrismReferenceValue val13 = new PrismReferenceValueImpl("oid1");
 		// No type
 		ref1.add(val13);
 
-		PrismReferenceValue val14 = new PrismReferenceValue("oid1");
+		PrismReferenceValue val14 = new PrismReferenceValueImpl("oid1");
 		// No type
 		ref1.add(val14);
 
-		PrismReferenceDefinition ref2Def = new PrismReferenceDefinitionImpl(REF_QNAME, REF_TYPE_QNAME, prismContext);
+		PrismReferenceDefinition ref2Def = prismContext.definitionFactory().createReferenceDefinition(REF_QNAME, REF_TYPE_QNAME);
 		// no target type def
-		PrismReference ref2 = new PrismReference(REF_QNAME, ref2Def, prismContext);
+		PrismReference ref2 = prismContext.itemFactory().createPrismReference(REF_QNAME, ref2Def);
 
-		PrismReferenceValue val21 = new PrismReferenceValue("oid1");
+		PrismReferenceValue val21 = new PrismReferenceValueImpl("oid1");
 		val21.setTargetType(ACCOUNT_TYPE_QNAME);
 		ref2.add(val21);
 
-		PrismReferenceValue val22 = new PrismReferenceValue("oid1");
+		PrismReferenceValue val22 = new PrismReferenceValueImpl("oid1");
 		val22.setTargetType(ACCOUNT_TYPE_QNAME);
 		ref2.add(val22);
 
-		PrismReferenceValue val23 = new PrismReferenceValue("oid1");
+		PrismReferenceValue val23 = new PrismReferenceValueImpl("oid1");
 		// No type
 		ref2.add(val23);
 
 		// No def in val4x
 
-		PrismReferenceValue val41 = new PrismReferenceValue("oid1");
+		PrismReferenceValue val41 = new PrismReferenceValueImpl("oid1");
 		val41.setTargetType(ACCOUNT_TYPE_QNAME);
 
-		PrismReferenceValue val42 = new PrismReferenceValue("oid1");
+		PrismReferenceValue val42 = new PrismReferenceValueImpl("oid1");
 		val42.setTargetType(ACCOUNT_TYPE_QNAME);
 
-		PrismReferenceValue val43 = new PrismReferenceValue("oid1");
+		PrismReferenceValue val43 = new PrismReferenceValueImpl("oid1");
 		// No type
 
 

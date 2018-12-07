@@ -26,6 +26,9 @@ import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -51,6 +54,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import javax.xml.namespace.QName;
+import java.util.Collection;
 
 /**
  * Created by honchar.
@@ -172,11 +176,21 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         return true;
     }
 
+    protected void initCustomPaging(){
+    	getAssignmentsTabStorage().setPaging(getPrismContext().queryFactory()
+			    .createPaging(0, (int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE)));
+    }
+
+	@Override
+	protected TableId getTableId() {
+		return UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE;
+	}
+
     protected ObjectQuery createObjectQuery() {
         Collection<QName> delegationRelations = getParentPage().getRelationRegistry()
                 .getAllRelationsFor(RelationKindType.DELEGATION);
-        ObjectFilter deputyFilter = QueryBuilder.queryFor(AssignmentType.class, getParentPage().getPrismContext())
-                .item(new ItemPath(AssignmentType.F_TARGET_REF))
+        ObjectFilter deputyFilter = getParentPage().getPrismContext().queryFor(AssignmentType.class)
+                .item(AssignmentType.F_TARGET_REF)
                 .ref(delegationRelations.toArray(new QName[0]))
                 .buildFilter();
 
@@ -193,11 +207,11 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
             targetRefFilter.setOidNullAsAny(true);
             targetRefFilter.setRelationNullAsAny(true);
         }
-        ObjectQuery query = QueryBuilder.queryFor(AssignmentType.class, getParentPage().getPrismContext())
+        ObjectQuery query = getParentPage().getPrismContext().queryFor(AssignmentType.class)
                 .not()
                 .exists(AssignmentType.F_POLICY_RULE)
                 .build();
-        query.addFilter(NotFilter.createNot(deputyFilter));
+        query.addFilter(getPrismContext().queryFactory().createNot(deputyFilter));
         query.addFilter(targetRefFilter);
         return query;
     }
@@ -210,16 +224,17 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         if (assignmentContainer == null || assignmentContainer.getContainerValue() == null){
             return Model.of("");
         }
-        PropertyOrReferenceWrapper policyRuleWrapper = (PropertyOrReferenceWrapper)assignmentContainer.findPropertyWrapper(new ItemPath(assignmentContainer.getPath(), AssignmentType.F_TENANT_REF));
-        return Model.of(WebComponentUtil.getReferencedObjectDisplayNamesAndNames((DefaultReferencableImpl)((ValueWrapper<DefaultReferencableImpl>)policyRuleWrapper.getValues().get(0)).getValue().getRealValue(), false));
+        PropertyOrReferenceWrapper policyRuleWrapper = assignmentContainer.findPropertyWrapper(
+			    ItemPath.create(assignmentContainer.getPath(), AssignmentType.F_TENANT_REF));
+        return Model.of(WebComponentUtil.getReferencedObjectDisplayNamesAndNames((Referencable) ((ValueWrapper<Referencable>)policyRuleWrapper.getValues().get(0)).getValue().getRealValue(), false));
     }
 
     private IModel<String> getOrgRefLabelModel(ContainerValueWrapper<AssignmentType> assignmentContainer){
         if (assignmentContainer == null || assignmentContainer.getContainerValue() == null){
             return Model.of("");
         }
-        PropertyOrReferenceWrapper policyRuleWrapper = (PropertyOrReferenceWrapper)assignmentContainer.findPropertyWrapper(new ItemPath(assignmentContainer.getPath(), AssignmentType.F_ORG_REF));
-        return Model.of(WebComponentUtil.getReferencedObjectDisplayNamesAndNames((DefaultReferencableImpl)((ValueWrapper<DefaultReferencableImpl>)policyRuleWrapper.getValues().get(0)).getValue().getRealValue(), false));
+        PropertyOrReferenceWrapper policyRuleWrapper = assignmentContainer.findPropertyWrapper(ItemPath.create(assignmentContainer.getPath(), AssignmentType.F_ORG_REF));
+        return Model.of(WebComponentUtil.getReferencedObjectDisplayNamesAndNames((Referencable) ((ValueWrapper<Referencable>)policyRuleWrapper.getValues().get(0)).getValue().getRealValue(), false));
 
     }
 
@@ -246,4 +261,48 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         }
         return Model.of("");
     }
+
+	protected List<ObjectTypes> getObjectTypesList(){
+        return WebComponentUtil.createAssignableTypesList();
+    }
+
+	@Override
+	protected Fragment getCustomSpecificContainers(String contentAreaId, ContainerValueWrapper<AssignmentType> modelObject) {
+		Fragment specificContainers = new Fragment(contentAreaId, AssignmentPanel.ID_SPECIFIC_CONTAINERS_FRAGMENT, this);
+		specificContainers.add(getSpecificContainerPanel(modelObject));
+		return specificContainers;
+	}
+	
+	@Override
+	protected IModel<ContainerWrapper> getSpecificContainerModel(ContainerValueWrapper<AssignmentType> modelObject) {
+		if (ConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(modelObject.getContainerValue().getValue()))) {
+			ContainerWrapper<ConstructionType> constructionWrapper = modelObject.findContainerWrapper(ItemPath.create(modelObject.getPath(),
+					AssignmentType.F_CONSTRUCTION));
+
+			return Model.of(constructionWrapper);
+		}
+
+		if (PersonaConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(modelObject.getContainerValue().getValue()))) {
+			ContainerWrapper<PolicyRuleType> personasWrapper = modelObject.findContainerWrapper(ItemPath.create(modelObject.getPath(),
+					AssignmentType.F_PERSONA_CONSTRUCTION));
+
+			return Model.of(personasWrapper);
+		}
+		return Model.of();
+	}
+
+	@Override
+	protected List<SearchItemDefinition> createSearchableItems(PrismContainerDefinition<AssignmentType> containerDef) {
+		List<SearchItemDefinition> defs = new ArrayList<>();
+
+		SearchFactory.addSearchRefDef(containerDef, AssignmentType.F_TARGET_REF, defs, AreaCategoryType.ADMINISTRATION, getPageBase());
+		SearchFactory.addSearchRefDef(containerDef, ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF), defs, AreaCategoryType.ADMINISTRATION, getPageBase());
+		SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), defs);
+		SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS), defs);
+		
+		defs.addAll(SearchFactory.createExtensionDefinitionList(containerDef));
+		
+		return defs;
+	}
+	
 }

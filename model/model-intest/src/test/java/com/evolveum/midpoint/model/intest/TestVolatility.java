@@ -21,6 +21,7 @@ import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -43,7 +44,6 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.getAttributeValue;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -314,7 +314,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
 
         TestUtil.displayWhen(TEST_NAME);
         PrismObject<UserType> user = PrismTestUtil.parseObject(USER_LARGO_WITH_ASSIGNMENT_FILE);
-        ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(user);
+        ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil.createAddDelta(user);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
         // WHEN

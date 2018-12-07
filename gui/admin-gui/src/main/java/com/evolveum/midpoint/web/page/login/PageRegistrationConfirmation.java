@@ -7,7 +7,8 @@ import java.util.stream.Collectors;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
@@ -22,10 +23,8 @@ import org.springframework.security.core.AuthenticationException;
 
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.context.NonceAuthenticationContext;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -148,7 +147,7 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 			List<AssignmentType> assignmentsToCreate = rolesToAssign.stream()
 					.map(ref -> ObjectTypeUtil.createAssignmentTo(ref, prismContext))
 					.collect(Collectors.toList());
-			ObjectDelta<Objectable> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+			ObjectDelta<Objectable> delta = prismContext.deltaFor(UserType.class)
 					.item(UserType.F_ASSIGNMENT).addRealValues(assignmentsToCreate)
 					.asObjectDelta(userOid);
 			runAsChecked(() -> {
@@ -170,8 +169,8 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 		try {
 			runAsChecked(() -> {
 				Task task = createSimpleTask(OPERATION_REMOVE_NONCE_AND_SET_LIFECYCLE_STATE);
-				ObjectDelta<UserType> delta = ObjectDelta.createModificationDeleteContainer(UserType.class, userOid,
-						new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_NONCE), getPrismContext(), nonce);
+				ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createModificationDeleteContainer(UserType.class, userOid,
+						ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_NONCE), getPrismContext(), nonce);
 				delta.addModificationReplaceProperty(UserType.F_LIFECYCLE_STATE, SchemaConstants.LIFECYCLE_ACTIVE);
 				WebModelServiceUtils.save(delta, result, task, PageRegistrationConfirmation.this);
 				return null;
@@ -199,9 +198,9 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 				assignment.setTargetRef(ObjectTypeUtil.createObjectRef(nonceType.getName(), ObjectTypes.ABSTRACT_ROLE));
 				getPrismContext().adopt(assignment);
 				List<ItemDelta> userDeltas = new ArrayList<>();
-				userDeltas.add(ContainerDelta.createModificationAdd(UserType.F_ASSIGNMENT,
+				userDeltas.add(getPrismContext().deltaFactory().container().createModificationAdd(UserType.F_ASSIGNMENT,
 						UserType.class, getPrismContext(), assignment));
-				assignRoleDelta = ObjectDelta.createModifyDelta(userOid, userDeltas, UserType.class, getPrismContext());
+				assignRoleDelta = ObjectDeltaCreationUtil.createModifyDelta(userOid, userDeltas, UserType.class, getPrismContext());
 				assignRoleDelta.setPrismContext(getPrismContext());
 				WebModelServiceUtils.save(assignRoleDelta, result, task, PageRegistrationConfirmation.this);
 				return null;

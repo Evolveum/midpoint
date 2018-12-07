@@ -25,14 +25,11 @@ import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
@@ -60,12 +57,12 @@ public class SearchProducerWorker extends BaseWorker<ExportOptions, PrismObject>
         Log log = context.getLog();
 
         try {
-            Collection<SelectorOptions<GetOperationOptions>> opts = new ArrayList<>();
+            GetOperationOptionsBuilder optionsBuilder = context.getSchemaHelper().getOperationOptionsBuilder();
             if (options.isRaw()) {
-                opts = GetOperationOptions.createRawCollection();
+                optionsBuilder = optionsBuilder.raw();
             }
 
-            NinjaUtils.addIncludeOptionsForExport(opts, type.getClassDefinition());
+            optionsBuilder = NinjaUtils.addIncludeOptionsForExport(optionsBuilder, type.getClassDefinition());
 
             ResultHandler handler = (object, parentResult) -> {
                 try {
@@ -77,7 +74,7 @@ public class SearchProducerWorker extends BaseWorker<ExportOptions, PrismObject>
             };
 
             RepositoryService repository = context.getRepository();
-            repository.searchObjectsIterative(type.getClassDefinition(), query, handler, opts, true, operation.getResult());
+            repository.searchObjectsIterative(type.getClassDefinition(), query, handler, optionsBuilder.build(), true, operation.getResult());
         } catch (SchemaException ex) {
             log.error("Unexpected exception, reason: {}", ex, ex.getMessage());
         } catch (NinjaException ex) {

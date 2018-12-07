@@ -23,6 +23,10 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.PendingOperationPanel;
+import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.QueryFactory;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -61,16 +65,9 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -286,6 +283,7 @@ public abstract class ResourceContentPanel extends Panel {
 			@Override
 			protected ObjectQuery createContentQuery() {
 				ObjectQuery parentQuery = super.createContentQuery();
+				QueryFactory queryFactory = getPrismContext().queryFactory();
 
 				List<ObjectFilter> filters = new ArrayList<>();
 				if (parentQuery != null) {
@@ -296,20 +294,13 @@ public abstract class ResourceContentPanel extends Panel {
 				if (customQuery != null && customQuery.getFilter() != null) {
 					filters.add(customQuery.getFilter());
 				}
-				ObjectQuery query = new ObjectQuery();
 				if (filters.size() == 1) {
-					query = ObjectQuery.createObjectQuery(filters.iterator().next());
-//					setProviderAvailableDataSize(query);
-					return query;
+					return queryFactory.createObjectQuery(filters.iterator().next());
 				}
-
 				if (filters.size() == 0) {
-//					setProviderAvailableDataSize(query);
 					return null;
 				}
-				query = ObjectQuery.createObjectQuery(AndFilter.createAnd(filters));
-//				setProviderAvailableDataSize(query);
-				return query;
+				return queryFactory.createObjectQuery(queryFactory.createAnd(filters));
 			}
 
 			@Override
@@ -347,7 +338,7 @@ public abstract class ResourceContentPanel extends Panel {
 
 		List<PrismObject<TaskType>> tasks = WebModelServiceUtils
 				.searchObjects(TaskType.class,
-						QueryBuilder.queryFor(TaskType.class, getPageBase().getPrismContext())
+						getPageBase().getPrismContext().queryFor(TaskType.class)
 								.item(TaskType.F_OBJECT_REF).ref(getResourceModel().getObject().getOid())
 								.build(),
 						result, getPageBase());
@@ -427,7 +418,7 @@ public abstract class ResourceContentPanel extends Panel {
 		PrismProperty<ShadowKindType> pKind;
 		try {
 			pKind = taskType.asPrismObject().findOrCreateProperty(
-					new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_KIND));
+					ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_KIND));
 			pKind.setRealValue(getKind());
 		} catch (SchemaException e) {
 			getSession().warn("Could not set kind for new task " + e.getMessage());
@@ -436,7 +427,7 @@ public abstract class ResourceContentPanel extends Panel {
 		PrismProperty<String> pIntent;
 		try {
 			pIntent = taskType.asPrismObject().findOrCreateProperty(
-					new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_INTENT));
+					ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_INTENT));
 			pIntent.setRealValue(getIntent());
 		} catch (SchemaException e) {
 			getSession().warn("Could not set kind for new task " + e.getMessage());
@@ -462,12 +453,12 @@ public abstract class ResourceContentPanel extends Panel {
 		List<TaskType> tasksForKind = new ArrayList<>();
 		for (PrismObject<TaskType> task : tasks) {
 			PrismProperty<ShadowKindType> taskKind = task
-					.findProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_KIND));
+					.findProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_KIND));
 			ShadowKindType taskKindValue = null;
 			
 			if (taskKind == null) {
 				PrismProperty<QName> taskObjectClass = task
-						.findProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECTCLASS));
+						.findProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECTCLASS));
 				
 				if (taskObjectClass == null) {
 					LOGGER.warn("Bad task definition. Task {} doesn't contain definition either of objectClass or kind/intent", task.getOid());
@@ -502,7 +493,7 @@ public abstract class ResourceContentPanel extends Panel {
 				taskKindValue = taskKind.getRealValue();
 
 				PrismProperty<String> taskIntent = task.findProperty(
-						new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_INTENT));
+						ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_INTENT));
 				String taskIntentValue = null;
 				if (taskIntent != null) {
 					taskIntentValue = taskIntent.getRealValue();
@@ -557,14 +548,10 @@ public abstract class ResourceContentPanel extends Panel {
 	protected abstract Search createSearch();
 
 	private Collection<SelectorOptions<GetOperationOptions>> createSearchOptions() {
-
-		Collection<SelectorOptions<GetOperationOptions>> opts = SelectorOptions.createCollection(
-				ShadowType.F_ASSOCIATION, GetOperationOptions.createRetrieve(RetrieveOption.EXCLUDE));
-
-		if (addAdditionalOptions() != null) {
-			opts.add(addAdditionalOptions());
-		}
-		return opts;
+		GetOperationOptionsBuilder builder = getPageBase().getOperationOptionsBuilder()
+				.item(ShadowType.F_ASSOCIATION).dontRetrieve();
+		builder = addAdditionalOptions(builder);
+		return builder.build();
 	}
 
 	private StringResourceModel createStringResource(String key) {
@@ -1018,7 +1005,7 @@ public abstract class ResourceContentPanel extends Panel {
 
 		for (ShadowType shadow : selected) {
 			try {
-				ObjectDelta<ShadowType> deleteDelta = ObjectDelta.createDeleteDelta(ShadowType.class,
+				ObjectDelta<ShadowType> deleteDelta = ObjectDeltaCreationUtil.createDeleteDelta(ShadowType.class,
 						shadow.getOid(), getPageBase().getPrismContext());
 				getPageBase().getModelService().executeChanges(
 						WebComponentUtil.createDeltaCollection(deleteDelta), opts, task, result);
@@ -1080,7 +1067,7 @@ public abstract class ResourceContentPanel extends Panel {
 			ActivationStatusType status = enabled ? ActivationStatusType.ENABLED
 					: ActivationStatusType.DISABLED;
 			try {
-				ObjectDelta<ShadowType> deleteDelta = ObjectDelta.createModificationReplaceProperty(
+				ObjectDelta<ShadowType> deleteDelta = ObjectDeltaCreationUtil.createModificationReplaceProperty(
 						ShadowType.class, shadow.getOid(),
 						SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
 						getPageBase().getPrismContext(), status);
@@ -1130,7 +1117,7 @@ public abstract class ResourceContentPanel extends Panel {
 					modifications = new ArrayList<>();
 					FocusType owner = loadShadowOwner(shadow.getOid());
 					if (owner != null) {
-						delta = ReferenceDelta.createModificationDelete(FocusType.F_LINK_REF,
+						delta = getPageBase().getPrismContext().deltaFactory().reference().createModificationDelete(FocusType.F_LINK_REF,
 								getFocusDefinition(),
 								ObjectTypeUtil.createObjectRef(shadow, getPageBase().getPrismContext()).asReferenceValue());
 
@@ -1147,7 +1134,7 @@ public abstract class ResourceContentPanel extends Panel {
 				ShadowType shadow = selectedShadow.iterator().next();
 				FocusType owner = loadShadowOwner(shadow.getOid());
 				if (owner != null) {
-					delta = ReferenceDelta.createModificationDelete(FocusType.F_LINK_REF,
+					delta = getPageBase().getPrismContext().deltaFactory().reference().createModificationDelete(FocusType.F_LINK_REF,
 							getFocusDefinition(), ObjectTypeUtil.createObjectRef(shadow, getPageBase().getPrismContext()).asReferenceValue());
 
 					((Collection) modifications).add(delta);
@@ -1155,7 +1142,7 @@ public abstract class ResourceContentPanel extends Panel {
 				}
 				modifications = new ArrayList<>();
 
-				delta = ReferenceDelta.createModificationAdd(FocusType.F_LINK_REF, getFocusDefinition(),
+				delta = getPageBase().getPrismContext().deltaFactory().reference().createModificationAdd(FocusType.F_LINK_REF, getFocusDefinition(),
 						ObjectTypeUtil.createObjectRef(shadow, getPageBase().getPrismContext()).asReferenceValue());
 				((Collection) modifications).add(delta);
 				changeOwnerInternal(ownerToChange.getOid(), modifications, target);
@@ -1183,7 +1170,7 @@ public abstract class ResourceContentPanel extends Panel {
 			AjaxRequestTarget target) {
 		OperationResult result = new OperationResult(OPERATION_CHANGE_OWNER);
 		Task task = pageBase.createSimpleTask(OPERATION_CHANGE_OWNER);
-		ObjectDelta objectDelta = ObjectDelta.createModifyDelta(ownerOid, modifications, FocusType.class,
+		ObjectDelta objectDelta = ObjectDeltaCreationUtil.createModifyDelta(ownerOid, modifications, FocusType.class,
 				pageBase.getPrismContext());
 		Collection deltas = new ArrayList<>();
 		deltas.add(objectDelta);
@@ -1218,7 +1205,7 @@ public abstract class ResourceContentPanel extends Panel {
 		return selectedShadow;
 	}
 
-	protected abstract SelectorOptions<GetOperationOptions> addAdditionalOptions();
+	protected abstract GetOperationOptionsBuilder addAdditionalOptions(GetOperationOptionsBuilder builder);
 
 	protected abstract boolean isUseObjectCounting();
 }

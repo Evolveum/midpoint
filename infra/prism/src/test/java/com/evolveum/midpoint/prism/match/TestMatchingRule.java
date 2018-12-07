@@ -22,13 +22,12 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.IOException;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.PrismInternalTestUtil;
-import com.evolveum.midpoint.prism.match.MatchingRule;
-import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -68,7 +67,7 @@ public class TestMatchingRule {
 	@Test
 	public void testStringCaseInsensitive() throws Exception {
 		// GIVEN
-		MatchingRule<String> rule = matchingRuleRegistry.getMatchingRule(StringIgnoreCaseMatchingRule.NAME,
+		MatchingRule<String> rule = matchingRuleRegistry.getMatchingRule(PrismConstants.STRING_IGNORE_CASE_MATCHING_RULE_NAME,
 				DOMUtil.XSD_STRING);
 		// WHEN, THEN
 		assertMatch(rule, "foo", "foo");
@@ -83,7 +82,7 @@ public class TestMatchingRule {
 	@Test
 	public void testPolyStringStrict() throws Exception {
 		// GIVEN
-		MatchingRule<PolyString> rule = matchingRuleRegistry.getMatchingRule(PolyStringStrictMatchingRule.NAME,
+		MatchingRule<PolyString> rule = matchingRuleRegistry.getMatchingRule(PrismConstants.POLY_STRING_STRICT_MATCHING_RULE_NAME,
 				PolyStringType.COMPLEX_TYPE);
 		// WHEN, THEN
 		assertMatch(rule, new PolyString("Bar", "bar"), new PolyString("Bar", "bar"));
@@ -95,7 +94,7 @@ public class TestMatchingRule {
 	@Test
 	public void testPolyStringOrig() throws Exception {
 		// GIVEN
-		MatchingRule<PolyString> rule = matchingRuleRegistry.getMatchingRule(PolyStringOrigMatchingRule.NAME,
+		MatchingRule<PolyString> rule = matchingRuleRegistry.getMatchingRule(PrismConstants.POLY_STRING_ORIG_MATCHING_RULE_NAME,
 				PolyStringType.COMPLEX_TYPE);
 		// WHEN, THEN
 		assertMatch(rule, new PolyString("Bar", "bar"), new PolyString("Bar", "bar"));
@@ -107,7 +106,7 @@ public class TestMatchingRule {
 	@Test
 	public void testPolyStringNorm() throws Exception {
 		// GIVEN
-		MatchingRule<PolyString> rule = matchingRuleRegistry.getMatchingRule(PolyStringNormMatchingRule.NAME,
+		MatchingRule<PolyString> rule = matchingRuleRegistry.getMatchingRule(PrismConstants.POLY_STRING_NORM_MATCHING_RULE_NAME,
 				PolyStringType.COMPLEX_TYPE);
 		// WHEN, THEN
 		assertMatch(rule, new PolyString("Bar", "bar"), new PolyString("Bar", "bar"));
@@ -119,7 +118,7 @@ public class TestMatchingRule {
 	@Test
 	public void testXml() throws Exception {
 		// GIVEN
-		MatchingRule<String> rule = matchingRuleRegistry.getMatchingRule(XmlMatchingRule.NAME,
+		MatchingRule<String> rule = matchingRuleRegistry.getMatchingRule(PrismConstants.XML_MATCHING_RULE_NAME,
 				DOMUtil.XSD_STRING);
 		// WHEN, THEN
 		assertMatch(rule, "<foo>BAR</foo>", "<foo>BAR</foo>");

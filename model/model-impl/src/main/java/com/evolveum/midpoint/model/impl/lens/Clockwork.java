@@ -32,6 +32,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -61,20 +62,10 @@ import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleScriptEx
 import com.evolveum.midpoint.model.impl.migrator.Migrator;
 import com.evolveum.midpoint.model.impl.sync.RecomputeTaskHandler;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
-import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
@@ -753,7 +744,7 @@ public class Clockwork {
 		if (delta.isAdd() || delta.isDelete()) {
 			return true;
 		}
-		Collection<? extends ItemDelta<?,?>> attrDeltas = delta.findItemDeltasSubPath(new ItemPath(ShadowType.F_ATTRIBUTES));
+		Collection<? extends ItemDelta<?,?>> attrDeltas = delta.findItemDeltasSubPath(ShadowType.F_ATTRIBUTES);
 		if (attrDeltas != null && !attrDeltas.isEmpty()) {
 			return true;
 		}
@@ -815,7 +806,7 @@ public class Clockwork {
 			} else {
 				@SuppressWarnings({"unchecked", "raw"})
 				Class<F> fClass = (Class<F>) objectNew.asObjectable().getClass();
-				ObjectDelta<F> fakeDelta = new ObjectDelta<>(fClass, ChangeType.MODIFY, prismContext);
+				ObjectDelta<F> fakeDelta = prismContext.deltaFactory().object().create(fClass, ChangeType.MODIFY);
 				odo.setObjectDelta(fakeDelta);
 			}
 			odo.setExecutionResult(result);		// we rely on the fact that 'result' already contains record of the exception
@@ -913,13 +904,13 @@ public class Clockwork {
 		Class<? extends ObjectType> objectClass = object.asObjectable().getClass();
 		List<ItemDelta<?, ?>> deltas = new ArrayList<>();
 		if (!keepNoExecutions) {
-			deltas.add(DeltaBuilder.deltaFor(objectClass, prismContext)
+			deltas.add(prismContext.deltaFor(objectClass)
 					.item(ObjectType.F_OPERATION_EXECUTION)
 					.add(executionToAdd)
 					.asItemDelta());
 		}
 		if (!executionsToDelete.isEmpty()) {
-			deltas.add(DeltaBuilder.deltaFor(objectClass, prismContext)
+			deltas.add(prismContext.deltaFor(objectClass)
 					.item(ObjectType.F_OPERATION_EXECUTION)
 					.delete(PrismContainerValue.toPcvList(CloneUtil.cloneCollectionMembers(executionsToDelete)))
 					.asItemDelta());
@@ -978,7 +969,7 @@ public class Clockwork {
 	}
 
 	private <F extends ObjectType> ObjectDelta<F> simplifyDelta(ObjectDelta<F> delta) {
-		return new ObjectDelta<>(delta.getObjectTypeClass(), delta.getChangeType(), prismContext);
+		return prismContext.deltaFactory().object().create(delta.getObjectTypeClass(), delta.getChangeType());
 	}
 
 	private <F extends ObjectType> HookOperationMode triggerReconcileAffected(LensContext<F> context, Task task, OperationResult result) throws SchemaException {
@@ -1012,11 +1003,11 @@ public class Clockwork {
         // creating object query
         PrismPropertyDefinition propertyDef = prismContext.getSchemaRegistry()
                 .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
-        PrismReferenceValue referenceValue = new PrismReferenceValue(context.getFocusContext().getOid(), RoleType.COMPLEX_TYPE);
-        ObjectFilter refFilter = QueryBuilder.queryFor(FocusType.class, prismContext)
+        PrismReferenceValue referenceValue = prismContext.itemFactory().createPrismReferenceValue(context.getFocusContext().getOid(), RoleType.COMPLEX_TYPE);
+        ObjectFilter refFilter = prismContext.queryFor(FocusType.class)
 				.item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(referenceValue)
 				.buildFilter();
-        SearchFilterType filterType = QueryConvertor.createSearchFilterType(refFilter, prismContext);
+        SearchFilterType filterType = prismContext.getQueryConverter().createSearchFilterType(refFilter);
         QueryType queryType = new QueryType();
         queryType.setFilter(filterType);
         PrismProperty<QueryType> property = propertyDef.instantiate();
@@ -1133,7 +1124,7 @@ public class Clockwork {
 			checkNamesArePresent(clonedDeltas, primaryObject);
 			auditRecord.addDeltas(clonedDeltas);
 			if (auditRecord.getTarget() == null) {
-				auditRecord.setTarget(ModelImplUtils.determineAuditTargetDeltaOps(clonedDeltas));
+				auditRecord.setTarget(ModelImplUtils.determineAuditTargetDeltaOps(clonedDeltas, context.getPrismContext()));
 			}
 		} else if (stage == AuditEventStage.EXECUTION) {
 			auditRecord.setOutcome(result.getComputeStatus());

@@ -130,7 +130,8 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 		for (ConditionalSearchFilterType filter : synchronization.getCorrelation()){
             MapXNode clauseXNode = filter.getFilterClauseXNode();
             // key = q:equal, value = map (path + expression)
-            RootXNode expressionNode = ((MapXNode) clauseXNode.getSingleSubEntry("filter value").getValue()).getEntryAsRoot(new QName(SchemaConstants.NS_C, "expression"));
+            RootXNode expressionNode = ((MapXNode) clauseXNode.getSingleSubEntry("filter value").getValue())
+		            .getEntryAsRoot(new QName(SchemaConstants.NS_C, "expression"));
 
             ExpressionType expression = PrismTestUtil.getPrismContext().parserFor(expressionNode).parseRealValue(ExpressionType.class);
             LOGGER.debug("Expression: {}",SchemaDebugUtil.prettyPrint(expression));

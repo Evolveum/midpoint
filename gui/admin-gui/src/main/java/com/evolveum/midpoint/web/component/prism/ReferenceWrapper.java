@@ -15,9 +15,7 @@
  */
 package com.evolveum.midpoint.web.component.prism;
 
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -38,12 +36,13 @@ public class ReferenceWrapper extends PropertyOrReferenceWrapper<PrismReference,
 	
 	private List<QName> targetTypes;
 
-	public ReferenceWrapper(@Nullable ContainerValueWrapper container, PrismReference reference, boolean readonly, ValueStatus status) {
-		super(container, reference, readonly, status, null);
+	public ReferenceWrapper(@Nullable ContainerValueWrapper container, PrismReference reference, boolean readonly, ValueStatus status, PrismContext prismContext) {
+		super(container, reference, readonly, status, null, prismContext);
 	}
 	
-	public ReferenceWrapper(@Nullable ContainerValueWrapper container, PrismReference reference, boolean readonly, ValueStatus status, ItemPath path) {
-		super(container, reference, readonly, status, path);
+	public ReferenceWrapper(@Nullable ContainerValueWrapper container, PrismReference reference, boolean readonly,
+			ValueStatus status, ItemPath path, PrismContext prismContext) {
+		super(container, reference, readonly, status, path, prismContext);
 	}
 
 	public List<ValueWrapper> getValues() {
@@ -58,7 +57,7 @@ public class ReferenceWrapper extends PropertyOrReferenceWrapper<PrismReference,
 
 		for (PrismReferenceValue prismValue : item.getValues()) {
 			
-			values.add(new ValueWrapper(this, prismValue, ValueStatus.NOT_CHANGED));
+			values.add(new ValueWrapper(this, prismValue, ValueStatus.NOT_CHANGED, prismContext));
 		}
 
 		int minOccurs = getItemDefinition().getMinOccurs();
@@ -83,8 +82,8 @@ public class ReferenceWrapper extends PropertyOrReferenceWrapper<PrismReference,
 	
 	@Override
 	public ValueWrapper createAddedValue() {
-		PrismReferenceValue prv = new PrismReferenceValue();
-		return new ValueWrapper(this, prv, ValueStatus.ADDED);
+		PrismReferenceValue prv = prismContext.itemFactory().createPrismReferenceValue();
+		return new ValueWrapper(this, prv, ValueStatus.ADDED, prismContext);
 	}
 	
 	public ObjectFilter getFilter() {

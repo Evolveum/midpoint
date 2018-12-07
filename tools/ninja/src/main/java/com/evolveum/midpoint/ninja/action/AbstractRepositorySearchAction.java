@@ -22,11 +22,7 @@ import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.opts.ExportOptions;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -115,6 +111,7 @@ public abstract class AbstractRepositorySearchAction<OP extends ExportOptions> e
     private List<SearchProducerWorker> createProducers(BlockingQueue<PrismObject> queue, OperationStatus operation)
             throws SchemaException, IOException {
 
+        QueryFactory queryFactory = context.getPrismContext().queryFactory();
         List<SearchProducerWorker> producers = new ArrayList<>();
 
         if (options.getOid() != null) {
@@ -122,22 +119,20 @@ public abstract class AbstractRepositorySearchAction<OP extends ExportOptions> e
 
             ObjectTypes type = types.isEmpty() ? ObjectTypes.OBJECT : types.iterator().next();
 
-            InOidFilter filter = InOidFilter.createInOid(options.getOid());
-            ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+            InOidFilter filter = queryFactory.createInOid(options.getOid());
+            ObjectQuery query = queryFactory.createObjectQuery(filter);
 
             producers.add(new SearchProducerWorker(context, options, queue, operation, producers, type, query));
             return producers;
         }
 
-        ObjectFilter filter = NinjaUtils.createObjectFilter(options.getFilter(), context);
-        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-
         List<ObjectTypes> types = NinjaUtils.getTypes(options.getType());
         for (ObjectTypes type : types) {
+            ObjectFilter filter = NinjaUtils.createObjectFilter(options.getFilter(), context, type.getClassDefinition());
+            ObjectQuery query = queryFactory.createObjectQuery(filter);
             if (ObjectTypes.SHADOW.equals(type)) {
-                List<SearchProducerWorker> shadowProducers = createProducersForShadows(queue, operation, producers, filter);
+                List<SearchProducerWorker> shadowProducers = createProducersForShadows(context, queue, operation, producers, filter);
                 producers.addAll(shadowProducers);
-
                 continue;
             }
 
@@ -152,15 +147,14 @@ public abstract class AbstractRepositorySearchAction<OP extends ExportOptions> e
      * run in more threads. No extra special processing is done for shadows. Just to split them to workers for
      * performance reasons. 
      */
-    private List<SearchProducerWorker> createProducersForShadows(BlockingQueue<PrismObject> queue,
-                                                                 OperationStatus operation,
-                                                                 List<SearchProducerWorker> producers,
-                                                                 ObjectFilter filter) {
+    private List<SearchProducerWorker> createProducersForShadows(NinjaContext context,
+            BlockingQueue<PrismObject> queue, OperationStatus operation, List<SearchProducerWorker> producers, ObjectFilter filter) {
 
+        QueryFactory queryFactory = context.getPrismContext().queryFactory();
         List<SearchProducerWorker> shadowProducers = new ArrayList<>();
 
         try {
-            RepositoryService repository = context.getRepository();
+            RepositoryService repository = this.context.getRepository();
 
             Collection<SelectorOptions<GetOperationOptions>> opts =
                     SelectorOptions.createCollection(GetOperationOptions.createRaw());
@@ -168,7 +162,7 @@ public abstract class AbstractRepositorySearchAction<OP extends ExportOptions> e
             OperationResult result = new OperationResult(OPERATION_LIST_RESOURCES);
 
             SearchResultList<PrismObject<ResourceType>> resultList = repository.searchObjects(ResourceType.class,
-                    ObjectQuery.createObjectQuery((ObjectFilter) null), opts, result);
+                    queryFactory.createObjectQuery((ObjectFilter) null), opts, result);
 
             List<PrismObject<ResourceType>> list = resultList.getList();
             if (list == null || list.isEmpty()) {
@@ -183,7 +177,7 @@ public abstract class AbstractRepositorySearchAction<OP extends ExportOptions> e
 
                 ObjectFilter fullFilter = resourceRefFilter;
                 if (filter != null) {
-                    fullFilter = AndFilter.createAnd(fullFilter, filter);
+                    fullFilter = queryFactory.createAnd(fullFilter, filter);
                 }
 
                 shadowProducers.add(createProducer(queue, operation, producers, ObjectTypes.SHADOW, fullFilter));
@@ -191,14 +185,14 @@ public abstract class AbstractRepositorySearchAction<OP extends ExportOptions> e
 
             // all other shadows (no resourceRef or non existing resourceRef)
             List<ObjectFilter> notFilters = new ArrayList<>();
-            existingResourceRefs.forEach(f -> notFilters.add(NotFilter.createNot(f)));
+            existingResourceRefs.forEach(f -> notFilters.add(queryFactory.createNot(f)));
 
-            ObjectFilter fullFilter = OrFilter.createOr(
-                    AndFilter.createAnd(notFilters),
+            ObjectFilter fullFilter = queryFactory.createOr(
+                    queryFactory.createAnd(notFilters),
                     createResourceRefFilter(null)
             );
             if (filter != null) {
-                fullFilter = AndFilter.createAnd(fullFilter, filter);
+                fullFilter = queryFactory.createAnd(fullFilter, filter);
             }
 
             shadowProducers.add(createProducer(queue, operation, producers, ObjectTypes.SHADOW, fullFilter));
@@ -212,22 +206,22 @@ public abstract class AbstractRepositorySearchAction<OP extends ExportOptions> e
     }
 
     private RefFilter createResourceRefFilter(String oid) throws SchemaException {
+        PrismContext prismContext = context.getPrismContext();
         List<PrismReferenceValue> values = new ArrayList<>();
         if (oid != null) {
-            values.add(new PrismReferenceValue(oid, ResourceType.COMPLEX_TYPE));
+            values.add(prismContext.itemFactory().createPrismReferenceValue(oid, ResourceType.COMPLEX_TYPE));
         }
 
-        PrismContext prismContext = context.getPrismContext();
         SchemaRegistry registry = prismContext.getSchemaRegistry();
         PrismReferenceDefinition def = registry.findItemDefinitionByFullPath(ShadowType.class,
                 PrismReferenceDefinition.class, ShadowType.F_RESOURCE_REF);
 
-        return RefFilter.createReferenceEqual(new ItemPath(ShadowType.F_RESOURCE_REF), def, values);
+        return prismContext.queryFactory().createReferenceEqual(ShadowType.F_RESOURCE_REF, def, values);
     }
 
     private SearchProducerWorker createProducer(BlockingQueue<PrismObject> queue, OperationStatus operation,
                                                 List<SearchProducerWorker> producers, ObjectTypes type, ObjectFilter filter) {
-        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+        ObjectQuery query = context.getPrismContext().queryFactory().createObjectQuery(filter);
         return new SearchProducerWorker(context, options, queue, operation, producers, type, query);
     }
 }

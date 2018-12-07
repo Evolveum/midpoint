@@ -488,7 +488,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 
 	private void checkRangeTarget(Task task, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-		QName name = outputPath.lastNamed().getName();
+		QName name = outputPath.lastName();
 		if (originalTargetValues == null) {
 			throw new IllegalStateException("Couldn't check range for mapping in " + contextDescription + ", as original target values are not known.");
 		}
@@ -511,7 +511,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		}
 		// remove it!
 		if (outputTriple == null) {
-			outputTriple = new PrismValueDeltaSetTriple<>();
+			outputTriple = getPrismContext().deltaFactory().createPrismValueDeltaSetTriple();
 		}
 		LOGGER.trace("Original value is in the mapping range (while not in mapping result), adding it to minus set: {}", originalValue);
 		outputTriple.addToMinusSet((V)originalValue.clone());
@@ -544,7 +544,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		}
 		variables.addVariableDefinition(ExpressionConstants.VAR_VALUE, value);
 
-		PrismPropertyDefinition<Boolean> outputDef = new PrismPropertyDefinitionImpl<>(SchemaConstantsGenerated.C_VALUE, DOMUtil.XSD_BOOLEAN, getPrismContext(), null, false);
+		PrismPropertyDefinition<Boolean> outputDef = getPrismContext().definitionFactory().createPropertyDefinition(SchemaConstantsGenerated.C_VALUE, DOMUtil.XSD_BOOLEAN, null, false);
 		PrismPropertyValue<Boolean> rv = ExpressionUtil.evaluateExpression(variables, outputDef, range.getIsInSetExpression(), expressionFactory, "isInSet expression in " + contextDescription, task, result);
 
 		// but now remove the parent! TODO: PM: why???
@@ -868,7 +868,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		}
 		QName name = sourceType.getName();
 		if (name == null) {
-			name = ItemPath.getName(path.last());
+			name = ItemPath.toName(path.last());
 		}
 		ItemPath resolvePath = path;
 		Object sourceObject = ExpressionUtil.resolvePath(path, variables, true, sourceContext, objectResolver, "source definition in "+getMappingContextDescription(), task, result);
@@ -1039,8 +1039,8 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		ExpressionType conditionExpressionType = mappingType.getCondition();
 		if (conditionExpressionType == null) {
 			// True -> True
-			conditionOutputTriple = new PrismValueDeltaSetTriple<>();
-			conditionOutputTriple.addToZeroSet(new PrismPropertyValue<>(Boolean.TRUE));
+			conditionOutputTriple = getPrismContext().deltaFactory().createPrismValueDeltaSetTriple();
+			conditionOutputTriple.addToZeroSet(getPrismContext().itemFactory().createPrismPropertyValue(Boolean.TRUE));
 			return;
 		}
 		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression =
@@ -1087,7 +1087,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 				// so the mapping is applicable.
 				// Returning null would mean that the mapping is not applicable
 				// at all.
-				outputTriple = new PrismValueDeltaSetTriple<>();
+				outputTriple = getPrismContext().deltaFactory().createPrismValueDeltaSetTriple();
 			}
 
 		} else {
@@ -1129,7 +1129,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		}
 		//noinspection unchecked
 		Item<V,D> output = outputDefinition.instantiate();
-		output.addAll(PrismValue.cloneCollection(outputTriple.getNonNegativeValues()));
+		output.addAll(PrismValueCollectionsUtil.cloneCollection(outputTriple.getNonNegativeValues()));
 		return output;
 	}
 

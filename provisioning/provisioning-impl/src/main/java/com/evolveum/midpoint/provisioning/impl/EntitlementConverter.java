@@ -22,23 +22,17 @@ import java.util.Map;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.*;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.processor.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.prism.ModificationType;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
@@ -49,10 +43,6 @@ import com.evolveum.midpoint.provisioning.ucf.api.Operation;
 import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ShadowResultHandler;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
-import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
-import com.evolveum.midpoint.schema.processor.SearchHierarchyConstraints;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -198,7 +188,7 @@ class EntitlementConverter {
 
             PrismContainerValue<ShadowAssociationType> associationCVal = associationContainer.createNewValue();
             associationCVal.asContainerable().setName(associationName);
-            ResourceAttributeContainer identifiersContainer = new ResourceAttributeContainer(
+            ResourceAttributeContainer identifiersContainer = ObjectFactory.createResourceAttributeContainer(
                     ShadowAssociationType.F_IDENTIFIERS, entitlementDef.toResourceAttributeContainerDefinition(), prismContext);
             associationCVal.add(identifiersContainer);
             identifiersContainer.add(valueAttribute);
@@ -274,10 +264,10 @@ class EntitlementConverter {
 				associationCVal.asContainerable().setName(associationName);
 				Collection<ResourceAttribute<?>> entitlementIdentifiers = ShadowUtil.getAllIdentifiers(entitlementShadow);
 				try {
-					ResourceAttributeContainer identifiersContainer = new ResourceAttributeContainer(
+					ResourceAttributeContainer identifiersContainer = ObjectFactory.createResourceAttributeContainer(
 							ShadowAssociationType.F_IDENTIFIERS, entitlementDef.toResourceAttributeContainerDefinition(), prismContext);
 					associationCVal.add(identifiersContainer);
-					identifiersContainer.getValue().addAll(ResourceAttribute.cloneCollection(entitlementIdentifiers));
+					identifiersContainer.getValue().addAll(Item.cloneCollection(entitlementIdentifiers));
 
 					// Remember the full shadow in user data. This is used later as an optimization to create the shadow in repo
 					identifiersContainer.setUserData(ResourceObjectConverter.FULL_SHADOW_KEY, entitlementShadow);
@@ -314,12 +304,12 @@ class EntitlementConverter {
 	private <TV,TA> ObjectQuery createQuery(RefinedAssociationDefinition assocDefType, RefinedAttributeDefinition<TA> assocAttrDef, ResourceAttribute<TV> valueAttr) throws SchemaException{
 		MatchingRule<TA> matchingRule = matchingRuleRegistry.getMatchingRule(assocDefType.getResourceObjectAssociationType().getMatchingRule(),
 				assocAttrDef.getTypeName());
-		PrismPropertyValue<TA> converted = PrismUtil.convertPropertyValue(valueAttr.getValue(0), valueAttr.getDefinition(), assocAttrDef);
+		PrismPropertyValue<TA> converted = PrismUtil.convertPropertyValue(valueAttr.getValue(0), valueAttr.getDefinition(), assocAttrDef, prismContext);
 		TA normalizedRealValue = matchingRule.normalize(converted.getValue());
-		PrismPropertyValue<TA> normalized = new PrismPropertyValue<>(normalizedRealValue);
+		PrismPropertyValue<TA> normalized = prismContext.itemFactory().createPrismPropertyValue(normalizedRealValue);
 		LOGGER.trace("Converted entitlement filter value: {} ({}) def={}", normalized, normalized.getValue().getClass(), assocAttrDef);
-		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
-				.item(new ItemPath(ShadowType.F_ATTRIBUTES, assocAttrDef.getName()), assocAttrDef).eq(normalized)
+		ObjectQuery query = prismContext.queryFor(ShadowType.class)
+				.item(ItemPath.create(ShadowType.F_ATTRIBUTES, assocAttrDef.getName()), assocAttrDef).eq(normalized)
 				.build();
 		query.setAllowPartialResults(true);
 		return query;
@@ -499,7 +489,7 @@ class EntitlementConverter {
 							}
 						}
 						if (attributeDelta == null) {
-							attributeDelta = assocAttrDef.createEmptyDelta(new ItemPath(ShadowType.F_ATTRIBUTES, assocAttrName));
+							attributeDelta = assocAttrDef.createEmptyDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, assocAttrName));
 							PropertyModificationOperation attributeModification = new PropertyModificationOperation(attributeDelta);
 							attributeModification.setMatchingRuleQName(assocDefType.getMatchingRule());
 							operations.add(attributeModification);
@@ -578,7 +568,7 @@ class EntitlementConverter {
 		}
 		PropertyModificationOperation attributeOperation = operationMap.get(assocAttrName);
 		if (attributeOperation == null) {
-			attributeOperation = new PropertyModificationOperation(assocAttrDef.createEmptyDelta(new ItemPath(ShadowType.F_ATTRIBUTES, assocAttrName)));
+			attributeOperation = new PropertyModificationOperation(assocAttrDef.createEmptyDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, assocAttrName)));
 			attributeOperation.setMatchingRuleQName(assocDefType.getMatchingRule());
 			operationMap.put(assocAttrName, attributeOperation);
 		}
@@ -589,7 +579,7 @@ class EntitlementConverter {
 		}
 		ResourceAttributeContainer identifiersContainer =
 				ShadowUtil.getAttributesContainer(associationCVal, ShadowAssociationType.F_IDENTIFIERS);
-		PrismProperty<T> valueAttr = identifiersContainer.findProperty(valueAttrName);
+		PrismProperty<T> valueAttr = identifiersContainer.findProperty(ItemName.fromQName(valueAttrName));
 		if (valueAttr == null) {
 			throw new SchemaException("No value attribute "+valueAttrName+" present in entitlement association '"+associationName+"' in shadow for "+ctx.getResource());
 		}
@@ -732,10 +722,10 @@ class EntitlementConverter {
 				}
 			}
 			if (attributeDelta == null) {
-				attributeDelta = assocAttrDef.createEmptyDelta(new ItemPath(ShadowType.F_ATTRIBUTES, assocAttrName));
+				attributeDelta = assocAttrDef.createEmptyDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, assocAttrName));
 			}
 
-			PrismProperty<TA> changedAssocAttr = PrismUtil.convertProperty(valueAttr, assocAttrDef);
+			PrismProperty<TA> changedAssocAttr = PrismUtil.convertProperty(valueAttr, assocAttrDef, prismContext);
 
 			if (modificationType == ModificationType.ADD) {
 				attributeDelta.addValuesToAdd(changedAssocAttr.getClonedValues());

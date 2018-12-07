@@ -19,7 +19,6 @@ package com.evolveum.midpoint.task.quartzimpl.work.segmentation.content;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkSegmentationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FilterWorkBucketContentType;
@@ -54,7 +53,7 @@ public class FilterWorkBucketContentHandler extends BaseWorkBucketContentHandler
 		FilterWorkBucketContentType content = (FilterWorkBucketContentType) bucket.getContent();
 		List<ObjectFilter> rv = new ArrayList<>();
 		for (SearchFilterType filter : content.getFilter()) {
-			rv.add(QueryJaxbConvertor.createObjectFilter(type, filter, prismContext));
+			rv.add(prismContext.getQueryConverter().createObjectFilter(type, filter));
 		}
 		return rv;
 	}

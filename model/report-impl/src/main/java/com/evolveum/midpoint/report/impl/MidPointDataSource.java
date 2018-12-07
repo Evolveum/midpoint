@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismContainerable;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRField;
@@ -19,7 +20,6 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.Referencable;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -74,7 +74,7 @@ public class MidPointDataSource implements JRDataSource{
 			return currentObject;
 		}
 
-		ItemPathType itemPathType = new ItemPathType(fieldName);
+		ItemPathType itemPathType = new ItemPathType(ItemPath.create(fieldName));
 		ItemPath path = itemPathType.getItemPath();
 		Item i = currentObject.findItem(path);
 		if (i == null) {

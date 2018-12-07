@@ -15,6 +15,10 @@
  */
 package com.evolveum.midpoint.prism.polystring;
 
+import com.evolveum.midpoint.prism.PrismConstants;
+
+import javax.xml.namespace.QName;
+
 /**
  * @author semancik
  *
@@ -27,4 +31,8 @@ public class Ascii7PolyStringNormalizer extends AbstractPolyStringNormalizer {
 		return s;
 	}
 
+	@Override
+	public QName getName() {
+		return PrismConstants.ASCII7_POLY_STRING_NORMALIZER;
+	}
 }

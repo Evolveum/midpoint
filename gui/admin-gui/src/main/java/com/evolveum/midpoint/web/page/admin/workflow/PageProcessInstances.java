@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -217,7 +218,8 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
 		for (ProcessInstanceDto processInstanceDto : processInstanceDtoList) {
 			String taskOid = processInstanceDto.getTaskOid();
 			try {
-				ObjectDelta<? extends ObjectType> deleteDelta = ObjectDelta.createDeleteDelta(TaskType.class, taskOid, getPrismContext());
+				ObjectDelta<? extends ObjectType> deleteDelta = ObjectDeltaCreationUtil
+						.createDeleteDelta(TaskType.class, taskOid, getPrismContext());
 				modelService.executeChanges(Collections.<ObjectDelta<? extends ObjectType>>singletonList(deleteDelta), null, opTask, result);
 			} catch (CommonException|RuntimeException e) {
 				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete task (process instance) {}", e, taskOid);

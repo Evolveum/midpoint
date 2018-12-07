@@ -17,8 +17,6 @@
 package com.evolveum.midpoint.model.impl.dataModel.dot;
 
 import com.evolveum.midpoint.model.impl.dataModel.model.MappingRelation;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -86,14 +84,10 @@ public class DotMappingRelation implements DotRelation {
 
 	private String getStringConstant(Object eval) {
 		if (eval instanceof RawType) {
-			XNode xnode = ((RawType) eval).getXnode();
-			if (xnode instanceof PrimitiveXNode) {
-				eval = ((PrimitiveXNode) xnode).getStringValue();
-			} else {
-				eval = xnode.toString();
-			}
+			return ((RawType) eval).extractString();
+		} else {
+			return String.valueOf(eval);
 		}
-		return String.valueOf(eval);
 	}
 
 	@Override

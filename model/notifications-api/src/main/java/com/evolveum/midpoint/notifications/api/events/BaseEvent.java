@@ -21,9 +21,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifier;
@@ -315,12 +313,12 @@ public abstract class BaseEvent implements Event, DebugDumpable, ShortDumpable {
 
     // path starts with named item path segment
     private boolean containsItem(PrismContainerValue prismContainerValue, ItemPath itemPath) {
-        QName first = ((NameItemPathSegment) itemPath.first()).getName();
+        ItemName first = ItemPath.toName(itemPath.first());
         Item item = prismContainerValue.findItem(first);
         if (item == null) {
             return false;
         }
-        ItemPath pathTail = pathTail(itemPath);
+        ItemPath pathTail = stripFirstIds(itemPath);
         if (item instanceof PrismContainer) {
             return containsItem((PrismContainer) item, pathTail);
         } else if (item instanceof PrismReference) {
@@ -332,9 +330,9 @@ public abstract class BaseEvent implements Event, DebugDumpable, ShortDumpable {
         }
     }
 
-    private ItemPath pathTail(ItemPath itemPath) {
-        while (!itemPath.isEmpty() && itemPath.first() instanceof IdItemPathSegment) {
-            itemPath = itemPath.tail();
+    private ItemPath stripFirstIds(ItemPath itemPath) {
+        while (!itemPath.isEmpty() && itemPath.startsWithId()) {
+            itemPath = itemPath.rest();
         }
         return itemPath;
     }

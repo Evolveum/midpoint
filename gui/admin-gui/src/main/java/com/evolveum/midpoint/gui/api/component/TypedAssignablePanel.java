@@ -449,7 +449,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
                     ObjectFilter filter = WebComponentUtil.getAssignableRolesFilter(SecurityUtils.getPrincipalUser().getUser().asPrismObject(), AbstractRoleType.class,
 							WebComponentUtil.AssignmentOrder.ASSIGNMENT, result, task, TypedAssignablePanel.this.getPageBase());
                     if (query == null){
-                        query = new ObjectQuery();
+                        query = getPrismContext().queryFactory().createObjectQuery();
                     }
                     query.addFilter(filter);
                 }

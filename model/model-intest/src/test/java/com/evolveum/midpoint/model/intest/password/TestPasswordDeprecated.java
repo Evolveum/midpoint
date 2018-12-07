@@ -30,7 +30,6 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -154,11 +153,11 @@ public class TestPasswordDeprecated extends AbstractInitializedModelIntegrationT
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-		PrismReferenceValue passPolicyRef = new PrismReferenceValue(PASSWORD_POLICY_DEPRECATED_OID, ValuePolicyType.COMPLEX_TYPE);
+		PrismReferenceValue passPolicyRef = itemFactory().createPrismReferenceValue(PASSWORD_POLICY_DEPRECATED_OID, ValuePolicyType.COMPLEX_TYPE);
 
 		// WHEN
 		modifyObjectReplaceReference(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-				new ItemPath(SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY_REF),
+				SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY_REF,
         		task, result, passPolicyRef);
 
 		// THEN

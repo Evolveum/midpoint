@@ -30,7 +30,6 @@ import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrFilter;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
@@ -47,7 +46,6 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePa
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -373,7 +371,7 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
                     getModel().setObject(new ExpressionType());
                 }
                 try {
-                    ExpressionUtil.updateAssociationTargetSearchPath(getModelObject(), new ItemPathType(pathValue));
+                    ExpressionUtil.updateAssociationTargetSearchPath(getModelObject(), getPrismContext().itemPathParser().asItemPathType(pathValue), getPrismContext());
                 } catch (Exception ex){
                     pageBase.getFeedbackPanel().getFeedbackMessages().add(new FeedbackMessage(ExpressionValuePanel.this,
                             ex.getLocalizedMessage(), 0));
@@ -447,7 +445,7 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
                             getModel().setObject(new ExpressionType());
                         }
                         ExpressionType expression = getModelObject();
-                        expression.getExpressionEvaluator().add(ExpressionUtil.createAssociationTargetSearchElement());
+                        expression.getExpressionEvaluator().add(ExpressionUtil.createAssociationTargetSearchElement(getPrismContext()));
                         target.add(ExpressionValuePanel.this);
 
                     }

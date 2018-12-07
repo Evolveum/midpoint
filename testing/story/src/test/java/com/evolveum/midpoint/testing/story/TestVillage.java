@@ -21,9 +21,9 @@ import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -32,7 +32,6 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalOperationClasses;
-import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -55,7 +54,6 @@ import org.testng.annotations.Test;
 
 import javax.xml.namespace.QName;
 import java.io.File;
-import java.util.Collection;
 import java.util.List;
 
 import static org.testng.AssertJUnit.*;
@@ -786,16 +784,18 @@ public class TestVillage extends AbstractStoryTest {
 		addObject(GLOBAL_PASSWORD_POLICY_FILE);
 		addObject(ORG_PASSWORD_POLICY_FILE);
 
-		ObjectDelta<OrgType> orgPasswordPolicyRefDelta = ObjectDelta.createModificationAddReference(OrgType.class, ORG_INFRA_OID, OrgType.F_PASSWORD_POLICY_REF, prismContext, ORG_PASSWORD_POLICY_OID);
+		ObjectDelta<OrgType> orgPasswordPolicyRefDelta = ObjectDeltaCreationUtil
+				.createModificationAddReference(OrgType.class, ORG_INFRA_OID, OrgType.F_PASSWORD_POLICY_REF, prismContext, ORG_PASSWORD_POLICY_OID);
 		modelService.executeChanges(MiscUtil.createCollection(orgPasswordPolicyRefDelta), null, task, result);
 		
-		ObjectDelta<SystemConfigurationType> sysConfigPasswordPolicyRefDelta = ObjectDelta.createModificationAddReference(SystemConfigurationType.class, SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY_REF, prismContext, GLOBAL_PASSWORD_POLICY_OID);
+		ObjectDelta<SystemConfigurationType> sysConfigPasswordPolicyRefDelta = ObjectDeltaCreationUtil
+				.createModificationAddReference(SystemConfigurationType.class, SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY_REF, prismContext, GLOBAL_PASSWORD_POLICY_OID);
 		modelService.executeChanges(MiscUtil.createCollection(sysConfigPasswordPolicyRefDelta), null, task, result);
 
 		//add user + assign role + assign org with the password policy specified
 		PrismObject<UserType> userMikeBefore = PrismTestUtil.parseObject(USER_MIKE_FILE);
 		display("User mike before", userMikeBefore);
-		ObjectDelta<UserType> addUserMikeDelta = ObjectDelta.createAddDelta(userMikeBefore);
+		ObjectDelta<UserType> addUserMikeDelta = ObjectDeltaCreationUtil.createAddDelta(userMikeBefore);
 
 		// WHEN
 		displayWhen(TEST_NAME);
@@ -871,7 +871,7 @@ public class TestVillage extends AbstractStoryTest {
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassFilterPrefix(RESOURCE_OPENDJ_OID, GROUP_OF_UNIQUE_NAMES_OBJECTCLASS_QNAME, prismContext)
 				.and().itemWithDef(
-						new PrismPropertyDefinitionImpl<>(new QName(RESOURCE_OPENDJ_NAMESPACE, "cn"), DOMUtil.XSD_STRING, prismContext),
+				        prismContext.definitionFactory().createPropertyDefinition(new QName(RESOURCE_OPENDJ_NAMESPACE, "cn"), DOMUtil.XSD_STRING),
 						ShadowType.F_ATTRIBUTES, new QName(RESOURCE_OPENDJ_NAMESPACE, "cn")).eq("admins")
 				.build();
 

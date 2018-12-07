@@ -29,7 +29,9 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinitionImpl;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.processor.ObjectFactory;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -52,7 +54,6 @@ import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTes
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -1667,7 +1668,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertPropertyValue(userRappBefore, UserType.F_ORGANIZATIONAL_UNIT,
         		PrismTestUtil.createPolyString("The crew of The Elaine"));
 
-        ObjectDelta<UserType> userRappDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, USER_RAPP_OID,
+        ObjectDelta<UserType> userRappDelta = ObjectDeltaCreationUtil
+		        .createModificationReplaceProperty(UserType.class, USER_RAPP_OID,
         		UserType.F_ORGANIZATIONAL_UNIT, prismContext, PrismTestUtil.createPolyString("The six feet under crew"));
 		repositoryService.modifyObject(UserType.class, USER_RAPP_OID, userRappDelta.getModifications(), result);
 
@@ -2584,8 +2586,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
 		ObjectQuery query =
 				ObjectQueryUtil.createResourceAndObjectClassFilterPrefix(RESOURCE_DUMMY_OID, new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), prismContext)
-						.and().item(new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME),
-									new ResourceAttributeDefinitionImpl(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING, prismContext))
+						.and().item(ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME),
+						ObjectFactory.createResourceAttributeDefinition(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING, prismContext))
 							  .contains("s")
 						.build();
 

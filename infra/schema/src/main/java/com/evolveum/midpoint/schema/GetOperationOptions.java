@@ -15,15 +15,15 @@
  */
 package com.evolveum.midpoint.schema;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GetOperationOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterationMethodType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -330,35 +330,6 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		return opts;
 	}
 
-	// TODO exact placement of this method
-	public static Collection<SelectorOptions<GetOperationOptions>> resolveItemsNamed(Object... items) {
-		Collection<SelectorOptions<GetOperationOptions>> rv = new ArrayList<>(items.length);
-		for (Object item : items) {
-			rv.add(SelectorOptions.create(pathForItem(item), createResolve()));
-		}
-		return rv;
-	}
-
-	public static Collection<SelectorOptions<GetOperationOptions>> retrieveItemsNamed(Object... items) {
-		Collection<SelectorOptions<GetOperationOptions>> rv = new ArrayList<>(items.length);
-		for (Object item : items) {
-			rv.add(SelectorOptions.create(pathForItem(item), createRetrieve()));
-		}
-		return rv;
-	}
-
-	protected static ItemPath pathForItem(Object item) {
-		final ItemPath path;
-		if (item instanceof QName) {
-			path = new ItemPath((QName) item);
-		} else if (item instanceof ItemPath) {
-			path = ((ItemPath) item);
-		} else {
-			throw new IllegalArgumentException("item has to be QName or ItemPath but is " + item);
-		}
-		return path;
-	}
-
 	public Boolean getNoFetch() {
 		return noFetch;
 	}
@@ -392,19 +363,6 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		opts.setNoFetch(true);
 		return opts;
 	}
-
-    // todo maybe at wrong place, but this might be quite useful
-    public static Collection<SelectorOptions<GetOperationOptions>> createRetrieveNameOnlyOptions() {
-        return SelectorOptions.createCollection(new ItemPath(ObjectType.F_NAME), createRetrieve(RetrieveOption.INCLUDE));
-    }
-
-    public static Collection<SelectorOptions<GetOperationOptions>> createRetrieveAttributesOptions(QName... properties) {
-        Collection<SelectorOptions<GetOperationOptions>> optionsCollection = new ArrayList<>(properties.length);
-        for (QName property : properties) {
-            optionsCollection.add(SelectorOptions.create(new ItemPath(property), createRetrieve(RetrieveOption.INCLUDE)));
-        }
-        return optionsCollection;
-    }
 
     public Boolean getResolveNames() {
 		return resolveNames;
@@ -989,7 +947,9 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 	}
 
 
-	public static Collection<SelectorOptions<GetOperationOptions>> fromRestOptions(List<String> options, List<String> include, List<String> exclude, DefinitionProcessingOption definitionProcessing) {
+	public static Collection<SelectorOptions<GetOperationOptions>> fromRestOptions(List<String> options, List<String> include,
+			List<String> exclude, DefinitionProcessingOption definitionProcessing,
+			PrismContext prismContext) {
 		if (CollectionUtils.isEmpty(options) && CollectionUtils.isEmpty(include) && CollectionUtils.isEmpty(exclude)) {
 			if (definitionProcessing != null) {
 				return SelectorOptions.createCollection(GetOperationOptions.createDefinitionProcessing(definitionProcessing));
@@ -1001,11 +961,11 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		if (rootOptions != null) {
 			rv.add(SelectorOptions.create(rootOptions));
 		}
-		for (ItemPath includePath : ItemPath.fromStringList(include)) {
-			rv.add(SelectorOptions.create(includePath, GetOperationOptions.createRetrieve()));
+		for (ItemPath includePath : ItemPathCollectionsUtil.pathListFromStrings(include, prismContext)) {
+			rv.add(SelectorOptions.create(prismContext.toUniformPath(includePath), GetOperationOptions.createRetrieve()));
 		}
-		for (ItemPath excludePath : ItemPath.fromStringList(exclude)) {
-			rv.add(SelectorOptions.create(excludePath, GetOperationOptions.createDontRetrieve()));
+		for (ItemPath excludePath : ItemPathCollectionsUtil.pathListFromStrings(exclude, prismContext)) {
+			rv.add(SelectorOptions.create(prismContext.toUniformPath(excludePath), GetOperationOptions.createDontRetrieve()));
 		}
 		// Do NOT set executionPhase here!
 		return rv;
@@ -1045,18 +1005,20 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 
 	@NotNull
 	@SafeVarargs
-	public static Collection<SelectorOptions<GetOperationOptions>> merge(Collection<SelectorOptions<GetOperationOptions>>... parts) {
+	public static Collection<SelectorOptions<GetOperationOptions>> merge(PrismContext prismContext,
+			Collection<SelectorOptions<GetOperationOptions>>... parts) {
+		UniformItemPath EMPTY_PATH = prismContext.emptyPath();
 		Collection<SelectorOptions<GetOperationOptions>> merged = new ArrayList<>();
 		for (Collection<SelectorOptions<GetOperationOptions>> part : parts) {
 			for (SelectorOptions<GetOperationOptions> increment : CollectionUtils.emptyIfNull(part)) {
 				if (increment != null) {        // should always be so
-					Collection<GetOperationOptions> existing = SelectorOptions.findOptionsForPath(merged, increment.getItemPath());
+					Collection<GetOperationOptions> existing = SelectorOptions.findOptionsForPath(merged, increment.getItemPath(EMPTY_PATH));
 					if (existing.isEmpty()) {
 						merged.add(increment);
 					} else if (existing.size() == 1) {
 						existing.iterator().next().merge(increment.getOptions());
 					} else {
-						throw new AssertionError("More than one options for path: " + increment.getItemPath());
+						throw new AssertionError("More than one options for path: " + increment.getItemPath(EMPTY_PATH));
 					}
 				}
 			}
@@ -1065,7 +1027,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 	}
 
 	@SuppressWarnings("ConstantConditions")
-	private void merge(GetOperationOptions increment) {
+	public void merge(GetOperationOptions increment) {
 		if (increment == null) {
 			return;
 		}

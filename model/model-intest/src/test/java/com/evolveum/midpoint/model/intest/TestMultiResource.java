@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -28,18 +30,9 @@ import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.BreakMode;
 import com.evolveum.icf.dummy.resource.ConflictException;
-import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.intest.password.AbstractPasswordTest;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
@@ -65,7 +58,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnfo
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -279,7 +271,8 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		String accountJackDummyOid = getLinkRefOid(userJack, RESOURCE_DUMMY_OID);
 
-		ObjectDelta<ShadowType> accountDelta = ObjectDelta.createDeleteDelta(ShadowType.class, accountJackDummyOid, prismContext);
+		ObjectDelta<ShadowType> accountDelta = ObjectDeltaCreationUtil
+				.createDeleteDelta(ShadowType.class, accountJackDummyOid, prismContext);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta);
 
         try {
@@ -1257,10 +1250,12 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         // In relative mode this account should shay untouched while we play with assignments and
         // unsassignements of other accounts
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_FILE);
-        ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
-        PrismReferenceValue accountRefVal = new PrismReferenceValue();
+        ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil
+		        .createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
+        PrismReferenceValue accountRefVal = itemFactory().createPrismReferenceValue();
 		accountRefVal.setObject(account);
-		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
+		ReferenceDelta accountDelta = prismContext.deltaFactory().reference()
+				.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountDelta);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
         modelService.executeChanges(deltas, null, task, result);
@@ -2235,7 +2230,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_FIELD_NAME);
-        ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, userBefore.getOid(),
+        ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, userBefore.getOid(),
         		UserType.F_LOCALITY, prismContext);
         userDelta.addModificationReplaceProperty(UserType.F_TITLE);
         executeChanges(userDelta, null, task, result);
@@ -2541,7 +2536,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_FIELD_NAME);
-        ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, userBefore.getOid(),
+        ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, userBefore.getOid(),
         		UserType.F_LOCALITY, prismContext);
         userDelta.addModificationReplaceProperty(UserType.F_TITLE);
         executeChanges(userDelta, null, task, result);
@@ -2608,7 +2603,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         AssertJUnit.assertNotNull("User must not be null.", userWorld);
 
-		ObjectDelta<UserType> delta = ObjectDelta.createDeleteDelta(UserType.class, userWorld.getOid(), prismContext);
+		ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createDeleteDelta(UserType.class, userWorld.getOid(), prismContext);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
 		deltas.add(delta);
 		modelService.executeChanges(deltas, null, task, result);
@@ -2628,7 +2623,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userBefore = createUser(USER_WORLD_NAME, USER_WORLD_FULL_NAME, true);
         userBefore.asObjectable().getOrganizationalUnit().add(PrismTestUtil.createPolyStringType("stone"));
 
-        PrismContainerValue<AssignmentType> cval = new PrismContainerValue<>(prismContext);
+        PrismContainerValue<AssignmentType> cval = prismContext.itemFactory().createPrismContainerValue();
 		PrismReference targetRef = cval.findOrCreateReference(AssignmentType.F_TARGET_REF);
 		targetRef.getValue().setOid(ROLE_FIGHT_OID);
 		targetRef.getValue().setTargetType(RoleType.COMPLEX_TYPE);

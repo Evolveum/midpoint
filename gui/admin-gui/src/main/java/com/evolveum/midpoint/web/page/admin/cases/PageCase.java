@@ -84,10 +84,10 @@ public class PageCase  extends PageAdminCases {
         Task task = createSimpleTask(OPERATION_LOAD_CASE);
         OperationResult result = task.getResult();
 
-        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
-                CaseType.F_OBJECT_REF, GetOperationOptions.createResolve());
-
-        Boolean emptyCase = !isEditingFocus();
+        Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
+                .item(CaseType.F_OBJECT_REF).resolve()
+                .build();
+        boolean emptyCase = !isEditingFocus();
         PrismObject<CaseType> caseInstance = null;
         try {
             if (emptyCase) {
@@ -144,7 +144,7 @@ public class PageCase  extends PageAdminCases {
         wrapper.getContainers().forEach(containerWrapper -> {
             if (containerWrapper.isMain()){
                 containerWrapper.getValues().forEach(containerValueWrapper -> {
-                    PropertyOrReferenceWrapper itemWrapper = containerValueWrapper.findPropertyWrapper(CaseType.F_TARGET_REF);
+                    PropertyOrReferenceWrapper itemWrapper = containerValueWrapper.findPropertyWrapperByName(CaseType.F_TARGET_REF);
                     if (itemWrapper != null){
                         itemWrapper.setReadonly(true);
                     }

@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.init;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.prism.crypto.ProtectorImpl;
+import com.evolveum.midpoint.prism.crypto.KeyStoreBasedProtectorImpl;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.util.SystemUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -40,8 +40,7 @@ import java.security.KeyStore;
 public class ConfigurableProtectorFactory {
 
     private static final Trace LOGGER = TraceManager.getTrace(ConfigurableProtectorFactory.class);
-    @Autowired
-    private MidpointConfiguration configuration;
+    @Autowired private MidpointConfiguration configuration;
     private ProtectorConfiguration protectorConfig;
 
     public void init() {
@@ -102,13 +101,14 @@ public class ConfigurableProtectorFactory {
 	}
 
 	public Protector getProtector() {
-        ProtectorImpl protector = new ProtectorImpl();
+        // We cannot use KeyStoreBasedProtectorBuilder here, because there is no prism context yet.
+        // This means that system-init will depend on prism-impl.
+        KeyStoreBasedProtectorImpl protector = new KeyStoreBasedProtectorImpl();
         protector.setEncryptionKeyAlias(protectorConfig.getEncryptionKeyAlias());
         protector.setKeyStorePassword(protectorConfig.getKeyStorePassword());
         protector.setKeyStorePath(protectorConfig.getKeyStorePath());
         protector.setEncryptionAlgorithm(protectorConfig.getXmlCipher());
         protector.init();
-
         return protector;
     }
 }

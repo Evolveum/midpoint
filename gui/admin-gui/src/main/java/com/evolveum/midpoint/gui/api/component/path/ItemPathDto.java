@@ -5,13 +5,8 @@ import java.io.Serializable;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 public class ItemPathDto implements Serializable{
@@ -56,7 +51,7 @@ public class ItemPathDto implements Serializable{
 
 	public void setItemDef(ItemDefinition<?> itemDef) {
 		if (parentPath == null) {
-			this.path = new ItemPath(itemDef.getName());
+			this.path = itemDef.getName();
 		} else {
 			this.path = parentPath.toItemPath().append(itemDef.getName());
 		}
@@ -76,7 +71,7 @@ public class ItemPathDto implements Serializable{
 			if (itemDef == null) {
 				return path;
 			}
-			this.path = new ItemPath(itemDef.getName());
+			this.path = itemDef.getName();
 		} else {
 			if (itemDef == null) {
 				return parentPath.toItemPath();

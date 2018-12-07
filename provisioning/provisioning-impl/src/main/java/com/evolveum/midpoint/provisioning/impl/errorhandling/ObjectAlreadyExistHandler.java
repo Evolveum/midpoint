@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.delta.ObjectDeltaUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -27,10 +28,8 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
@@ -111,7 +110,7 @@ public class ObjectAlreadyExistHandler extends HardErrorHandler {
 		
 		if (ProvisioningUtil.isDoDiscovery(ctx.getResource(), options)) {
 			PrismObject<ShadowType> newShadow = repoShadow.clone();
-			ObjectDelta.applyTo(newShadow, (Collection) modifications);
+			ObjectDeltaUtil.applyTo(newShadow, (Collection) modifications);
 			discoverConflictingShadow(ctx, newShadow, options, opState, cause, failedOperationResult, task, parentResult);
 		}
 		
@@ -192,7 +191,7 @@ public class ObjectAlreadyExistHandler extends HardErrorHandler {
 	private ObjectQuery createQueryBySecondaryIdentifier(ShadowType shadow) throws SchemaException {
 		// TODO TODO TODO set matching rule instead of null in equlas filter
 		Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(shadow);
-		S_AtomicFilterEntry q = QueryBuilder.queryFor(ShadowType.class, prismContext);
+		S_AtomicFilterEntry q = prismContext.queryFor(ShadowType.class);
 		q = q.block();
 		if (secondaryIdentifiers.isEmpty()) {
 			for (ResourceAttribute<?> primaryIdentifier: ShadowUtil.getPrimaryIdentifiers(shadow)) {

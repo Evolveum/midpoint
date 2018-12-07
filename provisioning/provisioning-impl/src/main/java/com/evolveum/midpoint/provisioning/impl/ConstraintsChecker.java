@@ -23,15 +23,10 @@ import java.util.Set;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.provisioning.api.ConstraintViolationConfirmer;
 import com.evolveum.midpoint.provisioning.api.ConstraintsCheckingResult;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -165,9 +160,9 @@ public class ConstraintsChecker {
 		}
 
 		//TODO: set matching rule instead of null
-		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(ShadowType.class)
 				.itemWithDef(identifier.getDefinition(), ShadowType.F_ATTRIBUTES, identifier.getDefinition().getName())
-						.eq(PrismPropertyValue.cloneCollection(identifierValues))
+						.eq(PrismValueCollectionsUtil.cloneCollection(identifierValues))
 				.and().item(ShadowType.F_OBJECT_CLASS).eq(accountDefinition.getObjectClassDefinition().getTypeName())
 				.and().item(ShadowType.F_RESOURCE_REF).ref(resourceType.getOid())
 				.and().block()
@@ -264,7 +259,7 @@ public class ConstraintsChecker {
 		if (cache == null) {
 			return;
 		}
-		ItemPath attributesPath = new ItemPath(ShadowType.F_ATTRIBUTES);
+		ItemPath attributesPath = ShadowType.F_ATTRIBUTES;
 		for (ItemDelta itemDelta : deltas) {
 			if (attributesPath.isSubPathOrEquivalent(itemDelta.getParentPath())) {
 				log("Clearing cache on shadow attribute modify operation");

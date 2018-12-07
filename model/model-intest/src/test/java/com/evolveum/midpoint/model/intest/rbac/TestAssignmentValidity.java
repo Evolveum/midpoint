@@ -18,7 +18,6 @@ package com.evolveum.midpoint.model.intest.rbac;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -1779,7 +1778,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		ObjectDelta<UserType> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT).add(assignment)
 				.asObjectDeltaCast(USER_JACK_OID);
 		executeChanges(delta, null, task, result);

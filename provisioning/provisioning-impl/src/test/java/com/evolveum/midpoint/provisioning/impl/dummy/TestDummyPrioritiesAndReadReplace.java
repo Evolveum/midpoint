@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-/**
- *
- */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -199,28 +196,28 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
 		syncServiceMock.reset();
 
 		// todo add correct definition
-		ObjectDelta<ShadowType> objectDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
+		ObjectDelta<ShadowType> objectDelta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
 				ACCOUNT_WILL_OID, dummyResourceCtl.getAttributeFullnamePath(), prismContext, "Pirate Master Will Turner");
 		PropertyDelta weaponDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributeWeaponPath());
 		weaponDelta.setDefinition(
 				getAttributeDefinition(resourceType,
 						ShadowKindType.ACCOUNT, null,
 						DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME));
-		weaponDelta.setValuesToReplace(new PrismPropertyValue<>("Gun"));
+		weaponDelta.setRealValuesToReplace("Gun");
 		objectDelta.addModification(weaponDelta);
 		PropertyDelta lootDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributeLootPath());
 		lootDelta.setDefinition(
 				getAttributeDefinition(resourceType,
 						ShadowKindType.ACCOUNT, null,
 						DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME));
-		lootDelta.setValuesToReplace(new PrismPropertyValue<>(43));
+		lootDelta.setRealValuesToReplace(43);
 		objectDelta.addModification(lootDelta);
 		PropertyDelta titleDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME));
 		titleDelta.setDefinition(
 				getAttributeDefinition(resourceType,
 						ShadowKindType.ACCOUNT, null,
 						DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME));
-		titleDelta.setValuesToReplace(new PrismPropertyValue<>("Pirate Master"));
+		titleDelta.setRealValuesToReplace("Pirate Master");
 		objectDelta.addModification(titleDelta);
 
 		display("ObjectDelta", objectDelta);
@@ -297,7 +294,7 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
 
 		// NOT a read replace attribute
 		// todo add correct definition
-		ObjectDelta<ShadowType> objectDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
+		ObjectDelta<ShadowType> objectDelta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
 				ACCOUNT_WILL_OID, dummyResourceCtl.getAttributeFullnamePath(), prismContext, "Pirate Great Master Will Turner");
 		// read replace attribute, priority 0
 		PropertyDelta weaponDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributeWeaponPath());
@@ -305,8 +302,8 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
 				getAttributeDefinition(resourceType,
 						ShadowKindType.ACCOUNT, null,
 						DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME));
-		weaponDelta.addValuesToAdd(new PrismPropertyValue<>("Sword"));
-		weaponDelta.addValuesToDelete(new PrismPropertyValue<>("GUN"));			// case-insensitive treatment should work here
+		weaponDelta.addRealValuesToAdd("Sword");
+		weaponDelta.addRealValuesToDelete("GUN");			// case-insensitive treatment should work here
 		objectDelta.addModification(weaponDelta);
 		// read replace attribute, priority 1
 		PropertyDelta lootDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributeLootPath());
@@ -314,8 +311,8 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
 				getAttributeDefinition(resourceType,
 						ShadowKindType.ACCOUNT, null,
 						DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME));
-		lootDelta.addValuesToAdd(new PrismPropertyValue<>(44));
-		lootDelta.addValuesToDelete(new PrismPropertyValue<>(43));
+		lootDelta.addRealValuesToAdd(44);
+		lootDelta.addRealValuesToDelete(43);
 		objectDelta.addModification(lootDelta);
 		// NOT a read-replace attribute
 		PropertyDelta titleDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME));
@@ -323,8 +320,8 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
 				getAttributeDefinition(resourceType,
 						ShadowKindType.ACCOUNT, null,
 						DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME));
-		titleDelta.addValuesToAdd(new PrismPropertyValue<>("Pirate Great Master"));
-		titleDelta.addValuesToDelete(new PrismPropertyValue<>("Pirate Master"));
+		titleDelta.addRealValuesToAdd("Pirate Great Master");
+		titleDelta.addRealValuesToDelete("Pirate Master");
 		objectDelta.addModification(titleDelta);
 		// read replace attribute
 		PropertyDelta drinkDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME));
@@ -332,7 +329,7 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
 				getAttributeDefinition(resourceType,
 						ShadowKindType.ACCOUNT, null,
 						DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME));
-		drinkDelta.addValuesToAdd(new PrismPropertyValue<>("orange juice"));
+		drinkDelta.addRealValuesToAdd("orange juice");
 		objectDelta.addModification(drinkDelta);
 
 		display("ObjectDelta", objectDelta);

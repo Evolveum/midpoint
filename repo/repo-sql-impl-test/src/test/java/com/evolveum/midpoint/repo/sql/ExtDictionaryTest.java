@@ -16,8 +16,8 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.sql.data.common.any.RExtItem;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
@@ -90,8 +90,8 @@ public class ExtDictionaryTest extends BaseSQLRepoTest {
                         UserType user = new UserType(prismContext)
                                 .name("u-" + round1 + "-" + thread1);
                         QName propertyName = new QName(NS_TEST, "round" + round1);
-                        PrismPropertyDefinitionImpl<String> propertyDefinition = new PrismPropertyDefinitionImpl<>(propertyName,
-                                DOMUtil.XSD_STRING, prismContext);
+                        MutablePrismPropertyDefinition<String> propertyDefinition = prismContext.definitionFactory().createPropertyDefinition(propertyName,
+                                DOMUtil.XSD_STRING);
                         PrismProperty<String> property = propertyDefinition.instantiate();
                         property.setRealValue("value");
                         user.asPrismObject().addExtensionItem(property);

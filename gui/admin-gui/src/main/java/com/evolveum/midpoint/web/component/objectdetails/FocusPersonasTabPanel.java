@@ -21,8 +21,8 @@ import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -105,7 +105,8 @@ public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTa
                 List<String> personaOidsList = getPersonasOidsList();
                 List<PrismObject<FocusType>> personasList = new ArrayList<>();
                 if (personaOidsList.size() > 0){
-                    ObjectQuery query = ObjectQuery.createObjectQuery(InOidFilter.createInOid(personaOidsList));
+                    QueryFactory factory = getPrismContext().queryFactory();
+                    ObjectQuery query = factory.createObjectQuery(factory.createInOid(personaOidsList));
                     OperationResult result = new OperationResult(OPERATION_SEARCH_PERSONAS_OBJECTS);
                     personasList = WebModelServiceUtils.searchObjects(FocusType.class, query, result, pageBase);
 

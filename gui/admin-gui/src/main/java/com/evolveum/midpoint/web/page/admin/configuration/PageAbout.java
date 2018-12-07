@@ -18,23 +18,13 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.init.InitialDataImport;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.query.AllFilter;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.InOidFilter;
-import com.evolveum.midpoint.prism.query.NotFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.TypeFilter;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.api.RepositoryServiceFactory;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.LabeledString;
 import com.evolveum.midpoint.schema.ProvisioningDiag;
 import com.evolveum.midpoint.schema.RepositoryDiag;
@@ -48,7 +38,6 @@ import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -61,22 +50,17 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.page.login.PageLogin;
-import com.evolveum.midpoint.web.page.login.PageSelfRegistration;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -473,16 +457,19 @@ public class PageAbout extends PageAdminConfiguration {
     	OperationResult result = new OperationResult(OPERATION_DELETE_ALL_OBJECTS);
 		String taskOid = null;
 		String taskName = "Delete all objects";
-		
-		TypeFilter nodeFilter = TypeFilter.createType(NodeType.COMPLEX_TYPE, new AllFilter());
-		final ObjectFilter taskFilter = QueryBuilder.queryFor(TaskType.class, getPrismContext())
+
+	    QueryFactory factory = getPrismContext().queryFactory();
+
+	    TypeFilter nodeFilter = factory.createType(NodeType.COMPLEX_TYPE, factory.createAll());
+		final ObjectFilter taskFilter = getPrismContext().queryFor(TaskType.class)
                 .item(TaskType.F_NAME).eq(taskName).buildFilter();
-		NotFilter notNodeFilter = new NotFilter(nodeFilter);
-		NotFilter notTaskFilter = new NotFilter(taskFilter);
+		NotFilter notNodeFilter = factory.createNot(nodeFilter);
+		NotFilter notTaskFilter = factory.createNot(taskFilter);
 		
 		try {
 			QName type = ObjectType.COMPLEX_TYPE;
-			taskOid = deleteObjectsAsync(type, ObjectQuery.createObjectQuery(AndFilter.createAnd(notTaskFilter, notNodeFilter)), true,
+			taskOid = deleteObjectsAsync(type, factory.createObjectQuery(
+					factory.createAnd(notTaskFilter, notNodeFilter)), true,
 					taskName, result);
 			
 		} catch (Exception ex) {
@@ -505,7 +492,8 @@ public class PageAbout extends PageAdminConfiguration {
 				public Object run() {
 					Task task = createAnonymousTask(OPERATION_DELETE_TASK);
 					OperationResult result = new OperationResult(OPERATION_DELETE_TASK);
-					ObjectDelta<TaskType> delta = ObjectDelta.createDeleteDelta(TaskType.class, taskOidToRemoving, getPrismContext());
+					ObjectDelta<TaskType> delta = ObjectDeltaCreationUtil
+							.createDeleteDelta(TaskType.class, taskOidToRemoving, getPrismContext());
 					Collection<ObjectDelta<? extends ObjectType>> deltaCollection = new ArrayList<ObjectDelta<? extends ObjectType>>() {{add(delta);}};
 					try {
 						getModelService().executeChanges(deltaCollection, null, task, result);

@@ -46,27 +46,14 @@ public class ResourceDataItem extends DataItem {
 
 	public ResourceDataItem(@NotNull DataModel ctx, @NotNull String resourceOid, @NotNull ShadowKindType kind,
 			@NotNull String intent, RefinedResourceSchema refinedResourceSchema,
-			RefinedObjectClassDefinition refinedDefinition, @NotNull QName itemName) {
-		this.ctx = ctx;
-		this.resourceOid = resourceOid;
-		this.kind = kind;
-		this.intent = intent;
-		this.itemPath = new ItemPath(itemName);
-		this.hasItemDefinition = true;
-		this.refinedResourceSchema = refinedResourceSchema;
-		this.refinedObjectClassDefinition = refinedDefinition;
-	}
-
-	public ResourceDataItem(@NotNull DataModel ctx, @NotNull String resourceOid, @NotNull ShadowKindType kind,
-			@NotNull String intent, RefinedResourceSchema refinedResourceSchema,
 			RefinedObjectClassDefinition refinedDefinition, @NotNull ItemPath itemPath) {
 		this.ctx = ctx;
 		this.resourceOid = resourceOid;
 		this.kind = kind;
 		this.intent = intent;
 		this.itemPath = itemPath;
-		if (itemPath.lastNamed() == null) {
-			throw new IllegalArgumentException("Wrong itemPath (must end with a named segment): " + itemPath);
+		if (itemPath.lastName() == null) {
+			throw new IllegalArgumentException("Wrong itemPath (have a named segment): " + itemPath);
 		}
 		this.hasItemDefinition = itemPath.size() == 1;			// TODO
 		this.refinedResourceSchema = refinedResourceSchema;
@@ -90,7 +77,7 @@ public class ResourceDataItem extends DataItem {
 
 	@NotNull
 	public QName getLastItemName() {
-		return itemPath.lastNamed().getName();
+		return itemPath.lastName();
 	}
 
 	@NotNull

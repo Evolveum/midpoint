@@ -22,20 +22,17 @@ import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -44,8 +41,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * @author semancik
@@ -159,13 +154,13 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
 	}
 	
 	protected void assertPolyStringProperty(QName propName, String expectedOrig) {
-		PrismProperty<PolyString> prop = getObject().findProperty(propName);
+		PrismProperty<PolyString> prop = getObject().findProperty(ItemName.fromQName(propName));
 		assertNotNull("No "+propName.getLocalPart()+" in "+desc(), prop);
 		PrismAsserts.assertEqualsPolyString("Wrong "+propName.getLocalPart()+" in "+desc(), expectedOrig, prop.getRealValue());
 	}
 	
 	protected <T> void assertPropertyEquals(QName propName, T expected) {
-		PrismProperty<T> prop = getObject().findProperty(propName);
+		PrismProperty<T> prop = getObject().findProperty(ItemName.fromQName(propName));
 		if (prop == null && expected == null) {
 			return;
 		}
@@ -173,12 +168,6 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
 		T realValue = prop.getRealValue();
 		assertNotNull("No value in "+propName.getLocalPart()+" in "+desc(), realValue);
 		assertEquals("Wrong "+propName.getLocalPart()+" in "+desc(), expected, realValue);
-	}
-	
-	public PrismObjectAsserter<O,RA> assertNoItem(QName itemName) {
-		Item<PrismValue, ItemDefinition> item = getObject().findItem(itemName);
-		assertNull("Unexpected item "+itemName+" in "+desc(), item);
-		return this;
 	}
 	
 	public PrismObjectAsserter<O,RA> assertNoItem(ItemPath itemPath) {
@@ -222,17 +211,4 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
 		copySetupTo(asserter);
 		return asserter;
 	}
-	
-//	public <C extends Containerable> ContainerAsserter<C,PrismObjectAsserter<O,RA>> container(QName qname) {
-//		return container(new ItemPath(qname));
-//	}
-//	
-//	public <C extends Containerable> ContainerAsserter<C,PrismObjectAsserter<O,RA>> container(ItemPath path) {
-//		PrismContainer<C> container = getObject().findContainer(path);
-//		assertNotNull("No container for path "+path+" in "+desc(), container);
-//		ContainerAsserter<C,PrismObjectAsserter<O,RA>> containerAsserter = new ContainerAsserter<>(container, this, "container for "+path+" in "+desc());
-//		copySetupTo(containerAsserter);
-//		return containerAsserter;
-//	}
-
 }

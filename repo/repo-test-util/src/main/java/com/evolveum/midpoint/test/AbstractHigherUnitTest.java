@@ -33,6 +33,8 @@ import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.commons.lang.StringUtils;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchResultEntry;
@@ -57,10 +59,8 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -455,7 +455,7 @@ public abstract class AbstractHigherUnitTest {
 	}
 
 	protected ItemPath getExtensionPath(QName propName) {
-		return new ItemPath(ObjectType.F_EXTENSION, propName);
+		return ItemPath.create(ObjectType.F_EXTENSION, propName);
 	}
 
 	protected void assertNumberOfAttributes(PrismObject<ShadowType> shadow, Integer expectedNumberOfAttributes) {
@@ -708,7 +708,7 @@ public abstract class AbstractHigherUnitTest {
 		PrismAsserts.assertSets("attribute "+attrQname+" in " + shadow, matchingRule, actualValues, expectedValues);
 	}
 
-	protected void assertNoAttribute(PrismObject<ResourceType> resource, ShadowType shadow, QName attrQname) {
+	protected void assertNoAttribute(PrismObject<ResourceType> resource, ShadowType shadow, ItemName attrQname) {
 		PrismContainer<?> attributesContainer = shadow.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES);
 		if (attributesContainer == null || attributesContainer.isEmpty()) {
 			return;
@@ -718,7 +718,7 @@ public abstract class AbstractHigherUnitTest {
 	}
 
 	protected void assertNoAttribute(PrismObject<ResourceType> resource, ShadowType shadow, String attrName) {
-		QName attrQname = new QName(ResourceTypeUtil.getResourceNamespace(resource), attrName);
+		ItemName attrQname = new ItemName(ResourceTypeUtil.getResourceNamespace(resource), attrName);
 		assertNoAttribute(resource, shadow, attrQname);
 	}
 
@@ -737,7 +737,7 @@ public abstract class AbstractHigherUnitTest {
     }
 
 	protected S_FilterEntryOrEmpty queryFor(Class<? extends Containerable> queryClass) {
-		return QueryBuilder.queryFor(queryClass, getPrismContext());
+		return getPrismContext().queryFor(queryClass);
 	}
 
 	protected void assertMessageContains(String message, String string) {

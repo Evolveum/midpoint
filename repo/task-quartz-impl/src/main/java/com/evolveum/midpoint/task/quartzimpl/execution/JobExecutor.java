@@ -18,8 +18,9 @@ package com.evolveum.midpoint.task.quartzimpl.execution;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.*;
@@ -53,8 +54,6 @@ import org.springframework.security.core.Authentication;
 
 import javax.xml.datatype.Duration;
 import java.util.*;
-
-import static com.evolveum.midpoint.schema.GetOperationOptions.retrieveItemsNamed;
 
 @DisallowConcurrentExecution
 public class JobExecutor implements InterruptableJob {
@@ -101,7 +100,9 @@ public class JobExecutor implements InterruptableJob {
 		// get the task instance
 		String oid = context.getJobDetail().getKey().getName();
         try {
-			task = taskManagerImpl.getTask(oid, retrieveItemsNamed(TaskType.F_RESULT), executionResult);
+	        Collection<SelectorOptions<GetOperationOptions>> options = taskManagerImpl.getSchemaHelper().getOperationOptionsBuilder()
+			        .item(TaskType.F_RESULT).retrieve().build();
+	        task = taskManagerImpl.getTask(oid, options, executionResult);
 		} catch (ObjectNotFoundException e) {
             LoggingUtils.logException(LOGGER, "Task with OID {} no longer exists, removing Quartz job and exiting the execution routine.", e, oid);
             taskManagerImpl.getExecutionManager().removeTaskFromQuartz(oid, executionResult);
@@ -690,7 +691,7 @@ mainCycle:
 		if (task.getWorkState() != null && Boolean.TRUE.equals(task.getWorkState().isAllWorkComplete())) {
 			LOGGER.debug("Work is marked as complete; restarting it in task {}", task);
 			try {
-				List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(TaskType.class, taskManagerImpl.getPrismContext())
+				List<ItemDelta<?, ?>> itemDeltas = taskManagerImpl.getPrismContext().deltaFor(TaskType.class)
 						.item(TaskType.F_WORK_STATE).replace()
 						.asItemDeltas();
 				task.applyDeltasImmediate(itemDeltas, executionResult);

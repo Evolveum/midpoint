@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-/**
- *
- */
 package com.evolveum.midpoint.model.intest.manual;
 
 import static org.testng.AssertJUnit.assertFalse;
@@ -26,7 +23,8 @@ import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
 
-import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismPropertyValueImpl;
+import com.evolveum.midpoint.prism.query.FilterUtil;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -35,9 +33,7 @@ import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.FilterUtils;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -99,7 +95,7 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
 		display("Resources", resources.size() + ": " + resources);
 		assertEquals("Unexpected number of resources", 3, resources.size());
 		
-		ObjectQuery query = QueryBuilder.queryFor(ResourceType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(ResourceType.class)
 			.item("extension","provisioning").eq("propagated")
 			.build();
 		SearchResultList<PrismObject<ResourceType>> propagatedResources = repositoryService.searchObjects(ResourceType.class, query, null, result);
@@ -114,7 +110,7 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
 		display("Propagation task (new)", propTask);
 		SearchFilterType filterType = propTask.asObjectable().getObjectRef().getFilter();
 		display("Propagation task filter", filterType);
-		assertFalse("Empty filter in propagation task",  FilterUtils.isFilterEmpty(filterType));
+		assertFalse("Empty filter in propagation task",  FilterUtil.isFilterEmpty(filterType));
 	}
 	
 	@Override
@@ -163,9 +159,9 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
 		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowRepo, null, null, executionStage);
 		assertNotNull("No ID in pending operation", pendingOperation.getId());
 		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME,
-				new RawType(new PrismPropertyValue(USER_BIGMOUTH_NAME.toLowerCase()), ATTR_USERNAME_QNAME, prismContext));
+				RawType.fromPropertyRealValue(USER_BIGMOUTH_NAME.toLowerCase(), ATTR_USERNAME_QNAME, prismContext));
 		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME,
-				new RawType(new PrismPropertyValue(USER_BIGMOUTH_FULLNAME), ATTR_FULLNAME_QNAME, prismContext));
+				RawType.fromPropertyRealValue(USER_BIGMOUTH_FULLNAME, ATTR_FULLNAME_QNAME, prismContext));
 		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
 		assertShadowExists(shadowRepo, false);
 		assertNoShadowPassword(shadowRepo);
@@ -213,9 +209,9 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
 		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowRepo, null, null, executionStage);
 		assertNotNull("No ID in pending operation", pendingOperation.getId());
 		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME,
-				new RawType(new PrismPropertyValue(USER_BIGMOUTH_NAME.toLowerCase()), ATTR_USERNAME_QNAME, prismContext));
+				RawType.fromPropertyRealValue(USER_BIGMOUTH_NAME.toLowerCase(), ATTR_USERNAME_QNAME, prismContext));
 		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME,
-				new RawType(new PrismPropertyValue(USER_BIGMOUTH_FULLNAME), ATTR_FULLNAME_QNAME, prismContext));
+				RawType.fromPropertyRealValue(USER_BIGMOUTH_FULLNAME, ATTR_FULLNAME_QNAME, prismContext));
 		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
 		assertShadowExists(shadowRepo, false);
 		assertNoShadowPassword(shadowRepo);

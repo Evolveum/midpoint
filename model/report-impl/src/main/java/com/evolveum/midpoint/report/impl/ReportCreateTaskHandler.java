@@ -29,6 +29,7 @@ import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.commandline.CommandLineScriptExecutor;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
@@ -69,8 +70,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.report.api.ReportConstants;
 import com.evolveum.midpoint.report.api.ReportService;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -171,7 +170,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
                 if (items != null) {
                     for (Item item : items) {
                         PrismProperty pp = (PrismProperty) item;
-                        String paramName = ItemPath.getName(pp.getPath().lastNamed()).getLocalPart();
+                        String paramName = pp.getPath().lastName().getLocalPart();
                         Object value = null;
                         if (isSingleValue(paramName, jasperReport.getParameters())) {
                         	value = pp.getRealValues().iterator().next();
@@ -505,7 +504,8 @@ public class ReportCreateTaskHandler implements TaskHandler {
         reportOutputType.setExportType(reportType.getExport());
 
 
-        SearchResultList<PrismObject<NodeType>> nodes = modelService.searchObjects(NodeType.class, QueryBuilder.queryFor(NodeType.class, prismContext).item(NodeType.F_NODE_IDENTIFIER).eq(task.getNode()).build(), null, task, parentResult);
+        SearchResultList<PrismObject<NodeType>> nodes = modelService.searchObjects(NodeType.class, prismContext
+		        .queryFor(NodeType.class).item(NodeType.F_NODE_IDENTIFIER).eq(task.getNode()).build(), null, task, parentResult);
         if (nodes == null || nodes.isEmpty()) {
         	LOGGER.error("Could not found node for storing the report.");
         	throw new ObjectNotFoundException("Could not find node where to save report");
@@ -522,7 +522,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         OperationResult subResult = null;
 
-        objectDelta = ObjectDelta.createAddDelta((PrismObject<ReportOutputType>) reportOutputType.asPrismObject());
+        objectDelta = ObjectDeltaCreationUtil.createAddDelta((PrismObject<ReportOutputType>) reportOutputType.asPrismObject());
         deltas.add(objectDelta);
         subResult = parentResult.createSubresult(ReportCreateTaskHandler.class.getName() + "createRepourtOutput");
 

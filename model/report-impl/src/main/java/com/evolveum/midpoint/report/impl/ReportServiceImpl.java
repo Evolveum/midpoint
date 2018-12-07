@@ -29,6 +29,7 @@ import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.schema.SchemaHelper;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -52,7 +53,6 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.TypeFilter;
@@ -82,6 +82,7 @@ public class ReportServiceImpl implements ReportService {
 	@Autowired private ModelService model;
 	@Autowired private TaskManager taskManager;
 	@Autowired private PrismContext prismContext;
+	@Autowired private SchemaHelper schemaHelper;
 	@Autowired private ExpressionFactory expressionFactory;
 	@Autowired @Qualifier("modelObjectResolver") private ObjectResolver objectResolver;
 	@Autowired private AuditService auditService;
@@ -104,7 +105,7 @@ public class ReportServiceImpl implements ReportService {
 			ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, task.getResult()));
 			SearchFilterType filter = prismContext.parserFor(query).parseRealValue(SearchFilterType.class);
 			LOGGER.trace("filter {}", filter);
-			ObjectFilter f = QueryConvertor.parseFilter(filter, UserType.class, prismContext);
+			ObjectFilter f = prismContext.getQueryConverter().parseFilter(filter, UserType.class);
 			LOGGER.trace("f {}", f.debugDump());
 			if (!(f instanceof TypeFilter)) {
 				throw new IllegalArgumentException(
@@ -112,7 +113,7 @@ public class ReportServiceImpl implements ReportService {
 			}
 
 			ObjectFilter subFilter = ((TypeFilter) f).getFilter();
-			ObjectQuery q = ObjectQuery.createObjectQuery(subFilter);
+			ObjectQuery q = prismContext.queryFactory().createObjectQuery(subFilter);
 
 			ExpressionVariables variables = new ExpressionVariables();
 			variables.addVariableDefinitions(parameters);
@@ -120,7 +121,7 @@ public class ReportServiceImpl implements ReportService {
 			q = ExpressionUtil.evaluateQueryExpressions(q, variables, expressionFactory, prismContext,
 					"parsing expression values for report", task, task.getResult());
 			((TypeFilter) f).setFilter(q.getFilter());
-			parsedQuery = ObjectQuery.createObjectQuery(f);
+			parsedQuery = prismContext.queryFactory().createObjectQuery(f);
 
 			LOGGER.trace("query dump {}", parsedQuery.debugDump());
 		} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
@@ -153,7 +154,7 @@ public class ReportServiceImpl implements ReportService {
 			clazz = prismContext.getSchemaRegistry().findObjectDefinitionByType(type).getCompileTimeClass();
 		}
 
-		ObjectQuery queryForSearch = ObjectQuery.createObjectQuery(typeFilter.getFilter());
+		ObjectQuery queryForSearch = prismContext.queryFactory().createObjectQuery(typeFilter.getFilter());
 
 		Task task = taskManager.createTaskInstance(ReportService.class.getName() + ".searchObjects()");
 		OperationResult parentResult = task.getResult();
@@ -306,7 +307,7 @@ public class ReportServiceImpl implements ReportService {
 		FunctionLibrary midPointLib = new FunctionLibrary();
 		midPointLib.setVariableName("report");
 		midPointLib.setNamespace("http://midpoint.evolveum.com/xml/ns/public/function/report-3");
-		ReportFunctions reportFunctions = new ReportFunctions(prismContext, model, taskManager, auditService);
+		ReportFunctions reportFunctions = new ReportFunctions(prismContext, schemaHelper, model, taskManager, auditService);
 		midPointLib.setGenericFunctions(reportFunctions);
 //
 //		MidpointFunctionsImpl mp = new MidpointFunctionsImpl();
@@ -318,5 +319,10 @@ public class ReportServiceImpl implements ReportService {
 		functions.add(midpointFunctionLibrary);
 		functions.add(midPointLib);
 		return functions;
+	}
+
+	@Override
+	public PrismContext getPrismContext() {
+		return prismContext;
 	}
 }

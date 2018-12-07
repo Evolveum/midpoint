@@ -59,7 +59,7 @@ public class TestStaticValues {
 
     	// GIVEN
     	PrismContext prismContext = PrismTestUtil.getPrismContext();
-    	PrismPropertyDefinitionImpl propDef = new PrismPropertyDefinitionImpl(PROP_NAME, DOMUtil.XSD_STRING, prismContext);
+    	MutablePrismPropertyDefinition propDef = prismContext.definitionFactory().createPropertyDefinition(PROP_NAME, DOMUtil.XSD_STRING);
     	propDef.setMaxOccurs(-1);
     	PrismProperty<String> origProperty = propDef.instantiate();
     	origProperty.addRealValue("FOO");
@@ -75,7 +75,7 @@ public class TestStaticValues {
 
     	// GIVEN
     	PrismContext prismContext = PrismTestUtil.getPrismContext();
-    	PrismPropertyDefinitionImpl propDef = new PrismPropertyDefinitionImpl(PROP_NAME, DOMUtil.XSD_INT, prismContext);
+    	MutablePrismPropertyDefinition propDef = prismContext.definitionFactory().createPropertyDefinition(PROP_NAME, DOMUtil.XSD_INT);
     	propDef.setMaxOccurs(-1);
     	PrismProperty<Integer> origProperty = propDef.instantiate();
     	origProperty.addRealValue(42);

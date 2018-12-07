@@ -46,7 +46,6 @@ import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.UndefinedFilter;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -288,12 +287,12 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
 
 		SearchFilterType filterType = PrismTestUtil.parseAtomicValue(new File(TEST_DIR, filename), SearchFilterType.COMPLEX_TYPE);
 
-		ObjectFilter filter = QueryJaxbConvertor.createObjectFilter(UserType.class, filterType, prismContext);
+		ObjectFilter filter = prismContext.getQueryConverter().createObjectFilter(UserType.class, filterType);
 
 		Map<QName, Object> params = new HashMap<>();
 		PrismPropertyValue<String> pval = null;
 		if (input != null) {
-			pval = new PrismPropertyValue<>(input);
+			pval = prismContext.itemFactory().createPrismPropertyValue(input);
 		}
 		params.put(ExpressionConstants.VAR_INPUT, pval);
 
@@ -312,7 +311,7 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
 	}
 
 	private void executeFilter(ObjectFilter filter, int expectedNumberOfResults, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+		ObjectQuery query = prismContext.queryFactory().createObjectQuery(filter);
 		SearchResultList<PrismObject<UserType>> objects = modelService.searchObjects(UserType.class, query, null, task, result);
 		display("Found objects", objects);
 		assertEquals("Wrong number of results (found: "+objects+")", expectedNumberOfResults, objects.size());

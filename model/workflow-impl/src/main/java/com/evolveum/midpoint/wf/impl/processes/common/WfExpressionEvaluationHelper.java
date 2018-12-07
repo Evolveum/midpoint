@@ -19,6 +19,7 @@ package com.evolveum.midpoint.wf.impl.processes.common;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.common.expression.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -78,12 +79,12 @@ public class WfExpressionEvaluationHelper {
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ExpressionFactory expressionFactory = getExpressionFactory();
 		PrismContext prismContext = expressionFactory.getPrismContext();
-		ItemDefinition<?> resultDef;
-		QName resultName = new QName(SchemaConstants.NS_C, "result");
+		MutableItemDefinition<?> resultDef;
+		ItemName resultName = new ItemName(SchemaConstants.NS_C, "result");
 		if (QNameUtil.match(typeName, ObjectReferenceType.COMPLEX_TYPE)) {
-			resultDef = new PrismReferenceDefinitionImpl(resultName, typeName, prismContext);
+			resultDef = prismContext.definitionFactory().createReferenceDefinition(resultName, typeName);
 		} else {
-			resultDef = new PrismPropertyDefinitionImpl<>(resultName, typeName, prismContext);
+			resultDef = prismContext.definitionFactory().createPropertyDefinition(resultName, typeName);
 		}
 		if (multiValued) {
 			resultDef.setMaxOccurs(-1);

@@ -239,7 +239,7 @@ public class ResourceRelatedHandlerPanel<D extends ResourceRelatedHandlerDto> ex
 		List<TaskAddResourcesDto> resourceList = new ArrayList<>();
 
 		try {
-			resources = parentPage.getModelService().searchObjects(ResourceType.class, new ObjectQuery(), null, task, result);
+			resources = parentPage.getModelService().searchObjects(ResourceType.class, null, null, task, result);
 			result.recomputeStatus();
 		} catch (Exception ex) {
 			result.recordFatalError("Couldn't get resource list.", ex);

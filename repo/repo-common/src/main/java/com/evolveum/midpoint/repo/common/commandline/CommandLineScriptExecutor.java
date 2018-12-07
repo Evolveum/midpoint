@@ -22,18 +22,12 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
@@ -103,8 +97,8 @@ public class CommandLineScriptExecutor {
     		
     		String expressionOutput = "";
     		
-    		PrismPropertyDefinitionImpl<String> outputDefinition = new PrismPropertyDefinitionImpl(
-    				ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_STRING, prismContext);
+    		MutablePrismPropertyDefinition<String> outputDefinition = prismContext.definitionFactory().createPropertyDefinition(
+    				ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_STRING);
     		outputDefinition.setMaxOccurs(1);
     		Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression = expressionFactory
     				.makeExpression(macroDef, outputDefinition, shortDesc, task, result);
@@ -119,8 +113,8 @@ public class CommandLineScriptExecutor {
 	    		if (defaultObject instanceof Item) {
 	    			sourceItem = (Item)defaultObject;
 	    		} else if (defaultObject instanceof String) {
-	    			PrismPropertyDefinitionImpl<String> sourceDefinition = new PrismPropertyDefinitionImpl(
-	        				ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_STRING, prismContext);
+	    			MutablePrismPropertyDefinition<String> sourceDefinition = prismContext.definitionFactory().createPropertyDefinition(
+	        				ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_STRING);
 	    			sourceDefinition.setMaxOccurs(1);
 	    			PrismProperty<String> sourceProperty = sourceDefinition.instantiate();
 	    			sourceProperty.setRealValue(defaultObject==null?null:defaultObject.toString());
@@ -140,7 +134,7 @@ public class CommandLineScriptExecutor {
     		if (outputTriple != null) {
 	    		Collection<PrismPropertyValue<String>> nonNegativeValues = outputTriple.getNonNegativeValues();
 	    		if (nonNegativeValues != null && !nonNegativeValues.isEmpty()) {		
-	    			Collection<String> expressionOutputs = PrismValue.getRealValuesOfCollection((Collection) nonNegativeValues);    		
+	    			Collection<String> expressionOutputs = PrismValueCollectionsUtil.getRealValuesOfCollection((Collection) nonNegativeValues);
 		    		if (expressionOutputs != null && !expressionOutputs.isEmpty()) {
 		    			expressionOutput = StringUtils.join(expressionOutputs, ",");
 		    		}

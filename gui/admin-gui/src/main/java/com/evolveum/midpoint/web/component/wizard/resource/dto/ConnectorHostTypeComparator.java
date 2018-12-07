@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.wizard.resource.dto;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 
 import org.apache.commons.lang.StringUtils;
@@ -63,7 +64,7 @@ public class ConnectorHostTypeComparator implements Comparator<PrismObject<Conne
         return builder.toString();
     }
 
-    private static String getStringProperty(PrismObject obj, QName qname) {
+    private static String getStringProperty(PrismObject obj, ItemName qname) {
         return (String) obj.getPropertyRealValue(qname, String.class);
     }
 }

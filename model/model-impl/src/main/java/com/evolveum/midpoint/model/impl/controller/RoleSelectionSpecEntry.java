@@ -18,18 +18,44 @@ package com.evolveum.midpoint.model.impl.controller;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import com.evolveum.midpoint.prism.DisplayableValueImpl;
+import com.evolveum.midpoint.util.DisplayableValue;
 
 /**
  * @author semancik
  *
  */
-public class RoleSelectionSpecEntry extends DisplayableValueImpl<String> {
+public class RoleSelectionSpecEntry implements DisplayableValue<String> {
 
 	boolean negative = false;
 
+	private String value;
+	private String label;
+	private String description;
+
 	public RoleSelectionSpecEntry(String value, String label, String description) {
-		super(value, label, description);
+		this.label = label;
+		this.value = value;
+		this.description = description;
+	}
+
+	@Override
+	public String getValue() {
+		return value;
+	}
+
+	@Override
+	public String getLabel() {
+		return label;
+	}
+
+	@Override
+	public String getDescription() {
+		return description;
+	}
+
+	@Override
+	public String toString() {
+		return "RoleSelectionSpecEntry(" + value + ": " + label + " (" + description + "))";
 	}
 
 	public boolean isNegative() {

@@ -26,9 +26,9 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -298,7 +298,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		AssignmentType assignmentType = createConstructionAssignment(RESOURCE_DUMMY_PINK_OID, ShadowKindType.ACCOUNT, null);
 		ConstructionType constructionType = assignmentType.getConstruction();
 		ResourceAttributeDefinitionType attributeDefinitionType = new ResourceAttributeDefinitionType();
-		attributeDefinitionType.setRef(new ItemPathType(new ItemPath(getDummyResourceController(RESOURCE_DUMMY_PINK_NAME).getAttributeWeaponQName())));
+		attributeDefinitionType.setRef(new ItemPathType(ItemPath.create(getDummyResourceController(RESOURCE_DUMMY_PINK_NAME).getAttributeWeaponQName())));
 		MappingType mappingType = new MappingType();
 		mappingType.setStrength(MappingStrengthType.STRONG);
 		ExpressionType expressionType = new ExpressionType();
@@ -307,7 +307,8 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		attributeDefinitionType.setOutbound(mappingType);
 		constructionType.getAttribute().add(attributeDefinitionType);
 		modifications.add(createAssignmentModification(assignmentType, true));
-		ObjectDelta<UserType> accountAssignmentUserDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
+		ObjectDelta<UserType> accountAssignmentUserDelta = ObjectDeltaCreationUtil
+				.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
 
         deltas.add(accountAssignmentUserDelta);
 
@@ -508,7 +509,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		executeChanges(ObjectDelta.createAddDelta(userScrooge), null, task, result);
+		executeChanges(ObjectDeltaCreationUtil.createAddDelta(userScrooge), null, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -551,7 +552,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		userJoeHacker.asObjectable().getLink().add(newPinkyShadow.asObjectable());
 
 		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-		deltas.add(ObjectDelta.createAddDelta(userJoeHacker));
+		deltas.add(ObjectDeltaCreationUtil.createAddDelta(userJoeHacker));
 
 		// WHEN
 		displayWhen(TEST_NAME);
@@ -669,7 +670,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		executeChanges(ObjectDelta.createAddDelta(userJupiter), null, task, result);
+		executeChanges(ObjectDeltaCreationUtil.createAddDelta(userJupiter), null, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -1054,7 +1055,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 
 		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
 		PrismObject<UserType> userJupiter = PrismTestUtil.parseObject(USER_ALFRED_FILE);			// there is a linked account
-		ObjectDelta<UserType> delta = ObjectDelta.createAddDelta(userJupiter);
+		ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createAddDelta(userJupiter);
 
 		// WHEN
 		displayWhen(TEST_NAME);
@@ -2290,7 +2291,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	private String lookupIterationTokenByAdditionalName(String additionalName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		Task task = taskManager.createTaskInstance(TestIteration.class.getName() + ".lookupIterationTokenByAdditionalName");
         OperationResult result = task.getResult();
-		ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(UserType.class)
 				.item(UserType.F_ADDITIONAL_NAME).eq(PrismTestUtil.createPolyString(additionalName))
 				.build();
 		List<PrismObject<UserType>> objects = modelService.searchObjects(UserType.class, query, null, task, result);

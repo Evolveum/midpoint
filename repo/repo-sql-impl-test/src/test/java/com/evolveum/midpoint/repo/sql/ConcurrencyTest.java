@@ -16,23 +16,10 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.sql.testing.SqlRepoTestUtil;
@@ -49,6 +36,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
+import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -72,8 +60,8 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
     public void test001TwoWriters_OneAttributeEach__NoReader() throws Exception {
 
         PropertyModifierThread[] mts = new PropertyModifierThread[]{
-                new PropertyModifierThread(1, new ItemPath(UserType.F_GIVEN_NAME), true, null, true),
-                new PropertyModifierThread(2, new ItemPath(UserType.F_FAMILY_NAME), true, null, true),
+                new PropertyModifierThread(1, UserType.F_GIVEN_NAME, true, null, true),
+                new PropertyModifierThread(2, UserType.F_FAMILY_NAME, true, null, true),
 //                new ModifierThread(3, oid, UserType.F_DESCRIPTION, false),
 //                new ModifierThread(4, oid, UserType.F_EMAIL_ADDRESS, false),
 //                new ModifierThread(5, oid, UserType.F_TELEPHONE_NUMBER, false),
@@ -89,10 +77,10 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
     public void test002FourWriters_OneAttributeEach__NoReader() throws Exception {
 
         PropertyModifierThread[] mts = new PropertyModifierThread[]{
-                new PropertyModifierThread(1, new ItemPath(UserType.F_GIVEN_NAME), true, null, true),
-                new PropertyModifierThread(2, new ItemPath(UserType.F_FAMILY_NAME), true, null, true),
-                new PropertyModifierThread(3, new ItemPath(UserType.F_DESCRIPTION), false, null, true),
-                new PropertyModifierThread(4, new ItemPath(UserType.F_EMAIL_ADDRESS), false, null, true)
+                new PropertyModifierThread(1, UserType.F_GIVEN_NAME, true, null, true),
+                new PropertyModifierThread(2, UserType.F_FAMILY_NAME, true, null, true),
+                new PropertyModifierThread(3, UserType.F_DESCRIPTION, false, null, true),
+                new PropertyModifierThread(4, UserType.F_EMAIL_ADDRESS, false, null, true)
         };
 
         concurrencyUniversal("Test2", 60000L, 500L, mts, null);
@@ -102,11 +90,8 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
     public void test003OneWriter_TwoAttributes__OneReader() throws Exception {
 
         PropertyModifierThread[] mts = new PropertyModifierThread[]{
-                new PropertyModifierThread(1, new ItemPath(UserType.F_GIVEN_NAME), true,
-                        new ItemPath(
-                                new NameItemPathSegment(UserType.F_ASSIGNMENT),
-                                new IdItemPathSegment(1L),
-                                new NameItemPathSegment(AssignmentType.F_DESCRIPTION)),
+                new PropertyModifierThread(1, UserType.F_GIVEN_NAME, true,
+                        ItemPath.create(UserType.F_ASSIGNMENT, 1L, AssignmentType.F_DESCRIPTION),
                         true)
         };
 
@@ -130,18 +115,12 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
     public void test004TwoWriters_TwoAttributesEach__OneReader() throws Exception {
 
         PropertyModifierThread[] mts = new PropertyModifierThread[]{
-                new PropertyModifierThread(1, new ItemPath(UserType.F_GIVEN_NAME), true,
-                        new ItemPath(
-                                new NameItemPathSegment(UserType.F_ASSIGNMENT),
-                                new IdItemPathSegment(1L),
-                                new NameItemPathSegment(AssignmentType.F_DESCRIPTION)),
+                new PropertyModifierThread(1, UserType.F_GIVEN_NAME, true,
+                        ItemPath.create(UserType.F_ASSIGNMENT, 1L, AssignmentType.F_DESCRIPTION),
                         true),
 
-                new PropertyModifierThread(2, new ItemPath(UserType.F_FAMILY_NAME), true,
-                        new ItemPath(
-                                new NameItemPathSegment(UserType.F_ASSIGNMENT),
-                                new IdItemPathSegment(1L),
-                                new NameItemPathSegment(AssignmentType.F_CONSTRUCTION)),
+                new PropertyModifierThread(2, UserType.F_FAMILY_NAME, true,
+                        ItemPath.create(UserType.F_ASSIGNMENT, 1L, AssignmentType.F_CONSTRUCTION),
                         true),
         };
 
@@ -308,13 +287,8 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         }
 
         private String lastName(ItemPath path) {
-            List<ItemPathSegment> segments = path.getSegments();
-            for (int i = segments.size()-1; i >= 0; i++) {
-                if (segments.get(i) instanceof NameItemPathSegment) {
-                    return ((NameItemPathSegment) segments.get(i)).getName().getLocalPart();
-                }
-            }
-            return "?";
+            QName lastName = path.lastName();
+            return lastName != null ? lastName.getLocalPart() : "?";
         }
 
         void runOnce(OperationResult result) {
@@ -328,9 +302,9 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
             if (propertyDefinition1 == null) {
                 throw new IllegalArgumentException("No definition for " + attribute1 + " in " + userPrismDefinition);
             }
-            PropertyDelta<?> delta1 = new PropertyDelta<>(attribute1, propertyDefinition1, prismContext);
+            PropertyDelta delta1 = prismContext.deltaFactory().property().create(attribute1, propertyDefinition1);
             //noinspection unchecked
-            delta1.setValueToReplace(new PrismPropertyValue(poly ? new PolyString(dataWritten) : dataWritten));
+            delta1.setRealValuesToReplace(poly ? new PolyString(dataWritten) : dataWritten);
             List<ItemDelta> deltas = new ArrayList<>();
             deltas.add(delta1);
 
@@ -343,16 +317,16 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
                 
                 ItemDelta delta2;
                 if (propertyDefinition2 instanceof PrismContainerDefinition) {
-                	delta2 = new ContainerDelta(attribute2, (PrismContainerDefinition) propertyDefinition2, prismContext);
+                	delta2 = prismContext.deltaFactory().container().create(attribute2, (PrismContainerDefinition) propertyDefinition2, prismContext);
                 } else {
-                    delta2 = new PropertyDelta(attribute2, (PrismPropertyDefinition) propertyDefinition2, prismContext);
+                    delta2 = prismContext.deltaFactory().property().create(attribute2, (PrismPropertyDefinition) propertyDefinition2);
                 }
                 if (ConstructionType.COMPLEX_TYPE.equals(propertyDefinition2.getTypeName())) {
                     ConstructionType act = new ConstructionType();
                     act.setDescription(dataWritten);
                     delta2.setValueToReplace(act.asPrismContainerValue());
                 } else {
-                    delta2.setValueToReplace(new PrismPropertyValue(dataWritten));
+                    delta2.setValueToReplace(prismContext.itemFactory().createPrismPropertyValue(dataWritten));
                 }
                 deltas.add(delta2);
             }
@@ -472,11 +446,11 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         String oid = repositoryService.addObject(user, null, result);
 
         repositoryService.searchObjectsIterative(UserType.class,
-                QueryBuilder.queryFor(UserType.class, prismContext)
+                prismContext.queryFor(UserType.class)
                     .item(UserType.F_NAME).eqPoly(name).matchingOrig().build(),
                 (object, parentResult) -> {
                     LOGGER.info("Handling " + object + "...");
-                    ObjectDelta delta = ObjectDelta.createModificationReplaceProperty(UserType.class, object.getOid(),
+                    ObjectDelta delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, object.getOid(),
 		                    UserType.F_FULL_NAME, prismContext, new PolyString(newFullName));
                     try {
                         repositoryService.modifyObject(UserType.class,
@@ -524,7 +498,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
             DeltaExecutionThread thread = new DeltaExecutionThread(i, oid, "operationExecution adder #" + i) {
                 @Override
                 Collection<ItemDelta<?, ?>> getItemDeltas() throws Exception {
-                    return DeltaBuilder.deltaFor(UserType.class, prismContext)
+                    return prismContext.deltaFor(UserType.class)
                             .item(UserType.F_OPERATION_EXECUTION).add(
                                     new OperationExecutionType(prismContext)
                                             .channel(threadIndex + ":" + counter)
@@ -565,7 +539,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
             DeltaExecutionThread thread = new DeltaExecutionThread(i, oid, "assignment adder #" + i) {
                 @Override
                 Collection<ItemDelta<?, ?>> getItemDeltas() throws Exception {
-                    return DeltaBuilder.deltaFor(UserType.class, prismContext)
+                    return prismContext.deltaFor(UserType.class)
                             .item(UserType.F_ASSIGNMENT).add(
                                     new AssignmentType(prismContext)
                                             .targetRef("0000-" + threadIndex + "-" + counter, OrgType.COMPLEX_TYPE))
