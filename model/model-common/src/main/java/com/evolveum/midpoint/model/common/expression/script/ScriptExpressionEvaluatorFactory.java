@@ -55,9 +55,11 @@ public class ScriptExpressionEvaluatorFactory extends AbstractAutowiredExpressio
 	}
 	
 	// For use in tests
-	public ScriptExpressionEvaluatorFactory(ScriptExpressionFactory scriptExpressionFactory, SecurityContextManager securityContextManager) {
+	public ScriptExpressionEvaluatorFactory(ScriptExpressionFactory scriptExpressionFactory,
+			SecurityContextManager securityContextManager, PrismContext prismContext) {
 		this.scriptExpressionFactory = scriptExpressionFactory;
         this.securityContextManager = securityContextManager;
+        this.prismContext = prismContext;
 	}
 
 	@Override
