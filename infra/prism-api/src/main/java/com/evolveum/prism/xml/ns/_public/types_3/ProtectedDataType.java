@@ -32,7 +32,7 @@ import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.util.CloneUtilTemp;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.xml.security.exceptions.Base64DecodingException;
 import org.apache.xml.security.utils.Base64;
@@ -336,9 +336,9 @@ public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializ
 	}
 
     protected void cloneTo(ProtectedDataType<T> cloned) {
-        cloned.clearValue = CloneUtilTemp.clone(clearValue);
-        cloned.encryptedDataType = CloneUtilTemp.clone(encryptedDataType);
-        cloned.hashedDataType = CloneUtilTemp.clone(hashedDataType);
+        cloned.clearValue = CloneUtil.clone(clearValue);
+        cloned.encryptedDataType = CloneUtil.clone(encryptedDataType);
+        cloned.hashedDataType = CloneUtil.clone(hashedDataType);
 
         // content is virtual, there is no point in copying it
     }
