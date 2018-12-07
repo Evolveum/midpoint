@@ -92,7 +92,7 @@ public class EditablePropertyWrapperColumn<C extends Containerable, S> extends A
 			}
     	}
     	
-    	PrismPropertyColumn panel = new PrismPropertyColumn<>(componentId, model, form, getPageBase());
+    	PrismPropertyColumn panel = new PrismPropertyColumn(componentId, model, form, getPageBase());
     	panel.setEnabled(false);
     	return panel;
     }

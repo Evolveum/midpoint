@@ -223,7 +223,7 @@ public class PageCertDefinitions extends PageAdminWorkItems {
 								.arg(getOrig(campaign.getName()))
 								.build());
 			} else {
-				result.recordWarning("Definition '" + definition.getName() + "' is for ad-hoc campaigns that cannot be started manually.");
+				result.recordWarning(createStringResource("PageCertDefinitions.message.createCampaignPerformed.warning", definition.getName()).getString());
 			}
 		} catch (Exception ex) {
 			result.recordFatalError(ex);

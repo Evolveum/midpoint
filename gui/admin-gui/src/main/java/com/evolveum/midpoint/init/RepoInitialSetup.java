@@ -45,9 +45,9 @@ public class RepoInitialSetup {
             LOGGER.info("Repository post initialization finished successfully.");
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Repository post initialization failed", ex);
-            result.recordFatalError("Repository post initialization failed.", ex);
+            result.recordFatalError("RepoInitialSetup.message.init.fatalError", ex);
         } finally {
-            result.computeStatus("Repository post initialization failed.");
+            result.computeStatus("RepoInitialSetup.message.init.fatalError");
         }
     }
 }

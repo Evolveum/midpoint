@@ -2707,7 +2707,7 @@ public final class WebComponentUtil {
 				| ExpressionEvaluationException | CommunicationException | ConfigurationException
 				| PolicyViolationException | SecurityViolationException e) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Error refreshing resource schema", e);
-			parentResult.recordFatalError("Error refreshing resource schema", e);
+			parentResult.recordFatalError(pageBase.createStringResource("WebComponentUtil.message.refreshResourceSchema.fatalError").getString(), e);
 		}
 
 		parentResult.computeStatus();
@@ -2890,7 +2890,7 @@ public final class WebComponentUtil {
 									result.recordInProgress(); // this should be probably have been done in submitTaskFromTemplate
 									result.setBackgroundTaskOid(executorTask.getOid());
 								} else {
-									result.recordWarning(pageBase.createStringResource("webComponentUtil.message.createMenuItemsFromActions.warning").getString());
+									result.recordWarning(pageBase.createStringResource("WebComponentUtil.message.createMenuItemsFromActions.warning").getString());
 								}
 							} catch (Exception ex) {
 								result.recordFatalError(result.getOperation(), ex);
@@ -2945,7 +2945,7 @@ public final class WebComponentUtil {
 			filter = roleSpec.getFilter();
 		} catch (Exception ex) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load available roles", ex);
-			result.recordFatalError("Couldn't load available roles", ex);
+			result.recordFatalError(pageBase.createStringResource("WebComponentUtil.message.getAssignableRolesFilter.fatalError").getString(), ex);
 		} finally {
 			result.recomputeStatus();
 		}
