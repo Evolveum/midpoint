@@ -56,13 +56,13 @@ public class ControllerSearchObjectsTest extends AbstractTestNGSpringContextTest
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullPaging() throws Exception {
-		controller.searchObjects(null, prismContext.queryFactory().createObjectQuery(), null, null, null);
+		controller.searchObjects(null, prismContext.queryFactory().createQuery(), null, null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullResult() throws Exception {
 		ObjectPaging paging = prismContext.queryFactory().createPaging(0, Integer.MAX_VALUE, (ItemPath) null, null);
-		ObjectQuery query = prismContext.queryFactory().createObjectQuery(paging);
+		ObjectQuery query = prismContext.queryFactory().createQuery(paging);
 		controller.searchObjects(null, query, null, null, null);
 	}
 }

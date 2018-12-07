@@ -280,11 +280,11 @@ public class DeleteAllPanel extends Panel  implements Popupable{
                     .item(ShadowType.F_KIND).eq(ShadowKindType.ACCOUNT)
                     .buildFilter();
             if (isAccountShadow) {
-                ObjectQuery query = prismContext.queryFactory().createObjectQuery(filter);
+                ObjectQuery query = prismContext.queryFactory().createQuery(filter);
                 dto.setAccountShadowCount(getPagebase().getModelService().countObjects(ShadowType.class, query, options, task, result));
                 dto.setObjectsToDelete(dto.getObjectsToDelete() + dto.getAccountShadowCount());
             } else {
-                ObjectQuery query = prismContext.queryFactory().createObjectQuery(prismContext.queryFactory().createNot(filter));
+                ObjectQuery query = prismContext.queryFactory().createQuery(prismContext.queryFactory().createNot(filter));
                 dto.setNonAccountShadowCount(getPagebase().getModelService().countObjects(ShadowType.class, query, options, task, result));
                 dto.setObjectsToDelete(dto.getObjectsToDelete() + dto.getNonAccountShadowCount());
             }

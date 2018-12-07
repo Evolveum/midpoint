@@ -43,7 +43,6 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.ResultHandler;
@@ -261,7 +260,7 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 			LOGGER.info("Found object {}", object);
 			return results.add(object);
 		};
-		getObjectResolver().searchIterative(ResourceType.class, getPrismContext().queryFactory().createObjectQuery(evaluatedFilter),
+		getObjectResolver().searchIterative(ResourceType.class, getPrismContext().queryFactory().createQuery(evaluatedFilter),
 				null, handler, task, result);
 
 		if (org.apache.commons.collections.CollectionUtils.isEmpty(results)) {

@@ -37,7 +37,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColu
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -295,12 +294,12 @@ public abstract class ResourceContentPanel extends Panel {
 					filters.add(customQuery.getFilter());
 				}
 				if (filters.size() == 1) {
-					return queryFactory.createObjectQuery(filters.iterator().next());
+					return queryFactory.createQuery(filters.iterator().next());
 				}
 				if (filters.size() == 0) {
 					return null;
 				}
-				return queryFactory.createObjectQuery(queryFactory.createAnd(filters));
+				return queryFactory.createQuery(queryFactory.createAnd(filters));
 			}
 
 			@Override

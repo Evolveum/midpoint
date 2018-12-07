@@ -107,7 +107,7 @@ public class SearchIterativeTest extends BaseSQLRepoTest {
             return true;
         };
 
-        ObjectQuery query = prismContext.queryFactory().createObjectQuery(prismContext.queryFactory().createPaging(null, 70));
+        ObjectQuery query = prismContext.queryFactory().createQuery(prismContext.queryFactory().createPaging(null, 70));
         repositoryService.searchObjectsIterative(UserType.class, query, handler, null, true, result);
         result.recomputeStatus();
 
@@ -126,7 +126,7 @@ public class SearchIterativeTest extends BaseSQLRepoTest {
             return true;
         };
 
-        ObjectQuery query = prismContext.queryFactory().createObjectQuery(prismContext.queryFactory().createPaging(1, null));
+        ObjectQuery query = prismContext.queryFactory().createQuery(prismContext.queryFactory().createPaging(1, null));
         repositoryService.searchObjectsIterative(UserType.class, query, handler, null, true, result);
         result.recomputeStatus();
 
@@ -145,7 +145,7 @@ public class SearchIterativeTest extends BaseSQLRepoTest {
             return true;
         };
 
-        ObjectQuery query = prismContext.queryFactory().createObjectQuery(prismContext.queryFactory().createPaging(1, 200));
+        ObjectQuery query = prismContext.queryFactory().createQuery(prismContext.queryFactory().createPaging(1, 200));
         repositoryService.searchObjectsIterative(UserType.class, query, handler, null, true, result);
         result.recomputeStatus();
 

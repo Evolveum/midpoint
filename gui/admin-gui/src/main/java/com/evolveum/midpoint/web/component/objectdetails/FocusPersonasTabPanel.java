@@ -106,7 +106,7 @@ public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTa
                 List<PrismObject<FocusType>> personasList = new ArrayList<>();
                 if (personaOidsList.size() > 0){
                     QueryFactory factory = getPrismContext().queryFactory();
-                    ObjectQuery query = factory.createObjectQuery(factory.createInOid(personaOidsList));
+                    ObjectQuery query = factory.createQuery(factory.createInOid(personaOidsList));
                     OperationResult result = new OperationResult(OPERATION_SEARCH_PERSONAS_OBJECTS);
                     personasList = WebModelServiceUtils.searchObjects(FocusType.class, query, result, pageBase);
 

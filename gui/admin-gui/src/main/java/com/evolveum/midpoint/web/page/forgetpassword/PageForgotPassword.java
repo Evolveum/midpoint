@@ -346,7 +346,7 @@ public class PageForgotPassword extends PageRegistrationBase {
 			filter.setValue(property.getAnyValue().clone());
 			filters.add(filter);
 		}
-		return queryFactory.createObjectQuery(queryFactory.createAnd((List) filters));
+		return queryFactory.createQuery(queryFactory.createAnd((List) filters));
 	}
 
 	private ObjectQuery createStaticFormQuery(Form form) {

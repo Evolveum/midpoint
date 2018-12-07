@@ -194,7 +194,7 @@ public class MemberOperationsHelper {
 			PrismContext prismContext) {
 		Set<String> oids = getFocusOidToRecompute(selectedObjects);
 		QueryFactory queryFactory = prismContext.queryFactory();
-		return queryFactory.createObjectQuery(queryFactory.createInOid(oids));
+		return queryFactory.createQuery(queryFactory.createInOid(oids));
 	}
 
 	public static <O extends ObjectType> Set<String> getFocusOidToRecompute(List<O> selectedObjects) {

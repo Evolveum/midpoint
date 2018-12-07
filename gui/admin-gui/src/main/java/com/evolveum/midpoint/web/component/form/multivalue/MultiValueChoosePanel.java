@@ -163,7 +163,7 @@ public class MultiValueChoosePanel<T extends ObjectType> extends BasePanel<List<
 
 	protected ObjectQuery createChooseQuery(List<PrismReferenceValue> values) {
 		ArrayList<String> oidList = new ArrayList<>();
-		ObjectQuery query = getPrismContext().queryFactory().createObjectQuery();
+		ObjectQuery query = getPrismContext().queryFactory().createQuery();
 
 		if (oidList.isEmpty()) {
 			return null;

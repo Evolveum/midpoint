@@ -1704,7 +1704,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
         try {
             ObjectPaging paging = prismContext.queryFactory().createPaging(null, null, F_NAME, ASCENDING);
-            ObjectQuery query = prismContext.queryFactory().createObjectQuery(null, paging);
+            ObjectQuery query = prismContext.queryFactory().createQuery(null, paging);
 
             String real = getInterpretedQuery2(session, ObjectType.class, query, true);
             String expected = "select\n" +
@@ -2541,7 +2541,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
         try {
             TypeFilter type = prismContext.queryFactory().createType(UserType.COMPLEX_TYPE, null);
-            String real = getInterpretedQuery2(session, ObjectType.class, prismContext.queryFactory().createObjectQuery(type));
+            String real = getInterpretedQuery2(session, ObjectType.class, prismContext.queryFactory().createQuery(type));
             String expected = "select\n" +
                     "  o.oid, o.fullObject,\n" +
                     "  o.stringsCount,\n" +
@@ -2567,7 +2567,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
         try {
             TypeFilter type = prismContext.queryFactory().createType(AbstractRoleType.COMPLEX_TYPE, null);
-            String real = getInterpretedQuery2(session, ObjectType.class, prismContext.queryFactory().createObjectQuery(type));
+            String real = getInterpretedQuery2(session, ObjectType.class, prismContext.queryFactory().createQuery(type));
             String expected = "select\n" +
                     "  o.oid, o.fullObject,\n" +
                     "  o.stringsCount,\n" +
@@ -3301,7 +3301,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         Session session = open();
         try {
             InOidFilter filter = prismContext.queryFactory().createOwnerHasOidIn("123456");
-            ObjectQuery query = prismContext.queryFactory().createObjectQuery(filter);
+            ObjectQuery query = prismContext.queryFactory().createQuery(filter);
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
             String expected = "select\n" +
                     "  a.ownerOid, a.id, a.fullObject\n" +
@@ -3813,7 +3813,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
              * ### UserType: order by activation/administrativeStatus
              */
 
-            ObjectQuery query = prismContext.queryFactory().createObjectQuery(
+            ObjectQuery query = prismContext.queryFactory().createQuery(
                     null,
                     prismContext.queryFactory().createPaging(
                             ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
@@ -3846,7 +3846,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
              * ### AccessCertificationCaseType: (all), order by ../name desc
              */
 
-            ObjectQuery query = prismContext.queryFactory().createObjectQuery(
+            ObjectQuery query = prismContext.queryFactory().createQuery(
                     prismContext.queryFactory().createPaging(ItemPath.create(T_PARENT, F_NAME), DESCENDING));
 
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query);
@@ -3872,7 +3872,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
              * ### AccessCertificationCaseType: (all), order by targetRef/@/name
              */
 
-            ObjectQuery query = prismContext.queryFactory().createObjectQuery(
+            ObjectQuery query = prismContext.queryFactory().createQuery(
                     prismContext.queryFactory().createPaging(ItemPath.create(
                             AccessCertificationCaseType.F_TARGET_REF,
                             PrismConstants.T_OBJECT_REFERENCE, F_NAME), ASCENDING));

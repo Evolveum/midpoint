@@ -792,7 +792,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 		addObjectFromFile(workerTaskFilename(TEST_NAME));
 
 		workBucketsTaskHandler.resetBeforeTest();
-		workBucketsTaskHandler.setDefaultQuery(prismContext.queryFactory().createObjectQuery());
+		workBucketsTaskHandler.setDefaultQuery(prismContext.queryFactory().createQuery());
 
 		try {
 

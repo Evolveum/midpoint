@@ -26,7 +26,6 @@ import com.evolveum.midpoint.web.page.error.PageError;
 
 import org.apache.commons.lang.Validate;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
@@ -119,7 +118,7 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
 
             ObjectQuery query = getQuery();
             if (query == null){
-            	query = getPrismContext().queryFactory().createObjectQuery();
+            	query = getPrismContext().queryFactory().createQuery();
             }
             query.setPaging(paging);
 

@@ -308,7 +308,7 @@ public class TestQueryConverter {
 			ObjectFilter kindFilter = getPrismContext().queryFor(ShadowType.class)
 					.item(ShadowType.F_KIND).eq(ShadowKindType.ACCOUNT)
 					.buildFilter();
-			query = getQueryFactory().createObjectQuery(kindFilter);
+			query = getQueryFactory().createQuery(kindFilter);
 			assertNotNull(query);
 			ObjectFilter filter = query.getFilter();
 			assertTrue("filter is not an instance of type filter", filter instanceof EqualFilter);
@@ -434,7 +434,7 @@ public class TestQueryConverter {
 
 	@Test
 	public void testConvertQueryNullFilter() throws Exception {
-		ObjectQuery query = getQueryFactory().createObjectQuery(getQueryFactory().createPaging(0, 10));
+		ObjectQuery query = getQueryFactory().createQuery(getQueryFactory().createPaging(0, 10));
 		QueryType queryType = getQueryConverter().createQueryType(query);
 
 		assertNotNull(queryType);

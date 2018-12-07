@@ -281,7 +281,7 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
     }
 
     protected ObjectQuery createContentQuery() {
-        ObjectQuery memberQuery = getPrismContext().queryFactory().createObjectQuery();
+        ObjectQuery memberQuery = getPrismContext().queryFactory().createQuery();
         memberQuery.addFilter(getAssignableRolesFilter());
         if (getQueryType() != null && !AbstractRoleType.COMPLEX_TYPE.equals(getQueryType())){
             ObjectFilter typeFilter = ObjectQueryUtil.filterAnd(getPrismContext().queryFactory().createType(getQueryType(), null), memberQuery.getFilter(),

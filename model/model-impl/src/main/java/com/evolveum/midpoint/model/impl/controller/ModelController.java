@@ -1851,7 +1851,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		} else if (updatedFilter == null) {
 			return null;
 		} else {
-			return getPrismContext().queryFactory().createObjectQuery(updatedFilter);
+			return getPrismContext().queryFactory().createQuery(updatedFilter);
 		}
 	}
 

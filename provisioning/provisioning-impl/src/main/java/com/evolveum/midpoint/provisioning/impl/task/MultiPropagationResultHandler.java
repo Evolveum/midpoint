@@ -56,7 +56,7 @@ public class MultiPropagationResultHandler extends AbstractSearchIterativeResult
 			throws CommonException {
 		
 		LOGGER.trace("Propagating provisioning operations on {}", resource);
-		ObjectQuery query = resource.getPrismContext().queryFactory().createObjectQuery();
+		ObjectQuery query = resource.getPrismContext().queryFactory().createQuery();
 		ObjectFilter filter = resource.getPrismContext().queryFor(ShadowType.class)
 				.item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
 				.and()

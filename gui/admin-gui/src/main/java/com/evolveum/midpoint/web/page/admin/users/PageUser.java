@@ -312,7 +312,7 @@ public class PageUser extends PageAdminFocus<UserType> {
                     .item(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(referenceValue)
                     .buildFilter();
 
-            ObjectQuery query = getPrismContext().queryFactory().createObjectQuery(refFilter);
+            ObjectQuery query = getPrismContext().queryFactory().createQuery(refFilter);
 
             List<PrismObject<UserType>> usersList = getModelService().searchObjects(UserType.class, query, null, task, result);
             List<String> processedUsersOid = new ArrayList<>();

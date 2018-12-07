@@ -521,7 +521,7 @@ public class PageCertCampaign extends PageAdminCertification {
 	}
 
 	private ObjectQuery createCaseQuery() {
-		return getPrismContext().queryFactory().createObjectQuery();
+		return getPrismContext().queryFactory().createQuery();
 	}
 
 	private Table getOutcomesTable() {

@@ -161,7 +161,7 @@ public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrWork
                 query.setFilter(prismContext.queryFactory().createAnd(query.getFilter(), inOidFilter));
             }
         } else {
-            query = getPrismContext().queryFactory().createObjectQuery(inOidFilter);
+            query = getPrismContext().queryFactory().createQuery(inOidFilter);
         }
         return query;
     }

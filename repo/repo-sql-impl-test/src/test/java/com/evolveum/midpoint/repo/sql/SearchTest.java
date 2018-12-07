@@ -159,7 +159,7 @@ public class SearchTest extends BaseSQLRepoTest {
 
         LOGGER.trace(">>>>>> iterateGeneral: offset = " + offset + ", size = " + size + ", batch = " + batch + " <<<<<<");
 
-        ObjectQuery query = prismContext.queryFactory().createObjectQuery();
+        ObjectQuery query = prismContext.queryFactory().createQuery();
         query.setPaging(prismContext.queryFactory().createPaging(offset, size, ObjectType.F_NAME, OrderDirection.ASCENDING));
         repositoryService.searchObjectsIterative(UserType.class, query, handler, null, false, result);
         result.recomputeStatus();

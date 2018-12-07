@@ -195,7 +195,7 @@ public class GlobalPolicyRuleTabPanel extends BasePanel<ContainerWrapper<GlobalP
     private ObjectQuery createQuery() {
 	    QueryFactory factory = getPrismContext().queryFactory();
 	    TypeFilter filter = factory.createType(GlobalPolicyRuleType.COMPLEX_TYPE, factory.createAll());
-    	return factory.createObjectQuery(filter);
+    	return factory.createQuery(filter);
     }
     
     private void initPaging() {

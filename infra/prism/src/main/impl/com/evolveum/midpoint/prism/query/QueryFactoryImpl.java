@@ -315,31 +315,31 @@ public class QueryFactoryImpl implements QueryFactory {
 
 	@Override
 	@NotNull
-	public ObjectQuery createObjectQuery() {
+	public ObjectQuery createQuery() {
 		return ObjectQueryImpl.createObjectQuery();
 	}
 
 	@Override
 	@NotNull
-	public ObjectQuery createObjectQuery(ObjectFilter filter) {
+	public ObjectQuery createQuery(ObjectFilter filter) {
 		return ObjectQueryImpl.createObjectQuery(filter);
 	}
 
 	@Override
 	@NotNull
-	public ObjectQuery createObjectQuery(XNode condition, ObjectFilter filter) {
+	public ObjectQuery createQuery(XNode condition, ObjectFilter filter) {
 		return ObjectQueryImpl.createObjectQuery((XNodeImpl) condition, filter);
 	}
 
 	@Override
 	@NotNull
-	public ObjectQuery createObjectQuery(ObjectPaging paging) {
+	public ObjectQuery createQuery(ObjectPaging paging) {
 		return ObjectQueryImpl.createObjectQuery(paging);
 	}
 
 	@Override
 	@NotNull
-	public ObjectQuery createObjectQuery(ObjectFilter filter, ObjectPaging paging) {
+	public ObjectQuery createQuery(ObjectFilter filter, ObjectPaging paging) {
 		return ObjectQueryImpl.createObjectQuery(filter, paging);
 	}
 

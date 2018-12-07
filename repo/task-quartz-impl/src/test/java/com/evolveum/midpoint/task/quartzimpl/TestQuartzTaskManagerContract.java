@@ -1190,9 +1190,9 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         ObjectFilter filter2 = prismContext.queryFor(TaskType.class).item(TaskType.F_WAITING_REASON).eq(TaskWaitingReasonType.OTHER).buildFilter();
         ObjectFilter filter3 = prismContext.queryFactory().createAnd(filter1, filter2);
 
-        List<PrismObject<TaskType>> prisms1 = repositoryService.searchObjects(TaskType.class, prismContext.queryFactory().createObjectQuery(filter1), null, result);
-        List<PrismObject<TaskType>> prisms2 = repositoryService.searchObjects(TaskType.class, prismContext.queryFactory().createObjectQuery(filter2), null, result);
-        List<PrismObject<TaskType>> prisms3 = repositoryService.searchObjects(TaskType.class, prismContext.queryFactory().createObjectQuery(filter3), null, result);
+        List<PrismObject<TaskType>> prisms1 = repositoryService.searchObjects(TaskType.class, prismContext.queryFactory().createQuery(filter1), null, result);
+        List<PrismObject<TaskType>> prisms2 = repositoryService.searchObjects(TaskType.class, prismContext.queryFactory().createQuery(filter2), null, result);
+        List<PrismObject<TaskType>> prisms3 = repositoryService.searchObjects(TaskType.class, prismContext.queryFactory().createQuery(filter3), null, result);
 
         assertFalse("There were no tasks with executionStatus == WAITING found", prisms1.isEmpty());
         assertFalse("There were no tasks with waitingReason == OTHER found", prisms2.isEmpty());

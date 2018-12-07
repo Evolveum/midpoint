@@ -179,17 +179,17 @@ public interface QueryFactory {
 	ObjectPaging createPaging();
 
 	@NotNull
-	ObjectQuery createObjectQuery();
+	ObjectQuery createQuery();
 
 	@NotNull
-	ObjectQuery createObjectQuery(ObjectFilter filter);
+	ObjectQuery createQuery(ObjectFilter filter);
 
 	@NotNull
-	ObjectQuery createObjectQuery(XNode condition, ObjectFilter filter);
+	ObjectQuery createQuery(XNode condition, ObjectFilter filter);
 
 	@NotNull
-	ObjectQuery createObjectQuery(ObjectPaging paging);
+	ObjectQuery createQuery(ObjectPaging paging);
 
 	@NotNull
-	ObjectQuery createObjectQuery(ObjectFilter filter, ObjectPaging paging);
+	ObjectQuery createQuery(ObjectFilter filter, ObjectPaging paging);
 }

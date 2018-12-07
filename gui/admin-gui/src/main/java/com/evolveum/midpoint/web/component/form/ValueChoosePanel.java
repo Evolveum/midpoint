@@ -132,7 +132,7 @@ public class ValueChoosePanel<T, O extends ObjectType> extends BasePanel<T> {
 
 	protected ObjectQuery createChooseQuery() {
 		ArrayList<String> oidList = new ArrayList<>();
-		ObjectQuery query = getPrismContext().queryFactory().createObjectQuery();
+		ObjectQuery query = getPrismContext().queryFactory().createQuery();
 		// TODO we should add to filter currently displayed value
 		// not to be displayed on ObjectSelectionPanel instead of saved value
 		

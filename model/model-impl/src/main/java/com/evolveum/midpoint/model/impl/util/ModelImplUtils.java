@@ -428,7 +428,7 @@ public class ModelImplUtils {
 		}
 	
 		try {
-			ObjectQuery query = prismContext.queryFactory().createObjectQuery(objFilter);
+			ObjectQuery query = prismContext.queryFactory().createQuery(objFilter);
 			objects = (List)repository.searchObjects(type, query, null, result);
 	
 		} catch (SchemaException e) {

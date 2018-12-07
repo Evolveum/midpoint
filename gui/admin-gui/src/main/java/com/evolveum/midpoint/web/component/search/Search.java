@@ -202,9 +202,9 @@ public class Search implements Serializable, DebugDumpable {
             case 0:
                 return null;
             case 1:
-                return queryFactory.createObjectQuery(conditions.get(0));
+                return queryFactory.createQuery(conditions.get(0));
             default:
-                return queryFactory.createObjectQuery(queryFactory.createAnd(conditions));
+                return queryFactory.createQuery(queryFactory.createAnd(conditions));
         }
     }
 
@@ -333,7 +333,7 @@ public class Search implements Serializable, DebugDumpable {
                 return null;
             }
 
-            return ctx.queryFactory().createObjectQuery(filter);
+            return ctx.queryFactory().createQuery(filter);
         } catch (Exception ex) {
             advancedError = createErrorMessage(ex);
         }

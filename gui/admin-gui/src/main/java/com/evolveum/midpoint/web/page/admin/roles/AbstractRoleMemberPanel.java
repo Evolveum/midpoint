@@ -264,9 +264,9 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
 	            QueryFactory queryFactory = getPrismContext().queryFactory();
 	            if (filters.size() == 1) {
-                    return queryFactory.createObjectQuery(filters.iterator().next());
+                    return queryFactory.createQuery(filters.iterator().next());
                 } else {
-		            return queryFactory.createObjectQuery(queryFactory.createAnd(filters));
+		            return queryFactory.createQuery(queryFactory.createAnd(filters));
 	            }
             }
 

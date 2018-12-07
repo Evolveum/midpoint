@@ -1970,23 +1970,23 @@ public class ShadowCache {
 			List<? extends ObjectFilter> conditions = ((AndFilter) filter).getConditions();
 			List<ObjectFilter> attributeFilter = createAttributeQueryInternal(conditions);
 			if (attributeFilter.size() > 1) {
-				attributeQuery = queryFactory.createObjectQuery(queryFactory.createAnd(attributeFilter));
+				attributeQuery = queryFactory.createQuery(queryFactory.createAnd(attributeFilter));
 			} else if (attributeFilter.size() < 1) {
 				LOGGER.trace("No attribute filter defined in the query.");
 			} else {
-				attributeQuery = queryFactory.createObjectQuery(attributeFilter.iterator().next());
+				attributeQuery = queryFactory.createQuery(attributeFilter.iterator().next());
 			}
 		}
 
 		if (query != null && query.getPaging() != null) {
 			if (attributeQuery == null) {
-				attributeQuery = queryFactory.createObjectQuery();
+				attributeQuery = queryFactory.createQuery();
 			}
 			attributeQuery.setPaging(query.getPaging());
 		}
 		if (query != null && query.isAllowPartialResults()) {
 			if (attributeQuery == null) {
-				attributeQuery = queryFactory.createObjectQuery();
+				attributeQuery = queryFactory.createQuery();
 			}
 			attributeQuery.setAllowPartialResults(true);
 		}

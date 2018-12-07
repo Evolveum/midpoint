@@ -193,7 +193,7 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
 				throw new SchemaException("Filter could not be evaluated in approverRef in "+sourceDescription+"; original filter = "+origFilter);
 			}
 
-			SearchResultList<PrismObject<O>> targets = repositoryService.searchObjects(clazz, prismContext.queryFactory().createObjectQuery(evaluatedFilter), null, result);
+			SearchResultList<PrismObject<O>> targets = repositoryService.searchObjects(clazz, prismContext.queryFactory().createQuery(evaluatedFilter), null, result);
 
 			return targets.stream()
 					.map(object -> ObjectTypeUtil.createObjectRef(object, prismContext))

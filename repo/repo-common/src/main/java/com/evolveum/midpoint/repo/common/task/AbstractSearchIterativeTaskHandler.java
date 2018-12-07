@@ -548,7 +548,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
     @NotNull
     protected ObjectQuery createQueryFromTask(H handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
 	    ObjectQuery query = createQueryFromTaskIfExists(handler, runResult, task, opResult);
-	    return query != null ? query : prismContext.queryFactory().createObjectQuery();
+	    return query != null ? query : prismContext.queryFactory().createQuery();
     }
 
 	protected Collection<SelectorOptions<GetOperationOptions>> createSearchOptionsFromTask(H resultHandler, TaskRunResult runResult,

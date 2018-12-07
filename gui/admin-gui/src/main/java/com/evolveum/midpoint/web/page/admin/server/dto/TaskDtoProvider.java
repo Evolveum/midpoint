@@ -72,7 +72,7 @@ public class TaskDtoProvider extends BaseSortableDataProvider<TaskDto> {
         	ObjectPaging paging = createPaging(first, count);
         	ObjectQuery query = getQuery();
         	if (query == null){
-        		query = getPrismContext().queryFactory().createObjectQuery();
+        		query = getPrismContext().queryFactory().createQuery();
         	}
         	query.setPaging(paging);
 

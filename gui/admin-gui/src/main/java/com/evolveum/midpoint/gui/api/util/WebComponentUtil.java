@@ -326,7 +326,7 @@ public final class WebComponentUtil {
 			return null;
 		}
 
-		ObjectQuery query = prismContext.queryFactory().createObjectQuery();
+		ObjectQuery query = prismContext.queryFactory().createQuery();
 		try {
 			RefinedResourceSchema refinedResourceSchema = RefinedResourceSchema.getRefinedSchema(resource);
 			RefinedObjectClassDefinition oc = refinedResourceSchema.getRefinedDefinition(construction.getKind(), construction.getIntent());

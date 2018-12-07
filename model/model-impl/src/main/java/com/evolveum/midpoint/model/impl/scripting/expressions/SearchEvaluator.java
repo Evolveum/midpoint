@@ -101,7 +101,7 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
 				    throw new ScriptExecutionException("Couldn't parse object query due to schema exception", e);
 			    }
 		    } else if (searchExpression.getSearchFilter() != null) {
-			    unresolvedObjectQuery = prismContext.queryFactory().createObjectQuery();
+			    unresolvedObjectQuery = prismContext.queryFactory().createQuery();
 			    try {
 				    ObjectFilter filter = prismContext.getQueryConverter().parseFilter(searchExpression.getSearchFilter(), objectClass);
 				    unresolvedObjectQuery.setFilter(filter);

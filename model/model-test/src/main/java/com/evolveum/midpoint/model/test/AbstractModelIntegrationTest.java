@@ -5692,7 +5692,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected <O extends ObjectType> void assertSearchFilter(Class<O> type, ObjectFilter filter, int expectedResults) throws Exception {
-		assertSearch(type, prismContext.queryFactory().createObjectQuery(filter), null, expectedResults);
+		assertSearch(type, prismContext.queryFactory().createQuery(filter), null, expectedResults);
 	}
 	
 	protected <O extends ObjectType> SearchResultList<PrismObject<O>> assertSearch(Class<O> type, ObjectQuery query, int expectedResults) throws Exception {
@@ -5747,11 +5747,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected <O extends ObjectType> void assertSearchFilter(Class<O> type, ObjectFilter filter,
 			Collection<SelectorOptions<GetOperationOptions>> options, String... expectedOids) throws Exception {
-		assertSearch(type, prismContext.queryFactory().createObjectQuery(filter), options, expectedOids);
+		assertSearch(type, prismContext.queryFactory().createQuery(filter), options, expectedOids);
 	}
 	
 	protected <O extends ObjectType> void assertSearchFilter(Class<O> type, ObjectFilter filter, String... expectedOids) throws Exception {
-		assertSearch(type, prismContext.queryFactory().createObjectQuery(filter), expectedOids);
+		assertSearch(type, prismContext.queryFactory().createQuery(filter), expectedOids);
 	}
 	
 	protected <O extends ObjectType> void assertSearch(Class<O> type, ObjectQuery query,

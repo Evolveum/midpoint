@@ -69,7 +69,7 @@ public class CaseWorkItemDtoProvider extends BaseSortableDataProvider<CaseWorkIt
             Task task = getPage().createSimpleTask(OPERATION_SEARCH_OBJECTS);
 
             ObjectQuery caseQuery = getQuery();
-            caseQuery = caseQuery != null ? caseQuery.clone() : getPrismContext().queryFactory().createObjectQuery();
+            caseQuery = caseQuery != null ? caseQuery.clone() : getPrismContext().queryFactory().createQuery();
             caseQuery.setPaging(paging);
 
             Collection<SelectorOptions<GetOperationOptions>> resolveNames = createCollection(createResolveNames());

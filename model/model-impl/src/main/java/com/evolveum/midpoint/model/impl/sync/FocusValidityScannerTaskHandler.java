@@ -157,7 +157,7 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 
 		Integer partition = getPartition(coordinatorTask);
 
-		ObjectQuery query = getPrismContext().queryFactory().createObjectQuery();
+		ObjectQuery query = getPrismContext().queryFactory().createQuery();
 		ObjectFilter filter;
 
 		XMLGregorianCalendar lastScanTimestamp = handler.getLastScanTimestamp();

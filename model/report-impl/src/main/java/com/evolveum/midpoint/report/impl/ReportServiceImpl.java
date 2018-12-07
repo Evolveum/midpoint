@@ -113,7 +113,7 @@ public class ReportServiceImpl implements ReportService {
 			}
 
 			ObjectFilter subFilter = ((TypeFilter) f).getFilter();
-			ObjectQuery q = prismContext.queryFactory().createObjectQuery(subFilter);
+			ObjectQuery q = prismContext.queryFactory().createQuery(subFilter);
 
 			ExpressionVariables variables = new ExpressionVariables();
 			variables.addVariableDefinitions(parameters);
@@ -121,7 +121,7 @@ public class ReportServiceImpl implements ReportService {
 			q = ExpressionUtil.evaluateQueryExpressions(q, variables, expressionFactory, prismContext,
 					"parsing expression values for report", task, task.getResult());
 			((TypeFilter) f).setFilter(q.getFilter());
-			parsedQuery = prismContext.queryFactory().createObjectQuery(f);
+			parsedQuery = prismContext.queryFactory().createQuery(f);
 
 			LOGGER.trace("query dump {}", parsedQuery.debugDump());
 		} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
@@ -154,7 +154,7 @@ public class ReportServiceImpl implements ReportService {
 			clazz = prismContext.getSchemaRegistry().findObjectDefinitionByType(type).getCompileTimeClass();
 		}
 
-		ObjectQuery queryForSearch = prismContext.queryFactory().createObjectQuery(typeFilter.getFilter());
+		ObjectQuery queryForSearch = prismContext.queryFactory().createQuery(typeFilter.getFilter());
 
 		Task task = taskManager.createTaskInstance(ReportService.class.getName() + ".searchObjects()");
 		OperationResult parentResult = task.getResult();

@@ -364,7 +364,7 @@ public class AccCertOpenerHelper {
 		// TODO derive search filter from certification handler (e.g. select only objects having assignments with the proper policySituation)
 		// It is only an optimization but potentially a very strong one. Workaround: enter query filter manually into scope definition.
 		final SearchFilterType searchFilter = objectBasedScope != null ? objectBasedScope.getSearchFilter() : null;
-		ObjectQuery query = prismContext.queryFactory().createObjectQuery();
+		ObjectQuery query = prismContext.queryFactory().createQuery();
 		if (searchFilter != null) {
 			query.setFilter(getQueryConverter().parseFilter(searchFilter, objectClass));
 		}

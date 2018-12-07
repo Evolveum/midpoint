@@ -468,7 +468,7 @@ public class PageAbout extends PageAdminConfiguration {
 		
 		try {
 			QName type = ObjectType.COMPLEX_TYPE;
-			taskOid = deleteObjectsAsync(type, factory.createObjectQuery(
+			taskOid = deleteObjectsAsync(type, factory.createQuery(
 					factory.createAnd(notTaskFilter, notNodeFilter)), true,
 					taskName, result);
 			

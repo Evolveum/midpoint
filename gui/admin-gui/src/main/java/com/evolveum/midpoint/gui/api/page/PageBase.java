@@ -42,7 +42,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryConverter;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.util.PolyStringUtils;
-import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.Expression;
@@ -384,7 +383,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                     AccessCertificationService acs = getCertificationService();
                     Task task = createSimpleTask(OPERATION_LOAD_CERT_WORK_ITEM_COUNT);
                     OperationResult result = task.getResult();
-                    return acs.countOpenWorkItems(getPrismContext().queryFactory().createObjectQuery(), true, null, task, result);
+                    return acs.countOpenWorkItems(getPrismContext().queryFactory().createQuery(), true, null, task, result);
                 } catch (SchemaException | SecurityViolationException | ObjectNotFoundException
                         | ConfigurationException | CommunicationException | ExpressionEvaluationException e) {
                     LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't load certification work item count", e);

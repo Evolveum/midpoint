@@ -338,7 +338,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
             oids.add(((ObjectType) selectable).getOid());
         }
 
-        return getPrismContext().queryFactory().createObjectQuery(getPrismContext().queryFactory().createInOid(oids));
+        return getPrismContext().queryFactory().createQuery(getPrismContext().queryFactory().createInOid(oids));
     }
 
     private void selectedOrgsListUpdate(IModel<SelectableBean<OrgType>> rowModel){

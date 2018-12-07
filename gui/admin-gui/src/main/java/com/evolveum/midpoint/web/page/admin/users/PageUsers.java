@@ -195,7 +195,7 @@ public class PageUsers extends PageAdminUsers {
 				ObjectFilter usersViewFilter = getUsersViewFilter();
 				if (usersViewFilter != null){
 					if (contentQuery == null) {
-						contentQuery = getPrismContext().queryFactory().createObjectQuery();
+						contentQuery = getPrismContext().queryFactory().createQuery();
 					}
 					contentQuery.addFilter(usersViewFilter);
 				}

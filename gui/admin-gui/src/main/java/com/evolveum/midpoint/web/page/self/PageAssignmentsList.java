@@ -560,7 +560,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             oids.add(user.getOid());
         }
         QueryFactory queryFactory = getPrismContext().queryFactory();
-        return queryFactory.createObjectQuery(queryFactory.createInOid(oids));
+        return queryFactory.createQuery(queryFactory.createInOid(oids));
     }
 
     private PrismContainerValue[] getAddAssignmentContainerValues(List<AssignmentEditorDto> assignments) throws SchemaException {

@@ -154,7 +154,7 @@ public class ResourceContentRepositoryPanel extends ResourceContentPanel {
 	                    ObjectFilter situationFilter = prismContext.queryFor(ShadowType.class)
 	                            .item(ShadowType.F_SYNCHRONIZATION_SITUATION).eq(situation)
 	                            .buildFilter();
-	                    ObjectQuery query = prismContext.queryFactory().createObjectQuery(
+	                    ObjectQuery query = prismContext.queryFactory().createQuery(
 			                    prismContext.queryFactory().createAnd(filter, situationFilter));
 	                    return getPageBase().getModelService().countObjects(ShadowType.class, query, options, task, result);
 	                } catch (CommonException|RuntimeException ex) {

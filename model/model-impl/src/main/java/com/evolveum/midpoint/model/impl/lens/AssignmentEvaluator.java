@@ -361,7 +361,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 				return forcedRoles.add(object.asObjectable());
 			};
 			objectResolver.searchIterative(virtualAssignmenetSpecification.getType(), 
-					prismContext.queryFactory().createObjectQuery(virtualAssignmenetSpecification.getFilter()), null, handler, ctx.task, ctx.result);
+					prismContext.queryFactory().createQuery(virtualAssignmenetSpecification.getFilter()), null, handler, ctx.task, ctx.result);
 		} catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException
 				| SecurityViolationException | ExpressionEvaluationException e) {
 			LOGGER.error("Cannot search for forced roles", e);
@@ -717,7 +717,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 				throw new SchemaException("The OID is null and filter could not be evaluated in assignment targetRef in "+segment.source);
 			}
 
-			return repository.searchObjects(targetClass, prismContext.queryFactory().createObjectQuery(evaluatedFilter), null, ctx.result);
+			return repository.searchObjects(targetClass, prismContext.queryFactory().createQuery(evaluatedFilter), null, ctx.result);
 			// we don't check for no targets here; as we don't care for referential integrity
 		} finally {
 			ModelExpressionThreadLocalHolder.popExpressionEnvironment();

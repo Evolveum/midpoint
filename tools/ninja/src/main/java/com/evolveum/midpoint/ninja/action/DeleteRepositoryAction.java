@@ -54,7 +54,7 @@ public class DeleteRepositoryAction extends RepositoryAction<DeleteOptions> {
     private void deleteByOid() throws SchemaException, IOException {
         QueryFactory queryFactory = context.getPrismContext().queryFactory();
         InOidFilter filter = queryFactory.createInOid(options.getOid());
-        ObjectQuery query = queryFactory.createObjectQuery(filter);
+        ObjectQuery query = queryFactory.createQuery(filter);
 
         deleteByFilter(query);
     }

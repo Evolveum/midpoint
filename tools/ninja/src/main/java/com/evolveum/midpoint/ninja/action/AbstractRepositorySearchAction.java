@@ -120,7 +120,7 @@ public abstract class AbstractRepositorySearchAction<OP extends ExportOptions> e
             ObjectTypes type = types.isEmpty() ? ObjectTypes.OBJECT : types.iterator().next();
 
             InOidFilter filter = queryFactory.createInOid(options.getOid());
-            ObjectQuery query = queryFactory.createObjectQuery(filter);
+            ObjectQuery query = queryFactory.createQuery(filter);
 
             producers.add(new SearchProducerWorker(context, options, queue, operation, producers, type, query));
             return producers;
@@ -129,7 +129,7 @@ public abstract class AbstractRepositorySearchAction<OP extends ExportOptions> e
         List<ObjectTypes> types = NinjaUtils.getTypes(options.getType());
         for (ObjectTypes type : types) {
             ObjectFilter filter = NinjaUtils.createObjectFilter(options.getFilter(), context, type.getClassDefinition());
-            ObjectQuery query = queryFactory.createObjectQuery(filter);
+            ObjectQuery query = queryFactory.createQuery(filter);
             if (ObjectTypes.SHADOW.equals(type)) {
                 List<SearchProducerWorker> shadowProducers = createProducersForShadows(context, queue, operation, producers, filter);
                 producers.addAll(shadowProducers);
@@ -162,7 +162,7 @@ public abstract class AbstractRepositorySearchAction<OP extends ExportOptions> e
             OperationResult result = new OperationResult(OPERATION_LIST_RESOURCES);
 
             SearchResultList<PrismObject<ResourceType>> resultList = repository.searchObjects(ResourceType.class,
-                    queryFactory.createObjectQuery((ObjectFilter) null), opts, result);
+                    queryFactory.createQuery((ObjectFilter) null), opts, result);
 
             List<PrismObject<ResourceType>> list = resultList.getList();
             if (list == null || list.isEmpty()) {
@@ -221,7 +221,7 @@ public abstract class AbstractRepositorySearchAction<OP extends ExportOptions> e
 
     private SearchProducerWorker createProducer(BlockingQueue<PrismObject> queue, OperationStatus operation,
                                                 List<SearchProducerWorker> producers, ObjectTypes type, ObjectFilter filter) {
-        ObjectQuery query = context.getPrismContext().queryFactory().createObjectQuery(filter);
+        ObjectQuery query = context.getPrismContext().queryFactory().createQuery(filter);
         return new SearchProducerWorker(context, options, queue, operation, producers, type, query);
     }
 }

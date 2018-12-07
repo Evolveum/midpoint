@@ -120,7 +120,7 @@ public class ResourceObjectReferenceResolver {
 		ObjectQuery evaluatedRefQuery = ExpressionUtil.evaluateQueryExpressions(refQuery, variables, expressionFactory, prismContext, desc, ctx.getTask(), result);
 		ObjectFilter baseFilter = ObjectQueryUtil.createResourceAndObjectClassFilter(ctx.getResource().getOid(), objectClass, prismContext);
 		ObjectFilter filter = prismContext.queryFactory().createAnd(baseFilter, evaluatedRefQuery.getFilter());
-		ObjectQuery query = prismContext.queryFactory().createObjectQuery(filter);
+		ObjectQuery query = prismContext.queryFactory().createQuery(filter);
 
 		// TODO: implement "repo" search strategies, don't forget to apply definitions
 

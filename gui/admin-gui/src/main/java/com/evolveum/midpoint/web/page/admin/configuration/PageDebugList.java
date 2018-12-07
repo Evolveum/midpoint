@@ -580,7 +580,7 @@ public class PageDebugList extends PageAdminConfiguration {
 		}
 
 		ObjectFilter filter = filters.size() > 1 ? getPrismContext().queryFactory().createAnd(filters) : filters.get(0);
-		return getPrismContext().queryFactory().createObjectQuery(filter);
+		return getPrismContext().queryFactory().createQuery(filter);
 	}
 
 	private void objectEditPerformed(AjaxRequestTarget target, String oid, Class<? extends ObjectType> type) {
@@ -669,7 +669,7 @@ public class PageDebugList extends PageAdminConfiguration {
 		QueryFactory factory = getPrismContext().queryFactory();
 		InOidFilter inOid = factory.createInOid(SystemObjectsType.USER_ADMINISTRATOR.value());
 		NotFilter not = factory.createNot(inOid);
-		return factory.createObjectQuery(not);
+		return factory.createQuery(not);
 	}
 
 	private String deleteAllShadowsConfirmed(OperationResult result, boolean deleteAccountShadows)
@@ -684,10 +684,10 @@ public class PageDebugList extends PageAdminConfiguration {
 		QueryFactory factory = getPrismContext().queryFactory();
 		if (deleteAccountShadows) {
 			taskName = "Delete all account shadows";
-			query = factory.createObjectQuery(kindFilter);
+			query = factory.createQuery(kindFilter);
 		} else {
 			taskName = "Delete all non-account shadows";
-			query = factory.createObjectQuery(factory.createNot(kindFilter));
+			query = factory.createQuery(factory.createNot(kindFilter));
 		}
 
 		return deleteObjectsAsync(ShadowType.COMPLEX_TYPE, query, true, taskName, result);
@@ -707,7 +707,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
 		DebugSearchDto searchDto = searchModel.getObject();
 		QueryFactory factory = getPrismContext().queryFactory();
-		initDownload(target, searchDto.getType().getClassDefinition(), factory.createObjectQuery(factory.createInOid(oids)));
+		initDownload(target, searchDto.getType().getClassDefinition(), factory.createQuery(factory.createInOid(oids)));
 	}
 
 	private void exportAllType(AjaxRequestTarget target) {

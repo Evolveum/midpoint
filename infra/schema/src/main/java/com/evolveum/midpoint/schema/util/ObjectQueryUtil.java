@@ -103,7 +103,7 @@ public class ObjectQueryUtil {
 	}
 	
 	public static ObjectQuery createResourceAndObjectClassQuery(String resourceOid, QName objectClass, PrismContext prismContext) throws SchemaException {
-		return prismContext.queryFactory().createObjectQuery(createResourceAndObjectClassFilter(resourceOid, objectClass, prismContext));
+		return prismContext.queryFactory().createQuery(createResourceAndObjectClassFilter(resourceOid, objectClass, prismContext));
 	}
 
 	public static ObjectFilter createResourceAndObjectClassFilter(String resourceOid, QName objectClass, PrismContext prismContext) throws SchemaException {
@@ -126,11 +126,11 @@ public class ObjectQueryUtil {
 	}
 
 	public static ObjectQuery createResourceAndKindIntent(String resourceOid, ShadowKindType kind, String intent, PrismContext prismContext) throws SchemaException {
-		return prismContext.queryFactory().createObjectQuery(createResourceAndKindIntentFilter(resourceOid, kind, intent, prismContext));
+		return prismContext.queryFactory().createQuery(createResourceAndKindIntentFilter(resourceOid, kind, intent, prismContext));
 	}
 	
 	public static ObjectQuery createResourceAndKind(String resourceOid, ShadowKindType kind, PrismContext prismContext) throws SchemaException {
-		return prismContext.queryFactory().createObjectQuery(createResourceAndKindFilter(resourceOid, kind, prismContext));
+		return prismContext.queryFactory().createQuery(createResourceAndKindFilter(resourceOid, kind, prismContext));
 	}
 	
 	public static ObjectFilter createResourceAndKindIntentFilter(String resourceOid, ShadowKindType kind, String intent, PrismContext prismContext) throws SchemaException {
@@ -157,7 +157,7 @@ public class ObjectQueryUtil {
     public static ObjectQuery createResourceQuery(String resourceOid, PrismContext prismContext) throws SchemaException {
         Validate.notNull(resourceOid, "Resource where to search must not be null.");
         Validate.notNull(prismContext, "Prism context must not be null.");
-        return prismContext.queryFactory().createObjectQuery(createResourceFilter(resourceOid, prismContext));
+        return prismContext.queryFactory().createQuery(createResourceFilter(resourceOid, prismContext));
     } 
 
     public static ObjectFilter createResourceFilter(String resourceOid, PrismContext prismContext) throws SchemaException {

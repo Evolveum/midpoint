@@ -77,7 +77,7 @@ public class AccCertQueryHelper {
         ObjectQuery newQuery;
 	    QueryFactory queryFactory = prismContext.queryFactory();
 	    if (query == null) {
-            newQuery = queryFactory.createObjectQuery(additionalFilter);
+            newQuery = queryFactory.createQuery(additionalFilter);
         } else {
             newQuery = query.clone();
             if (query.getFilter() == null) {
@@ -153,7 +153,7 @@ public class AccCertQueryHelper {
 		    String reviewerOid, OperationResult result) throws SchemaException {
 	    // note: this is OK w.r.t. iterations, as we are looking for cases with non-closed work items here
         ObjectFilter filter = getReviewerAndEnabledFilter(reviewerOid);
-		return searchCases(campaign.getOid(), prismContext.queryFactory().createObjectQuery(filter), null, result);
+		return searchCases(campaign.getOid(), prismContext.queryFactory().createQuery(filter), null, result);
     }
 
     public AccessCertificationCaseType getCase(String campaignOid, long caseId, @SuppressWarnings("unused") Task task,
@@ -163,7 +163,7 @@ public class AccCertQueryHelper {
 		        queryFactory.createOwnerHasOidIn(campaignOid),
 		        queryFactory.createInOid(String.valueOf(caseId))
         );
-        ObjectQuery query = queryFactory.createObjectQuery(filter);
+        ObjectQuery query = queryFactory.createQuery(filter);
 
         List<AccessCertificationCaseType> caseList = repositoryService.searchContainers(AccessCertificationCaseType.class, query, null, result);
         if (caseList.isEmpty()) {

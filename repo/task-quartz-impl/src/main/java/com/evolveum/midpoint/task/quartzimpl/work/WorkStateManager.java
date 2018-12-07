@@ -662,7 +662,7 @@ waitForConflictLessUpdate: // this cycle exits when coordinator task update succ
 			updatedFilter = prismContext.queryFactory().createAnd(conjunctionMembers);
 		}
 
-		ObjectQuery updatedQuery = query != null ? query.clone() : prismContext.queryFactory().createObjectQuery();
+		ObjectQuery updatedQuery = query != null ? query.clone() : prismContext.queryFactory().createQuery();
 		updatedQuery.setFilter(updatedFilter);
 
 		// TODO update sorting criteria

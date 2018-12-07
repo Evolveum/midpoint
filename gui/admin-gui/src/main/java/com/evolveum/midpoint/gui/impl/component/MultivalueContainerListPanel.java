@@ -354,7 +354,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 
 		if (searchQuery != null && searchQuery.getFilter() != null) {
 			if (customQuery != null && customQuery.getFilter() != null) {
-				return getPrismContext().queryFactory().createObjectQuery(getPrismContext().queryFactory().createAnd(customQuery.getFilter(), searchQuery.getFilter()));
+				return getPrismContext().queryFactory().createQuery(getPrismContext().queryFactory().createAnd(customQuery.getFilter(), searchQuery.getFilter()));
 			}
 			return searchQuery;
 

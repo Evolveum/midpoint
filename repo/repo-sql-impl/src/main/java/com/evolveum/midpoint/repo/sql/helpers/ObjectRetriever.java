@@ -793,7 +793,7 @@ public class ObjectRetriever {
             throws SchemaException {
 
         try {
-            ObjectQuery pagedQuery = query != null ? query.clone() : prismContext.queryFactory().createObjectQuery();
+            ObjectQuery pagedQuery = query != null ? query.clone() : prismContext.queryFactory().createQuery();
 
             int offset;
             int remaining;
@@ -875,7 +875,7 @@ main:       while (remaining > 0) {
 		        pagedQuery = query.clone();
 	        } else {
 		        maxSize = null;
-	        	pagedQuery = prismContext.queryFactory().createObjectQuery();
+	        	pagedQuery = prismContext.queryFactory().createQuery();
 	        }
 
             String lastOid = null;

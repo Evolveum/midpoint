@@ -104,7 +104,7 @@ public class NinjaUtils {
         RootXNode root = parser.parseToXNode();
 
         ObjectFilter filter = context.getQueryConverter().parseFilter(root.toMapXNode(), objectClass);
-        return prismContext.queryFactory().createObjectQuery(filter);
+        return prismContext.queryFactory().createQuery(filter);
     }
 
     public static String printStackToString(Exception ex) {
