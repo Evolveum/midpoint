@@ -617,9 +617,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	}
 
 	public ObjectQuery getQuery() {
-		ObjectQuery customQuery = createContentQuery();
-
-		return customQuery;
+		return createContentQuery();
 	}
 
 	protected ObjectQuery createContentQuery() {

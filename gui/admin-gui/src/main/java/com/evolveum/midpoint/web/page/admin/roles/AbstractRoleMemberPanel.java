@@ -187,7 +187,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 		memberContainer.setOutputMarkupPlaceholderTag(true);
 		form.add(memberContainer);
 
-		PageBase pageBase =  getPageBase();
+		PageBase pageBase = getPageBase();
 		MainObjectListPanel<ObjectType> childrenListPanel = new MainObjectListPanel<ObjectType>(
 				ID_MEMBER_TABLE, ObjectType.class, getTableId(getComplexTypeQName()), getSearchOptions(), pageBase) {
 
@@ -262,7 +262,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                     filters.add(members.getFilter());
                 }
 
-	            QueryFactory queryFactory = getPrismContext().queryFactory();
+	            QueryFactory queryFactory = pageBase.getPrismContext().queryFactory();
 	            if (filters.size() == 1) {
                     return queryFactory.createQuery(filters.iterator().next());
                 } else {
