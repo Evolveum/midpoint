@@ -711,7 +711,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 			ReferenceDelta abombaDeleteAccDelta = prismContext.deltaFactory().reference()
 					.createModificationDelete(ShadowType.class,
 							UserType.F_LINK_REF, prismContext,
-							getPrismContext().itemFactory().createPrismReferenceValue(abombaOid));
+							getPrismContext().itemFactory().createReferenceValue(abombaOid));
 			ObjectDelta d = ObjectDeltaCreationUtil.createModifyDelta(USER_ABOMBA_OID,
 					abombaDeleteAccDelta, UserType.class, prismContext);
 			modelService.executeChanges(MiscSchemaUtil.createCollection(d), null, task,

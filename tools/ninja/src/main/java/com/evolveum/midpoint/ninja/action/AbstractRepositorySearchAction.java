@@ -209,7 +209,7 @@ public abstract class AbstractRepositorySearchAction<OP extends ExportOptions> e
         PrismContext prismContext = context.getPrismContext();
         List<PrismReferenceValue> values = new ArrayList<>();
         if (oid != null) {
-            values.add(prismContext.itemFactory().createPrismReferenceValue(oid, ResourceType.COMPLEX_TYPE));
+            values.add(prismContext.itemFactory().createReferenceValue(oid, ResourceType.COMPLEX_TYPE));
         }
 
         SchemaRegistry registry = prismContext.getSchemaRegistry();

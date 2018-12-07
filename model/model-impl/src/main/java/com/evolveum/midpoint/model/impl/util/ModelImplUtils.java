@@ -765,7 +765,7 @@ public class ModelImplUtils {
 
 	private static PrismReferenceValue getAuditTarget(ObjectDelta<? extends ObjectType> delta,
 			PrismContext prismContext) {
-		PrismReferenceValue targetRef = prismContext.itemFactory().createPrismReferenceValue(delta.getOid());
+		PrismReferenceValue targetRef = prismContext.itemFactory().createReferenceValue(delta.getOid());
 		targetRef.setTargetType(ObjectTypes.getObjectType(delta.getObjectTypeClass()).getTypeQName());
 		if (delta.isAdd()) {
 			targetRef.setObject(delta.getObjectToAdd());

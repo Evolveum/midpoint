@@ -39,7 +39,7 @@ public class AbstractDelegatedPrismProperty<T> implements PrismProperty<T> {
 	protected PrismProperty<T> inner;
 
 	public AbstractDelegatedPrismProperty(QName name, PrismPropertyDefinition<T> definition, PrismContext prismContext) {
-		inner = prismContext.itemFactory().createPrismProperty(name, definition);
+		inner = prismContext.itemFactory().createProperty(name, definition);
 	}
 
 	public AbstractDelegatedPrismProperty(PrismProperty<T> inner) {

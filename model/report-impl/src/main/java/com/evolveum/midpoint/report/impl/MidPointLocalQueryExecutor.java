@@ -72,7 +72,7 @@ public class MidPointLocalQueryExecutor extends MidPointQueryExecutor {
 
 	@Override
 	protected <T> PrismPropertyValue<T> createPropertyValue(T realValue) {
-		return reportService.getPrismContext().itemFactory().createPrismPropertyValue(realValue);
+		return reportService.getPrismContext().itemFactory().createPropertyValue(realValue);
 	}
 
 	@Override

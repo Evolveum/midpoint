@@ -243,7 +243,7 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
 		}
 		S_AtomicFilterExit q = prismContext.queryFor(FocusType.class)
 				.item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(
-						prismContext.itemFactory().createPrismReferenceValue(target.getOid()).relation(relation));
+						prismContext.itemFactory().createReferenceValue(target.getOid()).relation(relation));
 		if (selfOid != null) {
 			q = q.and().not().id(selfOid);
 		}

@@ -24,7 +24,6 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import org.springframework.test.annotation.DirtiesContext;
@@ -44,8 +43,6 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.AllFilter;
 import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -2276,7 +2273,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         	(task, result) ->  {
 				Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 				ContainerDelta<AssignmentType> assignmentDelta1 = prismContext.deltaFactory().container().createDelta(UserType.F_ASSIGNMENT, getUserDefinition());
-				PrismContainerValue<AssignmentType> cval = prismContext.itemFactory().createPrismContainerValue();
+				PrismContainerValue<AssignmentType> cval = prismContext.itemFactory().createContainerValue();
 				assignmentDelta1.addValueToAdd(cval);
 				PrismReference targetRef = cval.findOrCreateReference(AssignmentType.F_TARGET_REF);
 				targetRef.getValue().setOid(ROLE_BUSINESS_2_OID);

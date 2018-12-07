@@ -3316,14 +3316,14 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 	}
     
 	private void assertDeputySearchDelegatorRef(String delegatorOid, String... expectedDeputyOids) throws Exception {
-		PrismReferenceValue rval = itemFactory().createPrismReferenceValue(delegatorOid, UserType.COMPLEX_TYPE);
+		PrismReferenceValue rval = itemFactory().createReferenceValue(delegatorOid, UserType.COMPLEX_TYPE);
 		rval.setRelation(SchemaConstants.ORG_DEPUTY);
 		ObjectQuery query = queryFor(UserType.class).item(UserType.F_DELEGATED_REF).ref(rval).build();
 		assertSearch(UserType.class, query, expectedDeputyOids);
 	}
 	
 	private void assertDeputySearchAssignmentTarget(String delegatorOid, String... expectedDeputyOids) throws Exception {
-		PrismReferenceValue rval = itemFactory().createPrismReferenceValue(delegatorOid, UserType.COMPLEX_TYPE);
+		PrismReferenceValue rval = itemFactory().createReferenceValue(delegatorOid, UserType.COMPLEX_TYPE);
 		rval.setRelation(SchemaConstants.ORG_DEPUTY);
 		ObjectQuery query = queryFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(rval).build();

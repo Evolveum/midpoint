@@ -390,7 +390,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     	PrismObjectDefinition<UserType> userDef = getUserDefinition();
     	PropertyDelta<String> deltaBefore = getPrismContext().deltaFactory().property().createReplaceEmptyDelta(userDef, UserType.F_COST_CENTER);
     	deltaBefore.setRealValuesToReplace("foo");
-    	deltaBefore.addEstimatedOldValue(getPrismContext().itemFactory().createPrismPropertyValue("BAR"));
+    	deltaBefore.addEstimatedOldValue(getPrismContext().itemFactory().createPropertyValue("BAR"));
 
 		// WHEN
     	Collection<ItemDeltaType> itemDeltaTypes = DeltaConvertor.toItemDeltaTypes(deltaBefore);

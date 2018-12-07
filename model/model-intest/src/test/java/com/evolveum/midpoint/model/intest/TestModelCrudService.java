@@ -106,7 +106,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_FILE);
 
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
-        PrismReferenceValue accountRefVal = itemFactory().createPrismReferenceValue();
+        PrismReferenceValue accountRefVal = itemFactory().createReferenceValue();
 		accountRefVal.setObject(account);
 		ReferenceDelta accountDelta = prismContext.deltaFactory().reference()
 				.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
@@ -153,7 +153,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         account.setOid(accountOid);
 
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
-        PrismReferenceValue accountRefVal = itemFactory().createPrismReferenceValue();
+        PrismReferenceValue accountRefVal = itemFactory().createReferenceValue();
 		accountRefVal.setObject(account);
 		ReferenceDelta accountDelta = prismContext.deltaFactory().reference().createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), account, prismContext);
 		modifications.add(accountDelta);
@@ -261,7 +261,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_FILE);
 
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
-        PrismReferenceValue accountRefVal = itemFactory().createPrismReferenceValue();
+        PrismReferenceValue accountRefVal = itemFactory().createReferenceValue();
 		accountRefVal.setObject(account);
 		ReferenceDelta accountDelta = prismContext.deltaFactory().reference().createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), accountOid);
 		modifications.add(accountDelta);

@@ -108,7 +108,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
 
         ObjectDelta<RoleType> roleDelta = ObjectDeltaCreationUtil
 		        .createEmptyModifyDelta(RoleType.class, ROLE_PIRATE_OID, prismContext);
-        PrismReferenceValue linkRefVal = itemFactory().createPrismReferenceValue();
+        PrismReferenceValue linkRefVal = itemFactory().createReferenceValue();
 		linkRefVal.setObject(group);
 		ReferenceDelta groupDelta = prismContext.deltaFactory().reference().createModificationAdd(RoleType.F_LINK_REF, getRoleDefinition(), linkRefVal);
 		roleDelta.addModification(groupDelta);
@@ -256,7 +256,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
 
         ObjectDelta<RoleType> roleDelta = ObjectDeltaCreationUtil
 		        .createEmptyModifyDelta(RoleType.class, ROLE_PIRATE_OID, prismContext);
-        PrismReferenceValue linkRefVal = itemFactory().createPrismReferenceValue();
+        PrismReferenceValue linkRefVal = itemFactory().createReferenceValue();
         linkRefVal.setObject(group);
         ReferenceDelta groupDelta = prismContext.deltaFactory().reference().createModificationAdd(RoleType.F_LINK_REF, getRoleDefinition(), linkRefVal);
         roleDelta.addModification(groupDelta);
@@ -563,7 +563,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
 
         ObjectDelta<RoleType> roleDelta = ObjectDeltaCreationUtil
 		        .createEmptyModifyDelta(RoleType.class, ROLE_PIRATE_OID, prismContext);
-        PrismReferenceValue accountRefVal = itemFactory().createPrismReferenceValue();
+        PrismReferenceValue accountRefVal = itemFactory().createReferenceValue();
 		accountRefVal.setObject(group);
 		ReferenceDelta linkDelta = prismContext.deltaFactory().reference().createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), groupOid);
 		roleDelta.addModification(linkDelta);

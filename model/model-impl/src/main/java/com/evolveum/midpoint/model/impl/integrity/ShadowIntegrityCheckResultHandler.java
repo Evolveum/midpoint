@@ -240,7 +240,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
     }
 
     private boolean contains(PrismProperty<String> property, String keyword) {
-        return property.containsRealValue(prismContext.itemFactory().createPrismPropertyValue(keyword));
+        return property.containsRealValue(prismContext.itemFactory().createPropertyValue(keyword));
     }
 
     @Override
@@ -768,11 +768,11 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
             for (PrismObject owner : owners) {
                 List<ItemDelta> modifications = new ArrayList<>(2);
                 ReferenceDelta deleteDelta = prismContext.deltaFactory().reference().createModificationDelete(FocusType.F_LINK_REF, owner.getDefinition(),
-                        prismContext.itemFactory().createPrismReferenceValue(oid, ShadowType.COMPLEX_TYPE));
+                        prismContext.itemFactory().createReferenceValue(oid, ShadowType.COMPLEX_TYPE));
                 modifications.add(deleteDelta);
                 if (shadowOidToReplaceDeleted != null) {
                     ReferenceDelta addDelta = prismContext.deltaFactory().reference().createModificationAdd(FocusType.F_LINK_REF, owner.getDefinition(),
-                            prismContext.itemFactory().createPrismReferenceValue(shadowOidToReplaceDeleted, ShadowType.COMPLEX_TYPE));
+                            prismContext.itemFactory().createReferenceValue(shadowOidToReplaceDeleted, ShadowType.COMPLEX_TYPE));
                     modifications.add(addDelta);
                 }
                 LOGGER.info("Executing modify delta{} for owner {}:\n{}", skippedForDryRun(), ObjectTypeUtil.toShortString(owner), DebugUtil.debugDump(modifications));

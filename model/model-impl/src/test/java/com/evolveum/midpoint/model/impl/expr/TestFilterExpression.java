@@ -292,7 +292,7 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
 		Map<QName, Object> params = new HashMap<>();
 		PrismPropertyValue<String> pval = null;
 		if (input != null) {
-			pval = prismContext.itemFactory().createPrismPropertyValue(input);
+			pval = prismContext.itemFactory().createPropertyValue(input);
 		}
 		params.put(ExpressionConstants.VAR_INPUT, pval);
 

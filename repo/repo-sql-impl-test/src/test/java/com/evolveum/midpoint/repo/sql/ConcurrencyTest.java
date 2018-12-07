@@ -326,7 +326,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
                     act.setDescription(dataWritten);
                     delta2.setValueToReplace(act.asPrismContainerValue());
                 } else {
-                    delta2.setValueToReplace(prismContext.itemFactory().createPrismPropertyValue(dataWritten));
+                    delta2.setValueToReplace(prismContext.itemFactory().createPropertyValue(dataWritten));
                 }
                 deltas.add(delta2);
             }

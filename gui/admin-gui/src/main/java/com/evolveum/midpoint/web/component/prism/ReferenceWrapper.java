@@ -82,7 +82,7 @@ public class ReferenceWrapper extends PropertyOrReferenceWrapper<PrismReference,
 	
 	@Override
 	public ValueWrapper createAddedValue() {
-		PrismReferenceValue prv = prismContext.itemFactory().createPrismReferenceValue();
+		PrismReferenceValue prv = prismContext.itemFactory().createReferenceValue();
 		return new ValueWrapper(this, prv, ValueStatus.ADDED, prismContext);
 	}
 	

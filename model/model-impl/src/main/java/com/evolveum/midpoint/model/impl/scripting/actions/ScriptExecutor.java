@@ -178,11 +178,11 @@ public class ScriptExecutor extends BaseActionExecutor {
 			if (outObject instanceof PrismValue) {
 				value = (PrismValue) outObject;
 			} else if (outObject instanceof Objectable) {
-				value = prismContext.itemFactory().createPrismObjectValue((Objectable) outObject);
+				value = prismContext.itemFactory().createObjectValue((Objectable) outObject);
 			} else if (outObject instanceof Containerable) {
-				value = prismContext.itemFactory().createPrismContainerValue((Containerable) outObject);
+				value = prismContext.itemFactory().createContainerValue((Containerable) outObject);
 			} else {
-				value = prismContext.itemFactory().createPrismPropertyValue(outObject);
+				value = prismContext.itemFactory().createPropertyValue(outObject);
 			}
 			output.add(new PipelineItem(value, result));
 		}

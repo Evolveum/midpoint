@@ -164,7 +164,7 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 		PrismObject<RoleType> judgeAfter = searchObjectByName(RoleType.class, "judge");
 		roleJudgeOid = judgeAfter.getOid();
 
-		PrismReferenceValue judgeOwner = getPrismContext().itemFactory().createPrismReferenceValue(roleJudgeOid, RoleType.COMPLEX_TYPE);
+		PrismReferenceValue judgeOwner = getPrismContext().itemFactory().createReferenceValue(roleJudgeOid, RoleType.COMPLEX_TYPE);
 		judgeOwner.setRelation(SchemaConstants.ORG_OWNER);
 		executeChanges(prismContext.deltaFor(UserType.class)
 						.item(UserType.F_ASSIGNMENT).add(ObjectTypeUtil.createAssignmentTo(judgeAfter, SchemaConstants.ORG_OWNER))

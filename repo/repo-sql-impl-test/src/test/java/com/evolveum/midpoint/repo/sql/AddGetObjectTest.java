@@ -367,7 +367,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
 
         ReferenceDelta refDelta = prismContext.deltaFactory().reference().createModificationAdd(
                 SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY_REF, repoSystemConfig.getDefinition(),
-                prismContext.itemFactory().createPrismReferenceValue(repoPasswordPolicy));
+                prismContext.itemFactory().createReferenceValue(repoPasswordPolicy));
         List<ReferenceDelta> refDeltas = new ArrayList<>();
         refDeltas.add(refDelta);
         repositoryService.modifyObject(SystemConfigurationType.class, systemCongigOid, refDeltas, result);

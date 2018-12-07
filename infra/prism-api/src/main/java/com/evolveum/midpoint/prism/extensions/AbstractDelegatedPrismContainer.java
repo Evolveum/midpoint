@@ -40,7 +40,7 @@ public class AbstractDelegatedPrismContainer<C extends Containerable> implements
 	protected PrismContainer<C> inner;
 
 	public AbstractDelegatedPrismContainer(QName name, PrismContainerDefinition<C> definition, PrismContext prismContext) {
-		inner = prismContext.itemFactory().createPrismContainer(name, definition);
+		inner = prismContext.itemFactory().createContainer(name, definition);
 	}
 
 	public AbstractDelegatedPrismContainer(PrismContainer<C> inner) {

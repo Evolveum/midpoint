@@ -25,7 +25,6 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.foo.AssignmentType;
 import com.evolveum.midpoint.prism.foo.UserType;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
 
 /**
  * @see TestCompare
@@ -71,7 +70,7 @@ public class TestEquals extends AbstractPrismTest {
 		PrismContainer<AssignmentType> brokenAssignment = goodAssignment.clone();
 		assertEquals("Not equals after clone", goodAssignment, brokenAssignment);
 		// lets break one of these ...
-		PrismContainerValue<AssignmentType> emptyValue = getPrismContext().itemFactory().createPrismContainerValue();
+		PrismContainerValue<AssignmentType> emptyValue = getPrismContext().itemFactory().createContainerValue();
 		brokenAssignment.add(emptyValue);
 
 		// WHEN

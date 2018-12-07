@@ -397,7 +397,7 @@ public class PrismUnmarshaller {
 
 	@NotNull
 	private <T> PrismPropertyValue<T> createRawPrismPropertyValue(@NotNull XNodeImpl node) {
-		return prismContext.itemFactory().createPrismPropertyValue(node);
+		return prismContext.itemFactory().createPropertyValue(node);
 	}
 
 	private <T> boolean isValueAllowed(T realValue, PrismPropertyDefinition<T> definition) throws SchemaException {

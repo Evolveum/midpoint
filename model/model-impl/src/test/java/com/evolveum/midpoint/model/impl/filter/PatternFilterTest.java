@@ -66,14 +66,14 @@ public class PatternFilterTest {
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void testEmptyParameters() {
-        PrismPropertyValue<String> value = getPrismContext().itemFactory().createPrismPropertyValue(input);
+        PrismPropertyValue<String> value = getPrismContext().itemFactory().createPropertyValue(input);
         value = filter.apply(value);
         AssertJUnit.assertEquals(expected, value.getValue());
     }
 
     @Test
     public void testEmptyValue() {
-        PrismPropertyValue<String> value = getPrismContext().itemFactory().createPrismPropertyValue("");
+        PrismPropertyValue<String> value = getPrismContext().itemFactory().createPropertyValue("");
         value = filter.apply(value);
         AssertJUnit.assertEquals("", value.getValue());
     }
@@ -83,7 +83,7 @@ public class PatternFilterTest {
         List<Object> parameters = createGoodParameters();
         filter.setParameters(parameters);
 
-        PrismPropertyValue<String> value = getPrismContext().itemFactory().createPrismPropertyValue(input);
+        PrismPropertyValue<String> value = getPrismContext().itemFactory().createPropertyValue(input);
         value = filter.apply(value);
         AssertJUnit.assertEquals(expected, value.getValue());
     }
@@ -93,7 +93,7 @@ public class PatternFilterTest {
         List<Object> parameters = createBadParameters();
         filter.setParameters(parameters);
 
-        PrismPropertyValue<String> value = getPrismContext().itemFactory().createPrismPropertyValue(input);
+        PrismPropertyValue<String> value = getPrismContext().itemFactory().createPropertyValue(input);
         value = filter.apply(value);
         AssertJUnit.assertEquals(expected, value.getValue());
     }
@@ -103,7 +103,7 @@ public class PatternFilterTest {
         List<Object> parameters = createBadParameters2();
         filter.setParameters(parameters);
 
-        PrismPropertyValue<String> value = getPrismContext().itemFactory().createPrismPropertyValue(input);
+        PrismPropertyValue<String> value = getPrismContext().itemFactory().createPropertyValue(input);
         value = filter.apply(value);
         AssertJUnit.assertEquals(expected, value.getValue());
     }

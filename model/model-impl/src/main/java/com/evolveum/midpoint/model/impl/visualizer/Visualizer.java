@@ -668,7 +668,7 @@ public class Visualizer {
 		SceneDeltaItemImpl si = createSceneDeltaItemCommon(delta, owningScene);
 		si.setOldValues(toSceneItemValues(delta.getEstimatedOldValues()));
 
-		PrismProperty property = prismContext.itemFactory().createPrismProperty(delta.getElementName());
+		PrismProperty property = prismContext.itemFactory().createProperty(delta.getElementName());
 		if (delta.getEstimatedOldValues() != null) {
 			property.addValues(CloneUtil.cloneCollectionMembers(delta.getEstimatedOldValues()));
 		}
@@ -773,7 +773,7 @@ public class Visualizer {
 		SceneDeltaItemImpl di = createSceneDeltaItemCommon(delta, owningScene);
 		di.setOldValues(toSceneItemValuesRef(delta.getEstimatedOldValues(), context, task, result));
 
-		PrismReference reference = prismContext.itemFactory().createPrismReference(delta.getElementName());
+		PrismReference reference = prismContext.itemFactory().createReference(delta.getElementName());
 		try {
 			if (delta.getEstimatedOldValues() != null) {
 				reference.addAll(CloneUtil.cloneCollectionMembers(delta.getEstimatedOldValues()));

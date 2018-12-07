@@ -236,7 +236,7 @@ public class LensUtil {
 		PrismPropertyDefinition<XMLGregorianCalendar> timestampDef = activationDefinition.findPropertyDefinition(timestampPropertyName);
 		PropertyDelta<XMLGregorianCalendar> timestampDelta
 				= timestampDef.createEmptyDelta(FocusType.F_ACTIVATION.append(timestampPropertyName));
-		timestampDelta.setValueToReplace(prismContext.itemFactory().createPrismPropertyValue(now, origin, null));
+		timestampDelta.setValueToReplace(prismContext.itemFactory().createPropertyValue(now, origin, null));
 		return timestampDelta;
     }
 

@@ -199,11 +199,11 @@ public class ModifyUser extends BaseSQLRepoTest {
         ReferenceDelta delta1 = prismContext.deltaFactory().reference().createModificationAdd(
                 ItemPath.create(UserType.F_METADATA, MetadataType.F_CREATE_APPROVER_REF),
                 userDefinition,
-                itemFactory().createPrismReferenceValue("target-oid-1", UserType.COMPLEX_TYPE));
+                itemFactory().createReferenceValue("target-oid-1", UserType.COMPLEX_TYPE));
         ReferenceDelta delta2 = prismContext.deltaFactory().reference().createModificationAdd(
                 ItemPath.create(UserType.F_METADATA, MetadataType.F_MODIFY_APPROVER_REF),
                 userDefinition,
-                itemFactory().createPrismReferenceValue("target-oid-1", UserType.COMPLEX_TYPE));            // the same as in delta1
+                itemFactory().createReferenceValue("target-oid-1", UserType.COMPLEX_TYPE));            // the same as in delta1
 
         repositoryService.modifyObject(UserType.class, userOid, Arrays.asList(delta1, delta2), new OperationResult("asdf"));
     }

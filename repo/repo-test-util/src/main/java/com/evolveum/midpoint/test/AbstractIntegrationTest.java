@@ -2424,7 +2424,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 	
 	protected <T> RawType rawize(QName attrName, T value) {
-		return new RawType(prismContext.itemFactory().createPrismPropertyValue(value), attrName, prismContext);
+		return new RawType(prismContext.itemFactory().createPropertyValue(value), attrName, prismContext);
 	}
 	
 	protected void markShadowTombstone(String oid) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {

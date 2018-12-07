@@ -72,7 +72,7 @@ public class GenericHandlerDto extends HandlerDto {
 		ContainerWrapperFactory cwf = new ContainerWrapperFactory(pageBase);
 
 		final PrismContext prismContext = pageBase.getPrismContext();
-		PrismContainer container = prismContext.itemFactory().createPrismContainer(new QName("test"));
+		PrismContainer container = prismContext.itemFactory().createContainer(new QName("test"));
 		ComplexTypeDefinition ctd = prismContext.definitionFactory().createComplexTypeDefinition(new QName("Test"));
 		int displayOrder = 1;
 		for (Item item : items) {

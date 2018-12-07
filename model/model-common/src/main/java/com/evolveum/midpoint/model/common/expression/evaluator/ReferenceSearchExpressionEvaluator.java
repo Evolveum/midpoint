@@ -50,7 +50,7 @@ public class ReferenceSearchExpressionEvaluator
 	}
 
 	protected PrismReferenceValue createPrismValue(String oid, QName targetTypeQName, List<ItemDelta<PrismReferenceValue, PrismReferenceDefinition>> additionalAttributeValues, ExpressionEvaluationContext params) {
-		PrismReferenceValue refVal = getPrismContext().itemFactory().createPrismReferenceValue();
+		PrismReferenceValue refVal = getPrismContext().itemFactory().createReferenceValue();
 
 		refVal.setOid(oid);
 		refVal.setTargetType(targetTypeQName);

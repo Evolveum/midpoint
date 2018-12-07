@@ -747,7 +747,7 @@ public class ConsolidationProcessor {
 						PrismValueDeltaSetTriple<PrismPropertyValue<QName>> triple = prismContext.deltaFactory().createPrismValueDeltaSetTriple();
 						if (construction.getAuxiliaryObjectClassDefinitions() != null) {
 							for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition: construction.getAuxiliaryObjectClassDefinitions()) {
-								triple.addToZeroSet(prismContext.itemFactory().createPrismPropertyValue(auxiliaryObjectClassDefinition.getTypeName()));
+								triple.addToZeroSet(prismContext.itemFactory().createPropertyValue(auxiliaryObjectClassDefinition.getTypeName()));
 							}
 						}
 						return triple;

@@ -153,7 +153,7 @@ public class TestPasswordDeprecated extends AbstractInitializedModelIntegrationT
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-		PrismReferenceValue passPolicyRef = itemFactory().createPrismReferenceValue(PASSWORD_POLICY_DEPRECATED_OID, ValuePolicyType.COMPLEX_TYPE);
+		PrismReferenceValue passPolicyRef = itemFactory().createReferenceValue(PASSWORD_POLICY_DEPRECATED_OID, ValuePolicyType.COMPLEX_TYPE);
 
 		// WHEN
 		modifyObjectReplaceReference(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),

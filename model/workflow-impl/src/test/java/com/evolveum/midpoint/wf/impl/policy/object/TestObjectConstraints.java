@@ -176,7 +176,7 @@ public class TestObjectConstraints extends AbstractWfTestPolicy {
 
 		roleEmployeeOid = searchObjectByName(RoleType.class, "employee").getOid();
 
-		PrismReferenceValue employeeOwner = getPrismContext().itemFactory().createPrismReferenceValue(roleEmployeeOid, RoleType.COMPLEX_TYPE).relation(SchemaConstants.ORG_OWNER);
+		PrismReferenceValue employeeOwner = getPrismContext().itemFactory().createReferenceValue(roleEmployeeOid, RoleType.COMPLEX_TYPE).relation(SchemaConstants.ORG_OWNER);
 		executeChanges(prismContext.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT).add(ObjectTypeUtil.createAssignmentTo(employeeOwner, prismContext))
 				.asObjectDelta(userEmployeeOwnerOid),

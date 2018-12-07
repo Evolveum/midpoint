@@ -46,7 +46,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -1087,7 +1086,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	}
 
 	private void collectMembership(FocusType targetType, QName relation, EvaluationContext ctx) {
-		PrismReferenceValue refVal = prismContext.itemFactory().createPrismReferenceValue();
+		PrismReferenceValue refVal = prismContext.itemFactory().createReferenceValue();
 		refVal.setObject(targetType.asPrismObject());
 		refVal.setTargetType(ObjectTypes.getObjectType(targetType.getClass()).getTypeQName());
 		refVal.setRelation(relation);
@@ -1107,7 +1106,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	}
 
 	private void collectMembership(ObjectReferenceType targetRef, QName relation, EvaluationContext ctx) {
-		PrismReferenceValue refVal = prismContext.itemFactory().createPrismReferenceValue();
+		PrismReferenceValue refVal = prismContext.itemFactory().createReferenceValue();
 		refVal.setOid(targetRef.getOid());
 		refVal.setTargetType(targetRef.getType());
 		refVal.setRelation(relation);

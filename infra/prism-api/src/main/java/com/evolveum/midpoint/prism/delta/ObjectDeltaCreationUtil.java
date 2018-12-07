@@ -281,7 +281,7 @@ public class ObjectDeltaCreationUtil {
 		ReferenceDelta referenceDelta = objectDelta.createReferenceModification(ItemName.fromQName(propertyName), refDef);
 		Collection<PrismReferenceValue> valuesToReplace = new ArrayList<>(referenceObjects.length);
 		for (PrismObject<?> refObject: referenceObjects) {
-			valuesToReplace.add(prismContext.itemFactory().createPrismReferenceValue(refObject));
+			valuesToReplace.add(prismContext.itemFactory().createReferenceValue(refObject));
 		}
 		referenceDelta.setValuesToReplace(valuesToReplace);
 		return objectDelta;
@@ -292,7 +292,7 @@ public class ObjectDeltaCreationUtil {
 			PrismContext prismContext, String... targetOids) {
 		PrismReferenceValue[] referenceValues = new PrismReferenceValue[targetOids.length];
 		for(int i=0; i < targetOids.length; i++) {
-			referenceValues[i] = prismContext.itemFactory().createPrismReferenceValue(targetOids[i]);
+			referenceValues[i] = prismContext.itemFactory().createReferenceValue(targetOids[i]);
 		}
 		return createModificationAddReference(type, oid, propertyName, prismContext, referenceValues);
 	}
@@ -322,7 +322,7 @@ public class ObjectDeltaCreationUtil {
 			PrismContext prismContext, String... targetOids) {
 		PrismReferenceValue[] referenceValues = new PrismReferenceValue[targetOids.length];
 		for (int i=0; i < targetOids.length; i++) {
-			referenceValues[i] = prismContext.itemFactory().createPrismReferenceValue(targetOids[i]);
+			referenceValues[i] = prismContext.itemFactory().createReferenceValue(targetOids[i]);
 		}
 		return createModificationDeleteReference(type, oid, propertyName, prismContext, referenceValues);
 	}

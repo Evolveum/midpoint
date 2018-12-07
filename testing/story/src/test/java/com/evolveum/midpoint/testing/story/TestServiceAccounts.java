@@ -406,7 +406,7 @@ public class TestServiceAccounts extends AbstractStoryTest {
 
         ObjectDelta<ServiceType> delta = ObjectDeltaCreationUtil
 		        .createEmptyModifyDelta(ServiceType.class, SERVICE_BARELLIUM_OID, prismContext);
-        PrismReferenceValue accountRefVal = getPrismContext().itemFactory().createPrismReferenceValue();
+        PrismReferenceValue accountRefVal = getPrismContext().itemFactory().createReferenceValue();
 		accountRefVal.setObject(account);
 		ReferenceDelta accountDelta = prismContext.deltaFactory().reference()
 				.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);

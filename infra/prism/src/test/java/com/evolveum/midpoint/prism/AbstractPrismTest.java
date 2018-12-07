@@ -194,7 +194,7 @@ public class AbstractPrismTest {
 	
 	protected PrismContainerValue<AssignmentType> createAssignmentValue(Long id, String description) throws SchemaException {
 		PrismContainerDefinition<AssignmentType> assignmentDef = getUserTypeDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
-		PrismContainerValue<AssignmentType> assignmentValue = getPrismContext().itemFactory().createPrismContainerValue();
+		PrismContainerValue<AssignmentType> assignmentValue = getPrismContext().itemFactory().createContainerValue();
 		populateAssignmentValue(assignmentValue, id, description);
 		return assignmentValue;
 	}

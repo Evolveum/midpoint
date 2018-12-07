@@ -670,7 +670,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 				ObjectWrapper accountWrapper = accDto.getObject();
 				accountWrapper.revive(getPrismContext());
 				ObjectDelta delta = accountWrapper.getObjectDelta();
-				PrismReferenceValue refValue = getPrismContext().itemFactory().createPrismReferenceValue(null, OriginType.USER_ACTION, null);
+				PrismReferenceValue refValue = getPrismContext().itemFactory().createReferenceValue(null, OriginType.USER_ACTION, null);
 
 				PrismObject<ShadowType> account;
 				switch (accDto.getStatus()) {
@@ -723,7 +723,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 				ObjectWrapper<OrgType> orgWrapper = orgDto.getObject();
 				orgWrapper.revive(getPrismContext());
 				ObjectDelta<OrgType> delta = orgWrapper.getObjectDelta();
-				PrismReferenceValue refValue = getPrismContext().itemFactory().createPrismReferenceValue(null, OriginType.USER_ACTION, null);
+				PrismReferenceValue refValue = getPrismContext().itemFactory().createReferenceValue(null, OriginType.USER_ACTION, null);
 
 				switch (orgDto.getStatus()) {
 					case ADD:

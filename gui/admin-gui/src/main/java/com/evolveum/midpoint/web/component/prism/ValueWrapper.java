@@ -69,7 +69,7 @@ public class ValueWrapper<T> implements Serializable, DebugDumpable {
 				T val = ((PrismPropertyValue<T>) value).getValue();
 				if (val instanceof PolyString) {
 					PolyString poly = (PolyString) val;
-					this.value = prismContext.itemFactory().createPrismPropertyValue(new PolyString(poly.getOrig(), poly.getNorm()),
+					this.value = prismContext.itemFactory().createPropertyValue(new PolyString(poly.getOrig(), poly.getNorm()),
                         value.getOriginType(), value.getOriginObject());
 				} else if (val instanceof ProtectedStringType) {
 					this.value = value.clone();
@@ -87,11 +87,11 @@ public class ValueWrapper<T> implements Serializable, DebugDumpable {
 		}
 
 		if (oldValue == null && value instanceof PrismPropertyValue && ValueStatus.ADDED == propertyWrapper.getStatus()) {
-			oldValue = prismContext.itemFactory().createPrismPropertyValue();
+			oldValue = prismContext.itemFactory().createPropertyValue();
 		}
 		
 		if (oldValue == null && value instanceof PrismReferenceValue && ValueStatus.ADDED == propertyWrapper.getStatus()) {
-			oldValue = prismContext.itemFactory().createPrismReferenceValue();
+			oldValue = prismContext.itemFactory().createReferenceValue();
 		}
 		
 		if (oldValue == null && value instanceof PrismReferenceValue && ValueStatus.ADDED != propertyWrapper.getStatus()) {
@@ -104,7 +104,7 @@ public class ValueWrapper<T> implements Serializable, DebugDumpable {
                 PolyString poly = (PolyString)val;
                 val = (T) new PolyString(poly.getOrig(), poly.getNorm());
             }
-            oldValue = prismContext.itemFactory().createPrismPropertyValue(CloneUtil.clone(val), this.value.getOriginType(), this.value.getOriginObject());
+            oldValue = prismContext.itemFactory().createPropertyValue(CloneUtil.clone(val), this.value.getOriginType(), this.value.getOriginObject());
         }
 
         this.oldValue = oldValue;

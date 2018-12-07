@@ -91,7 +91,7 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
 	}
 
 	public static RawType fromPropertyRealValue(Object realValue, QName explicitTypeName, @NotNull PrismContext prismContext) {
-		return new RawType(prismContext.itemFactory().createPrismPropertyValue(realValue), explicitTypeName, prismContext);
+		return new RawType(prismContext.itemFactory().createPropertyValue(realValue), explicitTypeName, prismContext);
 	}
 
 	/**
@@ -178,7 +178,7 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
 			} else {
 				// we don't really want to set 'parsed', as we didn't performed real parsing
 				//noinspection unchecked
-				return (IV) prismContext.itemFactory().createPrismPropertyValue(xnode);
+				return (IV) prismContext.itemFactory().createPropertyValue(xnode);
 			}
 		} else {
 		    return null;

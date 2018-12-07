@@ -17,7 +17,6 @@ package com.evolveum.midpoint.model.impl.filter;
 
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 
-import com.evolveum.midpoint.prism.PrismPropertyValueImpl;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -61,7 +60,7 @@ public class EmptyFilterTest {
     @Test
     public void testNode() {
         String input = "test content";
-        PrismPropertyValue<String> value = getPrismContext().itemFactory().createPrismPropertyValue(input);
+        PrismPropertyValue<String> value = getPrismContext().itemFactory().createPropertyValue(input);
         value = filter.apply(value);
 
         AssertJUnit.assertEquals(input, value.getValue());

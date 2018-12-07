@@ -546,7 +546,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
     public void test009modifyOrgStructRemoveUser() throws Exception {
         OperationResult opResult = new OperationResult("test009modifyOrgStructRemoveUser");
 
-        PrismReferenceValue prv = itemFactory().createPrismReferenceValue(MODIFY_USER_DELETE_REF_OID);
+        PrismReferenceValue prv = itemFactory().createReferenceValue(MODIFY_USER_DELETE_REF_OID);
         prv.setTargetType(OrgType.COMPLEX_TYPE);
         ObjectDelta<UserType> delta = ObjectDeltaCreationUtil
 		        .createModificationDeleteReference(UserType.class, ELAINE_OID, UserType.F_PARENT_ORG_REF, prismContext, prv);
@@ -588,7 +588,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
         OperationResult opResult = new OperationResult(TEST_NAME);
 
         ObjectQuery query = prismContext.queryFor(ObjectType.class)
-                .item(ObjectType.F_PARENT_ORG_REF).ref(itemFactory().createPrismReferenceValue(ORG_F001_OID))
+                .item(ObjectType.F_PARENT_ORG_REF).ref(itemFactory().createReferenceValue(ORG_F001_OID))
                 .build();
 
         // WHEN
@@ -604,7 +604,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
     	TestUtil.displayTestTitle(TEST_NAME);
         OperationResult opResult = new OperationResult(TEST_NAME);
 
-        PrismReferenceValue refVal = itemFactory().createPrismReferenceValue(ORG_F001_OID);
+        PrismReferenceValue refVal = itemFactory().createReferenceValue(ORG_F001_OID);
         refVal.setRelation(SchemaConstants.ORG_MANAGER);
         ObjectQuery query = prismContext.queryFor(ObjectType.class)
                 .item(ObjectType.F_PARENT_ORG_REF).ref(refVal)
@@ -623,7 +623,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
     	TestUtil.displayTestTitle(TEST_NAME);
         OperationResult opResult = new OperationResult(TEST_NAME);
 
-        PrismReferenceValue refVal = itemFactory().createPrismReferenceValue(ORG_F001_OID);
+        PrismReferenceValue refVal = itemFactory().createReferenceValue(ORG_F001_OID);
         refVal.setRelation(PrismConstants.Q_ANY);
         ObjectQuery query = prismContext.queryFor(ObjectType.class)
                 .item(ObjectType.F_PARENT_ORG_REF).ref(refVal)

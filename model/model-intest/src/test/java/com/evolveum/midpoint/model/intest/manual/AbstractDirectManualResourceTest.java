@@ -168,9 +168,9 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		// Still old data in the repo. The operation is not completed yet.
 		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
 		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME,
-				new RawType(itemFactory().createPrismPropertyValue(USER_WILL_NAME), ATTR_USERNAME_QNAME, prismContext));
+				new RawType(itemFactory().createPropertyValue(USER_WILL_NAME), ATTR_USERNAME_QNAME, prismContext));
 		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME,
-				new RawType(itemFactory().createPrismPropertyValue(USER_WILL_FULL_NAME_PIRATE), ATTR_FULLNAME_QNAME, prismContext));
+				new RawType(itemFactory().createPropertyValue(USER_WILL_FULL_NAME_PIRATE), ATTR_FULLNAME_QNAME, prismContext));
 
 		PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
 				accountWillOid, null, task, result);
@@ -254,9 +254,9 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		// Still old data in the repo. The operation is not completed yet.
 		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
 		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME,
-				new RawType(itemFactory().createPrismPropertyValue(USER_WILL_NAME), ATTR_USERNAME_QNAME, prismContext));
+				new RawType(itemFactory().createPropertyValue(USER_WILL_NAME), ATTR_USERNAME_QNAME, prismContext));
 		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME,
-				new RawType(itemFactory().createPrismPropertyValue(USER_WILL_FULL_NAME_PIRATE), ATTR_FULLNAME_QNAME, prismContext));
+				new RawType(itemFactory().createPropertyValue(USER_WILL_FULL_NAME_PIRATE), ATTR_FULLNAME_QNAME, prismContext));
 
 		PrismObject<ShadowType> shadowProvisioning = modelService.getObject(ShadowType.class,
 				accountWillOid, null, task, result);
@@ -344,9 +344,9 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.DISABLED);
 		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME,
-				new RawType(itemFactory().createPrismPropertyValue(USER_WILL_NAME), ATTR_USERNAME_QNAME, prismContext));
+				new RawType(itemFactory().createPropertyValue(USER_WILL_NAME), ATTR_USERNAME_QNAME, prismContext));
 		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME,
-				new RawType(itemFactory().createPrismPropertyValue(USER_WILL_FULL_NAME_PIRATE), ATTR_FULLNAME_QNAME, prismContext));
+				new RawType(itemFactory().createPropertyValue(USER_WILL_FULL_NAME_PIRATE), ATTR_FULLNAME_QNAME, prismContext));
 
 		display("Model shadow", shadowModel);
 		ShadowType shadowTypeModel = shadowModel.asObjectable();
@@ -433,7 +433,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.DISABLED);
 		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME,
-				new RawType(itemFactory().createPrismPropertyValue(USER_WILL_NAME), ATTR_USERNAME_QNAME, prismContext));
+				new RawType(itemFactory().createPropertyValue(USER_WILL_NAME), ATTR_USERNAME_QNAME, prismContext));
 		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME,
 				RawType.fromPropertyRealValue(USER_WILL_FULL_NAME_PIRATE, ATTR_FULLNAME_QNAME, prismContext));
 

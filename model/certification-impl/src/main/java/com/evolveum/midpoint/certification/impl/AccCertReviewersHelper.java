@@ -227,7 +227,7 @@ public class AccCertReviewersHelper {
 		// TODO in theory, we could look for approvers/owners of UserType, right?
 		Collection<PrismReferenceValue> values = new ArrayList<>();
 		for (QName relation : relationRegistry.getAllRelationsFor(relationKind)) {
-			PrismReferenceValue ref = prismContext.itemFactory().createPrismReferenceValue(role.getOid());
+			PrismReferenceValue ref = prismContext.itemFactory().createReferenceValue(role.getOid());
 			ref.setRelation(relation);
 			values.add(ref);
 		}

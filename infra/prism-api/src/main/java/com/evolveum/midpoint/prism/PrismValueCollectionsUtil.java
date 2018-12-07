@@ -62,7 +62,7 @@ public class PrismValueCollectionsUtil {
 			Collection<T> realValueCollection) {
 		Collection<PrismPropertyValue<T>> pvalCol = new ArrayList<>(realValueCollection.size());
 		for (T realValue: realValueCollection) {
-			pvalCol.add(prismContext.itemFactory().createPrismPropertyValue(realValue));
+			pvalCol.add(prismContext.itemFactory().createPropertyValue(realValue));
 		}
 		return pvalCol;
 	}
@@ -70,14 +70,14 @@ public class PrismValueCollectionsUtil {
 	public static <T> Collection<PrismPropertyValue<T>> createCollection(PrismContext prismContext, T[] realValueArray) {
 		Collection<PrismPropertyValue<T>> pvalCol = new ArrayList<>(realValueArray.length);
 		for (T realValue: realValueArray) {
-			pvalCol.add(prismContext.itemFactory().createPrismPropertyValue(realValue));
+			pvalCol.add(prismContext.itemFactory().createPropertyValue(realValue));
 		}
 		return pvalCol;
 	}
 
 	public static <T> Collection<PrismPropertyValue<T>> wrap(PrismContext prismContext, @NotNull Collection<T> realValues) {
 		return realValues.stream()
-				.map(val -> prismContext.itemFactory().createPrismPropertyValue(val))
+				.map(val -> prismContext.itemFactory().createPropertyValue(val))
 				.collect(Collectors.toList());
 	}
 
@@ -85,7 +85,7 @@ public class PrismValueCollectionsUtil {
 	public static <T> PrismPropertyValue<T>[] wrap(PrismContext prismContext, T... realValues) {
 		//noinspection unchecked
 		return Arrays.stream(realValues)
-				.map(val -> prismContext.itemFactory().createPrismPropertyValue(val))
+				.map(val -> prismContext.itemFactory().createPropertyValue(val))
 				.toArray(PrismPropertyValue[]::new);
 	}
 
@@ -230,7 +230,7 @@ public class PrismValueCollectionsUtil {
     	Collection<PrismPropertyValue<X>> pvalues = new ArrayList<>(realValues.length);
     	for (X val: realValues) {
     		PrismUtil.recomputeRealValue(val, prismContext);
-    		PrismPropertyValue<X> pval = prismContext.itemFactory().createPrismPropertyValue(val);
+    		PrismPropertyValue<X> pval = prismContext.itemFactory().createPropertyValue(val);
     		pvalues.add(pval);
     	}
     	return pvalues;

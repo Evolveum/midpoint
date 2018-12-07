@@ -629,8 +629,8 @@ public class TestQueryConverter {
 	public void test365RefTwoWay() throws Exception {
 		final String TEST_NAME = "test365RefTwoWay";
 		displayTestTitle(TEST_NAME);
-		PrismReferenceValue reference3 = getPrismContext().itemFactory().createPrismReferenceValue("oid3", ResourceType.COMPLEX_TYPE).relation(new QName("test"));
-		PrismReferenceValue reference4 = getPrismContext().itemFactory().createPrismReferenceValue("oid4", ResourceType.COMPLEX_TYPE).relation(new QName("test"));
+		PrismReferenceValue reference3 = getPrismContext().itemFactory().createReferenceValue("oid3", ResourceType.COMPLEX_TYPE).relation(new QName("test"));
+		PrismReferenceValue reference4 = getPrismContext().itemFactory().createReferenceValue("oid4", ResourceType.COMPLEX_TYPE).relation(new QName("test"));
 		ObjectQuery q = getPrismContext().queryFor(ShadowType.class)
 				.item(ShadowType.F_RESOURCE_REF).ref("oid1")
 				.or().item(ShadowType.F_RESOURCE_REF).ref("oid2", ResourceType.COMPLEX_TYPE)

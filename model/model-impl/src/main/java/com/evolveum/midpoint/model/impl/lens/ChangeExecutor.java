@@ -740,7 +740,7 @@ public class ChangeExecutor {
 
 		LOGGER.debug("Linking shadow " + shadowOid + " to focus " + userOid);
 		OperationResult result = parentResult.createSubresult(OPERATION_LINK_ACCOUNT);
-		PrismReferenceValue linkRef = prismContext.itemFactory().createPrismReferenceValue();
+		PrismReferenceValue linkRef = prismContext.itemFactory().createReferenceValue();
 		linkRef.setOid(shadowOid);
 		linkRef.setTargetType(ShadowType.COMPLEX_TYPE);
 		Collection<? extends ItemDelta> linkRefDeltas = prismContext.deltaFactory().reference()

@@ -787,7 +787,7 @@ public class ObjectTypeUtil {
 	private static void addRealValue(Item<PrismValue, ItemDefinition> extensionItem, Object value,
 			PrismContext prismContext) throws SchemaException {
     	if (value != null) {
-		    extensionItem.add(prismContext.itemFactory().createPrismValue(value).clone());
+		    extensionItem.add(prismContext.itemFactory().createValue(value).clone());
 	    }
 	}
 
@@ -802,7 +802,7 @@ public class ObjectTypeUtil {
 
 		List<PrismReferenceValue> referencesToFind = new ArrayList<>();
 	    for (QName managerRelation : managerRelations) {
-	        PrismReferenceValue parentOrgRefVal = prismContext.itemFactory().createPrismReferenceValue(orgOid, OrgType.COMPLEX_TYPE);
+	        PrismReferenceValue parentOrgRefVal = prismContext.itemFactory().createReferenceValue(orgOid, OrgType.COMPLEX_TYPE);
 	        parentOrgRefVal.setRelation(managerRelation);
 	        referencesToFind.add(parentOrgRefVal);
 	    }

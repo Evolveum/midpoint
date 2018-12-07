@@ -76,7 +76,7 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
 	    List<PipelineItem> data = input.getData();
 	    if (data.isEmpty()) {
 	    	// TODO fix this brutal hack (with dummyValue)
-		    PrismContainerValue<?> dummyValue = prismContext.itemFactory().createPrismContainerValue();
+		    PrismContainerValue<?> dummyValue = prismContext.itemFactory().createContainerValue();
 		    PipelineItem dummyItem = new PipelineItem(dummyValue, PipelineData.newOperationResult(), context.getInitialVariables());
 		    data = Collections.singletonList(dummyItem);
 	    }

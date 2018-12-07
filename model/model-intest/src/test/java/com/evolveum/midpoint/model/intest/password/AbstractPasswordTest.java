@@ -1474,7 +1474,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertEquals("Wrong # of parentOrgRefs", 2, jack.getParentOrgRef().size());
 
 		ObjectDelta<OrgType> orgDelta = prismContext.deltaFor(OrgType.class)
-				.item(OrgType.F_PASSWORD_POLICY_REF).replace(itemFactory().createPrismReferenceValue(PASSWORD_POLICY_GLOBAL_OID))
+				.item(OrgType.F_PASSWORD_POLICY_REF).replace(itemFactory().createReferenceValue(PASSWORD_POLICY_GLOBAL_OID))
 				.asObjectDelta(ORG_GOVERNOR_OFFICE_OID);
 		executeChanges(orgDelta, null, task, result);
 
@@ -4282,7 +4282,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         			.historyLength(ORG_MINISTRY_OF_OFFENSE_PASSWORD_HISTORY_LENGTH);
         ministrySecurityPolicyOid = addObject(securityPolicy, task, result);
 
-        PrismReferenceValue securityPolicyRef = itemFactory().createPrismReferenceValue();
+        PrismReferenceValue securityPolicyRef = itemFactory().createReferenceValue();
         securityPolicyRef.setOid(ministrySecurityPolicyOid);
 		modifyObjectReplaceReference(OrgType.class, ORG_MINISTRY_OF_OFFENSE_OID,
         		OrgType.F_SECURITY_POLICY_REF, task, result, securityPolicyRef);

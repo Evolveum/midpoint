@@ -116,7 +116,7 @@ public class ExtensionAsserter<O extends ObjectType, OA extends PrismObjectAsser
 	private <T> RawType[] rawize(QName attrName, PrismContext prismContext, T[] expectedValues) {
 		RawType[] raws = new RawType[expectedValues.length];
 		for(int i = 0; i < expectedValues.length; i++) {
-			raws[i] = new RawType(prismContext.itemFactory().createPrismPropertyValue(expectedValues[i]), attrName, prismContext);
+			raws[i] = new RawType(prismContext.itemFactory().createPropertyValue(expectedValues[i]), attrName, prismContext);
 		}
 		return raws;
 	}

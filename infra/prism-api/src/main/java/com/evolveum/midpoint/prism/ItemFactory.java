@@ -29,45 +29,45 @@ import javax.xml.namespace.QName;
  */
 public interface ItemFactory {
 
-	PrismValue createPrismValue(Object realValue);
+	PrismValue createValue(Object realValue);
 
-	<T> PrismProperty<T> createPrismProperty(QName itemName);
+	<T> PrismProperty<T> createProperty(QName itemName);
 
-	<T> PrismProperty<T> createPrismProperty(QName itemName, PrismPropertyDefinition<T> definition);
+	<T> PrismProperty<T> createProperty(QName itemName, PrismPropertyDefinition<T> definition);
 
-	<T> PrismPropertyValue<T> createPrismPropertyValue();
+	<T> PrismPropertyValue<T> createPropertyValue();
 
-	<T> PrismPropertyValue<T> createPrismPropertyValue(T content);
+	<T> PrismPropertyValue<T> createPropertyValue(T content);
 
-	<T> PrismPropertyValue<T> createPrismPropertyValue(XNode rawContent);
+	<T> PrismPropertyValue<T> createPropertyValue(XNode rawContent);
 
-	<T> PrismPropertyValue<T> createPrismPropertyValue(T value, OriginType originType, Objectable originObject);
+	<T> PrismPropertyValue<T> createPropertyValue(T value, OriginType originType, Objectable originObject);
 
-	PrismReference createPrismReference(QName name);
+	PrismReference createReference(QName name);
 
-	PrismReference createPrismReference(QName name, PrismReferenceDefinition definition);
+	PrismReference createReference(QName name, PrismReferenceDefinition definition);
 
-	PrismReferenceValue createPrismReferenceValue();
+	PrismReferenceValue createReferenceValue();
 
-	PrismReferenceValue createPrismReferenceValue(PrismObject<?> target);
+	PrismReferenceValue createReferenceValue(PrismObject<?> target);
 
-	PrismReferenceValue createPrismReferenceValue(String targetOid);
+	PrismReferenceValue createReferenceValue(String targetOid);
 
-	PrismReferenceValue createPrismReferenceValue(String oid, OriginType originType, Objectable originObject);
+	PrismReferenceValue createReferenceValue(String oid, OriginType originType, Objectable originObject);
 
-	PrismReferenceValue createPrismReferenceValue(String oid, QName targetType);
+	PrismReferenceValue createReferenceValue(String oid, QName targetType);
 
-	PrismContainer createPrismContainer(QName name);
+	PrismContainer createContainer(QName name);
 
-	<C extends Containerable> PrismContainer<C> createPrismContainer(QName name, PrismContainerDefinition<C> definition);
+	<C extends Containerable> PrismContainer<C> createContainer(QName name, PrismContainerDefinition<C> definition);
 
-	<O extends Objectable> PrismObject<O> createPrismObject(QName name, PrismObjectDefinition<O> definition);
-
-	// TODO is this needed?
-	<O extends Objectable> PrismObjectValue<O> createPrismObjectValue(O objectable);
+	<O extends Objectable> PrismObject<O> createObject(QName name, PrismObjectDefinition<O> definition);
 
 	// TODO is this needed?
-	<C extends Containerable> PrismContainerValue<C> createPrismContainerValue(C containerable);
+	<O extends Objectable> PrismObjectValue<O> createObjectValue(O objectable);
 
-	<C extends Containerable> PrismContainerValue<C> createPrismContainerValue();
+	// TODO is this needed?
+	<C extends Containerable> PrismContainerValue<C> createContainerValue(C containerable);
+
+	<C extends Containerable> PrismContainerValue<C> createContainerValue();
 }

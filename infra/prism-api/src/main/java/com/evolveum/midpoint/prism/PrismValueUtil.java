@@ -41,7 +41,7 @@ public class PrismValueUtil {
 	public static <T> PrismProperty<T> createRaw(@NotNull XNode node, @NotNull QName itemName, PrismContext prismContext)
 			throws SchemaException {
 		Validate.isTrue(!(node instanceof RootXNode));
-		PrismProperty<T> property = prismContext.itemFactory().createPrismProperty(itemName);
+		PrismProperty<T> property = prismContext.itemFactory().createProperty(itemName);
 		if (node instanceof ListXNode) {
 			for (XNode subnode : ((ListXNode) node).asList()) {
 				property.add(createRaw(subnode, prismContext));
@@ -53,7 +53,7 @@ public class PrismValueUtil {
 	}
 
 	private static <T> PrismPropertyValue<T> createRaw(XNode rawElement, PrismContext prismContext) {
-		return prismContext.itemFactory().createPrismPropertyValue(rawElement);
+		return prismContext.itemFactory().createPropertyValue(rawElement);
 	}
 
 }

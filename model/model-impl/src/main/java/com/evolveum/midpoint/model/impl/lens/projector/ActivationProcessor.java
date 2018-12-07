@@ -389,7 +389,7 @@ public class ActivationProcessor {
                         PrismPropertyDefinition<String> disableReasonDef = activationDefinition.findPropertyDefinition(ActivationType.F_DISABLE_REASON);
                         disableReasonDelta = disableReasonDef.createEmptyDelta(
 		                        ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_DISABLE_REASON));
-                        disableReasonDelta.setValueToReplace(prismContext.itemFactory().createPrismPropertyValue(disableReason, OriginType.OUTBOUND, null));
+                        disableReasonDelta.setValueToReplace(prismContext.itemFactory().createPropertyValue(disableReason, OriginType.OUTBOUND, null));
                         accCtx.swallowToSecondaryDelta(disableReasonDelta);
                     }
                 }
@@ -791,7 +791,7 @@ public class ActivationProcessor {
 		definition.setMinOccurs(1);
 		definition.setMaxOccurs(1);
 		PrismProperty<Boolean> property = definition.instantiate();
-		property.add(prismContext.itemFactory().createPrismPropertyValue(current));
+		property.add(prismContext.itemFactory().createPropertyValue(current));
 
 		if (current == old) {
 			return new ItemDeltaItem<>(property);
@@ -799,7 +799,7 @@ public class ActivationProcessor {
 			PrismProperty<Boolean> propertyOld = property.clone();
 			propertyOld.setRealValue(old);
 			PropertyDelta<Boolean> delta = propertyOld.createDelta();
-			delta.setValuesToReplace(prismContext.itemFactory().createPrismPropertyValue(current));
+			delta.setValuesToReplace(prismContext.itemFactory().createPropertyValue(current));
 			return new ItemDeltaItem<>(propertyOld, delta, property);
 		}
 	}
@@ -834,7 +834,7 @@ public class ActivationProcessor {
 		existsDef.setMaxOccurs(1);
 		PrismProperty<Boolean> existsProp = existsDef.instantiate();
 
-		existsProp.add(prismContext.itemFactory().createPrismPropertyValue(existsNew));
+		existsProp.add(prismContext.itemFactory().createPropertyValue(existsNew));
 
 		if (existsOld == existsNew) {
 			return new ItemDeltaItem<>(existsProp);
@@ -842,7 +842,7 @@ public class ActivationProcessor {
 			PrismProperty<Boolean> existsPropOld = existsProp.clone();
 			existsPropOld.setRealValue(existsOld);
 			PropertyDelta<Boolean> existsDelta = existsPropOld.createDelta();
-			existsDelta.setValuesToReplace(prismContext.itemFactory().createPrismPropertyValue(existsNew));
+			existsDelta.setValuesToReplace(prismContext.itemFactory().createPropertyValue(existsNew));
 			return new ItemDeltaItem<>(existsPropOld, existsDelta, existsProp);
 		}
 	}
@@ -907,7 +907,7 @@ public class ActivationProcessor {
         	if (lifecycle != null) {
         		PrismPropertyDefinition<String> propDef = projCtx.getObjectDefinition().findPropertyDefinition(SchemaConstants.PATH_LIFECYCLE_STATE);
         		PropertyDelta<String> lifeCycleDelta = propDef.createEmptyDelta(SchemaConstants.PATH_LIFECYCLE_STATE);
-        		PrismPropertyValue<String> pval = prismContext.itemFactory().createPrismPropertyValue(lifecycle);
+        		PrismPropertyValue<String> pval = prismContext.itemFactory().createPropertyValue(lifecycle);
         		pval.setOriginType(OriginType.OUTBOUND);
 				lifeCycleDelta.setValuesToReplace(pval);
 				projCtx.swallowToSecondaryDelta(lifeCycleDelta);

@@ -254,7 +254,7 @@ public class ConstructionProcessor {
                 constructionMap.put(key, constructionPack);
             }
 
-            constructionPack.add(context.getPrismContext().itemFactory().createPrismPropertyValue(construction));
+            constructionPack.add(context.getPrismContext().itemFactory().createPropertyValue(construction));
             if (evaluatedAssignment.isValid()) {
             	constructionPack.setHasValidAssignment(true);
             }

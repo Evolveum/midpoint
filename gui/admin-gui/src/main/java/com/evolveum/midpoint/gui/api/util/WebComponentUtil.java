@@ -66,7 +66,6 @@ import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
 import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
-import com.evolveum.midpoint.web.component.input.ExpressionValuePanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.*;
@@ -3040,7 +3039,7 @@ public final class WebComponentUtil {
 		ExpressionType expression = expressionValues.get(0).getValue().getRealValue();
 		if (expression == null && createIfNotExist){
 			expression = new ExpressionType();
-			PrismPropertyValue<ExpressionType> exp = prismContext.itemFactory().createPrismPropertyValue(expression);
+			PrismPropertyValue<ExpressionType> exp = prismContext.itemFactory().createPropertyValue(expression);
 			ValueWrapper<ExpressionType> val = new ValueWrapper<>(expressionWrapper, exp, prismContext);
 			expressionValues.remove(0);
 			expressionValues.add(0, val);

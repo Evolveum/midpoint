@@ -168,7 +168,7 @@ public class ReferenceDeltaImpl extends ItemDeltaImpl<PrismReferenceValue,PrismR
 
     public static <T extends Objectable> ReferenceDeltaImpl createModificationAdd(Class<T> type, ItemName refName, PrismContext prismContext,
     		PrismObject<?> refTarget) {
-    	PrismReferenceValue refValue = prismContext.itemFactory().createPrismReferenceValue(refTarget);
+    	PrismReferenceValue refValue = prismContext.itemFactory().createReferenceValue(refTarget);
     	return createModificationAdd(type, refName, prismContext, refValue);
     }
 
@@ -204,7 +204,7 @@ public class ReferenceDeltaImpl extends ItemDeltaImpl<PrismReferenceValue,PrismR
 
     public static ReferenceDeltaImpl createModificationDelete(QName refName, PrismObjectDefinition<?> objectDefinition,
     		PrismObject<?> refTarget, PrismContext prismContext) {
-    	PrismReferenceValue refValue = prismContext.itemFactory().createPrismReferenceValue(refTarget);
+    	PrismReferenceValue refValue = prismContext.itemFactory().createReferenceValue(refTarget);
     	return createModificationDelete(refName, objectDefinition, refValue);
 	}
 
@@ -232,7 +232,7 @@ public class ReferenceDeltaImpl extends ItemDeltaImpl<PrismReferenceValue,PrismR
 
     public static <T extends Objectable> ReferenceDeltaImpl createModificationDelete(Class<T> type, QName refName, PrismContext prismContext,
     		PrismObject<?> refTarget) {
-    	PrismReferenceValue refValue = prismContext.itemFactory().createPrismReferenceValue(refTarget);
+    	PrismReferenceValue refValue = prismContext.itemFactory().createReferenceValue(refTarget);
     	return createModificationDelete(type, refName, prismContext, refValue);
     }
 

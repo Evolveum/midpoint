@@ -304,7 +304,7 @@ public class PageUser extends PageAdminFocus<UserType> {
 
             Task task = createSimpleTask(OPERATION_LOAD_DELEGATED_BY_ME_ASSIGNMENTS);
 
-            PrismReferenceValue referenceValue = getPrismContext().itemFactory().createPrismReferenceValue(getObjectWrapper().getOid(),
+            PrismReferenceValue referenceValue = getPrismContext().itemFactory().createReferenceValue(getObjectWrapper().getOid(),
                     UserType.COMPLEX_TYPE);
             referenceValue.setRelation(WebComponentUtil.getDefaultRelationOrFail(RelationKindType.DELEGATION));
 

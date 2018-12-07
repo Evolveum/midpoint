@@ -75,7 +75,7 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
 
         ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil
 		        .createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
-        PrismReferenceValue accountRefVal = itemFactory().createPrismReferenceValue();
+        PrismReferenceValue accountRefVal = itemFactory().createReferenceValue();
 		accountRefVal.setObject(account);
 		ReferenceDelta accountDelta = prismContext.deltaFactory().reference()
 				.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);

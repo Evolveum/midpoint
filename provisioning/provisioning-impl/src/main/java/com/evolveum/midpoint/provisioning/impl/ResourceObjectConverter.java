@@ -1626,7 +1626,7 @@ public class ResourceObjectConverter {
 
 					Item existingSimulatedAttr = attributesContainer.findItem(newSimulatedAttr.getElementName());
 					if (!isBlank(newSimulatedAttrRealValue)) {
-						PrismPropertyValue newSimulatedAttrValue = prismContext.itemFactory().createPrismPropertyValue(newSimulatedAttrRealValue);
+						PrismPropertyValue newSimulatedAttrValue = prismContext.itemFactory().createPropertyValue(newSimulatedAttrRealValue);
 						if (existingSimulatedAttr == null) {
 							newSimulatedAttr.add(newSimulatedAttrValue);
 							attributesContainer.add(newSimulatedAttr);

@@ -132,7 +132,7 @@ public class PrismUtil {
 		} else {
 			Class<X> expectedJavaType = XsdTypeMapper.toJavaType(targetDef.getTypeName());
 			X convertedRealValue = JavaTypeConverter.convert(expectedJavaType, srcVal.getValue());
-			return prismContext.itemFactory().createPrismPropertyValue(convertedRealValue);
+			return prismContext.itemFactory().createPropertyValue(convertedRealValue);
 		}
 	}
 
@@ -145,7 +145,7 @@ public class PrismUtil {
 			Class<X> expectedJavaType = XsdTypeMapper.toJavaType(targetDef.getTypeName());
 			for (PrismPropertyValue<T> srcPVal: srcProp.getValues()) {
 				X convertedRealValue = JavaTypeConverter.convert(expectedJavaType, srcPVal.getValue());
-				targetProp.add(prismContext.itemFactory().createPrismPropertyValue(convertedRealValue));
+				targetProp.add(prismContext.itemFactory().createPropertyValue(convertedRealValue));
 			}
 			return targetProp;
 		}

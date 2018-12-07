@@ -78,11 +78,11 @@ public class PropertyWrapper<T> extends PropertyOrReferenceWrapper<PrismProperty
 
         ValueWrapper wrapper;
         if (SchemaConstants.T_POLY_STRING_TYPE.equals(definition.getTypeName())) {
-            wrapper = new ValueWrapper(this, prismContext.itemFactory().createPrismPropertyValue(new PolyString("")),
-                    prismContext.itemFactory().createPrismPropertyValue(new PolyString("")), ValueStatus.ADDED,
+            wrapper = new ValueWrapper(this, prismContext.itemFactory().createPropertyValue(new PolyString("")),
+                    prismContext.itemFactory().createPropertyValue(new PolyString("")), ValueStatus.ADDED,
 		            prismContext);
         } else {
-            wrapper = new ValueWrapper(this, prismContext.itemFactory().createPrismPropertyValue(), ValueStatus.ADDED,
+            wrapper = new ValueWrapper(this, prismContext.itemFactory().createPropertyValue(), ValueStatus.ADDED,
 		            prismContext);
         }
 

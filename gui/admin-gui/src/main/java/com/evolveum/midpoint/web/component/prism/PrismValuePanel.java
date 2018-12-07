@@ -1079,9 +1079,9 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 		int count = countUsableValues(propertyWrapper);
 		if (count == 0 && !hasEmptyPlaceholder(propertyWrapper)) {
 			if (inputPanel instanceof ValueChoosePanel) {
-				values.add(new ValueWrapper(propertyWrapper, prismContext.itemFactory().createPrismReferenceValue(), ValueStatus.ADDED, prismContext));
+				values.add(new ValueWrapper(propertyWrapper, prismContext.itemFactory().createReferenceValue(), ValueStatus.ADDED, prismContext));
 			} else {
-				values.add(new ValueWrapper(propertyWrapper, prismContext.itemFactory().createPrismPropertyValue(), ValueStatus.ADDED, prismContext));
+				values.add(new ValueWrapper(propertyWrapper, prismContext.itemFactory().createPropertyValue(), ValueStatus.ADDED, prismContext));
 			}
 		}
 		ListView parent = findParent(ListView.class);

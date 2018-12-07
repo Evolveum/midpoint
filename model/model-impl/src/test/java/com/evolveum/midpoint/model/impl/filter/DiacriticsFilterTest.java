@@ -18,18 +18,11 @@ package com.evolveum.midpoint.model.impl.filter;
 import com.evolveum.midpoint.common.filter.Filter;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 
-import com.evolveum.midpoint.prism.PrismPropertyValueImpl;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeSuite;
@@ -67,14 +60,14 @@ public class DiacriticsFilterTest {
 
     @Test
     public void testEmptyValue() {
-        PrismPropertyValue<String> value = getPrismContext().itemFactory().createPrismPropertyValue("");
+        PrismPropertyValue<String> value = getPrismContext().itemFactory().createPropertyValue("");
         value = filter.apply(value);
         AssertJUnit.assertEquals("", value.getValue());
     }
 
     @Test
     public void testValueTextNode() {
-        PrismPropertyValue<String> value = getPrismContext().itemFactory().createPrismPropertyValue(input);
+        PrismPropertyValue<String> value = getPrismContext().itemFactory().createPropertyValue(input);
         value = filter.apply(value);
         AssertJUnit.assertEquals(expected, value.getValue());
     }

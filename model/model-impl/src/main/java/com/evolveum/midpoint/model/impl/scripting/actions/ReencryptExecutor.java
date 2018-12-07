@@ -84,7 +84,7 @@ public class ReencryptExecutor extends BaseActionExecutor {
                     Throwable exception = processActionException(ex, NAME, value, context);
                     context.println("Couldn't reencrypt " + prismObject.toString() + drySuffix(dryRun) + exceptionSuffix(exception));
                 }
-                PrismPropertyValue<String> oidVal = prismContext.itemFactory().createPrismPropertyValue(objectBean.getOid());
+                PrismPropertyValue<String> oidVal = prismContext.itemFactory().createPropertyValue(objectBean.getOid());
                 output.add(new PipelineItem(oidVal, item.getResult()));
             } else {
 				//noinspection ThrowableNotThrown

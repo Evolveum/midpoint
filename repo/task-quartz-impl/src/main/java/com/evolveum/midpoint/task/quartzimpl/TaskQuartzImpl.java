@@ -1898,7 +1898,7 @@ public class TaskQuartzImpl implements Task {
 
 		ArrayList<PrismPropertyValue<T>> values = new ArrayList<>(1);
 		if (value != null) {
-			values.add(getPrismContext().itemFactory().createPrismPropertyValue(value));
+			values.add(getPrismContext().itemFactory().createPropertyValue(value));
 		}
 		processModificationBatched(setExtensionPropertyAndPrepareDelta(propertyName, propertyDef, values));
 	}

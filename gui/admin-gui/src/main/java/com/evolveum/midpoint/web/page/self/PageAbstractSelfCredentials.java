@@ -347,7 +347,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
                     PropertyDelta<ProtectedStringType> delta = getPrismContext().deltaFactory().property()
                             .createModificationReplaceProperty(valuePath, objDef, password);
                     if (oldPassword != null) {
-                    	delta.addEstimatedOldValue(getPrismContext().itemFactory().createPrismPropertyValue(oldPassword));
+                    	delta.addEstimatedOldValue(getPrismContext().itemFactory().createPropertyValue(oldPassword));
                     }
 
                     Class<? extends ObjectType> type = accDto.isMidpoint() ? UserType.class : ShadowType.class;

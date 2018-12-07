@@ -235,7 +235,7 @@ public class TestPrismObjectConstruction {
 		PrismAsserts.assertParentConsistency(user);
 
 		// assignment values: construct assignment value as a new container value "out of the blue" and then add it.
-		PrismContainerValue<AssignmentType> assCyanContainerValue = getPrismContext().itemFactory().createPrismContainerValue();
+		PrismContainerValue<AssignmentType> assCyanContainerValue = getPrismContext().itemFactory().createContainerValue();
 		PrismProperty<String> assCyanDescriptionProperty = assCyanContainerValue.findOrCreateProperty(USER_DESCRIPTION_QNAME);
 		assCyanDescriptionProperty.addRealValue("Assignment created out of the cyan");
 		assignmentContainer.mergeValue(assCyanContainerValue);

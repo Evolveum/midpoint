@@ -240,7 +240,7 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
             }
             S_AtomicFilterExit q = prismContext.queryFor(FocusType.class).none();
             for (QName approverRelation : relations) {
-                PrismReferenceValue approverReference = prismContext.itemFactory().createPrismReferenceValue(object.getOid());
+                PrismReferenceValue approverReference = prismContext.itemFactory().createReferenceValue(object.getOid());
                 approverReference.setRelation(relationRegistry.normalizeRelation(approverRelation));
                 q = q.or().item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(approverReference);
             }

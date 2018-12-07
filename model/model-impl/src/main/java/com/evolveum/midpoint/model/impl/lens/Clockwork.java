@@ -1003,7 +1003,7 @@ public class Clockwork {
         // creating object query
         PrismPropertyDefinition propertyDef = prismContext.getSchemaRegistry()
                 .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
-        PrismReferenceValue referenceValue = prismContext.itemFactory().createPrismReferenceValue(context.getFocusContext().getOid(), RoleType.COMPLEX_TYPE);
+        PrismReferenceValue referenceValue = prismContext.itemFactory().createReferenceValue(context.getFocusContext().getOid(), RoleType.COMPLEX_TYPE);
         ObjectFilter refFilter = prismContext.queryFor(FocusType.class)
 				.item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(referenceValue)
 				.buildFilter();

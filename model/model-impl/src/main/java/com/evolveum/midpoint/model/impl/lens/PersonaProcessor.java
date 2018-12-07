@@ -344,7 +344,7 @@ public class PersonaProcessor {
 
 	private <F extends FocusType>  void link(LensContext<F> context, FocusType persona, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		ObjectDelta<F> delta = context.getFocusContext().getObjectNew().createModifyDelta();
-		PrismReferenceValue refValue = prismContext.itemFactory().createPrismReferenceValue();
+		PrismReferenceValue refValue = prismContext.itemFactory().createReferenceValue();
 		refValue.setOid(persona.getOid());
 		refValue.setTargetType(persona.asPrismObject().getDefinition().getTypeName());
 		delta.addModificationAddReference(FocusType.F_PERSONA_REF, refValue);
@@ -354,7 +354,7 @@ public class PersonaProcessor {
 
 	private <F extends FocusType>  void unlink(LensContext<F> context, FocusType persona, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		ObjectDelta<F> delta = context.getFocusContext().getObjectNew().createModifyDelta();
-		PrismReferenceValue refValue = prismContext.itemFactory().createPrismReferenceValue();
+		PrismReferenceValue refValue = prismContext.itemFactory().createReferenceValue();
 		refValue.setOid(persona.getOid());
 		refValue.setTargetType(persona.asPrismObject().getDefinition().getTypeName());
 		delta.addModificationDeleteReference(FocusType.F_PERSONA_REF, refValue);
