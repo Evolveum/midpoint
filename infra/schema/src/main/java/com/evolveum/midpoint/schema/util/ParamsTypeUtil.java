@@ -69,7 +69,7 @@ public class ParamsTypeUtil {
 				Serializable realValue;
 				if (entry.getEntryValue() != null) {
 					Serializable value = (Serializable) entry.getEntryValue().getValue();
-					realValue = prismContext.misc().guessFormattedValue(value);
+					realValue = prismContext.hacks().guessFormattedValue(value);
 				} else {
 					realValue = null;
 				}

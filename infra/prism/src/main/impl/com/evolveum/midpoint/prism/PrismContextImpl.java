@@ -79,7 +79,7 @@ public class PrismContextImpl implements PrismContext {
 	@NotNull private final PrismMarshaller prismMarshaller;
 	@NotNull private final BeanMarshaller beanMarshaller;
 	@NotNull private final BeanUnmarshaller beanUnmarshaller;
-	@NotNull private final Miscellaneous miscellaneous;
+	@NotNull private final Hacks hacks;
 	@NotNull private final XNodeFactory xnodeFactory;
 	@NotNull private final DeltaFactory deltaFactory;
 	@NotNull private final QueryFactory queryFactory;
@@ -118,7 +118,7 @@ public class PrismContextImpl implements PrismContext {
 		this.beanUnmarshaller = new BeanUnmarshaller(this, inspector);
 		this.prismMarshaller = new PrismMarshaller(beanMarshaller);
 		this.jaxbDomHack = new JaxbDomHackImpl(lexicalProcessorRegistry.domProcessor(), this);
-		this.miscellaneous = new MiscellaneousImpl(this);
+		this.hacks = new HacksImpl(this);
 		this.xnodeFactory = new XNodeFactoryImpl();
 		this.deltaFactory = new DeltaFactoryImpl(this);
 		this.queryFactory = new QueryFactoryImpl(this);
@@ -559,8 +559,8 @@ public class PrismContextImpl implements PrismContext {
 	}
 
 	@Override
-	public Miscellaneous misc() {
-		return miscellaneous;
+	public Hacks hacks() {
+		return hacks;
 	}
 
 	@Override

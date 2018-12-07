@@ -38,7 +38,7 @@ import java.io.Serializable;
  *
  * Prism API and/or client code should be modified to get rid of these hacks.
  */
-public interface Miscellaneous {
+public interface Hacks {
 
 	@Nullable
 	Serializable guessFormattedValue(Serializable value) throws SchemaException;

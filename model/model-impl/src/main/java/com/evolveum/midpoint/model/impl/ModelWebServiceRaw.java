@@ -207,7 +207,7 @@ public class ModelWebServiceRaw implements Provider<DOMSource> {
     }
 
 	private void serializeFaultMessage(Detail detail, FaultMessage faultMessage) {
-        prismContext.misc()
+        prismContext.hacks()
                 .serializeFaultMessage(detail, faultMessage.getFaultInfo(), SchemaConstants.FAULT_MESSAGE_ELEMENT_NAME, LOGGER);
 	}
 

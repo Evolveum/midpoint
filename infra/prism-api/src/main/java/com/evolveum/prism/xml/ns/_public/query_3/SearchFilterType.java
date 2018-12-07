@@ -158,7 +158,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
         if (filterClauseXNode == null) {
             return null;
         }
-        return prismContext.misc().serializeSingleElementMapToElement(filterClauseXNode);
+        return prismContext.hacks().serializeSingleElementMapToElement(filterClauseXNode);
     }
 
     // xnode should be correct (expecting it was just created by serializing something)

@@ -99,7 +99,7 @@ public class GenericHandlerDto extends HandlerDto {
 				clonedDefinition.setCanAdd(false);
 				clonedDefinition.setCanModify(false);
 				clonedDefinition.setDisplayOrder(displayOrder);
-				prismContext.misc().addToDefinition(ctd, clonedDefinition);
+				prismContext.hacks().addToDefinition(ctd, clonedDefinition);
 			}
 			displayOrder++;
 		}

@@ -35,11 +35,11 @@ import java.io.Serializable;
 /**
  * TEMPORARY
  */
-public class MiscellaneousImpl implements Miscellaneous {
+public class HacksImpl implements Hacks {
 
 	@NotNull private final PrismContextImpl prismContext;
 
-	MiscellaneousImpl(@NotNull PrismContextImpl prismContext) {
+	HacksImpl(@NotNull PrismContextImpl prismContext) {
 		this.prismContext = prismContext;
 	}
 

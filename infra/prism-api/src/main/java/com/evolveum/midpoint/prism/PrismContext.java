@@ -313,7 +313,7 @@ public interface PrismContext extends ProtectorCreator {
 
 	UniformItemPath path(Object... namesOrIdsOrSegments);
 
-	Miscellaneous misc();
+	Hacks hacks();
 
 	XNodeFactory xnodeFactory();
 
