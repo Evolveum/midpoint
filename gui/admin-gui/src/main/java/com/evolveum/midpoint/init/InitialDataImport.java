@@ -19,8 +19,8 @@ package com.evolveum.midpoint.init;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -138,7 +138,7 @@ public class InitialDataImport extends DataImport{
         
         preImportUpdate(object);
 
-        ObjectDelta delta = ObjectDeltaCreationUtil.createAddDelta(object);
+        ObjectDelta delta = DeltaFactory.Object.createAddDelta(object);
         try {
             LOGGER.info("Starting initial import of file {}.", file.getName());
             model.executeChanges(WebComponentUtil.createDeltaCollection(delta), ModelExecuteOptions.createIsImport(), task, result);

@@ -922,8 +922,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
-		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
-				ACCOUNT_WILL_OID, dummyResourceCtl.getAttributeFullnamePath(), prismContext, "Pirate Will Turner");
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+				ACCOUNT_WILL_OID, dummyResourceCtl.getAttributeFullnamePath(), "Pirate Will Turner");
 		display("ObjectDelta", delta);
 		delta.checkConsistence();
 
@@ -954,10 +954,10 @@ public class TestDummy extends AbstractBasicDummyTest {
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
-		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationAddProperty(ShadowType.class,
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationAddProperty(ShadowType.class,
 				ACCOUNT_WILL_OID,
 				dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME),
-				prismContext, "Pirate");
+				"Pirate");
 		display("ObjectDelta", delta);
 		delta.checkConsistence();
 
@@ -989,10 +989,10 @@ public class TestDummy extends AbstractBasicDummyTest {
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
-		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationAddProperty(ShadowType.class,
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationAddProperty(ShadowType.class,
 				ACCOUNT_WILL_OID,
 				dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME),
-				prismContext, "Captain");
+				"Captain");
 		display("ObjectDelta", delta);
 		delta.checkConsistence();
 
@@ -1024,8 +1024,9 @@ public class TestDummy extends AbstractBasicDummyTest {
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
-		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationDeleteProperty(ShadowType.class,
-				ACCOUNT_WILL_OID, dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME), prismContext, "Pirate");
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationDeleteProperty(ShadowType.class,
+				ACCOUNT_WILL_OID, dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME),
+				"Pirate");
 		display("ObjectDelta", delta);
 		delta.checkConsistence();
 
@@ -1061,8 +1062,9 @@ public class TestDummy extends AbstractBasicDummyTest {
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
-		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationAddProperty(ShadowType.class,
-				ACCOUNT_WILL_OID, dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME), prismContext, "Captain");
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationAddProperty(ShadowType.class,
+				ACCOUNT_WILL_OID, dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME),
+				"Captain");
 		display("ObjectDelta", delta);
 		delta.checkConsistence();
 
@@ -1278,8 +1280,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 		OperationProvisioningScriptsType scriptsType = unmarshallValueFromFile(SCRIPTS_FILE, OperationProvisioningScriptsType.class);
 		display("Provisioning scripts", PrismTestUtil.serializeAnyDataWrapped(scriptsType));
 
-		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
-				ACCOUNT_NEW_SCRIPT_OID, dummyResourceCtl.getAttributeFullnamePath(), prismContext, "Will Turner");
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+				ACCOUNT_NEW_SCRIPT_OID, dummyResourceCtl.getAttributeFullnamePath(), "Will Turner");
 		display("ObjectDelta", delta);
 		delta.checkConsistence();
 
@@ -1327,8 +1329,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 		OperationProvisioningScriptsType scriptsType = unmarshallValueFromFile(SCRIPTS_FILE, OperationProvisioningScriptsType.class);
 		display("Provisioning scripts", PrismTestUtil.serializeAnyDataWrapped(scriptsType));
 
-		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
-				ACCOUNT_NEW_SCRIPT_OID, ShadowType.F_DESCRIPTION, prismContext, "Blah blah");
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+				ACCOUNT_NEW_SCRIPT_OID, ShadowType.F_DESCRIPTION, "Blah blah");
 		display("ObjectDelta", delta);
 		delta.checkConsistence();
 
@@ -1443,8 +1445,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 		syncServiceMock.reset();
 
-		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
-				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, prismContext,
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
 				ActivationStatusType.DISABLED);
 		display("ObjectDelta", delta);
 		delta.checkConsistence();
@@ -1520,8 +1522,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 		syncServiceMock.reset();
 
-		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationDeleteProperty(ShadowType.class,
-				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, prismContext,
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationDeleteProperty(ShadowType.class,
+				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
 				ActivationStatusType.DISABLED);
 		display("ObjectDelta", delta);
 		delta.checkConsistence();
@@ -1567,8 +1569,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 		syncServiceMock.reset();
 
-		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
-				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, prismContext,
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
 				ActivationStatusType.ENABLED);
 		display("ObjectDelta", delta);
 		delta.checkConsistence();
@@ -1645,8 +1647,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 		long millis = VALID_FROM_MILLIS;
 
-		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
-				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_VALID_FROM, prismContext,
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_VALID_FROM,
 				XmlTypeConverter.createXMLGregorianCalendar(VALID_FROM_MILLIS));
 		delta.checkConsistence();
 
@@ -1692,8 +1694,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 		long millis = VALID_TO_MILLIS;
 
-		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
-				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_VALID_TO, prismContext,
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_VALID_TO,
 				XmlTypeConverter.createXMLGregorianCalendar(VALID_TO_MILLIS));
 		delta.checkConsistence();
 
@@ -1742,8 +1744,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 //		long millis = VALID_TO_MILLIS;
 
-		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationDeleteProperty(ShadowType.class,
-				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_VALID_TO, prismContext,
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationDeleteProperty(ShadowType.class,
+				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_VALID_TO,
 				XmlTypeConverter.createXMLGregorianCalendar(VALID_TO_MILLIS));
 		PrismObjectDefinition<ShadowType> def = accountType.asPrismObject().getDefinition();
 		PropertyDelta<XMLGregorianCalendar> validFromDelta = prismContext.deltaFactory().property().createModificationDeleteProperty(
@@ -1871,8 +1873,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 		syncServiceMock.reset();
 
-		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
-				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, prismContext,
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS,
 				LockoutStatusType.NORMAL);
 		display("ObjectDelta", delta);
 		delta.checkConsistence();
@@ -2602,10 +2604,10 @@ public class TestDummy extends AbstractBasicDummyTest {
 		rememberDummyResourceGroupMembersReadCount(null);
 		syncServiceMock.reset();
 
-		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
 				GROUP_PIRATES_OID,
 				dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION),
-				prismContext, "Bloodthirsty pirates");
+				"Bloodthirsty pirates");
 		display("ObjectDelta", delta);
 		delta.checkConsistence();
 
@@ -3553,8 +3555,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 		syncServiceMock.reset();
 
-		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
-				ACCOUNT_MORGAN_OID, SchemaTestConstants.ICFS_NAME_PATH_PARTS, prismContext, ACCOUNT_CPTMORGAN_NAME);
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+				ACCOUNT_MORGAN_OID, SchemaTestConstants.ICFS_NAME_PATH_PARTS, ACCOUNT_CPTMORGAN_NAME);
 		provisioningService.applyDefinition(delta, task, result);
 		display("ObjectDelta", delta);
 		delta.checkConsistence();
@@ -3606,10 +3608,9 @@ public class TestDummy extends AbstractBasicDummyTest {
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
-		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
 				ACCOUNT_MORGAN_OID,
 				dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_ENLIST_TIMESTAMP_NAME),
-				prismContext, 
 				XmlTypeConverter.createXMLGregorianCalendarFromIso8601(ACCOUNT_MORGAN_PASSWORD_ENLIST_TIMESTAMP_MODIFIED));
 		display("ObjectDelta", delta);
 		delta.checkConsistence();
@@ -3771,9 +3772,9 @@ public class TestDummy extends AbstractBasicDummyTest {
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
-		ObjectDelta<ShadowType> shadowDelta = ObjectDeltaCreationUtil
+		ObjectDelta<ShadowType> shadowDelta = prismContext.deltaFactory().object()
 				.createModificationReplaceProperty(ShadowType.class, ACCOUNT_DAEMON_OID,
-				ShadowType.F_SYNCHRONIZATION_SITUATION, prismContext, SynchronizationSituationType.DISPUTED);
+				ShadowType.F_SYNCHRONIZATION_SITUATION, SynchronizationSituationType.DISPUTED);
 
 		// WHEN
 		provisioningService.modifyObject(ShadowType.class, ACCOUNT_DAEMON_OID, shadowDelta.getModifications(), null, null, task, result);

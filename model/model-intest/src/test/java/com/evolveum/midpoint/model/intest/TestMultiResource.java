@@ -271,8 +271,8 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		String accountJackDummyOid = getLinkRefOid(userJack, RESOURCE_DUMMY_OID);
 
-		ObjectDelta<ShadowType> accountDelta = ObjectDeltaCreationUtil
-				.createDeleteDelta(ShadowType.class, accountJackDummyOid, prismContext);
+		ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object()
+				.createDeleteDelta(ShadowType.class, accountJackDummyOid);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta);
 
         try {
@@ -1250,8 +1250,8 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         // In relative mode this account should shay untouched while we play with assignments and
         // unsassignements of other accounts
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_FILE);
-        ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil
-		        .createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
+        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
+		        .createEmptyModifyDelta(UserType.class, USER_JACK_OID);
         PrismReferenceValue accountRefVal = itemFactory().createReferenceValue();
 		accountRefVal.setObject(account);
 		ReferenceDelta accountDelta = prismContext.deltaFactory().reference()
@@ -2230,8 +2230,9 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_FIELD_NAME);
-        ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, userBefore.getOid(),
-        		UserType.F_LOCALITY, prismContext);
+        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
+		        .createModificationReplaceProperty(UserType.class, userBefore.getOid(),
+        		UserType.F_LOCALITY);
         userDelta.addModificationReplaceProperty(UserType.F_TITLE);
         executeChanges(userDelta, null, task, result);
         assertSuccess(result);
@@ -2536,8 +2537,9 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_FIELD_NAME);
-        ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, userBefore.getOid(),
-        		UserType.F_LOCALITY, prismContext);
+        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
+		        .createModificationReplaceProperty(UserType.class, userBefore.getOid(),
+        		UserType.F_LOCALITY);
         userDelta.addModificationReplaceProperty(UserType.F_TITLE);
         executeChanges(userDelta, null, task, result);
         assertSuccess(result);
@@ -2603,7 +2605,8 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         AssertJUnit.assertNotNull("User must not be null.", userWorld);
 
-		ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createDeleteDelta(UserType.class, userWorld.getOid(), prismContext);
+		ObjectDelta<UserType> delta = prismContext.deltaFactory().object().createDeleteDelta(UserType.class, userWorld.getOid()
+		);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
 		deltas.add(delta);
 		modelService.executeChanges(deltas, null, task, result);

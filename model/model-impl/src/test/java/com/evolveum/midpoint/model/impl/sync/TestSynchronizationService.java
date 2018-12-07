@@ -22,7 +22,6 @@ import static org.testng.AssertJUnit.assertFalse;
 
 import java.io.File;
 
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -380,8 +379,8 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
         change.setCurrentShadow(shadow);
         change.setResource(getDummyResourceObject());
-        ObjectDelta<ShadowType> syncDelta = ObjectDeltaCreationUtil
-		        .createDeleteDelta(ShadowType.class, accountShadowJackDummyOid, prismContext);
+        ObjectDelta<ShadowType> syncDelta = prismContext.deltaFactory().object()
+		        .createDeleteDelta(ShadowType.class, accountShadowJackDummyOid);
 		change.setObjectDelta(syncDelta);
 
 		// WHEN
@@ -617,8 +616,8 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
         change.setCurrentShadow(shadow);
         change.setResource(getDummyResourceObject());
-        ObjectDelta<ShadowType> syncDelta = ObjectDeltaCreationUtil
-		        .createDeleteDelta(ShadowType.class, accountShadowJackDummyOid, prismContext);
+        ObjectDelta<ShadowType> syncDelta = prismContext.deltaFactory().object()
+		        .createDeleteDelta(ShadowType.class, accountShadowJackDummyOid);
 		change.setObjectDelta(syncDelta);
 
 		repositoryService.deleteObject(ShadowType.class, accountShadowJackDummyOid, result);

@@ -23,7 +23,6 @@ import static com.evolveum.midpoint.prism.util.PrismTestUtil.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -242,8 +241,8 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
 
         AssignmentType a = new AssignmentType();
         a.setId(4L);
-        ObjectDelta<RoleType> delta = ObjectDeltaCreationUtil.createModificationDeleteContainer(RoleType.class,
-                "00000000-8888-6666-0000-100000000005", RoleType.F_ASSIGNMENT, prismContext, a);
+        ObjectDelta<RoleType> delta = prismContext.deltaFactory().object().createModificationDeleteContainer(RoleType.class,
+                "00000000-8888-6666-0000-100000000005", RoleType.F_ASSIGNMENT, a);
 
         OperationResult result = new OperationResult("delete assignment");
 

@@ -18,7 +18,6 @@ package com.evolveum.midpoint.gui.api.component;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -87,8 +86,8 @@ public abstract class MultiTypesMemberPopupTabPanel<O extends ObjectType> extend
     protected ObjectDelta prepareDelta(){
         Class classType = WebComponentUtil.qnameToClass(getPageBase().getPrismContext(), getObjectType().getTypeQName());
         ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(getAbstractRoleTypeObject(), getRelationValue());
-        return ObjectDeltaCreationUtil.createModificationAddReference(classType, "fakeOid",
-                ObjectType.F_PARENT_ORG_REF, getPageBase().getPrismContext(),
+        return getPageBase().getPrismContext().deltaFactory().object().createModificationAddReference(classType, "fakeOid",
+                ObjectType.F_PARENT_ORG_REF,
                 ref.asReferenceValue());
     }
 

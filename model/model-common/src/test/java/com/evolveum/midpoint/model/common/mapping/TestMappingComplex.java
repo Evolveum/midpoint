@@ -19,7 +19,6 @@ import static org.testng.AssertJUnit.assertNull;
 
 import java.io.IOException;
 
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
@@ -57,8 +56,9 @@ public class TestMappingComplex {
     	System.out.println("===[ "+TEST_NAME+"]===");
 
     	// GIVEN
-    	ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-    			UserType.F_ADDITIONAL_NAME, evaluator.getPrismContext(), "Jackie");
+    	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
+			    .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
+    			UserType.F_ADDITIONAL_NAME, "Jackie");
     	delta.addModificationReplaceProperty(UserType.F_EMPLOYEE_NUMBER, "321");
 
 		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
@@ -84,8 +84,9 @@ public class TestMappingComplex {
     	System.out.println("===[ "+TEST_NAME+"]===");
 
     	// GIVEN
-    	ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-    			UserType.F_ADDITIONAL_NAME, evaluator.getPrismContext(), "Jackie");
+    	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
+			    .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
+    			UserType.F_ADDITIONAL_NAME, "Jackie");
     	delta.addModificationReplaceProperty(UserType.F_EMPLOYEE_NUMBER, "321");
 
 		PrismObject<UserType> userOld = evaluator.getUserOld();
@@ -114,8 +115,9 @@ public class TestMappingComplex {
     	System.out.println("===[ "+TEST_NAME+"]===");
 
     	// GIVEN
-    	ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-    			evaluator.toPath("costCenter"), evaluator.getPrismContext(), "X606");
+    	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
+			    .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
+    			evaluator.toPath("costCenter"), "X606");
 
 		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				MAPPING_COMPLEX_FILENAME,
@@ -140,8 +142,9 @@ public class TestMappingComplex {
     	System.out.println("===[ "+TEST_NAME+"]===");
 
     	// GIVEN
-    	ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-    			evaluator.toPath("costCenter"), evaluator.getPrismContext(), "X606");
+    	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
+			    .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
+    			evaluator.toPath("costCenter"), "X606");
 
     	PrismObject<UserType> userOld = evaluator.getUserOld();
 		userOld.asObjectable().getEmployeeType().clear();

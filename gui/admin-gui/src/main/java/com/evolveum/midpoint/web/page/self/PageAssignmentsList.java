@@ -350,7 +350,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
 
     private ContainerDelta handleAssignmentDeltas(ObjectDelta<UserType> focusDelta,
                                                   List<AssignmentEditorDto> assignments, PrismContainerDefinition def) throws SchemaException {
-        ContainerDelta assDelta = getPrismContext().deltaFactory().container().create(ItemPath.EMPTY_PATH, def.getName(), def, getPrismContext());
+        ContainerDelta assDelta = getPrismContext().deltaFactory().container().create(ItemPath.EMPTY_PATH, def.getName(), def);
 
         for (AssignmentEditorDto assDto : assignments) {
             PrismContainerValue newValue = assDto.getNewValue(getPrismContext());
@@ -533,8 +533,9 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
     private ObjectDelta prepareDelta(PrismObject<UserType> user, OperationResult result) {
         ObjectDelta delta = null;
         try{
-            delta = ObjectDeltaCreationUtil.createModificationAddContainer(UserType.class, user == null ? "fakeOid" : user.getOid(),
-                FocusType.F_ASSIGNMENT, getPrismContext(), getAddAssignmentContainerValues(assignmentsModel.getObject()));
+            delta = getPrismContext().deltaFactory().object()
+		            .createModificationAddContainer(UserType.class, user == null ? "fakeOid" : user.getOid(),
+                FocusType.F_ASSIGNMENT, getAddAssignmentContainerValues(assignmentsModel.getObject()));
             if (!getSessionStorage().getRoleCatalog().isMultiUserRequest()) {
                 delta.addModificationDeleteContainer(FocusType.F_ASSIGNMENT,
                         getDeleteAssignmentContainerValues(user.asObjectable()));

@@ -57,26 +57,30 @@ public class PropertyDeltaFactoryImpl implements DeltaFactory.Property {
 	}
 
 
+	@SafeVarargs
 	@Override
-	public <T> PropertyDelta<T> createAddDelta(PrismObjectDefinition<? extends Objectable> objectDefinition,
+	public final <T> PropertyDelta<T> createAddDelta(PrismObjectDefinition<? extends Objectable> objectDefinition,
 			ItemName propertyName, T... realValues) {
 		return PropertyDeltaImpl.createAddDelta(objectDefinition, propertyName, realValues);
 	}
 
+	@SafeVarargs
 	@Override
-	public <T> PropertyDelta<T> createDeleteDelta(PrismObjectDefinition<? extends Objectable> objectDefinition,
+	public final <T> PropertyDelta<T> createDeleteDelta(PrismObjectDefinition<? extends Objectable> objectDefinition,
 			ItemName propertyName, T... realValues) {
 		return PropertyDeltaImpl.createDeleteDelta(objectDefinition, propertyName, realValues);
 	}
 	
+	@SafeVarargs
 	@Override
-	public <O extends Objectable, T> PropertyDelta<T> createReplaceDelta(PrismContainerDefinition<O> containerDefinition,
+	public final <O extends Objectable, T> PropertyDelta<T> createReplaceDelta(PrismContainerDefinition<O> containerDefinition,
 			QName propertyName, T... realValues) {
 		return PropertyDeltaImpl.createReplaceDelta(containerDefinition, propertyName, realValues);
 	}
 
+	@SafeVarargs
 	@Override
-	public <O extends Objectable, T> PropertyDelta<T> createReplaceDelta(PrismContainerDefinition<O> containerDefinition,
+	public final <O extends Objectable, T> PropertyDelta<T> createReplaceDelta(PrismContainerDefinition<O> containerDefinition,
 			QName propertyName, PrismPropertyValue<T>... pValues) {
 		return PropertyDeltaImpl.createReplaceDelta(containerDefinition, propertyName, pValues);
 	}
@@ -93,13 +97,13 @@ public class PropertyDeltaFactoryImpl implements DeltaFactory.Property {
 	}
 
 	@Override
-	public <O extends Objectable,T> PropertyDelta<T> createDelta(ItemPath propertyPath, Class<O> compileTimeClass,
-			PrismContext prismContext) {
+	public <O extends Objectable,T> PropertyDelta<T> createDelta(ItemPath propertyPath, Class<O> compileTimeClass) {
 		return PropertyDeltaImpl.createDelta(propertyPath, compileTimeClass, prismContext);
 	}
 
+	@SafeVarargs
 	@Override
-	public <T> PropertyDelta<T> createModificationReplaceProperty(ItemPath propertyPath,
+	public final <T> PropertyDelta<T> createModificationReplaceProperty(ItemPath propertyPath,
 			PrismObjectDefinition<?> objectDefinition,
 			T... propertyValues) {
 		return PropertyDeltaImpl.createModificationReplaceProperty(propertyPath, objectDefinition, propertyValues);
@@ -112,33 +116,41 @@ public class PropertyDeltaFactoryImpl implements DeltaFactory.Property {
 		return PropertyDeltaImpl.createModificationReplaceProperty(propertyPath, objectDefinition, propertyValues);
 	}
 
+	@SafeVarargs
 	@Override
-	public <T> PropertyDelta<T> createModificationReplaceProperty(ItemPath path, PrismPropertyDefinition propertyDefinition,
+	public final <T> PropertyDelta<T> createModificationReplaceProperty(ItemPath path, PrismPropertyDefinition propertyDefinition,
 			T... propertyValues) {
 		return PropertyDeltaImpl.createModificationReplaceProperty(path, propertyDefinition, propertyValues);
 	}
 
+	@SafeVarargs
 	@Override
-	public <T> PropertyDelta<T> createModificationAddProperty(ItemPath propertyPath, PrismPropertyDefinition propertyDefinition,
+	public final <T> PropertyDelta<T> createModificationAddProperty(ItemPath propertyPath,
+			PrismPropertyDefinition propertyDefinition,
 			T... propertyValues) {
 		return PropertyDeltaImpl.createModificationAddProperty(propertyPath, propertyDefinition, propertyValues);
 	}
 
+	@SafeVarargs
 	@Override
-	public <T> PropertyDelta<T> createModificationAddProperty(ItemPath propertyPath, PrismObjectDefinition<?> objectDefinition,
+	public final <T> PropertyDelta<T> createModificationAddProperty(ItemPath propertyPath,
+			PrismObjectDefinition<?> objectDefinition,
 			T... propertyValues) {
 		return PropertyDeltaImpl.createModificationAddProperty(propertyPath, objectDefinition, propertyValues);
 	}
 
+	@SafeVarargs
 	@Override
-	public <T> PropertyDelta<T> createModificationDeleteProperty(ItemPath propertyPath,
+	public final <T> PropertyDelta<T> createModificationDeleteProperty(ItemPath propertyPath,
 			PrismPropertyDefinition propertyDefinition,
 			T... propertyValues) {
 		return PropertyDeltaImpl.createModificationDeleteProperty(propertyPath, propertyDefinition, propertyValues);
 	}
 
+	@SafeVarargs
 	@Override
-	public <T> PropertyDelta<T> createModificationDeleteProperty(ItemPath propertyPath, PrismObjectDefinition<?> objectDefinition,
+	public final <T> PropertyDelta<T> createModificationDeleteProperty(ItemPath propertyPath,
+			PrismObjectDefinition<?> objectDefinition,
 			T... propertyValues) {
 		return PropertyDeltaImpl.createModificationDeleteProperty(propertyPath, objectDefinition, propertyValues);
 	}

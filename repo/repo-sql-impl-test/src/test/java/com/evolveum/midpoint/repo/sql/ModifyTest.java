@@ -260,7 +260,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         PrismReferenceDefinition def = objectDef.findReferenceDefinition(TaskType.F_OBJECT_REF);
         System.out.println("MODIFY");
         ObjectReferenceType objectRef = null;
-        ReferenceDelta delta = prismContext.deltaFactory().reference().create(def, prismContext);
+        ReferenceDelta delta = prismContext.deltaFactory().reference().create(def);
         delta.addValueToAdd(itemFactory().createReferenceValue("1", ResourceType.COMPLEX_TYPE));
         modifications.add(delta);
         repositoryService.modifyObject(TaskType.class, taskOid, modifications, getModifyOptions(), result);
@@ -276,7 +276,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         checkReference(taskOid);
         System.out.println("MODIFY");
         modifications.clear();
-        delta = prismContext.deltaFactory().reference().create(def, prismContext);
+        delta = prismContext.deltaFactory().reference().create(def);
         delta.addValueToDelete(itemFactory().createReferenceValue("1", ResourceType.COMPLEX_TYPE));
         delta.addValueToAdd(itemFactory().createReferenceValue("2", ResourceType.COMPLEX_TYPE));
         modifications.add(delta);
@@ -294,7 +294,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         lastVersion = getTask.getVersion();
 
         modifications.clear();
-        delta = prismContext.deltaFactory().reference().create(def, prismContext);
+        delta = prismContext.deltaFactory().reference().create(def);
         delta.addValueToDelete(itemFactory().createReferenceValue("2", ResourceType.COMPLEX_TYPE));
         delta.addValueToAdd(itemFactory().createReferenceValue("1", ResourceType.COMPLEX_TYPE));
         modifications.add(delta);

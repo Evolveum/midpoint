@@ -18,7 +18,6 @@ package com.evolveum.midpoint.web.page.forgetpassword;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.query.QueryFactory;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -446,9 +445,9 @@ public class PageForgotPassword extends PageRegistrationBase {
 //					NonceType nonceType = new NonceType();
 //					nonceType.setValue(nonceCredentials);
 
-					ObjectDelta<UserType> nonceDelta = ObjectDeltaCreationUtil
+					ObjectDelta<UserType> nonceDelta = getPrismContext().deltaFactory().object()
 							.createModificationReplaceProperty(UserType.class, user.getOid(),
-							SchemaConstants.PATH_NONCE_VALUE, getPrismContext(), nonceCredentials);
+							SchemaConstants.PATH_NONCE_VALUE, nonceCredentials);
 
 					WebModelServiceUtils.save(nonceDelta, result, task, PageForgotPassword.this);
 				} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException e) {

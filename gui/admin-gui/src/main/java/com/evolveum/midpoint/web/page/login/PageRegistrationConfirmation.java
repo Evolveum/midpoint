@@ -7,7 +7,6 @@ import java.util.stream.Collectors;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -169,8 +168,10 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 		try {
 			runAsChecked(() -> {
 				Task task = createSimpleTask(OPERATION_REMOVE_NONCE_AND_SET_LIFECYCLE_STATE);
-				ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createModificationDeleteContainer(UserType.class, userOid,
-						ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_NONCE), getPrismContext(), nonce);
+				ObjectDelta<UserType> delta = getPrismContext().deltaFactory().object()
+						.createModificationDeleteContainer(UserType.class, userOid,
+						ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_NONCE),
+								nonce);
 				delta.addModificationReplaceProperty(UserType.F_LIFECYCLE_STATE, SchemaConstants.LIFECYCLE_ACTIVE);
 				WebModelServiceUtils.save(delta, result, task, PageRegistrationConfirmation.this);
 				return null;
@@ -199,8 +200,9 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 				getPrismContext().adopt(assignment);
 				List<ItemDelta> userDeltas = new ArrayList<>();
 				userDeltas.add(getPrismContext().deltaFactory().container().createModificationAdd(UserType.F_ASSIGNMENT,
-						UserType.class, getPrismContext(), assignment));
-				assignRoleDelta = ObjectDeltaCreationUtil.createModifyDelta(userOid, userDeltas, UserType.class, getPrismContext());
+						UserType.class, assignment));
+				assignRoleDelta = getPrismContext().deltaFactory().object().createModifyDelta(userOid, userDeltas, UserType.class
+				);
 				assignRoleDelta.setPrismContext(getPrismContext());
 				WebModelServiceUtils.save(assignRoleDelta, result, task, PageRegistrationConfirmation.this);
 				return null;

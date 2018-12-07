@@ -20,17 +20,12 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.apache.commons.collections4.CollectionUtils;
-
-import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 
 /**
  * A class defining old object state (before change), delta (change) and new object state (after change).
@@ -74,8 +69,9 @@ public class ObjectDeltaObject<O extends Objectable> extends ItemDeltaItem<Prism
 	// FIXME fragile!!! better don't use if you don't have to
 	public void update(ItemDelta<?, ?> itemDelta) throws SchemaException {
 		if (delta == null) {
-			delta = ObjectDeltaCreationUtil
-					.createModifyDelta(getAnyObject().getOid(), itemDelta, getAnyObject().getCompileTimeClass(), getAnyObject().getPrismContext());
+			delta = getAnyObject().getPrismContext().deltaFactory().object()
+					.createModifyDelta(getAnyObject().getOid(), itemDelta, getAnyObject().getCompileTimeClass()
+					);
 		} else {
 			delta.swallow(itemDelta);
 			itemDelta.applyTo(newObject);

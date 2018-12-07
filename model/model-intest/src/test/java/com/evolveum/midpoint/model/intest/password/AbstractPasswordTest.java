@@ -23,7 +23,6 @@ import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
@@ -1092,8 +1091,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		// Red resource has disable-instead-of-delete. So we need to be brutal to get rid of the red account
 		ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, false);
-		ObjectDelta<ShadowType> shadowDelta = ObjectDeltaCreationUtil
-				.createDeleteDelta(ShadowType.class, accountJackRedOid, prismContext);
+		ObjectDelta<ShadowType> shadowDelta = prismContext.deltaFactory().object()
+				.createDeleteDelta(ShadowType.class, accountJackRedOid);
 
 		// WHEN
 		displayWhen(TEST_NAME);
@@ -1260,10 +1259,10 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		PasswordType passwordType = new PasswordType();
 		passwordType.setValue(userPasswordPs);
 
-		ObjectDelta<UserType> objectDelta = ObjectDeltaCreationUtil
+		ObjectDelta<UserType> objectDelta = prismContext.deltaFactory().object()
 				.createModificationReplaceContainer(UserType.class, USER_JACK_OID,
 						ItemPath.create(UserType.F_CREDENTIALS,  CredentialsType.F_PASSWORD),
-						prismContext, passwordType);
+						passwordType);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 
         try {
@@ -2811,8 +2810,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		display("User before", userBefore);
 		String accountLifecycleOid = getLinkRefOid(userBefore, RESOURCE_DUMMY_LIFECYCLE_OID);
 
-		ObjectDelta<ShadowType> shadowDelta = ObjectDeltaCreationUtil
-				.createEmptyModifyDelta(ShadowType.class, accountLifecycleOid, prismContext);
+		ObjectDelta<ShadowType> shadowDelta = prismContext.deltaFactory().object()
+				.createEmptyModifyDelta(ShadowType.class, accountLifecycleOid);
 		ProtectedStringType passwordPs = new ProtectedStringType();
         passwordPs.setClearValue(USER_PASSWORD_VALID_1);
         shadowDelta.addModificationReplaceProperty(SchemaConstants.PATH_PASSWORD_VALUE, passwordPs);
@@ -3738,8 +3737,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 	
 	protected ObjectDelta<ShadowType> createAccountInitializationDelta(String accountOid, String newAccountPassword) {
-		ObjectDelta<ShadowType> shadowDelta = ObjectDeltaCreationUtil
-				.createEmptyModifyDelta(ShadowType.class, accountOid, prismContext);
+		ObjectDelta<ShadowType> shadowDelta = prismContext.deltaFactory().object()
+				.createEmptyModifyDelta(ShadowType.class, accountOid);
 		ProtectedStringType passwordPs = new ProtectedStringType();
         passwordPs.setClearValue(newAccountPassword);
         shadowDelta.addModificationReplaceProperty(SchemaConstants.PATH_PASSWORD_VALUE, passwordPs);

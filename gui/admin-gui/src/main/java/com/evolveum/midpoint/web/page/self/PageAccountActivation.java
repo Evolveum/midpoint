@@ -21,7 +21,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -278,8 +277,9 @@ public class PageAccountActivation extends PageBase {
 
 		Collection<ObjectDelta<ShadowType>> passwordDeltas = new ArrayList<>(shadowsToActivate.size());
 		for (ShadowType shadow : shadowsToActivate) {
-			ObjectDelta<ShadowType> shadowDelta = ObjectDeltaCreationUtil
-					.createModificationReplaceProperty(ShadowType.class, shadow.getOid(), SchemaConstants.PATH_PASSWORD_VALUE, getPrismContext(), passwordValue);
+			ObjectDelta<ShadowType> shadowDelta = getPrismContext().deltaFactory().object()
+					.createModificationReplaceProperty(ShadowType.class, shadow.getOid(), SchemaConstants.PATH_PASSWORD_VALUE,
+							passwordValue);
 			shadowDelta.addModificationReplaceProperty(ShadowType.F_LIFECYCLE_STATE, SchemaConstants.LIFECYCLE_PROPOSED);
 			passwordDeltas.add(shadowDelta);
 		}

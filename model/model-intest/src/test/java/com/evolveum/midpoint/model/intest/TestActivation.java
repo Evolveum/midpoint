@@ -34,7 +34,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.icf.dummy.resource.DummyObjectClass;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import org.springframework.test.annotation.DirtiesContext;
@@ -50,9 +50,6 @@ import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.model.intest.sync.AbstractSynchronizationStoryTest;
 import com.evolveum.midpoint.model.intest.sync.TestValidityRecomputeTask;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -1585,7 +1582,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-        ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil.createDeleteDelta(UserType.class, USER_JACK_OID, prismContext);
+        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createDeleteDelta(UserType.class, USER_JACK_OID
+        );
         deltas.add(userDelta);
 
 		// WHEN

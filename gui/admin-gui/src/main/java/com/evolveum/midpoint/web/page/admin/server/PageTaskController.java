@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -106,8 +105,9 @@ public class PageTaskController implements Serializable {
 
 		try {
 			List<ItemDelta<?, ?>> itemDeltas = getDeltasToExecute(dto);
-			ObjectDelta<TaskType> delta = ObjectDeltaCreationUtil
-					.createModifyDelta(dto.getOid(), itemDeltas, TaskType.class, parentPage.getPrismContext());
+			ObjectDelta<TaskType> delta = parentPage.getPrismContext().deltaFactory().object()
+					.createModifyDelta(dto.getOid(), itemDeltas, TaskType.class
+					);
 			final Collection<ObjectDelta<? extends ObjectType>> deltas = Collections.singletonList(delta);
 
 			if (LOGGER.isDebugEnabled()) {

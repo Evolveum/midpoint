@@ -1004,8 +1004,8 @@ public abstract class ResourceContentPanel extends Panel {
 
 		for (ShadowType shadow : selected) {
 			try {
-				ObjectDelta<ShadowType> deleteDelta = ObjectDeltaCreationUtil.createDeleteDelta(ShadowType.class,
-						shadow.getOid(), getPageBase().getPrismContext());
+				ObjectDelta<ShadowType> deleteDelta = getPageBase().getPrismContext().deltaFactory().object().createDeleteDelta(ShadowType.class,
+						shadow.getOid());
 				getPageBase().getModelService().executeChanges(
 						WebComponentUtil.createDeltaCollection(deleteDelta), opts, task, result);
 			} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
@@ -1066,10 +1066,10 @@ public abstract class ResourceContentPanel extends Panel {
 			ActivationStatusType status = enabled ? ActivationStatusType.ENABLED
 					: ActivationStatusType.DISABLED;
 			try {
-				ObjectDelta<ShadowType> deleteDelta = ObjectDeltaCreationUtil.createModificationReplaceProperty(
+				ObjectDelta<ShadowType> deleteDelta = getPageBase().getPrismContext().deltaFactory().object().createModificationReplaceProperty(
 						ShadowType.class, shadow.getOid(),
 						SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
-						getPageBase().getPrismContext(), status);
+						status);
 				getPageBase().getModelService().executeChanges(
 						WebComponentUtil.createDeltaCollection(deleteDelta), opts, task, result);
 			} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
@@ -1169,8 +1169,9 @@ public abstract class ResourceContentPanel extends Panel {
 			AjaxRequestTarget target) {
 		OperationResult result = new OperationResult(OPERATION_CHANGE_OWNER);
 		Task task = pageBase.createSimpleTask(OPERATION_CHANGE_OWNER);
-		ObjectDelta objectDelta = ObjectDeltaCreationUtil.createModifyDelta(ownerOid, modifications, FocusType.class,
-				pageBase.getPrismContext());
+		ObjectDelta objectDelta = pageBase.getPrismContext().deltaFactory().object()
+				.createModifyDelta(ownerOid, modifications, FocusType.class
+				);
 		Collection deltas = new ArrayList<>();
 		deltas.add(objectDelta);
 		try {

@@ -585,7 +585,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         syncSettings.setAssignmentPolicyEnforcement(policy);
         syncSettings.setLegalize(Boolean.valueOf(legalize));
 		ContainerDelta<ProjectionPolicyType> deleteAssigmentEnforcement = prismContext.deltaFactory().container()
-				.createModificationDelete(ResourceType.F_PROJECTION, ResourceType.class, prismContext,
+				.createModificationDelete(ResourceType.F_PROJECTION, ResourceType.class,
 						syncSettings.clone());
 
 		Collection<ItemDelta> modifications = new ArrayList<>();
@@ -2210,22 +2210,22 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 	
 	protected ObjectDelta<UserType> createModifyUserReplaceDelta(String userOid, ItemPath propertyName, Object... newRealValue) {
-		return ObjectDeltaCreationUtil
-				.createModificationReplaceProperty(UserType.class, userOid, propertyName, prismContext, newRealValue);
+		return prismContext.deltaFactory().object()
+				.createModificationReplaceProperty(UserType.class, userOid, propertyName, newRealValue);
 	}
 
 	protected ObjectDelta<UserType> createModifyUserAddDelta(String userOid, ItemPath propertyName, Object... newRealValue) {
-		return ObjectDeltaCreationUtil
-				.createModificationAddProperty(UserType.class, userOid, propertyName, prismContext, newRealValue);
+		return prismContext.deltaFactory().object()
+				.createModificationAddProperty(UserType.class, userOid, propertyName, newRealValue);
 	}
 
 	protected ObjectDelta<UserType> createModifyUserDeleteDelta(String userOid, ItemPath propertyName, Object... newRealValue) {
-		return ObjectDeltaCreationUtil
-				.createModificationDeleteProperty(UserType.class, userOid, propertyName, prismContext, newRealValue);
+		return prismContext.deltaFactory().object()
+				.createModificationDeleteProperty(UserType.class, userOid, propertyName, newRealValue);
 	}
 
 	protected ObjectDelta<ShadowType> createModifyAccountShadowEmptyDelta(String accountOid) {
-		return ObjectDeltaCreationUtil.createEmptyModifyDelta(ShadowType.class, accountOid, prismContext);
+		return prismContext.deltaFactory().object().createEmptyModifyDelta(ShadowType.class, accountOid);
 	}
 
 	protected ObjectDelta<ShadowType> createModifyAccountShadowReplaceAttributeDelta(String accountOid,
@@ -2241,12 +2241,12 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected ObjectDelta<ShadowType> createModifyAccountShadowReplaceDelta(String accountOid, PrismObject<ResourceType> resource, ItemPath itemPath, Object... newRealValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
 		if (itemPath.startsWithName(ShadowType.F_ATTRIBUTES)) {
 			PropertyDelta<?> attributeDelta = createAttributeReplaceDelta(resource, ItemPath.toName(itemPath.last()), newRealValue);
-			ObjectDelta<ShadowType> accountDelta = ObjectDeltaCreationUtil
-					.createModifyDelta(accountOid, attributeDelta, ShadowType.class, prismContext);
+			ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object()
+					.createModifyDelta(accountOid, attributeDelta, ShadowType.class);
 			return accountDelta;
 		} else {
-			ObjectDelta<ShadowType> accountDelta = ObjectDeltaCreationUtil.createModificationReplaceProperty(
-					ShadowType.class, accountOid, itemPath, prismContext, newRealValue);
+			ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(
+					ShadowType.class, accountOid, itemPath, newRealValue);
 			return accountDelta;
 		}
 	}
@@ -2300,8 +2300,8 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 
 	protected ObjectDelta<ShadowType> createModifyAccountShadowAddDelta(String accountOid, ItemPath propertyName, Object... newRealValue) {
-		return ObjectDeltaCreationUtil
-				.createModificationAddProperty(ShadowType.class, accountOid, propertyName, prismContext, newRealValue);
+		return prismContext.deltaFactory().object()
+				.createModificationAddProperty(ShadowType.class, accountOid, propertyName, newRealValue);
 	}
 	
 	protected QName getAttributeQName(PrismObject<ResourceType> resource, String attributeLocalName) {

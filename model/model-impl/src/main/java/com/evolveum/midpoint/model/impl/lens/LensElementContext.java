@@ -49,6 +49,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -460,6 +461,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         }
     }
 
+    @Contract(pure = true)
     public PrismObjectDefinition<O> getObjectDefinition() {
 		if (objectDefinition == null) {
 			if (objectOld != null) {

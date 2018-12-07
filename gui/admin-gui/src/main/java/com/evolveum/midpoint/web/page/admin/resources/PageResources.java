@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
@@ -466,8 +465,8 @@ public class PageResources extends PageAdminResources {
 			try {
 				Task task = createSimpleTask(OPERATION_DELETE_RESOURCES);
 
-				ObjectDelta<ResourceType> delta = ObjectDeltaCreationUtil.createDeleteDelta(ResourceType.class,
-						resource.getOid(), getPrismContext());
+				ObjectDelta<ResourceType> delta = getPrismContext().deltaFactory().object().createDeleteDelta(ResourceType.class,
+						resource.getOid());
 				getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task,
 						result);
 			} catch (Exception ex) {

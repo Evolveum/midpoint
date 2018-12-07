@@ -1050,14 +1050,15 @@ public class TestProjector extends AbstractLensTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
     	PrismObject<ValuePolicyType> passPolicy = PrismTestUtil.parseObject(PASSWORD_POLICY_GLOBAL_FILE);
-    	ObjectDelta delta = ObjectDeltaCreationUtil.createAddDelta(passPolicy);
+    	ObjectDelta delta = DeltaFactory.Object.createAddDelta(passPolicy);
     	Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
     	deltas.add(delta);
     	modelService.executeChanges(deltas, null, task, result);
 
     	deltas = new ArrayList<>();
-    	ObjectDelta refDelta = ObjectDeltaCreationUtil
-			    .createModificationAddReference(SystemConfigurationType.class, SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY_REF, prismContext, passPolicy);
+    	ObjectDelta refDelta = prismContext.deltaFactory().object()
+			    .createModificationAddReference(SystemConfigurationType.class, SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY_REF,
+					    passPolicy);
     	// We need to execute this using repo. Otherwise logging config will be ruined
     	repositoryService.modifyObject(SystemConfigurationType.class, SYSTEM_CONFIGURATION_OID, refDelta.getModifications(), result);
 

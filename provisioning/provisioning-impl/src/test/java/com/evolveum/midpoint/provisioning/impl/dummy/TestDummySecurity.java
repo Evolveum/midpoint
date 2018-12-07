@@ -26,7 +26,6 @@ import static org.testng.AssertJUnit.assertNotNull;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.schema.processor.ObjectFactory;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -147,10 +146,10 @@ public class TestDummySecurity extends AbstractDummyTest {
 
 		syncServiceMock.reset();
 
-		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
 				ACCOUNT_WILL_OID,
 				dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME),
-				prismContext, "RUM");
+				"RUM");
 		display("ObjectDelta", delta);
 		delta.checkConsistence();
 
@@ -181,10 +180,10 @@ public class TestDummySecurity extends AbstractDummyTest {
 
 		syncServiceMock.reset();
 
-		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
 				ACCOUNT_WILL_OID,
 				dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME),
-				prismContext, "pirate");
+				"pirate");
 		display("ObjectDelta", delta);
 		delta.checkConsistence();
 
@@ -215,10 +214,10 @@ public class TestDummySecurity extends AbstractDummyTest {
 
 		syncServiceMock.reset();
 
-		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
 				ACCOUNT_WILL_OID,
 				dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME),
-				prismContext, "eh?");
+				"eh?");
 		display("ObjectDelta", delta);
 		delta.checkConsistence();
 

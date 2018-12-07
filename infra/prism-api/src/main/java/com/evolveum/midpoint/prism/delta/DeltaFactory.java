@@ -19,7 +19,6 @@ package com.evolveum.midpoint.prism.delta;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.HumanReadableDescribable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import javax.xml.namespace.QName;
@@ -32,9 +31,11 @@ public interface DeltaFactory {
 
 	interface Property {
 
+		@SuppressWarnings("unchecked")
 		<T> PropertyDelta<T> createAddDelta(PrismObjectDefinition<? extends Objectable> objectDefinition,
 				ItemName propertyName, T... realValues);
 
+		@SuppressWarnings("unchecked")
 		<T> PropertyDelta<T> createDeleteDelta(PrismObjectDefinition<? extends Objectable> objectDefinition,
 				ItemName propertyName, T... realValues);
 
@@ -42,9 +43,11 @@ public interface DeltaFactory {
 
 		<T> PropertyDelta<T> create(ItemPath path, PrismPropertyDefinition<T> definition);
 
+		@SuppressWarnings("unchecked")
 		<O extends Objectable, T> PropertyDelta<T> createReplaceDelta(PrismContainerDefinition<O> containerDefinition,
 				QName propertyName, T... realValues);
 
+		@SuppressWarnings("unchecked")
 		<O extends Objectable, T> PropertyDelta<T> createReplaceDelta(PrismContainerDefinition<O> containerDefinition,
 				QName propertyName, PrismPropertyValue<T>... pValues);
 
@@ -58,27 +61,32 @@ public interface DeltaFactory {
 
 		<O extends Objectable,T> PropertyDelta<T> createDelta(ItemPath propertyPath, PrismObjectDefinition<O> objectDefinition);
 
-		<O extends Objectable,T> PropertyDelta<T> createDelta(ItemPath propertyPath, Class<O> compileTimeClass,
-				PrismContext prismContext);
+		<O extends Objectable,T> PropertyDelta<T> createDelta(ItemPath propertyPath, Class<O> compileTimeClass);
 
+		@SuppressWarnings("unchecked")
 		<T> PropertyDelta<T> createModificationReplaceProperty(ItemPath propertyPath, PrismObjectDefinition<?> objectDefinition,
 				T... propertyValues);
 
 		<T> PropertyDelta<T> createModificationReplaceProperty(ItemPath propertyPath, PrismObjectDefinition<?> objectDefinition,
 				Collection<T> propertyValues);
 
+		@SuppressWarnings("unchecked")
 		<T> PropertyDelta<T> createModificationReplaceProperty(ItemPath path, PrismPropertyDefinition propertyDefinition,
 				T... propertyValues);
 
+		@SuppressWarnings("unchecked")
 		<T> PropertyDelta<T> createModificationAddProperty(ItemPath propertyPath, PrismPropertyDefinition propertyDefinition,
 				T... propertyValues);
 
+		@SuppressWarnings("unchecked")
 		<T> PropertyDelta<T> createModificationAddProperty(ItemPath propertyPath, PrismObjectDefinition<?> objectDefinition,
 				T... propertyValues);
 
+		@SuppressWarnings("unchecked")
 		<T> PropertyDelta<T> createModificationDeleteProperty(ItemPath propertyPath, PrismPropertyDefinition propertyDefinition,
 				T... propertyValues);
 
+		@SuppressWarnings("unchecked")
 		<T> PropertyDelta<T> createModificationDeleteProperty(ItemPath propertyPath, PrismObjectDefinition<?> objectDefinition,
 				T... propertyValues);
 
@@ -90,17 +98,13 @@ public interface DeltaFactory {
 
 		ReferenceDelta create(ItemPath path, PrismReferenceDefinition definition);
 
-		ReferenceDelta create(PrismReferenceDefinition itemDefinition, PrismContext prismContext);
+		ReferenceDelta create(PrismReferenceDefinition itemDefinition);
 
-		ReferenceDelta create(ItemPath propertyPath, PrismReferenceDefinition itemDefinition, PrismContext prismContext);
-
-		ReferenceDelta create(ItemPath parentPath, QName name, PrismReferenceDefinition itemDefinition,
-				PrismContext prismContext);
+		ReferenceDelta create(ItemPath parentPath, QName name, PrismReferenceDefinition itemDefinition);
 
 		ReferenceDelta createModificationReplace(ItemPath path, PrismObjectDefinition<?> objectDefinition, String oid);
 
-		<O extends Objectable> ReferenceDelta createModificationReplace(ItemPath path, Class<O> type, PrismContext ctx,
-				String oid);
+		<O extends Objectable> ReferenceDelta createModificationReplace(ItemPath path, Class<O> type, String oid);
 
 		ReferenceDelta createModificationReplace(ItemPath path, PrismObjectDefinition<?> objectDefinition,
 				PrismReferenceValue refValue);
@@ -120,22 +124,18 @@ public interface DeltaFactory {
 		ReferenceDelta createModificationAdd(ItemPath path, PrismObjectDefinition<?> objectDefinition,
 				Collection<PrismReferenceValue> refValues);
 
-		<T extends Objectable> ReferenceDelta createModificationAdd(Class<T> type, ItemName refName, PrismContext prismContext,
-				PrismReferenceValue refValue);
+		<T extends Objectable> ReferenceDelta createModificationAdd(Class<T> type, ItemName refName, PrismReferenceValue refValue);
 
 		<T extends Objectable> Collection<? extends ItemDelta> createModificationAddCollection(Class<T> type, ItemName refName,
-				PrismContext prismContext,
 				String targetOid);
 
 		<T extends Objectable> Collection<? extends ItemDelta> createModificationAddCollection(Class<T> type, ItemName refName,
-				PrismContext prismContext,
 				PrismReferenceValue refValue);
 
-		<T extends Objectable> ReferenceDelta createModificationAdd(Class<T> type, ItemName refName, PrismContext prismContext,
+		<T extends Objectable> ReferenceDelta createModificationAdd(Class<T> type, ItemName refName,
 				PrismObject<?> refTarget);
 
 		<T extends Objectable> Collection<? extends ItemDelta> createModificationAddCollection(Class<T> type, ItemName refName,
-				PrismContext prismContext,
 				PrismObject<?> refTarget);
 
 		Collection<? extends ItemDelta> createModificationDeleteCollection(QName propertyName,
@@ -148,38 +148,34 @@ public interface DeltaFactory {
 				String oid);
 
 		ReferenceDelta createModificationDelete(QName refName, PrismObjectDefinition<?> objectDefinition,
-				PrismObject<?> refTarget, PrismContext prismContext);
+				PrismObject<?> refTarget);
 
 		ReferenceDelta createModificationDelete(QName refName, PrismObjectDefinition<?> objectDefinition,
 				PrismReferenceValue refValue);
 
-		<T extends Objectable> ReferenceDelta createModificationDelete(Class<T> type, QName refName, PrismContext prismContext,
+		<T extends Objectable> ReferenceDelta createModificationDelete(Class<T> type, QName refName,
 				PrismReferenceValue refValue);
 
 		<T extends Objectable> Collection<? extends ItemDelta> createModificationDeleteCollection(Class<T> type, QName refName,
-				PrismContext prismContext,
 				PrismReferenceValue refValue);
 
-		<T extends Objectable> ReferenceDelta createModificationDelete(Class<T> type, QName refName, PrismContext prismContext,
+		<T extends Objectable> ReferenceDelta createModificationDelete(Class<T> type, QName refName,
 				PrismObject<?> refTarget);
 
 		<T extends Objectable> Collection<? extends ItemDelta> createModificationDeleteCollection(Class<T> type, QName refName,
-				PrismContext prismContext,
 				PrismObject<?> refTarget);
 	}
 
 	interface Container {
 		<C extends Containerable> ContainerDelta<C> create(ItemPath path, PrismContainerDefinition<C> definition);
 
-		<C extends Containerable> ContainerDelta<C>  create(PrismContainerDefinition itemDefinition, PrismContext prismContext);
+		<C extends Containerable> ContainerDelta<C>  create(PrismContainerDefinition itemDefinition);
 
-		<C extends Containerable> ContainerDelta<C> create(ItemPath propertyPath, PrismContainerDefinition itemDefinition, PrismContext prismContext);
-
-		<C extends Containerable> ContainerDelta<C> create(ItemPath parentPath, QName name, PrismContainerDefinition itemDefinition,
-				PrismContext prismContext);
+		<C extends Containerable> ContainerDelta<C> create(ItemPath parentPath, QName name,
+				PrismContainerDefinition itemDefinition);
 
 		<T extends Containerable,O extends Objectable> ContainerDelta<T> createDelta(ItemPath containerPath,
-				Class<O> type, PrismContext prismContext);
+				Class<O> type);
 
 		<T extends Containerable,O extends Objectable> ContainerDelta<T> createDelta(ItemPath containerPath,
 				PrismObjectDefinition<O> objectDefinition);
@@ -189,30 +185,30 @@ public interface DeltaFactory {
 
 		<T extends Containerable,O extends Objectable> ContainerDelta<T> createModificationAdd(
 				ItemPath containerPath,
-				Class<O> type, PrismContext prismContext, T containerable) throws SchemaException;
+				Class<O> type, T containerable) throws SchemaException;
 
 		<T extends Containerable,O extends Objectable> ContainerDelta<T> createModificationAdd(
 				ItemPath containerPath,
-				Class<O> type, PrismContext prismContext, PrismContainerValue<T> cValue) throws SchemaException;
+				Class<O> type, PrismContainerValue<T> cValue) throws SchemaException;
 
 		<T extends Containerable,O extends Objectable> ContainerDelta<T> createModificationDelete(
 				ItemPath containerPath,
-				Class<O> type, PrismContext prismContext, T containerable) throws SchemaException;
+				Class<O> type, T containerable) throws SchemaException;
 
 		<T extends Containerable,O extends Objectable> ContainerDelta<T> createModificationDelete(
 				ItemPath containerPath,
-				Class<O> type, PrismContext prismContext, PrismContainerValue<T> cValue) throws SchemaException;
+				Class<O> type, PrismContainerValue<T> cValue) throws SchemaException;
 
 		<T extends Containerable,O extends Objectable> ContainerDelta<T> createModificationReplace(
 				ItemPath containerPath,
-				Class<O> type, PrismContext prismContext, T containerable) throws SchemaException;
+				Class<O> type, T containerable) throws SchemaException;
 
 		<T extends Containerable,O extends Objectable> ContainerDelta<T> createModificationReplace(ItemPath containerPath,
-				Class<O> type, PrismContext prismContext, Collection<T> containerables) throws SchemaException;
+				Class<O> type, Collection<T> containerables) throws SchemaException;
 
 		<T extends Containerable,O extends Objectable> ContainerDelta<T> createModificationReplace(
 				ItemPath containerPath,
-				Class<O> type, PrismContext prismContext, PrismContainerValue<T> cValue) throws SchemaException;
+				Class<O> type, PrismContainerValue<T> cValue) throws SchemaException;
 
 		// cValues should be parent-less
 		@Deprecated
@@ -226,8 +222,100 @@ public interface DeltaFactory {
 	}
 
 	interface Object {
+
 		<O extends Objectable> ObjectDelta<O> create(Class<O> type, ChangeType changeType);
 
+		static <O extends Objectable> ObjectDelta<O> createAddDelta(PrismObject<O> objectToAdd) {
+			ObjectDelta<O> objectDelta = objectToAdd.getPrismContext().deltaFactory().object().create(objectToAdd.getCompileTimeClass(), ChangeType.ADD);
+			objectDelta.setOid(objectToAdd.getOid());
+			objectDelta.setObjectToAdd(objectToAdd);
+			return objectDelta;
+		}
+
+		@SuppressWarnings("unchecked")
+		<O extends Objectable, X> ObjectDelta<O> createModificationReplaceProperty(Class<O> type, String oid,
+				ItemPath propertyPath, X... propertyValues);
+
+		<O extends Objectable> ObjectDelta<O> createEmptyDelta(Class<O> type, String oid,
+				ChangeType changeType);
+
+		<O extends Objectable> ObjectDelta<O> createEmptyDeleteDelta(Class<O> type, String oid);
+
+		<O extends Objectable> ObjectDelta<O> createEmptyModifyDelta(Class<O> type, String oid);
+
+		<O extends Objectable> ObjectDelta<O> createEmptyAddDelta(Class<O> type, String oid) throws
+								SchemaException;
+
+		<T extends Objectable> ObjectDelta<T> createModifyDelta(String oid, ItemDelta modification,
+				Class<T> objectTypeClass);
+
+		<O extends Objectable> ObjectDelta<O> createDeleteDelta(Class<O> type, String oid);
+
+		<T extends Objectable> ObjectDelta<T> createModifyDelta(String oid,
+				Collection<? extends ItemDelta> modifications,
+				Class<T> objectTypeClass);
+
+		<O extends Objectable> ObjectDelta<O> createModificationDeleteReference(Class<O> type, String oid,
+				QName propertyName,
+				String... targetOids);
+
+		<O extends Objectable> ObjectDelta<O> createModificationDeleteReference(Class<O> type, String oid,
+				QName propertyName,
+				PrismReferenceValue... referenceValues);
+
+		@SuppressWarnings("unchecked")
+		<O extends Objectable, X> ObjectDelta<O> createModificationDeleteProperty(Class<O> type, String oid,
+				ItemPath propertyPath, X... propertyValues);
+
+		@SuppressWarnings("unchecked")
+		<O extends Objectable, X> ObjectDelta<O> createModificationAddProperty(Class<O> type, String oid,
+				ItemPath propertyPath, X... propertyValues);
+
+		<O extends Objectable> ObjectDelta<O> createModificationAddReference(Class<O> type, String oid,
+				QName propertyName,
+				String... targetOids);
+
+		<O extends Objectable> ObjectDelta<O> createModificationAddReference(Class<O> type, String oid,
+				QName propertyName,
+				PrismReferenceValue... referenceValues);
+
+		<O extends Objectable> ObjectDelta<O> createModificationAddReference(Class<O> type, String oid,
+				QName propertyName,
+				PrismObject<?>... referenceObjects);
+
+		@SuppressWarnings("unchecked")
+		<O extends Objectable, C extends Containerable> ObjectDelta<O> createModificationReplaceContainer(Class<O> type,
+				String oid, ItemPath containerPath,
+				PrismContainerValue<C>... containerValues);
+
+		@SuppressWarnings("unchecked")
+		<O extends Objectable, C extends Containerable> ObjectDelta<O> createModificationDeleteContainer(Class<O> type,
+				String oid,
+				ItemPath propertyPath, C... containerValues) throws SchemaException;
+
+		@SuppressWarnings("unchecked")
+		<O extends Objectable, C extends Containerable> ObjectDelta<O> createModificationDeleteContainer(Class<O> type,
+				String oid, ItemPath containerPath,
+				PrismContainerValue<C>... containerValues);
+
+		@SuppressWarnings("unchecked")
+		<O extends Objectable, C extends Containerable> ObjectDelta<O> createModificationAddContainer(Class<O> type,
+				String oid,
+				ItemPath propertyPath, C... containerValues) throws SchemaException;
+
+		@SuppressWarnings("unchecked")
+		<O extends Objectable, C extends Containerable> ObjectDelta<O> createModificationAddContainer(Class<O> type,
+				String oid,
+				ItemPath propertyPath,
+				PrismContainerValue<C>... containerValues);
+
+		@SuppressWarnings("unchecked")
+		<O extends Objectable, C extends Containerable> ObjectDelta<O> createModificationReplaceContainer(Class<O> type,
+				String oid,
+				ItemPath propertyPath, C... containerValues) throws SchemaException;
+
+		<O extends Objectable> ObjectDelta<O> createModificationReplaceReference(Class<O> type, String oid,
+				ItemPath refPath, PrismReferenceValue... refValues);
 	}
 
 	Property property();

@@ -25,7 +25,6 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.AccessCertificationService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -1017,8 +1016,8 @@ public class PageCertCampaigns extends PageAdminCertification {
 		for (CertCampaignListItemDto itemToDelete : itemsToDelete) {
 			try {
 				Task task = createSimpleTask(OPERATION_DELETE_CAMPAIGNS);
-				ObjectDelta<AccessCertificationCampaignType> delta = ObjectDeltaCreationUtil.createDeleteDelta(
-						AccessCertificationCampaignType.class, itemToDelete.getOid(), getPrismContext());
+				ObjectDelta<AccessCertificationCampaignType> delta = getPrismContext().deltaFactory().object().createDeleteDelta(
+						AccessCertificationCampaignType.class, itemToDelete.getOid());
 				getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task,
 						result);
 			} catch (Exception ex) {

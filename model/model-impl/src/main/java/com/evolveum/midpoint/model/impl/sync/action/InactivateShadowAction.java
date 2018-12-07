@@ -25,7 +25,6 @@ import com.evolveum.midpoint.model.impl.sync.SynchronizationSituation;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -60,8 +59,8 @@ public class InactivateShadowAction extends BaseAction {
 				}
 			}
 		}
-		ObjectDelta<ShadowType> activationDelta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
-				projectionContext.getOid(), pathAdminStatus, getPrismContext(), desiredStatus);
+		ObjectDelta<ShadowType> activationDelta = getPrismContext().deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+				projectionContext.getOid(), pathAdminStatus, desiredStatus);
 		projectionContext.setPrimaryDelta(activationDelta);
 	}
 

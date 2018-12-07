@@ -18,9 +18,7 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -151,8 +149,8 @@ public class ExtDictionaryConcurrencyTest extends BaseSQLRepoTest {
             try {
                 ItemPath path = ItemPath.create(UserType.F_EXTENSION, new QName(NAMESPACE, attribute + index));
 //                ItemPath path = ItemPath.create(UserType.F_DESCRIPTION);
-                ObjectDelta delta = ObjectDeltaCreationUtil.createModificationAddProperty(type, oid, path,
-                        test.prismContext, attribute + index);
+                ObjectDelta delta = test.prismContext.deltaFactory().object().createModificationAddProperty(type, oid, path,
+		                attribute + index);
 
                 test.repositoryService.modifyObject(type, oid, delta.getModifications(), result);
 

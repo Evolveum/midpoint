@@ -23,7 +23,6 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -205,7 +204,8 @@ public class DeleteTaskHandler implements TaskHandler {
 	            		continue;
 	            	}
 
-	            	ObjectDelta<?> delta = ObjectDeltaCreationUtil.createDeleteDelta(objectType, object.getOid(), prismContext);
+	            	ObjectDelta<?> delta = prismContext.deltaFactory().object().createDeleteDelta(objectType, object.getOid()
+		            );
 
 					String objectName = PolyString.getOrig(object.getName());
 					String objectDisplayName = StatisticsUtil.getDisplayName(object);

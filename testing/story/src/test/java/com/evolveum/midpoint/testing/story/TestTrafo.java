@@ -37,7 +37,6 @@ import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -1088,7 +1087,8 @@ public class TestTrafo extends AbstractStoryTest {
 
         Collection<? extends ItemDelta> fullNameModification = prismContext.deltaFactory().property()
 		        .createModificationReplacePropertyCollection(UserType.F_FAMILY_NAME, userSmith.getDefinition(), new PolyString("Smither", "smither"));
-        ObjectDeltaCreationUtil.createModifyDelta(userSmith.getOid(), fullNameModification, UserType.class, prismContext);
+        prismContext.deltaFactory().object().createModifyDelta(userSmith.getOid(), fullNameModification, UserType.class
+        );
 
 
 

@@ -27,8 +27,6 @@ import java.io.File;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.prism.PrismPropertyValueImpl;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -264,8 +262,8 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class,
-				userWillOid, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, prismContext,
+		ObjectDelta<UserType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(UserType.class,
+				userWillOid, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
 				ActivationStatusType.ENABLED);
 		ProtectedStringType ps = new ProtectedStringType();
 		ps.setClearValue(USER_WILL_PASSWORD_NEW);

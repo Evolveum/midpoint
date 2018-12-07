@@ -26,7 +26,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -501,8 +500,9 @@ public class TreeTablePanel extends BasePanel<String> {
 		if (toMove == null || selected.getValue() == null) {
 			return;
 		}
-		ObjectDelta<OrgType> moveOrgDelta = ObjectDeltaCreationUtil.createEmptyModifyDelta(OrgType.class, toMove.getOid(),
-				getPageBase().getPrismContext());
+		ObjectDelta<OrgType> moveOrgDelta = getPageBase().getPrismContext().deltaFactory().object()
+				.createEmptyModifyDelta(OrgType.class, toMove.getOid()
+				);
 
 		try {
 			for (OrgType parentOrg : toMove.getParentOrg()) {
@@ -510,7 +510,7 @@ public class TreeTablePanel extends BasePanel<String> {
 				oldRoot.setTargetRef(ObjectTypeUtil.createObjectRef(parentOrg, getPageBase().getPrismContext()));
 
 				moveOrgDelta.addModification(getPrismContext().deltaFactory().container().createModificationDelete(OrgType.F_ASSIGNMENT,
-						OrgType.class, getPageBase().getPrismContext(), oldRoot.asPrismContainerValue()));
+						OrgType.class, oldRoot.asPrismContainerValue()));
 				// moveOrgDelta.addModification(ReferenceDelta.createModificationDelete(OrgType.F_PARENT_ORG_REF,
 				// toMove.asPrismObject().getDefinition(),
 				// ObjectTypeUtil.createObjectRef(parentOrg).asReferenceValue()));
@@ -519,7 +519,7 @@ public class TreeTablePanel extends BasePanel<String> {
 			AssignmentType newRoot = new AssignmentType();
 			newRoot.setTargetRef(ObjectTypeUtil.createObjectRef(selected.getValue(), getPageBase().getPrismContext()));
 			moveOrgDelta.addModification(getPrismContext().deltaFactory().container().createModificationAdd(OrgType.F_ASSIGNMENT,
-					OrgType.class, getPageBase().getPrismContext(), newRoot.asPrismContainerValue()));
+					OrgType.class, newRoot.asPrismContainerValue()));
 			// moveOrgDelta.addModification(ReferenceDelta.createModificationAdd(OrgType.F_PARENT_ORG_REF,
 			// toMove.asPrismObject().getDefinition(),
 			// ObjectTypeUtil.createObjectRef(selected.getValue()).asReferenceValue()));
@@ -553,8 +553,9 @@ public class TreeTablePanel extends BasePanel<String> {
 		if (toMove == null) {
 			return;
 		}
-		ObjectDelta<OrgType> moveOrgDelta = ObjectDeltaCreationUtil.createEmptyModifyDelta(OrgType.class, toMove.getOid(),
-				getPageBase().getPrismContext());
+		ObjectDelta<OrgType> moveOrgDelta = getPageBase().getPrismContext().deltaFactory().object()
+				.createEmptyModifyDelta(OrgType.class, toMove.getOid()
+				);
 
 		try {
 			for (ObjectReferenceType parentOrg : toMove.getParentOrgRef()) {
@@ -562,7 +563,7 @@ public class TreeTablePanel extends BasePanel<String> {
 				oldRoot.setTargetRef(parentOrg);
 
 				moveOrgDelta.addModification(getPrismContext().deltaFactory().container().createModificationDelete(OrgType.F_ASSIGNMENT,
-						OrgType.class, getPageBase().getPrismContext(), oldRoot.asPrismContainerValue()));
+						OrgType.class, oldRoot.asPrismContainerValue()));
 			}
 
 			getPageBase().getPrismContext().adopt(moveOrgDelta);
@@ -598,8 +599,8 @@ public class TreeTablePanel extends BasePanel<String> {
 			return;
 		}
 		try {
-			ObjectDelta emptyDelta = ObjectDeltaCreationUtil.createEmptyModifyDelta(OrgType.class,
-					orgToRecompute.getValue().getOid(), getPageBase().getPrismContext());
+			ObjectDelta emptyDelta = getPageBase().getPrismContext().deltaFactory().object().createEmptyModifyDelta(OrgType.class,
+					orgToRecompute.getValue().getOid());
 			ModelExecuteOptions options = new ModelExecuteOptions();
 			options.setReconcile(true);
 			getPageBase().getModelService().executeChanges(WebComponentUtil.createDeltaCollection(emptyDelta),

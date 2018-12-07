@@ -24,7 +24,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -340,7 +340,7 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 			PrismObject<O> objectToModify = object.clone();
 			delta.applyTo(objectToModify);
 			cleanupEmptyContainers(objectToModify);
-			ObjectDelta<O> addDelta = ObjectDeltaCreationUtil.createAddDelta(objectToModify);
+			ObjectDelta<O> addDelta = DeltaFactory.Object.createAddDelta(objectToModify);
 			if (object.getPrismContext() != null) {
 				// Make sure we have all the definitions
 				object.getPrismContext().adopt(delta);

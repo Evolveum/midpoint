@@ -22,7 +22,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -51,7 +50,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
@@ -277,8 +275,9 @@ public class ConfigurationStep extends WizardStep {
 		boolean saved = false;
         try {
             List<ContainerWrapper> wrappers = configurationPropertiesModel.getObject();
-			ObjectDelta delta = ObjectDeltaCreationUtil
-					.createEmptyModifyDelta(ResourceType.class, parentPage.getEditedResourceOid(), parentPage.getPrismContext());
+			ObjectDelta delta = parentPage.getPrismContext().deltaFactory().object()
+					.createEmptyModifyDelta(ResourceType.class, parentPage.getEditedResourceOid()
+					);
 			for (ContainerWrapper wrapper : wrappers) {
 				wrapper.collectModifications(delta);
 			}

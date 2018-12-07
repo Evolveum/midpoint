@@ -29,7 +29,7 @@ import java.util.Iterator;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -229,7 +229,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         PrismObject<UserType> userCharles = createUser("charles", "Charles L. Charles");
         fillinUserAssignmentAccountConstruction(userCharles, RESOURCE_DUMMY_WHITE_OID);
 
-        ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil.createAddDelta(userCharles);
+        ObjectDelta<UserType> userDelta = DeltaFactory.Object.createAddDelta(userCharles);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
 		// WHEN

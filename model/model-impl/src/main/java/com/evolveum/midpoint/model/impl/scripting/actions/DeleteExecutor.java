@@ -26,7 +26,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -90,7 +89,8 @@ public class DeleteExecutor extends BaseActionExecutor {
     }
 
     private ObjectDelta<? extends ObjectType> createDeleteDelta(ObjectType objectType) {
-        return ObjectDeltaCreationUtil.createDeleteDelta(objectType.getClass(), objectType.getOid(), prismContext);
+        return prismContext.deltaFactory().object().createDeleteDelta(objectType.getClass(), objectType.getOid()
+        );
     }
 
 }

@@ -22,7 +22,6 @@ import java.io.IOException;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -72,8 +71,9 @@ public class TestMappingTime {
     	System.out.println("===[ "+TEST_NAME+"]===");
 
     	// GIVEN
-    	ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-    			UserType.F_EMPLOYEE_TYPE, evaluator.getPrismContext(), "CAPTAIN");
+    	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
+			    .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
+    			UserType.F_EMPLOYEE_TYPE, "CAPTAIN");
 
 		MappingImpl.Builder<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> builder = evaluator.createMappingBuilder(
 				MAPPING_TIME_FROM_TO_FILENAME,
@@ -99,8 +99,9 @@ public class TestMappingTime {
     	System.out.println("===[ "+TEST_NAME+"]===");
 
     	// GIVEN
-    	ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-    			UserType.F_EMPLOYEE_TYPE, evaluator.getPrismContext(), "CAPTAIN");
+    	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
+			    .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
+    			UserType.F_EMPLOYEE_TYPE, "CAPTAIN");
 
 		MappingImpl.Builder<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> builder = evaluator.createMappingBuilder(
 				MAPPING_TIME_FROM_TO_FILENAME,
@@ -129,8 +130,9 @@ public class TestMappingTime {
     	System.out.println("===[ "+TEST_NAME+"]===");
 
     	// GIVEN
-    	ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-    			UserType.F_EMPLOYEE_TYPE, evaluator.getPrismContext(), "CAPTAIN");
+    	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
+			    .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
+    			UserType.F_EMPLOYEE_TYPE, "CAPTAIN");
 
 		MappingImpl.Builder<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> builder = evaluator.createMappingBuilder(
 				MAPPING_TIME_FROM_TO_FILENAME,
@@ -258,9 +260,10 @@ public class TestMappingTime {
     	XMLGregorianCalendar disableTimestamp = userOld.asObjectable().getActivation().getDisableTimestamp();
 		userOld.asObjectable().getActivation().setDisableTimestamp(null);
 
-		ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-				ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP), evaluator.getPrismContext(),
-    			disableTimestamp);
+		ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
+				.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
+				ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP),
+						disableTimestamp);
 
 		MappingImpl.Builder<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> builder = evaluator.createMappingBuilder(
 				MAPPING_TIME_ACTIVATION,
@@ -296,9 +299,10 @@ public class TestMappingTime {
     	XMLGregorianCalendar disableTimestamp = userOld.asObjectable().getActivation().getDisableTimestamp();
 		userOld.asObjectable().getActivation().setDisableTimestamp(null);
 
-		ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-    			ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP), evaluator.getPrismContext(),
-    			disableTimestamp);
+		ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
+				.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
+    			ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP),
+						disableTimestamp);
 
 		MappingImpl.Builder<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> builder = evaluator.createMappingBuilder(
 				MAPPING_TIME_ACTIVATION,

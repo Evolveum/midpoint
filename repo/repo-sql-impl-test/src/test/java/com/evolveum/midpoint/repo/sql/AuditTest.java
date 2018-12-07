@@ -20,7 +20,6 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditReferenceValue;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventRecord;
 import com.evolveum.midpoint.repo.sql.util.SimpleTaskAdapter;
@@ -116,13 +115,13 @@ public class AuditTest extends BaseSQLRepoTest {
 		record.setEventType(AuditEventType.ADD_OBJECT);
 
 		ObjectDeltaOperation delta = new ObjectDeltaOperation();
-		delta.setObjectDelta(ObjectDeltaCreationUtil.createModificationAddReference(UserType.class, "1234", UserType.F_LINK_REF,
-				prismContext, "123"));
+		delta.setObjectDelta(prismContext.deltaFactory().object().createModificationAddReference(UserType.class, "1234", UserType.F_LINK_REF,
+				"123"));
 		record.getDeltas().add(delta);
 
 		delta = new ObjectDeltaOperation();
-		delta.setObjectDelta(ObjectDeltaCreationUtil.createModificationAddReference(UserType.class, "1234", UserType.F_LINK_REF,
-				prismContext, "124"));
+		delta.setObjectDelta(prismContext.deltaFactory().object().createModificationAddReference(UserType.class, "1234", UserType.F_LINK_REF,
+				"124"));
 		record.getDeltas().add(delta);
 
 		auditService.audit(record, new SimpleTaskAdapter());

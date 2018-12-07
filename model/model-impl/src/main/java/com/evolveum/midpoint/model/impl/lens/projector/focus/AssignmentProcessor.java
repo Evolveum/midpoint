@@ -711,7 +711,7 @@ public class AssignmentProcessor {
 	private <F extends FocusType> void createAssignmentDelta(LensContext<F> context, LensProjectionContext accountContext) throws SchemaException{
         Class<F> focusClass = context.getFocusClass();
         ContainerDelta<AssignmentType> assignmentDelta = prismContext.deltaFactory().container()
-		        .createDelta(FocusType.F_ASSIGNMENT, focusClass, prismContext);
+		        .createDelta(FocusType.F_ASSIGNMENT, focusClass);
 		AssignmentType assignment = new AssignmentType();
 		ConstructionType constructionType = new ConstructionType();
 		constructionType.setResourceRef(ObjectTypeUtil.createObjectRef(accountContext.getResource(), prismContext));
@@ -1065,7 +1065,7 @@ public class AssignmentProcessor {
 		}
 
 		PrismReferenceDefinition itemDef = focusContext.getObjectDefinition().findItemDefinition(itemName, PrismReferenceDefinition.class);
-		ReferenceDelta itemDelta = prismContext.deltaFactory().reference().create(itemName, itemDef, focusContext.getObjectDefinition().getPrismContext());
+		ReferenceDelta itemDelta = prismContext.deltaFactory().reference().create(itemName, itemDef);
 		itemDelta.setValuesToReplace(targetState);
 		focusContext.swallowToSecondaryDelta(itemDelta);
 	}

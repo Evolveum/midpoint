@@ -18,8 +18,8 @@ package com.evolveum.midpoint.wf.impl.legacy;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -85,7 +85,7 @@ public class TestCreateOrgLegacy extends AbstractWfTestLegacy {
             @Override
             public LensContext createModelContext(Task task, OperationResult result) throws Exception {
                 LensContext<OrgType> context = createLensContext(OrgType.class);
-                addFocusDeltaToContext(context, (ObjectDelta) ObjectDeltaCreationUtil.createAddDelta(PrismTestUtil.parseObject(TEST1_FILE)));
+                addFocusDeltaToContext(context, (ObjectDelta) DeltaFactory.Object.createAddDelta(PrismTestUtil.parseObject(TEST1_FILE)));
                 return context;
             }
 
@@ -125,7 +125,7 @@ public class TestCreateOrgLegacy extends AbstractWfTestLegacy {
             @Override
             public LensContext createModelContext(Task task, OperationResult result) throws Exception {
                 LensContext<OrgType> context = createLensContext(OrgType.class);
-                addFocusDeltaToContext(context, (ObjectDelta) ObjectDeltaCreationUtil.createAddDelta(PrismTestUtil.parseObject(TEST1_FILE)));
+                addFocusDeltaToContext(context, (ObjectDelta) DeltaFactory.Object.createAddDelta(PrismTestUtil.parseObject(TEST1_FILE)));
                 return context;
             }
 

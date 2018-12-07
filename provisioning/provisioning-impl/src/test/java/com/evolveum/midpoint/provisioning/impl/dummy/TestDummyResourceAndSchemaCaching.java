@@ -338,9 +338,9 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		ProjectionPolicyType projectionPolicyType = new ProjectionPolicyType();
 		projectionPolicyType.setLegalize(true);
 
-		ObjectDelta<ResourceType> objectDelta = ObjectDeltaCreationUtil
+		ObjectDelta<ResourceType> objectDelta = prismContext.deltaFactory().object()
 				.createModificationReplaceContainer(ResourceType.class, RESOURCE_DUMMY_OID,
-				ResourceType.F_PROJECTION, prismContext, projectionPolicyType);
+				ResourceType.F_PROJECTION, projectionPolicyType);
 
 		// WHEN
 		provisioningService.modifyObject(ResourceType.class, RESOURCE_DUMMY_OID, objectDelta.getModifications(), null, null, task, result);
@@ -449,9 +449,9 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		ProjectionPolicyType projectionPolicyType = new ProjectionPolicyType();
 		projectionPolicyType.setLegalize(true);
 
-		ObjectDelta<ResourceType> objectDelta = ObjectDeltaCreationUtil
+		ObjectDelta<ResourceType> objectDelta = prismContext.deltaFactory().object()
 				.createModificationReplaceContainer(ResourceType.class, RESOURCE_DUMMY_OID,
-				ResourceType.F_PROJECTION, prismContext, projectionPolicyType);
+				ResourceType.F_PROJECTION, projectionPolicyType);
 
 		// WHEN
 		repositoryService.modifyObject(ResourceType.class, RESOURCE_DUMMY_OID, objectDelta.getModifications(), result);

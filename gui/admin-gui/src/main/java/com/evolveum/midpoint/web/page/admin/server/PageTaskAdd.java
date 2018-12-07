@@ -24,7 +24,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -53,7 +53,6 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
@@ -670,7 +669,7 @@ public class PageTaskAdd extends PageAdminTasks {
 
     private List<ObjectDelta<? extends ObjectType>> prepareChangesToExecute(TaskType taskToBeAdded) {
         List<ObjectDelta<? extends ObjectType>> retval = new ArrayList<>();
-        retval.add(ObjectDeltaCreationUtil.createAddDelta(taskToBeAdded.asPrismObject()));
+        retval.add(DeltaFactory.Object.createAddDelta(taskToBeAdded.asPrismObject()));
         return retval;
     }
 

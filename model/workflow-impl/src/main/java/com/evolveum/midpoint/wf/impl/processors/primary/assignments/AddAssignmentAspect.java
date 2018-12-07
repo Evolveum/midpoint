@@ -261,12 +261,13 @@ public abstract class AddAssignmentAspect<T extends ObjectType, F extends FocusT
         PrismContainerDefinition<AssignmentType> prismContainerDefinition = focus.getDefinition().findContainerDefinition(FocusType.F_ASSIGNMENT);
 
         ItemDelta<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> addRoleDelta = prismContext.deltaFactory().container().create(
-		        ItemPath.EMPTY_PATH, FocusType.F_ASSIGNMENT, prismContainerDefinition, prismContext);
+		        ItemPath.EMPTY_PATH, FocusType.F_ASSIGNMENT, prismContainerDefinition);
         PrismContainerValue<AssignmentType> assignmentValue = assignmentType.asPrismContainerValue().clone();
         addRoleDelta.addValueToAdd(assignmentValue);
 
         Class focusClass = primaryChangeAspectHelper.getFocusClass(modelContext);
-        return ObjectDeltaCreationUtil.createModifyDelta(objectOid, addRoleDelta, focusClass, modelContext.getPrismContext());
+        return modelContext.getPrismContext().deltaFactory().object().createModifyDelta(objectOid, addRoleDelta, focusClass
+        );
     }
 
     //endregion

@@ -213,8 +213,9 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 		user.asObjectable().getAssignment().add(assignmentType.clone());
 
 		ItemPath path = ItemPath.create(UserType.F_ASSIGNMENT, 123L, AssignmentType.F_DESCRIPTION);
-		ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, USER_JACK_OID,
-				path, prismContext, "captain");
+		ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
+				.createModificationReplaceProperty(UserType.class, USER_JACK_OID,
+				path, "captain");
 		ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(user, userDelta, null);
 		userOdo.recompute();
 		AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
@@ -279,8 +280,9 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 //		assignmentContainer.add(assignmentType.asPrismContainerValue().clone());
 
 		ItemPath path = ItemPath.create(UserType.F_ASSIGNMENT, 123L, AssignmentType.F_DESCRIPTION);
-		ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, USER_JACK_OID,
-				path, prismContext, "sailor");
+		ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
+				.createModificationReplaceProperty(UserType.class, USER_JACK_OID,
+				path, "sailor");
 		ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(user, userDelta, null);
 		userOdo.recompute();
 		AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
@@ -511,8 +513,9 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
         AssignmentType assignmentForUser = assignmentType.clone();
         assignmentForUser.asPrismContainerValue().setParent(null);
-        ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil
-		        .createModificationAddContainer(UserType.class, USER_JACK_OID, UserType.F_ASSIGNMENT, prismContext, assignmentForUser.asPrismContainerValue());
+        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
+		        .createModificationAddContainer(UserType.class, USER_JACK_OID, UserType.F_ASSIGNMENT,
+				        assignmentForUser.asPrismContainerValue());
         ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(user, userDelta, null);
         userOdo.recompute();
         AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
@@ -587,8 +590,9 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         assignmentForUser.asPrismContainerValue().setParent(null);
         user.asObjectable().getAssignment().add(assignmentForUser);
 
-        ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, USER_JACK_OID,
-                UserType.F_COST_CENTER, prismContext, "management");
+        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
+		        .createModificationReplaceProperty(UserType.class, USER_JACK_OID,
+                UserType.F_COST_CENTER, "management");
         ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(user, userDelta, null);
         userOdo.recompute();
         AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
@@ -653,8 +657,9 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         assignmentForUser.asPrismContainerValue().setParent(null);
         user.asObjectable().getAssignment().add(assignmentForUser);
 
-        ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, USER_JACK_OID,
-                UserType.F_COST_CENTER, prismContext);
+        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
+		        .createModificationReplaceProperty(UserType.class, USER_JACK_OID,
+                UserType.F_COST_CENTER);
         ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(user, userDelta, null);
         userOdo.recompute();
         AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);

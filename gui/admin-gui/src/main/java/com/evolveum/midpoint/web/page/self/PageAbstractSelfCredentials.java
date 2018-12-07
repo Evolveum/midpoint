@@ -21,7 +21,6 @@ import java.util.Collections;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.prism.xml.ns._public.types_3.EncryptedDataType;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -352,7 +351,8 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
 
                     Class<? extends ObjectType> type = accDto.isMidpoint() ? UserType.class : ShadowType.class;
 
-                    deltas.add(ObjectDeltaCreationUtil.createModifyDelta(accDto.getOid(), delta, type, getPrismContext()));
+                    deltas.add(getPrismContext().deltaFactory().object().createModifyDelta(accDto.getOid(), delta, type
+                    ));
             }
             getModelService().executeChanges(deltas, null, createSimpleTask(OPERATION_SAVE_PASSWORD, SchemaConstants.CHANNEL_GUI_SELF_SERVICE_URI), result);
 

@@ -29,7 +29,7 @@ import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.commandline.CommandLineScriptExecutor;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
@@ -522,7 +522,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         OperationResult subResult = null;
 
-        objectDelta = ObjectDeltaCreationUtil.createAddDelta((PrismObject<ReportOutputType>) reportOutputType.asPrismObject());
+        objectDelta = DeltaFactory.Object.createAddDelta((PrismObject<ReportOutputType>) reportOutputType.asPrismObject());
         deltas.add(objectDelta);
         subResult = parentResult.createSubresult(ReportCreateTaskHandler.class.getName() + "createRepourtOutput");
 

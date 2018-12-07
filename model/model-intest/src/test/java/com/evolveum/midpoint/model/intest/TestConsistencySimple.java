@@ -19,7 +19,6 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -213,8 +212,8 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
 				recomputeUser(USER_JACK_OID, task, result);
 				break;
 			case RECONCILE:
-				ObjectDelta<UserType> emptyDelta = ObjectDeltaCreationUtil
-						.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
+				ObjectDelta<UserType> emptyDelta = prismContext.deltaFactory().object()
+						.createEmptyModifyDelta(UserType.class, USER_JACK_OID);
 				modelService.executeChanges(MiscSchemaUtil.createCollection(emptyDelta), ModelExecuteOptions.createReconcile(), task, result);
 				break;
 			default:

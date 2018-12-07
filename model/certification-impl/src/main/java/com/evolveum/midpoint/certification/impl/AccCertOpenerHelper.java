@@ -308,7 +308,7 @@ public class AccCertOpenerHelper {
 
 		for (AccessCertificationCaseType _case : caseList) {
 			ContainerDelta<AccessCertificationCaseType> caseDelta = prismContext.deltaFactory().container().createDelta(F_CASE,
-					AccessCertificationCampaignType.class, prismContext);
+					AccessCertificationCampaignType.class);
 			_case.setIteration(1);
 			_case.setStageNumber(1);
 			_case.setCurrentStageCreateTimestamp(stage.getStartTimestamp());
@@ -516,7 +516,7 @@ public class AccCertOpenerHelper {
             }
 
             ContainerDelta<TriggerType> triggerDelta = prismContext.deltaFactory().container()
-		            .createModificationReplace(ObjectType.F_TRIGGER, AccessCertificationCampaignType.class, prismContext, triggers);
+		            .createModificationReplace(ObjectType.F_TRIGGER, AccessCertificationCampaignType.class, triggers);
             itemDeltaList.add(triggerDelta);
         }
         return itemDeltaList;

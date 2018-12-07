@@ -155,7 +155,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
         PrismReferenceValue accountRefVal = itemFactory().createReferenceValue();
 		accountRefVal.setObject(account);
-		ReferenceDelta accountDelta = prismContext.deltaFactory().reference().createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), account, prismContext);
+		ReferenceDelta accountDelta = prismContext.deltaFactory().reference().createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), account);
 		modifications.add(accountDelta);
 
 		// WHEN

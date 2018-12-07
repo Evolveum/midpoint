@@ -21,7 +21,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 import java.io.File;
 import java.util.Collection;
 
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -445,7 +445,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         OperationResult result = task.getResult();
 
 		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_DUMMY_WRONG_CONNECTOR_OID_FILE);
-		ObjectDelta<ResourceType> delta = ObjectDeltaCreationUtil.createAddDelta(resource);
+		ObjectDelta<ResourceType> delta = DeltaFactory.Object.createAddDelta(resource);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
 
 		try {
@@ -477,7 +477,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         OperationResult result = task.getResult();
 
 		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_DUMMY_WRONG_CONNECTOR_OID_FILE);
-		ObjectDelta<ResourceType> delta = ObjectDeltaCreationUtil.createAddDelta(resource);
+		ObjectDelta<ResourceType> delta = DeltaFactory.Object.createAddDelta(resource);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
 
 		try {
@@ -554,8 +554,9 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-		ObjectDelta<ResourceType> delta = ObjectDeltaCreationUtil
-				.createDeleteDelta(ResourceType.class, RESOURCE_DUMMY_WRONG_CONNECTOR_OID_OID, prismContext);
+		ObjectDelta<ResourceType> delta = prismContext.deltaFactory().object()
+				.createDeleteDelta(ResourceType.class, RESOURCE_DUMMY_WRONG_CONNECTOR_OID_OID
+				);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
 
 		// WHEN
@@ -582,7 +583,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         PrismObject<ConnectorType> connectorDummy = findConnectorByTypeAndVersion(CONNECTOR_DUMMY_TYPE, CONNECTOR_DUMMY_VERSION, result);
         resource.asObjectable().getConnectorRef().setOid(connectorDummy.getOid());
 
-        ObjectDelta<ResourceType> delta = ObjectDeltaCreationUtil.createAddDelta(resource);
+        ObjectDelta<ResourceType> delta = DeltaFactory.Object.createAddDelta(resource);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
 
 		// WHEN
@@ -634,8 +635,8 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-		ObjectDelta<ResourceType> delta = ObjectDeltaCreationUtil
-				.createDeleteDelta(ResourceType.class, RESOURCE_DUMMY_NO_CONFIGURATION_OID, prismContext);
+		ObjectDelta<ResourceType> delta = prismContext.deltaFactory().object()
+				.createDeleteDelta(ResourceType.class, RESOURCE_DUMMY_NO_CONFIGURATION_OID);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
 
 		// WHEN

@@ -261,9 +261,6 @@ public interface ObjectDelta<O extends Objectable> extends DebugDumpable, Visita
 
 	void checkConsistence(boolean requireOid, boolean requireDefinition, boolean prohibitRaw, ConsistencyCheckScope scope);
 
-	// FIXME this is because of ShadowDiscriminatorObjectDelta
-	void checkIdentifierConsistence(boolean requireOid);
-
 	void assertDefinitions() throws SchemaException;
 
 	void assertDefinitions(String sourceDescription) throws SchemaException;
@@ -304,12 +301,6 @@ public interface ObjectDelta<O extends Objectable> extends DebugDumpable, Visita
 	 * @return
 	 */
 	ObjectDelta<O> subtract(@NotNull Collection<ItemPath> paths);
-
-	// FIXME this is because of ShadowDiscriminatorObjectDelta
-	String debugName();
-
-	// FIXME this is because of ShadowDiscriminatorObjectDelta
-	String debugIdentifiers();
 
 	class FactorOutResultMulti<T extends Objectable> {
 		public final ObjectDelta<T> remainder;

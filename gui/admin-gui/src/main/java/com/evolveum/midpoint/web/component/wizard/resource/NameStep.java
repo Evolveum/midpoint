@@ -27,8 +27,8 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -449,7 +449,7 @@ public class NameStep extends WizardStep {
 				resourceType.setName(PolyStringType.fromOrig(resourceNameModel.getObject()));
 				resourceType.setDescription(resourceDescriptionModel.getObject());
 				resourceType.setConnectorRef(ObjectTypeUtil.createObjectRef(connector, prismContext));
-				delta = ObjectDeltaCreationUtil.createAddDelta(resource);
+				delta = DeltaFactory.Object.createAddDelta(resource);
 			} else {
 				PrismObject<ResourceType> oldResourceObject =
 						WebModelServiceUtils.loadObject(ResourceType.class, oid,

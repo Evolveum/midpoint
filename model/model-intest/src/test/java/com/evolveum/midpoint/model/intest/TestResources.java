@@ -1087,8 +1087,8 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 		PrismPropertyDefinition<String> propDef = prismContext.definitionFactory().createPropertyDefinition(IntegrationTestTools.RESOURCE_DUMMY_CONFIGURATION_USELESS_STRING_ELEMENT_NAME,
 				DOMUtil.XSD_STRING);
 		PropertyDelta<String> propDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(propPath, propDef, newValue);
-    	ObjectDelta<ResourceType> resourceDelta = ObjectDeltaCreationUtil
-			    .createModifyDelta(RESOURCE_DUMMY_OID, propDelta, ResourceType.class, prismContext);
+    	ObjectDelta<ResourceType> resourceDelta = prismContext.deltaFactory().object()
+			    .createModifyDelta(RESOURCE_DUMMY_OID, propDelta, ResourceType.class);
     	display("Resource delta", resourceDelta);
     	return resourceDelta;
     }
@@ -1176,8 +1176,8 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 
     	// GIVEN
     	ItemDelta<?,?> itemDelta = ant.createDelta(iteration);
-		ObjectDelta<ResourceType> objectDelta = ObjectDeltaCreationUtil
-				.createModifyDelta(RESOURCE_DUMMY_OID, itemDelta, ResourceType.class, prismContext);
+		ObjectDelta<ResourceType> objectDelta = prismContext.deltaFactory().object()
+				.createModifyDelta(RESOURCE_DUMMY_OID, itemDelta, ResourceType.class);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 
 		IntegrationTestTools.assertNoRepoCache();

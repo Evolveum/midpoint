@@ -27,7 +27,6 @@ import static org.testng.AssertJUnit.assertNull;
 import java.io.File;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -165,9 +164,9 @@ public class TestServiceAccounts extends AbstractStoryTest {
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		
-		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
-				serviceAccountShadowOid, getDummyResourceController().getAttributeFullnamePath(), 
-				prismContext, "Where's all the rum?");
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+				serviceAccountShadowOid, getDummyResourceController().getAttributeFullnamePath(),
+				"Where's all the rum?");
 
 		try {
 			// WHEN
@@ -214,8 +213,8 @@ public class TestServiceAccounts extends AbstractStoryTest {
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		
-		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createDeleteDelta(ShadowType.class,
-				serviceAccountShadowOid, prismContext);
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createDeleteDelta(ShadowType.class,
+				serviceAccountShadowOid);
 
 		try {
 			// WHEN
@@ -404,8 +403,8 @@ public class TestServiceAccounts extends AbstractStoryTest {
 		
 		PrismObject<ShadowType> account = prismContext.parseObject(ACCOUNT_BARELLIUM_DUMMY_FILE);
 
-        ObjectDelta<ServiceType> delta = ObjectDeltaCreationUtil
-		        .createEmptyModifyDelta(ServiceType.class, SERVICE_BARELLIUM_OID, prismContext);
+        ObjectDelta<ServiceType> delta = prismContext.deltaFactory().object()
+		        .createEmptyModifyDelta(ServiceType.class, SERVICE_BARELLIUM_OID);
         PrismReferenceValue accountRefVal = getPrismContext().itemFactory().createReferenceValue();
 		accountRefVal.setObject(account);
 		ReferenceDelta accountDelta = prismContext.deltaFactory().reference()

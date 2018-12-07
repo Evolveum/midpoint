@@ -26,7 +26,6 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.springframework.test.annotation.DirtiesContext;
@@ -536,8 +535,8 @@ public  class TestLdapDependency extends AbstractStoryTest {
 			PrismContainer<?> extension, ActivationType activationType, boolean add) throws SchemaException {
 		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 		modifications.add((createAssignmentModification(roleOid, refType, relation, extension, activationType, add)));
-		ObjectDelta<OrgType> userDelta = ObjectDeltaCreationUtil
-				.createModifyDelta(orgOid, modifications, OrgType.class, prismContext);
+		ObjectDelta<OrgType> userDelta = prismContext.deltaFactory().object()
+				.createModifyDelta(orgOid, modifications, OrgType.class);
 		return userDelta;
 	}
 

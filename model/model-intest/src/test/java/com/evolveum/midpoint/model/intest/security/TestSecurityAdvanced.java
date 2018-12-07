@@ -28,7 +28,6 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -2489,9 +2488,9 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         idOnlyPolicyException3.asPrismContainerValue().setId(existingPolicyException.asPrismContainerValue().getId());
         assertDeny("delete policyException (3)",
         		(task, result) -> {
-        			ObjectDelta<RoleType> roleDelta = ObjectDeltaCreationUtil
+        			ObjectDelta<RoleType> roleDelta = prismContext.deltaFactory().object()
 					        .createModificationDeleteContainer(RoleType.class, ROLE_EMPTY_OID,
-					    		RoleType.F_POLICY_EXCEPTION, prismContext, idOnlyPolicyException3);
+					    		RoleType.F_POLICY_EXCEPTION, idOnlyPolicyException3);
         			roleDelta.addModificationReplaceProperty(RoleType.F_DESCRIPTION, "whatever");
 					modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), null, task, result);
         		});

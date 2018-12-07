@@ -25,8 +25,8 @@ import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismValueCollectionsUtil;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -99,21 +99,23 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
 	}
 
 	protected void fillContextWithEmtptyAddUserDelta(LensContext<UserType> context, OperationResult result) throws SchemaException {
-		ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil.createEmptyAddDelta(UserType.class, null, prismContext);
+		ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
+				.createEmptyAddDelta(UserType.class, null
+				);
 		LensFocusContext<UserType> focusContext = context.getOrCreateFocusContext();
 		focusContext.setPrimaryDelta(userDelta);
 	}
 
 	protected void fillContextWithAddUserDelta(LensContext<UserType> context, PrismObject<UserType> user) throws SchemaException, EncryptionException {
 		CryptoUtil.encryptValues(protector, user);
-		ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil.createAddDelta(user);
+		ObjectDelta<UserType> userDelta = DeltaFactory.Object.createAddDelta(user);
 		LensFocusContext<UserType> focusContext = context.getOrCreateFocusContext();
 		focusContext.setPrimaryDelta(userDelta);
 	}
 
 	protected <F extends FocusType> void fillContextWithAddDelta(LensContext<F> context, PrismObject<F> object) throws SchemaException, EncryptionException {
 		CryptoUtil.encryptValues(protector, object);
-		ObjectDelta<F> addDelta = ObjectDeltaCreationUtil.createAddDelta(object);
+		ObjectDelta<F> addDelta = DeltaFactory.Object.createAddDelta(object);
 		LensFocusContext<F> focusContext = context.getOrCreateFocusContext();
 		focusContext.setPrimaryDelta(addDelta);
 	}
@@ -170,8 +172,9 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
 			LensContext<UserType> context, ItemPath propertyPath, Object... propertyValues)
 			throws SchemaException {
 		LensFocusContext<UserType> focusContext = context.getOrCreateFocusContext();
-		ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, focusContext
-				.getObjectOld().getOid(), propertyPath, prismContext, propertyValues);
+		ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
+				.createModificationReplaceProperty(UserType.class, focusContext
+				.getObjectOld().getOid(), propertyPath, propertyValues);
 		focusContext.addPrimaryDelta(userDelta);
 		return userDelta;
 	}
@@ -195,8 +198,8 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
 		account.trim();
 		account.checkConsistence();
 		LensFocusContext<F> focusContext = context.getOrCreateFocusContext();
-		ObjectDelta<F> userDelta = ObjectDeltaCreationUtil.createModificationAddReference(focusType, focusContext
-				.getObjectOld().getOid(), FocusType.F_LINK_REF, prismContext, account);
+		ObjectDelta<F> userDelta = prismContext.deltaFactory().object().createModificationAddReference(focusType, focusContext
+				.getObjectOld().getOid(), FocusType.F_LINK_REF, account);
 		focusContext.addPrimaryDelta(userDelta);
 		return userDelta;
 	}
@@ -205,8 +208,8 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
 			LensContext<UserType> context, String accountOid) throws SchemaException,
 			FileNotFoundException {
 		LensProjectionContext accountCtx = context.findProjectionContextByOid(accountOid);
-		ObjectDelta<ShadowType> deleteAccountDelta = ObjectDeltaCreationUtil.createDeleteDelta(ShadowType.class,
-				accountOid, prismContext);
+		ObjectDelta<ShadowType> deleteAccountDelta = prismContext.deltaFactory().object().createDeleteDelta(ShadowType.class,
+				accountOid);
 		accountCtx.addPrimaryDelta(deleteAccountDelta);
 		return deleteAccountDelta;
 	}
@@ -265,8 +268,8 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
 		RefinedObjectClassDefinition refinedAccountDefinition = accCtx.getCompositeObjectClassDefinition();
 		RefinedAttributeDefinition attrDef = refinedAccountDefinition.findAttributeDefinition(attrQName);
 		assertNotNull("No definition of attribute "+attrQName+" in account def "+refinedAccountDefinition, attrDef);
-		ObjectDelta<ShadowType> accountDelta = ObjectDeltaCreationUtil
-				.createEmptyModifyDelta(ShadowType.class, accountOid, prismContext);
+		ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object()
+				.createEmptyModifyDelta(ShadowType.class, accountOid);
 		PropertyDelta<T> attrDelta = prismContext.deltaFactory().property().create(attrPath, attrDef);
 		attrDelta.setValuesToReplace(PrismValueCollectionsUtil.createCollection(prismContext, propertyValues));
 		accountDelta.addModification(attrDelta);
@@ -285,7 +288,7 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
 
 	protected void makeImportSyncDelta(LensProjectionContext accContext) {
     	PrismObject<ShadowType> syncAccountToAdd = accContext.getObjectOld().clone();
-    	ObjectDelta<ShadowType> syncDelta = ObjectDeltaCreationUtil.createAddDelta(syncAccountToAdd);
+    	ObjectDelta<ShadowType> syncDelta = DeltaFactory.Object.createAddDelta(syncAccountToAdd);
     	accContext.setSyncDelta(syncDelta);
     }
 

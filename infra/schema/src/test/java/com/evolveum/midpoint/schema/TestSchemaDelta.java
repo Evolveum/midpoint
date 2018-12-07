@@ -18,9 +18,7 @@ package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.*;
 
-import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -29,7 +27,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -61,8 +58,9 @@ public class TestSchemaDelta extends AbstractSchemaTest {
     	// The value id is null
     	assignmentValue.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "jamalalicha patlama paprtala", getPrismContext());
 
-		ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil.createModificationAddContainer(UserType.class, USER_JACK_OID,
-				UserType.F_ASSIGNMENT, getPrismContext(), assignmentValue);
+		ObjectDelta<UserType> userDelta = getPrismContext().deltaFactory().object()
+				.createModificationAddContainer(UserType.class, USER_JACK_OID,
+				UserType.F_ASSIGNMENT, assignmentValue);
 
 		// WHEN
         userDelta.applyTo(user);
@@ -90,9 +88,9 @@ public class TestSchemaDelta extends AbstractSchemaTest {
     	// The value id is null
     	inducementValue.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "jamalalicha patlama paprtala", getPrismContext());
 
-		ObjectDelta<RoleType> roleDelta = ObjectDeltaCreationUtil
+		ObjectDelta<RoleType> roleDelta = getPrismContext().deltaFactory().object()
 				.createModificationAddContainer(RoleType.class, ROLE_CONSTRUCTION_OID,
-				RoleType.F_INDUCEMENT, getPrismContext(), inducementValue);
+				RoleType.F_INDUCEMENT, inducementValue);
 
 		// WHEN
         roleDelta.applyTo(role);
@@ -123,8 +121,9 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 		AssignmentType inducement = new AssignmentType();
 		inducement.setConstruction(construction);
 		inducement.setId(ROLE_CONSTRUCTION_INDUCEMENT_ID);
-        ObjectDelta<RoleType> roleDelta = ObjectDeltaCreationUtil.createModificationDeleteContainer(RoleType.class, ROLE_CONSTRUCTION_OID,
-        		RoleType.F_INDUCEMENT, getPrismContext(), inducement);
+        ObjectDelta<RoleType> roleDelta = getPrismContext().deltaFactory().object()
+		        .createModificationDeleteContainer(RoleType.class, ROLE_CONSTRUCTION_OID,
+        		RoleType.F_INDUCEMENT, inducement);
 
 		// WHEN
 		roleDelta.applyTo(role);
@@ -149,8 +148,9 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 		//Delta
 		AssignmentType inducement = new AssignmentType();
 		inducement.setId(ROLE_CONSTRUCTION_INDUCEMENT_ID);
-        ObjectDelta<RoleType> roleDelta = ObjectDeltaCreationUtil.createModificationDeleteContainer(RoleType.class, ROLE_CONSTRUCTION_OID,
-        		RoleType.F_INDUCEMENT, getPrismContext(), inducement);
+        ObjectDelta<RoleType> roleDelta = getPrismContext().deltaFactory().object()
+		        .createModificationDeleteContainer(RoleType.class, ROLE_CONSTRUCTION_OID,
+        		RoleType.F_INDUCEMENT, inducement);
 
 		// WHEN
 		roleDelta.applyTo(role);
@@ -177,8 +177,9 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 		//Delta
 		AssignmentType inducement = new AssignmentType();
 		inducement.setId(ROLE_CONSTRUCTION_INDUCEMENT_ID);
-        ObjectDelta<RoleType> roleDelta = ObjectDeltaCreationUtil.createModificationDeleteContainer(RoleType.class, ROLE_CONSTRUCTION_OID,
-        		RoleType.F_INDUCEMENT, getPrismContext(), inducement);
+        ObjectDelta<RoleType> roleDelta = getPrismContext().deltaFactory().object()
+		        .createModificationDeleteContainer(RoleType.class, ROLE_CONSTRUCTION_OID,
+        		RoleType.F_INDUCEMENT, inducement);
 
 		// WHEN
 	    ItemDeltaCollectionsUtil.applyTo(roleDelta.getModifications(), role);
@@ -207,10 +208,10 @@ public class TestSchemaDelta extends AbstractSchemaTest {
         resourceRef.setType(ObjectTypes.RESOURCE.getTypeQName());
 		construction.setResourceRef(resourceRef);
 		// No container ID
-        ObjectDelta<RoleType> roleDelta = ObjectDeltaCreationUtil
+        ObjectDelta<RoleType> roleDelta = getPrismContext().deltaFactory().object()
 		        .createModificationDeleteContainer(RoleType.class, ROLE_CONSTRUCTION_OID,
 		        ItemPath.create(RoleType.F_INDUCEMENT, ROLE_CONSTRUCTION_INDUCEMENT_ID, AssignmentType.F_CONSTRUCTION),
-        		getPrismContext(), construction);
+				        construction);
 
 		// WHEN
 		roleDelta.applyTo(role);
@@ -243,10 +244,10 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 		ActivationType activationType = new ActivationType();
 		activationType.setAdministrativeStatus(ActivationStatusType.ENABLED);
 		// No container ID
-        ObjectDelta<RoleType> roleDelta = ObjectDeltaCreationUtil
+        ObjectDelta<RoleType> roleDelta = getPrismContext().deltaFactory().object()
 		        .createModificationDeleteContainer(RoleType.class, ROLE_CONSTRUCTION_OID,
         		ItemPath.create(RoleType.F_INDUCEMENT, ROLE_CONSTRUCTION_INDUCEMENT_ID, AssignmentType.F_ACTIVATION),
-        		getPrismContext(), activationType);
+				        activationType);
 
 		// WHEN
 		roleDelta.applyTo(role);
@@ -278,9 +279,10 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 		ActivationType activationType = new ActivationType();
 		activationType.setAdministrativeStatus(ActivationStatusType.ENABLED);
 		// No container ID
-        ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil.createModificationDeleteContainer(UserType.class, USER_JACK_OID,
+        ObjectDelta<UserType> userDelta = getPrismContext().deltaFactory().object()
+		        .createModificationDeleteContainer(UserType.class, USER_JACK_OID,
         		ItemPath.create(UserType.F_ASSIGNMENT, USER_JACK_ASSIGNMENT_ID, AssignmentType.F_ACTIVATION),
-        		getPrismContext(), activationType);
+				        activationType);
 
 		// WHEN
 		userDelta.applyTo(user);
@@ -312,7 +314,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 
 		// GIVEN
 		PrismObject<UserType> user = PrismTestUtil.parseObject(USER_BILL_FILE);
-		ObjectDelta<UserType> addDelta = ObjectDeltaCreationUtil.createAddDelta(user);
+		ObjectDelta<UserType> addDelta = DeltaFactory.Object.createAddDelta(user);
 
 		// WHEN
 		PrismContainerDefinition<AssignmentType> assignmentDef = PrismTestUtil.getSchemaRegistry()
@@ -389,7 +391,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 		PrismObject<UserType> user = PrismTestUtil.parseObject(USER_BILL_FILE);
 		String OID = "user-oid-1";
 		user.setOid(OID);
-		ObjectDelta<UserType> addDelta = ObjectDeltaCreationUtil.createAddDelta(user);
+		ObjectDelta<UserType> addDelta = DeltaFactory.Object.createAddDelta(user);
 
 		// WHEN
 		ObjectDelta.FactorOutResultSingle<UserType> out = addDelta.factorOut(singleton(ItemPath.create(UserType.F_ASSIGNMENT)), true);
@@ -423,7 +425,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 		PrismObject<UserType> user = PrismTestUtil.parseObject(USER_BILL_FILE);
 		String OID = "user-oid-1";
 		user.setOid(OID);
-		ObjectDelta<UserType> addDelta = ObjectDeltaCreationUtil.createAddDelta(user);
+		ObjectDelta<UserType> addDelta = DeltaFactory.Object.createAddDelta(user);
 
 		// WHEN
 		ObjectDelta.FactorOutResultSingle<UserType> out = addDelta.factorOut(asList(ItemPath.create(UserType.F_GIVEN_NAME), ItemPath.create(UserType.F_FAMILY_NAME)), true);
@@ -451,7 +453,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 		PrismObject<UserType> user = PrismTestUtil.parseObject(USER_BILL_FILE);
 		String OID = "user-oid-1";
 		user.setOid(OID);
-		ObjectDelta<UserType> addDelta = ObjectDeltaCreationUtil.createAddDelta(user);
+		ObjectDelta<UserType> addDelta = DeltaFactory.Object.createAddDelta(user);
 
 		// WHEN
 		ObjectDelta.FactorOutResultMulti<UserType> out = addDelta.factorOutValues(ItemPath.create(UserType.F_ASSIGNMENT), true);

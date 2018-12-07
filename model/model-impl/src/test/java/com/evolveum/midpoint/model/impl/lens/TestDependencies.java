@@ -23,7 +23,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.ConnectException;
 
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -406,7 +405,8 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
 
 	private void setDelete(LensProjectionContext accountContext) {
 		accountContext.setPrimaryDelta(
-				ObjectDeltaCreationUtil.createDeleteDelta(ShadowType.class, accountContext.getOid(), prismContext));
+				prismContext.deltaFactory().object().createDeleteDelta(ShadowType.class, accountContext.getOid()
+				));
 	}
 
 	@Test

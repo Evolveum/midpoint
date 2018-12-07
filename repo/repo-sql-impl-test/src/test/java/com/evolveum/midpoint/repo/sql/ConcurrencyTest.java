@@ -317,7 +317,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
                 
                 ItemDelta delta2;
                 if (propertyDefinition2 instanceof PrismContainerDefinition) {
-                	delta2 = prismContext.deltaFactory().container().create(attribute2, (PrismContainerDefinition) propertyDefinition2, prismContext);
+                	delta2 = prismContext.deltaFactory().container().create(attribute2, (PrismContainerDefinition) propertyDefinition2);
                 } else {
                     delta2 = prismContext.deltaFactory().property().create(attribute2, (PrismPropertyDefinition) propertyDefinition2);
                 }
@@ -450,8 +450,9 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
                     .item(UserType.F_NAME).eqPoly(name).matchingOrig().build(),
                 (object, parentResult) -> {
                     LOGGER.info("Handling " + object + "...");
-                    ObjectDelta delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, object.getOid(),
-		                    UserType.F_FULL_NAME, prismContext, new PolyString(newFullName));
+                    ObjectDelta delta = prismContext.deltaFactory().object()
+		                    .createModificationReplaceProperty(UserType.class, object.getOid(),
+		                    UserType.F_FULL_NAME, new PolyString(newFullName));
                     try {
                         repositoryService.modifyObject(UserType.class,
                             object.getOid(),

@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventRecord;
 import com.evolveum.midpoint.repo.sql.util.SimpleTaskAdapter;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
@@ -218,7 +218,7 @@ public class CleanupTest extends BaseSQLRepoTest {
         name.setNorm("a" + i);
         user.setName(name);
 
-        delta.setObjectDelta(ObjectDeltaCreationUtil.createAddDelta(user.asPrismObject()));
+        delta.setObjectDelta(DeltaFactory.Object.createAddDelta(user.asPrismObject()));
 
         return delta;
     }

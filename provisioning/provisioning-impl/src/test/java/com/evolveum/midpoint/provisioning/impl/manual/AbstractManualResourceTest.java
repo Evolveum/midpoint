@@ -32,7 +32,6 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import org.springframework.test.annotation.DirtiesContext;
@@ -874,8 +873,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
-		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
-				ACCOUNT_WILL_OID, ItemPath.create(ShadowType.F_ATTRIBUTES, ATTR_FULLNAME_QNAME), prismContext,
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+				ACCOUNT_WILL_OID, ItemPath.create(ShadowType.F_ATTRIBUTES, ATTR_FULLNAME_QNAME),
 				ACCOUNT_WILL_FULLNAME_PIRATE);
 		display("ObjectDelta", delta);
 
@@ -1266,8 +1265,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
-		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
-				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, prismContext,
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
 				ActivationStatusType.DISABLED);
 		display("ObjectDelta", delta);
 
@@ -1350,8 +1349,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
-		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
-				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, prismContext,
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
 				ActivationStatusType.ENABLED);
 		ProtectedStringType ps = new ProtectedStringType();
 		ps.setClearValue(ACCOUNT_WILL_PASSWORD_NEW);

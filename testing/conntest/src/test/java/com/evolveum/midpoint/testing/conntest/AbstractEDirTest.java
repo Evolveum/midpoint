@@ -28,7 +28,6 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.directory.api.ldap.model.cursor.CursorException;
 import org.apache.directory.api.ldap.model.entry.Entry;
@@ -488,8 +487,8 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
-        ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil
-		        .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid, prismContext);
+        ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
+		        .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, "title");
         ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
         PropertyDelta<String> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
@@ -613,8 +612,8 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
-        ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil
-		        .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid, prismContext);
+        ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
+		        .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, "passwordAllowChange");
         ResourceAttributeDefinition<Boolean> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
         PropertyDelta<Boolean> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(

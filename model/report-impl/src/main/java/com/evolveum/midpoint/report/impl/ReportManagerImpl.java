@@ -28,7 +28,6 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.report.api.ReportManager;
@@ -353,8 +352,8 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
 				ReportNodeUtils.executeOperation(hostName, filename, icUrlPattern, "DELETE");
 			}
 
-			ObjectDelta<ReportOutputType> delta = ObjectDeltaCreationUtil
-					.createDeleteDelta(ReportOutputType.class, oid, prismContext);
+			ObjectDelta<ReportOutputType> delta = prismContext.deltaFactory().object()
+					.createDeleteDelta(ReportOutputType.class, oid);
 			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
 
 			modelService.executeChanges(deltas, null, task, result);

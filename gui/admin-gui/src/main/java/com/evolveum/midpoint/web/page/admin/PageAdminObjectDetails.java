@@ -22,7 +22,6 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.component.progress.ProgressPanel;
@@ -542,8 +541,8 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 					}
 
 					if (delta.isEmpty() && ModelExecuteOptions.isReconcile(options)) {
-						ObjectDelta emptyDelta = ObjectDeltaCreationUtil.createEmptyModifyDelta(getCompileTimeClass(),
-								objectWrapper.getObject().getOid(), getPrismContext());
+						ObjectDelta emptyDelta = getPrismContext().deltaFactory().object().createEmptyModifyDelta(getCompileTimeClass(),
+								objectWrapper.getObject().getOid());
 						deltas.add(emptyDelta);
 
 						Collection<SimpleValidationError> validationErrors = performCustomValidation(null, deltas);

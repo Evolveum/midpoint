@@ -32,7 +32,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.MiscUtil;
 
@@ -740,8 +739,8 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-        ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil
-		        .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid, prismContext);
+        ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
+		        .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, "title");
         ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
         PropertyDelta<String> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
@@ -780,8 +779,8 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-        ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil
-		        .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid, prismContext);
+        ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
+		        .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, "title");
         ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
         PropertyDelta<String> attrDelta = prismContext.deltaFactory().property().createModificationAddProperty(
@@ -820,8 +819,8 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-        ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil
-		        .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid, prismContext);
+        ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
+		        .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, "title");
         ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
         PropertyDelta<String> attrDelta = prismContext.deltaFactory().property().createModificationAddProperty(

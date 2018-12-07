@@ -21,7 +21,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,9 +35,6 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.util.MergeDeltas;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
@@ -132,7 +129,8 @@ public class ObjectMerger {
 		if (result.isSuccess()) {
 			// Do not delete the other object if the execution was not success.
 			// We might need to re-try the merge if it has failed and for that we need the right object.
-			ObjectDelta<O> deleteDelta = ObjectDeltaCreationUtil.createDeleteDelta(type, rightOid, prismContext);
+			ObjectDelta<O> deleteDelta = prismContext.deltaFactory().object().createDeleteDelta(type, rightOid
+			);
 			Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeleteDeltas = modelController.executeChanges(MiscSchemaUtil.createCollection(deleteDelta), null, task, result);
 			executedDeltas.addAll(executedDeleteDeltas);
 		}

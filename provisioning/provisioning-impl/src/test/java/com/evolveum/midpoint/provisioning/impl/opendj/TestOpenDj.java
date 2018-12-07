@@ -1614,8 +1614,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
-				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, prismContext, LockoutStatusType.NORMAL);
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, LockoutStatusType.NORMAL);
 
 		// WHEN
 		provisioningService.modifyObject(ShadowType.class, delta.getOid(),

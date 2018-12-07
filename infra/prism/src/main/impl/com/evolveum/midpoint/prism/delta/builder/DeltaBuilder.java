@@ -118,13 +118,15 @@ public class DeltaBuilder<T extends Containerable> implements S_ItemEntry, S_May
     // TODO fix this after ObjectDelta is changed to accept Containerable
     @Override
     public ObjectDelta asObjectDelta(String oid) {
-        return ObjectDeltaCreationUtil.createModifyDelta(oid, getAllDeltas(), (Class) objectClass, prismContext);
+        return prismContext.deltaFactory().object().createModifyDelta(oid, getAllDeltas(), (Class) objectClass
+        );
     }
 
     @Override
     public List<ObjectDelta<?>> asObjectDeltas(String oid) {
         return Collections.<ObjectDelta<?>>singletonList(
-		        ObjectDeltaCreationUtil.createModifyDelta(oid, getAllDeltas(), (Class) objectClass, prismContext));
+		        prismContext.deltaFactory().object().createModifyDelta(oid, getAllDeltas(), (Class) objectClass
+                ));
     }
 
     @Override

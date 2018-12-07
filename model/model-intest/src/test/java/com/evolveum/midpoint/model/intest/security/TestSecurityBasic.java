@@ -24,7 +24,6 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -1685,10 +1684,10 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         Task task = createTask(TEST_NAME);
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_RED_FILE);
         account.setOid(accountRedOid);
-        ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil
-		        .createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
+        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
+		        .createEmptyModifyDelta(UserType.class, USER_JACK_OID);
 		ReferenceDelta accountDelta = prismContext.deltaFactory().reference()
-				.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), account, prismContext);
+				.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), account);
 		userDelta.addModification(accountDelta);
 		executeChanges(userDelta, null, task, task.getResult());
 		
@@ -2282,8 +2281,8 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 				cval.setId(123L);
 				ContainerDelta<AssignmentType> assignmentDelta = assignmentDelta1;
 				modifications.add(assignmentDelta);
-				ObjectDelta<UserType> userDelta1 = ObjectDeltaCreationUtil
-						.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
+				ObjectDelta<UserType> userDelta1 = prismContext.deltaFactory().object()
+						.createModifyDelta(USER_JACK_OID, modifications, UserType.class);
 				ObjectDelta<UserType> userDelta = userDelta1;
 				Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 				modelService.executeChanges(deltas, null, task, result);

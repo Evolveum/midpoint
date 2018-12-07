@@ -19,8 +19,8 @@ package com.evolveum.midpoint.wf.impl.policy.other;
 import com.evolveum.midpoint.model.impl.controller.ModelOperationTaskHandler;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -166,7 +166,7 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
 				.assignment(ObjectTypeUtil.createAssignmentTo(roleRole51aOid, ObjectTypes.ROLE, prismContext))
 				.assignment(ObjectTypeUtil.createAssignmentTo(roleRole52aOid, ObjectTypes.ROLE, prismContext))
 				.assignment(ObjectTypeUtil.createAssignmentTo(roleRole53aOid, ObjectTypes.ROLE, prismContext));
-		executeChanges(ObjectDeltaCreationUtil.createAddDelta(alice.asPrismObject()), createExecuteImmediatelyAfterApproval(), task, result); // should start approval processes
+		executeChanges(DeltaFactory.Object.createAddDelta(alice.asPrismObject()), createExecuteImmediatelyAfterApproval(), task, result); // should start approval processes
 
 		display("Task after operation", task);
 		String rootTaskOid = wfTaskUtil.getRootTaskOid(task);

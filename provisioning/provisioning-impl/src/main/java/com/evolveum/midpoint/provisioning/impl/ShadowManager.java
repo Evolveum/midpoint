@@ -1059,7 +1059,7 @@ public class ShadowManager {
 			if (pendingOperation.asPrismContainerValue().getId() == null) {
 				// This must be a new operation
 				ContainerDelta<PendingOperationType> cdelta = prismContext.deltaFactory().container().create(
-						ShadowType.F_PENDING_OPERATION, containerDefinition, prismContext);
+						ShadowType.F_PENDING_OPERATION, containerDefinition);
 				cdelta.addValuesToAdd(pendingOperation.asPrismContainerValue());
 				shadowChanges.add(cdelta);
 			} else {

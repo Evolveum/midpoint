@@ -21,7 +21,6 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -113,8 +112,8 @@ public class TestDummyLimited extends TestDummy {
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
-		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
-				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, prismContext,
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
 				ActivationStatusType.DISABLED);
 		display("ObjectDelta", delta);
 		delta.checkConsistence();
@@ -160,8 +159,8 @@ public class TestDummyLimited extends TestDummy {
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
-		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationDeleteProperty(ShadowType.class,
-				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, prismContext,
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationDeleteProperty(ShadowType.class,
+				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
 				ActivationStatusType.DISABLED);
 		display("ObjectDelta", delta);
 		delta.checkConsistence();
@@ -204,8 +203,8 @@ public class TestDummyLimited extends TestDummy {
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
-		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
-				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, prismContext,
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
 				ActivationStatusType.ENABLED);
 		display("ObjectDelta", delta);
 		delta.checkConsistence();
@@ -255,8 +254,8 @@ public class TestDummyLimited extends TestDummy {
 
 		long millis = VALID_FROM_MILLIS;
 
-		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
-				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_VALID_FROM, prismContext,
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_VALID_FROM,
 				XmlTypeConverter.createXMLGregorianCalendar(VALID_FROM_MILLIS));
 		delta.checkConsistence();
 
@@ -301,8 +300,8 @@ public class TestDummyLimited extends TestDummy {
 
 		long millis = VALID_TO_MILLIS;
 
-		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
-				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_VALID_TO, prismContext,
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_VALID_TO,
 				XmlTypeConverter.createXMLGregorianCalendar(VALID_TO_MILLIS));
 		delta.checkConsistence();
 
@@ -345,8 +344,8 @@ public class TestDummyLimited extends TestDummy {
 		syncServiceMock.reset();
 
 
-		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationDeleteProperty(ShadowType.class,
-				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_VALID_TO, prismContext,
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationDeleteProperty(ShadowType.class,
+				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_VALID_TO,
 				XmlTypeConverter.createXMLGregorianCalendar(VALID_TO_MILLIS));
 		PrismObjectDefinition def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
 		PropertyDelta validFromDelta = prismContext.deltaFactory().property().createModificationDeleteProperty(SchemaConstants.PATH_ACTIVATION_VALID_FROM,
@@ -408,8 +407,8 @@ public class TestDummyLimited extends TestDummy {
 
 		syncServiceMock.reset();
 
-		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
-				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, prismContext,
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS,
 				LockoutStatusType.NORMAL);
 		display("ObjectDelta", delta);
 		delta.checkConsistence();

@@ -106,8 +106,8 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
 
         PrismObject<ShadowType> group = PrismTestUtil.parseObject(GROUP_PIRATE_DUMMY_FILE);
 
-        ObjectDelta<RoleType> roleDelta = ObjectDeltaCreationUtil
-		        .createEmptyModifyDelta(RoleType.class, ROLE_PIRATE_OID, prismContext);
+        ObjectDelta<RoleType> roleDelta = prismContext.deltaFactory().object()
+		        .createEmptyModifyDelta(RoleType.class, ROLE_PIRATE_OID);
         PrismReferenceValue linkRefVal = itemFactory().createReferenceValue();
 		linkRefVal.setObject(group);
 		ReferenceDelta groupDelta = prismContext.deltaFactory().reference().createModificationAdd(RoleType.F_LINK_REF, getRoleDefinition(), linkRefVal);
@@ -254,8 +254,8 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
 
         PrismObject<ShadowType> group = PrismTestUtil.parseObject(GROUP_PIRATE_DUMMY_FILE);
 
-        ObjectDelta<RoleType> roleDelta = ObjectDeltaCreationUtil
-		        .createEmptyModifyDelta(RoleType.class, ROLE_PIRATE_OID, prismContext);
+        ObjectDelta<RoleType> roleDelta = prismContext.deltaFactory().object()
+		        .createEmptyModifyDelta(RoleType.class, ROLE_PIRATE_OID);
         PrismReferenceValue linkRefVal = itemFactory().createReferenceValue();
         linkRefVal.setObject(group);
         ReferenceDelta groupDelta = prismContext.deltaFactory().reference().createModificationAdd(RoleType.F_LINK_REF, getRoleDefinition(), linkRefVal);
@@ -396,9 +396,9 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         PrismObject<ShadowType> group = PrismTestUtil.parseObject(GROUP_PIRATE_DUMMY_FILE);
         group.setOid(groupOid);
 
-        ObjectDelta<RoleType> roleDelta = ObjectDeltaCreationUtil
-		        .createEmptyModifyDelta(RoleType.class, ROLE_PIRATE_OID, prismContext);
-        ReferenceDelta linkDelta = prismContext.deltaFactory().reference().createModificationDelete(RoleType.F_LINK_REF, getUserDefinition(), group, prismContext);
+        ObjectDelta<RoleType> roleDelta = prismContext.deltaFactory().object()
+		        .createEmptyModifyDelta(RoleType.class, ROLE_PIRATE_OID);
+        ReferenceDelta linkDelta = prismContext.deltaFactory().reference().createModificationDelete(RoleType.F_LINK_REF, getUserDefinition(), group);
         roleDelta.addModification(linkDelta);
         Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(roleDelta);
 
@@ -452,7 +452,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         prepareTest(AssignmentPolicyEnforcementType.POSITIVE);
 
         PrismObject<ShadowType> group = PrismTestUtil.parseObject(GROUP_PIRATE_DUMMY_FILE);
-        ObjectDelta<ShadowType> groupDelta = ObjectDeltaCreationUtil.createAddDelta(group);
+        ObjectDelta<ShadowType> groupDelta = DeltaFactory.Object.createAddDelta(group);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(groupDelta);
 
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
@@ -508,8 +508,8 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
 
         prepareNotifications();
 
-        ObjectDelta<RoleType> roleDelta = ObjectDeltaCreationUtil
-		        .createEmptyModifyDelta(RoleType.class, ROLE_PIRATE_OID, prismContext);
+        ObjectDelta<RoleType> roleDelta = prismContext.deltaFactory().object()
+		        .createEmptyModifyDelta(RoleType.class, ROLE_PIRATE_OID);
         ReferenceDelta linkDelta = prismContext.deltaFactory().reference().createModificationAdd(RoleType.F_LINK_REF, getUserDefinition(), groupOid);
 		roleDelta.addModification(linkDelta);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(roleDelta);
@@ -561,8 +561,8 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
 
         PrismObject<ShadowType> group = PrismTestUtil.parseObject(GROUP_PIRATE_DUMMY_FILE);
 
-        ObjectDelta<RoleType> roleDelta = ObjectDeltaCreationUtil
-		        .createEmptyModifyDelta(RoleType.class, ROLE_PIRATE_OID, prismContext);
+        ObjectDelta<RoleType> roleDelta = prismContext.deltaFactory().object()
+		        .createEmptyModifyDelta(RoleType.class, ROLE_PIRATE_OID);
         PrismReferenceValue accountRefVal = itemFactory().createReferenceValue();
 		accountRefVal.setObject(group);
 		ReferenceDelta linkDelta = prismContext.deltaFactory().reference().createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), groupOid);
@@ -612,7 +612,8 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         OperationResult result = task.getResult();
         prepareTest(AssignmentPolicyEnforcementType.POSITIVE);
 
-        ObjectDelta<ShadowType> shadowDelta = ObjectDeltaCreationUtil.createDeleteDelta(ShadowType.class, groupOid, prismContext);
+        ObjectDelta<ShadowType> shadowDelta = prismContext.deltaFactory().object().createDeleteDelta(ShadowType.class, groupOid
+        );
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(shadowDelta);
 
 		// WHEN
@@ -715,9 +716,9 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         OperationResult result = task.getResult();
         prepareTest(AssignmentPolicyEnforcementType.FULL);
 
-        ObjectDelta<ShadowType> shadowDelta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
+        ObjectDelta<ShadowType> shadowDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
         		groupOid, dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION),
-                prismContext, "Bloody Pirates");
+		        "Bloody Pirates");
         shadowDelta.addModificationReplaceProperty(
                 dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_CC),
                 "MELEE123");
@@ -1004,8 +1005,8 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         OperationResult result = task.getResult();
         prepareTest(AssignmentPolicyEnforcementType.RELATIVE);
 
-        ObjectDelta<RoleType> roleDelta = ObjectDeltaCreationUtil.createModificationReplaceProperty(RoleType.class,
-                ROLE_PIRATE_OID, RoleType.F_DESCRIPTION, prismContext, ROLE_PIRATE_DESCRIPTION);
+        ObjectDelta<RoleType> roleDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(RoleType.class,
+                ROLE_PIRATE_OID, RoleType.F_DESCRIPTION, ROLE_PIRATE_DESCRIPTION);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(roleDelta);
 
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
@@ -1061,8 +1062,8 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         OperationResult result = task.getResult();
         prepareTest(AssignmentPolicyEnforcementType.FULL);
 
-        ObjectDelta<RoleType> roleDelta = ObjectDeltaCreationUtil.createModificationReplaceProperty(RoleType.class,
-                ROLE_PIRATE_OID, RoleType.F_NAME, prismContext, PrismTestUtil.createPolyString("Privateers"));
+        ObjectDelta<RoleType> roleDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(RoleType.class,
+                ROLE_PIRATE_OID, RoleType.F_NAME, PrismTestUtil.createPolyString("Privateers"));
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(roleDelta);
 
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
@@ -1124,7 +1125,8 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         OperationResult result = task.getResult();
         prepareTest(AssignmentPolicyEnforcementType.RELATIVE);
 
-        ObjectDelta<RoleType> roleDelta = ObjectDeltaCreationUtil.createDeleteDelta(RoleType.class, ROLE_PIRATE_OID, prismContext);
+        ObjectDelta<RoleType> roleDelta = prismContext.deltaFactory().object().createDeleteDelta(RoleType.class, ROLE_PIRATE_OID
+        );
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(roleDelta);
 
 		// WHEN
@@ -1179,7 +1181,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         prepareTest(AssignmentPolicyEnforcementType.RELATIVE);
 
         PrismObject<RoleType> role = PrismTestUtil.parseObject(ROLE_SWASHBUCKLER_FILE);
-        ObjectDelta<RoleType> roleDelta = ObjectDeltaCreationUtil.createAddDelta(role);
+        ObjectDelta<RoleType> roleDelta = DeltaFactory.Object.createAddDelta(role);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(roleDelta);
 
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();

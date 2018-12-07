@@ -18,7 +18,6 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -548,8 +547,9 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
         PrismReferenceValue prv = itemFactory().createReferenceValue(MODIFY_USER_DELETE_REF_OID);
         prv.setTargetType(OrgType.COMPLEX_TYPE);
-        ObjectDelta<UserType> delta = ObjectDeltaCreationUtil
-		        .createModificationDeleteReference(UserType.class, ELAINE_OID, UserType.F_PARENT_ORG_REF, prismContext, prv);
+        ObjectDelta<UserType> delta = prismContext.deltaFactory().object()
+		        .createModificationDeleteReference(UserType.class, ELAINE_OID, UserType.F_PARENT_ORG_REF,
+				        prv);
 
         repositoryService.modifyObject(UserType.class, ELAINE_OID, delta.getModifications(), opResult);
 

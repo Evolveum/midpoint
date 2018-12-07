@@ -23,7 +23,6 @@ import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.LabeledString;
 import com.evolveum.midpoint.schema.ProvisioningDiag;
@@ -492,8 +491,8 @@ public class PageAbout extends PageAdminConfiguration {
 				public Object run() {
 					Task task = createAnonymousTask(OPERATION_DELETE_TASK);
 					OperationResult result = new OperationResult(OPERATION_DELETE_TASK);
-					ObjectDelta<TaskType> delta = ObjectDeltaCreationUtil
-							.createDeleteDelta(TaskType.class, taskOidToRemoving, getPrismContext());
+					ObjectDelta<TaskType> delta = getPrismContext().deltaFactory().object()
+							.createDeleteDelta(TaskType.class, taskOidToRemoving);
 					Collection<ObjectDelta<? extends ObjectType>> deltaCollection = new ArrayList<ObjectDelta<? extends ObjectType>>() {{add(delta);}};
 					try {
 						getModelService().executeChanges(deltaCollection, null, task, result);

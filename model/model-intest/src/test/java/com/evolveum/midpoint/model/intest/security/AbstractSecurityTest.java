@@ -33,7 +33,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import org.springframework.test.annotation.DirtiesContext;
@@ -861,8 +860,8 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	protected <O extends ObjectType> void assertModifyDenyOptions(Class<O> type, String oid, ItemPath itemPath, ModelExecuteOptions options, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".assertModifyDeny");
         OperationResult result = task.getResult();
-        ObjectDelta<O> objectDelta = ObjectDeltaCreationUtil
-		        .createModificationReplaceProperty(type, oid, itemPath, prismContext, newRealValue);
+        ObjectDelta<O> objectDelta = prismContext.deltaFactory().object()
+		        .createModificationReplaceProperty(type, oid, itemPath, newRealValue);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
         try {
         	logAttempt("modify", type, oid, itemPath);
@@ -889,8 +888,8 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	protected <O extends ObjectType> void assertModifyAllowOptions(Class<O> type, String oid, ItemPath itemPath, ModelExecuteOptions options, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".assertModifyAllow");
         OperationResult result = task.getResult();
-        ObjectDelta<O> objectDelta = ObjectDeltaCreationUtil
-		        .createModificationReplaceProperty(type, oid, itemPath, prismContext, newRealValue);
+        ObjectDelta<O> objectDelta = prismContext.deltaFactory().object()
+		        .createModificationReplaceProperty(type, oid, itemPath, newRealValue);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 		try {
 			logAttempt("modify", type, oid, itemPath);

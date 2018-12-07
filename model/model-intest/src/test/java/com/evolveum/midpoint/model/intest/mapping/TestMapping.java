@@ -25,7 +25,6 @@ import java.util.UUID;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -342,9 +341,9 @@ public class TestMapping extends AbstractMappingTest {
         String accountOid = getSingleLinkOid(userJack);
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-        ObjectDelta<ShadowType> accountDelta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
+        ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
         		accountOid, getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
-        		prismContext, "Flying Dutchman");
+		        "Flying Dutchman");
         deltas.add(accountDelta);
 
 		// WHEN
@@ -388,9 +387,9 @@ public class TestMapping extends AbstractMappingTest {
         String accountOid = getSingleLinkOid(userJack);
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-        ObjectDelta<ShadowType> accountDelta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
-        		accountOid, getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
-        		prismContext);
+        ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+        		accountOid, getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME)
+        );
         deltas.add(accountDelta);
 
 		// WHEN
@@ -430,9 +429,9 @@ public class TestMapping extends AbstractMappingTest {
         String accountOid = getSingleLinkOid(userJack);
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-        ObjectDelta<ShadowType> accountDelta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
+        ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
         		accountOid, getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
-        		prismContext, "HMS Dauntless");
+		        "HMS Dauntless");
         deltas.add(accountDelta);
 
 		// WHEN
@@ -476,9 +475,9 @@ public class TestMapping extends AbstractMappingTest {
         String accountOid = getSingleLinkOid(userJack);
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-        ObjectDelta<ShadowType> accountDelta = ObjectDeltaCreationUtil.createModificationDeleteProperty(ShadowType.class,
+        ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object().createModificationDeleteProperty(ShadowType.class,
         		accountOid, getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
-        		prismContext, "HMS Dauntless");
+		        "HMS Dauntless");
         deltas.add(accountDelta);
 
 		// WHEN
@@ -1502,9 +1501,9 @@ public class TestMapping extends AbstractMappingTest {
         String accountOid = getSingleLinkOid(userJack);
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-        ObjectDelta<ShadowType> accountDelta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
+        ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
         		accountOid, getDummyResourceController(RESOURCE_DUMMY_RED_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
-        		prismContext, "Flying Dutchman");
+		        "Flying Dutchman");
         deltas.add(accountDelta);
 
 		// WHEN
@@ -1549,9 +1548,9 @@ public class TestMapping extends AbstractMappingTest {
         String accountOid = getSingleLinkOid(userJack);
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-        ObjectDelta<ShadowType> accountDelta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
-        		accountOid, getDummyResourceController(RESOURCE_DUMMY_RED_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
-        		prismContext);
+        ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+        		accountOid, getDummyResourceController(RESOURCE_DUMMY_RED_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME)
+        );
         deltas.add(accountDelta);
 
         // WHEN
@@ -1591,9 +1590,9 @@ public class TestMapping extends AbstractMappingTest {
         String accountOid = getSingleLinkOid(userJack);
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-        ObjectDelta<ShadowType> accountDelta = ObjectDeltaCreationUtil.createModificationDeleteProperty(ShadowType.class,
+        ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object().createModificationDeleteProperty(ShadowType.class,
         		accountOid, getDummyResourceController(RESOURCE_DUMMY_RED_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
-        		prismContext, "Black Pearl");
+		        "Black Pearl");
         deltas.add(accountDelta);
 
         // WHEN
@@ -1734,8 +1733,8 @@ public class TestMapping extends AbstractMappingTest {
         String acccountRedOid = getLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-        ObjectDelta<ShadowType> shadowDelta = ObjectDeltaCreationUtil
-		        .createDeleteDelta(ShadowType.class, acccountRedOid, prismContext);
+        ObjectDelta<ShadowType> shadowDelta = prismContext.deltaFactory().object()
+		        .createDeleteDelta(ShadowType.class, acccountRedOid);
         deltas.add(shadowDelta);
 
 		// WHEN
@@ -1905,9 +1904,9 @@ public class TestMapping extends AbstractMappingTest {
         String accountOid = getSingleLinkOid(userJack);
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-        ObjectDelta<ShadowType> accountDelta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
+        ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
         		accountOid, dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME),
-        		prismContext, "Davie Jones Locker");
+		        "Davie Jones Locker");
         deltas.add(accountDelta);
 
 		// WHEN
@@ -1953,9 +1952,9 @@ public class TestMapping extends AbstractMappingTest {
         String accountOid = getSingleLinkOid(userJack);
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-        ObjectDelta<ShadowType> accountDelta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
-        		accountOid, dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME),
-        		prismContext);
+        ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+        		accountOid, dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME)
+        );
         deltas.add(accountDelta);
 
         // WHEN
@@ -1995,9 +1994,9 @@ public class TestMapping extends AbstractMappingTest {
         String accountOid = getSingleLinkOid(userJack);
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-        ObjectDelta<ShadowType> accountDelta = ObjectDeltaCreationUtil.createModificationDeleteProperty(ShadowType.class,
+        ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object().createModificationDeleteProperty(ShadowType.class,
         		accountOid, dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME),
-        		prismContext, "Fountain of Youth");
+		        "Fountain of Youth");
         deltas.add(accountDelta);
 
         // WHEN

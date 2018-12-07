@@ -18,6 +18,7 @@ package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.DebugDumpable;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
@@ -162,6 +163,7 @@ public interface Definition extends Serializable, DebugDumpable, Revivable, Clon
 	 */
 	String getDocumentationPreview();
 
+	@Contract(pure = true)
 	PrismContext getPrismContext();
 
 	default SchemaRegistry getSchemaRegistry() {

@@ -1638,8 +1638,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			
 			ProtectedStringType newProtectedPassword = new ProtectedStringType();
 			newProtectedPassword.setClearValue(executeCredentialResetRequest.getUserEntry());
-			userDelta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, user.getOid(),
-					SchemaConstants.PATH_PASSWORD_VALUE, prismContext, newProtectedPassword);
+			userDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(UserType.class, user.getOid(),
+					SchemaConstants.PATH_PASSWORD_VALUE, newProtectedPassword);
 
 		}
 		
@@ -1704,7 +1704,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			for (Item<?, ?> extensionItem : extensionItems) {
 				newTask.asPrismObject().getExtension().add(extensionItem.clone());
 			}
-			ObjectDelta<TaskType> taskAddDelta = ObjectDeltaCreationUtil.createAddDelta(newTask.asPrismObject());
+			ObjectDelta<TaskType> taskAddDelta = DeltaFactory.Object.createAddDelta(newTask.asPrismObject());
 			modelService.executeChanges(singleton(taskAddDelta), null, opTask, result);
 			result.computeStatus();
 			return newTask;

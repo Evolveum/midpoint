@@ -22,10 +22,7 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
@@ -246,7 +243,9 @@ public abstract class ModifyAssignmentAspect<T extends ObjectType, F extends Foc
         for (ItemDeltaType itemDeltaType : approvalRequest.getItemToApprove().getModifications()) {
             modifications.add(DeltaConvertor.createItemDelta(itemDeltaType, focusClass, prismContext));
         }
-        return ObjectDeltaCreationUtil.createModifyDelta(objectOid, modifications, focusClass, ((LensContext) modelContext).getPrismContext());
+        return ((LensContext) modelContext).getPrismContext().deltaFactory().object()
+                .createModifyDelta(objectOid, modifications, focusClass
+                );
     }
     //endregion
 

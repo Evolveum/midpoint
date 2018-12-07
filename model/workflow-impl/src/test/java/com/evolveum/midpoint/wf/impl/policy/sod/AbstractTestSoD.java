@@ -18,7 +18,6 @@ package com.evolveum.midpoint.wf.impl.policy.sod;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -276,8 +275,9 @@ public class AbstractTestSoD extends AbstractWfTestPolicy {
 			@Override
 			protected ObjectDelta<UserType> getExpectedDelta0() {
 				//return ObjectDelta.createEmptyModifyDelta(UserType.class, jack.getOid(), prismContext);
-				return ObjectDeltaCreationUtil
-						.createModifyDelta(jack.getOid(), Collections.emptyList(), UserType.class, prismContext);
+				return prismContext.deltaFactory().object()
+						.createModifyDelta(jack.getOid(), Collections.emptyList(), UserType.class
+						);
 			}
 
 			@Override

@@ -518,8 +518,8 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 
 	private ReferenceDelta computeReferenceDeltas(ReferenceWrapper referenceWrapper, ItemPath containerPath) {
 		PrismReferenceDefinition propertyDef = referenceWrapper.getItemDefinition();
-		ReferenceDelta pDelta = propertyDef.getPrismContext().deltaFactory().reference().create(referenceWrapper.getPath(), propertyDef,
-				propertyDef.getPrismContext());
+		ReferenceDelta pDelta = propertyDef.getPrismContext().deltaFactory().reference().create(referenceWrapper.getPath(), propertyDef
+		);
 		addItemDelta(referenceWrapper, pDelta, propertyDef, containerPath.append(propertyDef.getName()));
 		return pDelta;
 	}

@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.web.page.login;
 
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
@@ -404,15 +404,15 @@ public class PageSelfRegistration extends PageAbstractFlow {
 		if (getOidFromParams(getPageParameters()) == null) {
 			LOGGER.trace("Preparing user ADD delta (new user registration)");
 			UserType userType = prepareUserToSave(task, result);
-			ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil.createAddDelta(userType.asPrismObject());
+			ObjectDelta<UserType> userDelta = DeltaFactory.Object.createAddDelta(userType.asPrismObject());
 			LOGGER.trace("Going to register user {}", userDelta);
 			return userDelta;
 		} else {
 			LOGGER.trace("Preparing user MODIFY delta (preregistered user registration)");
 			ObjectDelta<UserType> delta = null;
 			if (!isCustomFormDefined()) {
-				delta = ObjectDeltaCreationUtil.createEmptyModifyDelta(UserType.class,
-						getOidFromParams(getPageParameters()), getPrismContext());
+				delta = getPrismContext().deltaFactory().object().createEmptyModifyDelta(UserType.class,
+						getOidFromParams(getPageParameters()));
 				if (getSelfRegistrationConfiguration().getInitialLifecycleState() != null) {
 					delta.addModificationReplaceProperty(UserType.F_LIFECYCLE_STATE,
 							getSelfRegistrationConfiguration().getInitialLifecycleState());

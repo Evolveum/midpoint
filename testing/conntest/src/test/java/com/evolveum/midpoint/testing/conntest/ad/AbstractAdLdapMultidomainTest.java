@@ -31,7 +31,6 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.directory.api.ldap.model.cursor.CursorException;
 import org.apache.directory.api.ldap.model.entry.DefaultEntry;
@@ -845,8 +844,8 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-        ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil
-		        .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid, prismContext);
+        ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
+		        .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, "title");
         ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
         PropertyDelta<String> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
@@ -882,8 +881,8 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-        ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil
-		        .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid, prismContext);
+        ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
+		        .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, "showInAdvancedViewOnly");
         ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
         PropertyDelta<Boolean> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
@@ -923,8 +922,8 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
 
-        ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil
-		        .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid, prismContext);
+        ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
+		        .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, "showInAdvancedViewOnly");
         ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
         PropertyDelta<Boolean> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(

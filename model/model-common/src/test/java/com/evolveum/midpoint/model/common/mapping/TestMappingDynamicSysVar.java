@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
@@ -83,7 +83,7 @@ public class TestMappingDynamicSysVar {
     	PrismObject<UserType> user = evaluator.getUserOld();
     	user.asObjectable().getEmployeeType().clear();
     	user.asObjectable().getEmployeeType().add("CAPTAIN");
-    	ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createAddDelta(user);
+    	ObjectDelta<UserType> delta = DeltaFactory.Object.createAddDelta(user);
 
 		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				filename,
@@ -110,8 +110,9 @@ public class TestMappingDynamicSysVar {
     	System.out.println("===[ "+TEST_NAME+"]===");
 
     	// GIVEN
-    	ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-    			evaluator.toPath("employeeNumber"), evaluator.getPrismContext(), "666");
+    	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
+			    .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
+    			evaluator.toPath("employeeNumber"), "666");
 
 		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				"mapping-script-system-variables-condition-groovy.xml",
@@ -145,7 +146,7 @@ public class TestMappingDynamicSysVar {
     	PrismObject<UserType> user = evaluator.getUserOld();
     	user.asObjectable().getEmployeeType().clear();
     	user.asObjectable().getEmployeeType().add("SAILOR");
-    	ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createAddDelta(user);
+    	ObjectDelta<UserType> delta = DeltaFactory.Object.createAddDelta(user);
 
 		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				filename,
@@ -179,7 +180,7 @@ public class TestMappingDynamicSysVar {
     	PrismObject<UserType> user = evaluator.getUserOld();
     	PrismProperty<String> employeeTypeProperty = user.findProperty(UserType.F_EMPLOYEE_TYPE);
     	employeeTypeProperty.clear();
-    	ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createAddDelta(user);
+    	ObjectDelta<UserType> delta = DeltaFactory.Object.createAddDelta(user);
 
 		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				filename,
@@ -213,7 +214,7 @@ public class TestMappingDynamicSysVar {
 
     	PrismObject<UserType> user = evaluator.getUserOld();
     	user.removeProperty(UserType.F_EMPLOYEE_TYPE);
-    	ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createAddDelta(user);
+    	ObjectDelta<UserType> delta = DeltaFactory.Object.createAddDelta(user);
 
 		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				filename,
@@ -240,8 +241,9 @@ public class TestMappingDynamicSysVar {
     	final String TEST_NAME = "testScriptSystemVariablesConditionTrueToTrue";
     	System.out.println("===[ "+TEST_NAME+"]===");
 
-    	ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-    			evaluator.toPath("name"), evaluator.getPrismContext(), PrismTestUtil.createPolyString("Jack"));
+    	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
+			    .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
+    			evaluator.toPath("name"), PrismTestUtil.createPolyString("Jack"));
 
 		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				filename,
@@ -273,8 +275,9 @@ public class TestMappingDynamicSysVar {
     	final String TEST_NAME = "testScriptSystemVariablesConditionFalseToFalse";
     	System.out.println("===[ "+TEST_NAME+"]===");
 
-    	ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-    			evaluator.toPath("name"), evaluator.getPrismContext(), PrismTestUtil.createPolyString("Jack"));
+    	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
+			    .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
+    			evaluator.toPath("name"), PrismTestUtil.createPolyString("Jack"));
 
 		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				filename,
@@ -300,8 +303,9 @@ public class TestMappingDynamicSysVar {
     	final String TEST_NAME = "testScriptSystemVariablesConditionFalseToTrue";
     	System.out.println("===[ "+TEST_NAME+"]===");
 
-    	ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-    			evaluator.toPath("name"), evaluator.getPrismContext(), PrismTestUtil.createPolyString("Jack"));
+    	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
+			    .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
+    			evaluator.toPath("name"), PrismTestUtil.createPolyString("Jack"));
     	delta.addModificationAddProperty(evaluator.toPath("employeeType"), "CAPTAIN");
 
 		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
@@ -329,8 +333,9 @@ public class TestMappingDynamicSysVar {
     	final String TEST_NAME = "testScriptSystemVariablesConditionTrueToFalse";
     	System.out.println("===[ "+TEST_NAME+"]===");
 
-    	ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-    			evaluator.toPath("name"), evaluator.getPrismContext(), "Jack");
+    	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
+			    .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
+    			evaluator.toPath("name"), "Jack");
     	delta.addModificationDeleteProperty(evaluator.toPath("employeeType"), "CAPTAIN");
 
 		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
@@ -380,8 +385,9 @@ public class TestMappingDynamicSysVar {
     	System.out.println("===[ "+TEST_NAME+"]===");
 
     	// GIVEN
-    	ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-    			evaluator.toPath("name"), evaluator.getPrismContext(), PrismTestUtil.createPolyString("Jack"));
+    	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
+			    .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
+    			evaluator.toPath("name"), PrismTestUtil.createPolyString("Jack"));
 
 		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				filename,
@@ -420,8 +426,9 @@ public class TestMappingDynamicSysVar {
     	System.out.println("===[ "+TEST_NAME+"]===");
 
     	// GIVEN
-    	ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-    			evaluator.toPath("employeeNumber"), evaluator.getPrismContext());
+    	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
+			    .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
+    			evaluator.toPath("employeeNumber"));
 
 		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				filename,
@@ -471,8 +478,9 @@ public class TestMappingDynamicSysVar {
     	System.out.println("===[ "+TEST_NAME+"]===");
 
     	// GIVEN
-    	ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-    			evaluator.toPath("name"), evaluator.getPrismContext(), PrismTestUtil.createPolyString("Jack"));
+    	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
+			    .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
+    			evaluator.toPath("name"), PrismTestUtil.createPolyString("Jack"));
 
 		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				filename,
@@ -509,8 +517,9 @@ public class TestMappingDynamicSysVar {
     	System.out.println("===[ "+TEST_NAME+"]===");
 
     	// GIVEN
-    	ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-    			evaluator.toPath("employeeNumber"), evaluator.getPrismContext(), "666");
+    	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
+			    .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
+    			evaluator.toPath("employeeNumber"), "666");
 
 		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				filename,
@@ -538,8 +547,9 @@ public class TestMappingDynamicSysVar {
     	System.out.println("===[ "+TEST_NAME+"]===");
 
     	// GIVEN
-    	ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-    			UserType.F_ADDITIONAL_NAME, evaluator.getPrismContext(), "Captain Sparrow");
+    	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
+			    .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
+    			UserType.F_ADDITIONAL_NAME, "Captain Sparrow");
 
 		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				"mapping-npe.xml",
@@ -563,8 +573,9 @@ public class TestMappingDynamicSysVar {
     	System.out.println("===[ "+TEST_NAME+"]===");
 
     	// GIVEN
-    	ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-    			UserType.F_ADDITIONAL_NAME, evaluator.getPrismContext());
+    	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
+			    .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
+    			UserType.F_ADDITIONAL_NAME);
 
 		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
 				"mapping-npe.xml",
@@ -592,8 +603,9 @@ public class TestMappingDynamicSysVar {
     	System.out.println("===[ "+TEST_NAME+"]===");
 
     	// GIVEN
-    	ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-    			SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, evaluator.getPrismContext(), ActivationStatusType.DISABLED);
+    	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
+			    .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
+    			SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, ActivationStatusType.DISABLED);
 
 		MappingImpl<PrismPropertyValue<String>,PrismPropertyDefinition<String>> mapping = evaluator.createMapping(
 				"mapping-path-enum.xml",
@@ -739,8 +751,9 @@ public class TestMappingDynamicSysVar {
     	TestUtil.displayTestTitle(TEST_NAME);
 
     	// GIVEN
-    	ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-    			UserType.F_EMPLOYEE_TYPE, evaluator.getPrismContext(), "B");
+    	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
+			    .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
+    			UserType.F_EMPLOYEE_TYPE, "B");
 
 		MappingImpl<PrismPropertyValue<String>,PrismPropertyDefinition<String>> mapping = evaluator.createMapping(
 				"mapping-script-system-variables-employee-type.xml",
@@ -769,8 +782,9 @@ public class TestMappingDynamicSysVar {
     	TestUtil.displayTestTitle(TEST_NAME);
 
     	// GIVEN
-    	ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-    			UserType.F_EMPLOYEE_TYPE, evaluator.getPrismContext(), "B");
+    	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
+			    .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
+    			UserType.F_EMPLOYEE_TYPE, "B");
 
 		MappingImpl<PrismPropertyValue<String>,PrismPropertyDefinition<String>> mapping = evaluator.createMapping(
 				"mapping-script-system-variables-employee-type.xml",
@@ -799,8 +813,9 @@ public class TestMappingDynamicSysVar {
     	TestUtil.displayTestTitle(TEST_NAME);
 
     	// GIVEN
-    	ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-    			UserType.F_EMPLOYEE_TYPE, evaluator.getPrismContext(), "B");
+    	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
+			    .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
+    			UserType.F_EMPLOYEE_TYPE, "B");
 
 		MappingImpl<PrismPropertyValue<String>,PrismPropertyDefinition<String>> mapping = evaluator.createMapping(
 				"mapping-script-system-variables-employee-type.xml",
@@ -888,8 +903,9 @@ public class TestMappingDynamicSysVar {
     	TestUtil.displayTestTitle(TEST_NAME);
 
     	// GIVEN
-    	ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createModificationAddProperty(UserType.class, evaluator.USER_OLD_OID,
-    			UserType.F_EMPLOYEE_TYPE, evaluator.getPrismContext(), addVal);
+    	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
+			    .createModificationAddProperty(UserType.class, evaluator.USER_OLD_OID,
+    			UserType.F_EMPLOYEE_TYPE, addVal);
 
 		MappingImpl<PrismPropertyValue<String>,PrismPropertyDefinition<String>> mapping = evaluator.createMapping(
 				"mapping-script-system-variables-employee-type.xml",
@@ -980,8 +996,9 @@ public class TestMappingDynamicSysVar {
     	TestUtil.displayTestTitle(TEST_NAME);
 
     	// GIVEN
-    	ObjectDelta<UserType> delta = ObjectDeltaCreationUtil.createModificationDeleteProperty(UserType.class, evaluator.USER_OLD_OID,
-    			UserType.F_EMPLOYEE_TYPE, evaluator.getPrismContext(), delVal);
+    	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
+			    .createModificationDeleteProperty(UserType.class, evaluator.USER_OLD_OID,
+    			UserType.F_EMPLOYEE_TYPE, delVal);
 
 		MappingImpl<PrismPropertyValue<String>,PrismPropertyDefinition<String>> mapping = evaluator.createMapping(
 				"mapping-script-system-variables-employee-type.xml",

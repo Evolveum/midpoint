@@ -269,8 +269,8 @@ public class ChangeExecutor {
 					ObjectDelta<ShadowType> projDelta = projCtx.getExecutableDelta();
 
 					if (shouldBeDeleted(projDelta, projCtx)) {
-						projDelta = ObjectDeltaCreationUtil.createDeleteDelta(projCtx.getObjectTypeClass(), projCtx.getOid(),
-								prismContext);
+						projDelta = prismContext.deltaFactory().object().createDeleteDelta(projCtx.getObjectTypeClass(), projCtx.getOid()
+						);
 					}
 
 					if (projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
@@ -280,8 +280,8 @@ public class ChangeExecutor {
 								&& context.getOptions() != null
 								&& ModelExecuteOptions.isForce(context.getOptions())) {
 							if (projDelta == null) {
-								projDelta = ObjectDeltaCreationUtil.createDeleteDelta(projCtx.getObjectTypeClass(),
-										projCtx.getOid(), prismContext);
+								projDelta = prismContext.deltaFactory().object().createDeleteDelta(projCtx.getObjectTypeClass(),
+										projCtx.getOid());
 							}
 						}
 						if (projDelta != null && projDelta.isDelete()) {
@@ -760,8 +760,8 @@ public class ChangeExecutor {
 			throw t;
 		} finally {
 			result.computeStatus();
-			ObjectDelta<F> userDelta = ObjectDeltaCreationUtil.createModifyDelta(userOid, linkRefDeltas, typeClass,
-					prismContext);
+			ObjectDelta<F> userDelta = prismContext.deltaFactory().object().createModifyDelta(userOid, linkRefDeltas, typeClass
+			);
 			LensObjectDeltaOperation<F> userDeltaOp = LensUtil.createObjectDeltaOperation(userDelta, result,
 					focusContext, projCtx);
 			focusContext.addToExecutedDeltas(userDeltaOp);
@@ -804,8 +804,9 @@ public class ChangeExecutor {
 			throw t;
 		} finally {
 			result.computeStatus();
-			ObjectDelta<F> userDelta = ObjectDeltaCreationUtil.createModifyDelta(focusOid, accountRefDeltas, typeClass,
-					prismContext);
+			ObjectDelta<F> userDelta = prismContext.deltaFactory().object()
+					.createModifyDelta(focusOid, accountRefDeltas, typeClass
+					);
 			LensObjectDeltaOperation<F> userDeltaOp = LensUtil.createObjectDeltaOperation(userDelta, result,
 					focusContext, projCtx);
 			focusContext.addToExecutedDeltas(userDeltaOp);

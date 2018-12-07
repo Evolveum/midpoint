@@ -681,58 +681,58 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
 	@Override
 	@SafeVarargs
 	public final <X> PropertyDelta<X> addModificationReplaceProperty(ItemPath propertyPath, X... propertyValues) {
-		return ObjectDeltaCreationUtil.fillInModificationReplaceProperty(this, propertyPath, propertyValues);
+		return ObjectDeltaFactoryImpl.fillInModificationReplaceProperty(this, propertyPath, propertyValues);
 	}
 
 	@SafeVarargs
 	@Override
 	public final <X> void addModificationAddProperty(ItemPath propertyPath, X... propertyValues) {
-		ObjectDeltaCreationUtil.fillInModificationAddProperty(this, propertyPath, propertyValues);
+		ObjectDeltaFactoryImpl.fillInModificationAddProperty(this, propertyPath, propertyValues);
 	}
 
 	@Override
 	public <X> void addModificationDeleteProperty(ItemPath propertyPath, X... propertyValues) {
-		ObjectDeltaCreationUtil.fillInModificationDeleteProperty(this, propertyPath, propertyValues);
+		ObjectDeltaFactoryImpl.fillInModificationDeleteProperty(this, propertyPath, propertyValues);
 	}
 
 	@Override
 	public <C extends Containerable> void addModificationAddContainer(ItemPath propertyPath, C... containerables) throws SchemaException {
-		ObjectDeltaCreationUtil.fillInModificationAddContainer(this, propertyPath, prismContext, containerables);
+		ObjectDeltaFactoryImpl.fillInModificationAddContainer(this, propertyPath, prismContext, containerables);
 	}
 
 	@Override
 	public <C extends Containerable> void addModificationAddContainer(ItemPath propertyPath, PrismContainerValue<C>... containerValues) {
-		ObjectDeltaCreationUtil.fillInModificationAddContainer(this, propertyPath, containerValues);
+		ObjectDeltaFactoryImpl.fillInModificationAddContainer(this, propertyPath, containerValues);
 	}
 
 	@Override
 	public <C extends Containerable> void addModificationDeleteContainer(ItemPath propertyPath, C... containerables) throws SchemaException {
-		ObjectDeltaCreationUtil.fillInModificationDeleteContainer(this, propertyPath, prismContext, containerables);
+		ObjectDeltaFactoryImpl.fillInModificationDeleteContainer(this, propertyPath, prismContext, containerables);
 	}
 
 	@Override
 	public <C extends Containerable> void addModificationDeleteContainer(ItemPath propertyPath, PrismContainerValue<C>... containerValues) {
-		ObjectDeltaCreationUtil.fillInModificationDeleteContainer(this, propertyPath, containerValues);
+		ObjectDeltaFactoryImpl.fillInModificationDeleteContainer(this, propertyPath, containerValues);
 	}
 
 	@Override
 	public <C extends Containerable> void addModificationReplaceContainer(ItemPath propertyPath, PrismContainerValue<C>... containerValues) {
-		ObjectDeltaCreationUtil.fillInModificationReplaceContainer(this, propertyPath, containerValues);
+		ObjectDeltaFactoryImpl.fillInModificationReplaceContainer(this, propertyPath, containerValues);
 	}
 
 	@Override
 	public void addModificationAddReference(ItemPath path, PrismReferenceValue... refValues) {
-		ObjectDeltaCreationUtil.fillInModificationAddReference(this, path, refValues);
+		ObjectDeltaFactoryImpl.fillInModificationAddReference(this, path, refValues);
 	}
 
 	@Override
 	public void addModificationDeleteReference(ItemPath path, PrismReferenceValue... refValues) {
-		ObjectDeltaCreationUtil.fillInModificationDeleteReference(this, path, refValues);
+		ObjectDeltaFactoryImpl.fillInModificationDeleteReference(this, path, refValues);
 	}
 
 	@Override
 	public void addModificationReplaceReference(ItemPath path, PrismReferenceValue... refValues) {
-		ObjectDeltaCreationUtil.fillInModificationReplaceReference(this, path, refValues);
+		ObjectDeltaFactoryImpl.fillInModificationReplaceReference(this, path, refValues);
 	}
 
 	public ReferenceDelta createReferenceModification(ItemPath refPath) {
@@ -837,8 +837,7 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
 		}
     }
 
-    @Override
-	public void checkIdentifierConsistence(boolean requireOid) {
+	protected void checkIdentifierConsistence(boolean requireOid) {
 		if (requireOid && getOid() == null) {
     		throw new IllegalStateException("Null oid in delta "+this);
     	}
@@ -986,11 +985,11 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
         return sb.toString();
     }
 
-    public String debugName() {
+    protected String debugName() {
     	return "ObjectDelta";
     }
 
-    public String debugIdentifiers() {
+	protected String debugIdentifiers() {
     	return toDebugType()+":" + getOid();
     }
 

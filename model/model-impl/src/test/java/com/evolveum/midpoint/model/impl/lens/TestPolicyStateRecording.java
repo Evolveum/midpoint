@@ -35,7 +35,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.evolveum.midpoint.model.api.ModelExecuteOptions.createReconcile;
-import static com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil.createEmptyModifyDelta;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentTo;
 import static org.testng.AssertJUnit.assertEquals;
 
@@ -166,7 +165,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 
 		// WHEN
 		t.displayWhen();
-		executeChanges(createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext), createReconcile(), t.task, t.result);
+		executeChanges(prismContext.deltaFactory().object().createEmptyModifyDelta(UserType.class, USER_JACK_OID), createReconcile(), t.task, t.result);
 		//recomputeUser(USER_JACK_OID, t.task, t.result);
 
 		// THEN

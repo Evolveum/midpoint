@@ -152,7 +152,7 @@ public class AccCertUpdateHelper {
     //region ================================ Model and repository operations ================================
 
     void addObjectPreAuthorized(ObjectType objectType, Task task, OperationResult result) throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
-        ObjectDelta<? extends ObjectType> objectDelta = ObjectDeltaCreationUtil.createAddDelta(objectType.asPrismObject());
+        ObjectDelta<? extends ObjectType> objectDelta = DeltaFactory.Object.createAddDelta(objectType.asPrismObject());
         Collection<ObjectDeltaOperation<? extends ObjectType>> ops;
         try {
             ops = modelService.executeChanges(
@@ -181,7 +181,8 @@ public class AccCertUpdateHelper {
 	}
 
 	<T extends ObjectType> void modifyObjectPreAuthorized(Class<T> objectClass, String oid, Collection<ItemDelta<?,?>> itemDeltas, Task task, OperationResult result) throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
-        ObjectDelta<T> objectDelta = ObjectDeltaCreationUtil.createModifyDelta(oid, itemDeltas, objectClass, prismContext);
+        ObjectDelta<T> objectDelta = prismContext.deltaFactory().object().createModifyDelta(oid, itemDeltas, objectClass
+        );
         try {
             ModelExecuteOptions options = ModelExecuteOptions.createRaw().setPreAuthorized();
             modelService.executeChanges(Collections.singletonList(objectDelta), options, task, result);

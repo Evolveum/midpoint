@@ -20,7 +20,6 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
@@ -248,8 +247,9 @@ public class PageCertDefinitions extends PageAdminWorkItems {
 		try {
 			Task task = createSimpleTask(OPERATION_DELETE_DEFINITION);
 			ObjectDelta<AccessCertificationDefinitionType> delta =
-					ObjectDeltaCreationUtil.createDeleteDelta(AccessCertificationDefinitionType.class, definition.getOid(),
-							getPrismContext());
+					getPrismContext().deltaFactory().object()
+							.createDeleteDelta(AccessCertificationDefinitionType.class, definition.getOid()
+							);
 			getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task, result);
 		} catch (Exception ex) {
 			result.recordPartialError(createStringResource("PageCertDefinitions.message.deleteDefinitionPerformed.partialError").getString(), ex);

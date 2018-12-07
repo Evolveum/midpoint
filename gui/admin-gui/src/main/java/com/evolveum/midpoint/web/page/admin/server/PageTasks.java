@@ -25,7 +25,6 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
@@ -1471,7 +1470,8 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 
         for (NodeDto nodeDto : nodes) {
             Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-            deltas.add(ObjectDeltaCreationUtil.createDeleteDelta(NodeType.class, nodeDto.getOid(), getPrismContext()));
+            deltas.add(getPrismContext().deltaFactory().object().createDeleteDelta(NodeType.class, nodeDto.getOid()
+            ));
             try {
                 getModelService().executeChanges(deltas, null, task, result);
             } catch (Exception e) {     // until java 7 we do it in this way

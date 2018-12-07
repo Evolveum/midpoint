@@ -282,7 +282,7 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
         parentOrgRef.setType(OrgType.COMPLEX_TYPE);
         parentOrgRef.setOid(edge.getAncestor());
         ItemDelta removeParent = prismContext.deltaFactory().reference()
-                .createModificationDelete(OrgType.class, OrgType.F_PARENT_ORG_REF, prismContext, parentOrgRef.asReferenceValue());
+                .createModificationDelete(OrgType.class, OrgType.F_PARENT_ORG_REF, parentOrgRef.asReferenceValue());
         modifications.add(removeParent);
         repositoryService.modifyObject(OrgType.class, edge.getDescendant(), modifications, new OperationResult("dummy"));
         synchronized(this) {
@@ -295,7 +295,8 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
         ObjectReferenceType parentOrgRef = new ObjectReferenceType();
         parentOrgRef.setType(OrgType.COMPLEX_TYPE);
         parentOrgRef.setOid(edge.getAncestor());
-        ItemDelta itemDelta = prismContext.deltaFactory().reference().createModificationAdd(OrgType.class, OrgType.F_PARENT_ORG_REF, prismContext, parentOrgRef.asReferenceValue());
+        ItemDelta itemDelta = prismContext.deltaFactory().reference().createModificationAdd(OrgType.class, OrgType.F_PARENT_ORG_REF,
+		        parentOrgRef.asReferenceValue());
         modifications.add(itemDelta);
         repositoryService.modifyObject(OrgType.class, edge.getDescendant(), modifications, new OperationResult("dummy"));
         synchronized(this) {

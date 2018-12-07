@@ -423,7 +423,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 			if (!hasMetadata(cVal)) {
 				MetadataType metadataType = metadataManager.createCreateMetadata(context, now, task);
 				ContainerDelta<MetadataType> metadataDelta = prismContext.deltaFactory().container().createModificationAdd(
-						getCredentialsContainerPath().append(AbstractCredentialType.F_METADATA), UserType.class, prismContext,
+						getCredentialsContainerPath().append(AbstractCredentialType.F_METADATA), UserType.class,
 						metadataType);
 				context.getFocusContext().swallowToSecondaryDelta(metadataDelta);
 			}
@@ -538,7 +538,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 		entryType.setChangeTimestamp(now);
 	
 		ContainerDelta<PasswordHistoryEntryType> addHistoryDelta = prismContext.deltaFactory().container()
-				.createModificationAdd(SchemaConstants.PATH_CREDENTIALS_PASSWORD_HISTORY_ENTRY, UserType.class, prismContext, entryType.clone());
+				.createModificationAdd(SchemaConstants.PATH_CREDENTIALS_PASSWORD_HISTORY_ENTRY, UserType.class, entryType.clone());
 		context.getFocusContext().swallowToSecondaryDelta(addHistoryDelta);
 		
 		return 1;
@@ -564,7 +564,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 		while (historyEntryIterator.hasNext() && i < numberOfHistoryEntriesToDelete) {
 			ContainerDelta<PasswordHistoryEntryType> deleteHistoryDelta = prismContext.deltaFactory().container()
 					.createModificationDelete(SchemaConstants.PATH_CREDENTIALS_PASSWORD_HISTORY_ENTRY,
-							UserType.class, prismContext,
+							UserType.class,
 							historyEntryIterator.next().clone());
 			context.getFocusContext().swallowToSecondaryDelta(deleteHistoryDelta);
 			i++;

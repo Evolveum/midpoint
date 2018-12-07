@@ -242,8 +242,8 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         account.removeContainer(ShadowType.F_ATTRIBUTES);
         display("New account", account);
 
-        ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil
-		        .createEmptyModifyDelta(UserType.class, USER_GUYBRUSH_OID, prismContext);
+        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
+		        .createEmptyModifyDelta(UserType.class, USER_GUYBRUSH_OID);
         PrismReferenceValue accountRefVal = itemFactory().createReferenceValue();
 		accountRefVal.setObject(account);
 		ReferenceDelta accountDelta = prismContext.deltaFactory().reference()
@@ -351,8 +351,8 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		// Add to repo to avoid processing of the assignment
 		String userOtisOid = repositoryService.addObject(userOtis, null, result);
 
-        ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil.createModificationDeleteContainer(UserType.class,
-        		userOtisOid, UserType.F_ASSIGNMENT, prismContext, assignmentType.asPrismContainerValue().clone());
+        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createModificationDeleteContainer(UserType.class,
+        		userOtisOid, UserType.F_ASSIGNMENT, assignmentType.asPrismContainerValue().clone());
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
 		// WHEN
@@ -400,7 +400,8 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		// Add to repo to avoid processing of the assignment
 		String userNavigatorOid = repositoryService.addObject(userNavigator, null, result);
 
-        ObjectDelta<UserType> userDelta = ObjectDeltaCreationUtil.createDeleteDelta(UserType.class, userNavigatorOid, prismContext);
+        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createDeleteDelta(UserType.class, userNavigatorOid
+        );
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
 		// WHEN
@@ -755,7 +756,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
 
         PrismObject<UserType> user = PrismTestUtil.parseObject(USER_DEGHOULASH_FILE);
-        ObjectDelta<UserType> userAddDelta = ObjectDeltaCreationUtil.createAddDelta(user);
+        ObjectDelta<UserType> userAddDelta = DeltaFactory.Object.createAddDelta(user);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userAddDelta);
 
 		// WHEN
@@ -1561,7 +1562,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		OperationResult result = new OperationResult(TestStrangeCases.class.getName() + ".addBrokenAccountRef");
 
 		Collection<? extends ItemDelta> modifications = prismContext.deltaFactory().reference().createModificationAddCollection(UserType.class,
-				UserType.F_LINK_REF, prismContext, NON_EXISTENT_ACCOUNT_OID);
+				UserType.F_LINK_REF, NON_EXISTENT_ACCOUNT_OID);
 		repositoryService.modifyObject(UserType.class, userOid, modifications , result);
 
 		assertSuccess(result);

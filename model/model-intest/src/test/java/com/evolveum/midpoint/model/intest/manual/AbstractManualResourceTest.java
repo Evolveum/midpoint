@@ -35,7 +35,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCreationUtil;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.test.util.ParallelTestThread;
@@ -58,7 +57,6 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.intest.AbstractConfiguredModelIntegrationTest;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.CapabilityUtil;
@@ -1116,8 +1114,8 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		ObjectDelta<ShadowType> delta = ObjectDeltaCreationUtil.createModificationReplaceProperty(ShadowType.class,
-				accountWillOid, ItemPath.create(ShadowType.F_ATTRIBUTES, ATTR_FULLNAME_QNAME), prismContext,
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+				accountWillOid, ItemPath.create(ShadowType.F_ATTRIBUTES, ATTR_FULLNAME_QNAME),
 				USER_WILL_FULL_NAME_PIRATE);
 		display("ObjectDelta", delta);
 

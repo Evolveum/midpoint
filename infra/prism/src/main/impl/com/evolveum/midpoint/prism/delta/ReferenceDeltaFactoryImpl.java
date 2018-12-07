@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -32,7 +31,7 @@ public class ReferenceDeltaFactoryImpl implements DeltaFactory.Reference {
 
 	@NotNull private final PrismContext prismContext;
 
-	public ReferenceDeltaFactoryImpl(@NotNull PrismContext prismContext) {
+	ReferenceDeltaFactoryImpl(@NotNull PrismContext prismContext) {
 		this.prismContext = prismContext;
 	}
 
@@ -42,17 +41,12 @@ public class ReferenceDeltaFactoryImpl implements DeltaFactory.Reference {
 	}
 
 	@Override
-	public ReferenceDelta create(PrismReferenceDefinition itemDefinition, PrismContext prismContext) {
+	public ReferenceDelta create(PrismReferenceDefinition itemDefinition) {
 		return new ReferenceDeltaImpl(itemDefinition, prismContext);
 	}
 
 	@Override
-	public ReferenceDelta create(ItemPath propertyPath, PrismReferenceDefinition itemDefinition, PrismContext prismContext) {
-		return new ReferenceDeltaImpl(propertyPath, itemDefinition, prismContext);
-	}
-
-	@Override
-	public ReferenceDelta create(ItemPath parentPath, QName name, PrismReferenceDefinition itemDefinition, PrismContext prismContext) {
+	public ReferenceDelta create(ItemPath parentPath, QName name, PrismReferenceDefinition itemDefinition) {
 		return new ReferenceDeltaImpl(parentPath, name, itemDefinition, prismContext);
 	}
 
@@ -62,9 +56,9 @@ public class ReferenceDeltaFactoryImpl implements DeltaFactory.Reference {
 	}
 
 	@Override
-	public <O extends Objectable> ReferenceDelta createModificationReplace(ItemPath path, Class<O> type, PrismContext ctx,
+	public <O extends Objectable> ReferenceDelta createModificationReplace(ItemPath path, Class<O> type,
 			String oid) {
-		return ReferenceDeltaImpl.createModificationReplace(path, type, ctx, oid);
+		return ReferenceDeltaImpl.createModificationReplace(path, type, prismContext, oid);
 	}
 
 	@Override
@@ -104,34 +98,31 @@ public class ReferenceDeltaFactoryImpl implements DeltaFactory.Reference {
 	}
 
 	@Override
-	public <T extends Objectable> ReferenceDelta createModificationAdd(Class<T> type, ItemName refName, PrismContext prismContext,
+	public <T extends Objectable> ReferenceDelta createModificationAdd(Class<T> type, ItemName refName,
 			PrismReferenceValue refValue) {
 		return ReferenceDeltaImpl.createModificationAdd(type, refName, prismContext, refValue);
 	}
 
 	@Override
 	public <T extends Objectable> Collection<? extends ItemDelta> createModificationAddCollection(Class<T> type, ItemName refName,
-			PrismContext prismContext,
 			String targetOid) {
 		return ReferenceDeltaImpl.createModificationAddCollection(type, refName, prismContext, targetOid);
 	}
 
 	@Override
 	public <T extends Objectable> Collection<? extends ItemDelta> createModificationAddCollection(Class<T> type, ItemName refName,
-			PrismContext prismContext,
 			PrismReferenceValue refValue) {
 		return ReferenceDeltaImpl.createModificationAddCollection(type, refName, prismContext, refValue);
 	}
 
 	@Override
-	public <T extends Objectable> ReferenceDelta createModificationAdd(Class<T> type, ItemName refName, PrismContext prismContext,
+	public <T extends Objectable> ReferenceDelta createModificationAdd(Class<T> type, ItemName refName,
 			PrismObject<?> refTarget) {
 		return ReferenceDeltaImpl.createModificationAdd(type, refName, prismContext, refTarget);
 	}
 
 	@Override
 	public <T extends Objectable> Collection<? extends ItemDelta> createModificationAddCollection(Class<T> type, ItemName refName,
-			PrismContext prismContext,
 			PrismObject<?> refTarget) {
 		return ReferenceDeltaImpl.createModificationAddCollection(type, refName, prismContext, refTarget);
 	}
@@ -156,7 +147,7 @@ public class ReferenceDeltaFactoryImpl implements DeltaFactory.Reference {
 
 	@Override
 	public ReferenceDelta createModificationDelete(QName refName, PrismObjectDefinition<?> objectDefinition,
-			PrismObject<?> refTarget, PrismContext prismContext) {
+			PrismObject<?> refTarget) {
 		return ReferenceDeltaImpl.createModificationDelete(refName, objectDefinition, refTarget, prismContext);
 	}
 
@@ -167,27 +158,25 @@ public class ReferenceDeltaFactoryImpl implements DeltaFactory.Reference {
 	}
 
 	@Override
-	public <T extends Objectable> ReferenceDelta createModificationDelete(Class<T> type, QName refName, PrismContext prismContext,
+	public <T extends Objectable> ReferenceDelta createModificationDelete(Class<T> type, QName refName,
 			PrismReferenceValue refValue) {
 		return ReferenceDeltaImpl.createModificationDelete(type, refName, prismContext, refValue);
 	}
 
 	@Override
 	public <T extends Objectable> Collection<? extends ItemDelta> createModificationDeleteCollection(Class<T> type, QName refName,
-			PrismContext prismContext,
 			PrismReferenceValue refValue) {
 		return ReferenceDeltaImpl.createModificationDeleteCollection(type, refName, prismContext, refValue);
 	}
 
 	@Override
-	public <T extends Objectable> ReferenceDelta createModificationDelete(Class<T> type, QName refName, PrismContext prismContext,
+	public <T extends Objectable> ReferenceDelta createModificationDelete(Class<T> type, QName refName,
 			PrismObject<?> refTarget) {
 		return ReferenceDeltaImpl.createModificationDelete(type, refName, prismContext, refTarget);
 	}
 
 	@Override
 	public <T extends Objectable> Collection<? extends ItemDelta> createModificationDeleteCollection(Class<T> type, QName refName,
-			PrismContext prismContext,
 			PrismObject<?> refTarget) {
 		return ReferenceDeltaImpl.createModificationDeleteCollection(type, refName, prismContext, refTarget);
 	}

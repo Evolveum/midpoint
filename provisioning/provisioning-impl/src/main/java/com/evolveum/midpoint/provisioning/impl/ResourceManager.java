@@ -492,9 +492,9 @@ public class ResourceManager {
 		CachingMetadataType cachingMetadata = MiscSchemaUtil.generateCachingMetadata();
 		capType.setCachingMetadata(cachingMetadata);
 		
-		ObjectDelta<ResourceType> capabilitiesReplaceDelta = ObjectDeltaCreationUtil
+		ObjectDelta<ResourceType> capabilitiesReplaceDelta = prismContext.deltaFactory().object()
 				.createModificationReplaceContainer(ResourceType.class, connectorSpec.getResource().getOid(),
-				itemPath, prismContext, capType.asPrismContainerValue().clone());
+				itemPath, capType.asPrismContainerValue().clone());
 		
 		modifications.addAll(capabilitiesReplaceDelta.getModifications());
 	}
@@ -521,7 +521,7 @@ public class ResourceManager {
 		CachingMetadataType cachingMetadata = MiscSchemaUtil.generateCachingMetadata();
 
 		ContainerDelta<XmlSchemaType> schemaContainerDelta = prismContext.deltaFactory().container().createDelta(
-				ResourceType.F_SCHEMA, ResourceType.class, prismContext);
+				ResourceType.F_SCHEMA, ResourceType.class);
 		PrismContainerValue<XmlSchemaType> cval = prismContext.itemFactory().createContainerValue();
 		schemaContainerDelta.setValueToReplace(cval);
 		PrismProperty<CachingMetadataType> cachingMetadataProperty = cval
