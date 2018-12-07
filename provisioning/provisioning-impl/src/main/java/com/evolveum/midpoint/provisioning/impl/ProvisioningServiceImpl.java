@@ -1199,7 +1199,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		// Discover local connectors
 		Set<ConnectorType> discoverLocalConnectors = connectorManager.discoverLocalConnectors(result);
 		for (ConnectorType connector : discoverLocalConnectors) {
-			LOGGER.info("Discovered local connector {}" + ObjectTypeUtil.toShortString(connector));
+			LOGGER.info("Discovered local connector {}", ObjectTypeUtil.toShortString(connector));
 		}
 
 		result.computeStatus("Provisioning post-initialization failed");
