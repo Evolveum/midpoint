@@ -986,7 +986,7 @@ public class SearchTest extends BaseSQLRepoTest {
 
     @Test
     public void testArchetype() throws SchemaException {
-        ObjectQuery query = QueryBuilder.queryFor(ArchetypeType.class, prismContext)
+        ObjectQuery query = prismContext.queryFor(ArchetypeType.class)
                 .item(ObjectType.F_NAME).eqPoly("archetype1", "archetype1").matchingOrig()
                 .build();
         OperationResult result = new OperationResult("search");

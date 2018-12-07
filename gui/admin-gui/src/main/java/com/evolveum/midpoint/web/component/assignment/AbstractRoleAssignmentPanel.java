@@ -22,10 +22,8 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -37,10 +35,13 @@ import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueWrapper;
+import com.evolveum.midpoint.web.component.search.SearchFactory;
+import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.users.component.AllAssignmentsPreviewDialog;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -182,7 +183,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
     }
 
 	@Override
-	protected TableId getTableId() {
+	protected UserProfileStorage.TableId getTableId() {
 		return UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE;
 	}
 
@@ -199,9 +200,9 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         if (targetType != null){
             ObjectReferenceType ort = new ObjectReferenceType();
             ort.setType(getAssignmentType());
-            ort.setRelation(new QName(QueryConvertor.NS_QUERY, "any"));
-            targetRefFilter = (RefFilter) QueryBuilder.queryFor(AssignmentType.class, getParentPage().getPrismContext())
-                    .item(new ItemPath(AssignmentType.F_TARGET_REF))
+            ort.setRelation(new QName(PrismConstants.NS_QUERY, "any"));
+            targetRefFilter = (RefFilter) getParentPage().getPrismContext().queryFor(AssignmentType.class)
+                    .item(AssignmentType.F_TARGET_REF)
                     .ref(ort.asReferenceValue())
                     .buildFilter();
             targetRefFilter.setOidNullAsAny(true);

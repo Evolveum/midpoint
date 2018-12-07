@@ -21,7 +21,7 @@ import java.util.List;
 /**
  *
  */
-public interface ListXNode {
+public interface ListXNode extends XNode{
 	boolean isEmpty();
 	int size();
 	XNode get(int i);

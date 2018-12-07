@@ -42,4 +42,5 @@ public interface XNodeFactory {
 
 	MapXNode map(QName key, XNode value);
 
+	ListXNode list(XNode... nodes);
 }

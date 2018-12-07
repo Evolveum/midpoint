@@ -89,6 +89,13 @@ public class MiscellaneousImpl implements Miscellaneous {
 	}
 
 	@Override
+	public void addToListXNode(ListXNode list, XNode... nodes) {
+		for (XNode node : nodes) {
+			((ListXNodeImpl) list).add((XNodeImpl) node);
+		}
+	}
+
+	@Override
 	public <T> void parseProtectedType(ProtectedDataType<T> protectedType, MapXNode xmap, PrismContext prismContext, ParsingContext pc) throws SchemaException {
 		XNodeProcessorUtil.parseProtectedType(protectedType, (MapXNodeImpl) xmap, prismContext, pc);
 	}

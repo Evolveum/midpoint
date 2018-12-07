@@ -80,4 +80,13 @@ public class XNodeFactoryImpl implements XNodeFactory {
 		map.put(key, (XNodeImpl) value);
 		return map;
 	}
+
+	@Override
+	public ListXNode list(XNode... nodes) {
+		ListXNodeImpl list = new ListXNodeImpl();
+		for (XNode node : nodes) {
+			list.add((XNodeImpl) node);
+		}
+		return list;
+	}
 }

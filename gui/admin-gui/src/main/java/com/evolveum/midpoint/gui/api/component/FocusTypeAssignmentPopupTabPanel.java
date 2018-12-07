@@ -115,7 +115,7 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
 
     protected boolean isInducement(){
         ContainerWrapper<AssignmentType> assignmentWrapper = getAssignmentWrapperModel();
-        if (assignmentWrapper != null && assignmentWrapper.getPath() != null && assignmentWrapper.getPath().containsName(AbstractRoleType.F_INDUCEMENT)){
+        if (assignmentWrapper != null && assignmentWrapper.getPath() != null && assignmentWrapper.getPath().containsNameExactly(AbstractRoleType.F_INDUCEMENT)){
             return true;
         }
         return false;

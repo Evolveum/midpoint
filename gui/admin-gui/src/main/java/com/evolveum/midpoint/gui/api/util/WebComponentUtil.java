@@ -318,8 +318,7 @@ public final class WebComponentUtil {
 	}
 
 	public static ObjectFilter getShadowTypeFilterForAssociation(ConstructionType construction, String operation, PageBase pageBase){
-		ObjectQuery query = new ObjectQuery();
-
+		PrismContext prismContext = pageBase.getPrismContext();
 		if (construction == null){
 			return null;
 		}
@@ -328,6 +327,7 @@ public final class WebComponentUtil {
 			return null;
 		}
 
+		ObjectQuery query = prismContext.queryFactory().createObjectQuery();
 		try {
 			RefinedResourceSchema refinedResourceSchema = RefinedResourceSchema.getRefinedSchema(resource);
 			RefinedObjectClassDefinition oc = refinedResourceSchema.getRefinedDefinition(construction.getKind(), construction.getIntent());
@@ -337,16 +337,16 @@ public final class WebComponentUtil {
 			Collection<RefinedAssociationDefinition> refinedAssociationDefinitions = oc.getAssociationDefinitions();
 
 			for (RefinedAssociationDefinition refinedAssociationDefinition : refinedAssociationDefinitions) {
-				S_FilterEntryOrEmpty atomicFilter = QueryBuilder.queryFor(ShadowType.class, pageBase.getPrismContext());
+				S_FilterEntryOrEmpty atomicFilter = prismContext.queryFor(ShadowType.class);
 				List<ObjectFilter> orFilterClauses = new ArrayList<>();
 				refinedAssociationDefinition.getIntents()
 						.forEach(intent -> orFilterClauses.add(atomicFilter.item(ShadowType.F_INTENT).eq(intent).buildFilter()));
-				OrFilter intentFilter = OrFilter.createOr(orFilterClauses);
+				OrFilter intentFilter = prismContext.queryFactory().createOr(orFilterClauses);
 
 				AndFilter filter = (AndFilter) atomicFilter.item(ShadowType.F_KIND).eq(refinedAssociationDefinition.getKind()).and()
 						.item(ShadowType.F_RESOURCE_REF).ref(resource.getOid(), ResourceType.COMPLEX_TYPE).buildFilter();
 				filter.addCondition(intentFilter);
-				query.setFilter(filter);
+				query.setFilter(filter);        // TODO this overwrites existing filter (created in previous cycle iteration)... is it OK? [med]
 			}
 		} catch (SchemaException ex) {
 			LOGGER.error("Couldn't create query filter for ShadowType for association: {}" , ex.getErrorTypeMessage());
@@ -2997,22 +2997,24 @@ public final class WebComponentUtil {
 	}
 
 	public static ExpressionType getAssociationExpression(ContainerValueWrapper<AssignmentType> assignmentValueWrapper) {
-		return getAssociationExpression(assignmentValueWrapper, false);
+		return getAssociationExpression(assignmentValueWrapper, false, null);
 	}
 
 	public static ExpressionType getAssociationExpression(ContainerValueWrapper<AssignmentType> assignmentValueWrapper,
-														  boolean createIfNotExist){
+			boolean createIfNotExist, PrismContext prismContext) {
 		if (assignmentValueWrapper == null){
 			return null;
 		}
-
+		if (createIfNotExist && prismContext != null) {
+			throw new IllegalArgumentException("createIfNotExist is set but prismContext is null");
+		}
 		ContainerWrapper<ConstructionType> construction = assignmentValueWrapper
-				.findContainerWrapper(new ItemPath(assignmentValueWrapper.getPath(), AssignmentType.F_CONSTRUCTION));
+				.findContainerWrapper(ItemPath.create(assignmentValueWrapper.getPath(), AssignmentType.F_CONSTRUCTION));
 		if (construction == null){
 			return null;
 		}
 		ContainerWrapper<ResourceObjectAssociationType> association = construction
-				.findContainerWrapper(new ItemPath(construction.getPath(), ConstructionType.F_ASSOCIATION));
+				.findContainerWrapper(ItemPath.create(construction.getPath(), ConstructionType.F_ASSOCIATION));
 		if (association == null || association.getValues() == null || association.getValues().size() == 0){
 			return null;
 		}
@@ -3022,7 +3024,7 @@ public final class WebComponentUtil {
 		}
 		ContainerValueWrapper<ResourceObjectAssociationType> associationValueWrapper = association.getValues().get(0);
 		ContainerWrapper<MappingType> outbound =
-				associationValueWrapper.findContainerWrapper(new ItemPath(associationValueWrapper.getPath(), ResourceObjectAssociationType.F_OUTBOUND));
+				associationValueWrapper.findContainerWrapper(ItemPath.create(associationValueWrapper.getPath(), ResourceObjectAssociationType.F_OUTBOUND));
 
 		if (outbound == null){
 			return null;
@@ -3038,8 +3040,8 @@ public final class WebComponentUtil {
 		ExpressionType expression = expressionValues.get(0).getValue().getRealValue();
 		if (expression == null && createIfNotExist){
 			expression = new ExpressionType();
-			PrismPropertyValue<ExpressionType> exp = new PrismPropertyValue<>(expression);
-			ValueWrapper<ExpressionType> val = new ValueWrapper<>(expressionWrapper, exp);
+			PrismPropertyValue<ExpressionType> exp = prismContext.itemFactory().createPrismPropertyValue(expression);
+			ValueWrapper<ExpressionType> val = new ValueWrapper<>(expressionWrapper, exp, prismContext);
 			expressionValues.remove(0);
 			expressionValues.add(0, val);
 		}

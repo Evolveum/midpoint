@@ -20,6 +20,8 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.StringUtils;
@@ -222,4 +224,11 @@ public class PrismUtil {
 		};
 	}
 
+	public static void debugDumpWithLabel(StringBuilder sb, String label, Containerable cc, int indent) {
+		if (cc == null) {
+			DebugUtil.debugDumpWithLabel(sb, label, (DebugDumpable)null, indent);
+		} else {
+			DebugUtil.debugDumpWithLabel(sb, label, cc.asPrismContainerValue(), indent);
+		}
+	}
 }

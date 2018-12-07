@@ -199,7 +199,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 			@Override
 			public WebMarkupContainer createPanel(String panelId) {
 				SwitchAssignmentTypePanel panel = new SwitchAssignmentTypePanel(panelId,
-						new ContainerWrapperFromObjectWrapperModel<>(getObjectModel(), new ItemPath(AbstractRoleType.F_INDUCEMENT))){
+						new ContainerWrapperFromObjectWrapperModel<>(getObjectModel(), AbstractRoleType.F_INDUCEMENT)){
 					private static final long serialVersionUID = 1L;
 
 					@Override

@@ -161,7 +161,7 @@ public class ConstructionAssociationPanel<C extends Containerable, IW extends It
                                     PrismContainerValue associationValue = ((ContainerValueWrapper) associationValueWrapper).getContainerValue();
                                     ResourceObjectAssociationType assoc = (ResourceObjectAssociationType) associationValue.asContainerable();
                                     if (assoc == null || assoc.getOutbound() == null || assoc.getOutbound().getExpression() == null ||
-                                            ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression()) == null){
+                                            ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression()) == null) {
                                         return;
                                     }
                                     List<ObjectReferenceType> shadowRefList = ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression());
