@@ -1304,10 +1304,10 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 	        }
             result.computeStatus();
             if (result.isSuccess()) {
-                result.recordStatus(OperationResultStatus.SUCCESS, "The task(s) have been successfully resumed.");
+                result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("pageTasks.message.resumeTasksPerformed.success").getString());
             }
         } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
-            result.recordFatalError("Couldn't resume the task(s)", e);
+            result.recordFatalError(createStringResource("pageTasks.message.resumeTasksPerformed.fatalError").getString(), e);
         }
         showResult(result);
 
@@ -1577,7 +1577,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
                 result.recordStatus(OperationResultStatus.SUCCESS, result.getLastSubresult().getMessage());
             }
         } catch (RuntimeException | SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
-            result.recordFatalError("Couldn't synchronize tasks", e);
+            result.recordFatalError(createStringResource("pageTasks.message.synchronizeTasksPerformed.fatalError").getString(), e);
         }
         showResult(result);
 
@@ -1596,7 +1596,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 				result.recordStatus(OperationResultStatus.SUCCESS, result.getLastSubresult().getMessage());
 			}
 		} catch (RuntimeException | SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
-			result.recordFatalError("Couldn't synchronize tasks", e);
+			result.recordFatalError(createStringResource("pageTasks.message.synchronizeTasksPerformed.fatalError").getString(), e);
 		}
 		showResult(result);
 
@@ -1908,7 +1908,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             task.setExtensionContainerValue(SchemaConstants.MODEL_EXTENSION_CLEANUP_POLICIES, policies);
         } catch (SchemaException e) {
             LOGGER.error("Error dealing with schema (task {})", task, e);
-            launchResult.recordFatalError("Error dealing with schema", e);
+            launchResult.recordFatalError(createStringResource("pageTasks.message.deleteAllClosedTasksConfirmedPerformed.fatalError").getString(), e);
             throw new IllegalStateException("Error dealing with schema", e);
         }
 

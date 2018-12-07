@@ -1509,7 +1509,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 }
                 objectHolder.setValue(object);
             } catch (RuntimeException | SchemaException e) {
-                result.recordFatalError("Couldn't parse object: " + e.getMessage(), e);
+                result.recordFatalError(createStringResource("PageBase.message.parseObject.fatalError", e.getMessage()).getString(), e);
             }
             return;
         }
@@ -2170,7 +2170,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             result.recordSuccess();
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load deployment information", ex);
-            result.recordFatalError("Couldn't load deployment information.", ex);
+            result.recordFatalError(createStringResource("PageBase.message.loadDeploymentInformationType.fatalError").getString(), ex);
         }
         return deploymentInformationType;
     }
@@ -2319,7 +2319,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                         .getObject(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), null, task, result);
             });
         } catch (Throwable t) {
-            result.recordFatalError("Couldn't get administrator user: " + t.getMessage(), t);
+            result.recordFatalError(createStringResource("PageBase.message.getAdministratorPrivileged.fatalError", t.getMessage()).getString(), t);
             throw t;
         } finally {
             result.computeStatusIfUnknown();

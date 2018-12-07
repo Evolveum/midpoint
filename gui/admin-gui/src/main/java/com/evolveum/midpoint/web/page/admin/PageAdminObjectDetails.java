@@ -395,7 +395,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 				subResult.muteLastSubresultError();
 				LOGGER.debug("User {} does not have permission to read parent org unit {} (ignoring error)", task.getOwner().getName(), parentOrgRef.getOid());
 			} catch (Exception ex) {
-				subResult.recordWarning("Cannot load parent org " + parentOrgRef.getOid(), ex);
+				subResult.recordWarning(createStringResource("PageAdminObjectDetails.message.loadParentOrgs.warning", parentOrgRef.getOid()).getString(), ex);
 				LOGGER.warn("Cannot load parent org {}: {}", parentOrgRef.getOid(), ex.getMessage(), ex);
 			}
 

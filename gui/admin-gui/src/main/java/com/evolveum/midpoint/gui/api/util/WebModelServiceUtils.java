@@ -167,7 +167,7 @@ public class WebModelServiceUtils {
                 return references;
             }
         } catch (Exception e){
-            result.recordFatalError("Couldn't load password policies.", e);
+            result.recordFatalError(page.createStringResource("WebModelUtils.couldntLoadPasswordPolicies").getString(), e);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load password policies", e);
         }
 
@@ -195,7 +195,7 @@ public class WebModelServiceUtils {
 				| PolicyViolationException | SecurityViolationException e) {
 			// TODO Auto-generated catch block
 //			error(pageBase.getString("pageUsers.message.nothingSelected") + e.getMessage());
-			parentResult.recordFatalError("Couldn't run task " + e.getMessage(), e);
+			parentResult.recordFatalError(pageBase.createStringResource("WebModelUtils.couldntRunTask", e.getMessage()).getString(), e);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't run task " + e.getMessage(), e);
 			return null;
 		}
@@ -223,7 +223,7 @@ public class WebModelServiceUtils {
 //				| PolicyViolationException | SecurityViolationException e) {
 //			// TODO Auto-generated catch block
 ////			error(pageBase.getString("pageUsers.message.nothingSelected") + e.getMessage());
-//			parentResult.recordFatalError("Couldn't run task " + e.getMessage(), e);
+//			parentResult.recordFatalError(pageBase.createStringResource("WebModelUtils.couldntRunTask", e.getMessage()).getString(), e);
 //			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't run task " + e.getMessage(), e);
 //			return null;
 //		}
@@ -696,7 +696,7 @@ public class WebModelServiceUtils {
 	        modelInteractionService.assumePowerOfAttorney(donor, task, result);
 	    } catch (CommonException ex) {
 	        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't assume power of attorney", ex);
-	        result.recordFatalError("Couldn't assume power of attorney", ex);
+	        result.recordFatalError("WebModelUtils.couldntAssumePowerAttorney", ex);
 	    } finally {
 	    	result.computeStatusIfUnknown();
 	    }
@@ -710,7 +710,7 @@ public class WebModelServiceUtils {
 	        modelInteractionService.dropPowerOfAttorney(task, result);
 	    } catch (CommonException ex) {
 	        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't drop power of attorney", ex);
-	        result.recordFatalError("Couldn't drop power of attorney", ex);
+	        result.recordFatalError("WebModelUtils.couldntDropPowerAttorney", ex);
 	    } finally {
 	    	result.computeStatusIfUnknown();
 	    }
@@ -841,7 +841,7 @@ public class WebModelServiceUtils {
 			result.recordSuccess();
 		} catch (Exception ex) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load system configuration", ex);
-			result.recordFatalError("Couldn't load system configuration.", ex);
+			result.recordFatalError(pageBase.createStringResource("WebModelUtils.couldntLoadSystemConfiguration").getString(), ex);
 		}
 
 		if (!WebComponentUtil.isSuccessOrHandledError(result) || wrapper == null) {

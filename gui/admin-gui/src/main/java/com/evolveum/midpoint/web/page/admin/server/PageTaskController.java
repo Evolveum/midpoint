@@ -76,7 +76,7 @@ public class PageTaskController implements Serializable {
 			final TaskDto taskDto = parentPage.getTaskDto();
 			final PrismProperty property = taskDto.getExtensionProperty(SchemaConstants.SYNC_TOKEN);
 			if (property == null) {
-				result.recordWarning("Token is not present in this task.");		// should be treated by isVisible
+				result.recordWarning(parentPage.createStringResource("PageTaskController.message.deleteSyncTokenPerformed.warning").getString());		// should be treated by isVisible
 			} else {
 				final ObjectDelta<? extends ObjectType> delta =
 						DeltaBuilder.deltaFor(TaskType.class, parentPage.getPrismContext())
@@ -91,7 +91,7 @@ public class PageTaskController implements Serializable {
 			}
 		} catch (Exception ex) {
 			result.recomputeStatus();
-			result.recordFatalError("Couldn't delete sync token from the task.", ex);
+			result.recordFatalError(parentPage.createStringResource("PageTaskController.message.deleteSyncTokenPerformed.fatalError").getString(), ex);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete sync token from the task.", ex);
 		}
 		afterStateChangingOperation(target, result);

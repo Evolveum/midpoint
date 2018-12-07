@@ -103,6 +103,7 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
         LOGGER.debug("Loading roles which the current user has right to assign");
         Task task = getPageBase().createSimpleTask(OPERATION_LOAD_ASSIGNABLE_ROLES);
         OperationResult result = task.getResult();
+
         ObjectFilter filter = WebComponentUtil.getAssignableRolesFilter(getTargetedAssignemntObject(), (Class<AbstractRoleType>) getObjectType().getClassDefinition(),
                 isInducement() ? WebComponentUtil.AssignmentOrder.INDUCEMENT : WebComponentUtil.AssignmentOrder.ASSIGNMENT, result, task, getPageBase());
         if (query == null){

@@ -192,7 +192,7 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
 	        }
 //            result.recordSuccess();
         } catch (Exception ex) {
-	        result.recordFatalError("Couldn't list objects.", ex);
+        	result.recordFatalError(getPage().createStringResource("ObjectDataProvider.message.listObjects.fatalError").getString(), ex);
 	        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't list objects", ex);
 	        return handleNotSuccessOrHandledErrorInIterator(result);
         } finally {
@@ -247,7 +247,7 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
             Integer counted = getModel().countObjects(type, getQuery(), currentOptions, task, result);
             count = defaultIfNull(counted, 0);
         } catch (Exception ex) {
-            result.recordFatalError("Couldn't count objects.", ex);
+        	result.recordFatalError(getPage().createStringResource("ObjectDataProvider.message.countObjects.fatalError").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count objects", ex);
         } finally {
             result.computeStatusIfUnknown();
