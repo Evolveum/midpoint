@@ -189,14 +189,14 @@ public class PrismValuePanel2 extends BasePanel<ValueWrapper> {
 	private void initLayout() {
 		// container
 		WebMarkupContainer valueContainer = new WebMarkupContainer(ID_VALUE_CONTAINER);
-//		valueContainer.setOutputMarkupId(true);
-//		valueContainer.add(new AttributeModifier("class", valueCssClass));
-//		add(valueContainer);
+		valueContainer.setOutputMarkupId(true);
+		valueContainer.add(new AttributeModifier("class", valueCssClass));
+		add(valueContainer);
 //
-//		// feedback
-//		FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK);
-//		feedback.setOutputMarkupId(true);
-//		add(feedback);
+		// feedback
+		FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK);
+		feedback.setOutputMarkupId(true);
+		add(feedback);
 
 		// input
 		Panel input = createInputComponent(ID_INPUT, labelModel, form);
@@ -452,13 +452,17 @@ public class PrismValuePanel2 extends BasePanel<ValueWrapper> {
 		if (componentFactory != null) {
 			
 			PanelContext<T> panelCtx = new PanelContext<>();
+			panelCtx.setItemWrapper(valueWrapper.getItem());
 //			panelCtx.setBaseExpression(getBaseExpression(definition));
 //			panelCtx.setBaseModel((IModel) getModel());
 //			panelCtx.setPageBase(getPageBase());
 //			panelCtx.setItemDefinition(definition);
-//			panelCtx.setComponentId(id);
-//			panelCtx.setParentComponent(this);
-//			
+			panelCtx.setForm(form);
+			panelCtx.setRealValueModel(valueWrapper);
+			panelCtx.setFeedbackPanel(getFeedbackPanel());
+			panelCtx.setComponentId(id);
+			panelCtx.setParentComponent(this);
+			
 			try {
 			component = componentFactory.createPanel(panelCtx);
 			} catch (Throwable e) {
@@ -621,6 +625,8 @@ public class PrismValuePanel2 extends BasePanel<ValueWrapper> {
 		ListView parent = findParent(ListView.class);
 		target.add(parent.getParent());
 	}
-
-
+	
+	private FeedbackPanel getFeedbackPanel() {
+		return (FeedbackPanel) get(ID_FEEDBACK);
+	}
 }
