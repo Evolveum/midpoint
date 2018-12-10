@@ -27,6 +27,8 @@ import javax.xml.namespace.QName;
  */
 public interface PrimitiveXNode<T> extends XNode {
 
+	String getGuessedFormattedValue() throws SchemaException;
+
 	/**
 	 * Returns the value represented as string - in the best format that we can.
 	 * There is no guarantee that the returned value will be precise.

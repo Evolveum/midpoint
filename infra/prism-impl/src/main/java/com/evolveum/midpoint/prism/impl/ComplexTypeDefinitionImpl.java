@@ -376,23 +376,24 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
         clone.itemDefinitions.addAll(this.itemDefinitions);
 	}
 
-	public void replaceDefinition(QName propertyName, ItemDefinition newDefinition) {
+	@Override
+	public void replaceDefinition(QName itemName, ItemDefinition newDefinition) {
 		for (int i=0; i<itemDefinitions.size(); i++) {
 			ItemDefinition itemDef = itemDefinitions.get(i);
-			if (itemDef.getName().equals(propertyName)) {
+			if (itemDef.getName().equals(itemName)) {
 				if (!itemDef.getClass().isAssignableFrom(newDefinition.getClass())) {
 					throw new IllegalArgumentException("The provided definition of class "+newDefinition.getClass().getName()+" does not match existing definition of class "+itemDef.getClass().getName());
 				}
 				if (!itemDef.getName().equals(newDefinition.getName())) {
 					newDefinition = newDefinition.clone();
-					((ItemDefinitionImpl) newDefinition).setName(propertyName);
+					((ItemDefinitionImpl) newDefinition).setName(itemName);
 				}
 				// Make sure this is set, not add. set will keep correct ordering
 				itemDefinitions.set(i, newDefinition);
 				return;
 			}
 		}
-		throw new IllegalArgumentException("The definition with name "+propertyName+" was not found in complex type "+getTypeName());
+		throw new IllegalArgumentException("The definition with name "+ itemName +" was not found in complex type "+getTypeName());
 	}
 
 	@Override

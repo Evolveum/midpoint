@@ -392,4 +392,18 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
 		}
 	}
 
+	public boolean isParsed() {
+		return parsed != null;
+	}
+
+	// avoid if possible
+	public String guessFormattedValue() throws SchemaException {
+		if (parsed != null) {
+			return parsed.getRealValue().toString();    // todo reconsider this
+		} else if (xnode instanceof PrimitiveXNode) {
+			return ((PrimitiveXNode) xnode).getGuessedFormattedValue();
+		} else {
+			return null;
+		}
+	}
 }
