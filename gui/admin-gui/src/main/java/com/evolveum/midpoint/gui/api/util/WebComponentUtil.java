@@ -24,6 +24,7 @@ import java.lang.management.MemoryMXBean;
 import java.lang.management.RuntimeMXBean;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -98,6 +99,7 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.data.IDataProvider;
 import org.apache.wicket.model.*;
 import org.apache.wicket.request.IRequestHandler;
+import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.apache.wicket.util.visit.IVisit;
@@ -3104,5 +3106,27 @@ public final class WebComponentUtil {
 			LOGGER.error("Cannot load ArchetypeInteractionSpecification for object ", object, ex.getLocalizedMessage());
 		}
 		return spec;
+	}
+
+	public static IModel<String> getIconUrlModel(IconType icon){
+		if (icon == null || StringUtils.isEmpty(icon.getImageUrl())){
+			return Model.of();
+		}
+		String sUrl = icon.getImageUrl();
+		if (URI.create(sUrl).isAbsolute()) {
+			Model.of(sUrl);
+		}
+
+		List<String> segments = RequestCycle.get().getRequest().getUrl().getSegments();
+		if (segments == null || segments.size() < 2) {
+			Model.of(sUrl);
+		}
+
+		String prefix = StringUtils.repeat("../", segments.size() - 1);
+		if (!sUrl.startsWith("/")) {
+			return Model.of(prefix + sUrl);
+		}
+
+		return Model.of(StringUtils.left(prefix, prefix.length() - 1) + sUrl);
 	}
 }

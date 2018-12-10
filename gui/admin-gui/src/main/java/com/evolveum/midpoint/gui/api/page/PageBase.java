@@ -156,7 +156,6 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.*;
 import org.apache.wicket.protocol.http.WebSession;
-import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.CssResourceReference;
 import org.apache.wicket.resource.CoreLibrariesContributor;
@@ -171,8 +170,6 @@ import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
 import javax.xml.namespace.QName;
 
-import java.io.Serializable;
-import java.net.URI;
 import java.util.*;
 
 /**
@@ -966,32 +963,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             }
         };
 
-        ExternalImage customLogoImgSrc = new ExternalImage(ID_CUSTOM_LOGO_IMG_SRC, new Model<Serializable>() {
-
-            @Override
-            public String getObject() {
-                if (logoModel.getObject() == null || logoModel.getObject().getImageUrl() == null) {
-                    return null;
-                }
-
-                String sUrl = logoModel.getObject().getImageUrl();
-                if (URI.create(sUrl).isAbsolute()) {
-                    return sUrl;
-                }
-
-                List<String> segments = RequestCycle.get().getRequest().getUrl().getSegments();
-                if (segments == null || segments.size() < 2) {
-                    return sUrl;
-                }
-
-                String prefix = StringUtils.repeat("../", segments.size() - 1);
-                if (!sUrl.startsWith("/")) {
-                    return prefix + sUrl;
-                }
-
-                return StringUtils.left(prefix, prefix.length() - 1) + sUrl;
-            }
-        });
+        ExternalImage customLogoImgSrc = new ExternalImage(ID_CUSTOM_LOGO_IMG_SRC,
+                WebComponentUtil.getIconUrlModel(logoModel != null ? logoModel.getObject() : null));
         customLogoImgSrc.add(new VisibleBehaviour(() -> logoModel.getObject() != null && StringUtils.isEmpty(logoModel.getObject().getCssClass())));
 
         WebMarkupContainer customLogoImgCss = new WebMarkupContainer(ID_CUSTOM_LOGO_IMG_CSS);
