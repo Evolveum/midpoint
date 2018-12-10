@@ -24,7 +24,6 @@ import org.apache.wicket.request.component.IRequestablePage;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
@@ -136,7 +135,7 @@ public class PageDashboard extends PageAdminHome {
 				allCount = 0;
 			}
 
-			ObjectQuery queryDisabled = QueryBuilder.queryFor(type, getPrismContext())
+			ObjectQuery queryDisabled = getPrismContext().queryFor(type)
 					.item(FocusType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS).eq(ActivationStatusType.DISABLED)
 					.build();
 			Integer disabledCount = getModelService().countObjects(type, queryDisabled, null, task, result);
@@ -144,7 +143,7 @@ public class PageDashboard extends PageAdminHome {
 				disabledCount = 0;
 			}
 
-			ObjectQuery queryArchived = QueryBuilder.queryFor(type, getPrismContext())
+			ObjectQuery queryArchived = getPrismContext().queryFor(type)
 					.item(FocusType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS).eq(ActivationStatusType.ARCHIVED)
 					.build();
 			Integer archivedCount = getModelService().countObjects(type, queryArchived, null, task, result);
@@ -189,7 +188,7 @@ public class PageDashboard extends PageAdminHome {
 				totalCount = 0;
 			}
 
-			ObjectQuery query = QueryBuilder.queryFor(ResourceType.class, getPrismContext())
+			ObjectQuery query = getPrismContext().queryFor(ResourceType.class)
 					.item(ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS).eq(AvailabilityStatusType.UP)
 					.build();
 			Integer activeCount = getModelService().countObjects(ResourceType.class, query, null, task, result);
@@ -225,7 +224,7 @@ public class PageDashboard extends PageAdminHome {
 			if (totalCount == null) {
 				totalCount = 0;
 			}
-			ObjectQuery query = QueryBuilder.queryFor(TaskType.class, getPrismContext())
+			ObjectQuery query = getPrismContext().queryFor(TaskType.class)
 					.item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStatusType.RUNNABLE)
 					.build();
 			Integer activeCount = getModelService().countObjects(TaskType.class, query, null, task, result);

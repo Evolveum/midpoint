@@ -26,10 +26,7 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.RelationRegistry;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -48,7 +45,6 @@ import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvid
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
@@ -114,6 +110,19 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
     protected PrismContext getPrismContext() {
         MidPointApplication application = MidPointApplication.get();
         return application.getPrismContext();
+    }
+
+    protected SchemaHelper getSchemaHelper() {
+        MidPointApplication application = MidPointApplication.get();
+        return application.getSchemaHelper();
+    }
+
+    protected GetOperationOptionsBuilder getOperationOptionsBuilder() {
+        return getSchemaHelper().getOperationOptionsBuilder();
+    }
+
+    protected GetOperationOptionsBuilder getOperationOptionsBuilder(Collection<SelectorOptions<GetOperationOptions>> createFrom) {
+        return getSchemaHelper().getOperationOptionsBuilder().setFrom(createFrom);
     }
 
     protected RelationRegistry getRelationRegistry() {
@@ -207,16 +216,22 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         return def == null || def.getDistinct() != DistinctSearchOptionType.NEVER;      // change after other options are added
     }
 
-    protected Collection<SelectorOptions<GetOperationOptions>> createDefaultOptions() {
-        return getDistinctRelatedOptions();     // probably others in the future
+    protected GetOperationOptionsBuilder getDefaultOptionsBuilder() {
+        return getDistinctRelatedOptionsBuilder();  // probably others in the future
     }
 
-    @Nullable
+	@NotNull
     protected Collection<SelectorOptions<GetOperationOptions>> getDistinctRelatedOptions() {
+        return getDistinctRelatedOptionsBuilder().build();
+    }
+
+    @NotNull
+    protected GetOperationOptionsBuilder getDistinctRelatedOptionsBuilder() {
+        GetOperationOptionsBuilder builder = getOperationOptionsBuilder();
         if (isDistinct()) {
-            return SelectorOptions.createCollection(GetOperationOptions.createDistinct());
+            return builder.distinct();
         } else {
-            return null;
+            return builder;
         }
     }
 
@@ -235,7 +250,7 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         if (!isOrderingDisabled()) {
             orderings = createObjectOrderings(getSort());
         }
-        return ObjectPaging.createPaging(o, size, orderings);
+        return getPrismContext().queryFactory().createPaging(o, size, orderings);
     }
 
 	/**
@@ -246,8 +261,8 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
 		if (sortParam != null && sortParam.getProperty() != null) {
 			OrderDirection order = sortParam.isAscending() ? OrderDirection.ASCENDING : OrderDirection.DESCENDING;
 			return Collections.singletonList(
-					ObjectOrdering.createOrdering(
-							new ItemPath(new QName(SchemaConstantsGenerated.NS_COMMON, sortParam.getProperty())), order));
+					getPrismContext().queryFactory().createOrdering(
+                            ItemPath.create(new QName(SchemaConstantsGenerated.NS_COMMON, sortParam.getProperty())), order));
 		} else {
 			return Collections.emptyList();
 		}

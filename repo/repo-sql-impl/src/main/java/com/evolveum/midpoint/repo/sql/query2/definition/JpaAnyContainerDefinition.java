@@ -41,7 +41,7 @@ public class JpaAnyContainerDefinition extends JpaDataNodeDefinition {
 
     @Override
     public DataSearchResult nextLinkDefinition(ItemPath path, ItemDefinition itemDefinition, PrismContext prismContext) throws QueryException {
-        if (ItemPath.asSingleName(path) == null) {
+        if (!path.isSingleName()) {
             throw new QueryException("Couldn't resolve paths other than those in the form of single name in extension/attributes container: " + path);
         }
         if (itemDefinition == null) {

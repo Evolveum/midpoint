@@ -17,10 +17,7 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -175,7 +172,7 @@ public class ModifyUser extends BaseSQLRepoTest {
     @Test
     public void test050ModifyBigUser() throws Exception {
         PrismObjectDefinition def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-        PropertyDelta delta = PropertyDelta.createModificationReplaceProperty(ObjectType.F_DESCRIPTION, def,
+        PropertyDelta delta = prismContext.deltaFactory().property().createModificationReplaceProperty(ObjectType.F_DESCRIPTION, def,
                 "new description");
 
         repositoryService.modifyObject(UserType.class, userBigOid, Arrays.asList(delta), new OperationResult("asdf"));
@@ -199,14 +196,14 @@ public class ModifyUser extends BaseSQLRepoTest {
     @Test
     public void test100ModifyUserApproverMetadata() throws Exception {
         PrismObjectDefinition userDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-        ReferenceDelta delta1 = ReferenceDelta.createModificationAdd(
-                new ItemPath(UserType.F_METADATA, MetadataType.F_CREATE_APPROVER_REF),
+        ReferenceDelta delta1 = prismContext.deltaFactory().reference().createModificationAdd(
+                ItemPath.create(UserType.F_METADATA, MetadataType.F_CREATE_APPROVER_REF),
                 userDefinition,
-                new PrismReferenceValue("target-oid-1", UserType.COMPLEX_TYPE));
-        ReferenceDelta delta2 = ReferenceDelta.createModificationAdd(
-                new ItemPath(UserType.F_METADATA, MetadataType.F_MODIFY_APPROVER_REF),
+                itemFactory().createReferenceValue("target-oid-1", UserType.COMPLEX_TYPE));
+        ReferenceDelta delta2 = prismContext.deltaFactory().reference().createModificationAdd(
+                ItemPath.create(UserType.F_METADATA, MetadataType.F_MODIFY_APPROVER_REF),
                 userDefinition,
-                new PrismReferenceValue("target-oid-1", UserType.COMPLEX_TYPE));            // the same as in delta1
+                itemFactory().createReferenceValue("target-oid-1", UserType.COMPLEX_TYPE));            // the same as in delta1
 
         repositoryService.modifyObject(UserType.class, userOid, Arrays.asList(delta1, delta2), new OperationResult("asdf"));
     }

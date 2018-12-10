@@ -31,6 +31,9 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
+import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
@@ -52,24 +55,16 @@ import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -166,14 +161,14 @@ public class ObjectTemplateProcessor {
 		LOGGER.trace("Applying object template {} to {}, iteration {} ({}), phase {}",
 				objectTemplate, focusContext.getObjectNew(), iteration, iterationToken, phase);
 
-		Map<ItemPath,ObjectTemplateItemDefinitionType> itemDefinitionsMap = collectItemDefinitionsFromTemplate(objectTemplate, objectTemplateDesc, task, result);
+		Map<UniformItemPath,ObjectTemplateItemDefinitionType> itemDefinitionsMap = collectItemDefinitionsFromTemplate(objectTemplate, objectTemplateDesc, task, result);
 		focusContext.setItemDefinitionsMap(itemDefinitionsMap);
 
 		List<FocalMappingSpec> mappings = new ArrayList<>();
 		collectMappingsFromTemplate(context, mappings, objectTemplate, objectTemplateDesc, task, result);
 		collectAutoassignMappings(context, mappings, task, result);
 
-		Map<ItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> outputTripleMap = new HashMap<>();
+		Map<UniformItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> outputTripleMap = new HashMap<>();
 		XMLGregorianCalendar nextRecomputeTime = collectTripleFromMappings(context, mappings, phase, focusOdo, focusOdo.getNewObject(), 
 				outputTripleMap, iteration, iterationToken, now, task, result);
 		
@@ -204,7 +199,7 @@ public class ObjectTemplateProcessor {
 			if (!alreadyHasTrigger) {
 				PrismObjectDefinition<F> objectDefinition = focusContext.getObjectDefinition();
 				PrismContainerDefinition<TriggerType> triggerContDef = objectDefinition.findContainerDefinition(ObjectType.F_TRIGGER);
-				ContainerDelta<TriggerType> triggerDelta = triggerContDef.createEmptyDelta(new ItemPath(ObjectType.F_TRIGGER));
+				ContainerDelta<TriggerType> triggerDelta = triggerContDef.createEmptyDelta(ObjectType.F_TRIGGER);
 				PrismContainerValue<TriggerType> triggerCVal = triggerContDef.createValue();
 				triggerDelta.addValueToAdd(triggerCVal);
 				TriggerType triggerType = triggerCVal.asContainerable();
@@ -265,14 +260,14 @@ public class ObjectTemplateProcessor {
 		LOGGER.trace("Applying object mapping {} from {} to {}, iteration {} ({})",
 				objectMappingType, focusContext.getObjectNew(), target, iteration, iterationToken);
 
-		Map<ItemPath,ObjectTemplateItemDefinitionType> itemDefinitionsMap = collectItemDefinitionsFromTemplate(objectMappingType,
+		Map<UniformItemPath,ObjectTemplateItemDefinitionType> itemDefinitionsMap = collectItemDefinitionsFromTemplate(objectMappingType,
 				objectMappingType.toString(), task, result);
 		
 		List<FocalMappingSpec> mappings = new ArrayList<>();
 		collectMappingsFromTemplate(context, mappings, objectMappingType, objectMappingType.toString(), task, result);
 		collectAutoassignMappings(context, mappings, task, result);
 
-		Map<ItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> outputTripleMap = new HashMap<>();
+		Map<UniformItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> outputTripleMap = new HashMap<>();
 		XMLGregorianCalendar nextRecomputeTime = collectTripleFromMappings(context, mappings, ObjectTemplateMappingEvaluationPhaseType.BEFORE_ASSIGNMENTS, 
 				focusOdo, target, outputTripleMap, iteration, iterationToken, now, task, result);
 		
@@ -287,8 +282,8 @@ public class ObjectTemplateProcessor {
 	}
 
 	@NotNull
-	private Map<ItemPath, ObjectTemplateItemDefinitionType> collectItemDefinitionsFromTemplate(ObjectTemplateType objectTemplateType, String contextDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		Map<ItemPath, ObjectTemplateItemDefinitionType> definitions = new HashMap<>();
+	private Map<UniformItemPath, ObjectTemplateItemDefinitionType> collectItemDefinitionsFromTemplate(ObjectTemplateType objectTemplateType, String contextDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+		Map<UniformItemPath, ObjectTemplateItemDefinitionType> definitions = new HashMap<>();
 		if (objectTemplateType == null) {
 			return definitions;
 		}
@@ -304,8 +299,8 @@ public class ObjectTemplateProcessor {
 			}
 			LOGGER.trace("Including template {}", includeObject);
 			ObjectTemplateType includeObjectType = includeObject.asObjectable();
-			Map<ItemPath, ObjectTemplateItemDefinitionType> includedDefinitions = collectItemDefinitionsFromTemplate(includeObjectType, "include "+includeObject+" in "+objectTemplateType + " in " + contextDesc, task, result);
-			ItemPathUtil.putAllToMap(definitions, includedDefinitions);
+			Map<UniformItemPath, ObjectTemplateItemDefinitionType> includedDefinitions = collectItemDefinitionsFromTemplate(includeObjectType, "include "+includeObject+" in "+objectTemplateType + " in " + contextDesc, task, result);
+			ItemPathCollectionsUtil.putAllToMap(definitions, includedDefinitions);
 		}
 
 		// Process own definitions
@@ -313,13 +308,13 @@ public class ObjectTemplateProcessor {
 			if (def.getRef() == null) {
 				throw new IllegalStateException("Item definition with null ref in " + contextDesc);
 			}
-			ItemPathUtil.putToMap(definitions, def.getRef().getItemPath(), def);	// TODO check for incompatible overrides
+			ItemPathCollectionsUtil.putToMap(definitions, prismContext.toUniformPath(def.getRef()), def);	// TODO check for incompatible overrides
 		}
 		return definitions;
 	}
 	
-	<F extends FocusType, T extends FocusType> Collection<ItemDelta<?,?>> computeItemDeltas(Map<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> outputTripleMap,
-			@Nullable Map<ItemPath,ObjectTemplateItemDefinitionType> itemDefinitionsMap,
+	<F extends FocusType, T extends FocusType> Collection<ItemDelta<?,?>> computeItemDeltas(Map<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> outputTripleMap,
+			@Nullable Map<UniformItemPath,ObjectTemplateItemDefinitionType> itemDefinitionsMap,
 			ObjectDelta<T> targetObjectAPrioriDelta, PrismObject<T> targetObject, PrismObjectDefinition<F> focusDefinition, String contextDesc) throws ExpressionEvaluationException, PolicyViolationException, SchemaException {
 
 		Collection<ItemDelta<?,?>> itemDeltas = new ArrayList<>();
@@ -331,8 +326,8 @@ public class ObjectTemplateProcessor {
 			addUnchangedValues = true;
 		}
 
-		for (Entry<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> entry: outputTripleMap.entrySet()) {
-			ItemPath itemPath = entry.getKey();
+		for (Entry<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> entry: outputTripleMap.entrySet()) {
+			UniformItemPath itemPath = entry.getKey();
 			boolean isAssignment = SchemaConstants.PATH_ASSIGNMENT.equivalent(itemPath);
 			DeltaSetTriple<? extends ItemValueWithOrigin<?,?>> outputTriple = entry.getValue();
 			if (LOGGER.isTraceEnabled()) {
@@ -340,7 +335,7 @@ public class ObjectTemplateProcessor {
 			}
 			final ObjectTemplateItemDefinitionType templateItemDefinition;
 			if (itemDefinitionsMap != null) {
-				templateItemDefinition = ItemPathUtil.getFromMap(itemDefinitionsMap, itemPath);
+				templateItemDefinition = ItemPathCollectionsUtil.getFromMap(itemDefinitionsMap, itemPath);
 			} else {
 				templateItemDefinition = null;
 			}
@@ -499,8 +494,8 @@ public class ObjectTemplateProcessor {
 			return;
 		}
 		
-		ObjectQuery query = QueryBuilder
-				.queryFor(AbstractRoleType.class, prismContext)
+		ObjectQuery query = prismContext
+				.queryFor(AbstractRoleType.class)
 				.item(SchemaConstants.PATH_AUTOASSIGN_ENABLED)
 				.eq(true)
 				.build();
@@ -519,7 +514,7 @@ public class ObjectTemplateProcessor {
 			}
 			for (AutoassignMappingType autoMapping: focalAutoassignSpec.getMapping()) {
 				AutoassignMappingType mapping = autoMapping.clone();
-				setMappingTarget(mapping, SchemaConstants.PATH_ASSIGNMENT.asItemPathType());
+				setMappingTarget(mapping, new ItemPathType(SchemaConstants.PATH_ASSIGNMENT));
 				mappings.add(new FocalMappingSpec(mapping, role.asObjectable()));
 				LOGGER.trace("Collected autoassign mapping {} from {}", mapping.getName(), role);
 			}
@@ -609,7 +604,7 @@ public class ObjectTemplateProcessor {
 		ItemPath targetPath = mapping2.getTarget().getPath().getItemPath().stripVariableSegment();
 
 		for (VariableBindingDefinitionType source : mapping1.getSource()) {
-			ItemPath sourcePath = source.getPath() != null ? source.getPath().getItemPath() : null;
+			ItemPath sourcePath = prismContext.toPath(source.getPath());
 			if (sourcePath != null && stripFocusVariableSegment(sourcePath).equivalent(targetPath)) {
 				return true;
 			}
@@ -617,9 +612,10 @@ public class ObjectTemplateProcessor {
 		return false;
 	}
 
-	private <T extends Objectable> ItemPath stripFocusVariableSegment(ItemPath sourcePath) {
+	// must be Uniform because of the later use in outputTripleMap
+	private ItemPath stripFocusVariableSegment(ItemPath sourcePath) {
 		if (sourcePath.startsWithVariable()
-			&& QNameUtil.matchAny(ItemPath.getFirstName(sourcePath), MappingEvaluator.FOCUS_VARIABLE_NAMES)) {
+			&& QNameUtil.matchAny(sourcePath.firstToVariableNameOrNull(), MappingEvaluator.FOCUS_VARIABLE_NAMES)) {
 			return sourcePath.stripVariableSegment();
 		} else {
 			return sourcePath;
@@ -629,7 +625,7 @@ public class ObjectTemplateProcessor {
 	private <V extends PrismValue, D extends ItemDefinition, F extends FocusType, T extends FocusType> XMLGregorianCalendar collectTripleFromMappings(
 			LensContext<F> context, List<FocalMappingSpec> mappings, ObjectTemplateMappingEvaluationPhaseType phase,
 			ObjectDeltaObject<F> focusOdo, PrismObject<T> target,
-			Map<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> outputTripleMap,
+			Map<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> outputTripleMap,
 			int iteration, String iterationToken,
 			XMLGregorianCalendar now, Task task, OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
@@ -670,20 +666,21 @@ public class ObjectTemplateProcessor {
 
 			mappingEvaluator.evaluateMapping(mapping, context, task, result);
 
-			ItemPath itemPath = mapping.getOutputPath();
-            if (itemPath == null) {
+			ItemPath outputPath = mapping.getOutputPath();
+			if (outputPath == null) {
                 continue;
             }
-			DeltaSetTriple<ItemValueWithOrigin<V,D>> outputTriple = ItemValueWithOrigin.createOutputTriple(mapping);
+			DeltaSetTriple<ItemValueWithOrigin<V,D>> outputTriple = ItemValueWithOrigin.createOutputTriple(mapping, prismContext);
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Output triple for {}:\n{}", mapping, DebugUtil.debugDump(outputTriple));
 			}
 			if (outputTriple == null) {
 				continue;
 			}
-			DeltaSetTriple<ItemValueWithOrigin<V,D>> mapTriple = (DeltaSetTriple<ItemValueWithOrigin<V,D>>) outputTripleMap.get(itemPath);
+			UniformItemPath uniformItemPath = prismContext.toUniformPath(outputPath);
+			DeltaSetTriple<ItemValueWithOrigin<V,D>> mapTriple = (DeltaSetTriple<ItemValueWithOrigin<V,D>>) outputTripleMap.get(uniformItemPath);
 			if (mapTriple == null) {
-				outputTripleMap.put(itemPath, outputTriple);
+				outputTripleMap.put(uniformItemPath, outputTriple);
 			} else {
 				mapTriple.merge(outputTriple);
 			}
@@ -693,7 +690,7 @@ public class ObjectTemplateProcessor {
 	}
 
 	private <F extends FocusType> ObjectDeltaObject<F> getUpdatedFocusOdo(LensContext<F> context, ObjectDeltaObject<F> focusOdo,
-			Map<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> outputTripleMap,
+			Map<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> outputTripleMap,
 			FocalMappingSpec mappingSpec, String contextDesc) throws ExpressionEvaluationException,
 			PolicyViolationException, SchemaException {
 		ObjectDeltaObject<F> focusOdoCloned = null;
@@ -701,11 +698,11 @@ public class ObjectTemplateProcessor {
 			if (source.getPath() == null) {
 				continue;
 			}
-			ItemPath path = stripFocusVariableSegment(source.getPath().getItemPath());
+			ItemPath path = stripFocusVariableSegment(prismContext.toUniformPath(source.getPath()));
 			if (path.startsWithVariable()) {
 				continue;
 			}
-			DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>> triple = DeltaSetTriple.find(outputTripleMap, path);
+			DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>> triple = DeltaSetTripleUtil.find(outputTripleMap, path);
 			if (triple == null) {
 				continue;
 			}

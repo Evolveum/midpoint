@@ -18,7 +18,7 @@ package com.evolveum.midpoint.schema.util;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.schema.PrismSchemaImpl;
+import com.evolveum.midpoint.prism.impl.schema.PrismSchemaImpl;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -90,9 +90,9 @@ public class ConnectorTypeUtil {
 		PrismSchema connectorSchema = PrismSchemaImpl.parse(connectorSchemaElement, true, "schema for " + connectorType, prismContext);
 		// Make sure that the config container definition has a correct compile-time class name
 		QName configContainerQName = new QName(connectorType.getNamespace(), ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart());
-		PrismContainerDefinition<ConnectorConfigurationType> configurationContainerDefintion =
+		PrismContainerDefinition<ConnectorConfigurationType> configurationContainerDefinition =
 				connectorSchema.findContainerDefinitionByElementName(configContainerQName);
-		((PrismContainerDefinitionImpl) configurationContainerDefintion).setCompileTimeClass(ConnectorConfigurationType.class);
+		configurationContainerDefinition.toMutable().setCompileTimeClass(ConnectorConfigurationType.class);
 		return connectorSchema;
 	}
 

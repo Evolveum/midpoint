@@ -19,10 +19,7 @@ package com.evolveum.midpoint.schema.util;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -106,13 +103,8 @@ public class ValueDisplayUtil {
                         if (QNameUtil.match(SchemaConstants.C_VALUE, evaluator.getName()) && evaluator.getValue() instanceof RawType) {
                             RawType raw = (RawType) evaluator.getValue();
                             try {
-                                XNode xnode = raw.serializeToXNode();
-                                if (xnode instanceof PrimitiveXNode) {
-                                    sb.append(((PrimitiveXNode) xnode).getStringValue());
-                                } else {
-                                    sb.append("(a complex value)");
-                                }
-                            } catch (SchemaException e) {
+                                sb.append(raw.extractString("(a complex value)"));
+                            } catch (RuntimeException e) {
                                 sb.append("(an invalid value)");
                             }
                         } else {
@@ -141,12 +133,14 @@ public class ValueDisplayUtil {
             return "(binary data)";
         } else if (value instanceof RawType) {
             return PrettyPrinter.prettyPrint(value);
-        } else if (value instanceof ItemPathType && ((ItemPathType) value).getItemPath() != null) {
+        } else if (value instanceof ItemPathType) {
             ItemPath itemPath = ((ItemPathType) value).getItemPath();
             StringBuilder sb = new StringBuilder();
             itemPath.getSegments().forEach(segment -> {
-                if (segment instanceof NameItemPathSegment){
-                    sb.append(PrettyPrinter.prettyPrint(((NameItemPathSegment) segment).getName()));
+                if (ItemPath.isName(segment)) {
+                    sb.append(PrettyPrinter.prettyPrint(ItemPath.toName(segment)));
+                } else if (ItemPath.isVariable(segment)) {
+                    sb.append(PrettyPrinter.prettyPrint(ItemPath.toVariableName(segment)));
                 } else {
                     sb.append(segment.toString());
                 }
@@ -163,7 +157,7 @@ public class ValueDisplayUtil {
                     } else if (evaluator.getValue() instanceof SearchObjectExpressionEvaluatorType){
                         SearchObjectExpressionEvaluatorType evaluatorValue = (SearchObjectExpressionEvaluatorType)evaluator.getValue();
                         if (evaluatorValue.getFilter() != null) {
-                            DebugUtil.debugDumpMapMultiLine(expressionString, evaluatorValue.getFilter().getFilterClauseXNode(),
+                            DebugUtil.debugDumpMapMultiLine(expressionString, evaluatorValue.getFilter().getFilterClauseXNode().asMap(),
                                     0, false, null);
 
                             //TODO temporary hack: removing namespace part of the QName

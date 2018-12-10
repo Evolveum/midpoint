@@ -214,7 +214,7 @@ This is now the only account type that midPoint can work with. -->
 							<relativityMode>absolute</relativityMode>
 							<code>
 								dn = basic.getAttributeValues(projection, 'http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff', 'dn')
-								basic.determineLdapSingleAttributeValue(dn, 'cn', input)
+								basic.determineLdapSingleAttributeValue(dn, 'cn', (java.util.Collection) input)
 	 						</code>
 						</script>
 					</expression>
@@ -248,7 +248,7 @@ This is now the only account type that midPoint can work with. -->
 							<relativityMode>absolute</relativityMode>
 							<code>
 								dn = basic.getAttributeValues(projection, 'http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff', 'dn')
-								basic.determineLdapSingleAttributeValue(dn, 'sn', input)
+								basic.determineLdapSingleAttributeValue(dn, 'sn', (java.util.Collection) input)
  							</code>
 						</script>
 					</expression>
@@ -281,7 +281,7 @@ This is now the only account type that midPoint can work with. -->
 							<relativityMode>absolute</relativityMode>
  							<code>
  								dn = basic.getAttributeValues(projection, 'http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff', 'dn')
- 								basic.determineLdapSingleAttributeValue(dn, 'givenName', input)
+ 								basic.determineLdapSingleAttributeValue(dn, 'givenName', (java.util.Collection) input)
 							</code>
 						</script>
 					</expression>
@@ -335,7 +335,7 @@ This is now the only account type that midPoint can work with. -->
                 			<code>
                 				basic.determineLdapSingleAttributeValue(
                 					basic.getAttributeStringValues(account, 'http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff', 'dn'),
-                					'uid', input)
+                					'uid', (java.util.Collection) input)
                 			</code>
                 		</script>
                		</expression>

@@ -25,6 +25,7 @@ import com.evolveum.midpoint.model.impl.scripting.helpers.OperationsHelper;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -83,6 +84,6 @@ public class AddExecutor extends BaseActionExecutor {
     }
 
 	private ObjectDelta<? extends ObjectType> createAddDelta(ObjectType objectType) {
-        return ObjectDelta.createAddDelta(objectType.asPrismObject());
+        return DeltaFactory.Object.createAddDelta(objectType.asPrismObject());
     }
 }

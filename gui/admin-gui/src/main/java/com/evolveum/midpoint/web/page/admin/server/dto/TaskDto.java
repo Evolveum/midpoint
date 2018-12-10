@@ -33,6 +33,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
+import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -193,7 +194,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
         OperationResult thisOpResult = parentResult.createMinorSubresult(OPERATION_NEW);
         fillInHandlerUriList(taskType);
         fillInObjectRefAttributes(taskType, options, pageBase, opTask, thisOpResult);
-        fillInParentTaskAttributes(taskType, parentTaskBean, taskService, options, opTask, thisOpResult);
+        fillInParentTaskAttributes(taskType, parentTaskBean, taskService, options, pageBase, opTask, thisOpResult);
         fillInOperationResultAttributes(taskType);
         if (options.isRetrieveModelContext()) {
         	try {
@@ -330,7 +331,8 @@ public class TaskDto extends Selectable implements InlineMenuable {
 
     private void fillInParentTaskAttributes(TaskType taskType,
 		    TaskType parentTaskBean, TaskService taskService,
-		    TaskDtoProviderOptions options, Task operationTask, OperationResult thisOpResult) {
+		    TaskDtoProviderOptions options, PageBase pageBase, Task operationTask,
+		    OperationResult thisOpResult) {
         if (options.isGetTaskParent() && taskType.getParent() != null) {
             try {
             	// we assume parentTaskBean was fetched using correct options (see fillInChildren)
@@ -338,9 +340,10 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		            //System.out.println("Using cached task (id = " + taskType.getParent() + "); for " + taskType);
 		            parentTaskType = parentTaskBean;
 	            } else {
-		            Collection<SelectorOptions<GetOperationOptions>> getOptions =
-				            options.isRetrieveSiblings() ? createCollection(TaskType.F_SUBTASK, createRetrieve()) : null;
-		            //System.out.println("Calling taskService.getTaskByIdentifier(" + taskType.getParent() + "); for " + taskType);
+		            Collection<SelectorOptions<GetOperationOptions>> getOptions = pageBase.getOperationOptionsBuilder()
+				            .item(TaskType.F_SUBTASK)
+				            .retrieve(options.isRetrieveSiblings() ? RetrieveOption.INCLUDE : RetrieveOption.EXCLUDE)
+				            .build();
 		            parentTaskType = taskService.getTaskByIdentifier(taskType.getParent(), getOptions, operationTask, thisOpResult).asObjectable();
 	            }
             } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | ConfigurationException | ExpressionEvaluationException | CommunicationException e) {
@@ -941,11 +944,11 @@ public class TaskDto extends Selectable implements InlineMenuable {
     }
 
 	public PrismProperty getExtensionProperty(QName propertyName) {
-		return taskType.asPrismObject().findProperty(new ItemPath(TaskType.F_EXTENSION, propertyName));
+		return taskType.asPrismObject().findProperty(ItemPath.create(TaskType.F_EXTENSION, propertyName));
 	}
 
 	public <T> T getExtensionPropertyRealValue(QName propertyName, Class<T> clazz) {
-		PrismProperty<T> property = taskType.asPrismObject().findProperty(new ItemPath(TaskType.F_EXTENSION, propertyName));
+		PrismProperty<T> property = taskType.asPrismObject().findProperty(ItemPath.create(TaskType.F_EXTENSION, propertyName));
 		return property != null ? property.getRealValue() : null;
 	}
 
@@ -1306,7 +1309,9 @@ public class TaskDto extends Selectable implements InlineMenuable {
 
 	public void ensureSubtasksLoaded(PageBase pageBase) {
 		if (!subtasksLoaded) {
-			Collection<SelectorOptions<GetOperationOptions>> getOptions = createCollection(TaskType.F_SUBTASK, createRetrieve());
+			Collection<SelectorOptions<GetOperationOptions>> getOptions = pageBase.getOperationOptionsBuilder()
+					.item(TaskType.F_SUBTASK).retrieve()
+					.build();
 			Task opTask = pageBase.createAnonymousTask("ensureSubtasksLoaded");
 			try {
 				TaskType task = pageBase.getModelService()

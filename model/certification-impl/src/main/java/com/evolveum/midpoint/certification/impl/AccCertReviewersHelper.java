@@ -24,7 +24,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -135,8 +134,8 @@ public class AccCertReviewersHelper {
 		Collection<PrismReferenceValue> references = ObjectQueryUtil
 				.createReferences(abstractRoleRef.getOid(), RelationKindType.MEMBER, relationRegistry);
 		ObjectQuery query = references.isEmpty()
-				? QueryBuilder.queryFor(UserType.class, prismContext).none().build()
-				: QueryBuilder.queryFor(UserType.class, prismContext)
+				? prismContext.queryFor(UserType.class).none().build()
+				: prismContext.queryFor(UserType.class)
 					.item(UserType.F_ROLE_MEMBERSHIP_REF).ref(references)
 					.build();
 		return repositoryService.searchObjects(UserType.class, query, null, result).stream()
@@ -228,11 +227,11 @@ public class AccCertReviewersHelper {
 		// TODO in theory, we could look for approvers/owners of UserType, right?
 		Collection<PrismReferenceValue> values = new ArrayList<>();
 		for (QName relation : relationRegistry.getAllRelationsFor(relationKind)) {
-			PrismReferenceValue ref = new PrismReferenceValue(role.getOid());
+			PrismReferenceValue ref = prismContext.itemFactory().createReferenceValue(role.getOid());
 			ref.setRelation(relation);
 			values.add(ref);
 		}
-		ObjectQuery query = QueryBuilder.queryFor(FocusType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(FocusType.class)
 				.item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(values)
 				.build();
 		List<PrismObject<FocusType>> assignees = repositoryService.searchObjects(FocusType.class, query, null, result);

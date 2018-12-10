@@ -42,9 +42,7 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 
@@ -71,8 +69,9 @@ public class PolicyRulesPanel extends AssignmentPanel {
             @Override
             public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> cellItem, String componentId,
                                      final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-            	ContainerWrapper<PolicyRuleType> policyRuleWrapper = rowModel.getObject().findContainerWrapper(new ItemPath(rowModel.getObject().getPath(), AssignmentType.F_POLICY_RULE));
-            	ContainerWrapper<PolicyConstraintsType> wrapper = policyRuleWrapper.getValues().get(0).findContainerWrapper(new ItemPath(policyRuleWrapper.getPath(), PolicyRuleType.F_POLICY_CONSTRAINTS));
+            	ContainerWrapper<PolicyRuleType> policyRuleWrapper = rowModel.getObject().findContainerWrapper(
+			            ItemPath.create(rowModel.getObject().getPath(), AssignmentType.F_POLICY_RULE));
+            	ContainerWrapper<PolicyConstraintsType> wrapper = policyRuleWrapper.getValues().get(0).findContainerWrapper(ItemPath.create(policyRuleWrapper.getPath(), PolicyRuleType.F_POLICY_CONSTRAINTS));
             	String constraints = PolicyRuleTypeUtil.toShortString(wrapper.getValues().get(0).getContainerValue().getValue());
                 cellItem.add(new MultiLineLabel(componentId, Model.of(constraints != null && !constraints.equals("null") ? constraints : "")));
             }
@@ -84,7 +83,7 @@ public class PolicyRulesPanel extends AssignmentPanel {
             @Override
             public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> cellItem, String componentId,
                                      final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-            	ContainerWrapper<PolicyRuleType> policyRuleWrapper = rowModel.getObject().findContainerWrapper(new ItemPath(rowModel.getObject().getPath(), AssignmentType.F_POLICY_RULE));
+            	ContainerWrapper<PolicyRuleType> policyRuleWrapper = rowModel.getObject().findContainerWrapper(ItemPath.create(rowModel.getObject().getPath(), AssignmentType.F_POLICY_RULE));
             	PropertyWrapperFromContainerValueWrapperModel<String, PolicyRuleType> propertyModel = new PropertyWrapperFromContainerValueWrapperModel(policyRuleWrapper.getValues().get(0), PolicyRuleType.F_POLICY_SITUATION);
             	String situationValue = propertyModel.getObject().getValues().get(0).getValue().getRealValue();
                 cellItem.add(new Label(componentId, Model.of(situationValue)));
@@ -97,8 +96,8 @@ public class PolicyRulesPanel extends AssignmentPanel {
             @Override
             public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> cellItem, String componentId,
                                      final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-            	ContainerWrapper<PolicyRuleType> policyRuleWrapper = rowModel.getObject().findContainerWrapper(new ItemPath(rowModel.getObject().getPath(), AssignmentType.F_POLICY_RULE));
-            	ContainerWrapper<PolicyActionsType> wrapper = policyRuleWrapper.getValues().get(0).findContainerWrapper(new ItemPath(policyRuleWrapper.getValues().get(0).getPath(), PolicyRuleType.F_POLICY_ACTIONS));
+            	ContainerWrapper<PolicyRuleType> policyRuleWrapper = rowModel.getObject().findContainerWrapper(ItemPath.create(rowModel.getObject().getPath(), AssignmentType.F_POLICY_RULE));
+            	ContainerWrapper<PolicyActionsType> wrapper = policyRuleWrapper.getValues().get(0).findContainerWrapper(ItemPath.create(policyRuleWrapper.getValues().get(0).getPath(), PolicyRuleType.F_POLICY_ACTIONS));
             	String action = wrapper != null ?
 						PolicyRuleTypeUtil.toShortString(wrapper.getValues().get(0).getContainerValue().getValue(), new ArrayList<>()) : null;
                 cellItem.add(new MultiLineLabel(componentId, Model.of(action != null && !action.equals("null") ? action : "")));
@@ -128,7 +127,8 @@ public class PolicyRulesPanel extends AssignmentPanel {
 
 	@Override
 	protected void initCustomPaging() {
-		getAssignmentsTabStorage().setPaging(ObjectPaging.createPaging(0, ((int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.POLICY_RULES_TAB_TABLE))));
+		getAssignmentsTabStorage().setPaging(getPrismContext().queryFactory()
+				.createPaging(0, ((int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.POLICY_RULES_TAB_TABLE))));
 
 	}
 
@@ -149,14 +149,14 @@ public class PolicyRulesPanel extends AssignmentPanel {
 
 	@Override
 	protected ObjectQuery createObjectQuery() {
-        return QueryBuilder.queryFor(AssignmentType.class, getParentPage().getPrismContext())
+        return getParentPage().getPrismContext().queryFor(AssignmentType.class)
                 .exists(AssignmentType.F_POLICY_RULE)
                 .build();
     }
 
 	@Override
 	protected IModel<ContainerWrapper> getSpecificContainerModel(ContainerValueWrapper<AssignmentType> modelObject) {
-		ContainerWrapper<PolicyRuleType> policyRuleWrapper = modelObject.findContainerWrapper(new ItemPath(modelObject.getPath(), AssignmentType.F_POLICY_RULE));
+		ContainerWrapper<PolicyRuleType> policyRuleWrapper = modelObject.findContainerWrapper(ItemPath.create(modelObject.getPath(), AssignmentType.F_POLICY_RULE));
 		return Model.of(policyRuleWrapper);
 	}
 
@@ -164,11 +164,11 @@ public class PolicyRulesPanel extends AssignmentPanel {
 	protected List<SearchItemDefinition> createSearchableItems(PrismContainerDefinition<AssignmentType> containerDef) {
 		List<SearchItemDefinition> defs = new ArrayList<>();
 		
-		SearchFactory.addSearchPropertyDef(containerDef, new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), defs);
-		SearchFactory.addSearchPropertyDef(containerDef, new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS), defs);
-		SearchFactory.addSearchPropertyDef(containerDef, new ItemPath(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_NAME), defs);
-		SearchFactory.addSearchRefDef(containerDef, 
-				new ItemPath(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS, 
+		SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), defs);
+		SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS), defs);
+		SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_NAME), defs);
+		SearchFactory.addSearchRefDef(containerDef,
+				ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS,
 						PolicyConstraintsType.F_EXCLUSION, ExclusionPolicyConstraintType.F_TARGET_REF), defs, AreaCategoryType.POLICY, getPageBase());
 		
 		defs.addAll(SearchFactory.createExtensionDefinitionList(containerDef));

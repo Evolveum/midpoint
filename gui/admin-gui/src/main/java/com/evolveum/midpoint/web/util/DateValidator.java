@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.util;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.wicket.extensions.yui.calendar.DateTimeField;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
@@ -31,7 +32,7 @@ public class DateValidator extends AbstractFormValidator {
 
    private static final long serialVersionUID = 1L;
 
-   private ItemPath identifier;
+    private ItemPath identifier;
     private DateTimeField dateFrom;
     private DateTimeField dateTo;
     private String messageKey = "DateValidator.message.fromAfterTo";

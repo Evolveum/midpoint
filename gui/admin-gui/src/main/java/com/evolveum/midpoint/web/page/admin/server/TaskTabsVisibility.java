@@ -1,6 +1,5 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
@@ -60,7 +59,7 @@ class TaskTabsVisibility implements Serializable {
         final OperationStatsType operationStats = parentPage.getTaskDto().getTaskType().getOperationStats();
         progressVisible = !parentPage.isEdit() && operationStats != null
 				// readability is maybe not required, as the corresponding data would be null if not readable
-				&& parentPage.isReadable(new ItemPath(TaskType.F_OPERATION_STATS))
+				&& parentPage.isReadable(TaskType.F_OPERATION_STATS)
                 && (operationStats.getIterativeTaskInformation() != null ||
                         operationStats.getSynchronizationInformation() != null ||
                         operationStats.getActionsExecutedInformation() != null);
@@ -70,7 +69,7 @@ class TaskTabsVisibility implements Serializable {
     public boolean computeEnvironmentalPerformanceVisible(PageTaskEdit parentPage) {
         final OperationStatsType operationStats = parentPage.getTaskDto().getTaskType().getOperationStats();
         environmentalPerformanceVisible = !parentPage.isEdit()
-				&& parentPage.isReadable(new ItemPath(TaskType.F_OPERATION_STATS))
+				&& parentPage.isReadable(TaskType.F_OPERATION_STATS)
 				&& operationStats != null
 				&& !StatisticsUtil.isEmpty(operationStats.getEnvironmentalPerformanceInformation());
         return environmentalPerformanceVisible;
@@ -78,7 +77,7 @@ class TaskTabsVisibility implements Serializable {
 
     public boolean computeApprovalsVisible(PageTaskEdit parentPage) {
         approvalsVisible = !parentPage.isEdit()
-				&& parentPage.isReadable(new ItemPath(TaskType.F_WORKFLOW_CONTEXT))
+				&& parentPage.isReadable(TaskType.F_WORKFLOW_CONTEXT)
 				&& (parentPage.getTaskDto().isWorkflowChild() || parentPage.getTaskDto().isWorkflowParent());
                 //&& parentPage.getTaskDto().getTaskType().getWorkflowContext() != null
                 //&& parentPage.getTaskDto().getWorkflowDeltaIn() != null;
@@ -87,7 +86,7 @@ class TaskTabsVisibility implements Serializable {
 
 	public boolean computeOperationVisible(PageTaskEdit parentPage) {
 		operationVisible = !parentPage.isEdit()
-				&& parentPage.isReadable(new ItemPath(TaskType.F_MODEL_OPERATION_CONTEXT))
+				&& parentPage.isReadable(TaskType.F_MODEL_OPERATION_CONTEXT)
 				&& parentPage.getTaskDto().getTaskType().getModelOperationContext() != null
 				&& (!parentPage.getTaskDto().isWorkflow() || parentPage.isShowAdvanced());
 		return operationVisible;
@@ -95,7 +94,7 @@ class TaskTabsVisibility implements Serializable {
 
 	public boolean computeResultVisible(PageTaskEdit parentPage) {
         resultVisible = !parentPage.isEdit()
-				&& parentPage.isReadable(new ItemPath(TaskType.F_RESULT))
+				&& parentPage.isReadable(TaskType.F_RESULT)
 				&& (parentPage.isShowAdvanced() || !parentPage.getTaskDto().isWorkflow());
         return resultVisible;
     }

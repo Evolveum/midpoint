@@ -23,7 +23,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -39,7 +38,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.util.ItemPathUtil;
+import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -297,7 +296,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 							continue;
 						}
 
-						if (ItemPathUtil.getOnlySegmentQName(attribute.getRef())
+						if (ItemPathTypeUtil.asSingleNameOrFail(attribute.getRef())
 								.equals(propertyDef.getName())) {
 							acAtrList.add(ACAttributeDto.createACAttributeDto(propertyDef, attribute,
 									prismContext));
@@ -394,7 +393,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 		if (AssignmentEditorDtoType.POLICY_RULE.equals(type)){
 			PrismContainer<PolicyRuleType> policyRuleContainer = getPolicyRuleContainer(assignment);
 			PrismProperty policyRuleNameProperty = policyRuleContainer != null && policyRuleContainer.getValue() != null ?
-					(PrismProperty)policyRuleContainer.getValue().find(new ItemPath(PolicyRuleType.F_NAME)) : null;
+					(PrismProperty)policyRuleContainer.getValue().find(PolicyRuleType.F_NAME) : null;
 			String policyRuleName = policyRuleNameProperty != null ?
 					policyRuleNameProperty.getValue().getValue().toString() : "";
 			return pageBase.createStringResource("AssignmentEditorDto.policyRuleTitle").getString() +

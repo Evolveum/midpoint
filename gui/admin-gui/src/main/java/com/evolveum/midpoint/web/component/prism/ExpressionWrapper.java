@@ -2,7 +2,6 @@ package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -20,8 +19,9 @@ public class ExpressionWrapper<T> extends PropertyWrapper<T> {
     private static final Trace LOGGER = TraceManager.getTrace(ExpressionWrapper.class);
     private ConstructionType construction;
 
-    public ExpressionWrapper(@Nullable ContainerValueWrapper container, PrismProperty property, boolean readonly, ValueStatus status, ItemPath path) {
-        super(container, property, readonly, status, path);
+    public ExpressionWrapper(@Nullable ContainerValueWrapper container, PrismProperty property, boolean readonly,
+            ValueStatus status, ItemPath path, PrismContext prismContext) {
+        super(container, property, readonly, status, path, prismContext);
 
         PrismContainer outboundPrismContainer = container.getContainer().getItem();
         if (outboundPrismContainer != null) {

@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.configuration.component;
 
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.model.IModel;
@@ -37,9 +36,7 @@ import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.prism.PrismContainerPanel;
 import com.evolveum.midpoint.web.component.prism.PrismPropertyPanel;
 import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractLoggerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingLevelType;
@@ -103,12 +100,14 @@ public class ProfilingConfigurationTabPanel extends BasePanel<ContainerWrapper<P
     	PrismContainerPanel<ProfilingConfigurationType> profilingPanel = new PrismContainerPanel<ProfilingConfigurationType>(ID_PROFILING, getProfilingModel(), true, new Form<>("form"), null, getPageBase());
     	add(profilingPanel);
     	
-    	IModel<ContainerWrapper<ClassLoggerConfigurationType>> loggerModel = new Model<ContainerWrapper<ClassLoggerConfigurationType>>(getLoggingModel().getObject().findContainerWrapper(new ItemPath(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_CLASS_LOGGER)));
+    	IModel<ContainerWrapper<ClassLoggerConfigurationType>> loggerModel = new Model<>(getLoggingModel().getObject()
+			    .findContainerWrapper(
+					    ItemPath.create(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_CLASS_LOGGER)));
     	
     	ContainerValueWrapper<ClassLoggerConfigurationType> profilingLogger = null;
     	
     	for (ContainerValueWrapper<ClassLoggerConfigurationType> logger : loggerModel.getObject().getValues()) {
-			if (LOGGER_PROFILING.equals(new RealContainerValueFromContainerValueWrapperModel<ClassLoggerConfigurationType>(logger).getObject().getPackage())) {
+			if (LOGGER_PROFILING.equals(new RealContainerValueFromContainerValueWrapperModel<>(logger).getObject().getPackage())) {
 				profilingLogger = logger;
 				continue;
 			}
@@ -116,7 +115,7 @@ public class ProfilingConfigurationTabPanel extends BasePanel<ContainerWrapper<P
     	
     	if(profilingLogger == null) {
     		profilingLogger = WebModelServiceUtils.createNewItemContainerValueWrapper(getPageBase(), loggerModel);
-    		new RealContainerValueFromContainerValueWrapperModel<ClassLoggerConfigurationType>(profilingLogger).getObject().setPackage(LOGGER_PROFILING);
+		    new RealContainerValueFromContainerValueWrapperModel<>(profilingLogger).getObject().setPackage(LOGGER_PROFILING);
     	}
     	
     	ValueWrapperOfSingleValuePropertyFromSingleValueContainerValueWrapperModel<LoggingLevelType, ClassLoggerConfigurationType> level = new ValueWrapperOfSingleValuePropertyFromSingleValueContainerValueWrapperModel<>(profilingLogger, ClassLoggerConfigurationType.F_LEVEL);
@@ -142,7 +141,7 @@ public class ProfilingConfigurationTabPanel extends BasePanel<ContainerWrapper<P
     			"", getInputCssClass(), false, true);
         add(dropDownProfilingLevel);
         
-        PropertyWrapper appenders = (PropertyWrapper)profilingLogger.findPropertyWrapper(ClassLoggerConfigurationType.F_APPENDER);
+        PropertyWrapper appenders = (PropertyWrapper)profilingLogger.findPropertyWrapperByName(ClassLoggerConfigurationType.F_APPENDER);
         appenders.setPredefinedValues(WebComponentUtil.createAppenderChoices(getPageBase()));
         
         PrismPropertyPanel<PropertyWrapper> profilingLoggerLevel = new PrismPropertyPanel<PropertyWrapper>(ID_PROFILING_LOGGER_APPENDERS, new Model(appenders), new Form<>("form"), itemWrapper -> getAppendersPanelVisibility(itemWrapper.getPath()), getPageBase());

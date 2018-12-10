@@ -31,6 +31,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 
 import com.evolveum.midpoint.schema.RelationRegistry;
@@ -180,7 +181,7 @@ public class TestRefinedSchema {
         assertEquals("findAccountDefinitionByObjectClass(ICF account) returned wrong value", rAccountDef, accountDefByIcfAccountObjectclass);
 
         assertRObjectClassDef(rAccountDef, resourceType, sourceLayer, validationLayer);
-        System.out.println("Refined account definitionn:");
+        System.out.println("Refined account definition:");
         System.out.println(rAccountDef.debugDump());
 
         assertEquals("Wrong kind", ShadowKindType.ACCOUNT, rAccountDef.getKind());
@@ -243,7 +244,7 @@ public class TestRefinedSchema {
         System.out.println(rComplexTypeDefinition.debugDump());
         assertRefinedToLayer(rComplexTypeDefinition, sourceLayer);
 
-        ResourceAttributeDefinition riUidAttrDef = resAttrContainerDef.findAttributeDefinition(new QName(resourceType.getNamespace(), "uid"));
+        ResourceAttributeDefinition riUidAttrDef = resAttrContainerDef.findAttributeDefinition(new ItemName(resourceType.getNamespace(), "uid"));
         assertNotNull("No ri:uid def in ResourceAttributeContainerDefinition", riUidAttrDef);
         System.out.println("\nri:uid def "+riUidAttrDef.getClass()+" ("+sourceLayer+")");
         System.out.println(riUidAttrDef.debugDump());
@@ -398,8 +399,8 @@ public class TestRefinedSchema {
         accObject.checkConsistence(true, true, ConsistencyCheckScope.THOROUGH);
     }
 
-	private QName getAttrQName(PrismObject<ResourceType> resource, String localPart) {
-		return new QName(ResourceTypeUtil.getResourceNamespace(resource), localPart);
+	private ItemName getAttrQName(PrismObject<ResourceType> resource, String localPart) {
+		return new ItemName(ResourceTypeUtil.getResourceNamespace(resource), localPart);
 	}
 
 	@Test
@@ -681,7 +682,7 @@ public class TestRefinedSchema {
         System.out.println("\nResourceAttributeContainerDefinition ComplexTypeDefinition");
         System.out.println(rComplexTypeDefinition.debugDump());
 
-        ResourceAttributeDefinition<String> riUidAttrDef = resAttrContainerDef.findAttributeDefinition(new QName(resourceType.getNamespace(), "uid"));
+        ResourceAttributeDefinition<String> riUidAttrDef = resAttrContainerDef.findAttributeDefinition(new ItemName(resourceType.getNamespace(), "uid"));
         assertNotNull("No ri:uid def in ResourceAttributeContainerDefinition", riUidAttrDef);
         System.out.println("\nri:uid def "+riUidAttrDef.getClass());
         System.out.println(riUidAttrDef.debugDump());

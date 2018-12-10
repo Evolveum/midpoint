@@ -4,8 +4,8 @@ import com.evolveum.midpoint.ninja.impl.LogTarget;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
 import com.evolveum.midpoint.ninja.opts.ListKeysOptions;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.crypto.KeyStoreBasedProtector;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.crypto.ProtectorImpl;
 import org.apache.xml.security.utils.Base64;
 import org.springframework.context.ApplicationContext;
 
@@ -31,9 +31,9 @@ public class ListKeysRepositoryAction extends RepositoryAction<ListKeysOptions> 
         ApplicationContext appContext = context.getApplicationContext();
         Protector protector = appContext.getBean(Protector.class);
 
-        if (protector instanceof ProtectorImpl) {
-            ProtectorImpl impl = (ProtectorImpl) protector;
-            System.out.println("Location: " + impl.getKeyStorePath());
+        if (protector instanceof KeyStoreBasedProtector) {
+            KeyStoreBasedProtector p = (KeyStoreBasedProtector) protector;
+            System.out.println("Location: " + p.getKeyStorePath());
         }
 
         KeyStore keyStore = protector.getKeyStore();
@@ -94,8 +94,8 @@ public class ListKeysRepositoryAction extends RepositoryAction<ListKeysOptions> 
         System.out.println("  Key length: " + key.getEncoded().length * 8);
         System.out.println("  SHA1 digest: " + getSecretKeyDigest(key));
 
-        if (protector instanceof ProtectorImpl) {
-            ProtectorImpl impl = (ProtectorImpl) protector;
+        if (protector instanceof KeyStoreBasedProtector) {
+            KeyStoreBasedProtector impl = (KeyStoreBasedProtector) protector;
 
             String name = impl.getSecretKeyDigest(key);
             System.out.println("  Key name: " + name);

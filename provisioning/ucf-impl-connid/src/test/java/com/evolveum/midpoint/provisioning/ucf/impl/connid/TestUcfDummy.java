@@ -28,7 +28,7 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.schema.PrismSchemaImpl;
+import com.evolveum.midpoint.prism.impl.schema.PrismSchemaImpl;
 import com.evolveum.midpoint.schema.processor.*;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -46,7 +46,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -379,7 +378,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 		OperationResult result = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
 
 		// WHEN
-		cc.search(accountDefinition, new ObjectQuery(), handler, null, null, null, null, result);
+		cc.search(accountDefinition, null, handler, null, null, null, null, result);
 
 		// THEN
 		assertEquals("Unexpected number of search results", 1, searchResults.size());

@@ -35,7 +35,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
@@ -66,10 +66,8 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -172,6 +170,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	@Autowired private RepositoryService repositoryService;
 	@Autowired private LightweightIdentifierGenerator lightweightIdentifierGenerator;
 	@Autowired private PrismContext prismContext;
+	@Autowired private SchemaHelper schemaHelper;
 	@Autowired private WorkStateManager workStateManager;
 	@Autowired private WorkersManager workersManager;
 	@Autowired private RelationRegistry relationRegistry;
@@ -559,7 +558,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		} else {
 			if (task.getExecutionStatus() == TaskExecutionStatus.WAITING || task.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
 				try {
-					List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(TaskType.class, prismContext)
+					List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(TaskType.class)
 							.item(TaskType.F_EXECUTION_STATUS).replace(TaskExecutionStatusType.SUSPENDED)
 							.item(TaskType.F_STATE_BEFORE_SUSPEND).replace(task.getExecutionStatus().toTaskType())
 							.asItemDeltas();
@@ -726,13 +725,13 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	        }
 	        clearTaskOperationResult(task, parentResult);           // see a note on scheduleTaskNow
 	        if (task.getStateBeforeSuspend() == TaskExecutionStatusType.WAITING) {
-		        List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(TaskType.class, prismContext)
+		        List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(TaskType.class)
 				        .item(TaskType.F_EXECUTION_STATUS).replace(TaskExecutionStatusType.WAITING)
 				        .item(TaskType.F_STATE_BEFORE_SUSPEND).replace()
 				        .asItemDeltas();
 		        ((TaskQuartzImpl) task).applyDeltasImmediate(itemDeltas, result);
 	        } else {
-		        List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(TaskType.class, prismContext)
+		        List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(TaskType.class)
 				        .item(TaskType.F_EXECUTION_STATUS).replace(TaskExecutionStatusType.RUNNABLE)
 				        .item(TaskType.F_STATE_BEFORE_SUSPEND).replace()
 				        .asItemDeltas();
@@ -816,6 +815,16 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	public TaskQuartzImpl getTask(String taskOid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		return getTask(taskOid, null, parentResult);
 	}
+
+	@Override
+	@NotNull
+	public Task getTaskWithResult(String taskOid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+				.item(TaskType.F_RESULT).retrieve()
+				.build();
+		return getTask(taskOid, options, parentResult);
+	}
+
 
 	@Override
 	@NotNull
@@ -1266,9 +1275,9 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         Task task = getTask(oid, options, result);
         addTransientTaskInformation(task.getTaskPrismObject(),
                 clusterStatusInformation,
-                SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NEXT_RUN_START_TIMESTAMP), options),
-                SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NEXT_RETRY_TIMESTAMP), options),
-                SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NODE_AS_OBSERVED), options),
+                SelectorOptions.hasToLoadPath(TaskType.F_NEXT_RUN_START_TIMESTAMP, options),
+                SelectorOptions.hasToLoadPath(TaskType.F_NEXT_RETRY_TIMESTAMP, options),
+                SelectorOptions.hasToLoadPath(TaskType.F_NODE_AS_OBSERVED, options),
                 result);
 
         if (SelectorOptions.hasToLoadPath(TaskType.F_SUBTASK, options)) {
@@ -1313,9 +1322,9 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
 	// TODO deduplicate
 	private void fillInSubtasks(Task task, ClusterStatusInformation clusterStatusInformation, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
-		boolean retrieveNextRunStartTime = SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NEXT_RUN_START_TIMESTAMP), options);
-		boolean retrieveRetryTime = SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NEXT_RETRY_TIMESTAMP), options);
-		boolean retrieveNodeAsObserved = SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NODE_AS_OBSERVED), options);
+		boolean retrieveNextRunStartTime = SelectorOptions.hasToLoadPath(TaskType.F_NEXT_RUN_START_TIMESTAMP, options);
+		boolean retrieveRetryTime = SelectorOptions.hasToLoadPath(TaskType.F_NEXT_RETRY_TIMESTAMP, options);
+		boolean retrieveNodeAsObserved = SelectorOptions.hasToLoadPath(TaskType.F_NODE_AS_OBSERVED, options);
 
 		List<Task> subtasks = task.listSubtasks(result);
 
@@ -1339,9 +1348,9 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	// retrieves only "heavyweight" subtasks
     private void fillInSubtasks(TaskType task, ClusterStatusInformation clusterStatusInformation, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
 
-	    boolean retrieveNextRunStartTime = SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NEXT_RUN_START_TIMESTAMP), options);
-        boolean retrieveRetryTime = SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NEXT_RETRY_TIMESTAMP), options);
-        boolean retrieveNodeAsObserved = SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NODE_AS_OBSERVED), options);
+	    boolean retrieveNextRunStartTime = SelectorOptions.hasToLoadPath(TaskType.F_NEXT_RUN_START_TIMESTAMP, options);
+        boolean retrieveRetryTime = SelectorOptions.hasToLoadPath(TaskType.F_NEXT_RETRY_TIMESTAMP, options);
+        boolean retrieveNodeAsObserved = SelectorOptions.hasToLoadPath(TaskType.F_NODE_AS_OBSERVED, options);
 
         List<PrismObject<TaskType>> subtasks = listPersistentSubtasksForTask(task.getTaskIdentifier(), result);
 
@@ -1366,7 +1375,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		if (StringUtils.isEmpty(taskIdentifier)) {
 			return new ArrayList<>();
 		}
-		ObjectQuery query = QueryBuilder.queryFor(TaskType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(TaskType.class)
 				.item(TaskType.F_PARENT).eq(taskIdentifier)
 				.build();
 
@@ -1509,7 +1518,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             retrieveStatus = false;
         } else {
             if (objectClass.equals(TaskType.class)) {
-                retrieveStatus = SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NODE_AS_OBSERVED), options);
+                retrieveStatus = SelectorOptions.hasToLoadPath(TaskType.F_NODE_AS_OBSERVED, options);
             } else if (objectClass.equals(NodeType.class)) {
                 retrieveStatus = true;                          // implement some determination algorithm if needed
             } else {
@@ -1536,9 +1545,9 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             throw e;
         }
 
-        boolean retrieveNextRunStartTime = SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NEXT_RUN_START_TIMESTAMP), options);
-        boolean retrieveRetryTime = SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NEXT_RETRY_TIMESTAMP), options);
-        boolean retrieveNodeAsObserved = SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NODE_AS_OBSERVED), options);
+        boolean retrieveNextRunStartTime = SelectorOptions.hasToLoadPath(TaskType.F_NEXT_RUN_START_TIMESTAMP, options);
+        boolean retrieveRetryTime = SelectorOptions.hasToLoadPath(TaskType.F_NEXT_RETRY_TIMESTAMP, options);
+        boolean retrieveNodeAsObserved = SelectorOptions.hasToLoadPath(TaskType.F_NODE_AS_OBSERVED, options);
 
         List<PrismObject<TaskType>> retval = new ArrayList<>();
         for (PrismObject<TaskType> taskInRepository : tasksInRepository) {
@@ -1798,6 +1807,10 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
     public PrismContext getPrismContext() {
         return prismContext;
+    }
+
+    public SchemaHelper getSchemaHelper() {
+    	return schemaHelper;
     }
 
     public NodeErrorStatusType getLocalNodeErrorStatus() {
@@ -2062,7 +2075,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         result.addParam("identifier", identifier);
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerQuartzImpl.class);
 
-		ObjectQuery query = QueryBuilder.queryFor(TaskType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(TaskType.class)
 				.item(TaskType.F_TASK_IDENTIFIER).eq(identifier)
 				.build();
 
@@ -2112,7 +2125,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
         List<PrismObject<TaskType>> obsoleteTasks;
         try {
-            ObjectQuery obsoleteTasksQuery = QueryBuilder.queryFor(TaskType.class, prismContext)
+            ObjectQuery obsoleteTasksQuery = prismContext.queryFor(TaskType.class)
 					.item(TaskType.F_COMPLETION_TIMESTAMP).le(timeXml)
 					.and().item(TaskType.F_PARENT).isNull()
 					.build();
@@ -2262,7 +2275,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     }
 
     private List<Task> listWaitingTasks(TaskWaitingReason reason, OperationResult result) throws SchemaException {
-		S_AtomicFilterEntry q = QueryBuilder.queryFor(TaskType.class, prismContext);
+		S_AtomicFilterEntry q = prismContext.queryFor(TaskType.class);
 		q = q.item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStatusType.WAITING).and();
 		if (reason != null) {
 			q = q.item(TaskType.F_WAITING_REASON).eq(reason.toTaskType()).and();

@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -30,7 +31,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -297,7 +298,8 @@ public class ActivationProcessor {
         if (capStatus != null) {
 	    	evaluateActivationMapping(context, projCtx,
 	    			activationType.getAdministrativeStatus(),
-	    			SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
+	    			SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
+				    SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
 	    			capActivation, now, MappingTimeEval.CURRENT, ActivationType.F_ADMINISTRATIVE_STATUS.getLocalPart(), task, result);
         } else {
         	LOGGER.trace("Skipping activation administrative status processing because {} does not have activation administrative status capability", projCtx.getResource());
@@ -310,7 +312,8 @@ public class ActivationProcessor {
         	LOGGER.trace("Skipping activation validFrom processing because {} does not have activation validFrom capability nor outbound mapping with explicit target", projCtx.getResource());
         } else {
 	    	evaluateActivationMapping(context, projCtx, activationType.getValidFrom(),
-	    			SchemaConstants.PATH_ACTIVATION_VALID_FROM, SchemaConstants.PATH_ACTIVATION_VALID_FROM,
+	    			SchemaConstants.PATH_ACTIVATION_VALID_FROM,
+				    SchemaConstants.PATH_ACTIVATION_VALID_FROM,
 	    			null, now, MappingTimeEval.CURRENT, ActivationType.F_VALID_FROM.getLocalPart(), task, result);
         }
 
@@ -321,7 +324,8 @@ public class ActivationProcessor {
         	LOGGER.trace("Skipping activation validTo processing because {} does not have activation validTo capability nor outbound mapping with explicit target", projCtx.getResource());
         } else {
 	    	evaluateActivationMapping(context, projCtx, activationType.getValidTo(),
-	    			SchemaConstants.PATH_ACTIVATION_VALID_TO, SchemaConstants.PATH_ACTIVATION_VALID_TO,
+	    			SchemaConstants.PATH_ACTIVATION_VALID_TO,
+				    SchemaConstants.PATH_ACTIVATION_VALID_TO,
 	    			null, now, MappingTimeEval.CURRENT, ActivationType.F_VALID_TO.getLocalPart(), task, result);
 	    }
 
@@ -362,7 +366,7 @@ public class ActivationProcessor {
             } else {
                 // timestamps
                 PropertyDelta<XMLGregorianCalendar> timestampDelta = LensUtil.createActivationTimestampDelta(statusNew,
-                        now, getActivationDefinition(), OriginType.OUTBOUND);
+                        now, getActivationDefinition(), OriginType.OUTBOUND, prismContext);
                 accCtx.swallowToSecondaryDelta(timestampDelta);
 
                 // disableReason
@@ -383,8 +387,9 @@ public class ActivationProcessor {
                         }
 
                         PrismPropertyDefinition<String> disableReasonDef = activationDefinition.findPropertyDefinition(ActivationType.F_DISABLE_REASON);
-                        disableReasonDelta = disableReasonDef.createEmptyDelta(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_DISABLE_REASON));
-                        disableReasonDelta.setValueToReplace(new PrismPropertyValue<>(disableReason, OriginType.OUTBOUND, null));
+                        disableReasonDelta = disableReasonDef.createEmptyDelta(
+		                        ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_DISABLE_REASON));
+                        disableReasonDelta.setValueToReplace(prismContext.itemFactory().createPropertyValue(disableReason, OriginType.OUTBOUND, null));
                         accCtx.swallowToSecondaryDelta(disableReasonDelta);
                     }
                 }
@@ -557,9 +562,7 @@ public class ActivationProcessor {
 	        return false;
 		});
 
-        PrismPropertyDefinitionImpl<Boolean> shadowExistenceTargetDef = new PrismPropertyDefinitionImpl<>(
-				SHADOW_EXISTS_PROPERTY_NAME,
-				DOMUtil.XSD_BOOLEAN, prismContext);
+        MutablePrismPropertyDefinition<Boolean> shadowExistenceTargetDef = prismContext.definitionFactory().createPropertyDefinition(SHADOW_EXISTS_PROPERTY_NAME, DOMUtil.XSD_BOOLEAN);
         shadowExistenceTargetDef.setMinOccurs(1);
         shadowExistenceTargetDef.setMaxOccurs(1);
         params.setTargetItemDefinition(shadowExistenceTargetDef);
@@ -580,7 +583,7 @@ public class ActivationProcessor {
 				// Source: administrativeStatus, validFrom or validTo
 		        ItemDeltaItem<PrismPropertyValue<T>,PrismPropertyDefinition<T>> sourceIdi = context.getFocusContext().getObjectDeltaObject().findIdi(focusPropertyPath);
 
-		        if (capActivation != null && focusPropertyPath.equals(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS)) {
+		        if (capActivation != null && focusPropertyPath.equivalent(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS)) {
 			        ActivationValidityCapabilityType capValidFrom = CapabilityUtil.getEffectiveActivationValidFrom(capActivation);
 			        ActivationValidityCapabilityType capValidTo = CapabilityUtil.getEffectiveActivationValidTo(capActivation);
 
@@ -682,7 +685,7 @@ public class ActivationProcessor {
 		params.setContext(context);
 		params.setHasFullTargetObject(projCtx.hasFullShadow());
 		
-		Map<ItemPath, MappingOutputStruct<PrismPropertyValue<T>>> outputTripleMap = mappingEvaluator.evaluateMappingSetProjection(params, task, result);
+		Map<UniformItemPath, MappingOutputStruct<PrismPropertyValue<T>>> outputTripleMap = mappingEvaluator.evaluateMappingSetProjection(params, task, result);
 		
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Mapping processing output after {} ({}):\n{}", desc, evaluateCurrent, DebugUtil.debugDump(outputTripleMap, 1));
@@ -698,12 +701,12 @@ public class ActivationProcessor {
 	 * TODO: can we align this with ReconciliationProcessor?
 	 */
 	private <T, F extends FocusType> void reconcileOutboundValue(LensContext<F> context, LensProjectionContext projCtx,
-			Map<ItemPath, MappingOutputStruct<PrismPropertyValue<T>>> outputTripleMap, String desc) throws SchemaException {
+			Map<UniformItemPath, MappingOutputStruct<PrismPropertyValue<T>>> outputTripleMap, String desc) throws SchemaException {
 		
 		// TODO: check for full shadow?
 		
-		for (Entry<ItemPath,MappingOutputStruct<PrismPropertyValue<T>>> entry: outputTripleMap.entrySet()) {
-			ItemPath mappingOutputPath = entry.getKey();
+		for (Entry<UniformItemPath,MappingOutputStruct<PrismPropertyValue<T>>> entry: outputTripleMap.entrySet()) {
+			UniformItemPath mappingOutputPath = entry.getKey();
 			MappingOutputStruct<PrismPropertyValue<T>> mappingOutputStruct = entry.getValue();
 			if (mappingOutputStruct.isWeakMappingWasUsed()) {
 				// Thing to do. All deltas should already be in context
@@ -744,7 +747,7 @@ public class ActivationProcessor {
 			}
 			
 			for (PrismPropertyValue<T> shouldHaveValue: shouldHaveValues) {
-				if (!PrismPropertyValue.containsRealValue(hasValues, shouldHaveValue)) {
+				if (!PrismValueCollectionsUtil.containsRealValue(hasValues, shouldHaveValue)) {
 					if (targetItemDefinition.isSingleValue()) {
 						targetItemDelta.setValueToReplace(shouldHaveValue.clone());
 					} else {
@@ -759,7 +762,7 @@ public class ActivationProcessor {
 				}
 			} else {
 				for (PrismPropertyValue<T> hasValue: hasValues) {
-					if (!PrismPropertyValue.containsRealValue(shouldHaveValues, hasValue)) {
+					if (!PrismValueCollectionsUtil.containsRealValue(shouldHaveValues, hasValue)) {
 						targetItemDelta.addValueToDelete(hasValue.clone());
 					}
 				}
@@ -784,11 +787,11 @@ public class ActivationProcessor {
 	@NotNull
 	private ItemDeltaItem<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> createBooleanIdi(
 			QName propertyName, Boolean old, Boolean current) throws SchemaException {
-		PrismPropertyDefinitionImpl<Boolean> definition = new PrismPropertyDefinitionImpl<>(propertyName, DOMUtil.XSD_BOOLEAN, prismContext);
+		MutablePrismPropertyDefinition<Boolean> definition = prismContext.definitionFactory().createPropertyDefinition(propertyName, DOMUtil.XSD_BOOLEAN);
 		definition.setMinOccurs(1);
 		definition.setMaxOccurs(1);
 		PrismProperty<Boolean> property = definition.instantiate();
-		property.add(new PrismPropertyValue<>(current));
+		property.add(prismContext.itemFactory().createPropertyValue(current));
 
 		if (current == old) {
 			return new ItemDeltaItem<>(property);
@@ -796,7 +799,7 @@ public class ActivationProcessor {
 			PrismProperty<Boolean> propertyOld = property.clone();
 			propertyOld.setRealValue(old);
 			PropertyDelta<Boolean> delta = propertyOld.createDelta();
-			delta.setValuesToReplace(new PrismPropertyValue<>(current));
+			delta.setValuesToReplace(prismContext.itemFactory().createPropertyValue(current));
 			return new ItemDeltaItem<>(propertyOld, delta, property);
 		}
 	}
@@ -825,13 +828,13 @@ public class ActivationProcessor {
 			}
 		}
 
-		PrismPropertyDefinitionImpl<Boolean> existsDef = new PrismPropertyDefinitionImpl<>(FOCUS_EXISTS_PROPERTY_NAME,
-				DOMUtil.XSD_BOOLEAN, prismContext);
+		MutablePrismPropertyDefinition<Boolean> existsDef = prismContext.definitionFactory().createPropertyDefinition(FOCUS_EXISTS_PROPERTY_NAME,
+				DOMUtil.XSD_BOOLEAN);
 		existsDef.setMinOccurs(1);
 		existsDef.setMaxOccurs(1);
 		PrismProperty<Boolean> existsProp = existsDef.instantiate();
 
-		existsProp.add(new PrismPropertyValue<>(existsNew));
+		existsProp.add(prismContext.itemFactory().createPropertyValue(existsNew));
 
 		if (existsOld == existsNew) {
 			return new ItemDeltaItem<>(existsProp);
@@ -839,7 +842,7 @@ public class ActivationProcessor {
 			PrismProperty<Boolean> existsPropOld = existsProp.clone();
 			existsPropOld.setRealValue(existsOld);
 			PropertyDelta<Boolean> existsDelta = existsPropOld.createDelta();
-			existsDelta.setValuesToReplace(new PrismPropertyValue<>(existsNew));
+			existsDelta.setValuesToReplace(prismContext.itemFactory().createPropertyValue(existsNew));
 			return new ItemDeltaItem<>(existsPropOld, existsDelta, existsProp);
 		}
 	}
@@ -904,7 +907,7 @@ public class ActivationProcessor {
         	if (lifecycle != null) {
         		PrismPropertyDefinition<String> propDef = projCtx.getObjectDefinition().findPropertyDefinition(SchemaConstants.PATH_LIFECYCLE_STATE);
         		PropertyDelta<String> lifeCycleDelta = propDef.createEmptyDelta(SchemaConstants.PATH_LIFECYCLE_STATE);
-        		PrismPropertyValue<String> pval = new PrismPropertyValue<>(lifecycle);
+        		PrismPropertyValue<String> pval = prismContext.itemFactory().createPropertyValue(lifecycle);
         		pval.setOriginType(OriginType.OUTBOUND);
 				lifeCycleDelta.setValuesToReplace(pval);
 				projCtx.swallowToSecondaryDelta(lifeCycleDelta);

@@ -592,7 +592,7 @@ public class ConnIdUtil {
 		}
 		Collection<ResourceAttribute<?>> identifiers = new ArrayList<>(2);
 		ResourceAttribute<String> uidRoa = uidDefinition.instantiate();
-		uidRoa.setValue(new PrismPropertyValue<>(uid.getUidValue()));
+		uidRoa.setRealValue(uid.getUidValue());
 		identifiers.add(uidRoa);
 		if (uid.getNameHint() != null) {
 			ResourceAttributeDefinition<String> nameDefinition = getNameDefinition(concreteObjectClassDefinition);
@@ -601,7 +601,7 @@ public class ConnIdUtil {
 						+ ocDef);
 			}
 			ResourceAttribute<String> nameRoa = nameDefinition.instantiate();
-			nameRoa.setValue(new PrismPropertyValue<>(uid.getNameHintValue()));
+			nameRoa.setRealValue(uid.getNameHintValue());
 			identifiers.add(nameRoa);
 		}
 		return identifiers;

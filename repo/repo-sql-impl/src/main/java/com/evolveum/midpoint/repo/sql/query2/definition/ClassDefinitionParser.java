@@ -16,9 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.query2.definition;
 
-import com.evolveum.midpoint.prism.path.IdentifierPathSegment;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ParentPathSegment;
+import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.repo.sql.data.Marker;
 import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
@@ -27,6 +25,7 @@ import com.evolveum.midpoint.repo.sql.query.definition.*;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.StringUtils;
@@ -90,7 +89,7 @@ public class ClassDefinitionParser {
                 JpaDataNodeDefinition nodeDefinition = new JpaEntityPointerDefinition(ownerGetter.ownerClass());
                 // Owner is considered as not embedded, so we generate left outer join to access it
                 // (instead of implicit inner join that would be used if we would do x.owner.y = '...')
-                linkDefinition = new JpaLinkDefinition(new ParentPathSegment(), jpaName, null, false, nodeDefinition);
+                linkDefinition = new JpaLinkDefinition<>(SchemaConstants.PATH_PARENT, jpaName, null, false, nodeDefinition);
             } else {
                 linkDefinition = parseMethod(method);
             }
@@ -128,7 +127,7 @@ public class ClassDefinitionParser {
         Any any = method.getAnnotation(Any.class);
         if (any != null) {
             JpaAnyContainerDefinition targetDefinition = new JpaAnyContainerDefinition(jpaClass);
-            QName jaxbNameForAny = new QName(any.jaxbNameNamespace(), any.jaxbNameLocalPart());
+            ItemName jaxbNameForAny = new ItemName(any.jaxbNameNamespace(), any.jaxbNameLocalPart());
             linkDefinition = new JpaLinkDefinition<>(jaxbNameForAny, jpaName, collectionSpecification, false, targetDefinition);
         } else if (ObjectReference.class.isAssignableFrom(jpaClass)) {
             boolean embedded = method.isAnnotationPresent(Embedded.class);
@@ -158,12 +157,12 @@ public class ClassDefinitionParser {
                 if (collectionSpecification != null) {
                     throw new IllegalStateException("ID property is not allowed to be multivalued; for method " + method);
                 }
-                itemPath = new ItemPath(new IdentifierPathSegment());
+                itemPath = ItemPath.create(IdentifierPathSegment.QNAME);
             } else if (method.isAnnotationPresent(OwnerIdGetter.class)) {
                 if (collectionSpecification != null) {
                     throw new IllegalStateException("Owner ID property is not allowed to be multivalued; for method " + method);
                 }
-                itemPath = new ItemPath(new ParentPathSegment(), new IdentifierPathSegment());
+                itemPath = ItemPath.create(ParentPathSegment.QNAME, IdentifierPathSegment.QNAME);
             }
 
             JpaPropertyDefinition propertyDefinition = new JpaPropertyDefinition(jpaClass, jaxbClass, lob, enumerated, indexed, count);
@@ -200,36 +199,36 @@ public class ClassDefinitionParser {
         QueryEntity qEntity = (QueryEntity) jpaClass.getAnnotation(QueryEntity.class);
 
         for (VirtualAny any : qEntity.anyElements()) {
-            QName jaxbName = new QName(any.jaxbNameNamespace(), any.jaxbNameLocalPart());
+            ItemName jaxbName = new ItemName(any.jaxbNameNamespace(), any.jaxbNameLocalPart());
             VirtualAnyContainerDefinition def = new VirtualAnyContainerDefinition(any.ownerType());
-            JpaLinkDefinition linkDefinition = new JpaLinkDefinition(jaxbName, null, null, false, def);
+            JpaLinkDefinition linkDefinition = new JpaLinkDefinition<>(jaxbName, null, null, false, def);
             entityDef.addDefinition(linkDefinition);
         }
 
         for (VirtualCollection collection : qEntity.collections()) {
             // only collections of entities expected at this moment
             VirtualCollectionSpecification colSpec = new VirtualCollectionSpecification(collection.additionalParams());
-            QName jaxbName = createQName(collection.jaxbName());
+            ItemName jaxbName = createItemName(collection.jaxbName());
             String jpaName = collection.jpaName();
             JpaEntityDefinition content = parseClass(collection.collectionType());
-            JpaLinkDefinition linkDefinition = new JpaLinkDefinition(jaxbName, jpaName, colSpec, false, content);
+            JpaLinkDefinition linkDefinition = new JpaLinkDefinition<>(jaxbName, jpaName, colSpec, false, content);
             entityDef.addDefinition(linkDefinition);
         }
 
         for (VirtualEntity entity : qEntity.entities()) {
-            QName jaxbName = createQName(entity.jaxbName());
+            ItemName jaxbName = createItemName(entity.jaxbName());
             String jpaName = normalizeJpaName(entity.jpaName());
             if (jpaName != null) {
                 throw new IllegalStateException("Only self-pointing virtual entities are supported for now; this one is not: " + jaxbName + " in " + entityDef);
             }
             JpaDataNodeDefinition target = new JpaEntityPointerDefinition(entityDef);         // pointer to avoid loops
-            JpaLinkDefinition linkDefinition = new JpaLinkDefinition(jaxbName, jpaName, null, false, target);
+            JpaLinkDefinition linkDefinition = new JpaLinkDefinition<>(jaxbName, jpaName, null, false, target);
             entityDef.addDefinition(linkDefinition);
         }
     }
 
-    private QName createQName(JaxbName name) {
-        return new QName(name.namespace(), name.localPart());
+    private ItemName createItemName(JaxbName name) {
+        return new ItemName(name.namespace(), name.localPart());
     }
 
     private String normalizeJpaName(String name) {
@@ -251,20 +250,20 @@ public class ClassDefinitionParser {
     private ItemPath getJaxbName(Method method) {
         if (method.isAnnotationPresent(JaxbName.class)) {
             JaxbName jaxbName = method.getAnnotation(JaxbName.class);
-            return new ItemPath(new QName(jaxbName.namespace(), jaxbName.localPart()));
+            return new ItemName(jaxbName.namespace(), jaxbName.localPart());
         } else if (method.isAnnotationPresent(JaxbPath.class)) {
             JaxbPath jaxbPath = method.getAnnotation(JaxbPath.class);
             List<QName> names = new ArrayList<>(jaxbPath.itemPath().length);
             for (JaxbName jaxbName : jaxbPath.itemPath()) {
                 names.add(new QName(jaxbName.namespace(), jaxbName.localPart()));
             }
-            return new ItemPath(names.toArray(new QName[0]));
+            return ItemPath.create(names);
         } else {
             String propertyName = getPropertyName(method.getName());
             if (method.isAnnotationPresent(Count.class)) {
                 propertyName = StringUtils.removeEnd(propertyName, "Count");
             }
-            return new ItemPath(new QName(SchemaConstantsGenerated.NS_COMMON, propertyName));
+            return new ItemName(SchemaConstantsGenerated.NS_COMMON, propertyName);
         }
     }
 

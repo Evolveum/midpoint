@@ -21,7 +21,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -207,7 +206,7 @@ public class NodeRegistrar {
         String nodeOid = getLocalNodeObjectOid();
         LOGGER.trace("Registering this node shutdown (name {}, oid {})", taskManager.getNodeId(), nodeOid);
         try {
-            List<ItemDelta<?, ?>> modifications = DeltaBuilder.deltaFor(NodeType.class, getPrismContext())
+            List<ItemDelta<?, ?>> modifications = getPrismContext().deltaFor(NodeType.class)
                     .item(NodeType.F_RUNNING).replace(false)
                     .item(NodeType.F_LAST_CHECK_IN_TIME).replace(getCurrentTime())
                     .asItemDeltas();
@@ -231,7 +230,7 @@ public class NodeRegistrar {
         String nodeName = taskManager.getNodeId();
         LOGGER.trace("Updating this node registration:\n{}", cachedLocalNodeObject.debugDumpLazily());
         try {
-            List<ItemDelta<?, ?>> modifications = DeltaBuilder.deltaFor(NodeType.class, getPrismContext())
+            List<ItemDelta<?, ?>> modifications = getPrismContext().deltaFor(NodeType.class)
                     .item(NodeType.F_HOSTNAME).replace(getMyHostname())
                     .item(NodeType.F_IP_ADDRESS).replaceRealValues(getMyIpAddresses())
                     .item(NodeType.F_LAST_CHECK_IN_TIME).replace(getCurrentTime())

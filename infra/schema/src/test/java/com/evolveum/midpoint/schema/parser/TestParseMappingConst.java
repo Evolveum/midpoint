@@ -21,11 +21,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismParser;
 import com.evolveum.midpoint.prism.PrismSerializer;
-import com.evolveum.midpoint.prism.xnode.ListXNode;
-import com.evolveum.midpoint.prism.xnode.MapXNode;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
-import com.evolveum.midpoint.prism.xnode.RootXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.prism.xnode.*;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstExpressionEvaluatorType;
@@ -66,8 +62,8 @@ public class TestParseMappingConst extends AbstractContainerValueParserTest<Mapp
 
 		System.out.println("\nmappingPval:\n"+mappingPval.debugDump(1));
 
-		PrismSerializer<RootXNode> xserializer = prismContext.xnodeSerializer();
-		RootXNode xnode = xserializer.root(new QName("dummy")).serialize(mappingPval);
+		PrismSerializer<RootXNode> serializer = prismContext.xnodeSerializer();
+		RootXNode xnode = serializer.root(new QName("dummy")).serialize(mappingPval);
 
 		System.out.println("\nSerialized xnode:\n"+xnode.debugDump(1));
 		MapXNode xexpression = (MapXNode)((MapXNode)xnode.getSubnode()).get(new QName("expression"));

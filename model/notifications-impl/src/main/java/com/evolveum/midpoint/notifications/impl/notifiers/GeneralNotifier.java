@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
@@ -31,9 +32,6 @@ import com.evolveum.midpoint.notifications.impl.handlers.BaseHandler;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -373,13 +371,12 @@ public class GeneralNotifier extends BaseHandler {
             return itemDelta.getDefinition().getDisplayName();
         }
         StringBuilder sb = new StringBuilder();
-        for (ItemPathSegment itemPathSegment : itemDelta.getPath().getSegments()) {
-            if (itemPathSegment instanceof NameItemPathSegment) {
-                NameItemPathSegment nameItemPathSegment = (NameItemPathSegment) itemPathSegment;
+        for (Object segment : itemDelta.getPath().getSegments()) {
+            if (ItemPath.isName(segment)) {
                 if (sb.length() > 0) {
                     sb.append("/");
                 }
-                sb.append(nameItemPathSegment.getName().getLocalPart());
+                sb.append(ItemPath.toName(segment).getLocalPart());
             }
         }
         return sb.toString();

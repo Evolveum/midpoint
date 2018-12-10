@@ -16,21 +16,12 @@
 
 package com.evolveum.midpoint.schema.xjc.schema;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectValue;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.Raw;
-import com.evolveum.midpoint.prism.Referencable;
-import com.evolveum.midpoint.prism.xjc.PrismContainerArrayList;
-import com.evolveum.midpoint.prism.xjc.PrismForJAXBUtil;
-import com.evolveum.midpoint.prism.xjc.PrismReferenceArrayList;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.impl.*;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.impl.xjc.PrismContainerArrayList;
+import com.evolveum.midpoint.prism.impl.xjc.PrismForJAXBUtil;
+import com.evolveum.midpoint.prism.impl.xjc.PrismReferenceArrayList;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.xjc.PrefixMapper;
 import com.evolveum.midpoint.schema.xjc.Processor;
@@ -176,20 +167,27 @@ public class SchemaProcessor implements Processor {
     @Override
     public boolean run(Outline outline, Options options, ErrorHandler errorHandler) throws SAXException {
         try {
-            createClassMap(CLASS_MAP, outline, PrismReferenceValue.class, PrismReference.class, PrismObject.class,
+            createClassMap(CLASS_MAP, outline,
+                    PrismReferenceValue.class, PrismReferenceValueImpl.class,
+                    PrismReference.class, PrismReferenceImpl.class,
+                    PrismObject.class, PrismObjectImpl.class,
                     String.class, Object.class, XmlTransient.class, Override.class, IllegalArgumentException.class,
-                    QName.class, PrismForJAXBUtil.class, PrismReferenceArrayList.class, PrismContainerValue.class,
+                    ItemName.class,
+                    QName.class, PrismForJAXBUtil.class, PrismReferenceArrayList.class,
+                    PrismContainerValue.class, PrismContainerValueImpl.class,
                     List.class, Objectable.class, StringBuilder.class, XmlAccessorType.class, XmlElement.class, XmlType.class,
-                    XmlAttribute.class, XmlAnyAttribute.class, XmlAnyElement.class, PrismContainer.class, Equals.class,
+                    XmlAttribute.class, XmlAnyAttribute.class, XmlAnyElement.class,
+                    PrismContainer.class, PrismContainerImpl.class,
+                    Equals.class,
                     PrismContainerArrayList.class, HashCode.class, PrismContainerDefinition.class, Containerable.class,
 					Referencable.class, Raw.class, Enum.class, XmlEnum.class, PolyStringType.class, XmlTypeConverter.class,
-					PrismObjectValue.class);
+					PrismObjectValue.class, PrismObjectValueImpl.class);
 
             StepSchemaConstants stepSchemaConstants = new StepSchemaConstants();
             stepSchemaConstants.run(outline, options, errorHandler);
 
             Map<String, JFieldVar> namespaceFields = stepSchemaConstants.getNamespaceFields();
-            addComplextType(outline, namespaceFields);
+            addComplexType(outline, namespaceFields);
             addContainerName(outline, namespaceFields);
             addFieldQNames(outline, namespaceFields);
 
@@ -244,7 +242,7 @@ public class SchemaProcessor implements Processor {
 //        getReference.annotate(CLASS_MAP.get(XmlTransient.class));
         JBlock body = getReference.body();
         JBlock then = body._if(reference.eq(JExpr._null()))._then();
-        JInvocation newReference = JExpr._new(CLASS_MAP.get(PrismReferenceValue.class));
+        JInvocation newReference = JExpr._new(CLASS_MAP.get(PrismReferenceValueImpl.class));
         then.assign(reference, newReference);
         body._return(reference);
 
@@ -452,7 +450,7 @@ public class SchemaProcessor implements Processor {
 
         JBlock body = constructor.body();
         body.invoke(setupContainerMethod)                                                        // setupContainerValue(
-                .arg(JExpr._new(CLASS_MAP.get(PrismContainerValue.class).narrow(new JClass[0]))  //    new PrismContainerValue<>(
+                .arg(JExpr._new(CLASS_MAP.get(PrismContainerValueImpl.class).narrow(new JClass[0]))  //    new PrismContainerValueImpl<>(
                         .arg(JExpr._this())                                                      //       this,
                         .arg(constructor.params().get(0)));                                      //       prismContext);
         return constructor;
@@ -470,7 +468,7 @@ public class SchemaProcessor implements Processor {
 
         JBlock body = constructor.body();
         body.invoke("setupContainer")
-                .arg(JExpr._new(CLASS_MAP.get(PrismObject.class))
+                .arg(JExpr._new(CLASS_MAP.get(PrismObjectImpl.class))
                         .arg(JExpr.invoke("_getContainerName"))
                         .arg(JExpr.invoke("getClass"))
                         .arg(constructor.params().get(0)));
@@ -497,7 +495,7 @@ public class SchemaProcessor implements Processor {
         body._if(containerValueVar.eq(JExpr._null())).                                              // if (_containerValue == null) {
             _then()                                                                                 //
                 .assign(containerValueVar,                                                          //    _containerValue =
-                        JExpr._new(CLASS_MAP.get(PrismContainerValue.class).narrow(new JClass[0]))  //       new PrismContainerValue<>(
+                        JExpr._new(CLASS_MAP.get(PrismContainerValueImpl.class).narrow(new JClass[0]))  //       new PrismContainerValueImpl<>(
                                 .arg(JExpr._this())                                                 //          this)
                 );
         body._return(containerValueVar);
@@ -898,7 +896,7 @@ public class SchemaProcessor implements Processor {
         JBlock body = getContainer.body();
         JBlock then = body._if(container.eq(JExpr._null()))._then();
 
-        JInvocation newContainer = JExpr._new(CLASS_MAP.get(PrismObject.class));
+        JInvocation newContainer = JExpr._new(CLASS_MAP.get(PrismObjectImpl.class));
         newContainer.arg(JExpr.invoke(METHOD_GET_CONTAINER_NAME));
         newContainer.arg(JExpr._this().invoke("getClass"));
 //        newContainer.arg(JExpr.dotclass(definedClass));
@@ -976,7 +974,7 @@ public class SchemaProcessor implements Processor {
             JFieldVar var = namespaceFields.get(qname.getNamespaceURI());
             JInvocation invocation = JExpr._new(CLASS_MAP.get(QName.class));
             if (var != null) {
-                JClass schemaClass = outline.getModel().codeModel._getClass(StepSchemaConstants.CLASS_NAME);
+                JClass schemaClass = outline.getModel().codeModel._getClass(StepSchemaConstants.SCHEMA_CONSTANTS_GENERATED_CLASS_NAME);
                 invocation.arg(schemaClass.staticRef(var));
                 invocation.arg(qname.getLocalPart());
             } else {
@@ -1002,7 +1000,7 @@ public class SchemaProcessor implements Processor {
         return hasAnnotation(classOutline, annotation) || hasParentAnnotation(classOutline.getSuperClass(), annotation);
     }
 
-    private void addComplextType(Outline outline, Map<String, JFieldVar> namespaceFields) {
+    private void addComplexType(Outline outline, Map<String, JFieldVar> namespaceFields) {
         Set<Map.Entry<NClass, CClassInfo>> set = outline.getModel().beans().entrySet();
         for (Map.Entry<NClass, CClassInfo> entry : set) {
             ClassOutline classOutline = outline.getClazz(entry.getValue());
@@ -1010,13 +1008,8 @@ public class SchemaProcessor implements Processor {
             if (qname == null) {
                 continue;
             }
-
-            JFieldVar var = namespaceFields.get(qname.getNamespaceURI());
-            if (var != null) {
-                createQNameDefinition(outline, classOutline.implClass, COMPLEX_TYPE_FIELD_NAME, var, qname);
-            } else {
-                createPSFField(outline, classOutline.implClass, COMPLEX_TYPE_FIELD_NAME, qname);
-            }
+            JFieldVar namespaceField = namespaceFields.get(qname.getNamespaceURI());
+            createQName(outline, classOutline.implClass, COMPLEX_TYPE_FIELD_NAME, qname, namespaceField, false, false);
         }
     }
 
@@ -1045,18 +1038,6 @@ public class SchemaProcessor implements Processor {
         }
 
         return complexTypeToElementName;
-    }
-
-    private JFieldVar createQNameDefinition(Outline outline, JDefinedClass definedClass, String fieldName,
-            JFieldVar namespaceField, QName reference) {
-        JClass schemaClass = outline.getModel().codeModel._getClass(StepSchemaConstants.CLASS_NAME);
-
-        JInvocation invocation = JExpr._new(CLASS_MAP.get(QName.class));
-        invocation.arg(schemaClass.staticRef(namespaceField));
-        invocation.arg(reference.getLocalPart());
-
-        int psf = JMod.PUBLIC | JMod.STATIC | JMod.FINAL;
-        return definedClass.field(psf, QName.class, fieldName, invocation);
     }
 
     private void addFieldQNames(Outline outline, Map<String, JFieldVar> namespaceFields) {
@@ -1093,13 +1074,9 @@ public class SchemaProcessor implements Processor {
                 boxes.add(new FieldBox<>(fieldName, new QName(qname.getNamespaceURI(), field)));
             }
 
+            JFieldVar var = namespaceFields.get(qname.getNamespaceURI());
             for (FieldBox<QName> box : boxes) {
-                JFieldVar var = namespaceFields.get(qname.getNamespaceURI());
-                if (var != null) {
-                    createQNameDefinition(outline, implClass, box.getFieldName(), var, box.getValue());
-                } else {
-                    createPSFField(outline, implClass, box.getFieldName(), box.getValue());
-                }
+                createQName(outline, implClass, box.getFieldName(), box.getValue(), var, false, true);
             }
         }
     }
@@ -1680,7 +1657,7 @@ public class SchemaProcessor implements Processor {
 		JVar type = newMethod.param(QName.class, "type");
 		JBlock body = newMethod.body();
 		JVar refVal = body.decl(CLASS_MAP.get(PrismReferenceValue.class), "refVal",
-				JExpr._new(CLASS_MAP.get(PrismReferenceValue.class))
+				JExpr._new(CLASS_MAP.get(PrismReferenceValueImpl.class))
 						.arg(oid).arg(type));
 		JVar ort = body.decl(objectReferenceType, "ort", JExpr._new(objectReferenceType));
 		body.invoke(ort, METHOD_SETUP_REFERENCE_VALUE).arg(refVal);
@@ -1694,7 +1671,7 @@ public class SchemaProcessor implements Processor {
 		JVar relation = newMethod.param(QName.class, "relation");
 		JBlock body = newMethod.body();
 		JVar refVal = body.decl(CLASS_MAP.get(PrismReferenceValue.class), "refVal",
-				JExpr._new(CLASS_MAP.get(PrismReferenceValue.class))
+				JExpr._new(CLASS_MAP.get(PrismReferenceValueImpl.class))
 						.arg(oid).arg(type));
 		body.invoke(refVal, "setRelation").arg(relation);
 		JVar ort = body.decl(objectReferenceType, "ort", JExpr._new(objectReferenceType));

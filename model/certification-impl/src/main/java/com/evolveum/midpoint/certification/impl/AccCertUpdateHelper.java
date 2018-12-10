@@ -22,11 +22,7 @@ import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
@@ -97,7 +93,7 @@ public class AccCertUpdateHelper {
 			if (triggers.isEmpty()) {
 				return Collections.emptyList();
 			} else {
-				return DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+				return prismContext.deltaFor(AccessCertificationCampaignType.class)
 						.item(TaskType.F_TRIGGER).add(PrismContainerValue.toPcvList(triggers))
 						.asItemDeltas();
 			}
@@ -120,31 +116,32 @@ public class AccCertUpdateHelper {
     }
 
     PropertyDelta<Integer> createStageNumberDelta(int number) {
-        return PropertyDelta.createReplaceDelta(generalHelper.getCampaignObjectDefinition(), AccessCertificationCampaignType.F_STAGE_NUMBER, number);
+        return prismContext.deltaFactory().property().createReplaceDelta(generalHelper.getCampaignObjectDefinition(), AccessCertificationCampaignType.F_STAGE_NUMBER, number);
     }
 
     PropertyDelta<AccessCertificationCampaignStateType> createStateDelta(AccessCertificationCampaignStateType state) {
-        return PropertyDelta.createReplaceDelta(generalHelper.getCampaignObjectDefinition(), AccessCertificationCampaignType.F_STATE, state);
+        return prismContext.deltaFactory().property().createReplaceDelta(generalHelper.getCampaignObjectDefinition(), AccessCertificationCampaignType.F_STATE, state);
     }
 
     ItemDelta<?, ?> createStartTimeDelta(XMLGregorianCalendar date) throws SchemaException {
-		return DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+		return prismContext.deltaFor(AccessCertificationCampaignType.class)
 				.item(AccessCertificationCampaignType.F_START_TIMESTAMP).replace(date)
 				.asItemDelta();
     }
 
 	ItemDelta<?, ?> createEndTimeDelta(XMLGregorianCalendar date) throws SchemaException {
-		return DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+		return prismContext.deltaFor(AccessCertificationCampaignType.class)
 				.item(AccessCertificationCampaignType.F_END_TIMESTAMP).replace(date)
 				.asItemDelta();
 	}
 
     ContainerDelta createTriggerDeleteDelta() {
-        return ContainerDelta.createModificationReplace(ObjectType.F_TRIGGER, generalHelper.getCampaignObjectDefinition());
+        return prismContext.deltaFactory().container()
+		        .createModificationReplace(ObjectType.F_TRIGGER, generalHelper.getCampaignObjectDefinition());
     }
 
     List<ItemDelta<?, ?>> createTriggerReplaceDelta(Collection<TriggerType> triggers) throws SchemaException {
-		return DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+		return prismContext.deltaFor(AccessCertificationCampaignType.class)
 				.item(AccessCertificationCampaignType.F_TRIGGER).replaceRealValues(triggers)
 				.asItemDeltas();
     }
@@ -155,7 +152,7 @@ public class AccCertUpdateHelper {
     //region ================================ Model and repository operations ================================
 
     void addObjectPreAuthorized(ObjectType objectType, Task task, OperationResult result) throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
-        ObjectDelta<? extends ObjectType> objectDelta = ObjectDelta.createAddDelta(objectType.asPrismObject());
+        ObjectDelta<? extends ObjectType> objectDelta = DeltaFactory.Object.createAddDelta(objectType.asPrismObject());
         Collection<ObjectDeltaOperation<? extends ObjectType>> ops;
         try {
             ops = modelService.executeChanges(
@@ -184,7 +181,8 @@ public class AccCertUpdateHelper {
 	}
 
 	<T extends ObjectType> void modifyObjectPreAuthorized(Class<T> objectClass, String oid, Collection<ItemDelta<?,?>> itemDeltas, Task task, OperationResult result) throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
-        ObjectDelta<T> objectDelta = ObjectDelta.createModifyDelta(oid, itemDeltas, objectClass, prismContext);
+        ObjectDelta<T> objectDelta = prismContext.deltaFactory().object().createModifyDelta(oid, itemDeltas, objectClass
+        );
         try {
             ModelExecuteOptions options = ModelExecuteOptions.createRaw().setPreAuthorized();
             modelService.executeChanges(Collections.singletonList(objectDelta), options, task, result);

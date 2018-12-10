@@ -29,6 +29,7 @@ import java.util.Set;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.icf.dummy.connector.DummyConnector;
@@ -43,9 +44,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.match.MatchingRule;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.impl.AbstractProvisioningIntegrationTest;
@@ -204,7 +203,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 	}
 
 	protected void setIcfUid(PrismObject<ShadowType> shadow, String icfUid) {
-		PrismProperty<String> icfUidAttr = shadow.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_UID));
+		PrismProperty<String> icfUidAttr = shadow.findProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_UID));
 		icfUidAttr.setRealValue(icfUid);
 	}
 
@@ -213,12 +212,12 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 	}
 
 	protected String getIcfUid(PrismObject<ShadowType> shadow) {
-		PrismProperty<String> icfUidAttr = shadow.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_UID));
+		PrismProperty<String> icfUidAttr = shadow.findProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_UID));
 		return icfUidAttr.getRealValue();
 	}
 
 	protected String getIcfName(PrismObject<ShadowType> shadow) {
-		PrismProperty<String> icfUidAttr = shadow.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME));
+		PrismProperty<String> icfUidAttr = shadow.findProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME));
 		return icfUidAttr.getRealValue();
 	}
 
@@ -257,7 +256,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 
 		LOGGER.info("item definition: {}", itemDef.debugDump());
 		//TODO: matching rule
-		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(ShadowType.class)
 				.itemWithDef(itemDef, ShadowType.F_ATTRIBUTES, itemDef.getName()).eq(getWillRepoIcfName())
 				.build();
 

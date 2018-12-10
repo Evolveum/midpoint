@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.prism.query.ItemFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -58,11 +59,11 @@ public class QueryAutzItemPaths extends AutzItemPaths {
 			return unsatisfiedItems;
 		}
 		for (ItemPath requiredItem: requiredItems) {
-			if (ItemPath.containsEquivalent(getIncludedItems(), requiredItem)) {
+			if (ItemPathCollectionsUtil.containsEquivalent(getIncludedItems(), requiredItem)) {
 				// allowed
 				continue;
 			}
-			if (!getExcludedItems().isEmpty() && !ItemPath.containsEquivalent(getExcludedItems(), requiredItem)) {
+			if (!getExcludedItems().isEmpty() && !ItemPathCollectionsUtil.containsEquivalent(getExcludedItems(), requiredItem)) {
 				// not notAllowed = allowed
 				continue;
 			}

@@ -99,12 +99,14 @@ public class PageResourceWizard extends PageAdminResources {
 
 		LOGGER.debug("Resource wizard called with oid={}, configOnly={}, readOnly={}", editedResourceOid, configurationOnly, readOnly);
 
-		modelRaw = createResourceModel(Arrays.asList(
-				SelectorOptions.create(ResourceType.F_CONNECTOR_REF, GetOperationOptions.createResolve()),
-				SelectorOptions.create(GetOperationOptions.createRaw())));
-		modelNoFetch = createResourceModel(Arrays.asList(
-				SelectorOptions.create(ResourceType.F_CONNECTOR_REF, GetOperationOptions.createResolve()),
-				SelectorOptions.create(GetOperationOptions.createNoFetch())));
+		modelRaw = createResourceModel(getOperationOptionsBuilder()
+						.raw()
+						.item(ResourceType.F_CONNECTOR_REF).resolve()
+						.build());
+		modelNoFetch = createResourceModel(getOperationOptionsBuilder()
+						.noFetch()
+						.item(ResourceType.F_CONNECTOR_REF).resolve()
+						.build());
 		modelFull = createResourceModel(null);
 
 		issuesModel = new ResourceWizardIssuesModel(modelFull, this);
@@ -231,15 +233,7 @@ public class PageResourceWizard extends PageAdminResources {
 		if (!delta.isModify()) {
 			return delta;
 		}
-		final ItemPath RESULT_PATH = new ItemPath(ResourceType.F_FETCH_RESULT);
-		@SuppressWarnings("unchecked")
-		Iterator<? extends ItemDelta<?,?>> iterator = delta.getModifications().iterator();
-		while (iterator.hasNext()) {
-			ItemDelta<?,?> itemDelta = iterator.next();
-			if (RESULT_PATH.equivalent(itemDelta.getPath())) {
-				iterator.remove();
-			}
-		}
+		delta.getModifications().removeIf(itemDelta -> ResourceType.F_FETCH_RESULT.equivalent(itemDelta.getPath()));
 		return delta;
 	}
 

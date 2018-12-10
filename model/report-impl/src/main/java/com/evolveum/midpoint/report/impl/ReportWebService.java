@@ -164,7 +164,7 @@ public class ReportWebService implements ReportPortType, ReportPort {
 			Map<QName, Object> parametersMap = getParamsMap(parameters);
 			ObjectQuery q = reportService.parseQuery(query, parametersMap);
 			Collection<PrismObject<? extends ObjectType>> resultList = reportService.searchObjects(q,
-					MiscSchemaUtil.optionsTypeToOptions(options));
+					MiscSchemaUtil.optionsTypeToOptions(options, prismContext));
 
 			return createObjectListType(resultList);
 		} catch (SchemaException | ObjectNotFoundException | SecurityViolationException

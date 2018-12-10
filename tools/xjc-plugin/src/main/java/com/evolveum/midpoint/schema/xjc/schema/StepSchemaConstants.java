@@ -29,12 +29,14 @@ import org.xml.sax.ErrorHandler;
 import javax.xml.namespace.QName;
 import java.util.*;
 
+import static com.evolveum.midpoint.schema.xjc.util.ProcessorUtils.createQName;
+
 /**
  * @author lazyman
  */
 public class StepSchemaConstants implements Processor {
 
-    public static final String CLASS_NAME = "com.evolveum.midpoint.schema.SchemaConstantsGenerated";
+    public static final String SCHEMA_CONSTANTS_GENERATED_CLASS_NAME = "com.evolveum.midpoint.schema.SchemaConstantsGenerated";
     private Map<String, JFieldVar> namespaceFields = new HashMap<>();
 
     public Map<String, JFieldVar> getNamespaceFields() {
@@ -44,7 +46,7 @@ public class StepSchemaConstants implements Processor {
     @Override
     public boolean run(Outline outline, Options opt, ErrorHandler errorHandler) throws Exception {
         Model model = outline.getModel();
-        JDefinedClass schemaConstants = model.codeModel._class(CLASS_NAME);
+        JDefinedClass schemaConstants = model.codeModel._class(SCHEMA_CONSTANTS_GENERATED_CLASS_NAME);
 
         //creating namespaces
         List<FieldBox<String>> namespaces = new ArrayList<>();
@@ -74,11 +76,7 @@ public class StepSchemaConstants implements Processor {
         Collections.sort(fields);
         for (FieldBox<QName> field : fields) {
             JFieldVar var = namespaceFields.get(field.getValue().getNamespaceURI());
-            if (var != null) {
-                createQNameDefinition(outline, schemaConstants, field.getFieldName(), var, field.getValue());
-            } else {
-                ProcessorUtils.createPSFField(outline, schemaConstants, field.getFieldName(), field.getValue());
-            }
+            createQName(outline, schemaConstants, field.getFieldName(), field.getValue(), var, true, true);
         }
 
         return true;
@@ -90,15 +88,4 @@ public class StepSchemaConstants implements Processor {
         return definedClass.field(psf, String.class, fieldName, JExpr.lit(value));
     }
 
-    private JFieldVar createQNameDefinition(Outline outline, JDefinedClass definedClass, String fieldName,
-            JFieldVar namespaceField, QName reference) {
-        JClass clazz = (JClass) outline.getModel().codeModel._ref(QName.class);
-
-        JInvocation invocation = (JInvocation) JExpr._new(clazz);
-        invocation.arg(namespaceField);
-        invocation.arg(reference.getLocalPart());
-
-        int psf = JMod.PUBLIC | JMod.STATIC | JMod.FINAL;
-        return definedClass.field(psf, QName.class, fieldName, invocation);
-    }
 }

@@ -22,10 +22,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
@@ -59,16 +56,19 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 
 	protected SecurityContextManager securityContextManager;
     protected LocalizationService localizationService;
+	protected PrismContext prismContext;
 
 	private E expressionEvaluatorType;
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractValueTransformationExpressionEvaluator.class);
 
     protected AbstractValueTransformationExpressionEvaluator(E expressionEvaluatorType,
-		    SecurityContextManager securityContextManager, LocalizationService localizationService) {
+		    SecurityContextManager securityContextManager, LocalizationService localizationService,
+		    PrismContext prismContext) {
     	this.expressionEvaluatorType = expressionEvaluatorType;
         this.securityContextManager = securityContextManager;
         this.localizationService = localizationService;
+        this.prismContext = prismContext;
     }
 
     public E getExpressionEvaluatorType() {
@@ -130,7 +130,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 			return sourceTriples;
 		}
 		for (Source<?,?> source: sources) {
-			SourceTriple<?,?> sourceTriple = new SourceTriple<>(source);
+			SourceTriple<?,?> sourceTriple = new SourceTriple<>(source, prismContext);
 			ItemDelta<?,?> delta = source.getDelta();
 			if (delta != null) {
 				sourceTriple.merge((DeltaSetTriple) delta.toDeltaSetTriple((Item) source.getItemOld()));
@@ -189,12 +189,12 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 				outputSetNew = evaluateScriptExpression(sources, variables, contextDescription, true, params, task, result);
 			}
 
-			outputTriple = PrismValueDeltaSetTriple.diffPrismValueDeltaSetTriple(outputSetOld, outputSetNew);
+			outputTriple = DeltaSetTripleUtil.diffPrismValueDeltaSetTriple(outputSetOld, outputSetNew, prismContext);
 
 		} else {
 			// No need to execute twice. There is no change.
 			Collection<V> outputSetNew = evaluateScriptExpression(sources, variables, contextDescription, true, params, task, result);
-			outputTriple = new PrismValueDeltaSetTriple<>();
+			outputTriple = prismContext.deltaFactory().createPrismValueDeltaSetTriple();
 			outputTriple.addAllToZeroSet(outputSetNew);
 		}
 
@@ -335,7 +335,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 			valueCollections.add(values);
 		}
 
-		final PrismValueDeltaSetTriple<V> outputTriple = new PrismValueDeltaSetTriple<>();
+		final PrismValueDeltaSetTriple<V> outputTriple = prismContext.deltaFactory().createPrismValueDeltaSetTriple();
 
 		Expression<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> conditionExpression;
 		if (expressionEvaluatorType.getCondition() != null) {

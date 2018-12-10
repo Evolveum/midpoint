@@ -237,7 +237,7 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
 
                 if (segment != null) {
                     ResourceObjectAssociationType association = new ResourceObjectAssociationType();
-                    association.setRef(new ItemPathType(new ItemPath(segment)));
+                    association.setRef(new ItemPathType(ItemPath.create(segment)));
                     newConstructionAssignment.getConstruction().getAssociation().add(association);
                 }
             }

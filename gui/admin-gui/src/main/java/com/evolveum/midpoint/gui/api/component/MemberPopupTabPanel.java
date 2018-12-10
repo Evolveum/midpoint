@@ -85,7 +85,8 @@ public abstract class MemberPopupTabPanel<O extends ObjectType> extends Abstract
         ObjectDelta delta = null;
         try {
             Class classType = WebComponentUtil.qnameToClass(pageBase.getPrismContext(), getObjectType().getTypeQName());
-            delta =  ObjectDelta.createEmptyModifyDelta(classType, "fakeOid", pageBase.getPrismContext());
+            delta =  pageBase.getPrismContext().deltaFactory().object().createEmptyModifyDelta(classType, "fakeOid"
+            );
             AssignmentType newAssignment = new AssignmentType();
             ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(getAbstractRoleTypeObject(), getRelationValue());
             newAssignment.setTargetRef(ref);

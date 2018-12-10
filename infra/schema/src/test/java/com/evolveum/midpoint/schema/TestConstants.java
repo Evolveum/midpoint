@@ -19,6 +19,7 @@ import java.io.File;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 /**
@@ -33,11 +34,11 @@ public class TestConstants {
 	public static final String NS_EXTENSION = SchemaConstants.NS_MIDPOINT_TEST + "/extension";
 	public static final String NS_FOO = "http://www.example.com/foo";
 
-	public static final QName EXTENSION_STRING_TYPE_ELEMENT = new QName(NS_EXTENSION, "stringType");
-	public static final QName EXTENSION_SINGLE_STRING_TYPE_ELEMENT = new QName(NS_EXTENSION, "singleStringType");
-	public static final QName EXTENSION_INT_TYPE_ELEMENT = new QName(NS_EXTENSION, "intType");
-	public static final QName EXTENSION_IGNORED_TYPE_ELEMENT = new QName(NS_EXTENSION, "ignoredType");
-    public static final QName EXTENSION_USER_REF_ELEMENT = new QName(NS_EXTENSION, "userRef");
+	public static final ItemName EXTENSION_STRING_TYPE_ELEMENT = new ItemName(NS_EXTENSION, "stringType");
+	public static final ItemName EXTENSION_SINGLE_STRING_TYPE_ELEMENT = new ItemName(NS_EXTENSION, "singleStringType");
+	public static final ItemName EXTENSION_INT_TYPE_ELEMENT = new ItemName(NS_EXTENSION, "intType");
+	public static final ItemName EXTENSION_IGNORED_TYPE_ELEMENT = new ItemName(NS_EXTENSION, "ignoredType");
+    public static final ItemName EXTENSION_USER_REF_ELEMENT = new ItemName(NS_EXTENSION, "userRef");
 
     public static final String USER_FILE_BASENAME = "user-jack";
 	public static final File USER_FILE = new File(COMMON_DIR, "user-jack.xml");

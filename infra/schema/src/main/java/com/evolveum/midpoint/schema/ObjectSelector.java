@@ -15,10 +15,11 @@
  */
 package com.evolveum.midpoint.schema;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.util.ShortDumpable;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * @author semancik
@@ -26,14 +27,14 @@ import java.io.Serializable;
  */
 public class ObjectSelector implements Serializable, ShortDumpable {
 
-	private ItemPath path;
+	private UniformItemPath path;           // do not change to ItemPath unless equals/hashCode is adapted
 
-	public ObjectSelector(ItemPath path) {
+	public ObjectSelector(UniformItemPath path) {
 		super();
 		this.path = path;
 	}
 
-	public ItemPath getPath() {
+	public UniformItemPath getPath() {
 		return path;
 	}
 
@@ -47,4 +48,18 @@ public class ObjectSelector implements Serializable, ShortDumpable {
 		sb.append(path);
 	}
 
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (!(o instanceof ObjectSelector))
+			return false;
+		ObjectSelector that = (ObjectSelector) o;
+		return Objects.equals(path, that.path);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(path);
+	}
 }

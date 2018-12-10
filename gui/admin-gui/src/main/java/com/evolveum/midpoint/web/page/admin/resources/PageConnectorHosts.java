@@ -272,8 +272,8 @@ public class PageConnectorHosts extends PageAdminResources {
 				Task task = createSimpleTask(OPERATION_DELETE_HOSTS);
 
 				if (selectable.getValue() != null) {
-					ObjectDelta<ConnectorHostType> delta = ObjectDelta.createDeleteDelta(ConnectorHostType.class,
-							selectable.getValue().getOid(), getPrismContext());
+					ObjectDelta<ConnectorHostType> delta = getPrismContext().deltaFactory().object().createDeleteDelta(ConnectorHostType.class,
+							selectable.getValue().getOid());
 					getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task,
 							result);
 				}

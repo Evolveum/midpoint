@@ -10,16 +10,10 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismParserNoIO;
-import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.RelationalValueSearchQuery;
-import com.evolveum.midpoint.schema.RetrieveOption;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -86,13 +80,13 @@ public class NinjaUtils {
         return null;
     }
 
-    public static ObjectFilter createObjectFilter(FileReference strFilter, NinjaContext context)
+    public static ObjectFilter createObjectFilter(FileReference strFilter, NinjaContext context, Class<? extends ObjectType> objectClass)
             throws IOException, SchemaException {
-        ObjectQuery query = createObjectQuery(strFilter, context);
+        ObjectQuery query = createObjectQuery(strFilter, context, objectClass);
         return query != null ? query.getFilter() : null;
     }
 
-    public static ObjectQuery createObjectQuery(FileReference ref, NinjaContext context)
+    public static ObjectQuery createObjectQuery(FileReference ref, NinjaContext context, Class<? extends ObjectType> objectClass)
             throws IOException, SchemaException {
 
         if (ref == null) {
@@ -109,8 +103,8 @@ public class NinjaUtils {
         PrismParserNoIO parser = prismContext.parserFor(filterStr);
         RootXNode root = parser.parseToXNode();
 
-        ObjectFilter filter = QueryConvertor.parseFilter(root.toMapXNode(), prismContext);
-        return ObjectQuery.createObjectQuery(filter);
+        ObjectFilter filter = context.getQueryConverter().parseFilter(root.toMapXNode(), objectClass);
+        return prismContext.queryFactory().createQuery(filter);
     }
 
     public static String printStackToString(Exception ex) {
@@ -160,8 +154,8 @@ public class NinjaUtils {
         return new OutputStreamWriter(os, charset);
     }
 
-    public static void addIncludeOptionsForExport(Collection<SelectorOptions<GetOperationOptions>> options,
-                                                  Class<? extends ObjectType> type) {
+    public static GetOperationOptionsBuilder addIncludeOptionsForExport(GetOperationOptionsBuilder optionsBuilder,
+            Class<? extends ObjectType> type) {
         // todo fix this brutal hack (related to checking whether to include particular options)
         boolean all = type == null
                 || Objectable.class.equals(type)
@@ -169,19 +163,16 @@ public class NinjaUtils {
                 || ObjectType.class.equals(type);
 
         if (all || UserType.class.isAssignableFrom(type)) {
-            options.add(SelectorOptions.create(UserType.F_JPEG_PHOTO,
-                    GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
+            optionsBuilder = optionsBuilder.item(UserType.F_JPEG_PHOTO).retrieve();
         }
         if (all || LookupTableType.class.isAssignableFrom(type)) {
-            options.add(SelectorOptions.create(LookupTableType.F_ROW,
-                    GetOperationOptions.createRetrieve(
-                            new RelationalValueSearchQuery(
-                                    ObjectPaging.createPaging(PrismConstants.T_ID, OrderDirection.ASCENDING)))));
+            optionsBuilder = optionsBuilder.item(LookupTableType.F_ROW)
+                    .retrieveQuery().asc(PrismConstants.T_ID).end();
         }
         if (all || AccessCertificationCampaignType.class.isAssignableFrom(type)) {
-            options.add(SelectorOptions.create(AccessCertificationCampaignType.F_CASE,
-                    GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
+            optionsBuilder = optionsBuilder.item(AccessCertificationCampaignType.F_CASE).retrieve();
         }
+        return optionsBuilder;
     }
 
     public static List<ObjectTypes> getTypes(Set<ObjectTypes> selected) {

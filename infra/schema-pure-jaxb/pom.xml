@@ -105,7 +105,7 @@
                                 </artifactItem>
                             </artifactItems>
                             <includes>**/*.xsd,**/*.dtd</includes>
-                            <excludes>prism/xml/ns/test/**,xml/ns/test/**</excludes>
+                            <excludes>prism-impl/xml/ns/test/**,xml/ns/test/**</excludes>
                             <outputDirectory>${project.basedir}/target/midpoint-schema</outputDirectory>
                         </configuration>
                     </execution>

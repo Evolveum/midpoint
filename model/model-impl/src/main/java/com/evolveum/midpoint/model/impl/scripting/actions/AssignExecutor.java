@@ -151,7 +151,8 @@ public class AssignExecutor extends BaseActionExecutor {
             }
         }
 
-        ObjectDelta<? extends ObjectType> delta = ObjectDelta.createEmptyModifyDelta(objectType.getClass(), objectType.getOid(), prismContext);
+        ObjectDelta<? extends ObjectType> delta = prismContext.deltaFactory().object()
+		        .createEmptyModifyDelta(objectType.getClass(), objectType.getOid());
         try {
             delta.addModificationAddContainer(FocusType.F_ASSIGNMENT, assignments.toArray(new AssignmentType[0]));
         } catch (SchemaException e) {

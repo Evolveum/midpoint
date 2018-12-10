@@ -24,6 +24,7 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -41,8 +42,6 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.AllFilter;
 import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -600,12 +599,12 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 		assertItemFlags(userJackEditSchema, UserType.F_FAMILY_NAME, true, false, false);
 		assertItemFlags(userJackEditSchema, UserType.F_ADDITIONAL_NAME, true, false, false);
 		assertItemFlags(userJackEditSchema, UserType.F_METADATA, true, false, false);
-		assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), true, false, false);
+		assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), true, false, false);
 		assertItemFlags(userJackEditSchema, UserType.F_ASSIGNMENT, true, false, false);
-		assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_ASSIGNMENT, UserType.F_METADATA), true, false, false);
-		assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_ASSIGNMENT, UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), true, false, false);
-		assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), true, false, false);
-		assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS), true, false, false);
+		assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_ASSIGNMENT, UserType.F_METADATA), true, false, false);
+		assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_ASSIGNMENT, UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), true, false, false);
+		assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), true, false, false);
+		assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS), true, false, false);
 	}
 
 	@Test
@@ -719,12 +718,12 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         PrismAsserts.assertPropertyValue(userJack, UserType.F_NAME, PrismTestUtil.createPolyString(USER_JACK_USERNAME));
         PrismAsserts.assertPropertyValue(userJack, UserType.F_FULL_NAME, PrismTestUtil.createPolyString(USER_JACK_FULL_NAME));
         PrismAsserts.assertPropertyValue(userJack, UserType.F_FAMILY_NAME, PrismTestUtil.createPolyString(USER_JACK_FAMILY_NAME));
-        PrismAsserts.assertPropertyValue(userJack, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
+        PrismAsserts.assertPropertyValue(userJack, ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
         	ActivationStatusType.ENABLED);
         PrismAsserts.assertNoItem(userJack, UserType.F_GIVEN_NAME);
         PrismAsserts.assertNoItem(userJack, UserType.F_ADDITIONAL_NAME);
         PrismAsserts.assertNoItem(userJack, UserType.F_DESCRIPTION);
-        PrismAsserts.assertNoItem(userJack, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
+        PrismAsserts.assertNoItem(userJack, ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
         assertAssignmentsWithTargets(userJack, 1);
 
         PrismObjectDefinition<UserType> userJackEditSchema = getEditObjectDefinition(userJack);
@@ -736,24 +735,24 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertItemFlags(userJackEditSchema, UserType.F_FAMILY_NAME, true, false, false);
         assertItemFlags(userJackEditSchema, UserType.F_ADDITIONAL_NAME, false, false, true);
         assertItemFlags(userJackEditSchema, UserType.F_METADATA, false, false, false);
-        assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), false, false, false);
+        assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), false, false, false);
         assertItemFlags(userJackEditSchema, UserType.F_ASSIGNMENT, true, false, false);
-        assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_ASSIGNMENT, UserType.F_METADATA), true, false, false);
-        assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_ASSIGNMENT, UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), true, false, false);
-        assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), true, false, false);
-        assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS), false, false, false);
+        assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_ASSIGNMENT, UserType.F_METADATA), true, false, false);
+        assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_ASSIGNMENT, UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), true, false, false);
+        assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), true, false, false);
+        assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS), false, false, false);
 
         PrismObject<UserType> userGuybrush = findUserByUsername(USER_GUYBRUSH_USERNAME);
         display("Guybrush", userGuybrush);
         PrismAsserts.assertPropertyValue(userGuybrush, UserType.F_NAME, PrismTestUtil.createPolyString(USER_GUYBRUSH_USERNAME));
         PrismAsserts.assertPropertyValue(userGuybrush, UserType.F_FULL_NAME, PrismTestUtil.createPolyString(USER_GUYBRUSH_FULL_NAME));
         PrismAsserts.assertPropertyValue(userGuybrush, UserType.F_FAMILY_NAME, PrismTestUtil.createPolyString(USER_GUYBRUSH_FAMILY_NAME));
-        PrismAsserts.assertPropertyValue(userGuybrush, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
+        PrismAsserts.assertPropertyValue(userGuybrush, ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
             	ActivationStatusType.ENABLED);
         PrismAsserts.assertNoItem(userGuybrush, UserType.F_GIVEN_NAME);
         PrismAsserts.assertNoItem(userGuybrush, UserType.F_ADDITIONAL_NAME);
         PrismAsserts.assertNoItem(userGuybrush, UserType.F_DESCRIPTION);
-        PrismAsserts.assertNoItem(userGuybrush, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
+        PrismAsserts.assertNoItem(userGuybrush, ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
         assertAssignmentsWithTargets(userGuybrush, 1);
 
         assertAddDeny();
@@ -794,7 +793,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 		PrismAsserts.assertPropertyValue(userJack, UserType.F_FULL_NAME, PrismTestUtil.createPolyString(USER_JACK_FULL_NAME));
 		PrismAsserts.assertPropertyValue(userJack, UserType.F_GIVEN_NAME, PrismTestUtil.createPolyString(USER_JACK_GIVEN_NAME));
 		PrismAsserts.assertPropertyValue(userJack, UserType.F_FAMILY_NAME, PrismTestUtil.createPolyString(USER_JACK_FAMILY_NAME));
-		PrismAsserts.assertPropertyValue(userJack, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
+		PrismAsserts.assertPropertyValue(userJack, ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
 			ActivationStatusType.ENABLED);
 		PrismAsserts.assertNoItem(userJack, UserType.F_ADDITIONAL_NAME);
 		PrismAsserts.assertNoItem(userJack, UserType.F_DESCRIPTION);
@@ -815,7 +814,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 		PrismAsserts.assertPropertyValue(userGuybrush, UserType.F_FULL_NAME, PrismTestUtil.createPolyString(USER_GUYBRUSH_FULL_NAME));
 		PrismAsserts.assertPropertyValue(userGuybrush, UserType.F_GIVEN_NAME, PrismTestUtil.createPolyString(USER_GUYBRUSH_GIVEN_NAME));
 		PrismAsserts.assertPropertyValue(userGuybrush, UserType.F_FAMILY_NAME, PrismTestUtil.createPolyString(USER_GUYBRUSH_FAMILY_NAME));
-		PrismAsserts.assertPropertyValue(userGuybrush, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
+		PrismAsserts.assertPropertyValue(userGuybrush, ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
 		    	ActivationStatusType.ENABLED);
 		PrismAsserts.assertNoItem(userGuybrush, UserType.F_ADDITIONAL_NAME);
 		PrismAsserts.assertNoItem(userGuybrush, UserType.F_DESCRIPTION);
@@ -944,7 +943,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertGetDeny(ShadowType.class, accountOid);
         assertGetDeny(ShadowType.class, ACCOUNT_SHADOW_ELAINE_DUMMY_OID);
 
-        assertSearch(ShadowType.class, ObjectQuery.createObjectQuery(
+        assertSearch(ShadowType.class, prismContext.queryFactory().createQuery(
         		ObjectQueryUtil.createResourceAndObjectClassFilter(RESOURCE_DUMMY_OID,
         				new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), prismContext)), 0);
 
@@ -1149,7 +1148,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertGetDeny(ShadowType.class, accountOid);
         assertGetDeny(ShadowType.class, ACCOUNT_SHADOW_ELAINE_DUMMY_OID);
 
-        assertSearch(ShadowType.class, ObjectQuery.createObjectQuery(
+        assertSearch(ShadowType.class, prismContext.queryFactory().createQuery(
         		ObjectQueryUtil.createResourceAndObjectClassFilter(RESOURCE_DUMMY_OID,
         				new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), prismContext)), 0);
 	}
@@ -1223,7 +1222,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
     	task = taskManager.createTaskInstance(TestSecurityBasic.class.getName() + "." + TEST_NAME);
         result = task.getResult();
 
-        ObjectQuery query = ObjectQuery.createObjectQuery(
+        ObjectQuery query = prismContext.queryFactory().createQuery(
         		ObjectQueryUtil.createResourceAndObjectClassFilter(RESOURCE_DUMMY_OID,
         				new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), prismContext));
 
@@ -1307,7 +1306,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
     	Task task = taskManager.createTaskInstance(TestSecurityBasic.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
-        ObjectQuery query = ObjectQuery.createObjectQuery(
+        ObjectQuery query = prismContext.queryFactory().createQuery(
         		ObjectQueryUtil.createResourceAndObjectClassFilter(RESOURCE_DUMMY_OID,
         				new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), prismContext));
 
@@ -1685,8 +1684,10 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         Task task = createTask(TEST_NAME);
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_RED_FILE);
         account.setOid(accountRedOid);
-        ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
-		ReferenceDelta accountDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), account);
+        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
+		        .createEmptyModifyDelta(UserType.class, USER_JACK_OID);
+		ReferenceDelta accountDelta = prismContext.deltaFactory().reference()
+				.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), account);
 		userDelta.addModification(accountDelta);
 		executeChanges(userDelta, null, task, task.getResult());
 		
@@ -1988,7 +1989,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         RoleSelectionSpecification assignableSpec = getAssignableRoleSpecification(getUser(USER_JACK_OID), 0);
         assertRoleTypes(assignableSpec);
         assertFilter(assignableSpec.getFilter(), TypeFilter.class);
-        
+
         RoleSelectionSpecification induceableSpec = getAssignableRoleSpecification(getRole(ROLE_ASSIGN_REQUESTABLE_ROLES_OID), RoleType.class, 1);
         display("Induceable role spec", induceableSpec);
         assertRoleTypes(induceableSpec);
@@ -2028,7 +2029,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 		RoleSelectionSpecification spec = getAssignableRoleSpecification(getUser(USER_JACK_OID));
 		assertRoleTypes(spec);
 
-		ObjectQuery query = new ObjectQuery();
+		ObjectQuery query = prismContext.queryFactory().createQuery();
 
 		query.addFilter(spec.getFilter());
 		assertSearch(AbstractRoleType.class, query, 9);
@@ -2041,7 +2042,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
 		assertGlobalStateUntouched();
 	}
-	
+
 	/**
 	 * MID-5005
 	 */
@@ -2089,7 +2090,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         RoleSelectionSpecification assignableSpec = getAssignableRoleSpecification(getUser(USER_JACK_OID), 0);
         assertRoleTypes(assignableSpec);
         assertFilter(assignableSpec.getFilter(), TypeFilter.class);
-        
+
         RoleSelectionSpecification induceableSpec = getAssignableRoleSpecification(getRole(ROLE_ASSIGN_REQUESTABLE_ROLES_OID), RoleType.class, 1);
         display("Induceable role spec", induceableSpec);
         assertRoleTypes(induceableSpec);
@@ -2270,8 +2271,8 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertDeny("assign application role to jack",
         	(task, result) ->  {
 				Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
-				ContainerDelta<AssignmentType> assignmentDelta1 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT, getUserDefinition());
-				PrismContainerValue<AssignmentType> cval = new PrismContainerValue<>(prismContext);
+				ContainerDelta<AssignmentType> assignmentDelta1 = prismContext.deltaFactory().container().createDelta(UserType.F_ASSIGNMENT, getUserDefinition());
+				PrismContainerValue<AssignmentType> cval = prismContext.itemFactory().createContainerValue();
 				assignmentDelta1.addValueToAdd(cval);
 				PrismReference targetRef = cval.findOrCreateReference(AssignmentType.F_TARGET_REF);
 				targetRef.getValue().setOid(ROLE_BUSINESS_2_OID);
@@ -2280,7 +2281,8 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 				cval.setId(123L);
 				ContainerDelta<AssignmentType> assignmentDelta = assignmentDelta1;
 				modifications.add(assignmentDelta);
-				ObjectDelta<UserType> userDelta1 = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
+				ObjectDelta<UserType> userDelta1 = prismContext.deltaFactory().object()
+						.createModifyDelta(USER_JACK_OID, modifications, UserType.class);
 				ObjectDelta<UserType> userDelta = userDelta1;
 				Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 				modelService.executeChanges(deltas, null, task, result);
@@ -2533,7 +2535,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertAssignments(user, 2);
 
         assertAllow("modify jack's familyName",
-        		(task, result) -> modifyObjectReplaceProperty(UserType.class, USER_JACK_OID, new ItemPath(UserType.F_FAMILY_NAME), task, result, PrismTestUtil.createPolyString("changed")));
+        		(task, result) -> modifyObjectReplaceProperty(UserType.class, USER_JACK_OID, UserType.F_FAMILY_NAME, task, result, PrismTestUtil.createPolyString("changed")));
 
         user = getUser(USER_JACK_OID);
         assertUser(user, USER_JACK_OID, USER_JACK_USERNAME, USER_JACK_FULL_NAME, "Jack", "changed");
@@ -2569,7 +2571,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertAssignments(user, 2);
 
         assertAllow("modify jack's familyName",
-			(task, result) -> modifyObjectReplaceProperty(UserType.class, USER_JACK_OID, new ItemPath(UserType.F_FAMILY_NAME), task, result, PrismTestUtil.createPolyString("changed")));
+			(task, result) -> modifyObjectReplaceProperty(UserType.class, USER_JACK_OID, UserType.F_FAMILY_NAME, task, result, PrismTestUtil.createPolyString("changed")));
 
         user = getUser(USER_JACK_OID);
         assertUser(user, USER_JACK_OID, USER_JACK_USERNAME, USER_JACK_FULL_NAME, "Jack", "changed");
@@ -2729,7 +2731,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
         Task task = taskManager.createTaskInstance();
         SearchResultList<PrismObject<AbstractRoleType>> assignableRolesJack =
-        		modelService.searchObjects(AbstractRoleType.class, ObjectQuery.createObjectQuery(specJack.getFilter()), null, task, task.getResult());
+        		modelService.searchObjects(AbstractRoleType.class, prismContext.queryFactory().createQuery(specJack.getFilter()), null, task, task.getResult());
         display("Assignable roles", assignableRolesJack);
         assertObjectOids("Wrong assignable roles (jack)", assignableRolesJack, ROLE_BUSINESS_3_OID);
 
@@ -2738,7 +2740,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertRoleTypes(specRum);
 
         SearchResultList<PrismObject<AbstractRoleType>> assignableRolesRum =
-        		modelService.searchObjects(AbstractRoleType.class, ObjectQuery.createObjectQuery(specRum.getFilter()), null, task, task.getResult());
+        		modelService.searchObjects(AbstractRoleType.class, prismContext.queryFactory().createQuery(specRum.getFilter()), null, task, task.getResult());
         display("Assignable roles", assignableRolesRum);
         assertObjectOids("Wrong assignable roles (rum)", assignableRolesRum, ROLE_BUSINESS_3_OID);
 

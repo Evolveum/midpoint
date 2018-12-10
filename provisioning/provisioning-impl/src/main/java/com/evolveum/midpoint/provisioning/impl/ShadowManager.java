@@ -24,6 +24,10 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemName;
 import org.apache.commons.lang.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -33,36 +37,15 @@ import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.Visitor;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
@@ -382,7 +365,7 @@ public class ShadowManager {
 			return null;
 		}
 
-		S_FilterEntry q = QueryBuilder.queryFor(ShadowType.class, prismContext)
+		S_FilterEntry q = prismContext.queryFor(ShadowType.class)
 				.block();
 		for (ResourceAttribute<?> secondaryIdentifier : secondaryIdentifiers) {
 			// There may be identifiers that come from associations and they will have parent set to association/identifiers
@@ -419,7 +402,7 @@ public class ShadowManager {
 	
 	private <T> ObjectFilter createAttributeEqualFilter(ProvisioningContext ctx,
 			ResourceAttribute<T> secondaryIdentifier) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
-		return QueryBuilder.queryFor(ShadowType.class, prismContext)
+		return prismContext.queryFor(ShadowType.class)
 				.item(secondaryIdentifier.getPath(), secondaryIdentifier.getDefinition())
 				.eq(getNormalizedValue(secondaryIdentifier, ctx.getObjectClassDefinition()))
 				.buildFilter();
@@ -544,7 +527,7 @@ public class ShadowManager {
 			// Live shadow was found in repository
 			
             if (change.getObjectDelta() != null && change.getObjectDelta().getChangeType() == ChangeType.DELETE) {
-            		List<ItemDelta<?, ?>> deadDeltas = DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+            		List<ItemDelta<?, ?>> deadDeltas = prismContext.deltaFor(ShadowType.class)
             			.item(ShadowType.F_DEAD).replace(true)
             			.item(ShadowType.F_EXISTS).replace(false)
             			.asItemDeltas();
@@ -561,7 +544,7 @@ public class ShadowManager {
 						return null;
 					}
 					
-					ObjectDelta.applyTo(newShadow, deadDeltas);
+					ObjectDeltaUtil.applyTo(newShadow, deadDeltas);
 				} 
 		}
 
@@ -633,7 +616,7 @@ public class ShadowManager {
 	private ObjectQuery createSearchShadowQuery(ProvisioningContext ctx, Collection<ResourceAttribute<?>> identifiers, boolean primaryIdentifiersOnly,
 			PrismContext prismContext, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
 
-		S_AtomicFilterEntry q = QueryBuilder.queryFor(ShadowType.class, prismContext);
+		S_AtomicFilterEntry q = prismContext.queryFor(ShadowType.class);
 
 		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
 		for (PrismProperty<?> identifier : identifiers) {
@@ -693,7 +676,7 @@ public class ShadowManager {
 		try {
 			// TODO TODO TODO TODO: set matching rule instead of null
 			PrismPropertyDefinition def = identifier.getDefinition();
-			return QueryBuilder.queryFor(ShadowType.class, prismContext)
+			return prismContext.queryFor(ShadowType.class)
 					.itemWithDef(def, ShadowType.F_ATTRIBUTES, def.getName()).eq(getNormalizedValue(identifier, ctx.getObjectClassDefinition()))
 					.and().item(ShadowType.F_OBJECT_CLASS).eq(resourceShadow.getPropertyRealValue(ShadowType.F_OBJECT_CLASS, QName.class))
 					.and().item(ShadowType.F_RESOURCE_REF).ref(ctx.getResourceOid())
@@ -735,7 +718,7 @@ public class ShadowManager {
 		}
 		EqualFilter<T> eqFilter = (EqualFilter)filter;
 		ItemPath parentPath = eqFilter.getParentPath();
-		if (parentPath == null || !parentPath.equivalent(SchemaConstants.PATH_ATTRIBUTES)) {
+		if (!parentPath.equivalent(SchemaConstants.PATH_ATTRIBUTES)) {
 			return;
 		}
 		QName attrName = eqFilter.getElementName();
@@ -956,7 +939,7 @@ public class ShadowManager {
 			if (!opState.isCompleted()) {
 				
 				PrismContainerDefinition<PendingOperationType> containerDefinition = repoShadow.getDefinition().findContainerDefinition(ShadowType.F_PENDING_OPERATION);
-				ContainerDelta<PendingOperationType> pendingOperationDelta =containerDefinition.createEmptyDelta(new ItemPath(ShadowType.F_PENDING_OPERATION));
+				ContainerDelta<PendingOperationType> pendingOperationDelta =containerDefinition.createEmptyDelta(ShadowType.F_PENDING_OPERATION);
 				PendingOperationType pendingOperation = createPendingOperation(requestDelta, opState, null);
 				pendingOperationDelta.addValuesToAdd(pendingOperation.asPrismContainerValue());
 				shadowModifications.add(pendingOperationDelta);
@@ -997,12 +980,12 @@ public class ShadowManager {
 	}
 	
 	private <T> PropertyDelta<T> createShadowPropertyReplaceDelta(PrismObject<ShadowType> repoShadow, QName propName, T value) {
-		PrismPropertyDefinition<T> def = repoShadow.getDefinition().findPropertyDefinition(propName);
-		PropertyDelta<T> delta = def.createEmptyDelta(new ItemPath(propName));
+		PrismPropertyDefinition<T> def = repoShadow.getDefinition().findPropertyDefinition(ItemName.fromQName(propName));
+		PropertyDelta<T> delta = def.createEmptyDelta(ItemPath.create(propName));
 		if (value == null) {
 			delta.setValueToReplace();
 		} else {
-			delta.setValuesToReplace(new PrismPropertyValue<>(value));
+			delta.setRealValuesToReplace(value);
 		}
 		return delta;
 	}
@@ -1036,7 +1019,7 @@ public class ShadowManager {
 			// This means we have failed add operation here. We tried to add object,
 			// but we have failed. Which means that this shadow is now dead.
 			shadowChanges.add(
-				DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+				prismContext.deltaFor(ShadowType.class)
 					.item(ShadowType.F_DEAD).replace(true)
 				.asItemDelta()
 			);
@@ -1075,7 +1058,8 @@ public class ShadowManager {
 		for (PendingOperationType pendingOperation: opState.getPendingOperations()) {
 			if (pendingOperation.asPrismContainerValue().getId() == null) {
 				// This must be a new operation
-				ContainerDelta<PendingOperationType> cdelta = new ContainerDelta<>(new ItemPath(ShadowType.F_PENDING_OPERATION), containerDefinition, prismContext);
+				ContainerDelta<PendingOperationType> cdelta = prismContext.deltaFactory().container().create(
+						ShadowType.F_PENDING_OPERATION, containerDefinition);
 				cdelta.addValuesToAdd(pendingOperation.asPrismContainerValue());
 				shadowChanges.add(cdelta);
 			} else {
@@ -1138,12 +1122,12 @@ public class ShadowManager {
 	}
 	
 	private <T> PropertyDelta<T> createPendingOperationDelta(PrismContainerDefinition<PendingOperationType> containerDefinition, ItemPath containerPath, QName propName, T valueToReplace) {
-		PrismPropertyDefinition<T> propDef = containerDefinition.findPropertyDefinition(propName);
-		PropertyDelta<T> propDelta = new PropertyDelta<>(containerPath.subPath(propName), propDef, prismContext);
+		PrismPropertyDefinition<T> propDef = containerDefinition.findPropertyDefinition(ItemName.fromQName(propName));
+		PropertyDelta<T> propDelta = prismContext.deltaFactory().property().create(containerPath.append(propName), propDef);
 		if (valueToReplace == null) {
 			propDelta.setValueToReplace();
 		} else {
-			propDelta.setValuesToReplace(new PrismPropertyValue<>(valueToReplace));
+			propDelta.setRealValuesToReplace(valueToReplace);
 		}
 		return propDelta;
 	}
@@ -1256,7 +1240,7 @@ public class ShadowManager {
 	
 	private ObjectDelta<ShadowType> createModifyDelta(PrismObject<ShadowType> repoShadow, Collection<? extends ItemDelta> modifications) {
 		ObjectDelta<ShadowType> delta = repoShadow.createModifyDelta();
-		delta.addModifications(ItemDelta.cloneCollection(modifications));
+		delta.addModifications(ItemDeltaCollectionsUtil.cloneCollection(modifications));
 		return delta;
 	}
 	
@@ -1328,7 +1312,7 @@ public class ShadowManager {
 		}
 		
 		Collection repoDeltas = new ArrayList<>(1);
-		ContainerDelta<PendingOperationType> cdelta = ContainerDelta.createDelta(ShadowType.F_PENDING_OPERATION, shadow.getDefinition());
+		ContainerDelta<PendingOperationType> cdelta = prismContext.deltaFactory().container().createDelta(ShadowType.F_PENDING_OPERATION, shadow.getDefinition());
 		cdelta.addValuesToAdd(pendingOperation.asPrismContainerValue());
 		repoDeltas.add(cdelta);
 		
@@ -1402,12 +1386,12 @@ public class ShadowManager {
 	}
 	
 	private <T> void addPropertyDelta(Collection repoDeltas, ItemPath containerPath, QName propertyName, T propertyValue, PrismObjectDefinition<ShadowType> shadowDef) {
-		ItemPath propPath = containerPath.subPath(propertyName);
+		ItemPath propPath = containerPath.append(propertyName);
 		PropertyDelta<T> delta;
 		if (propertyValue == null) {
-			delta = PropertyDelta.createModificationReplaceProperty(propPath, shadowDef /* no value */);
+			delta = prismContext.deltaFactory().property().createModificationReplaceProperty(propPath, shadowDef /* no value */);
 		} else {
-			delta = PropertyDelta.createModificationReplaceProperty(propPath, shadowDef,
+			delta = prismContext.deltaFactory().property().createModificationReplaceProperty(propPath, shadowDef,
 				propertyValue);
 		}
 		repoDeltas.add(delta);
@@ -1557,7 +1541,7 @@ public class ShadowManager {
 						throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException, ExpressionEvaluationException, EncryptionException {
 		
 		ObjectDelta<ShadowType> requestDelta = opState.getRepoShadow().createModifyDelta();
-		requestDelta.addModifications(ItemDelta.cloneCollection(requestedModifications));
+		requestDelta.addModifications(ItemDeltaCollectionsUtil.cloneCollection(requestedModifications));
 		
 		List<ItemDelta> internalShadowModifications = computeInternalShadowModifications(ctx, opState, requestDelta);
 		
@@ -1608,25 +1592,25 @@ public class ShadowManager {
 	private boolean isResourceModification(ItemDelta itemDelta) {
 		ItemPath path = itemDelta.getPath();
 		ItemPath parentPath = itemDelta.getParentPath();
-		if (new ItemPath(ShadowType.F_ATTRIBUTES).equivalent(parentPath)) {
+		if (ShadowType.F_ATTRIBUTES.equivalent(parentPath)) {
 			return true;
 		}
-		if (new ItemPath(ShadowType.F_AUXILIARY_OBJECT_CLASS).equivalent(path)) {
+		if (ShadowType.F_AUXILIARY_OBJECT_CLASS.equivalent(path)) {
 			return true;
 		}
-		if (new ItemPath(ShadowType.F_ASSOCIATION).equivalent(parentPath)) {
+		if (ShadowType.F_ASSOCIATION.equivalent(parentPath)) {
 			return true;
 		}
-		if (new ItemPath(ShadowType.F_ASSOCIATION).equivalent(path)) {
+		if (ShadowType.F_ASSOCIATION.equivalent(path)) {
 			return true;
 		}
-		if (new ItemPath(ShadowType.F_ACTIVATION).equivalent(parentPath)) {
+		if (ShadowType.F_ACTIVATION.equivalent(parentPath)) {
 			return true;
 		}
-		if (new ItemPath(ShadowType.F_ACTIVATION).equivalent(path)) {		// should not occur, but for completeness...
+		if (ShadowType.F_ACTIVATION.equivalent(path)) {		// should not occur, but for completeness...
 			return true;
 		}
-		if (SchemaConstants.PATH_PASSWORD.equivalent(parentPath)) {
+		if (SchemaConstants.PATH_CREDENTIALS_PASSWORD.equivalent(parentPath)) {
 			return true;
 		}
 		return false;
@@ -1640,7 +1624,7 @@ public class ShadowManager {
 		CachingStategyType cachingStrategy = ProvisioningUtil.getCachingStrategy(ctx);
 		Collection<ItemDelta> repoChanges = new ArrayList<>();
 		for (ItemDelta itemDelta : objectChange) {
-			if (new ItemPath(ShadowType.F_ATTRIBUTES).equivalent(itemDelta.getParentPath())) {
+			if (ShadowType.F_ATTRIBUTES.equivalent(itemDelta.getParentPath())) {
 				QName attrName = itemDelta.getElementName();
 				if (objectClassDefinition.isSecondaryIdentifier(attrName)) {
 					// Change of secondary identifier means object rename. We also need to change $shadow/name
@@ -1651,17 +1635,17 @@ public class ShadowManager {
 					} else if (itemDelta.getValuesToAdd() != null && !itemDelta.getValuesToAdd().isEmpty()) {
 						newName = ((PrismPropertyValue)itemDelta.getValuesToAdd().iterator().next()).getValue().toString();
 					}
-					PropertyDelta<PolyString> nameDelta = PropertyDelta.createReplaceDelta(shadow.getDefinition(), ShadowType.F_NAME, new PolyString(newName));
+					PropertyDelta<PolyString> nameDelta = prismContext.deltaFactory().property().createReplaceDelta(shadow.getDefinition(), ShadowType.F_NAME, new PolyString(newName));
 					repoChanges.add(nameDelta);
 				}
 				if (!ProvisioningUtil.shouldStoreAtributeInShadow(objectClassDefinition, attrName, cachingStrategy)) {
 					continue;
 				}
-			} else if (new ItemPath(ShadowType.F_ACTIVATION).equivalent(itemDelta.getParentPath())) {
+			} else if (ShadowType.F_ACTIVATION.equivalent(itemDelta.getParentPath())) {
 				if (!ProvisioningUtil.shouldStoreActivationItemInShadow(itemDelta.getElementName(), cachingStrategy)) {
 					continue;
 				}
-			} else if (new ItemPath(ShadowType.F_ACTIVATION).equivalent(itemDelta.getPath())) {		// should not occur, but for completeness...
+			} else if (ShadowType.F_ACTIVATION.equivalent(itemDelta.getPath())) {		// should not occur, but for completeness...
 				for (PrismContainerValue<ActivationType> valueToAdd : ((ContainerDelta<ActivationType>) itemDelta).getValuesToAdd()) {
 					ProvisioningUtil.cleanupShadowActivation(valueToAdd.asContainerable());
 				}
@@ -1746,7 +1730,7 @@ public class ShadowManager {
 		for (RefinedAttributeDefinition attrDef: objectClassDefinition.getAttributeDefinitions()) {
 			if (ProvisioningUtil.shouldStoreAtributeInShadow(objectClassDefinition, attrDef.getName(), cachingStrategy)) {
 				ResourceAttribute<Object> resourceAttr = ShadowUtil.getAttribute(resourceShadow, attrDef.getName());
-				PrismProperty<Object> repoAttr = repoShadow.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, attrDef.getName()));
+				PrismProperty<Object> repoAttr = repoShadow.findProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, attrDef.getName()));
 				PropertyDelta attrDelta;
 				if (resourceAttr == null && repoAttr == null) {
 					continue;
@@ -1754,8 +1738,8 @@ public class ShadowManager {
 				ResourceAttribute<Object> normalizedResourceAttribute = resourceAttr.clone();
 				normalizeAttribute(normalizedResourceAttribute, attrDef);
 				if (repoAttr == null) {
-					attrDelta = attrDef.createEmptyDelta(new ItemPath(ShadowType.F_ATTRIBUTES, attrDef.getName()));
-					attrDelta.setValuesToReplace(PrismValue.cloneCollection(normalizedResourceAttribute.getValues()));
+					attrDelta = attrDef.createEmptyDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, attrDef.getName()));
+					attrDelta.setValuesToReplace(PrismValueCollectionsUtil.cloneCollection(normalizedResourceAttribute.getValues()));
 				} else {
 					attrDelta = repoAttr.diff(normalizedResourceAttribute);
 //					LOGGER.trace("DIFF:\n{}\n-\n{}\n=:\n{}", repoAttr==null?null:repoAttr.debugDump(1), normalizedResourceAttribute==null?null:normalizedResourceAttribute.debugDump(1), attrDelta==null?null:attrDelta.debugDump(1));
@@ -1790,21 +1774,15 @@ public class ShadowManager {
 
 		for (Item<?, ?> currentResourceItem: currentResourceAttributesContainer.getValue().getItems()) {
 			if (currentResourceItem instanceof PrismProperty<?>) {
-				PrismProperty<?> currentResourceAttrProperty = (PrismProperty<?>)currentResourceItem;
+				PrismProperty<Object> currentResourceAttrProperty = (PrismProperty<Object>) currentResourceItem;
 				RefinedAttributeDefinition<Object> attrDef = ocDef.findAttributeDefinition(currentResourceAttrProperty.getElementName());
 				if (ProvisioningUtil.shouldStoreAtributeInShadow(ocDef, attrDef.getName(), cachingStrategy)) {
 					MatchingRule matchingRule = matchingRuleRegistry.getMatchingRule(attrDef.getMatchingRuleQName(), attrDef.getTypeName());
 					PrismProperty<Object> oldRepoAttributeProperty = oldRepoAttributesContainer.findProperty(currentResourceAttrProperty.getElementName());
-					if (oldRepoAttributeProperty == null ) {
-						PropertyDelta<?> attrAddDelta = currentResourceAttrProperty.createDelta();
-						for (PrismPropertyValue pval: currentResourceAttrProperty.getValues()) {
-							Object normalizedRealValue;
-							if (matchingRule == null) {
-								normalizedRealValue = pval.getValue();
-							} else {
-								normalizedRealValue = matchingRule.normalize(pval.getValue());
-							}
-							attrAddDelta.addValueToAdd(new PrismPropertyValue(normalizedRealValue));
+					if (oldRepoAttributeProperty == null) {
+						PropertyDelta<Object> attrAddDelta = currentResourceAttrProperty.createDelta();
+						for (PrismPropertyValue<?> pval: currentResourceAttrProperty.getValues()) {
+							attrAddDelta.addRealValuesToAdd(matchingRule.normalize(pval.getValue()));
 						}
 						if (attrAddDelta.getDefinition().getTypeName() == null) {
 							throw new SchemaException("No definition in "+attrAddDelta);
@@ -1814,11 +1792,7 @@ public class ShadowManager {
 						if (attrDef.isSingleValue()) {
 							Object currentResourceRealValue = currentResourceAttrProperty.getRealValue();
 							Object currentResourceNormalizedRealValue;
-							if (matchingRule == null) {
-								currentResourceNormalizedRealValue = currentResourceRealValue;
-							} else {
-								currentResourceNormalizedRealValue = matchingRule.normalize(currentResourceRealValue);
-							}
+							currentResourceNormalizedRealValue = matchingRule.normalize(currentResourceRealValue);
 							if (!currentResourceNormalizedRealValue.equals(oldRepoAttributeProperty.getRealValue())) {
 								PropertyDelta delta = shadowDelta.addModificationReplaceProperty(currentResourceAttrProperty.getPath(), currentResourceNormalizedRealValue);
 								delta.setDefinition(currentResourceAttrProperty.getDefinition());
@@ -1827,12 +1801,10 @@ public class ShadowManager {
 								}
 							}
 						} else {
-							PrismProperty<Object> normalizedCurrentResourceAttrProperty = (PrismProperty<Object>) currentResourceAttrProperty.clone();
-							if (matchingRule != null) {
-								for (PrismPropertyValue pval: normalizedCurrentResourceAttrProperty.getValues()) {
-									Object normalizedRealValue = matchingRule.normalize(pval.getValue());
-									pval.setValue(normalizedRealValue);
-								}
+							PrismProperty<Object> normalizedCurrentResourceAttrProperty = currentResourceAttrProperty.clone();
+							for (PrismPropertyValue pval: normalizedCurrentResourceAttrProperty.getValues()) {
+								Object normalizedRealValue = matchingRule.normalize(pval.getValue());
+								pval.setValue(normalizedRealValue);
 							}
 							PropertyDelta<Object> attrDiff = oldRepoAttributeProperty.diff(normalizedCurrentResourceAttrProperty);
 //							LOGGER.trace("DIFF:\n{}\n-\n{}\n=:\n{}",
@@ -1840,7 +1812,7 @@ public class ShadowManager {
 //									normalizedCurrentResourceAttrProperty==null?null:normalizedCurrentResourceAttrProperty.debugDump(1),
 //									attrDiff==null?null:attrDiff.debugDump(1));
 							if (attrDiff != null && !attrDiff.isEmpty()) {
-								attrDiff.setParentPath(new ItemPath(ShadowType.F_ATTRIBUTES));
+								attrDiff.setParentPath(ShadowType.F_ATTRIBUTES);
 								if (attrDiff.getDefinition().getTypeName() == null) {
 									throw new SchemaException("No definition in "+attrDiff);
 								}
@@ -1862,7 +1834,7 @@ public class ShadowManager {
 						currentAttribute == null) {
 					// No definition for this property it should not be there or no current value: remove it from the shadow
 					PropertyDelta<?> oldRepoAttrPropDelta = oldRepoAttrProperty.createDelta();
-					oldRepoAttrPropDelta.addValuesToDelete((Collection)PrismPropertyValue.cloneCollection(oldRepoAttrProperty.getValues()));
+					oldRepoAttrPropDelta.addValuesToDelete((Collection) PrismValueCollectionsUtil.cloneCollection(oldRepoAttrProperty.getValues()));
 					if (oldRepoAttrPropDelta.getDefinition().getTypeName() == null) {
 						throw new SchemaException("No definition in "+oldRepoAttrPropDelta);
 					}
@@ -1874,12 +1846,12 @@ public class ShadowManager {
 		PolyString currentShadowName = ShadowUtil.determineShadowName(currentResourceShadow);
 		PolyString oldRepoShadowName = oldRepoShadow.getName();
 		if (!currentShadowName.equalsOriginalValue(oldRepoShadowName)) {			
-			PropertyDelta<?> shadowNameDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_NAME, 
+			PropertyDelta<?> shadowNameDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(ShadowType.F_NAME,
 					oldRepoShadow.getDefinition(),currentShadowName);
 			shadowDelta.addModification(shadowNameDelta);
 		}
 		
-		PropertyDelta<QName> auxOcDelta = (PropertyDelta)PrismProperty.diff(
+		PropertyDelta<QName> auxOcDelta = (PropertyDelta) ItemUtil.diff(
 				oldRepoShadow.findProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS),
 				currentResourceShadow.findProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS));
 		if (auxOcDelta != null) {
@@ -1889,8 +1861,8 @@ public class ShadowManager {
 		// Resource object obviously exists in this case. However, we do not want to mess with isExists flag in some
 		// situations (e.g. in CORPSE state) as this existence may be just a quantum illusion.
 		if (shadowState == ShadowState.CONCEPTION || shadowState == ShadowState.GESTATION) {
-			PropertyDelta<Boolean> existsDelta = shadowDelta.createPropertyModification(new ItemPath(ShadowType.F_EXISTS));
-			existsDelta.setValuesToReplace(new PrismPropertyValue<>(true));
+			PropertyDelta<Boolean> existsDelta = shadowDelta.createPropertyModification(ShadowType.F_EXISTS);
+			existsDelta.setRealValuesToReplace(true);
 			shadowDelta.addModification(existsDelta);
 		}
 		
@@ -1943,7 +1915,7 @@ public class ShadowManager {
 			ItemPath itemPath, PrismObject<ShadowType> currentResourceShadow, PrismObject<ShadowType> oldRepoShadow) {
 		PrismProperty<T> currentProperty = currentResourceShadow.findProperty(itemPath);
 		PrismProperty<T> oldProperty = oldRepoShadow.findProperty(itemPath);
-		PropertyDelta<T> itemDelta = PrismProperty.diff(oldProperty, currentProperty);
+		PropertyDelta<T> itemDelta = ItemUtil.diff(oldProperty, currentProperty);
 		if (itemDelta != null && !itemDelta.isEmpty()) {
 			shadowDelta.addModification(itemDelta);
 		}
@@ -1983,7 +1955,7 @@ public class ShadowManager {
 		
 		LOGGER.trace("Updating repository {} after DELETE operation {}, {} repository shadow modifications", oldRepoShadow, opState, internalShadowModifications.size());
 		modifyShadowAttributes(ctx, oldRepoShadow, internalShadowModifications, parentResult);
-		ObjectDelta.applyTo(oldRepoShadow, (List)internalShadowModifications);
+		ObjectDeltaUtil.applyTo(oldRepoShadow, (List)internalShadowModifications);
 		return oldRepoShadow;
 	}
 	
@@ -1995,7 +1967,7 @@ public class ShadowManager {
 	
 	
 	public PrismObject<ShadowType> markShadowExists(PrismObject<ShadowType> repoShadow, OperationResult parentResult) throws SchemaException {
-		List<ItemDelta<?, ?>> shadowChanges = DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+		List<ItemDelta<?, ?>> shadowChanges = prismContext.deltaFor(ShadowType.class)
 			.item(ShadowType.F_EXISTS).replace(true)
 		.asItemDeltas();
 		LOGGER.trace("Marking shadow {} as existent", repoShadow);
@@ -2009,7 +1981,7 @@ public class ShadowManager {
 			LOGGER.trace("Attempt to mark shadow {} as existent found that no such shadow exists", repoShadow);
 			return null;
 		}
-		ObjectDelta.applyTo(repoShadow, shadowChanges);
+		ObjectDeltaUtil.applyTo(repoShadow, shadowChanges);
 		return repoShadow;
 	}
 	
@@ -2017,7 +1989,7 @@ public class ShadowManager {
 		if (repoShadow == null) {
 			return null;
 		}
-		List<ItemDelta<?, ?>> shadowChanges = DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+		List<ItemDelta<?, ?>> shadowChanges = prismContext.deltaFor(ShadowType.class)
 			.item(ShadowType.F_DEAD).replace(true)
 			.item(ShadowType.F_EXISTS).replace(false)
 		.asItemDeltas();
@@ -2032,7 +2004,7 @@ public class ShadowManager {
 			LOGGER.trace("Attempt to mark shadow {} as tombstone found that no such shadow exists", repoShadow);
 			return null;
 		}
-		ObjectDelta.applyTo(repoShadow, shadowChanges);
+		ObjectDeltaUtil.applyTo(repoShadow, shadowChanges);
 		return repoShadow;
 	}
 		
@@ -2055,13 +2027,13 @@ public class ShadowManager {
 					if (attrDef == null) {
 						// No definition for this property, it should not be in the shadow
 						PropertyDelta<?> oldRepoAttrPropDelta = attrProperty.createDelta();
-						oldRepoAttrPropDelta.addValuesToDelete((Collection)PrismPropertyValue.cloneCollection(attrProperty.getValues()));
+						oldRepoAttrPropDelta.addValuesToDelete((Collection) PrismValueCollectionsUtil.cloneCollection(attrProperty.getValues()));
 						shadowDelta.addModification(oldRepoAttrPropDelta);
 					} else {
 						attrProperty.applyDefinition(attrDef);
 						MatchingRule matchingRule = matchingRuleRegistry.getMatchingRule(attrDef.getMatchingRuleQName(), attrDef.getTypeName());
-						List<PrismPropertyValue> valuesToAdd = null;
-						List<PrismPropertyValue> valuesToDelete = null;
+						List<Object> valuesToAdd = null;
+						List<Object> valuesToDelete = null;
 						for (PrismPropertyValue attrVal: attrProperty.getValues()) {
 							Object currentRealValue = attrVal.getValue();
 							Object normalizedRealValue = matchingRule.normalize(currentRealValue);
@@ -2073,20 +2045,20 @@ public class ShadowManager {
 									if (valuesToAdd == null) {
 										valuesToAdd = new ArrayList<>();
 									}
-									valuesToAdd.add(new PrismPropertyValue(normalizedRealValue));
+									valuesToAdd.add(normalizedRealValue);
 									if (valuesToDelete == null) {
 										valuesToDelete = new ArrayList<>();
 									}
-									valuesToDelete.add(new PrismPropertyValue(currentRealValue));
+									valuesToDelete.add(currentRealValue);
 								}
 							}
 						}
-						PropertyDelta attrDelta = attrProperty.createDelta(attrProperty.getPath());
+						PropertyDelta<Object> attrDelta = attrProperty.createDelta(attrProperty.getPath());
 						if (valuesToAdd != null) {
-							attrDelta.addValuesToAdd(valuesToAdd);
+							attrDelta.addRealValuesToAdd(valuesToAdd);
 						}
 						if (valuesToDelete != null) {
-							attrDelta.addValuesToDelete(valuesToDelete);
+							attrDelta.addRealValuesToDelete(valuesToDelete);
 						}
 						shadowDelta.addModification(attrDelta);
 					}
@@ -2150,7 +2122,7 @@ public class ShadowManager {
 	
 	public <T> void normalizeDelta(ItemDelta<PrismPropertyValue<T>,PrismPropertyDefinition<T>> delta,
 			RefinedObjectClassDefinition objectClassDefinition) throws SchemaException {
-		if (!ShadowType.F_ATTRIBUTES.equals(ItemPath.getName(delta.getPath().first()))){
+		if (!delta.getPath().startsWithName(ShadowType.F_ATTRIBUTES)) {
 			return;
 		}
 		RefinedAttributeDefinition rAttrDef = objectClassDefinition.findAttributeDefinition(delta.getElementName());
@@ -2240,7 +2212,8 @@ public class ShadowManager {
 	// Just minimal metadata for now, maybe we need to expand that later
 	// those are needed to properly manage dead shadows
 	private void addModifyMetadataDeltas(PrismObject<ShadowType> repoShadow, Collection<ItemDelta> shadowChanges) {
-		PropertyDelta<XMLGregorianCalendar> modifyTimestampDelta = ItemDelta.findPropertyDelta(shadowChanges, SchemaConstants.PATH_METADATA_MODIFY_TIMESTAMP);
+		PropertyDelta<XMLGregorianCalendar> modifyTimestampDelta = ItemDeltaCollectionsUtil
+				.findPropertyDelta(shadowChanges, SchemaConstants.PATH_METADATA_MODIFY_TIMESTAMP);
 		if (modifyTimestampDelta != null) {
 			return;
 		}
@@ -2249,7 +2222,7 @@ public class ShadowManager {
 		}
 		PrismPropertyDefinition<XMLGregorianCalendar> def = repoShadow.getDefinition().findPropertyDefinition(SchemaConstants.PATH_METADATA_MODIFY_TIMESTAMP);
 		modifyTimestampDelta = def.createEmptyDelta(SchemaConstants.PATH_METADATA_MODIFY_TIMESTAMP);
-		modifyTimestampDelta.setValuesToReplace(new PrismPropertyValue<>(clock.currentTimeXMLGregorianCalendar()));
+		modifyTimestampDelta.setRealValuesToReplace(clock.currentTimeXMLGregorianCalendar());
 		shadowChanges.add(modifyTimestampDelta);
 	}
 }

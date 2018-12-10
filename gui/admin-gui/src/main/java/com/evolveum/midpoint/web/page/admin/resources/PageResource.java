@@ -136,11 +136,12 @@ public class PageResource extends PageAdminResources {
 
 		Task task = createSimpleTask(OPERATION_LOAD_RESOURCE);
 		OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCE);
-		Collection<SelectorOptions<GetOperationOptions>> resolveConnectorOption = SelectorOptions
-				.createCollection(ResourceType.F_CONNECTOR, GetOperationOptions.createResolve());
-		resolveConnectorOption.add(SelectorOptions.create(GetOperationOptions.createNoFetch()));
+		Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
+				.noFetch()
+				.item(ResourceType.F_CONNECTOR).resolve()
+				.build();
 		PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(ResourceType.class, resourceOid,
-				resolveConnectorOption, this, task, result);
+				options, this, task, result);
 
 		result.recomputeStatus();
 		showResult(result, "pageAdminResources.message.cantLoadResource", false);

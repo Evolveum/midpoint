@@ -28,6 +28,8 @@ import java.time.ZonedDateTime;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 
 import org.apache.commons.lang.StringUtils;
@@ -49,7 +51,6 @@ import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
@@ -231,24 +232,24 @@ public class DummyResourceContoller extends AbstractResourceController {
 		return attrDef;
 	}
 
-	public QName getAttributeQName(String attrName) {
-		return new QName(getNamespace(), attrName);
+	public ItemName getAttributeQName(String attrName) {
+		return new ItemName(getNamespace(), attrName);
 	}
 
 	public ItemPath getAttributePath(QName attrQName) {
-		return new ItemPath(ShadowType.F_ATTRIBUTES, attrQName);
+		return ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName);
 	}
 
 	public ItemPath getAttributePath(String attrName) {
-		return new ItemPath(ShadowType.F_ATTRIBUTES, getAttributeQName(attrName));
+		return ItemPath.create(ShadowType.F_ATTRIBUTES, getAttributeQName(attrName));
 	}
 
-	public QName getAttributeFullnameQName() {
+	public ItemName getAttributeFullnameQName() {
 		return  getAttributeQName(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME);
 	}
 
 	public ItemPath getAttributeFullnamePath() {
-		return new ItemPath(ShadowType.F_ATTRIBUTES, getAttributeFullnameQName());
+		return ItemPath.create(ShadowType.F_ATTRIBUTES, getAttributeFullnameQName());
 	}
 
 	public QName getAttributeWeaponQName() {
@@ -258,7 +259,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 
 	public ItemPath getAttributeWeaponPath() {
 		assertExtendedSchema();
-		return new ItemPath(ShadowType.F_ATTRIBUTES, getAttributeWeaponQName());
+		return ItemPath.create(ShadowType.F_ATTRIBUTES, getAttributeWeaponQName());
 	}
 
 	public QName getAttributeLootQName() {
@@ -268,7 +269,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 
 	public ItemPath getAttributeLootPath() {
 		assertExtendedSchema();
-		return new ItemPath(ShadowType.F_ATTRIBUTES, getAttributeLootQName());
+		return ItemPath.create(ShadowType.F_ATTRIBUTES, getAttributeLootQName());
 	}
 
 	private void assertExtendedSchema() {

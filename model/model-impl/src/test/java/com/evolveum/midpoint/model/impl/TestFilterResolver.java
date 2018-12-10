@@ -21,6 +21,7 @@ import static org.testng.Assert.assertNotNull;
 import java.io.File;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -29,7 +30,6 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
@@ -59,7 +59,8 @@ public class TestFilterResolver extends AbstractInternalModelIntegrationTest {
 				RESOURCE_DUMMY_DEPENDECY_FILTER_OID);
 		assertNotNull(resourceDummyResolvedFilter, "Something unexpected happened. No resource found");
 		
-		PrismContainer<ResourceObjectTypeDefinitionType> objectType = resourceDummyResolvedFilter.findContainer(new ItemPath(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE));
+		PrismContainer<ResourceObjectTypeDefinitionType> objectType = resourceDummyResolvedFilter.findContainer(
+				ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE));
 		assertEquals(objectType.size(), 1, "Unexpected object type definitions in resource.");
 		
 		PrismContainerValue<ResourceObjectTypeDefinitionType> objectTypeDef = objectType.getValues().iterator().next();

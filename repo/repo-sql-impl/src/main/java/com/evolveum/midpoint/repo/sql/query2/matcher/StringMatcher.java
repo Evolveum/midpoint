@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.query2.matcher;
 
-import com.evolveum.midpoint.prism.match.*;
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
@@ -39,18 +39,18 @@ public class StringMatcher extends Matcher<String> {
 	private static final Trace LOGGER = TraceManager.getTrace(StringMatcher.class);
 
     //todo will be changed to QName later (after query api update)
-    public static final String IGNORE_CASE = StringIgnoreCaseMatchingRule.NAME.getLocalPart();
-    public static final String DEFAULT = DefaultMatchingRule.NAME.getLocalPart();
+    public static final String IGNORE_CASE = PrismConstants.STRING_IGNORE_CASE_MATCHING_RULE_NAME.getLocalPart();
+    public static final String DEFAULT = PrismConstants.DEFAULT_MATCHING_RULE_NAME.getLocalPart();
 
-    private static final List<QName> SUPPORTED_MATCHING_RULES = Arrays.asList(DefaultMatchingRule.NAME, StringIgnoreCaseMatchingRule.NAME);
+    private static final List<QName> SUPPORTED_MATCHING_RULES = Arrays.asList(PrismConstants.DEFAULT_MATCHING_RULE_NAME, PrismConstants.STRING_IGNORE_CASE_MATCHING_RULE_NAME);
 	private static final Map<QName, QName> MATCHING_RULES_CONVERGENCE_MAP = new HashMap<>();
     static {
-    	MATCHING_RULES_CONVERGENCE_MAP.put(DistinguishedNameMatchingRule.NAME, DefaultMatchingRule.NAME);	// temporary code (TODO change in 3.6)
-		MATCHING_RULES_CONVERGENCE_MAP.put(UuidMatchingRule.NAME, DefaultMatchingRule.NAME);				// temporary code (TODO change in 3.6)
+    	MATCHING_RULES_CONVERGENCE_MAP.put(PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME, PrismConstants.DEFAULT_MATCHING_RULE_NAME);	// temporary code (TODO change in 3.6)
+		MATCHING_RULES_CONVERGENCE_MAP.put(PrismConstants.UUID_MATCHING_RULE_NAME, PrismConstants.DEFAULT_MATCHING_RULE_NAME);				// temporary code (TODO change in 3.6)
     	//MATCHING_RULES_CONVERGENCE_MAP.put(DistinguishedNameMatchingRule.NAME, StringIgnoreCaseMatchingRule.NAME);
 		//MATCHING_RULES_CONVERGENCE_MAP.put(UuidMatchingRule.NAME, StringIgnoreCaseMatchingRule.NAME);
-    	MATCHING_RULES_CONVERGENCE_MAP.put(ExchangeEmailAddressesMatchingRule.NAME, DefaultMatchingRule.NAME);	// prefix is case sensitive
-    	MATCHING_RULES_CONVERGENCE_MAP.put(XmlMatchingRule.NAME, DefaultMatchingRule.NAME);
+    	MATCHING_RULES_CONVERGENCE_MAP.put(PrismConstants.EXCHANGE_EMAIL_ADDRESSES_MATCHING_RULE_NAME, PrismConstants.DEFAULT_MATCHING_RULE_NAME);	// prefix is case sensitive
+    	MATCHING_RULES_CONVERGENCE_MAP.put(PrismConstants.XML_MATCHING_RULE_NAME, PrismConstants.DEFAULT_MATCHING_RULE_NAME);
 	}
 
     @Override

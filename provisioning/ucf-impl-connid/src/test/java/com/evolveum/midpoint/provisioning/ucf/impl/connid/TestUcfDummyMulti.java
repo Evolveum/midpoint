@@ -163,7 +163,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 		OperationResult result = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
 
 		// WHEN
-		cc.search(accountDefinition, new ObjectQuery(), handler, null, null, null, null, result);
+		cc.search(accountDefinition, null, handler, null, null, null, null, result);
 
 		// THEN
 		assertEquals("Unexpected number of search results", 1, searchResults.size());
@@ -205,7 +205,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 			@Override
 			public void run() {
 				try {
-					cc.search(accountDefinition, new ObjectQuery(), handler, null, null, null, null, result);
+					cc.search(accountDefinition, null, handler, null, null, null, null, result);
 				} catch (CommunicationException | GenericFrameworkException | SchemaException
 						| SecurityViolationException | ObjectNotFoundException e) {
 					LOGGER.error("Error in the search: {}", e.getMessage(), e);
@@ -283,7 +283,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 			@Override
 			public void run() {
 				try {
-					cc.search(accountDefinition, new ObjectQuery(), handler1, null, null, null, null, result1);
+					cc.search(accountDefinition, null, handler1, null, null, null, null, result1);
 				} catch (CommunicationException | GenericFrameworkException | SchemaException
 						| SecurityViolationException | ObjectNotFoundException e) {
 					LOGGER.error("Error in the search: {}", e.getMessage(), e);
@@ -308,7 +308,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 			@Override
 			public void run() {
 				try {
-					cc.search(accountDefinition, new ObjectQuery(), handler2, null, null, null, null, result2);
+					cc.search(accountDefinition, null, handler2, null, null, null, null, result2);
 				} catch (CommunicationException | GenericFrameworkException | SchemaException
 						| SecurityViolationException | ObjectNotFoundException e) {
 					LOGGER.error("Error in the search: {}", e.getMessage(), e);

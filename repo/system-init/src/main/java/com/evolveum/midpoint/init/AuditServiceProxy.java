@@ -27,13 +27,9 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.RetrieveOption;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.HttpConnectionInformation;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
@@ -53,12 +49,7 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Vector;
+import java.util.*;
 
 /**
  * @author lazyman
@@ -83,8 +74,8 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
 	@Qualifier("securityContextManager")
 	private SecurityContextManager securityContextManager;
 
-	@Autowired
-	private PrismContext prismContext;
+	@Autowired private PrismContext prismContext;
+	@Autowired private SchemaHelper schemaHelper;
 
 	private List<AuditService> services = new Vector<>();
 
@@ -240,13 +231,13 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
 																// (shouldn't be
 																// needed)
 							}
-							SelectorOptions<GetOperationOptions> getNameOnly = SelectorOptions.create(
-									new ItemPath(ObjectType.F_NAME),
-									GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
+							// currently this does not work as expected (retrieves all default items)
+							Collection<SelectorOptions<GetOperationOptions>> nameOnly = schemaHelper.getOperationOptionsBuilder()
+									.item(ObjectType.F_NAME).retrieve()
+									.build();
 							try {
 								PrismObject<? extends ObjectType> object = repositoryService.getObject(
-										objectClass, oid, Arrays.asList(getNameOnly),
-										new OperationResult("dummy"));
+										objectClass, oid, nameOnly, new OperationResult("dummy"));
 								PolyString name = object.getName();
 								refVal.setTargetName(name);
 								resolvedOids.put(oid, name);

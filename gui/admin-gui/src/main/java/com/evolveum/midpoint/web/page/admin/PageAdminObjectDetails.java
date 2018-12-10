@@ -21,6 +21,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
 import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.component.progress.ProgressPanel;
@@ -41,7 +42,6 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -310,14 +310,11 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 					object = objectToEdit;
 				}
 			} else {
-
-				loadOptions = SelectorOptions.createCollection(UserType.F_JPEG_PHOTO,
-						GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
-
+				loadOptions = getOperationOptionsBuilder()
+						.item(UserType.F_JPEG_PHOTO).retrieve()
+						.build();
 				String focusOid = getObjectOidParameter();
-				object = WebModelServiceUtils.loadObject(getCompileTimeClass(), focusOid, loadOptions, this, task,
-						result);
-
+				object = WebModelServiceUtils.loadObject(getCompileTimeClass(), focusOid, loadOptions, this, task, result);
 				LOGGER.trace("Loading object: Existing object (loadled): {} -> {}", focusOid, object);
 			}
 
@@ -476,7 +473,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
 			delta = objectWrapper.getObjectDelta();
 			if (objectWrapper.getOldDelta() != null) {
-				delta = ObjectDelta.summarize(objectWrapper.getOldDelta(), delta);
+				delta = ObjectDeltaCollectionsUtil.summarize(objectWrapper.getOldDelta(), delta);
 			}
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("User delta computed from form:\n{}", new Object[] { delta.debugDump(3) });
@@ -544,8 +541,8 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 					}
 
 					if (delta.isEmpty() && ModelExecuteOptions.isReconcile(options)) {
-						ObjectDelta emptyDelta = ObjectDelta.createEmptyModifyDelta(getCompileTimeClass(),
-								objectWrapper.getObject().getOid(), getPrismContext());
+						ObjectDelta emptyDelta = getPrismContext().deltaFactory().object().createEmptyModifyDelta(getCompileTimeClass(),
+								objectWrapper.getObject().getOid());
 						deltas.add(emptyDelta);
 
 						Collection<SimpleValidationError> validationErrors = performCustomValidation(null, deltas);

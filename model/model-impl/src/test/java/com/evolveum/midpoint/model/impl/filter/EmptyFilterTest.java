@@ -15,14 +15,24 @@
  */
 package com.evolveum.midpoint.model.impl.filter;
 
-import com.evolveum.midpoint.model.impl.filter.EmptyFilter;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import org.testng.AssertJUnit;
+import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeMethod;
 
 import com.evolveum.midpoint.common.filter.Filter;
+import org.xml.sax.SAXException;
+
+import java.io.IOException;
+
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 
 /**
  * @author lazyman
@@ -30,6 +40,12 @@ import com.evolveum.midpoint.common.filter.Filter;
 public class EmptyFilterTest {
 
     private Filter filter;
+
+    @BeforeSuite
+    public void setup() throws SchemaException, SAXException, IOException {
+        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
+    }
 
     @BeforeMethod
     public void before() {
@@ -44,7 +60,7 @@ public class EmptyFilterTest {
     @Test
     public void testNode() {
         String input = "test content";
-        PrismPropertyValue<String> value = new PrismPropertyValue<>(input);
+        PrismPropertyValue<String> value = getPrismContext().itemFactory().createPropertyValue(input);
         value = filter.apply(value);
 
         AssertJUnit.assertEquals(input, value.getValue());

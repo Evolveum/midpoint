@@ -20,7 +20,10 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.schema.SchemaHelper;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -83,6 +86,7 @@ public class AbstractTaskManagerTest extends AbstractTestNGSpringContextTests {
 	@Autowired protected RepositoryService repositoryService;
 	@Autowired protected TaskManagerQuartzImpl taskManager;
 	@Autowired protected PrismContext prismContext;
+	@Autowired protected SchemaHelper schemaHelper;
 
 	protected MockSingleTaskHandler singleHandler1, singleHandler2, singleHandler3;
 	protected MockWorkBucketsTaskHandler workBucketsTaskHandler;
@@ -336,4 +340,11 @@ public class AbstractTaskManagerTest extends AbstractTestNGSpringContextTests {
 	protected void assertNumberOfBuckets(TaskQuartzImpl task, Integer expectedNumber) {
 		assertEquals("Wrong # of expected buckets", expectedNumber, task.getWorkState().getNumberOfBuckets());
 	}
+
+	protected Collection<SelectorOptions<GetOperationOptions>> retrieveItemsNamed(Object... items) {
+		return schemaHelper.getOperationOptionsBuilder()
+				.items(items).retrieve()
+				.build();
+	}
+
 }

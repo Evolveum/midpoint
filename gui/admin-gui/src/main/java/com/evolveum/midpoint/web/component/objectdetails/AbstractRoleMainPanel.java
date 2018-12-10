@@ -42,7 +42,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -62,7 +61,6 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.page.self.PageAssignmentShoppingCart;
 import com.evolveum.midpoint.web.security.GuiAuthorizationConstants;
 import com.evolveum.midpoint.web.session.RoleCatalogStorage;
-import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
@@ -202,7 +200,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 			@Override
 			public WebMarkupContainer createPanel(String panelId) {
 				SwitchAssignmentTypePanel panel = new SwitchAssignmentTypePanel(panelId,
-						new ContainerWrapperFromObjectWrapperModel<>(getObjectModel(), new ItemPath(AbstractRoleType.F_INDUCEMENT))){
+						new ContainerWrapperFromObjectWrapperModel<>(getObjectModel(), AbstractRoleType.F_INDUCEMENT)){
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -339,7 +337,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 	}
 
 	private <F extends FocusType> boolean isAllowedToReadRoleMembershipItemForType(String abstractRoleOid, Class<F> type, PageBase parentPage){
-		ObjectQuery query = QueryBuilder.queryFor(type, parentPage.getPrismContext())
+		ObjectQuery query = parentPage.getPrismContext().queryFor(type)
 				.item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(abstractRoleOid).build();
 		Task task = parentPage.createSimpleTask(OPERATION_CAN_SEARCH_ROLE_MEMBERSHIP_ITEM);
 		OperationResult result = task.getResult();

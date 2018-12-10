@@ -22,6 +22,7 @@ import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.events.ModelEvent;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -128,7 +129,7 @@ public class SimpleFocalObjectNotifier extends GeneralNotifier {
             fullName = "";          // "null" is not nice in notifications
         }
 
-        ObjectDelta<FocusType> delta = ObjectDelta.summarize(modelEvent.getFocusDeltas());
+        ObjectDelta<FocusType> delta = ObjectDeltaCollectionsUtil.summarize(modelEvent.getFocusDeltas());
 
         StringBuilder body = new StringBuilder();
 

@@ -59,22 +59,4 @@ public class ModelUtilsTest extends AbstractTestNGSpringContextTests {
 		ModelImplUtils.validatePaging(null);
 	}
 
-	@Test(expectedExceptions = IllegalArgumentException.class)
-	public void validatePagingBadOffsetAttribute() {
-		ModelImplUtils.validatePaging(ObjectPaging.createPaging(-5, 10, ObjectType.F_NAME, OrderDirection.ASCENDING));
-	}
-
-	@Test(expectedExceptions = IllegalArgumentException.class)
-	public void validatePagingBadMaxAttribute() {
-		ModelImplUtils.validatePaging(ObjectPaging
-				.createPaging(5, -10, ObjectType.F_NAME, OrderDirection.ASCENDING));
-	}
-
-	@Test
-	public void validatePagingGood() {
-		ModelImplUtils
-				.validatePaging(ObjectPaging
-						.createPaging(5, 10, ObjectType.F_NAME, OrderDirection.ASCENDING));
-	}
-
 }

@@ -24,7 +24,6 @@ import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -41,6 +40,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_CREDENTIALS_PASSWORD_VALUE;
 
 /**
  * @author mederly
@@ -69,8 +70,7 @@ public class GenerateValueExecutor extends BaseActionExecutor {
         if (itemsDefinition == null) {
             itemsDefinition = new PolicyItemsDefinitionType().policyItemDefinition(
                     new PolicyItemDefinitionType()
-                        .target(new PolicyItemTargetType().path(new ItemPathType(new ItemPath(UserType.F_CREDENTIALS,
-                                CredentialsType.F_PASSWORD, PasswordType.F_VALUE))))
+                        .target(new PolicyItemTargetType().path(new ItemPathType(PATH_CREDENTIALS_PASSWORD_VALUE)))
                         .execute(false));
         }
 

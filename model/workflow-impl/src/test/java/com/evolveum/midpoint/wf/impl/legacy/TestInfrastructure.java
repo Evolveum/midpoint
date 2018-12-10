@@ -21,6 +21,7 @@ import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -76,7 +77,7 @@ public class TestInfrastructure extends AbstractInternalModelIntegrationTest {  
         LensContext<UserType> context = new LensContext<>(UserType.class, prismContext, provisioningService);
         PrismObject<UserType> bill = prismContext.parseObject(USER_BARBOSSA_FILE);
         CryptoUtil.encryptValues(protector, bill);
-        ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(bill);
+        ObjectDelta<UserType> userDelta = DeltaFactory.Object.createAddDelta(bill);
         LensFocusContext<UserType> focusContext = context.getOrCreateFocusContext();
         focusContext.setPrimaryDelta(userDelta);
 

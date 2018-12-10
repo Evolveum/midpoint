@@ -23,6 +23,7 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -36,12 +37,10 @@ import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
@@ -217,9 +216,9 @@ public class TestScience  extends AbstractStoryTest {
 
 
 		//internalId on unix dummy resource and title on openDJ simulation must be the same
-		PrismProperty unixId = shadowUnix.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, UNIX_INTERNAL_ID));
+		PrismProperty unixId = shadowUnix.findProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, UNIX_INTERNAL_ID));
 		assertNotNull("No "+UNIX_INTERNAL_ID+" in "+shadowUnix, unixId);
-		PrismProperty openDjSyncedId = shadowOpenDj.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, new QName(NS_RESOURCE_INSTANCE, "title")));
+		PrismProperty openDjSyncedId = shadowOpenDj.findProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, new QName(NS_RESOURCE_INSTANCE, "title")));
 		assertNotNull("No 'title' in "+shadowOpenDj, openDjSyncedId);
 		PrismAsserts.assertEquals("Unix id was not synced to the opendj properly.", String.valueOf(unixId.getAnyRealValue()), openDjSyncedId.getAnyRealValue());
 
@@ -263,7 +262,9 @@ public class TestScience  extends AbstractStoryTest {
 		PrismObject<ShadowType> shadowOpenDj = provisioningService.getObject(ShadowType.class, accountOpenDjOid, null, task, result);
 		display("AD account: ", shadowOpenDj);
 
-		ObjectDelta<UserType> delteStatsAccountDelta= ObjectDelta.createModificationDeleteReference(UserType.class, USER_JACK_OID, UserType.F_LINK_REF, prismContext, accountStatsOid);
+		ObjectDelta<UserType> delteStatsAccountDelta= prismContext.deltaFactory().object()
+				.createModificationDeleteReference(UserType.class, USER_JACK_OID, UserType.F_LINK_REF,
+						accountStatsOid);
 		modelService.executeChanges((Collection) MiscUtil.createCollection(delteStatsAccountDelta), null, task, result);
 
 		AssertJUnit.assertTrue("Expected empty assignment", jackType.getAssignment().isEmpty());

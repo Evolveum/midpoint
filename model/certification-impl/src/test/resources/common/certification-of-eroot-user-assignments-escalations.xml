@@ -68,7 +68,7 @@
                 <escalate>
                     <approverExpression>
                         <script>
-                            <code>'c0c010c0-d34d-b33f-f00d-11111111111e'</code>     <!-- elaine; testing value convertors -->
+                            <code>'c0c010c0-d34d-b33f-f00d-11111111111e'</code>     <!-- elaine; testing value converters -->
                         </script>
                     </approverExpression>
                     <escalationLevelName>elaine-level</escalationLevelName>

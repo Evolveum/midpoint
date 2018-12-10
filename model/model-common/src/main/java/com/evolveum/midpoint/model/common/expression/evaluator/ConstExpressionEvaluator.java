@@ -16,14 +16,9 @@
 package com.evolveum.midpoint.model.common.expression.evaluator;
 
 import com.evolveum.midpoint.model.common.ConstantsManager;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ItemDeltaUtil;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
@@ -75,14 +70,13 @@ public class ConstExpressionEvaluator<V extends PrismValue, D extends ItemDefini
 		Object value = ExpressionUtil.convertToOutputValue(stringValue, outputDefinition, protector);
 
 		if (output instanceof PrismProperty) {
-			PrismPropertyValue<Object> pValue = new PrismPropertyValue<>(value);
-			((PrismProperty<Object>) output).add(pValue);
+			((PrismProperty<Object>) output).addRealValue(value);
 		} else {
 			throw new UnsupportedOperationException(
 					"Can only generate values of property, not " + output.getClass());
 		}
 
-		return ItemDelta.toDeltaSetTriple(output, null);
+		return ItemDeltaUtil.toDeltaSetTriple(output, null, prismContext);
 	}
 
 	/*

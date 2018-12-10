@@ -20,6 +20,9 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -32,21 +35,6 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.util.MergeDeltas;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.Visitable;
-import com.evolveum.midpoint.prism.Visitor;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
@@ -141,7 +129,8 @@ public class ObjectMerger {
 		if (result.isSuccess()) {
 			// Do not delete the other object if the execution was not success.
 			// We might need to re-try the merge if it has failed and for that we need the right object.
-			ObjectDelta<O> deleteDelta = ObjectDelta.createDeleteDelta(type, rightOid, prismContext);
+			ObjectDelta<O> deleteDelta = prismContext.deltaFactory().object().createDeleteDelta(type, rightOid
+			);
 			Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeleteDeltas = modelController.executeChanges(MiscSchemaUtil.createCollection(deleteDelta), null, task, result);
 			executedDeltas.addAll(executedDeleteDeltas);
 		}
@@ -198,7 +187,7 @@ public class ObjectMerger {
 			MergeConfigurationType mergeConfiguration, final String mergeConfigurationName, final Task task, final OperationResult result) throws SchemaException, ConfigurationException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, SecurityViolationException {
 
 		for (ItemRefMergeConfigurationType itemMergeConfig: mergeConfiguration.getItem()) {
-			ItemPath itemPath = itemMergeConfig.getRef().getItemPath();
+			ItemPath itemPath = prismContext.toPath(itemMergeConfig.getRef());
 			processedPaths.add(itemPath);
 			ItemDelta itemDelta = mergeItem(objectLeft, objectRight, mergeConfigurationName, itemMergeConfig, itemPath, task, result);
 			LOGGER.trace("Item {} delta: {}", itemPath, itemDelta);
@@ -612,7 +601,7 @@ public class ObjectMerger {
 							SIDE_RIGHT, itemRight, rightStrategy, valueExpression, task, result);
 
 					for (PrismValue rightValueToTake: rightValuesToTake) {
-						if (!PrismValue.collectionContainsEquivalentValue(leftValuesToLeave, rightValueToTake)) {
+						if (!PrismValueCollectionsUtil.collectionContainsEquivalentValue(leftValuesToLeave, rightValueToTake)) {
 							itemDelta.addValueToAdd(rightValueToTake);
 						}
 					}
@@ -638,11 +627,11 @@ public class ObjectMerger {
 
 	private Collection<PrismValue> diffValues(List<PrismValue> currentValues, Collection<PrismValue> valuesToLeave) {
 		if (valuesToLeave == null || valuesToLeave.isEmpty()) {
-			return PrismValue.cloneCollection(currentValues);
+			return PrismValueCollectionsUtil.cloneCollection(currentValues);
 		}
 		Collection<PrismValue> diff = new ArrayList<>();
 		for (PrismValue currentValue: currentValues) {
-			if (!PrismValue.collectionContainsEquivalentValue(valuesToLeave, currentValue)) {
+			if (!PrismValueCollectionsUtil.collectionContainsEquivalentValue(valuesToLeave, currentValue)) {
 				diff.add(currentValue.clone());
 			}
 		}

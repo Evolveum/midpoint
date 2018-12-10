@@ -28,6 +28,11 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 import com.evolveum.midpoint.repo.common.expression.*;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -87,30 +92,13 @@ import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.model.impl.visualizer.Visualizer;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.AllFilter;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.InOidFilter;
-import com.evolveum.midpoint.prism.query.NoneFilter;
-import com.evolveum.midpoint.prism.query.NotFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrFilter;
-import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.prism.query.TypeFilter;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
-import com.evolveum.midpoint.repo.common.CacheRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -186,6 +174,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	@Autowired private ValuePolicyProcessor policyProcessor;
 	@Autowired private Protector protector;
 	@Autowired private PrismContext prismContext;
+	@Autowired private SchemaHelper schemaHelper;
 	@Autowired private Visualizer visualizer;
 	@Autowired private ModelService modelService;
 	@Autowired private ModelCrudService modelCrudService;
@@ -341,8 +330,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 					}
 					RefinedObjectClassDefinition refinedObjectClassDefinition = getEditObjectClassDefinition(shadow, resource, phase, task, result);
 					if (refinedObjectClassDefinition != null) {
-						((ComplexTypeDefinitionImpl) objectDefinition.getComplexTypeDefinition()).replaceDefinition(ShadowType.F_ATTRIBUTES,
-							refinedObjectClassDefinition.toResourceAttributeContainerDefinition());
+						prismContext.hacks().replaceDefinition(objectDefinition.getComplexTypeDefinition(), ShadowType.F_ATTRIBUTES,
+								refinedObjectClassDefinition.toResourceAttributeContainerDefinition());
 					}
 				}
 			}
@@ -415,7 +404,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
          */
         layeredROCD = layeredROCD.clone();
         for (LayerRefinedAttributeDefinition rAttrDef: layeredROCD.getAttributeDefinitions()) {
-			ItemPath attributePath = new ItemPath(ShadowType.F_ATTRIBUTES, rAttrDef.getName());
+			ItemPath attributePath = ItemPath.create(ShadowType.F_ATTRIBUTES, rAttrDef.getName());
 			AuthorizationDecisionType attributeReadDecision = schemaTransformer.computeItemDecision(securityConstraints, attributePath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, attributesReadDecision, phase);
 			AuthorizationDecisionType attributeAddDecision = schemaTransformer.computeItemDecision(securityConstraints, attributePath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ADD, attributesAddDecision, phase);
 			AuthorizationDecisionType attributeModifyDecision = schemaTransformer.computeItemDecision(securityConstraints, attributePath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_MODIFY, attributesModifyDecision, phase);
@@ -483,7 +472,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		if (decision == AuthorizationDecisionType.DENY) {
 			result.recordSuccess();
 			spec.setNoRoleTypes();
-			spec.setFilter(NoneFilter.createNone());
+			spec.setFilter(FilterCreationUtil.createNone(prismContext));
 			return spec;
 		}
 		decision = securityConstraints.findAllItemsDecision(ModelAuthorizationAction.MODIFY.getUrl(), AuthorizationPhaseType.REQUEST);
@@ -495,7 +484,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		if (decision == AuthorizationDecisionType.DENY) {
 			result.recordSuccess();
 			spec.setNoRoleTypes();
-			spec.setFilter(NoneFilter.createNone());
+			spec.setFilter(FilterCreationUtil.createNone(prismContext));
 			return spec;
 		}
 
@@ -505,7 +494,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		orderConstraintsList.add(orderConstraints);
 		try {
 			ObjectFilter filter = securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ASSIGN,
-					AuthorizationPhaseType.REQUEST, targetType, focus, AllFilter.createAll(), null, orderConstraintsList, task, result);
+					AuthorizationPhaseType.REQUEST, targetType, focus, FilterCreationUtil.createAll(prismContext), null, orderConstraintsList, task, result);
 			LOGGER.trace("assignableRoleSpec filter: {}", filter);
 			spec.setFilter(filter);
 			if (filter instanceof NoneFilter) {
@@ -599,7 +588,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 				continue;
 			}
 			ItemPath itemPath = ref.getItemPath();
-			QName itemName = ItemPath.getName(itemPath.first());
+			QName itemName = ItemPath.toNameOrNull(itemPath.first());
 			if (itemName == null) {
 				continue;
 			}
@@ -608,8 +597,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 				if (valueEnumerationRef == null || valueEnumerationRef.getOid() == null) {
 					return allEntries;
 				}
-				Collection<SelectorOptions<GetOperationOptions>> options = createCollection(LookupTableType.F_ROW,
-		    			GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
+				Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+						.item(LookupTableType.F_ROW).retrieve()
+						.build();
 				PrismObject<LookupTableType> lookup = cacheRepositoryService.getObject(LookupTableType.class, valueEnumerationRef.getOid(),
 						options, result);
 				for (LookupTableRowType row: lookup.asObjectable().getRow()) {
@@ -752,7 +742,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		if (securityPolicyType == null) {
 			return null;
 		}
-		PrismContainer<C> container = securityPolicyType.asPrismObject().findContainer(path);
+		PrismContainer<C> container = securityPolicyType.asPrismObject().findContainer(ItemName.fromQName(path));
 		if (container == null) {
 			return null;
 		}
@@ -1057,22 +1047,16 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		
 		return policyItemDefinition.isExecute().booleanValue();
 	}
-	private ItemPath getPath(PolicyItemDefinitionType policyItemDefinition){
+	private ItemPath getPath(PolicyItemDefinitionType policyItemDefinition) {
 		PolicyItemTargetType target = policyItemDefinition.getTarget();
-
-		if (target == null ) {
+		if (target == null) {
 			return null;
 		}
-
 		ItemPathType itemPathType = target.getPath();
-		if (itemPathType == null) {
-
-			return null;
-		}
-		return itemPathType.getItemPath();
+		return itemPathType != null ? itemPathType.getItemPath() : null;
 	}
 
-	private <O extends ObjectType> PrismPropertyDefinition<?> getItemDefinition(PrismObject<O> object, ItemPath path){
+	private <O extends ObjectType> PrismPropertyDefinition<?> getItemDefinition(PrismObject<O> object, ItemPath path) {
 		ItemDefinition<?> itemDef = object.getDefinition().findItemDefinition(path);
 		if (itemDef == null) {
 			return null;
@@ -1104,7 +1088,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			return;
 		}
 		if (object != null) {
-			PropertyDelta<?> propertyDelta = PropertyDelta.createModificationReplaceProperty(path, object.getDefinition(), value);
+			PropertyDelta<?> propertyDelta = prismContext.deltaFactory().property()
+					.createModificationReplaceProperty(path, object.getDefinition(), value);
 			propertyDelta.applyTo(object); // in bulk actions we need to modify original objects - hope that REST is OK with this
 			if (BooleanUtils.isTrue(policyItemDefinition.isExecute())) {
 				deltasToExecute.add(propertyDelta);
@@ -1119,7 +1104,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			ConfigurationException, SecurityViolationException {
 
 		PolicyItemTargetType target = policyItemDefinition.getTarget();
-		if ((target == null || ItemPath.isNullOrEmpty(target.getPath())) && isExecute(policyItemDefinition)) {
+		if ((target == null || ItemPathTypeUtil.isEmpty(target.getPath())) && isExecute(policyItemDefinition)) {
 			LOGGER.error("Target item path must be defined");
 			throw new SchemaException("Target item path must be defined");
 		}
@@ -1228,7 +1213,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		ValuePolicyType stringPolicy = resolveValuePolicy(policyItemDefinition, policy, task, parentResult);
 
 		Object value = policyItemDefinition.getValue();
-		String valueToValidate = null;
+		String valueToValidate;
 		if (value instanceof RawType) {
 			valueToValidate = ((RawType) value).getParsedRealValue(String.class);
 		} else {
@@ -1237,10 +1222,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		
 		List<String> valuesToValidate = new ArrayList<>();
 		PolicyItemTargetType target = policyItemDefinition.getTarget();
-		ItemPath path = null;
-		if (target != null) {
-			path = target.getPath().getItemPath();
-		}
+		ItemPath path = target != null ? target.getPath().getItemPath() : null;
 		if (StringUtils.isNotEmpty(valueToValidate)) {
 			valuesToValidate.add(valueToValidate);
 		} else {
@@ -1249,8 +1231,6 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 				parentResult.recordFatalError("Target item path must be defined");
 				throw new SchemaException("Target item path must be defined");
 			}
-			path = target.getPath().getItemPath();
-
 			if (object == null) {
 				LOGGER.error("Object which values should be validated is null. Nothing to validate.");
 				parentResult.recordFatalError("Object which values should be validated is null. Nothing to validate.");
@@ -1314,7 +1294,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 //				stringPolicy.setName(PolyString.toPolyStringType(new PolyString("Default policy")));
 //			}
 			
-			ObjectValuePolicyEvaluator evaluator = new ObjectValuePolicyEvaluator();
+			ObjectValuePolicyEvaluator evaluator = new ObjectValuePolicyEvaluator(prismContext);
 			evaluator.setValuePolicy(stringPolicy);
 			evaluator.setValuePolicyProcessor(policyProcessor);
 			evaluator.setProtector(protector);
@@ -1461,7 +1441,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		List<PrismReferenceValue> assigneeReferencesToQuery = workItem.getAssigneeRef().stream()
 				.map(assigneeRef -> assigneeRef.clone().relation(PrismConstants.Q_ANY).asReferenceValue())
 				.collect(Collectors.toList());
-		ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(UserType.class)
 				.item(UserType.F_DELEGATED_REF).ref(assigneeReferencesToQuery)
 				.build();
 		SearchResultList<PrismObject<UserType>> potentialDeputies = cacheRepositoryService
@@ -1481,7 +1461,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			QName limitationItemName, Set<String> oidsToSkip,
 			Task task, OperationResult result) throws SchemaException {
 		PrismReferenceValue assigneeReferenceToQuery = assigneeRef.clone().relation(PrismConstants.Q_ANY).asReferenceValue();
-		ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(UserType.class)
 				.item(UserType.F_DELEGATED_REF).ref(assigneeReferenceToQuery)
 				.build();
 		SearchResultList<PrismObject<UserType>> potentialDeputies = cacheRepositoryService
@@ -1658,8 +1638,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			
 			ProtectedStringType newProtectedPassword = new ProtectedStringType();
 			newProtectedPassword.setClearValue(executeCredentialResetRequest.getUserEntry());
-			userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, user.getOid(),
-					SchemaConstants.PATH_PASSWORD_VALUE, prismContext, newProtectedPassword);
+			userDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(UserType.class, user.getOid(),
+					SchemaConstants.PATH_PASSWORD_VALUE, newProtectedPassword);
 
 		}
 		
@@ -1724,7 +1704,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			for (Item<?, ?> extensionItem : extensionItems) {
 				newTask.asPrismObject().getExtension().add(extensionItem.clone());
 			}
-			ObjectDelta<TaskType> taskAddDelta = ObjectDelta.createAddDelta(newTask.asPrismObject());
+			ObjectDelta<TaskType> taskAddDelta = DeltaFactory.Object.createAddDelta(newTask.asPrismObject());
 			modelService.executeChanges(singleton(taskAddDelta), null, opTask, result);
 			result.computeStatus();
 			return newTask;
@@ -1761,7 +1741,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			throw new SchemaException("Only a single archetype for an object is supported: "+object);
 		}
 		ObjectReferenceType archetypeRef = archetypeRefs.get(0);
-		
+
 		PrismObject<ArchetypeType> archetype;
 		try {
 			archetype = systemObjectCache.getArchetype(archetypeRef.getOid(), result);

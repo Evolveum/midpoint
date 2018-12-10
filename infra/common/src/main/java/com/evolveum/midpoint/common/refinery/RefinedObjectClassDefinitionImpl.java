@@ -17,11 +17,11 @@ package com.evolveum.midpoint.common.refinery;
 
 import com.evolveum.midpoint.common.ResourceObjectPattern;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.util.ItemPathUtil;
+import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
@@ -122,7 +122,7 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 	}
 
 	@Override
-	public <ID extends ItemDefinition> ID findItemDefinition(@NotNull QName name, @NotNull Class<ID> clazz,
+	public <ID extends ItemDefinition> ID findLocalItemDefinition(@NotNull QName name, @NotNull Class<ID> clazz,
 			boolean caseInsensitive) {
 		for (ItemDefinition def : getDefinitions()) {
 			if (def.isValidFor(name, clazz, caseInsensitive)) {
@@ -327,8 +327,8 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 	}
 	
 	@Override
-	public boolean canRepresent(QName specTypeQName) {
-		return originalObjectClassDefinition.canRepresent(specTypeQName);
+	public boolean canRepresent(QName typeName) {
+		return originalObjectClassDefinition.canRepresent(typeName);
 	}
 	
 	//endregion
@@ -708,18 +708,18 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 		if (path.size() != 1) {
 			return null;
 		}
-		QName first = ItemPath.getFirstName(path);
+		ItemName first = path.firstToNameOrNull();
 		if (first == null) {
 			return null;
 		}
-		return findItemDefinition(first, clazz);
+		return findLocalItemDefinition(first.asSingleName(), clazz, false);
 	}
 
 	// TODO
 	@Override
 	public <ID extends ItemDefinition> ID findNamedItemDefinition(@NotNull QName firstName, @NotNull ItemPath rest,
 			@NotNull Class<ID> clazz) {
-		return findItemDefinition(firstName);
+		return findItemDefinition(ItemName.fromQName(firstName));
 	}
 
 	@Nullable
@@ -876,18 +876,20 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 		return rObjectClassDef;
 	}
 
-	private static void parseProtected(RefinedObjectClassDefinition rAccountDef, ResourceObjectTypeDefinitionType accountTypeDefType) throws SchemaException {
+	private static void parseProtected(RefinedObjectClassDefinition rAccountDef,
+			ResourceObjectTypeDefinitionType accountTypeDefType, PrismContext prismContext) throws SchemaException {
 		for (ResourceObjectPatternType protectedType: accountTypeDefType.getProtected()) {
-			ResourceObjectPattern protectedPattern = convertToPattern(protectedType, rAccountDef);
+			ResourceObjectPattern protectedPattern = convertToPattern(protectedType, rAccountDef, prismContext);
 			rAccountDef.getProtectedObjectPatterns().add(protectedPattern);
 		}
 	}
 
-	private static ResourceObjectPattern convertToPattern(ResourceObjectPatternType patternType, RefinedObjectClassDefinition rAccountDef) throws SchemaException {
+	private static ResourceObjectPattern convertToPattern(ResourceObjectPatternType patternType,
+			RefinedObjectClassDefinition rAccountDef, PrismContext prismContext) throws SchemaException {
 		ResourceObjectPattern resourceObjectPattern = new ResourceObjectPattern(rAccountDef);
 		SearchFilterType filterType = patternType.getFilter();
 		if (filterType != null) {
-			ObjectFilter filter = QueryConvertor.parseFilter(filterType, rAccountDef.getObjectDefinition());
+			ObjectFilter filter = prismContext.getQueryConverter().parseFilter(filterType, rAccountDef.getObjectDefinition());
 			resourceObjectPattern.addFilter(filter);
 			return resourceObjectPattern;
 		}
@@ -1044,7 +1046,7 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
             }
         }
 
-        parseProtected(this, schemaHandlingObjectTypeDefinitionType);
+        parseProtected(this, schemaHandlingObjectTypeDefinitionType, getPrismContext());
 	}
 
 	private void parseAttributesFrom(RefinedResourceSchema rSchema, ObjectClassComplexTypeDefinition ocDef, boolean auxiliary,
@@ -1102,7 +1104,7 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
         ResourceAttributeDefinitionType foundAttrDefType = null;
         for (ResourceAttributeDefinitionType attrDefType : rOcDefType.getAttribute()) {
             if (attrDefType.getRef() != null) {
-            	QName ref = ItemPathUtil.getOnlySegmentQName(attrDefType.getRef());
+            	QName ref = ItemPathTypeUtil.asSingleNameOrFail(attrDefType.getRef());
                 if (QNameUtil.match(ref, attrName)) {
                     if (foundAttrDefType == null) {
                         foundAttrDefType = attrDefType;
@@ -1343,7 +1345,7 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 
 	@Override
 	public <X> RefinedAttributeDefinition<X> findAttributeDefinition(@NotNull QName name) {
-		return findItemDefinition(name, RefinedAttributeDefinition.class, false);
+		return findLocalItemDefinition(ItemName.fromQName(name), RefinedAttributeDefinition.class, false);
 	}
 
 	//endregion
@@ -1357,6 +1359,11 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 				.collect(Collectors.toList());
 		attributeDefinitions.removeIf(itemDefinition -> !QNameUtil.contains(names, itemDefinition.getName()));
 		associationDefinitions.removeIf(itemDefinition -> !QNameUtil.contains(names, itemDefinition.getName()));
+	}
+
+	@Override
+	public MutableObjectClassComplexTypeDefinition toMutable() {
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
@@ -1378,5 +1385,6 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 	public Integer getInstantiationOrder() {
 		return null;
 	}
+
 
 }

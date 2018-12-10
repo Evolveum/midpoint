@@ -23,12 +23,11 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
-import java.util.Collections;
+import static java.util.Collections.singleton;
 
 /**
  * TODO find appropriate place for this class
@@ -37,27 +36,17 @@ import java.util.Collections;
  */
 public class ResourceUtils {
 
+	private static final ItemPath SCHEMA_PATH = ItemPath.create(ResourceType.F_SCHEMA, XmlSchemaType.F_DEFINITION);
+
 	public static void deleteSchema(PrismObject<ResourceType> resource, ModelService modelService, PrismContext prismContext, Task task, OperationResult parentResult)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
 			ConfigurationException, PolicyViolationException, SecurityViolationException {
-
-		PrismContainer<XmlSchemaType> schemaContainer = resource.findContainer(ResourceType.F_SCHEMA);
-		if (schemaContainer != null && schemaContainer.getValue() != null) {
-			PrismProperty<SchemaDefinitionType> definitionProperty = schemaContainer.findProperty(XmlSchemaType.F_DEFINITION);
-			if (definitionProperty != null && !definitionProperty.isEmpty()) {
-				PrismPropertyValue<SchemaDefinitionType> definitionValue = definitionProperty.getValue().clone();
-				ObjectDelta<ResourceType> deleteSchemaDefinitionDelta = ObjectDelta
-						.createModificationDeleteProperty(ResourceType.class,
-								resource.getOid(),
-								new ItemPath(ResourceType.F_SCHEMA, XmlSchemaType.F_DEFINITION),
-								prismContext, definitionValue.getValue());		// TODO ...or replace with null?
-				// delete schema
-				modelService.executeChanges(
-						Collections.<ObjectDelta<? extends ObjectType>>singleton(deleteSchemaDefinitionDelta), null, task,
-						parentResult);
-
-			}
+		PrismProperty<SchemaDefinitionType> definition = resource.findProperty(SCHEMA_PATH);
+		if (definition != null && !definition.isEmpty()) {
+			ObjectDelta<ResourceType> delta = prismContext.deltaFor(ResourceType.class)
+					.item(SCHEMA_PATH).replace()
+					.asObjectDelta(resource.getOid());
+			modelService.executeChanges(singleton(delta), null, task, parentResult);
 		}
 	}
-
 }

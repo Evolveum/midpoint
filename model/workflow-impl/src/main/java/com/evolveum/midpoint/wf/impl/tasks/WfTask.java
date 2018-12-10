@@ -18,7 +18,6 @@ package com.evolveum.midpoint.wf.impl.tasks;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
@@ -124,7 +123,7 @@ public class WfTask {
     public void setWfProcessId(String pid) throws SchemaException {
 		processInstanceId = pid;
         task.addModification(
-                DeltaBuilder.deltaFor(TaskType.class, getPrismContext())
+                getPrismContext().deltaFor(TaskType.class)
                         .item(F_WORKFLOW_CONTEXT, F_PROCESS_INSTANCE_ID).replace(pid)
                         .asItemDelta());
     }
@@ -132,7 +131,7 @@ public class WfTask {
     public void setProcessInstanceEndTimestamp() throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar(new Date());
         task.addModification(
-                DeltaBuilder.deltaFor(TaskType.class, getPrismContext())
+                getPrismContext().deltaFor(TaskType.class)
                         .item(F_WORKFLOW_CONTEXT, F_END_TIMESTAMP).replace(now)
                         .asItemDelta());
     }
@@ -234,14 +233,14 @@ public class WfTask {
 	}
 
     public void setOutcome(String outcome) throws SchemaException {
-        task.addModifications(DeltaBuilder.deltaFor(TaskType.class, getPrismContext())
+        task.addModifications(getPrismContext().deltaFor(TaskType.class)
                 .item(F_WORKFLOW_CONTEXT, F_OUTCOME).replace(outcome)
                 .asItemDeltas());
     }
 
     public void setProcessInstanceStageInformation(Integer stageNumber, Integer stageCount, String stageName, String stageDisplayName)
 			throws SchemaException {
-        task.addModifications(DeltaBuilder.deltaFor(TaskType.class, getPrismContext())
+        task.addModifications(getPrismContext().deltaFor(TaskType.class)
 				.item(F_WORKFLOW_CONTEXT, F_STAGE_NUMBER).replace(stageNumber)
 				.asItemDeltas());
     }

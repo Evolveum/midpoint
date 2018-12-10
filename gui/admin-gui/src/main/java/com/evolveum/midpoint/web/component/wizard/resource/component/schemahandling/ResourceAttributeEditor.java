@@ -18,14 +18,13 @@ package com.evolveum.midpoint.web.component.wizard.resource.component.schemahand
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.ItemPathUtil;
+import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaImpl;
+import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.processor.ObjectFactory;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -203,8 +202,8 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
                     return false;
                 }
 
-                QName referenceQName = ItemPathUtil.getOnlySegmentQNameRobust(getModelObject());
-                QName optionQName = ItemPathUtil.getOnlySegmentQNameRobust(object);
+                QName referenceQName = ItemPathTypeUtil.asSingleName(getModelObject());
+                QName optionQName = ItemPathTypeUtil.asSingleName(object);
 
                 return ObjectUtils.equals(referenceQName, optionQName);
             }
@@ -461,7 +460,7 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
             if (objectType.getObjectClass().equals(def.getTypeName()) ||
                     objectType.getAuxiliaryObjectClass().contains(def.getTypeName())) {
                 for (ResourceAttributeDefinition attributeDefinition : def.getAttributeDefinitions()) {
-                    ItemPath itemPath = new ItemPath(attributeDefinition.getName());
+                    ItemPath itemPath = attributeDefinition.getName();
                     ItemPathType itemPathType = new ItemPathType(itemPath);
                     if (!references.contains(itemPathType)) {
                         references.add(itemPathType);
@@ -485,14 +484,17 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
     }
 
     private ResourceSchema loadResourceSchema() {
-        if(resource != null){
+        PrismContext prismContext = getPageBase().getPrismContext();
+        if (resource != null) {
             Element xsdSchema = ResourceTypeUtil.getResourceXsdSchema(resource);
             if (xsdSchema == null) {
                 return null;
             }
 
             try {
-                return ResourceSchemaImpl.parse(xsdSchema, resource.toString(), getPageBase().getPrismContext());
+                MutableResourceSchema schema = ObjectFactory.createResourceSchema(null, prismContext);
+                schema.parseThis(xsdSchema, resource.toString(), prismContext);
+                return schema;
             } catch (SchemaException|RuntimeException e) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't parse resource schema.", e);
                 getSession().error(getString("ResourceAttributeEditor.message.cantParseSchema") + " " + e.getMessage());
@@ -505,16 +507,16 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
     }
 
     private String prepareReferenceDisplayValue(ItemPathType object){
-        if (object == null || object.getItemPath() == null) {
+        if (object == null) {
             return "";
         }
 
         ItemPath path = object.getItemPath();
-        if (path.getSegments().size() != 1) {
+        if (path.size() != 1) {
             return path.toString();
         }
 
-        QName name = ItemPathUtil.getOnlySegmentQName(path);
+        QName name = path.asSingleNameOrFail();
 
         StringBuilder sb = new StringBuilder();
         String prefix = SchemaConstants.NS_ICF_SCHEMA.equals(name.getNamespaceURI()) ? "icfs" : "ri";

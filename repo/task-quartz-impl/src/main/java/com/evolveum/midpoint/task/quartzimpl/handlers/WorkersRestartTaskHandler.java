@@ -18,7 +18,6 @@ package com.evolveum.midpoint.task.quartzimpl.handlers;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
@@ -105,7 +104,7 @@ public class WorkersRestartTaskHandler implements TaskHandler {
 	}
 
 	private void deleteBuckets(Task task, OperationResult opResult) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-		List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(TaskType.class, prismContext)
+		List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(TaskType.class)
 				.item(TaskType.F_WORK_STATE, TaskWorkStateType.F_BUCKET).replace()
 				.asItemDeltas();
 		repositoryService.modifyObject(TaskType.class, task.getOid(), itemDeltas, opResult);

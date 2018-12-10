@@ -44,7 +44,7 @@
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-case-management-3" />
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-workflows-3" />
 
-    <xsd:complexType name="AbstractAccessCertificationDefinitionType" abstract="true">
+    <xsd:complexType name="AbstractAccessCertificationDefinitionType" abstract="true">      <!-- TODO [4.0] remove -->
         <xsd:annotation>
             <xsd:documentation>
                 Definition of an access certification - a template for

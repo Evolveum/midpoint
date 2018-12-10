@@ -22,6 +22,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import org.identityconnectors.common.pooling.ObjectPoolConfiguration;
 import org.identityconnectors.common.security.GuardedByteArray;
 import org.identityconnectors.common.security.GuardedString;
@@ -111,7 +112,7 @@ public class ConnIdConfigurationTransformer {
 		ObjectPoolConfiguration connectorPoolConfiguration = apiConfig.getConnectorPoolConfiguration();
 		transformConnectorPoolConfiguration(connectorPoolConfiguration, connectorPoolContainer);
 
-		PrismProperty producerBufferSizeProperty = configuration.findProperty(new QName(
+		PrismProperty producerBufferSizeProperty = configuration.findProperty(new ItemName(
 				SchemaConstants.NS_ICF_CONFIGURATION,
 				ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_XML_ELEMENT_NAME));
 		if (producerBufferSizeProperty != null) {

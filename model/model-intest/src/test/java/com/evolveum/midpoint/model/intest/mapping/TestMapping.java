@@ -24,15 +24,13 @@ import java.util.UUID;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.BreakMode;
@@ -41,12 +39,8 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -62,7 +56,6 @@ import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 
@@ -348,9 +341,9 @@ public class TestMapping extends AbstractMappingTest {
         String accountOid = getSingleLinkOid(userJack);
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-        ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
+        ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
         		accountOid, getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
-        		prismContext, "Flying Dutchman");
+		        "Flying Dutchman");
         deltas.add(accountDelta);
 
 		// WHEN
@@ -394,9 +387,9 @@ public class TestMapping extends AbstractMappingTest {
         String accountOid = getSingleLinkOid(userJack);
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-        ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
-        		accountOid, getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
-        		prismContext);
+        ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+        		accountOid, getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME)
+        );
         deltas.add(accountDelta);
 
 		// WHEN
@@ -436,9 +429,9 @@ public class TestMapping extends AbstractMappingTest {
         String accountOid = getSingleLinkOid(userJack);
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-        ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
+        ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
         		accountOid, getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
-        		prismContext, "HMS Dauntless");
+		        "HMS Dauntless");
         deltas.add(accountDelta);
 
 		// WHEN
@@ -482,9 +475,9 @@ public class TestMapping extends AbstractMappingTest {
         String accountOid = getSingleLinkOid(userJack);
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-        ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationDeleteProperty(ShadowType.class,
+        ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object().createModificationDeleteProperty(ShadowType.class,
         		accountOid, getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
-        		prismContext, "HMS Dauntless");
+		        "HMS Dauntless");
         deltas.add(accountDelta);
 
 		// WHEN
@@ -576,11 +569,7 @@ public class TestMapping extends AbstractMappingTest {
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
 		display("User before", userBefore);
 		AssignmentType titanicAssignment = getAssignment(userBefore, ROLE_BLUE_TITANIC_OID);
-		ItemPath assignmentStatusPath = new ItemPath(
-				new NameItemPathSegment(FocusType.F_ASSIGNMENT),
-				new IdItemPathSegment(titanicAssignment.getId()),
-				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
-				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS));
+		ItemPath assignmentStatusPath = ItemPath.create(FocusType.F_ASSIGNMENT, titanicAssignment.getId(), AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
 
 		// WHEN
 		modifyUserReplace(USER_JACK_OID, assignmentStatusPath, task, result, ActivationStatusType.DISABLED);
@@ -661,11 +650,7 @@ public class TestMapping extends AbstractMappingTest {
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
 		display("User before", userBefore);
 		AssignmentType titanicAssignment = getAssignment(userBefore, ROLE_BLUE_TITANIC_OID);
-		ItemPath assignmentStatusPath = new ItemPath(
-				new NameItemPathSegment(FocusType.F_ASSIGNMENT),
-				new IdItemPathSegment(titanicAssignment.getId()),
-				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
-				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS));
+		ItemPath assignmentStatusPath = ItemPath.create(FocusType.F_ASSIGNMENT, titanicAssignment.getId(), AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
 
 		// WHEN
 		modifyUserReplace(USER_JACK_OID, assignmentStatusPath, task, result, ActivationStatusType.ENABLED);
@@ -777,11 +762,8 @@ public class TestMapping extends AbstractMappingTest {
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
 		display("User before", userBefore);
 		AssignmentType poetryAssignment = getAssignment(userBefore, ROLE_BLUE_POETRY_OID);
-		ItemPath assignmentStatusPath = new ItemPath(
-				new NameItemPathSegment(FocusType.F_ASSIGNMENT),
-				new IdItemPathSegment(poetryAssignment.getId()),
-				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
-				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS));
+		ItemPath assignmentStatusPath = ItemPath.create(FocusType.F_ASSIGNMENT, poetryAssignment.getId(),
+				AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
 
 		// WHEN
 		modifyUserReplace(USER_JACK_OID, assignmentStatusPath, task, result, ActivationStatusType.DISABLED);
@@ -868,11 +850,8 @@ public class TestMapping extends AbstractMappingTest {
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
 		display("User before", userBefore);
 		AssignmentType poetryAssignment = getAssignment(userBefore, ROLE_BLUE_POETRY_OID);
-		ItemPath assignmentStatusPath = new ItemPath(
-				new NameItemPathSegment(FocusType.F_ASSIGNMENT),
-				new IdItemPathSegment(poetryAssignment.getId()),
-				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
-				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS));
+		ItemPath assignmentStatusPath = ItemPath.create(FocusType.F_ASSIGNMENT, poetryAssignment.getId(),
+				AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
 
 		// WHEN
 		modifyUserReplace(USER_JACK_OID, assignmentStatusPath, task, result, ActivationStatusType.ENABLED);
@@ -1161,11 +1140,8 @@ public class TestMapping extends AbstractMappingTest {
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
 		display("User before", userBefore);
 		AssignmentType roleAssignment = getAssignment(userBefore, ROLE_COBALT_NEVERLAND_OID);
-		ItemPath assignmentStatusPath = new ItemPath(
-				new NameItemPathSegment(FocusType.F_ASSIGNMENT),
-				new IdItemPathSegment(roleAssignment.getId()),
-				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
-				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS));
+		ItemPath assignmentStatusPath = ItemPath.create(FocusType.F_ASSIGNMENT, roleAssignment.getId(),
+				AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
 
 		// WHEN
 		modifyUserReplace(USER_JACK_OID, assignmentStatusPath, task, result, ActivationStatusType.DISABLED);
@@ -1317,11 +1293,8 @@ public class TestMapping extends AbstractMappingTest {
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
 		display("User before", userBefore);
 		AssignmentType roleAssignment = getAssignment(userBefore, ROLE_COBALT_NEVERLAND_OID);
-		ItemPath assignmentStatusPath = new ItemPath(
-				new NameItemPathSegment(FocusType.F_ASSIGNMENT),
-				new IdItemPathSegment(roleAssignment.getId()),
-				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
-				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS));
+		ItemPath assignmentStatusPath = ItemPath.create(FocusType.F_ASSIGNMENT, roleAssignment.getId(),
+				AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
 
 		// WHEN
 		modifyUserReplace(USER_JACK_OID, assignmentStatusPath, task, result, ActivationStatusType.ENABLED);
@@ -1528,9 +1501,9 @@ public class TestMapping extends AbstractMappingTest {
         String accountOid = getSingleLinkOid(userJack);
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-        ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
+        ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
         		accountOid, getDummyResourceController(RESOURCE_DUMMY_RED_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
-        		prismContext, "Flying Dutchman");
+		        "Flying Dutchman");
         deltas.add(accountDelta);
 
 		// WHEN
@@ -1575,9 +1548,9 @@ public class TestMapping extends AbstractMappingTest {
         String accountOid = getSingleLinkOid(userJack);
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-        ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
-        		accountOid, getDummyResourceController(RESOURCE_DUMMY_RED_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
-        		prismContext);
+        ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+        		accountOid, getDummyResourceController(RESOURCE_DUMMY_RED_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME)
+        );
         deltas.add(accountDelta);
 
         // WHEN
@@ -1617,9 +1590,9 @@ public class TestMapping extends AbstractMappingTest {
         String accountOid = getSingleLinkOid(userJack);
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-        ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationDeleteProperty(ShadowType.class,
+        ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object().createModificationDeleteProperty(ShadowType.class,
         		accountOid, getDummyResourceController(RESOURCE_DUMMY_RED_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
-        		prismContext, "Black Pearl");
+		        "Black Pearl");
         deltas.add(accountDelta);
 
         // WHEN
@@ -1760,7 +1733,8 @@ public class TestMapping extends AbstractMappingTest {
         String acccountRedOid = getLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-        ObjectDelta<ShadowType> shadowDelta = ObjectDelta.createDeleteDelta(ShadowType.class, acccountRedOid, prismContext);
+        ObjectDelta<ShadowType> shadowDelta = prismContext.deltaFactory().object()
+		        .createDeleteDelta(ShadowType.class, acccountRedOid);
         deltas.add(shadowDelta);
 
 		// WHEN
@@ -1930,9 +1904,9 @@ public class TestMapping extends AbstractMappingTest {
         String accountOid = getSingleLinkOid(userJack);
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-        ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
+        ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
         		accountOid, dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME),
-        		prismContext, "Davie Jones Locker");
+		        "Davie Jones Locker");
         deltas.add(accountDelta);
 
 		// WHEN
@@ -1978,9 +1952,9 @@ public class TestMapping extends AbstractMappingTest {
         String accountOid = getSingleLinkOid(userJack);
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-        ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
-        		accountOid, dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME),
-        		prismContext);
+        ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+        		accountOid, dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME)
+        );
         deltas.add(accountDelta);
 
         // WHEN
@@ -2020,9 +1994,9 @@ public class TestMapping extends AbstractMappingTest {
         String accountOid = getSingleLinkOid(userJack);
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-        ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationDeleteProperty(ShadowType.class,
+        ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object().createModificationDeleteProperty(ShadowType.class,
         		accountOid, dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME),
-        		prismContext, "Fountain of Youth");
+		        "Fountain of Youth");
         deltas.add(accountDelta);
 
         // WHEN
@@ -2466,7 +2440,7 @@ public class TestMapping extends AbstractMappingTest {
 
 		// WHEN
         displayWhen(TEST_NAME);
-        ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_GUYBRUSH_OID, new ItemPath(UserType.F_LOCALITY),
+        ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_GUYBRUSH_OID, UserType.F_LOCALITY,
         		PrismTestUtil.createPolyString(LOCALITY_SCABB_ISLAND));
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 		ModelExecuteOptions options = ModelExecuteOptions.createReconcile();
@@ -2927,7 +2901,7 @@ public class TestMapping extends AbstractMappingTest {
 
 		// WHEN
         displayWhen(TEST_NAME);
-        ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_GUYBRUSH_OID, new ItemPath(UserType.F_LOCALITY),
+        ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_GUYBRUSH_OID, UserType.F_LOCALITY,
         		PrismTestUtil.createPolyString(LOCALITY_SCABB_ISLAND));
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 		ModelExecuteOptions options = ModelExecuteOptions.createReconcile();
@@ -3505,9 +3479,9 @@ public class TestMapping extends AbstractMappingTest {
 		displayWhen(TEST_NAME);
 		AssignmentType orgAssignment = findAssignment(jim, ORG_SAVE_ELAINE_OID, SchemaConstants.ORG_DEFAULT);
 		assertNotNull("org assignment not found", orgAssignment);
-		PrismContainerValue<Containerable> orgAssignmentPcv = new PrismContainerValue<>(prismContext);
+		PrismContainerValue<Containerable> orgAssignmentPcv = prismContext.itemFactory().createContainerValue();
 		orgAssignmentPcv.setId(orgAssignment.getId());
-		ObjectDelta<UserType> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT).delete(orgAssignmentPcv)
 				.asObjectDeltaCast(jim.getOid());
 		executeChanges(delta, null, task, result);

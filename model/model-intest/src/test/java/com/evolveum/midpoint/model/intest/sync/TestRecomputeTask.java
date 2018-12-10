@@ -24,8 +24,9 @@ import java.util.List;
 
 import javax.xml.bind.JAXBElement;
 
-import com.evolveum.midpoint.prism.util.ItemPathUtil;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
@@ -42,9 +43,6 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -129,18 +127,13 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 
         // More complicated change
         PrismObject<RoleType> rolePirate = modelService.getObject(RoleType.class, ROLE_PIRATE_OID, null, task, result);
-        ItemPath attrItemPath = new ItemPath(
-				new NameItemPathSegment(RoleType.F_INDUCEMENT),
-				new IdItemPathSegment(1111L),
-				new NameItemPathSegment(AssignmentType.F_CONSTRUCTION),
-				new IdItemPathSegment(60004L),
-				new NameItemPathSegment(ConstructionType.F_ATTRIBUTE));
+        ItemPath attrItemPath = ItemPath.create(RoleType.F_INDUCEMENT, 1111L, AssignmentType.F_CONSTRUCTION, 60004L, ConstructionType.F_ATTRIBUTE);
         PrismContainer<ResourceAttributeDefinitionType> attributeCont = rolePirate.findContainer(attrItemPath);
         assertNotNull("No attribute property in "+rolePirate);
         PrismContainerValue<ResourceAttributeDefinitionType> oldAttrContainer = null;
         for (PrismContainerValue<ResourceAttributeDefinitionType> cval: attributeCont.getValues()) {
         	ResourceAttributeDefinitionType attrType = cval.getValue();
-        	if (ItemPathUtil.getOnlySegmentQName(attrType.getRef()).getLocalPart().equals(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME)) {
+        	if (ItemPathTypeUtil.asSingleNameOrFail(attrType.getRef()).getLocalPart().equals(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME)) {
         		oldAttrContainer = cval;
         	}
         }
@@ -148,13 +141,15 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         PrismContainerValue<ResourceAttributeDefinitionType> newAttrContainer = oldAttrContainer.clone();
         JAXBElement<?> cutlassExpressionEvalJaxbElement = newAttrContainer.getValue().getOutbound().getExpression().getExpressionEvaluator().get(0);
         RawType cutlassValueEvaluator = (RawType) cutlassExpressionEvalJaxbElement.getValue();
-        RawType daggerValueEvaluator = new RawType(new PrimitiveXNode<>("dagger"), prismContext);
+		XNode daggerXNode = prismContext.xnodeFactory().primitive("dagger");
+        RawType daggerValueEvaluator = new RawType(daggerXNode, prismContext);
         JAXBElement<?> daggerExpressionEvalJaxbElement = new JAXBElement<>(SchemaConstants.C_VALUE, Object.class, daggerValueEvaluator);
         newAttrContainer.getValue().getOutbound().getExpression().getExpressionEvaluator().add(daggerExpressionEvalJaxbElement);
         newAttrContainer.getValue().getOutbound().setStrength(MappingStrengthType.STRONG);
 
-        ObjectDelta<RoleType> rolePirateDelta = ObjectDelta.createModificationDeleteContainer(RoleType.class, ROLE_PIRATE_OID,
-        		attrItemPath, prismContext, oldAttrContainer.getValue().clone());
+        ObjectDelta<RoleType> rolePirateDelta = prismContext.deltaFactory().object()
+		        .createModificationDeleteContainer(RoleType.class, ROLE_PIRATE_OID,
+        		attrItemPath, oldAttrContainer.getValue().clone());
         ResourceAttributeDefinitionType newAttrCVal = newAttrContainer.getValue();
         newAttrCVal.asPrismContainerValue().setId(null);
         rolePirateDelta.addModificationAddContainer(attrItemPath, newAttrCVal);

@@ -28,6 +28,10 @@ import com.evolveum.midpoint.model.impl.lens.projector.ConstructionProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -53,25 +57,7 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
-import com.evolveum.midpoint.prism.CloneStrategy;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.DeltaMapTriple;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -114,7 +100,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 @Component
 public class AssignmentProcessor {
 
-    @Autowired
+	@Autowired
     @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
 
@@ -281,7 +267,7 @@ public class AssignmentProcessor {
 
         // PROCESSING FOCUS
 
-        Map<ItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> focusOutputTripleMap = new HashMap<>();
+        Map<UniformItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> focusOutputTripleMap = new HashMap<>();
         collectFocusTripleFromMappings(evaluatedAssignmentTriple.getPlusSet(), focusOutputTripleMap, PlusMinusZero.PLUS);
         collectFocusTripleFromMappings(evaluatedAssignmentTriple.getMinusSet(), focusOutputTripleMap, PlusMinusZero.MINUS);
         collectFocusTripleFromMappings(evaluatedAssignmentTriple.getZeroSet(), focusOutputTripleMap, PlusMinusZero.ZERO);
@@ -448,7 +434,7 @@ public class AssignmentProcessor {
 				public void after(ResourceShadowDiscriminator rat, String desc,
 						DeltaMapTriple<ResourceShadowDiscriminator, ConstructionPack<Construction<F>>> constructionMapTriple) {
 					PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> projectionConstructionDeltaSetTriple =
-							new PrismValueDeltaSetTriple<>(
+							prismContext.deltaFactory().createPrismValueDeltaSetTriple(
 									getConstructions(constructionMapTriple.getZeroMap().get(rat), true),
 									getConstructions(constructionMapTriple.getPlusMap().get(rat), true),
 									getConstructions(constructionMapTriple.getMinusMap().get(rat), false));
@@ -510,19 +496,15 @@ public class AssignmentProcessor {
             return;
         }
 
-        final ItemPath TARGET_REF_PATH = new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF);
-        final ItemPath CONSTRUCTION_KIND_PATH = new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_KIND);
-        final ItemPath CONSTRUCTION_INTENT_PATH = new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_INTENT);
-
         for (@SuppressWarnings("rawtypes") ItemDelta itemDelta : focusDelta.getModifications()) {
             ItemPath itemPath = itemDelta.getPath().namedSegmentsOnly();
-            if (TARGET_REF_PATH.isSubPathOrEquivalent(itemPath)) {
+            if (SchemaConstants.PATH_ASSIGNMENT_TARGET_REF.isSubPathOrEquivalent(itemPath)) {
                 throw new SchemaException("It is not allowed to change targetRef in an assignment. Offending path: " + itemPath);
             }
-            if (CONSTRUCTION_KIND_PATH.isSubPathOrEquivalent(itemPath)) {
+            if (SchemaConstants.PATH_ASSIGNMENT_CONSTRUCTION_KIND.isSubPathOrEquivalent(itemPath)) {
                 throw new SchemaException("It is not allowed to change construction.kind in an assignment. Offending path: " + itemPath);
             }
-            if (CONSTRUCTION_INTENT_PATH.isSubPathOrEquivalent(itemPath)) {
+            if (SchemaConstants.PATH_ASSIGNMENT_CONSTRUCTION_INTENT.isSubPathOrEquivalent(itemPath)) {
                 throw new SchemaException("It is not allowed to change construction.intent in an assignment. Offending path: " + itemPath);
             }
             // TODO some mechanism to detect changing kind/intent by add/delete/replace whole ConstructionType (should be implemented in the caller)
@@ -728,7 +710,8 @@ public class AssignmentProcessor {
 
 	private <F extends FocusType> void createAssignmentDelta(LensContext<F> context, LensProjectionContext accountContext) throws SchemaException{
         Class<F> focusClass = context.getFocusClass();
-        ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(FocusType.F_ASSIGNMENT, focusClass, prismContext);
+        ContainerDelta<AssignmentType> assignmentDelta = prismContext.deltaFactory().container()
+		        .createDelta(FocusType.F_ASSIGNMENT, focusClass);
 		AssignmentType assignment = new AssignmentType();
 		ConstructionType constructionType = new ConstructionType();
 		constructionType.setResourceRef(ObjectTypeUtil.createObjectRef(accountContext.getResource(), prismContext));
@@ -779,12 +762,12 @@ public class AssignmentProcessor {
 							switch (plusMinusZero) {
 								case PLUS:
 								case ZERO:
-									if (!PrismReferenceValue.containsRealValue(shouldBeParentOrgRefs, val)) {
+									if (!PrismValueCollectionsUtil.containsRealValue(shouldBeParentOrgRefs, val)) {
 										throw new TunnelException(new PolicyViolationException("Attempt to add parentOrgRef "+val.getOid()+", but it is not allowed by assignments"));
 									}
 									break;
 								case MINUS:
-									if (PrismReferenceValue.containsRealValue(shouldBeParentOrgRefs, val)) {
+									if (PrismValueCollectionsUtil.containsRealValue(shouldBeParentOrgRefs, val)) {
 										throw new TunnelException(new PolicyViolationException("Attempt to delete parentOrgRef "+val.getOid()+", but it is mandated by assignments"));
 									}
 									break;
@@ -880,18 +863,19 @@ public class AssignmentProcessor {
 				return;
 			} else {
 				LOGGER.trace("Setting tenantRef to {}", tenantOid);
-				ReferenceDelta tenantRefDelta = ReferenceDelta.createModificationReplace(ObjectType.F_TENANT_REF, focusContext.getObjectDefinition(), tenantOid);
+				ReferenceDelta tenantRefDelta = prismContext.deltaFactory().reference()
+						.createModificationReplace(ObjectType.F_TENANT_REF, focusContext.getObjectDefinition(), tenantOid);
 				focusContext.swallowToProjectionWaveSecondaryDelta(tenantRefDelta);
 			}
 		} else {
 			if (tenantOid == null) {
 				LOGGER.trace("Clearing tenantRef");
-				ReferenceDelta tenantRefDelta = ReferenceDelta.createModificationReplace(ObjectType.F_TENANT_REF, focusContext.getObjectDefinition(), (PrismReferenceValue)null);
+				ReferenceDelta tenantRefDelta = prismContext.deltaFactory().reference().createModificationReplace(ObjectType.F_TENANT_REF, focusContext.getObjectDefinition(), (PrismReferenceValue)null);
 				focusContext.swallowToProjectionWaveSecondaryDelta(tenantRefDelta);
 			} else {
 				if (!tenantOid.equals(currentTenantRef.getOid())) {
 					LOGGER.trace("Changing tenantRef to {}", tenantOid);
-					ReferenceDelta tenantRefDelta = ReferenceDelta.createModificationReplace(ObjectType.F_TENANT_REF, focusContext.getObjectDefinition(), tenantOid);
+					ReferenceDelta tenantRefDelta = prismContext.deltaFactory().reference().createModificationReplace(ObjectType.F_TENANT_REF, focusContext.getObjectDefinition(), tenantOid);
 					focusContext.swallowToProjectionWaveSecondaryDelta(tenantRefDelta);
 				}
 			}
@@ -977,7 +961,7 @@ public class AssignmentProcessor {
 
     private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> XMLGregorianCalendar collectFocusTripleFromMappings(
     		Collection<EvaluatedAssignmentImpl<F>> evaluatedAssignments,
-    		Map<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> outputTripleMap,
+    		Map<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> outputTripleMap,
     		PlusMinusZero plusMinusZero) throws SchemaException {
 
 		XMLGregorianCalendar nextRecomputeTime = null;
@@ -990,7 +974,8 @@ public class AssignmentProcessor {
 			for (MappingImpl<V,D> mapping: focusMappings) {
 
 				ItemPath itemPath = mapping.getOutputPath();
-				DeltaSetTriple<ItemValueWithOrigin<V,D>> outputTriple = ItemValueWithOrigin.createOutputTriple(mapping);
+				DeltaSetTriple<ItemValueWithOrigin<V,D>> outputTriple = ItemValueWithOrigin.createOutputTriple(mapping,
+						prismContext);
 				if (outputTriple == null) {
 					continue;
 				}
@@ -1005,7 +990,8 @@ public class AssignmentProcessor {
 				}
 				DeltaSetTriple<ItemValueWithOrigin<V,D>> mapTriple = (DeltaSetTriple<ItemValueWithOrigin<V,D>>) outputTripleMap.get(itemPath);
 				if (mapTriple == null) {
-					outputTripleMap.put(itemPath, outputTriple);
+					UniformItemPath uniformItemPath = prismContext.toUniformPath(itemPath);
+					outputTripleMap.put(uniformItemPath, outputTriple);
 				} else {
 					mapTriple.merge(outputTriple);
 				}
@@ -1051,9 +1037,10 @@ public class AssignmentProcessor {
 		setReferences(focusContext, AssignmentHolderType.F_ARCHETYPE_REF, shouldBeArchetypeRefs);
     }
 
-	private <F extends ObjectType> void setReferences(LensFocusContext<F> focusContext, QName itemName,
+	private <F extends ObjectType> void setReferences(LensFocusContext<F> focusContext, QName name,
 			Collection<PrismReferenceValue> targetState) throws SchemaException {
 
+		ItemName itemName = ItemName.fromQName(name);
 		PrismObject<F> focusOld = focusContext.getObjectOld();
 		if (focusOld == null) {
 			if (targetState.isEmpty()) {
@@ -1078,7 +1065,7 @@ public class AssignmentProcessor {
 		}
 
 		PrismReferenceDefinition itemDef = focusContext.getObjectDefinition().findItemDefinition(itemName, PrismReferenceDefinition.class);
-		ReferenceDelta itemDelta = new ReferenceDelta(itemName, itemDef, focusContext.getObjectDefinition().getPrismContext());
+		ReferenceDelta itemDelta = prismContext.deltaFactory().reference().create(itemName, itemDef);
 		itemDelta.setValuesToReplace(targetState);
 		focusContext.swallowToSecondaryDelta(itemDelta);
 	}
