@@ -20,6 +20,7 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -29,12 +30,7 @@ import org.testng.annotations.Test;
 import com.evolveum.icf.dummy.resource.DummyObjectClass;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -219,7 +215,7 @@ public class TestNullAttribute extends AbstractStoryTest {
 		 // WHEN
 		@SuppressWarnings("unchecked, raw")
 		Collection<ObjectDelta<? extends ObjectType>> deltas =
-				(Collection) DeltaBuilder.deltaFor(UserType.class, prismContext)
+				(Collection) prismContext.deltaFor(UserType.class)
 				.item(UserType.F_EXTENSION, new QName(EXTENSION_NS, "ship")).add("Black Pearl")
 				.asObjectDeltas(USER_SMACK_OID);
 		modelService.executeChanges(deltas, null, task, result);

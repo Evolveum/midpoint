@@ -20,8 +20,6 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.OrFilter;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
@@ -72,13 +70,13 @@ public class StringPrefixWorkBucketContentHandler extends BaseWorkBucketContentH
 
 		List<ObjectFilter> prefixFilters = new ArrayList<>();
 		for (String prefix : content.getPrefix()) {
-			prefixFilters.add(QueryBuilder.queryFor(type, prismContext)
+			prefixFilters.add(prismContext.queryFor(type)
 					.item(discriminator, discriminatorDefinition).startsWith(prefix).matching(matchingRuleName)
 					.buildFilter());
 		}
 		assert !prefixFilters.isEmpty();
 		if (prefixFilters.size() > 1) {
-			return Collections.singletonList(OrFilter.createOr(prefixFilters));
+			return Collections.singletonList(prismContext.queryFactory().createOr(prefixFilters));
 		} else {
 			return prefixFilters;
 		}

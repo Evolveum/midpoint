@@ -54,6 +54,8 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.model.api.util.ResourceUtils;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.util.PolyStringUtils;
@@ -66,13 +68,13 @@ import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
 import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
-import com.evolveum.midpoint.web.component.input.ExpressionValuePanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDeleteDialogDto;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -104,7 +106,6 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.apache.wicket.util.visit.IVisit;
 import org.apache.wicket.util.visit.IVisitor;
-import org.bouncycastle.asn1.ocsp.ServiceLocator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joda.time.format.DateTimeFormat;
@@ -114,35 +115,11 @@ import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.DefaultReferencableImpl;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.Revivable;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.match.DefaultMatchingRule;
-import com.evolveum.midpoint.prism.match.DistinguishedNameMatchingRule;
-import com.evolveum.midpoint.prism.match.ExchangeEmailAddressesMatchingRule;
-import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
-import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
-import com.evolveum.midpoint.prism.match.PolyStringStrictMatchingRule;
-import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
-import com.evolveum.midpoint.prism.match.UuidMatchingRule;
-import com.evolveum.midpoint.prism.match.XmlMatchingRule;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -313,7 +290,7 @@ public final class WebComponentUtil {
 				.collect(Collectors.joining(", "));
 	}
 	
-	public static String getReferencedObjectDisplayNamesAndNames(DefaultReferencableImpl ref, boolean showTypes) {
+	public static String getReferencedObjectDisplayNamesAndNames(Referencable ref, boolean showTypes) {
 		String name = ref.getTargetName() == null ? "" : ref.getTargetName().getOrig();
 		StringBuilder sb = new StringBuilder(name);
 		if(showTypes) {
@@ -344,8 +321,7 @@ public final class WebComponentUtil {
 	}
 
 	public static ObjectFilter getShadowTypeFilterForAssociation(ConstructionType construction, String operation, PageBase pageBase){
-		ObjectQuery query = new ObjectQuery();
-
+		PrismContext prismContext = pageBase.getPrismContext();
 		if (construction == null){
 			return null;
 		}
@@ -354,6 +330,7 @@ public final class WebComponentUtil {
 			return null;
 		}
 
+		ObjectQuery query = prismContext.queryFactory().createQuery();
 		try {
 			RefinedResourceSchema refinedResourceSchema = RefinedResourceSchema.getRefinedSchema(resource);
 			RefinedObjectClassDefinition oc = refinedResourceSchema.getRefinedDefinition(construction.getKind(), construction.getIntent());
@@ -363,16 +340,16 @@ public final class WebComponentUtil {
 			Collection<RefinedAssociationDefinition> refinedAssociationDefinitions = oc.getAssociationDefinitions();
 
 			for (RefinedAssociationDefinition refinedAssociationDefinition : refinedAssociationDefinitions) {
-				S_FilterEntryOrEmpty atomicFilter = QueryBuilder.queryFor(ShadowType.class, pageBase.getPrismContext());
+				S_FilterEntryOrEmpty atomicFilter = prismContext.queryFor(ShadowType.class);
 				List<ObjectFilter> orFilterClauses = new ArrayList<>();
 				refinedAssociationDefinition.getIntents()
 						.forEach(intent -> orFilterClauses.add(atomicFilter.item(ShadowType.F_INTENT).eq(intent).buildFilter()));
-				OrFilter intentFilter = OrFilter.createOr(orFilterClauses);
+				OrFilter intentFilter = prismContext.queryFactory().createOr(orFilterClauses);
 
 				AndFilter filter = (AndFilter) atomicFilter.item(ShadowType.F_KIND).eq(refinedAssociationDefinition.getKind()).and()
 						.item(ShadowType.F_RESOURCE_REF).ref(resource.getOid(), ResourceType.COMPLEX_TYPE).buildFilter();
 				filter.addCondition(intentFilter);
-				query.setFilter(filter);
+				query.setFilter(filter);        // TODO this overwrites existing filter (created in previous cycle iteration)... is it OK? [med]
 			}
 		} catch (SchemaException ex) {
 			LOGGER.error("Couldn't create query filter for ShadowType for association: {}" , ex.getErrorTypeMessage());
@@ -597,7 +574,7 @@ public final class WebComponentUtil {
     }
 	
 	public static boolean isItemVisible(List<ItemPath> visibleItems, ItemPath itemToBeFound) {
-			return ItemPath.containsSubpathOrEquivalent(visibleItems, itemToBeFound);
+			return ItemPathCollectionsUtil.containsSubpathOrEquivalent(visibleItems, itemToBeFound);
 	
 	}
 
@@ -638,28 +615,20 @@ public final class WebComponentUtil {
 		task.setName(WebComponentUtil.createPolyFromOrigString(taskName));
 
 		PrismObject<TaskType> prismTask = task.asPrismObject();
-		ItemPath path = new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
-		PrismProperty objectQuery = prismTask.findOrCreateProperty(path);
-		QueryType queryType = QueryJaxbConvertor.createQueryType(query, pageBase.getPrismContext());
-		objectQuery.addRealValue(queryType);
-
-		path = new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE);
-		PrismProperty objectType = prismTask.findOrCreateProperty(path);
-		objectType.setRealValue(applicableType);
+		QueryType queryType = pageBase.getQueryConverter().createQueryType(query);
+		prismTask.findOrCreateProperty(SchemaConstants.PATH_MODEL_EXTENSION_OBJECT_QUERY).addRealValue(queryType);
+		prismTask.findOrCreateProperty(SchemaConstants.PATH_MODEL_EXTENSION_OBJECT_TYPE).setRealValue(applicableType);
 
 		if (delta != null) {
-			path = new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA);
-			PrismProperty objectDelta = prismTask.findOrCreateProperty(path);
-			objectDelta.setRealValue(DeltaConvertor.toObjectDeltaType(delta));
+			ObjectDeltaType deltaBean = DeltaConvertor.toObjectDeltaType(delta);
+			prismTask.findOrCreateProperty(SchemaConstants.PATH_MODEL_EXTENSION_OBJECT_DELTA).setRealValue(deltaBean);
 		}
 
 		if (options != null) {
-			prismTask.findOrCreateProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS))
+			prismTask.findOrCreateProperty(SchemaConstants.PATH_MODEL_EXTENSION_EXECUTE_OPTIONS)
 					.setRealValue(options.toModelExecutionOptionsType());
 		}
-
 		return task;
-
 	}
 
 	public static void executeMemberOperation(Task operationalTask, QName type, ObjectQuery memberQuery,
@@ -1084,7 +1053,7 @@ public final class WebComponentUtil {
 			return null;
 		}
 
-		PrismProperty prop = object.findProperty(propertyName);
+		PrismProperty prop = object.findProperty(ItemName.fromQName(propertyName));
 
 		if (prop != null) {
 			Object realValue = prop.getRealValue();
@@ -1362,7 +1331,7 @@ public final class WebComponentUtil {
 			return null;
 		}
 
-		PrismProperty property = object.findProperty(propertyName);
+		PrismProperty property = object.findProperty(ItemName.fromQName(propertyName));
 		if (property == null || property.isEmpty()) {
 			return null;
 		}
@@ -1437,8 +1406,7 @@ public final class WebComponentUtil {
 			return;
 		}
 
-		PropertyDelta propertyDelta = delta.findPropertyDelta(new ItemPath(
-				SchemaConstantsGenerated.C_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE));
+		PropertyDelta propertyDelta = delta.findPropertyDelta(SchemaConstants.PATH_CREDENTIALS_PASSWORD_VALUE);
 		if (propertyDelta == null) {
 			return;
 		}
@@ -1452,8 +1420,7 @@ public final class WebComponentUtil {
 	}
 
 	public static void encryptCredentials(PrismObject object, boolean encrypt, MidPointApplication app) {
-		PrismContainer password = object.findContainer(
-				new ItemPath(SchemaConstantsGenerated.C_CREDENTIALS, CredentialsType.F_PASSWORD));
+		PrismContainer password = object.findContainer(SchemaConstants.PATH_CREDENTIALS_PASSWORD);
 		if (password == null) {
 			return;
 		}
@@ -2157,15 +2124,15 @@ public final class WebComponentUtil {
 	public static List<QName> getMatchingRuleList() {
 		List<QName> list = new ArrayList<>();
 
-		list.add(DefaultMatchingRule.NAME);
-		list.add(StringIgnoreCaseMatchingRule.NAME);
-		list.add(PolyStringStrictMatchingRule.NAME);
-		list.add(PolyStringOrigMatchingRule.NAME);
-		list.add(PolyStringNormMatchingRule.NAME);
-		list.add(DistinguishedNameMatchingRule.NAME);
-		list.add(ExchangeEmailAddressesMatchingRule.NAME);
-		list.add(UuidMatchingRule.NAME);
-		list.add(XmlMatchingRule.NAME);
+		list.add(PrismConstants.DEFAULT_MATCHING_RULE_NAME);
+		list.add(PrismConstants.STRING_IGNORE_CASE_MATCHING_RULE_NAME);
+		list.add(PrismConstants.POLY_STRING_STRICT_MATCHING_RULE_NAME);
+		list.add(PrismConstants.POLY_STRING_ORIG_MATCHING_RULE_NAME);
+		list.add(PrismConstants.POLY_STRING_NORM_MATCHING_RULE_NAME);
+		list.add(PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME);
+		list.add(PrismConstants.EXCHANGE_EMAIL_ADDRESSES_MATCHING_RULE_NAME);
+		list.add(PrismConstants.UUID_MATCHING_RULE_NAME);
+		list.add(PrismConstants.XML_MATCHING_RULE_NAME);
 
 		return list;
 	}
@@ -2253,24 +2220,22 @@ public final class WebComponentUtil {
 		}
 	}
 
-	public static ItemPath joinPath(ItemPath path, ItemPath deltaPath) {
-		List<ItemPathSegment> newPath = new ArrayList<>();
+	// todo specify functionality of this method
+	public static ItemPath joinPath(ItemPath path1, ItemPath path2, PrismContext prismContext) {
+		ItemPath path = ItemPath.emptyIfNull(path1);
+		ItemPath deltaPath = ItemPath.emptyIfNull(path2);
+		List<Object> newPath = new ArrayList<>();
 
-		ItemPathSegment firstDeltaSegment = deltaPath != null ? deltaPath.first() : null;
-		if (path != null) {
-			for (ItemPathSegment seg : path.getSegments()) {
-				if (seg.equivalent(firstDeltaSegment)) {
-					break;
-				}
-				newPath.add(seg);
+		Object firstDeltaSegment = deltaPath.first();
+		for (Object seg : path.getSegments()) {
+			if (ItemPath.segmentsEquivalent(seg, firstDeltaSegment)) {
+				break;
 			}
+			newPath.add(seg);
 		}
-		if (deltaPath != null) {
-			newPath.addAll(deltaPath.getSegments());
-		}
+		newPath.addAll(deltaPath.getSegments());
 
-		return new ItemPath(newPath);
-
+		return ItemPath.create(newPath);
 	}
 
 	public static <T extends ObjectType> T getObjectFromReference(ObjectReferenceType ref, Class<T> type) {
@@ -2611,7 +2576,7 @@ public final class WebComponentUtil {
 		OperationResult result = new OperationResult("Search Members");
 		boolean atLeastOneWithMembers = false;
 		for (AR selectedRole : selectedRoles) {
-			ObjectQuery query = QueryBuilder.queryFor(FocusType.class, pageBase.getPrismContext())
+			ObjectQuery query = pageBase.getPrismContext().queryFor(FocusType.class)
 					.item(FocusType.F_ROLE_MEMBERSHIP_REF)// TODO MID-3581
 							.ref(ObjectTypeUtil.createObjectRef(selectedRole, pageBase.getPrismContext()).asReferenceValue())
 					.maxSize(1)
@@ -2636,8 +2601,11 @@ public final class WebComponentUtil {
 	}
 	
 	public static List<ItemPath> getShadowItemsToShow() {
-		return Arrays.asList(new ItemPath(ShadowType.F_ATTRIBUTES), SchemaConstants.PATH_ACTIVATION,
-				SchemaConstants.PATH_PASSWORD, new ItemPath(ShadowType.F_ASSOCIATION));
+		return Arrays.asList(
+				ShadowType.F_ATTRIBUTES,
+				SchemaConstants.PATH_ACTIVATION,
+				SchemaConstants.PATH_PASSWORD,
+				ShadowType.F_ASSOCIATION);
 	}
 
 	public static ItemVisibility checkShadowActivationAndPasswordVisibility(ItemWrapper itemWrapper,
@@ -2797,11 +2765,11 @@ public final class WebComponentUtil {
 
 	public static ObjectFilter createAssociationShadowRefFilter(RefinedAssociationDefinition refinedAssocationDefinition, PrismContext prismContext,
 																String resourceOid){
-		S_FilterEntryOrEmpty atomicFilter = QueryBuilder.queryFor(ShadowType.class, prismContext);
+		S_FilterEntryOrEmpty atomicFilter = prismContext.queryFor(ShadowType.class);
 		List<ObjectFilter> orFilterClauses = new ArrayList<>();
 		refinedAssocationDefinition.getIntents()
 				.forEach(intent -> orFilterClauses.add(atomicFilter.item(ShadowType.F_INTENT).eq(intent).buildFilter()));
-		OrFilter intentFilter = OrFilter.createOr(orFilterClauses);
+		OrFilter intentFilter = prismContext.queryFactory().createOr(orFilterClauses);
 
 		AndFilter filter = (AndFilter) atomicFilter.item(ShadowType.F_KIND).eq(refinedAssocationDefinition.getKind()).and()
 				.item(ShadowType.F_RESOURCE_REF).ref(resourceOid, ResourceType.COMPLEX_TYPE).buildFilter();
@@ -2915,10 +2883,10 @@ public final class WebComponentUtil {
 				private Map<QName, Object> prepareExtensionValues(Collection<String> oids) throws SchemaException {
 					Map<QName, Object> extensionValues = new HashMap<>();
 					PrismContext prismContext = pageBase.getPrismContext();
-					ObjectQuery objectQuery = QueryBuilder.queryFor(ObjectType.class, prismContext)
+					ObjectQuery objectQuery = prismContext.queryFor(ObjectType.class)
 							.id(oids.toArray(new String[0]))
 							.build();
-					QueryType queryBean = QueryJaxbConvertor.createQueryType(objectQuery, prismContext);
+					QueryType queryBean = pageBase.getQueryConverter().createQueryType(objectQuery);
 					extensionValues.put(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY, queryBean);
 					return extensionValues;
 				}
@@ -3032,22 +3000,24 @@ public final class WebComponentUtil {
 	}
 
 	public static ExpressionType getAssociationExpression(ContainerValueWrapper<AssignmentType> assignmentValueWrapper) {
-		return getAssociationExpression(assignmentValueWrapper, false);
+		return getAssociationExpression(assignmentValueWrapper, false, null);
 	}
 
 	public static ExpressionType getAssociationExpression(ContainerValueWrapper<AssignmentType> assignmentValueWrapper,
-														  boolean createIfNotExist){
+			boolean createIfNotExist, PrismContext prismContext) {
 		if (assignmentValueWrapper == null){
 			return null;
 		}
-
+		if (createIfNotExist && prismContext != null) {
+			throw new IllegalArgumentException("createIfNotExist is set but prismContext is null");
+		}
 		ContainerWrapper<ConstructionType> construction = assignmentValueWrapper
-				.findContainerWrapper(new ItemPath(assignmentValueWrapper.getPath(), AssignmentType.F_CONSTRUCTION));
+				.findContainerWrapper(ItemPath.create(assignmentValueWrapper.getPath(), AssignmentType.F_CONSTRUCTION));
 		if (construction == null){
 			return null;
 		}
 		ContainerWrapper<ResourceObjectAssociationType> association = construction
-				.findContainerWrapper(new ItemPath(construction.getPath(), ConstructionType.F_ASSOCIATION));
+				.findContainerWrapper(ItemPath.create(construction.getPath(), ConstructionType.F_ASSOCIATION));
 		if (association == null || association.getValues() == null || association.getValues().size() == 0){
 			return null;
 		}
@@ -3057,7 +3027,7 @@ public final class WebComponentUtil {
 		}
 		ContainerValueWrapper<ResourceObjectAssociationType> associationValueWrapper = association.getValues().get(0);
 		ContainerWrapper<MappingType> outbound =
-				associationValueWrapper.findContainerWrapper(new ItemPath(associationValueWrapper.getPath(), ResourceObjectAssociationType.F_OUTBOUND));
+				associationValueWrapper.findContainerWrapper(ItemPath.create(associationValueWrapper.getPath(), ResourceObjectAssociationType.F_OUTBOUND));
 
 		if (outbound == null){
 			return null;
@@ -3073,8 +3043,8 @@ public final class WebComponentUtil {
 		ExpressionType expression = expressionValues.get(0).getValue().getRealValue();
 		if (expression == null && createIfNotExist){
 			expression = new ExpressionType();
-			PrismPropertyValue<ExpressionType> exp = new PrismPropertyValue<>(expression);
-			ValueWrapper<ExpressionType> val = new ValueWrapper<>(expressionWrapper, exp);
+			PrismPropertyValue<ExpressionType> exp = prismContext.itemFactory().createPropertyValue(expression);
+			ValueWrapper<ExpressionType> val = new ValueWrapper<>(expressionWrapper, exp, prismContext);
 			expressionValues.remove(0);
 			expressionValues.add(0, val);
 		}

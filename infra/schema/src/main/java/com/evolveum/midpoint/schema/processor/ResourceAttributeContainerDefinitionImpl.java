@@ -23,7 +23,10 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.impl.PrismContainerDefinitionImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.util.DefinitionUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -291,8 +294,8 @@ public class ResourceAttributeContainerDefinitionImpl extends PrismContainerDefi
 	@NotNull
 	@Override
 	public ResourceAttributeContainer instantiate(QName name) {
-        name = addNamespaceIfApplicable(name);
-		return new ResourceAttributeContainer(name, this, prismContext);
+        name = DefinitionUtil.addNamespaceIfApplicable(name, this.name);
+		return new ResourceAttributeContainerImpl(name, this, prismContext);
 	}
 
 	@NotNull
@@ -309,23 +312,23 @@ public class ResourceAttributeContainerDefinitionImpl extends PrismContainerDefi
 	}
 
 	@Override
-	public ResourceAttributeDefinition findAttributeDefinition(QName elementQName) {
-		return findAttributeDefinition(elementQName, false);
-	}
-
-	@Override
 	public ResourceAttributeDefinition findAttributeDefinition(QName elementQName, boolean caseInsensitive) {
-		return findItemDefinition(elementQName, ResourceAttributeDefinition.class, caseInsensitive);
+		return findLocalItemDefinition(ItemName.fromQName(elementQName), ResourceAttributeDefinition.class, caseInsensitive);
 	}
 
 	@Override
 	public ResourceAttributeDefinition findAttributeDefinition(ItemPath elementPath) {
-		return findItemDefinition(elementPath, ResourceAttributeDefinition.class);
+		if (elementPath.isSingleName()) {
+			// this is a bit of hack
+			return findLocalItemDefinition(elementPath.asSingleNameOrFail(), ResourceAttributeDefinition.class, false);
+		} else {
+			return findItemDefinition(elementPath, ResourceAttributeDefinition.class);
+		}
 	}
 
 	@Override
 	public ResourceAttributeDefinition findAttributeDefinition(String elementLocalname) {
-		QName elementQName = new QName(getName().getNamespaceURI(),elementLocalname);
+		ItemName elementQName = new ItemName(getName().getNamespaceURI(),elementLocalname);
 		return findAttributeDefinition(elementQName);
 	}
 

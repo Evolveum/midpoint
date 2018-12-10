@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.testing.conntest.ad;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_CREDENTIALS_PASSWORD_VALUE;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
@@ -30,6 +31,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.directory.api.ldap.model.cursor.CursorException;
 import org.apache.directory.api.ldap.model.entry.DefaultEntry;
 import org.apache.directory.api.ldap.model.entry.Entry;
@@ -47,7 +49,6 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -76,11 +77,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -480,7 +479,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getGroupObjectClass(), prismContext);
-		ObjectQueryUtil.filterAnd(query.getFilter(), createAttributeFilter("cn", GROUP_PIRATES_NAME));
+		ObjectQueryUtil.filterAnd(query.getFilter(), createAttributeFilter("cn", GROUP_PIRATES_NAME), prismContext);
 
 		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
 		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
@@ -602,7 +601,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
 
-        ObjectPaging paging = ObjectPaging.createEmptyPaging();
+        ObjectPaging paging = prismContext.queryFactory().createPaging();
         paging.setMaxSize(2);
 		query.setPaging(paging);
 
@@ -845,11 +844,12 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-        ObjectDelta<ShadowType> delta = ObjectDelta.createEmptyModifyDelta(ShadowType.class, accountBarbossaOid, prismContext);
+        ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
+		        .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, "title");
         ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
-        PropertyDelta<String> attrDelta = PropertyDelta.createModificationReplaceProperty(
-        		new ItemPath(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "Captain");
+        PropertyDelta<String> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
+		       ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "Captain");
         delta.addModification(attrDelta);
 
         // WHEN
@@ -881,12 +881,13 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-        ObjectDelta<ShadowType> delta = ObjectDelta.createEmptyModifyDelta(ShadowType.class, accountBarbossaOid, prismContext);
+        ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
+		        .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, "showInAdvancedViewOnly");
         ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
-        PropertyDelta<Boolean> attrDelta = PropertyDelta.createModificationReplaceProperty(
-        		new ItemPath(ShadowType.F_ATTRIBUTES, attrQName), attrDef, Boolean.TRUE);
-        delta.addModification(attrDelta);
+        PropertyDelta<Boolean> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
+		        ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, Boolean.TRUE);
+		delta.addModification(attrDelta);
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -921,17 +922,17 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
 
-        ObjectDelta<ShadowType> delta = ObjectDelta.createEmptyModifyDelta(ShadowType.class, accountBarbossaOid, prismContext);
+        ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
+		        .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, "showInAdvancedViewOnly");
         ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
-        PropertyDelta<Boolean> attrDelta = PropertyDelta.createModificationReplaceProperty(
-        		new ItemPath(ShadowType.F_ATTRIBUTES, attrQName), attrDef, Boolean.TRUE);
+        PropertyDelta<Boolean> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
+		        ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, Boolean.TRUE);
         delta.addModification(attrDelta);
 
         // WHEN
         displayWhen(TEST_NAME);
-        modifyUserReplace(USER_BARBOSSA_OID,
-        		new ItemPath(UserType.F_EXTENSION,  EXTENSION_SHOW_IN_ADVANCED_VIEW_ONLY_QNAME),
+        modifyUserReplace(USER_BARBOSSA_OID, ItemPath.create(UserType.F_EXTENSION, EXTENSION_SHOW_IN_ADVANCED_VIEW_ONLY_QNAME),
         		task, result, Boolean.FALSE);
 
         // THEN
@@ -1303,9 +1304,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         // WHEN
         displayWhen(TEST_NAME);
-        modifyUserReplace(USER_GUYBRUSH_OID,
-        		new ItemPath(UserType.F_CREDENTIALS,  CredentialsType.F_PASSWORD, PasswordType.F_VALUE),
-        		task, result, userPasswordPs);
+        modifyUserReplace(USER_GUYBRUSH_OID, PATH_CREDENTIALS_PASSWORD_VALUE, task, result, userPasswordPs);
 
         // THEN
         displayThen(TEST_NAME);
@@ -1768,9 +1767,8 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         // WHEN
         displayWhen(TEST_NAME);
         modifyObjectReplaceProperty(ShadowType.class, groupMeleeIslandPiratesOid,
-        		new ItemPath(ShadowType.F_ATTRIBUTES, new QName(MidPointConstants.NS_RI, "description")),
-        		task, result,
-        		GROUP_MELEE_ISLAND_PIRATES_DESCRIPTION);
+		        ItemPath.create(ShadowType.F_ATTRIBUTES, new QName(MidPointConstants.NS_RI, "description")),
+        		task, result, GROUP_MELEE_ISLAND_PIRATES_DESCRIPTION);
 
         // THEN
         displayThen(TEST_NAME);
@@ -1970,9 +1968,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         // WHEN
         displayWhen(TEST_NAME);
-        modifyUserReplace(USER_SUBMAN_OID,
-        		new ItemPath(UserType.F_CREDENTIALS,  CredentialsType.F_PASSWORD, PasswordType.F_VALUE),
-        		task, result, userPasswordPs);
+        modifyUserReplace(USER_SUBMAN_OID, PATH_CREDENTIALS_PASSWORD_VALUE, task, result, userPasswordPs);
 
         // THEN
         displayThen(TEST_NAME);
@@ -2348,7 +2344,8 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
 	protected ObjectQuery createSamAccountNameQuery(String samAccountName) throws SchemaException {
 		ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
-		ObjectQueryUtil.filterAnd(query.getFilter(), createAttributeFilter(ATTRIBUTE_SAM_ACCOUNT_NAME_NAME, samAccountName));
+		ObjectQueryUtil.filterAnd(query.getFilter(), createAttributeFilter(ATTRIBUTE_SAM_ACCOUNT_NAME_NAME, samAccountName),
+				prismContext);
 		return query;
 	}
 

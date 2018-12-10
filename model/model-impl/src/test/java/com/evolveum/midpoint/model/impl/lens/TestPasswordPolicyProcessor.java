@@ -15,12 +15,14 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_CREDENTIALS_PASSWORD_VALUE;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 import java.util.List;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -29,7 +31,6 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -289,9 +290,7 @@ public class TestPasswordPolicyProcessor extends AbstractLensTest {
 		ProtectedStringType newValue = new ProtectedStringType();
 		newValue.setClearValue("n0Hist0ryEntr7");
 
-		modifyObjectReplaceProperty(UserType.class, USER_JACK_OID,
-				new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE), task,
-				result, newValue);
+		modifyObjectReplaceProperty(UserType.class, USER_JACK_OID, PATH_CREDENTIALS_PASSWORD_VALUE, task, result, newValue);
 
 		// THEN
 		PrismObject<UserType> userJack = getObject(UserType.class, USER_JACK_OID);
@@ -325,9 +324,7 @@ public class TestPasswordPolicyProcessor extends AbstractLensTest {
 
 //		ObjectReferenceType passwordPolicyRef = ObjectTypeUtil.createObjectRef(passwordPolicyOid,
 //				ObjectTypes.PASSWORD_POLICY);
-		modifyObjectReplaceProperty(SecurityPolicyType.class, SECURITY_POLICY_OID,
-				new ItemPath(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_HISTORY_LENGTH),
-        		task, result, historyLength);
+		modifyObjectReplaceProperty(SecurityPolicyType.class, SECURITY_POLICY_OID, SchemaConstants.PATH_CREDENTIALS_PASSWORD_HISTORY_LENGTH, task, result, historyLength);
 	}
 
 }

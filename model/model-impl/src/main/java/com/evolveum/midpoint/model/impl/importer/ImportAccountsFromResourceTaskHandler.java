@@ -112,8 +112,8 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
     @PostConstruct
     private void initialize() {
         // this call must not be in the constructor, because prismContext is not yet initialized at that moment
-        objectclassPropertyDefinition = new PrismPropertyDefinitionImpl<>(ModelConstants.OBJECTCLASS_PROPERTY_NAME,
-                DOMUtil.XSD_QNAME, prismContext);
+        objectclassPropertyDefinition = prismContext.definitionFactory().createPropertyDefinition(ModelConstants.OBJECTCLASS_PROPERTY_NAME,
+                DOMUtil.XSD_QNAME);
 
         taskManager.registerHandler(HANDLER_URI, this);
     }

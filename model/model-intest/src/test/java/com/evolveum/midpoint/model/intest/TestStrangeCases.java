@@ -18,14 +18,11 @@ package com.evolveum.midpoint.model.intest;
 import com.evolveum.icf.dummy.resource.BreakMode;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -245,10 +242,12 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         account.removeContainer(ShadowType.F_ATTRIBUTES);
         display("New account", account);
 
-        ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_GUYBRUSH_OID, prismContext);
-        PrismReferenceValue accountRefVal = new PrismReferenceValue();
+        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
+		        .createEmptyModifyDelta(UserType.class, USER_GUYBRUSH_OID);
+        PrismReferenceValue accountRefVal = itemFactory().createReferenceValue();
 		accountRefVal.setObject(account);
-		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
+		ReferenceDelta accountDelta = prismContext.deltaFactory().reference()
+				.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountDelta);
 		
 		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
@@ -352,8 +351,8 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		// Add to repo to avoid processing of the assignment
 		String userOtisOid = repositoryService.addObject(userOtis, null, result);
 
-        ObjectDelta<UserType> userDelta = ObjectDelta.createModificationDeleteContainer(UserType.class,
-        		userOtisOid, UserType.F_ASSIGNMENT, prismContext, assignmentType.asPrismContainerValue().clone());
+        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createModificationDeleteContainer(UserType.class,
+        		userOtisOid, UserType.F_ASSIGNMENT, assignmentType.asPrismContainerValue().clone());
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
 		// WHEN
@@ -401,7 +400,8 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		// Add to repo to avoid processing of the assignment
 		String userNavigatorOid = repositoryService.addObject(userNavigator, null, result);
 
-        ObjectDelta<UserType> userDelta = ObjectDelta.createDeleteDelta(UserType.class, userNavigatorOid, prismContext);
+        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createDeleteDelta(UserType.class, userNavigatorOid
+        );
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
 		// WHEN
@@ -756,7 +756,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
 
         PrismObject<UserType> user = PrismTestUtil.parseObject(USER_DEGHOULASH_FILE);
-        ObjectDelta<UserType> userAddDelta = ObjectDelta.createAddDelta(user);
+        ObjectDelta<UserType> userAddDelta = DeltaFactory.Object.createAddDelta(user);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userAddDelta);
 
 		// WHEN
@@ -839,14 +839,14 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         // Simple query
-        ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+        ObjectQuery query = prismContext.queryFor(UserType.class)
                 .item(UserType.F_EXTENSION, propName).eq(propValue)
                 .build();
 		// WHEN, THEN
 		searchDeGhoulash(testName, query, task, result);
 
 		// Complex query, combine with a name. This results in join down in the database
-        query = QueryBuilder.queryFor(UserType.class, prismContext)
+        query = prismContext.queryFor(UserType.class)
                 .item(UserType.F_NAME).eq(USER_DEGHOULASH_NAME)
                 .and().item(UserType.F_EXTENSION, propName).eq(propValue)
                 .build();
@@ -1264,7 +1264,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         displayTestTitle(TEST_NAME);
 
         PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-        PrismPropertyDefinition<String> markDef = userDef.findPropertyDefinition(new ItemPath(UserType.F_EXTENSION, PIRACY_MARK));
+        PrismPropertyDefinition<String> markDef = userDef.findPropertyDefinition(ItemPath.create(UserType.F_EXTENSION, PIRACY_MARK));
 
         // WHEN
         TestUtil.assertSetEquals("Wrong allowedValues in mark", MiscUtil.getValuesFromDisplayableValues(markDef.getAllowedValues()),
@@ -1285,14 +1285,14 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         // GIVEN
 
         PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-        PrismPropertyDefinition<String> markDef = userDef.findPropertyDefinition(new ItemPath(UserType.F_EXTENSION, PIRACY_MARK));
+        PrismPropertyDefinition<String> markDef = userDef.findPropertyDefinition(ItemPath.create(UserType.F_EXTENSION, PIRACY_MARK));
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
         // WHEN
-        modifyObjectReplaceProperty(UserType.class, USER_GUYBRUSH_OID, new ItemPath(UserType.F_EXTENSION, PIRACY_MARK),
+        modifyObjectReplaceProperty(UserType.class, USER_GUYBRUSH_OID, ItemPath.create(UserType.F_EXTENSION, PIRACY_MARK),
         		task, result, "bravery");
 
         // THEN
@@ -1300,7 +1300,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         assertSuccess(result);
 
         PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
-        PrismProperty<String> markProp = user.findProperty(new ItemPath(UserType.F_EXTENSION, PIRACY_MARK));
+        PrismProperty<String> markProp = user.findProperty(ItemPath.create(UserType.F_EXTENSION, PIRACY_MARK));
         assertEquals("Bad mark", "bravery", markProp.getRealValue());
     }
 
@@ -1314,7 +1314,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         displayTestTitle(TEST_NAME);
 
         PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-        PrismPropertyDefinition<String> markDef = userDef.findPropertyDefinition(new ItemPath(UserType.F_EXTENSION, PIRACY_MARK));
+        PrismPropertyDefinition<String> markDef = userDef.findPropertyDefinition(ItemPath.create(UserType.F_EXTENSION, PIRACY_MARK));
         Iterator<? extends DisplayableValue<String>> iterator = markDef.getAllowedValues().iterator();
 		DisplayableValue<String> braveryValue = null;
         while (iterator.hasNext()) {
@@ -1337,7 +1337,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         displayThen(TEST_NAME);
         assertSuccess(result);
 
-        PrismProperty<String> markProp = user.findProperty(new ItemPath(UserType.F_EXTENSION, PIRACY_MARK));
+        PrismProperty<String> markProp = user.findProperty(ItemPath.create(UserType.F_EXTENSION, PIRACY_MARK));
         assertEquals("Bad mark", null, markProp.getRealValue());
 
 		((Collection) markDef.getAllowedValues()).add(braveryValue);		// because of the following test
@@ -1358,7 +1358,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
-        modifyObjectReplaceProperty(UserType.class, USER_GUYBRUSH_OID, new ItemPath(UserType.F_EXTENSION, PIRACY_SHIP),
+        modifyObjectReplaceProperty(UserType.class, USER_GUYBRUSH_OID, ItemPath.create(UserType.F_EXTENSION, PIRACY_SHIP),
         		task, result, "The Pink Lady");
         assertSuccess(result);
 
@@ -1380,7 +1380,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		for (ItemDefinition itemDefinition : extensionDefs) {
 			if (itemDefinition.getName().equals(piracyShip)) {
 				//iterator.remove();	// not possible as the collection is unmodifiable
-				((ItemDefinitionImpl) itemDefinition).setName(piracyShipBroken);
+				itemDefinition.toMutable().setName(piracyShipBroken);
 			}
 		}
 	}
@@ -1550,7 +1550,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	private <O extends ObjectType, T> void assertExtension(PrismObject<O> object, QName propName, T... expectedValues) {
 		PrismContainer<Containerable> extensionContainer = object.findContainer(ObjectType.F_EXTENSION);
 		assertNotNull("No extension container in "+object, extensionContainer);
-		PrismProperty<T> extensionProperty = extensionContainer.findProperty(propName);
+		PrismProperty<T> extensionProperty = extensionContainer.findProperty(ItemName.fromQName(propName));
 		assertNotNull("No extension property "+propName+" in "+object, extensionProperty);
 		PrismAsserts.assertPropertyValues("Values of extension property "+propName, extensionProperty.getValues(), expectedValues);
 	}
@@ -1561,8 +1561,8 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	private void addBrokenAccountRef(String userOid) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		OperationResult result = new OperationResult(TestStrangeCases.class.getName() + ".addBrokenAccountRef");
 
-		Collection<? extends ItemDelta> modifications = ReferenceDelta.createModificationAddCollection(UserType.class,
-				UserType.F_LINK_REF, prismContext, NON_EXISTENT_ACCOUNT_OID);
+		Collection<? extends ItemDelta> modifications = prismContext.deltaFactory().reference().createModificationAddCollection(UserType.class,
+				UserType.F_LINK_REF, NON_EXISTENT_ACCOUNT_OID);
 		repositoryService.modifyObject(UserType.class, userOid, modifications , result);
 
 		assertSuccess(result);

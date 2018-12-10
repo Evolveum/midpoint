@@ -89,7 +89,8 @@ public class DeleteExecutor extends BaseActionExecutor {
     }
 
     private ObjectDelta<? extends ObjectType> createDeleteDelta(ObjectType objectType) {
-        return ObjectDelta.createDeleteDelta(objectType.getClass(), objectType.getOid(), prismContext);
+        return prismContext.deltaFactory().object().createDeleteDelta(objectType.getClass(), objectType.getOid()
+        );
     }
 
 }

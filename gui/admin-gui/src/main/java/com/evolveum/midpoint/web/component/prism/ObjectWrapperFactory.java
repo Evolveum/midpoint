@@ -28,7 +28,6 @@ import org.apache.commons.lang.Validate;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -37,7 +36,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -233,11 +231,7 @@ public class ObjectWrapperFactory {
 
 		PrismContainerDefinition<C> parentContainerDefinition = parentContainer.getDefinition();
 
-		List<ItemPathSegment> segments = new ArrayList<>();
-		if (path != null) {
-			segments.addAll(path.getSegments());
-		}
-		ItemPath parentPath = new ItemPath(segments);
+		ItemPath parentPath = ItemPath.emptyIfNull(path);
 		for (ItemDefinition def : (Collection<ItemDefinition>) parentContainerDefinition.getDefinitions()) {
 			if (!(def instanceof PrismContainerDefinition)) {
 				continue;

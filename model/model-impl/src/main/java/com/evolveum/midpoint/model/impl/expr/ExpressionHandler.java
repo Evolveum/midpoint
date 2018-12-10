@@ -22,7 +22,6 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -76,8 +75,8 @@ public class ExpressionHandler {
 
 		ExpressionVariables variables = getDefaultXPathVariables(null, shadow, resource);
 
-		PrismPropertyDefinition<String> outputDefinition = new PrismPropertyDefinitionImpl<>(ExpressionConstants.OUTPUT_ELEMENT_NAME,
-				DOMUtil.XSD_STRING, prismContext);
+		PrismPropertyDefinition<String> outputDefinition = prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME,
+				DOMUtil.XSD_STRING);
 		Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(expressionType,
 				outputDefinition, shortDesc, task, result);
 
@@ -108,8 +107,8 @@ public class ExpressionHandler {
 		ExpressionVariables variables = getDefaultXPathVariables(user, shadow, resource);
 		String shortDesc = "confirmation expression for "+resource.asPrismObject();
 
-		PrismPropertyDefinition<Boolean> outputDefinition = new PrismPropertyDefinitionImpl<>(ExpressionConstants.OUTPUT_ELEMENT_NAME,
-				DOMUtil.XSD_BOOLEAN, prismContext);
+		PrismPropertyDefinition<Boolean> outputDefinition = prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME,
+				DOMUtil.XSD_BOOLEAN);
 		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType,
 				outputDefinition, shortDesc, task, result);
 

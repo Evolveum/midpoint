@@ -18,9 +18,9 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ItemFactory;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -28,8 +28,10 @@ import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
 import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.SchemaHelper;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -72,6 +74,7 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
 	@Autowired protected BaseHelper baseHelper;
     @Autowired protected AuditService auditService;
     @Autowired protected PrismContext prismContext;
+    @Autowired protected SchemaHelper schemaHelper;
     @Autowired protected RelationRegistry relationRegistry;
     @Autowired protected SessionFactory factory;
     @Autowired protected ExtItemDictionary extItemDictionary;
@@ -200,10 +203,18 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
 	}
 	
 	protected <C extends Containerable> S_ItemEntry deltaFor(Class<C> objectClass) throws SchemaException {
-		return DeltaBuilder.deltaFor(objectClass, prismContext);
+		return prismContext.deltaFor(objectClass);
 	}
 
 	protected SqlRepositoryConfiguration getRepositoryConfiguration() {
 		return ((SqlRepositoryServiceImpl) repositoryService).getConfiguration();
+	}
+
+	protected GetOperationOptionsBuilder getOperationOptionsBuilder() {
+    	return schemaHelper.getOperationOptionsBuilder();
+	}
+
+	protected ItemFactory itemFactory() {
+    	return prismContext.itemFactory();
 	}
 }

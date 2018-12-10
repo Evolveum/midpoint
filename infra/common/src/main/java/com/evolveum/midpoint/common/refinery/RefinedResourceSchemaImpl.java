@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
+import com.evolveum.midpoint.schema.processor.MutableResourceSchema;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaImpl;
@@ -602,5 +603,8 @@ public class RefinedResourceSchemaImpl implements RefinedResourceSchema {
 		}
 	}
 
-
+	@Override
+	public MutableResourceSchema toMutable() {
+		throw new UnsupportedOperationException();
+	}
 }

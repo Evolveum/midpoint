@@ -24,12 +24,12 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.query.QueryFactory;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
-import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.session.MemberPanelStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections.CollectionUtils;
@@ -57,12 +57,8 @@ import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -87,7 +83,6 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePa
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.security.GuiAuthorizationConstants;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
-import com.evolveum.midpoint.web.util.StringResourceChoiceRenderer;
 
 import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.isAuthorized;
 
@@ -192,7 +187,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 		memberContainer.setOutputMarkupPlaceholderTag(true);
 		form.add(memberContainer);
 
-		PageBase pageBase =  getPageBase();
+		PageBase pageBase = getPageBase();
 		MainObjectListPanel<ObjectType> childrenListPanel = new MainObjectListPanel<ObjectType>(
 				ID_MEMBER_TABLE, ObjectType.class, getTableId(getComplexTypeQName()), getSearchOptions(), pageBase) {
 
@@ -267,11 +262,12 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                     filters.add(members.getFilter());
                 }
 
-                if (filters.size() == 1) {
-                    return ObjectQuery.createObjectQuery(filters.iterator().next());
-                }
-
-                return ObjectQuery.createObjectQuery(AndFilter.createAnd(filters));
+	            QueryFactory queryFactory = pageBase.getPrismContext().queryFactory();
+	            if (filters.size() == 1) {
+                    return queryFactory.createQuery(filters.iterator().next());
+                } else {
+		            return queryFactory.createQuery(queryFactory.createAnd(filters));
+	            }
             }
 
             @Override
@@ -554,7 +550,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 			case ALL_DIRECT:
 				return MemberOperationsHelper.createDirectMemberQuery(getModelObject(), getSearchType().getTypeQName(), relations, getParameter(ID_TENANT), getParameter(ID_PROJECT), getPrismContext());
 			case SELECTED:
-				return MemberOperationsHelper.createSelectedObjectsQuery(getMemberTable().getSelectedObjects());
+				return MemberOperationsHelper.createSelectedObjectsQuery(getMemberTable().getSelectedObjects(), getPrismContext());
 		}
 
 		return null;
@@ -639,13 +635,12 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
 			@Override
 			protected ObjectQuery getChooseQuery() {
-				ObjectFilter tenantFilter = QueryBuilder.queryFor(OrgType.class, getPrismContext()).item(OrgType.F_TENANT).eq(true).buildFilter();
-
+				S_FilterEntryOrEmpty q = getPrismContext().queryFor(OrgType.class);
 				if (isTenant) {
-					return ObjectQuery.createObjectQuery(tenantFilter);
+					return q.item(OrgType.F_TENANT).eq(true).build();
+				} else {
+					return q.not().item(OrgType.F_TENANT).eq(true).build();
 				}
-				return ObjectQuery.createObjectQuery(NotFilter.createNot(tenantFilter));
-
 			}
 
 			@Override
@@ -764,7 +759,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
 
 	protected ObjectQuery createAllMemberQuery(Collection<QName> relations) {
-		return QueryBuilder.queryFor(FocusType.class, getPrismContext())
+		return getPrismContext().queryFor(FocusType.class)
 				.item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(MemberOperationsHelper.createReferenceValuesList(getModelObject(), relations))
 				.build();
 	}
@@ -926,10 +921,6 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 			}
 		}
 		return relation;
-	}
-
-	protected PrismContext getPrismContext() {
-		return getPageBase().getPrismContext();
 	}
 
 	protected void updateMembersPanelSessionStorage(){

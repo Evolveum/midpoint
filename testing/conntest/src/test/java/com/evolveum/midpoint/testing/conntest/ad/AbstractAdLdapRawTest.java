@@ -15,17 +15,16 @@
  */
 package com.evolveum.midpoint.testing.conntest.ad;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.testing.conntest.ad.AdUtils.*;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -54,11 +53,11 @@ public abstract class AbstractAdLdapRawTest extends AbstractAdLdapTest {
 
 
 	protected void assertAccountDisabled(PrismObject<ShadowType> shadow) {
-		PrismAsserts.assertPropertyValue(shadow, new ItemPath(ShadowType.F_ATTRIBUTES, ATTRIBUTE_USER_ACCOUNT_CONTROL_QNAME), 514);
+		PrismAsserts.assertPropertyValue(shadow, ItemPath.create(ShadowType.F_ATTRIBUTES, ATTRIBUTE_USER_ACCOUNT_CONTROL_QNAME), 514);
 	}
 
 	protected void assertAccountEnabled(PrismObject<ShadowType> shadow) {
-		PrismAsserts.assertPropertyValue(shadow, new ItemPath(ShadowType.F_ATTRIBUTES, ATTRIBUTE_USER_ACCOUNT_CONTROL_QNAME), 512);
+		PrismAsserts.assertPropertyValue(shadow, ItemPath.create(ShadowType.F_ATTRIBUTES, ATTRIBUTE_USER_ACCOUNT_CONTROL_QNAME), 512);
 	}
 
 }

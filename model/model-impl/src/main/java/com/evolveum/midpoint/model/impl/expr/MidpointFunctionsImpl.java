@@ -43,13 +43,10 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.marshaller.ItemPathHolder;
-import com.evolveum.midpoint.prism.match.DefaultMatchingRule;
-import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
+import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
@@ -96,6 +93,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_CREDENTIALS_PASSWORD;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_CREDENTIALS_PASSWORD_VALUE;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType.RUNNABLE;
 import static java.util.Collections.emptySet;
@@ -218,8 +217,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			return;
 		}
 
-		if (itemDelta.getPath()
-				.equivalent(new ItemPath(ShadowType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE))) {
+		if (itemDelta.getPath().equivalent(PATH_CREDENTIALS_PASSWORD_VALUE)) {
 			LOGGER.trace("Found password value add/modify delta");
 			Collection<PrismPropertyValue<ProtectedStringType>> values = itemDelta.isAdd() ?
 					itemDelta.getValuesToAdd() :
@@ -227,7 +225,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			for (PrismPropertyValue<ProtectedStringType> value : values) {
 				passwords.add(value.getValue());
 			}
-		} else if (itemDelta.getPath().equivalent(new ItemPath(ShadowType.F_CREDENTIALS, CredentialsType.F_PASSWORD))) {
+		} else if (itemDelta.getPath().equivalent(PATH_CREDENTIALS_PASSWORD)) {
 			LOGGER.trace("Found password add/modify delta");
 			Collection<PrismContainerValue<PasswordType>> values = itemDelta.isAdd() ?
 					itemDelta.getValuesToAdd() :
@@ -237,7 +235,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 					passwords.add(value.asContainerable().getValue());
 				}
 			}
-		} else if (itemDelta.getPath().equivalent(new ItemPath(ShadowType.F_CREDENTIALS))) {
+		} else if (itemDelta.getPath().equivalent(ShadowType.F_CREDENTIALS)) {
 			LOGGER.trace("Found credentials add/modify delta");
 			Collection<PrismContainerValue<CredentialsType>> values = itemDelta.isAdd() ?
 					itemDelta.getValuesToAdd() :
@@ -607,7 +605,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType);
 		RefinedObjectClassDefinition rAccountDef = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
 		RefinedAttributeDefinition attrDef = rAccountDef.findAttributeDefinition(attributeName);
-		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(ShadowType.class)
 				.itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getName()).eq(attributeValue)
 				.and().item(ShadowType.F_OBJECT_CLASS).eq(rAccountDef.getObjectClassDefinition().getTypeName())
 				.and().item(ShadowType.F_RESOURCE_REF).ref(resourceType.getOid())
@@ -620,7 +618,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			SecurityViolationException, ExpressionEvaluationException {
 		Validate.notEmpty(propertyPathString, "Empty property path");
 		OperationResult result = getCurrentResult(MidpointFunctions.class.getName() + ".isUniquePropertyValue");
-		ItemPath propertyPath = new ItemPathHolder(propertyPathString).toItemPath();
+		ItemPath propertyPath = prismContext.itemPathParser().asItemPath(propertyPathString);
 		return isUniquePropertyValue(objectType, propertyPath, propertyValue, getCurrentTask(), result);
 	}
 
@@ -638,7 +636,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException {
 		return getObjectsInConflictOnPropertyValue(objectType, propertyPathString, propertyValue,
-				DefaultMatchingRule.NAME.getLocalPart(), getAllConflicting);
+				PrismConstants.DEFAULT_MATCHING_RULE_NAME.getLocalPart(), getAllConflicting);
 	}
 
 	public <O extends ObjectType, T> List<O> getObjectsInConflictOnPropertyValue(O objectType, String propertyPathString,
@@ -647,7 +645,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			SecurityViolationException, ExpressionEvaluationException {
 		Validate.notEmpty(propertyPathString, "Empty property path");
 		OperationResult result = getCurrentResult(MidpointFunctions.class.getName() + ".getObjectsInConflictOnPropertyValue");
-		ItemPath propertyPath = new ItemPathHolder(propertyPathString).toItemPath();
+		ItemPath propertyPath = prismContext.itemPathParser().asItemPath(propertyPathString);
 		QName matchingRuleQName = new QName(matchingRuleName);      // no namespace for now
 		return getObjectsInConflictOnPropertyValue(objectType, propertyPath, propertyValue, matchingRuleQName, getAllConflicting,
 				getCurrentTask(), result);
@@ -664,12 +662,12 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 				.findPropertyDefinition(propertyPath);
 		if (matchingRule == null) {
 			if (propertyDefinition != null && PolyStringType.COMPLEX_TYPE.equals(propertyDefinition.getTypeName())) {
-				matchingRule = PolyStringOrigMatchingRule.NAME;
+				matchingRule = PrismConstants.POLY_STRING_ORIG_MATCHING_RULE_NAME;
 			} else {
-				matchingRule = DefaultMatchingRule.NAME;
+				matchingRule = PrismConstants.DEFAULT_MATCHING_RULE_NAME;
 			}
 		}
-		ObjectQuery query = QueryBuilder.queryFor(objectType.getClass(), prismContext)
+		ObjectQuery query = prismContext.queryFor(objectType.getClass())
 				.item(propertyPath, propertyDefinition).eq(propertyValue).matching(matchingRule)
 				.build();
 		if (LOGGER.isTraceEnabled()) {
@@ -722,7 +720,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType);
 		RefinedObjectClassDefinition rAccountDef = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
 		RefinedAttributeDefinition attrDef = rAccountDef.findAttributeDefinition(attributeName);
-		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(ShadowType.class)
 				.itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getName()).eq(attributeValue)
 				.and().item(ShadowType.F_OBJECT_CLASS).eq(rAccountDef.getObjectClassDefinition().getTypeName())
 				.and().item(ShadowType.F_RESOURCE_REF).ref(resourceType.getOid())
@@ -962,7 +960,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			ExpressionEvaluationException, CommunicationException,
 			ConfigurationException, PolicyViolationException,
 			SecurityViolationException {
-		ObjectDelta<T> delta = ObjectDelta.createAddDelta(newObject);
+		ObjectDelta<T> delta = DeltaFactory.Object.createAddDelta(newObject);
 		Collection<ObjectDelta<? extends ObjectType>> deltaCollection = MiscSchemaUtil.createCollection(delta);
 		modelService.executeChanges(deltaCollection, options, getCurrentTask(), getCurrentResult());
 		return delta.getOid();
@@ -1024,7 +1022,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			ExpressionEvaluationException, CommunicationException,
 			ConfigurationException, PolicyViolationException,
 			SecurityViolationException {
-		ObjectDelta<T> deleteDelta = ObjectDelta.createDeleteDelta(type, oid, prismContext);
+		ObjectDelta<T> deleteDelta = prismContext.deltaFactory().object().createDeleteDelta(type, oid);
 		Collection<ObjectDelta<? extends ObjectType>> deltaCollection = MiscSchemaUtil.createCollection(deleteDelta);
 		modelService.executeChanges(deltaCollection, options, getCurrentTask(), getCurrentResult());
 	}
@@ -1035,7 +1033,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			SchemaException, ExpressionEvaluationException,
 			CommunicationException, ConfigurationException,
 			PolicyViolationException, SecurityViolationException {
-		ObjectDelta<T> deleteDelta = ObjectDelta.createDeleteDelta(type, oid, prismContext);
+		ObjectDelta<T> deleteDelta = prismContext.deltaFactory().object().createDeleteDelta(type, oid);
 		Collection<ObjectDelta<? extends ObjectType>> deltaCollection = MiscSchemaUtil.createCollection(deleteDelta);
 		modelService.executeChanges(deltaCollection, null, getCurrentTask(), getCurrentResult());
 	}
@@ -1189,7 +1187,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 				deltas.add(lensProjectionContext.getDelta());   // union of primary and secondary deltas
 			}
 		}
-		ObjectDelta<ShadowType> sum = ObjectDelta.summarize(deltas);
+		ObjectDelta<ShadowType> sum = ObjectDeltaCollectionsUtil.summarize(deltas);
 		return DeltaConvertor.toObjectDeltaType(sum);
 	}
 
@@ -1401,7 +1399,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	@Override
 	public List<UserType> getMembers(String orgOid) throws SchemaException, ObjectNotFoundException, SecurityViolationException,
 			CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(UserType.class)
 				.isDirectChildOf(orgOid)
 				.build();
 		return searchObjects(UserType.class, query, null);
@@ -1637,7 +1635,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			optionsProperty.setRealValue(options.toModelExecutionOptionsType());
 			newTask.asPrismObject().addExtensionItem(optionsProperty);
 		}
-		ObjectDelta<TaskType> taskAddDelta = ObjectDelta.createAddDelta(newTask.asPrismObject());
+		ObjectDelta<TaskType> taskAddDelta = DeltaFactory.Object.createAddDelta(newTask.asPrismObject());
 		modelService.executeChanges(singleton(taskAddDelta), null, opTask, result);
 		return newTask;
 	}
@@ -1809,5 +1807,10 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		if (object instanceof ShadowType || object instanceof ResourceType) {
 			provisioningService.applyDefinition(object.asPrismObject(), getCurrentTask(), getCurrentResult());
 		}
+	}
+
+	@Override
+	public <C extends Containerable> S_ItemEntry deltaFor(Class<C> objectClass) throws SchemaException {
+		return prismContext.deltaFor(objectClass);
 	}
 }

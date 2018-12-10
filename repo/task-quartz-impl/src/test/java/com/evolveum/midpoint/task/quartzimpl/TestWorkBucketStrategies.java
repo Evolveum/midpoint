@@ -18,7 +18,6 @@ package com.evolveum.midpoint.task.quartzimpl;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.quartzimpl.work.WorkStateManager;
@@ -127,7 +126,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
         // WHEN
 	    WorkBucketType bucket = workStateManager.getWorkBucket(task.getOid(), 0, null, result);
 	    ObjectQuery narrowedQuery = workStateManager
-			    .narrowQueryForWorkBucket(task, new ObjectQuery(), UserType.class, null, bucket, result);
+			    .narrowQueryForWorkBucket(task, null, UserType.class, null, bucket, result);
 
 	    // THEN
 	    display("allocated bucket", bucket);
@@ -137,7 +136,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 
 	    assertNumericBucket(bucket, null, 1, null, 123);
 	    assertOptimizedCompletedBuckets(taskAfter);
-	    ObjectQuery expectedQuery = QueryBuilder.queryFor(UserType.class, prismContext)
+	    ObjectQuery expectedQuery = prismContext.queryFor(UserType.class)
 			    .item(UserType.F_ITERATION).lt(BigInteger.valueOf(123))
 			    .build();
 	    PrismAsserts.assertQueriesEquivalent("Wrong narrowed query", expectedQuery, narrowedQuery);
@@ -146,7 +145,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 	    workStateManager.completeWorkBucket(task.getOid(), 1, result);
 	    bucket = workStateManager.getWorkBucket(task.getOid(), 0, null, result);
 	    narrowedQuery = workStateManager
-			    .narrowQueryForWorkBucket(task, new ObjectQuery(), UserType.class, null, bucket, result);
+			    .narrowQueryForWorkBucket(task, null, UserType.class, null, bucket, result);
 	    // THEN
 	    display("allocated bucket (2)", bucket);
 	    taskAfter = taskManager.getTask(task.getOid(), result);
@@ -155,7 +154,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 	    assertNumericBucket(bucket, null, 2, 123, 200);
 	    assertOptimizedCompletedBuckets(taskAfter);
 
-	    expectedQuery = QueryBuilder.queryFor(UserType.class, prismContext)
+	    expectedQuery = prismContext.queryFor(UserType.class)
 			    .item(UserType.F_ITERATION).ge(BigInteger.valueOf(123))
 			    .and().item(UserType.F_ITERATION).lt(BigInteger.valueOf(200))
 			    .build();
@@ -165,7 +164,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 	    workStateManager.completeWorkBucket(task.getOid(), 2, result);
 	    bucket = workStateManager.getWorkBucket(task.getOid(), 0, null, result);
 	    narrowedQuery = workStateManager
-			    .narrowQueryForWorkBucket(task, new ObjectQuery(), UserType.class, null, bucket, result);
+			    .narrowQueryForWorkBucket(task, null, UserType.class, null, bucket, result);
 
 	    // THEN
 	    display("allocated bucket (3)", bucket);
@@ -175,7 +174,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 
 	    assertNumericBucket(bucket, null, 3, 200, null);
 	    assertOptimizedCompletedBuckets(taskAfter);
-	    expectedQuery = QueryBuilder.queryFor(UserType.class, prismContext)
+	    expectedQuery = prismContext.queryFor(UserType.class)
 			    .item(UserType.F_ITERATION).ge(BigInteger.valueOf(200))
 			    .build();
 	    PrismAsserts.assertQueriesEquivalent("Wrong narrowed query (3)", expectedQuery, narrowedQuery);
@@ -208,7 +207,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 	    WorkSegmentationStrategy segmentationStrategy = strategyFactory.createStrategy(task.getWorkManagement());
 	    WorkBucketType bucket = workStateManager.getWorkBucket(task.getOid(), 0, null, result);
 	    ObjectQuery narrowedQuery = workStateManager
-			    .narrowQueryForWorkBucket(task, new ObjectQuery(), ShadowType.class, null, bucket, result);
+			    .narrowQueryForWorkBucket(task, null, ShadowType.class, null, bucket, result);
 	    Integer numberOfBuckets = segmentationStrategy.estimateNumberOfBuckets(null);
 
 	    // THEN
@@ -222,7 +221,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 
 	    assertBucket(bucket, null, 1);
 	    assertOptimizedCompletedBuckets(taskAfter);
-	    ObjectQuery expectedQuery = QueryBuilder.queryFor(ShadowType.class, prismContext)
+	    ObjectQuery expectedQuery = prismContext.queryFor(ShadowType.class)
 			    .item(ShadowType.F_NAME).lt(new PolyString("a", "a"))
 			    .build();
 	    PrismAsserts.assertQueriesEquivalent("Wrong narrowed query", expectedQuery, narrowedQuery);
@@ -231,7 +230,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 	    workStateManager.completeWorkBucket(task.getOid(), 1, result);
 	    bucket = workStateManager.getWorkBucket(task.getOid(), 0, null, result);
 	    narrowedQuery = workStateManager
-			    .narrowQueryForWorkBucket(task, new ObjectQuery(), ShadowType.class, null, bucket, result);
+			    .narrowQueryForWorkBucket(task, null, ShadowType.class, null, bucket, result);
 
 	    // THEN
 	    display("allocated bucket (2)", bucket);
@@ -242,7 +241,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 	    assertBucket(bucket, null, 2);
 	    assertOptimizedCompletedBuckets(taskAfter);
 
-	    expectedQuery = QueryBuilder.queryFor(ShadowType.class, prismContext)
+	    expectedQuery = prismContext.queryFor(ShadowType.class)
 			    .item(ShadowType.F_NAME).ge(new PolyString("a", "a"))
 			    .and().item(ShadowType.F_NAME).lt(new PolyString("m", "m"))
 			    .build();
@@ -252,7 +251,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 	    workStateManager.completeWorkBucket(task.getOid(), 2, result);
 	    bucket = workStateManager.getWorkBucket(task.getOid(), 0, null, result);
 	    narrowedQuery = workStateManager
-			    .narrowQueryForWorkBucket(task, new ObjectQuery(), ShadowType.class, null, bucket, result);
+			    .narrowQueryForWorkBucket(task, null, ShadowType.class, null, bucket, result);
 
 	    // THEN
 	    display("allocated bucket (3)", bucket);
@@ -262,7 +261,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 
 	    assertBucket(bucket, null, 3);
 	    assertOptimizedCompletedBuckets(taskAfter);
-	    expectedQuery = QueryBuilder.queryFor(ShadowType.class, prismContext)
+	    expectedQuery = prismContext.queryFor(ShadowType.class)
 			    .item(ShadowType.F_NAME).ge(new PolyString("m", "m"))
 			    .build();
 	    PrismAsserts.assertQueriesEquivalent("Wrong narrowed query (3)", expectedQuery, narrowedQuery);
@@ -303,9 +302,9 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 
 		WorkBucketType bucket = assumeNextPrefix(segmentationStrategy, workState, "a00", 1);
 		ObjectQuery narrowedQuery = workStateManager
-				.narrowQueryForWorkBucket(task, new ObjectQuery(), UserType.class, null, bucket, result);
+				.narrowQueryForWorkBucket(task, null, UserType.class, null, bucket, result);
 		display("narrowed query (1)", narrowedQuery);
-		ObjectQuery expectedQuery = QueryBuilder.queryFor(UserType.class, prismContext)
+		ObjectQuery expectedQuery = prismContext.queryFor(UserType.class)
 				.item(UserType.F_NAME).startsWith("a00").matchingNorm()
 				.build();
 		PrismAsserts.assertQueriesEquivalent("Wrong narrowed query (1)", expectedQuery, narrowedQuery);
@@ -356,18 +355,18 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 		assertEquals("Wrong # of estimated buckets", Integer.valueOf(13), segmentationStrategy.estimateNumberOfBuckets(null));
 		WorkBucketType bucket = assumeNextInterval(segmentationStrategy, workState, null, "00", 1);
 		ObjectQuery narrowedQuery = workStateManager
-				.narrowQueryForWorkBucket(task, new ObjectQuery(), UserType.class, null, bucket, result);
+				.narrowQueryForWorkBucket(task, null, UserType.class, null, bucket, result);
 		display("narrowed query (1)", narrowedQuery);
-		ObjectQuery expectedQuery = QueryBuilder.queryFor(UserType.class, prismContext)
+		ObjectQuery expectedQuery = prismContext.queryFor(UserType.class)
 				.item(UserType.F_NAME).lt("00").matchingNorm()
 				.build();
 		PrismAsserts.assertQueriesEquivalent("Wrong narrowed query (1)", expectedQuery, narrowedQuery);
 
 		bucket = assumeNextInterval(segmentationStrategy, workState, "00", "0a", 2);
 		narrowedQuery = workStateManager
-				.narrowQueryForWorkBucket(task, new ObjectQuery(), UserType.class, null, bucket, result);
+				.narrowQueryForWorkBucket(task, null, UserType.class, null, bucket, result);
 		display("narrowed query (2)", narrowedQuery);
-		expectedQuery = QueryBuilder.queryFor(UserType.class, prismContext)
+		expectedQuery = prismContext.queryFor(UserType.class)
 				.item(UserType.F_NAME).ge("00").matchingNorm()
 				.and().item(UserType.F_NAME).lt("0a").matchingNorm()
 				.build();

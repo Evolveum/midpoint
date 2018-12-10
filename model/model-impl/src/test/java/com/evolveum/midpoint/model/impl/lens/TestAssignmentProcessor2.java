@@ -22,13 +22,9 @@ import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEval
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
@@ -43,6 +39,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.collections4.Bag;
 import org.apache.commons.collections4.CollectionUtils;
@@ -865,7 +862,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 
 		LensContext<UserType> context = createContextForRoleAssignment(USER_JACK_OID, ROLE_R1_OID, null, null, result);
 		context.getFocusContext().swallowToPrimaryDelta(
-				DeltaBuilder.deltaFor(UserType.class, prismContext)
+				prismContext.deltaFor(UserType.class)
 						.item(UserType.F_NAME).replace(PolyString.fromOrig("jack1"))
 						.asItemDelta());
 
@@ -2122,7 +2119,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		c.setDescription(name);
 		c.setResourceRef(ObjectTypeUtil.createObjectRef(RESOURCE_DUMMY_EMPTY_OID, ObjectTypes.RESOURCE));
 		ResourceAttributeDefinitionType nameDef = new ResourceAttributeDefinitionType();
-		nameDef.setRef(new ItemPath(new QName(SchemaConstants.NS_ICF_SCHEMA, "name")).asItemPathType());
+		nameDef.setRef(new ItemPathType(ItemPath.create(new QName(SchemaConstants.NS_ICF_SCHEMA, "name"))));
 		MappingType outbound = new MappingType();
 		outbound.setName(name);
 		ExpressionType expression = new ExpressionType();
@@ -2212,7 +2209,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		ExpressionType expression = new ExpressionType();
 		expression.getExpressionEvaluator().add(new ObjectFactory().createScript(script));
 		VariableBindingDefinitionType source = new VariableBindingDefinitionType();
-		source.setPath(new ItemPath(UserType.F_NAME).asItemPathType());
+		source.setPath(new ItemPathType(UserType.F_NAME));
 		MappingType rv = new MappingType();
 		rv.setName(conditionName);
 		rv.setExpression(expression);
@@ -2289,10 +2286,10 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 			MappingType mapping = new MappingType();
 			mapping.setName(name + "-" + i);
 			VariableBindingDefinitionType source = new VariableBindingDefinitionType();
-			source.setPath(new ItemPath(UserType.F_NAME).asItemPathType());
+			source.setPath(new ItemPathType(UserType.F_NAME));
 			mapping.getSource().add(source);
 			VariableBindingDefinitionType target = new VariableBindingDefinitionType();
-			target.setPath(new ItemPath(UserType.F_DESCRIPTION).asItemPathType());
+			target.setPath(new ItemPathType(UserType.F_DESCRIPTION));
 			mapping.setTarget(target);
 			MappingsType mappings = new MappingsType(prismContext);
 			mappings.getMapping().add(mapping);

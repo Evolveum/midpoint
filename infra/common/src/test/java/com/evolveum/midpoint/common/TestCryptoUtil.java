@@ -20,8 +20,9 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.crypto.ProtectorImpl;
+import com.evolveum.midpoint.prism.crypto.KeyStoreBasedProtectorBuilder;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
@@ -43,6 +44,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_DIR;
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_PATH;
 import static java.util.Collections.singleton;
@@ -77,7 +79,7 @@ public class TestCryptoUtil {
     	TestUtil.displayTestTitle(TEST_NAME);
 
     	// GIVEN
-    	PrismContext prismContext = PrismTestUtil.getPrismContext();
+    	PrismContext prismContext = getPrismContext();
 	    PrismObject<UserType> jack = prismContext.parserFor(FILE_USER_JACK).xml().parse();
 
 	    // WHEN+THEN
@@ -90,7 +92,7 @@ public class TestCryptoUtil {
 		TestUtil.displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		PrismContext prismContext = getPrismContext();
 		PrismObject<UserType> jack = prismContext.parserFor(FILE_USER_JACK).xml().parse();
 
 		// WHEN
@@ -108,7 +110,7 @@ public class TestCryptoUtil {
 		TestUtil.displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		PrismContext prismContext = getPrismContext();
 		PrismObject<SystemConfigurationType> config = prismContext.parserFor(FILE_SYSTEM_CONFIGURATION).xml().parse();
 
 		// WHEN+THEN
@@ -122,7 +124,7 @@ public class TestCryptoUtil {
 		TestUtil.displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		PrismContext prismContext = getPrismContext();
 		PrismObject<SystemConfigurationType> config = prismContext.parserFor(FILE_SYSTEM_CONFIGURATION).xml().parse();
 
 		// WHEN
@@ -141,7 +143,7 @@ public class TestCryptoUtil {
 		TestUtil.displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		PrismContext prismContext = getPrismContext();
 		PrismObject<UserType> jack = prismContext.parserFor(FILE_USER_JACK).xml().parse();
 		PrismObject<SystemConfigurationType> config = prismContext.parserFor(FILE_SYSTEM_CONFIGURATION).xml().parse();
 		Protector compromisedProtector = createCompromisedProtector();
@@ -200,7 +202,7 @@ public class TestCryptoUtil {
 		System.out.println("Modifications for " + label + ":\n" + modifications);
 		assertEquals("Delta has wrong # of modifications: " + label, expectedModificationsCount, modifications.size());
 		PrismObject<T> patchedObject = oldObject.clone();
-		ItemDelta.applyTo(modifications, patchedObject);
+		ItemDeltaCollectionsUtil.applyTo(modifications, patchedObject);
 		int fixes = CryptoUtil.reencryptValues(protector, patchedObject);
 		assertEquals("Wrong # of re-encryption fixes on reencrypted object: " + label, 0, fixes);
 	}
@@ -225,22 +227,20 @@ public class TestCryptoUtil {
 	}
 
 	private Protector createProtector() {
-		ProtectorImpl protector = new ProtectorImpl();
-		protector.setKeyStorePassword(KEYSTORE_PASSWORD);
-		protector.setKeyStorePath(KEYSTORE_PATH);
-		protector.setEncryptionAlgorithm(XMLCipher.AES_256);
-		protector.init();
-		return protector;
+		return KeyStoreBasedProtectorBuilder.create(getPrismContext())
+				.keyStorePassword(KEYSTORE_PASSWORD)
+				.keyStorePath(KEYSTORE_PATH)
+				.encryptionAlgorithm(XMLCipher.AES_256)
+				.initialize();
 	}
 
 	private Protector createCompromisedProtector() {
-		ProtectorImpl protector = new ProtectorImpl();
-		protector.setKeyStorePassword(KEYSTORE_PASSWORD);
-		protector.setKeyStorePath(KEYSTORE_PATH);
-		protector.setEncryptionKeyAlias("compromised");
-		protector.setEncryptionAlgorithm(XMLCipher.AES_256);
-		protector.init();
-		return protector;
+		return KeyStoreBasedProtectorBuilder.create(getPrismContext())
+				.keyStorePassword(KEYSTORE_PASSWORD)
+				.keyStorePath(KEYSTORE_PATH)
+				.encryptionKeyAlias("compromised")
+				.encryptionAlgorithm(XMLCipher.AES_256)
+				.initialize();
 	}
 
 }

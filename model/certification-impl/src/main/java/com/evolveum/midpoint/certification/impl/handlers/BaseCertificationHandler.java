@@ -112,13 +112,14 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
 
 		ContainerDelta assignmentDelta;
 		if (Boolean.TRUE.equals(assignmentCase.isIsInducement())) {
-			assignmentDelta = ContainerDelta.createModificationDelete(AbstractRoleType.F_INDUCEMENT, clazz, prismContext, cval);
+			assignmentDelta = prismContext.deltaFactory().container().createModificationDelete(AbstractRoleType.F_INDUCEMENT, clazz,
+					cval);
 		} else {
-			assignmentDelta = ContainerDelta.createModificationDelete(FocusType.F_ASSIGNMENT, clazz, prismContext, cval);
+			assignmentDelta = prismContext.deltaFactory().container().createModificationDelete(FocusType.F_ASSIGNMENT, clazz, cval);
 		}
 		@SuppressWarnings({ "unchecked", "raw" })
-		ObjectDelta<? extends ObjectType> objectDelta = (ObjectDelta<? extends ObjectType>) ObjectDelta.createModifyDelta(objectOid,
-				Collections.singletonList(assignmentDelta), clazz, prismContext);
+		ObjectDelta<? extends ObjectType> objectDelta = (ObjectDelta<? extends ObjectType>) prismContext.deltaFactory().object().createModifyDelta(objectOid,
+				Collections.singletonList(assignmentDelta), clazz);
 		LOGGER.info("Going to execute delta: {}", objectDelta.debugDump());
 		modelService.executeChanges(Collections.singletonList(objectDelta), null, task, caseResult);
 		LOGGER.info("Case {} in {} ({} {} of {}) was successfully revoked",

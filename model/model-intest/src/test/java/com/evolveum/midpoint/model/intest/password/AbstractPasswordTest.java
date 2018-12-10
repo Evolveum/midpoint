@@ -18,16 +18,14 @@ package com.evolveum.midpoint.model.intest.password;
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -46,7 +44,6 @@ import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTes
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -1064,7 +1061,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		displayWhen(TEST_NAME);
 		applyPasswordPolicy(PASSWORD_POLICY_GLOBAL_OID, getSecurityPolicyOid(), task, result);
 		modifyObjectReplaceProperty(SecurityPolicyType.class, getSecurityPolicyOid(),
-				new ItemPath(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_HISTORY_LENGTH),
+				ItemPath.create(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_HISTORY_LENGTH),
         		task, result, 3);
 
 		// THEN
@@ -1094,7 +1091,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		// Red resource has disable-instead-of-delete. So we need to be brutal to get rid of the red account
 		ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, false);
-		ObjectDelta<ShadowType> shadowDelta = ObjectDelta.createDeleteDelta(ShadowType.class, accountJackRedOid, prismContext);
+		ObjectDelta<ShadowType> shadowDelta = prismContext.deltaFactory().object()
+				.createDeleteDelta(ShadowType.class, accountJackRedOid);
 
 		// WHEN
 		displayWhen(TEST_NAME);
@@ -1261,9 +1259,10 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		PasswordType passwordType = new PasswordType();
 		passwordType.setValue(userPasswordPs);
 
-		ObjectDelta<UserType> objectDelta = ObjectDelta.createModificationReplaceContainer(UserType.class, USER_JACK_OID,
-				new ItemPath(UserType.F_CREDENTIALS,  CredentialsType.F_PASSWORD),
-						prismContext, passwordType);
+		ObjectDelta<UserType> objectDelta = prismContext.deltaFactory().object()
+				.createModificationReplaceContainer(UserType.class, USER_JACK_OID,
+						ItemPath.create(UserType.F_CREDENTIALS,  CredentialsType.F_PASSWORD),
+						passwordType);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 
         try {
@@ -1473,8 +1472,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		display("jack", jack);
 		assertEquals("Wrong # of parentOrgRefs", 2, jack.getParentOrgRef().size());
 
-		ObjectDelta<OrgType> orgDelta = DeltaBuilder.deltaFor(OrgType.class, prismContext)
-				.item(OrgType.F_PASSWORD_POLICY_REF).replace(new PrismReferenceValue(PASSWORD_POLICY_GLOBAL_OID))
+		ObjectDelta<OrgType> orgDelta = prismContext.deltaFor(OrgType.class)
+				.item(OrgType.F_PASSWORD_POLICY_REF).replace(itemFactory().createReferenceValue(PASSWORD_POLICY_GLOBAL_OID))
 				.asObjectDelta(ORG_GOVERNOR_OFFICE_OID);
 		executeChanges(orgDelta, null, task, result);
 
@@ -1666,7 +1665,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	}
 
 	private void setPasswordMinOccurs(Integer value, Task task, OperationResult result) throws CommonException {
-		ObjectDelta<SecurityPolicyType> delta = DeltaBuilder.deltaFor(SecurityPolicyType.class, prismContext)
+		ObjectDelta<SecurityPolicyType> delta = prismContext.deltaFor(SecurityPolicyType.class)
 				.item(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_MIN_OCCURS)
 						.replace(value)
 				.asObjectDeltaCast(getSecurityPolicyOid());
@@ -2811,7 +2810,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		display("User before", userBefore);
 		String accountLifecycleOid = getLinkRefOid(userBefore, RESOURCE_DUMMY_LIFECYCLE_OID);
 
-		ObjectDelta<ShadowType> shadowDelta = ObjectDelta.createEmptyModifyDelta(ShadowType.class, accountLifecycleOid, prismContext);
+		ObjectDelta<ShadowType> shadowDelta = prismContext.deltaFactory().object()
+				.createEmptyModifyDelta(ShadowType.class, accountLifecycleOid);
 		ProtectedStringType passwordPs = new ProtectedStringType();
         passwordPs.setClearValue(USER_PASSWORD_VALID_1);
         shadowDelta.addModificationReplaceProperty(SchemaConstants.PATH_PASSWORD_VALUE, passwordPs);
@@ -3116,7 +3116,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		assertDummyPassword(RESOURCE_DUMMY_SOUVENIR_NAME, ACCOUNT_JACK_DUMMY_USERNAME, PASSWORD_ALLIGATOR);
 		
-		ItemComparisonResult comparisonResult = provisioningService.compare(ShadowType.class, accountJackSouvenirOid, SchemaConstants.PATH_PASSWORD_VALUE, 
+		ItemComparisonResult comparisonResult = provisioningService.compare(ShadowType.class, accountJackSouvenirOid, SchemaConstants.PATH_PASSWORD_VALUE,
 				PASSWORD_ALLIGATOR, task, result);
 		assertEquals("Wrong comparison result", ItemComparisonResult.MATCH, comparisonResult);
 
@@ -3737,7 +3737,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 	
 	protected ObjectDelta<ShadowType> createAccountInitializationDelta(String accountOid, String newAccountPassword) {
-		ObjectDelta<ShadowType> shadowDelta = ObjectDelta.createEmptyModifyDelta(ShadowType.class, accountOid, prismContext);
+		ObjectDelta<ShadowType> shadowDelta = prismContext.deltaFactory().object()
+				.createEmptyModifyDelta(ShadowType.class, accountOid);
 		ProtectedStringType passwordPs = new ProtectedStringType();
         passwordPs.setClearValue(newAccountPassword);
         shadowDelta.addModificationReplaceProperty(SchemaConstants.PATH_PASSWORD_VALUE, passwordPs);
@@ -3863,7 +3864,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		// WHEN
 		modifyObjectReplaceProperty(SecurityPolicyType.class, getSecurityPolicyOid(),
-				new ItemPath(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_MIN_AGE),
+				ItemPath.create(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_MIN_AGE),
         		task, result, XmlTypeConverter.createDuration("PT10M"));
 
 		// THEN
@@ -3873,7 +3874,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		PrismObject<SecurityPolicyType> securityPolicy = getObject(SecurityPolicyType.class, getSecurityPolicyOid());
 		display("Security policy after", securityPolicy);
 		PrismAsserts.assertPropertyValue(securityPolicy,
-				new ItemPath(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_MIN_AGE),
+				ItemPath.create(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_MIN_AGE),
 				XmlTypeConverter.createDuration("PT10M"));
 
 		assertNoAccountPasswordNotifications();
@@ -4012,7 +4013,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 				.beginPassword()
 						.value(value)
 				.end();
-		ObjectDelta<UserType> objectDelta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> objectDelta = prismContext.deltaFor(UserType.class)
 				.item(UserType.F_CREDENTIALS).add(credentials)
 				.asObjectDeltaCast(alice.getOid());
 
@@ -4053,7 +4054,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 				.beginPassword()
 						.value(value)
 				.end();
-		ObjectDelta<UserType> objectDelta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> objectDelta = prismContext.deltaFor(UserType.class)
 				.item(UserType.F_CREDENTIALS).replace(credentials)
 				.asObjectDeltaCast(user.getOid());
 
@@ -4091,7 +4092,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		ProtectedStringType value = new ProtectedStringType();
 		value.setClearValue(PASSWORD_HELLO_WORLD);
 		PasswordType password = new PasswordType(prismContext).value(value);
-		ObjectDelta<UserType> objectDelta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> objectDelta = prismContext.deltaFor(UserType.class)
 				.item(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD).add(password)
 				.asObjectDeltaCast(user.getOid());
 
@@ -4129,7 +4130,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		ProtectedStringType value = new ProtectedStringType();
 		value.setClearValue(PASSWORD_HELLO_WORLD);
 		PasswordType password = new PasswordType(prismContext).value(value);
-		ObjectDelta<UserType> objectDelta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> objectDelta = prismContext.deltaFor(UserType.class)
 				.item(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD).replace(password)
 				.asObjectDeltaCast(user.getOid());
 
@@ -4166,7 +4167,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		// WHEN
 		ProtectedStringType value = new ProtectedStringType();
 		value.setClearValue(PASSWORD_HELLO_WORLD);
-		ObjectDelta<UserType> objectDelta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> objectDelta = prismContext.deltaFor(UserType.class)
 				.item(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE).add(value)
 				.asObjectDeltaCast(user.getOid());
 
@@ -4203,7 +4204,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		// WHEN
 		ProtectedStringType value = new ProtectedStringType();
 		value.setClearValue(PASSWORD_HELLO_WORLD);
-		ObjectDelta<UserType> objectDelta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> objectDelta = prismContext.deltaFor(UserType.class)
 				.item(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE).replace(value)
 				.asObjectDeltaCast(user.getOid());
 
@@ -4236,13 +4237,13 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		displayWhen(TEST_NAME);
 		applyPasswordPolicy(null, getSecurityPolicyOid(), task, result);
 		modifyObjectReplaceProperty(SecurityPolicyType.class, getSecurityPolicyOid(),
-				new ItemPath(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_HISTORY_LENGTH),
+				ItemPath.create(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_HISTORY_LENGTH),
         		task, result /* no value */);
 		modifyObjectReplaceProperty(SecurityPolicyType.class, getSecurityPolicyOid(),
-				new ItemPath(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_MIN_AGE),
+				ItemPath.create(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_MIN_AGE),
         		task, result /* no value */);
 		modifyObjectReplaceProperty(SecurityPolicyType.class, getSecurityPolicyOid(),
-				new ItemPath(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_MAX_AGE),
+				ItemPath.create(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_MAX_AGE),
 				task, result /* no value */);
 
 		// THEN
@@ -4280,7 +4281,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         			.historyLength(ORG_MINISTRY_OF_OFFENSE_PASSWORD_HISTORY_LENGTH);
         ministrySecurityPolicyOid = addObject(securityPolicy, task, result);
 
-        PrismReferenceValue securityPolicyRef = new PrismReferenceValue();
+        PrismReferenceValue securityPolicyRef = itemFactory().createReferenceValue();
         securityPolicyRef.setOid(ministrySecurityPolicyOid);
 		modifyObjectReplaceReference(OrgType.class, ORG_MINISTRY_OF_OFFENSE_OID,
         		OrgType.F_SECURITY_POLICY_REF, task, result, securityPolicyRef);
@@ -4561,7 +4562,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		displayWhen(TEST_NAME);
 		applyPasswordPolicy(PASSWORD_POLICY_GLOBAL_OID, getSecurityPolicyOid(), task, result);
 		modifyObjectReplaceProperty(SecurityPolicyType.class, getSecurityPolicyOid(),
-				new ItemPath(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_HISTORY_LENGTH),
+				ItemPath.create(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_HISTORY_LENGTH),
         		task, result, GLOBAL_POLICY_NEW_PASSWORD_HISTORY_LENGTH);
 
 		// THEN
@@ -4683,8 +4684,9 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		String accountBlueOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_BLUE_OID);
 		Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + ".getBlueShadow");
         OperationResult result = task.getResult();
-        Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<>();
-		options.add(SelectorOptions.create(SchemaConstants.PATH_PASSWORD_VALUE, GetOperationOptions.createRetrieve()));
+        Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
+		        .item(SchemaConstants.PATH_PASSWORD_VALUE).retrieve()
+		        .build();
 		PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, accountBlueOid, options , task, result);
 		result.computeStatus();
 		TestUtil.assertSuccess("getObject(Account) result not success", result);

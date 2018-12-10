@@ -21,7 +21,6 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 import java.util.List;
 
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -130,7 +129,7 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 		OperationResult result = new OperationResult(TestConnectorDiscovery.class.getName()
 				+ ".testSearchConnector");
 
-		ObjectQuery query = QueryBuilder.queryFor(ConnectorType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(ConnectorType.class)
 				.item(SchemaConstants.C_CONNECTOR_FRAMEWORK).eq(SchemaConstants.ICF_FRAMEWORK_URI)
 				.and().item(SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE).eq(IntegrationTestTools.LDAP_CONNECTOR_TYPE)
 				.build();

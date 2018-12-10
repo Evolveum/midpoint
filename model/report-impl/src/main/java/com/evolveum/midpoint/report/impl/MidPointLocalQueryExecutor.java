@@ -23,6 +23,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.JRDataset;
 import net.sf.jasperreports.engine.JRValueParameter;
@@ -69,6 +70,10 @@ public class MidPointLocalQueryExecutor extends MidPointQueryExecutor {
 		parseQuery();
 	}
 
+	@Override
+	protected <T> PrismPropertyValue<T> createPropertyValue(T realValue) {
+		return reportService.getPrismContext().itemFactory().createPropertyValue(realValue);
+	}
 
 	@Override
 	protected Object getParsedQuery(String query, Map<QName, Object> expressionParameters) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {

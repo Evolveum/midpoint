@@ -18,7 +18,6 @@ package com.evolveum.midpoint.model.intest;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -206,7 +205,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
 
 		// WHEN
 		executeChanges(
-				(ObjectDelta) DeltaBuilder.deltaFor(UserType.class, prismContext)
+				(ObjectDelta) prismContext.deltaFor(UserType.class)
 						.item(UserType.F_ORGANIZATIONAL_UNIT).add(
 								PolyString.fromOrig("U1"),
 								PolyString.fromOrig("U2"),
@@ -250,7 +249,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
 
 		// WHEN
 		executeChanges(
-				(ObjectDelta) DeltaBuilder.deltaFor(UserType.class, prismContext)
+				(ObjectDelta) prismContext.deltaFor(UserType.class)
 						.item(UserType.F_ORGANIZATIONAL_UNIT).delete(PolyString.fromOrig("U1"))
 						.asObjectDelta(USER_JACK_OID),
 				ModelExecuteOptions.createRaw(), task, result);
@@ -291,13 +290,13 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
 
 		// WHEN
 		executeChanges(
-				(ObjectDelta) DeltaBuilder.deltaFor(UserType.class, prismContext)
+				(ObjectDelta) prismContext.deltaFor(UserType.class)
 						.item(UserType.F_ORGANIZATIONAL_UNIT).delete(PolyString.fromOrig("U2"))
 						.asObjectDelta(USER_JACK_OID),
 				ModelExecuteOptions.createRaw(), task, result);
 
 		executeChanges(
-				(ObjectDelta) DeltaBuilder.deltaFor(UserType.class, prismContext)
+				(ObjectDelta) prismContext.deltaFor(UserType.class)
 						.item(UserType.F_EMPLOYEE_NUMBER).replace()
 						.asObjectDelta(USER_JACK_OID),
 				null, task, result);
@@ -332,13 +331,13 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
 
 		// WHEN
 		executeChanges(
-				(ObjectDelta) DeltaBuilder.deltaFor(UserType.class, prismContext)
+				(ObjectDelta) prismContext.deltaFor(UserType.class)
 						.item(UserType.F_ORGANIZATION).add(PolyString.fromOrig("OU: nonsense"))
 						.asObjectDelta(USER_JACK_OID),
 				ModelExecuteOptions.createRaw(), task, result);
 
 		executeChanges(
-				(ObjectDelta) DeltaBuilder.deltaFor(UserType.class, prismContext)
+				(ObjectDelta) prismContext.deltaFor(UserType.class)
 						.item(UserType.F_EMPLOYEE_NUMBER).replace("emp1234")
 						.asObjectDelta(USER_JACK_OID),
 				null, task, result);
@@ -360,7 +359,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
 
 	private void changeManagerRaw(String id, Task task, OperationResult result) throws CommonException {
 		executeChanges(
-				(ObjectDelta) DeltaBuilder.deltaFor(OrgType.class, prismContext)
+				(ObjectDelta) prismContext.deltaFor(OrgType.class)
 						.item(OrgType.F_EXTENSION, MANAGER_ID_QNAME).replace(id)
 						.asObjectDelta(ORG_GOVERNOR_OFFICE_OID),
 				ModelExecuteOptions.createRaw(), task, result);
@@ -368,7 +367,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
 
 	private void changeEmployeeIdRaw(String id, Task initTask, OperationResult initResult) throws CommonException {
 		executeChanges(
-				(ObjectDelta) DeltaBuilder.deltaFor(UserType.class, prismContext)
+				(ObjectDelta) prismContext.deltaFor(UserType.class)
 						.item(UserType.F_EMPLOYEE_NUMBER).replace(id)
 						.asObjectDelta(USER_ELAINE_OID),
 				ModelExecuteOptions.createRaw(), initTask, initResult);

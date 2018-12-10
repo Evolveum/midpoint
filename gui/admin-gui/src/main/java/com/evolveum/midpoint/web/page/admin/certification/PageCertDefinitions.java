@@ -247,8 +247,9 @@ public class PageCertDefinitions extends PageAdminWorkItems {
 		try {
 			Task task = createSimpleTask(OPERATION_DELETE_DEFINITION);
 			ObjectDelta<AccessCertificationDefinitionType> delta =
-					ObjectDelta.createDeleteDelta(AccessCertificationDefinitionType.class, definition.getOid(),
-							getPrismContext());
+					getPrismContext().deltaFactory().object()
+							.createDeleteDelta(AccessCertificationDefinitionType.class, definition.getOid()
+							);
 			getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task, result);
 		} catch (Exception ex) {
 			result.recordPartialError(createStringResource("PageCertDefinitions.message.deleteDefinitionPerformed.partialError").getString(), ex);

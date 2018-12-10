@@ -52,7 +52,7 @@
 											log.info('=== Variables ===')
 											this.binding.variables.each {k,v -> log.info('{} = {}', k, v)}
 
-											delta = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+											delta = midpoint.deltaFor(RoleType.class)
 												.item(RoleType.F_DESCRIPTION).replace('Modified by ' + actor.name + ' on ' + new Date())
 												.asObjectDelta(input.oid)
 											midpoint.modifyObject(delta, ModelExecuteOptions.createRaw())

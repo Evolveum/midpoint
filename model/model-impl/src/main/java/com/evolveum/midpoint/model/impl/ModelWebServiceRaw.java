@@ -19,8 +19,8 @@ import com.evolveum.midpoint.model.api.ModelPort;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismSerializer;
 import com.evolveum.midpoint.prism.SerializationOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -207,7 +207,8 @@ public class ModelWebServiceRaw implements Provider<DOMSource> {
     }
 
 	private void serializeFaultMessage(Detail detail, FaultMessage faultMessage) {
-		MiscSchemaUtil.serializeFaultMessage(detail, faultMessage, prismContext, LOGGER);
+        prismContext.hacks()
+                .serializeFaultMessage(detail, faultMessage.getFaultInfo(), SchemaConstants.FAULT_MESSAGE_ELEMENT_NAME, LOGGER);
 	}
 
     private void throwFault(Exception ex, OperationResultType resultType) throws FaultMessage {

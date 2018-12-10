@@ -19,6 +19,7 @@ import java.beans.PropertyDescriptor;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
+import com.evolveum.midpoint.prism.schema.MutablePrismSchema;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
@@ -27,7 +28,6 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.prism.schema.PrismSchemaImpl;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -69,7 +69,8 @@ public class UcfUtil {
 		if (xsdElement == null) {
 			return null;
 		}
-		PrismSchema connectorSchema = PrismSchemaImpl.parse(xsdElement, true, connectorType.toString(), prismContext);
+		MutablePrismSchema connectorSchema = prismContext.schemaFactory().createPrismSchema();
+		connectorSchema.parseThis(xsdElement, true, connectorType.toString(), prismContext);
 		return connectorSchema;
 	}
 

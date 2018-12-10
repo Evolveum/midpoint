@@ -72,7 +72,7 @@ public class AccCertExpressionHelper {
         QName xsdType = XsdTypeMapper.toXsdType(resultClass);
 
         QName resultName = new QName(SchemaConstants.NS_C, "result");
-        PrismPropertyDefinition<T> resultDef = new PrismPropertyDefinitionImpl<>(resultName, xsdType, prismContext);
+        PrismPropertyDefinition<T> resultDef = prismContext.definitionFactory().createPropertyDefinition(resultName, xsdType);
 
         Expression<PrismPropertyValue<T>,PrismPropertyDefinition<T>> expression = expressionFactory.makeExpression(expressionType, resultDef, shortDesc, task, result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, shortDesc, task, result);
@@ -102,7 +102,7 @@ public class AccCertExpressionHelper {
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         QName resultName = new QName(SchemaConstants.NS_C, "result");
-        PrismReferenceDefinition resultDef = new PrismReferenceDefinitionImpl(resultName, ObjectReferenceType.COMPLEX_TYPE, prismContext);
+        PrismReferenceDefinition resultDef = prismContext.definitionFactory().createReferenceDefinition(resultName, ObjectReferenceType.COMPLEX_TYPE);
 
         Expression<PrismReferenceValue,PrismReferenceDefinition> expression = expressionFactory.makeExpression(expressionType, resultDef, shortDesc, task, result);
         ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, expressionVariables, shortDesc, task, result);

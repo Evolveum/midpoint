@@ -26,16 +26,15 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AllFilter;
 import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
 import com.evolveum.midpoint.repo.sql.helpers.*;
@@ -52,7 +51,6 @@ import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -306,7 +304,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     // returns null if the query is equivalent to NONE (TODO this is counter-intuitive, fix that)
     private ObjectQuery simplify(ObjectQuery query, OperationResult subResult) {
         ObjectFilter filter = query.getFilter();
-        filter = ObjectQueryUtil.simplify(filter);
+        filter = ObjectQueryUtil.simplify(filter, prismContext);
         if (filter instanceof NoneFilter) {
 			subResult.recordSuccess();
 			return null;
@@ -540,16 +538,16 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
 
         if (InternalsConfig.consistencyChecks) {
-            ItemDelta.checkConsistence(modifications, ConsistencyCheckScope.THOROUGH);
+            ItemDeltaCollectionsUtil.checkConsistence(modifications, ConsistencyCheckScope.THOROUGH);
         } else {
-            ItemDelta.checkConsistence(modifications, ConsistencyCheckScope.MANDATORY_CHECKS_ONLY);
+            ItemDeltaCollectionsUtil.checkConsistence(modifications, ConsistencyCheckScope.MANDATORY_CHECKS_ONLY);
         }
 
         if (LOGGER.isTraceEnabled()) {
             for (ItemDelta modification : modifications) {
                 if (modification instanceof PropertyDelta<?>) {
                     PropertyDelta<?> propDelta = (PropertyDelta<?>) modification;
-                    if (propDelta.getPath().equivalent(new ItemPath(ObjectType.F_NAME))) {
+                    if (propDelta.getPath().equivalent(ObjectType.F_NAME)) {
                         Collection<PrismPropertyValue<PolyString>> values = propDelta.getValues(PolyString.class);
                         for (PrismPropertyValue<PolyString> pval : values) {
                             PolyString value = pval.getValue();
@@ -813,7 +811,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         if (query != null) {
             ObjectFilter filter = query.getFilter();
-            filter = ObjectQueryUtil.simplify(filter);
+            filter = ObjectQueryUtil.simplify(filter, prismContext);
             if (filter instanceof NoneFilter) {
                 subResult.recordSuccess();
                 return null;
@@ -1088,7 +1086,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
 		// Filter
 		if (specFilterType != null) {
-			ObjectFilter specFilter = QueryJaxbConvertor.createObjectFilter(object.getCompileTimeClass(), specFilterType, object.getPrismContext());
+			ObjectFilter specFilter = object.getPrismContext().getQueryConverter().createObjectFilter(object.getCompileTimeClass(), specFilterType);
 			if (filterEvaluator != null) {
 				specFilter = filterEvaluator.evaluate(specFilter);
 			}

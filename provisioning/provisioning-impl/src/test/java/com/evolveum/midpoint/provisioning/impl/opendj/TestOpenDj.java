@@ -35,8 +35,12 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.*;
 
+import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.processor.*;
 import org.apache.commons.lang.StringUtils;
 import org.opends.server.types.Entry;
@@ -53,26 +57,6 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.match.DistinguishedNameMatchingRule;
-import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
-import com.evolveum.midpoint.prism.match.UuidMatchingRule;
-import com.evolveum.midpoint.prism.match.XmlMatchingRule;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectOrdering;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrderDirection;
-import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -405,7 +389,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertTrue("No UID read", idPrimaryDef.canRead());
 		assertTrue("UID definition not in identifiers", accountDef.getPrimaryIdentifiers().contains(idPrimaryDef));
 		assertEquals("Wrong "+OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", ProvisioningTestUtil.CONNID_UID_NAME, idPrimaryDef.getFrameworkAttributeName());
-		assertEquals("Wrong primary identifier matching rule", UuidMatchingRule.NAME, idPrimaryDef.getMatchingRuleQName());
+		assertEquals("Wrong primary identifier matching rule", PrismConstants.UUID_MATCHING_RULE_NAME, idPrimaryDef.getMatchingRuleQName());
 
 
 		ResourceAttributeDefinition<String> idSecondaryDef = accountDef.findAttributeDefinition(getSecondaryIdentifierQName());
@@ -416,7 +400,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertTrue("No NAME read", idSecondaryDef.canRead());
 		assertTrue("NAME definition not in secondary identifiers", accountDef.getSecondaryIdentifiers().contains(idSecondaryDef));
 		assertEquals("Wrong "+OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", ProvisioningTestUtil.CONNID_NAME_NAME, idSecondaryDef.getFrameworkAttributeName());
-		assertEquals("Wrong secondary identifier matching rule", DistinguishedNameMatchingRule.NAME, idSecondaryDef.getMatchingRuleQName());
+		assertEquals("Wrong secondary identifier matching rule", PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME, idSecondaryDef.getMatchingRuleQName());
 
 		ResourceAttributeDefinition<String> cnDef = accountDef.findAttributeDefinition("cn");
 		assertNotNull("No definition for cn", cnDef);
@@ -425,7 +409,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertTrue("No cn create", cnDef.canAdd());
 		assertTrue("No cn update", cnDef.canModify());
 		assertTrue("No cn read", cnDef.canRead());
-		assertEquals("Wrong cn matching rule", StringIgnoreCaseMatchingRule.NAME, cnDef.getMatchingRuleQName());
+		assertEquals("Wrong cn matching rule", PrismConstants.STRING_IGNORE_CASE_MATCHING_RULE_NAME, cnDef.getMatchingRuleQName());
 
 		ResourceAttributeDefinition<byte[]> jpegPhoto = accountDef.findAttributeDefinition("jpegPhoto");
 		assertNotNull("No definition for jpegPhoto", jpegPhoto);
@@ -453,7 +437,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertFalse("isMemberOf create", memberOfDef.canAdd());
 		assertFalse("isMemberOf update", memberOfDef.canModify());
 		assertTrue("No isMemberOf read", memberOfDef.canRead());
-		assertEquals("Wrong isMemberOf matching rule", DistinguishedNameMatchingRule.NAME, memberOfDef.getMatchingRuleQName());
+		assertEquals("Wrong isMemberOf matching rule", PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME, memberOfDef.getMatchingRuleQName());
 
 		ResourceAttributeDefinition<String> labeledUriDef = accountDef.findAttributeDefinition("labeledURI");
 		assertNotNull("No definition for labeledUri", labeledUriDef);
@@ -471,7 +455,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertTrue("No secretary create", secretaryDef.canAdd());
 		assertTrue("No secretary update", secretaryDef.canModify());
 		assertTrue("No secretary read", secretaryDef.canRead());
-		assertEquals("Wrong secretary matching rule", DistinguishedNameMatchingRule.NAME, secretaryDef.getMatchingRuleQName());
+		assertEquals("Wrong secretary matching rule", PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME, secretaryDef.getMatchingRuleQName());
 
 		ResourceAttributeDefinition<String> createTimestampDef = accountDef.findAttributeDefinition("createTimestamp");
 		assertNotNull("No definition for createTimestamp", createTimestampDef);
@@ -592,7 +576,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertTrue("No NAME update", idSecondaryDef.canModify());
 		assertTrue("No NAME read", idSecondaryDef.canRead());
 		assertTrue("NAME definition not in identifiers", accountDef.getSecondaryIdentifiers().contains(idSecondaryDef));
-		assertEquals("Wrong NAME matching rule", DistinguishedNameMatchingRule.NAME, idSecondaryDef.getMatchingRuleQName());
+		assertEquals("Wrong NAME matching rule", PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME, idSecondaryDef.getMatchingRuleQName());
 		assertEquals("Wrong "+OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", ProvisioningTestUtil.CONNID_NAME_NAME, idSecondaryDef.getFrameworkAttributeName());
 
 		RefinedAttributeDefinition<String> cnDef = accountDef.findAttributeDefinition("cn");
@@ -610,7 +594,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertFalse("isMemberOf create", memberOfDef.canAdd());
 		assertFalse("isMemberOf update", memberOfDef.canModify());
 		assertTrue("No isMemberOf read", memberOfDef.canRead());
-		assertEquals("Wrong isMemberOf matching rule", DistinguishedNameMatchingRule.NAME, memberOfDef.getMatchingRuleQName());
+		assertEquals("Wrong isMemberOf matching rule", PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME, memberOfDef.getMatchingRuleQName());
 
 		ResourceAttributeDefinition<String> secretaryDef = accountDef.findAttributeDefinition("secretary");
 		assertNotNull("No definition for secretary", secretaryDef);
@@ -619,7 +603,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertTrue("No secretary create", secretaryDef.canAdd());
 		assertTrue("No secretary update", secretaryDef.canModify());
 		assertTrue("No secretary read", secretaryDef.canRead());
-		assertEquals("Wrong secretary matching rule", XmlMatchingRule.NAME, secretaryDef.getMatchingRuleQName());
+		assertEquals("Wrong secretary matching rule", PrismConstants.XML_MATCHING_RULE_NAME, secretaryDef.getMatchingRuleQName());
 
 		RefinedAttributeDefinition<String> dsDef = accountDef.findAttributeDefinition("ds-pwp-account-disabled");
 		assertNotNull("No definition for cn", dsDef);
@@ -991,11 +975,12 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(ACCOUNT_JACK_CHANGE_FILE, ObjectModificationType.COMPLEX_TYPE);
 		ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, object.asPrismObject().getDefinition());
 
-		ItemPath icfNamePath = new ItemPath(
+		ItemPath icfNamePath = ItemPath.create(
 				ShadowType.F_ATTRIBUTES, getSecondaryIdentifierQName());
 		PrismPropertyDefinition icfNameDef = object
 				.asPrismObject().getDefinition().findPropertyDefinition(icfNamePath);
-		ItemDelta renameDelta = PropertyDelta.createModificationReplaceProperty(icfNamePath, icfNameDef, "uid=rename,ou=People,dc=example,dc=com");
+		ItemDelta renameDelta = prismContext.deltaFactory().property()
+				.createModificationReplaceProperty(icfNamePath, icfNameDef, "uid=rename,ou=People,dc=example,dc=com");
 		((Collection)delta.getModifications()).add(renameDelta);
 
 		display("Object change",delta);
@@ -1054,10 +1039,10 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		byte[] bytesIn = Files.readAllBytes(Paths.get(ProvisioningTestUtil.DOT_JPG_FILENAME));
 		display("Bytes in", MiscUtil.binaryToHex(bytesIn));
 
-		QName jpegPhotoQName = new QName(RESOURCE_OPENDJ_NS, "jpegPhoto");
-		PropertyDelta<byte[]> jpegPhotoDelta = new PropertyDelta<>(new ItemPath(ShadowType.F_ATTRIBUTES, jpegPhotoQName),
-				null , prismContext);
-		jpegPhotoDelta.setValueToReplace(new PrismPropertyValue<>(bytesIn));
+		ItemName jpegPhotoQName = new ItemName(RESOURCE_OPENDJ_NS, "jpegPhoto");
+		PropertyDelta<byte[]> jpegPhotoDelta = prismContext.deltaFactory().property().create(ItemPath.create(ShadowType.F_ATTRIBUTES, jpegPhotoQName),
+				null);
+		jpegPhotoDelta.setRealValuesToReplace(bytesIn);
 
 		Collection<? extends ItemDelta> modifications = MiscSchemaUtil.createCollection(jpegPhotoDelta);
 
@@ -1108,17 +1093,17 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		PropertyDelta<String> givenNameDelta = new PropertyDelta<>(
-				new ItemPath(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_OPENDJ_NS, "givenName")),
-				null , prismContext);
-		givenNameDelta.addValueToAdd(new PrismPropertyValue<>("Jack"));
+		PropertyDelta<String> givenNameDelta = prismContext.deltaFactory().property().create(
+				ItemPath.create(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_OPENDJ_NS, "givenName")),
+				null);
+		givenNameDelta.addRealValuesToAdd("Jack");
 
 		// Also make an ordinary non-conflicting modification. We need to make sure that
 		// the operation was not ignored as a whole
-		PropertyDelta<String> titleDelta = new PropertyDelta<>(
-				new ItemPath(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_OPENDJ_NS, "title")),
-				null , prismContext);
-		titleDelta.addValueToAdd(new PrismPropertyValue<>("Great Captain"));
+		PropertyDelta<String> titleDelta = prismContext.deltaFactory().property().create(
+				ItemPath.create(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_OPENDJ_NS, "title")),
+				null);
+		titleDelta.addRealValuesToAdd("Great Captain");
 
 		Collection<? extends ItemDelta> modifications = MiscSchemaUtil.createCollection(givenNameDelta, titleDelta);
 
@@ -1145,8 +1130,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		display("Object after change",shadow);
 
 		PrismContainer<?> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
-		PrismAsserts.assertPropertyValue(attributesContainer, new QName(RESOURCE_OPENDJ_NS, "givenName"), "Jack");
-		PrismAsserts.assertPropertyValue(attributesContainer, new QName(RESOURCE_OPENDJ_NS, "title"), "Great Captain");
+		PrismAsserts.assertPropertyValue(attributesContainer, new ItemName(RESOURCE_OPENDJ_NS, "givenName"), "Jack");
+		PrismAsserts.assertPropertyValue(attributesContainer, new ItemName(RESOURCE_OPENDJ_NS, "title"), "Great Captain");
 
 		assertShadows(3);
 	}
@@ -1331,7 +1316,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         QName objectClass = new QName(resourceNamespace, OBJECT_CLASS_INETORGPERSON_NAME);
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(resource.getOid(), objectClass, prismContext);
-        ObjectPaging paging = ObjectPaging.createPaging(2, 3);
+        ObjectPaging paging = prismContext.queryFactory().createPaging(2, 3);
 		query.setPaging(paging);
 
         final Collection<ObjectType> objects = new HashSet<>();
@@ -1379,7 +1364,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         QName objectClass = new QName(resourceNamespace, OBJECT_CLASS_INETORGPERSON_NAME);
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(resource.getOid(), objectClass, prismContext);
-        ObjectPaging paging = ObjectPaging.createPaging(null, 3);
+        ObjectPaging paging = prismContext.queryFactory().createPaging(null, 3);
 		query.setPaging(paging);
 
         final Collection<ObjectType> objects = new HashSet<>();
@@ -1629,8 +1614,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
-				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, prismContext, LockoutStatusType.NORMAL);
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, LockoutStatusType.NORMAL);
 
 		// WHEN
 		provisioningService.modifyObject(ShadowType.class, delta.getOid(),
@@ -1680,7 +1665,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		final List<ShadowType> objectTypeList = new ArrayList<>();
 
 		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
-		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+		ObjectQuery query = getQueryConverter().createObjectQuery(ShadowType.class, queryType);
 
 		provisioningService.searchObjectsIterative(ShadowType.class, query, null, new ResultHandler<ShadowType>() {
 
@@ -1719,7 +1704,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertEquals(ACCOUNT_SEARCH_OID, addedObjectOid);
 
 		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
-		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+		ObjectQuery query = getQueryConverter().createObjectQuery(ShadowType.class, queryType);
 
 		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
 		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
@@ -1751,7 +1736,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
 		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_COMPLEX_FILTER_FILE,
                 QueryType.COMPLEX_TYPE);
-		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+		ObjectQuery query = getQueryConverter().createObjectQuery(ShadowType.class, queryType);
 		provisioningService.applyDefinition(ShadowType.class, query, task, result);
 
 		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
@@ -1864,9 +1849,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		OperationResult result = task.getResult();
 
 		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
-		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+		ObjectQuery query = getQueryConverter().createObjectQuery(ShadowType.class, queryType);
 
-		ObjectPaging paging = ObjectPaging.createPaging(null, 3);
+		ObjectPaging paging = prismContext.queryFactory().createPaging(null, 3);
 		query.setPaging(paging);
 
 		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
@@ -1900,9 +1885,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		OperationResult result = task.getResult();
 
 		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
-		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+		ObjectQuery query = getQueryConverter().createObjectQuery(ShadowType.class, queryType);
 
-		ObjectPaging paging = ObjectPaging.createPaging(0, 4);
+		ObjectPaging paging = prismContext.queryFactory().createPaging(0, 4);
 		query.setPaging(paging);
 
 		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
@@ -1936,9 +1921,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		OperationResult result = task.getResult();
 
 		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
-		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+		ObjectQuery query = getQueryConverter().createObjectQuery(ShadowType.class, queryType);
 
-		ObjectPaging paging = ObjectPaging.createPaging(2, 5);
+		ObjectPaging paging = prismContext.queryFactory().createPaging(2, 5);
 		query.setPaging(paging);
 
 		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
@@ -1973,11 +1958,11 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		OperationResult result = task.getResult();
 
 		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
-		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+		ObjectQuery query = getQueryConverter().createObjectQuery(ShadowType.class, queryType);
 
-		ObjectPaging paging = ObjectPaging.createPaging(null, 4);
-		paging.setOrdering(ObjectOrdering.createOrdering(
-				new ItemPath(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_NS, "sn")), OrderDirection.ASCENDING));
+		ObjectPaging paging = prismContext.queryFactory().createPaging(null, 4);
+		paging.setOrdering(prismContext.queryFactory().createOrdering(
+				ItemPath.create(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_NS, "sn")), OrderDirection.ASCENDING));
 		query.setPaging(paging);
 
 		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
@@ -2012,11 +1997,11 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		OperationResult result = task.getResult();
 
 		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
-		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+		ObjectQuery query = getQueryConverter().createObjectQuery(ShadowType.class, queryType);
 
-		ObjectPaging paging = ObjectPaging.createPaging(2, 4);
-		paging.setOrdering(ObjectOrdering.createOrdering(
-				new ItemPath(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_NS, "sn")), OrderDirection.ASCENDING));
+		ObjectPaging paging = prismContext.queryFactory().createPaging(2, 4);
+		paging.setOrdering(prismContext.queryFactory().createOrdering(
+				ItemPath.create(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_NS, "sn")), OrderDirection.ASCENDING));
 		query.setPaging(paging);
 
 		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
@@ -2065,7 +2050,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		OperationResult result = task.getResult();
 
 		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
-		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+		ObjectQuery query = getQueryConverter().createObjectQuery(ShadowType.class, queryType);
 
 		// WHEN
 		displayWhen(TEST_NAME);
@@ -2092,7 +2077,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		OperationResult result = task.getResult();
 
 		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_LDAP_GROUPS_FILE, QueryType.COMPLEX_TYPE);
-		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+		ObjectQuery query = getQueryConverter().createObjectQuery(ShadowType.class, queryType);
 
 		// WHEN
 		displayWhen(TEST_NAME);
@@ -2320,7 +2305,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
 		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_VANHELGEN_FILE,
                 QueryType.COMPLEX_TYPE);
-		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+		ObjectQuery query = getQueryConverter().createObjectQuery(ShadowType.class, queryType);
 		provisioningService.applyDefinition(ShadowType.class, query, task, result);
 
 		Entry entry = openDJController.addEntryFromLdifFile(ACCOUNT_POSIX_VANHELGEN_LDIF_FILE);
@@ -2959,7 +2944,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		addResourceFromFile(new File(TEST_DIR, "/resource-opendj-no-update.xml"), IntegrationTestTools.CONNECTOR_LDAP_TYPE, true, result);
 
 		try {
-			PropertyDelta delta = PropertyDelta.createModificationReplaceProperty(new ItemPath(ShadowType.F_ATTRIBUTES, new QName(resourceType.getNamespace(), "sn")), prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class), "doesnotmatter");
+			PropertyDelta delta = prismContext.deltaFactory().property().createModificationReplaceProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, new QName(resourceType.getNamespace(), "sn")), prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class), "doesnotmatter");
 			Collection modifications = MiscUtil.createCollection(delta);
 			provisioningService.modifyObject(ShadowType.class, ACCOUNT_WILL_OID, modifications, null, null, task, result);
 			AssertJUnit

@@ -35,6 +35,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.test.util.ParallelTestThread;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
@@ -55,7 +57,6 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.intest.AbstractConfiguredModelIntegrationTest;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.CapabilityUtil;
@@ -79,7 +80,6 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
-import com.evolveum.midpoint.test.asserter.ShadowAttributesAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -124,7 +124,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractManualResourceTest.class);
 
 	protected static final String NS_MANUAL_CONF = "http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin/ManualConnector";
-	protected static final QName CONF_PROPERTY_DEFAULT_ASSIGNEE_QNAME = new QName(NS_MANUAL_CONF, "defaultAssignee");
+	protected static final ItemName CONF_PROPERTY_DEFAULT_ASSIGNEE_QNAME = new ItemName(NS_MANUAL_CONF, "defaultAssignee");
 
 	protected static final File USER_PHANTOM_FILE = new File(TEST_DIR, "user-phantom.xml");
 	protected static final String USER_PHANTOM_OID = "5b12cc6e-575c-11e8-bc16-3744f9bfcac8";
@@ -874,9 +874,9 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		display("Repo shadow", shadowRepo);
 		assertSinglePendingOperation(shadowRepo, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
 		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME,
-				new RawType(new PrismPropertyValue(USER_WILL_NAME), ATTR_USERNAME_QNAME, prismContext));
+				RawType.fromPropertyRealValue(USER_WILL_NAME, ATTR_USERNAME_QNAME, prismContext));
 		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME,
-				new RawType(new PrismPropertyValue(USER_WILL_FULL_NAME), ATTR_FULLNAME_QNAME, prismContext));
+				RawType.fromPropertyRealValue(USER_WILL_FULL_NAME, ATTR_FULLNAME_QNAME, prismContext));
 		assertNoAttribute(shadowRepo, ATTR_DESCRIPTION_QNAME);
 		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
 		assertNoShadowPassword(shadowRepo);
@@ -919,9 +919,9 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		display("Repo shadow", shadowRepo);
 		assertSinglePendingOperation(shadowRepo, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
 		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME,
-				new RawType(new PrismPropertyValue(USER_WILL_NAME), ATTR_USERNAME_QNAME, prismContext));
+				RawType.fromPropertyRealValue(USER_WILL_NAME, ATTR_USERNAME_QNAME, prismContext));
 		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME,
-				new RawType(new PrismPropertyValue(USER_WILL_FULL_NAME), ATTR_FULLNAME_QNAME, prismContext));
+				RawType.fromPropertyRealValue(USER_WILL_FULL_NAME, ATTR_FULLNAME_QNAME, prismContext));
 		assertNoAttribute(shadowRepo, ATTR_DESCRIPTION_QNAME);
 		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
 		assertNoShadowPassword(shadowRepo);
@@ -1114,8 +1114,8 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
-				accountWillOid, new ItemPath(ShadowType.F_ATTRIBUTES, ATTR_FULLNAME_QNAME), prismContext,
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+				accountWillOid, ItemPath.create(ShadowType.F_ATTRIBUTES, ATTR_FULLNAME_QNAME),
 				USER_WILL_FULL_NAME_PIRATE);
 		display("ObjectDelta", delta);
 
@@ -1232,9 +1232,9 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 				accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
 		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
 		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME,
-				new RawType(new PrismPropertyValue(USER_WILL_NAME), ATTR_USERNAME_QNAME, prismContext));
+				RawType.fromPropertyRealValue(USER_WILL_NAME, ATTR_USERNAME_QNAME, prismContext));
 		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME,
-				new RawType(new PrismPropertyValue(USER_WILL_FULL_NAME_PIRATE), ATTR_FULLNAME_QNAME, prismContext));
+				RawType.fromPropertyRealValue(USER_WILL_FULL_NAME_PIRATE, ATTR_FULLNAME_QNAME, prismContext));
 
 		PrismObject<ShadowType> shadowProvisioning = modelService.getObject(ShadowType.class,
 				accountWillOid, null, task, result);
@@ -2025,9 +2025,9 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		// Still old data in the repo. The operation is not completed yet.
 		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
 		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME,
-				new RawType(new PrismPropertyValue(USER_WILL_NAME), ATTR_USERNAME_QNAME, prismContext));
+				RawType.fromPropertyRealValue(USER_WILL_NAME, ATTR_USERNAME_QNAME, prismContext));
 		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME,
-				new RawType(new PrismPropertyValue(USER_WILL_FULL_NAME), ATTR_FULLNAME_QNAME, prismContext));
+				RawType.fromPropertyRealValue(USER_WILL_FULL_NAME, ATTR_FULLNAME_QNAME, prismContext));
 		PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
 				accountWillOid, null, task, result);
 
@@ -2217,9 +2217,9 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowRepo, accountJackReqestTimestampStart, accountJackReqestTimestampEnd);
 		assertNotNull("No ID in pending operation", pendingOperation.getId());
 		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME,
-				new RawType(new PrismPropertyValue(USER_JACK_USERNAME), ATTR_USERNAME_QNAME, prismContext));
+				RawType.fromPropertyRealValue(USER_JACK_USERNAME, ATTR_USERNAME_QNAME, prismContext));
 		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME,
-				new RawType(new PrismPropertyValue(USER_JACK_FULL_NAME), ATTR_FULLNAME_QNAME, prismContext));
+				RawType.fromPropertyRealValue(USER_JACK_FULL_NAME, ATTR_FULLNAME_QNAME, prismContext));
 		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
 		assertShadowExists(shadowRepo, false);
 		assertNoShadowPassword(shadowRepo);

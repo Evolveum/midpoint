@@ -21,7 +21,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -346,7 +345,7 @@ public class CertDefinitionDto implements Serializable {
             if (parsedSearchFilter != null) {
                 // check if everything is OK
                 try {
-                    QueryConvertor.parseFilterPreliminarily(parsedSearchFilter.getFilterClauseXNode(), null, prismContext);
+                    prismContext.getQueryConverter().parseFilterPreliminarily(parsedSearchFilter.getFilterClauseXNode(), null);
                 } catch (SchemaException e) {
                     throw new SystemException("Couldn't parse search filter: " + e.getMessage(), e);
                 }

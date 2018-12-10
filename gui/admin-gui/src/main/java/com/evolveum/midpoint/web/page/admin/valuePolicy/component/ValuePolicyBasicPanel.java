@@ -1,16 +1,13 @@
 package com.evolveum.midpoint.web.page.admin.valuePolicy.component;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismPanel;
 import com.evolveum.midpoint.web.model.ContainerWrapperListFromObjectWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
-import org.apache.wicket.model.IModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +31,7 @@ public class ValuePolicyBasicPanel extends AbstractObjectTabPanel {
  List<ItemPath> itemPath = new ArrayList<>();
 
         itemPath.add(ItemPath.EMPTY_PATH);
-        //itemPath.add(new ItemPath(ValuePolicyType.F_STRING_POLICY));
+        //itemPath.add(prismContext.path(ValuePolicyType.F_STRING_POLICY));
         PrismPanel<ValuePolicyType> valuePolicyForm = new PrismPanel<>(ID_VALUE_POLICY_BASIC_DETAIL, new ContainerWrapperListFromObjectWrapperModel<ValuePolicyType,ValuePolicyType>(getObjectWrapperModel(), itemPath),null, getMainForm(), null, getPageBase());
         add(valuePolicyForm);
     }

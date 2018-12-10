@@ -560,12 +560,12 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 
 	public boolean hasAnyPrimaryChange() throws SchemaException {
 		if (focusContext != null) {
-			if (!ObjectDelta.isNullOrEmpty(focusContext.getPrimaryDelta())) {
+			if (!ObjectDelta.isEmpty(focusContext.getPrimaryDelta())) {
 				return true;
 			}
 		}
 		for (LensProjectionContext projCtx : getProjectionContexts()) {
-			if (!ObjectDelta.isNullOrEmpty(projCtx.getPrimaryDelta())) {
+			if (!ObjectDelta.isEmpty(projCtx.getPrimaryDelta())) {
 				return true;
 			}
 		}
@@ -1138,7 +1138,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 				.findOrCreateContainer(LensContextType.F_PROJECTION_CONTEXT);
 		for (LensProjectionContext lensProjectionContext : projectionContexts) {
 			// primary delta can be null because of delta reduction algorithm (when approving associations)
-			if (!reduced || lensProjectionContext.getPrimaryDelta() != null || !ObjectDelta.isNullOrEmpty(lensProjectionContext.getSyncDelta())) {
+			if (!reduced || lensProjectionContext.getPrimaryDelta() != null || !ObjectDelta.isEmpty(lensProjectionContext.getSyncDelta())) {
 				lensProjectionContext.addToPrismContainer(lensProjectionContextTypeContainer, reduced);
 			}
 		}

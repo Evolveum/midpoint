@@ -29,7 +29,6 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -211,15 +210,15 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 		List<SearchItemDefinition> defs = new ArrayList<>();
 
 		if (getAssignmentType() == null) {
-			SearchFactory.addSearchRefDef(containerDef, new ItemPath(AssignmentType.F_TARGET_REF), defs, AreaCategoryType.ADMINISTRATION, getPageBase());
-			SearchFactory.addSearchRefDef(containerDef, new ItemPath(AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF), defs, AreaCategoryType.ADMINISTRATION, getPageBase());
-			SearchFactory.addSearchPropertyDef(containerDef, new ItemPath(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_NAME), defs);
+			SearchFactory.addSearchRefDef(containerDef, ItemPath.create(AssignmentType.F_TARGET_REF), defs, AreaCategoryType.ADMINISTRATION, getPageBase());
+			SearchFactory.addSearchRefDef(containerDef, ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF), defs, AreaCategoryType.ADMINISTRATION, getPageBase());
+			SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_NAME), defs);
 			SearchFactory.addSearchRefDef(containerDef,
-					new ItemPath(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS,
+					ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS,
 							PolicyConstraintsType.F_EXCLUSION, ExclusionPolicyConstraintType.F_TARGET_REF), defs, AreaCategoryType.POLICY, getPageBase());
 		}
-		SearchFactory.addSearchPropertyDef(containerDef, new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), defs);
-		SearchFactory.addSearchPropertyDef(containerDef, new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS), defs);
+		SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), defs);
+		SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS), defs);
 
 		defs.addAll(SearchFactory.createExtensionDefinitionList(containerDef));
 
@@ -232,7 +231,7 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 	}
 
 	protected void initCustomPaging(){
-		getAssignmentsTabStorage().setPaging(ObjectPaging.createPaging(0, (int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE)));
+		getAssignmentsTabStorage().setPaging(getPrismContext().queryFactory().createPaging(0, (int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE)));
 	}
 
 	protected ObjectTabStorage getAssignmentsTabStorage(){
@@ -246,16 +245,11 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 	protected ObjectQuery createObjectQuery(){
 		Collection<QName> delegationRelations = getParentPage().getRelationRegistry()
 				.getAllRelationsFor(RelationKindType.DELEGATION);
-		ObjectFilter deputyFilter = QueryBuilder.queryFor(AssignmentType.class, getParentPage().getPrismContext())
-				.item(new ItemPath(AssignmentType.F_TARGET_REF))
+		return getParentPage().getPrismContext().queryFor(AssignmentType.class)
+				.not()
+				.item(AssignmentType.F_TARGET_REF)
 				.ref(delegationRelations.toArray(new QName[0]))
-				.buildFilter();
-
-		ObjectQuery query = QueryBuilder.queryFor(AssignmentType.class, getParentPage().getPrismContext())
 				.build();
-		query.addFilter(NotFilter.createNot(deputyFilter));
-		return query;
-
 	}
 
 	private List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initBasicColumns() {
@@ -506,11 +500,11 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 	}
 
 	private ItemVisibility getActivationVisibileItems(ItemPath pathToCheck, ItemPath assignmentPath) {
-		if (assignmentPath.append(new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP)).equivalent(pathToCheck)) {
+		if (assignmentPath.append(ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP)).equivalent(pathToCheck)) {
 			return ItemVisibility.HIDDEN;
 		}
 
-		if (assignmentPath.append(new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS)).equivalent(pathToCheck)) {
+		if (assignmentPath.append(ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS)).equivalent(pathToCheck)) {
 			return ItemVisibility.HIDDEN;
 		}
 
@@ -522,7 +516,6 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 		specificContainers.add(getSpecificContainerPanel(modelObject));
 		return specificContainers;
 	}
-
 	protected PrismContainerPanel getSpecificContainerPanel(ContainerValueWrapper<AssignmentType> modelObject) {
 		Form form = new Form<>("form");
 		ItemPath assignmentPath = modelObject.getPath();
@@ -534,17 +527,17 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 	}
 
 	protected ItemVisibility getSpecificContainersItemsVisibility(ItemWrapper itemWrapper, ItemPath parentAssignmentPath) {
-		if(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_ATTRIBUTE).append(ResourceAttributeDefinitionType.F_INBOUND).removeIdentifiers().isSubPathOrEquivalent(itemWrapper.getPath().removeIdentifiers())
-				|| parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_ASSOCIATION).append(ResourceAttributeDefinitionType.F_INBOUND).removeIdentifiers().isSubPathOrEquivalent(itemWrapper.getPath().removeIdentifiers())) {
+		if(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_ATTRIBUTE).append(ResourceAttributeDefinitionType.F_INBOUND).namedSegmentsOnly().isSubPathOrEquivalent(itemWrapper.getPath().namedSegmentsOnly())
+				|| parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_ASSOCIATION).append(ResourceAttributeDefinitionType.F_INBOUND).namedSegmentsOnly().isSubPathOrEquivalent(itemWrapper.getPath().namedSegmentsOnly())) {
 			return ItemVisibility.HIDDEN;
 		}
 		if (ContainerWrapper.class.isAssignableFrom(itemWrapper.getClass())){
 			return ItemVisibility.AUTO;
 		}
 		List<ItemPath> pathsToHide = new ArrayList<>();
-		pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_RESOURCE_REF).removeIdentifiers());
-		pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_AUXILIARY_OBJECT_CLASS).removeIdentifiers());
-		if (PropertyOrReferenceWrapper.class.isAssignableFrom(itemWrapper.getClass()) && !WebComponentUtil.isItemVisible(pathsToHide, itemWrapper.getPath().removeIdentifiers())) {
+		pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_RESOURCE_REF).namedSegmentsOnly());
+		pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_AUXILIARY_OBJECT_CLASS).namedSegmentsOnly());
+		if (PropertyOrReferenceWrapper.class.isAssignableFrom(itemWrapper.getClass()) && !WebComponentUtil.isItemVisible(pathsToHide, itemWrapper.getPath().namedSegmentsOnly())) {
 			return ItemVisibility.AUTO;
 		} else {
 			return ItemVisibility.HIDDEN;
@@ -700,13 +693,13 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 	}
 
 	private IModel<String> getActivationLabelModel(ContainerValueWrapper<AssignmentType> assignmentContainer){
-		ContainerWrapper<ActivationType> activationContainer = assignmentContainer.findContainerWrapper(assignmentContainer.getPath().append(new ItemPath(AssignmentType.F_ACTIVATION)));
+		ContainerWrapper<ActivationType> activationContainer = assignmentContainer.findContainerWrapper(assignmentContainer.getPath().append(AssignmentType.F_ACTIVATION));
 		ActivationStatusType administrativeStatus = null;
 		XMLGregorianCalendar validFrom = null;
 		XMLGregorianCalendar validTo = null;
 		ActivationType activation = null;
 		String lifecycleStatus = "";
-		PropertyOrReferenceWrapper lifecycleStatusProperty = assignmentContainer.findPropertyWrapper(AssignmentType.F_LIFECYCLE_STATE);
+		PropertyOrReferenceWrapper lifecycleStatusProperty = assignmentContainer.findPropertyWrapperByName(AssignmentType.F_LIFECYCLE_STATE);
 		if (lifecycleStatusProperty != null && lifecycleStatusProperty.getValues() != null){
 			Iterator<ValueWrapper> iter = lifecycleStatusProperty.getValues().iterator();
 			if (iter.hasNext()){

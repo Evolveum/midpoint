@@ -23,7 +23,6 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;

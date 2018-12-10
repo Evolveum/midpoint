@@ -28,9 +28,9 @@ e.g. on midPoint initialization or when generating schemadocs during maven build
 
 <catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog" prefer="public">
 
-    <public publicId="http://prism.evolveum.com/xml/ns/public/annotation-3" uri="../prism/xml/ns/public/annotation-3.xsd" />
-    <public publicId="http://prism.evolveum.com/xml/ns/public/types-3" uri="../prism/xml/ns/public/types-3.xsd" />
-    <public publicId="http://prism.evolveum.com/xml/ns/public/query-3" uri="../prism/xml/ns/public/query-3.xsd" />
+    <public publicId="http://prism.evolveum.com/xml/ns/public/annotation-3" uri="../prism-impl/xml/ns/public/annotation-3.xsd" />
+    <public publicId="http://prism.evolveum.com/xml/ns/public/types-3" uri="../prism-impl/xml/ns/public/types-3.xsd" />
+    <public publicId="http://prism.evolveum.com/xml/ns/public/query-3" uri="../prism-impl/xml/ns/public/query-3.xsd" />
 
     <nextCatalog catalog="schemas-in-this-module.xml"/>     <!-- doesn't work from schemadoc generator -->
 </catalog>

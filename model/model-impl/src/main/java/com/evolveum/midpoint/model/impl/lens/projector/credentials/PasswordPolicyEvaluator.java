@@ -28,7 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 public class PasswordPolicyEvaluator extends CredentialPolicyEvaluator<PasswordType,PasswordCredentialsPolicyType> {
 
-	private static final ItemPath PASSWORD_CONTAINER_PATH = new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD);
+	private static final ItemPath PASSWORD_CONTAINER_PATH = ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD);
 
 	@Override
 	public ItemPath getCredentialsContainerPath() {

@@ -29,7 +29,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.report.api.ReportManager;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -273,7 +272,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
 
         List<PrismObject<ReportOutputType>> obsoleteReportOutputs = new ArrayList<>();
         try {
-            ObjectQuery obsoleteReportOutputsQuery = QueryBuilder.queryFor(ReportOutputType.class, prismContext)
+            ObjectQuery obsoleteReportOutputsQuery = prismContext.queryFor(ReportOutputType.class)
 					.item(ReportOutputType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP).le(timeXml)
 					.build();
             obsoleteReportOutputs = modelService.searchObjects(ReportOutputType.class, obsoleteReportOutputsQuery, null, null, result);
@@ -353,7 +352,8 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
 				ReportNodeUtils.executeOperation(hostName, filename, icUrlPattern, "DELETE");
 			}
 
-			ObjectDelta<ReportOutputType> delta = ObjectDelta.createDeleteDelta(ReportOutputType.class, oid, prismContext);
+			ObjectDelta<ReportOutputType> delta = prismContext.deltaFactory().object()
+					.createDeleteDelta(ReportOutputType.class, oid);
 			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
 
 			modelService.executeChanges(deltas, null, task, result);

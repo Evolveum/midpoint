@@ -2,7 +2,7 @@ package com.evolveum.midpoint.ninja.impl;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.schema.SchemaRegistryImpl;
+import com.evolveum.midpoint.prism.impl.schema.SchemaRegistryImpl;
 import com.evolveum.midpoint.prism.util.PrismContextFactory;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;

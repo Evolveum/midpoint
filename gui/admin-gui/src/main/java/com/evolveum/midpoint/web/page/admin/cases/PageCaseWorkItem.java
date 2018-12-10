@@ -20,10 +20,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.CaseManagementService;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -63,7 +60,6 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.Collection;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.resolveItemsNamed;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_OBJECT_REF;
 
 /**
@@ -158,9 +154,8 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
 		OperationResult result = task.getResult();
 		CaseDto caseDto = null;
 		try {
-			final Collection<SelectorOptions<GetOperationOptions>> options =
-					resolveItemsNamed(F_OBJECT_REF);
-			PrismObject<CaseType> caseObject = WebModelServiceUtils.loadObject(CaseType.class, caseId, options,
+			GetOperationOptionsBuilder optionsBuilder = getOperationOptionsBuilder().item(F_OBJECT_REF).resolve();
+			PrismObject<CaseType> caseObject = WebModelServiceUtils.loadObject(CaseType.class, caseId, optionsBuilder.build(),
 					PageCaseWorkItem.this, task, result);
 			final CaseType caseInstance = caseObject.asObjectable();
 			caseDto = new CaseDto(caseInstance);

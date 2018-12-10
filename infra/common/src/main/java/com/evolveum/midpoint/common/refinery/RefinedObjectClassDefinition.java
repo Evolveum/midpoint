@@ -21,7 +21,7 @@ import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.util.ItemPathUtil;
+import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -54,11 +54,11 @@ public interface RefinedObjectClassDefinition extends ObjectClassComplexTypeDefi
 	Collection<? extends RefinedAttributeDefinition<?>> getAttributeDefinitions();
 
 	default boolean containsAttributeDefinition(ItemPathType pathType) {
-		QName segmentQName = ItemPathUtil.getOnlySegmentQName(pathType);
+		QName segmentQName = ItemPathTypeUtil.asSingleNameOrFailNullSafe(pathType);
 		return containsAttributeDefinition(segmentQName);
 	}
 
-	default boolean containsAttributeDefinition(QName attributeName) {
+	default boolean containsAttributeDefinition(@NotNull QName attributeName) {
 		return findAttributeDefinition(attributeName) != null;
 	}
 

@@ -639,8 +639,8 @@ public class TestLdapVirtualGroup extends AbstractStoryTest {
 			PrismContainer<?> extension, ActivationType activationType, boolean add) throws SchemaException {
 		Collection<ItemDelta<?, ?>> modifications = new ArrayList<>();
 		modifications.add((createAssignmentModification(roleOid, refType, relation, extension, activationType, add)));
-		ObjectDelta<OrgType> userDelta = ObjectDelta.createModifyDelta(orgOid, modifications, OrgType.class,
-				prismContext);
+		ObjectDelta<OrgType> userDelta = prismContext.deltaFactory().object().createModifyDelta(orgOid, modifications, OrgType.class
+		);
 		return userDelta;
 	}
 

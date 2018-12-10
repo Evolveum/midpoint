@@ -23,8 +23,8 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -76,7 +76,8 @@ public class InducedEntitlementsPanel extends InducementsPanel{
 
     @Override
     protected void initCustomPaging() {
-        getInducedEntitlementsTabStorage().setPaging(ObjectPaging.createPaging(0, ((int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.INDUCED_ENTITLEMENTS_TAB_TABLE))));
+        getInducedEntitlementsTabStorage().setPaging(getPrismContext().queryFactory()
+                .createPaging(0, ((int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.INDUCED_ENTITLEMENTS_TAB_TABLE))));
     }
 
     @Override
@@ -156,7 +157,7 @@ public class InducedEntitlementsPanel extends InducementsPanel{
                     protected void choosePerformedHook(AjaxRequestTarget target, List<ShadowType> selectedList) {
                         ShadowType shadow = selectedList != null && selectedList.size() > 0 ? selectedList.get(0) : null;
                         if (shadow != null && StringUtils.isNotEmpty(shadow.getOid())){
-                            ExpressionType expression = WebComponentUtil.getAssociationExpression(rowModel.getObject(), true);
+                            ExpressionType expression = WebComponentUtil.getAssociationExpression(rowModel.getObject(), true, getPrismContext());
                             ExpressionUtil.addShadowRefEvaluatorValue(expression, shadow.getOid(),
                                     InducedEntitlementsPanel.this.getPageBase().getPrismContext());
                         }
@@ -178,7 +179,7 @@ public class InducedEntitlementsPanel extends InducementsPanel{
 
     @Override
     protected ObjectQuery createObjectQuery() {
-        return QueryBuilder.queryFor(AssignmentType.class, getParentPage().getPrismContext())
+        return getParentPage().getPrismContext().queryFor(AssignmentType.class)
                 .exists(AssignmentType.F_CONSTRUCTION)
                 .build();
     }

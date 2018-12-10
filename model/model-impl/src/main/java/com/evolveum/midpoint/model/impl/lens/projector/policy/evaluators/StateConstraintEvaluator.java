@@ -26,7 +26,6 @@ import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
@@ -121,8 +120,7 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
 			return null;
 		}
 		if (constraint.getFilter() != null) {
-			ObjectFilter filter = QueryConvertor
-					.parseFilter(constraint.getFilter(), object.asObjectable().getClass(), prismContext);
+			ObjectFilter filter = prismContext.getQueryConverter().parseFilter(constraint.getFilter(), object.asObjectable().getClass());
 			if (!filter.match(object.getValue(), matchingRuleRegistry)) {
 				return null;
 			}

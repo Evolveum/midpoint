@@ -33,9 +33,7 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
@@ -73,6 +71,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -185,10 +184,10 @@ public class ExpressionUtil {
 
 		Object root = defaultContext;
 		ItemPath relativePath = path;
-		ItemPathSegment first = path.first();
+		Object first = path.first();
 		String varDesc = "default context";
-		if (first.isVariable()) {
-			QName varName = ((NameItemPathSegment) first).getName();
+		if (ItemPath.isVariable(first)) {
+			QName varName = ItemPath.toVariableName(first);
 			varDesc = "variable " + PrettyPrinter.prettyPrint(varName);
 			relativePath = path.rest();
 			if (variables.containsKey(varName)) {
@@ -247,9 +246,10 @@ public class ExpressionUtil {
 		}
 	}
 
-	public static <V extends PrismValue, F extends FocusType> Collection<V> computeTargetValues(VariableBindingDefinitionType target,
+	public static <V extends PrismValue, F extends FocusType> Collection<V> computeTargetValues(
+			VariableBindingDefinitionType target,
 			Object defaultTargetContext, ExpressionVariables variables, ObjectResolver objectResolver, String contextDesc,
-			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+			PrismContext prismContext, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		if (target == null) {
 			// Is this correct? What about default targets?
 			return null;
@@ -271,7 +271,7 @@ public class ExpressionUtil {
 			return (List<V>) Collections.singletonList((PrismValue) object);
 		} else if (object instanceof ItemDeltaItem) {
 			ItemDeltaItem<V, ?> idi = (ItemDeltaItem<V, ?>) object;
-			PrismValueDeltaSetTriple<V> triple = idi.toDeltaSetTriple();
+			PrismValueDeltaSetTriple<V> triple = idi.toDeltaSetTriple(prismContext);
 			return triple != null ? triple.getNonNegativeValues() : new ArrayList<>();
 		} else {
 			throw new IllegalStateException("Unsupported target value(s): " + object.getClass() + " (" + object + ")");
@@ -391,18 +391,18 @@ public class ExpressionUtil {
 		}
 	}
 
-	public static <ID extends ItemDefinition> ID resolveDefinitionPath(ItemPath path,
+	public static <ID extends ItemDefinition> ID resolveDefinitionPath(@NotNull ItemPath path,
 			ExpressionVariables variables, PrismContainerDefinition<?> defaultContext, String shortDesc)
 					throws SchemaException {
-		while (path != null && !path.isEmpty() && !(path.first() instanceof NameItemPathSegment)) {
+		while (!path.isEmpty() && !path.startsWithName() && !path.startsWithVariable()) {
 			path = path.rest();
 		}
 		Object root = defaultContext;
 		ItemPath relativePath = path;
-		NameItemPathSegment first = (NameItemPathSegment) path.first();
-		if (first.isVariable()) {
+		Object first = path.first();
+		if (ItemPath.isVariable(first)) {
 			relativePath = path.rest();
-			QName varName = first.getName();
+			QName varName = ItemPath.toVariableName(first);
 			if (variables.containsKey(varName)) {
 				Object varValue = variables.get(varName);
 				if (varValue instanceof ItemDeltaItem<?, ?>) {
@@ -526,7 +526,7 @@ public class ExpressionUtil {
 				if (inOidFilter.getOids() != null && !inOidFilter.getOids().isEmpty()){
 					return filter.clone();
 				}
-				return NoneFilter.createNone();
+				return FilterCreationUtil.createNone(prismContext);
 			}
 
 			ExpressionType valueExpression = getExpression(expressionWrapper, shortDesc);
@@ -538,7 +538,7 @@ public class ExpressionUtil {
 				if (expressionResult == null || expressionResult.isEmpty()) {
 					LOGGER.debug("Result of search filter expression was null or empty. Expression: {}",
 							valueExpression);
-					return createFilterForNoValue(filter, valueExpression);
+					return createFilterForNoValue(filter, valueExpression, prismContext);
 				}
 				// TODO: log more context
 				LOGGER.trace("Search filter expression in the rule for {} evaluated to {}.", shortDesc, expressionResult);
@@ -566,7 +566,7 @@ public class ExpressionUtil {
 				if (expressionResult == null || expressionResult.isEmpty()) {
 					LOGGER.debug("Result of search filter expression was null or empty. Expression: {}",
 							valueExpression);
-					return createFilterForNoValue(filter, valueExpression);
+					return createFilterForNoValue(filter, valueExpression, prismContext);
 				}
 				// TODO: log more context
 				LOGGER.trace("Search filter expression in the rule for {} evaluated to {}.",
@@ -614,7 +614,7 @@ public class ExpressionUtil {
 					LOGGER.debug("Result of search filter expression was null or empty. Expression: {}",
 							valueExpression);
 
-					return createFilterForNoValue(valueFilter, valueExpression);
+					return createFilterForNoValue(valueFilter, valueExpression, prismContext);
 				}
 				// TODO: log more context
 				LOGGER.trace("Search filter expression in the rule for {} evaluated to {}.",
@@ -689,7 +689,8 @@ public class ExpressionUtil {
 		return (ExpressionType) expressionWrapper.getExpression();
 	}
 
-	private static ObjectFilter createFilterForNoValue(ObjectFilter filter, ExpressionType valueExpression) throws ExpressionEvaluationException {
+	private static ObjectFilter createFilterForNoValue(ObjectFilter filter, ExpressionType valueExpression,
+			PrismContext prismContext) throws ExpressionEvaluationException {
 		QueryInterpretationOfNoValueType queryInterpretationOfNoValue = valueExpression.getQueryInterpretationOfNoValue();
 		if (queryInterpretationOfNoValue == null) {
 			queryInterpretationOfNoValue = QueryInterpretationOfNoValueType.FILTER_EQUAL_NULL;
@@ -698,13 +699,13 @@ public class ExpressionUtil {
 		switch (queryInterpretationOfNoValue) {
 
 			case FILTER_UNDEFINED:
-				return UndefinedFilter.createUndefined();
+				return FilterCreationUtil.createUndefined(prismContext);
 
 			case FILTER_NONE:
-				return NoneFilter.createNone();
+				return FilterCreationUtil.createNone(prismContext);
 
 			case FILTER_ALL:
-				return AllFilter.createAll();
+				return FilterCreationUtil.createAll(prismContext);
 
 			case FILTER_EQUAL_NULL:
 				if (filter instanceof ValueFilter) {
@@ -712,9 +713,9 @@ public class ExpressionUtil {
 					evaluatedFilter.setExpression(null);
 					return evaluatedFilter;
 				} else if (filter instanceof InOidFilter) {
-					return NoneFilter.createNone();
+					return FilterCreationUtil.createNone(prismContext);
 				} else if (filter instanceof FullTextFilter) {
-					return NoneFilter.createNone(); // because full text search for 'no value' is meaningless
+					return FilterCreationUtil.createNone(prismContext); // because full text search for 'no value' is meaningless
 				} else {
 					throw new IllegalArgumentException("Unknown filter to evaluate: " + filter);
 				}
@@ -741,8 +742,8 @@ public class ExpressionUtil {
 		}
 
 		if (outputDefinition == null) {
-			outputDefinition = new PrismPropertyDefinitionImpl(ExpressionConstants.OUTPUT_ELEMENT_NAME,
-					DOMUtil.XSD_STRING, prismContext);
+			outputDefinition = prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME,
+					DOMUtil.XSD_STRING);
 		}
 
 		return (V) evaluateExpression(variables, outputDefinition, expressionType, expressionFactory, shortDesc,
@@ -790,8 +791,8 @@ public class ExpressionUtil {
 			String shortDesc, Task task, OperationResult parentResult)
 					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-		PrismPropertyDefinitionImpl<String> outputDefinition = new PrismPropertyDefinitionImpl(
-				ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_STRING, prismContext);
+		MutablePrismPropertyDefinition<String> outputDefinition = prismContext.definitionFactory().createPropertyDefinition(
+				ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_STRING);
 		outputDefinition.setMaxOccurs(-1);
 		Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression = expressionFactory
 				.makeExpression(expressionType, outputDefinition, shortDesc, task, parentResult);
@@ -810,7 +811,7 @@ public class ExpressionUtil {
 			return null;
 		}
 
-		return PrismValue.getRealValuesOfCollection((Collection) nonNegativeValues);
+		return PrismValueCollectionsUtil.getRealValuesOfCollection((Collection) nonNegativeValues);
 		// return nonNegativeValues.iterator().next();
 	}
 
@@ -818,9 +819,8 @@ public class ExpressionUtil {
 			ExpressionType expressionType, ExpressionFactory expressionFactory, String shortDesc, Task task,
 			OperationResult parentResult)
 					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-		ItemDefinition outputDefinition = new PrismPropertyDefinitionImpl(
-				ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN,
-				expressionFactory.getPrismContext());
+		ItemDefinition outputDefinition = expressionFactory.getPrismContext().definitionFactory().createPropertyDefinition(
+				ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN);
 		return (PrismPropertyValue<Boolean>) evaluateExpression(variables, outputDefinition, expressionType,
 				expressionFactory, shortDesc, task, parentResult);
 	}
@@ -1016,7 +1016,7 @@ public class ExpressionUtil {
 			}
 			return (V) ((Containerable) value).asPrismContainerValue();
 		} else {
-			return (V) new PrismPropertyValue<>(value);
+			return (V) prismContext.itemFactory().createPropertyValue(value);
 		}
 	}
 
@@ -1049,6 +1049,6 @@ public class ExpressionUtil {
 	}
 	
 	public static PrismPropertyDefinition<Boolean> createConditionOutputDefinition(PrismContext prismContext) {
-		return new PrismPropertyDefinitionImpl<>(ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN, prismContext);
+		return prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN);
 	}
 }

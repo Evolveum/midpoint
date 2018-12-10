@@ -19,7 +19,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.provisioning.impl.ShadowCache;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -57,8 +56,8 @@ public class MultiPropagationResultHandler extends AbstractSearchIterativeResult
 			throws CommonException {
 		
 		LOGGER.trace("Propagating provisioning operations on {}", resource);
-		ObjectQuery query = new ObjectQuery();
-		ObjectFilter filter = QueryBuilder.queryFor(ShadowType.class, resource.getPrismContext())
+		ObjectQuery query = resource.getPrismContext().queryFactory().createQuery();
+		ObjectFilter filter = resource.getPrismContext().queryFor(ShadowType.class)
 				.item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
 				.and()
 				.exists(ShadowType.F_PENDING_OPERATION)

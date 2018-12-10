@@ -21,6 +21,7 @@ import java.util.Map;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -28,7 +29,6 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.ValueParser;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.task.api.Task;
@@ -175,9 +175,8 @@ public class TestModelWebServiceNegative extends AbstractInitializedModelIntegra
 		objectChange.setObjectType(ObjectTypes.SHADOW.getTypeQName());
 		ItemDeltaType itemDeltaType = new ItemDeltaType();
 		itemDeltaType.setModificationType(ModificationTypeType.REPLACE);
-		ItemPathType itemPath = new ItemPathType(path);
+		ItemPathType itemPath = prismContext.itemPathParser().asItemPathType(path);
 		itemDeltaType.setPath(itemPath);
-		PrimitiveXNode<String> xnode = new PrimitiveXNode<>();
 		ValueParser<String> valueParser = new ValueParser<String>() {
 			@Override
 			public String parse(QName typeName, XNodeProcessorEvaluationMode mode) throws SchemaException {
@@ -199,11 +198,7 @@ public class TestModelWebServiceNegative extends AbstractInitializedModelIntegra
                 throw new UnsupportedOperationException();
             }
         };
-		xnode.setValueParser(valueParser);
-		if (type != null) {
-			xnode.setExplicitTypeDeclaration(true);
-			xnode.setTypeQName(type);
-		}
+		PrimitiveXNode<String> xnode = prismContext.xnodeFactory().primitive(valueParser, type, type != null);
 		RawType rawValue = new RawType(xnode, prismContext);
 		itemDeltaType.getValue().add(rawValue);
 		objectChange.getItemDelta().add(itemDeltaType);

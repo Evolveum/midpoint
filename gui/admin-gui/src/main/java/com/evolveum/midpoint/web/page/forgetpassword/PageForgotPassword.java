@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.forgetpassword;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.query.QueryFactory;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.validation.validator.RfcCompliantEmailAddressValidator;
@@ -33,10 +34,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -61,7 +60,6 @@ import com.evolveum.midpoint.web.page.forgetpassword.ResetPolicyDto.ResetMethod;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.page.login.PageRegistrationBase;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceCredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -340,13 +338,14 @@ public class PageForgotPassword extends PageRegistrationBase {
 		}
 
 		List<EqualFilter> filters = new ArrayList<>();
+		QueryFactory queryFactory = getPrismContext().queryFactory();
 		for (ItemPath path : filledItems) {
 			PrismProperty property = user.findProperty(path);
-			EqualFilter filter = EqualFilter.createEqual(path, property.getDefinition(), null);
+			EqualFilter filter = queryFactory.createEqual(path, property.getDefinition(), null);
 			filter.setValue(property.getAnyValue().clone());
 			filters.add(filter);
 		}
-		return ObjectQuery.createObjectQuery(AndFilter.createAnd((List) filters));
+		return queryFactory.createQuery(queryFactory.createAnd((List) filters));
 	}
 
 	private ObjectQuery createStaticFormQuery(Form form) {
@@ -369,11 +368,11 @@ public class PageForgotPassword extends PageRegistrationBase {
 
 		switch (method) {
 			case MAIL:
-				return QueryBuilder.queryFor(UserType.class, getPrismContext()).item(UserType.F_EMAIL_ADDRESS)
+				return getPrismContext().queryFor(UserType.class).item(UserType.F_EMAIL_ADDRESS)
 						.eq(email).matchingCaseIgnore().build();
 
 			case SECURITY_QUESTIONS:
-				return QueryBuilder.queryFor(UserType.class, getPrismContext()).item(UserType.F_NAME)
+				return getPrismContext().queryFor(UserType.class).item(UserType.F_NAME)
 						.eqPoly(username).matchingNorm().and().item(UserType.F_EMAIL_ADDRESS).eq(email)
 						.matchingCaseIgnore().build();
 
@@ -446,8 +445,9 @@ public class PageForgotPassword extends PageRegistrationBase {
 //					NonceType nonceType = new NonceType();
 //					nonceType.setValue(nonceCredentials);
 
-					ObjectDelta<UserType> nonceDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, user.getOid(),
-							SchemaConstants.PATH_NONCE_VALUE, getPrismContext(), nonceCredentials);
+					ObjectDelta<UserType> nonceDelta = getPrismContext().deltaFactory().object()
+							.createModificationReplaceProperty(UserType.class, user.getOid(),
+							SchemaConstants.PATH_NONCE_VALUE, nonceCredentials);
 
 					WebModelServiceUtils.save(nonceDelta, result, task, PageForgotPassword.this);
 				} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException e) {

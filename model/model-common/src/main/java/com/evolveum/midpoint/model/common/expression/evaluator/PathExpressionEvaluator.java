@@ -26,11 +26,10 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.delta.ItemDeltaUtil;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
@@ -74,7 +73,7 @@ public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
 		if (context.getSources() != null && context.getSources().size() == 1) {
 			Source<?,?> source = context.getSources().iterator().next();
 			if (path.isEmpty()) {
-				PrismValueDeltaSetTriple<V> outputTriple = (PrismValueDeltaSetTriple<V>) source.toDeltaSetTriple();
+				PrismValueDeltaSetTriple<V> outputTriple = (PrismValueDeltaSetTriple<V>) source.toDeltaSetTriple(prismContext);
 				return outputTriple.clone();
 			}
 			resolveContext = source;
@@ -83,9 +82,9 @@ public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
         Map<QName, Object> variablesAndSources = ExpressionUtil.compileVariablesAndSources(context);
 
         ItemPath resolvePath = path;
-        ItemPathSegment first = path.first();
-        if (first instanceof NameItemPathSegment && first.isVariable()) {
-			QName variableName = ((NameItemPathSegment)first).getName();
+        Object first = path.first();
+        if (ItemPath.isVariable(first)) {
+			QName variableName = ItemPath.toVariableName(first);
 			Object variableValue;
         	if (variablesAndSources.containsKey(variableName)) {
         		variableValue = variablesAndSources.get(variableName);
@@ -103,7 +102,7 @@ public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
         		resolveContext = ExpressionUtil.toItemDeltaItem(variableValue, objectResolver,
         				"path expression in "+ context.getContextDescription(), context.getResult());
     		} else if (variableValue instanceof PrismPropertyValue<?>){
-    			PrismValueDeltaSetTriple<V> outputTriple = new PrismValueDeltaSetTriple<>();
+    			PrismValueDeltaSetTriple<V> outputTriple = prismContext.deltaFactory().createPrismValueDeltaSetTriple();
     			outputTriple.addToZeroSet((V) variableValue);
     			return ExpressionUtil.toOutputTriple(outputTriple, outputDefinition, context.getAdditionalConvertor(), null, protector, prismContext);
     		} else {
@@ -119,8 +118,8 @@ public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
 
        while (!resolvePath.isEmpty()) {
     	    if (resolveContext.isContainer()) {
-        		resolveContext = resolveContext.findIdi(resolvePath.head());
-        		resolvePath = resolvePath.tail();
+        		resolveContext = resolveContext.findIdi(resolvePath.firstAsPath());
+        		resolvePath = resolvePath.rest();
         		if (resolveContext == null) {
         			throw new ExpressionEvaluationException("Cannot find item using path "+path+" in "+ context.getContextDescription());
         		}
@@ -128,7 +127,7 @@ public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
         		// The output path does not really matter. The delta will be converted to triple anyway
                 // But the path cannot be null, oherwise the code will die
         		resolveContext = resolveContext.resolveStructuredProperty(resolvePath, (PrismPropertyDefinition) outputDefinition,
-                        ItemPath.EMPTY_PATH);
+                        ItemPath.EMPTY_PATH, prismContext);
         		break;
         	} else if (resolveContext.isNull()){
         		break;
@@ -137,8 +136,8 @@ public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
         	}
         }
 
-        PrismValueDeltaSetTriple<V> outputTriple = ItemDelta.toDeltaSetTriple((Item<V,D>)resolveContext.getItemOld(),
-        		(ItemDelta<V,D>)resolveContext.getDelta());
+        PrismValueDeltaSetTriple<V> outputTriple = ItemDeltaUtil.toDeltaSetTriple((Item<V,D>)resolveContext.getItemOld(),
+        		(ItemDelta<V,D>)resolveContext.getDelta(), prismContext);
 
         if (outputTriple == null) {
         	return null;

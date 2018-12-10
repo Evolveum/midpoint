@@ -24,10 +24,10 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
-import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -38,7 +38,6 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -46,12 +45,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -223,7 +217,7 @@ public class TestSemiManualGrouping extends AbstractGroupingManualResourceTest {
 									.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTION_PENDING)
 									.delta()
 										.assertModify()
-										.assertHasModification(new ItemPath(ShadowType.F_ATTRIBUTES, new QName(MidPointConstants.NS_RI, "fullname")))
+										.assertHasModification(ItemPath.create(ShadowType.F_ATTRIBUTES, new QName(MidPointConstants.NS_RI, "fullname")))
 										.end()
 									.end()
 								.end()

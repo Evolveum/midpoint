@@ -18,6 +18,8 @@ package com.evolveum.midpoint.model.common.expression;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 
+import com.evolveum.midpoint.prism.impl.marshaller.ItemPathParserTemp;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -39,8 +41,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.marshaller.ItemPathHolder;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
@@ -168,7 +169,7 @@ public class TestExpressionUtil {
     	assertEquals("Wrong resolved idi new value", PrismTestUtil.createPolyString("Captain Jack Sparrow"),
     			((PrismProperty<PolyString>)idi.getItemNew()).getRealValue());
 
-    	PrismAsserts.assertPathEquivalent("Wrong residual path", new ItemPath(PolyString.F_ORIG), idi.getResidualPath());
+    	PrismAsserts.assertPathEquivalent("Wrong residual path", PolyString.F_ORIG, idi.getResidualPath());
     }
 
     @Test
@@ -187,7 +188,7 @@ public class TestExpressionUtil {
     	assertEquals("Wrong resolved idi new value", PrismTestUtil.createPolyString("Captain Jack Sparrow"),
     			((PrismProperty<PolyString>)idi.getItemNew()).getRealValue());
 
-        PrismAsserts.assertPathEquivalent("Wrong residual path", new ItemPath(PolyString.F_NORM), idi.getResidualPath());
+        PrismAsserts.assertPathEquivalent("Wrong residual path", PolyString.F_NORM, idi.getResidualPath());
 
     }
 
@@ -224,8 +225,8 @@ public class TestExpressionUtil {
 	private ExpressionVariables createVariablesOdo() throws SchemaException, IOException {
 		ExpressionVariables variables = new ExpressionVariables();
 		PrismObject<UserType> userOld = createUser();
-		ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class,
-				userOld.getOid(), UserType.F_FULL_NAME, PrismTestUtil.getPrismContext(),
+		ObjectDelta<UserType> delta = PrismTestUtil.getPrismContext().deltaFactory().object().createModificationReplaceProperty(UserType.class,
+				userOld.getOid(), UserType.F_FULL_NAME,
 				PrismTestUtil.createPolyString("Captain Jack Sparrow"));
 		ObjectDeltaObject<UserType> odo = new ObjectDeltaObject<>(userOld, delta, null);
 		odo.recompute();
@@ -237,15 +238,14 @@ public class TestExpressionUtil {
 		return PrismTestUtil.parseObject(USER_JACK_FILE);
 	}
 
-	private ItemPath toItemPath(String stringPath) {
+	// the path can contain t:xyz elements
+	private UniformItemPath toItemPath(String stringPath) {
 		String xml = "<path " +
 				"xmlns='"+SchemaConstants.NS_C+"' " +
 				"xmlns:t='"+SchemaConstants.NS_TYPES+"'>" +
 				stringPath + "</path>";
 		Document doc = DOMUtil.parseDocument(xml);
 		Element element = DOMUtil.getFirstChildElement(doc);
-		return new ItemPathHolder(element).toItemPath();
-
+		return ItemPathParserTemp.parseFromElement(element);
 	}
-
 }

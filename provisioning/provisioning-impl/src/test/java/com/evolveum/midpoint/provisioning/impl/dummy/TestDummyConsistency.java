@@ -28,6 +28,7 @@ import java.util.Collection;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Listeners;
@@ -37,7 +38,6 @@ import com.evolveum.icf.dummy.resource.BreakMode;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.PointInTimeType;
@@ -49,7 +49,6 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
-import com.evolveum.midpoint.test.asserter.ShadowAttributesAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -60,8 +59,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationTypeType;
@@ -657,8 +654,8 @@ public class TestDummyConsistency extends AbstractDummyTest {
 		dummyResource.setBreakMode(BreakMode.NETWORK);
 		lastRequestStartTs = lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
 		
-		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
-				shadowMorganOid, dummyResourceCtl.getAttributeFullnamePath(), prismContext, ACCOUNT_MORGAN_FULLNAME_HM);
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+				shadowMorganOid, dummyResourceCtl.getAttributeFullnamePath(), ACCOUNT_MORGAN_FULLNAME_HM);
 		display("ObjectDelta", delta);
 
 		// WHEN
@@ -833,8 +830,8 @@ public class TestDummyConsistency extends AbstractDummyTest {
 		
 		lastRequestStartTs = lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
 		
-		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
-				shadowMorganOid, dummyResourceCtl.getAttributeFullnamePath(), prismContext, ACCOUNT_MORGAN_FULLNAME_CHM);
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+				shadowMorganOid, dummyResourceCtl.getAttributeFullnamePath(), ACCOUNT_MORGAN_FULLNAME_CHM);
 		display("ObjectDelta", delta);
 
 		// WHEN
@@ -1021,8 +1018,8 @@ public class TestDummyConsistency extends AbstractDummyTest {
 		dummyResource.setBreakMode(BreakMode.NETWORK);
 		lastRequestStartTs = lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
 		
-		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
-				shadowMorganOid, dummyResourceCtl.getAttributeFullnamePath(), prismContext, ACCOUNT_MORGAN_FULLNAME_HM);
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+				shadowMorganOid, dummyResourceCtl.getAttributeFullnamePath(), ACCOUNT_MORGAN_FULLNAME_HM);
 		display("ObjectDelta", delta);
 
 		// WHEN
@@ -1195,8 +1192,8 @@ public class TestDummyConsistency extends AbstractDummyTest {
 		dummyResource.setBreakMode(BreakMode.NETWORK);
 		lastRequestStartTs = lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
 		
-		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
-				shadowMorganOid, dummyResourceCtl.getAttributeFullnamePath(), prismContext, ACCOUNT_MORGAN_FULLNAME_HM);
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+				shadowMorganOid, dummyResourceCtl.getAttributeFullnamePath(), ACCOUNT_MORGAN_FULLNAME_HM);
 		display("ObjectDelta", delta);
 
 		// WHEN
@@ -1702,8 +1699,9 @@ public class TestDummyConsistency extends AbstractDummyTest {
 		
 		dummyResourceCtl.addAccount(ACCOUNT_BETTY_USERNAME, ACCOUNT_BETTY_FULLNAME);
 		
-		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
-				ACCOUNT_ELIZABETH_OID, new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME), prismContext, ACCOUNT_BETTY_USERNAME);
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+				ACCOUNT_ELIZABETH_OID, ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME),
+				ACCOUNT_BETTY_USERNAME);
 
 		// WHEN
 		displayWhen(TEST_NAME);
@@ -1778,8 +1776,9 @@ public class TestDummyConsistency extends AbstractDummyTest {
 		syncServiceMock.reset();
 		dummyResource.resetBreakMode();
 		
-		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
-				ACCOUNT_ELIZABETH_OID, new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME), prismContext, ACCOUNT_BETTY_USERNAME);
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+				ACCOUNT_ELIZABETH_OID, ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME),
+				ACCOUNT_BETTY_USERNAME);
 
 		// WHEN
 		displayWhen(TEST_NAME);
@@ -1937,8 +1936,8 @@ public class TestDummyConsistency extends AbstractDummyTest {
 		dummyResource.resetBreakMode();
 		dummyResourceCtl.deleteAccount(ACCOUNT_WILL_USERNAME);
 		
-		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
-				ACCOUNT_WILL_OID, dummyResourceCtl.getAttributeFullnamePath(), prismContext, "Pirate Will Turner");
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+				ACCOUNT_WILL_OID, dummyResourceCtl.getAttributeFullnamePath(), "Pirate Will Turner");
 
 		// WHEN
 		displayWhen(TEST_NAME);

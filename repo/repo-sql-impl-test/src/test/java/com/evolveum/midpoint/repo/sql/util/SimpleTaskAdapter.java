@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ProvisioningOperation;
 import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
@@ -317,7 +318,7 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
-    public <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> getExtensionItem(QName propertyName) {
+    public <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> getExtensionItem(ItemName propertyName) {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 

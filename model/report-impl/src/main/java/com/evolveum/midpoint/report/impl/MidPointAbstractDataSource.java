@@ -4,8 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.xml.namespace.QName;
-
+import com.evolveum.midpoint.prism.path.ItemName;
 import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRField;
@@ -50,7 +49,7 @@ public class MidPointAbstractDataSource implements JRDataSource{
 		if (fieldName.equals("oid")){
 			return currentObject.getOid();
 		}
-		Item i = currentObject.findItem(new QName(fieldName));
+		Item i = currentObject.findItem(new ItemName(fieldName));
 		if (i == null){
 			return null;
 		}

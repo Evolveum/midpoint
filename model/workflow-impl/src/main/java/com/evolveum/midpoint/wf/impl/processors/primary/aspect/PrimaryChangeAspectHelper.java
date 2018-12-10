@@ -319,7 +319,7 @@ public class PrimaryChangeAspectHelper {
         ExpressionType expressionType = config.getApplicabilityCondition();
 
         QName resultName = new QName(SchemaConstants.NS_C, "result");
-        PrismPropertyDefinition<Boolean> resultDef = new PrismPropertyDefinitionImpl(resultName, DOMUtil.XSD_BOOLEAN, prismContext);
+        PrismPropertyDefinition<Boolean> resultDef = prismContext.definitionFactory().createPropertyDefinition(resultName, DOMUtil.XSD_BOOLEAN);
 
         ExpressionVariables expressionVariables = new ExpressionVariables();
         expressionVariables.addVariableDefinition(SchemaConstants.C_MODEL_CONTEXT, modelContext);

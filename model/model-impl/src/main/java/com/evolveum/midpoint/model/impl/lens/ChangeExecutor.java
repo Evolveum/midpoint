@@ -25,6 +25,9 @@ import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistency
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.SynchronizationUtils;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
+import com.evolveum.midpoint.prism.xnode.XNodeFactory;
 import com.evolveum.midpoint.repo.api.ConflictWatcher;
 import com.evolveum.midpoint.repo.api.ModificationPrecondition;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
@@ -45,8 +48,6 @@ import com.evolveum.midpoint.model.impl.lens.projector.focus.FocusConstraintsChe
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
@@ -268,8 +269,8 @@ public class ChangeExecutor {
 					ObjectDelta<ShadowType> projDelta = projCtx.getExecutableDelta();
 
 					if (shouldBeDeleted(projDelta, projCtx)) {
-						projDelta = ObjectDelta.createDeleteDelta(projCtx.getObjectTypeClass(), projCtx.getOid(),
-								prismContext);
+						projDelta = prismContext.deltaFactory().object().createDeleteDelta(projCtx.getObjectTypeClass(), projCtx.getOid()
+						);
 					}
 
 					if (projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
@@ -279,8 +280,8 @@ public class ChangeExecutor {
 								&& context.getOptions() != null
 								&& ModelExecuteOptions.isForce(context.getOptions())) {
 							if (projDelta == null) {
-								projDelta = ObjectDelta.createDeleteDelta(projCtx.getObjectTypeClass(),
-										projCtx.getOid(), prismContext);
+								projDelta = prismContext.deltaFactory().object().createDeleteDelta(projCtx.getObjectTypeClass(),
+										projCtx.getOid());
 							}
 						}
 						if (projDelta != null && projDelta.isDelete()) {
@@ -478,7 +479,7 @@ public class ChangeExecutor {
 			if (pcv.representsSameValue(pcvToFind, false) || pcv.equalsRealValue(pcvToFind)) {
 				// TODO what if ID of the assignment being added is changed in repo? Hopefully it will be not.
 				for (ItemDelta<?, ?> modification : modifications) {
-					ItemPath newParentPath = modification.getParentPath().rest().rest();        // killing assignment + ID
+					ItemPath newParentPath = modification.getParentPath().rest(2);        // killing assignment + ID
 					ItemDelta<?, ?> pathRelativeModification = modification.cloneWithChangedParentPath(newParentPath);
 					pathRelativeModification.applyTo(pcv);
 				}
@@ -501,8 +502,8 @@ public class ChangeExecutor {
 			
 		} else if (focusDelta.isModify()) {
 			
-			PropertyDelta<XMLGregorianCalendar> provTimestampDelta = PropertyDelta.createModificationReplaceProperty(
-					new ItemPath(ObjectType.F_METADATA, MetadataType.F_LAST_PROVISIONING_TIMESTAMP), 
+			PropertyDelta<XMLGregorianCalendar> provTimestampDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
+					ItemPath.create(ObjectType.F_METADATA, MetadataType.F_LAST_PROVISIONING_TIMESTAMP),
 					context.getFocusContext().getObjectDefinition(), 
 					clock.currentTimeXMLGregorianCalendar());
 			focusDelta.addModification(provTimestampDelta);
@@ -546,10 +547,10 @@ public class ChangeExecutor {
 
 	private boolean isEquivalentModifyDelta(Collection<? extends ItemDelta<?, ?>> modifications1,
 			Collection<? extends ItemDelta<?, ?>> modifications2) {
-		Collection<? extends ItemDelta<?, ?>> attrDeltas1 = ItemDelta.findItemDeltasSubPath(modifications1,
-				new ItemPath(ShadowType.F_ATTRIBUTES));
-		Collection<? extends ItemDelta<?, ?>> attrDeltas2 = ItemDelta.findItemDeltasSubPath(modifications2,
-				new ItemPath(ShadowType.F_ATTRIBUTES));
+		Collection<? extends ItemDelta<?, ?>> attrDeltas1 = ItemDeltaCollectionsUtil
+				.findItemDeltasSubPath(modifications1, ShadowType.F_ATTRIBUTES);
+		Collection<? extends ItemDelta<?, ?>> attrDeltas2 = ItemDeltaCollectionsUtil
+				.findItemDeltasSubPath(modifications2, ShadowType.F_ATTRIBUTES);
 		return MiscUtil.unorderedCollectionEquals(attrDeltas1, attrDeltas2);
 	}
 
@@ -739,10 +740,10 @@ public class ChangeExecutor {
 
 		LOGGER.debug("Linking shadow " + shadowOid + " to focus " + userOid);
 		OperationResult result = parentResult.createSubresult(OPERATION_LINK_ACCOUNT);
-		PrismReferenceValue linkRef = new PrismReferenceValue();
+		PrismReferenceValue linkRef = prismContext.itemFactory().createReferenceValue();
 		linkRef.setOid(shadowOid);
 		linkRef.setTargetType(ShadowType.COMPLEX_TYPE);
-		Collection<? extends ItemDelta> linkRefDeltas = ReferenceDelta
+		Collection<? extends ItemDelta> linkRefDeltas = prismContext.deltaFactory().reference()
 				.createModificationAddCollection(FocusType.F_LINK_REF, getUserDefinition(), linkRef);
 
 		try {
@@ -759,8 +760,8 @@ public class ChangeExecutor {
 			throw t;
 		} finally {
 			result.computeStatus();
-			ObjectDelta<F> userDelta = ObjectDelta.createModifyDelta(userOid, linkRefDeltas, typeClass,
-					prismContext);
+			ObjectDelta<F> userDelta = prismContext.deltaFactory().object().createModifyDelta(userOid, linkRefDeltas, typeClass
+			);
 			LensObjectDeltaOperation<F> userDeltaOp = LensUtil.createObjectDeltaOperation(userDelta, result,
 					focusContext, projCtx);
 			focusContext.addToExecutedDeltas(userDeltaOp);
@@ -785,7 +786,7 @@ public class ChangeExecutor {
 
 		LOGGER.debug("Unlinking shadow " + accountRef.getOid() + " from focus " + focusOid);
 		OperationResult result = parentResult.createSubresult(OPERATION_UNLINK_ACCOUNT);
-		Collection<? extends ItemDelta> accountRefDeltas = ReferenceDelta.createModificationDeleteCollection(
+		Collection<? extends ItemDelta> accountRefDeltas = prismContext.deltaFactory().reference().createModificationDeleteCollection(
 				FocusType.F_LINK_REF, getUserDefinition(), accountRef.clone());
 
 		try {
@@ -803,8 +804,9 @@ public class ChangeExecutor {
 			throw t;
 		} finally {
 			result.computeStatus();
-			ObjectDelta<F> userDelta = ObjectDelta.createModifyDelta(focusOid, accountRefDeltas, typeClass,
-					prismContext);
+			ObjectDelta<F> userDelta = prismContext.deltaFactory().object()
+					.createModifyDelta(focusOid, accountRefDeltas, typeClass
+					);
 			LensObjectDeltaOperation<F> userDeltaOp = LensUtil.createObjectDeltaOperation(userDelta, result,
 					focusContext, projCtx);
 			focusContext.addToExecutedDeltas(userDeltaOp);
@@ -857,7 +859,7 @@ public class ChangeExecutor {
 		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
 		List<PropertyDelta<?>> syncSituationDeltas = SynchronizationUtils
 				.createSynchronizationSituationAndDescriptionDelta(currentShadow, newSituation, task.getChannel(),
-						projectionCtx.hasFullShadow(), now);
+						projectionCtx.hasFullShadow(), now, prismContext);
 
 		try {
 			ModelImplUtils.setRequestee(task, focusContext);
@@ -1244,10 +1246,7 @@ public class ChangeExecutor {
 			return false;
 		}
 		UserType loggedInUser = principal.getUser();
-		if (loggedInUser == null) {
-			return false;
-		}
-		
+
 		if (!loggedInUser.getOid().equals(focusContext.getOid())) {
 			return false;
 		}
@@ -1713,8 +1712,8 @@ public class ChangeExecutor {
 
 		QName FAKE_SCRIPT_ARGUMENT_NAME = new QName(SchemaConstants.NS_C, "arg");
 
-		PrismPropertyDefinition<String> scriptArgumentDefinition = new PrismPropertyDefinitionImpl<>(
-				FAKE_SCRIPT_ARGUMENT_NAME, DOMUtil.XSD_STRING, prismContext);
+		PrismPropertyDefinition<String> scriptArgumentDefinition = prismContext.definitionFactory().createPropertyDefinition(
+				FAKE_SCRIPT_ARGUMENT_NAME, DOMUtil.XSD_STRING);
 
 		String shortDesc = "Provisioning script argument expression";
 		Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression = expressionFactory
@@ -1733,25 +1732,19 @@ public class ChangeExecutor {
 		}
 
 		// replace dynamic script with static value..
+		XNodeFactory factory = prismContext.xnodeFactory();
+
 		argument.getExpressionEvaluator().clear();
 		if (nonNegativeValues == null || nonNegativeValues.isEmpty()) {
 			// We need to create at least one evaluator. Otherwise the
 			// expression code will complain
-			// Element value = DOMUtil.createElement(SchemaConstants.C_VALUE);
-			// DOMUtil.setNill(value);
-			JAXBElement<RawType> el = new JAXBElement(SchemaConstants.C_VALUE, RawType.class,
-					new RawType(prismContext));
+			JAXBElement<RawType> el = new JAXBElement<>(SchemaConstants.C_VALUE, RawType.class, new RawType(prismContext));
 			argument.getExpressionEvaluator().add(el);
 
 		} else {
 			for (PrismPropertyValue<String> val : nonNegativeValues) {
-				// Element value =
-				// DOMUtil.createElement(SchemaConstants.C_VALUE);
-				// value.setTextContent(val.getValue());
-				PrimitiveXNode<String> prim = new PrimitiveXNode<>();
-				prim.setValue(val.getValue(), DOMUtil.XSD_STRING);
-				JAXBElement<RawType> el = new JAXBElement(SchemaConstants.C_VALUE, RawType.class,
-						new RawType(prim, prismContext));
+				PrimitiveXNode<String> prim = factory.primitive(val.getValue(), DOMUtil.XSD_STRING);
+				JAXBElement<RawType> el = new JAXBElement<>(SchemaConstants.C_VALUE, RawType.class, new RawType(prim, prismContext));
 				argument.getExpressionEvaluator().add(el);
 			}
 		}

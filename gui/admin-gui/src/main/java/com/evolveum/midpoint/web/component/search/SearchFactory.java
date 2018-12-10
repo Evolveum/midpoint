@@ -82,88 +82,88 @@ public class SearchFactory {
 
     static {
         SEARCHABLE_OBJECTS.put(ObjectType.class, Arrays.asList(
-                new ItemPath(ObjectType.F_NAME),
-                new ItemPath(ObjectType.F_LIFECYCLE_STATE),
-                new ItemPath(ObjectType.F_SUBTYPE)));
+                ItemPath.create(ObjectType.F_NAME),
+                ItemPath.create(ObjectType.F_LIFECYCLE_STATE),
+                ItemPath.create(ObjectType.F_SUBTYPE)));
         SEARCHABLE_OBJECTS.put(FocusType.class, Arrays.asList(
-                new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
-                new ItemPath(FocusType.F_ROLE_MEMBERSHIP_REF),
-                new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS)));
+                ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
+                ItemPath.create(FocusType.F_ROLE_MEMBERSHIP_REF),
+                ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS)));
         SEARCHABLE_OBJECTS.put(UserType.class, Arrays.asList(
-                new ItemPath(UserType.F_TITLE),
-                new ItemPath(UserType.F_GIVEN_NAME),
-                new ItemPath(UserType.F_FAMILY_NAME),
-                new ItemPath(UserType.F_FULL_NAME),
-                new ItemPath(UserType.F_ADDITIONAL_NAME),
-                new ItemPath(UserType.F_COST_CENTER),
-                new ItemPath(UserType.F_EMAIL_ADDRESS),
-                new ItemPath(UserType.F_TELEPHONE_NUMBER),
-                new ItemPath(UserType.F_EMPLOYEE_NUMBER),
-                new ItemPath(UserType.F_EMPLOYEE_TYPE),
-                new ItemPath(UserType.F_ORGANIZATIONAL_UNIT),
-                new ItemPath(UserType.F_COST_CENTER),
-                new ItemPath(UserType.F_LOCALITY)));
+                ItemPath.create(UserType.F_TITLE),
+                ItemPath.create(UserType.F_GIVEN_NAME),
+                ItemPath.create(UserType.F_FAMILY_NAME),
+                ItemPath.create(UserType.F_FULL_NAME),
+                ItemPath.create(UserType.F_ADDITIONAL_NAME),
+                ItemPath.create(UserType.F_COST_CENTER),
+                ItemPath.create(UserType.F_EMAIL_ADDRESS),
+                ItemPath.create(UserType.F_TELEPHONE_NUMBER),
+                ItemPath.create(UserType.F_EMPLOYEE_NUMBER),
+                ItemPath.create(UserType.F_EMPLOYEE_TYPE),
+                ItemPath.create(UserType.F_ORGANIZATIONAL_UNIT),
+                ItemPath.create(UserType.F_COST_CENTER),
+                ItemPath.create(UserType.F_LOCALITY)));
         SEARCHABLE_OBJECTS.put(RoleType.class, Arrays.asList(
-                new ItemPath(RoleType.F_NAME),
-                new ItemPath(RoleType.F_DISPLAY_NAME),
-                new ItemPath(RoleType.F_ROLE_TYPE)));
+                ItemPath.create(RoleType.F_NAME),
+                ItemPath.create(RoleType.F_DISPLAY_NAME),
+                ItemPath.create(RoleType.F_ROLE_TYPE)));
         SEARCHABLE_OBJECTS.put(ServiceType.class, Arrays.asList(
-                new ItemPath(ServiceType.F_NAME),
-                new ItemPath(ServiceType.F_SERVICE_TYPE),
-                new ItemPath(ServiceType.F_URL)));
+                ItemPath.create(ServiceType.F_NAME),
+                ItemPath.create(ServiceType.F_SERVICE_TYPE),
+                ItemPath.create(ServiceType.F_URL)));
         SEARCHABLE_OBJECTS.put(ConnectorHostType.class, Arrays.asList(
-                new ItemPath(ConnectorHostType.F_HOSTNAME)
+                ItemPath.create(ConnectorHostType.F_HOSTNAME)
         ));
         SEARCHABLE_OBJECTS.put(ConnectorType.class, Arrays.asList(
-                new ItemPath(ConnectorType.F_CONNECTOR_BUNDLE),
-                new ItemPath(ConnectorType.F_CONNECTOR_VERSION),
-                new ItemPath(ConnectorType.F_CONNECTOR_TYPE)
+                ItemPath.create(ConnectorType.F_CONNECTOR_BUNDLE),
+                ItemPath.create(ConnectorType.F_CONNECTOR_VERSION),
+                ItemPath.create(ConnectorType.F_CONNECTOR_TYPE)
         ));
         SEARCHABLE_OBJECTS.put(AbstractRoleType.class, Arrays.asList(
-        		new ItemPath(AbstractRoleType.F_IDENTIFIER),
-                new ItemPath(AbstractRoleType.F_REQUESTABLE)
+        		ItemPath.create(AbstractRoleType.F_IDENTIFIER),
+                ItemPath.create(AbstractRoleType.F_REQUESTABLE)
         ));
         SEARCHABLE_OBJECTS.put(OrgType.class, Arrays.asList(
-                new ItemPath(OrgType.F_DISPLAY_NAME),
-                new ItemPath(OrgType.F_COST_CENTER),
-                new ItemPath(OrgType.F_ORG_TYPE),
-                new ItemPath(OrgType.F_TENANT),
-                new ItemPath(OrgType.F_LOCALITY)
+                ItemPath.create(OrgType.F_DISPLAY_NAME),
+                ItemPath.create(OrgType.F_COST_CENTER),
+                ItemPath.create(OrgType.F_ORG_TYPE),
+                ItemPath.create(OrgType.F_TENANT),
+                ItemPath.create(OrgType.F_LOCALITY)
         ));
         SEARCHABLE_OBJECTS.put(GenericObjectType.class, Arrays.asList(
-                new ItemPath(GenericObjectType.F_OBJECT_TYPE)
+                ItemPath.create(GenericObjectType.F_OBJECT_TYPE)
         ));
         SEARCHABLE_OBJECTS.put(NodeType.class, Arrays.asList(
-                new ItemPath(NodeType.F_NODE_IDENTIFIER)
+                ItemPath.create(NodeType.F_NODE_IDENTIFIER)
         ));
         SEARCHABLE_OBJECTS.put(ReportType.class, Arrays.asList(
-                new ItemPath(ReportType.F_PARENT)
+                ItemPath.create(ReportType.F_PARENT)
         ));
         SEARCHABLE_OBJECTS.put(ShadowType.class, Arrays.asList(
-//                new ItemPath(ShadowType.F_OBJECT_CLASS),
-                new ItemPath(ShadowType.F_DEAD),
-                new ItemPath(ShadowType.F_INTENT),
-                new ItemPath(ShadowType.F_EXISTS),
-                new ItemPath(ShadowType.F_SYNCHRONIZATION_SITUATION),
-                new ItemPath(ShadowType.F_FAILED_OPERATION_TYPE)
+//                ItemPath.create(ShadowType.F_OBJECT_CLASS),
+                ItemPath.create(ShadowType.F_DEAD),
+                ItemPath.create(ShadowType.F_INTENT),
+                ItemPath.create(ShadowType.F_EXISTS),
+                ItemPath.create(ShadowType.F_SYNCHRONIZATION_SITUATION),
+                ItemPath.create(ShadowType.F_FAILED_OPERATION_TYPE)
         ));
         SEARCHABLE_OBJECTS.put(TaskType.class, Arrays.asList(
-                new ItemPath(TaskType.F_TASK_IDENTIFIER),
-                new ItemPath(TaskType.F_NODE),
-                new ItemPath(TaskType.F_CATEGORY),
-                new ItemPath(TaskType.F_RESULT_STATUS)
+                ItemPath.create(TaskType.F_TASK_IDENTIFIER),
+                ItemPath.create(TaskType.F_NODE),
+                ItemPath.create(TaskType.F_CATEGORY),
+                ItemPath.create(TaskType.F_RESULT_STATUS)
         ));
         
         SEARCHABLE_OBJECTS.put(AssignmentType.class, Arrays.asList(
-                new ItemPath(AssignmentType.F_TARGET_REF),
-                new ItemPath(AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF),
-                new ItemPath(AssignmentType.F_TENANT_REF),
-                new ItemPath(AssignmentType.F_ORG_REF)
+                ItemPath.create(AssignmentType.F_TARGET_REF),
+                ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF),
+                ItemPath.create(AssignmentType.F_TENANT_REF),
+                ItemPath.create(AssignmentType.F_ORG_REF)
         ));
         
         SEARCHABLE_OBJECTS.put(ObjectPolicyConfigurationType.class, Arrays.asList(
-                new ItemPath(ObjectPolicyConfigurationType.F_SUBTYPE),
-                new ItemPath(ObjectPolicyConfigurationType.F_OBJECT_TEMPLATE_REF)
+                ItemPath.create(ObjectPolicyConfigurationType.F_SUBTYPE),
+                ItemPath.create(ObjectPolicyConfigurationType.F_OBJECT_TEMPLATE_REF)
         ));
     }
 
@@ -315,7 +315,7 @@ public class SearchFactory {
 //        Map<ItemPath, ItemDefinition> map = new HashMap<>();
     	List<SearchItemDefinition> searchItemDefinitions = new ArrayList<>();
 
-        ItemPath extensionPath = new ItemPath(ObjectType.F_EXTENSION);
+        ItemPath extensionPath = ObjectType.F_EXTENSION;
 
         PrismContainerDefinition ext = objectDef.findContainerDefinition(ObjectType.F_EXTENSION);
         if (ext == null) {
@@ -323,7 +323,7 @@ public class SearchFactory {
         }
         
         for (ItemDefinition def : (List<ItemDefinition>) ext.getDefinitions()) {
-        	ItemPath itemPath = new ItemPath(extensionPath, def.getName());
+        	ItemPath itemPath = ItemPath.create(extensionPath, def.getName());
         	
         	if (!isIndexed(def)) {
             	continue;

@@ -28,6 +28,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -48,8 +49,6 @@ import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
@@ -277,7 +276,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 	@Override
 	public void swallowToSecondaryDelta(ItemDelta<?,?> itemDelta) throws SchemaException {
 		if (secondaryDelta == null) {
-			secondaryDelta = new ObjectDelta<>(getObjectTypeClass(), ChangeType.MODIFY, getPrismContext());
+			secondaryDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(), ChangeType.MODIFY);
 			secondaryDelta.setOid(getOid());
 		}
 		LensUtil.setDeltaOldValue(this, itemDelta);
@@ -821,7 +820,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             if (objectToAdd != null) {
                 PrismObjectDefinition<ShadowType> objectDefinition = objectToAdd.getDefinition();
                 // TODO: remove constructor, use some factory method instead
-                base = new PrismObject<>(objectToAdd.getElementName(), objectDefinition, getNotNullPrismContext());
+                base = getNotNullPrismContext().itemFactory().createObject(objectToAdd.getElementName(), objectDefinition);
                 base = syncDelta.computeChangedObject(base);
             }
         }
@@ -921,15 +920,15 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 			origDelta = getDelta();
             if (origDelta == null || origDelta.isModify()) {
             	// We need to convert modify delta to ADD
-            	ObjectDelta<ShadowType> addDelta = new ObjectDelta<>(getObjectTypeClass(),
-                    ChangeType.ADD, getPrismContext());
+            	ObjectDelta<ShadowType> addDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(),
+                    ChangeType.ADD);
                 RefinedObjectClassDefinition rObjectClassDef = getCompositeObjectClassDefinition();
 
                 if (rObjectClassDef == null) {
                     throw new IllegalStateException("Definition for account type " + getResourceShadowDiscriminator()
                     		+ " not found in the context, but it should be there");
                 }
-                PrismObject<ShadowType> newAccount = (PrismObject<ShadowType>) rObjectClassDef.createBlankShadow();
+                PrismObject<ShadowType> newAccount = rObjectClassDef.createBlankShadow();
                 addDelta.setObjectToAdd(newAccount);
 
                 if (origDelta != null) {
@@ -940,8 +939,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         } else if (policyDecision == SynchronizationPolicyDecision.KEEP) {
             // Any delta is OK
         } else if (policyDecision == SynchronizationPolicyDecision.DELETE) {
-        	ObjectDelta<ShadowType> deleteDelta = new ObjectDelta<>(getObjectTypeClass(),
-                ChangeType.DELETE, getPrismContext());
+        	ObjectDelta<ShadowType> deleteDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(),
+                ChangeType.DELETE);
             String oid = getOid();
             if (oid == null) {
             	throw new IllegalStateException(
@@ -1142,8 +1141,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 	/**
 	 * Returns true if the projection has any value for specified attribute.
 	 */
-	public boolean hasValueForAttribute(QName attributeName) throws SchemaException {
-		ItemPath attrPath = new ItemPath(ShadowType.F_ATTRIBUTES, attributeName);
+	public boolean hasValueForAttribute(QName attributeName) {
+		ItemPath attrPath = ItemPath.create(ShadowType.F_ATTRIBUTES, attributeName);
 		if (getObjectNew() != null) {
 			PrismProperty<?> attrNew = getObjectNew().findProperty(attrPath);
 			if (attrNew != null && !attrNew.isEmpty()) {

@@ -705,7 +705,7 @@ public interface ModelService {
 	 */
 	<O extends ObjectType> CompareResultType compareObject(PrismObject<O> object,
 			Collection<SelectorOptions<GetOperationOptions>> readOptions, ModelCompareOptions compareOptions,
-			@NotNull List<ItemPath> ignoreItemPaths, Task task, OperationResult result)
+			@NotNull List<? extends ItemPath> ignoreItemPaths, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
 			ConfigurationException, ExpressionEvaluationException;
 

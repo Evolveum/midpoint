@@ -50,7 +50,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
@@ -126,13 +125,13 @@ public class ConfigurationStep extends WizardStep {
 			PrismContainerDefinition<ConnectorConfigurationType> definition = ConnectorTypeUtil.findConfigurationContainerDefinition(connectorType, schema);
 			// Fixing (errorneously) set maxOccurs = unbounded. See MID-2317 and related issues.
 			PrismContainerDefinition<ConnectorConfigurationType> definitionFixed = definition.clone();
-			((PrismContainerDefinitionImpl) definitionFixed).setMaxOccurs(1);
+			definitionFixed.toMutable().setMaxOccurs(1);
 			configuration = definitionFixed.instantiate();
 		}
 
 		List<PrismContainerDefinition> containerDefinitions = getSortedConfigContainerDefinitions(configuration);
 		for (PrismContainerDefinition<?> containerDef : containerDefinitions) {
-			ItemPath containerPath = new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION, containerDef.getName());
+			ItemPath containerPath = ItemPath.create(ResourceType.F_CONNECTOR_CONFIGURATION, containerDef.getName());
 			PrismContainer container = configuration.findContainer(containerDef.getName());
 
 			ContainerWrapperFactory cwf = new ContainerWrapperFactory(parentPage);
@@ -276,7 +275,9 @@ public class ConfigurationStep extends WizardStep {
 		boolean saved = false;
         try {
             List<ContainerWrapper> wrappers = configurationPropertiesModel.getObject();
-			ObjectDelta delta = ObjectDelta.createEmptyModifyDelta(ResourceType.class, parentPage.getEditedResourceOid(), parentPage.getPrismContext());
+			ObjectDelta delta = parentPage.getPrismContext().deltaFactory().object()
+					.createEmptyModifyDelta(ResourceType.class, parentPage.getEditedResourceOid()
+					);
 			for (ContainerWrapper wrapper : wrappers) {
 				wrapper.collectModifications(delta);
 			}

@@ -27,7 +27,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -76,8 +75,8 @@ public class ResourceValidatorImpl implements ResourceValidator {
 
 	public static final String CLASS_DOT = ResourceValidator.class.getSimpleName() + ".";
 
-	private static final ItemPath ITEM_PATH_SYNCHRONIZATION = new ItemPath(ResourceType.F_SYNCHRONIZATION, SynchronizationType.F_OBJECT_SYNCHRONIZATION);
-	private static final ItemPath ITEM_PATH_SCHEMA_HANDLING = new ItemPath(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE);
+	private static final ItemPath ITEM_PATH_SYNCHRONIZATION = ItemPath.create(ResourceType.F_SYNCHRONIZATION, SynchronizationType.F_OBJECT_SYNCHRONIZATION);
+	private static final ItemPath ITEM_PATH_SCHEMA_HANDLING = ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE);
 
 	@Autowired private MatchingRuleRegistry matchingRuleRegistry;
 	@Autowired private PrismContext prismContext;
@@ -135,7 +134,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 			checkSynchronizationDuplicateObjectTypes(ctx, synchronization);
 			int i = 1;
 			for (ObjectSynchronizationType objectSync : resource.getSynchronization().getObjectSynchronization()) {
-				checkObjectSynchronization(ctx, new ItemPath(ResourceType.F_SYNCHRONIZATION, SynchronizationType.F_OBJECT_SYNCHRONIZATION, i), objectSync);
+				checkObjectSynchronization(ctx, ItemPath.create(ResourceType.F_SYNCHRONIZATION, SynchronizationType.F_OBJECT_SYNCHRONIZATION, i), objectSync);
 				i++;
 			}
 		}
@@ -147,7 +146,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 	private void checkSchemaHandlingObjectTypes(ResourceValidationContext ctx, SchemaHandlingType schemaHandling) {
 		int i = 1;
 		for (ResourceObjectTypeDefinitionType objectType : schemaHandling.getObjectType()) {
-			ItemPath path = new ItemPath(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE, i);
+			ItemPath path = ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE, i);
 			checkSchemaHandlingObjectType(ctx, path, objectType);
 			i++;
 		}
@@ -163,12 +162,12 @@ public class ResourceValidatorImpl implements ResourceValidator {
 		}
 		int i = 1;
 		for (ResourceAttributeDefinitionType attributeDef : objectType.getAttribute()) {
-			checkSchemaHandlingAttribute(ctx, ocdef, path.append(new ItemPath(ResourceObjectTypeDefinitionType.F_ATTRIBUTE, i)), objectType, attributeDef);
+			checkSchemaHandlingAttribute(ctx, ocdef, path.append(ItemPath.create(ResourceObjectTypeDefinitionType.F_ATTRIBUTE, i)), objectType, attributeDef);
 			i++;
 		}
 		i = 1;
 		for (ResourceObjectAssociationType associationDef : objectType.getAssociation()) {
-			checkSchemaHandlingAssociation(ctx, ocdef, path.append(new ItemPath(ResourceObjectTypeDefinitionType.F_ATTRIBUTE, i)), objectType, associationDef);
+			checkSchemaHandlingAssociation(ctx, ocdef, path.append(ItemPath.create(ResourceObjectTypeDefinitionType.F_ATTRIBUTE, i)), objectType, associationDef);
 			i++;
 		}
 
@@ -412,7 +411,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 
 	@Nullable
 	private QName itemRefToName(ItemPathType ref) {
-		return ItemPath.asSingleName(ref != null ? ref.getItemPath() : null);
+		return ref != null ? ref.getItemPath().asSingleName() : null;
 	}
 
 	private void checkMatchingRule(ResourceValidationContext ctx, ItemPath path,
@@ -473,7 +472,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 			ResourceObjectAssociationType associationDef, Object object, QName name, String errorCode) {
 		if (object == null) {
 			ctx.validationResult.add(Issue.Severity.ERROR, CAT_SCHEMA_HANDLING, errorCode,
-					getString(CLASS_DOT + errorCode, getName(objectType), String.valueOf(associationDef.getRef())), ctx.resourceRef, new ItemPath(path, name));
+					getString(CLASS_DOT + errorCode, getName(objectType), String.valueOf(associationDef.getRef())), ctx.resourceRef, ItemPath.create(path, name));
 		}
 	}
 
@@ -481,18 +480,18 @@ public class ResourceValidatorImpl implements ResourceValidator {
 			ResourceObjectAssociationType associationDef, Collection<?> values, QName name, String errorCode) {
 		if (values == null || values.isEmpty()) {
 			ctx.validationResult.add(Issue.Severity.ERROR, CAT_SCHEMA_HANDLING, errorCode,
-					getString(CLASS_DOT + errorCode, getName(objectType), String.valueOf(associationDef.getRef())), ctx.resourceRef, new ItemPath(path, name));
+					getString(CLASS_DOT + errorCode, getName(objectType), String.valueOf(associationDef.getRef())), ctx.resourceRef, ItemPath.create(path, name));
 		}
 	}
 
 	private void checkItemRef(ResourceValidationContext ctx, ItemPath path, ResourceObjectTypeDefinitionType objectType,
 			ResourceItemDefinitionType itemDef, String noRefKey) {
 		ItemPath refPath = itemDef.getRef() != null ? itemDef.getRef().getItemPath() : null;
-		if (ItemPath.isNullOrEmpty(refPath)) {
+		if (ItemPath.isEmpty(refPath)) {
 			ctx.validationResult.add(Issue.Severity.ERROR, CAT_SCHEMA_HANDLING, noRefKey,
 					getString(CLASS_DOT + noRefKey, getName(objectType)),
 					ctx.resourceRef, path.append(ItemRefinedDefinitionType.F_REF));
-		} else if (refPath.size() > 1 || !(refPath.getSegments().get(0) instanceof NameItemPathSegment)) {
+		} else if (refPath.size() > 1 || !refPath.startsWithName()) {
 			ctx.validationResult.add(Issue.Severity.ERROR, CAT_SCHEMA_HANDLING, C_WRONG_ITEM_NAME,
 					getString(CLASS_DOT + C_WRONG_ITEM_NAME, getName(objectType), refPath.toString()),
 					ctx.resourceRef, path.append(ItemRefinedDefinitionType.F_REF));
@@ -511,7 +510,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 		}
 		int i = 1;
 		for (MappingType inbound : itemDef.getInbound()) {
-			checkMapping(ctx, path.append(new ItemPath(ResourceItemDefinitionType.F_INBOUND, i)), objectType, itemName, inbound, false, i, false);
+			checkMapping(ctx, path.append(ItemPath.create(ResourceItemDefinitionType.F_INBOUND, i)), objectType, itemName, inbound, false, i, false);
 			i++;
 		}
 	}
@@ -522,7 +521,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 			ctx.validationResult.add(Issue.Severity.WARNING,
 					CAT_SCHEMA_HANDLING, C_MULTIPLE_SCHEMA_HANDLING_DEFINITIONS,
 					getString(CLASS_DOT + C_MULTIPLE_SCHEMA_HANDLING_DEFINITIONS, detector.getDuplicatesList()),
-					ctx.resourceRef, new ItemPath(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE));
+					ctx.resourceRef, ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE));
 		}
 	}
 
@@ -556,7 +555,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 			ctx.validationResult.add(Issue.Severity.INFO,
 					CAT_SCHEMA_HANDLING, C_NO_DEFAULT_ACCOUNT_SCHEMA_HANDLING_DEFAULT_DEFINITION,
 					getString(CLASS_DOT + C_NO_DEFAULT_ACCOUNT_SCHEMA_HANDLING_DEFAULT_DEFINITION),
-					ctx.resourceRef, new ItemPath(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE));
+					ctx.resourceRef, ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE));
 		}
 	}
 
@@ -565,7 +564,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 			ctx.validationResult.add(Issue.Severity.WARNING,
 					CAT_SCHEMA_HANDLING, C_MULTIPLE_SCHEMA_HANDLING_DEFAULT_DEFINITIONS,
 					getString(CLASS_DOT + C_MULTIPLE_SCHEMA_HANDLING_DEFAULT_DEFINITIONS, kind),
-					ctx.resourceRef, new ItemPath(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE));
+					ctx.resourceRef, ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE));
 		}
 	}
 
@@ -714,8 +713,6 @@ public class ResourceValidatorImpl implements ResourceValidator {
 			return "c:" + name.getLocalPart();
 		} else if (MidPointConstants.NS_RI.equals(ns)) {
 			return "ri:" + name.getLocalPart();
-		} else if (SchemaConstantsGenerated.NS_ICF_SCHEMA.equals(ns)) {
-			return "icfs:" + name.getLocalPart();
 		} else if (SchemaConstantsGenerated.NS_ICF_SCHEMA.equals(ns)) {
 			return "icfs:" + name.getLocalPart();
 		} else {

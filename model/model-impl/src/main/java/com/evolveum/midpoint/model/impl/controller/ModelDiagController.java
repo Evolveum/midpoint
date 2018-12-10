@@ -25,7 +25,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.api.DataModelVisualizer;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
@@ -82,27 +82,18 @@ public class ModelDiagController implements ModelDiagnosticService {
 	private static final Trace LOGGER = TraceManager.getTrace(ModelDiagController.class);
 	private static final String LOG_FILE_CONFIG_KEY = "logFile";
 
-	@Autowired
-	private DataModelVisualizer dataModelVisualizer;
-
-	@Autowired
-	private PrismContext prismContext;
+	@Autowired private DataModelVisualizer dataModelVisualizer;
+	@Autowired private PrismContext prismContext;
+	@Autowired private SchemaHelper schemaHelper;
 
 	@Autowired
 	@Qualifier("repositoryService")
 	private transient RepositoryService repositoryService;
 
-	@Autowired
-	private ProvisioningService provisioningService;
-
-	@Autowired
-	private SecurityEnforcer securityEnforcer;
-
-	@Autowired
-	private MappingDiagEvaluator mappingDiagEvaluator;
-
-	@Autowired
-	private MidpointConfiguration midpointConfiguration;
+	@Autowired private ProvisioningService provisioningService;
+	@Autowired private SecurityEnforcer securityEnforcer;
+	@Autowired private MappingDiagEvaluator mappingDiagEvaluator;
+	@Autowired private MidpointConfiguration midpointConfiguration;
 
 	private RandomString randomString;
 
@@ -267,7 +258,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 				OperationResult subresult = result.createSubresult(result.getOperation()+".searchObjects.fullName");
 				try {
 
-					ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+					ObjectQuery query = prismContext.queryFor(UserType.class)
 							.item(UserType.F_FULL_NAME).eq(toPolyString(USER_FULL_NAME))
 							.build();
 					subresult.addParam("query", query);
@@ -291,7 +282,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 			{
 				OperationResult subresult = result.createSubresult(result.getOperation()+".searchObjects.employeeType");
 				try {
-					ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+					ObjectQuery query = prismContext.queryFor(UserType.class)
 							.item(UserType.F_EMPLOYEE_TYPE).eq(USER_EMPLOYEE_TYPE[0])
 							.build();
 					subresult.addParam("query", query);
@@ -315,7 +306,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 			{
 				OperationResult subresult = result.createSubresult(result.getOperation()+".searchObjects.organization");
 				try {
-					ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+					ObjectQuery query = prismContext.queryFor(UserType.class)
 							.item(UserType.F_ORGANIZATION).eq(toPolyString(USER_ORGANIZATION[1]))
 							.build();
 					subresult.addParam("query", query);
@@ -399,8 +390,9 @@ public class ModelDiagController implements ModelDiagnosticService {
 
 				PrismObject<LookupTableType> lookupTableRetrieved;
 				try {
-					Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_ROW,
-							GetOperationOptions.createRetrieve());
+					Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+							.item(LookupTableType.F_ROW).retrieve()
+							.build();
 					lookupTableRetrieved = repositoryService.getObject(LookupTableType.class, oid, options, subresult);
 				} catch (ObjectNotFoundException | SchemaException | RuntimeException e) {
 					result.recordFatalError(e);
@@ -416,13 +408,13 @@ public class ModelDiagController implements ModelDiagnosticService {
 			{
 				OperationResult subresult = result.createSubresult(result.getOperation()+".getObject.key");
 				try {
-
-					RelationalValueSearchQuery subquery = new RelationalValueSearchQuery(LookupTableRowType.F_KEY, INSANE_NATIONAL_STRING, RelationalValueSearchType.EXACT);
-					Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_ROW,
-							GetOperationOptions.createRetrieve(subquery));
-					PrismObject<LookupTableType> lookupTableRetrieved = repositoryService.getObject(LookupTableType.class, oid, options, result);
-
-					subresult.addArbitraryObjectAsParam("subquery", subquery);
+					GetOperationOptionsBuilder optionsBuilder = schemaHelper.getOperationOptionsBuilder()
+							.item(LookupTableType.F_ROW)
+							.retrieveQuery()
+									.item(LookupTableRowType.F_KEY)
+									.eq(INSANE_NATIONAL_STRING)
+							.end();
+					PrismObject<LookupTableType> lookupTableRetrieved = repositoryService.getObject(LookupTableType.class, oid, optionsBuilder.build(), result);
 					if (LOGGER.isTraceEnabled()) {
 						LOGGER.trace("Self-test:lookupTable getObject by row key:\n{}", DebugUtil.debugDump(lookupTableRetrieved));
 					}
@@ -466,7 +458,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 	private <O extends ObjectType,T> void checkObjectProperty(PrismObject<O> object, QName propQName, OperationResult parentResult, T... expectedValues) {
 		String propName = propQName.getLocalPart();
 		OperationResult result = parentResult.createSubresult(parentResult.getOperation() + ".checkObjectProperty." + propName);
-		PrismProperty<T> prop = object.findProperty(propQName);
+		PrismProperty<T> prop = object.findProperty(ItemName.fromQName(propQName));
 		Collection<T> actualValues = prop.getRealValues();
 		result.addArbitraryObjectCollectionAsParam("actualValues", actualValues);
 		assertMultivalue("User, property '"+propName+"'", expectedValues, actualValues, result);
@@ -496,7 +488,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 	private <O extends ObjectType> void checkObjectPropertyPolyString(PrismObject<O> object, QName propQName, OperationResult parentResult, String... expectedValues) {
 		String propName = propQName.getLocalPart();
 		OperationResult result = parentResult.createSubresult(parentResult.getOperation() + "." + propName);
-		PrismProperty<PolyString> prop = object.findProperty(propQName);
+		PrismProperty<PolyString> prop = object.findProperty(ItemName.fromQName(propQName));
 		Collection<PolyString> actualValues = prop.getRealValues();
 		result.addArbitraryObjectCollectionAsParam("actualValues", actualValues);
 		assertMultivaluePolyString("User, property '"+propName+"'", expectedValues, actualValues, result);

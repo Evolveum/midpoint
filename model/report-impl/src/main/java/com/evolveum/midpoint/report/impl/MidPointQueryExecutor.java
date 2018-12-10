@@ -22,8 +22,7 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.*;
 import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.JRDataset;
 import net.sf.jasperreports.engine.JRException;
@@ -36,8 +35,6 @@ import net.sf.jasperreports.engine.query.JRAbstractQueryExecuter;
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.report.api.ReportService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -71,6 +68,8 @@ public abstract class MidPointQueryExecutor extends JRAbstractQueryExecuter {
 		return type;
 	}
 
+	protected abstract <T> PrismPropertyValue<T> createPropertyValue(T realValue);
+
 	protected Map<QName, Object> getParameters(){
 		JRParameter[] params = dataset.getParameters();
 		Map<QName, Object> expressionParameters = new HashMap<>();
@@ -81,7 +80,7 @@ public abstract class MidPointQueryExecutor extends JRAbstractQueryExecuter {
 			//LOGGER.trace(((JRBaseParameter)param).getName());
 			Object v = getParameterValue(param.getName());
 			try{
-			expressionParameters.put(new QName(param.getName()), new PrismPropertyValue(v));
+			expressionParameters.put(new QName(param.getName()), createPropertyValue(v));
 			} catch (Exception e){
 				//just skip properties that are not important for midpoint
 			}
@@ -104,7 +103,7 @@ public abstract class MidPointQueryExecutor extends JRAbstractQueryExecuter {
 			//LOGGER.trace(((JRBaseParameter)param).getName());
 			Object v = getParameterValue(param.getName());
 			try{
-			expressionParameters.put(new QName(param.getName()), new PrismPropertyValue(v));
+			expressionParameters.put(new QName(param.getName()), createPropertyValue(v));
 			} catch (Exception e){
 				//just skip properties that are not important for midpoint
 			}

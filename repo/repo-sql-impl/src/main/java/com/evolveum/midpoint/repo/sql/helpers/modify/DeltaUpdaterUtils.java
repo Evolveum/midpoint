@@ -91,7 +91,7 @@ public class DeltaUpdaterUtils {
             if (obj instanceof Container) {
                 Container container = (Container) obj;
 
-                PrismValue value = (PrismValue) item.find(new ItemPath(container.getId().longValue()));
+                PrismValue value = (PrismValue) item.find(ItemPath.create(container.getId()));
 
                 pairs.add(new PrismEntityPair(value, container));
             } else {

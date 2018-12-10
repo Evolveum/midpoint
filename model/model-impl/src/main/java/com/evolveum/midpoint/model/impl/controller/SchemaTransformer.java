@@ -24,6 +24,8 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -52,7 +54,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import javax.xml.namespace.QName;
 import java.util.*;
 
 /**
@@ -107,14 +108,12 @@ public class SchemaTransformer {
 	// Expecting that C is a direct child of T.
 	// Expecting that container values point to their respective parents (in order to evaluate the security!)
 	public <C extends Containerable, T extends ObjectType>
-	SearchResultList<C> applySchemasAndSecurityToContainers(SearchResultList<C> originalResultList, Class<T> parentObjectType, QName childItemName,
+	SearchResultList<C> applySchemasAndSecurityToContainers(SearchResultList<C> originalResultList, Class<T> parentObjectType, ItemName childItemName,
 			GetOperationOptions rootOptions, Collection<SelectorOptions<GetOperationOptions>> options, AuthorizationPhaseType phase, Task task, OperationResult result)
 			throws SecurityViolationException, SchemaException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException, CommunicationException {
 
 		List<C> newValues = new ArrayList<>();
 		Map<PrismObject<T>,Object> processedParents = new IdentityHashMap<>();
-		final ItemPath childItemPath = new ItemPath(childItemName);
-
 		for (C value: originalResultList) {
 			Long originalId = value.asPrismContainerValue().getId();
 			if (originalId == null) {
@@ -127,7 +126,7 @@ public class SchemaTransformer {
 			} else {
 				// temporary solution TODO reconsider
 				parent = prismContext.createObject(parentObjectType);
-				PrismContainer<C> childContainer = parent.findOrCreateItem(childItemPath, PrismContainer.class);
+				PrismContainer<C> childContainer = parent.findOrCreateItem(childItemName, PrismContainer.class);
 				childContainer.add(value.asPrismContainerValue());
 				wasProcessed = false;
 			}
@@ -136,7 +135,7 @@ public class SchemaTransformer {
 				applySchemasAndSecurity(parent, rootOptions, options, phase, task, result);
 				processedParents.put(parent, null);
 			}
-			PrismContainer<C> updatedChildContainer = parent.findContainer(childItemPath);
+			PrismContainer<C> updatedChildContainer = parent.findContainer(childItemName);
 			if (updatedChildContainer != null) {
 				PrismContainerValue<C> updatedChildValue = updatedChildContainer.getValue(originalId);
 				if (updatedChildValue != null) {
@@ -218,16 +217,16 @@ public class SchemaTransformer {
 		applyObjectTemplateToObject(object, objectTemplateType, result);
 
 		if (CollectionUtils.isNotEmpty(options)) {
-			Map<DefinitionProcessingOption, Collection<ItemPath>> definitionProcession = SelectorOptions.extractOptionValues(options, (o) -> o.getDefinitionProcessing());
-			if (CollectionUtils.isNotEmpty(definitionProcession.get(DefinitionProcessingOption.NONE))) {
+			Map<DefinitionProcessingOption, Collection<UniformItemPath>> definitionProcessing = SelectorOptions.extractOptionValues(options, (o) -> o.getDefinitionProcessing(), prismContext);
+			if (CollectionUtils.isNotEmpty(definitionProcessing.get(DefinitionProcessingOption.NONE))) {
 				throw new UnsupportedOperationException("'NONE' definition processing is not supported now");
 			}
-			Collection<ItemPath> onlyIfExists = definitionProcession.get(DefinitionProcessingOption.ONLY_IF_EXISTS);
+			Collection<UniformItemPath> onlyIfExists = definitionProcessing.get(DefinitionProcessingOption.ONLY_IF_EXISTS);
 			if (CollectionUtils.isNotEmpty(onlyIfExists)) {
-				if (onlyIfExists.size() != 1 || !ItemPath.isNullOrEmpty(onlyIfExists.iterator().next())) {
+				if (onlyIfExists.size() != 1 || !ItemPath.isEmpty(onlyIfExists.iterator().next())) {
 					throw new UnsupportedOperationException("'ONLY_IF_EXISTS' definition processing is currently supported on root level only; not on " + onlyIfExists);
 				}
-				Collection<ItemPath> full = definitionProcession.get(DefinitionProcessingOption.FULL);
+				Collection<UniformItemPath> full = definitionProcessing.get(DefinitionProcessingOption.FULL);
 				object.trimDefinitionTree(full);
 			}
 		}
@@ -287,9 +286,9 @@ public class SchemaTransformer {
 	}
 	
 	public void setFullAccessFlags(ItemDefinition<?> itemDef) {		
-		itemDef.setCanRead(true);
-		itemDef.setCanAdd(true);
-		itemDef.setCanModify(true);
+		itemDef.toMutable().setCanRead(true);
+		itemDef.toMutable().setCanAdd(true);
+		itemDef.toMutable().setCanModify(true);
 	}
 
 	private <O extends ObjectType> void applySchemasAndSecurityPhase(PrismObject<O> object, ObjectSecurityConstraints securityConstraints, PrismObjectDefinition<O> objectDefinition,
@@ -363,13 +362,13 @@ public class SchemaTransformer {
 					itemPath, itemReadDecision, itemAddDecision, itemModifyDecision);
 			if (itemDef != null) {
 				if (itemReadDecision != AuthorizationDecisionType.ALLOW) {
-					((ItemDefinitionImpl) itemDef).setCanRead(false);
+					itemDef.toMutable().setCanRead(false);
 				}
 				if (itemAddDecision != AuthorizationDecisionType.ALLOW) {
-					((ItemDefinitionImpl) itemDef).setCanAdd(false);
+					itemDef.toMutable().setCanAdd(false);
 				}
 				if (itemModifyDecision != AuthorizationDecisionType.ALLOW) {
-					((ItemDefinitionImpl) itemDef).setCanModify(false);
+					itemDef.toMutable().setCanModify(false);
 				}
 			}
 			if (item instanceof PrismContainer<?>) {
@@ -447,7 +446,7 @@ public class SchemaTransformer {
 			PrismContainerDefinition<?> containerDefinition = (PrismContainerDefinition<?>)itemDefinition;
 			List<? extends ItemDefinition> subDefinitions = ((PrismContainerDefinition<?>)containerDefinition).getDefinitions();
 			for (ItemDefinition subDef: subDefinitions) {
-				ItemPath subPath = new ItemPath(nameOnlyItemPath, subDef.getName());
+				ItemPath subPath = ItemPath.create(nameOnlyItemPath, subDef.getName());
 				if (subDef.isElaborate()) {
 					LOGGER.trace("applySecurityConstraints(itemDef): {}: skip (elaborate)", subPath);
 					continue;
@@ -472,23 +471,23 @@ public class SchemaTransformer {
 				nameOnlyItemPath, readDecision, addDecision, modifyDecision, anySubElementRead, anySubElementAdd, anySubElementModify);
 
 		if (readDecision != AuthorizationDecisionType.ALLOW) {
-			((ItemDefinitionImpl) itemDefinition).setCanRead(false);
+			itemDefinition.toMutable().setCanRead(false);
 		}
 		if (addDecision != AuthorizationDecisionType.ALLOW) {
-			((ItemDefinitionImpl) itemDefinition).setCanAdd(false);
+			itemDefinition.toMutable().setCanAdd(false);
 		}
 		if (modifyDecision != AuthorizationDecisionType.ALLOW) {
-			((ItemDefinitionImpl) itemDefinition).setCanModify(false);
+			itemDefinition.toMutable().setCanModify(false);
 		}
 		
 		if (anySubElementRead) {
-			((ItemDefinitionImpl) itemDefinition).setCanRead(true);
+			itemDefinition.toMutable().setCanRead(true);
 		}
 		if (anySubElementAdd) {
-			((ItemDefinitionImpl) itemDefinition).setCanAdd(true);
+			itemDefinition.toMutable().setCanAdd(true);
 		}
 		if (anySubElementModify) {
-			((ItemDefinitionImpl) itemDefinition).setCanModify(true);
+			itemDefinition.toMutable().setCanModify(true);
 		}
 	}
 
@@ -550,7 +549,7 @@ public class SchemaTransformer {
                 if (ref == null) {
 				throw new SchemaException("No 'ref' in item definition in "+objectTemplateType);
                 }
-                ItemPath itemPath = ref.getItemPath();
+                ItemPath itemPath = prismContext.toPath(ref);
                 ItemDefinition itemDef = objectDefinition.findItemDefinition(itemPath);
                 if (itemDef != null) {
                     applyObjectTemplateItem(itemDef, templateItemDefType, "item " + itemPath + " in object type " + objectDefinition.getTypeName() + " as specified in item definition in " + objectTemplateType);
@@ -575,7 +574,7 @@ public class SchemaTransformer {
 			if (ref == null) {
 				throw new SchemaException("No 'ref' in item definition in "+objectTemplateType);
 			}
-			ItemPath itemPath = ref.getItemPath();
+			ItemPath itemPath = prismContext.toPath(ref);
 			ItemDefinition itemDefFromObject = object.getDefinition().findItemDefinition(itemPath);
             if (itemDefFromObject != null) {
                 applyObjectTemplateItem(itemDefFromObject, templateItemDefType, "item " + itemPath + " in " + object
@@ -604,29 +603,31 @@ public class SchemaTransformer {
 			throw new SchemaException("No definition for "+desc);
 		}
 
+		MutableItemDefinition<?> mutableDef = itemDef.toMutable();
+
 		String displayName = templateItemDefType.getDisplayName();
 		if (displayName != null) {
-			((ItemDefinitionImpl) itemDef).setDisplayName(displayName);
+			mutableDef.setDisplayName(displayName);
 		}
 
 		Integer displayOrder = templateItemDefType.getDisplayOrder();
 		if (displayOrder != null) {
-			((ItemDefinitionImpl) itemDef).setDisplayOrder(displayOrder);
+			mutableDef.setDisplayOrder(displayOrder);
 		}
 
 		Boolean emphasized = templateItemDefType.isEmphasized();
 		if (emphasized != null) {
-			((ItemDefinitionImpl) itemDef).setEmphasized(emphasized);
+			mutableDef.setEmphasized(emphasized);
 		}
 		
 		Boolean deprecated = templateItemDefType.isDeprecated();
 		if (deprecated != null) {
-			((ItemDefinitionImpl) itemDef).setDeprecated(deprecated);
+			mutableDef.setDeprecated(deprecated);
 		}
 		
 		Boolean experimental = templateItemDefType.isExperimental();
 		if (experimental != null) {
-			((ItemDefinitionImpl) itemDef).setExperimental(experimental);
+			mutableDef.setExperimental(experimental);
 		}
 
 		List<PropertyLimitationsType> limitations = templateItemDefType.getLimitations();
@@ -634,24 +635,24 @@ public class SchemaTransformer {
 			PropertyLimitationsType limitationsType = MiscSchemaUtil.getLimitationsType(limitations, LayerType.PRESENTATION);
 			if (limitationsType != null) {
 				if (limitationsType.getMinOccurs() != null) {
-					((ItemDefinitionImpl) itemDef).setMinOccurs(XsdTypeMapper.multiplicityToInteger(limitationsType.getMinOccurs()));
+					mutableDef.setMinOccurs(XsdTypeMapper.multiplicityToInteger(limitationsType.getMinOccurs()));
 				}
 				if (limitationsType.getMaxOccurs() != null) {
-					((ItemDefinitionImpl) itemDef).setMaxOccurs(XsdTypeMapper.multiplicityToInteger(limitationsType.getMaxOccurs()));
+					mutableDef.setMaxOccurs(XsdTypeMapper.multiplicityToInteger(limitationsType.getMaxOccurs()));
 				}
 				if (limitationsType.getProcessing() != null) {
-					((ItemDefinitionImpl) itemDef).setProcessing(MiscSchemaUtil.toItemProcessing(limitationsType.getProcessing()));
+					mutableDef.setProcessing(MiscSchemaUtil.toItemProcessing(limitationsType.getProcessing()));
 				}
 				PropertyAccessType accessType = limitationsType.getAccess();
 				if (accessType != null) {
 					if (accessType.isAdd() != null) {
-						((ItemDefinitionImpl) itemDef).setCanAdd(accessType.isAdd());
+						mutableDef.setCanAdd(accessType.isAdd());
 					}
 					if (accessType.isModify() != null) {
-						((ItemDefinitionImpl) itemDef).setCanModify(accessType.isModify());
+						mutableDef.setCanModify(accessType.isModify());
 					}
 					if (accessType.isRead() != null) {
-						((ItemDefinitionImpl) itemDef).setCanRead(accessType.isRead());
+						mutableDef.setCanRead(accessType.isRead());
 					}
 				}
 			}
@@ -659,8 +660,8 @@ public class SchemaTransformer {
 
 		ObjectReferenceType valueEnumerationRef = templateItemDefType.getValueEnumerationRef();
 		if (valueEnumerationRef != null) {
-			PrismReferenceValue valueEnumerationRVal = MiscSchemaUtil.objectReferenceTypeToReferenceValue(valueEnumerationRef);
-			((ItemDefinitionImpl) itemDef).setValueEnumerationRef(valueEnumerationRVal);
+			PrismReferenceValue valueEnumerationRVal = MiscSchemaUtil.objectReferenceTypeToReferenceValue(valueEnumerationRef, prismContext);
+			mutableDef.setValueEnumerationRef(valueEnumerationRVal);
 		}
 		
 		FormItemValidationType templateValidation = templateItemDefType.getValidation();

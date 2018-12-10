@@ -40,6 +40,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -473,11 +474,11 @@ public class BasicExpressionFunctions {
     }
 
     public <T> T getPropertyValue(Containerable c, String path) throws SchemaException {
-        return getPropertyValue(c, new ItemPathType(path));
+        return getPropertyValue(c, prismContext.itemPathParser().asItemPathType(path));
     }
 
     public <T> Collection<T> getPropertyValues(Containerable c, String path) {
-        return getPropertyValues(c, new ItemPathType(path));
+        return getPropertyValues(c, prismContext.itemPathParser().asItemPathType(path));
     }
 
     public <T> T getPropertyValue(Containerable c, ItemPathType path) throws SchemaException {
@@ -489,7 +490,7 @@ public class BasicExpressionFunctions {
     }
 
     public <T> T getPropertyValue(PrismContainerValue<?> pcv, String path) throws SchemaException {
-        return getPropertyValue(pcv, new ItemPathType(path));
+        return getPropertyValue(pcv, prismContext.itemPathParser().asItemPathType(path));
     }
 
     public <T> T getPropertyValue(PrismContainerValue<?> pcv, ItemPathType path) throws SchemaException {
@@ -498,7 +499,7 @@ public class BasicExpressionFunctions {
     }
 
     public <T> Collection<T> getPropertyValues(PrismContainerValue<?> pcv, String path) {
-        return getPropertyValues(pcv, new ItemPathType(path));
+        return getPropertyValues(pcv, prismContext.itemPathParser().asItemPathType(path));
     }
 
     public <T> Collection<T> getPropertyValues(PrismContainerValue<?> pcv, ItemPathType path) {
@@ -622,7 +623,7 @@ public class BasicExpressionFunctions {
         if (configurationProperties == null) {
             return null;
         }
-        PrismProperty<T> property = configurationProperties.findProperty(propertyQname);
+        PrismProperty<T> property = configurationProperties.findProperty(ItemName.fromQName(propertyQname));
         if (property == null) {
             return null;
         }

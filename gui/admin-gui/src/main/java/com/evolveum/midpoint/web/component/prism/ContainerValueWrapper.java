@@ -27,6 +27,7 @@ import java.util.Locale;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.Nullable;
@@ -47,7 +48,6 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -432,13 +432,11 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 				ItemDelta itemDelta = collectAddModifications(propOrRef);
 				
 				ItemPath itemPath = itemDelta.getParentPath().remainder(getContainer().getPath());
-				if (itemPath.first() instanceof IdItemPathSegment) {
-					itemPath = itemPath.tail();
+				if (itemPath.startsWithId()) {
+					itemPath = itemPath.rest();
 				}
 				itemDelta.setParentPath(itemPath);
-				
 				itemDelta.applyTo(newValue);
-		
 			}
 		}
 		return newValue;
@@ -520,9 +518,9 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 
 	private ReferenceDelta computeReferenceDeltas(ReferenceWrapper referenceWrapper, ItemPath containerPath) {
 		PrismReferenceDefinition propertyDef = referenceWrapper.getItemDefinition();
-		ReferenceDelta pDelta = new ReferenceDelta(referenceWrapper.getPath(), propertyDef,
-				propertyDef.getPrismContext());
-		addItemDelta(referenceWrapper, pDelta, propertyDef, containerPath.subPath(propertyDef.getName()));
+		ReferenceDelta pDelta = propertyDef.getPrismContext().deltaFactory().reference().create(referenceWrapper.getPath(), propertyDef
+		);
+		addItemDelta(referenceWrapper, pDelta, propertyDef, containerPath.append(propertyDef.getName()));
 		return pDelta;
 	}
 
@@ -741,7 +739,7 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		return rv;
 	}
 
-	public PropertyOrReferenceWrapper findPropertyWrapper(QName name) {
+	public PropertyOrReferenceWrapper findPropertyWrapperByName(ItemName name) {
 		Validate.notNull(name, "QName must not be null.");
 		for (ItemWrapper wrapper : getItems()) {
 			if (wrapper instanceof ContainerWrapper) {
@@ -753,8 +751,8 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		}
 		return null;
 	}
-	
-	public ItemWrapper findPropertyWrapper(ItemPath itemPath) {
+
+	public PropertyOrReferenceWrapper findPropertyWrapper(ItemPath itemPath) {
 		Validate.notNull(itemPath, "Item path must not be null.");
 		for (ItemWrapper wrapper : getItems()) {
 			if (wrapper instanceof ContainerWrapper) {
@@ -767,11 +765,6 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		return null;
 	}
 
-
-	public <T extends Containerable> ContainerWrapper<T> findContainerWrapper(QName qname) {
-		return findContainerWrapper(new ItemPath(qname));
-	}
-	
 	public <T extends Containerable> ContainerWrapper<T> findContainerWrapper(ItemPath path) {
 		Validate.notNull(path, "QName must not be null.");
 		for (ItemWrapper wrapper : getItems()) {

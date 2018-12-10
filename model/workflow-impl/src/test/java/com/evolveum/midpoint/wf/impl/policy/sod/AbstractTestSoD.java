@@ -17,7 +17,7 @@ package com.evolveum.midpoint.wf.impl.policy.sod;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -119,16 +119,16 @@ public class AbstractTestSoD extends AbstractWfTestPolicy {
 		String originalDescription = jack.asObjectable().getDescription();
 
 		@SuppressWarnings("unchecked")
-		ObjectDelta<UserType> addPirateDelta = DeltaBuilder
-				.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> addPirateDelta = prismContext
+				.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT).add(createAssignmentTo(rolePirateOid, ObjectTypes.ROLE, prismContext))
 				.asObjectDelta(userJackOid);
 		@SuppressWarnings("unchecked")
-		ObjectDelta<UserType> changeDescriptionDelta = DeltaBuilder
-				.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> changeDescriptionDelta = prismContext
+				.deltaFor(UserType.class)
 				.item(UserType.F_DESCRIPTION).replace("Pirate Judge")
 				.asObjectDelta(userJackOid);
-		ObjectDelta<UserType> primaryDelta = ObjectDelta.summarize(addPirateDelta, changeDescriptionDelta);
+		ObjectDelta<UserType> primaryDelta = ObjectDeltaCollectionsUtil.summarize(addPirateDelta, changeDescriptionDelta);
 
 		// WHEN+THEN
 		executeTest2(TEST_NAME, new TestDetails2<UserType>() {
@@ -240,8 +240,8 @@ public class AbstractTestSoD extends AbstractWfTestPolicy {
 		// WHEN+THEN
 		PrismObject<UserType> jack = getUser(userJackOid);
 		@SuppressWarnings("unchecked")
-		ObjectDelta<UserType> addRespectableDelta = DeltaBuilder
-				.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> addRespectableDelta = prismContext
+				.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT).add(createAssignmentTo(roleRespectableOid, ObjectTypes.ROLE, prismContext))
 				.asObjectDelta(userJackOid);
 
@@ -275,7 +275,9 @@ public class AbstractTestSoD extends AbstractWfTestPolicy {
 			@Override
 			protected ObjectDelta<UserType> getExpectedDelta0() {
 				//return ObjectDelta.createEmptyModifyDelta(UserType.class, jack.getOid(), prismContext);
-				return ObjectDelta.createModifyDelta(jack.getOid(), Collections.emptyList(), UserType.class, prismContext);
+				return prismContext.deltaFactory().object()
+						.createModifyDelta(jack.getOid(), Collections.emptyList(), UserType.class
+						);
 			}
 
 			@Override

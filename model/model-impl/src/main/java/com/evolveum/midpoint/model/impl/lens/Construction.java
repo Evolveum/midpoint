@@ -42,10 +42,8 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.util.ItemPathUtil;
+import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -244,8 +242,8 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 		ModelImplUtils.addAssignmentPathVariables(assignmentPathVariables, variables);
 		LOGGER.info("Expression variables for filter evaluation: {}", variables);
 
-		ObjectFilter origFilter = QueryConvertor.parseFilter(getConstructionType().getResourceRef().getFilter(),
-				ResourceType.class, getPrismContext());
+		ObjectFilter origFilter = getPrismContext().getQueryConverter().parseFilter(getConstructionType().getResourceRef().getFilter(),
+				ResourceType.class);
 		LOGGER.info("Orig filter {}", origFilter);
 		ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(origFilter, variables,
 				getMappingFactory().getExpressionFactory(), getPrismContext(),
@@ -262,7 +260,7 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 			LOGGER.info("Found object {}", object);
 			return results.add(object);
 		};
-		getObjectResolver().searchIterative(ResourceType.class, ObjectQuery.createObjectQuery(evaluatedFilter),
+		getObjectResolver().searchIterative(ResourceType.class, getPrismContext().queryFactory().createQuery(evaluatedFilter),
 				null, handler, task, result);
 
 		if (org.apache.commons.collections.CollectionUtils.isEmpty(results)) {
@@ -400,7 +398,7 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 		// {}", new Object[]{this.resource,
 		// assignments.size(), assignments});
 		for (ResourceAttributeDefinitionType attribudeDefinitionType : getConstructionType().getAttribute()) {
-			QName attrName = ItemPathUtil.getOnlySegmentQName(attribudeDefinitionType.getRef());
+			QName attrName = ItemPathTypeUtil.asSingleNameOrFailNullSafe(attribudeDefinitionType.getRef());
 			if (attrName == null) {
 				throw new SchemaException(
 						"No attribute name (ref) in attribute definition in account construction in "
@@ -426,7 +424,7 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 	private <T> MappingImpl<PrismPropertyValue<T>, ResourceAttributeDefinition<T>> evaluateAttribute(
 			ResourceAttributeDefinitionType attribudeDefinitionType, Task task, OperationResult result)
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
-		QName attrName = ItemPathUtil.getOnlySegmentQName(attribudeDefinitionType.getRef());
+		QName attrName = ItemPathTypeUtil.asSingleNameOrFailNullSafe(attribudeDefinitionType.getRef());
 		if (attrName == null) {
 			throw new SchemaException("Missing 'ref' in attribute construction in account construction in "
 					+ getSource());
@@ -493,7 +491,7 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
 		associationMappings = new ArrayList<>();
 		for (ResourceObjectAssociationType associationDefinitionType : getConstructionType().getAssociation()) {
-			QName assocName = ItemPathUtil.getOnlySegmentQName(associationDefinitionType.getRef());
+			QName assocName = ItemPathTypeUtil.asSingleNameOrFailNullSafe(associationDefinitionType.getRef());
 			if (assocName == null) {
 				throw new SchemaException(
 						"No association name (ref) in association definition in construction in " + getSource());
@@ -514,7 +512,7 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 	private MappingImpl<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> evaluateAssociation(
 			ResourceObjectAssociationType associationDefinitionType, Task task, OperationResult result)
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
-		QName assocName = ItemPathUtil.getOnlySegmentQName(associationDefinitionType.getRef());
+		QName assocName = ItemPathTypeUtil.asSingleNameOrFailNullSafe(associationDefinitionType.getRef());
 		if (assocName == null) {
 			throw new SchemaException("Missing 'ref' in association in construction in " + getSource());
 		}

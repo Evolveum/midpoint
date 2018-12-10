@@ -18,12 +18,9 @@ package com.evolveum.midpoint.web.component.prism;
 
 import java.io.Serializable;
 
+import com.evolveum.midpoint.prism.*;
 import org.apache.commons.lang.Validate;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.PrismUtil;
@@ -49,16 +46,17 @@ public class ValueWrapper<T> implements Serializable, DebugDumpable {
     private ValueStatus status;
     private boolean isEditEnabled = true;
     
-    public ValueWrapper(PropertyOrReferenceWrapper property, PrismValue value) {
-        this(property, value, ValueStatus.NOT_CHANGED);
+    public ValueWrapper(PropertyOrReferenceWrapper property, PrismValue value, PrismContext prismContext) {
+        this(property, value, ValueStatus.NOT_CHANGED, prismContext);
     }
 
-    public ValueWrapper(PropertyOrReferenceWrapper propertyWrapper, PrismValue prismValue, ValueStatus status) {
-        this(propertyWrapper, prismValue, null, status);
+    public ValueWrapper(PropertyOrReferenceWrapper propertyWrapper, PrismValue prismValue, ValueStatus status,
+		    PrismContext prismContext) {
+        this(propertyWrapper, prismValue, null, status, prismContext);
     }
 
     public ValueWrapper(PropertyOrReferenceWrapper propertyWrapper, PrismValue value, PrismValue oldValue,
-            ValueStatus status) {
+            ValueStatus status, PrismContext prismContext) {
         Validate.notNull(propertyWrapper, "Property wrapper must not be null.");
         Validate.notNull(value, "Property value must not be null.");
 
@@ -71,7 +69,7 @@ public class ValueWrapper<T> implements Serializable, DebugDumpable {
 				T val = ((PrismPropertyValue<T>) value).getValue();
 				if (val instanceof PolyString) {
 					PolyString poly = (PolyString) val;
-					this.value = new PrismPropertyValue<>(new PolyString(poly.getOrig(), poly.getNorm()),
+					this.value = prismContext.itemFactory().createPropertyValue(new PolyString(poly.getOrig(), poly.getNorm()),
                         value.getOriginType(), value.getOriginObject());
 				} else if (val instanceof ProtectedStringType) {
 					this.value = value.clone();
@@ -89,11 +87,11 @@ public class ValueWrapper<T> implements Serializable, DebugDumpable {
 		}
 
 		if (oldValue == null && value instanceof PrismPropertyValue && ValueStatus.ADDED == propertyWrapper.getStatus()) {
-			oldValue = new PrismPropertyValue<T>(null);
+			oldValue = prismContext.itemFactory().createPropertyValue();
 		}
 		
 		if (oldValue == null && value instanceof PrismReferenceValue && ValueStatus.ADDED == propertyWrapper.getStatus()) {
-			oldValue = new PrismReferenceValue();
+			oldValue = prismContext.itemFactory().createReferenceValue();
 		}
 		
 		if (oldValue == null && value instanceof PrismReferenceValue && ValueStatus.ADDED != propertyWrapper.getStatus()) {
@@ -106,7 +104,7 @@ public class ValueWrapper<T> implements Serializable, DebugDumpable {
                 PolyString poly = (PolyString)val;
                 val = (T) new PolyString(poly.getOrig(), poly.getNorm());
             }
-            oldValue = new PrismPropertyValue<>(CloneUtil.clone(val), this.value.getOriginType(), this.value.getOriginObject());
+            oldValue = prismContext.itemFactory().createPropertyValue(CloneUtil.clone(val), this.value.getOriginType(), this.value.getOriginObject());
         }
 
         this.oldValue = oldValue;

@@ -16,12 +16,10 @@
 package com.evolveum.midpoint.web.page.self;
 
 import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.web.component.assignment.GridViewComponent;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreePanel;
-import com.evolveum.midpoint.web.page.self.dto.AssignmentViewType;
 import com.evolveum.midpoint.web.session.OrgTreeStateStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
@@ -130,11 +128,12 @@ public class RoleCatalogTabPanel extends AbstractShoppingCartTabPanel<AbstractRo
         if (StringUtils.isEmpty(oid)) {
             return query;
         }
-        ObjectFilter filter = OrgFilter.createOrg(oid, OrgFilter.Scope.ONE_LEVEL);
+        QueryFactory queryFactory = getPrismContext().queryFactory();
+        ObjectFilter filter = queryFactory.createOrg(oid, OrgFilter.Scope.ONE_LEVEL);
 
-        TypeFilter roleTypeFilter = TypeFilter.createType(RoleType.COMPLEX_TYPE, filter);
-        TypeFilter serviceTypeFilter = TypeFilter.createType(ServiceType.COMPLEX_TYPE, filter);
-        query.addFilter(OrFilter.createOr(roleTypeFilter, serviceTypeFilter));
+        TypeFilter roleTypeFilter = queryFactory.createType(RoleType.COMPLEX_TYPE, filter);
+        TypeFilter serviceTypeFilter = queryFactory.createType(ServiceType.COMPLEX_TYPE, filter);
+        query.addFilter(queryFactory.createOr(roleTypeFilter, serviceTypeFilter));
         return query;
     }
 

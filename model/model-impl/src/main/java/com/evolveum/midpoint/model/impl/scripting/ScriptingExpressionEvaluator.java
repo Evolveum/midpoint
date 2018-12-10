@@ -25,7 +25,6 @@ import com.evolveum.midpoint.model.impl.scripting.expressions.SearchEvaluator;
 import com.evolveum.midpoint.model.impl.scripting.expressions.SelectEvaluator;
 import com.evolveum.midpoint.model.impl.scripting.helpers.ScriptingJaxbUtil;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -99,7 +98,7 @@ public class ScriptingExpressionEvaluator {
         SearchExpressionType search = new SearchExpressionType();
         search.setType(objectType);
         if (filter != null) {
-            search.setSearchFilter(QueryConvertor.createSearchFilterType(filter, prismContext));
+            search.setSearchFilter(prismContext.getQueryConverter().createSearchFilterType(filter));
         }
         ActionExpressionType action = new ActionExpressionType();
         action.setType(actionName);
@@ -263,7 +262,7 @@ public class ScriptingExpressionEvaluator {
                 } else if (object instanceof Containerable) {
                     value = ((Containerable) object).asPrismContainerValue();
                 } else {
-                    value = new PrismPropertyValue<>(object);
+                    value = prismContext.itemFactory().createPropertyValue(object);
                 }
             }
             if (value.isRaw()) {
@@ -278,7 +277,7 @@ public class ScriptingExpressionEvaluator {
     public PipelineData evaluateConstantStringExpression(RawType constant, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
         try {
             String value = constant.getParsedRealValue(String.class);
-            return PipelineData.createItem(new PrismPropertyValue<>(value), context.getInitialVariables());
+            return PipelineData.createItem(prismContext.itemFactory().createPropertyValue(value), context.getInitialVariables());
         } catch (SchemaException e) {
             throw new ScriptExecutionException(e.getMessage(), e);
         }

@@ -567,7 +567,7 @@ public class MappingEditorDialog extends ModalWindow {
 		List<ObjectReferenceType> references = new ArrayList<>();
 
 		try {
-			policies = getPageBase().getModelService().searchObjects(ValuePolicyType.class, new ObjectQuery(), null,
+			policies = getPageBase().getModelService().searchObjects(ValuePolicyType.class, null, null,
 					task, result);
 			result.recomputeStatus();
 		} catch (CommonException|RuntimeException e) {

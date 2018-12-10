@@ -21,6 +21,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.prism.PrismContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -46,6 +47,7 @@ public class ScriptExpressionEvaluatorFactory extends AbstractAutowiredExpressio
 	@Autowired private ScriptExpressionFactory scriptExpressionFactory;
 	@Autowired private SecurityContextManager securityContextManager;
 	@Autowired private LocalizationService localizationService;
+	@Autowired private PrismContext prismContext;
 
 	public ScriptExpressionEvaluatorFactory() {
 		super();
@@ -53,9 +55,11 @@ public class ScriptExpressionEvaluatorFactory extends AbstractAutowiredExpressio
 	}
 	
 	// For use in tests
-	public ScriptExpressionEvaluatorFactory(ScriptExpressionFactory scriptExpressionFactory, SecurityContextManager securityContextManager) {
+	public ScriptExpressionEvaluatorFactory(ScriptExpressionFactory scriptExpressionFactory,
+			SecurityContextManager securityContextManager, PrismContext prismContext) {
 		this.scriptExpressionFactory = scriptExpressionFactory;
         this.securityContextManager = securityContextManager;
+        this.prismContext = prismContext;
 	}
 
 	@Override
@@ -83,7 +87,7 @@ public class ScriptExpressionEvaluatorFactory extends AbstractAutowiredExpressio
 
         ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptType, outputDefinition, factory, contextDescription, task, result);
 
-        return new ScriptExpressionEvaluator<>(scriptType, scriptExpression, securityContextManager, localizationService);
+        return new ScriptExpressionEvaluator<>(scriptType, scriptExpression, securityContextManager, localizationService, prismContext);
 
 	}
 

@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -38,7 +37,8 @@ public class InducementsPanel extends AbstractRoleAssignmentPanel {
     
     @Override
     protected void initCustomPaging() {
-        getInducementsTabStorage().setPaging(ObjectPaging.createPaging(0, ((int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.INDUCEMENTS_TAB_TABLE))));
+        getInducementsTabStorage().setPaging(getPrismContext().queryFactory()
+                .createPaging(0, ((int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.INDUCEMENTS_TAB_TABLE))));
     }
 
     @Override

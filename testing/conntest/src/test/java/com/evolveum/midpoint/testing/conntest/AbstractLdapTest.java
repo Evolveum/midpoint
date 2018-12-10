@@ -40,7 +40,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
 
@@ -79,10 +79,8 @@ import org.apache.directory.ldap.client.api.LdapNetworkConnection;
 
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.match.DistinguishedNameMatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -93,7 +91,6 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
@@ -377,8 +374,8 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         profilingManager.appendProfilingToTest();
         //initProfiling - end
 
-        ciMatchingRule = matchingRuleRegistry.getMatchingRule(StringIgnoreCaseMatchingRule.NAME, DOMUtil.XSD_STRING);
-        dnMatchingRule = matchingRuleRegistry.getMatchingRule(DistinguishedNameMatchingRule.NAME, DOMUtil.XSD_STRING);
+        ciMatchingRule = matchingRuleRegistry.getMatchingRule(PrismConstants.STRING_IGNORE_CASE_MATCHING_RULE_NAME, DOMUtil.XSD_STRING);
+        dnMatchingRule = matchingRuleRegistry.getMatchingRule(PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME, DOMUtil.XSD_STRING);
 
         logTrustManagers();
 
@@ -495,14 +492,14 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 
 	protected <T> ObjectFilter createAttributeFilter(String attrName, T attrVal) throws SchemaException {
 		ResourceAttributeDefinition<T> ldapAttrDef = accountObjectClassDefinition.findAttributeDefinition(attrName);
-        return QueryBuilder.queryFor(ShadowType.class, prismContext)
+        return prismContext.queryFor(ShadowType.class)
 				.itemWithDef(ldapAttrDef, ShadowType.F_ATTRIBUTES, ldapAttrDef.getName()).eq(attrVal)
 				.buildFilter();
 	}
 
 	protected ObjectQuery createUidQuery(String uid) throws SchemaException {
 		ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
-		ObjectQueryUtil.filterAnd(query.getFilter(), createAttributeFilter("uid", uid));
+		ObjectQueryUtil.filterAnd(query.getFilter(), createAttributeFilter("uid", uid), prismContext);
 		return query;
 	}
 

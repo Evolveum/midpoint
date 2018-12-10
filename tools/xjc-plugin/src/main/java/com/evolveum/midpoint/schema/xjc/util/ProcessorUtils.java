@@ -16,8 +16,10 @@
 
 package com.evolveum.midpoint.schema.xjc.util;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.xjc.PrefixMapper;
 import com.evolveum.midpoint.schema.xjc.schema.SchemaProcessor;
+import com.evolveum.midpoint.schema.xjc.schema.StepSchemaConstants;
 import com.sun.codemodel.*;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.model.CClassInfo;
@@ -80,20 +82,28 @@ public final class ProcessorUtils {
         throw new IllegalStateException("Object type class defined by qname '" + type + "' outline was not found.");
     }
 
-    public static JFieldVar createPSFField(Outline outline, JDefinedClass definedClass, String fieldName,
-            QName reference) {
-        JClass clazz = (JClass) outline.getModel().codeModel._ref(QName.class);
-
-        JInvocation invocation = (JInvocation) JExpr._new(clazz);
-        invocation.arg(reference.getNamespaceURI());
-        invocation.arg(reference.getLocalPart());
-
-        int psf = JMod.PUBLIC | JMod.STATIC | JMod.FINAL;
-        try {
-        	return definedClass.field(psf, QName.class, fieldName, invocation);
-        } catch (RuntimeException e) {
-        	throw new RuntimeException(e.getMessage() + ", field "+fieldName+", class "+definedClass.fullName(), e);
+    public static void createQName(Outline outline, JDefinedClass targetClass, String targetField, QName qname, JFieldVar namespaceField, boolean namespaceFieldIsLocal, boolean createPath) {
+	    JExpression namespaceArgument;
+        if (namespaceField != null) {
+            if (namespaceFieldIsLocal) {
+            	namespaceArgument = namespaceField;
+            } else {
+	            JClass schemaClass = outline.getModel().codeModel._getClass(StepSchemaConstants.SCHEMA_CONSTANTS_GENERATED_CLASS_NAME);
+	            namespaceArgument = schemaClass.staticRef(namespaceField);
+            }
+        } else {
+            namespaceArgument = JExpr.lit(qname.getNamespaceURI());
         }
+        createNameConstruction(outline, targetClass, targetField, qname, namespaceArgument, createPath ? ItemName.class : QName.class);
+    }
+
+    private static void createNameConstruction(Outline outline, JDefinedClass definedClass, String fieldName,
+		    QName reference, JExpression namespaceArgument, Class<?> nameClass) {
+        JClass clazz = (JClass) outline.getModel().codeModel._ref(nameClass);
+	    JInvocation invocation = JExpr._new(clazz);
+        invocation.arg(namespaceArgument);
+        invocation.arg(reference.getLocalPart());
+        definedClass.field(JMod.PUBLIC | JMod.STATIC | JMod.FINAL, nameClass, fieldName, invocation);
     }
 
     public static String getGetterMethodName(ClassOutline classOutline, JFieldVar field) {

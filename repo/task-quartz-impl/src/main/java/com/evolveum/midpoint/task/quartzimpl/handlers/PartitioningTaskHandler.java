@@ -20,7 +20,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
@@ -111,7 +111,7 @@ public class PartitioningTaskHandler implements TaskHandler {
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 		TaskKindType taskKind = masterTask.getWorkManagement() != null ? masterTask.getWorkManagement().getTaskKind() : null;
 		if (taskKind == null) {
-			ItemDelta<?, ?> itemDelta = DeltaBuilder.deltaFor(TaskType.class, getPrismContext())
+			ItemDelta<?, ?> itemDelta = getPrismContext().deltaFor(TaskType.class)
 					.item(TaskType.F_WORK_MANAGEMENT, TaskWorkManagementType.F_TASK_KIND)
 					.replace(TaskKindType.PARTITIONED_MASTER)
 					.asItemDelta();
@@ -337,7 +337,7 @@ public class PartitioningTaskHandler implements TaskHandler {
 	}
 
 	private void applyDeltas(TaskType subtask, Collection<ItemDelta<?, ?>> deltas) throws SchemaException {
-		ItemDelta.applyTo(deltas, subtask.asPrismContainerValue());
+		ItemDeltaCollectionsUtil.applyTo(deltas, subtask.asPrismContainerValue());
 	}
 
     @Override

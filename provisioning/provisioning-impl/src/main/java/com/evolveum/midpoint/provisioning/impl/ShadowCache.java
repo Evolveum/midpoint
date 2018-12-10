@@ -25,9 +25,7 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.*;
@@ -45,6 +43,7 @@ import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.processor.ObjectFactory;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -119,6 +118,7 @@ public class ShadowCache {
 	@Autowired private ResourceManager resourceManager;
 	@Autowired private Clock clock;
 	@Autowired private PrismContext prismContext;
+	@Autowired private SchemaHelper schemaHelper;
 	@Autowired private ResourceObjectConverter resouceObjectConverter;
 	@Autowired private ShadowCaretaker shadowCaretaker;
 	@Autowired private MatchingRuleRegistry matchingRuleRegistry;
@@ -828,7 +828,7 @@ public class ShadowCache {
 			Task task,
 			OperationResult parentResult)
 					throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		ObjectDelta<ShadowType> delta = ObjectDelta.createAddDelta(addedShadow);
+		ObjectDelta<ShadowType> delta = DeltaFactory.Object.createAddDelta(addedShadow);
 		ResourceOperationDescription operationDescription = createSuccessOperationDescription(ctx, addedShadow,
 				delta, parentResult);
 		
@@ -926,9 +926,8 @@ public class ShadowCache {
 		InternalMonitor.recordCount(InternalCounters.SHADOW_CHANGE_OPERATION_COUNT);
 
 		Collection<QName> additionalAuxiliaryObjectClassQNames = new ArrayList<>();
-		ItemPath auxPath = new ItemPath(ShadowType.F_AUXILIARY_OBJECT_CLASS);
 		for (ItemDelta modification : modifications) {
-			if (auxPath.equals(modification.getPath())) {
+			if (ShadowType.F_AUXILIARY_OBJECT_CLASS.equals(modification.getPath())) {
 				PropertyDelta<QName> auxDelta = (PropertyDelta<QName>) modification;
 				for (PrismPropertyValue<QName> pval : auxDelta.getValues(QName.class)) {
 					additionalAuxiliaryObjectClassQNames.add(pval.getValue());
@@ -993,7 +992,7 @@ public class ShadowCache {
 					
 					Collection<PropertyDelta<PrismPropertyValue>> sideEffectChanges = asyncReturnValue.getReturnValue();
 					if (sideEffectChanges != null) {
-						ItemDelta.addAll(modifications, sideEffectChanges);
+						ItemDeltaCollectionsUtil.addAll(modifications, sideEffectChanges);
 					}
 					
 				} catch (Exception ex) {
@@ -1032,8 +1031,8 @@ public class ShadowCache {
 			OperationResult parentResult) 
 					throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		
-		ObjectDelta<ShadowType> delta = ObjectDelta.createModifyDelta(repoShadow.getOid(), modifications,
-				repoShadow.getCompileTimeClass(), prismContext);
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModifyDelta(repoShadow.getOid(), modifications,
+				repoShadow.getCompileTimeClass());
 		ResourceOperationDescription operationDescription = createSuccessOperationDescription(ctx, repoShadow,
 				delta, parentResult);
 		
@@ -1077,7 +1076,7 @@ public class ShadowCache {
 			
 			Collection<PropertyDelta<PrismPropertyValue>> sideEffectChanges = asyncReturnValue.getReturnValue();
 			if (sideEffectChanges != null) {
-				ItemDelta.addAll(modifications, sideEffectChanges);
+				ItemDeltaCollectionsUtil.addAll(modifications, sideEffectChanges);
 			}
 			
 		} catch (Exception ex) {
@@ -1273,8 +1272,8 @@ public class ShadowCache {
 			Task task,
 			OperationResult parentResult)
 					throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		ObjectDelta<ShadowType> delta = ObjectDelta.createDeleteDelta(shadow.getCompileTimeClass(),
-				shadow.getOid(), prismContext);
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createDeleteDelta(shadow.getCompileTimeClass(),
+				shadow.getOid());
 		ResourceOperationDescription operationDescription = createSuccessOperationDescription(ctx, shadow,
 				delta, parentResult);
 		
@@ -1381,24 +1380,24 @@ public class ShadowCache {
 							
 			if (operationCompleted && gracePeriod == null) {
 				LOGGER.trace("Deleting pending operation because it is completed (no grace): {}", pendingOperation);
-				shadowDelta.addModificationDeleteContainer(new ItemPath(ShadowType.F_PENDING_OPERATION), pendingOperation.clone());
+				shadowDelta.addModificationDeleteContainer(ShadowType.F_PENDING_OPERATION, pendingOperation.clone());
 				continue;
 				
 			} else {
-				PropertyDelta<OperationResultStatusType> resultStatusDelta = shadowDelta.createPropertyModification(containerPath.subPath(PendingOperationType.F_RESULT_STATUS));
-				resultStatusDelta.setValuesToReplace(new PrismPropertyValue<>(newStatusType));
+				PropertyDelta<OperationResultStatusType> resultStatusDelta = shadowDelta.createPropertyModification(containerPath.append(PendingOperationType.F_RESULT_STATUS));
+				resultStatusDelta.setRealValuesToReplace(newStatusType);
 				shadowDelta.addModification(resultStatusDelta);
 			}
 	
 			if (operationCompleted) {
 				// Operation completed
 				
-				PropertyDelta<PendingOperationExecutionStatusType> executionStatusDelta = shadowDelta.createPropertyModification(containerPath.subPath(PendingOperationType.F_EXECUTION_STATUS));
-				executionStatusDelta.setValuesToReplace(new PrismPropertyValue<>(PendingOperationExecutionStatusType.COMPLETED));
+				PropertyDelta<PendingOperationExecutionStatusType> executionStatusDelta = shadowDelta.createPropertyModification(containerPath.append(PendingOperationType.F_EXECUTION_STATUS));
+				executionStatusDelta.setRealValuesToReplace(PendingOperationExecutionStatusType.COMPLETED);
 				shadowDelta.addModification(executionStatusDelta);
 				
-				PropertyDelta<XMLGregorianCalendar> completionTimestampDelta = shadowDelta.createPropertyModification(containerPath.subPath(PendingOperationType.F_COMPLETION_TIMESTAMP));
-				completionTimestampDelta.setValuesToReplace(new PrismPropertyValue<>(clock.currentTimeXMLGregorianCalendar()));
+				PropertyDelta<XMLGregorianCalendar> completionTimestampDelta = shadowDelta.createPropertyModification(containerPath.append(PendingOperationType.F_COMPLETION_TIMESTAMP));
+				completionTimestampDelta.setRealValuesToReplace(clock.currentTimeXMLGregorianCalendar());
 				shadowDelta.addModification(completionTimestampDelta);
 				
 				ObjectDeltaType pendingDeltaType = pendingOperation.getDelta();
@@ -1428,8 +1427,8 @@ public class ShadowCache {
 			// We do not need to care about attributes in add deltas here. The add operation is already applied to
 			// attributes. We need this to "allocate" the identifiers, so iteration mechanism in the
 			// model can find unique values while taking pending create operations into consideration.
-			PropertyDelta<Boolean> existsDelta = shadowDelta.createPropertyModification(new ItemPath(ShadowType.F_EXISTS));
-			existsDelta.setValuesToReplace(new PrismPropertyValue<>(true));
+			PropertyDelta<Boolean> existsDelta = shadowDelta.createPropertyModification(ShadowType.F_EXISTS);
+			existsDelta.setRealValuesToReplace(true);
 			shadowDelta.addModification(existsDelta);
 		}
 		
@@ -1498,16 +1497,16 @@ public class ShadowCache {
 			ItemPath containerPath = pendingOperation.asPrismContainerValue().getPath();
 			
 			int attemptNumber = pendingOperation.getAttemptNumber() + 1;
-			PropertyDelta<Integer> attemptNumberDelta = shadowDelta.createPropertyModification(containerPath.subPath(PendingOperationType.F_ATTEMPT_NUMBER));
-			attemptNumberDelta.setValuesToReplace(new PrismPropertyValue<>(attemptNumber));
+			PropertyDelta<Integer> attemptNumberDelta = shadowDelta.createPropertyModification(containerPath.append(PendingOperationType.F_ATTEMPT_NUMBER));
+			attemptNumberDelta.setRealValuesToReplace(attemptNumber);
 			shadowDelta.addModification(attemptNumberDelta);
 			
-			PropertyDelta<XMLGregorianCalendar> lastAttemptTimestampDelta = shadowDelta.createPropertyModification(containerPath.subPath(PendingOperationType.F_LAST_ATTEMPT_TIMESTAMP));
-			lastAttemptTimestampDelta.setValuesToReplace(new PrismPropertyValue<>(now));
+			PropertyDelta<XMLGregorianCalendar> lastAttemptTimestampDelta = shadowDelta.createPropertyModification(containerPath.append(PendingOperationType.F_LAST_ATTEMPT_TIMESTAMP));
+			lastAttemptTimestampDelta.setRealValuesToReplace(now);
 			shadowDelta.addModification(lastAttemptTimestampDelta);
 			
-			PropertyDelta<OperationResultStatusType> resultStatusDelta = shadowDelta.createPropertyModification(containerPath.subPath(PendingOperationType.F_RESULT_STATUS));
-			resultStatusDelta.setValuesToReplace(new PrismPropertyValue<>(OperationResultStatusType.IN_PROGRESS));
+			PropertyDelta<OperationResultStatusType> resultStatusDelta = shadowDelta.createPropertyModification(containerPath.append(PendingOperationType.F_RESULT_STATUS));
+			resultStatusDelta.setRealValuesToReplace(OperationResultStatusType.IN_PROGRESS);
 			shadowDelta.addModification(resultStatusDelta);
 			
 			shadowManager.modifyShadowAttributes(ctx, repoShadow, shadowDelta.getModifications(), parentResult);
@@ -1602,14 +1601,14 @@ public class ShadowCache {
 				continue;
 			}
 			ItemPath containerPath = pendingOperation.asPrismContainerValue().getPath();
-			PropertyDelta<PendingOperationExecutionStatusType> executionStatusDelta = shadowDelta.createPropertyModification(containerPath.subPath(PendingOperationType.F_EXECUTION_STATUS));
-			executionStatusDelta.setValuesToReplace(new PrismPropertyValue<>(PendingOperationExecutionStatusType.COMPLETED));
+			PropertyDelta<PendingOperationExecutionStatusType> executionStatusDelta = shadowDelta.createPropertyModification(containerPath.append(PendingOperationType.F_EXECUTION_STATUS));
+			executionStatusDelta.setRealValuesToReplace(PendingOperationExecutionStatusType.COMPLETED);
 			shadowDelta.addModification(executionStatusDelta);
-			PropertyDelta<XMLGregorianCalendar> completionTimestampDelta = shadowDelta.createPropertyModification(containerPath.subPath(PendingOperationType.F_COMPLETION_TIMESTAMP));
-			completionTimestampDelta.setValuesToReplace(new PrismPropertyValue<>(now));
+			PropertyDelta<XMLGregorianCalendar> completionTimestampDelta = shadowDelta.createPropertyModification(containerPath.append(PendingOperationType.F_COMPLETION_TIMESTAMP));
+			completionTimestampDelta.setRealValuesToReplace(now);
 			shadowDelta.addModification(completionTimestampDelta);
-			PropertyDelta<OperationResultStatusType> resultStatusDelta = shadowDelta.createPropertyModification(containerPath.subPath(PendingOperationType.F_RESULT_STATUS));
-			resultStatusDelta.setValuesToReplace(new PrismPropertyValue<>(OperationResultStatusType.NOT_APPLICABLE));
+			PropertyDelta<OperationResultStatusType> resultStatusDelta = shadowDelta.createPropertyModification(containerPath.append(PendingOperationType.F_RESULT_STATUS));
+			resultStatusDelta.setRealValuesToReplace(OperationResultStatusType.NOT_APPLICABLE);
 			shadowDelta.addModification(resultStatusDelta);
 		}
 		if (shadowDelta.isEmpty()) {
@@ -1674,7 +1673,7 @@ public class ShadowCache {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Deleting pending operation because it is completed '{}' and expired: {}", pendingOperation.getResultStatus().value(), pendingOperation);
 				}
-				shadowDelta.addModificationDeleteContainer(new ItemPath(ShadowType.F_PENDING_OPERATION), pendingOperation.clone());
+				shadowDelta.addModificationDeleteContainer(ShadowType.F_PENDING_OPERATION, pendingOperation.clone());
 			}
 		}
 	}
@@ -1735,7 +1734,7 @@ public class ShadowCache {
 
 	public void applyDefinition(final ObjectQuery query, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		ResourceShadowDiscriminator coordinates = ObjectQueryUtil.getCoordinates(query.getFilter());
+		ResourceShadowDiscriminator coordinates = ObjectQueryUtil.getCoordinates(query.getFilter(), prismContext);
 		ProvisioningContext ctx = ctxFactory.create(coordinates, null, result);
 		ctx.assertDefinition();
 		applyDefinition(ctx, query);
@@ -1751,7 +1750,6 @@ public class ShadowCache {
 			return;
 		}
 		final RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
-		final ItemPath attributesPath = new ItemPath(ShadowType.F_ATTRIBUTES);
 		com.evolveum.midpoint.prism.query.Visitor visitor = subfilter -> {
 			if (subfilter instanceof PropertyValueFilter) {
 				PropertyValueFilter<?> valueFilter = (PropertyValueFilter<?>) subfilter;
@@ -1759,7 +1757,7 @@ public class ShadowCache {
 				if (definition instanceof ResourceAttributeDefinition) {
 					return;		// already has a resource-related definition
 				}
-				if (!attributesPath.equivalent(valueFilter.getParentPath())) {
+				if (!ShadowType.F_ATTRIBUTES.equivalent(valueFilter.getParentPath())) {
 					return;
 				}
 				QName attributeName = valueFilter.getElementName();
@@ -1822,7 +1820,8 @@ public class ShadowCache {
 					throws SchemaException, ObjectNotFoundException, CommunicationException,
 					ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
-		ResourceShadowDiscriminator coordinates = ObjectQueryUtil.getCoordinates(query != null ? query.getFilter() : null);
+		ResourceShadowDiscriminator coordinates = ObjectQueryUtil.getCoordinates(query != null ? query.getFilter() : null,
+				prismContext);
 		final ProvisioningContext ctx = ctxFactory.create(coordinates, task, parentResult);
 		ctx.setGetOperationOptions(options);
 		ctx.assertDefinition();
@@ -1911,7 +1910,7 @@ public class ShadowCache {
 					objResult.recordSuccessIfUnknown();
 
                     if (!objResult.isSuccess() && !objResult.isHandledError()) {
-                        Collection<? extends ItemDelta> shadowModificationType = PropertyDelta
+                        Collection<? extends ItemDelta> shadowModificationType = prismContext.deltaFactory().property()
                                 .createModificationReplacePropertyCollection(ShadowType.F_RESULT,
                                         getResourceObjectShadowDefinition(), objResult.createOperationResultType());
                         try {
@@ -1958,6 +1957,8 @@ public class ShadowCache {
 	}
 
 	ObjectQuery createAttributeQuery(ObjectQuery query) throws SchemaException {
+		QueryFactory queryFactory = prismContext.queryFactory();
+
 		ObjectFilter filter = null;
 		if (query != null) {
 			filter = query.getFilter();
@@ -1969,23 +1970,23 @@ public class ShadowCache {
 			List<? extends ObjectFilter> conditions = ((AndFilter) filter).getConditions();
 			List<ObjectFilter> attributeFilter = createAttributeQueryInternal(conditions);
 			if (attributeFilter.size() > 1) {
-				attributeQuery = ObjectQuery.createObjectQuery(AndFilter.createAnd(attributeFilter));
+				attributeQuery = queryFactory.createQuery(queryFactory.createAnd(attributeFilter));
 			} else if (attributeFilter.size() < 1) {
 				LOGGER.trace("No attribute filter defined in the query.");
 			} else {
-				attributeQuery = ObjectQuery.createObjectQuery(attributeFilter.iterator().next());
+				attributeQuery = queryFactory.createQuery(attributeFilter.iterator().next());
 			}
 		}
 
 		if (query != null && query.getPaging() != null) {
 			if (attributeQuery == null) {
-				attributeQuery = new ObjectQuery();
+				attributeQuery = queryFactory.createQuery();
 			}
 			attributeQuery.setPaging(query.getPaging());
 		}
 		if (query != null && query.isAllowPartialResults()) {
 			if (attributeQuery == null) {
-				attributeQuery = new ObjectQuery();
+				attributeQuery = queryFactory.createQuery();
 			}
 			attributeQuery.setAllowPartialResults(true);
 		}
@@ -2020,9 +2021,9 @@ public class ShadowCache {
 						((NaryLogicalFilter) f).getConditions());
 				if (subFilters.size() > 1) {
 					if (f instanceof OrFilter) {
-						attributeFilter.add(OrFilter.createOr(subFilters));
+						attributeFilter.add(prismContext.queryFactory().createOr(subFilters));
 					} else if (f instanceof AndFilter) {
-						attributeFilter.add(AndFilter.createAnd(subFilters));
+						attributeFilter.add(prismContext.queryFactory().createAnd(subFilters));
 					} else {
 						throw new IllegalArgumentException(
 								"Could not translate query filter. Unknown type: " + f);
@@ -2203,7 +2204,7 @@ public class ShadowCache {
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException {
 
-		ResourceShadowDiscriminator coordinates = ObjectQueryUtil.getCoordinates(query.getFilter());
+		ResourceShadowDiscriminator coordinates = ObjectQueryUtil.getCoordinates(query.getFilter(), prismContext);
 		final ProvisioningContext ctx = ctxFactory.create(coordinates, null, result);
 		ctx.assertDefinition();
 		applyDefinition(ctx, query);
@@ -2271,7 +2272,7 @@ public class ShadowCache {
 				};
 
 				query = query.clone();
-				ObjectPaging paging = ObjectPaging.createEmptyPaging();
+				ObjectPaging paging = prismContext.queryFactory().createPaging();
 				// Explicitly set offset. This makes a difference for some resources.
 				// E.g. LDAP connector will detect presence of an offset and it will initiate VLV search which
 				// can estimate number of results. If no offset is specified then continuous/linear search is
@@ -2280,9 +2281,9 @@ public class ShadowCache {
 				paging.setOffset(0);
 				paging.setMaxSize(1);
 				query.setPaging(paging);
-				Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
-						new ItemPath(ShadowType.F_ASSOCIATION),
-						GetOperationOptions.createRetrieve(RetrieveOption.EXCLUDE));
+				Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+						.item(ShadowType.F_ASSOCIATION).dontRetrieve()
+						.build();
 				SearchResultMetadata resultMetadata;
 				try {
 					resultMetadata = searchObjectsIterative(query, options, handler, false, task, result);
@@ -2298,9 +2299,8 @@ public class ShadowCache {
 
 			} else if (simulate == CountObjectsSimulateType.SEQUENTIAL_SEARCH) {
 
-				LOGGER.trace("countObjects: simulating counting with sequential search (likely perfomance impact)");
-				// traditional way of counting objects (i.e. counting them one
-				// by one)
+				LOGGER.trace("countObjects: simulating counting with sequential search (likely performance impact)");
+				// traditional way of counting objects (i.e. counting them one by one)
 				final Holder<Integer> countHolder = new Holder<>(0);
 
 				final ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
@@ -2314,9 +2314,9 @@ public class ShadowCache {
 					}
 				};
 
-				Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
-						new ItemPath(ShadowType.F_ASSOCIATION),
-						GetOperationOptions.createRetrieve(RetrieveOption.EXCLUDE));
+				Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+						.item(ShadowType.F_ASSOCIATION).dontRetrieve()
+						.build();
 
 				searchObjectsIterative(query, options, handler, false, task, result);
 				// TODO: better error handling
@@ -2561,11 +2561,11 @@ public class ShadowCache {
 		PrismObjectDefinition<ShadowType> shadowDefinition = getResourceObjectShadowDefinition();
 
 		Collection<ItemDelta> modifications = new ArrayList<>();
-		PropertyDelta resultDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_RESULT,
+		PropertyDelta resultDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(ShadowType.F_RESULT,
 				shadowDefinition, shadowResult.createOperationResultType());
 		modifications.add(resultDelta);
 		if (change.getObjectDelta() != null && change.getObjectDelta().getChangeType() == ChangeType.DELETE) {
-			PropertyDelta failedOperationTypeDelta = PropertyDelta.createModificationReplaceProperty(
+			PropertyDelta failedOperationTypeDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
 					ShadowType.F_FAILED_OPERATION_TYPE, shadowDefinition, FailedOperationTypeType.DELETE);
 			modifications.add(failedOperationTypeDelta);
 		}
@@ -2726,7 +2726,7 @@ public class ShadowCache {
 		if (resourceAuxOcProp != null) {
 			PrismProperty<QName> resultAuxOcProp = resultShadow
 					.findOrCreateProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS);
-			resultAuxOcProp.addAll(PrismPropertyValue.cloneCollection(resourceAuxOcProp.getValues()));
+			resultAuxOcProp.addAll(PrismValueCollectionsUtil.cloneCollection(resourceAuxOcProp.getValues()));
 			auxObjectClassQNames.addAll(resultAuxOcProp.getRealValues());
 		}
 
@@ -2934,8 +2934,7 @@ public class ShadowCache {
 							throw new TunnelException(e);
 						}
 					},
-					new ItemPath(new NameItemPathSegment(ShadowType.F_ASSOCIATION),
-					IdItemPathSegment.WILDCARD), false);
+					ItemPath.create(ShadowType.F_ASSOCIATION, null), false);
 		} catch (TunnelException e) {
 			Throwable cause = e.getCause();
 			if (cause instanceof SchemaException) {
@@ -2963,7 +2962,7 @@ public class ShadowCache {
 					throws SchemaException, ObjectNotFoundException, ConfigurationException,
 					CommunicationException, ExpressionEvaluationException {
 		try {
-			ItemDelta.accept(modifications, 
+			ItemDeltaCollectionsUtil.accept(modifications,
 					(visitable) -> {
 						try {
 							preprocessEntitlement(ctx, (PrismContainerValue<ShadowAssociationType>) visitable, desc,
@@ -2973,7 +2972,7 @@ public class ShadowCache {
 							throw new TunnelException(e);
 						}						
 					}, 
-					new ItemPath(new NameItemPathSegment(ShadowType.F_ASSOCIATION), IdItemPathSegment.WILDCARD), false);
+					ItemPath.create(ShadowType.F_ASSOCIATION, null), false);
 		} catch (TunnelException e) {
 			Throwable cause = e.getCause();
 			if (cause instanceof SchemaException) {
@@ -3026,7 +3025,7 @@ public class ShadowCache {
 				.findContainer(ShadowAssociationType.F_IDENTIFIERS);
 		if (identifiersContainer == null) {
 			ResourceAttributeContainer origContainer = ShadowUtil.getAttributesContainer(repoShadow);
-			identifiersContainer = new ResourceAttributeContainer(ShadowAssociationType.F_IDENTIFIERS,
+			identifiersContainer = ObjectFactory.createResourceAttributeContainer(ShadowAssociationType.F_IDENTIFIERS,
 					origContainer.getDefinition(), prismContext);
 			association.add(identifiersContainer);
 		}
@@ -3140,10 +3139,10 @@ public class ShadowCache {
 		return XmlTypeConverter.isAfterInterval(requestTimestamp, operationGroupingInterval, now);
 	}
 
-	public <T> ItemComparisonResult compare(PrismObject<ShadowType> repositoryShadow, ItemPath path, T expectedValue, Task task, OperationResult parentResult) 
+	public <T> ItemComparisonResult compare(PrismObject<ShadowType> repositoryShadow, ItemPath path, T expectedValue, Task task, OperationResult parentResult)
 				throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException {
 		
-		if (!path.equals(SchemaConstants.PATH_PASSWORD_VALUE)) {
+		if (!path.equivalent(SchemaConstants.PATH_PASSWORD_VALUE)) {
 			throw new UnsupportedOperationException("Only password comparison is supported");
 		}
 		

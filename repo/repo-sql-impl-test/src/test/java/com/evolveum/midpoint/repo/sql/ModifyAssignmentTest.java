@@ -23,7 +23,6 @@ import static com.evolveum.midpoint.prism.util.PrismTestUtil.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -110,11 +109,11 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
         PrismObject<RoleType> repoRole = getObject(RoleType.class, ROLE_OID);
         System.out.println("role after: "  + repoRole.debugDump());
 
-        PrismContainer<AssignmentType> inducement = repoRole.findContainer(new ItemPath(RoleType.F_INDUCEMENT));
+        PrismContainer<AssignmentType> inducement = repoRole.findContainer(RoleType.F_INDUCEMENT);
         assertNotNull(inducement);
         assertEquals(2, inducement.getValues().size());
 
-        PrismContainer<AssignmentType> assignment = repoRole.findContainer(new ItemPath(AbstractRoleType.F_ASSIGNMENT));
+        PrismContainer<AssignmentType> assignment = repoRole.findContainer(AbstractRoleType.F_ASSIGNMENT);
         assertNotNull(assignment);
         assertEquals(2, assignment.getValues().size());
 
@@ -147,11 +146,11 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
         PrismObject<RoleType> repoRole = getObject(RoleType.class, ROLE_OID);
         System.out.println("role: " + repoRole.debugDump());
 
-        PrismContainer<AssignmentType> inducement = repoRole.findContainer(new ItemPath(RoleType.F_INDUCEMENT));
+        PrismContainer<AssignmentType> inducement = repoRole.findContainer(RoleType.F_INDUCEMENT);
         assertNotNull(inducement);
         assertEquals(3, inducement.getValues().size());
 
-        PrismContainer<AssignmentType> assignment = repoRole.findContainer(new ItemPath(AbstractRoleType.F_ASSIGNMENT));
+        PrismContainer<AssignmentType> assignment = repoRole.findContainer(AbstractRoleType.F_ASSIGNMENT);
         assertNotNull(assignment);
         assertEquals(2, assignment.getValues().size());
 
@@ -180,11 +179,11 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
 
         PrismObject<RoleType> repoRole = getObject(RoleType.class, ROLE_OID);
 
-        PrismContainer<AssignmentType> inducement = repoRole.findContainer(new ItemPath(RoleType.F_INDUCEMENT));
+        PrismContainer<AssignmentType> inducement = repoRole.findContainer(RoleType.F_INDUCEMENT);
         assertNotNull(inducement);
         assertEquals(3, inducement.getValues().size());
 
-        PrismContainer<AssignmentType> assignment = repoRole.findContainer(new ItemPath(AbstractRoleType.F_ASSIGNMENT));
+        PrismContainer<AssignmentType> assignment = repoRole.findContainer(AbstractRoleType.F_ASSIGNMENT);
         assertNotNull(assignment);
         assertEquals(2, assignment.getValues().size());
 
@@ -216,11 +215,11 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
 
         PrismObject<RoleType> repoRole = getObject(RoleType.class, ROLE_OID);
 
-        PrismContainer<AssignmentType> inducement = repoRole.findContainer(new ItemPath(RoleType.F_INDUCEMENT));
+        PrismContainer<AssignmentType> inducement = repoRole.findContainer(RoleType.F_INDUCEMENT);
         assertNotNull(inducement);
         assertEquals(3, inducement.getValues().size());
 
-        PrismContainer<AssignmentType> assignment = repoRole.findContainer(new ItemPath(AbstractRoleType.F_ASSIGNMENT));
+        PrismContainer<AssignmentType> assignment = repoRole.findContainer(AbstractRoleType.F_ASSIGNMENT);
         assertNotNull(assignment);
         assertEquals(2, assignment.getValues().size());
 
@@ -242,8 +241,8 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
 
         AssignmentType a = new AssignmentType();
         a.setId(4L);
-        ObjectDelta<RoleType> delta = ObjectDelta.createModificationDeleteContainer(RoleType.class,
-                "00000000-8888-6666-0000-100000000005", RoleType.F_ASSIGNMENT, prismContext, a);
+        ObjectDelta<RoleType> delta = prismContext.deltaFactory().object().createModificationDeleteContainer(RoleType.class,
+                "00000000-8888-6666-0000-100000000005", RoleType.F_ASSIGNMENT, a);
 
         OperationResult result = new OperationResult("delete assignment");
 
@@ -255,11 +254,11 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
 
         PrismObject<RoleType> repoRole = getObject(RoleType.class, ROLE_OID);
 
-        PrismContainer<AssignmentType> inducement = repoRole.findContainer(new ItemPath(RoleType.F_INDUCEMENT));
+        PrismContainer<AssignmentType> inducement = repoRole.findContainer(RoleType.F_INDUCEMENT);
         assertNotNull(inducement);
         assertEquals(3, inducement.getValues().size());
 
-        PrismContainer<AssignmentType> assignment = repoRole.findContainer(new ItemPath(AbstractRoleType.F_ASSIGNMENT));
+        PrismContainer<AssignmentType> assignment = repoRole.findContainer(AbstractRoleType.F_ASSIGNMENT);
         assertNotNull(assignment);
         assertEquals(1, assignment.getValues().size());
 
@@ -297,14 +296,14 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
 
         PrismObject<RoleType> repoRole = getObject(RoleType.class, ROLE_OID);
 
-        PrismContainer<AssignmentType> inducement = repoRole.findContainer(new ItemPath(RoleType.F_INDUCEMENT));
+        PrismContainer<AssignmentType> inducement = repoRole.findContainer(RoleType.F_INDUCEMENT);
         assertNotNull(inducement);
         assertEquals(2, inducement.getValues().size());
 
         assertNotNull(inducement.getValue(2L));
         assertNotNull(inducement.getValue(5L));
 
-        PrismContainer<AssignmentType> assignment = repoRole.findContainer(new ItemPath(AbstractRoleType.F_ASSIGNMENT));
+        PrismContainer<AssignmentType> assignment = repoRole.findContainer(AbstractRoleType.F_ASSIGNMENT);
         assertNotNull(assignment);
         assertEquals(1, assignment.getValues().size());
 
@@ -333,7 +332,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
 
         PrismObject<RoleType> repoRole = getObject(RoleType.class, ROLE_OID);
 
-        PrismContainer<AssignmentType> inducement = repoRole.findContainer(new ItemPath(RoleType.F_INDUCEMENT));
+        PrismContainer<AssignmentType> inducement = repoRole.findContainer(RoleType.F_INDUCEMENT);
         assertNotNull(inducement);
         assertEquals(3, inducement.getValues().size());
 
@@ -367,7 +366,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
         PrismObject<RoleType> roleAfter = getObject(RoleType.class, ROLE_OID);
         display("Role after", roleAfter);
 
-        PrismContainer<AssignmentType> assignment = roleAfter.findContainer(new ItemPath(RoleType.F_ASSIGNMENT));
+        PrismContainer<AssignmentType> assignment = roleAfter.findContainer(RoleType.F_ASSIGNMENT);
         assertNotNull(assignment);
         assertEquals("Wrong number of assignments", 1, assignment.getValues().size());
         
@@ -413,7 +412,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
         PrismObject<RoleType> roleAfter = getObject(RoleType.class, ROLE_OID);
         display("Role after", roleAfter);
 
-        PrismContainer<AssignmentType> assignment = roleAfter.findContainer(new ItemPath(RoleType.F_ASSIGNMENT));
+        PrismContainer<AssignmentType> assignment = roleAfter.findContainer(RoleType.F_ASSIGNMENT);
         assertNotNull(assignment);
         assertEquals("Wrong number of assignments", 1, assignment.getValues().size());
         

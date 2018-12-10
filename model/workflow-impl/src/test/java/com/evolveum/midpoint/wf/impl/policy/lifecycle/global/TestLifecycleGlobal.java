@@ -21,8 +21,8 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -44,6 +44,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.evolveum.midpoint.prism.util.CloneUtil.cloneCollectionMembers;
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 
@@ -94,7 +95,7 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 				.name("judge")
 				.riskLevel("high");
 
-		ObjectDelta<RoleType> addObjectDelta = ObjectDelta.createAddDelta(judge.asPrismObject());
+		ObjectDelta<RoleType> addObjectDelta = DeltaFactory.Object.createAddDelta(judge.asPrismObject());
 
 		executeTest(TEST_NAME, new TestDetails() {
 			@Override
@@ -163,9 +164,9 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 		PrismObject<RoleType> judgeAfter = searchObjectByName(RoleType.class, "judge");
 		roleJudgeOid = judgeAfter.getOid();
 
-		PrismReferenceValue judgeOwner = new PrismReferenceValue(roleJudgeOid, RoleType.COMPLEX_TYPE);
+		PrismReferenceValue judgeOwner = getPrismContext().itemFactory().createReferenceValue(roleJudgeOid, RoleType.COMPLEX_TYPE);
 		judgeOwner.setRelation(SchemaConstants.ORG_OWNER);
-		executeChanges(DeltaBuilder.deltaFor(UserType.class, prismContext)
+		executeChanges(prismContext.deltaFor(UserType.class)
 						.item(UserType.F_ASSIGNMENT).add(ObjectTypeUtil.createAssignmentTo(judgeAfter, SchemaConstants.ORG_OWNER))
 						.asObjectDeltaCast(userJudgeOwnerOid),
 				null, task, result);
@@ -185,7 +186,7 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 		//Task task = createTask(TEST_NAME);
 		//OperationResult result = task.getResult();
 
-		ObjectDelta<RoleType> judgeDelta = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+		ObjectDelta<RoleType> judgeDelta = prismContext.deltaFor(RoleType.class)
 				.item(RoleType.F_APPROVER_REF)
 						.add(new ObjectReferenceType().oid("oid1").type(RoleType.COMPLEX_TYPE),
 								new ObjectReferenceType().oid("oid2").type(RoleType.COMPLEX_TYPE))
@@ -286,7 +287,8 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 
 		deleteObject(UserType.class, userJudgeOwnerOid);
 
-		ObjectDelta<RoleType> deleteDelta = ObjectDelta.createDeleteDelta(RoleType.class, roleJudgeOid, prismContext);
+		ObjectDelta<RoleType> deleteDelta = prismContext.deltaFactory().object().createDeleteDelta(RoleType.class, roleJudgeOid
+		);
 
 		executeTest(TEST_NAME, new TestDetails() {
 			@Override
@@ -355,7 +357,7 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 				.approverRef(new ObjectReferenceType().oid("oid1").type(UserType.COMPLEX_TYPE))
 				.approverRef(new ObjectReferenceType().oid("oid2").type(UserType.COMPLEX_TYPE));
 
-		ObjectDelta<RoleType> addObjectDelta = ObjectDelta.createAddDelta(captain.asPrismObject());
+		ObjectDelta<RoleType> addObjectDelta = DeltaFactory.Object.createAddDelta(captain.asPrismObject());
 
 		executeTest(TEST_NAME, new TestDetails() {
 			@Override
@@ -456,7 +458,7 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 
 		PrismObject<RoleType> captainBefore = getRole(roleCaptainOid);
 
-		ObjectDelta<RoleType> captainDelta = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+		ObjectDelta<RoleType> captainDelta = prismContext.deltaFor(RoleType.class)
 				.item(RoleType.F_APPROVER_REF)
 						.delete(cloneCollectionMembers(captainBefore.findReference(RoleType.F_APPROVER_REF).getValues()))
 				.asObjectDeltaCast(roleCaptainOid);
@@ -550,7 +552,7 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 				.approverRef(new ObjectReferenceType().oid("oid1").type(UserType.COMPLEX_TYPE))
 				.approverRef(new ObjectReferenceType().oid("oid2").type(UserType.COMPLEX_TYPE));
 
-		ObjectDelta<RoleType> addObjectDelta = ObjectDelta.createAddDelta(thief.asPrismObject());
+		ObjectDelta<RoleType> addObjectDelta = DeltaFactory.Object.createAddDelta(thief.asPrismObject());
 
 		executeTest(TEST_NAME, new TestDetails() {
 			@Override
@@ -648,7 +650,7 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 
 		PrismObject<RoleType> thiefBefore = getRole(roleThiefOid);
 
-		ObjectDelta<RoleType> captainDelta = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+		ObjectDelta<RoleType> captainDelta = prismContext.deltaFor(RoleType.class)
 				.item(RoleType.F_APPROVER_REF)
 				.delete(cloneCollectionMembers(thiefBefore.findReference(RoleType.F_APPROVER_REF).getValues()))
 				.asObjectDeltaCast(roleThiefOid);

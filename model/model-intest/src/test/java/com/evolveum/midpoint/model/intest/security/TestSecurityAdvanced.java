@@ -27,6 +27,8 @@ import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -34,13 +36,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.TypeFilter;
@@ -2069,55 +2065,55 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		assertItemFlags(roleExclusionEditSchema, RoleType.F_METADATA, false, false, false);
 		
 		assertItemFlags(roleExclusionEditSchema, RoleType.F_ASSIGNMENT, true, true, true);
-		assertItemFlags(roleExclusionEditSchema, 
-				new ItemPath(RoleType.F_ASSIGNMENT, AssignmentType.F_POLICY_RULE),
+		assertItemFlags(roleExclusionEditSchema,
+				ItemPath.create(RoleType.F_ASSIGNMENT, AssignmentType.F_POLICY_RULE),
+				true, true, true);
+		assertItemFlags(roleExclusionEditSchema,
+				ItemPath.create(RoleType.F_ASSIGNMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS),
+				true, true, true);
+		assertItemFlags(roleExclusionEditSchema,
+				ItemPath.create(RoleType.F_ASSIGNMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_EXCLUSION),
 				true, true, true);
 		assertItemFlags(roleExclusionEditSchema, 
-				new ItemPath(RoleType.F_ASSIGNMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS),
+				ItemPath.create(RoleType.F_ASSIGNMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_EXCLUSION, ExclusionPolicyConstraintType.F_TARGET_REF),
 				true, true, true);
 		assertItemFlags(roleExclusionEditSchema, 
-				new ItemPath(RoleType.F_ASSIGNMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_EXCLUSION),
+				ItemPath.create(RoleType.F_ASSIGNMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_EXCLUSION, ExclusionPolicyConstraintType.F_DESCRIPTION),
 				true, true, true);
 		assertItemFlags(roleExclusionEditSchema, 
-				new ItemPath(RoleType.F_ASSIGNMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_EXCLUSION, ExclusionPolicyConstraintType.F_TARGET_REF),
-				true, true, true);
-		assertItemFlags(roleExclusionEditSchema, 
-				new ItemPath(RoleType.F_ASSIGNMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_EXCLUSION, ExclusionPolicyConstraintType.F_DESCRIPTION),
-				true, true, true);
-		assertItemFlags(roleExclusionEditSchema, 
-				new ItemPath(RoleType.F_ASSIGNMENT, AssignmentType.F_CONSTRUCTION),
+				ItemPath.create(RoleType.F_ASSIGNMENT, AssignmentType.F_CONSTRUCTION),
 				false, false, false);
 		assertItemFlags(roleExclusionEditSchema, 
-				new ItemPath(RoleType.F_ASSIGNMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_EVALUATION_TARGET),
+				ItemPath.create(RoleType.F_ASSIGNMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_EVALUATION_TARGET),
 				false, false, false);
 		assertItemFlags(roleExclusionEditSchema, 
-				new ItemPath(RoleType.F_ASSIGNMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_MAX_ASSIGNEES),
+				ItemPath.create(RoleType.F_ASSIGNMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_MAX_ASSIGNEES),
 				false, false, false);
 		
 		assertItemFlags(roleExclusionEditSchema, RoleType.F_INDUCEMENT, true, true, true);
 		assertItemFlags(roleExclusionEditSchema, 
-				new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_POLICY_RULE),
+				ItemPath.create(RoleType.F_INDUCEMENT, AssignmentType.F_POLICY_RULE),
 				true, true, true);
 		assertItemFlags(roleExclusionEditSchema, 
-				new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS),
+				ItemPath.create(RoleType.F_INDUCEMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS),
 				true, true, true);
 		assertItemFlags(roleExclusionEditSchema, 
-				new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_EXCLUSION),
+				ItemPath.create(RoleType.F_INDUCEMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_EXCLUSION),
 				true, true, true);
 		assertItemFlags(roleExclusionEditSchema, 
-				new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_EXCLUSION, ExclusionPolicyConstraintType.F_TARGET_REF),
+				ItemPath.create(RoleType.F_INDUCEMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_EXCLUSION, ExclusionPolicyConstraintType.F_TARGET_REF),
 				true, true, true);
 		assertItemFlags(roleExclusionEditSchema, 
-				new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_EXCLUSION, ExclusionPolicyConstraintType.F_DESCRIPTION),
+				ItemPath.create(RoleType.F_INDUCEMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_EXCLUSION, ExclusionPolicyConstraintType.F_DESCRIPTION),
 				true, true, true);
 		assertItemFlags(roleExclusionEditSchema, 
-				new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION),
+				ItemPath.create(RoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION),
 				true, true, true);
 		assertItemFlags(roleExclusionEditSchema, 
-				new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_EVALUATION_TARGET),
+				ItemPath.create(RoleType.F_INDUCEMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_EVALUATION_TARGET),
 				true, true, true);
 		assertItemFlags(roleExclusionEditSchema, 
-				new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_MAX_ASSIGNEES),
+				ItemPath.create(RoleType.F_INDUCEMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_MAX_ASSIGNEES),
 				true, true, true);
 		
 		assertAllow("add exclusion (1)",
@@ -2331,54 +2327,54 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		
 		assertItemFlags(roleEmptyEditSchema, RoleType.F_ASSIGNMENT, true, false, false);
 		assertItemFlags(roleEmptyEditSchema, 
-				new ItemPath(RoleType.F_ASSIGNMENT, AssignmentType.F_POLICY_RULE),
+				ItemPath.create(RoleType.F_ASSIGNMENT, AssignmentType.F_POLICY_RULE),
 				true, false, false);
 		assertItemFlags(roleEmptyEditSchema, 
-				new ItemPath(RoleType.F_ASSIGNMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS),
+				ItemPath.create(RoleType.F_ASSIGNMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS),
 				true, false, false);
 		assertItemFlags(roleEmptyEditSchema, 
-				new ItemPath(RoleType.F_ASSIGNMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_EXCLUSION),
+				ItemPath.create(RoleType.F_ASSIGNMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_EXCLUSION),
 				true, false, false);
 		assertItemFlags(roleEmptyEditSchema, 
-				new ItemPath(RoleType.F_ASSIGNMENT, AssignmentType.F_CONSTRUCTION),
+				ItemPath.create(RoleType.F_ASSIGNMENT, AssignmentType.F_CONSTRUCTION),
 				true, false, false);
 		assertItemFlags(roleEmptyEditSchema, 
-				new ItemPath(RoleType.F_ASSIGNMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_EVALUATION_TARGET),
+				ItemPath.create(RoleType.F_ASSIGNMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_EVALUATION_TARGET),
 				true, false, false);
 		assertItemFlags(roleEmptyEditSchema, 
-				new ItemPath(RoleType.F_ASSIGNMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_MAX_ASSIGNEES),
+				ItemPath.create(RoleType.F_ASSIGNMENT, AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_MAX_ASSIGNEES),
 				true, false, false);
 		
 		assertItemFlags(roleEmptyEditSchema, RoleType.F_INDUCEMENT, true, true, true);
 		assertItemFlags(roleEmptyEditSchema, 
-				new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION),
+				ItemPath.create(RoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION),
 				true, true, true);
 		assertItemFlags(roleEmptyEditSchema, 
-				new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_STRENGTH),
+				ItemPath.create(RoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_STRENGTH),
 				true, true, true);
 		assertItemFlags(roleEmptyEditSchema, 
-				new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF),
+				ItemPath.create(RoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF),
 				true, true, true);
 		assertItemFlags(roleEmptyEditSchema, 
-				new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_INTENT),
+				ItemPath.create(RoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_INTENT),
 				false, true, true);
 		assertItemFlags(roleEmptyEditSchema, 
-				new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_ATTRIBUTE),
+				ItemPath.create(RoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_ATTRIBUTE),
 				true, true, true);
 		assertItemFlags(roleEmptyEditSchema, 
-				new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_ATTRIBUTE, ResourceAttributeDefinitionType.F_OUTBOUND),
+				ItemPath.create(RoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_ATTRIBUTE, ResourceAttributeDefinitionType.F_OUTBOUND),
 				true, true, true);
 		assertItemFlags(roleEmptyEditSchema, 
-				new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_ATTRIBUTE, ResourceAttributeDefinitionType.F_OUTBOUND, MappingType.F_STRENGTH),
+				ItemPath.create(RoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_ATTRIBUTE, ResourceAttributeDefinitionType.F_OUTBOUND, MappingType.F_STRENGTH),
 				true, true, true);
 		assertItemFlags(roleEmptyEditSchema, 
-				new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_ATTRIBUTE, ResourceAttributeDefinitionType.F_OUTBOUND, MappingType.F_DESCRIPTION),
+				ItemPath.create(RoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_ATTRIBUTE, ResourceAttributeDefinitionType.F_OUTBOUND, MappingType.F_DESCRIPTION),
 				false, true, true);
 		assertItemFlags(roleEmptyEditSchema, 
-				new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_ATTRIBUTE, ResourceAttributeDefinitionType.F_MATCHING_RULE),
+				ItemPath.create(RoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_ATTRIBUTE, ResourceAttributeDefinitionType.F_MATCHING_RULE),
 				false, true, true);
 		assertItemFlags(roleEmptyEditSchema, 
-				new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_STRENGTH),
+				ItemPath.create(RoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_STRENGTH),
 				true, true, true);
         
         assertGlobalStateUntouched();
@@ -2492,9 +2488,9 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         idOnlyPolicyException3.asPrismContainerValue().setId(existingPolicyException.asPrismContainerValue().getId());
         assertDeny("delete policyException (3)",
         		(task, result) -> {
-        			ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationDeleteContainer(RoleType.class, ROLE_EMPTY_OID,
-					    		new ItemPath(new NameItemPathSegment(RoleType.F_POLICY_EXCEPTION)),
-					    		prismContext, idOnlyPolicyException3);
+        			ObjectDelta<RoleType> roleDelta = prismContext.deltaFactory().object()
+					        .createModificationDeleteContainer(RoleType.class, ROLE_EMPTY_OID,
+					    		RoleType.F_POLICY_EXCEPTION, idOnlyPolicyException3);
         			roleDelta.addModificationReplaceProperty(RoleType.F_DESCRIPTION, "whatever");
 					modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), null, task, result);
         		});
@@ -2653,7 +2649,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		PolicyRuleType exclusionPolicyRule = createExclusionPolicyRule(excludedRoleOid);
 		AssignmentType assignment = new AssignmentType();
 		assignment.setPolicyRule(exclusionPolicyRule);
-		roleDelta.addModificationAddContainer(new ItemPath(RoleType.F_ASSIGNMENT), assignment);
+		roleDelta.addModificationAddContainer(RoleType.F_ASSIGNMENT, assignment);
         executeChanges(roleDelta, null, task, result);
 	}
 
@@ -2689,10 +2685,10 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		assertItemFlags(userJackEditSchema, UserType.F_FAMILY_NAME, true, false, true);
 		assertItemFlags(userJackEditSchema, UserType.F_ADDITIONAL_NAME, true, false, true);
 		assertItemFlags(userJackEditSchema, UserType.F_METADATA, true, false, true);
-		assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), true, false, true);
+		assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), true, false, true);
 		assertItemFlags(userJackEditSchema, UserType.F_ASSIGNMENT, false, false, false);
-		assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_ASSIGNMENT, UserType.F_METADATA), false, false, false);
-		assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_ASSIGNMENT, UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), false, false, false);
+		assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_ASSIGNMENT, UserType.F_METADATA), false, false, false);
+		assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_ASSIGNMENT, UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), false, false, false);
 		assertItemFlags(userJackEditSchema, UserType.F_ACTIVATION, true, false, true);
 		assertItemFlags(userJackEditSchema, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, false, false, true);
 		assertItemFlags(userJackEditSchema, SchemaConstants.PATH_ACTIVATION_VALID_FROM, true, false, false);
@@ -2702,10 +2698,8 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		assertAddDeny();
 
 		assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_FULL_NAME, createPolyString("Captain Jack Sparrow"));
-		assertModifyDeny(UserType.class, USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_VALID_FROM,
-				JACK_VALID_FROM_LONG_AGO);
-		assertModifyAllow(UserType.class, USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_VALID_TO,
-				JACK_VALID_FROM_LONG_AGO);
+		assertModifyDeny(UserType.class, USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_VALID_FROM, JACK_VALID_FROM_LONG_AGO);
+		assertModifyAllow(UserType.class, USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_VALID_TO, JACK_VALID_FROM_LONG_AGO);
 		assertModifyAllow(UserType.class, USER_GUYBRUSH_OID, UserType.F_DESCRIPTION, "Pirate wannabe");
 
 		assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, createPolyString("Captain"));
@@ -2755,10 +2749,10 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		assertItemFlags(userJackEditSchema, UserType.F_FAMILY_NAME, true, false, true);
 		assertItemFlags(userJackEditSchema, UserType.F_ADDITIONAL_NAME, true, false, true);
 		assertItemFlags(userJackEditSchema, UserType.F_METADATA, true, false, true);
-		assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), true, false, true);
+		assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), true, false, true);
 		assertItemFlags(userJackEditSchema, UserType.F_ASSIGNMENT, true, false, true);
-		assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_ASSIGNMENT, UserType.F_METADATA), true, false, true);
-		assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_ASSIGNMENT, UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), true, false, true);
+		assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_ASSIGNMENT, UserType.F_METADATA), true, false, true);
+		assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_ASSIGNMENT, UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), true, false, true);
 		assertItemFlags(userJackEditSchema, UserType.F_ACTIVATION, true, false, true);
 		assertItemFlags(userJackEditSchema, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, false, false, false);
 		assertItemFlags(userJackEditSchema, SchemaConstants.PATH_ACTIVATION_VALID_FROM, true, false, true);
@@ -2768,10 +2762,8 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		assertAddDeny();
 
 		assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_FULL_NAME, createPolyString("Captain Jack Sparrow"));
-		assertModifyAllow(UserType.class, USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_VALID_FROM,
-				JACK_VALID_FROM_LONG_AGO);
-		assertModifyAllow(UserType.class, USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_VALID_TO,
-				JACK_VALID_FROM_LONG_AGO);
+		assertModifyAllow(UserType.class, USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_VALID_FROM, JACK_VALID_FROM_LONG_AGO);
+		assertModifyAllow(UserType.class, USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_VALID_TO, JACK_VALID_FROM_LONG_AGO);
 		assertModifyAllow(UserType.class, USER_GUYBRUSH_OID, UserType.F_DESCRIPTION, "Pirate wannabe");
 
 		assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, createPolyString("Captain"));
@@ -2822,10 +2814,10 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		assertItemFlags(userJackEditSchema, UserType.F_FAMILY_NAME, true, false, true);
 		assertItemFlags(userJackEditSchema, UserType.F_ADDITIONAL_NAME, true, false, true);
 		assertItemFlags(userJackEditSchema, UserType.F_METADATA, true, false, true);
-		assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), true, false, true);
+		assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), true, false, true);
 		assertItemFlags(userJackEditSchema, UserType.F_ASSIGNMENT, true, false, false);
-		assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_ASSIGNMENT, UserType.F_METADATA), true, false, false);
-		assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_ASSIGNMENT, UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), true, false, false);
+		assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_ASSIGNMENT, UserType.F_METADATA), true, false, false);
+		assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_ASSIGNMENT, UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), true, false, false);
 		assertItemFlags(userJackEditSchema, UserType.F_ACTIVATION, true, false, true);
 		assertItemFlags(userJackEditSchema, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, true, false, true);
 		assertItemFlags(userJackEditSchema, SchemaConstants.PATH_ACTIVATION_VALID_FROM, true, false, true);
@@ -2880,10 +2872,10 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		assertItemFlags(userJackEditSchema, UserType.F_FAMILY_NAME, true, false, true);
 		assertItemFlags(userJackEditSchema, UserType.F_ADDITIONAL_NAME, true, false, true);
 		assertItemFlags(userJackEditSchema, UserType.F_METADATA, true, false, true);
-		assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), true, false, true);
+		assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), true, false, true);
 		assertItemFlags(userJackEditSchema, UserType.F_ASSIGNMENT, true, false, true);
-		assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_ASSIGNMENT, UserType.F_METADATA), true, false, true);
-		assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_ASSIGNMENT, UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), true, false, true);
+		assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_ASSIGNMENT, UserType.F_METADATA), true, false, true);
+		assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_ASSIGNMENT, UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), true, false, true);
 		assertItemFlags(userJackEditSchema, UserType.F_ACTIVATION, true, false, true);
 		assertItemFlags(userJackEditSchema, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, false, false, true);
 		assertItemFlags(userJackEditSchema, SchemaConstants.PATH_ACTIVATION_VALID_FROM, true, false, true);
@@ -2943,10 +2935,10 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		assertItemFlags(userJackEditSchema, UserType.F_FAMILY_NAME, true, false, true);
 		assertItemFlags(userJackEditSchema, UserType.F_ADDITIONAL_NAME, true, false, true);
 		assertItemFlags(userJackEditSchema, UserType.F_METADATA, true, false, true);
-		assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), true, false, true);
+		assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), true, false, true);
 		assertItemFlags(userJackEditSchema, UserType.F_ASSIGNMENT, true, false, false);
-		assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_ASSIGNMENT, UserType.F_METADATA), true, false, false);
-		assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_ASSIGNMENT, UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), true, false, false);
+		assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_ASSIGNMENT, UserType.F_METADATA), true, false, false);
+		assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_ASSIGNMENT, UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), true, false, false);
 		assertItemFlags(userJackEditSchema, UserType.F_ACTIVATION, true, false, true);
 		assertItemFlags(userJackEditSchema, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, true, false, true);
 		assertItemFlags(userJackEditSchema, SchemaConstants.PATH_ACTIVATION_VALID_FROM, true, false, false);
@@ -2956,10 +2948,8 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		assertAddDeny();
 
 		assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_FULL_NAME, createPolyString("Captain Jack Sparrow"));
-		assertModifyDeny(UserType.class, USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_VALID_FROM,
-				JACK_VALID_FROM_LONG_AGO);
-		assertModifyAllow(UserType.class, USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_VALID_TO,
-				JACK_VALID_FROM_LONG_AGO);
+		assertModifyDeny(UserType.class, USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_VALID_FROM, JACK_VALID_FROM_LONG_AGO);
+		assertModifyAllow(UserType.class, USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_VALID_TO, JACK_VALID_FROM_LONG_AGO);
 		assertModifyAllow(UserType.class, USER_GUYBRUSH_OID, UserType.F_DESCRIPTION, "Pirate wannabe");
 
 		assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, createPolyString("Captain"));
@@ -3325,17 +3315,17 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 	}
     
 	private void assertDeputySearchDelegatorRef(String delegatorOid, String... expectedDeputyOids) throws Exception {
-		PrismReferenceValue rval = new PrismReferenceValue(delegatorOid, UserType.COMPLEX_TYPE);
+		PrismReferenceValue rval = itemFactory().createReferenceValue(delegatorOid, UserType.COMPLEX_TYPE);
 		rval.setRelation(SchemaConstants.ORG_DEPUTY);
 		ObjectQuery query = queryFor(UserType.class).item(UserType.F_DELEGATED_REF).ref(rval).build();
 		assertSearch(UserType.class, query, expectedDeputyOids);
 	}
 	
 	private void assertDeputySearchAssignmentTarget(String delegatorOid, String... expectedDeputyOids) throws Exception {
-		PrismReferenceValue rval = new PrismReferenceValue(delegatorOid, UserType.COMPLEX_TYPE);
+		PrismReferenceValue rval = itemFactory().createReferenceValue(delegatorOid, UserType.COMPLEX_TYPE);
 		rval.setRelation(SchemaConstants.ORG_DEPUTY);
 		ObjectQuery query = queryFor(UserType.class)
-				.item(new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)).ref(rval).build();
+				.item(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(rval).build();
 		assertSearch(UserType.class, query, expectedDeputyOids);
 	}
 

@@ -29,6 +29,8 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
+
 /**
  * @author semancik
  *
@@ -57,11 +59,14 @@ public abstract class AbstractSchemaTest {
     }
 
 	protected PrismObjectDefinition<UserType> getUserDefinition() {
-		return PrismTestUtil.getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+		return getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
 	}
 
 	protected void displayTestTile(String TEST_NAME) {
 		System.out.println("===[ "+TEST_NAME+" ]====");
 	}
 
+//	protected UniformItemPath path(Object... components) {
+//		return getPrismContext().path(components);
+//	}
 }
