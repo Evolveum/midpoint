@@ -22,6 +22,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.assignment.SwitchAssignmentTypePanel;
+import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
 import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -390,5 +391,13 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 //				}
 //			}
 			return Integer.toString(count);
+	}
+
+	@Override
+	protected boolean areSavePreviewButtonsEnabled(){
+		ObjectWrapper<R> focusWrapper = getObjectModel().getObject();
+		ContainerWrapper<AssignmentType> assignmentsWrapper =
+				focusWrapper.findContainerWrapper(new ItemPath(AbstractRoleType.F_INDUCEMENT));
+		return super.areSavePreviewButtonsEnabled()  || isAssignmentsModelChanged(assignmentsWrapper);
 	}
 }

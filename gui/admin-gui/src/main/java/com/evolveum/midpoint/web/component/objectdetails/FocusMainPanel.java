@@ -375,13 +375,13 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 
 	@Override
     protected boolean areSavePreviewButtonsEnabled(){
-        return isAssignmentsModelChanged();
-    }
-
-    private boolean isAssignmentsModelChanged(){
 		ObjectWrapper<F> focusWrapper = getObjectModel().getObject();
 		ContainerWrapper<AssignmentType> assignmentsWrapper =
 				focusWrapper.findContainerWrapper(new ItemPath(FocusType.F_ASSIGNMENT));
+		return isAssignmentsModelChanged(assignmentsWrapper);
+    }
+
+    protected boolean isAssignmentsModelChanged(ContainerWrapper<AssignmentType> assignmentsWrapper){
 		if (assignmentsWrapper != null) {
 			for (ContainerValueWrapper assignmentWrapper : assignmentsWrapper.getValues()) {
 				if (ValueStatus.DELETED.equals(assignmentWrapper.getStatus()) ||

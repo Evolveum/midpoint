@@ -48,6 +48,7 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.SubscriptionType;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyValueModel;
+import com.evolveum.midpoint.model.api.ArchetypeInteractionSpecification;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
@@ -69,6 +70,7 @@ import com.evolveum.midpoint.web.component.input.ExpressionValuePanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.*;
+import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDeleteDialogDto;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
@@ -3067,5 +3069,21 @@ public final class WebComponentUtil {
 		OperationResult result = new OperationResult(operation);
 		Task task = pageBase.createSimpleTask(operation);
 		return WebModelServiceUtils.resolveReferenceNoFetch(resourceRef, pageBase, task, result);
+	}
+
+	public static <O extends ObjectType> ArchetypeInteractionSpecification getArchetypeSpecification(PrismObject<O> object, ModelServiceLocator locator){
+		if (object == null || object.asObjectable() == null){
+			return null;
+		}
+		String objectName = object.asObjectable().getName() != null ? object.asObjectable().getName().getOrig() : "Unknown";
+		OperationResult result = new OperationResult("loadArchetypeSpecificationFor" + objectName);
+		ArchetypeInteractionSpecification spec = null;
+		try {
+			spec = locator.getModelInteractionService().getInteractionSpecification(object, result);
+		} catch (SchemaException | ConfigurationException ex){
+			result.recordPartialError(ex.getLocalizedMessage());
+			LOGGER.error("Cannot load ArchetypeInteractionSpecification for object ", object, ex.getLocalizedMessage());
+		}
+		return spec;
 	}
 }
