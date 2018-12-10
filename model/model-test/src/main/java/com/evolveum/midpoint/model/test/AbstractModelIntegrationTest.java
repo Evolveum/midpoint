@@ -95,6 +95,9 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
+import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
+import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
+import com.evolveum.midpoint.model.api.authentication.UserProfileService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
@@ -104,6 +107,7 @@ import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.stringpolicy.UserValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.model.test.asserter.ArchetypeInteractionSpecificationAsserter;
+import com.evolveum.midpoint.model.test.asserter.CompiledUserProfileAsserter;
 import com.evolveum.midpoint.model.test.asserter.ModelContextAsserter;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.transports.Message;
@@ -136,7 +140,7 @@ import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
-import com.evolveum.midpoint.security.api.UserProfileService;
+import com.evolveum.midpoint.security.api.MidPointPrincipalManager;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
@@ -4691,42 +4695,22 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 	}
 
-	protected AdminGuiConfigurationType assertAdminGuiConfigurations(MidPointPrincipal principal, int expectedMenuLinks,
-			int expectedDashboardLinks, int expectedObjectLists, int expectedObjectForms, int expecteduserDashboardWidgets) {
-		AdminGuiConfigurationType adminGuiConfiguration = principal.getAdminGuiConfiguration();
-		display("Admin GUI config for "+principal.getUsername(), adminGuiConfiguration);
-		assertAdminGuiConfigurations(adminGuiConfiguration,
-				expectedMenuLinks, expectedDashboardLinks, expectedObjectLists, expectedObjectForms, expecteduserDashboardWidgets);
-		return adminGuiConfiguration;
+	protected CompiledUserProfileAsserter<Void> assertCompiledUserProfile(MidPointPrincipal principal) {
+		if (!(principal instanceof MidPointUserProfilePrincipal)) {
+			fail("Expected MidPointUserProfilePrincipal, but got "+principal.getClass());
+		}
+		CompiledUserProfile compiledUserProfile = ((MidPointUserProfilePrincipal)principal).getCompiledUserProfile();
+		CompiledUserProfileAsserter<Void> asserter = new CompiledUserProfileAsserter<>(compiledUserProfile, null, "in principal "+principal);
+		initializeAsserter(asserter);
+		asserter.display();
+		return asserter;
 	}
-
-	protected void assertAdminGuiConfigurations(AdminGuiConfigurationType adminGuiConfiguration,
-			int expectedMenuLinks, int expectedDashboardLinks, int expectedObjectLists, int expectedObjectForms, int expecteduserDashboardWidgets) {
-		assertNotNull("No admin GUI configuration", adminGuiConfiguration);
-		assertEquals("Wrong number of menu links in",
-				expectedMenuLinks, adminGuiConfiguration.getAdditionalMenuLink().size());
-		assertEquals("Wrong number of menu links in",
-				expectedDashboardLinks, adminGuiConfiguration.getUserDashboardLink().size());
-		if ( adminGuiConfiguration.getObjectLists() == null ) {
-			if (expectedObjectLists != 0) {
-				AssertJUnit.fail("Wrong number of object lists in user dashboard admin GUI configuration, expected "
-						+ expectedObjectLists + " but there was none");
-			}
-		} else {
-			assertEquals("Wrong number of object lists in admin GUI configuration",
-				expectedObjectLists, adminGuiConfiguration.getObjectLists().getObjectList().size());
-		}
-		assertEquals("Wrong number of object forms in admin GUI configuration",
-				expectedObjectForms, adminGuiConfiguration.getObjectForms().getObjectForm().size());
-		if ( adminGuiConfiguration.getUserDashboard() == null) {
-			if (expecteduserDashboardWidgets != 0) {
-				AssertJUnit.fail("Wrong number of widgets in user dashboard admin GUI configuration, expected "
-						+ expecteduserDashboardWidgets + " but there was none");
-			}
-		} else {
-			assertEquals("Wrong number of widgets in user dashboard admin GUI configuration",
-				expectedObjectForms, adminGuiConfiguration.getUserDashboard().getWidget().size());
-		}
+	
+	protected CompiledUserProfileAsserter<Void> assertCompiledUserProfile(CompiledUserProfile compiledUserProfile) {
+		CompiledUserProfileAsserter<Void> asserter = new CompiledUserProfileAsserter<>(compiledUserProfile, null, null);
+		initializeAsserter(asserter);
+		asserter.display();
+		return asserter;
 	}
 
 	protected void createSecurityContext(MidPointPrincipal principal) {

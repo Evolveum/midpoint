@@ -38,7 +38,7 @@ import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationTransformer;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.UserProfileService;
+import com.evolveum.midpoint.security.api.MidPointPrincipalManager;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -61,9 +61,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * @author semancik
  */
 @Component
-public class UserProfileServiceMock implements UserProfileService, UserDetailsService {
+public class MidPointPrincipalManagerMock implements MidPointPrincipalManager, UserDetailsService {
 
-    private static final Trace LOGGER = TraceManager.getTrace(UserProfileServiceMock.class);
+    private static final Trace LOGGER = TraceManager.getTrace(MidPointPrincipalManagerMock.class);
 
     @Autowired(required = true)
     private transient RepositoryService repositoryService;
@@ -165,13 +165,13 @@ public class UserProfileServiceMock implements UserProfileService, UserDetailsSe
 
 	private void initializePrincipalFromAssignments(MidPointPrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration) {
 
-        OperationResult result = new OperationResult(UserProfileServiceMock.class.getName() + ".addAuthorizations");
+        OperationResult result = new OperationResult(MidPointPrincipalManagerMock.class.getName() + ".addAuthorizations");
 
         principal.setApplicableSecurityPolicy(locateSecurityPolicy(principal, systemConfiguration, result));
 
-        if (systemConfiguration != null) {
-    		principal.setAdminGuiConfiguration(systemConfiguration.asObjectable().getAdminGuiConfiguration());
-    	}
+//        if (systemConfiguration != null) {
+//    		principal.setAdminGuiConfiguration(systemConfiguration.asObjectable().getAdminGuiConfiguration());
+//    	}
 
         AuthorizationType authorizationType = new AuthorizationType();
         authorizationType.getAction().add("FAKE");
@@ -230,11 +230,11 @@ public class UserProfileServiceMock implements UserProfileService, UserDetailsSe
 		}
 		PrismObject<F> owner = null;
 		if (object.canRepresent(ShadowType.class)) {
-			owner = repositoryService.searchShadowOwner(object.getOid(), null, new OperationResult(UserProfileServiceMock.class+".resolveOwner"));
+			owner = repositoryService.searchShadowOwner(object.getOid(), null, new OperationResult(MidPointPrincipalManagerMock.class+".resolveOwner"));
 		} else if (object.canRepresent(AbstractRoleType.class)) {
 			ObjectReferenceType ownerRef = ((AbstractRoleType)(object.asObjectable())).getOwnerRef();
 			if (ownerRef != null && ownerRef.getOid() != null && ownerRef.getType() != null) {
-				OperationResult result = new OperationResult(UserProfileService.class.getName() + ".resolveOwner");
+				OperationResult result = new OperationResult(MidPointPrincipalManager.class.getName() + ".resolveOwner");
 				try {
 					owner = (PrismObject<F>) repositoryService.getObject(ObjectTypes.getObjectTypeFromTypeQName(ownerRef.getType()).getClassDefinition(),
 							ownerRef.getOid(), null, result);

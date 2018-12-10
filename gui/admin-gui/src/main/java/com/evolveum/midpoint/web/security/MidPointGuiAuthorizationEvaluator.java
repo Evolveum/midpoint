@@ -76,12 +76,12 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
 	}
 
     @Override
-	public UserProfileService getUserProfileService() {
+	public MidPointPrincipalManager getUserProfileService() {
 		return securityContextManager.getUserProfileService();
 	}
 
 	@Override
-	public void setUserProfileService(UserProfileService userProfileService) {
+	public void setUserProfileService(MidPointPrincipalManager userProfileService) {
 		securityContextManager.setUserProfileService(userProfileService);
 	}
 

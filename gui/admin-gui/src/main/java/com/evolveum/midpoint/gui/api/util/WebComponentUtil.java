@@ -53,6 +53,7 @@ import com.evolveum.midpoint.model.api.ArchetypeInteractionSpecification;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.util.ResourceUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.*;
@@ -499,33 +500,13 @@ public final class WebComponentUtil {
 		}
 	}
 
-	public static GuiObjectListViewType getDefaultGuiObjectListType(PageBase pageBase) {
-	    AdminGuiConfigurationType config = pageBase.getPrincipal().getAdminGuiConfiguration();
-	    if (config == null) {
-	        return null;
-	    }
-	    GuiObjectListViewsType lists = config.getObjectLists();
-	    if (lists == null) {
-	        return null;
-	    }
-	    return lists.getDefault();
-	}
-
-	public static GuiObjectListViewType getViewTypeConfig(QName type, PageBase pageBase){
-		AdminGuiConfigurationType config = pageBase.getPrincipal().getAdminGuiConfiguration();
-		if (config == null) {
-			return null;
-		}
-		GuiObjectListViewsType lists = config.getObjectLists();
-		if (lists == null) {
-			return null;
-		}
-		for (GuiObjectListViewType viewType : lists.getObjectList()){
-			if (QNameUtil.match(viewType.getType(), type)){
-				return viewType;
-			}
-		}
-		return null;
+	/**
+	 * Default list view setting should never be needed. Always check setting for specific
+	 * object type (and archetype).
+	 */
+	@Deprecated
+	public static CompiledObjectCollectionView getDefaultGuiObjectListType(PageBase pageBase) {
+		return pageBase.getCompiledUserProfile().getDefaultObjectCollectionView();
 	}
 
 	public enum Channel {

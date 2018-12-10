@@ -25,6 +25,7 @@ import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -215,10 +216,10 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 
 			@NotNull
 			@Override
-			public AdminGuiConfigurationType getAdminGuiConfiguration() {
-				Task task = createSimpleTask("getAdminGuiConfiguration");
+			public CompiledUserProfile getCompiledUserProfile() {
+				Task task = createSimpleTask("getCompiledUserProfile");
 				try {
-					return getModelInteractionService().getAdminGuiConfiguration(task, task.getResult());
+					return getModelInteractionService().getCompiledUserProfile(task, task.getResult());
 				} catch (ObjectNotFoundException | SchemaException e) {
 					throw new SystemException(e.getMessage(), e);
 				}

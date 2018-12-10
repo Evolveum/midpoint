@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016-2017 Evolveum
+ * Copyright (c) 2016-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.evolveum.midpoint.gui.api.util;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
@@ -65,14 +66,15 @@ public interface ModelServiceLocator {
 	ExpressionFactory getExpressionFactory();
 
 	/**
-	 * Returns adminGuiConfiguraiton applicable to currently logged-in user.
+	 * Returns currently applicable user profile, compiled for efficient use in the user interface.
+	 * applicable to currently logged-in user.
 	 * Strictly speaking, this can be retrieved from modelInteractionService.
 	 * But having a separate function for that allows to get rid of
 	 * task and result parameters. And more importantly: this allows to
 	 * cache adminGuiConfig in the page (in case many components need it).
 	 */
 	@NotNull
-	AdminGuiConfigurationType getAdminGuiConfiguration();
+	CompiledUserProfile getCompiledUserProfile();
 
 	default ObjectResolver getModelObjectResolver() {
 		return null;

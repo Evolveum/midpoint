@@ -28,19 +28,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 
 /**
- * Service that exposes security functions for GUI and other spring-security-enabled authentication front-ends.
- *
- * This would be more appropriate in the security-impl. But we need it as low as this.
- * Otherwise there is a dependency cycle (task->security->repo-common->task)
- * Moving this to task yields better cohesion. So, it may in fact belong here.
+ * Service that exposes security functions for internal use inside midPoint and for other
+ * spring-security-enabled purposes.
+ * 
+ * This is using simple  MidPointPrincipal that is NOT GUI-enriched. Therefore it is NOT
+ * suitable for use in GUI. See UserProfileService for that purpose.
  *
  * @author lazyman
  * @author Igor Farinic
  * @author Radovan Semancik
  */
-public interface UserProfileService extends OwnerResolver {
+public interface MidPointPrincipalManager extends OwnerResolver {
 
-    String DOT_CLASS = UserProfileService.class.getName() + ".";
+    String DOT_CLASS = MidPointPrincipalManager.class.getName() + ".";
     String OPERATION_GET_PRINCIPAL = DOT_CLASS + "getPrincipal";
     String OPERATION_UPDATE_USER = DOT_CLASS + "updateUser";
 

@@ -19,6 +19,8 @@ package com.evolveum.midpoint.web.component.data;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.*;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
@@ -212,7 +214,8 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
     }
 
     public boolean isDistinct() {
-        GuiObjectListViewType def = WebComponentUtil.getDefaultGuiObjectListType((PageBase) component.getPage());
+    	// TODO: Default list view setting should never be needed. Always check setting for specific object type (and archetype).
+        CompiledObjectCollectionView def = WebComponentUtil.getDefaultGuiObjectListType((PageBase) component.getPage());
         return def == null || def.getDistinct() != DistinctSearchOptionType.NEVER;      // change after other options are added
     }
 
@@ -239,7 +242,8 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         if (!checkOrderingSettings()) {
             return false;
         }
-        GuiObjectListViewType def = WebComponentUtil.getDefaultGuiObjectListType((PageBase) component.getPage());
+        // TODO: Default list view setting should never be needed. Always check setting for specific object type (and archetype).
+        CompiledObjectCollectionView def = WebComponentUtil.getDefaultGuiObjectListType((PageBase) component.getPage());
         return def != null && def.isDisableSorting();
     }
 
@@ -382,7 +386,7 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
     private void setExportLimitValue() {
         OperationResult result = new OperationResult(OPERATION_GET_EXPORT_SIZE_LIMIT);
         try {
-            AdminGuiConfigurationType adminGui = getModelInteractionService().getAdminGuiConfiguration(null, result);
+            CompiledUserProfile adminGui = getModelInteractionService().getCompiledUserProfile(null, result);
             if (adminGui.getDefaultExportSettings() != null && adminGui.getDefaultExportSettings().getSizeLimit() != null) {
                 exportLimit = adminGui.getDefaultExportSettings().getSizeLimit();
             }
