@@ -15,7 +15,7 @@ before_install:
   - export JAVA_HOME=`find "/c/Program Files/Java" -name jdk1.8.*`
 
 # custom script is used so build and tests are done in one mvn command, separating it (as Travis does by default) leads to problem with ConnId (notably DummyResource)
-script: mvn clean install
+script: mvn -B clean install
 
 addons:
   hostname: localhost # workaround for short hostname
