@@ -19,13 +19,13 @@ package com.evolveum.midpoint.gui.api.factory;
 import org.apache.wicket.markup.html.panel.Panel;
 
 import com.evolveum.midpoint.gui.impl.factory.PanelContext;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 
 public interface GuiComponentFactory {
 
 //	public void register();
 	
-	<T> boolean match(ValueWrapper<T> valueWrapper);
+	<T> boolean match(ItemWrapper itemWrapper);
 	
 	<T> Panel createPanel(PanelContext<T> panelCtx);
 	

@@ -27,7 +27,7 @@ import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.component.input.TriStateComboPanel;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 
 /**
  * @author katka
@@ -44,12 +44,12 @@ public class ThreeStateComboPanel extends AbstractGuiComponentFactory {
 	}
 
 	@Override
-	public <T> boolean match(ValueWrapper<T> valueWrapper) {
-		return DOMUtil.XSD_BOOLEAN.equals(valueWrapper.getItem().getItemDefinition().getTypeName());
+	public <T> boolean match(ItemWrapper itemWrapper) {
+		return DOMUtil.XSD_BOOLEAN.equals(itemWrapper.getItemDefinition().getTypeName());
 	}
 
 	@Override
-	public <T> Panel createPanel(PanelContext<T> panelCtx) {
+	public <T> Panel getPanel(PanelContext<T> panelCtx) {
 		return new TriStateComboPanel(panelCtx.getComponentId(), (IModel<Boolean>) panelCtx.getRealValueModel());
 	}
 	

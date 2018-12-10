@@ -26,7 +26,7 @@ import com.evolveum.midpoint.gui.api.component.path.ItemPathPanel;
 import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
@@ -44,19 +44,19 @@ public class ItemPathPanelFactory extends AbstractGuiComponentFactory {
 	}
 	
 	@Override
-	public <T> boolean match(ValueWrapper<T> valueWrapper) {
-		return ItemPathType.COMPLEX_TYPE.equals(valueWrapper.getItem().getItemDefinition().getTypeName());
+	public <T> boolean match(ItemWrapper itemWrapper) {
+		return ItemPathType.COMPLEX_TYPE.equals(itemWrapper.getItemDefinition().getTypeName());
 	}
 
 	@Override
-	public <T> Panel createPanel(PanelContext<T> panelCtx) {
+	public <T> Panel getPanel(PanelContext<T> panelCtx) {
 		return new ItemPathPanel(panelCtx.getComponentId(), (ItemPathType) panelCtx.getRealValueModel().getObject()) {
 			
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void onUpdate(ItemPathDto itemPathDto) {
-				((PrismPropertyValue<ItemPathType>) panelCtx.getBaseModel().getObject().getValue()).setValue(new ItemPathType(itemPathDto.toItemPath())); 
+				panelCtx.getRealValueModel().setObject((T) new ItemPathType(itemPathDto.toItemPath())); 
 				
 			}
 		};

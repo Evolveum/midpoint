@@ -31,7 +31,7 @@ import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.component.input.TextPanel;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 import com.evolveum.midpoint.web.model.LookupPropertyModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 
@@ -46,13 +46,13 @@ public class TextPanelFactory extends AbstractGuiComponentFactory {
 	}
 
 	@Override
-	public <T> boolean match(ValueWrapper<T> valueWrapper) {
-		QName type = valueWrapper.getItem().getItemDefinition().getTypeName();
+	public <T> boolean match(ItemWrapper itemWrapper) {
+		QName type = itemWrapper.getItemDefinition().getTypeName();
 		return SchemaConstants.T_POLY_STRING_TYPE.equals(type) || DOMUtil.XSD_STRING.equals(type) || DOMUtil.XSD_DURATION.equals(type);
 	}
 
 	@Override
-	public <T> Panel createPanel(PanelContext<T> panelCtx) {
+	public <T> Panel getPanel(PanelContext<T> panelCtx) {
 		
 		LookupTableType lookupTable = panelCtx.getPredefinedValues();
 		if (lookupTable == null) {

@@ -20,6 +20,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
+import org.apache.wicket.markup.html.panel.Panel;
+
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.factory.PanelContext;
@@ -29,35 +32,24 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 
 public abstract class AbstractGuiComponentFactory implements GuiComponentFactory {
 
 	
-	protected LookupTableType loadLookupTable(PanelContext panelCtx) {
+	@Override
+	public <T> Panel createPanel(PanelContext<T> panelCtx) {
+		Panel panel = getPanel(panelCtx);
 		
-		PrismReferenceValue valueEnumerationRef = panelCtx.getValueEnumerationRef();
-		if (valueEnumerationRef == null) {
-			return null;
+		if (panel instanceof InputPanel) {
+			panelCtx.getFeedbackPanel().setFilter(new ComponentFeedbackMessageFilter(((InputPanel) panel).getBaseFormComponent()));
 		}
-		
-		String lookupTableUid = valueEnumerationRef.getOid();
-		Task task = panelCtx.getPageBase().createSimpleTask("loadLookupTable");
-		OperationResult result = task.getResult();
-
-		Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
-				.createLookupTableRetrieveOptions();
-		PrismObject<LookupTableType> lookupTable = WebModelServiceUtils.loadObject(LookupTableType.class,
-				lookupTableUid, options, panelCtx.getPageBase(), task, result);
-		if (lookupTable == null) {
-			return null;
-		}
-		
-		return lookupTable.asObjectable();
-		
+		return panel;
 	}
-	
+		
+	protected abstract <T> Panel getPanel(PanelContext<T> panelCtx);
 	
 	protected List<String> prepareAutoCompleteList(String input, LookupTableType lookupTable) {
 		List<String> values = new ArrayList<>();

@@ -24,6 +24,6 @@ public interface GuiComponentRegistry {
 
 	public void addToRegistry(GuiComponentFactory factory);
 	
-	public <T> GuiComponentFactory findFactory(ValueWrapper<T> valueWrapper);
+	public <T> GuiComponentFactory findFactory(ItemWrapper itemWrapper);
 	
 }

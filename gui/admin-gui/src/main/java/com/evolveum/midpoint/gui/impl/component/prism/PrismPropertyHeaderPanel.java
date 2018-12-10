@@ -29,8 +29,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.web.component.prism.ItemVisibility;
-import com.evolveum.midpoint.web.component.prism.ItemVisibilityHandler;
 import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
@@ -43,7 +41,6 @@ import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.*;
 
@@ -232,7 +229,6 @@ public class PrismPropertyHeaderPanel<IW extends ItemWrapper> extends Panel {
 
     private boolean hasOutbound(IModel<IW> model) {
         ItemWrapper wrapper = model.getObject();
-//        Item property = wrapper.getItem();
         ItemDefinition def = wrapper.getItemDefinition();
         if (!(def instanceof RefinedAttributeDefinition)) {
             return false;

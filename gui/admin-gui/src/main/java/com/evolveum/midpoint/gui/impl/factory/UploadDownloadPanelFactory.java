@@ -31,7 +31,7 @@ import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.component.input.UploadDownloadPanel;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 
 /**
  * @author katkav
@@ -48,26 +48,26 @@ public class UploadDownloadPanelFactory extends AbstractGuiComponentFactory {
 	}
 
 	@Override
-	public <T> boolean match(ValueWrapper<T> valueWrapper) {
-		return DOMUtil.XSD_BASE64BINARY.equals(valueWrapper.getItem().getItemDefinition().getTypeName());
+	public <T> boolean match(ItemWrapper itemWrapper) {
+		return DOMUtil.XSD_BASE64BINARY.equals(itemWrapper.getItemDefinition().getTypeName());
 	}
 
 	@Override
-	public <T> Panel createPanel(PanelContext<T> panelCtx) {
+	public <T> Panel getPanel(PanelContext<T> panelCtx) {
 		return new UploadDownloadPanel(panelCtx.getComponentId(), false) { //getModel().getObject().isReadonly()
 
 			@Override
 			public InputStream getStream() {
-				Object object = ((PrismPropertyValue) panelCtx.getBaseModel().getObject().getValue()).getValue();
+				T object = panelCtx.getRealValueModel().getObject();
 				return object != null ? new ByteArrayInputStream((byte[]) object) : new ByteArrayInputStream(new byte[0]);
 			}
 
 			@Override
 			public void updateValue(byte[] file) {
-				((PrismPropertyValue) panelCtx.getBaseModel().getObject().getValue()).setValue(file);
+				panelCtx.getRealValueModel().setObject((T) file);
 			}
 
-						@Override
+			@Override
 			public void uploadFileFailed(AjaxRequestTarget target) {
 				super.uploadFileFailed(target);
 				target.add(((PageBase) getPage()).getFeedbackPanel());

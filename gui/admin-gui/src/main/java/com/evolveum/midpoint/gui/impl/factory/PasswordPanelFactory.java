@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.gui.api.component.password.PasswordPanel;
 import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
@@ -45,20 +45,20 @@ public class PasswordPanelFactory extends AbstractGuiComponentFactory {
 	}
 	
 	@Override
-	public <T> boolean match(ValueWrapper<T> valueWrapper) {
-		return ProtectedStringType.COMPLEX_TYPE.equals(valueWrapper.getItem().getItemDefinition().getTypeName());
+	public <T> boolean match(ItemWrapper itemWrapper) {
+		return ProtectedStringType.COMPLEX_TYPE.equals(itemWrapper.getItemDefinition().getTypeName());
 	}
 
 	@Override
-	public <T> Panel createPanel(PanelContext<T> panelCtx) {
+	public <T> Panel getPanel(PanelContext<T> panelCtx) {
 		
-		if (!(panelCtx.getParentComponent().getPage() instanceof PageUser)) {
+		if (!(panelCtx.getPageBase() instanceof PageUser)) {
 			return new PasswordPanel(panelCtx.getComponentId(), (IModel<ProtectedStringType>) panelCtx.getRealValueModel(),
-				panelCtx.getBaseModel().getObject().isReadonly(), true);
+				panelCtx.isPropertyReadOnly(), true);
 		} 
 		
 		return new PasswordPanel(panelCtx.getComponentId(), (IModel<ProtectedStringType>) panelCtx.getRealValueModel(),
-				panelCtx.getBaseModel().getObject().isReadonly());
+				panelCtx.isPropertyReadOnly());
 		
 	}
 
