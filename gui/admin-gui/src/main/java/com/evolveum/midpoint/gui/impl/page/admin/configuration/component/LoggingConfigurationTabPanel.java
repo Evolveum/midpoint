@@ -47,10 +47,12 @@ import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.EditableLinkPropertyWrapperColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.EditablePrismPropertyColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.LinkPrismPropertyColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.StaticPrismPropertyColumn;
 import com.evolveum.midpoint.gui.impl.component.input.QNameIChoiceRenderer;
 import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
-import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerModel;
-import com.evolveum.midpoint.gui.impl.model.ContainerRealValueModel;
+import com.evolveum.midpoint.gui.impl.model.PropertyOrReferenceWrapperFromContainerModel;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -72,6 +74,7 @@ import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.prism.PrismContainerPanel;
 import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
+import com.evolveum.midpoint.web.component.prism.ValueWrapper;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
@@ -83,6 +86,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuditingConfiguratio
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FileAppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SyslogAppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
@@ -172,7 +176,7 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 			
 			@Override
 			protected List<IColumn<ContainerValueWrapper<ClassLoggerConfigurationType>, String>> createColumns() {
-				return initLoggersBasicColumns();
+				return initLoggersBasicColumns(loggerModel);
 			}
 
 			@Override
@@ -237,7 +241,7 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 			
 			@Override
 			protected List<IColumn<ContainerValueWrapper<AppenderConfigurationType>, String>> createColumns() {
-				return initAppendersBasicColumns();
+				return initAppendersBasicColumns(appenderModel);
 			}
 
 			@Override
@@ -316,7 +320,7 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 	}
 
     
-    private List<IColumn<ContainerValueWrapper<ClassLoggerConfigurationType>, String>> initLoggersBasicColumns() {
+    private List<IColumn<ContainerValueWrapper<ClassLoggerConfigurationType>, String>> initLoggersBasicColumns(IModel<ContainerWrapper<ClassLoggerConfigurationType>> loggersModel) {
     	List<IColumn<ContainerValueWrapper<ClassLoggerConfigurationType>, String>> columns = new ArrayList<>();
     	
     	columns.add(new CheckBoxHeaderColumn<>());
@@ -338,65 +342,16 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 			}
 		});
 		
-		columns.add(new EditableLinkPropertyWrapperColumn<ClassLoggerConfigurationType>(createStringResource("LoggingConfigurationTabPanel.loggers.package"), ClassLoggerConfigurationType.F_PACKAGE, getPageBase()) {
-			@Override
-			public void onClick(AjaxRequestTarget target, IModel<ContainerValueWrapper<ClassLoggerConfigurationType>> rowModel) {
-				loggerEditPerformed(target, rowModel, null);
-			}
-			
+		columns.add(new EditablePrismPropertyColumn(loggersModel, ClassLoggerConfigurationType.F_PACKAGE, getPageBase()){
 			@Override
 			public String getCssClass() {
 				return " col-md-5 ";
 			}
-			
 		});
 		
-		columns.add(new EditableLinkPropertyWrapperColumn<ClassLoggerConfigurationType>(createStringResource("LoggingConfigurationTabPanel.loggers.level"), ClassLoggerConfigurationType.F_LEVEL, getPageBase()) {
-			@Override
-			public void onClick(AjaxRequestTarget target, IModel<ContainerValueWrapper<ClassLoggerConfigurationType>> rowModel) {
-				loggerEditPerformed(target, rowModel, null);
-			}
-		});
+		columns.add(new EditablePrismPropertyColumn(loggersModel, ClassLoggerConfigurationType.F_LEVEL, getPageBase()));
 		
-//		columns.add(new EditablePropertyWrapperColumn<ClassLoggerConfigurationType, String>(createStringResource("LoggingConfigurationTabPanel.loggers.level"), ClassLoggerConfigurationType.F_LEVEL, getPageBase()));
-		
-		columns.add(new EditableLinkPropertyWrapperColumn<ClassLoggerConfigurationType>(createStringResource("LoggingConfigurationTabPanel.loggers.appender"), ClassLoggerConfigurationType.F_APPENDER, getPageBase()) {
-			@Override
-			public void onClick(AjaxRequestTarget target, IModel<ContainerValueWrapper<ClassLoggerConfigurationType>> rowModel) {
-				loggerEditPerformed(target, rowModel, null);
-			}
-			
-			@Override
-		    protected IModel createLinkModel(IModel<ContainerValueWrapper<ClassLoggerConfigurationType>> rowModel) {
-		    	PropertyWrapperFromContainerModel model =
-		    			new PropertyWrapperFromContainerModel(rowModel.getObject(), qNameOfProperty);
-		    	if(model.getObject() != null && ((PropertyWrapper<AppenderConfigurationType>)model.getObject()).isEmpty()){
-		            return createStringResource("LoggingConfigPanel.appenders.Inherit");
-		        } else{
-		            return new LoadableModel<String>() {
-		            	
-		            	private static final long serialVersionUID = 1L;
-
-		                @Override
-		                protected String load() {
-		                    StringBuilder builder = new StringBuilder();
-		                    ContainerRealValueModel<ClassLoggerConfigurationType> loggerModel = new ContainerRealValueModel<>(rowModel.getObject());
-		                    for (String appender : loggerModel.getObject().getAppender()) {
-		                        if (loggerModel.getObject().getAppender().indexOf(appender) != 0) {
-		                            builder.append(", ");
-		                        }
-		                        builder.append(appender);
-		                    }
-
-		                    return builder.toString();
-		                }
-		            };
-		        }
-
-			}
-		});
-		
-//		columns.add(new EditablePropertyWrapperColumn<ClassLoggerConfigurationType, String>(createStringResource("LoggingConfigurationTabPanel.loggers.appender"), ClassLoggerConfigurationType.F_APPENDER, getPageBase()));
+		columns.add(new EditablePrismPropertyColumn(loggersModel, ClassLoggerConfigurationType.F_APPENDER, getPageBase()));
 		
 		List<InlineMenuItem> menuActionsList = getLoggersMultivalueContainerListPanel().getDefaultMenuActions();
 		columns.add(new InlineMenuButtonColumn(menuActionsList, getPageBase()) {
@@ -509,7 +464,7 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
     	getPageBase().getSessionStorage().getLoggingConfigurationTabLoggerTableStorage().setPaging(ObjectPaging.createPaging(0, (int) ((PageBase)getPage()).getItemsPerPage(UserProfileStorage.TableId.LOGGING_TAB_APPENDER_TABLE)));
     }
     
-    private List<IColumn<ContainerValueWrapper<AppenderConfigurationType>, String>> initAppendersBasicColumns() {
+    private List<IColumn<ContainerValueWrapper<AppenderConfigurationType>, String>> initAppendersBasicColumns(IModel<ContainerWrapper<AppenderConfigurationType>> appenderModel) {
 		List<IColumn<ContainerValueWrapper<AppenderConfigurationType>, String>> columns = new ArrayList<>();
 
 		columns.add(new CheckBoxHeaderColumn<>());
@@ -531,43 +486,26 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 			}
 		});
 		
-		columns.add(new LinkColumn<ContainerValueWrapper<AppenderConfigurationType>>(createStringResource("LoggingConfigurationTabPanel.appender.nameColumn")){
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected IModel<String> createLinkModel(IModel<ContainerValueWrapper<AppenderConfigurationType>> rowModel) {
-            	PropertyWrapperFromContainerModel<String, AppenderConfigurationType> property =
-            			new PropertyWrapperFromContainerModel<>(rowModel.getObject(), AppenderConfigurationType.F_NAME);
-            	ItemRealValueModel<String> name = new ItemRealValueModel<String>(property.getObject());
-           		if (StringUtils.isBlank(name.getObject())) {
-            		return createStringResource("AssignmentPanel.noName");
-            	}
-            	return Model.of(name.getObject());
-            }
-
-            @Override
-            public void onClick(AjaxRequestTarget target, IModel<ContainerValueWrapper<AppenderConfigurationType>> rowModel) {
-            	getAppendersMultivalueContainerListPanel().itemDetailsPerformed(target, rowModel);
-            }
-        });
-		
-		columns.add(new AbstractColumn<ContainerValueWrapper<AppenderConfigurationType>, String>(createStringResource("LoggingConfigurationTabPanel.appender.patternColumn")){
-            private static final long serialVersionUID = 1L;
-
+		columns.add(new LinkPrismPropertyColumn(appenderModel, AppenderConfigurationType.F_NAME, getPageBase()) {
+			
 			@Override
-			public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AppenderConfigurationType>>> item, String componentId,
-									 final IModel<ContainerValueWrapper<AppenderConfigurationType>> rowModel) {
-				PropertyWrapperFromContainerModel<String, AppenderConfigurationType> property =
-            			new PropertyWrapperFromContainerModel<>(rowModel.getObject(), AppenderConfigurationType.F_PATTERN);
-				ItemRealValueModel<String> pattern = new ItemRealValueModel<String>(property.getObject());
-				item.add(new Label(componentId, Model.of(pattern.getObject())));
+			protected void onClick(AjaxRequestTarget target, IModel rowModel) {
+				getAppendersMultivalueContainerListPanel().itemDetailsPerformed(target, rowModel);
 			}
 			
+			@Override
+			protected IModel populatePropertyItem(ValueWrapper object) {
+				ItemRealValueModel<String> value =  new ItemRealValueModel<String>(object);
+				return StringUtils.isBlank(value.getObject()) ? createStringResource("AssignmentPanel.noName") : Model.of(value.getObject());
+			}
+		});
+		
+		columns.add(new StaticPrismPropertyColumn(appenderModel, AppenderConfigurationType.F_PATTERN, getPageBase()) {
 			@Override
 			public String getCssClass() {
 				return " col-md-5 ";
 			}
-        });
+		});
 		
 		columns.add(new AbstractColumn<ContainerValueWrapper<AppenderConfigurationType>, String>(createStringResource("LoggingConfigurationTabPanel.appender.typeColumn")){
             private static final long serialVersionUID = 1L;
@@ -575,8 +513,8 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 			@Override
 			public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AppenderConfigurationType>>> item, String componentId,
 									 final IModel<ContainerValueWrapper<AppenderConfigurationType>> rowModel) {
-				ContainerRealValueModel<AppenderConfigurationType> appender = 
-            			new ContainerRealValueModel<>(rowModel.getObject());
+				ItemRealValueModel<AppenderConfigurationType> appender = 
+            			new ItemRealValueModel<>(rowModel.getObject());
             	String type = "";
             	if(appender != null && appender.getObject() instanceof FileAppenderConfigurationType) {
             		type = "File appender";

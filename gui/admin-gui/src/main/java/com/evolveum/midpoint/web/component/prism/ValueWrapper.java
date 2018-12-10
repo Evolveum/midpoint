@@ -20,10 +20,14 @@ import java.io.Serializable;
 
 import org.apache.commons.lang.Validate;
 
+import com.evolveum.midpoint.gui.api.factory.RealValuable;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.PrismUtil;
@@ -37,7 +41,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 /**
  * @author lazyman
  */
-public class ValueWrapper<T> implements Serializable, DebugDumpable {
+public class ValueWrapper<T> implements Serializable, DebugDumpable, RealValuable<T> {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ValueWrapper.class);
 
@@ -234,5 +238,19 @@ public class ValueWrapper<T> implements Serializable, DebugDumpable {
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "oldValue", oldValue, indent+1);
 		return sb.toString();
+	}
+
+	@Override
+	public T getRealValue() {
+		return getValue() == null ? null : getValue().getRealValue();
+	}
+
+	@Override
+	public void setRealValue(T object) {
+		if(getItem().getItemDefinition() instanceof PrismReferenceDefinition) {
+			setValue(((Referencable) object).asReferenceValue());
+		} else if(getItem().getItemDefinition() instanceof PrismPropertyDefinition){
+			((PrismPropertyValue)getValue()).setValue(object);
+		}
 	}
 }

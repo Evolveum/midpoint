@@ -19,11 +19,12 @@ package com.evolveum.midpoint.web.component.prism;
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.gui.api.factory.RealValuable;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.model.ContainerRealValueModel;
+import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
@@ -299,7 +300,7 @@ public class ContainerWrapperFactory {
 		Collection<? extends ItemDefinition> propertyDefinitions = definition.getDefinitions();
 		
 		if(containerWrapper.getPath().equals(new ItemPath(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_APPENDER))) {
-			ContainerRealValueModel value = new ContainerRealValueModel(cWrapper);
+			ItemRealValueModel<AppenderConfigurationType> value = new ItemRealValueModel<AppenderConfigurationType>((RealValuable<AppenderConfigurationType>)cWrapper);
 			if(value != null || value.getObject() != null || value.getObject().asPrismContainerValue()!= null
 					|| value.getObject().asPrismContainerValue().getComplexTypeDefinition() != null
 					|| value.getObject().asPrismContainerValue().getComplexTypeDefinition().getDefinitions() != null) {

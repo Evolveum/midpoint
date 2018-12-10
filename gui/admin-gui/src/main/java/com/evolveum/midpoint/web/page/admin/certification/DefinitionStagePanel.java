@@ -19,7 +19,7 @@ package com.evolveum.midpoint.web.page.admin.certification;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.web.component.prism.PrismPropertyPanel;
+import com.evolveum.midpoint.gui.impl.component.prism.PrismPropertyPanel;
 import com.evolveum.midpoint.web.component.prism.ReferenceWrapper;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.certification.dto.AccessCertificationReviewerDto;

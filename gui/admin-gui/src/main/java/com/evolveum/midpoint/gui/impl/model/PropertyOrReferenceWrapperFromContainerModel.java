@@ -20,6 +20,8 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
+import com.evolveum.midpoint.web.component.prism.PrismWrapper;
+import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
 import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
 
 import org.apache.wicket.model.IModel;
@@ -32,55 +34,36 @@ import javax.xml.namespace.QName;
  * @author skublik
  * 
  */
-public class PropertyWrapperFromContainerModel<T,C extends Containerable> implements IModel<PropertyWrapper<T>> {
+public class PropertyOrReferenceWrapperFromContainerModel<C extends Containerable> implements IModel<PropertyOrReferenceWrapper> {
 
 	private static final long serialVersionUID = 1L;
    
-   	private ContainerValueWrapper<C> value;
+   	private PrismWrapper value;
    	private QName qname;
 
    	/** Model for property wrapper of single valued container.
 	 * @param value single valued container
 	 * @param item QName of property 
 	 */
-    public PropertyWrapperFromContainerModel(ContainerValueWrapper<C> value, QName qname) {
+    public PropertyOrReferenceWrapperFromContainerModel(ContainerValueWrapper<C> value, QName qname) {
     	this.value = value;
     	this.qname = qname;
     }
     
-    /** Model for property wrapper of single valued container.
-	 * @param wrapper single valued container wrapper
-	 * @param item QName of property
-	 */
-    public PropertyWrapperFromContainerModel(ContainerWrapper<C> wrapper, QName qname) {
-    	
-    	if(wrapper == null || wrapper.getItemDefinition() == null) {
-    		this.value =  null;
-    		
-		} else if(!wrapper.getItemDefinition().isSingleValue()) {
-			if(wrapper.getValues() != null) {
-				this.value = wrapper.getValues().get(0);
-				this.qname = qname;
-			}
-		} else {
-			throw new IllegalStateException("ContainerWrapper  " + wrapper + " isn't single value");
-		}
-    }
-
 	@Override
 	public void detach() {
 	}
 
 	@Override
-	public PropertyWrapper<T> getObject() {
+	public PropertyOrReferenceWrapper getObject() {
 		if(value == null) {
 			return null;
 		}
-		return (PropertyWrapper<T>)value.findPropertyWrapper(new ItemPath(value.getPath(), qname));
+		return (PropertyOrReferenceWrapper)((ContainerValueWrapper)value).findPropertyWrapper(new ItemPath(((ContainerValueWrapper)value).getPath(), qname));
 	}
 
 	@Override
-	public void setObject(PropertyWrapper<T> object) {
+	public void setObject(PropertyOrReferenceWrapper object) {
 		throw new UnsupportedOperationException();
 	}
 

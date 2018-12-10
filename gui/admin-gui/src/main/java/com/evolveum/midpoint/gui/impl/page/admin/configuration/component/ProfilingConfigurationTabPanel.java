@@ -35,7 +35,6 @@ import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.prism.PrismContainerPanel;
-import com.evolveum.midpoint.web.component.prism.PrismPropertyPanel;
 import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueWrapper;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -45,9 +44,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfiguration
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingLevelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProfilingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.gui.impl.model.ContainerRealValueModel;
-import com.evolveum.midpoint.gui.impl.model.PropertyValueWrapperModel;
-import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerModel;
+import com.evolveum.midpoint.gui.impl.component.prism.PrismPropertyPanel;
+import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
+import com.evolveum.midpoint.gui.impl.model.PropertyOrReferenceWrapperFromContainerModel;
 
 /**
  * @author skublik
@@ -109,7 +108,7 @@ public class ProfilingConfigurationTabPanel extends BasePanel<ContainerWrapper<P
     	ContainerValueWrapper<ClassLoggerConfigurationType> profilingLogger = null;
     	
     	for (ContainerValueWrapper<ClassLoggerConfigurationType> logger : loggerModel.getObject().getValues()) {
-			if (LOGGER_PROFILING.equals(new ContainerRealValueModel<ClassLoggerConfigurationType>(logger).getObject().getPackage())) {
+			if (LOGGER_PROFILING.equals(new ItemRealValueModel<ClassLoggerConfigurationType>(logger).getObject().getPackage())) {
 				profilingLogger = logger;
 				continue;
 			}
@@ -117,17 +116,17 @@ public class ProfilingConfigurationTabPanel extends BasePanel<ContainerWrapper<P
     	
     	if(profilingLogger == null) {
     		profilingLogger = WebModelServiceUtils.createNewItemContainerValueWrapper(getPageBase(), loggerModel);
-    		new ContainerRealValueModel<ClassLoggerConfigurationType>(profilingLogger).getObject().setPackage(LOGGER_PROFILING);
+    		profilingLogger.setShowEmpty(true, true);
+    		loggerModel.getObject().getValues().add(profilingLogger);
+    		new ItemRealValueModel<ClassLoggerConfigurationType>(profilingLogger).getObject().setPackage(LOGGER_PROFILING);
     	}
     	
-    	PropertyWrapperFromContainerModel<LoggingLevelType, ClassLoggerConfigurationType> property = new PropertyWrapperFromContainerModel<>(profilingLogger, ClassLoggerConfigurationType.F_LEVEL);
-    	PropertyValueWrapperModel<LoggingLevelType> level = new PropertyValueWrapperModel<LoggingLevelType>(property.getObject());
-    	
+    	PropertyOrReferenceWrapperFromContainerModel<ClassLoggerConfigurationType> property = new PropertyOrReferenceWrapperFromContainerModel<>(profilingLogger, ClassLoggerConfigurationType.F_LEVEL);
     	DropDownFormGroup<ProfilingLevel> dropDownProfilingLevel = new DropDownFormGroup<>(ID_PROFILING_LOGGER_LEVEL, new Model<ProfilingLevel>() {
 
 					private static final long serialVersionUID = 1L;
 					
-					private PropertyModel<LoggingLevelType> levelModel = new PropertyModel<LoggingLevelType>(level, "value.value");
+					private PropertyModel<LoggingLevelType> levelModel = new PropertyModel<LoggingLevelType>(property, "values[0].value.value");
 					
 					@Override
 					public ProfilingLevel getObject() {

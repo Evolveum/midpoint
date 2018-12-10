@@ -16,7 +16,12 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.StaticPrismPropertyColumn;
+import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
+import com.evolveum.midpoint.gui.impl.model.ContainerWrapperOnlyForHeaderModel;
 import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -82,38 +87,47 @@ public class InducedEntitlementsPanel extends InducementsPanel{
     @Override
     protected List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initColumns() {
         List<IColumn<ContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
-        columns.add(new AbstractColumn<ContainerValueWrapper<AssignmentType>, String>(createStringResource("ConstructionType.kind")){
-            private static final long serialVersionUID = 1L;
+        
+        columns.add(new StaticPrismPropertyColumn<AssignmentType>(
+        		new ContainerWrapperOnlyForHeaderModel(getModel(), AssignmentType.F_CONSTRUCTION,getPageBase()),
+        		ConstructionType.F_KIND, getPageBase()) {
+					private static final long serialVersionUID = 1L;
 
-            @Override
-            public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId,
-                                     final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-                item.add(new Label(componentId, getKindLabelModel(rowModel.getObject())));
-            }
+					@Override
+					public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId, IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
+						item.add(new Label(componentId, getKindLabelModel(rowModel.getObject())));
+					}
         });
-        columns.add(new AbstractColumn<ContainerValueWrapper<AssignmentType>, String>(createStringResource("ConstructionType.intent")){
-            private static final long serialVersionUID = 1L;
 
-            @Override
-            public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId,
+        
+        columns.add(new StaticPrismPropertyColumn<AssignmentType>(
+        		new ContainerWrapperOnlyForHeaderModel(getModel(), AssignmentType.F_CONSTRUCTION,getPageBase()),
+        		ConstructionType.F_INTENT, getPageBase()) {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId,
                                      final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-                item.add(new Label(componentId, getIntentLabelModel(rowModel.getObject())));
-            }
+						item.add(new Label(componentId, getIntentLabelModel(rowModel.getObject())));
+					}
         });
-        columns.add(new AbstractColumn<ContainerValueWrapper<AssignmentType>, String>(createStringResource("ConstructionType.association")){
-            private static final long serialVersionUID = 1L;
+        
+        columns.add(new AbstractItemWrapperColumn<AssignmentType>(
+        		new ContainerWrapperOnlyForHeaderModel(getModel(), AssignmentType.F_CONSTRUCTION,getPageBase()),
+        		ConstructionType.F_ASSOCIATION, getPageBase()) {
+					private static final long serialVersionUID = 1L;
 
-            @Override
-            public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId,
+					@Override
+					public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId,
                                      final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-                String assocLabel = getAssociationLabel(rowModel.getObject());
-                //in case when association label contains "-" symbol, break-all words property will
-                //wrap the label text incorrectly. In order to avoid this, we add additional style
-                if (assocLabel != null && assocLabel.contains("-")){
-                    item.add(AttributeModifier.append("style", "white-space: pre-line"));
-                }
-                item.add(new Label(componentId, Model.of(assocLabel)));
-            }
+						String assocLabel = getAssociationLabel(rowModel.getObject());
+						//in case when association label contains "-" symbol, break-all words property will
+						//wrap the label text incorrectly. In order to avoid this, we add additional style
+						if (assocLabel != null && assocLabel.contains("-")){
+							item.add(AttributeModifier.append("style", "white-space: pre-line"));
+						}
+						item.add(new Label(componentId, Model.of(assocLabel)));
+					}
         });
 
         return columns;
@@ -165,7 +179,7 @@ public class InducedEntitlementsPanel extends InducementsPanel{
         if (assignmentWrapper == null){
             return Model.of("");
         }
-        AssignmentType assignment = assignmentWrapper.getContainerValue().asContainerable();
+        AssignmentType assignment = new ItemRealValueModel<AssignmentType>(assignmentWrapper).getObject();
         ConstructionType construction = assignment.getConstruction();
         if (construction == null || construction.getKind() == null){
             return Model.of("");
@@ -178,7 +192,7 @@ public class InducedEntitlementsPanel extends InducementsPanel{
         if (assignmentWrapper == null){
             return Model.of("");
         }
-        AssignmentType assignment = assignmentWrapper.getContainerValue().asContainerable();
+        AssignmentType assignment = new ItemRealValueModel<AssignmentType>(assignmentWrapper).getObject();
         ConstructionType construction = assignment.getConstruction();
         if (construction == null || construction.getIntent() == null){
             return Model.of("");

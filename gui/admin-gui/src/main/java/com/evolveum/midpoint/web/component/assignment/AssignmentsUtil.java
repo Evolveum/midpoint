@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import java.util.Date;
+import java.util.List;
 import java.util.function.Function;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -16,6 +17,8 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
+import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
+import com.evolveum.midpoint.web.component.prism.ValueWrapper;
 import com.evolveum.midpoint.web.session.RoleCatalogStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
@@ -25,7 +28,8 @@ import org.apache.wicket.model.Model;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerModel;
+import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
+import com.evolveum.midpoint.gui.impl.model.PropertyOrReferenceWrapperFromContainerModel;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -235,11 +239,19 @@ public class AssignmentsUtil {
 		}
 
 		if (assignment.getPolicyRule() != null){
+			StringBuilder sbName = new StringBuilder("");
 			ContainerWrapper<PolicyRuleType> policyRuleWrapper = assignmentValueWrapper.findContainerWrapper(new ItemPath(assignmentValueWrapper.getPath(), AssignmentType.F_POLICY_RULE));
-			PropertyWrapperFromContainerModel<String, AssignmentType> propertyModel = new PropertyWrapperFromContainerModel(policyRuleWrapper, PolicyRuleType.F_NAME);
-	    	String name = propertyModel.getObject().getValues().get(0).getValue().getRealValue();
-			if (StringUtils.isNotEmpty(name)){
-                return name;
+			if(policyRuleWrapper != null) {
+				PropertyOrReferenceWrapper property = policyRuleWrapper.findPropertyWrapper(PolicyRuleType.F_NAME);
+				if(property != null && !property.getValues().isEmpty()) {
+					for (ValueWrapper value : (List<ValueWrapper>)property.getValues()) {
+						ItemRealValueModel<String> name = new ItemRealValueModel<String>(value);
+						sbName.append(name.getObject()).append("\n");
+					}
+				}
+			}
+			if (StringUtils.isNotEmpty(sbName.toString())){
+                return sbName.toString();
             } else {
             	PolicyRuleType policyRuleContainer = assignment.getPolicyRule();
 			    StringBuilder sb = new StringBuilder("");

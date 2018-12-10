@@ -1,5 +1,7 @@
 package com.evolveum.midpoint.web.component.assignment;
 
+import com.evolveum.midpoint.gui.impl.component.data.column.StaticPrismPropertyColumn;
+import com.evolveum.midpoint.gui.impl.model.ContainerWrapperOnlyForHeaderModel;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.NotFilter;
@@ -57,37 +59,40 @@ public class ConstructionAssignmentPanel extends AssignmentPanel {
     protected List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initColumns() {
         List<IColumn<ContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
 
-        columns.add(new AbstractColumn<ContainerValueWrapper<AssignmentType>, String>(
-                createStringResource("ConstructionType.kind")) {
-            private static final long serialVersionUID = 1L;
+        columns.add(new StaticPrismPropertyColumn<AssignmentType>(
+        		new ContainerWrapperOnlyForHeaderModel(getModel(), AssignmentType.F_CONSTRUCTION, getPageBase()),
+        		ConstructionType.F_KIND, getPageBase()) {
+					private static final long serialVersionUID = 1L;
 
-            @Override
-            public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId, IModel<ContainerValueWrapper<AssignmentType>> assignmentModel) {
-                AssignmentType assignment = assignmentModel.getObject().getContainerValue().asContainerable();
-                String kindValue = "";
-                if (assignment.getConstruction() != null){
-                    ConstructionType construction = assignment.getConstruction();
-                    kindValue = construction.getKind() != null && !StringUtils.isEmpty(construction.getKind().value()) ?
-                            construction.getKind().value() : createStringResource("AssignmentEditorPanel.undefined").getString();
-                }
-                item.add(new Label(componentId, kindValue));
-            }
+					@Override
+					public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId, IModel<ContainerValueWrapper<AssignmentType>> assignmentModel) {
+						AssignmentType assignment = assignmentModel.getObject().getContainerValue().asContainerable();
+						String kindValue = "";
+						if (assignment.getConstruction() != null){
+							ConstructionType construction = assignment.getConstruction();
+							kindValue = construction.getKind() != null && !StringUtils.isEmpty(construction.getKind().value()) ?
+									construction.getKind().value() : createStringResource("AssignmentEditorPanel.undefined").getString();
+						}
+						item.add(new Label(componentId, kindValue));
+					}
         });
-        columns.add(new AbstractColumn<ContainerValueWrapper<AssignmentType>, String>(
-                createStringResource("ConstructionType.intent")) {
-            private static final long serialVersionUID = 1L;
+        
+        columns.add(new StaticPrismPropertyColumn<AssignmentType>(
+        		new ContainerWrapperOnlyForHeaderModel(getModel(), AssignmentType.F_CONSTRUCTION, getPageBase()),
+        		ConstructionType.F_INTENT, getPageBase()) {
+					private static final long serialVersionUID = 1L;
 
-            @Override
-            public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId, IModel<ContainerValueWrapper<AssignmentType>> assignmentModel) {
-                AssignmentType assignment = assignmentModel.getObject().getContainerValue().asContainerable();
-                String intentValue = "";
-                if (assignment.getConstruction() != null){
-                    ConstructionType construction = assignment.getConstruction();
-                    intentValue = !StringUtils.isEmpty(construction.getIntent()) ? construction.getIntent()
-                            : createStringResource("AssignmentEditorPanel.undefined").getString();
-                }
-                item.add(new Label(componentId, intentValue));
-            }
+					@Override
+					public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId, IModel<ContainerValueWrapper<AssignmentType>> assignmentModel) {
+						AssignmentType assignment = assignmentModel.getObject().getContainerValue().asContainerable();
+						String intentValue = "";
+						if (assignment.getConstruction() != null){
+							ConstructionType construction = assignment.getConstruction();
+							intentValue = !StringUtils.isEmpty(construction.getIntent()) ? construction.getIntent()
+									: createStringResource("AssignmentEditorPanel.undefined").getString();
+						}
+						item.add(new Label(componentId, intentValue));
+					}
         });
 
         return columns;

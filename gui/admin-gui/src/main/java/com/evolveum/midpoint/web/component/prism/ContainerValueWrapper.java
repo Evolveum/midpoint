@@ -31,6 +31,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.gui.api.factory.RealValuable;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -42,8 +43,10 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
@@ -69,7 +72,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * @author lazyman
  * @author katkav
  */
-public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper implements Serializable, DebugDumpable {
+public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper implements Serializable, DebugDumpable, RealValuable<C> {
 
 	private static final long serialVersionUID = 1L;
 
@@ -740,6 +743,16 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		}
 		return rv;
 	}
+	
+	public ItemWrapper findItemWrapper(QName name) {
+		Validate.notNull(name, "QName must not be null.");
+		for (ItemWrapper wrapper : getItems()) {
+			if (QNameUtil.match(name, wrapper.getItem().getElementName())) {
+				return wrapper;
+			}
+		}
+		return null;
+	}
 
 	public PropertyOrReferenceWrapper findPropertyWrapper(QName name) {
 		Validate.notNull(name, "QName must not be null.");
@@ -769,11 +782,21 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 
 
 	public <T extends Containerable> ContainerWrapper<T> findContainerWrapper(QName qname) {
-		return findContainerWrapper(new ItemPath(qname));
+		Validate.notNull(path, "QName must not be null.");
+		for (ItemWrapper wrapper : getItems()) {
+			if (!(wrapper instanceof ContainerWrapper)) {
+				continue;
+			}
+			ContainerWrapper<T> containerWrapper = (ContainerWrapper<T>) wrapper;
+			if (QNameUtil.match(qname, containerWrapper.getItem().getElementName())) {
+				return containerWrapper;
+			} 
+		}
+		return null;
 	}
 	
 	public <T extends Containerable> ContainerWrapper<T> findContainerWrapper(ItemPath path) {
-		Validate.notNull(path, "QName must not be null.");
+		Validate.notNull(path, "Path must not be null.");
 		for (ItemWrapper wrapper : getItems()) {
 			if (!(wrapper instanceof ContainerWrapper)) {
 				continue;
@@ -869,5 +892,15 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 			return ContainerWrapper.getDisplayNameFromItem(getContainerValue().getContainer());
 		}
 		return WebComponentUtil.getDisplayName(containerValue);
+	}
+	
+	@Override
+	public C getRealValue() {
+		return getContainerValue() == null ? null : getContainerValue().getRealValue();
+	}
+	
+	@Override
+	public void setRealValue(C object) {
+		containerValue = object.asPrismContainerValue();
 	}
 }

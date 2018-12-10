@@ -18,6 +18,7 @@ package com.evolveum.midpoint.gui.impl.factory;
 
 import org.apache.wicket.model.PropertyModel;
 
+import com.evolveum.midpoint.gui.api.factory.RealValuable;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.Referencable;
@@ -28,56 +29,33 @@ public class ItemRealValueModel<T> extends PropertyModel<T>{
 
 	private static final long serialVersionUID = 1L;
 		
-	private ValueWrapper<T> modelObject;
-	boolean isProperty;
+	private RealValuable<T> modelObject;
 	
-	public ItemRealValueModel(ValueWrapper<T> modelObject) {
-		super(modelObject, "value.value");
+	public ItemRealValueModel(RealValuable<T> modelObject) {
+		super(modelObject, "realValue");
 		this.modelObject = modelObject;
 	}
 	
-	/** Model for real value of single valued property.
-	 * @param property single valued property
-	 */
-	public ItemRealValueModel(PropertyWrapper<T> property) {
-		super(property, "values[0].value.value");
-		
-		if(!property.getItemDefinition().isSingleValue()) {
-			throw new IllegalStateException("PropertyWrapper  " + property + " isn't single value");
-		}
-		
-		isProperty = true;
-	}
-
-	@Override
-	public T getObject() {
-		if (!isProperty && modelObject.getItem().getItemDefinition() instanceof PrismReferenceDefinition) {
-			PrismReferenceValue refValue = (PrismReferenceValue) modelObject.getValue();
-			if (refValue == null) {
-				return null;
-			}
-			return (T) refValue.asReferencable();
-		}
-		
-		return super.getObject();
-	}
+//	@Override
+//	public T getObject() {
+//		if (!isProperty && modelObject instanceof ValueWrapper && ((ValueWrapper)modelObject).getItem().getItemDefinition() instanceof PrismReferenceDefinition) {
+//			PrismReferenceValue refValue = (PrismReferenceValue) ((ValueWrapper)modelObject).getValue();
+//			if (refValue == null) {
+//				return null;
+//			}
+//			return (T) refValue.asReferencable();
+//		}
+//		
+//		return super.getObject();
+//	}
 	
-	@Override
-	public void setObject(T object) {
-		if (modelObject.getItem().getItemDefinition() instanceof PrismReferenceDefinition) {
-			modelObject.setValue(((Referencable) object).asReferenceValue()); 
-			return;
-		}
-		
-		super.setObject(object);
-	}
-	
-	public String getAsString() {
-		return getObject() != null ? objectToString(getObject()) : null;
-	}
-	
-	protected String objectToString(T object) {
-		return object.toString();
-	}
-	
+//	@Override
+//	public void setObject(T object) {
+//		if (modelObject.getItem().getItemDefinition() instanceof PrismReferenceDefinition) {
+//			modelObject.setValue(((Referencable) object).asReferenceValue()); 
+//			return;
+//		}
+//		
+//		super.setObject(object);
+//	}
 }

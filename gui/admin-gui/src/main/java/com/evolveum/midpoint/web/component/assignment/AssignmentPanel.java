@@ -22,6 +22,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
+import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -48,6 +49,7 @@ import com.evolveum.midpoint.web.page.admin.users.dto.TreeStateSet;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -304,13 +306,15 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 			}
 		});
 
-		columns.add(new AbstractColumn<ContainerValueWrapper<AssignmentType>, String>(createStringResource("AssignmentType.activation")){
+		columns.add(new AbstractItemWrapperColumn<AssignmentType>(getModel(), AssignmentType.F_ACTIVATION, getPageBase()){
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId,
 									 final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-				item.add(new Label(componentId, getActivationLabelModel(rowModel.getObject())));
+				Label label = new Label(componentId, getActivationLabelModel(rowModel.getObject()));
+				label.add(AttributeModifier.append("class", " col-xs-12 "));
+				item.add(label);
 			}
 		});
 		columns.addAll(initColumns());

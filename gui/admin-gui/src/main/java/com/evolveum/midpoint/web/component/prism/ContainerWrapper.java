@@ -34,6 +34,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -147,6 +148,17 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 	public ContainerStatus getObjectStatus() {
 		return objectStatus;
 	}
+	
+	public ItemWrapper findItemWrapper(QName name) {
+		Validate.notNull(name, "QName must not be null.");
+		for (ContainerValueWrapper wrapper : getValues()) {
+			ItemWrapper propertyWrapper = wrapper.findItemWrapper(name);
+			if (propertyWrapper != null) {
+				return propertyWrapper;
+			}
+		}
+		return null;
+	}
 
 	public PropertyOrReferenceWrapper findPropertyWrapper(QName name) {
 		Validate.notNull(name, "QName must not be null.");
@@ -163,6 +175,17 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 		Validate.notNull(path, "QName must not be null.");
 		for (ContainerValueWrapper<C> wrapper : getValues()) {
 			ContainerWrapper<T> containerWrapper = wrapper.findContainerWrapper(path);
+			if (containerWrapper != null) {
+				return containerWrapper;
+			}
+		}
+		return null;
+	}
+	
+	public <T extends Containerable> ContainerWrapper<T> findContainerWrapper(QName name) {
+		Validate.notNull(path, "QName must not be null.");
+		for (ContainerValueWrapper<C> wrapper : getValues()) {
+			ContainerWrapper<T> containerWrapper = wrapper.findContainerWrapper(wrapper.getPath().append(name));
 			if (containerWrapper != null) {
 				return containerWrapper;
 			}

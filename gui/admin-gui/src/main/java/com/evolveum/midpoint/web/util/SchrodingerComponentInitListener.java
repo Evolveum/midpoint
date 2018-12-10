@@ -16,11 +16,12 @@
 
 package com.evolveum.midpoint.web.util;
 
+import com.evolveum.midpoint.gui.impl.component.prism.PrismPropertyPanel;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismHeaderPanel;
-import com.evolveum.midpoint.web.component.prism.PrismPropertyPanel;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.reflect.FieldUtils;
 import org.apache.wicket.AttributeModifier;

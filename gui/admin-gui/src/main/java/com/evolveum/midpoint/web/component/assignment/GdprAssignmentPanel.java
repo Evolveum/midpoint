@@ -20,6 +20,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.data.column.StaticPrismPropertyColumn;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
@@ -50,13 +51,15 @@ public class GdprAssignmentPanel extends AbstractRoleAssignmentPanel {
 	@Override
 	protected List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initColumns() {
 		List<IColumn<ContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
-		columns.add(new AbstractColumn<ContainerValueWrapper<AssignmentType>, String>(createStringResource("AssignmentType.lifecycleState")) {
-			private static final long serialVersionUID = 1L;
-				@Override
-				public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId, IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-					item.add(new Label(componentId, rowModel.getObject().getContainerValue().asContainerable().getLifecycleState()));
-				}
-		});
+		
+		columns.add(new StaticPrismPropertyColumn(getModel(), AssignmentType.F_LIFECYCLE_STATE, getPageBase()));
+//		columns.add(new AbstractColumn<ContainerValueWrapper<AssignmentType>, String>(createStringResource("AssignmentType.lifecycleState")) {
+//			private static final long serialVersionUID = 1L;
+//				@Override
+//				public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId, IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
+//					item.add(new Label(componentId, rowModel.getObject().getContainerValue().asContainerable().getLifecycleState()));
+//				}
+//		});
 
 		columns.add(new CheckBoxColumn<ContainerValueWrapper<AssignmentType>>(createStringResource("AssignmentType.accepted")) {
 

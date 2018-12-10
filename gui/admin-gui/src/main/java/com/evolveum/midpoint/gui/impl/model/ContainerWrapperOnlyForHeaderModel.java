@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.gui.impl.model;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -23,6 +25,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.Validate;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -33,43 +38,32 @@ import org.apache.wicket.model.PropertyModel;
  * @author skublik
  * 
  */
-public class ContainerRealValueModel<C extends Containerable> extends PropertyModel<C> {
-
+public class ContainerWrapperOnlyForHeaderModel<T extends Containerable, C extends Containerable> implements IModel<ContainerWrapper<T>> {
 	private static final long serialVersionUID = 1L;
 	
-	private static final Trace LOGGER = TraceManager.getTrace(ContainerRealValueModel.class);
-   
-	/** Model for real value of single valued container.
-	 * @param value single valued container
-	 */
-    public ContainerRealValueModel(ContainerValueWrapper<C> value) {
-    	super(value, "containerValue.value");
+	private static final Trace LOGGER = TraceManager.getTrace(ContainerWrapperOnlyForHeaderModel.class);
+    
+	private IModel<ContainerWrapper<C>> model;
+	private QName qName;
+	private PageBase pageBase;
+	
+    public ContainerWrapperOnlyForHeaderModel(IModel<ContainerWrapper<C>> model, QName name, PageBase pageBase) {
+    	Validate.notNull(model, "no model");
+    	this.model = model;
+    	this.qName = name;
+    	this.pageBase = pageBase;
     }
     
-    /** Model for real value of single valued container.
-	 * @param wrapper single valued container wrapper
-	 */
-    public ContainerRealValueModel(ContainerWrapper<C> wrapper) {
-    	super(wrapper, "values[0].containerValue.value");
-    }
-    
-    /** Model for real value of single valued container.
-	 * @param value parent of single valued container
-	 * @param item path to single valued container
-	 */
-    public <T extends Containerable> ContainerRealValueModel(ContainerValueWrapper<T> value, ItemPath item) {
-		this(value.findContainerWrapper(item));
-    }
     
     @Override
-	public C getObject() {
+	public ContainerWrapper<T> getObject() {
 		
-		return super.getObject();
-	}
-
-	@Override
-	public void setObject(C object) {
-		throw new UnsupportedOperationException();
+    	if(model.getObject().getValues().size() < 1) {
+    		ContainerValueWrapper<C> value = WebModelServiceUtils.createNewItemContainerValueWrapper(pageBase, model);
+    		return value.findContainerWrapper(qName);
+    	} else {
+    		return model.getObject().getValues().get(0).findContainerWrapper(qName);
+    	}
 	}
 
 }

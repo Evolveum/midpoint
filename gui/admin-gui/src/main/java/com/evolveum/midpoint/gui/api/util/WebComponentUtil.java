@@ -106,6 +106,7 @@ import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.component.prism.PrismPropertyHeaderPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.ComponentLoggerType;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.StandardLoggerType;
 import com.evolveum.midpoint.prism.Containerable;
@@ -2985,4 +2986,21 @@ public final class WebComponentUtil {
 		
 		return duration;
 	}
+	
+	public static IModel<String> getDisplayName(final IModel<ItemWrapper> model, Component component) {
+        return new IModel<String>() {
+        	private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getObject() {
+            	ItemWrapper wrapper = model.getObject();
+                String displayName = wrapper.getDisplayName();
+                // TODO: this is maybe not needed any more. wrapper.getDisplayName() is supposed to return localized string
+                // TODO: however, we have not tested all the scenarios, therefore let's leave it like this for now
+                String displayNameValueByKey = PageBase.createStringResourceStatic(component, displayName).getString();
+                return StringUtils.isEmpty(displayNameValueByKey) ?
+                		component.getString(displayName, null, displayName) : displayNameValueByKey;
+            }
+        };
+    }
 }

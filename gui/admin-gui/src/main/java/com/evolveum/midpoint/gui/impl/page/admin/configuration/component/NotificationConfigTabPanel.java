@@ -32,7 +32,7 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.data.column.EditableColumn;
 import com.evolveum.midpoint.gui.impl.component.form.TriStateFormGroup;
 import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
-import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerModel;
+import com.evolveum.midpoint.gui.impl.model.PropertyOrReferenceWrapperFromContainerModel;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import org.apache.commons.lang3.StringUtils;
@@ -75,6 +75,7 @@ import com.evolveum.midpoint.web.component.objectdetails.FocusMainPanel;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
+import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
 import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueWrapper;
 import com.evolveum.midpoint.web.component.util.Editable;
@@ -116,8 +117,8 @@ public class NotificationConfigTabPanel extends BasePanel<ContainerWrapper<Notif
 	private static final String ID_FILE_PATH = "filePath";
 	private static final String ID_REMOVE_BUTTON = "removeButton";
 	
-	MailConfigurationType mailConfigType;
-	List<MailServerConfiguration> mailServers;
+	private MailConfigurationType mailConfigType;
+	private List<MailServerConfiguration> mailServers;
 
 	public NotificationConfigTabPanel(String id, IModel<ContainerWrapper<NotificationConfigurationType>> model) {
 		super(id, model);
@@ -139,21 +140,19 @@ public class NotificationConfigTabPanel extends BasePanel<ContainerWrapper<Notif
 
 	protected void initLayout() {
 		
-		PropertyWrapperFromContainerModel<MailConfigurationType, NotificationConfigurationType> mailConfig = 
-				new PropertyWrapperFromContainerModel<MailConfigurationType, NotificationConfigurationType>(getModel().getObject(), NotificationConfigurationType.F_MAIL);
-		
+		IModel<PropertyOrReferenceWrapper> mailConfig = Model.of(getModel().getObject().findPropertyWrapper(NotificationConfigurationType.F_MAIL));
 		add(createHeader(ID_MAIL_CONFIG_HEADER, mailConfig.getObject().getItemDefinition().getTypeName().getLocalPart() + ".details"));
 		
 		Form form = new Form<>("form");
 		
 		
 		if(mailConfig != null) {
-			mailConfigType = new ItemRealValueModel<MailConfigurationType>(mailConfig.getObject()).getObject();
+			mailConfigType = new PropertyModel<MailConfigurationType>(mailConfig, "values[0].value.value").getObject();
 		}
 		
 		if(mailConfigType == null) {
 			mailConfigType = new MailConfigurationType();
-			((PrismPropertyValue<MailConfigurationType>)mailConfig.getObject().getValues().get(0).getValue()).setValue(mailConfigType);
+			((PrismPropertyValue<MailConfigurationType>)((List<ValueWrapper>)mailConfig.getObject().getValues()).get(0).getValue()).setValue(mailConfigType);
     	}
 		
 		add(new TextFormGroup(ID_DEFAULT_FROM, new PropertyModel<String>(mailConfigType, "defaultFrom"), createStringResource(mailConfig.getObject().getItemDefinition().getTypeName().getLocalPart() + ".defaultFrom"), "", getInputCssClass(), false, true));
@@ -170,8 +169,7 @@ public class NotificationConfigTabPanel extends BasePanel<ContainerWrapper<Notif
         
         add(createHeader(ID_FILE_CONFIG_HEADER, FileConfigurationType.COMPLEX_TYPE.getLocalPart() + ".details"));
         
-        PropertyWrapperFromContainerModel<FileConfigurationType, NotificationConfigurationType> fileConfig = 
-        		new PropertyWrapperFromContainerModel<FileConfigurationType, NotificationConfigurationType>(getModel().getObject(), NotificationConfigurationType.F_FILE);
+        IModel<PropertyOrReferenceWrapper> fileConfig = Model.of(getModel().getObject().findPropertyWrapper(NotificationConfigurationType.F_FILE));
         
         WebMarkupContainer files = new WebMarkupContainer(ID_FILE_CONFIG);
         files.setOutputMarkupId(true);
@@ -500,9 +498,9 @@ public class NotificationConfigTabPanel extends BasePanel<ContainerWrapper<Notif
 			return;
 		}
 		
-		PropertyWrapperFromContainerModel<MailConfigurationType, NotificationConfigurationType> property = 
-				new PropertyWrapperFromContainerModel<MailConfigurationType, NotificationConfigurationType>(getModel().getObject(), NotificationConfigurationType.F_MAIL);
-		ItemRealValueModel<MailConfigurationType> mailConfigType = new ItemRealValueModel<MailConfigurationType>(property.getObject());
+		PropertyModel<MailConfigurationType> mailConfigType =
+				new PropertyModel<MailConfigurationType>(Model.of(getModel().getObject().findPropertyWrapper(NotificationConfigurationType.F_MAIL))
+						, "values[0].value.value");
 		List<MailServerConfigurationType> servers = mailConfigType.getObject().getServer();
 		
 		toDelete.forEach(value -> {

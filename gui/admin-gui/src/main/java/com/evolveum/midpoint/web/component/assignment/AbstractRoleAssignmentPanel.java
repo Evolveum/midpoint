@@ -17,10 +17,13 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.StaticPrismPropertyColumn;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -116,7 +119,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 
     protected List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initColumns() {
         List<IColumn<ContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
-
+        
         columns.add(new AbstractColumn<ContainerValueWrapper<AssignmentType>, String>(
                 createStringResource("AbstractRoleAssignmentPanel.relationLabel")) {
             @Override
@@ -126,26 +129,10 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         });
 
         if (!OrgType.COMPLEX_TYPE.equals(getAssignmentType())) {
-            columns.add(new AbstractColumn<ContainerValueWrapper<AssignmentType>, String>(createStringResource("AssignmentType.tenant")) {
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId,
-                                         final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-
-                    item.add(new Label(componentId, getTenantLabelModel(rowModel.getObject())));
-                }
-            });
-            columns.add(new AbstractColumn<ContainerValueWrapper<AssignmentType>, String>(createStringResource("AssignmentType.orgReferenceShorten")) {
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId,
-                                         final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-                    item.add(new Label(componentId, getOrgRefLabelModel(rowModel.getObject())));
-                }
-            });
+        	columns.add(new StaticPrismPropertyColumn(getModel(), AssignmentType.F_TENANT_REF, getPageBase()));
+        	columns.add(new StaticPrismPropertyColumn(getModel(), AssignmentType.F_ORG_REF, getPageBase()));
         }
+        
         columns.add(new AbstractColumn<ContainerValueWrapper<AssignmentType>, String>(createStringResource("AbstractRoleAssignmentPanel.identifierLabel")){
             private static final long serialVersionUID = 1L;
 
@@ -204,23 +191,6 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 
     protected QName getAssignmentType(){
         return AbstractRoleType.COMPLEX_TYPE;
-    }
-
-    private IModel<String> getTenantLabelModel(ContainerValueWrapper<AssignmentType> assignmentContainer){
-        if (assignmentContainer == null || assignmentContainer.getContainerValue() == null){
-            return Model.of("");
-        }
-        PropertyOrReferenceWrapper policyRuleWrapper = (PropertyOrReferenceWrapper)assignmentContainer.findPropertyWrapper(new ItemPath(assignmentContainer.getPath(), AssignmentType.F_TENANT_REF));
-        return Model.of(WebComponentUtil.getReferencedObjectDisplayNamesAndNames((DefaultReferencableImpl)((ValueWrapper<DefaultReferencableImpl>)policyRuleWrapper.getValues().get(0)).getValue().getRealValue(), false));
-    }
-
-    private IModel<String> getOrgRefLabelModel(ContainerValueWrapper<AssignmentType> assignmentContainer){
-        if (assignmentContainer == null || assignmentContainer.getContainerValue() == null){
-            return Model.of("");
-        }
-        PropertyOrReferenceWrapper policyRuleWrapper = (PropertyOrReferenceWrapper)assignmentContainer.findPropertyWrapper(new ItemPath(assignmentContainer.getPath(), AssignmentType.F_ORG_REF));
-        return Model.of(WebComponentUtil.getReferencedObjectDisplayNamesAndNames((DefaultReferencableImpl)((ValueWrapper<DefaultReferencableImpl>)policyRuleWrapper.getValues().get(0)).getValue().getRealValue(), false));
-
     }
 
     private <O extends ObjectType> IModel<String> getIdentifierLabelModel(ContainerValueWrapper<AssignmentType> assignmentContainer){

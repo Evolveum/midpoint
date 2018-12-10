@@ -871,10 +871,7 @@ public class WebModelServiceUtils {
     	ContainerWrapperFactory factory = new ContainerWrapperFactory(pageBase);
 		Task task = pageBase.createSimpleTask("Creating new object policy");
 		PrismContainerValue<C> newItem = model.getObject().getItem().createNewValue();
-		ContainerValueWrapper<C> valueWrapper = factory.createContainerValueWrapper(model.getObject(), newItem,
+		return factory.createContainerValueWrapper(model.getObject(), newItem,
 				model.getObject().getObjectStatus(), ValueStatus.ADDED, model.getObject().getPath(), task);
-		valueWrapper.setShowEmpty(true, true);
-		model.getObject().getValues().add(valueWrapper);
-		return valueWrapper;
 	}
 }

@@ -156,6 +156,7 @@ public class PrismValuePanel2 extends BasePanel<ValueWrapper> {
 	private static final String ID_ADD_BUTTON = "addButton";
 	private static final String ID_REMOVE_BUTTON = "removeButton";
 	private static final String ID_VALUE_CONTAINER = "valueContainer";
+	private static final String ID_BUTTON_CONTAINER = "buttonContainer";
 	
 	private static final String OBJECT_TYPE = "ObjectType";
 
@@ -165,16 +166,18 @@ public class PrismValuePanel2 extends BasePanel<ValueWrapper> {
 	private Form form;
 	private String valueCssClass;
 	private String inputCssClass;
+	private String buttonCssClass;
 	private QName objectTypeValue = null;
 
 	public PrismValuePanel2(String id, IModel<ValueWrapper> valueWrapperModel, IModel<String> labelModel, Form form,
-			String valueCssClass, String inputCssClass) {
+			String valueCssClass, String inputCssClass, String buttonCssClass) {
 		super(id, valueWrapperModel);
 		Validate.notNull(valueWrapperModel, "Property value model must not be null.");
 		this.labelModel = labelModel;
 		this.form = form;
 		this.valueCssClass = valueCssClass;
 		this.inputCssClass = inputCssClass;
+		this.buttonCssClass = buttonCssClass;
 	}
 
 	@Override
@@ -218,6 +221,9 @@ public class PrismValuePanel2 extends BasePanel<ValueWrapper> {
 		}
 		valueContainer.add(input);
 
+		WebMarkupContainer buttonContainer = new WebMarkupContainer(ID_BUTTON_CONTAINER);
+		buttonContainer.add(new AttributeModifier("class", buttonCssClass));
+		valueContainer.add(buttonContainer);
 		// buttons
 		AjaxLink addButton = new AjaxLink(ID_ADD_BUTTON) {
 			private static final long serialVersionUID = 1L;
@@ -235,7 +241,7 @@ public class PrismValuePanel2 extends BasePanel<ValueWrapper> {
 				return isAddButtonVisible();
 			}
 		});
-		valueContainer.add(addButton);
+		buttonContainer.add(addButton);
 
 		AjaxLink removeButton = new AjaxLink(ID_REMOVE_BUTTON) {
 			private static final long serialVersionUID = 1L;
@@ -253,7 +259,7 @@ public class PrismValuePanel2 extends BasePanel<ValueWrapper> {
 				return isRemoveButtonVisible();
 			}
 		});
-		valueContainer.add(removeButton);
+		buttonContainer.add(removeButton);
 	}
 
 	private IModel<String> createHelpModel() {

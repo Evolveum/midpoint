@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.component.prism;
+package com.evolveum.midpoint.gui.impl.component.prism;
 
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.factory.PrismValuePanel2;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -30,7 +28,10 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.input.ExpressionValuePanel;
+import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
+import com.evolveum.midpoint.web.component.prism.ItemVisibility;
+import com.evolveum.midpoint.web.component.prism.ItemVisibilityHandler;
+import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -43,20 +44,17 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.*;
 
-import java.util.List;
-
 /**
  * @author lazyman
+ * @author skubl
  */
-public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
+public class PrismPropertyHeaderPanel<IW extends ItemWrapper> extends Panel {
 	private static final long serialVersionUID = 1L;
 
-	private static final Trace LOGGER = TraceManager.getTrace(PrismPropertyPanel.class);
+	private static final Trace LOGGER = TraceManager.getTrace(PrismPropertyHeaderPanel.class);
     private static final String ID_HAS_PENDING_MODIFICATION = "hasPendingModification";
     private static final String ID_HELP = "help";
     private static final String ID_DEPRECATED = "deprecated";
@@ -65,86 +63,37 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
     private static final String ID_LABEL_CONTAINER = "labelContainer";
 
     private IModel<IW> model;
-
     private PageBase pageBase;
 
-    private boolean labelContainerVisible = true;
-    private boolean isInColumn;
-    
-    public PrismPropertyPanel(String id, final IModel<IW> model, Form form, ItemVisibilityHandler visibilityHandler, PageBase pageBase) {
-    	this(id, model, form, visibilityHandler, pageBase, false);
-    }
-
-    public PrismPropertyPanel(String id, final IModel<IW> model, Form form, ItemVisibilityHandler visibilityHandler, PageBase pageBase, boolean isInColumn) {
+    public PrismPropertyHeaderPanel(String id, final IModel<IW> model, PageBase pageBase) {
         super(id, model);
         Validate.notNull(model, "no model");
+//        Validate.notNull(model.getObject(), "no model object");
         this.model = model;
         this.pageBase = pageBase;
-        this.isInColumn = isInColumn;
 
         LOGGER.trace("Creating property panel for {}", model.getObject());
 
         setOutputMarkupId(true);
-        add(new VisibleEnableBehaviour() {
-			private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-            	IW propertyWrapper = model.getObject();
-                boolean visible = PrismPropertyPanel.this.isVisible(visibilityHandler);
-                LOGGER.trace("isVisible: {}: {}", propertyWrapper, visible);
-                return visible;
-            }
-
-            @Override
-            public boolean isEnabled() {
-            	if(isInColumn && model.getObject() instanceof PropertyWrapper
-            			&& model.getObject().getPath().isSuperPathOrEquivalent(new ItemPath(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_CLASS_LOGGER))){
-            		return ((PropertyWrapper)model.getObject()).getContainerValue().isSelected();
-            	}
-                return !model.getObject().isReadonly();
-            }
-        });
-
-        initLayout(model, form);
     }
     
-    public boolean isVisible(ItemVisibilityHandler visibilityHandler) {
-    	IW propertyWrapper = getModel().getObject();
-    	
-    	if (visibilityHandler != null) {
-    		ItemVisibility visible = visibilityHandler.isVisible(propertyWrapper);
-    		if (visible != null) {
-    			switch (visible) {
-    				case VISIBLE:
-    					return true;
-    				case HIDDEN:
-    					return false;
-    				default:
-    					// automatic, go on ...
-    			}
-    		}
-    	}
-        return propertyWrapper.isVisible();
+    @Override
+    protected void onInitialize() {
+    	initLayout(model);
+    	super.onInitialize();
     }
     
     public IModel<IW> getModel() {
         return model;
     }
 
-    private void initLayout(final IModel<IW> model, final Form form) {
+    private void initLayout(final IModel<IW> model) {
         WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
         labelContainer.setOutputMarkupId(true);
-        labelContainer.add(new VisibleEnableBehaviour() {
-        	private static final long serialVersionUID = 1L;
-
-            @Override public boolean isVisible() {
-                return labelContainerVisible && !isInColumn;
-            }
-        });
+        labelContainer.add(new AttributeModifier("class", getContainerLabelCssClass()));
         add(labelContainer);
 
-        final IModel<String> label = createDisplayName(model);
+        final IModel<String> label = WebComponentUtil.getDisplayName((IModel<ItemWrapper>)model, PrismPropertyHeaderPanel.this);
         Label displayName = new Label(ID_LABEL, label);
         displayName.add(new AttributeModifier("style", new IModel<String>() {
         	
@@ -165,7 +114,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
 
             @Override
             protected String load() {
-                return WebComponentUtil.loadHelpText(model, PrismPropertyPanel.this);
+                return WebComponentUtil.loadHelpText(model, PrismPropertyHeaderPanel.this);
             }
         };
         Label help = new Label(ID_HELP);
@@ -279,86 +228,6 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
         });
         labelContainer.add(hasPendingModification);
 
-        ListView<ValueWrapper> values = new ListView<ValueWrapper>("values",
-            new PropertyModel<>(model, "values")) {
-        	private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void populateItem(final ListItem<ValueWrapper> item) {
-                BasePanel panel;
-                ItemWrapper itemWrapper = item.getModelObject().getItem();
-                if ((itemWrapper.getPath().containsName(ConstructionType.F_ASSOCIATION) ||
-                                itemWrapper.getPath().containsName(ConstructionType.F_ATTRIBUTE))&&
-                        itemWrapper.getPath().containsName(ResourceObjectAssociationType.F_OUTBOUND) &&
-                        itemWrapper.getPath().containsName(MappingType.F_EXPRESSION)){
-                    ExpressionWrapper expressionWrapper = (ExpressionWrapper)item.getModelObject().getItem();
-                    panel = new ExpressionValuePanel("value", new PropertyModel(item.getModel(), "value.value"),
-                            expressionWrapper.getConstruction(), pageBase){
-                        private static final long serialVersionUID = 1L;
-
-                        @Override
-                        protected boolean isAssociationExpression(){
-                            return itemWrapper.getPath().containsName(ConstructionType.F_ASSOCIATION);
-                        }
-                    };
-                } else {
-                    panel = new PrismValuePanel2("value", item.getModel(), label, form, getValueCssClass(), getInputCssClass());
-                }
-                item.add(panel);
-                item.add(AttributeModifier.append("class", createStyleClassModel(item.getModel())));
-
-                item.add(new VisibleEnableBehaviour() {
-                	private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public boolean isVisible() {
-                        return isVisibleValue(item.getModel());
-                    }
-                });
-            }
-        };
-        values.add(new AttributeModifier("class", getValuesClass()));
-        values.setReuseItems(true);
-        add(values);
-    }
-
-    protected String getInputCssClass() {
-        return"col-xs-10";
-    }
-
-    protected String getValuesClass() {
-        return "col-md-6";
-    }
-
-    protected String getValueCssClass() {
-        return "row";
-    }
-
-    protected IModel<String> createStyleClassModel(final IModel<ValueWrapper> value) {
-        return new IModel<String>() {
-        	private static final long serialVersionUID = 1L;
-
-            @Override
-            public String getObject() {
-                if (getIndexOfValue(value.getObject()) > 0) {
-                    return isInColumn ? "prism-value" : "col-md-offset-2 prism-value";
-                }
-
-                return null;
-            }
-        };
-    }
-
-    private int getIndexOfValue(ValueWrapper value) {
-        ItemWrapper property = value.getItem();
-        List<ValueWrapper> values = property.getValues();
-        for (int i = 0; i < values.size(); i++) {
-            if (values.get(i).equals(value)) {
-                return i;
-            }
-        }
-
-        return -1;
     }
 
     private boolean hasOutbound(IModel<IW> model) {
@@ -412,33 +281,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
         return false;
     }
 
-    private IModel<String> createDisplayName(final IModel<IW> model) {
-        return new IModel<String>() {
-        	private static final long serialVersionUID = 1L;
-
-            @Override
-            public String getObject() {
-                IW wrapper = model.getObject();
-                String displayName = wrapper.getDisplayName();
-                // TODO: this is maybe not needed any more. wrapper.getDisplayName() is supposed to return localized string
-                // TODO: however, we have not tested all the scenarios, therefore let's leave it like this for now
-                String displayNameValueByKey = PageBase.createStringResourceStatic(PrismPropertyPanel.this, displayName).getString();
-                return StringUtils.isEmpty(displayNameValueByKey) ?
-                        getString(displayName, null, displayName) : displayNameValueByKey;
-            }
-        };
-    }
-
-    private boolean isVisibleValue(IModel<ValueWrapper> model) {
-        ValueWrapper value = model.getObject();
-        return !ValueStatus.DELETED.equals(value.getStatus());
-    }
-
-    public boolean isLabelContainerVisible() {
-        return labelContainerVisible;
-    }
-
-    public void setLabelContainerVisible(boolean labelContainerVisible) {
-        this.labelContainerVisible = labelContainerVisible;
+    public String getContainerLabelCssClass() {
+    	return " col-md-2 col-xs-12 prism-property-label ";
     }
 }
