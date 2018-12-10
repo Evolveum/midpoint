@@ -18,7 +18,6 @@ package com.evolveum.midpoint.web.component.input;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -76,7 +75,7 @@ public class QNameEditorPanel extends BasePanel<ItemPathType>{
 				if (object == null) {
 					itemPathModel.setObject(null);
 				} else {
-					itemPathModel.setObject(new ItemPathType(new ItemPath(new QName(namespaceModel.getObject(), object))));
+					itemPathModel.setObject(new ItemPathType(ItemPath.create(new QName(namespaceModel.getObject(), object))));
 				}
 			}
 
@@ -96,7 +95,7 @@ public class QNameEditorPanel extends BasePanel<ItemPathType>{
 				if (StringUtils.isBlank(localpartModel.getObject())) {
 					itemPathModel.setObject(null);
 				} else {
-					itemPathModel.setObject(new ItemPathType(new ItemPath(new QName(object, localpartModel.getObject()))));
+					itemPathModel.setObject(new ItemPathType(ItemPath.create(new QName(object, localpartModel.getObject()))));
 				}
 			}
 
@@ -115,8 +114,8 @@ public class QNameEditorPanel extends BasePanel<ItemPathType>{
 		ItemPath path = itemPathModel.getObject().getItemPath();
 		if (path.size() == 0) {
 			return null;
-		} else if (path.size() == 1 && path.first() instanceof NameItemPathSegment) {
-			return ((NameItemPathSegment) path.first()).getName();
+		} else if (path.size() == 1 && ItemPath.isName(path.first())) {
+			return ItemPath.toName(path.first());
 		} else {
 			throw new IllegalStateException("Malformed ItemPath: " + path);
 		}

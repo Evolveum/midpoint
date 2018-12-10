@@ -17,10 +17,7 @@
 package com.evolveum.midpoint.repo.sql.query2.definition;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
-
-import javax.xml.namespace.QName;
 
 /**
  * Link from AnyContainer to specific item in this container.
@@ -41,10 +38,6 @@ public class JpaAnyItemLinkDefinition extends JpaLinkDefinition<JpaDataNodeDefin
 
     public RObjectExtensionType getOwnerType() {
         return ownerType;
-    }
-
-    public QName getItemName() {
-        return ((NameItemPathSegment) getItemPathSegment()).getName();
     }
 
     public ItemDefinition<?> getItemDefinition() {

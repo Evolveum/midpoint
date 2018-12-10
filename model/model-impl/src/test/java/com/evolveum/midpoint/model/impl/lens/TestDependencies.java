@@ -33,13 +33,9 @@ import org.testng.annotations.Test;
 import com.evolveum.icf.dummy.resource.ConflictException;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
-import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.projector.DependencyProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -408,7 +404,9 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
 	}
 
 	private void setDelete(LensProjectionContext accountContext) {
-		accountContext.setPrimaryDelta(ObjectDelta.createDeleteDelta(ShadowType.class, accountContext.getOid(), prismContext));
+		accountContext.setPrimaryDelta(
+				prismContext.deltaFactory().object().createDeleteDelta(ShadowType.class, accountContext.getOid()
+				));
 	}
 
 	@Test

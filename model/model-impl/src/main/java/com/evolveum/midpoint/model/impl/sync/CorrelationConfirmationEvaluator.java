@@ -38,9 +38,6 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
-import com.evolveum.midpoint.prism.util.PrismUtil;
-import com.evolveum.midpoint.prism.xjc.PrismForJAXBUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -61,7 +58,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConditionalSearchFilterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
@@ -155,9 +151,8 @@ public class CorrelationConfirmationEvaluator {
 		
 		ExpressionType condition = conditionalFilter.getCondition();
 		ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(null,currentShadow, resourceType, configurationType);
-		ItemDefinition outputDefinition = new PrismPropertyDefinitionImpl(
-				ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN,
-				prismContext);
+		ItemDefinition outputDefinition = prismContext.definitionFactory().createPropertyDefinition(
+				ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN);
 		PrismPropertyValue<Boolean> satisfy = (PrismPropertyValue) ExpressionUtil.evaluateExpression(variables,
 				outputDefinition, condition, expressionFactory, shortDesc, task, parentResult);
 		if (satisfy.getValue() == null) {
@@ -189,7 +184,7 @@ public class CorrelationConfirmationEvaluator {
 			
 		ObjectQuery q;
 		try {
-			q = QueryJaxbConvertor.createObjectQuery(focusType, conditionalFilter, prismContext);
+			q = prismContext.getQueryConverter().createObjectQuery(focusType, conditionalFilter);
 			q = updateFilterWithAccountValues(currentShadow, resourceType, configurationType, q, "Correlation expression", task, result);
 			if (q == null) {
 				// Null is OK here, it means that the value in the filter
@@ -258,7 +253,7 @@ public class CorrelationConfirmationEvaluator {
 
 		ObjectQuery q;
 		try {
-			q = QueryJaxbConvertor.createObjectQuery(focusType, conditionalFilter, prismContext);
+			q = prismContext.getQueryConverter().createObjectQuery(focusType, conditionalFilter);
 			q = updateFilterWithAccountValues(currentShadow.asObjectable(), resourceType, configurationType, q, "Correlation expression", task, result);
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.debug("Start matching user {} with correlation expression {}", userType, q != null ? q.debugDump() : "(null)");
@@ -383,8 +378,8 @@ public class CorrelationConfirmationEvaluator {
 		ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(user, shadow, resource, configuration);
 		String shortDesc = "confirmation expression for "+resource.asPrismObject();
 		
-		PrismPropertyDefinition<Boolean> outputDefinition = new PrismPropertyDefinitionImpl<>(ExpressionConstants.OUTPUT_ELEMENT_NAME,
-				DOMUtil.XSD_BOOLEAN, prismContext);
+		PrismPropertyDefinition<Boolean> outputDefinition = prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME,
+				DOMUtil.XSD_BOOLEAN);
 		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType, 
 				outputDefinition, shortDesc, task, result);
 

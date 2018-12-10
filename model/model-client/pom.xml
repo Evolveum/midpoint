@@ -144,7 +144,7 @@
                             <artifactItems>
                                 <artifactItem>
                                     <groupId>com.evolveum.midpoint.infra</groupId>
-                                    <artifactId>prism</artifactId>
+                                    <artifactId>prism-impl</artifactId>
                                     <version>${project.version}</version>
                                     <type>jar</type>
                                 </artifactItem>

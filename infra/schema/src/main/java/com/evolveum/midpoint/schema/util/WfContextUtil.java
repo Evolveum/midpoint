@@ -372,7 +372,7 @@ public class WfContextUtil {
 	}
 
 	public static WfContextType getWorkflowContext(WorkItemType workItem) {
-		PrismContainerValue<?> parent = PrismContainerValue.getParentContainerValue(workItem.asPrismContainerValue());
+		PrismContainerValue<?> parent = PrismValueUtil.getParentContainerValue(workItem.asPrismContainerValue());
 		if (parent == null) {
 			LOGGER.error("No workflow context for workItem {}", workItem);
 			// this is only a workaround, FIXME MID-4030
@@ -410,7 +410,7 @@ public class WfContextUtil {
 		if (wfc == null) {
 			return null;
 		}
-		PrismContainerValue<?> parent = PrismContainerValue.getParentContainerValue(wfc.asPrismContainerValue());
+		PrismContainerValue<?> parent = PrismValueUtil.getParentContainerValue(wfc.asPrismContainerValue());
 		if (parent == null) {
 			LOGGER.error("No containing task for " + wfc);
 			return null;

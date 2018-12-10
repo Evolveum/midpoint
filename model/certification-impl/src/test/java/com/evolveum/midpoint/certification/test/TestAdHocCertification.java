@@ -19,7 +19,6 @@ package com.evolveum.midpoint.certification.test;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -115,7 +114,7 @@ public class TestAdHocCertification extends AbstractCertificationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         @SuppressWarnings({ "unchecked", "raw" })
-		ObjectDelta<UserType> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
 				.item(UserType.F_DESCRIPTION).replace("new description")
 				.item(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS).replace(ActivationStatusType.DISABLED)
 				.asObjectDelta(USER_INDIGO_OID);

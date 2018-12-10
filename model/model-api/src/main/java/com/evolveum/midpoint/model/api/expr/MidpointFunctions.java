@@ -22,9 +22,8 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.util.LocalizableMessage;
@@ -36,7 +35,6 @@ import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -1167,4 +1165,6 @@ public interface MidpointFunctions {
 	<T extends ObjectType> void applyDefinition(T object)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
 			ExpressionEvaluationException;
+
+	<C extends Containerable> S_ItemEntry deltaFor(Class<C> objectClass) throws SchemaException;
 }

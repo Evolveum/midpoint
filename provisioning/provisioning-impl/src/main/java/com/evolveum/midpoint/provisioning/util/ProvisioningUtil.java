@@ -35,21 +35,14 @@ import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -121,8 +114,8 @@ public class ProvisioningUtil {
 			ProvisioningScriptType scriptType, String desc, PrismContext prismContext) throws SchemaException {
 		ExecuteProvisioningScriptOperation scriptOperation = new ExecuteProvisioningScriptOperation();
 
-		PrismPropertyDefinitionImpl scriptArgumentDefinition = new PrismPropertyDefinitionImpl(
-				FAKE_SCRIPT_ARGUMENT_NAME, DOMUtil.XSD_STRING, prismContext);
+		MutablePrismPropertyDefinition scriptArgumentDefinition = prismContext.definitionFactory().createPropertyDefinition(
+				FAKE_SCRIPT_ARGUMENT_NAME, DOMUtil.XSD_STRING);
 		scriptArgumentDefinition.setMinOccurs(0);
 		scriptArgumentDefinition.setMaxOccurs(-1);
 
@@ -174,7 +167,8 @@ public class ProvisioningUtil {
 			AttributeFetchStrategyType fetchStrategy = attributeDefinition.getFetchStrategy();
 			if (fetchStrategy != null && fetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
 				explicit.add(attributeDefinition);
-			} else if (hasMinimal && (fetchStrategy != AttributeFetchStrategyType.MINIMAL || SelectorOptions.isExplicitlyIncluded(attributeDefinition.getName(), ctx.getGetOperationOptions()))) {
+			} else if (hasMinimal && (fetchStrategy != AttributeFetchStrategyType.MINIMAL ||
+					SelectorOptions.isExplicitlyIncluded(ctx.getPrismContext().toUniformPath(attributeDefinition.getName()), ctx.getGetOperationOptions()))) {
 				explicit.add(attributeDefinition);
 			}
 		}
@@ -188,7 +182,7 @@ public class ProvisioningUtil {
 		CredentialsCapabilityType credentialsCapabilityType = ResourceTypeUtil.getEffectiveCapability(
 				resource, CredentialsCapabilityType.class);
 		if (credentialsCapabilityType != null) {
-			if (SelectorOptions.hasToLoadPath(SchemaConstants.PATH_PASSWORD_VALUE, ctx.getGetOperationOptions())) {
+			if (SelectorOptions.hasToLoadPath(ctx.getPrismContext().toUniformPath(SchemaConstants.PATH_PASSWORD_VALUE), ctx.getGetOperationOptions())) {
 				attributesToReturn.setReturnPasswordExplicit(true);
 				apply = true;
 			} else {
@@ -213,7 +207,7 @@ public class ProvisioningUtil {
 				if (!CapabilityUtil.isActivationStatusReturnedByDefault(activationCapabilityType)) {
 					// There resource is capable of returning enable flag but it does
 					// not do it by default
-					if (SelectorOptions.hasToLoadPath(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, ctx.getGetOperationOptions())) {
+					if (SelectorOptions.hasToLoadPath(ctx.path(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS), ctx.getGetOperationOptions())) {
 						attributesToReturn.setReturnAdministrativeStatusExplicit(true);
 						apply = true;
 					} else {
@@ -228,7 +222,7 @@ public class ProvisioningUtil {
 			}
 			if (CapabilityUtil.isCapabilityEnabled(activationCapabilityType.getValidFrom())) {
 				if (!CapabilityUtil.isActivationValidFromReturnedByDefault(activationCapabilityType)) {
-					if (SelectorOptions.hasToLoadPath(SchemaConstants.PATH_ACTIVATION_VALID_FROM, ctx.getGetOperationOptions())) {
+					if (SelectorOptions.hasToLoadPath(ctx.path(SchemaConstants.PATH_ACTIVATION_VALID_FROM), ctx.getGetOperationOptions())) {
 						attributesToReturn.setReturnValidFromExplicit(true);
 						apply = true;
 					} else {
@@ -243,7 +237,7 @@ public class ProvisioningUtil {
 			}
 			if (CapabilityUtil.isCapabilityEnabled(activationCapabilityType.getValidTo())) {
 				if (!CapabilityUtil.isActivationValidToReturnedByDefault(activationCapabilityType)) {
-					if (SelectorOptions.hasToLoadPath(SchemaConstants.PATH_ACTIVATION_VALID_TO, ctx.getGetOperationOptions())) {
+					if (SelectorOptions.hasToLoadPath(ctx.path(SchemaConstants.PATH_ACTIVATION_VALID_TO), ctx.getGetOperationOptions())) {
 						attributesToReturn.setReturnValidToExplicit(true);
 						apply = true;
 					} else {
@@ -260,7 +254,7 @@ public class ProvisioningUtil {
 				if (!CapabilityUtil.isActivationLockoutStatusReturnedByDefault(activationCapabilityType)) {
 					// There resource is capable of returning lockout flag but it does
 					// not do it by default
-					if (SelectorOptions.hasToLoadPath(SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, ctx.getGetOperationOptions())) {
+					if (SelectorOptions.hasToLoadPath(ctx.path(SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS), ctx.getGetOperationOptions())) {
 						attributesToReturn.setReturnAdministrativeStatusExplicit(true);
 						apply = true;
 					} else {
@@ -419,7 +413,7 @@ public class ProvisioningUtil {
 		if (activation == null) {
 			return emptyList();
 		}
-		S_ItemEntry i = DeltaBuilder.deltaFor(ShadowType.class, prismContext);
+		S_ItemEntry i = prismContext.deltaFor(ShadowType.class);
 		if (activation.getAdministrativeStatus() != null) {
 			i = i.item(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS).replace();
 		}
@@ -478,8 +472,8 @@ public class ProvisioningUtil {
 			if (isIdentifier) {
 				valuesToReplace = CloneUtil.cloneCollectionMembers(attribute.getValues());
 				LOGGER.trace("- updating identifier {} value of {}", attributeName, attribute.getValues());
-				rv.add(DeltaBuilder.deltaFor(ShadowType.class, prismContext)
-						.item(new ItemPath(ShadowType.F_ATTRIBUTES, attributeName), attribute.getDefinition()).replace(valuesToReplace)
+				rv.add(prismContext.deltaFor(ShadowType.class)
+						.item(ItemPath.create(ShadowType.F_ATTRIBUTES, attributeName), attribute.getDefinition()).replace(valuesToReplace)
 						.asItemDelta());
 				QNameUtil.remove(outstandingInRepo, attributeName);
 			}
@@ -487,13 +481,13 @@ public class ProvisioningUtil {
 		for (QName outstanding : outstandingInRepo) {
 			boolean isIdentifier = QNameUtil.matchAny(outstanding, identifiers);
 			if (!isIdentifier) {
-				ResourceAttributeDefinition<?> outstandingDefinition = attributesDefinition.findAttributeDefinition(outstanding);
+				ResourceAttributeDefinition<?> outstandingDefinition = attributesDefinition.findAttributeDefinition(ItemName.fromQName(outstanding));
 				if (outstandingDefinition == null) {
 					continue;       // cannot do anything with this
 				}
 				LOGGER.trace("- removing non-identifier {} value", outstanding);
-				rv.add(DeltaBuilder.deltaFor(ShadowType.class, prismContext)
-						.item(new ItemPath(ShadowType.F_ATTRIBUTES, outstanding), outstandingDefinition).replace()
+				rv.add(prismContext.deltaFor(ShadowType.class)
+						.item(ItemPath.create(ShadowType.F_ATTRIBUTES, outstanding), outstandingDefinition).replace()
 						.asItemDelta());
 			}
 		}
@@ -568,14 +562,12 @@ public class ProvisioningUtil {
 	}
 	
 	public static boolean isResourceModification(ItemDelta modification) {
-		ItemPath path = modification.getPath();
-		QName firstPathName = ItemPath.getFirstName(path);
+		QName firstPathName = modification.getPath().firstName();
 		return isAttributeModification(firstPathName) || isNonAttributeResourceModification(firstPathName);
 	}
 
 	public static boolean isAttributeModification(ItemDelta modification) {
-		ItemPath path = modification.getPath();
-		QName firstPathName = ItemPath.getFirstName(path);
+		QName firstPathName = modification.getPath().firstName();
 		return isAttributeModification(firstPathName);
 	}
 
@@ -584,8 +576,7 @@ public class ProvisioningUtil {
 	}
 
 	public static boolean isNonAttributeResourceModification(ItemDelta modification) {
-		ItemPath path = modification.getPath();
-		QName firstPathName = ItemPath.getFirstName(path);
+		QName firstPathName = modification.getPath().firstName();
 		return isNonAttributeResourceModification(firstPathName);
 	}
 

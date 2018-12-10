@@ -78,7 +78,7 @@ public class TaskCurrentStateDtoModel implements IModel<TaskCurrentStateDto> {
         String oid = taskModel.getObject().getOid();
         try {
             LOGGER.debug("Refreshing task {}", taskModel.getObject());
-            Collection<SelectorOptions<GetOperationOptions>> options = GetOperationOptions.createRetrieveAttributesOptions(TaskType.F_SUBTASK, TaskType.F_NODE_AS_OBSERVED);
+            Collection<SelectorOptions<GetOperationOptions>> options = page.retrieveItemsNamed(TaskType.F_SUBTASK, TaskType.F_NODE_AS_OBSERVED);
             PrismObject<TaskType> task = page.getModelService().getObject(TaskType.class, oid, options, operationTask, result);
             TaskDto taskDto = new TaskDto(task.asObjectable(), null, page.getModelService(), page.getTaskService(),
                     page.getModelInteractionService(), taskManager, page.getWorkflowManager(), TaskDtoProviderOptions.fullOptions(), false, operationTask, result, page);

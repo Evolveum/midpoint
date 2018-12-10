@@ -23,6 +23,8 @@ import java.util.Iterator;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationService;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -38,15 +40,9 @@ import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentProcessor;
 import com.evolveum.midpoint.model.impl.sync.CorrelationConfirmationEvaluator;
-import com.evolveum.midpoint.prism.OriginType;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -449,13 +445,13 @@ public class ProjectionValuesProcessor {
 		}
 		RefinedObjectClassDefinition oOcDef = projectionContext.getCompositeObjectClassDefinition();
 		for (RefinedAttributeDefinition identifierDef: oOcDef.getPrimaryIdentifiers()) {
-			ItemPath identifierPath = new ItemPath(ShadowType.F_ATTRIBUTES, identifierDef.getName());
+			ItemPath identifierPath = ItemPath.create(ShadowType.F_ATTRIBUTES, identifierDef.getName());
 			if (accountDelta.findPropertyDelta(identifierPath) != null) {
 				return true;
 			}
 		}
 		for (RefinedAttributeDefinition identifierDef: oOcDef.getSecondaryIdentifiers()) {
-			ItemPath identifierPath = new ItemPath(ShadowType.F_ATTRIBUTES, identifierDef.getName());
+			ItemPath identifierPath = ItemPath.create(ShadowType.F_ATTRIBUTES, identifierDef.getName());
 			if (accountDelta.findPropertyDelta(identifierPath) != null) {
 				return true;
 			}
@@ -645,15 +641,15 @@ public class ProjectionValuesProcessor {
 		}
 		PrismObjectDefinition<ShadowType> shadowDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
 
-		PrismPropertyValue<Integer> iterationVal = new PrismPropertyValue<>(accountContext.getIteration());
+		PrismPropertyValue<Integer> iterationVal = prismContext.itemFactory().createPropertyValue(accountContext.getIteration());
 		iterationVal.setOriginType(OriginType.OUTBOUND);
-		PropertyDelta<Integer> iterationDelta = PropertyDelta.createReplaceDelta(shadowDef,
+		PropertyDelta<Integer> iterationDelta = prismContext.deltaFactory().property().createReplaceDelta(shadowDef,
 				ShadowType.F_ITERATION, iterationVal);
 		accountContext.swallowToSecondaryDelta(iterationDelta);
 
-		PrismPropertyValue<String> iterationTokenVal = new PrismPropertyValue<>(accountContext.getIterationToken());
+		PrismPropertyValue<String> iterationTokenVal = prismContext.itemFactory().createPropertyValue(accountContext.getIterationToken());
 		iterationTokenVal.setOriginType(OriginType.OUTBOUND);
-		PropertyDelta<String> iterationTokenDelta = PropertyDelta.createReplaceDelta(shadowDef,
+		PropertyDelta<String> iterationTokenDelta = prismContext.deltaFactory().property().createReplaceDelta(shadowDef,
 				ShadowType.F_ITERATION_TOKEN, iterationTokenVal);
 		accountContext.swallowToSecondaryDelta(iterationTokenDelta);
 

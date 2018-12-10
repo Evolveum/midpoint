@@ -29,6 +29,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.crypto.KeyStoreBasedProtectorBuilder;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeSuite;
@@ -37,13 +39,7 @@ import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryUtil;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.ItemDefinitionImpl;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.crypto.ProtectorImpl;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.common.DirectoryFileObjectResolver;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
@@ -97,7 +93,7 @@ public abstract class AbstractScriptTest {
     public void setupFactory() {
     	PrismContext prismContext = PrismTestUtil.getPrismContext();
     	ObjectResolver resolver = new DirectoryFileObjectResolver(OBJECTS_DIR);
-    	Protector protector = new ProtectorImpl();
+    	Protector protector = KeyStoreBasedProtectorBuilder.create(prismContext).buildOnly();
     	Clock clock = new Clock();
         Collection<FunctionLibrary> functions = new ArrayList<>();
 		functions.add(FunctionLibraryUtil.createBasicFunctionLibrary(prismContext, protector, clock));
@@ -282,9 +278,9 @@ public abstract class AbstractScriptTest {
 
 	private <T> List<PrismPropertyValue<T>> evaluateExpression(ScriptExpressionEvaluatorType scriptType, QName typeName, boolean scalar,
 			ExpressionVariables variables, String shortDesc, OperationResult opResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-		ItemDefinition outputDefinition = new PrismPropertyDefinitionImpl(PROPERTY_NAME, typeName, PrismTestUtil.getPrismContext());
+		MutableItemDefinition outputDefinition = PrismTestUtil.getPrismContext().definitionFactory().createPropertyDefinition(PROPERTY_NAME, typeName);
 		if (!scalar) {
-			((ItemDefinitionImpl) outputDefinition).setMaxOccurs(-1);
+			outputDefinition.setMaxOccurs(-1);
 		}
 		return evaluateExpression(scriptType, outputDefinition, variables, shortDesc, opResult);
 	}
@@ -314,7 +310,7 @@ public abstract class AbstractScriptTest {
 
 	private void evaluateAndAssertStringListExpresssion(String fileName, String testName, ExpressionVariables variables, String... expectedValues) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		List<PrismPropertyValue<String>> expressionResultList = evaluateStringExpresssion(fileName, testName, variables, true);
-		TestUtil.assertSetEquals("Expression "+testName+" resulted in wrong values", PrismPropertyValue.getValues(expressionResultList), expectedValues);
+		TestUtil.assertSetEquals("Expression "+testName+" resulted in wrong values", PrismValueCollectionsUtil.getValues(expressionResultList), expectedValues);
 	}
 	protected void evaluateAndAssertBooleanScalarExpresssion(String fileName, String testName, ExpressionVariables variables, Boolean expectedValue) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		List<PrismPropertyValue<Boolean>> expressionResultList = evaluateBooleanExpresssion(fileName, testName, variables, true);

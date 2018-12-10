@@ -20,7 +20,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -161,10 +160,10 @@ public abstract class AbstractTreeTablePanel extends BasePanel<String> {
 
         S_AtomicFilterExit q;
         if (object == null || SEARCH_SCOPE_ONE.equals(scope)) {
-            q = QueryBuilder.queryFor(OrgType.class, context)
+            q = context.queryFor(OrgType.class)
                     .isDirectChildOf(oid);
         } else {
-            q = QueryBuilder.queryFor(OrgType.class, context)
+            q = context.queryFor(OrgType.class)
                     .isChildOf(oid);
         }
 

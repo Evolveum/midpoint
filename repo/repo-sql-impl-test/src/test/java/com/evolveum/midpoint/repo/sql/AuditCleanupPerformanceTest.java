@@ -18,7 +18,6 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventRecord;
 import com.evolveum.midpoint.repo.sql.util.SimpleTaskAdapter;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
@@ -112,7 +111,7 @@ public class AuditCleanupPerformanceTest extends BaseSQLRepoTest {
     }
 
 	private ObjectDeltaOperation<UserType> createObjectDeltaOperation(int i) throws Exception {
-        ObjectDelta<UserType> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_DESCRIPTION).replace("d" + i)
                 .asObjectDeltaCast("oid-" + i);
         ObjectDeltaOperation<UserType> odo = new ObjectDeltaOperation<>();

@@ -31,10 +31,8 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
@@ -116,13 +114,13 @@ public class ResourceObjectReferenceResolver {
 		subctx.setUseRefinedDefinition(false);
 		subctx.assertDefinition();
 
-		ObjectQuery refQuery = QueryJaxbConvertor.createObjectQuery(ShadowType.class, resourceObjectReference.getFilter(), prismContext);
+		ObjectQuery refQuery = prismContext.getQueryConverter().createObjectQuery(ShadowType.class, resourceObjectReference.getFilter());
 		// No variables. At least not now. We expect that mostly constants will be used here.
 		ExpressionVariables variables = new ExpressionVariables();
 		ObjectQuery evaluatedRefQuery = ExpressionUtil.evaluateQueryExpressions(refQuery, variables, expressionFactory, prismContext, desc, ctx.getTask(), result);
 		ObjectFilter baseFilter = ObjectQueryUtil.createResourceAndObjectClassFilter(ctx.getResource().getOid(), objectClass, prismContext);
-		ObjectFilter filter = AndFilter.createAnd(baseFilter, evaluatedRefQuery.getFilter());
-		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+		ObjectFilter filter = prismContext.queryFactory().createAnd(baseFilter, evaluatedRefQuery.getFilter());
+		ObjectQuery query = prismContext.queryFactory().createQuery(filter);
 
 		// TODO: implement "repo" search strategies, don't forget to apply definitions
 
@@ -173,8 +171,10 @@ public class ResourceObjectReferenceResolver {
 		for (PrismProperty property: attributesContainer.getValue().getProperties()) {
 			if (ocDef.isPrimaryIdentifier(property.getElementName())) {
 				RefinedAttributeDefinition<?> attrDef = ocDef.findAttributeDefinition(property.getElementName());
-				ResourceAttribute primaryIdentifier = new ResourceAttribute<>(property.getElementName(),
-						attrDef, prismContext);
+				if (attrDef == null) {
+					throw new IllegalStateException("No definition for attribute " + property);
+				}
+				ResourceAttribute primaryIdentifier = attrDef.instantiate();
 				primaryIdentifier.setRealValue(property.getRealValue());
 				primaryIdentifiers.add(primaryIdentifier);
 			}
@@ -212,9 +212,11 @@ public class ResourceObjectReferenceResolver {
 		for (PrismProperty<?> property: attributesContainer.getValue().getProperties()) {
 			if (ocDef.isPrimaryIdentifier(property.getElementName())) {
 				RefinedAttributeDefinition<?> attrDef = ocDef.findAttributeDefinition(property.getElementName());
+				if (attrDef == null) {
+					throw new IllegalStateException("No definition for attribute " + property);
+				}
 				@SuppressWarnings("rawtypes")
-				ResourceAttribute primaryIdentifier = new ResourceAttribute<>(property.getElementName(),
-						attrDef, prismContext);
+				ResourceAttribute primaryIdentifier = attrDef.instantiate();
 				primaryIdentifier.setRealValue(property.getRealValue());
 				primaryIdentifiers.add(primaryIdentifier);
 			}

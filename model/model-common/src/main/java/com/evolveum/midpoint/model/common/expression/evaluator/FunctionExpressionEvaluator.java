@@ -25,7 +25,6 @@ import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -228,8 +227,8 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
 		
 			D returnTypeDef = (D) prismContext.getSchemaRegistry().findItemDefinitionByType(returnType);
 			if (returnTypeDef == null) {
-				returnTypeDef = (D) new PrismPropertyDefinitionImpl(SchemaConstantsGenerated.C_VALUE, returnType, prismContext);
-				returnTypeDef.setMaxOccurs(functionToExecute.getReturnMultiplicity() != null && functionToExecute.getReturnMultiplicity() == ExpressionReturnMultiplicityType.SINGLE ? 1 : -1);
+				returnTypeDef = (D) prismContext.definitionFactory().createPropertyDefinition(SchemaConstantsGenerated.C_VALUE, returnType);
+				returnTypeDef.toMutable().setMaxOccurs(functionToExecute.getReturnMultiplicity() != null && functionToExecute.getReturnMultiplicity() == ExpressionReturnMultiplicityType.SINGLE ? 1 : -1);
 			}
 			
 			return returnTypeDef;

@@ -27,6 +27,10 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.processor.*;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.Validate;
 import org.identityconnectors.common.pooling.ObjectPoolConfiguration;
@@ -81,28 +85,11 @@ import org.identityconnectors.framework.impl.api.local.ObjectPool.Statistics;
 import org.identityconnectors.framework.impl.api.local.operations.ConnectorOperationalContext;
 import org.identityconnectors.framework.spi.Connector;
 import org.identityconnectors.framework.spi.PoolableConnector;
-import org.identityconnectors.framework.spi.operations.UpdateAttributeValuesOp;
-import org.jfree.util.Log;
 
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.match.DistinguishedNameMatchingRule;
-import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
-import com.evolveum.midpoint.prism.match.UuidMatchingRule;
-import com.evolveum.midpoint.prism.match.XmlMatchingRule;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
@@ -126,17 +113,6 @@ import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinitionImpl;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinitionImpl;
-import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaImpl;
-import com.evolveum.midpoint.schema.processor.SearchHierarchyConstraints;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -321,7 +297,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 			result.recordSuccess();
 
-			PrismProperty<Boolean> legacySchemaConfigProperty = configurationCloned.findProperty(new QName(
+			PrismProperty<Boolean> legacySchemaConfigProperty = configurationCloned.findProperty(new ItemName(
 					SchemaConstants.NS_ICF_CONFIGURATION,
 					ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_LEGACY_SCHEMA_XML_ELEMENT_NAME));
 			if (legacySchemaConfigProperty != null) {
@@ -370,16 +346,16 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			return null;
 		}
 		if (AttributeInfo.Subtypes.STRING_CASE_IGNORE.toString().equals(icfSubtype)) {
-			return StringIgnoreCaseMatchingRule.NAME;
+			return PrismConstants.STRING_IGNORE_CASE_MATCHING_RULE_NAME;
 		}
 		if (AttributeInfo.Subtypes.STRING_LDAP_DN.toString().equals(icfSubtype)) {
-			return DistinguishedNameMatchingRule.NAME;
+			return PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME;
 		}
 		if (AttributeInfo.Subtypes.STRING_XML.toString().equals(icfSubtype)) {
-			return XmlMatchingRule.NAME;
+			return PrismConstants.XML_MATCHING_RULE_NAME;
 		}
 		if (AttributeInfo.Subtypes.STRING_UUID.toString().equals(icfSubtype)) {
-			return UuidMatchingRule.NAME;
+			return PrismConstants.UUID_MATCHING_RULE_NAME;
 		}
 		LOGGER.debug("Unknown subtype {} defined for attribute {}, ignoring (no matching rule definition)", icfSubtype, attributeInfo.getName());
 		return null;
@@ -704,7 +680,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		AttributeInfo auxiliaryObjectClasseAttributeInfo = null;
 
 		// New instance of midPoint schema object
-		setResourceSchema(new ResourceSchemaImpl(getSchemaNamespace(), prismContext));
+		setResourceSchema(ObjectFactory.createResourceSchema(getSchemaNamespace(), prismContext));
 
 		if (legacySchema == null) {
 			legacySchema = detectLegacySchema(connIdSchema);
@@ -730,14 +706,13 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			// object class.
 			// The important thing here is the last "type" parameter
 			// (objectClassXsdName). The rest is more-or-less cosmetics.
-			ObjectClassComplexTypeDefinition ocDef = ((ResourceSchemaImpl) resourceSchema)
-					.createObjectClassDefinition(objectClassXsdName);
+			MutableObjectClassComplexTypeDefinition ocDef = resourceSchema.toMutable().createObjectClassDefinition(objectClassXsdName);
 
 			// The __ACCOUNT__ objectclass in ConnId is a default account
 			// objectclass. So mark it appropriately.
 			if (ObjectClass.ACCOUNT_NAME.equals(objectClassInfo.getType())) {
-				((ObjectClassComplexTypeDefinitionImpl) ocDef).setKind(ShadowKindType.ACCOUNT);
-				((ObjectClassComplexTypeDefinitionImpl) ocDef).setDefaultInAKind(true);
+				ocDef.setKind(ShadowKindType.ACCOUNT);
+				ocDef.setDefaultInAKind(true);
 			}
 
 			ResourceAttributeDefinition<String> uidDefinition = null;
@@ -804,7 +779,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 				// Create ResourceObjectAttributeDefinition, which is midPoint
 				// way how to express attribute schema.
-				ResourceAttributeDefinitionImpl attrDef = new ResourceAttributeDefinitionImpl(
+				MutableResourceAttributeDefinition attrDef = ObjectFactory.createResourceAttributeDefinition(
 						attrXsdName, attrXsdType, prismContext);
 
 				attrDef.setMatchingRuleQName(icfAttributeInfoToMatchingRule(attributeInfo));
@@ -830,7 +805,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 					ResourceAttributeDefinition existingDefinition = ocDef.findAttributeDefinition(attrXsdName);
 					if (existingDefinition != null) {
 						hasUidDefinition = true;
-						((ResourceAttributeDefinitionImpl) existingDefinition).setDisplayOrder(ConnectorFactoryConnIdImpl.ICFS_UID_DISPLAY_ORDER);
+						existingDefinition.toMutable().setDisplayOrder(ConnectorFactoryConnIdImpl.ICFS_UID_DISPLAY_ORDER);
 						uidDefinition = existingDefinition;
 						continue;
 					} else {
@@ -891,37 +866,36 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 				attrDef.setCanRead(canRead);
 
 				if (!Uid.NAME.equals(icfName)) {
-					((ObjectClassComplexTypeDefinitionImpl) ocDef).add(attrDef);
+					ocDef.add(attrDef);
 				}
 			}
 
 			if (uidDefinition == null) {
 				// Every object has UID in ConnId, therefore add a default definition if no other was specified
-				uidDefinition = new ResourceAttributeDefinitionImpl<>(
-						SchemaConstants.ICFS_UID, DOMUtil.XSD_STRING, prismContext);
+				uidDefinition = ObjectFactory.createResourceAttributeDefinition(SchemaConstants.ICFS_UID, DOMUtil.XSD_STRING, prismContext);
 				// DO NOT make it mandatory. It must not be present on create hence it cannot be mandatory.
-				((ResourceAttributeDefinitionImpl) uidDefinition).setMinOccurs(0);
-				((ResourceAttributeDefinitionImpl) uidDefinition).setMaxOccurs(1);
+				uidDefinition.toMutable().setMinOccurs(0);
+				uidDefinition.toMutable().setMaxOccurs(1);
 				// Make it read-only
-				((ResourceAttributeDefinitionImpl) uidDefinition).setReadOnly();
+				uidDefinition.toMutable().setReadOnly();
 				// Set a default display name
-				((ResourceAttributeDefinitionImpl) uidDefinition).setDisplayName(ConnectorFactoryConnIdImpl.ICFS_UID_DISPLAY_NAME);
-				((ResourceAttributeDefinitionImpl) uidDefinition).setDisplayOrder(ConnectorFactoryConnIdImpl.ICFS_UID_DISPLAY_ORDER);
+				uidDefinition.toMutable().setDisplayName(ConnectorFactoryConnIdImpl.ICFS_UID_DISPLAY_NAME);
+				uidDefinition.toMutable().setDisplayOrder(ConnectorFactoryConnIdImpl.ICFS_UID_DISPLAY_ORDER);
 				// Uid is a primary identifier of every object (this is the ConnId way)
 			}
 			if (!hasUidDefinition) {
-				((ObjectClassComplexTypeDefinitionImpl) ocDef).add(uidDefinition);
+				ocDef.toMutable().add(uidDefinition);
 			}
-			((ObjectClassComplexTypeDefinitionImpl)ocDef).addPrimaryIdentifier(uidDefinition);
+			ocDef.toMutable().addPrimaryIdentifier(uidDefinition);
 			if (uidDefinition != nameDefinition) {
-				((ObjectClassComplexTypeDefinitionImpl)ocDef).addSecondaryIdentifier(nameDefinition);
+				ocDef.toMutable().addSecondaryIdentifier(nameDefinition);
 			}
 
 			// Add schema annotations
-			((ObjectClassComplexTypeDefinitionImpl) ocDef).setNativeObjectClass(objectClassInfo.getType());
-			((ObjectClassComplexTypeDefinitionImpl) ocDef).setDisplayNameAttribute(nameDefinition.getName());
-			((ObjectClassComplexTypeDefinitionImpl) ocDef).setNamingAttribute(nameDefinition.getName());
-			((ObjectClassComplexTypeDefinitionImpl) ocDef).setAuxiliary(objectClassInfo.isAuxiliary());
+			ocDef.toMutable().setNativeObjectClass(objectClassInfo.getType());
+			ocDef.toMutable().setDisplayNameAttribute(nameDefinition.getName());
+			ocDef.toMutable().setNamingAttribute(nameDefinition.getName());
+			ocDef.toMutable().setAuxiliary(objectClassInfo.isAuxiliary());
 
 			LOGGER.trace("  ... converted object class {}: {}", objectClassInfo.getType(), ocDef);
 		}
@@ -1753,20 +1727,20 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 					if(definition == null){
 						throw new ObjectNotFoundException("Returned delta attribute with name: "+ name +" for which, has not been found ResourceAttributeDefinition.");
 					}
-					PropertyDelta<Object> delta = new PropertyDelta<Object>(new ItemPath(ShadowType.F_ATTRIBUTES, 
-							definition.getName()), definition, prismContext);
+					PropertyDelta<Object> delta = prismContext.deltaFactory().property().create(ItemPath.create(ShadowType.F_ATTRIBUTES,
+							definition.getName()), definition);
 					if(attrDeltaSideEffect.getValuesToReplace() != null){
-						delta.setValuesToReplace(new PrismPropertyValue<Object>(attrDeltaSideEffect.getValuesToReplace().get(0)));
+						delta.setRealValuesToReplace(attrDeltaSideEffect.getValuesToReplace().get(0));
 					} else {
 						if(attrDeltaSideEffect.getValuesToAdd() != null){
 							for(Object value : attrDeltaSideEffect.getValuesToAdd()){
-								delta.addValuesToAdd(new PrismPropertyValue<Object>(value));
+								delta.addRealValuesToAdd(value);
 							}
 							
 						}
 						if(attrDeltaSideEffect.getValuesToRemove() != null){
 							for(Object value : attrDeltaSideEffect.getValuesToRemove()){
-								delta.addValuesToDelete(new PrismPropertyValue<Object>(value));
+								delta.addRealValuesToDelete(value);
 							}
 						}
 					}
@@ -2035,26 +2009,28 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			// fallback, compatibility
 			for (ResourceAttribute<?> attr : identification.getAllIdentifiers()) {
 				if (attr.getElementName().equals(SchemaConstants.ICFS_NAME)) {
-					attr.setValue(new PrismPropertyValue(newName.getNameValue()));			// expecting the NAME property is of type String
+					// expecting the NAME property is of type String
+					//noinspection unchecked
+					((ResourceAttribute<String>) attr).setRealValue(newName.getNameValue());
 					return;
 				}
 			}
 			throw new IllegalStateException("No identifiers");
 		}
-		secondaryIdentifier.setValue(new PrismPropertyValue(newName.getNameValue()));
+		secondaryIdentifier.setRealValue(newName.getNameValue());
 	}
 
 	private PropertyDelta<String> createNameDelta(Name name, ResourceAttributeDefinition nameDefinition) {
-		PropertyDelta<String> uidDelta = new PropertyDelta<String>(new ItemPath(ShadowType.F_ATTRIBUTES, nameDefinition.getName()),
-				nameDefinition, prismContext);
-		uidDelta.setValueToReplace(new PrismPropertyValue<String>(name.getNameValue()));
+		PropertyDelta<String> uidDelta = prismContext.deltaFactory().property().create(ItemPath.create(ShadowType.F_ATTRIBUTES, nameDefinition.getName()),
+				nameDefinition);
+		uidDelta.setRealValuesToReplace(name.getNameValue());
 		return uidDelta;
 	}
 	
 	private PropertyDelta<String> createUidDelta(Uid uid, ResourceAttributeDefinition uidDefinition) {
-		PropertyDelta<String> uidDelta = new PropertyDelta<String>(new ItemPath(ShadowType.F_ATTRIBUTES, uidDefinition.getName()),
-				uidDefinition, prismContext);
-		uidDelta.setValueToReplace(new PrismPropertyValue<>(uid.getUidValue()));
+		PropertyDelta<String> uidDelta = prismContext.deltaFactory().property().create(ItemPath.create(ShadowType.F_ATTRIBUTES, uidDefinition.getName()),
+				uidDefinition);
+		uidDelta.setRealValuesToReplace(uid.getUidValue());
 		return uidDelta;
 	}
 
@@ -2836,13 +2812,15 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			Collection<? extends ResourceAttribute<?>> identifiers = identification.getAllIdentifiers();
 			for (ResourceAttribute<?> attr : identifiers) {
 				if (attr.getElementName().equals(SchemaConstants.ICFS_UID)) {
-					attr.setValue(new PrismPropertyValue(newUid.getUidValue()));			// expecting the UID property is of type String
+					// expecting the UID property is of type String
+					//noinspection unchecked
+					((ResourceAttribute<String>) attr).setRealValue(newUid.getUidValue());
 					return;
 				}
 			}
 			throw new IllegalStateException("No UID attribute in " + identifiers);
 		}
-		primaryIdentifier.setValue(new PrismPropertyValue(newUid.getUidValue()));
+		primaryIdentifier.setRealValue(newUid.getUidValue());
 	}
 
 	private ResourceAttributeDefinition getNameDefinition(ResourceObjectIdentification identification) throws SchemaException {
@@ -2909,8 +2887,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			SyncDeltaType icfDeltaType = icfDelta.getDeltaType();
 			if (SyncDeltaType.DELETE.equals(icfDeltaType)) {
 				LOGGER.trace("START creating delta of type DELETE");
-				ObjectDelta<ShadowType> objectDelta = new ObjectDelta<>(
-                    ShadowType.class, ChangeType.DELETE, prismContext);
+				ObjectDelta<ShadowType> objectDelta = prismContext.deltaFactory().object().create(ShadowType.class, ChangeType.DELETE);
 				Collection<ResourceAttribute<?>> identifiers = ConnIdUtil.convertToIdentifiers(icfDelta.getUid(),
 						deltaObjClassDefinition, resourceSchema);
 				Change change = new Change(identifiers, objectDelta, getToken(icfDelta.getToken()));
@@ -2932,8 +2909,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 				Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getAllIdentifiers(currentShadow);
 
-				ObjectDelta<ShadowType> objectDelta = new ObjectDelta<>(
-                    ShadowType.class, ChangeType.ADD, prismContext);
+				ObjectDelta<ShadowType> objectDelta = prismContext.deltaFactory().object().create(ShadowType.class, ChangeType.ADD);
 				objectDelta.setObjectToAdd(currentShadow);
 
 				Change change = new Change(identifiers, objectDelta, getToken(icfDelta.getToken()));
@@ -3002,15 +2978,13 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	private <T> PrismProperty<T> createTokenProperty(T object) {
 		QName type = XsdTypeMapper.toXsdType(object.getClass());
 
-		Set<PrismPropertyValue<T>> syncTokenValues = new HashSet<>();
-		syncTokenValues.add(new PrismPropertyValue<>(object));
-		PrismPropertyDefinitionImpl propDef = new PrismPropertyDefinitionImpl(SchemaConstants.SYNC_TOKEN,
-				type, prismContext);
+		//noinspection unchecked
+		MutablePrismPropertyDefinition<T> propDef = prismContext.definitionFactory().createPropertyDefinition(SchemaConstants.SYNC_TOKEN, type);
 		propDef.setDynamic(true);
 		propDef.setMaxOccurs(1);
 		propDef.setIndexed(false);          // redundant, as dynamic extension items are not indexed by default
 		PrismProperty<T> property = propDef.instantiate();
-		property.addValues(syncTokenValues);
+		property.addRealValue(object);
 		return property;
 	}
 

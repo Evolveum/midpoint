@@ -22,13 +22,10 @@ import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang.Validate;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.expression.Expression;
@@ -97,12 +94,12 @@ public class CustomFunctions {
 			
 			D outputDefinition = (D) prismContext.getSchemaRegistry().findItemDefinitionByType(returnType);
 			if (outputDefinition == null) {
-				outputDefinition = (D) new PrismPropertyDefinitionImpl(SchemaConstantsGenerated.C_VALUE, returnType, prismContext);
+				outputDefinition = (D) prismContext.definitionFactory().createPropertyDefinition(SchemaConstantsGenerated.C_VALUE, returnType);
 			}
 			if (expressionType.getReturnMultiplicity() != null && expressionType.getReturnMultiplicity() == ExpressionReturnMultiplicityType.MULTI) {
-				outputDefinition.setMaxOccurs(-1);
+				outputDefinition.toMutable().setMaxOccurs(-1);
 			} else {
-				outputDefinition.setMaxOccurs(1);
+				outputDefinition.toMutable().setMaxOccurs(1);
 			}
 			String shortDesc = "custom function execute";
 			Expression<V, D> expression = expressionFactory.makeExpression(expressionType, outputDefinition,
@@ -125,7 +122,7 @@ public class CustomFunctions {
 			}
 			
 			if (outputDefinition.isMultiValue()) {
-				return PrismValue.getRealValuesOfCollection(nonNegativeValues); 
+				return PrismValueCollectionsUtil.getRealValuesOfCollection(nonNegativeValues);
 			}
 			
 			

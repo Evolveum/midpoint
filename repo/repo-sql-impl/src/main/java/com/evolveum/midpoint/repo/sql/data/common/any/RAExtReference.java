@@ -119,15 +119,6 @@ public class RAExtReference extends RAExtBase<String> implements RAExtValue<Stri
         return Objects.equals(value, that.value);
     }
 
-    public static PrismReferenceValue createReference(RAExtReference repo) {
-        PrismReferenceValue value = new PrismReferenceValue();
-        value.setOid(repo.getValue());
-        value.setRelation(RUtil.stringToQName(repo.getRelation()));
-        value.setTargetType(ClassMapper.getQNameForHQLType(repo.getTargetType()));
-
-        return value;
-    }
-
     public static RAExtReference createReference(PrismReferenceValue jaxb) {
         RAExtReference repo = new RAExtReference();
 

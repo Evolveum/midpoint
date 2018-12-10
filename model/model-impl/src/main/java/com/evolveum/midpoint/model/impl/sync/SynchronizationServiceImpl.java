@@ -27,6 +27,7 @@ import java.util.Map;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -46,18 +47,10 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
@@ -79,7 +72,6 @@ import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -326,15 +318,15 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		if (syncCtx.isUnrelatedChange()) {
 			PrismObject<ShadowType> applicableShadow = syncCtx.getApplicableShadow();
 			Validate.notNull(applicableShadow, "No current nor old shadow present: ");
-			List<PropertyDelta<?>> modifications = SynchronizationUtils.createSynchronizationTimestampsDelta(applicableShadow);
+			List<PropertyDelta<?>> modifications = SynchronizationUtils.createSynchronizationTimestampsDelta(applicableShadow, prismContext);
 			ShadowType applicableShadowType = applicableShadow.asObjectable();
 			if (applicableShadowType.getIntent() == null) {
-				PropertyDelta<String> intentDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_INTENT,
+				PropertyDelta<String> intentDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(ShadowType.F_INTENT,
 						syncCtx.getApplicableShadow().getDefinition(), syncCtx.getIntent());
 				modifications.add(intentDelta);
 			}
 			if (applicableShadowType.getKind() == null) {
-				PropertyDelta<ShadowKindType> intentDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_KIND,
+				PropertyDelta<ShadowKindType> intentDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(ShadowType.F_KIND,
 						syncCtx.getApplicableShadow().getDefinition(), syncCtx.getKind());
 				modifications.add(intentDelta);
 			}
@@ -405,9 +397,10 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 	
 	private <F extends FocusType> List<PropertyDelta<?>> createShadowIntentAndSynchronizationTimestampDelta(SynchronizationContext<F> syncCtx, boolean saveIntent) throws SchemaException {
 		Validate.notNull(syncCtx.getApplicableShadow(), "No current nor old shadow present: ");
-		List<PropertyDelta<?>> modifications = SynchronizationUtils.createSynchronizationTimestampsDelta(syncCtx.getApplicableShadow());
+		List<PropertyDelta<?>> modifications = SynchronizationUtils.createSynchronizationTimestampsDelta(syncCtx.getApplicableShadow(),
+				prismContext);
 		if (saveIntent && StringUtils.isNotBlank(syncCtx.getIntent())) {
-			PropertyDelta<String> intentDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_INTENT,
+			PropertyDelta<String> intentDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(ShadowType.F_INTENT,
 					syncCtx.getApplicableShadow().getDefinition(), syncCtx.getIntent());
 			modifications.add(intentDelta);
 		}
@@ -992,22 +985,22 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			// new situation description
 			List<PropertyDelta<?>> deltas = SynchronizationUtils
 					.createSynchronizationSituationAndDescriptionDelta(shadow, syncCtx.getSituation(),
-							change.getSourceChannel(), true, now);
+							change.getSourceChannel(), true, now, prismContext);
 
 			if (shadowType.getKind() == null) {
-				PropertyDelta<ShadowKindType> kindDelta = PropertyDelta.createReplaceDelta(shadow.getDefinition(),
+				PropertyDelta<ShadowKindType> kindDelta = prismContext.deltaFactory().property().createReplaceDelta(shadow.getDefinition(),
 						ShadowType.F_KIND, syncCtx.getKind());
 				deltas.add(kindDelta);
 			}
 
 			if (isNullIntentOrIsForceIntent(syncCtx)) {
-				PropertyDelta<String> intentDelta = PropertyDelta.createReplaceDelta(shadow.getDefinition(),
+				PropertyDelta<String> intentDelta = prismContext.deltaFactory().property().createReplaceDelta(shadow.getDefinition(),
 						ShadowType.F_INTENT, syncCtx.getIntent());
 				deltas.add(intentDelta);
 			}
 
 			repositoryService.modifyObject(shadowType.getClass(), shadow.getOid(), deltas, parentResult);
-			ItemDelta.applyTo(deltas, shadow);
+			ItemDeltaCollectionsUtil.applyTo(deltas, shadow);
 			task.recordObjectActionExecuted(shadow, ChangeType.MODIFY, null);
 			return shadow;
 		} catch (ObjectNotFoundException ex) {

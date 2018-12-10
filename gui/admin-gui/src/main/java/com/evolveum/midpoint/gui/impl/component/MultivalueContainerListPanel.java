@@ -39,7 +39,6 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.task.api.Task;
@@ -61,7 +60,6 @@ import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.component.util.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.PageStorage;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 
 /**
@@ -356,7 +354,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 
 		if (searchQuery != null && searchQuery.getFilter() != null) {
 			if (customQuery != null && customQuery.getFilter() != null) {
-				return ObjectQuery.createObjectQuery(AndFilter.createAnd(customQuery.getFilter(), searchQuery.getFilter()));
+				return getPrismContext().queryFactory().createQuery(getPrismContext().queryFactory().createAnd(customQuery.getFilter(), searchQuery.getFilter()));
 			}
 			return searchQuery;
 

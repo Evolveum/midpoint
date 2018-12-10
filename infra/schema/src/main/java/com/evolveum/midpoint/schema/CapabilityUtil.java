@@ -56,7 +56,7 @@ public class CapabilityUtil {
 		return null;
 	}
 
-	public static boolean isCapabilityEnabled(Object capability) throws SchemaException {
+	public static boolean isCapabilityEnabled(Object capability) {
 		if (capability == null) {
 			return false;
 		}
@@ -73,21 +73,14 @@ public class CapabilityUtil {
 		}
 	}
 
-	private static boolean isCapabilityEnabled(Element capability) throws SchemaException {
+	private static boolean isCapabilityEnabled(Element capability) {
 		if (capability == null) {
 			return false;
 		}
 		ObjectFactory capabilitiesObjectFactory = new ObjectFactory();
 		QName enabledElementName = capabilitiesObjectFactory.createEnabled(true).getName();
 		Element enabledElement = DOMUtil.getChildElement(capability, enabledElementName);
-		if (enabledElement == null) {
-			return true;
-		}
-		Boolean enabled = XmlTypeConverter.convertValueElementAsScalar(enabledElement, Boolean.class);
-		if (enabled == null) {
-			return true;
-		}
-		return enabled;
+		return enabledElement == null || Boolean.parseBoolean(enabledElement.getTextContent());
 	}
 
 	public static <T extends CapabilityType> boolean isCapabilityEnabled(T capability) {

@@ -77,25 +77,25 @@ public class TestTextFormatter extends AbstractTestNGSpringContextTests {
     public static final String USER_JACK_MODIFICATION_FILE = CHANGES_DIR_NAME + "/user-jack-modification.xml";
 
 	protected static final List<ItemPath> auxiliaryPaths = Arrays.asList(
-            new ItemPath(UserType.F_FAMILY_NAME),               // for testing purposes
-            new ItemPath(ShadowType.F_METADATA),
-            new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_VALIDITY_STATUS),
-            new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_VALIDITY_CHANGE_TIMESTAMP),
-            new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS),
-            new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP),
-            new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ARCHIVE_TIMESTAMP),
-            new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ENABLE_TIMESTAMP),
-            new ItemPath(ShadowType.F_ITERATION),
-            new ItemPath(ShadowType.F_ITERATION_TOKEN),
-            new ItemPath(UserType.F_LINK_REF),
-            new ItemPath(ShadowType.F_TRIGGER)
+            UserType.F_FAMILY_NAME,               // for testing purposes
+            ShadowType.F_METADATA,
+            ItemPath.create(ShadowType.F_ACTIVATION, ActivationType.F_VALIDITY_STATUS),
+            ItemPath.create(ShadowType.F_ACTIVATION, ActivationType.F_VALIDITY_CHANGE_TIMESTAMP),
+            ItemPath.create(ShadowType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS),
+            ItemPath.create(ShadowType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP),
+            ItemPath.create(ShadowType.F_ACTIVATION, ActivationType.F_ARCHIVE_TIMESTAMP),
+            ItemPath.create(ShadowType.F_ACTIVATION, ActivationType.F_ENABLE_TIMESTAMP),
+            ShadowType.F_ITERATION,
+            ShadowType.F_ITERATION_TOKEN,
+            UserType.F_LINK_REF,
+            ShadowType.F_TRIGGER
     );
 
     private static final List<ItemPath> synchronizationPaths = Arrays.asList(
-            new ItemPath(ShadowType.F_SYNCHRONIZATION_SITUATION),
-            new ItemPath(ShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION),
-            new ItemPath(ShadowType.F_SYNCHRONIZATION_TIMESTAMP),
-            new ItemPath(ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP));
+            ShadowType.F_SYNCHRONIZATION_SITUATION,
+            ShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION,
+            ShadowType.F_SYNCHRONIZATION_TIMESTAMP,
+            ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP);
 
 
     @Autowired

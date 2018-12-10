@@ -30,8 +30,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
@@ -84,7 +83,7 @@ public class AssociationTargetSearchExpressionEvaluator
 		ObjectFilter resourceFilter = ObjectQueryUtil.createResourceFilter(rAssocTargetDef.getResourceOid(), getPrismContext());
 		ObjectFilter objectClassFilter = ObjectQueryUtil.createObjectClassFilter(rAssocTargetDef.getObjectClassDefinition().getTypeName(),
 				getPrismContext());
-		ObjectFilter extendedFilter = AndFilter.createAnd(resourceFilter, objectClassFilter, query.getFilter());
+		ObjectFilter extendedFilter = getPrismContext().queryFactory().createAnd(resourceFilter, objectClassFilter, query.getFilter());
 		query.setFilter(extendedFilter);
 		return query;
 	}
@@ -95,7 +94,7 @@ public class AssociationTargetSearchExpressionEvaluator
 		super.extendOptions(options, searchOnResource);
 		// We do not need to worry about associations of associations here
 		// (nested associations). Avoiding that will make the query faster.
-		options.add(SelectorOptions.create(ShadowType.F_ASSOCIATION, GetOperationOptions.createDontRetrieve()));
+		options.add(SelectorOptions.create(getPrismContext().toUniformPath(ShadowType.F_ASSOCIATION), GetOperationOptions.createDontRetrieve()));
 	}
 
 	protected PrismContainerValue<ShadowAssociationType> createPrismValue(String oid, QName targetTypeQName, List<ItemDelta<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> additionalAttributeDeltas, ExpressionEvaluationContext params) {
@@ -110,10 +109,10 @@ public class AssociationTargetSearchExpressionEvaluator
 		try {
 
 			if (additionalAttributeDeltas != null) {
-				ItemDelta.applyTo(additionalAttributeDeltas, associationCVal);
+				ItemDeltaCollectionsUtil.applyTo(additionalAttributeDeltas, associationCVal);
 			}
 
-			getPrismContext().adopt(associationCVal, ShadowType.COMPLEX_TYPE, new ItemPath(ShadowType.F_ASSOCIATION));
+			getPrismContext().adopt(associationCVal, ShadowType.COMPLEX_TYPE, ShadowType.F_ASSOCIATION);
 			if (InternalsConfig.consistencyChecks) {
 				associationCVal.assertDefinitions("associationCVal in assignment expression in "+params.getContextDescription());
 			}

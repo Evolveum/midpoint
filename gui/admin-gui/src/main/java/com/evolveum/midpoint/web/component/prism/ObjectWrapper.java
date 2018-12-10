@@ -24,6 +24,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -31,7 +32,6 @@ import org.apache.commons.lang.Validate;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.OriginType;
@@ -51,7 +51,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -250,7 +249,7 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 					.findFirst().orElse(null);
 		}
 
-		ContainerWrapper<C> containerWrapper = findContainerWrapper(path.head());
+		ContainerWrapper<C> containerWrapper = findContainerWrapper(path.firstAsPath());
 		if (containerWrapper == null) {
 			return null;
 		}
@@ -268,7 +267,7 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 			return mainContainer.getValues().iterator().next();
 		}
 
-		ContainerWrapper<C> containerWrapper = findContainerWrapper(path.head());
+		ContainerWrapper<C> containerWrapper = findContainerWrapper(path.firstAsPath());
 		if (containerWrapper == null) {
 			return null;
 		}
@@ -293,13 +292,13 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 			containerWrapper = findMainContainerWrapper();
 			propertyPath = path;
 		} else {
-			containerWrapper = findContainerWrapper(path.head());
-			propertyPath = path.tail();
+			containerWrapper = findContainerWrapper(path.firstAsPath());
+			propertyPath = path.rest();
 		}
 		if (containerWrapper == null) {
 			return null;
 		}
-		return (IW) containerWrapper.findPropertyWrapper(ItemPath.getFirstName(propertyPath));
+		return (IW) containerWrapper.findPropertyWrapper(ItemPath.firstToNameOrNull(propertyPath));
 	}
 
 	public void normalize() throws SchemaException {
@@ -326,8 +325,7 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 			LOGGER.trace("Wrapper before creating delta:\n{}", this.debugDump());
 		}
 
-		
-		ObjectDelta<O> delta = new ObjectDelta<>(object.getCompileTimeClass(), ChangeType.MODIFY, object.getPrismContext());
+		ObjectDelta<O> delta = object.getPrismContext().deltaFactory().object().create(object.getCompileTimeClass(), ChangeType.MODIFY);
 		delta.setOid(object.getOid());
 
 		List<ContainerWrapper<? extends Containerable>> containers = getContainers();
@@ -342,7 +340,7 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 			PrismObject<O> objectToModify = object.clone();
 			delta.applyTo(objectToModify);
 			cleanupEmptyContainers(objectToModify);
-			ObjectDelta<O> addDelta = ObjectDelta.createAddDelta(objectToModify);
+			ObjectDelta<O> addDelta = DeltaFactory.Object.createAddDelta(objectToModify);
 			if (object.getPrismContext() != null) {
 				// Make sure we have all the definitions
 				object.getPrismContext().adopt(delta);

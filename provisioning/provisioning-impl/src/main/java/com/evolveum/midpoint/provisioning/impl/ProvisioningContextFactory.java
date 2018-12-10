@@ -40,8 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 @Component
 public class ProvisioningContextFactory {
 
-	@Autowired(required = true)
-	private ResourceManager resourceManager;
+	@Autowired private ResourceManager resourceManager;
 
 	public ProvisioningContext create(PrismObject<ShadowType> shadow, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		ProvisioningContext ctx = new ProvisioningContext(resourceManager, parentResult);

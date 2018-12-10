@@ -18,7 +18,6 @@ package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -415,53 +414,18 @@ public class CertCampaignTypeUtil {
         return rv;
     }
 
-//    // TODO find a better place for this
-//	@Deprecated
-//    public static ItemPath getOrderBy(QName oldName) {
-//        if (QNameUtil.match(oldName, AccessCertificationCaseType.F_TARGET_REF)) {
-//            return new ItemPath(AccessCertificationCaseType.F_TARGET_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME);
-//        } else if (QNameUtil.match(oldName, AccessCertificationCaseType.F_OBJECT_REF)) {
-//            return new ItemPath(AccessCertificationCaseType.F_OBJECT_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME);
-//        } else if (QNameUtil.match(oldName, AccessCertificationCaseType.F_TENANT_REF)) {
-//            return new ItemPath(AccessCertificationCaseType.F_TENANT_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME);
-//        } else if (QNameUtil.match(oldName, AccessCertificationCaseType.F_ORG_REF)) {
-//            return new ItemPath(AccessCertificationCaseType.F_ORG_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME);
-//        } else {
-//            return new ItemPath(oldName);
-//        }
-//    }
-
     public static ObjectQuery createCasesForCampaignQuery(String campaignOid, PrismContext prismContext) {
-        return QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+        return prismContext.queryFor(AccessCertificationCaseType.class)
                 .ownerId(campaignOid)
                 .build();
     }
 
     public static ObjectQuery createWorkItemsForCampaignQuery(String campaignOid, PrismContext prismContext) {
-        return QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
+        return prismContext.queryFor(AccessCertificationWorkItemType.class)
                 .exists(PrismConstants.T_PARENT)
                    .ownerId(campaignOid)
                 .build();
     }
-
-//    // some methods, like searchOpenWorkItems, engage their own "openness" filter
-//    public static ObjectQuery createOpenWorkItemsForCampaignQuery(String campaignOid, PrismContext prismContext) throws SchemaException {
-//        return QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
-//                .item(AccessCertificationWorkItemType.F_CLOSE_TIMESTAMP).isNull()
-//                .and().exists(PrismConstants.T_PARENT)
-//                   .ownerId(campaignOid)
-//                .build();
-//    }
-
-//    public static String getStageOutcome(AccessCertificationCaseType aCase, int stageNumber, int iteration) {
-//        StageCompletionEventType event = aCase.getEvent().stream()
-//                .filter(e -> e instanceof StageCompletionEventType && e.getStageNumber() == stageNumber
-//                        && e.getIteration() != null && e.getIteration() == iteration)
-//                .map(e -> (StageCompletionEventType) e)
-//                .findAny().orElseThrow(
-//                        () -> new IllegalStateException("No outcome registered for stage " + stageNumber + " in case " + aCase));
-//        return event.getOutcome();
-//    }
 
     public static List<AccessCertificationResponseType> getOutcomesToStopOn(List<AccessCertificationResponseType> stopReviewOn, List<AccessCertificationResponseType> advanceToNextStageOn) {
         if (!stopReviewOn.isEmpty()) {

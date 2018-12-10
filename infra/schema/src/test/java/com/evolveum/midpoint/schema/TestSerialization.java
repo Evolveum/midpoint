@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.schema;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static org.testng.AssertJUnit.assertTrue;
 
 import com.evolveum.midpoint.prism.*;
@@ -56,7 +57,7 @@ public class TestSerialization {
 	public void testSerializeMessage() throws Exception {
 		System.out.println("===[ testSerializeMessage ]===");
 
-		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		PrismContext prismContext = getPrismContext();
 		SingleLocalizableMessage localizableMessage = new SingleLocalizableMessage("execute.reset.credential.bad.request", null, "Failed to execute reset password. Bad request.");
 		LocalizableMessageType localizableMessageBean = LocalizationUtil.createLocalizableMessageType(localizableMessage);
 		QName fakeQName = new QName(PrismConstants.NS_TYPES, "object");
@@ -68,7 +69,7 @@ public class TestSerialization {
 	public void testSerializeExecuteCredentialResetResponseType() throws Exception {
 		System.out.println("===[ testSerializeExecuteCredentialResetResponseType ]===");
 
-		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		PrismContext prismContext = getPrismContext();
 
 		SingleLocalizableMessage localizableMessage = new SingleLocalizableMessage("execute.reset.credential.bad.request", null, "Failed to execute reset password. Bad request.");
 		LocalizableMessageType localizableMessageBean = LocalizationUtil.createLocalizableMessageType(localizableMessage);
@@ -100,7 +101,7 @@ public class TestSerialization {
 	public void testSerializeRole() throws Exception {
 		System.out.println("===[ testSerializeRole ]===");
 
-		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		PrismContext prismContext = getPrismContext();
 
 		PrismObject<RoleType> parsedObject = prismContext.parseObject(TestConstants.ROLE_FILE);
 
@@ -123,7 +124,7 @@ public class TestSerialization {
 	}
 
 	private <O extends ObjectType> void serializationRoundTrip(File file) throws Exception {
-		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		PrismContext prismContext = getPrismContext();
 
 		PrismObject<O> parsedObject = prismContext.parseObject(file);
 
@@ -146,6 +147,7 @@ public class TestSerialization {
 
 		System.out.println("\nDeserialized object (PrismObject):");
 		System.out.println(deserializedObject.debugDump());
+		deserializedObject.revive(getPrismContext());
 
 		ObjectDelta<O> diff = parsedObject.diff(deserializedObject);
 		assertTrue("Something changed in serialization of "+parsedObject+" (PrismObject): "+diff, diff.isEmpty());
@@ -158,6 +160,8 @@ public class TestSerialization {
 
 		// THEN
 		O deserializedObject = SerializationUtil.fromString(serializedObject);
+
+		deserializedObject.asPrismObject().revive(getPrismContext());
 
 		System.out.println("Deserialized object (ObjectType):");
 		System.out.println(deserializedObject.asPrismObject().debugDump());

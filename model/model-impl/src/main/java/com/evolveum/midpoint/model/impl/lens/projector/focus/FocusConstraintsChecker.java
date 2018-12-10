@@ -29,7 +29,6 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.caching.AbstractCache;
@@ -110,7 +109,7 @@ public class FocusConstraintsChecker<F extends FocusType> {
 		if (Cache.isOk(name)) {
 			satisfiesConstraints = true;
 		} else {
-			satisfiesConstraints = checkPropertyUniqueness(objectNew, new ItemPath(ObjectType.F_NAME), context, result);
+			satisfiesConstraints = checkPropertyUniqueness(objectNew, ObjectType.F_NAME, context, result);
 			if (satisfiesConstraints) {
 				Cache.setOk(name);
 			}
@@ -125,14 +124,14 @@ public class FocusConstraintsChecker<F extends FocusType> {
 		}
 		String oid = objectNew.getOid();
 
-		ObjectQuery query = QueryBuilder.queryFor(objectNew.getCompileTimeClass(), prismContext)
+		ObjectQuery query = prismContext.queryFor(objectNew.getCompileTimeClass())
 				.itemAs(property)
 				.build();
 
 		List<PrismObject<F>> foundObjects = repositoryService.searchObjects(objectNew.getCompileTimeClass(), query, null, result);
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Uniqueness check of {}, property {} resulted in {} results, using query:\n{}",
-				new Object[]{objectNew, propPath, foundObjects.size(), query.debugDump()});
+					objectNew, propPath, foundObjects.size(), query.debugDump());
 		}
 		if (foundObjects.isEmpty()) {
 			return true;
@@ -197,7 +196,7 @@ public class FocusConstraintsChecker<F extends FocusType> {
 			return;
 		}
 		for (ItemDelta itemDelta : modifications) {
-			if (new ItemPath(ObjectType.F_NAME).equivalent(itemDelta.getPath())) {
+			if (ObjectType.F_NAME.equivalent(itemDelta.getPath())) {
 				clearCacheForValues(itemDelta.getValuesToAdd());			// these may present a conflict
 				clearCacheForValues(itemDelta.getValuesToReplace());		// so do these
 			}

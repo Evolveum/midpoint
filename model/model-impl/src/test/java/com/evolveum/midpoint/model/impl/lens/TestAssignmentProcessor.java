@@ -24,7 +24,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -55,7 +54,7 @@ import static org.testng.AssertJUnit.*;
  */
 public class TestAssignmentProcessor extends AbstractLensTest {
 
-    private static final ItemPath ATTRIBUTES_PARENT_PATH = new ItemPath(ShadowType.F_ATTRIBUTES);
+    private static final ItemPath ATTRIBUTES_PARENT_PATH = ShadowType.F_ATTRIBUTES;
 
     @Autowired
     private AssignmentProcessor assignmentProcessor;
@@ -496,7 +495,9 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
 	        assertNotNull("Expected assigment change in secondary user changes, but it does not exist.", context.getFocusContext().getSecondaryDelta());
 	        assertEquals("Unexpected number of secundary changes. ", 1, context.getFocusContext().getSecondaryDelta().getModifications().size());
-	        assertNotNull("Expected assigment delta in secondary changes, but it does not exist.", ContainerDelta.findContainerDelta(context.getFocusContext().getSecondaryDelta().getModifications(), UserType.F_ASSIGNMENT));
+	        assertNotNull("Expected assigment delta in secondary changes, but it does not exist.",
+			        ItemDeltaCollectionsUtil.findContainerDelta(context.getFocusContext().getSecondaryDelta().getModifications(),
+			        UserType.F_ASSIGNMENT));
 	        assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
 	        LensProjectionContext accContext = context.getProjectionContexts().iterator().next();
@@ -669,7 +670,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assignmentType.setTargetRef(ObjectTypeUtil.createObjectRef(ROLE_CORP_VISITOR_OID, ObjectTypes.ROLE));
         fillContextWithFocus(context, user);
 
-        addFocusDeltaToContext(context, (ObjectDelta) DeltaBuilder.deltaFor(UserType.class, prismContext)
+        addFocusDeltaToContext(context, (ObjectDelta) prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT).add(assignmentType)
                 .asObjectDelta(USER_JACK_OID));
         context.recompute();
@@ -724,7 +725,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 		assignmentType.setTargetRef(ObjectTypeUtil.createObjectRef(ROLE_CORP_ENGINEER_OID, ObjectTypes.ROLE));
 		fillContextWithFocus(context, user);
 
-		addFocusDeltaToContext(context, (ObjectDelta) DeltaBuilder.deltaFor(UserType.class, prismContext)
+		addFocusDeltaToContext(context, (ObjectDelta) prismContext.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT).add(assignmentType)
 				.asObjectDelta(USER_JACK_OID));
 		context.recompute();

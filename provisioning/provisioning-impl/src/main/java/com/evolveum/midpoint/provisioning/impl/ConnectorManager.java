@@ -28,7 +28,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.PostConstruct;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -55,7 +54,6 @@ import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -495,13 +493,13 @@ public class ConnectorManager implements Cacheable {
 	private boolean isInRepo(ConnectorType connectorType, ConnectorHostType hostType, OperationResult result) throws SchemaException {
 		ObjectQuery query;
 		if (hostType == null) {
-			query = QueryBuilder.queryFor(ConnectorType.class, prismContext)
+			query = prismContext.queryFor(ConnectorType.class)
 					.item(SchemaConstants.C_CONNECTOR_FRAMEWORK).eq(connectorType.getFramework())
 					.and().item(SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE).eq(connectorType.getConnectorType())
 					.and().item(ConnectorType.F_CONNECTOR_HOST_REF).isNull()
 					.build();
 		} else {
-			query = QueryBuilder.queryFor(ConnectorType.class, prismContext)
+			query = prismContext.queryFor(ConnectorType.class)
 					.item(SchemaConstants.C_CONNECTOR_FRAMEWORK).eq(connectorType.getFramework())
 					.and().item(SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE).eq(connectorType.getConnectorType())
 					.and().item(ConnectorType.F_CONNECTOR_HOST_REF).ref(hostType.getOid(), ConnectorHostType.COMPLEX_TYPE)

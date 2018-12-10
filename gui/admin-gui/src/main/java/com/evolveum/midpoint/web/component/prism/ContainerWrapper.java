@@ -23,6 +23,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -148,10 +149,10 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 		return objectStatus;
 	}
 
-	public PropertyOrReferenceWrapper findPropertyWrapper(QName name) {
+	public PropertyOrReferenceWrapper findPropertyWrapper(ItemName name) {
 		Validate.notNull(name, "QName must not be null.");
 		for (ContainerValueWrapper wrapper : getValues()) {
-			PropertyOrReferenceWrapper propertyWrapper = wrapper.findPropertyWrapper(name);
+			PropertyOrReferenceWrapper propertyWrapper = wrapper.findPropertyWrapperByName(name);
 			if (propertyWrapper != null) {
 				return propertyWrapper;
 			}

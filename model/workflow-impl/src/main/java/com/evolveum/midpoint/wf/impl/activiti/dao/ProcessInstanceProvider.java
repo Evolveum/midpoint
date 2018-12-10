@@ -16,12 +16,14 @@
 
 package com.evolveum.midpoint.wf.impl.activiti.dao;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -47,9 +49,10 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType
 @Component
 public class ProcessInstanceProvider {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(ProcessInstanceProvider.class);
+	private static final transient Trace LOGGER = TraceManager.getTrace(ProcessInstanceProvider.class);
 
     @Autowired private WorkItemProvider workItemProvider;
+    @Autowired private PrismContext prismContext;
 
     private static final String DOT_INTERFACE = WorkflowManager.class.getName() + ".";
     private static final String OPERATION_AUGMENT_TASK_OBJECT = DOT_INTERFACE + "augmentTaskObject";
@@ -76,7 +79,7 @@ public class ProcessInstanceProvider {
             if (instanceId == null) {
                 return;
             }
-            final boolean retrieveWorkItems = SelectorOptions.hasToLoadPath(new ItemPath(F_WORKFLOW_CONTEXT, F_WORK_ITEM), options);
+            final boolean retrieveWorkItems = SelectorOptions.hasToLoadPath(SchemaConstants.PATH_WORKFLOW_CONTEXT_WORK_ITEM, options);
             if (!retrieveWorkItems) {
                 // We assume that everything (except work items) is already stored in repo.
                 return;

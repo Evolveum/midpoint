@@ -40,7 +40,6 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.Iterator;
-import java.util.List;
 
 /**
  * Handles a "ModelOperation task" - executes a given model operation in a context
@@ -103,7 +102,7 @@ public class ModelOperationTaskHandler implements TaskHandler {
                 Iterator<LensProjectionContext> projectionIterator = context.getProjectionContextsIterator();
                 while (projectionIterator.hasNext()) {
                     LensProjectionContext projectionContext = projectionIterator.next();
-                    if (!ObjectDelta.isNullOrEmpty(projectionContext.getPrimaryDelta()) || !ObjectDelta.isNullOrEmpty(projectionContext.getSyncDelta())) {
+                    if (!ObjectDelta.isEmpty(projectionContext.getPrimaryDelta()) || !ObjectDelta.isEmpty(projectionContext.getSyncDelta())) {
                         continue;       // don't remove client requested or externally triggered actions!
                     }
                     if (LOGGER.isTraceEnabled()) {

@@ -272,7 +272,8 @@ public class TestOrgStructMeta extends TestOrgStruct {
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 		modifications.add((createAssignmentModification(ROLE_ORGANIZED_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
 		modifications.add((createAssignmentModification(ORG_SCUMM_BAR_OID, OrgType.COMPLEX_TYPE, null, null, null, true)));
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
+		ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
+				.createModifyDelta(USER_JACK_OID, modifications, UserType.class);
 
         // WHEN
 		modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);

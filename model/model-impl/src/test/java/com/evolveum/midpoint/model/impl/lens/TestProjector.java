@@ -15,11 +15,8 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS;
+import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -29,10 +26,10 @@ import java.util.Iterator;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
@@ -42,12 +39,6 @@ import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -70,7 +61,6 @@ import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -477,9 +467,7 @@ public class TestProjector extends AbstractLensTest {
         LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, task, result);
-        addModificationToContextReplaceUserProperty(context,
-        		new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
-        		ActivationStatusType.DISABLED);
+        addModificationToContextReplaceUserProperty(context, PATH_ACTIVATION_ADMINISTRATIVE_STATUS, ActivationStatusType.DISABLED);
         context.recompute();
 
         display("Input context", context);
@@ -506,8 +494,7 @@ public class TestProjector extends AbstractLensTest {
         assertNotNull("No account secondary delta", accountSecondaryDelta);
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
         assertEquals("Unexpected number of account secondary changes", 6, accountSecondaryDelta.getModifications().size());
-        PropertyDelta<ActivationStatusType> enabledDelta = accountSecondaryDelta.findPropertyDelta(new ItemPath(ShadowType.F_ACTIVATION,
-        		ActivationType.F_ADMINISTRATIVE_STATUS));
+        PropertyDelta<ActivationStatusType> enabledDelta = accountSecondaryDelta.findPropertyDelta(PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
         PrismAsserts.assertReplace(enabledDelta, ActivationStatusType.DISABLED);
         PrismAsserts.assertOrigin(enabledDelta, OriginType.OUTBOUND);
         PrismAsserts.assertPropertyReplace(accountSecondaryDelta, SchemaConstants.PATH_ACTIVATION_DISABLE_REASON,
@@ -955,14 +942,14 @@ public class TestProjector extends AbstractLensTest {
         assertNull(accContext.getPrimaryDelta());
 
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
-        PrismAsserts.assertNoItemDelta(accountSecondaryDelta, SchemaTestConstants.ICFS_NAME_PATH);
+        PrismAsserts.assertNoItemDelta(accountSecondaryDelta, SchemaTestConstants.ICFS_NAME_PATH_PARTS);
 
         // Activation is created in user policy. Therefore assert the origin of that as special case
         // and remove it from the delta so the next assert passes
         Iterator<? extends ItemDelta> iterator = userSecondaryDelta.getModifications().iterator();
         while (iterator.hasNext()) {
         	ItemDelta modification = iterator.next();
-        	if (ItemPath.getName(modification.getPath().first()).equals(UserType.F_ACTIVATION)) {
+        	if (modification.getPath().startsWithName(UserType.F_ACTIVATION)) {
         		PrismAsserts.assertOrigin(modification, OriginType.USER_POLICY);
         		iterator.remove();
         	}
@@ -1063,13 +1050,15 @@ public class TestProjector extends AbstractLensTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
     	PrismObject<ValuePolicyType> passPolicy = PrismTestUtil.parseObject(PASSWORD_POLICY_GLOBAL_FILE);
-    	ObjectDelta delta = ObjectDelta.createAddDelta(passPolicy);
+    	ObjectDelta delta = DeltaFactory.Object.createAddDelta(passPolicy);
     	Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
     	deltas.add(delta);
     	modelService.executeChanges(deltas, null, task, result);
 
     	deltas = new ArrayList<>();
-    	ObjectDelta refDelta = ObjectDelta.createModificationAddReference(SystemConfigurationType.class, SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY_REF, prismContext, passPolicy);
+    	ObjectDelta refDelta = prismContext.deltaFactory().object()
+			    .createModificationAddReference(SystemConfigurationType.class, SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY_REF,
+					    passPolicy);
     	// We need to execute this using repo. Otherwise logging config will be ruined
     	repositoryService.modifyObject(SystemConfigurationType.class, SYSTEM_CONFIGURATION_OID, refDelta.getModifications(), result);
 
@@ -1159,7 +1148,7 @@ public class TestProjector extends AbstractLensTest {
         assertNull(accContext.getPrimaryDelta());
 
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
-        PrismAsserts.assertNoItemDelta(accountSecondaryDelta, SchemaTestConstants.ICFS_NAME_PATH);
+        PrismAsserts.assertNoItemDelta(accountSecondaryDelta, SchemaTestConstants.ICFS_NAME_PATH_PARTS);
         // Full name is not changed, it has normal mapping strength
         // Location is changed back, it has strong mapping
         PropertyDelta<String> locationDelta = accountSecondaryDelta.findPropertyDelta(
@@ -1200,7 +1189,7 @@ public class TestProjector extends AbstractLensTest {
 
         // TODO
 
-        assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.ADD);
+		assertSame(context.getFocusContext().getPrimaryDelta().getChangeType(), ChangeType.ADD);
         ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getSecondaryDelta();
         assertNotNull("No user secondary delta", userSecondaryDelta);
         assertFalse("Empty user secondary delta", userSecondaryDelta.isEmpty());
@@ -1221,13 +1210,13 @@ public class TestProjector extends AbstractLensTest {
         Iterator<? extends ItemDelta> iterator = delta.getModifications().iterator();
         while (iterator.hasNext()) {
         	ItemDelta modification = iterator.next();
-        	QName firstName = ItemPath.getName(modification.getPath().first());
+        	QName firstName = modification.getPath().firstToName();
         	if (firstName.equals(UserType.F_ACTIVATION) ||
         			firstName.equals(FocusType.F_ITERATION) || firstName.equals(FocusType.F_ITERATION_TOKEN)) {
         		PrismAsserts.assertOrigin(modification, OriginType.USER_POLICY);
         		iterator.remove();
         	}
-        	if (modification.getPath().containsName(ObjectType.F_METADATA)) {
+        	if (modification.getPath().containsNameExactly(ObjectType.F_METADATA)) {
         		iterator.remove();
         	}
         }

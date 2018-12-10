@@ -40,7 +40,8 @@ import javax.annotation.PostConstruct;
 import javax.net.ssl.TrustManager;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.schema.PrismSchemaImpl;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.schema.MutablePrismSchema;
 import com.evolveum.midpoint.util.MiscUtil;
 import org.apache.commons.configuration.Configuration;
 import org.identityconnectors.common.Version;
@@ -74,11 +75,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.ComplexTypeDefinitionImpl;
-import com.evolveum.midpoint.prism.PrismContainerDefinitionImpl;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -421,17 +417,17 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 			return null;
 		}
 
-		PrismSchema connectorSchema = new PrismSchemaImpl(connectorType.getNamespace(), prismContext);
+		MutablePrismSchema connectorSchema = prismContext.schemaFactory().createPrismSchema(connectorType.getNamespace());
 
 		// Create configuration type - the type used by the "configuration"
 		// element
-		PrismContainerDefinitionImpl<?> configurationContainerDef = ((PrismSchemaImpl) connectorSchema).createPropertyContainerDefinition(
+		MutablePrismContainerDefinition<?> configurationContainerDef = connectorSchema.createPropertyContainerDefinition(
 				ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart(),
 				SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_TYPE_LOCAL_NAME);
 
 		// element with "ConfigurationPropertiesType" - the dynamic part of
 		// configuration schema
-		ComplexTypeDefinition configPropertiesTypeDef = ((PrismSchemaImpl) connectorSchema).createComplexTypeDefinition(new QName(
+		ComplexTypeDefinition configPropertiesTypeDef = connectorSchema.createComplexTypeDefinition(new QName(
 				connectorType.getNamespace(),
 				ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME));
 
@@ -442,24 +438,24 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 			ConfigurationProperty icfProperty = icfConfigurationProperties.getProperty(icfPropertyName);
 
 			QName propXsdType = ConnIdUtil.icfTypeToXsdType(icfProperty.getType(), icfProperty.isConfidential());
-			LOGGER.trace("{}: Mapping ICF config schema property {} from {} to {}", new Object[] { this,
-					icfPropertyName, icfProperty.getType(), propXsdType });
-			PrismPropertyDefinitionImpl<?> propertyDefinifion = ((ComplexTypeDefinitionImpl) configPropertiesTypeDef).createPropertyDefinition(
+			LOGGER.trace("{}: Mapping ICF config schema property {} from {} to {}", this,
+					icfPropertyName, icfProperty.getType(), propXsdType);
+			MutablePrismPropertyDefinition<?> propertyDefinition = configPropertiesTypeDef.toMutable().createPropertyDefinition(
 					icfPropertyName, propXsdType);
-			propertyDefinifion.setDisplayName(icfProperty.getDisplayName(null));
-			propertyDefinifion.setHelp(icfProperty.getHelpMessage(null));
+			propertyDefinition.setDisplayName(icfProperty.getDisplayName(null));
+			propertyDefinition.setHelp(icfProperty.getHelpMessage(null));
 			if (ConnIdUtil.isMultivaluedType(icfProperty.getType())) {
-				propertyDefinifion.setMaxOccurs(-1);
+				propertyDefinition.setMaxOccurs(-1);
 			} else {
-				propertyDefinifion.setMaxOccurs(1);
+				propertyDefinition.setMaxOccurs(1);
 			}
 			if (icfProperty.isRequired() && icfProperty.getValue() == null) {
 				// If ICF says that the property is required it may not be in fact really required if it also has a default value
-				propertyDefinifion.setMinOccurs(1);
+				propertyDefinition.setMinOccurs(1);
 			} else {
-				propertyDefinifion.setMinOccurs(0);
+				propertyDefinition.setMinOccurs(0);
 			}
-			propertyDefinifion.setDisplayOrder(displayOrder);
+			propertyDefinition.setDisplayOrder(displayOrder);
 			displayOrder++;
 		}
 

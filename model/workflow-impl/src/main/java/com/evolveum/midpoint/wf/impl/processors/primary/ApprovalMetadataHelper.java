@@ -20,13 +20,8 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -84,11 +79,11 @@ public class ApprovalMetadataHelper {
                     addAssignmentCreationApprovalMetadata(assignmentContainerValue.asContainerable(), approvedBy, comments);
                 }
             } else if (comparison == SUPERPATH) {
-                ItemPathSegment secondSegment = deltaPath.rest().first();
-                if (!(secondSegment instanceof IdItemPathSegment)) {
+                Object secondSegment = deltaPath.rest().first();
+                if (!ItemPath.isId(secondSegment)) {
                     throw new IllegalStateException("Assignment modification contains no assignment ID. Offending path = " + deltaPath);
                 }
-                Long id = ((IdItemPathSegment) secondSegment).getId();
+                Long id = ItemPath.toId(secondSegment);
                 if (id == null) {
                     throw new IllegalStateException("Assignment modification contains no assignment ID. Offending path = " + deltaPath);
                 }
@@ -98,7 +93,7 @@ public class ApprovalMetadataHelper {
                 }
             }
         }
-        ItemDelta.mergeAll(objectDelta.getModifications(), assignmentMetadataDeltas);
+        ItemDeltaCollectionsUtil.mergeAll(objectDelta.getModifications(), assignmentMetadataDeltas);
     }
 
     private void addAssignmentApprovalMetadataOnObjectAdd(PrismObject<?> object, Task task,
@@ -131,7 +126,7 @@ public class ApprovalMetadataHelper {
 
     private Collection<ItemDelta<?, ?>> createAssignmentModificationApprovalMetadata(Class<? extends Objectable> objectTypeClass,
             long assignmentId, Collection<ObjectReferenceType> approvedBy, Collection<String> comments) throws SchemaException {
-        return DeltaBuilder.deltaFor(objectTypeClass, prismContext)
+        return prismContext.deltaFor(objectTypeClass)
                 .item(FocusType.F_ASSIGNMENT, assignmentId, AssignmentType.F_METADATA, MetadataType.F_MODIFY_APPROVER_REF)
                         .replaceRealValues(CloneUtil.cloneCollectionMembers(approvedBy))
                 .item(FocusType.F_ASSIGNMENT, assignmentId, AssignmentType.F_METADATA, MetadataType.F_MODIFY_APPROVAL_COMMENT)

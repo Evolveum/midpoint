@@ -120,8 +120,8 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
-		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
-				ACCOUNT_WILL_OID, dummyResourceCtl.getAttributeFullnamePath(), prismContext, "Pirate Will Turner");
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+				ACCOUNT_WILL_OID, dummyResourceCtl.getAttributeFullnamePath(), "Pirate Will Turner");
 		display("ObjectDelta", delta);
 		delta.checkConsistence();
 
@@ -245,8 +245,8 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 		final String TEST_NAME = "test202ParallelModifyCaptainMorgan";
 		
 		PrismObject<ShadowType> shadowAfter = parallelModifyTest(TEST_NAME,
-				() -> ObjectDelta.createModificationReplaceProperty(ShadowType.class,
-						accountMorganOid, dummyResourceCtl.getAttributeFullnamePath(), prismContext, "Captain Morgan"));
+				() -> prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+						accountMorganOid, dummyResourceCtl.getAttributeFullnamePath(), "Captain Morgan"));
 		
 		assertAttribute(shadowAfter, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Captain Morgan");
 	}
@@ -264,8 +264,9 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 		final String TEST_NAME = "test204ParallelModifyDisable";
 		
 		PrismObject<ShadowType> shadowAfter = parallelModifyTest(TEST_NAME,
-				() -> ObjectDelta.createModificationReplaceProperty(ShadowType.class,
-						accountMorganOid, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, prismContext, ActivationStatusType.DISABLED));
+				() -> prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+						accountMorganOid, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
+						ActivationStatusType.DISABLED));
 
 		assertActivationAdministrativeStatus(shadowAfter, ActivationStatusType.DISABLED);
 	}
@@ -452,8 +453,8 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 		final String TEST_NAME = "test212ParallelModifyElizabethSlow";
 		
 		PrismObject<ShadowType> shadowAfter = parallelModifyTestSlow(TEST_NAME,
-				() -> ObjectDelta.createModificationReplaceProperty(ShadowType.class,
-						accountElizabethOid, dummyResourceCtl.getAttributeFullnamePath(), prismContext, "Miss Swan"));
+				() -> prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+						accountElizabethOid, dummyResourceCtl.getAttributeFullnamePath(), "Miss Swan"));
 		
 		assertAttribute(shadowAfter, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Miss Swan");
 	}
@@ -471,8 +472,9 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 		final String TEST_NAME = "test214ParallelModifyDisableSlow";
 		
 		PrismObject<ShadowType> shadowAfter = parallelModifyTestSlow(TEST_NAME,
-				() -> ObjectDelta.createModificationReplaceProperty(ShadowType.class,
-						accountElizabethOid, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, prismContext, ActivationStatusType.DISABLED));
+				() -> prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+						accountElizabethOid, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
+						ActivationStatusType.DISABLED));
 
 		assertActivationAdministrativeStatus(shadowAfter, ActivationStatusType.DISABLED);
 	}

@@ -18,11 +18,9 @@ package com.evolveum.midpoint.task.quartzimpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -35,7 +33,6 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
 import com.evolveum.midpoint.task.quartzimpl.execution.JobExecutor;
-import com.evolveum.midpoint.task.quartzimpl.handlers.NoOpTaskHandler;
 import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -64,7 +61,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.retrieveItemsNamed;
+import static com.evolveum.midpoint.task.quartzimpl.TaskTestUtil.createExtensionDelta;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
 import static org.testng.AssertJUnit.*;
@@ -160,7 +157,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
         // property definition
         QName bigStringQName = new QName("http://midpoint.evolveum.com/repo/test", "bigString");
-        PrismPropertyDefinitionImpl bigStringDefinition = new PrismPropertyDefinitionImpl(bigStringQName, DOMUtil.XSD_STRING, taskManager.getPrismContext());
+        MutablePrismPropertyDefinition bigStringDefinition = prismContext.definitionFactory().createPropertyDefinition(bigStringQName, DOMUtil.XSD_STRING);
         bigStringDefinition.setIndexed(false);
         bigStringDefinition.setMinOccurs(0);
         bigStringDefinition.setMaxOccurs(1);
@@ -188,7 +185,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         task001.setExtensionProperty(bigStringProperty);
 
         // brutal hack, because task extension property has no "indexed" flag when retrieved from repo
-        ((PrismPropertyDefinitionImpl) task001.getExtensionProperty(bigStringQName).getDefinition()).setIndexed(false);
+        task001.getExtensionProperty(bigStringQName).getDefinition().toMutable().setIndexed(false);
 
         System.out.println("2nd round: Task before save = " + task001.debugDump());
         task001.savePendingModifications(result);   // however, this does not work, because 'modifyObject' in repo first reads object, overwriting any existing definitions ...
@@ -291,15 +288,15 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
         System.out.println("Task extension = " + task.getExtension());
 
-        PrismPropertyDefinition delayDefinition = new PrismPropertyDefinitionImpl(SchemaConstants.NOOP_DELAY_QNAME, DOMUtil.XSD_INT, taskManager.getPrismContext());
+        PrismPropertyDefinition delayDefinition = prismContext.definitionFactory().createPropertyDefinition(SchemaConstants.NOOP_DELAY_QNAME, DOMUtil.XSD_INT);
         System.out.println("property definition = " + delayDefinition);
 
         PrismProperty<Integer> property = (PrismProperty<Integer>) delayDefinition.instantiate();
         property.setRealValue(100);
 
-        PropertyDelta delta = new PropertyDelta<>(new ItemPath(TaskType.F_EXTENSION, property.getElementName()), property.getDefinition(), prismContext);
+        PropertyDelta delta = prismContext.deltaFactory().property().create(ItemPath.create(TaskType.F_EXTENSION, property.getElementName()), property.getDefinition());
         //delta.addV(property.getValues());
-        delta.setValuesToReplace(PrismValue.cloneCollection(property.getValues()));
+        delta.setValuesToReplace(PrismValueCollectionsUtil.cloneCollection(property.getValues()));
 
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>(1);
         modifications.add(delta);
@@ -342,12 +339,14 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         ScheduleType st1 = new ScheduleType();
         st1.setInterval(1);
         st1.setMisfireAction(MisfireActionType.RESCHEDULE);
-        task.pushHandlerUri("http://no-handler.org/1", st1, TaskBinding.TIGHT, ((TaskQuartzImpl) task).createExtensionDelta(delayDefinition, 1));
+        task.pushHandlerUri("http://no-handler.org/1", st1, TaskBinding.TIGHT, createExtensionDelta(delayDefinition, 1,
+		        prismContext));
 
         ScheduleType st2 = new ScheduleType();
         st2.setInterval(2);
         st2.setMisfireAction(MisfireActionType.EXECUTE_IMMEDIATELY);
-        task.pushHandlerUri("http://no-handler.org/2", st2, TaskBinding.LOOSE, ((TaskQuartzImpl) task).createExtensionDelta(delayDefinition, 2));
+        task.pushHandlerUri("http://no-handler.org/2", st2, TaskBinding.LOOSE, createExtensionDelta(delayDefinition, 2,
+		        prismContext));
 
         task.setRecurrenceStatus(TaskRecurrence.RECURRING);
 
@@ -534,7 +533,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         System.out.println(object.debugDump());
 
         PrismContainer<?> extensionContainer = object.getExtension();
-        PrismProperty<Object> deadProperty = extensionContainer.findProperty(new QName(NS_WHATEVER, "dead"));
+        PrismProperty<Object> deadProperty = extensionContainer.findProperty(new ItemName(NS_WHATEVER, "dead"));
         assertEquals("Bad typed of 'dead' property (add result)", DOMUtil.XSD_INT, deadProperty.getDefinition().getTypeName());
 
         // Read from repo
@@ -542,7 +541,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         PrismObject<TaskType> repoTask = repositoryService.getObject(TaskType.class, addedTask.getOid(), null, result);
 
         extensionContainer = repoTask.getExtension();
-        deadProperty = extensionContainer.findProperty(new QName(NS_WHATEVER, "dead"));
+        deadProperty = extensionContainer.findProperty(new ItemName(NS_WHATEVER, "dead"));
         assertEquals("Bad typed of 'dead' property (from repo)", DOMUtil.XSD_INT, deadProperty.getDefinition().getTypeName());
 
         // We need to wait for a sync interval, so the task scanner has a chance
@@ -1187,13 +1186,13 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
         taskManager.createTaskInstance((PrismObject<TaskType>) (PrismObject) addObjectFromFile(taskFilename(TEST_NAME)), result);
 
-        ObjectFilter filter1 = QueryBuilder.queryFor(TaskType.class, prismContext).item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStatusType.WAITING).buildFilter();
-        ObjectFilter filter2 = QueryBuilder.queryFor(TaskType.class, prismContext).item(TaskType.F_WAITING_REASON).eq(TaskWaitingReasonType.OTHER).buildFilter();
-        ObjectFilter filter3 = AndFilter.createAnd(filter1, filter2);
+        ObjectFilter filter1 = prismContext.queryFor(TaskType.class).item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStatusType.WAITING).buildFilter();
+        ObjectFilter filter2 = prismContext.queryFor(TaskType.class).item(TaskType.F_WAITING_REASON).eq(TaskWaitingReasonType.OTHER).buildFilter();
+        ObjectFilter filter3 = prismContext.queryFactory().createAnd(filter1, filter2);
 
-        List<PrismObject<TaskType>> prisms1 = repositoryService.searchObjects(TaskType.class, ObjectQuery.createObjectQuery(filter1), null, result);
-        List<PrismObject<TaskType>> prisms2 = repositoryService.searchObjects(TaskType.class, ObjectQuery.createObjectQuery(filter2), null, result);
-        List<PrismObject<TaskType>> prisms3 = repositoryService.searchObjects(TaskType.class, ObjectQuery.createObjectQuery(filter3), null, result);
+        List<PrismObject<TaskType>> prisms1 = repositoryService.searchObjects(TaskType.class, prismContext.queryFactory().createQuery(filter1), null, result);
+        List<PrismObject<TaskType>> prisms2 = repositoryService.searchObjects(TaskType.class, prismContext.queryFactory().createQuery(filter2), null, result);
+        List<PrismObject<TaskType>> prisms3 = repositoryService.searchObjects(TaskType.class, prismContext.queryFactory().createQuery(filter3), null, result);
 
         assertFalse("There were no tasks with executionStatus == WAITING found", prisms1.isEmpty());
         assertFalse("There were no tasks with waitingReason == OTHER found", prisms2.isEmpty());

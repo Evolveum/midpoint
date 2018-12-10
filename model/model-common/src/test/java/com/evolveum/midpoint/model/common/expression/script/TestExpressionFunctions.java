@@ -19,7 +19,7 @@ import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.crypto.ProtectorImpl;
+import com.evolveum.midpoint.prism.crypto.KeyStoreBasedProtectorBuilder;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -50,6 +50,7 @@ import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -64,7 +65,7 @@ public class TestExpressionFunctions {
 	private static final String ATTR_FULLNAME_LOCAL_PART = "fullname";
 	private static final String ATTR_WEAPON_LOCAL_PART = "weapon";
 	
-	private ProtectorImpl protector;
+	private Protector protector;
 	private Clock clock;
 
     @BeforeSuite
@@ -72,10 +73,10 @@ public class TestExpressionFunctions {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
 		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 		
-		protector = new ProtectorImpl();
-		protector.setKeyStorePath("src/test/resources/keystore.jceks");
-		protector.setKeyStorePassword("changeit");
-		protector.init();
+	    protector = KeyStoreBasedProtectorBuilder.create(getPrismContext())
+			    .keyStorePath("src/test/resources/keystore.jceks")
+			    .keyStorePassword("changeit")
+			    .initialize();
 		clock = new Clock();
 	}
 

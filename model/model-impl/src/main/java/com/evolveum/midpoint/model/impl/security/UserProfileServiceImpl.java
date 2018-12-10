@@ -47,6 +47,8 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.util.ItemDeltaItem;
+import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -240,7 +242,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 			owner = repositoryService.searchShadowOwner(object.getOid(), null, result);
 
 		} else if (object.canRepresent(UserType.class)) {
-			ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+			ObjectQuery query = prismContext.queryFor(UserType.class)
 					.item(FocusType.F_PERSONA_REF).ref(object.getOid()).build();
 			SearchResultList<PrismObject<UserType>> owners;
 			try {

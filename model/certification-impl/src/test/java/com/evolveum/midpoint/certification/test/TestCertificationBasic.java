@@ -19,7 +19,6 @@ package com.evolveum.midpoint.certification.test;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -424,7 +423,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         TestUtil.displayWhen(TEST_NAME);
         Collection<SelectorOptions<GetOperationOptions>> resolveNames =
                 SelectorOptions.createCollection(GetOperationOptions.createResolveNames());
-        ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+        ObjectQuery query = prismContext.queryFor(AccessCertificationCaseType.class)
                 .item(AccessCertificationCaseType.F_OBJECT_REF).ref(userAdministrator.getOid())
                 .desc(AccessCertificationCaseType.F_TARGET_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME)
                 .offset(2).maxSize(2)
@@ -490,7 +489,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        ObjectQuery query = QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
+        ObjectQuery query = prismContext.queryFor(AccessCertificationWorkItemType.class)
                 .exists(T_PARENT)
                 .block()
                     .item(AccessCertificationCaseType.F_TENANT_REF).ref(ORG_GOVERNOR_OFFICE_OID)
@@ -523,7 +522,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        ObjectQuery query = QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
+        ObjectQuery query = prismContext.queryFor(AccessCertificationWorkItemType.class)
 				.exists(T_PARENT)
 				.block()
                 	.item(AccessCertificationCaseType.F_ORG_REF).ref(ORG_SCUMM_BAR_OID)
@@ -555,7 +554,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        ObjectQuery query = QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
+        ObjectQuery query = prismContext.queryFor(AccessCertificationWorkItemType.class)
                 .exists(T_PARENT)
                 .block()
                     .item(F_ACTIVATION, F_ADMINISTRATIVE_STATUS).eq(ENABLED)
@@ -882,7 +881,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         display("campaign after remediation start", campaign);
         assertTrue("wrong campaign state: " + campaign.getState(), campaign.getState() == CLOSED || campaign.getState() == IN_REMEDIATION);
 
-        ObjectQuery query = QueryBuilder.queryFor(TaskType.class, prismContext)
+        ObjectQuery query = prismContext.queryFor(TaskType.class)
                 .item(TaskType.F_OBJECT_REF).ref(campaign.getOid())
                 .build();
         List<PrismObject<TaskType>> tasks = taskManager.searchObjects(TaskType.class, query, null, result);

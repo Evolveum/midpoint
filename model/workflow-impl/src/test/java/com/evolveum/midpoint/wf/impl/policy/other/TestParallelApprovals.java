@@ -19,8 +19,8 @@ package com.evolveum.midpoint.wf.impl.policy.other;
 import com.evolveum.midpoint.model.impl.controller.ModelOperationTaskHandler;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -104,7 +104,7 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		ObjectDelta<UserType> assignDelta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> assignDelta = prismContext.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT).add(
 						ObjectTypeUtil.createAssignmentTo(roleRole50aOid, ObjectTypes.ROLE, prismContext),
 						ObjectTypeUtil.createAssignmentTo(roleRole51aOid, ObjectTypes.ROLE, prismContext),
@@ -166,7 +166,7 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
 				.assignment(ObjectTypeUtil.createAssignmentTo(roleRole51aOid, ObjectTypes.ROLE, prismContext))
 				.assignment(ObjectTypeUtil.createAssignmentTo(roleRole52aOid, ObjectTypes.ROLE, prismContext))
 				.assignment(ObjectTypeUtil.createAssignmentTo(roleRole53aOid, ObjectTypes.ROLE, prismContext));
-		executeChanges(ObjectDelta.createAddDelta(alice.asPrismObject()), createExecuteImmediatelyAfterApproval(), task, result); // should start approval processes
+		executeChanges(DeltaFactory.Object.createAddDelta(alice.asPrismObject()), createExecuteImmediatelyAfterApproval(), task, result); // should start approval processes
 
 		display("Task after operation", task);
 		String rootTaskOid = wfTaskUtil.getRootTaskOid(task);
@@ -218,13 +218,13 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		ObjectDelta<UserType> assignDelta1 = DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> assignDelta1 = prismContext.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT).add(
 						ObjectTypeUtil.createAssignmentTo(roleRole50aOid, ObjectTypes.ROLE, prismContext),
 						ObjectTypeUtil.createAssignmentTo(roleRole51aOid, ObjectTypes.ROLE, prismContext))
 				.asObjectDeltaCast(userBobOid);
 		executeChanges(assignDelta1, createExecuteImmediatelyAfterApproval(), task1, result); // should start approval processes
-		ObjectDelta<UserType> assignDelta2 = DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> assignDelta2 = prismContext.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT).add(
 						ObjectTypeUtil.createAssignmentTo(roleRole50aOid, ObjectTypes.ROLE, prismContext),
 						ObjectTypeUtil.createAssignmentTo(roleRole52aOid, ObjectTypes.ROLE, prismContext),

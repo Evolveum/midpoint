@@ -32,7 +32,6 @@ import com.evolveum.midpoint.prism.ItemProcessing;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FormItemServerValidationType;
@@ -63,7 +62,10 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 	private boolean showEmpty;
 	private ItemPath path;
 
-	public PropertyOrReferenceWrapper(@Nullable ContainerValueWrapper containerValue, I item, boolean readonly, ValueStatus status, ItemPath path) {
+	protected transient PrismContext prismContext;
+
+	public PropertyOrReferenceWrapper(@Nullable ContainerValueWrapper containerValue, I item, boolean readonly,
+			ValueStatus status, ItemPath path, PrismContext prismContext) {
 		Validate.notNull(item, "Item must not be null.");
 		Validate.notNull(status, "Item status must not be null.");
 
@@ -72,6 +74,7 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 		this.status = status;
 		this.readonly = readonly;
 		this.path = path;
+		this.prismContext = prismContext;
 	}
 
 	@Override
@@ -86,6 +89,7 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 		if (getItemDefinition() != null) {
 			getItemDefinition().revive(prismContext);
 		}
+		this.prismContext = prismContext;
 	}
 
 	@Override
@@ -301,7 +305,7 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 			valueWrapper.normalize(prismContext);
 			if (ValueStatus.DELETED.equals(valueWrapper.getStatus())) {
 				updatedItem.remove(valueWrapper.getValue());
-			} else if (!updatedItem.hasRealValue(valueWrapper.getValue())) {
+			} else if (!updatedItem.hasValueIgnoringMetadata(valueWrapper.getValue())) {
 				PrismValue cloned = ObjectWrapper.clone(valueWrapper.getValue());
 				if (cloned != null) {
 					updatedItem.add(cloned);

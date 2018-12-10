@@ -19,7 +19,6 @@ package com.evolveum.midpoint.wf.impl.activiti.dao;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -362,7 +361,7 @@ public class ProcessInstanceManager {
 	}
 
 	private Set<String> getProcessInstancesToKeep(OperationResult result) throws SchemaException {
-		ObjectQuery query = QueryBuilder.queryFor(TaskType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(TaskType.class)
 				.not().item(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_PROCESS_INSTANCE_ID).isNull()
 				.build();
 		SearchResultList<PrismObject<TaskType>> tasks = taskManager.searchObjects(TaskType.class, query, null, result);

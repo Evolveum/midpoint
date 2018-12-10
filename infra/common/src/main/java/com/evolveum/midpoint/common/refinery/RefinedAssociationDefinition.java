@@ -17,12 +17,13 @@ package com.evolveum.midpoint.common.refinery;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.BooleanUtils;
 
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
-import com.evolveum.midpoint.prism.util.ItemPathUtil;
+import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
@@ -55,8 +56,8 @@ public class RefinedAssociationDefinition implements Serializable, Visitable {
 		this.associationTarget = associationTarget;
 	}
 
-	public QName getName() {
-		return ItemPathUtil.getOnlySegmentQName(resourceObjectAssociationType.getRef());
+	public ItemName getName() {
+		return ItemPathTypeUtil.asSingleNameOrFail(resourceObjectAssociationType.getRef());
 	}
 
 	public ShadowKindType getKind() {

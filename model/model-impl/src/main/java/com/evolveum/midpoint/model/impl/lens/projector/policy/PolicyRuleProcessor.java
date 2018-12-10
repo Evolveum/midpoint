@@ -22,10 +22,7 @@ import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators.*;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
@@ -478,7 +475,7 @@ public class PolicyRuleProcessor {
 						PrismContainerValue<AssignmentType> assignmentValueToRemove = conflictingAssignment.getAssignmentType()
 								.asPrismContainerValue().clone();
 						PrismObjectDefinition<F> focusDef = context.getFocusContext().getObjectDefinition();
-						ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta
+						ContainerDelta<AssignmentType> assignmentDelta = prismContext.deltaFactory().container()
 								.createDelta(FocusType.F_ASSIGNMENT, focusDef);
 						assignmentDelta.addValuesToDelete(assignmentValueToRemove);
 						context.getFocusContext().swallowToSecondaryDelta(assignmentDelta);
@@ -568,7 +565,7 @@ public class PolicyRuleProcessor {
 				.contextDescription("condition in global policy rule " + globalPolicyRule.getName())
 				.sourceContext(focusOdo)
 				.defaultTargetDefinition(
-						new PrismPropertyDefinitionImpl<>(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN, prismContext))
+						prismContext.definitionFactory().createPropertyDefinition(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN))
 				.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo)
 				.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo)
 				.addVariableDefinition(ExpressionConstants.VAR_TARGET, evaluatedAssignment != null ? evaluatedAssignment.getTarget() : null)

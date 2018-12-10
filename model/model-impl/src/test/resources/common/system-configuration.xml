@@ -150,7 +150,7 @@
 							import com.evolveum.midpoint.prism.path.*
 
 							def delta = ruleEvaluationContext.focusContext?.primaryDelta
-							def inducementPath = new ItemPath("inducement")
+							def inducementPath = ItemPath.create("inducement")
 							if (delta.isModify()) {
 								for (ItemDelta itemDelta : delta.modifications) {
 									if (inducementPath.equivalent(itemDelta.path)) {

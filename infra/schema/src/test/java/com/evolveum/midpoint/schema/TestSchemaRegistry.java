@@ -20,7 +20,7 @@
 package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.schema.SchemaRegistryImpl;
+import com.evolveum.midpoint.prism.impl.schema.SchemaRegistryImpl;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -120,7 +120,7 @@ public class TestSchemaRegistry {
         System.out.println("UserRef definition:");
         System.out.println(itemDefinition.debugDump());
 
-        assertEquals("Wrong userRef definition class", PrismReferenceDefinitionImpl.class, itemDefinition.getClass());
+        assertTrue("Wrong userRef definition class: " + itemDefinition.getClass(), itemDefinition instanceof PrismReferenceDefinition);
     }
 
     @Test

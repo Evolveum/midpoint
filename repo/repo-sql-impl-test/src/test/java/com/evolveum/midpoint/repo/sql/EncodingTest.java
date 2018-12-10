@@ -19,9 +19,9 @@ package com.evolveum.midpoint.repo.sql;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -557,7 +557,7 @@ public class EncodingTest extends BaseSQLRepoTest {
 
             OperationResult subresult1 = result.createSubresult(result.getOperation() + ".searchObjects.fullName");
             try {
-                ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                ObjectQuery query = prismContext.queryFor(UserType.class)
                         .item(UserType.F_FULL_NAME).eq(toPolyString(USER_FULL_NAME)).matchingNorm()
                         .build();
                 subresult1.addParam("query", query);
@@ -612,7 +612,7 @@ public class EncodingTest extends BaseSQLRepoTest {
     private <O extends ObjectType, T> void checkUserProperty(PrismObject<O> object, QName propQName, OperationResult parentResult, T... expectedValues) {
         String propName = propQName.getLocalPart();
         OperationResult result = parentResult.createSubresult(parentResult.getOperation() + "." + propName);
-        PrismProperty<T> prop = object.findProperty(propQName);
+        PrismProperty<T> prop = object.findProperty(ItemName.fromQName(propQName));
         Collection<T> actualValues = prop.getRealValues();
         result.addArbitraryObjectCollectionAsParam("actualValues", actualValues);
         assertMultivalue("User, property '" + propName + "'", expectedValues, actualValues, result);
@@ -687,7 +687,7 @@ public class EncodingTest extends BaseSQLRepoTest {
     private <O extends ObjectType> void checkUserPropertyPolyString(PrismObject<O> object, QName propQName, OperationResult parentResult, String... expectedValues) {
         String propName = propQName.getLocalPart();
         OperationResult result = parentResult.createSubresult(parentResult.getOperation() + "." + propName);
-        PrismProperty<PolyString> prop = object.findProperty(propQName);
+        PrismProperty<PolyString> prop = object.findProperty(ItemName.fromQName(propQName));
         Collection<PolyString> actualValues = prop.getRealValues();
         result.addArbitraryObjectCollectionAsParam("actualValues", actualValues);
         assertMultivaluePolyString("User, property '" + propName + "'", expectedValues, actualValues, result);

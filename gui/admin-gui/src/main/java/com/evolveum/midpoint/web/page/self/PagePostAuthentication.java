@@ -25,13 +25,11 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -59,13 +57,11 @@ import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
 import com.evolveum.midpoint.web.component.prism.PrismPanel;
 import com.evolveum.midpoint.web.model.ContainerWrapperListFromObjectWrapperModel;
-import com.evolveum.midpoint.web.page.admin.users.PageAdminUsers;
 import com.evolveum.midpoint.web.page.login.PageAbstractFlow;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.ibm.icu.text.UFieldPosition;
 
 @PageDescriptor(urls = {@Url(mountUrl = "/self/postAuthentication", matchUrlForSecurity="/self/postAuthentication")}, 
 		action = {
@@ -178,8 +174,8 @@ public class PagePostAuthentication extends PageAbstractFlow {
 		
 		if (result.isAcceptable()) {
 			runPrivileged(() -> {
-				ObjectDelta<UserType> lifecycleDelta = ObjectDelta.createModificationDeleteProperty(UserType.class,
-						userModel.getObject().getOid(), UserType.F_LIFECYCLE_STATE, getPrismContext(),
+				ObjectDelta<UserType> lifecycleDelta = getPrismContext().deltaFactory().object().createModificationDeleteProperty(UserType.class,
+						userModel.getObject().getOid(), UserType.F_LIFECYCLE_STATE,
 						getPostAuthenticationConfiguration().getRequiredLifecycleState());
 				
 //				try {

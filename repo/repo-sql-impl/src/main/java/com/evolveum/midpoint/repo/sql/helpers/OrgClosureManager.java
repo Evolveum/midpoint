@@ -360,7 +360,7 @@ public class OrgClosureManager {
         deleteQuery.executeUpdate();
         LOGGER.trace("Closure table content deleted");
 
-        final int orgsTotal = repositoryService.countObjects(OrgType.class, new ObjectQuery(), null, result);
+        final int orgsTotal = repositoryService.countObjects(OrgType.class, null, null, result);
         final MutableInt orgsProcessed = new MutableInt(0);
 
         ResultHandler<OrgType> handler = new ResultHandler<OrgType>() {
@@ -376,7 +376,7 @@ public class OrgClosureManager {
                 return true;
             }
         };
-        repositoryService.searchObjectsIterative(OrgType.class, new ObjectQuery(), handler, null, true, result);
+        repositoryService.searchObjectsIterative(OrgType.class, null, handler, null, true, result);
 
         LOGGER.info("Org closure table was successfully recomputed (not committed yet); all {} organizations processed", orgsTotal);
 

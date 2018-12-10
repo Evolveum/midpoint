@@ -30,7 +30,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
@@ -158,7 +157,7 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 
 		Integer partition = getPartition(coordinatorTask);
 
-		ObjectQuery query = new ObjectQuery();
+		ObjectQuery query = getPrismContext().queryFactory().createQuery();
 		ObjectFilter filter;
 
 		XMLGregorianCalendar lastScanTimestamp = handler.getLastScanTimestamp();
@@ -193,7 +192,7 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 
 	private ObjectFilter createBasicFilter(XMLGregorianCalendar lastScanTimestamp, XMLGregorianCalendar thisScanTimestamp,
 			Integer partition) {
-		S_AtomicFilterExit i = QueryBuilder.queryFor(FocusType.class, prismContext).none();
+		S_AtomicFilterExit i = prismContext.queryFor(FocusType.class).none();
 		if (lastScanTimestamp == null) {
 			if (checkFocusValidity(partition)) {
 				i = i.or().item(F_ACTIVATION, F_VALID_FROM).le(thisScanTimestamp)
@@ -230,11 +229,11 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 	private ObjectFilter createFilterFor(Class<? extends Containerable> type, ItemPath path, XMLGregorianCalendar lastScanTimestamp,
 			XMLGregorianCalendar thisScanTimestamp) {
 		if (lastScanTimestamp == null) {
-			return QueryBuilder.queryFor(type, prismContext)
+			return prismContext.queryFor(type)
 					.item(path).le(thisScanTimestamp)
 					.buildFilter();
 		} else {
-			return QueryBuilder.queryFor(type, prismContext)
+			return prismContext.queryFor(type)
 					.item(path).gt(lastScanTimestamp)
 						.and().item(path).le(thisScanTimestamp)
 					.buildFilter();

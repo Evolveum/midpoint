@@ -32,7 +32,6 @@ import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
 
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdNameMapper;
 import com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -57,7 +56,7 @@ public class ValueOperation extends Operation {
 		if (valueFilter.getParentPath().isEmpty()) {
 			throw new UnsupportedOperationException("Empty path is not supported (filter: " + objectFilter+")");
 		}
-		if (valueFilter.getParentPath().equivalent(new ItemPath(ShadowType.F_ATTRIBUTES))) {
+		if (valueFilter.getParentPath().equivalent(ShadowType.F_ATTRIBUTES)) {
 			try {
 				QName propName = valueFilter.getDefinition().getName();
 				String icfName = icfNameMapper.convertAttributeNameToConnId(propName, getInterpreter()
@@ -124,7 +123,7 @@ public class ValueOperation extends Operation {
 				throw ex;
 
 			}
-		} else if (valueFilter.getParentPath().equivalent(new ItemPath(ShadowType.F_ACTIVATION))) {
+		} else if (valueFilter.getParentPath().equivalent(ShadowType.F_ACTIVATION)) {
 			
 			if (objectFilter instanceof EqualFilter) {
 				QName propName = valueFilter.getDefinition().getName();

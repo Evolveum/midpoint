@@ -18,6 +18,7 @@ package com.evolveum.midpoint.repo.sql.util;
 
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.LogicalFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -354,7 +355,7 @@ public final class RUtil {
         return sb.toString();
     }
 
-    public static QName stringToQName(String text) {
+    public static ItemName stringToQName(String text) {
         if (StringUtils.isEmpty(text)) {
             return null;
         }
@@ -367,7 +368,7 @@ public final class RUtil {
             return null;
         }
 
-        return new QName(namespace, localPart);
+        return new ItemName(namespace, localPart);
     }
 
     public static Long toLong(Short s) {

@@ -26,7 +26,6 @@ import com.evolveum.midpoint.web.page.error.PageError;
 
 import org.apache.commons.lang.Validate;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
@@ -82,7 +81,7 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
     // Here we apply the distinct option. It is easier and more reliable to apply it here than to do at all the places
 	// where options for this provider are defined.
     private Collection<SelectorOptions<GetOperationOptions>> getOptionsToUse() {
-    	return GetOperationOptions.merge(options, getDistinctRelatedOptions());
+    	return GetOperationOptions.merge(getPrismContext(), options, getDistinctRelatedOptions());
     }
 
 
@@ -119,7 +118,7 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
 
             ObjectQuery query = getQuery();
             if (query == null){
-            	query = new ObjectQuery();
+            	query = getPrismContext().queryFactory().createQuery();
             }
             query.setPaging(paging);
 

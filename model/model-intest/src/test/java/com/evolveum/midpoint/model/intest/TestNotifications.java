@@ -23,7 +23,6 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
@@ -233,8 +232,10 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_FILE);
         account.setOid(accountJackOid);
 
-		ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
-		ReferenceDelta accountDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), account);
+		ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
+				.createEmptyModifyDelta(UserType.class, USER_JACK_OID);
+		ReferenceDelta accountDelta = prismContext.deltaFactory().reference()
+				.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), account);
 		userDelta.addModification(accountDelta);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
@@ -436,7 +437,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 		AssignmentType assignment = findAssignmentByTargetRequired(jack, ROLE_SUPERUSER_OID);
 		Long id = assignment.getId();
 		executeChanges(
-				DeltaBuilder.deltaFor(UserType.class, prismContext)
+				prismContext.deltaFor(UserType.class)
 						.item(UserType.F_ASSIGNMENT, id, AssignmentType.F_DESCRIPTION)
 						.replace("hi")
 						.asObjectDeltaCast(jack.getOid()), null, task, result);
@@ -498,7 +499,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 		AssignmentType assignment = findAssignmentByTargetRequired(jack, ROLE_SUPERUSER_OID);
 		Long id = assignment.getId();
 		executeChanges(
-				DeltaBuilder.deltaFor(UserType.class, prismContext)
+				prismContext.deltaFor(UserType.class)
 						.item(UserType.F_ASSIGNMENT)
 						.delete(new AssignmentType(prismContext).id(id))
 						.asObjectDeltaCast(jack.getOid()), null, task, result);

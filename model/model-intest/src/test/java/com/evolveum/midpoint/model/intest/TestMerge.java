@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
@@ -27,7 +28,6 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.model.api.util.MergeDeltas;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
@@ -148,8 +148,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertPropertyAdd(leftObjectdelta, UserType.F_ORGANIZATION,
         		createPolyString("Pirate Wannabes"), createPolyString("Lovers"));
         PrismAsserts.assertNoItemDelta(leftObjectdelta, UserType.F_ACTIVATION);
-        PrismAsserts.assertNoItemDelta(leftObjectdelta,
-        		new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS));
+        PrismAsserts.assertNoItemDelta(leftObjectdelta, PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
         PrismAsserts.assertNoItemDelta(leftObjectdelta, UserType.F_ROLE_MEMBERSHIP_REF);
         PrismAsserts.assertNoItemDelta(leftObjectdelta, UserType.F_DELEGATED_REF);
 
@@ -253,19 +252,14 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertNoItemDelta(delta, UserType.F_NAME);
         PrismAsserts.assertNoItemDelta(delta, UserType.F_GIVEN_NAME);
         PrismAsserts.assertPropertyReplace(delta, UserType.F_FAMILY_NAME);
-        PrismAsserts.assertPropertyReplace(delta, UserType.F_FULL_NAME,
-        		createPolyString(USER_JACK_FULL_NAME));
-        PrismAsserts.assertPropertyReplace(delta, UserType.F_ADDITIONAL_NAME,
-        		createPolyString(USER_JACK_ADDITIONAL_NAME));
-        PrismAsserts.assertPropertyReplace(delta, UserType.F_LOCALITY,
-        		createPolyString(USER_JACK_LOCALITY));
-        PrismAsserts.assertPropertyAdd(delta, UserType.F_SUBTYPE,
-        		USER_JACK_SUBTYPE);
+        PrismAsserts.assertPropertyReplace(delta, UserType.F_FULL_NAME, createPolyString(USER_JACK_FULL_NAME));
+        PrismAsserts.assertPropertyReplace(delta, UserType.F_ADDITIONAL_NAME, createPolyString(USER_JACK_ADDITIONAL_NAME));
+        PrismAsserts.assertPropertyReplace(delta, UserType.F_LOCALITY, createPolyString(USER_JACK_LOCALITY));
+        PrismAsserts.assertPropertyAdd(delta, UserType.F_SUBTYPE, USER_JACK_SUBTYPE);
         PrismAsserts.assertPropertyAdd(delta, UserType.F_ORGANIZATION,
         		createPolyString("Pirate Brethren"), createPolyString("Drinkers"));
         PrismAsserts.assertNoItemDelta(delta, UserType.F_ACTIVATION);
-        PrismAsserts.assertNoItemDelta(delta,
-        		new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS));
+        PrismAsserts.assertNoItemDelta(delta, PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
         PrismAsserts.assertNoItemDelta(delta, UserType.F_ROLE_MEMBERSHIP_REF);
         PrismAsserts.assertNoItemDelta(delta, UserType.F_DELEGATED_REF);
 
@@ -375,8 +369,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertPropertyDelete(delta, UserType.F_ORGANIZATION,
         		createPolyString("Sailors"), createPolyString("Drinkers"));
         PrismAsserts.assertNoItemDelta(delta, UserType.F_ACTIVATION);
-        PrismAsserts.assertNoItemDelta(delta,
-        		new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS));
+        PrismAsserts.assertNoItemDelta(delta, PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
         PrismAsserts.assertNoItemDelta(delta, UserType.F_ROLE_MEMBERSHIP_REF);
         PrismAsserts.assertNoItemDelta(delta, UserType.F_DELEGATED_REF);
 
@@ -481,8 +474,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertPropertyAdd(leftObjectdelta, UserType.F_ORGANIZATION,
         		createPolyString("Pirate Wannabes"), createPolyString("Lovers"));
         PrismAsserts.assertNoItemDelta(leftObjectdelta, UserType.F_ACTIVATION);
-        PrismAsserts.assertNoItemDelta(leftObjectdelta,
-        		new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS));
+        PrismAsserts.assertNoItemDelta(leftObjectdelta, PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
         PrismAsserts.assertNoItemDelta(leftObjectdelta, UserType.F_ROLE_MEMBERSHIP_REF);
         PrismAsserts.assertNoItemDelta(leftObjectdelta, UserType.F_DELEGATED_REF);
 

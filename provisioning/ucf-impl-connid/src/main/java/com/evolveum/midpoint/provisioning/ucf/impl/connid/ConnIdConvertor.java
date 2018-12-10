@@ -25,6 +25,7 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
@@ -237,7 +238,7 @@ public class ConnIdConvertor {
 				continue;
 			}
 
-			QName qname = icfNameMapper.convertAttributeNameToQName(connIdAttr.getName(), attributesContainerDefinition);
+			ItemName qname = ItemName.fromQName(icfNameMapper.convertAttributeNameToQName(connIdAttr.getName(), attributesContainerDefinition));
 			ResourceAttributeDefinition attributeDefinition = attributesContainerDefinition.findAttributeDefinition(qname, caseIgnoreAttributeNames);
 
 			if (attributeDefinition == null) {
@@ -269,7 +270,7 @@ public class ConnIdConvertor {
 					// of them may need it (e.g. GuardedString)
 					for (Object connIdValue : connIdAttr.getValue()) {
 						Object value = convertValueFromIcf(connIdValue, qname);
-						resourceAttribute.add(new PrismPropertyValue<>(value));
+						resourceAttribute.addRealValue(value);
 					}
 				}
 
@@ -287,7 +288,7 @@ public class ConnIdConvertor {
 						if (connIdValue != null) {
 							Object value = convertValueFromIcf(connIdValue, qname);
 							empty = false;
-							resourceAttribute.add(new PrismPropertyValue<>(value));
+							resourceAttribute.addRealValue(value);
 						}
 					}
 
@@ -312,7 +313,7 @@ public class ConnIdConvertor {
 		}
 		if (attributesContainer.getValue().findItem(uidDefinition.getName()) == null) {
 			ResourceAttribute<String> uidRoa = uidDefinition.instantiate();
-			uidRoa.setValue(new PrismPropertyValue<>(uid.getUidValue()));
+			uidRoa.setRealValue(uid.getUidValue());
 			attributesContainer.getValue().add(uidRoa);
 		}
 

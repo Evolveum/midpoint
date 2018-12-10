@@ -18,9 +18,7 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.ResultHandler;
@@ -109,7 +107,7 @@ public class SearchIterativeTest extends BaseSQLRepoTest {
             return true;
         };
 
-        ObjectQuery query = ObjectQuery.createObjectQuery(ObjectPaging.createPaging(null, 70));
+        ObjectQuery query = prismContext.queryFactory().createQuery(prismContext.queryFactory().createPaging(null, 70));
         repositoryService.searchObjectsIterative(UserType.class, query, handler, null, true, result);
         result.recomputeStatus();
 
@@ -128,7 +126,7 @@ public class SearchIterativeTest extends BaseSQLRepoTest {
             return true;
         };
 
-        ObjectQuery query = ObjectQuery.createObjectQuery(ObjectPaging.createPaging(1, null));
+        ObjectQuery query = prismContext.queryFactory().createQuery(prismContext.queryFactory().createPaging(1, null));
         repositoryService.searchObjectsIterative(UserType.class, query, handler, null, true, result);
         result.recomputeStatus();
 
@@ -147,7 +145,7 @@ public class SearchIterativeTest extends BaseSQLRepoTest {
             return true;
         };
 
-        ObjectQuery query = ObjectQuery.createObjectQuery(ObjectPaging.createPaging(1, 200));
+        ObjectQuery query = prismContext.queryFactory().createQuery(prismContext.queryFactory().createPaging(1, 200));
         repositoryService.searchObjectsIterative(UserType.class, query, handler, null, true, result);
         result.recomputeStatus();
 
@@ -248,7 +246,7 @@ public class SearchIterativeTest extends BaseSQLRepoTest {
         int count = repositoryService.countObjects(UserType.class, null, null, result);
         assertEquals("Wrong # of objects after operation", COUNT/2, count);
 
-        ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+        ObjectQuery query = prismContext.queryFor(UserType.class)
                 .asc(UserType.F_NAME)
                 .build();
         List<PrismObject<UserType>> objectsAfter = repositoryService.searchObjects(UserType.class, query, null, result);

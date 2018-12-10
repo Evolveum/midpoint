@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.marshaller.PrismBeanInspector;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
@@ -37,9 +36,11 @@ import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
+import javax.xml.bind.annotation.XmlEnumValue;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -193,7 +194,18 @@ public class RAnyConverter {
     }
 
     private static String getEnumStringValue(Enum<?> realValue) {
-        return PrismBeanInspector.findEnumFieldValueUncached(realValue.getClass(), realValue.toString());
+        return findEnumFieldValueUncached(realValue.getClass(), realValue.toString());
+    }
+
+    // copied from PrismBeanInspector (maybe reconcile somehow later)
+    private static String findEnumFieldValueUncached(Class classType, String toStringValue){
+        for (Field field: classType.getDeclaredFields()) {
+            XmlEnumValue xmlEnumValue = field.getAnnotation(XmlEnumValue.class);
+            if (xmlEnumValue != null && field.getName().equals(toStringValue)) {
+                return xmlEnumValue.value();
+            }
+        }
+        return null;
     }
 
     private static boolean isIndexed(ItemDefinition definition, QName elementName,
@@ -275,7 +287,7 @@ public class RAnyConverter {
 
         Object object = value.getValue();
         if (object instanceof Element) {
-            object = getRealRepoValue(definition, (Element) object);
+            object = getRealRepoValue(definition, (Element) object, prismContext);
         } else if (object instanceof RawType) {
             RawType raw = (RawType) object;
             object = raw.getParsedRealValue(returnType);        // todo this can return null!
@@ -341,37 +353,37 @@ public class RAnyConverter {
      * <p>
      * Expects only property values (references are handled at other place).
      *
-     * @param definition
-     * @param value
-     * @return
+     * [pm] is this method really used? i.e. do we ever try to store PrismPropertyValue<Element>?
      */
     @NotNull
-    public static Object getRealRepoValue(ItemDefinition definition, Element value) throws SchemaException {
-        ValueType willBeSaveAs = definition == null ? null : getValueType(definition.getTypeName());
-        QName typeName = definition == null ? DOMUtil.resolveXsiType(value) : definition.getTypeName();
+    public static Object getRealRepoValue(ItemDefinition definition, Element value, PrismContext prismContext) throws SchemaException {
+        ValueType willBeSavedAs;
+        QName typeName;
+        if (definition != null) {
+            willBeSavedAs = getValueType(definition.getTypeName());
+            typeName = definition.getTypeName();
+        } else {
+            willBeSavedAs = null;
+            typeName = DOMUtil.resolveXsiType(value);
+        }
 
         Validate.notNull(typeName, "Definition was not defined for element value '"
                 + DOMUtil.getQNameWithoutPrefix(value) + "' and it doesn't have xsi:type.");
 
-        Object object;
-        if (ValueType.STRING.equals(willBeSaveAs)) {
+        if (willBeSavedAs == ValueType.STRING) {
             if (DOMUtil.listChildElements(value).isEmpty()) {
-                //simple values
-                return value.getTextContent();
+                return value.getTextContent();                  //simple values
             } else {
-                //composite elements or containers
-                return DOMUtil.serializeDOMToString(value);
+                return DOMUtil.serializeDOMToString(value);     //composite elements or containers
             }
         } else {
-            object = XmlTypeConverter.toJavaValue(value, typeName);
+            Object object = prismContext.parserFor(value).type(typeName).parseRealValue();
+            object = getAggregatedRepoObject(object);
+            if (object == null) {
+                throw new IllegalStateException("Can't extract value for saving from prism property value\n" + value);
+            }
+            return object;
         }
-
-        object = getAggregatedRepoObject(object);
-        if (object == null) {
-            throw new IllegalStateException("Can't extract value for saving from prism property value\n" + value);
-        }
-
-        return object;
     }
 
     /**
@@ -388,8 +400,9 @@ public class RAnyConverter {
             object = object.toString();
         } else if (object instanceof BigInteger) {
             object = object.toString();
-        } else if (object instanceof BigDecimal)
+        } else if (object instanceof BigDecimal) {
             object = object.toString();
+        }
 
         //check short/integer to long
         if (object instanceof Short) {

@@ -52,9 +52,7 @@ public abstract class AbstractResourceController {
 	}
 
 	public ItemPath getAttributePath(String attributeName) {
-		return new ItemPath(
-				ShadowType.F_ATTRIBUTES,
-				getAttributeQName(attributeName));
+		return ItemPath.create(ShadowType.F_ATTRIBUTES, getAttributeQName(attributeName));
 	}
 
 }

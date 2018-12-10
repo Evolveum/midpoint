@@ -24,7 +24,6 @@ import com.evolveum.midpoint.model.impl.util.RecordingProgressListener;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -249,8 +248,9 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 		assertEquals("Wrong policy situation", emptyList(), roleAfter.asObjectable().getPolicySituation());
 		assertEquals("Wrong triggered policy rules", emptyList(), roleAfter.asObjectable().getTriggeredPolicyRule());
 
-		Collection<SelectorOptions<GetOperationOptions>> options =
-				GetOperationOptions.retrieveItemsNamed(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_WORK_ITEM);
+		Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+				.item(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_WORK_ITEM).retrieve()
+				.build();
 		List<PrismObject<TaskType>> tasks = getTasksForObject(roleCorrectOid, RoleType.COMPLEX_TYPE, options, task, result);
 		display("tasks for role", tasks);
 		assertEquals("Wrong # of approval tasks for role", 2, tasks.size());
@@ -329,8 +329,9 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 		assertEquals("Wrong policy situation", emptyList(), roleAfter.asObjectable().getPolicySituation());
 		assertEquals("Wrong triggered policy rules", emptyList(), roleAfter.asObjectable().getTriggeredPolicyRule());
 
-		Collection<SelectorOptions<GetOperationOptions>> options =
-				GetOperationOptions.retrieveItemsNamed(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_WORK_ITEM);
+		Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+				.item(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_WORK_ITEM).retrieve()
+				.build();
 		List<PrismObject<TaskType>> tasks = getTasksForObject(roleCorrectHighRiskOid, RoleType.COMPLEX_TYPE, options, task, result);
 		display("tasks for role", tasks);
 		assertEquals("Wrong # of approval tasks for role", 2, tasks.size());
@@ -366,7 +367,7 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 	private void activateRole(String oid, Holder<LensContext<?>> contextHolder, Task task, OperationResult result)
 			throws SchemaException, CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException,
 			PolicyViolationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
-		ObjectDelta<RoleType> delta = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+		ObjectDelta<RoleType> delta = prismContext.deltaFor(RoleType.class)
 				.item(RoleType.F_LIFECYCLE_STATE)
 				.replace(SchemaConstants.LIFECYCLE_ACTIVE)
 				.asObjectDeltaCast(oid);

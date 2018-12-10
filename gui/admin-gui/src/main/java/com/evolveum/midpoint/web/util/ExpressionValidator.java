@@ -2,6 +2,7 @@ package com.evolveum.midpoint.web.util;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import org.apache.wicket.validation.INullAcceptingValidator;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.ValidationError;
@@ -9,7 +10,6 @@ import org.apache.wicket.validation.ValidationError;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.common.expression.Expression;
@@ -119,10 +119,11 @@ public class ExpressionValidator<T> implements INullAcceptingValidator<T> {
 
 	@Override
 	public void validate(IValidatable<T> validatable) {
+		PrismContext prismContext = serviceLocator.getPrismContext();
 		T valueToValidate = validatable.getValue();
 		String contextDesc = " form component expression validation ";
-    	PrismPropertyDefinition<OperationResultType> outputDefinition = new PrismPropertyDefinitionImpl<>(ExpressionConstants.OUTPUT_ELEMENT_NAME,
-    			OperationResultType.COMPLEX_TYPE, serviceLocator.getPrismContext());
+    	PrismPropertyDefinition<OperationResultType> outputDefinition = prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME,
+			    OperationResultType.COMPLEX_TYPE);
     	Task task = serviceLocator.createSimpleTask(OPERATION_EVALUATE_EXPRESSION);
     	OperationResult result = new OperationResult(OPERATION_EVALUATE_EXPRESSION);
     	ExpressionFactory expressionFactory = serviceLocator.getExpressionFactory();

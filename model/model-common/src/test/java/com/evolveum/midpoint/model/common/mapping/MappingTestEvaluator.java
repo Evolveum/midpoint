@@ -24,6 +24,10 @@ import java.util.Collection;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.xml.sax.SAXException;
@@ -42,12 +46,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.crypto.ProtectorImpl;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
@@ -87,7 +86,7 @@ public class MappingTestEvaluator {
 
     private PrismContext prismContext;
     private MappingFactory mappingFactory;
-    ProtectorImpl protector;
+    private Protector protector;
 
     public PrismContext getPrismContext() {
 		return prismContext;
@@ -112,7 +111,7 @@ public class MappingTestEvaluator {
         mappingFactory.setProtector(protector);
     }
 
-	public ProtectorImpl getProtector() {
+	public Protector getProtector() {
 		return protector;
 	}
 
@@ -130,9 +129,9 @@ public class MappingTestEvaluator {
 		return createMappingBuilder(filename, testName, null, toPath(defaultTargetPropertyName), userDelta);
 	}
 
-	public <T> MappingImpl<PrismPropertyValue<T>, PrismPropertyDefinition<T>> createMapping(String filename, String testName, QName defaultTargetPropertyName,
+	public <T> MappingImpl<PrismPropertyValue<T>, PrismPropertyDefinition<T>> createMapping(String filename, String testName, ItemName defaultTargetPropertyName,
 			ObjectDelta<UserType> userDelta) throws SchemaException, IOException, JAXBException, EncryptionException  {
-		return this.<T>createMappingBuilder(filename, testName, null, toPath(defaultTargetPropertyName), userDelta).build();
+		return this.<T>createMappingBuilder(filename, testName, null, defaultTargetPropertyName, userDelta).build();
 	}
 
 	public <T> MappingImpl<PrismPropertyValue<T>, PrismPropertyDefinition<T>> createMapping(String filename, String testName, String defaultTargetPropertyName,
@@ -296,7 +295,7 @@ public class MappingTestEvaluator {
 	}
 
 	public <T,I> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateMapping(String filename, String testName,
-			QName defaultTargetPropertyName)
+			ItemName defaultTargetPropertyName)
             throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, EncryptionException, SecurityViolationException, ConfigurationException, CommunicationException {
 		MappingImpl<PrismPropertyValue<T>,PrismPropertyDefinition<T>> mapping = createMapping(filename, testName, defaultTargetPropertyName, null);
 		OperationResult opResult = new OperationResult(testName);
@@ -341,8 +340,9 @@ public class MappingTestEvaluator {
 	public <T,I> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateMappingDynamicAdd(String filename, String testName,
 			ItemPath defaultTargetPropertyPath,
 			String changedPropertyName, I... valuesToAdd) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, EncryptionException, SecurityViolationException, ConfigurationException, CommunicationException {
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationAddProperty(UserType.class, USER_OLD_OID, toPath(changedPropertyName),
-				prismContext, valuesToAdd);
+		ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
+				.createModificationAddProperty(UserType.class, USER_OLD_OID, toPath(changedPropertyName),
+						valuesToAdd);
 		MappingImpl<PrismPropertyValue<T>,PrismPropertyDefinition<T>> mapping = createMapping(filename, testName, defaultTargetPropertyPath, userDelta);
 		OperationResult opResult = new OperationResult(testName);
 		mapping.evaluate(null, opResult);
@@ -357,8 +357,9 @@ public class MappingTestEvaluator {
 	public <T,I> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateMappingDynamicDelete(String filename, String testName,
 			String defaultTargetPropertyName,
 			String changedPropertyName, I... valuesToAdd) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, EncryptionException, SecurityViolationException, ConfigurationException, CommunicationException {
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationDeleteProperty(UserType.class, USER_OLD_OID, toPath(changedPropertyName),
-				prismContext, valuesToAdd);
+		ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
+				.createModificationDeleteProperty(UserType.class, USER_OLD_OID, toPath(changedPropertyName),
+						valuesToAdd);
 		MappingImpl<PrismPropertyValue<T>,PrismPropertyDefinition<T>> mapping = createMapping(filename, testName, defaultTargetPropertyName, userDelta);
 		OperationResult opResult = new OperationResult(testName);
 		mapping.evaluate(null, opResult);
@@ -373,8 +374,9 @@ public class MappingTestEvaluator {
 	public <T,I> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateMappingDynamicReplace(String filename, String testName,
 			String defaultTargetPropertyName,
 			String changedPropertyName, I... valuesToReplace) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, EncryptionException, SecurityViolationException, ConfigurationException, CommunicationException {
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, USER_OLD_OID, toPath(changedPropertyName),
-				prismContext, valuesToReplace);
+		ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
+				.createModificationReplaceProperty(UserType.class, USER_OLD_OID, toPath(changedPropertyName),
+						valuesToReplace);
 		MappingImpl<PrismPropertyValue<T>,PrismPropertyDefinition<T>> mapping = createMapping(filename, testName, defaultTargetPropertyName, userDelta);
 		OperationResult opResult = new OperationResult(testName);
 		mapping.evaluate(null, opResult);
@@ -389,8 +391,9 @@ public class MappingTestEvaluator {
 	public <T,I> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateMappingDynamicReplace(String filename, String testName,
 			String defaultTargetPropertyName,
 			ItemPath changedPropertyName, I... valuesToReplace) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, EncryptionException, SecurityViolationException, ConfigurationException, CommunicationException {
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, USER_OLD_OID, changedPropertyName,
-				prismContext, valuesToReplace);
+		ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
+				.createModificationReplaceProperty(UserType.class, USER_OLD_OID, changedPropertyName,
+						valuesToReplace);
 		MappingImpl<PrismPropertyValue<T>,PrismPropertyDefinition<T>> mapping = createMapping(filename, testName, defaultTargetPropertyName, userDelta);
 		OperationResult opResult = new OperationResult(testName);
 		mapping.evaluate(null, opResult);
@@ -405,8 +408,9 @@ public class MappingTestEvaluator {
 	public <T,I> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateMappingDynamicReplace(String filename, String testName,
 			ItemPath defaultTargetPropertyName,
 			String changedPropertyName, I... valuesToReplace) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, EncryptionException, SecurityViolationException, ConfigurationException, CommunicationException {
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, USER_OLD_OID, toPath(changedPropertyName),
-				prismContext, valuesToReplace);
+		ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
+				.createModificationReplaceProperty(UserType.class, USER_OLD_OID, toPath(changedPropertyName),
+						valuesToReplace);
 		MappingImpl<PrismPropertyValue<T>,PrismPropertyDefinition<T>> mapping = createMapping(filename, testName, defaultTargetPropertyName, userDelta);
 		OperationResult opResult = new OperationResult(testName);
 		
@@ -422,8 +426,9 @@ public class MappingTestEvaluator {
 	public <T,I> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateMappingDynamicReplace(String filename, String testName,
 			ItemPath defaultTargetPropertyName,
 			ItemPath changedPropertyName, I... valuesToReplace) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, EncryptionException, SecurityViolationException, ConfigurationException, CommunicationException {
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, USER_OLD_OID, changedPropertyName,
-				prismContext, valuesToReplace);
+		ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
+				.createModificationReplaceProperty(UserType.class, USER_OLD_OID, changedPropertyName,
+						valuesToReplace);
 		MappingImpl<PrismPropertyValue<T>,PrismPropertyDefinition<T>> mapping = createMapping(filename, testName, defaultTargetPropertyName, userDelta);
 		OperationResult opResult = new OperationResult(testName);
 		mapping.evaluate(null, opResult);
@@ -436,11 +441,7 @@ public class MappingTestEvaluator {
 	}
 
 	public ItemPath toPath(String propertyName) {
-		return new ItemPath(new QName(SchemaConstants.NS_C, propertyName));
-	}
-
-	public ItemPath toPath(QName propertyName) {
-		return new ItemPath(propertyName);
+		return ItemPath.create(new QName(SchemaConstants.NS_C, propertyName));
 	}
 
 	public static <T> T getSingleValue(String setName, Collection<PrismPropertyValue<T>> set) {

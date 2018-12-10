@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FullTextSearchConfigurationType;
@@ -55,7 +56,7 @@ public class FullTextSearchConfigurationUtil {
 			if (isApplicable(indexed, types)) {
 				for (ItemPathType itemPathType : indexed.getItem()) {
 					ItemPath path = itemPathType.getItemPath();
-					if (!ItemPath.isNullOrEmpty(path) && !ItemPath.containsEquivalent(paths, path)) {
+					if (!ItemPath.isEmpty(path) && !ItemPathCollectionsUtil.containsEquivalent(paths, path)) {
 						paths.add(path);
 					}
 				}

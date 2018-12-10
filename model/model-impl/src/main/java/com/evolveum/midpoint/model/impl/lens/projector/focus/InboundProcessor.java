@@ -31,6 +31,9 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -53,29 +56,8 @@ import com.evolveum.midpoint.model.impl.lens.projector.MappingInitializer;
 import com.evolveum.midpoint.model.impl.lens.projector.MappingOutputProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.MappingTimeEval;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsProcessor;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.OriginType;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
@@ -312,7 +294,7 @@ public class InboundProcessor {
 
         final ItemDelta<V, D> attributeAPrioriDelta;
         if (aPrioriProjectionDelta != null) {
-            attributeAPrioriDelta = aPrioriProjectionDelta.findItemDelta(new ItemPath(SchemaConstants.C_ATTRIBUTES, accountAttributeName));
+            attributeAPrioriDelta = aPrioriProjectionDelta.findItemDelta(ItemPath.create(SchemaConstants.C_ATTRIBUTES, accountAttributeName));
             if (attributeAPrioriDelta == null && !projContext.isFullShadow() && !LensUtil.hasDependentContext(context, projContext)) {
 				LOGGER.trace("Skipping inbound for {} in {}: Not a full shadow and account a priori delta exists, but doesn't have change for processed property.",
 						accountAttributeName, projContext.getResourceShadowDiscriminator());
@@ -387,12 +369,13 @@ public class InboundProcessor {
         		focus = context.getFocusContext().getObjectNew();
         	}
 
-            if (attributeAPrioriDelta != null) {
+	        ItemPath accountAttributePath = ItemPath.create(ShadowType.F_ATTRIBUTES, accountAttributeName);
+	        if (attributeAPrioriDelta != null) {
                 LOGGER.trace("Processing inbound from a priori delta: {}", aPrioriProjectionDelta);
                
                 PrismProperty oldAccountProperty = null;
                 if (projCurrent != null) {
-                	oldAccountProperty = projCurrent.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, accountAttributeName));
+                	oldAccountProperty = projCurrent.findProperty(accountAttributePath);
                 }
                 collectMappingsForTargets(context, projContext, inboundMappingType, accountAttributeName, oldAccountProperty, attributeAPrioriDelta, focus, null, mappingsToTarget, task, result);
 
@@ -403,7 +386,7 @@ public class InboundProcessor {
             		return false;
             	}
 
-                PrismProperty<?> oldAccountProperty = projCurrent.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, accountAttributeName));
+                PrismProperty<?> oldAccountProperty = projCurrent.findProperty(accountAttributePath);
                 LOGGER.trace("Processing inbound from account sync absolute state (currentAccount): {}", oldAccountProperty);
                 collectMappingsForTargets(context, projContext, inboundMappingType, accountAttributeName, oldAccountProperty, null,
                 		focus, null, mappingsToTarget, task, result);
@@ -424,7 +407,7 @@ public class InboundProcessor {
 
         final ItemDelta<V, D> attributeAPrioriDelta;
         if (aPrioriProjectionDelta != null) {
-            attributeAPrioriDelta = aPrioriProjectionDelta.findItemDelta(new ItemPath(ShadowType.F_ASSOCIATION));
+            attributeAPrioriDelta = aPrioriProjectionDelta.findItemDelta(ShadowType.F_ASSOCIATION);
             if (attributeAPrioriDelta == null && !projContext.isFullShadow() && !LensUtil.hasDependentContext(context, projContext)) {
 				LOGGER.trace("Skipping inbound for {} in {}: Not a full shadow and account a priori delta exists, but doesn't have change for processed property.",
 						accountAttributeName, projContext.getResourceShadowDiscriminator());
@@ -771,7 +754,8 @@ public class InboundProcessor {
 				.originObject(resource);
 		
 		if (!context.getFocusContext().isDelete()){
-				Collection<V> originalValues = ExpressionUtil.computeTargetValues(inboundMappingType.getTarget(), focusNew, variables, mappingFactory.getObjectResolver() , "resolving range", task, result);
+				Collection<V> originalValues = ExpressionUtil.computeTargetValues(inboundMappingType.getTarget(), focusNew, variables, mappingFactory.getObjectResolver() , "resolving range",
+						prismContext, task, result);
 				builder.originalTargetValues(originalValues);
 		}
 	
@@ -783,10 +767,10 @@ public class InboundProcessor {
         }
 
         ItemPath targetFocusItemPath = mapping.getOutputPath();
-        if (ItemPath.isNullOrEmpty(targetFocusItemPath)) {
+        if (ItemPath.isEmpty(targetFocusItemPath)) {
         	throw new ConfigurationException("Empty target path in "+mapping.getContextDescription());
         }
-        boolean isAssignment = new ItemPath(FocusType.F_ASSIGNMENT).equivalent(targetFocusItemPath);
+        boolean isAssignment = FocusType.F_ASSIGNMENT.equivalent(targetFocusItemPath);
         Item targetFocusItem = null;
         if (focusNew != null) {
         	targetFocusItem = focusNew.findItem(targetFocusItemPath);
@@ -823,12 +807,13 @@ public class InboundProcessor {
 			
 			List<MappingImpl<V, D>> mappings = mappingEntry.getValue();
 			Iterator<MappingImpl<V, D>> mappingIterator = mappings.iterator();
-			DeltaSetTriple<ItemValueWithOrigin<V, D>> allTriples = new DeltaSetTriple<>();
+			DeltaSetTriple<ItemValueWithOrigin<V, D>> allTriples = prismContext.deltaFactory().createDeltaSetTriple();
 			while (mappingIterator.hasNext()) {
 				MappingImpl<V, D> mapping = mappingIterator.next();
 				mappingEvaluator.evaluateMapping(mapping, context, projectionCtx, task, result);
 				
-				DeltaSetTriple<ItemValueWithOrigin<V, D>> itemValueWithOrigin = ItemValueWithOrigin.createOutputTriple(mapping);
+				DeltaSetTriple<ItemValueWithOrigin<V, D>> itemValueWithOrigin = ItemValueWithOrigin.createOutputTriple(mapping,
+						prismContext);
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Inbound mapping for {}\nreturned triple:\n{}", mapping.getDefaultSource().debugDump(),
 							itemValueWithOrigin == null ? "null" : itemValueWithOrigin.debugDump());
@@ -998,7 +983,7 @@ public class InboundProcessor {
 			}
 		}
 		
-		DeltaSetTriple<ItemValueWithOrigin<V, D>> consolidatedTriples = new DeltaSetTriple<>();
+		DeltaSetTriple<ItemValueWithOrigin<V, D>> consolidatedTriples = prismContext.deltaFactory().createDeltaSetTriple();
 		consolidatedTriples.addAllToMinusSet(consolidatedMinusSet);
 		consolidatedTriples.addAllToPlusSet(consolidatedPlusSet);
 		consolidatedTriples.addAllToZeroSet(consolidatedZeroSet);
@@ -1016,7 +1001,7 @@ public class InboundProcessor {
 		if (focusNew != null) {
 			targetFocusItem = focusNew.findItem(outputPath);
 		}
-		boolean isAssignment = new ItemPath(FocusType.F_ASSIGNMENT).equivalent(outputPath);
+		boolean isAssignment = FocusType.F_ASSIGNMENT.equivalent(outputPath);
 		
     	    	
 		Item shouldBeItem = outputDefinition.instantiate();
@@ -1038,7 +1023,7 @@ public class InboundProcessor {
 						targetFocusItem = focusNew.findItem(originMapping.getOutputPath());
 					}
 					V value = valueWithOrigin.getItemValue();
-					if (targetFocusItem != null && targetFocusItem.hasRealValue(value)) {
+					if (targetFocusItem != null && targetFocusItem.hasValueIgnoringMetadata(value)) {
 						continue;
 					}
 
@@ -1072,7 +1057,7 @@ public class InboundProcessor {
 				for (ItemValueWithOrigin<V, D> valueWithOrigin : consolidatedTriples.getMinusSet()) {
 					V value = valueWithOrigin.getItemValue();
 
-					if (targetFocusItem == null || targetFocusItem.hasRealValue(value)) {
+					if (targetFocusItem == null || targetFocusItem.hasValueIgnoringMetadata(value)) {
 						if (!outputFocusItemDelta.isReplace()) {
 							// This is not needed if we are going to
 							// replace. In fact it might cause an error.
@@ -1120,7 +1105,7 @@ public class InboundProcessor {
 							}
 							for (Object shouldBeValueObj : shouldBeItem.getValues()) {
 								PrismValue shouldBeValue = (PrismValue) shouldBeValueObj;
-								if (!PrismValue.containsRealValue(diffDelta.getValuesToReplace(), shouldBeValue)) {
+								if (!PrismValueCollectionsUtil.containsRealValue(diffDelta.getValuesToReplace(), shouldBeValue)) {
 									diffDelta.addValueToReplace(shouldBeValue.clone());
 								}
 							}
@@ -1135,7 +1120,7 @@ public class InboundProcessor {
 				}
 
 				// if (!hasRange(mappingEntry.getValue())) {
-				diffDelta.setElementName(ItemPath.getName(outputPath.last()));
+				diffDelta.setElementName(ItemPath.toName(outputPath.last()));
 				diffDelta.setParentPath(outputPath.allExceptLast());
 				outputFocusItemDelta.merge(diffDelta);
 				// }
@@ -1388,7 +1373,7 @@ public class InboundProcessor {
 
 		        PrismObjectDefinition<F> focusDefinition = context.getFocusContext().getObjectDefinition();
 		        PrismProperty result = focusDefinition.findPropertyDefinition(targetPath).instantiate();
-		    	result.addAll(PrismValue.cloneCollection(outputTriple.getNonNegativeValues()));
+		    	result.addAll(PrismValueCollectionsUtil.cloneCollection(outputTriple.getNonNegativeValues()));
 
 		    	PrismProperty targetPropertyNew = newUser.findOrCreateProperty(targetPath);
 		    	PropertyDelta<?> delta;

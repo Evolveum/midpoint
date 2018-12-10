@@ -58,9 +58,9 @@ public class ShadowDetailsTabPanel extends AbstractObjectTabPanel<ShadowType> {
 	private List<ItemPath> getVisibleContainers() {
 		// todo maybe everything should be visible, but for now this should be fine
 		return Arrays.asList(
-				new ItemPath(ShadowType.F_ATTRIBUTES),
-				new ItemPath(ShadowType.F_CREDENTIALS, CredentialsType.F_PASSWORD),
-				new ItemPath(ShadowType.F_ACTIVATION)
+				ShadowType.F_ATTRIBUTES,
+				ItemPath.create(ShadowType.F_CREDENTIALS, CredentialsType.F_PASSWORD),
+				ShadowType.F_ACTIVATION
 		);
 	}
 }

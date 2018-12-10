@@ -25,6 +25,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.prism.Containerable;
@@ -52,13 +54,7 @@ public class WrapperTestUtil {
 	public static <C extends Containerable,T> void fillInPropertyWrapper(ContainerValueWrapper<C> containerWrapper, ItemPath itemPath, T... newValues) {
 		ItemWrapper itemWrapper = containerWrapper.findPropertyWrapper(itemPath);
 		assertNotNull("No item wrapper for path "+itemPath+" in "+containerWrapper, itemWrapper);
-		fillInPropertyWrapper(containerWrapper, itemWrapper, itemPath.lastNamed().getName(), newValues);
-	}
-	
-	public static <C extends Containerable,T> void fillInPropertyWrapper(ContainerValueWrapper<C> containerWrapper, QName itemName, T... newValues) {
-		ItemWrapper itemWrapper = containerWrapper.findPropertyWrapper(itemName);
-		assertNotNull("No item wrapper "+itemName+" in "+containerWrapper, itemWrapper);
-		fillInPropertyWrapper(containerWrapper, itemWrapper, itemName, newValues);
+		fillInPropertyWrapper(containerWrapper, itemWrapper, itemPath.lastName(), newValues);
 	}
 	
 	private static <C extends Containerable,T> void fillInPropertyWrapper(ContainerValueWrapper<C> containerWrapper, ItemWrapper itemWrapper, QName itemName, T... newValues) {
@@ -93,15 +89,16 @@ public class WrapperTestUtil {
 	public static <C extends Containerable,T> void assertPropertyWrapper(ContainerValueWrapper<C> containerWrapper, ItemPath itemPath, T... expectedValues) {
 		ItemWrapper itemWrapper = containerWrapper.findPropertyWrapper(itemPath);
 		assertNotNull("No item wrapper for path "+itemPath+" in "+containerWrapper, itemWrapper);
-		assertPropertyWrapper(containerWrapper, itemWrapper, itemPath.lastNamed().getName(), expectedValues);
+		assertPropertyWrapper(containerWrapper, itemWrapper, itemPath.lastName(), expectedValues);
 	}
 
-	public static <C extends Containerable,T> void assertPropertyWrapper(ContainerValueWrapper<C> containerWrapper, QName itemName, T... expectedValues) {
-		ItemWrapper itemWrapper = containerWrapper.findPropertyWrapper(itemName);
+	// todo better name
+	public static <C extends Containerable,T> void assertPropertyWrapperByName(ContainerValueWrapper<C> containerWrapper, ItemName itemName, T... expectedValues) {
+		ItemWrapper itemWrapper = containerWrapper.findPropertyWrapperByName(itemName);
 		assertNotNull("No item wrapper "+itemName+" in "+containerWrapper, itemWrapper);
 		assertPropertyWrapper(containerWrapper, itemWrapper, itemName, expectedValues);
 	}
-	
+
 	private static <C extends Containerable,T> void assertPropertyWrapper(ContainerValueWrapper<C> containerWrapper, ItemWrapper itemWrapper, QName itemName, T... expectedValues) {
 		List<ValueWrapper> valueWrappers = itemWrapper.getValues();
 		assertPropertyWrapperValues("item wrapper "+itemName+" in "+containerWrapper, valueWrappers, expectedValues);
@@ -142,11 +139,6 @@ public class WrapperTestUtil {
 	}
 
 	public static <C extends Containerable, O extends ObjectType> void assertWrapper(ContainerWrapper<C> containerWrapper, String displayName,
-			QName itemName, PrismObject<O> object, ContainerStatus status) {
-		assertWrapper(containerWrapper, displayName, itemName==null?null:new ItemPath(itemName), object, status);
-	}
-
-	public static <C extends Containerable, O extends ObjectType> void assertWrapper(ContainerWrapper<C> containerWrapper, String displayName,
 			ItemPath expectedPath, PrismObject<O> object, ContainerStatus status) {
 		PrismContainer<C> container;
 		if (expectedPath == null) {
@@ -160,7 +152,8 @@ public class WrapperTestUtil {
 	public static <C extends Containerable> void assertWrapper(ContainerWrapper<C> containerWrapper, String displayName, ItemPath expectedPath,
 			PrismContainer<C> container, boolean isMain, ContainerStatus status) {
 		assertNotNull("null wrapper", containerWrapper);
-		assertEquals("Wrong main flag in wrapper "+containerWrapper, expectedPath == null ? ItemPath.EMPTY_PATH : expectedPath, containerWrapper.getPath());
+		PrismAsserts.assertEquivalent("Wrong path in wrapper " + containerWrapper,
+				expectedPath == null ? ItemPath.EMPTY_PATH : expectedPath, containerWrapper.getPath());
 		assertEquals("Wrong main flag in wrapper "+containerWrapper, isMain, containerWrapper.isMain());
 		if (container != null) {
 			assertEquals("Wrong item in wrapper "+containerWrapper, container, containerWrapper.getItem());

@@ -22,9 +22,7 @@ import static org.testng.AssertJUnit.assertNull;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -120,7 +118,7 @@ public class AddOverwriteTest extends BaseSQLRepoTest {
     private PrismObject getCarla(OperationResult opResult) throws Exception {
         final String CARLA_NAME = "carla";
         PrismObjectDefinition userObjectDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-        ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+        ObjectQuery query = prismContext.queryFor(UserType.class)
                 .item(UserType.F_NAME).eq(CARLA_NAME)
                 .build();
         List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, opResult);
@@ -150,7 +148,7 @@ public class AddOverwriteTest extends BaseSQLRepoTest {
 
         PrismObjectDefinition def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(OrgType.class);
         Collection deltas = new ArrayList();
-        deltas.add(PropertyDelta.createAddDelta(def, OrgType.F_ORG_TYPE, "asdf"));
+        deltas.add(prismContext.deltaFactory().property().createAddDelta(def, OrgType.F_ORG_TYPE, "asdf"));
         repositoryService.modifyObject(OrgType.class, ORG_OID, deltas, result);
 
         version = repositoryService.getVersion(OrgType.class, ORG_OID, result);

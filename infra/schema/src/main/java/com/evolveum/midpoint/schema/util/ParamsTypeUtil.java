@@ -26,8 +26,6 @@ import java.util.Set;
 import javax.xml.bind.JAXBElement;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EntryType;
@@ -67,21 +65,15 @@ public class ParamsTypeUtil {
 	public static Map<String, Serializable> fromParamsType(ParamsType paramsType, PrismContext prismContext) throws SchemaException{
 		if (paramsType != null) {
 			Map<String, Serializable> params = new HashMap<>();
-			Serializable realValue = null;
 			for (EntryType entry : paramsType.getEntry()) {
-				if (entry.getEntryValue() != null){
-
+				Serializable realValue;
+				if (entry.getEntryValue() != null) {
 					Serializable value = (Serializable) entry.getEntryValue().getValue();
-					if (value instanceof RawType){
-						XNode xnode = ((RawType) value).getXnode();
-						if (xnode instanceof PrimitiveXNode){
-							realValue = ((PrimitiveXNode) xnode).getGuessedFormattedValue();
-						}
-					} else {
-						realValue = value;
-					}
+					realValue = prismContext.hacks().guessFormattedValue(value);
+				} else {
+					realValue = null;
 				}
-				params.put(entry.getKey(), (Serializable) (realValue));
+				params.put(entry.getKey(), realValue);
 			}
 
 			return params;
@@ -89,18 +81,13 @@ public class ParamsTypeUtil {
 		return null;
 	}
 
-	public static Map<String, Collection<String>> fromParamsType(ParamsType paramsType) throws SchemaException {
+	public static Map<String, Collection<String>> fromParamsType(ParamsType paramsType) {
 		if (paramsType != null) {
 			Map<String, Collection<String>> params = new HashMap<>();
-			Serializable realValue = null;
 			for (EntryType entry : paramsType.getEntry()) {
 				if (entry.getEntryValue() != null) {
 					String newValue = extractString(entry.getEntryValue());
-					Collection<String> values = params.get(entry.getKey());
-					if (values == null) {
-						values = new ArrayList<>();
-						params.put(entry.getKey(), values);
-					}
+					Collection<String> values = params.computeIfAbsent(entry.getKey(), k -> new ArrayList<>());
 					values.add(newValue);
 				}
 			}
@@ -109,15 +96,13 @@ public class ParamsTypeUtil {
 		return null;
 	}
 
-	private static String extractString(JAXBElement<?> jaxbElement) throws SchemaException {
+	private static String extractString(JAXBElement<?> jaxbElement) {
 		Object value = jaxbElement.getValue();
-		if (value instanceof RawType){
-			XNode xnode = ((RawType) value).getXnode();
-			if (xnode instanceof PrimitiveXNode) {
-				value = ((PrimitiveXNode) xnode).getStringValue();
-			}
+		if (value instanceof RawType) {
+			return ((RawType) value).extractString();
+		} else {
+			return value.toString();
 		}
-		return value.toString();
 	}
 
 }

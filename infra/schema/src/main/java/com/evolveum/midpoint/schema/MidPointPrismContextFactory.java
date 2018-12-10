@@ -22,8 +22,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
 
-import com.evolveum.midpoint.prism.PrismContextImpl;
-import com.evolveum.midpoint.prism.schema.SchemaRegistryImpl;
+import com.evolveum.midpoint.prism.impl.PrismContextImpl;
+import com.evolveum.midpoint.prism.impl.schema.SchemaRegistryImpl;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
@@ -32,9 +32,9 @@ import org.jetbrains.annotations.NotNull;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.schema.SchemaDefinitionFactory;
+import com.evolveum.midpoint.prism.impl.schema.SchemaDefinitionFactory;
 import com.evolveum.midpoint.prism.util.PrismContextFactory;
-import com.evolveum.midpoint.prism.xml.GlobalDynamicNamespacePrefixMapper;
+import com.evolveum.midpoint.prism.impl.xml.GlobalDynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.processor.MidPointSchemaDefinitionFactory;
 import com.evolveum.midpoint.util.DOMUtil;

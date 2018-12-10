@@ -22,6 +22,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -36,7 +37,6 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityUtil;
@@ -165,7 +165,8 @@ public class CredentialsProcessor {
 			return focusDelta;
 		}
 		ObjectDelta<O> transformedDelta = focusDelta.clone();
-		transformFocusExecutionDeltaForPasswords(context, credsType, credsType.getPassword(), SchemaConstants.PATH_PASSWORD_VALUE, transformedDelta, "password");
+		transformFocusExecutionDeltaForPasswords(context, credsType, credsType.getPassword(),
+				SchemaConstants.PATH_PASSWORD_VALUE, transformedDelta, "password");
 		// TODO: nonce and others
 
 		return transformedDelta;

@@ -20,22 +20,11 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import javax.validation.constraints.NotNull;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.DefaultReferencableImpl;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
-import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.StringUtils;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -52,7 +41,6 @@ import org.apache.wicket.model.StringResourceModel;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -465,7 +453,7 @@ public class ColumnUtils {
 						SelectableBean<TaskType> object = (SelectableBean<TaskType>) rowModel.getObject();
 						PrismProperty<ShadowKindType> pKind = object.getValue() != null ?
 								object.getValue().asPrismObject().findProperty(
-										new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_KIND))
+										ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_KIND))
 								: null;
 						if (pKind != null) {
 							cellItem.add(new Label(componentId, WebComponentUtil
@@ -487,7 +475,7 @@ public class ColumnUtils {
 				SelectableBean<TaskType> object = (SelectableBean<TaskType>) rowModel.getObject();
 				PrismProperty<String> pIntent = object.getValue() != null ?
 						object.getValue().asPrismObject().findProperty(
-								new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_INTENT))
+								ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_INTENT))
 						: null;
 				if (pIntent != null) {
 					cellItem.add(new Label(componentId, pIntent.getRealValue()));
@@ -507,7 +495,7 @@ public class ColumnUtils {
 				SelectableBean<TaskType> object = (SelectableBean<TaskType>) rowModel.getObject();
 				PrismProperty<QName> pObjectClass = object.getValue() != null ?
 						object.getValue().asPrismObject().findProperty(
-								new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECTCLASS))
+								ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECTCLASS))
 						: null;
 				if (pObjectClass != null) {
 					cellItem.add(new Label(componentId, pObjectClass.getRealValue().getLocalPart()));

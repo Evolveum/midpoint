@@ -21,6 +21,8 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
@@ -46,18 +48,6 @@ import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.SynchronizationIntent;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
-import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -598,8 +588,8 @@ public class ContextLoader {
 				// Adding new focus with no linkRef -> nothing to do
 				return;
 			}
-			linkRefDelta = linkRef.createDelta(new ItemPath(FocusType.F_LINK_REF));
-			linkRefDelta.addValuesToAdd(PrismValue.cloneValues(linkRef.getValues()));
+			linkRefDelta = linkRef.createDelta(FocusType.F_LINK_REF);
+			linkRefDelta.addValuesToAdd(PrismValueCollectionsUtil.cloneValues(linkRef.getValues()));
 		} else if (focusPrimaryDelta.getChangeType() == ChangeType.MODIFY) {
 			linkRefDelta = focusPrimaryDelta.findReferenceModification(FocusType.F_LINK_REF);
 			if (linkRefDelta == null) {
@@ -940,7 +930,8 @@ public class ContextLoader {
 			// nothing to mark
 			return;
 		}
-		Collection<? extends ItemDelta<?, ?>> modifications = MiscSchemaUtil.createCollection(PropertyDelta.createReplaceDelta(prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class),
+		Collection<? extends ItemDelta<?, ?>> modifications = MiscSchemaUtil.createCollection(
+				prismContext.deltaFactory().property().createReplaceDelta(prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class),
 				ShadowType.F_DEAD, true));
 		try {
 			cacheRepositoryService.modifyObject(ShadowType.class, oid, modifications, result);
@@ -1356,7 +1347,7 @@ public class ContextLoader {
 							// Maybe some strange race condition? Anyway, we want a robust behavior and this linkeRef should NOT be there.
 							// So simple remove it.
 							LOGGER.warn("The OID "+projCtx.getOid()+" of deleted shadow still exists in the linkRef after discovery ("+focusCurrent+"), removing it");
-							ReferenceDelta unlinkDelta = ReferenceDelta.createModificationDelete(
+							ReferenceDelta unlinkDelta = prismContext.deltaFactory().reference().createModificationDelete(
 					        		FocusType.F_LINK_REF, focusContext.getObjectDefinition(), linkRef.asReferenceValue().clone());
 							focusContext.swallowToSecondaryDelta(unlinkDelta);
 							continue;
@@ -1399,7 +1390,7 @@ public class ContextLoader {
 	private void applyAttributesToGet(LensProjectionContext projCtx, Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException {
 		if ( !LensUtil.isPasswordReturnedByDefault(projCtx)
 				&& LensUtil.needsFullShadowForCredentialProcessing(projCtx)) {
-			options.add(SelectorOptions.create(SchemaConstants.PATH_PASSWORD_VALUE, GetOperationOptions.createRetrieve()));
+			options.add(SelectorOptions.create(prismContext.toUniformPath(SchemaConstants.PATH_PASSWORD_VALUE), GetOperationOptions.createRetrieve()));
 		}
 	}
 
@@ -1410,7 +1401,7 @@ public class ContextLoader {
 		if (focusContext == null) {
 			return;
 		}
-		if (focusContext == null || !UserType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
+		if (!UserType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
 			LOGGER.trace("Skipping load of security policy because focus is not user");
 			return;
 		}

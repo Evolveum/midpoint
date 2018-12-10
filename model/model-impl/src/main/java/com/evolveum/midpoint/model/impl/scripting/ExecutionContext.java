@@ -16,11 +16,11 @@
 
 package com.evolveum.midpoint.model.impl.scripting;
 
-import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.model.api.ScriptExecutionResult;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.query.QueryConverter;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -150,5 +150,9 @@ public class ExecutionContext {
 
     public boolean isPrivileged() {
         return privileged;
+    }
+
+    public QueryConverter getQueryConverter() {
+        return getPrismContext().getQueryConverter();
     }
 }

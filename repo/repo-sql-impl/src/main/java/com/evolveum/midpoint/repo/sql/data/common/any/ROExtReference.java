@@ -121,15 +121,6 @@ public class ROExtReference extends ROExtBase {
         return Objects.equals(value, that.value);
     }
 
-    public static PrismReferenceValue createReference(ROExtReference repo) {
-        PrismReferenceValue value = new PrismReferenceValue();
-        value.setOid(repo.getValue());
-        value.setRelation(RUtil.stringToQName(repo.getRelation()));
-        value.setTargetType(ClassMapper.getQNameForHQLType(repo.getTargetType()));
-
-        return value;
-    }
-
     public static ROExtReference createReference(PrismReferenceValue jaxb) {
         ROExtReference repo = new ROExtReference();
 

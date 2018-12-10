@@ -217,7 +217,8 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
 		for (ProcessInstanceDto processInstanceDto : processInstanceDtoList) {
 			String taskOid = processInstanceDto.getTaskOid();
 			try {
-				ObjectDelta<? extends ObjectType> deleteDelta = ObjectDelta.createDeleteDelta(TaskType.class, taskOid, getPrismContext());
+				ObjectDelta<? extends ObjectType> deleteDelta = getPrismContext().deltaFactory().object()
+						.createDeleteDelta(TaskType.class, taskOid);
 				modelService.executeChanges(Collections.<ObjectDelta<? extends ObjectType>>singletonList(deleteDelta), null, opTask, result);
 			} catch (CommonException|RuntimeException e) {
 				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete task (process instance) {}", e, taskOid);

@@ -19,10 +19,8 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
@@ -214,7 +212,8 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
 				recomputeUser(USER_JACK_OID, task, result);
 				break;
 			case RECONCILE:
-				ObjectDelta<UserType> emptyDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
+				ObjectDelta<UserType> emptyDelta = prismContext.deltaFactory().object()
+						.createEmptyModifyDelta(UserType.class, USER_JACK_OID);
 				modelService.executeChanges(MiscSchemaUtil.createCollection(emptyDelta), ModelExecuteOptions.createReconcile(), task, result);
 				break;
 			default:
@@ -305,9 +304,9 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
 	}
 
 	private List<PrismObject<ShadowType>> getJacksShadows(OperationResult result) throws SchemaException {
-		ObjectQuery shadowQuery = QueryBuilder.queryFor(ShadowType.class, prismContext)
+		ObjectQuery shadowQuery = prismContext.queryFor(ShadowType.class)
 				.item(ShadowType.F_RESOURCE_REF).ref(RESOURCE_DUMMY_OID)
-				.and().item(new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME),
+				.and().item(ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME),
 						getAccountObjectClassDefinition().findAttributeDefinition(SchemaConstants.ICFS_NAME)).eq("jack")
 				.build();
 		return repositoryService.searchObjects(ShadowType.class, shadowQuery, null, result);

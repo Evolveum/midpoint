@@ -17,6 +17,7 @@ package com.evolveum.midpoint.common.refinery;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.processor.MutableResourceSchema;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -273,4 +274,8 @@ public class LayerRefinedResourceSchemaImpl implements LayerRefinedResourceSchem
 		return refinedResourceSchema.findDefaultObjectClassDefinition(kind);
 	}
 
+	@Override
+	public MutableResourceSchema toMutable() {
+		throw new UnsupportedOperationException();
+	}
 }

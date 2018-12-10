@@ -28,12 +28,8 @@ import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
@@ -548,7 +544,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 		LOGGER.trace("Shadow reconciliation starting for {}, {} -> {}", resource, startTimestamp, endTimestamp);
 		OperationResult opResult = result.createSubresult(OperationConstants.RECONCILIATION+".shadowReconciliation");
 
-		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(ShadowType.class)
 				.block()
 					.item(ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP).le(XmlTypeConverter.createXMLGregorianCalendar(startTimestamp))
 					.or().item(ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP).isNull()
@@ -662,8 +658,9 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 			ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
 			change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON));
 			change.setResource(resource);
-			ObjectDelta<ShadowType> shadowDelta = ObjectDelta.createDeleteDelta(ShadowType.class, shadow.getOid(),
-					shadow.getPrismContext());
+			ObjectDelta<ShadowType> shadowDelta = shadow.getPrismContext().deltaFactory().object()
+					.createDeleteDelta(ShadowType.class, shadow.getOid()
+					);
 			change.setObjectDelta(shadowDelta);
 			// Need to also set current shadow. This will get reflected in "old" object in lens context
 			change.setCurrentShadow(shadow);
@@ -690,7 +687,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 		OperationResult opResult = result.createSubresult(OperationConstants.RECONCILIATION+".repoReconciliation");
 		opResult.addParam("reconciled", true);
 
-		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(ShadowType.class)
 				.block().not().item(ShadowType.F_FAILED_OPERATION_TYPE).isNull().endBlock()
 				.and().item(ShadowType.F_RESOURCE_REF).ref(resourceOid)
 				.build();
@@ -724,7 +721,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 				task.recordIterativeOperationEnd(shadow.asObjectable(), started, ex);
 				processedFailure++;
 				opResult.recordFatalError("Failed to finish operation with shadow: " + ObjectTypeUtil.toShortString(shadow.asObjectable()) +". Reason: " + ex.getMessage(), ex);
-				Collection<? extends ItemDelta> modifications = PropertyDelta
+				Collection<? extends ItemDelta> modifications = prismContext.deltaFactory().property()
 						.createModificationReplacePropertyCollection(ShadowType.F_ATTEMPT_NUMBER,
 								shadow.getDefinition(), shadow.asObjectable().getAttemptNumber() + 1);
 				try {

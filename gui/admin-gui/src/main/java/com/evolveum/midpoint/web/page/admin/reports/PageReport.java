@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.reports;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
@@ -283,7 +284,7 @@ public class PageReport extends PageAdminReports {
 			ObjectDelta<ReportType> delta = null;
 			if (newReport.getOid() == null) {
 				getPrismContext().adopt(newReport);
-				delta = ObjectDelta.createAddDelta(newReport);
+				delta = DeltaFactory.Object.createAddDelta(newReport);
 				delta.setPrismContext(getPrismContext());
 			} else {
 				PrismObject<ReportType> oldReport = WebModelServiceUtils.loadObject(ReportType.class,

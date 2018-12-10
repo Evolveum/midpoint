@@ -18,7 +18,6 @@ package com.evolveum.midpoint.model.common.expression.evaluator.caching;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSearchStrategyType;
@@ -37,7 +36,7 @@ public class QueryKey {
     public <T extends ObjectType> QueryKey(Class<T> type, ObjectQuery query, ObjectSearchStrategyType searchStrategy, PrismContext prismContext) {
         this.type = type;
         try {
-            this.query = query != null ? QueryJaxbConvertor.createQueryType(query, prismContext) : null;
+            this.query = query != null ? prismContext.getQueryConverter().createQueryType(query) : null;
         } catch (SchemaException e) {
             throw new SystemException(e);
         }

@@ -15,20 +15,15 @@
  */
 package com.evolveum.midpoint.model.impl.util;
 
-import java.util.List;
-
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -92,13 +87,13 @@ public abstract class AbstractScannerTaskHandler<O extends ObjectType, H extends
 			 *  and shouldStop() methods and use 'stop' flag at this place as well. Hopefully such stopping is (very probably)
 			 *  not requested by any scanner task handlers.
 			 */
-			PrismPropertyDefinition<XMLGregorianCalendar> lastScanTimestampDef = new PrismPropertyDefinitionImpl<>(
+			PrismPropertyDefinition<XMLGregorianCalendar> lastScanTimestampDef = prismContext.definitionFactory().createPropertyDefinition(
 					SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME,
-					DOMUtil.XSD_DATETIME, prismContext);
-			PropertyDelta<XMLGregorianCalendar> lastScanTimestampDelta = new PropertyDelta<>(
-					new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME),
-					lastScanTimestampDef, prismContext);
-			lastScanTimestampDelta.setValueToReplace(new PrismPropertyValue<>(handler.getThisScanTimestamp()));
+					DOMUtil.XSD_DATETIME);
+			PropertyDelta<XMLGregorianCalendar> lastScanTimestampDelta = prismContext.deltaFactory().property().create(
+					ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME),
+					lastScanTimestampDef);
+			lastScanTimestampDelta.setRealValuesToReplace(handler.getThisScanTimestamp());
 			task.modifyExtension(lastScanTimestampDelta);
 		}
 	}

@@ -37,14 +37,9 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
-import com.evolveum.midpoint.prism.path.ParentPathSegment;
+import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
@@ -282,11 +277,11 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		if (path == null || path.isEmpty()) {
 			return;
 		}
-		ItemPathSegment first = path.first();
+		Object first = path.first();
 		ItemPath rest = path.rest();
 		PrismContainerValue<?> containerValue = containerable.asPrismContainerValue();
-		if (first instanceof NameItemPathSegment) {
-			QName firstName = ItemPath.getName(first);
+		if (ItemPath.isName(first)) {
+			QName firstName = ItemPath.toName(first);
 			PrismReference reference = containerValue.findReferenceByCompositeObjectElementName(firstName);
 			if (reference == null) {
 				reference = containerValue.findReference(firstName);	// alternatively look up by reference name (e.g. linkRef)
@@ -308,13 +303,13 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		if (rest.isEmpty()) {
 			return;
 		}
-		if (first instanceof ParentPathSegment) {
+		if (ItemPath.isParent(first)) {
 			PrismContainerValue<?> parent = containerValue.getParentContainerValue();
 			if (parent != null) {
 				executeResolveOption(parent.asContainerable(), rest, option, task, result);
 			}
 		} else {
-			QName nextName = ItemPath.getName(first);
+			QName nextName = ItemPath.toName(first);
 			PrismContainer<?> nextContainer = containerValue.findContainer(nextName);
 			if (nextContainer != null) {
 				for (PrismContainerValue<?> pcv : nextContainer.getValues()) {
@@ -407,7 +402,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 				// Go directly to repository
 				AuditEventRecord auditRecord = new AuditEventRecord(AuditEventType.EXECUTE_CHANGES_RAW, AuditEventStage.REQUEST);
 				auditRecord.addDeltas(ObjectDeltaOperation.cloneDeltaCollection(deltas));
-				auditRecord.setTarget(ModelImplUtils.determineAuditTarget(deltas));
+				auditRecord.setTarget(ModelImplUtils.determineAuditTarget(deltas, prismContext));
 				// we don't know auxiliary information (resource, objectName) at this moment -- so we do nothing
 				auditService.audit(auditRecord, task);
 				try {
@@ -1692,7 +1687,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	@Override
 	public <T extends ObjectType> CompareResultType compareObject(PrismObject<T> provided,
 			Collection<SelectorOptions<GetOperationOptions>> rawReadOptions, ModelCompareOptions compareOptions,
-			@NotNull List<ItemPath> ignoreItems, Task task, OperationResult parentResult)
+			@NotNull List<? extends ItemPath> ignoreItems, Task task, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
 			ConfigurationException, ExpressionEvaluationException {
 		Validate.notNull(provided, "Object must not be null or empty.");
@@ -1751,7 +1746,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		return rv;
 	}
 
-	private <T extends ObjectType> void removeIgnoredItems(PrismObject<T> object, List<ItemPath> ignoreItems) {
+	private <T extends ObjectType> void removeIgnoredItems(PrismObject<T> object, List<? extends ItemPath> ignoreItems) {
 		if (object != null) {
 			object.getValue().removeItems(ignoreItems);
 		}
@@ -1789,7 +1784,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		if (name == null || name.getOrig() == null) {
 			throw new IllegalArgumentException("Neither OID nor name of the object is known.");
 		}
-		ObjectQuery nameQuery = QueryBuilder.queryFor(type, prismContext)
+		ObjectQuery nameQuery = prismContext.queryFor(type)
 				.item(ObjectType.F_NAME).eqPoly(name.getOrig())
 				.build();
 		List<PrismObject<T>> objects = searchObjects(type, nameQuery, readOptions, task, result);
@@ -1837,15 +1832,15 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		}
 		ObjectFilter secChildFilter;
 		if (secParentFilter instanceof NoneFilter) {
-			secChildFilter = NoneFilter.createNone();
+			secChildFilter = FilterCreationUtil.createNone(prismContext);
 		} else {
 			ObjectFilter origChildFilter = origQuery != null ? origQuery.getFilter() : null;
-			ObjectFilter secChildFilterParentPart = ExistsFilter.createExists(new ItemPath(PrismConstants.T_PARENT),
+			ObjectFilter secChildFilterParentPart = prismContext.queryFactory().createExists(ItemName.fromQName(PrismConstants.T_PARENT),  // fixme
 					containerType, prismContext, secParentFilter);
 			if (origChildFilter == null) {
 				secChildFilter = secChildFilterParentPart;
 			} else {
-				secChildFilter = AndFilter.createAnd(origChildFilter, secChildFilterParentPart);
+				secChildFilter = prismContext.queryFactory().createAnd(origChildFilter, secChildFilterParentPart);
 			}
 		}
 		return updateObjectQuery(origQuery, secChildFilter);
@@ -1858,9 +1853,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		} else if (updatedFilter == null) {
 			return null;
 		} else {
-			ObjectQuery objectQuery = new ObjectQuery();
-			objectQuery.setFilter(updatedFilter);
-			return objectQuery;
+			return getPrismContext().queryFactory().createQuery(updatedFilter);
 		}
 	}
 
@@ -2055,7 +2048,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     public void stopProcessInstance(String instanceId, String username, Task task, OperationResult parentResult) throws SchemaException,
 			ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		if (!securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, task, parentResult)) {
-			ObjectQuery query = QueryBuilder.queryFor(TaskType.class, prismContext)
+			ObjectQuery query = prismContext.queryFor(TaskType.class)
 					.item(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_PROCESS_INSTANCE_ID).eq(instanceId)
 					.build();
 			List<PrismObject<TaskType>> tasks = cacheRepositoryService.searchObjects(TaskType.class, query, GetOperationOptions.createRawCollection(), parentResult);
@@ -2270,7 +2263,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 				throw new ObjectNotFoundException("Work item with ID " + workItemId + " was not found in " + aCase);
 			}
 			XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
-			ObjectDelta<CaseType> delta = DeltaBuilder.deltaFor(CaseType.class, prismContext)
+			ObjectDelta<CaseType> delta = prismContext.deltaFor(CaseType.class)
 					.item(CaseType.F_WORK_ITEM, workItemId, WorkItemType.F_OUTPUT).replace(output)
 					.item(CaseType.F_STATE).replace(SchemaConstants.CASE_STATE_CLOSED)
 					.item(CaseType.F_OUTCOME).replace(output != null ? output.getOutcome() : null)
@@ -2278,7 +2271,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 					.asObjectDeltaCast(caseOid);
 			for (CaseWorkItemType workItem : aCase.asObjectable().getWorkItem()) {
 				delta.swallow(
-						DeltaBuilder.deltaFor(CaseType.class, prismContext)
+						prismContext.deltaFor(CaseType.class)
 								.item(CaseType.F_WORK_ITEM, workItem.getId(), WorkItemType.F_CLOSE_TIMESTAMP).replace(now)
 								.asItemDelta());
 			}

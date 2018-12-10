@@ -22,10 +22,8 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -119,7 +117,7 @@ public class PageAdminResources extends PageAdmin {
         PrismObject<TaskType> oldTask;
 
         OperationResult result = new OperationResult(OPERATION_DELETE_SYNC_TOKEN);
-        ObjectQuery query = QueryBuilder.queryFor(TaskType.class, getPrismContext())
+        ObjectQuery query = getPrismContext().queryFor(TaskType.class)
                 .item(TaskType.F_OBJECT_REF).ref(resourceOid)
                 .and().item(TaskType.F_HANDLER_URI).eq(handlerUri)
                 .build();
@@ -141,16 +139,17 @@ public class PageAdminResources extends PageAdmin {
     private void saveTask(PrismObject<TaskType> oldTask, OperationResult result){
         Task task = createSimpleTask(OPERATION_SAVE_SYNC_TASK);
 
-        PrismProperty property = oldTask.findProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN));
+        PrismProperty property = oldTask.findProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN));
 
         if(property == null){
             return;
         }
         Object value = property.getRealValue();
 
-        ObjectDelta<TaskType> delta = ObjectDelta.createModifyDelta(oldTask.getOid(),
-                PropertyDelta.createModificationDeleteProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN), property.getDefinition(), value),
-                TaskType.class, getPrismContext());
+        ObjectDelta<TaskType> delta = getPrismContext().deltaFactory().object().createModifyDelta(oldTask.getOid(),
+                getPrismContext().deltaFactory().property()
+                        .createModificationDeleteProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN), property.getDefinition(), value),
+                TaskType.class);
 
         if(LOGGER.isTraceEnabled()){
             LOGGER.trace(delta.debugDump());

@@ -21,7 +21,6 @@ import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -315,7 +314,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 		// WHEN
 		@SuppressWarnings({"raw", "unchecked"})
 		ObjectDelta<? extends ObjectType> delta =
-				DeltaBuilder.deltaFor(UserType.class, prismContext)
+				prismContext.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT)
 						.add(ObjectTypeUtil.createAssignmentTo(roleRole1aOid, ObjectTypes.ROLE, prismContext))
 				.asObjectDelta(userJackOid);
