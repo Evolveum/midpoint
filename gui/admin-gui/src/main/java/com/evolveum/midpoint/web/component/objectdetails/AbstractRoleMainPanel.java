@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2015-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -395,7 +395,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 	protected boolean areSavePreviewButtonsEnabled(){
 		ObjectWrapper<R> focusWrapper = getObjectModel().getObject();
 		ContainerWrapper<AssignmentType> assignmentsWrapper =
-				focusWrapper.findContainerWrapper(new ItemPath(AbstractRoleType.F_INDUCEMENT));
+				focusWrapper.findContainerWrapper(AbstractRoleType.F_INDUCEMENT);
 		return super.areSavePreviewButtonsEnabled()  || isAssignmentsModelChanged(assignmentsWrapper);
 	}
 }
