@@ -197,7 +197,7 @@ public class ContainerValuePanel<C extends Containerable> extends BasePanel<Cont
             protected void populateItem(final ListItem<IW> item) {
 				item.setOutputMarkupId(true);
 				if (item.getModelObject() instanceof PropertyOrReferenceWrapper) {
-					PrismPropertyPanel propertyPanel = new PrismPropertyPanel("property", item.getModel(), form, isPanalVisible);
+					PrismPropertyPanel propertyPanel = new PrismPropertyPanel("property", item.getModel(), form, isPanalVisible, getPageBase());
 					propertyPanel.setOutputMarkupId(true);
 					propertyPanel.add(new VisibleEnableBehaviour() {
 						

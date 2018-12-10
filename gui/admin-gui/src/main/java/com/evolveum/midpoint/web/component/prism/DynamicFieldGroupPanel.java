@@ -104,7 +104,7 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 				itemView.add(containerPanel);
 			} else {
 				PrismPropertyPanel<?> propertyPanel = new PrismPropertyPanel<>(itemView.newChildId(),
-						Model.of(itemWrapper), mainForm, null);
+						Model.of(itemWrapper), mainForm, null, getPageBase());
 				propertyPanel.setOutputMarkupId(true);
 				propertyPanel.add(AttributeModifier.append("class", ((i % 2) == 0) ? "" : "stripe"));
 				itemView.add(propertyPanel);

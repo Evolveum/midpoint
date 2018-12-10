@@ -68,7 +68,7 @@ public class EditablePropertyWrapperColumn<C extends Containerable, S> extends A
 
     @Override
     public void populateItem(Item<ICellPopulator<ContainerValueWrapper<C>>> cellItem, String componentId,
-            final IModel<ContainerValueWrapper<C>> rowModel) {
+            final IModel<ContainerValueWrapper<C>> rowModel) { 
         if (!rowModel.getObject().isSelected()) {
         	cellItem.add(createStaticPanel(componentId, rowModel));
         } else {

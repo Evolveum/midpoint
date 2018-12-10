@@ -143,7 +143,7 @@ public abstract class AbstractObjectTabPanel<O extends ObjectType> extends Panel
 	protected PrismPropertyPanel addPrismPropertyPanel(MarkupContainer parentComponent, String id, ItemPath propertyPath) {
 		PrismPropertyPanel panel = new PrismPropertyPanel(id,
 				new PropertyWrapperFromObjectWrapperModel<PolyString,O>(getObjectWrapperModel(), propertyPath),
-				mainForm, wrapper -> ItemVisibility.VISIBLE);
+				mainForm, wrapper -> ItemVisibility.VISIBLE, getPageBase());
 		parentComponent.add(panel);
 		return panel;
 	}
