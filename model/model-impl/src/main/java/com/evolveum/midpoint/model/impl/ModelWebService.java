@@ -236,7 +236,7 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
             // here comes MSL script decoding (however with a quick hack to allow passing XML as text here)
             String scriptsAsString = parameters.getMslScripts();
             if (scriptsAsString.startsWith("<?xml")) {
-                PrismProperty expressionType = (PrismProperty) prismContext.parserFor(scriptsAsString).xml().parseItem();
+                PrismProperty<?> expressionType = (PrismProperty) prismContext.parserFor(scriptsAsString).xml().parseItem();
                 if (expressionType.size() != 1) {
                     throw new IllegalArgumentException("Unexpected number of scripting expressions at input: " + expressionType.size() + " (expected 1)");
                 }

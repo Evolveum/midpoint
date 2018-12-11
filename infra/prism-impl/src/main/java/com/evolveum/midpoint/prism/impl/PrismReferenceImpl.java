@@ -96,10 +96,7 @@ public class PrismReferenceImpl extends ItemImpl<PrismReferenceValue, PrismRefer
 
 	@Override
 	public Referencable getRealValue() {
-		if (getValue() == null) {
-			return null;
-		}
-		return getValue().asReferencable();
+		return (Referencable) super.getRealValue();
 	}
 
 	@NotNull

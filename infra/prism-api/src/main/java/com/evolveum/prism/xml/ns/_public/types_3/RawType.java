@@ -162,8 +162,8 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
                 }
                 checkPrismContext();
 				Item<IV,ID> subItem = prismContext.parserFor(getRootXNode(itemName)).name(itemName).definition(itemDefinition).parseItem();
-				if (!subItem.isEmpty()){
-					value = subItem.getValue(0);
+				if (!subItem.isEmpty()) {
+					value = subItem.getAnyValue();
 				} else {
 					value = null;
 				}

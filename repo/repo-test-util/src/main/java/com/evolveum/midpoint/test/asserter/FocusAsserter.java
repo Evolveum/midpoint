@@ -194,7 +194,7 @@ public class FocusAsserter<F extends FocusType,RA> extends PrismObjectAsserter<F
 			return null; // not reached
 		}
 		assertEquals("Wrong number of links in " + desc(), 1, linkRef.size());
-		ShadowReferenceAsserter<FocusAsserter<F, RA>> asserter = new ShadowReferenceAsserter<>(linkRef.getValue(0), null, this, "link in "+desc());
+		ShadowReferenceAsserter<FocusAsserter<F, RA>> asserter = new ShadowReferenceAsserter<>(linkRef.getAnyValue(), null, this, "link in "+desc());
 		copySetupTo(asserter);
 		return asserter;
 	}

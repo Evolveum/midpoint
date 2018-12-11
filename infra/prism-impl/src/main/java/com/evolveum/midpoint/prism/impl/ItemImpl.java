@@ -20,7 +20,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -29,7 +28,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
-import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.function.Consumer;
@@ -46,8 +44,7 @@ import java.util.stream.Collectors;
  *
  * @author Radovan Semancik
  */
-public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> implements Item<V, D>, Itemable, DebugDumpable,
-		Visitable, PathVisitable, Serializable, Revivable {
+public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> implements Item<V, D> {
 
     private static final long serialVersionUID = 510000191615288733L;
 
@@ -55,7 +52,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
 	// usual case when it is constructed "out of the blue", e.g. as a new JAXB object
 	// It may not work perfectly, but basic things should work
     protected ItemName elementName;
-    protected PrismValue parent;
+    protected PrismContainerValue<?> parent;
     protected D definition;
     @NotNull protected final List<V> values = new ArrayList<>();
     private transient Map<String,Object> userData = new HashMap<>();;
@@ -121,14 +118,6 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
 		}
 	}
 
-	/**
-     * Returns applicable property definition.
-     * <p>
-     * May return null if no definition is applicable or the definition is not
-     * know.
-     *
-     * @return applicable property definition
-     */
     @Override
     public D getDefinition() {
         return definition;
@@ -139,33 +128,11 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
 		return getDefinition() != null;
 	}
 
-    /**
-     * Returns the name of the property.
-     * <p>
-     * The name is a QName. It uniquely defines a property.
-     * <p>
-     * The name may be null, but such a property will not work.
-     * <p>
-     * The name is the QName of XML element in the XML representation.
-     *
-     * @return property name
-     */
     @Override
     public ItemName getElementName() {
         return elementName;
     }
 
-    /**
-     * Sets the name of the property.
-     * <p>
-     * The name is a QName. It uniquely defines a property.
-     * <p>
-     * The name may be null, but such a property will not work.
-     * <p>
-     * The name is the QName of XML element in the XML representation.
-     *
-     * @param elementName the name to set
-     */
     @Override
     public void setElementName(QName elementName) {
 		checkMutability();
@@ -184,49 +151,16 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
         this.definition = definition;
     }
 
-	/**
-     * Returns a display name for the property type.
-     * <p>
-     * Returns null if the display name cannot be determined.
-     * <p>
-     * The display name is fetched from the definition. If no definition
-     * (schema) is available, the display name will not be returned.
-     *
-     * @return display name for the property type
-     */
 	@Override
     public String getDisplayName() {
         return getDefinition() == null ? null : getDefinition().getDisplayName();
     }
 
-    /**
-     * Returns help message defined for the property type.
-     * <p>
-     * Returns null if the help message cannot be determined.
-     * <p>
-     * The help message is fetched from the definition. If no definition
-     * (schema) is available, the help message will not be returned.
-     *
-     * @return help message for the property type
-     */
     @Override
     public String getHelp() {
         return getDefinition() == null ? null : getDefinition().getHelp();
     }
 
-    /**
-     * Flag that indicates incomplete item. If set to true then the
-     * values in this item are not complete. If this flag is true
-     * then it can be assumed that the object that this item represents
-     * has at least one value. This is a method how to indicate that
-     * the item really has some values, but are not here. This may
-     * be used for variety of purposes. It may indicate that the
-     * account has a password, but the password value is not revealed.
-     * This may indicate that a user has a photo, but the photo was not
-     * requested and therefore is not returned. This may be used to indicate
-     * that only part of the attribute values were returned from the search.
-     * And so on.
-     */
     public boolean isIncomplete() {
 		return incomplete;
 	}
@@ -255,11 +189,11 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
 		this.prismContext = prismContext;
 	}
 
-	public PrismValue getParent() {
+	public PrismContainerValue<?> getParent() {
     	return parent;
     }
 
-    public void setParent(PrismValue parentValue) {
+    public void setParent(PrismContainerValue<?> parentValue) {
     	if (this.parent != null && parentValue != null && this.parent != parentValue) {
     		throw new IllegalStateException("Attempt to reset parent of item "+this+" from "+this.parent+" to "+parentValue);
     	}
@@ -268,15 +202,68 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
     	this.parent = parentValue;
     }
 
-    @NotNull
+	protected Object getPathComponent() {
+		ItemName elementName = getElementName();
+		if (elementName != null) {
+			return elementName;
+		} else {
+			throw new IllegalStateException("Unnamed item has no path");
+		}
+	}
+
+	@NotNull
     public ItemPath getPath() {
     	 if (parent == null) {
-    		 return getElementName();
+		     if (getElementName() != null) {
+			     return getElementName();
+		     } else {
+		     	throw new IllegalStateException("Unnamed item has no path");
+		     }
     	 }
-    	 return parent.getPath().append(getElementName());
+    	 /*
+    	  * This quite ugly algorithm is here to eliminate the need to repeatedly call itemPath.append(..) method
+    	  * that leads to creation of many little objects on the heap. Instead we simply collect path segments
+    	  * and merge them to a single item path in one operation.
+    	  *
+    	  * TODO This is not very nice solution. Think again about it.
+    	  */
+    	 List<Object> names = new ArrayList<>();
+    	 acceptParentVisitor(v -> {
+    	 	Object pathComponent;
+    	 	if (v instanceof Item) {
+		        if (v instanceof ItemImpl) {
+			        pathComponent = ((ItemImpl) v).getPathComponent();
+		        } else {
+			        throw new IllegalStateException("Expected ItemImpl but got " + v.getClass());
+		        }
+	        } else if (v instanceof PrismValue) {
+    	 		if (v instanceof PrismValueImpl) {
+    	 			pathComponent = ((PrismValueImpl) v).getPathComponent();
+		        } else {
+			        throw new IllegalStateException("Expected PrismValueImpl but got " + v.getClass());
+		        }
+	        } else if (v instanceof Itemable) {     // e.g. a delta
+    	 		pathComponent = ((Itemable) v).getPath();
+	        } else {
+		        throw new IllegalStateException("Expected Item or PrismValue but got " + v.getClass());
+	        }
+    	 	if (pathComponent != null) {
+    	 		names.add(pathComponent);
+	        }
+	     });
+    	 return ItemPath.createReverse(names);
     }
 
-    public Map<String, Object> getUserData() {
+	@Override
+	public void acceptParentVisitor(@NotNull Visitor visitor) {
+		visitor.visit(this);
+		if (parent != null) {
+			parent.acceptParentVisitor(visitor);
+		}
+	}
+
+	@NotNull
+	public Map<String, Object> getUserData() {
 		if (userData == null) {
 			userData = new HashMap<>();
 		}
@@ -302,14 +289,23 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
 		return values;
 	}
 
-    public V getValue(int index) {
-    	if (index < 0) {
-    		index = values.size() + index;
-    	}
-		return values.get(index);
+	@Override
+	public V getAnyValue() {
+		return !values.isEmpty() ? values.get(0) : null;
 	}
 
-    public boolean hasValue(PrismValue value, boolean ignoreMetadata) {
+	@Override
+	public V getValue() {
+		if (values.isEmpty()) {
+			return null;
+		} else if (values.size() == 1) {
+			return values.get(0);
+		} else {
+			throw new IllegalStateException("Attempt to get single value from item " + getElementName() + " with multiple values");
+		}
+	}
+
+    private boolean hasValue(PrismValue value, boolean ignoreMetadata) {
     	return findValue(value, ignoreMetadata) != null;
     }
 
@@ -317,11 +313,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
         return hasValue(value, false);
     }
 
-    public boolean hasValueIgnoringMetadata(PrismValue value) {
-    	return hasValue(value, true);
-    }
-
-    public boolean isSingleValue() {
+	public boolean isSingleValue() {
     	// TODO what about dynamic definitions? See MID-3922
 		if (getDefinition() != null) {
     		if (getDefinition().isMultiValue()) {
@@ -346,33 +338,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
 			    .collect(Collectors.toList());
     }
 
-    public PrismValue getPreviousValue(PrismValue value) {
-    	PrismValue previousValue = null;
-    	for (PrismValue myVal : getValues()) {
-    		if (myVal == value) {
-    			return previousValue;
-    		}
-    		previousValue = myVal;
-    	}
-    	throw new IllegalStateException("The value "+value+" is not any of "+this+" values, therefore cannot determine previous value");
-    }
-
-    public PrismValue getNextValue(PrismValue value) {
-    	Iterator<V> iterator = getValues().iterator();
-    	while (iterator.hasNext()) {
-    		PrismValue myVal = iterator.next();
-    		if (myVal == value) {
-    			if (iterator.hasNext()) {
-    				return iterator.next();
-    			} else {
-    				return null;
-    			}
-    		}
-    	}
-    	throw new IllegalStateException("The value "+value+" is not any of "+this+" values, therefore cannot determine next value");
-    }
-
-    public Collection<V> getClonedValues() {
+	public Collection<V> getClonedValues() {
     	Collection<V> clonedValues = new ArrayList<>(getValues().size());
     	for (V val: getValues()) {
     		clonedValues.add((V)val.clone());

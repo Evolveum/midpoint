@@ -16,18 +16,11 @@
 package com.evolveum.midpoint.prism;
 
 /**
- * @author semancik
- *
+ *  Allows a visitor to follow the path along the "parent" relationship.
  */
-public interface PrismContainerable<T extends Containerable> extends Itemable, ParentVisitable {
+@FunctionalInterface
+public interface ParentVisitable {
 
-	@Override
-	PrismContainerDefinition<T> getDefinition();
+	void acceptParentVisitor(Visitor visitor);
 
-	Class<T> getCompileTimeClass();
-
-	default ComplexTypeDefinition getComplexTypeDefinition() {
-		PrismContainerDefinition def = getDefinition();
-		return def != null ? def.getComplexTypeDefinition() : null;
-	}
 }

@@ -96,6 +96,14 @@ public interface ItemPath extends ShortDumpable, Serializable {
 	}
 
 	/**
+	 * Creates the path from given components in reverse direction. E.g. [a, b, c] -> c/b/a
+	 */
+	@NotNull
+	static ItemPath createReverse(@NotNull List<?> components) {
+		return ItemPathImpl.createFromListReverse(components);
+	}
+
+	/**
 	 * Returns true if the path is empty i.e. has no components.
 	 */
 	boolean isEmpty();

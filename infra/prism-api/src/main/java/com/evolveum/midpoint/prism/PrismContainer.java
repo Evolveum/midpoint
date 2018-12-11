@@ -80,23 +80,15 @@ public interface PrismContainer<C extends Containerable>
     @Override
 	Collection<C> getRealValues();
 
-	@Override
 	C getRealValue();
-
-	PrismContainerValue<C> getOrCreateValue();
-
-	PrismContainerValue<C> getValue();
 
 	void setValue(@NotNull PrismContainerValue<C> value) throws SchemaException;
 
 	@Override
 	boolean add(@NotNull PrismContainerValue newValue, boolean checkUniqueness) throws SchemaException;
 
-	@Override
-	PrismContainerValue<C> getPreviousValue(PrismValue value);
-
-	@Override
-	PrismContainerValue<C> getNextValue(PrismValue value);
+	@NotNull
+	PrismContainerValue<C> getValue();
 
     PrismContainerValue<C> getValue(Long id);
 
@@ -145,12 +137,6 @@ public interface PrismContainer<C extends Containerable>
 	void applyDefinition(PrismContainerDefinition<C> definition) throws SchemaException;
 
 	<IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findItem(QName itemQName, Class<I> type);
-
-	/**
-	 * Returns true if the object and all contained prisms have proper definition.
-	 */
-	@Override
-	boolean hasCompleteDefinition();
 
 	@Override
 	Object find(ItemPath path);

@@ -342,7 +342,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 							return String.valueOf(((PrismPropertyValue<?>) itemValue).getValue());
 						} else {
 							String lookupTableKey = ((PrismPropertyValue<?>) itemValue).getValue().toString();
-							LookupTableType lookupTableObject = lookupTable.getValue().asObjectable();
+							LookupTableType lookupTableObject = lookupTable.asObjectable();
 							String rowLabel = "";
 							for (LookupTableRowType lookupTableRow : lookupTableObject.getRow()){
 								if (lookupTableRow.getKey().equals(lookupTableKey)){

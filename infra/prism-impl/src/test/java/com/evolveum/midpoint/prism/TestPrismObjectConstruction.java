@@ -297,7 +297,7 @@ public class TestPrismObjectConstruction {
 
 	private void assertUserDrakeContent(PrismObject<UserType> user, boolean assertDefinitions) {
 		// fullName
-		PrismProperty fullNameProperty = user.findProperty(USER_FULLNAME_QNAME);
+		PrismProperty<?> fullNameProperty = user.findProperty(USER_FULLNAME_QNAME);
 		if (assertDefinitions) PrismAsserts.assertDefinition(fullNameProperty, DOMUtil.XSD_STRING, 1, 1);
 		assertEquals("Wrong fullname", "Sir Fancis Drake", fullNameProperty.getValue().getValue());
 		// activation
@@ -305,7 +305,7 @@ public class TestPrismObjectConstruction {
 		assertEquals(USER_ACTIVATION_QNAME, activationContainer.getElementName());
 		if (assertDefinitions) PrismAsserts.assertDefinition(activationContainer, ACTIVATION_TYPE_QNAME, 0, 1);
 		// activation/enabled
-		PrismProperty enabledProperty = user.findProperty(USER_ENABLED_PATH);
+		PrismProperty<?> enabledProperty = user.findProperty(USER_ENABLED_PATH);
 		assertEquals(USER_ENABLED_QNAME, enabledProperty.getElementName());
 		if (assertDefinitions) PrismAsserts.assertDefinition(enabledProperty, DOMUtil.XSD_BOOLEAN, 0, 1);
 		assertEquals("Wrong enabled", true, enabledProperty.getValue().getValue());

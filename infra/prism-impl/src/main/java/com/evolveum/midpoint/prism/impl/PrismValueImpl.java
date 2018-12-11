@@ -129,6 +129,10 @@ public abstract class PrismValueImpl implements PrismValue {
 		return parent.getPath();
 	}
 
+	protected Object getPathComponent() {
+		return null;
+	}
+
 	/**
 	 * Used when we are removing the value from the previous parent.
 	 * Or when we know that the previous parent will be discarded and we

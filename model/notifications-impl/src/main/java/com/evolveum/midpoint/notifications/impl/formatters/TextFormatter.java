@@ -298,7 +298,7 @@ public class TextFormatter {
                 sb.append(formatReferenceValue(referenceValue, mightBeRemoved));
             }
         } else if (item.size() == 1) {
-            sb.append(formatReferenceValue(((PrismReference) item).getValue(0), mightBeRemoved));
+            sb.append(formatReferenceValue(((PrismReference) item).getAnyValue(), mightBeRemoved));
         }
         sb.append("\n");
     }
@@ -315,7 +315,7 @@ public class TextFormatter {
                 sb.append(ValueDisplayUtil.toStringValue(propertyValue));
             }
         } else if (item.size() == 1) {
-            sb.append(ValueDisplayUtil.toStringValue(((PrismProperty<?>) item).getValue(0)));
+            sb.append(ValueDisplayUtil.toStringValue(((PrismProperty<?>) item).getAnyValue()));
         }
         sb.append("\n");
     }

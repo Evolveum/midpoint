@@ -17,7 +17,6 @@ package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import org.apache.commons.lang.Validate;
@@ -35,7 +34,7 @@ import java.util.stream.Collectors;
  * @author semancik
  *
  */
-public interface PrismContainerValue<C extends Containerable> extends PrismValue, DebugDumpable {
+public interface PrismContainerValue<C extends Containerable> extends PrismValue, ParentVisitable {
 
 	static <T extends Containerable> T asContainerable(PrismContainerValue<T> value) {
     	return value != null ? value.asContainerable() : null;
@@ -415,4 +414,6 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 	void removeOperationalItems();
 
 	PrismContainerDefinition<C> getDefinition();
+
+	void acceptParentVisitor(Visitor visitor);
 }

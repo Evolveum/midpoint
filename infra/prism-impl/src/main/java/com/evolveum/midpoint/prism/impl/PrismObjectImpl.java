@@ -325,13 +325,12 @@ public class PrismObjectImpl<O extends Objectable> extends PrismContainerImpl<O>
 		return delta;
 	}
 
-	@Override
-	public void setParent(PrismValue parentValue) {
+	public void setParent(PrismContainerValue<?> parentValue) {
 		throw new IllegalStateException("Cannot set parent for an object");
 	}
 
 	@Override
-	public PrismValue getParent() {
+	public PrismContainerValue<?> getParent() {
 		return null;
 	}
 
@@ -339,6 +338,11 @@ public class PrismObjectImpl<O extends Objectable> extends PrismContainerImpl<O>
 	@Override
 	public ItemPath getPath() {
 		return ItemPath.EMPTY_PATH;
+	}
+
+	@Override
+	protected Object getPathComponent() {
+		return null;
 	}
 
 	@Override

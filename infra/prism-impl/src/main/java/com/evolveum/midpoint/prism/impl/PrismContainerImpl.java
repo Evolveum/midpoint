@@ -140,28 +140,17 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
 		for (PrismContainerValue<C> value : getValues()) {
 			realValues.add(value.asContainerable());
 		}
-
 		return realValues;
-
 	}
 
-    @Override
-    public C getRealValue() {
-    	if (getValue() == null) {
-    		return null;
-    	}
-    	return getValue().asContainerable();
-    }
+	@Override
+	public C getRealValue() {
+		//noinspection unchecked
+		return (C) super.getRealValue();
+	}
 
-    public PrismContainerValue<C> getOrCreateValue() {
-		if (getValues().size() == 0) {
-			return createNewValue();
-		} else {
-			return getValue();
-		}
-    }
-
-    public PrismContainerValue<C> getValue() {
+	@NotNull
+	public PrismContainerValue<C> getValue() {
     	if (getValues().size() == 1) {
     		return getValues().get(0);
 		}
@@ -231,16 +220,6 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
         return super.add(newValue, checkUniqueness);
     }
 
-	@Override
-	public PrismContainerValue<C> getPreviousValue(PrismValue value) {
-		return (PrismContainerValue<C>) super.getPreviousValue(value);
-	}
-
-	@Override
-	public PrismContainerValue<C> getNextValue(PrismValue value) {
-		return (PrismContainerValue<C>) super.getNextValue(value);
-	}
-
 	private boolean canAssumeSingleValue() {
 		if (getDefinition() != null) {
 			return getDefinition().isSingleValue();
@@ -288,7 +267,7 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
      */
     public void add(Item<?,?> item) throws SchemaException {
 		checkMutability();
-    	getValue().add(item);
+    	this.getValue().add(item);
     }
 
     public PrismContainerValue<C> createNewValue() {
@@ -455,7 +434,7 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
 	}
 
     public <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findCreateItem(QName itemQName, Class<I> type, boolean create) throws SchemaException {
-        return ((PrismContainerValueImpl<C>) getValue()).findCreateItem(itemQName, type, null, create);
+        return ((PrismContainerValueImpl<C>) this.getValue()).findCreateItem(itemQName, type, null, create);
     }
 
     @Override
@@ -519,7 +498,7 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
 	private PrismContainerValue<C> findValue(Long id) {
     	if (id == null) {
     		if (canAssumeSingleValue()) {
-    			return getValue();
+    			return this.getValue();
     		} else {
     			throw new IllegalArgumentException("Attempt to get segment without an ID from a multi-valued container "+ getElementName());
     		}
@@ -542,7 +521,7 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
     }
 
     public <I extends Item<?,?>> List<I> getItems(Class<I> type) {
-		return getValue().getItems(type);
+		return this.getValue().getItems(type);
     }
 
     @SuppressWarnings("unchecked")
@@ -560,7 +539,7 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
     }
 
     public PrismReference findReferenceByCompositeObjectElementName(QName elementName) {
-    	return getValue().findReferenceByCompositeObjectElementName(elementName);
+    	return this.getValue().findReferenceByCompositeObjectElementName(elementName);
     }
 
     public <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findOrCreateItem(
@@ -597,7 +576,7 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
      * Convenience method. Works only on single-valued containers.
      */
     public void remove(Item<?,?> item) {
-    	getValue().remove(item);
+    	this.getValue().remove(item);
     }
 
     public void removeProperty(ItemPath path) {

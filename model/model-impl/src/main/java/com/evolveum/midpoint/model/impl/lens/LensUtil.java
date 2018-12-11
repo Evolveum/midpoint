@@ -202,7 +202,7 @@ public class LensUtil {
 			if (originMappingName != null) {
 				//noinspection unchecked
 				PrismContainer<MetadataType> metadataContainer = ((PrismContainerValue) cloned).findOrCreateContainer(AssignmentType.F_METADATA);
-				metadataContainer.getOrCreateValue().asContainerable().setOriginMappingName(originMappingName);
+				metadataContainer.getValue().asContainerable().setOriginMappingName(originMappingName);
 			}
 		}
 		return cloned;
@@ -249,7 +249,7 @@ public class LensUtil {
 		Iterator<? extends ItemDelta> iterator = modifications.iterator();
 		while (iterator.hasNext()) {
 			ItemDelta projModification = iterator.next();
-			LOGGER.trace("MOD: {}\n{}", projModification.getPath(), projModification.debugDump());
+			LOGGER.trace("MOD: {}\n{}", projModification.getPath(), projModification.debugDumpLazily());
 			if (projModification.getPath().equivalent(SchemaConstants.PATH_TRIGGER)) {
 				focusCtx.swallowToProjectionWaveSecondaryDelta(projModification);
 				iterator.remove();

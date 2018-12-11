@@ -215,7 +215,7 @@ public class ObjectMerger {
 						Item item = (Item)visitable;
 
 						ItemPath itemPath = item.getPath();
-						if (itemPath == null || itemPath.isEmpty()) {
+						if (itemPath.isEmpty()) {
 							return;
 						}
 

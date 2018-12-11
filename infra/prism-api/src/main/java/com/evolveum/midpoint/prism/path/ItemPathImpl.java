@@ -48,6 +48,15 @@ public class ItemPathImpl implements ItemPath {
 	}
 
 	@NotNull
+	static ItemPathImpl createFromListReverse(@NotNull List<?> components) {
+		ItemPathImpl path = new ItemPathImpl();
+		for (int i = components.size() - 1; i >= 0; i--) {
+			path.add(components.get(i));
+		}
+		return path;
+	}
+
+	@NotNull
 	static ItemPathImpl createFromArray(@NotNull Object[] components) {
 		ItemPathImpl path = new ItemPathImpl();
 		path.addAll(components);

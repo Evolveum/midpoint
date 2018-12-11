@@ -86,12 +86,12 @@ public class TestParseLookupTable {
         assertPropertyDefinition(table, "description", DOMUtil.XSD_STRING, 0, 1);
         PrismContainer<LookupTableRowType> tableContainer = table.findContainer(LookupTableType.F_ROW);
         assertEquals("wrong number of rows", 2, tableContainer.size());
-        assertRow(tableContainer.getValue(0),
+        assertRow(tableContainer.getValues().get(0),
                 "first key",
                 "first value",
                 PrismTestUtil.createPolyStringType("first label"),
                 XmlTypeConverter.createXMLGregorianCalendar("2013-05-07T10:38:21.350+02:00"));
-        assertRow(tableContainer.getValue(1),
+        assertRow(tableContainer.getValues().get(1),
                 "2 key",
                 "2 value",
                 PrismTestUtil.createPolyStringType("second ľábeľ", "second label"),

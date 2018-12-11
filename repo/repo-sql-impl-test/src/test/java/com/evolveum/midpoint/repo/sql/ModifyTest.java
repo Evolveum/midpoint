@@ -919,7 +919,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         System.out.println("Reparsed:\n" + shadowReparsed.debugDump());
         Item<PrismValue, ItemDefinition> attr1Reparsed = shadowReparsed.findItem(ItemPath.create(ShadowType.F_ATTRIBUTES, ATTR1_QNAME));
         assertNotNull(attr1Reparsed);
-        assertFalse("Reparsed attribute is raw", attr1Reparsed.getValue(0).isRaw());
+        assertFalse("Reparsed attribute is raw", attr1Reparsed.getAnyValue().isRaw());
     }
 
     private <T> void assertAttribute(PrismObject<ShadowType> shadow, String attrName, T... expectedValues) {

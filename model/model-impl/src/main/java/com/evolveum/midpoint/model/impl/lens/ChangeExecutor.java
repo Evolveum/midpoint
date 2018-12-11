@@ -498,7 +498,7 @@ public class ChangeExecutor {
 			
 			PrismObject<O> objectToAdd = focusDelta.getObjectToAdd();
 			PrismContainer<MetadataType> metadataContainer = objectToAdd.findOrCreateContainer(ObjectType.F_METADATA);
-			metadataContainer.getValue().asContainerable().setLastProvisioningTimestamp(clock.currentTimeXMLGregorianCalendar());
+			metadataContainer.getRealValue().setLastProvisioningTimestamp(clock.currentTimeXMLGregorianCalendar());
 			
 		} else if (focusDelta.isModify()) {
 			

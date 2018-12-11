@@ -21,95 +21,102 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
-import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.function.Function;
 
 /**
- * Item is a common abstraction of Property and PropertyContainer.
+ * Item is a common abstraction of Property, Reference and Container.
  * <p>
  * This is supposed to be a superclass for all items. Items are things
- * that can appear in property containers, which generally means only a property
- * and property container itself. Therefore this is in fact superclass for those
- * two definitions.
+ * that can appear in containers, which generally means only a property, reference
+ * and container itself. Therefore this is in fact superclass for those
+ * three definitions.
  *
  * @author Radovan Semancik
  */
-public interface Item<V extends PrismValue, D extends ItemDefinition> extends Itemable, DebugDumpable, Visitable, PathVisitable, Serializable, Revivable {
+public interface Item<V extends PrismValue, D extends ItemDefinition> extends Itemable, DebugDumpable, Visitable, PathVisitable,
+		ParentVisitable, Serializable, Revivable {
 
     /**
-     * Returns applicable property definition.
+     * Returns applicable definition.
      * <p>
-     * May return null if no definition is applicable or the definition is not
-     * know.
+     * May return null if no definition is applicable or the definition is not known.
      *
-     * @return applicable property definition
+     * @return applicable definition
      */
     D getDefinition();
 
+	/**
+	 * Returns true if this item and all contained items have proper definition.
+	 */
 	boolean hasCompleteDefinition();
 
-
-    /**
-     * Returns the name of the property.
-     * <p>
-     * The name is a QName. It uniquely defines a property.
-     * <p>
-     * The name may be null, but such a property will not work.
-     * <p>
-     * The name is the QName of XML element in the XML representation.
-     *
-     * @return property name
-     */
+	/**
+	 * Returns the name of the item.
+	 * <p>
+	 * The name is a QName. It uniquely defines an item.
+	 * <p>
+	 * The name may be null, but such an item will not work.
+	 * <p>
+	 * The name is the QName of XML element in the XML representation.
+	 *
+	 * @return item name
+	 *
+	 * TODO consider making element name obligatory
+	 */
     @Override
     ItemName getElementName();
 
-    /**
-     * Sets the name of the property.
-     * <p>
-     * The name is a QName. It uniquely defines a property.
-     * <p>
-     * The name may be null, but such a property will not work.
-     * <p>
-     * The name is the QName of XML element in the XML representation.
-     *
-     * @param elementName the name to set
-     */
-    void setElementName(QName elementName);     // todo remove
+	/**
+	 * Sets the name of the item.
+	 * <p>
+	 * The name is a QName. It uniquely defines an item.
+	 * <p>
+	 * The name may be null, but such an item will not work.
+	 * <p>
+	 * The name is the QName of XML element in the XML representation.
+	 *
+	 * @param elementName the name to set
+	 *
+	 * TODO consider removing this method
+	 */
+    void setElementName(QName elementName);
 
     /**
-     * Sets applicable property definition.
+     * Sets applicable item definition.
      *
      * @param definition the definition to set
+     *
+     * TODO consider removing this method
      */
-    void setDefinition(D definition);           // todo remove
+    void setDefinition(@Nullable D definition);
 
 	/**
-     * Returns a display name for the property type.
+     * Returns a display name for the item.
      * <p>
      * Returns null if the display name cannot be determined.
      * <p>
      * The display name is fetched from the definition. If no definition
      * (schema) is available, the display name will not be returned.
      *
-     * @return display name for the property type
+     * @return display name for the item
      */
     String getDisplayName();
 
     /**
-     * Returns help message defined for the property type.
+     * Returns help message defined for the item.
      * <p>
      * Returns null if the help message cannot be determined.
      * <p>
      * The help message is fetched from the definition. If no definition
      * (schema) is available, the help message will not be returned.
      *
-     * @return help message for the property type
+     * @return help message for the item
      */
     String getHelp();
 
@@ -128,51 +135,110 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
      */
     boolean isIncomplete();
 
-	void setIncomplete(boolean incomplete);     // todo reconsider
+	/**
+	 * Flags the item as incomplete.
+	 * @see Item#isIncomplete()
+	 *
+	 * @param incomplete The new value
+	 */
+	void setIncomplete(boolean incomplete);
 
-	@Override
-    PrismContext getPrismContext();
+	/**
+	 * Returns the parent of this item (if exists). Currently this has to be a PrismContainerValue.
+	 *
+	 * @return The parent if exists
+	 */
+	@Nullable
+	PrismContainerValue<?> getParent();
 
-    // Primarily for testing
-    PrismContext getPrismContextLocal();
+	/**
+	 * Sets the parent of this item.
+	 *
+	 * @param parentValue The new parent
+	 */
+    void setParent(@Nullable PrismContainerValue<?> parentValue);
 
-    void setPrismContext(PrismContext prismContext);        // todo remove
+	/**
+	 * Returns the path of this item (sequence of names from the "root" container or similar object to this item).
+	 * Note that if the containing object is a delta (usually a container delta), then the path
+	 *
+	 * @return the path
+	 */
+	@NotNull
+	ItemPath getPath();
 
-	PrismValue getParent();
-
-    void setParent(PrismValue parentValue);                 // todo remove
-
-    ItemPath getPath();
-
+	/**
+	 * Returns the "user data", a map that allows attaching arbitrary named data to this item.
+	 * @return the user data map
+	 */
+	@NotNull
     Map<String, Object> getUserData();
 
+	/**
+	 * Returns the user data for the given key (name).
+	 */
     <T> T getUserData(String key);
 
-    void setUserData(String key, Object value);
+	/**
+	 * Sets the user data for the given key (name).
+	 */
+	void setUserData(String key, Object value);
 
+	/**
+	 * Returns the values for this item. Although the ordering of this values is not important, and each value should
+	 * be present at most once, we currently return them as a list instead of a set. TODO reconsider this
+	 */
     @NotNull
 	List<V> getValues();
 
-    V getValue(int index);
-
-    Object getRealValue();
-
-    @NotNull
-    Collection<?> getRealValues();
-
-
-	// TODO what about dynamic definitions? See MID-3922
-    boolean isSingleValue();
-
-
-	boolean hasValue(PrismValue value, boolean ignoreMetadata);
-
-	boolean hasValue(PrismValue value);
+	/**
+	 * Returns the number of values for this item.
+	 */
+	int size();
 
 	/**
-	 * Returns true if this item has a given value (ignoring metadata).
+	 * Returns any of the values. Usually called when we are quite confident that there is only a single value;
+	 * or we don't care which of the values we get. Does not create values if there are none.
 	 */
-	boolean hasValueIgnoringMetadata(PrismValue value);
+	V getAnyValue();
+
+	/**
+	 * Returns the value, if there is only one. Throws exception if there are more values.
+	 * If there is no value, this method either:
+	 * - returns null (for properties)
+	 * - throws an exception (for items that can hold multiple values)
+	 * - creates an empty value (for containers and references).
+	 *
+	 * TODO think again whether getOrCreateValue would not be better
+	 */
+	V getValue();
+
+	/**
+	 * Returns the "real value" of this item:
+	 *  - value contained in PrismPropertyValue
+	 *  - Referencable in PrismReferenceValue
+	 *  - Containerable in PrismContainerValue
+	 *  - Objectable in PrismObjectValue
+	 */
+	@Nullable
+    default Object getRealValue() {
+	    V value = getValue();
+	    return value != null ? value.getRealValue() : null;
+    }
+
+	/**
+	 * Returns (potentially empty) collection of "real values".
+	 * @see Item#getRealValue().
+	 */
+	@NotNull
+    Collection<?> getRealValues();
+
+	/**
+	 * Returns true if the item contains 0 or 1 values and (by definition) is not multivalued.
+	 */
+    boolean isSingleValue();
+
+    //region Comparing values
 
 	/**
      * Returns value that is equal or equivalent to the provided value.
@@ -183,39 +249,24 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
 
     List<? extends PrismValue> findValuesIgnoringMetadata(PrismValue value);
 
-    /**
-     * Returns value that is previous to the specified value.
-     * Note that the order is semantically insignificant and this is used only
-     * for presentation consistency in order-sensitive formats such as XML or JSON.
-     * TODO consider removing because it's not used
-     */
-    PrismValue getPreviousValue(PrismValue value);
+	boolean contains(V value);
 
-    /**
-     * Returns values that is following the specified value.
-     * Note that the order is semantically insignificant and this is used only
-     * for presentation consistency in order-sensitive formats such as XML or JSON.
-     * TODO consider removing because it's not used
-     */
-    PrismValue getNextValue(PrismValue value);
+	boolean containsEquivalentValue(V value);
 
-    Collection<V> getClonedValues();
+	boolean containsEquivalentValue(V value, Comparator<V> comparator);
 
-    boolean contains(V value);
+	boolean contains(V value, boolean ignoreMetadata, Comparator<V> comparator);
 
-    boolean containsEquivalentValue(V value);
-    
-    boolean containsEquivalentValue(V value, Comparator<V> comparator);
+	boolean contains(V value, boolean ignoreMetadata);
 
-    boolean contains(V value, boolean ignoreMetadata, Comparator<V> comparator);
+	boolean containsRealValue(V value);
 
-    boolean contains(V value, boolean ignoreMetadata);
+	boolean valuesExactMatch(Collection<V> matchValues, Comparator<V> comparator);
+	//endregion
 
-    boolean containsRealValue(V value);
 
-    boolean valuesExactMatch(Collection<V> matchValues, Comparator<V> comparator);
 
-    int size();
+	Collection<V> getClonedValues();
 
     boolean addAll(Collection<V> newValues) throws SchemaException;
 
@@ -263,11 +314,11 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
 
 	ItemDelta<V,D> createDelta(ItemPath path);
 
-	@Override
-	void accept(Visitor visitor);
-
-	@Override
-	void accept(Visitor visitor, ItemPath path, boolean recursive);
+	/**
+	 * Accepts a visitor that visits each item/value on the way to the structure root.
+	 * @param visitor
+	 */
+	void acceptParentVisitor(@NotNull Visitor visitor);
 
 	/**
 	 * Re-apply PolyString (and possible other) normalizations to the object.
@@ -381,4 +432,13 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
 	static Collection<PrismValue> getAllValues(Item<?, ?> item, ItemPath path) {
     	return item != null ? item.getAllValues(path) : Collections.emptySet();
 	}
+
+	@Override
+	PrismContext getPrismContext();
+
+	// Primarily for testing
+	PrismContext getPrismContextLocal();
+
+	void setPrismContext(PrismContext prismContext);        // todo remove
+
 }

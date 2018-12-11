@@ -691,8 +691,7 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 						ObjectDeltaType objectDeltaType = (ObjectDeltaType) ((PrismPropertyValue) getModel().getObject()
 								.getValue()).getValue();
 						try {
-							ObjectDelta delta = DeltaConvertor.createObjectDelta(objectDeltaType, prismContext);
-							return new DeltaDto(delta);
+							return new DeltaDto(DeltaConvertor.createObjectDelta(objectDeltaType, prismContext));
 						} catch (SchemaException e) {
 							throw new IllegalStateException("Couldn't convert object delta: " + objectDeltaType);
 						}
