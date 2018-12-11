@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.ClassUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
@@ -19,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceDefinitionImpl;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
 import com.evolveum.midpoint.web.component.prism.ReferenceWrapper;
@@ -85,6 +87,9 @@ public class PanelContext<T> {
 		Class<T> clazz = itemWrapper.getItemDefinition().getTypeClass();
 		if (clazz == null) {
 			clazz = getPrismContext().getSchemaRegistry().determineClassForType(itemWrapper.getItemDefinition().getTypeName());
+		}
+		if (clazz != null && clazz.isPrimitive()) {
+			clazz = ClassUtils.primitiveToWrapper(clazz);
 		}
 		return clazz;
 	}

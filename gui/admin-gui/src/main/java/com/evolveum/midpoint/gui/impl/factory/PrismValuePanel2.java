@@ -258,17 +258,17 @@ public class PrismValuePanel2 extends BasePanel<ValueWrapper> {
 		buttonContainer.add(removeButton);
 	}
 
-	private IModel<String> createHelpModel() {
-		return new AbstractReadOnlyModel<String>() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public String getObject() {
-				ItemWrapper wrapper = getModel().getObject().getItem();
-				return wrapper.getItem().getHelp();
-			}
-		};
-	}
+//	private IModel<String> createHelpModel() {
+//		return new AbstractReadOnlyModel<String>() {
+//			private static final long serialVersionUID = 1L;
+//
+//			@Override
+//			public String getObject() {
+//				ItemWrapper wrapper = getModel().getObject().getItem();
+//				return wrapper.getItem().getHelp();
+//			}
+//		};
+//	}
 
 	private boolean isAccessible(ItemDefinition def, ContainerStatus status) {
 		if (def.getName().equals(ConstructionType.F_KIND) || def.getName().equals(ConstructionType.F_INTENT)){
