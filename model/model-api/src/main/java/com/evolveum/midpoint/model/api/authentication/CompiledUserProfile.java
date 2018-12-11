@@ -143,7 +143,6 @@ public class CompiledUserProfile implements DebugDumpable, Serializable {
 	 * If viewName is null then it returns view definition for "all objects" view,
 	 * e.g. "all users", "all roles".
 	 */
-	@NotNull
 	public CompiledObjectCollectionView findObjectCollectionView(@NotNull QName objectType, String viewName) {
 		for (CompiledObjectCollectionView objectCollectionView : objectCollectionViews) {
 			if (objectCollectionView.match(objectType, viewName)) {
