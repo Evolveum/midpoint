@@ -105,7 +105,7 @@ public class SceneItemValuePanel extends BasePanel<SceneItemValue> {
 
 	private ObjectTypeGuiDescriptor getObjectTypeDescriptor() {
 		SceneItemValue value = getModelObject();
-		if (value.getSourceValue() instanceof PrismReferenceValue) {
+		if (value != null && value.getSourceValue() instanceof PrismReferenceValue) {
 			QName targetType = ((PrismReferenceValue) value.getSourceValue()).getTargetType();
 			return ObjectTypeGuiDescriptor.getDescriptor(ObjectTypes.getObjectTypeFromTypeQName(targetType));
 		} else {
