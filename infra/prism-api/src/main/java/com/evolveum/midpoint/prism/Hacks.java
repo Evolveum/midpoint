@@ -16,20 +16,14 @@
 
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedDataType;
-import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
 import javax.xml.soap.Detail;
-import java.io.Serializable;
 
 /**
  * TEMPORARY.
@@ -42,15 +36,7 @@ public interface Hacks {
 
 	void serializeFaultMessage(Detail detail, Object faultInfo, QName faultMessageElementName, Trace logger);
 
-	<T> void setPrimitiveXNodeValue(PrimitiveXNode<T> node, T value, QName typeName);
-
-	void putToMapXNode(MapXNode map, QName key, XNode value);
-
-	void addToListXNode(ListXNode list, XNode... nodes);
-
 	<T> void parseProtectedType(ProtectedDataType<T> protectedType, MapXNode xmap, PrismContext prismContext, ParsingContext pc) throws SchemaException;
 
 	Element serializeSingleElementMapToElement(MapXNode filterClauseXNode) throws SchemaException;
-
-	void setXNodeType(XNode node, QName explicitTypeName, boolean explicitTypeDeclaration);
 }

@@ -259,7 +259,7 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
         } else if (parsed != null) {
             checkPrismContext();
 	        XNode rv = prismContext.xnodeSerializer().root(new QName("dummy")).serialize(parsed).getSubnode();
-	        prismContext.hacks().setXNodeType(rv, explicitTypeName, explicitTypeDeclaration);
+	        prismContext.xnodeMutator().setXNodeType(rv, explicitTypeName, explicitTypeDeclaration);
 	        return rv;
         } else {
             return null;            // or an exception here?

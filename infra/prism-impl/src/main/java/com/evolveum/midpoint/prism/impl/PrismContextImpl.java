@@ -49,6 +49,7 @@ import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.impl.xnode.RootXNodeImpl;
 import com.evolveum.midpoint.prism.xnode.XNodeFactory;
 import com.evolveum.midpoint.prism.impl.xnode.XNodeFactoryImpl;
+import com.evolveum.midpoint.prism.xnode.XNodeMutator;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -87,7 +88,7 @@ public class PrismContextImpl implements PrismContext {
 	@NotNull private final PrismMarshaller prismMarshaller;
 	@NotNull private final BeanMarshaller beanMarshaller;
 	@NotNull private final BeanUnmarshaller beanUnmarshaller;
-	@NotNull private final Hacks hacks;
+	@NotNull private final HacksImpl hacks;
 	@NotNull private final XNodeFactory xnodeFactory;
 	@NotNull private final DeltaFactory deltaFactory;
 	@NotNull private final QueryFactory queryFactory;
@@ -574,6 +575,11 @@ public class PrismContextImpl implements PrismContext {
 	@Override
 	public XNodeFactory xnodeFactory() {
 		return xnodeFactory;
+	}
+
+	@Override
+	public XNodeMutator xnodeMutator() {
+		return hacks;
 	}
 
 	@Override
