@@ -56,4 +56,6 @@ public interface MutableComplexTypeDefinition extends ComplexTypeDefinition, Mut
 	void setListMarker(boolean value);
 
 	void setCompileTimeClass(Class<?> compileTimeClass);
+
+	void replaceDefinition(QName itemName, ItemDefinition newDefinition);
 }

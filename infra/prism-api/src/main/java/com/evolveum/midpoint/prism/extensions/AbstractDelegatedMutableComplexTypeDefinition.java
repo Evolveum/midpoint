@@ -490,4 +490,9 @@ public class AbstractDelegatedMutableComplexTypeDefinition implements MutableCom
 	public void setDocumentation(String value) {
 		inner.setDocumentation(value);
 	}
+
+	@Override
+	public void replaceDefinition(QName itemName, ItemDefinition newDefinition) {
+		inner.replaceDefinition(itemName, newDefinition);
+	}
 }

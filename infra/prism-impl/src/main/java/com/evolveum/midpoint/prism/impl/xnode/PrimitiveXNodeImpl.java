@@ -197,6 +197,7 @@ public class PrimitiveXNodeImpl<T> extends XNodeImpl implements Serializable, Pr
      *
      * @return properly formatted value
      */
+    @Override
     public String getGuessedFormattedValue() throws SchemaException {
         if (isParsed()) {
             return getFormattedValue();

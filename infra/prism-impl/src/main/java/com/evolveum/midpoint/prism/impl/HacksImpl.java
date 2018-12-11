@@ -46,24 +46,6 @@ public class HacksImpl implements Hacks {
 	}
 
 	/**
-	 * Obscure method. TODO specify the functionality and decide what to do with this.
-	 */
-	@Override
-	@Nullable
-	public Serializable guessFormattedValue(Serializable value) throws SchemaException {
-		if (value instanceof RawType) {
-			XNode xnode = ((RawType) value).getXnode();
-			if (xnode instanceof PrimitiveXNodeImpl) {
-				return ((PrimitiveXNodeImpl) xnode).getGuessedFormattedValue();
-			} else {
-				return null;
-			}
-		} else {
-			return value;
-		}
-	}
-
-	/**
 	 * TODO rewrite this method using Prism API
 	 */
 	@Override
@@ -116,15 +98,5 @@ public class HacksImpl implements Hacks {
 	public void setXNodeType(XNode node, QName explicitTypeName, boolean explicitTypeDeclaration) {
 		((XNodeImpl) node).setTypeQName(explicitTypeName);
 		((XNodeImpl) node).setExplicitTypeDeclaration(explicitTypeDeclaration);
-	}
-
-	@Override
-	public void addToDefinition(ComplexTypeDefinition ctd, ItemDefinition other) {
-		((ComplexTypeDefinitionImpl) ctd).add(other);
-	}
-
-	@Override
-	public void replaceDefinition(ComplexTypeDefinition ctd, ItemName name, ItemDefinition other) {
-		((ComplexTypeDefinitionImpl) ctd).replaceDefinition(name, other);
 	}
 }

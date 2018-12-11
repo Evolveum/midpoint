@@ -40,9 +40,6 @@ import java.io.Serializable;
  */
 public interface Hacks {
 
-	@Nullable
-	Serializable guessFormattedValue(Serializable value) throws SchemaException;
-
 	void serializeFaultMessage(Detail detail, Object faultInfo, QName faultMessageElementName, Trace logger);
 
 	<T> void setPrimitiveXNodeValue(PrimitiveXNode<T> node, T value, QName typeName);
@@ -56,8 +53,4 @@ public interface Hacks {
 	Element serializeSingleElementMapToElement(MapXNode filterClauseXNode) throws SchemaException;
 
 	void setXNodeType(XNode node, QName explicitTypeName, boolean explicitTypeDeclaration);
-
-	void addToDefinition(ComplexTypeDefinition ctd, ItemDefinition other);
-
-	void replaceDefinition(ComplexTypeDefinition ctd, ItemName name, ItemDefinition other);
 }
