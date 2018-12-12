@@ -141,8 +141,8 @@ public class PrismPropertyImpl<T> extends ItemImpl<PrismPropertyValue<T>, PrismP
 
 	@Override
 	public T getRealValue() {
-		//noinspection unchecked
-		return (T) super.getRealValue();
+		PrismPropertyValue<T> value = getValue();
+		return value != null ? value.getRealValue() : null;
 	}
 
 	/**

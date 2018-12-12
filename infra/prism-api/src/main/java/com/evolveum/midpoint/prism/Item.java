@@ -221,10 +221,7 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
 	 *  - Objectable in PrismObjectValue
 	 */
 	@Nullable
-    default Object getRealValue() {
-	    V value = getValue();
-	    return value != null ? value.getRealValue() : null;
-    }
+    Object getRealValue();
 
 	/**
 	 * Returns (potentially empty) collection of "real values".

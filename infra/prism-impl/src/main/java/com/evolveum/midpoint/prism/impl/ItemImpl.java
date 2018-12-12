@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.lang.reflect.Constructor;
@@ -209,6 +210,13 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
 		} else {
 			throw new IllegalStateException("Unnamed item has no path");
 		}
+	}
+
+	@Nullable
+	@Override
+	public Object getRealValue() {
+		V value = getValue();
+		return value != null ? value.getRealValue() : null;
 	}
 
 	@NotNull

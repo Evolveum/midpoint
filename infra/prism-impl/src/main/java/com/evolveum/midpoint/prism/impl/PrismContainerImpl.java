@@ -145,8 +145,7 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
 
 	@Override
 	public C getRealValue() {
-		//noinspection unchecked
-		return (C) super.getRealValue();
+		return getValue().getRealValue();
 	}
 
 	@NotNull
