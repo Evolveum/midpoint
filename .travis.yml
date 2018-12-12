@@ -14,8 +14,16 @@ before_install:
   - RefreshEnv.cmd
   - export JAVA_HOME=`find "/c/Program Files/Java" -name jdk1.8.*`
 
-# custom script is used so build and tests are done in one mvn command, separating it (as Travis does by default) leads to problem with ConnId (notably DummyResource)
-script: mvn -B clean install
-
 addons:
   hostname: localhost # workaround for short hostname
+
+env:
+  global:
+    - MALLOC_ARENA_MAX=2
+ 
+matrix:
+  include:
+    - name: JDK8 - Run all excluding model-intest
+      script: mvn install -B -DskipTests; mvn verify -DskipModelIntTest=true  
+    - name: JDK8 - Run only model-intest
+      script: mvn install -B -DskipTests; mvn verify -pl :model-intest -DskipModelUnitTest=true  
