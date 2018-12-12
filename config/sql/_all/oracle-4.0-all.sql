@@ -519,6 +519,12 @@ CREATE TABLE m_abstract_role (
   oid                VARCHAR2(36 CHAR) NOT NULL,
   PRIMARY KEY (oid)
 ) INITRANS 30;
+CREATE TABLE m_archetype (
+  name_norm VARCHAR2(255 CHAR),
+  name_orig VARCHAR2(255 CHAR),
+  oid       VARCHAR2(36 CHAR) NOT NULL,
+  PRIMARY KEY (oid)
+) INITRANS 30;
 CREATE TABLE m_case (
   name_norm           VARCHAR2(255 CHAR),
   name_orig           VARCHAR2(255 CHAR),
@@ -884,8 +890,9 @@ CREATE INDEX iAbstractRoleIdentifier
   ON m_abstract_role (identifier) INITRANS 30;
 CREATE INDEX iRequestable
   ON m_abstract_role (requestable) INITRANS 30;
-CREATE INDEX iAutoassignEnabled
-  ON m_abstract_role (autoassign_enabled) INITRANS 30;
+CREATE INDEX iAutoassignEnabled ON m_abstract_role(autoassign_enabled) INITRANS 30;
+CREATE INDEX iArchetypeNameOrig ON m_archetype(name_orig) INITRANS 30;
+CREATE INDEX iArchetypeNameNorm ON m_archetype(name_norm) INITRANS 30;
 CREATE INDEX iCaseNameOrig
   ON m_case (name_orig) INITRANS 30;
 ALTER TABLE m_case
@@ -1108,6 +1115,8 @@ ALTER TABLE m_user_organizational_unit
   ADD CONSTRAINT fk_user_org_unit FOREIGN KEY (user_oid) REFERENCES m_user;
 ALTER TABLE m_abstract_role
   ADD CONSTRAINT fk_abstract_role FOREIGN KEY (oid) REFERENCES m_focus;
+ALTER TABLE m_archetype
+  ADD CONSTRAINT fk_archetype FOREIGN KEY (oid) REFERENCES m_abstract_role;
 ALTER TABLE m_case
   ADD CONSTRAINT fk_case FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_connector
@@ -1121,7 +1130,7 @@ ALTER TABLE m_form
 ALTER TABLE m_function_library
   ADD CONSTRAINT fk_function_library FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_generic_object
-  ADD CONSTRAINT fk_generic_object FOREIGN KEY (oid) REFERENCES m_object;
+  ADD CONSTRAINT fk_generic_object FOREIGN KEY (oid) REFERENCES m_focus;
 ALTER TABLE m_lookup_table
   ADD CONSTRAINT fk_lookup_table FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_lookup_table_row
@@ -1157,7 +1166,7 @@ ALTER TABLE m_user
 ALTER TABLE m_value_policy
   ADD CONSTRAINT fk_value_policy FOREIGN KEY (oid) REFERENCES m_object;
 
-INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '3.9');
+INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '4.0');
 
 --
 -- A hint submitted by a user: Oracle DB MUST be created as "shared" and the

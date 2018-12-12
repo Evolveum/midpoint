@@ -4,6 +4,7 @@ CREATE TABLE m_acc_cert_campaign (
   definitionRef_type      INT,
   endTimestamp            DATETIME2,
   handlerUri              NVARCHAR(255) COLLATE database_default,
+  iteration               INT                                   NOT NULL,
   name_norm               NVARCHAR(255) COLLATE database_default,
   name_orig               NVARCHAR(255) COLLATE database_default,
   ownerRef_relation       NVARCHAR(157) COLLATE database_default,
@@ -30,6 +31,7 @@ CREATE TABLE m_acc_cert_case (
   validityStatus           INT,
   currentStageOutcome      NVARCHAR(255) COLLATE database_default,
   fullObject               VARBINARY(MAX),
+  iteration                INT                                   NOT NULL,
   objectRef_relation       NVARCHAR(157) COLLATE database_default,
   objectRef_targetOid      NVARCHAR(36) COLLATE database_default,
   objectRef_type           INT,
@@ -66,6 +68,7 @@ CREATE TABLE m_acc_cert_wi (
   owner_id               INT                                   NOT NULL,
   owner_owner_oid        NVARCHAR(36) COLLATE database_default NOT NULL,
   closeTimestamp         DATETIME2,
+  iteration              INT                                   NOT NULL,
   outcome                NVARCHAR(255) COLLATE database_default,
   outputChangeTimestamp  DATETIME2,
   performerRef_relation  NVARCHAR(157) COLLATE database_default,
@@ -516,6 +519,12 @@ CREATE TABLE m_abstract_role (
   oid                NVARCHAR(36) COLLATE database_default NOT NULL,
   PRIMARY KEY (oid)
 );
+CREATE TABLE m_archetype (
+  name_norm NVARCHAR(255) COLLATE database_default,
+  name_orig NVARCHAR(255) COLLATE database_default,
+  oid       NVARCHAR(36) COLLATE database_default NOT NULL,
+  PRIMARY KEY (oid)
+);
 CREATE TABLE m_case (
   name_norm           NVARCHAR(255) COLLATE database_default,
   name_orig           NVARCHAR(255) COLLATE database_default,
@@ -589,6 +598,11 @@ CREATE TABLE m_generic_object (
   oid        NVARCHAR(36) COLLATE database_default NOT NULL,
   PRIMARY KEY (oid)
 );
+CREATE TABLE m_global_metadata (
+  name  NVARCHAR(255) COLLATE database_default NOT NULL,
+  value NVARCHAR(255) COLLATE database_default,
+  PRIMARY KEY (name)
+);
 CREATE TABLE m_lookup_table (
   name_norm NVARCHAR(255) COLLATE database_default,
   name_orig NVARCHAR(255) COLLATE database_default,
@@ -610,6 +624,12 @@ CREATE TABLE m_node (
   name_orig      NVARCHAR(255) COLLATE database_default,
   nodeIdentifier NVARCHAR(255) COLLATE database_default,
   oid            NVARCHAR(36) COLLATE database_default NOT NULL,
+  PRIMARY KEY (oid)
+);
+CREATE TABLE m_object_collection (
+  name_norm NVARCHAR(255) COLLATE database_default,
+  name_orig NVARCHAR(255) COLLATE database_default,
+  oid       NVARCHAR(36) COLLATE database_default NOT NULL,
   PRIMARY KEY (oid)
 );
 CREATE TABLE m_object_template (
@@ -870,8 +890,9 @@ CREATE INDEX iAbstractRoleIdentifier
   ON m_abstract_role (identifier);
 CREATE INDEX iRequestable
   ON m_abstract_role (requestable);
-CREATE INDEX iAutoassignEnabled
-  ON m_abstract_role (autoassign_enabled);
+CREATE INDEX iAutoassignEnabled ON m_abstract_role(autoassign_enabled);
+CREATE INDEX iArchetypeNameOrig ON m_archetype(name_orig);
+CREATE INDEX iArchetypeNameNorm ON m_archetype(name_norm);
 CREATE INDEX iCaseNameOrig
   ON m_case (name_orig);
 ALTER TABLE m_case
@@ -916,6 +937,10 @@ CREATE INDEX iNodeNameOrig
   ON m_node (name_orig);
 ALTER TABLE m_node
   ADD CONSTRAINT uc_node_name UNIQUE (name_norm);
+CREATE INDEX iObjectCollectionNameOrig
+  ON m_object_collection (name_orig);
+ALTER TABLE m_object_collection
+  ADD CONSTRAINT uc_object_collection_name UNIQUE (name_norm);
 CREATE INDEX iObjectTemplateNameOrig
   ON m_object_template (name_orig);
 ALTER TABLE m_object_template
@@ -1090,6 +1115,8 @@ ALTER TABLE m_user_organizational_unit
   ADD CONSTRAINT fk_user_org_unit FOREIGN KEY (user_oid) REFERENCES m_user;
 ALTER TABLE m_abstract_role
   ADD CONSTRAINT fk_abstract_role FOREIGN KEY (oid) REFERENCES m_focus;
+ALTER TABLE m_archetype
+  ADD CONSTRAINT fk_archetype FOREIGN KEY (oid) REFERENCES m_abstract_role;
 ALTER TABLE m_case
   ADD CONSTRAINT fk_case FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_connector
@@ -1103,13 +1130,15 @@ ALTER TABLE m_form
 ALTER TABLE m_function_library
   ADD CONSTRAINT fk_function_library FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_generic_object
-  ADD CONSTRAINT fk_generic_object FOREIGN KEY (oid) REFERENCES m_object;
+  ADD CONSTRAINT fk_generic_object FOREIGN KEY (oid) REFERENCES m_focus;
 ALTER TABLE m_lookup_table
   ADD CONSTRAINT fk_lookup_table FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_lookup_table_row
   ADD CONSTRAINT fk_lookup_table_owner FOREIGN KEY (owner_oid) REFERENCES m_lookup_table;
 ALTER TABLE m_node
   ADD CONSTRAINT fk_node FOREIGN KEY (oid) REFERENCES m_object;
+ALTER TABLE m_object_collection
+  ADD CONSTRAINT fk_object_collection FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_object_template
   ADD CONSTRAINT fk_object_template FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_org
@@ -1136,6 +1165,8 @@ ALTER TABLE m_user
   ADD CONSTRAINT fk_user FOREIGN KEY (oid) REFERENCES m_focus;
 ALTER TABLE m_value_policy
   ADD CONSTRAINT fk_value_policy FOREIGN KEY (oid) REFERENCES m_object;
+
+INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '4.0');
 
 --# thanks to George Papastamatopoulos for submitting this ... and Marko Lahma for
 --# updating it.
