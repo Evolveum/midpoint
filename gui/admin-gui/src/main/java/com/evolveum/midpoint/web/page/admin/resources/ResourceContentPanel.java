@@ -986,8 +986,8 @@ public abstract class ResourceContentPanel extends Panel {
 		}
 
 		ConfirmationPanel dialog = new ConfirmationPanel(((PageBase) getPage()).getMainPopupBodyId(),
-				createDeleteConfirmString(selected, "pageContentAccounts.message.deleteConfirmation",
-						"pageContentAccounts.message.deleteConfirmationSingle")) {
+				createDeleteConfirmString(selected, "pageContentAccounts.message.deleteConfirmationSingle",
+						"pageContentAccounts.message.deleteConfirmation")) {
 			@Override
 			public void yesPerformed(AjaxRequestTarget target) {
 				deleteAccountConfirmedPerformed(target, result, selectedShadow);
