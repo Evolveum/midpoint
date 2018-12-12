@@ -223,7 +223,7 @@ public class PageCertDefinitions extends PageAdminWorkItems {
 								.arg(getOrig(campaign.getName()))
 								.build());
 			} else {
-				result.recordWarning("Definition '" + definition.getName() + "' is for ad-hoc campaigns that cannot be started manually.");
+				result.recordWarning(createStringResource("PageCertDefinitions.message.createCampaignPerformed.warning", definition.getName()).getString());
 			}
 		} catch (Exception ex) {
 			result.recordFatalError(ex);
@@ -247,8 +247,9 @@ public class PageCertDefinitions extends PageAdminWorkItems {
 		try {
 			Task task = createSimpleTask(OPERATION_DELETE_DEFINITION);
 			ObjectDelta<AccessCertificationDefinitionType> delta =
-					ObjectDelta.createDeleteDelta(AccessCertificationDefinitionType.class, definition.getOid(),
-							getPrismContext());
+					getPrismContext().deltaFactory().object()
+							.createDeleteDelta(AccessCertificationDefinitionType.class, definition.getOid()
+							);
 			getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task, result);
 		} catch (Exception ex) {
 			result.recordPartialError(createStringResource("PageCertDefinitions.message.deleteDefinitionPerformed.partialError").getString(), ex);

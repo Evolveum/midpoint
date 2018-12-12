@@ -19,11 +19,11 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -194,14 +194,14 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		PrismContainerDefinition configurationPropertiesDefinition =
 			configurationDefinition.findContainerDefinition(SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
 
-		PrismPropertyDefinition<String> propHost = configurationPropertiesDefinition.findPropertyDefinition(new QName(UcfTestUtil.CONNECTOR_LDAP_NS,"host"));
+		PrismPropertyDefinition<String> propHost = configurationPropertiesDefinition.findPropertyDefinition(new ItemName(UcfTestUtil.CONNECTOR_LDAP_NS,"host"));
 		assertNotNull("No definition for configuration property 'host' in connector schema", propHost);
 		PrismAsserts.assertDefinition(propHost, new QName(UcfTestUtil.CONNECTOR_LDAP_NS,"host"), DOMUtil.XSD_STRING, 1, 1);
 		assertEquals("Wrong property 'host' display name", "Host", propHost.getDisplayName());
 		assertEquals("Wrong property 'host' help", "The name or IP address of the LDAP server host.", propHost.getHelp());
 		assertEquals("Wrong property 'host' display order", (Integer)1, propHost.getDisplayOrder()); // MID-2642
 
-		PrismPropertyDefinition<String> propPort = configurationPropertiesDefinition.findPropertyDefinition(new QName(UcfTestUtil.CONNECTOR_LDAP_NS,"port"));
+		PrismPropertyDefinition<String> propPort = configurationPropertiesDefinition.findPropertyDefinition(new ItemName(UcfTestUtil.CONNECTOR_LDAP_NS,"port"));
 		assertNotNull("No definition for configuration property 'port' in connector schema", propPort);
 		PrismAsserts.assertDefinition(propPort, new QName(UcfTestUtil.CONNECTOR_LDAP_NS,"port"), DOMUtil.XSD_INT, 0, 1);
 		assertEquals("Wrong property 'port' display name", "Port number", propPort.getDisplayName());
@@ -260,25 +260,25 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		ResourceAttributeDefinition<String> attributeDefinition = accountDefinition
 				.findAttributeDefinition(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME));
 		ResourceAttribute<String> attribute = attributeDefinition.instantiate();
-		attribute.setValue(new PrismPropertyValue<>("uid=" + name + ",ou=people,dc=example,dc=com"));
+		attribute.setRealValue("uid=" + name + ",ou=people,dc=example,dc=com");
 		resourceObject.add(attribute);
 
 		attributeDefinition = accountDefinition
 				.findAttributeDefinition(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "sn"));
 		attribute = attributeDefinition.instantiate();
-		attribute.setValue(new PrismPropertyValue(familyName));
+		attribute.setRealValue(familyName);
 		resourceObject.add(attribute);
 
 		attributeDefinition = accountDefinition
 				.findAttributeDefinition(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "cn"));
 		attribute = attributeDefinition.instantiate();
-		attribute.setValue(new PrismPropertyValue(givenName + " " + familyName));
+		attribute.setRealValue(givenName + " " + familyName);
 		resourceObject.add(attribute);
 
 		attributeDefinition = accountDefinition.findAttributeDefinition(new QName(ResourceTypeUtil.getResourceNamespace(resourceType),
 				"givenName"));
 		attribute = attributeDefinition.instantiate();
-		attribute.setValue(new PrismPropertyValue(givenName));
+		attribute.setRealValue(givenName);
 		resourceObject.add(attribute);
 
 		PrismObject<ShadowType> shadow = wrapInShadow(ShadowType.class, resourceObject);
@@ -412,46 +412,46 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		ResourceAttributeDefinition propertyDef = accountDefinition.findAttributeDefinition(new QName(
 				ResourceTypeUtil.getResourceNamespace(resourceType), propertyName));
 		ResourceAttribute property = propertyDef.instantiate();
-		property.setValue(new PrismPropertyValue(propertyValue));
+		property.setRealValue(propertyValue);
 		return property;
 	}
 
 	private PropertyModificationOperation createReplaceAttributeChange(String propertyName, String propertyValue) {
 		PrismProperty property = createProperty(propertyName, propertyValue);
-		ItemPath propertyPath = new ItemPath(ShadowType.F_ATTRIBUTES,
+		ItemPath propertyPath = ItemPath.create(ShadowType.F_ATTRIBUTES,
 				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), propertyName));
-		PropertyDelta delta = new PropertyDelta(propertyPath, property.getDefinition(), prismContext);
-		delta.setValueToReplace(new PrismPropertyValue(propertyValue));
+		PropertyDelta delta = prismContext.deltaFactory().property().create(propertyPath, property.getDefinition());
+		delta.setRealValuesToReplace(propertyValue);
 		PropertyModificationOperation attributeModification = new PropertyModificationOperation(delta);
 		return attributeModification;
 	}
 
 	private PropertyModificationOperation createAddAttributeChange(String propertyName, String propertyValue) {
 		PrismProperty property = createProperty(propertyName, propertyValue);
-		ItemPath propertyPath = new ItemPath(ShadowType.F_ATTRIBUTES,
+		ItemPath propertyPath = ItemPath.create(ShadowType.F_ATTRIBUTES,
 				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), propertyName));
-		PropertyDelta delta = new PropertyDelta(propertyPath, property.getDefinition(), prismContext);
-		delta.addValueToAdd(new PrismPropertyValue(propertyValue));
+		PropertyDelta delta = prismContext.deltaFactory().property().create(propertyPath, property.getDefinition());
+		delta.addRealValuesToAdd(propertyValue);
 		PropertyModificationOperation attributeModification = new PropertyModificationOperation(delta);
 		return attributeModification;
 	}
 
 	private PropertyModificationOperation createDeleteAttributeChange(String propertyName, String propertyValue) {
 		PrismProperty property = createProperty(propertyName, propertyValue);
-		ItemPath propertyPath = new ItemPath(ShadowType.F_ATTRIBUTES,
+		ItemPath propertyPath = ItemPath.create(ShadowType.F_ATTRIBUTES,
 				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), propertyName));
-		PropertyDelta delta = new PropertyDelta(propertyPath, property.getDefinition(), prismContext);
-		delta.addValueToDelete(new PrismPropertyValue(propertyValue));
+		PropertyDelta delta = prismContext.deltaFactory().property().create(propertyPath, property.getDefinition());
+		delta.addRealValuesToDelete(propertyValue);
 		PropertyModificationOperation attributeModification = new PropertyModificationOperation(delta);
 		return attributeModification;
 	}
 
 	private PropertyModificationOperation createActivationChange(ActivationStatusType status) {
 		PrismObjectDefinition<ShadowType> shadowDefinition = getShadowDefinition(ShadowType.class);
-		PropertyDelta<ActivationStatusType> delta = PropertyDelta.createDelta(
-				new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
+		PropertyDelta<ActivationStatusType> delta = prismContext.deltaFactory().property().createDelta(
+				ItemPath.create(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
 				shadowDefinition);
-		delta.setValueToReplace(new PrismPropertyValue<>(status));
+		delta.setRealValuesToReplace(status);
 		return new PropertyModificationOperation(delta);
 	}
 
@@ -650,7 +650,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		OperationResult result = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
 
 		// WHEN
-		cc.search(accountDefinition, new ObjectQuery(), handler, null, null, null, null, result);
+		cc.search(accountDefinition, null, handler, null, null, null, null, result);
 
 		// THEN
 
@@ -734,12 +734,12 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		ItemDeltaType propMod = new ItemDeltaType();
 		//create modification path
 		Document doc = DOMUtil.getDocument();
-		ItemPathType path = new ItemPathType("credentials/password/value");
+		ItemPathType path = prismContext.itemPathParser().asItemPathType("credentials/password/value");
 //		PropertyPath propPath = new PropertyPath(new PropertyPath(ResourceObjectShadowType.F_CREDENTIALS), CredentialsType.F_PASSWORD);
 		propMod.setPath(path);
 
 		//set the replace value
-        MapXNode passPsXnode = ((PrismContextImpl) prismContext).getBeanMarshaller().marshalProtectedDataType(passPs, null);
+        XNode passPsXnode = prismContext.xnodeSerializer().root(new QName("dummy")).serializeRealValue(passPs).getSubnode();
 		RawType value = new RawType(passPsXnode, prismContext);
 		propMod.getValue().add(value);
 
@@ -776,18 +776,18 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		ResourceAttributeDefinition road = accountDefinition.findAttributeDefinition(
 				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "sn"));
 		ResourceAttribute roa = road.instantiate();
-		roa.setValue(new PrismPropertyValue(sn));
+		roa.setRealValue(sn);
 		resourceObject.add(roa);
 
 		road = accountDefinition.findAttributeDefinition(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "cn"));
 		roa = road.instantiate();
-		roa.setValue(new PrismPropertyValue(cn));
+		roa.setRealValue(cn);
 		resourceObject.add(roa);
 
 		road = accountDefinition.findAttributeDefinition(
 				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME));
 		roa = road.instantiate();
-		roa.setValue(new PrismPropertyValue(dn));
+		roa.setRealValue(dn);
 		resourceObject.add(roa);
 
 		return resourceObject;

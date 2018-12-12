@@ -264,9 +264,7 @@ public interface TaskManager {
 	Task getTask(String taskOid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
 	@NotNull
-	default Task getTaskWithResult(String taskOid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		return getTask(taskOid, GetOperationOptions.retrieveItemsNamed(TaskType.F_RESULT), parentResult);
-	}
+	Task getTaskWithResult(String taskOid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
 	@NotNull
 	Task getTask(String taskOid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;

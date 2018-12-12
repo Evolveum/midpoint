@@ -22,6 +22,9 @@ import java.util.function.Consumer;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import org.apache.commons.lang.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,30 +34,10 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.AllFilter;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.InOidFilter;
-import com.evolveum.midpoint.prism.query.NoneFilter;
-import com.evolveum.midpoint.prism.query.NotFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
-import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.prism.query.TypeFilter;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
@@ -395,7 +378,8 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 	}
 
-	private <C extends Containerable, O extends ObjectType> PrismContainerValue<C> determineContainerValueFromCurrentObject(ItemPath path,
+	private <C extends Containerable, O extends ObjectType> PrismContainerValue<C> determineContainerValueFromCurrentObject(
+			ItemPath path,
 			long id, PrismObject<O> currentObject) {
 		Collection<PrismContainerValue<C>> oldCvals = determineContainerValuesFromCurrentObject(path, currentObject);
 		if (oldCvals == null) {
@@ -409,7 +393,8 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		return null;
 	}
 
-	private <C extends Containerable, O extends ObjectType> Collection<PrismContainerValue<C>> determineContainerValuesFromCurrentObject(ItemPath path,
+	private <C extends Containerable, O extends ObjectType> Collection<PrismContainerValue<C>> determineContainerValuesFromCurrentObject(
+			ItemPath path,
 			PrismObject<O> currentObject) {
 		PrismContainer<C> container = currentObject.findContainer(path);
 		if (container == null) {
@@ -810,10 +795,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			ExpressionVariables variables = new ExpressionVariables();
 			PrismObject<UserType> subject = null;
 			if (principal != null) {
-				UserType userType = principal.getUser();
-				if (userType != null) {
-					subject = userType.asPrismObject();
-				}
+				subject = principal.getUser().asPrismObject();
 			}
 			variables.addVariableDefinition(ExpressionConstants.VAR_SUBJECT, subject);
 			return ExpressionUtil.evaluateFilterExpressions(filter, variables, expressionFactory, prismContext, 
@@ -823,7 +805,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	
 	private <O extends ObjectType> ObjectFilter parseAndEvaluateFilter(MidPointPrincipal principal, PrismObjectDefinition<O> objectDefinition, 
 			SearchFilterType specFilterType, String objectTargetDesc, String autzHumanReadableDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-		ObjectFilter specFilter = QueryJaxbConvertor.createObjectFilter(objectDefinition, specFilterType, prismContext);
+		ObjectFilter specFilter = prismContext.getQueryConverter().createObjectFilter(objectDefinition, specFilterType);
 		if (specFilter == null) {
 			return null;
 		}
@@ -1088,29 +1070,30 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
 	@Override
 	public <T extends ObjectType, O extends ObjectType> ObjectFilter preProcessObjectFilter(String[] operationUrls, AuthorizationPhaseType phase,
-			Class<T> searchResultType, PrismObject<O> object, ObjectFilter origFilter, String limitAuthorizationAction, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+			Class<T> searchResultType, PrismObject<O> object, ObjectFilter origFilter, String limitAuthorizationAction, List<OrderConstraintsType> paramOrderConstraints, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		MidPointPrincipal principal = getMidPointPrincipal();
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("AUTZ: evaluating search pre-process principal={}, searchResultType={}, object={}: orig filter {}",
 				getUsername(principal), searchResultType, object, origFilter);
 		}
 		if (origFilter == null) {
-			origFilter = AllFilter.createAll();
+			origFilter = FilterCreationUtil.createAll(prismContext);
 		}
 		ObjectFilter securityFilter;
 		if (phase != null) {
 			securityFilter = preProcessObjectFilterInternal(principal, operationUrls, phase,
-					true, searchResultType, object, true, origFilter, limitAuthorizationAction, "search pre-process", task, result);
+					true, searchResultType, object, true, origFilter, limitAuthorizationAction, paramOrderConstraints, "search pre-process", task, result);
 		} else {
 			ObjectFilter filterBoth = preProcessObjectFilterInternal(principal, operationUrls, null,
-					false, searchResultType, object, true, origFilter, limitAuthorizationAction, "search pre-process", task, result);
+					false, searchResultType, object, true, origFilter, limitAuthorizationAction, paramOrderConstraints, "search pre-process", task, result);
 			ObjectFilter filterRequest = preProcessObjectFilterInternal(principal, operationUrls, AuthorizationPhaseType.REQUEST,
-					false, searchResultType, object, true, origFilter, limitAuthorizationAction, "search pre-process", task, result);
+					false, searchResultType, object, true, origFilter, limitAuthorizationAction, paramOrderConstraints, "search pre-process", task, result);
 			ObjectFilter filterExecution = preProcessObjectFilterInternal(principal, operationUrls, AuthorizationPhaseType.EXECUTION,
-					false, searchResultType, object, true, origFilter, limitAuthorizationAction, "search pre-process", task, result);
-			securityFilter = ObjectQueryUtil.filterOr(filterBoth, ObjectQueryUtil.filterAnd(filterRequest, filterExecution));
+					false, searchResultType, object, true, origFilter, limitAuthorizationAction, paramOrderConstraints, "search pre-process", task, result);
+			securityFilter = ObjectQueryUtil.filterOr(filterBoth, ObjectQueryUtil.filterAnd(filterRequest, filterExecution,
+					prismContext), prismContext);
 		}
-		ObjectFilter finalFilter = ObjectQueryUtil.filterAnd(origFilter, securityFilter);
+		ObjectFilter finalFilter = ObjectQueryUtil.filterAnd(origFilter, securityFilter, prismContext);
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("AUTZ: evaluated search pre-process principal={}, objectType={}: {}", 
 				getUsername(principal), getObjectType(searchResultType), finalFilter);
@@ -1140,18 +1123,19 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		ObjectFilter securityFilter;
 		if (phase != null) {
 			securityFilter = preProcessObjectFilterInternal(principal, operationUrls, phase,
-					true, searchResultType, object, includeSpecial, origFilter, null, "search permission", task, result);
+					true, searchResultType, object, includeSpecial, origFilter, null, null, "search permission", task, result);
 		} else {
 			ObjectFilter filterBoth = preProcessObjectFilterInternal(principal, operationUrls, null,
-					false, searchResultType, object, includeSpecial, origFilter, null, "search permission", task, result);
+					false, searchResultType, object, includeSpecial, origFilter, null, null, "search permission", task, result);
 			ObjectFilter filterRequest = preProcessObjectFilterInternal(principal, operationUrls, AuthorizationPhaseType.REQUEST,
-					false, searchResultType, object, includeSpecial, origFilter, null, "search permission", task, result);
+					false, searchResultType, object, includeSpecial, origFilter, null, null, "search permission", task, result);
 			ObjectFilter filterExecution = preProcessObjectFilterInternal(principal, operationUrls, AuthorizationPhaseType.EXECUTION,
-					false, searchResultType, object, includeSpecial, origFilter, null, "search permission", task, result);
-			securityFilter = ObjectQueryUtil.filterOr(filterBoth, ObjectQueryUtil.filterAnd(filterRequest, filterExecution));
+					false, searchResultType, object, includeSpecial, origFilter, null, null, "search permission", task, result);
+			securityFilter = ObjectQueryUtil.filterOr(filterBoth, ObjectQueryUtil.filterAnd(filterRequest, filterExecution,
+					prismContext), prismContext);
 		}
-		ObjectFilter finalFilter = ObjectQueryUtil.filterAnd(origFilter, securityFilter);
-		finalFilter = ObjectQueryUtil.simplify(finalFilter);
+		ObjectFilter finalFilter = ObjectQueryUtil.filterAnd(origFilter, securityFilter, prismContext);
+		finalFilter = ObjectQueryUtil.simplify(finalFilter, prismContext);
 		boolean decision = !(finalFilter instanceof NoneFilter);
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("AUTZ: evaluated search permission principal={}, objectType={}, evulated from filter: {}: decision={}", 
@@ -1165,7 +1149,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	 */
 	private <T extends ObjectType, O extends ObjectType> ObjectFilter preProcessObjectFilterInternal(MidPointPrincipal principal, String[] operationUrls,
 			AuthorizationPhaseType phase, boolean includeNullPhase,
-			Class<T> objectType, PrismObject<O> object, boolean includeSpecial, ObjectFilter origFilter, String limitAuthorizationAction, String desc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+			Class<T> objectType, PrismObject<O> object, boolean includeSpecial, ObjectFilter origFilter, String limitAuthorizationAction, List<OrderConstraintsType> paramOrderConstraints, String desc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		Collection<Authorization> authorities = getAuthorities(principal);
 
@@ -1209,6 +1193,14 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 						continue;
 					}
 
+					// orderConstraints
+					if (!isApplicableOrderConstraints(autz, paramOrderConstraints)) {
+						if (LOGGER.isTraceEnabled()) {
+							LOGGER.trace("      Authorization not applicable for orderConstraints {}", SchemaDebugUtil.shortDumpOrderConstraintsList(paramOrderConstraints));
+						}
+						continue;
+					}
+
 					// object or target
 					String objectTargetSpec;
 					ObjectFilter autzObjSecurityFilter = null;
@@ -1234,8 +1226,8 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 					boolean applicable = true;
 					if (objectSpecTypes == null || objectSpecTypes.isEmpty()) {
 
-						LOGGER.trace("      No {} specification in authorization (authorization is universaly applicable)", objectTargetSpec);
-						autzObjSecurityFilter = AllFilter.createAll();
+						LOGGER.trace("      No {} specification in authorization (authorization is universally applicable)", objectTargetSpec);
+						autzObjSecurityFilter = FilterCreationUtil.createAll(prismContext);
 
 					} else {
 
@@ -1266,7 +1258,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 									traceClassMatch("Authorization is applicable for object because of type match", specObjectClass, objectType);
 									// The spec type is a subclass of requested type. So it might be returned from the search.
 									// We need to use type filter.
-									objSpecTypeFilter = TypeFilter.createType(specTypeQName, null);
+									objSpecTypeFilter = prismContext.queryFactory().createType(specTypeQName, null);
 									// and now we have a more specific object definition to use later in filter processing
 									objectDefinition = (PrismObjectDefinition<T>) specObjectDef;
 								}
@@ -1281,9 +1273,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 								// TODO what if owner is specified not as "self" ?
 								if (AbstractRoleType.class.isAssignableFrom(objectType)) {
 									// TODO beware, role.ownerRef is deprecated
-									objSpecSecurityFilter = applyOwnerFilterOwnerRef(new ItemPath(AbstractRoleType.F_OWNER_REF), objSpecSecurityFilter,  principal, objectDefinition);
+									objSpecSecurityFilter = applyOwnerFilterOwnerRef(AbstractRoleType.F_OWNER_REF, objSpecSecurityFilter,  principal, objectDefinition);
 								} else if (TaskType.class.isAssignableFrom(objectType)) {
-									objSpecSecurityFilter = applyOwnerFilterOwnerRef(new ItemPath(TaskType.F_OWNER_REF), objSpecSecurityFilter,  principal, objectDefinition);
+									objSpecSecurityFilter = applyOwnerFilterOwnerRef(TaskType.F_OWNER_REF, objSpecSecurityFilter,  principal, objectDefinition);
 								} else {
 									LOGGER.trace("      Authorization not applicable for object because it has owner specification (this is not applicable for search)");
 									continue;
@@ -1313,13 +1305,14 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 								for (SpecialObjectSpecificationType special: specSpecial) {
 									if (special == SpecialObjectSpecificationType.SELF) {
 										String principalOid = principal.getOid();
-										specialFilter = ObjectQueryUtil.filterOr(specialFilter, InOidFilter.createInOid(principalOid));
+										specialFilter = ObjectQueryUtil.filterOr(specialFilter, prismContext.queryFactory().createInOid(principalOid),
+												prismContext);
 									} else {
 										throw new SchemaException("Unsupported special object specification specified in authorization: "+special);
 									}
 								}
                                 objSpecSecurityFilter = specTypeQName != null ?
-                                        TypeFilter.createType(specTypeQName, specialFilter) : specialFilter;
+                                        prismContext.queryFactory().createType(specTypeQName, specialFilter) : specialFilter;
 							} else {
 								LOGGER.trace("      specials empty: {}", specSpecial);
 							}
@@ -1335,16 +1328,16 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 									ObjectQueryUtil.assertPropertyOnly(specFilter, "Filter in authorization object is not property-only filter");
 								}
 								LOGGER.trace("      applying property filter {}", specFilter);
-								objSpecSecurityFilter = ObjectQueryUtil.filterAnd(objSpecSecurityFilter, specFilter);
+								objSpecSecurityFilter = ObjectQueryUtil.filterAnd(objSpecSecurityFilter, specFilter, prismContext);
 							} else {
 								LOGGER.trace("      filter empty");
 							}
 
 							// Org
 							if (specOrgRef != null) {
-								ObjectFilter orgFilter = QueryBuilder.queryFor(ObjectType.class, prismContext)
+								ObjectFilter orgFilter = prismContext.queryFor(ObjectType.class)
 										.isChildOf(specOrgRef.getOid()).buildFilter();
-								objSpecSecurityFilter = ObjectQueryUtil.filterAnd(objSpecSecurityFilter, orgFilter);
+								objSpecSecurityFilter = ObjectQueryUtil.filterAnd(objSpecSecurityFilter, orgFilter, prismContext);
 								LOGGER.trace("      applying org filter {}", orgFilter);
 							} else {
 								LOGGER.trace("      org empty");
@@ -1356,7 +1349,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 								QName subjectRelation = specOrgRelation.getSubjectRelation();
 								for (ObjectReferenceType subjectParentOrgRef: principal.getUser().getParentOrgRef()) {
 									if (prismContext.relationMatches(subjectRelation, subjectParentOrgRef.getRelation())) {
-										S_FilterEntryOrEmpty q = QueryBuilder.queryFor(ObjectType.class, prismContext);
+										S_FilterEntryOrEmpty q = prismContext.queryFor(ObjectType.class);
 										S_AtomicFilterExit q2;
 										if (specOrgRelation.getScope() == null || specOrgRelation.getScope() == OrgScopeType.ALL_DESCENDANTS) {
 											q2 = q.isChildOf(subjectParentOrgRef.getOid());
@@ -1370,13 +1363,15 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 										if (BooleanUtils.isTrue(specOrgRelation.isIncludeReferenceOrg())) {
 											q2 = q2.or().id(subjectParentOrgRef.getOid());
 										}
-										objSpecOrgRelationFilter = ObjectQueryUtil.filterOr(objSpecOrgRelationFilter, q2.buildFilter());
+										objSpecOrgRelationFilter = ObjectQueryUtil.filterOr(objSpecOrgRelationFilter, q2.buildFilter(),
+												prismContext);
 									}
 								}
 								if (objSpecOrgRelationFilter == null) {
-									objSpecOrgRelationFilter = NoneFilter.createNone();
+									objSpecOrgRelationFilter = FilterCreationUtil.createNone(prismContext);
 								}
-								objSpecSecurityFilter = ObjectQueryUtil.filterAnd(objSpecSecurityFilter, objSpecOrgRelationFilter);
+								objSpecSecurityFilter = ObjectQueryUtil.filterAnd(objSpecSecurityFilter, objSpecOrgRelationFilter,
+										prismContext);
 								LOGGER.trace("      applying orgRelation filter {}", objSpecOrgRelationFilter);
 							} else {
 								LOGGER.trace("      orgRelation empty");
@@ -1390,11 +1385,12 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 										LOGGER.trace("      not applying roleRelation filter {} because it is not efficient and maySkipOnSearch is set", objSpecRoleRelationFilter);
 										applicable = false;
 									} else {
-										objSpecRoleRelationFilter = NoneFilter.createNone();
+										objSpecRoleRelationFilter = FilterCreationUtil.createNone(prismContext);
 									}
 								}
 								if (objSpecRoleRelationFilter != null) {
-									objSpecSecurityFilter = ObjectQueryUtil.filterAnd(objSpecSecurityFilter, objSpecRoleRelationFilter);
+									objSpecSecurityFilter = ObjectQueryUtil.filterAnd(objSpecSecurityFilter, objSpecRoleRelationFilter,
+											prismContext);
 									LOGGER.trace("      applying roleRelation filter {}", objSpecRoleRelationFilter);
 								}
 							} else {
@@ -1409,11 +1405,12 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 										LOGGER.trace("      not applying tenant filter {} because it is not efficient and maySkipOnSearch is set", objSpecTenantFilter);
 										applicable = false;
 									} else {
-										objSpecTenantFilter = NoneFilter.createNone();
+										objSpecTenantFilter = FilterCreationUtil.createNone(prismContext);
 									}
 								}
 								if (objSpecTenantFilter != null) {
-									objSpecSecurityFilter = ObjectQueryUtil.filterAnd(objSpecSecurityFilter, objSpecTenantFilter);
+									objSpecSecurityFilter = ObjectQueryUtil.filterAnd(objSpecSecurityFilter, objSpecTenantFilter,
+											prismContext);
 									LOGGER.trace("      applying tenant filter {}", objSpecTenantFilter);
 								}
 							} else {
@@ -1426,7 +1423,8 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							}
 
 							traceFilter("objSpecSecurityFilter", objectSpecType, objSpecSecurityFilter);
-							autzObjSecurityFilter = ObjectQueryUtil.filterOr(autzObjSecurityFilter, objSpecSecurityFilter);
+							autzObjSecurityFilter = ObjectQueryUtil.filterOr(autzObjSecurityFilter, objSpecSecurityFilter,
+									prismContext);
 						}
 
 					}
@@ -1434,7 +1432,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 					traceFilter("autzObjSecurityFilter", autz, autzObjSecurityFilter);
 
 					if (applicable) {
-						autzObjSecurityFilter = ObjectQueryUtil.simplify(autzObjSecurityFilter);
+						autzObjSecurityFilter = ObjectQueryUtil.simplify(autzObjSecurityFilter, prismContext);
 						// authority is applicable to this situation. now we can process the decision.
 						AuthorizationDecisionType decision = autz.getDecision();
 						if (decision == null || decision == AuthorizationDecisionType.ALLOW) {
@@ -1443,7 +1441,8 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 								// this is "allow all" authorization.
 								hasAllowAll = true;
 							} else {
-								securityFilterAllow = ObjectQueryUtil.filterOr(securityFilterAllow, autzObjSecurityFilter);
+								securityFilterAllow = ObjectQueryUtil.filterOr(securityFilterAllow, autzObjSecurityFilter,
+										prismContext);
 							}
 							if (!ObjectQueryUtil.isNone(autzObjSecurityFilter)) {
 								queryItemsSpec.collectItems(autz);
@@ -1462,11 +1461,12 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 										LOGGER.trace("  phase={} done: principal={}, operation={}, {}: deny all",
 												phase, getUsername(principal), prettyActionUrl(operationUrls), desc);
 									}
-									NoneFilter secFilter = NoneFilter.createNone();
+									NoneFilter secFilter = FilterCreationUtil.createNone(prismContext);
 									traceFilter("secFilter", null, secFilter);
 									return secFilter;
 								}
-								securityFilterDeny = ObjectQueryUtil.filterOr(securityFilterDeny, autzObjSecurityFilter);
+								securityFilterDeny = ObjectQueryUtil.filterOr(securityFilterDeny, autzObjSecurityFilter,
+										prismContext);
 							}
 						}
 					}
@@ -1492,20 +1492,20 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 				LOGGER.trace("  phase={} done: principal={}, operation={}, {}: deny because items {} are not allowed",
 						phase, getUsername(principal), prettyActionUrl(operationUrls), desc, unsatisfiedItems);
 			}
-			NoneFilter secFilter = NoneFilter.createNone();
+			NoneFilter secFilter = FilterCreationUtil.createNone(prismContext);
 			traceFilter("secFilter", null, secFilter);
 			return secFilter;
 		}
 
 		if (hasAllowAll) {
-			securityFilterAllow = AllFilter.createAll();
+			securityFilterAllow = FilterCreationUtil.createAll(prismContext);
 		} else if (securityFilterAllow == null) {
 			// Nothing has been allowed. This means default deny.
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("  phase={} {} done: principal={}, operation={}, {}: default deny", 
 						phase, getUsername(principal), prettyActionUrl(operationUrls), desc);
 			}
-			NoneFilter secFilter = NoneFilter.createNone();
+			NoneFilter secFilter = FilterCreationUtil.createNone(prismContext);
 			traceFilter("secFilter", null, secFilter);
 			return secFilter;
 		}
@@ -1519,7 +1519,8 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			traceFilter("securityFilterAllow", null, securityFilterAllow);
 			return securityFilterAllow;
 		} else {
-			ObjectFilter secFilter = ObjectQueryUtil.filterAnd(securityFilterAllow, NotFilter.createNot(securityFilterDeny));
+			ObjectFilter secFilter = ObjectQueryUtil.filterAnd(securityFilterAllow, prismContext.queryFactory().createNot(securityFilterDeny),
+					prismContext);
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("  phase={} done: principal={}, operation={}, {}: allow (with deny clauses)\n  Filter:\n{}", 
 						phase, getUsername(principal), prettyActionUrl(operationUrls), desc,
@@ -1706,7 +1707,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 					if (!prismContext.relationMatches(subjectRelation, subjectRoleMembershipRef.getRelation())) {
 						continue;
 					}
-					if (!PrismReferenceValue.containsOid(queryRoleRefs, subjectRoleMembershipRef.getOid())) {
+					if (!PrismValueCollectionsUtil.containsOid(queryRoleRefs, subjectRoleMembershipRef.getOid())) {
 						continue;
 					}
 					isRoleOidOk = true;
@@ -1715,14 +1716,14 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 				if (isRoleOidOk) {
 					// There is already a good filter in the origFilter
 					// TODO: mind the objectRelation
-					membersFilter = AllFilter.createAll();
+					membersFilter = FilterCreationUtil.createAll(prismContext);
 				} else {
-					membersFilter = NoneFilter.createNone();
+					membersFilter = FilterCreationUtil.createNone(prismContext);
 				}
 			}
 		}
 
-		return ObjectQueryUtil.filterOr(refRoleFilter, membersFilter);
+		return ObjectQueryUtil.filterOr(refRoleFilter, membersFilter, prismContext);
 	}
 	
 	private ObjectFilter processTenantFilter(MidPointPrincipal principal, Authorization autz,
@@ -1732,23 +1733,23 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			ObjectReferenceType subjectTenantRef = principal.getUser().getTenantRef();
 			if (subjectTenantRef == null || subjectTenantRef.getOid() == null) {
 				LOGGER.trace("    subject tenant empty (none filter)");
-				tenantFilter = NoneFilter.createNone();
+				tenantFilter = FilterCreationUtil.createNone(prismContext);
 			} else {
-				tenantFilter = QueryBuilder.queryFor(ObjectType.class, prismContext)
+				tenantFilter = prismContext.queryFor(ObjectType.class)
 					.item(ObjectType.F_TENANT_REF).ref(subjectTenantRef.getOid())
 					.buildFilter();
 			}
 			if (!BooleanUtils.isTrue(specTenant.isIncludeTenantOrg())) {
-				ObjectFilter notTenantFilter = QueryBuilder.queryFor(ObjectType.class, prismContext)
+				ObjectFilter notTenantFilter = prismContext.queryFor(ObjectType.class)
 						.not()
 							.type(OrgType.class)
 								.item(OrgType.F_TENANT).eq(true)
 						.buildFilter();
-				tenantFilter = ObjectQueryUtil.filterAnd(tenantFilter, notTenantFilter);
+				tenantFilter = ObjectQueryUtil.filterAnd(tenantFilter, notTenantFilter, prismContext);
 			}
 			LOGGER.trace("    applying tenant filter {}", tenantFilter);
 		} else {
-			tenantFilter = NoneFilter.createNone();
+			tenantFilter = FilterCreationUtil.createNone(prismContext);
 			LOGGER.trace("    tenant authorization empty (none filter)");
 		}
 
@@ -1761,7 +1762,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 		if (origFilter instanceof RefFilter) {
 			ItemPath path = ((RefFilter)origFilter).getPath();
-			if (path.equals(SchemaConstants.PATH_ROLE_MEMBERSHIP_REF)) {
+			if (path.equivalent(SchemaConstants.PATH_ROLE_MEMBERSHIP_REF)) {
 				return ((RefFilter)origFilter).getValues();
 			}
 		}
@@ -1778,7 +1779,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
 	private <T extends ObjectType> ObjectFilter applyOwnerFilterOwnerRef(ItemPath ownerRefPath, ObjectFilter objSpecSecurityFilter, MidPointPrincipal principal, PrismObjectDefinition<T> objectDefinition) {
 		PrismReferenceDefinition ownerRefDef = objectDefinition.findReferenceDefinition(ownerRefPath);
-		S_AtomicFilterExit builder = QueryBuilder.queryFor(AbstractRoleType.class, prismContext)
+		S_AtomicFilterExit builder = prismContext.queryFor(AbstractRoleType.class)
 				.item(ownerRefPath, ownerRefDef).ref(principal.getUser().getOid());
 		// TODO don't understand this code
 		for (ObjectReferenceType subjectParentOrgRef: principal.getUser().getParentOrgRef()) {
@@ -1787,7 +1788,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			}
 		}
 		ObjectFilter objSpecOwnerFilter = builder.buildFilter();
-		objSpecSecurityFilter = ObjectQueryUtil.filterAnd(objSpecSecurityFilter, objSpecOwnerFilter);
+		objSpecSecurityFilter = ObjectQueryUtil.filterAnd(objSpecSecurityFilter, objSpecOwnerFilter, prismContext);
 		LOGGER.trace("  applying owner filter {}", objSpecOwnerFilter);
 		return objSpecSecurityFilter;
 	}

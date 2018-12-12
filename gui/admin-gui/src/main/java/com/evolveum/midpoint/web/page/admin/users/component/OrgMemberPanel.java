@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015-2017 Evolveum
+ * Copyright (c) 2015-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@ package com.evolveum.midpoint.web.page.admin.users.component;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 import javax.xml.namespace.QName;
 
@@ -29,15 +28,14 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleMemberPanel;
 import com.evolveum.midpoint.web.page.admin.roles.MemberOperationsHelper;
-import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 
 public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
@@ -73,7 +71,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 			}
 			else {
 				ObjectReferenceType ref = MemberOperationsHelper.createReference(getModelObject(), getSelectedRelation());
-				return QueryBuilder.queryFor(searchType.getClassDefinition(), getPageBase().getPrismContext())
+				return getPageBase().getPrismContext().queryFor(searchType.getClassDefinition())
 						.type(searchType.getClassDefinition())
 						.isDirectChildOf(ref.asReferenceValue()).build();
 			}
@@ -82,7 +80,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		String oid = getModelObject().getOid();
 
 		ObjectReferenceType ref = MemberOperationsHelper.createReference(getModelObject(), getSelectedRelation());
-		ObjectQuery query = QueryBuilder.queryFor(searchType.getClassDefinition(), getPageBase().getPrismContext())
+		ObjectQuery query = getPageBase().getPrismContext().queryFor(searchType.getClassDefinition())
 				.type(searchType.getClassDefinition())
 				.isChildOf(ref.asReferenceValue()).build();
 
@@ -146,7 +144,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 	@Override
 	protected GuiObjectListPanelConfigurationType getAdditionalPanelConfig(){
-		GuiObjectListViewType orgViewType = WebComponentUtil.getViewTypeConfig(OrgType.COMPLEX_TYPE, getPageBase());
+		CompiledObjectCollectionView orgViewType = getPageBase().getCompiledUserProfile().findObjectCollectionView(OrgType.COMPLEX_TYPE, null);
 		if (orgViewType == null || orgViewType.getAdditionalPanels() == null){
 			return null;
 		}

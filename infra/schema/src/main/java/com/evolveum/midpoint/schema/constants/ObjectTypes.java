@@ -107,6 +107,9 @@ public enum ObjectTypes {
     
     OBJECT_COLLECTION(ObjectCollectionType.COMPLEX_TYPE, SchemaConstantsGenerated.C_OBJECT_COLLECTION, ObjectCollectionType.class, ObjectManager.MODEL,
             "objectCollections"),
+    
+    ARCHETYPE(ArchetypeType.COMPLEX_TYPE, SchemaConstantsGenerated.C_ARCHETYPE, ArchetypeType.class, ObjectManager.MODEL,
+            "archetypes"),
 
     // this should be at end, because otherwise it presents itself as entry for all subtypes of ObjectType
     OBJECT(SchemaConstants.C_OBJECT_TYPE, SchemaConstants.C_OBJECT, ObjectType.class, ObjectManager.MODEL, "objects");
@@ -130,15 +133,15 @@ public enum ObjectTypes {
     }
 
 	@NotNull private final QName type;
-	@NotNull private final QName name;
+	@NotNull private final QName elementName;
     @NotNull private final Class<? extends ObjectType> classDefinition;
 	@NotNull private final ObjectManager objectManager;
 	@NotNull private final String restType;
 
-    ObjectTypes(@NotNull QName type, @NotNull QName name, @NotNull Class<? extends ObjectType> classDefinition,
+    ObjectTypes(@NotNull QName type, @NotNull QName elementName, @NotNull Class<? extends ObjectType> classDefinition,
 		    @NotNull ObjectManager objectManager, @NotNull String restType) {
         this.type = type;
-        this.name = name;
+        this.elementName = elementName;
         this.classDefinition = classDefinition;
         this.objectManager = objectManager;
         this.restType = restType;
@@ -157,8 +160,8 @@ public enum ObjectTypes {
     }
 
 	@NotNull
-	public QName getQName() {
-        return name;
+	public QName getElementName() {
+        return elementName;
     }
 
 	@NotNull

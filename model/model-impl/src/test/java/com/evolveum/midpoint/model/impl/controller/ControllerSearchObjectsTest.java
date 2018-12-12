@@ -16,12 +16,12 @@
 package com.evolveum.midpoint.model.impl.controller;
 
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,13 +39,10 @@ import org.testng.annotations.Test;
 @ContextConfiguration(locations = { "classpath:ctx-model-test-no-repo.xml" })
 public class ControllerSearchObjectsTest extends AbstractTestNGSpringContextTests {
 
-	@Autowired(required = true)
-	private ModelService controller;
-	@Autowired(required = true)
-	@Qualifier("cacheRepositoryService")
-	private RepositoryService repository;
-	@Autowired(required = true)
-	private ProvisioningService provisioning;
+	@Autowired private ModelService controller;
+	@Autowired @Qualifier("cacheRepositoryService") private RepositoryService repository;
+	@Autowired private ProvisioningService provisioning;
+	@Autowired private PrismContext prismContext;
 
 	@BeforeMethod
 	public void before() {
@@ -59,13 +56,13 @@ public class ControllerSearchObjectsTest extends AbstractTestNGSpringContextTest
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullPaging() throws Exception {
-		controller.searchObjects(null, new ObjectQuery(), null, null, null);
+		controller.searchObjects(null, prismContext.queryFactory().createQuery(), null, null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullResult() throws Exception {
-		ObjectPaging paging = ObjectPaging.createPaging(0, Integer.MAX_VALUE, ObjectType.F_NAME, OrderDirection.ASCENDING);
-		ObjectQuery query = ObjectQuery.createObjectQuery(paging);
+		ObjectPaging paging = prismContext.queryFactory().createPaging(0, Integer.MAX_VALUE, (ItemPath) null, null);
+		ObjectQuery query = prismContext.queryFactory().createQuery(paging);
 		controller.searchObjects(null, query, null, null, null);
 	}
 }

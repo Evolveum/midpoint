@@ -35,7 +35,9 @@ import java.util.Set;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,18 +55,6 @@ import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
 import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -222,12 +212,10 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 		AssignmentType assignmentType = unmarshallValueFromFile(ASSIGNMENT_DIRECT_EXPRESSION_FILE, AssignmentType.class);
 		user.asObjectable().getAssignment().add(assignmentType.clone());
 
-		ItemPath path = new ItemPath(
-				new NameItemPathSegment(UserType.F_ASSIGNMENT),
-				new IdItemPathSegment(123L),
-				new NameItemPathSegment(AssignmentType.F_DESCRIPTION));
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, USER_JACK_OID,
-				path, prismContext, "captain");
+		ItemPath path = ItemPath.create(UserType.F_ASSIGNMENT, 123L, AssignmentType.F_DESCRIPTION);
+		ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
+				.createModificationReplaceProperty(UserType.class, USER_JACK_OID,
+				path, "captain");
 		ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(user, userDelta, null);
 		userOdo.recompute();
 		AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
@@ -291,12 +279,10 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 //		PrismContainer<AssignmentType> assignmentContainer = assignmentContainerDefinition.instantiate();
 //		assignmentContainer.add(assignmentType.asPrismContainerValue().clone());
 
-		ItemPath path = new ItemPath(
-				new NameItemPathSegment(UserType.F_ASSIGNMENT),
-				new IdItemPathSegment(123L),
-				new NameItemPathSegment(AssignmentType.F_DESCRIPTION));
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, USER_JACK_OID,
-				path, prismContext, "sailor");
+		ItemPath path = ItemPath.create(UserType.F_ASSIGNMENT, 123L, AssignmentType.F_DESCRIPTION);
+		ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
+				.createModificationReplaceProperty(UserType.class, USER_JACK_OID,
+				path, "sailor");
 		ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(user, userDelta, null);
 		userOdo.recompute();
 		AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
@@ -527,7 +513,9 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
         AssignmentType assignmentForUser = assignmentType.clone();
         assignmentForUser.asPrismContainerValue().setParent(null);
-        ObjectDelta<UserType> userDelta = ObjectDelta.createModificationAddContainer(UserType.class, USER_JACK_OID, UserType.F_ASSIGNMENT, prismContext, assignmentForUser.asPrismContainerValue());
+        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
+		        .createModificationAddContainer(UserType.class, USER_JACK_OID, UserType.F_ASSIGNMENT,
+				        assignmentForUser.asPrismContainerValue());
         ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(user, userDelta, null);
         userOdo.recompute();
         AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
@@ -602,8 +590,9 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         assignmentForUser.asPrismContainerValue().setParent(null);
         user.asObjectable().getAssignment().add(assignmentForUser);
 
-        ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, USER_JACK_OID,
-                UserType.F_COST_CENTER, prismContext, "management");
+        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
+		        .createModificationReplaceProperty(UserType.class, USER_JACK_OID,
+                UserType.F_COST_CENTER, "management");
         ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(user, userDelta, null);
         userOdo.recompute();
         AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
@@ -668,8 +657,9 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         assignmentForUser.asPrismContainerValue().setParent(null);
         user.asObjectable().getAssignment().add(assignmentForUser);
 
-        ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, USER_JACK_OID,
-                UserType.F_COST_CENTER, prismContext);
+        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
+		        .createModificationReplaceProperty(UserType.class, USER_JACK_OID,
+                UserType.F_COST_CENTER);
         ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(user, userDelta, null);
         userOdo.recompute();
         AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
@@ -723,7 +713,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 		OperationResult result = task.getResult();
 
 		// disable Engineer->Employee inducement
-		ObjectDelta disableInducementDelta = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+		ObjectDelta disableInducementDelta = prismContext.deltaFor(RoleType.class)
 				.item(RoleType.F_INDUCEMENT, 3, F_ACTIVATION, F_ADMINISTRATIVE_STATUS).replace(ActivationStatusType.DISABLED)
 				.asObjectDelta(ROLE_CORP_ENGINEER_OID);
 		modelService.executeChanges(Collections.singletonList(disableInducementDelta),
@@ -783,7 +773,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 		OperationResult result = task.getResult();
 
 		// disable Engineer->Employee inducement
-		ObjectDelta enableInducementDelta = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+		ObjectDelta enableInducementDelta = prismContext.deltaFor(RoleType.class)
 				.item(RoleType.F_INDUCEMENT, 3, F_ACTIVATION, F_ADMINISTRATIVE_STATUS).replace(ActivationStatusType.DISABLED)
 				.asObjectDelta(ROLE_CORP_ENGINEER_OID);
 		modelService.executeChanges(Collections.singletonList(enableInducementDelta),
@@ -804,7 +794,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 		OperationResult result = task.getResult();
 
 		// disable role Employee
-		ObjectDelta disableEmployeeDelta = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+		ObjectDelta disableEmployeeDelta = prismContext.deltaFor(RoleType.class)
 				.item(ACTIVATION_ADMINISTRATIVE_STATUS_PATH).replace(ActivationStatusType.DISABLED)
 				.asObjectDelta(ROLE_CORP_EMPLOYEE_OID);
 		modelService.executeChanges(Collections.<ObjectDelta<? extends ObjectType>>singletonList(disableEmployeeDelta),
@@ -862,7 +852,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 		OperationResult result = task.getResult();
 
 		// disable role Engineer
-		ObjectDelta disableEngineerDelta = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+		ObjectDelta disableEngineerDelta = prismContext.deltaFor(RoleType.class)
 				.item(ACTIVATION_ADMINISTRATIVE_STATUS_PATH).replace(ActivationStatusType.DISABLED)
 				.asObjectDelta(ROLE_CORP_ENGINEER_OID);
 		modelService.executeChanges(Collections.<ObjectDelta<? extends ObjectType>>singletonList(disableEngineerDelta),
@@ -934,7 +924,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 		PrismObject<UserType> fredAsCreated = findUserByUsername("fred");
 		display("fred as created", fredAsCreated);
 
-		ObjectDelta<UserType> descriptionDelta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> descriptionDelta = prismContext.deltaFor(UserType.class)
 				.item(UserType.F_DESCRIPTION).replace(pastTime)
 				.asObjectDeltaCast(fredAsCreated.getOid());
 

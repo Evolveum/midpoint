@@ -104,9 +104,9 @@ public class TestMiscellaneous {
 		System.out.println("Property values after: " + propertyValuesAfter);
 
 		assertNull("metadata container present", role.findContainer(RoleType.F_METADATA));
-		assertNull("effectiveStatus present", role.findProperty(new ItemPath(RoleType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS)));
+		assertNull("effectiveStatus present", role.findProperty(ItemPath.create(RoleType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS)));
 		assertNull("assignment[1]/activation/effectiveStatus present",
-				role.findProperty(new ItemPath(RoleType.F_ASSIGNMENT, 1L, AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS)));
+				role.findProperty(ItemPath.create(RoleType.F_ASSIGNMENT, 1L, AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS)));
 
 		assertEquals("Wrong property values after", propertyValuesBefore.intValue()-6, propertyValuesAfter.intValue());
 	}

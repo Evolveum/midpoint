@@ -21,7 +21,6 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 
@@ -191,7 +190,7 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
 			protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
 				if (queryFilter != null) {
 					if (query == null) {
-						query = new ObjectQuery();
+						query = getPrismContext().queryFactory().createQuery();
 					}
 					query.addFilter(queryFilter);
 				}
@@ -213,10 +212,9 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
 
 	private Collection<SelectorOptions<GetOperationOptions>> getOptions() {
 		if (ObjectTypes.SHADOW.getTypeQName().equals(typeModel.getObject() != null ? typeModel.getObject().getTypeQName() : null)) {
-			return SelectorOptions.createCollection(ItemPath.EMPTY_PATH, GetOperationOptions.createNoFetch());
+			return getSchemaHelper().getOperationOptionsBuilder().noFetch().build();
 		}
 		return null;
-
 	}
 
 	@Override

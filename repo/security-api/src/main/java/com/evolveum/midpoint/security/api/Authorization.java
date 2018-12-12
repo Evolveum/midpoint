@@ -15,29 +15,18 @@
  */
 package com.evolveum.midpoint.security.api;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-
-import javax.xml.namespace.QName;
-
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
-import org.jetbrains.annotations.NotNull;
-import org.springframework.security.core.GrantedAuthority;
-
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationEnforcementStrategyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationLimitationsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OwnedObjectSelectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ZoneOfControlType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.security.core.GrantedAuthority;
+
+import javax.xml.namespace.QName;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * @author semancik
@@ -119,25 +108,23 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
 	}
 	
 	@NotNull
-	public Collection<ItemPath> getItems() {
+	public List<ItemPath> getItems() {
 		List<ItemPathType> itemPaths = getItem();
 		// TODO: maybe we can cache the itemPaths here?
-		Collection<ItemPath> items = new ArrayList<>(itemPaths.size());
+		List<ItemPath> items = new ArrayList<>(itemPaths.size());
 		for (ItemPathType itemPathType: itemPaths) {
-			ItemPath itemPath = itemPathType.getItemPath();
-			items.add(itemPath);
+			items.add(itemPathType.getItemPath());
 		}
 		return items;
 	}
 	
 	@NotNull
-	public Collection<ItemPath> getExceptItems() {
+	public List<ItemPath> getExceptItems() {
 		List<ItemPathType> itemPaths = getExceptItem();
 		// TODO: maybe we can cache the itemPaths here?
-		Collection<ItemPath> items = new ArrayList<>(itemPaths.size());
+		List<ItemPath> items = new ArrayList<>(itemPaths.size());
 		for (ItemPathType itemPathType: itemPaths) {
-			ItemPath itemPath = itemPathType.getItemPath();
-			items.add(itemPath);
+			items.add(itemPathType.getItemPath());
 		}
 		return items;
 	}

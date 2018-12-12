@@ -63,6 +63,11 @@ public class OrgTreeAssignmentPopupTabPanel extends FocusTypeAssignmentPopupTabP
             protected List<OrgType> getPreselectedOrgsList(){
                 return getPreselectedObjects();
             }
+
+            @Override
+            protected boolean isInducement(){
+                return OrgTreeAssignmentPopupTabPanel.this.isInducement();
+            }
         };
         orgTreePanel.setOutputMarkupId(true);
         add(orgTreePanel);

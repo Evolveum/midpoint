@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
@@ -117,28 +118,28 @@ public class TestResourceSchema {
         System.out.println("Parsed schema from " + filename + ":");
         System.out.println(schema.debugDump());
 
-        ObjectClassComplexTypeDefinition accDef = schema.findObjectClassDefinition(new QName(SCHEMA_NAMESPACE, "AccountObjectClass"));
-        assertEquals("Wrong account objectclass", new QName(SCHEMA_NAMESPACE, "AccountObjectClass"), accDef.getTypeName());
+        ObjectClassComplexTypeDefinition accDef = schema.findObjectClassDefinition(new ItemName(SCHEMA_NAMESPACE, "AccountObjectClass"));
+        assertEquals("Wrong account objectclass", new ItemName(SCHEMA_NAMESPACE, "AccountObjectClass"), accDef.getTypeName());
         assertEquals("Wrong account kind", ShadowKindType.ACCOUNT, accDef.getKind());
         assertEquals("Wrong account intent", "admin", accDef.getIntent());
         assertTrue("Not a default account", accDef.isDefaultInAKind());
 
-        PrismPropertyDefinition<String> loginAttrDef = accDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE, "login"));
-        assertEquals(new QName(SCHEMA_NAMESPACE, "login"), loginAttrDef.getName());
+        PrismPropertyDefinition<String> loginAttrDef = accDef.findPropertyDefinition(new ItemName(SCHEMA_NAMESPACE, "login"));
+        assertEquals(new ItemName(SCHEMA_NAMESPACE, "login"), loginAttrDef.getName());
         assertEquals(DOMUtil.XSD_STRING, loginAttrDef.getTypeName());
         assertFalse("Ignored while it should not be", loginAttrDef.isIgnored());
 
-        PrismPropertyDefinition<Integer> groupAttrDef = accDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE, "group"));
-        assertEquals(new QName(SCHEMA_NAMESPACE, "group"), groupAttrDef.getName());
+        PrismPropertyDefinition<Integer> groupAttrDef = accDef.findPropertyDefinition(new ItemName(SCHEMA_NAMESPACE, "group"));
+        assertEquals(new ItemName(SCHEMA_NAMESPACE, "group"), groupAttrDef.getName());
         assertEquals(DOMUtil.XSD_INT, groupAttrDef.getTypeName());
         assertFalse("Ignored while it should not be", groupAttrDef.isIgnored());
 
-        PrismPropertyDefinition<String> ufoAttrDef = accDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE, "ufo"));
-        assertEquals(new QName(SCHEMA_NAMESPACE, "ufo"), ufoAttrDef.getName());
+        PrismPropertyDefinition<String> ufoAttrDef = accDef.findPropertyDefinition(new ItemName(SCHEMA_NAMESPACE, "ufo"));
+        assertEquals(new ItemName(SCHEMA_NAMESPACE, "ufo"), ufoAttrDef.getName());
         assertTrue("Not ignored as it should be", ufoAttrDef.isIgnored());
 
-        ObjectClassComplexTypeDefinition groupDef = schema.findObjectClassDefinition(new QName(SCHEMA_NAMESPACE, "GroupObjectClass"));
-        assertEquals("Wrong group objectclass", new QName(SCHEMA_NAMESPACE, "GroupObjectClass"), groupDef.getTypeName());
+        ObjectClassComplexTypeDefinition groupDef = schema.findObjectClassDefinition(new ItemName(SCHEMA_NAMESPACE, "GroupObjectClass"));
+        assertEquals("Wrong group objectclass", new ItemName(SCHEMA_NAMESPACE, "GroupObjectClass"), groupDef.getTypeName());
         assertEquals("Wrong group kind", ShadowKindType.ENTITLEMENT, groupDef.getKind());
         assertEquals("Wrong group intent", null, groupDef.getIntent());
         assertFalse("Default group but it should not be", groupDef.isDefaultInAKind());
@@ -232,22 +233,22 @@ public class TestResourceSchema {
 	}
 
 	private void assertResourceSchema(ResourceSchema unSchema) {
-		ObjectClassComplexTypeDefinition objectClassDef = unSchema.findObjectClassDefinition(new QName(SCHEMA_NAMESPACE,"AccountObjectClass"));
-		assertEquals(new QName(SCHEMA_NAMESPACE,"AccountObjectClass"),objectClassDef.getTypeName());
+		ObjectClassComplexTypeDefinition objectClassDef = unSchema.findObjectClassDefinition(new ItemName(SCHEMA_NAMESPACE,"AccountObjectClass"));
+		assertEquals(new ItemName(SCHEMA_NAMESPACE,"AccountObjectClass"),objectClassDef.getTypeName());
 		assertEquals("AccountObjectClass class not an account", ShadowKindType.ACCOUNT, objectClassDef.getKind());
 		assertTrue("AccountObjectClass class not a DEFAULT account", objectClassDef.isDefaultInAKind());
 
-		PrismPropertyDefinition<String> loginDef = objectClassDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE,"login"));
-		assertEquals(new QName(SCHEMA_NAMESPACE,"login"), loginDef.getName());
+		PrismPropertyDefinition<String> loginDef = objectClassDef.findPropertyDefinition(new ItemName(SCHEMA_NAMESPACE,"login"));
+		assertEquals(new ItemName(SCHEMA_NAMESPACE,"login"), loginDef.getName());
 		assertEquals(DOMUtil.XSD_STRING, loginDef.getTypeName());
 
-		PrismPropertyDefinition<ProtectedStringType> passwdDef = objectClassDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE,"password"));
-		assertEquals(new QName(SCHEMA_NAMESPACE,"password"), passwdDef.getName());
+		PrismPropertyDefinition<ProtectedStringType> passwdDef = objectClassDef.findPropertyDefinition(new ItemName(SCHEMA_NAMESPACE,"password"));
+		assertEquals(new ItemName(SCHEMA_NAMESPACE,"password"), passwdDef.getName());
 		assertEquals(ProtectedStringType.COMPLEX_TYPE, passwdDef.getTypeName());
 
-//		PrismContainerDefinition<CredentialsType> credDef = objectClassDef.findContainerDefinition(new QName(SchemaConstants.NS_C,"credentials"));
-//		assertEquals(new QName(SchemaConstants.NS_C,"credentials"), credDef.getName());
-//		assertEquals(new QName(SchemaConstants.NS_C,"CredentialsType"), credDef.getTypeName());
+//		PrismContainerDefinition<CredentialsType> credDef = objectClassDef.findContainerDefinition(new SingleNamePath(SchemaConstants.NS_C,"credentials"));
+//		assertEquals(new SingleNamePath(SchemaConstants.NS_C,"credentials"), credDef.getName());
+//		assertEquals(new SingleNamePath(SchemaConstants.NS_C,"CredentialsType"), credDef.getTypeName());
 	}
 
 	@Test

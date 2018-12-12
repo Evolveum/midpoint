@@ -25,9 +25,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -103,7 +101,7 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 		if (oid == null) {
 			oid = "non-existent"; // TODO !!!!!!!!!!!!!!!!!!!!
 		}
-		return QueryBuilder.queryFor(TaskType.class, page.getPrismContext())
+		return page.getPrismContext().queryFor(TaskType.class)
 				.item(TaskType.F_OBJECT_REF).ref(oid)
 				.and()
 					.block()
@@ -375,13 +373,13 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 
 	@Override
     protected boolean areSavePreviewButtonsEnabled(){
-        return isAssignmentsModelChanged();
-    }
-
-    private boolean isAssignmentsModelChanged(){
 		ObjectWrapper<F> focusWrapper = getObjectModel().getObject();
 		ContainerWrapper<AssignmentType> assignmentsWrapper =
-				focusWrapper.findContainerWrapper(new ItemPath(FocusType.F_ASSIGNMENT));
+				focusWrapper.findContainerWrapper(FocusType.F_ASSIGNMENT);
+		return isAssignmentsModelChanged(assignmentsWrapper);
+    }
+
+    protected boolean isAssignmentsModelChanged(ContainerWrapper<AssignmentType> assignmentsWrapper){
 		if (assignmentsWrapper != null) {
 			for (ContainerValueWrapper assignmentWrapper : assignmentsWrapper.getValues()) {
 				if (ValueStatus.DELETED.equals(assignmentWrapper.getStatus()) ||

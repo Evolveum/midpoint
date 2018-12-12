@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -76,11 +75,11 @@ public class PageTaskController implements Serializable {
 			final TaskDto taskDto = parentPage.getTaskDto();
 			final PrismProperty property = taskDto.getExtensionProperty(SchemaConstants.SYNC_TOKEN);
 			if (property == null) {
-				result.recordWarning("Token is not present in this task.");		// should be treated by isVisible
+				result.recordWarning(parentPage.createStringResource("PageTaskController.message.deleteSyncTokenPerformed.warning").getString());		// should be treated by isVisible
 			} else {
 				final ObjectDelta<? extends ObjectType> delta =
-						DeltaBuilder.deltaFor(TaskType.class, parentPage.getPrismContext())
-								.item(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN), property.getDefinition()).replace()
+						parentPage.getPrismContext().deltaFor(TaskType.class)
+								.item(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN), property.getDefinition()).replace()
 								.asObjectDelta(parentPage.getTaskDto().getOid());
 				if (LOGGER.isDebugEnabled()) {
 					LOGGER.debug("Deleting sync token:\n{}", delta.debugDump());
@@ -91,7 +90,7 @@ public class PageTaskController implements Serializable {
 			}
 		} catch (Exception ex) {
 			result.recomputeStatus();
-			result.recordFatalError("Couldn't delete sync token from the task.", ex);
+			result.recordFatalError(parentPage.createStringResource("PageTaskController.message.deleteSyncTokenPerformed.fatalError").getString(), ex);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete sync token from the task.", ex);
 		}
 		afterStateChangingOperation(target, result);
@@ -106,7 +105,9 @@ public class PageTaskController implements Serializable {
 
 		try {
 			List<ItemDelta<?, ?>> itemDeltas = getDeltasToExecute(dto);
-			ObjectDelta<TaskType> delta = ObjectDelta.createModifyDelta(dto.getOid(), itemDeltas, TaskType.class, parentPage.getPrismContext());
+			ObjectDelta<TaskType> delta = parentPage.getPrismContext().deltaFactory().object()
+					.createModifyDelta(dto.getOid(), itemDeltas, TaskType.class
+					);
 			final Collection<ObjectDelta<? extends ObjectType>> deltas = Collections.singletonList(delta);
 
 			if (LOGGER.isDebugEnabled()) {
@@ -180,8 +181,8 @@ public class PageTaskController implements Serializable {
 		if (!ObjectUtils.equals(orig.getWorkerThreads(), curr.getWorkerThreads())) {
 			SchemaRegistry registry = parentPage.getPrismContext().getSchemaRegistry();
 			PrismPropertyDefinition def = registry.findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS);
-			rv.add(DeltaBuilder.deltaFor(TaskType.class, parentPage.getPrismContext())
-					.item(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_WORKER_THREADS), def).replace(curr.getWorkerThreads())
+			rv.add(parentPage.getPrismContext().deltaFor(TaskType.class)
+					.item(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_WORKER_THREADS), def).replace(curr.getWorkerThreads())
 					.asItemDelta());
 		}
 
@@ -195,13 +196,13 @@ public class PageTaskController implements Serializable {
 	}
 
 	private void addDelta(List<ItemDelta<?, ?>> deltas, QName itemName, Object itemRealValue) throws SchemaException {
-		deltas.add(DeltaBuilder.deltaFor(TaskType.class, parentPage.getPrismContext())
+		deltas.add(parentPage.getPrismContext().deltaFor(TaskType.class)
 			.item(itemName).replace(itemRealValue)
 			.asItemDelta());
 	}
 
 	private void addDelta(List<ItemDelta<?, ?>> deltas, QName itemName1, QName itemName2, Object itemRealValue) throws SchemaException {
-		deltas.add(DeltaBuilder.deltaFor(TaskType.class, parentPage.getPrismContext())
+		deltas.add(parentPage.getPrismContext().deltaFor(TaskType.class)
 			.item(itemName1, itemName2).replace(itemRealValue)
 			.asItemDelta());
 	}

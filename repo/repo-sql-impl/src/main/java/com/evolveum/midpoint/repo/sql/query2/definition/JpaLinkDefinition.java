@@ -18,14 +18,10 @@ package com.evolveum.midpoint.repo.sql.query2.definition;
 
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
 
 /**
  * @author mederly
@@ -47,21 +43,19 @@ public class JpaLinkDefinition<D extends JpaDataNodeDefinition> implements Visit
         this.targetDefinition = targetDefinition;
     }
 
-    public JpaLinkDefinition(@NotNull ItemPathSegment itemPathSegment, String jpaName, CollectionSpecification collectionSpecification, boolean embedded, D targetDefinition) {
-        this(new ItemPath(itemPathSegment), jpaName, collectionSpecification, embedded, targetDefinition);
-    }
-
-    public JpaLinkDefinition(@NotNull QName jaxbName, String jpaName, CollectionSpecification collectionSpecification, boolean embedded, D targetDefinition) {
-        this(new NameItemPathSegment(jaxbName), jpaName, collectionSpecification, embedded, targetDefinition);
-
-    }
-
     @NotNull
     public ItemPath getItemPath() {
         return itemPath;
     }
 
-    ItemPathSegment getItemPathSegment() {
+    ItemName getItemName() {
+        if (itemPath.size() != 1) {
+            throw new IllegalStateException("Expected single-item path, found '" + itemPath + "' instead.");
+        }
+        return ItemPath.toName(itemPath.first());
+    }
+
+    Object getItemPathSegment() {
         if (itemPath.size() != 1) {
             throw new IllegalStateException("Expected single-item path, found '" + itemPath + "' instead.");
         }
@@ -90,7 +84,7 @@ public class JpaLinkDefinition<D extends JpaDataNodeDefinition> implements Visit
     }
 
     public boolean matchesStartOf(ItemPath itemPath) {
-        return itemPath.startsWith(this.itemPath);
+        return this.itemPath.isSubPathOrEquivalent(itemPath);
     }
 
     @SuppressWarnings("unchecked")

@@ -29,7 +29,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -164,7 +163,9 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
         dummyApproverRef.setType(UserType.COMPLEX_TYPE);
         dummyApproverRef.setOid(DUMMYBOSS_OID);
         businessConfigurationType.getApproverRef().add(dummyApproverRef);
-        ObjectDelta objectDelta = ObjectDelta.createModificationAddContainer(ResourceType.class, RESOURCE_DUMMY_OID, new ItemPath(ResourceType.F_BUSINESS), prismContext, businessConfigurationType);
+        ObjectDelta objectDelta = prismContext.deltaFactory().object()
+		        .createModificationAddContainer(ResourceType.class, RESOURCE_DUMMY_OID, ResourceType.F_BUSINESS,
+                        businessConfigurationType);
         repositoryService.modifyObject(ResourceType.class, RESOURCE_DUMMY_OID, objectDelta.getModifications(), initResult);
 
         // check Role2 approver OID (it is filled-in using search filter)
@@ -186,7 +187,7 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
 
         display("setting policyRuleBasedAspect.enabled to", enablePolicyRuleBasedAspect);
         List<ItemDelta<?, ?>> deltas =
-                DeltaBuilder.deltaFor(SystemConfigurationType.class, prismContext)
+                prismContext.deltaFor(SystemConfigurationType.class)
                         .item(SystemConfigurationType.F_WORKFLOW_CONFIGURATION, WfConfigurationType.F_PRIMARY_CHANGE_PROCESSOR,
                                 PrimaryChangeProcessorConfigurationType.F_POLICY_RULE_BASED_ASPECT, PcpAspectConfigurationType.F_ENABLED)
                         .replace(enablePolicyRuleBasedAspect)
@@ -241,7 +242,9 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
     protected void removeAllAssignments(String oid, OperationResult result) throws Exception {
         PrismObject<UserType> user = repositoryService.getObject(UserType.class, oid, null, result);
         for (AssignmentType at : user.asObjectable().getAssignment()) {
-            ObjectDelta delta = ObjectDelta.createModificationDeleteContainer(UserType.class, oid, UserType.F_ASSIGNMENT, prismContext, at.asPrismContainerValue().clone());
+            ObjectDelta delta = prismContext.deltaFactory().object()
+		            .createModificationDeleteContainer(UserType.class, oid, UserType.F_ASSIGNMENT,
+                            at.asPrismContainerValue().clone());
             repositoryService.modifyObject(UserType.class, oid, delta.getModifications(), result);
             LOGGER.info("Removed assignment " + at + " from " + user);
         }
@@ -356,7 +359,8 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
                 Task subtask = subtasks.get(i);
                 //assertEquals("Subtask #" + i + " is not recurring: " + subtask, TaskRecurrence.RECURRING, subtask.getRecurrenceStatus());
                 //assertEquals("Incorrect execution status of subtask #" + i + ": " + subtask, TaskExecutionStatus.RUNNABLE, subtask.getExecutionStatus());
-                PrismProperty<ObjectTreeDeltasType> deltas = subtask.getTaskPrismObject().findProperty(new ItemPath(F_WORKFLOW_CONTEXT, F_PROCESSOR_SPECIFIC_STATE, F_DELTAS_TO_PROCESS));
+                PrismProperty<ObjectTreeDeltasType> deltas = subtask.getTaskPrismObject().findProperty(
+                        ItemPath.create(F_WORKFLOW_CONTEXT, F_PROCESSOR_SPECIFIC_STATE, F_DELTAS_TO_PROCESS));
                 assertNotNull("There are no modifications in subtask #" + i + ": " + subtask, deltas);
                 assertEquals("Incorrect number of modifications in subtask #" + i + ": " + subtask, 1, deltas.getRealValues().size());
                 // todo check correctness of the modification?
@@ -482,7 +486,7 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
             PrismObject<UserType> user = findUserInRepo(name, result);
 
             Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-            deltas.add(ObjectDelta.createDeleteDelta(UserType.class, user.getOid(), prismContext));
+            deltas.add(prismContext.deltaFactory().object().createDeleteDelta(UserType.class, user.getOid()));
             modelService.executeChanges(deltas, new ModelExecuteOptions(), t, result);
 
             LOGGER.info("User " + name + " was deleted");

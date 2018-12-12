@@ -18,6 +18,7 @@ package com.evolveum.midpoint.gui.impl.component.data.column;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -31,7 +32,6 @@ import com.evolveum.midpoint.gui.impl.component.prism.PrismPropertyPanel;
 import com.evolveum.midpoint.gui.impl.component.prism.StaticItemWrapperColumnPanel;
 import com.evolveum.midpoint.gui.impl.model.PropertyOrReferenceWrapperFromContainerModel;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.Form;
@@ -87,8 +87,9 @@ public class EditablePropertyWrapperColumn<C extends Containerable, S> extends A
     	Form form= new Form("form");
     	PropertyOrReferenceWrapperFromContainerModel model = new PropertyOrReferenceWrapperFromContainerModel<>(rowModel.getObject(), qNameOfProperty);
     	
-    	if(model.getObject().getPath().removeIdentifiers().equivalent(new ItemPath(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_CLASS_LOGGER, ClassLoggerConfigurationType.F_APPENDER))){
-			if(((PropertyWrapper<AppenderConfigurationType>)model.getObject()).isEmpty()){
+    	if(model.getObject().getPath().namedSegmentsOnly().equivalent(
+			    ItemPath.create(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_CLASS_LOGGER, ClassLoggerConfigurationType.F_APPENDER))){
+			if(((PropertyWrapper<AppenderConfigurationType>)model.getObject()).isEmpty()) {
 				IModel<String> inheritModel = page.createStringResource("LoggingConfigPanel.appenders.Inherit");
 				return new Label(componentId, inheritModel);
 			}

@@ -52,10 +52,10 @@
         <module>schema-pure-jaxb</module>
         <module>common</module>
         <module>test-util</module>
-        <module>prism</module>
-        <!--<module>prism-api</module>-->
         <module>prism-maven-plugin</module>
-    </modules>
+		<module>prism-api</module>
+        <module>prism-impl</module>
+	</modules>
     <dependencies> 
     	<dependency> <!-- Not used, but required for surefire plugin not to complain -->
             <groupId>org.testng</groupId>

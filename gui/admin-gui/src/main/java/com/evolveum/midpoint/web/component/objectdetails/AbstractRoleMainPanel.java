@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2015-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,6 +22,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.assignment.SwitchAssignmentTypePanel;
+import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
 import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -41,7 +42,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -61,7 +61,6 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.page.self.PageAssignmentShoppingCart;
 import com.evolveum.midpoint.web.security.GuiAuthorizationConstants;
 import com.evolveum.midpoint.web.session.RoleCatalogStorage;
-import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
@@ -201,7 +200,14 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 			@Override
 			public WebMarkupContainer createPanel(String panelId) {
 				SwitchAssignmentTypePanel panel = new SwitchAssignmentTypePanel(panelId,
-						new ContainerWrapperFromObjectWrapperModel<>(getObjectModel(), new ItemPath(AbstractRoleType.F_INDUCEMENT)));
+						new ContainerWrapperFromObjectWrapperModel<>(getObjectModel(), AbstractRoleType.F_INDUCEMENT)){
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					protected boolean isInducement(){
+						return true;
+					}
+				};
 				return panel;
 //				return new AbstractRoleInducementPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
 			}
@@ -212,23 +218,24 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 			}
 
 		});
-		authorization = new FocusTabVisibleBehavior<>(unwrapModel(),
-				ComponentConstants.UI_ROLE_TAB_INDUCED_ENTITLEMENTS_URL, false, isFocusHistoryPage(), parentPage);
-		tabs.add(new CountablePanelTab(parentPage.createStringResource("AbstractRoleMainPanel.inducedEntitlements"), authorization) {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public WebMarkupContainer createPanel(String panelId) {
-				return new InducedEntitlementsTabPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
-			}
-
-			@Override
-			public String getCount(){
-				return getInducedEntitlementsCount();
-			}
-
-		});
+		//TODO remove after "switch assignment type" style is totally approved
+//		authorization = new FocusTabVisibleBehavior<>(unwrapModel(),
+//				ComponentConstants.UI_ROLE_TAB_INDUCED_ENTITLEMENTS_URL, false, isFocusHistoryPage(), parentPage);
+//		tabs.add(new CountablePanelTab(parentPage.createStringResource("AbstractRoleMainPanel.inducedEntitlements"), authorization) {
+//
+//			private static final long serialVersionUID = 1L;
+//
+//			@Override
+//			public WebMarkupContainer createPanel(String panelId) {
+//				return new InducedEntitlementsTabPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
+//			}
+//
+//			@Override
+//			public String getCount(){
+//				return getInducedEntitlementsCount();
+//			}
+//
+//		});
 
 		if (WebComponentUtil.isAuthorized(ModelAuthorizationAction.AUDIT_READ.getUrl()) && getObjectWrapper().getStatus() != ContainerStatus.ADDING){
 			authorization = new FocusTabVisibleBehavior<>(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_OBJECT_HISTORY_URL, false, isFocusHistoryPage(), parentPage);
@@ -330,7 +337,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 	}
 
 	private <F extends FocusType> boolean isAllowedToReadRoleMembershipItemForType(String abstractRoleOid, Class<F> type, PageBase parentPage){
-		ObjectQuery query = QueryBuilder.queryFor(type, parentPage.getPrismContext())
+		ObjectQuery query = parentPage.getPrismContext().queryFor(type)
 				.item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(abstractRoleOid).build();
 		Task task = parentPage.createSimpleTask(OPERATION_CAN_SEARCH_ROLE_MEMBERSHIP_ITEM);
 		OperationResult result = task.getResult();
@@ -365,21 +372,30 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 				return "";
 			}
 			int count = 0;
-			for (AssignmentType inducement : inducements){
-				if (inducement.getConstruction() == null){
-					continue;
-				}
-				if (inducement.getConstruction().getAssociation() == null || inducement.getConstruction().getAssociation().size() == 0){
-					continue;
-				}
-				for (ResourceObjectAssociationType association : inducement.getConstruction().getAssociation()){
-					if (association.getOutbound() != null && association.getOutbound().getExpression() != null
-							&& ExpressionUtil.getShadowRefValue(association.getOutbound().getExpression()) != null){
-						count++;
-						break;
-					}
-				}
-			}
+			//TODO the whole tab will be removed
+//			for (AssignmentType inducement : inducements){
+//				if (inducement.getConstruction() == null){
+//					continue;
+//				}
+//				if (inducement.getConstruction().getAssociation() == null || inducement.getConstruction().getAssociation().size() == 0){
+//					continue;
+//				}
+//				for (ResourceObjectAssociationType association : inducement.getConstruction().getAssociation()){
+//					if (association.getOutbound() != null && association.getOutbound().getExpression() != null
+//							&& ExpressionUtil.getShadowRefValue(association.getOutbound().getExpression()) != null){
+//						count++;
+//						break;
+//					}
+//				}
+//			}
 			return Integer.toString(count);
+	}
+
+	@Override
+	protected boolean areSavePreviewButtonsEnabled(){
+		ObjectWrapper<R> focusWrapper = getObjectModel().getObject();
+		ContainerWrapper<AssignmentType> assignmentsWrapper =
+				focusWrapper.findContainerWrapper(AbstractRoleType.F_INDUCEMENT);
+		return super.areSavePreviewButtonsEnabled()  || isAssignmentsModelChanged(assignmentsWrapper);
 	}
 }

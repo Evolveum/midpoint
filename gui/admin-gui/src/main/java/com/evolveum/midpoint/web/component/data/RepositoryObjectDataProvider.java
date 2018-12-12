@@ -21,7 +21,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -75,7 +74,7 @@ public class RepositoryObjectDataProvider
             ObjectPaging paging = createPaging(first, count);
 			ObjectQuery query = getQuery();
 			if (query == null) {
-				query = new ObjectQuery();
+				query = getPrismContext().queryFactory().createQuery();
 			}
 			query.setPaging(paging);
 
@@ -86,7 +85,7 @@ public class RepositoryObjectDataProvider
                 getAvailableData().add(createItem(object, result));
             }
         } catch (Exception ex) {
-            result.recordFatalError("Couldn't list objects.", ex);
+        	result.recordFatalError(getPage().createStringResource("ObjectDataProvider.message.listObjects.fatalError").getString(), ex);
         } finally {
             result.computeStatusIfUnknown();
         }
@@ -99,11 +98,10 @@ public class RepositoryObjectDataProvider
 
     @NotNull
     private Collection<SelectorOptions<GetOperationOptions>> getOptions() {
-        Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<>();
-        GetOperationOptions opt = GetOperationOptions.createRaw();
-        opt.setRetrieve(RetrieveOption.DEFAULT);
-        options.add(SelectorOptions.create(ItemPath.EMPTY_PATH, opt));
-        return GetOperationOptions.merge(createDefaultOptions(), options);
+        return getDefaultOptionsBuilder()
+            .raw()
+            .retrieve(RetrieveOption.DEFAULT)
+            .build();
     }
 
     @Override
@@ -114,7 +112,7 @@ public class RepositoryObjectDataProvider
     private DebugObjectItem createItem(PrismObject<? extends ObjectType> object, OperationResult result) {
         DebugObjectItem item = DebugObjectItem.createDebugObjectItem(object);
         if (ShadowType.class.isAssignableFrom(object.getCompileTimeClass())) {
-            PrismReference ref = object.findReference(new ItemPath(ShadowType.F_RESOURCE_REF));
+            PrismReference ref = object.findReference(ShadowType.F_RESOURCE_REF);
             if (ref == null || ref.getValue() == null) {
                 return item;
             }
@@ -135,9 +133,9 @@ public class RepositoryObjectDataProvider
     }
 
     private ResourceDescription loadDescription(String oid, OperationResult result) {
-        Collection<SelectorOptions<GetOperationOptions>> options =
-                SelectorOptions.createCollection(ResourceType.F_CONNECTOR, GetOperationOptions.createResolve());
-
+        Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
+                .item(ResourceType.F_CONNECTOR).resolve()
+                .build();
         OperationResult subResult = result.createSubresult(OPERATION_LOAD_RESOURCE);
         subResult.addParam("oid", oid);
 
@@ -162,7 +160,7 @@ public class RepositoryObjectDataProvider
             subResult.recordSuccess();
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load resource for account", ex);
-            subResult.recordFatalError("Couldn't load resource for account.");
+            result.recordFatalError(getPage().createStringResource("ObjectDataProvider.message.loadResourceForAccount.fatalError").getString(), ex);
         } finally {
             subResult.recomputeStatus();
         }
@@ -179,7 +177,7 @@ public class RepositoryObjectDataProvider
             count = getModel().countObjects(type, getQuery(), getOptions(),
                     getPage().createSimpleTask(OPERATION_COUNT_OBJECTS), result);
         } catch (Exception ex) {
-            result.recordFatalError("Couldn't count objects.", ex);
+        	result.recordFatalError(getPage().createStringResource("ObjectDataProvider.message.countObjects.fatalError").getString(), ex);
         } finally {
             result.computeStatusIfUnknown();
         }

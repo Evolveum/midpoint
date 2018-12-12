@@ -59,7 +59,7 @@ public class PropertyOrReferenceWrapperFromContainerModel<C extends Containerabl
 		if(value == null) {
 			return null;
 		}
-		return (PropertyOrReferenceWrapper)((ContainerValueWrapper)value).findPropertyWrapper(new ItemPath(((ContainerValueWrapper)value).getPath(), qname));
+		return (PropertyOrReferenceWrapper)((ContainerValueWrapper)value).findPropertyWrapper(ItemPath.create(((ContainerValueWrapper)value).getPath(), qname));
 	}
 
 	@Override

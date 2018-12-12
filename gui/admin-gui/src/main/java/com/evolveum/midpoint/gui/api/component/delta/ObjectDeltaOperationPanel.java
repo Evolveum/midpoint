@@ -96,7 +96,7 @@ public class ObjectDeltaOperationPanel extends BasePanel<ObjectDeltaOperationTyp
 			sceneDto = loadSceneForDelta();
 		} catch (SchemaException | ExpressionEvaluationException e) {
 			OperationResult result = new OperationResult(ObjectDeltaOperationPanel.class.getName() + ".loadSceneForDelta");
-			result.recordFatalError("Couldn't fetch or visualize the delta: " + e.getMessage(), e);
+			result.recordFatalError(createStringResource("ObjectDeltaOperationPanel.message.fetchOrVisualize.fatalError", e.getMessage()).getString(), e);
 			parentPage.showResult(result);
 			throw parentPage.redirectBackViaRestartResponseException();
 		}

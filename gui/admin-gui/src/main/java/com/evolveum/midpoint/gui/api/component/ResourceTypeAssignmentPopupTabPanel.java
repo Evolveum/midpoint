@@ -15,30 +15,35 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
+import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.RelationTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 
-import javax.xml.namespace.QName;
 import java.util.*;
 
 /**
@@ -52,10 +57,11 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
     private static final String ID_INTENT_CONTAINER = "intentContainer";
     private static final String ID_KIND = "kind";
     private static final String ID_INTENT = "intent";
+    private static final String ID_ASSOCIATION_CONTAINER = "associationContainer";
+    private static final String ID_ASSOCIATION = "association";
 
     private LoadableModel<List<String>> intentValues;
-//    private String intentValue;
-//    private ShadowKindType kindValue;
+    private LoadableModel<List<RefinedAssociationDefinition>> associationValuesModel;
 
     private static final String DOT_CLASS = ResourceTypeAssignmentPopupTabPanel.class.getName();
     private static final Trace LOGGER = TraceManager.getTrace(ResourceTypeAssignmentPopupTabPanel.class);
@@ -81,7 +87,7 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                target.add(getIntentDropDown());
+                kindValueUpdatePerformed(target);
             }
         });
         kindSelector.getBaseFormComponent().add(new VisibleEnableBehaviour(){
@@ -110,14 +116,60 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
                 return getKindValue() != null && getSelectedObjectsList() != null && getSelectedObjectsList().size() > 0;
             }
         });
+        intentSelector.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                intentValueUpdatePerformed(target);
+            }
+        });
         intentSelector.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         intentSelector.setOutputMarkupId(true);
         intentSelector.setOutputMarkupPlaceholderTag(true);
         intentContainer.add(intentSelector);
 
+        WebMarkupContainer associationContainer = new WebMarkupContainer(ID_ASSOCIATION_CONTAINER);
+        associationContainer.setOutputMarkupId(true);
+        associationContainer.add(new VisibleBehaviour(() -> isEntitlementAssignment()));
+        parametersPanel.add(associationContainer);
+
+        DropDownChoicePanel<RefinedAssociationDefinition> associationSelector = new DropDownChoicePanel<>(ID_ASSOCIATION,
+                Model.of(), associationValuesModel, new IChoiceRenderer<RefinedAssociationDefinition>() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public Object getDisplayValue(RefinedAssociationDefinition refinedAssociationDefinition) {
+                return WebComponentUtil.getAssociationDisplayName(refinedAssociationDefinition);
+            }
+
+            @Override
+            public String getIdValue(RefinedAssociationDefinition refinedAssociationDefinition, int index) {
+                return Integer.toString(index);
+            }
+
+            @Override
+            public RefinedAssociationDefinition getObject(String id, IModel<? extends List<? extends RefinedAssociationDefinition>> choices) {
+                return StringUtils.isNotBlank(id) ? choices.getObject().get(Integer.parseInt(id)) : null;
+            }
+        }, true);
+        associationSelector.setOutputMarkupId(true);
+        associationSelector.getBaseFormComponent().add(new VisibleEnableBehaviour() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isEnabled() {
+                return getSelectedObjectsList() != null && getSelectedObjectsList().size() > 0 && getKindValue() != null &&
+                        StringUtils.isNotEmpty(getIntentValue());
+            }
+        });
+        associationSelector.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
+        associationSelector.setOutputMarkupPlaceholderTag(true);
+        associationContainer.add(associationSelector);
+
     }
 
-    private void initModels(){
+    protected void initModels(){
         intentValues = new LoadableModel<List<String>>(true) {
             private static final long serialVersionUID = 1L;
 
@@ -148,6 +200,26 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
                 return availableIntentValues;
             }
         };
+        associationValuesModel = new LoadableModel<List<RefinedAssociationDefinition>>() {
+            @Override
+            protected List<RefinedAssociationDefinition> load() {
+                ResourceType resource = getSelectedObjectsList() != null && getSelectedObjectsList().size() > 0 ?
+                        getSelectedObjectsList().get(0) : null;
+                if (resource == null) {
+                    return new ArrayList<>();
+                }
+                return WebComponentUtil.getRefinedAssociationDefinition(resource, getKindValue(), getIntentValue());
+            }
+        };
+    }
+
+    private void kindValueUpdatePerformed(AjaxRequestTarget target){
+        target.add(getIntentDropDown());
+        target.add(getAssociationDropDown());
+    }
+
+    private void intentValueUpdatePerformed(AjaxRequestTarget target){
+        target.add(getAssociationDropDown());
     }
 
     @Override
@@ -158,29 +230,47 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
         ShadowKindType kind = getKindValue();
         String intent = getIntentValue();
         selectedObjects.forEach(selectedObject -> {
-            assignmentList.put(selectedObject.getOid(),
-                    ObjectTypeUtil.createAssignmentWithConstruction(
-                            selectedObject.asPrismObject(), kind, intent, getPageBase().getPrismContext()));
+            AssignmentType newConstructionAssignment = ObjectTypeUtil.createAssignmentWithConstruction(
+                    selectedObject.asPrismObject(), kind, intent, getPageBase().getPrismContext());
+            if (isEntitlementAssignment()){
+                NameItemPathSegment segment = getAssociationValue() != null ? new NameItemPathSegment(getAssociationValue().getName()) : null;
+
+                if (segment != null) {
+                    ResourceObjectAssociationType association = new ResourceObjectAssociationType();
+                    association.setRef(new ItemPathType(ItemPath.create(segment)));
+                    newConstructionAssignment.getConstruction().getAssociation().add(association);
+                }
+            }
+            assignmentList.put(selectedObject.getOid(), newConstructionAssignment);
         });
         return assignmentList;
     }
 
-    public ShadowKindType getKindValue(){
+    private ShadowKindType getKindValue(){
         DropDownChoicePanel<ShadowKindType> kindDropDown = getKindDropDown();
         return kindDropDown.getModel() != null ? kindDropDown.getModel().getObject() : null;
     }
 
-    public String getIntentValue(){
+    private String getIntentValue(){
         DropDownChoicePanel<String> intentDropDown = getIntentDropDown();
         return intentDropDown.getModel() != null ? intentDropDown.getModel().getObject() : null;
     }
 
+    private RefinedAssociationDefinition getAssociationValue(){
+        DropDownChoicePanel<RefinedAssociationDefinition> associationDropDown = getAssociationDropDown();
+        return associationDropDown != null ? associationDropDown.getModel().getObject() : null;
+    }
+
     private DropDownChoicePanel<String> getIntentDropDown(){
-        return (DropDownChoicePanel<String>)get(ID_PARAMETERS_PANEL).get(ID_INTENT_CONTAINER).get(ID_INTENT);
+        return (DropDownChoicePanel<String>)get(getPageBase().createComponentPath(ID_PARAMETERS_PANEL, ID_INTENT_CONTAINER, ID_INTENT));
     }
 
     private DropDownChoicePanel<ShadowKindType> getKindDropDown(){
-        return (DropDownChoicePanel<ShadowKindType>)get(ID_PARAMETERS_PANEL).get(ID_KIND_CONTAINER).get(ID_KIND);
+        return (DropDownChoicePanel<ShadowKindType>)get(getPageBase().createComponentPath(ID_PARAMETERS_PANEL, ID_KIND_CONTAINER, ID_KIND));
+    }
+
+    private DropDownChoicePanel<RefinedAssociationDefinition> getAssociationDropDown(){
+        return (DropDownChoicePanel<RefinedAssociationDefinition>) get(getPageBase().createComponentPath(ID_PARAMETERS_PANEL, ID_ASSOCIATION_CONTAINER, ID_ASSOCIATION));
     }
 
     @Override
@@ -200,5 +290,9 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
         List selectedObjects = getSelectedObjectsList();
         return Model.of(selectedObjects == null || selectedObjects.size() == 0
                 || (rowModel != null && rowModel.getObject() != null && rowModel.getObject().isSelected()));
+    }
+
+    protected boolean isEntitlementAssignment(){
+        return false;
     }
 }

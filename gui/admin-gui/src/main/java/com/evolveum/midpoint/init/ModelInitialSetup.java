@@ -46,9 +46,9 @@ public class ModelInitialSetup {
             LOGGER.info("Model post initialization finished successfully.");
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Model post initialization failed", ex);
-            mainResult.recordFatalError("Model post initialization failed.", ex);
+            mainResult.recordFatalError("ModelInitialSetup.message.init.fatalError", ex);
         } finally {
-            mainResult.computeStatus("Model post initialization failed.");
+            mainResult.computeStatus("ModelInitialSetup.message.init.fatalError");
         }
     }
 }

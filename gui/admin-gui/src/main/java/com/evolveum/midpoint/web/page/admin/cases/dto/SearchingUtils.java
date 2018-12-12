@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.web.page.admin.cases.dto;
 
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.OrderDirection;
@@ -35,35 +36,36 @@ public class SearchingUtils {
     public static final String CASE_STATE = CaseType.F_STATE.getLocalPart();
 
     @NotNull
-    public static List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
+    public static List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam,
+            PrismContext prismContext) {
         if (sortParam == null || sortParam.getProperty() == null) {
             return Collections.emptyList();
         }
         String propertyName = sortParam.getProperty();
-        ItemPath casePath = new ItemPath(T_PARENT);
+        ItemPath casePath = ItemPath.create(T_PARENT);
         ItemPath workItemPath = ItemPath.EMPTY_PATH;
         ItemPath primaryItemPath;
         if (CASE_DESCRIPTION.equals(propertyName)) {
-            primaryItemPath = casePath.subPath(CaseType.F_DESCRIPTION);
+            primaryItemPath = casePath.append(CaseType.F_DESCRIPTION);
         } else if (WORK_ITEM_CLOSE_TIMESTAMP.equals(propertyName)) {
-            primaryItemPath = workItemPath.subPath(CaseWorkItemType.F_CLOSE_TIMESTAMP);
+            primaryItemPath = workItemPath.append(CaseWorkItemType.F_CLOSE_TIMESTAMP);
         } else if (WORK_ITEM_DEADLINE.equals(propertyName)) {
-            primaryItemPath = workItemPath.subPath(CaseWorkItemType.F_DEADLINE);
+            primaryItemPath = workItemPath.append(CaseWorkItemType.F_DEADLINE);
         } else if (CASE_OPEN_TIMESTAMP.equals(propertyName)) {
-            primaryItemPath = casePath.subPath(CaseType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP);
+            primaryItemPath = casePath.append(CaseType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP);
         } else if (CASE_OBJECT_NAME.equals(propertyName)) {
-            primaryItemPath = casePath.subPath(CaseType.F_OBJECT_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME);
+            primaryItemPath = casePath.append(CaseType.F_OBJECT_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME);
         } else if (CASE_STATE.equals(propertyName)) {
-            primaryItemPath = casePath.subPath(CaseType.F_STATE);
+            primaryItemPath = casePath.append(CaseType.F_STATE);
         } else {
-            primaryItemPath = new ItemPath(new QName(SchemaConstantsGenerated.NS_COMMON, propertyName));
+            primaryItemPath = ItemPath.create(new QName(SchemaConstantsGenerated.NS_COMMON, propertyName));
         }
 
         List<ObjectOrdering> rv = new ArrayList<>();
-        rv.add(ObjectOrdering.createOrdering(primaryItemPath, sortParam.isAscending() ? OrderDirection.ASCENDING : OrderDirection.DESCENDING));
+        rv.add(prismContext.queryFactory().createOrdering(primaryItemPath, sortParam.isAscending() ? OrderDirection.ASCENDING : OrderDirection.DESCENDING));
         // additional criteria are used to avoid random shuffling if first criteria is too vague)
-        rv.add(ObjectOrdering.createOrdering(casePath.subPath(PrismConstants.T_ID), OrderDirection.ASCENDING));			// case ID
-        rv.add(ObjectOrdering.createOrdering(workItemPath.subPath(PrismConstants.T_ID), OrderDirection.ASCENDING));			// work item ID
+        rv.add(prismContext.queryFactory().createOrdering(casePath.append(PrismConstants.T_ID), OrderDirection.ASCENDING));			// case ID
+        rv.add(prismContext.queryFactory().createOrdering(workItemPath.append(PrismConstants.T_ID), OrderDirection.ASCENDING));			// work item ID
         return rv;
     }
 }

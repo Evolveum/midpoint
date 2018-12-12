@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016-2017 Evolveum
+ * Copyright (c) 2016-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,8 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
+import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
+import com.evolveum.midpoint.model.api.authentication.UserProfileService;
 import com.evolveum.midpoint.model.api.context.AbstractAuthenticationContext;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -89,15 +91,11 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
 	protected static final String USER_GUYBRUSH_PASSWORD = "XmarksTHEspot";
 
-	@Autowired
-	private LocalizationMessageSource messageSource;
+	@Autowired private LocalizationMessageSource messageSource;
+	@Autowired private UserProfileService userProfileService;
+	@Autowired private Clock clock;
+	
 	private MessageSourceAccessor messages;
-
-	@Autowired(required=true)
-	private UserProfileService userProfileService;
-
-	@Autowired(required = true)
-	private Clock clock;
 
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.test.AbstractIntegrationTest#initSystem(com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
@@ -136,29 +134,29 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 			}
 
 			@Override
-			public MidPointPrincipal getPrincipal(PrismObject<UserType> user) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+			public MidPointUserProfilePrincipal getPrincipal(PrismObject<UserType> user) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 				return getPrincipal(user, null, null);
 			}
 			
 			@Override
-			public MidPointPrincipal getPrincipal(PrismObject<UserType> user,
+			public MidPointUserProfilePrincipal getPrincipal(PrismObject<UserType> user,
 					AuthorizationTransformer authorizationLimiter, OperationResult result)
 					throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-				MidPointPrincipal principal = userProfileService.getPrincipal(user);
+				MidPointUserProfilePrincipal principal = userProfileService.getPrincipal(user);
 				addFakeAuthorization(principal);
 				return principal;
 			}
 
 			@Override
-			public MidPointPrincipal getPrincipal(String username) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-				MidPointPrincipal principal = userProfileService.getPrincipal(username);
+			public MidPointUserProfilePrincipal getPrincipal(String username) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+				MidPointUserProfilePrincipal principal = userProfileService.getPrincipal(username);
 				addFakeAuthorization(principal);
 				return principal;
 			}
 
 			@Override
-			public MidPointPrincipal getPrincipalByOid(String oid) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-				MidPointPrincipal principal = userProfileService.getPrincipalByOid(oid);
+			public MidPointUserProfilePrincipal getPrincipalByOid(String oid) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+				MidPointUserProfilePrincipal principal = userProfileService.getPrincipalByOid(oid);
 				addFakeAuthorization(principal);
 				return principal;
 			}

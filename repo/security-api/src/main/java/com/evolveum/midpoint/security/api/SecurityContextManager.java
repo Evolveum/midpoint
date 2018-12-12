@@ -69,9 +69,9 @@ public interface SecurityContextManager {
 
 	// runPrivileged method is in SecurityEnforcer. It needs to be there because it works with authorizations.
 
-	UserProfileService getUserProfileService();
+	MidPointPrincipalManager getUserProfileService();
 
-	void setUserProfileService(UserProfileService userProfileService);
+	void setUserProfileService(MidPointPrincipalManager userProfileService);
 	
 	/**
 	 * Store connection information for later use within current thread.

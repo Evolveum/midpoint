@@ -26,6 +26,7 @@ import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.crypto.Protector;
 
+import com.evolveum.midpoint.prism.delta.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,9 +37,6 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
@@ -154,7 +152,8 @@ public class ModelCrudService {
 		PrismObject<ShadowType> shadowToAdd;
 		if (deltaType != null){
 
-			delta = ObjectDelta.createEmptyDelta(ShadowType.class, deltaType.getOid(), prismContext, ChangeType.toChangeType(deltaType.getChangeType()));
+			delta = prismContext.deltaFactory().object().createEmptyDelta(ShadowType.class, deltaType.getOid(),
+					ChangeType.toChangeType(deltaType.getChangeType()));
 
 			if (delta.getChangeType() == ChangeType.ADD) {
 //						LOGGER.trace("determined ADD change ");
@@ -278,7 +277,7 @@ public class ModelCrudService {
 				}
 			}
 
-			ObjectDelta<T> objectDelta = ObjectDelta.createAddDelta(object);
+			ObjectDelta<T> objectDelta = DeltaFactory.Object.createAddDelta(object);
 			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 			modelService.executeChanges(deltas, options, task, result);
 
@@ -337,7 +336,7 @@ public class ModelCrudService {
 		RepositoryCache.enter();
 
 		try {
-			ObjectDelta<T> objectDelta = new ObjectDelta<>(clazz, ChangeType.DELETE, prismContext);
+			ObjectDelta<T> objectDelta = prismContext.deltaFactory().object().create(clazz, ChangeType.DELETE);
 			objectDelta.setOid(oid);
 
 			LOGGER.trace("Deleting object with oid {}.", new Object[] { oid });
@@ -418,7 +417,7 @@ public class ModelCrudService {
 			return;
 		}
 
-		ItemDelta.checkConsistence(modifications, ConsistencyCheckScope.THOROUGH);
+		ItemDeltaCollectionsUtil.checkConsistence(modifications, ConsistencyCheckScope.THOROUGH);
 		// TODO: check definitions, but tolerate missing definitions in <attributes>
 
 		OperationResult result = parentResult.createSubresult(MODIFY_OBJECT);
@@ -428,7 +427,8 @@ public class ModelCrudService {
 
 		try {
 
-			ObjectDelta<T> objectDelta = ObjectDelta.createModifyDelta(oid, modifications, type, prismContext);
+			ObjectDelta<T> objectDelta = prismContext.deltaFactory().object().createModifyDelta(oid, modifications, type
+			);
 			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 			modelService.executeChanges(deltas, options, task, result);
 

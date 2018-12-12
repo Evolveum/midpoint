@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.model.impl;
 
 import com.evolveum.midpoint.model.impl.util.ModelTUtil;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -29,9 +28,6 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaListType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SelectorQualifiedGetOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultMessage;
@@ -322,7 +318,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
         mod1.setModificationType(ModificationTypeType.ADD);
 //        ItemDeltaType.Value value = new ItemDeltaType.Value();
 //        value.getAny().add(DOMUtil.createElement(DOMUtil.getDocument(), new QName(SchemaConstants.NS_C, "fullName")));
-        mod1.setPath(new ItemPathType(new ItemPath(UserType.F_FULL_NAME)));
+        mod1.setPath(new ItemPathType(UserType.F_FULL_NAME));
         objectDeltaType.getItemDelta().add(mod1);
 
         when(

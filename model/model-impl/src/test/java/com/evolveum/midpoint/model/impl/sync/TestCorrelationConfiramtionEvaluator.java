@@ -272,7 +272,8 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 
 		ResourceType resourceType = parseObjectType(RESOURCE_DUMMY_FILE, ResourceType.class);
 		userType.asObjectable().setName(new PolyStringType("JACK"));
-		Collection<? extends ItemDelta> modifications = PropertyDelta.createModificationReplacePropertyCollection(UserType.F_NAME, userType.getDefinition(), new PolyString("JACK", "jack"));
+		Collection<? extends ItemDelta> modifications = prismContext.deltaFactory().property()
+				.createModificationReplacePropertyCollection(UserType.F_NAME, userType.getDefinition(), new PolyString("JACK", "jack"));
 		repositoryService.modifyObject(UserType.class, USER_JACK_OID, modifications, result);
 
 		List<PrismObject<UserType>> matchedUsers = evaluator.findFocusesByCorrelationRule(UserType.class,

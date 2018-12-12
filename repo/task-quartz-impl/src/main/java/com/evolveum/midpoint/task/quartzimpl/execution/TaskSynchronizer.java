@@ -94,7 +94,7 @@ public class TaskSynchronizer {
 
         List<PrismObject<TaskType>> tasks;
         try {
-            tasks = getRepositoryService().searchObjects(TaskType.class, new ObjectQuery(), null, result);
+            tasks = getRepositoryService().searchObjects(TaskType.class, null, null, result);
         } catch(SchemaException|RuntimeException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Synchronization cannot be done, because tasks cannot be listed from the repository.", e);
             return false;

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017 Evolveum
+ * Copyright (c) 2017-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,8 @@
 package com.evolveum.midpoint.gui.api.util;
 
 import com.evolveum.midpoint.gui.api.GuiFeature;
-import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
+import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType;
 
 /**
@@ -31,14 +30,14 @@ public class FeatureVisibleEnableBehaviour extends VisibleEnableBehaviour {
 
 	UserInterfaceElementVisibilityType visibility;
 
-	public FeatureVisibleEnableBehaviour(GuiFeature feature, AdminGuiConfigurationType adminGuiConfig) {
+	public FeatureVisibleEnableBehaviour(GuiFeature feature, CompiledUserProfile userProfile) {
 		super();
-		visibility = AdminGuiConfigTypeUtil.getFeatureVisibility(adminGuiConfig, feature.getUri());
+		visibility = userProfile.getFeatureVisibility(feature.getUri());
 	}
 
 	@Override
 	public boolean isVisible() {
-		return AdminGuiConfigTypeUtil.isVisible(visibility, this::isVisibleAutomatic);
+		return CompiledUserProfile.isVisible(visibility, this::isVisibleAutomatic);
     }
 
 	/**

@@ -65,10 +65,11 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 
 	@NotNull private final ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi;
 	private final boolean evaluatedOld;
-	@NotNull private final DeltaSetTriple<Construction<F>> constructionTriple = new DeltaSetTriple<>();
-	@NotNull private final DeltaSetTriple<PersonaConstruction<F>> personaConstructionTriple = new DeltaSetTriple<>();
-	@NotNull private final DeltaSetTriple<EvaluatedAssignmentTargetImpl> roles = new DeltaSetTriple<>();
+	@NotNull private final DeltaSetTriple<Construction<F>> constructionTriple;
+	@NotNull private final DeltaSetTriple<PersonaConstruction<F>> personaConstructionTriple;
+	@NotNull private final DeltaSetTriple<EvaluatedAssignmentTargetImpl> roles;
 	@NotNull private final Collection<PrismReferenceValue> orgRefVals = new ArrayList<>();
+	@NotNull private final Collection<PrismReferenceValue> archetypeRefVals = new ArrayList<>();
 	@NotNull private final Collection<PrismReferenceValue> membershipRefVals = new ArrayList<>();
 	@NotNull private final Collection<PrismReferenceValue> delegationRefVals = new ArrayList<>();
 	@NotNull private final Collection<Authorization> authorizations = new ArrayList<>();
@@ -93,11 +94,17 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	private boolean presentInOldObject;
 	private Collection<String> policySituations = new HashSet<>();
 
+	private PrismContext prismContext;
+
 	public EvaluatedAssignmentImpl(
 			@NotNull ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi,
-			boolean evaluatedOld) {
+			boolean evaluatedOld, PrismContext prismContext) {
 		this.assignmentIdi = assignmentIdi;
 		this.evaluatedOld = evaluatedOld;
+		this.constructionTriple = prismContext.deltaFactory().createDeltaSetTriple();
+		this.personaConstructionTriple = prismContext.deltaFactory().createDeltaSetTriple();
+		this.roles = prismContext.deltaFactory().createDeltaSetTriple();
+		this.prismContext = prismContext;
 	}
 
 	@NotNull
@@ -158,7 +165,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	 */
 	@Override
 	public DeltaSetTriple<EvaluatedConstruction> getEvaluatedConstructions(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
-		DeltaSetTriple<EvaluatedConstruction> rv = new DeltaSetTriple<>();
+		DeltaSetTriple<EvaluatedConstruction> rv = prismContext.deltaFactory().createDeltaSetTriple();
 		for (PlusMinusZero whichSet : PlusMinusZero.values()) {
 			Collection<Construction<F>> constructionSet = constructionTriple.getSet(whichSet);
 			if (constructionSet != null) {
@@ -234,6 +241,15 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 
 	public void addOrgRefVal(PrismReferenceValue org) {
 		orgRefVals.add(org);
+	}
+	
+	@NotNull
+	public Collection<PrismReferenceValue> getArchetypeRefVals() {
+		return archetypeRefVals;
+	}
+
+	public void addArchetypeRefVal(PrismReferenceValue archetypeRefVal) {
+		archetypeRefVals.add(archetypeRefVal);
 	}
 
 	@NotNull

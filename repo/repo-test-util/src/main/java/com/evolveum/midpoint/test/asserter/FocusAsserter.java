@@ -22,23 +22,15 @@ import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.commons.lang.StringUtils;
-import org.testng.AssertJUnit;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -46,10 +38,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -345,14 +335,28 @@ public class FocusAsserter<F extends FocusType,RA> extends PrismObjectAsserter<F
 	}
 	
 	@Override
-	public FocusAsserter<F,RA> assertNoItem(QName itemName) {
-		super.assertNoItem(itemName);
+	public FocusAsserter<F,RA> assertNoItem(ItemPath itemPath) {
+		super.assertNoItem(itemPath);
 		return this;
 	}
 	
-	@Override
-	public FocusAsserter<F,RA> assertNoItem(ItemPath itemPath) {
-		super.assertNoItem(itemPath);
+	public FocusAsserter<F,RA> assertArchetypeRef(String expectedArchetypeOid) {
+		List<ObjectReferenceType> archetypeRefs = getObject().asObjectable().getArchetypeRef();
+		if (archetypeRefs == null || archetypeRefs.isEmpty()) {
+			fail("No archetypeRefs while archetype "+expectedArchetypeOid+" expected");
+		}
+		if (archetypeRefs.size() > 1) {
+			fail("Too many archetypes while archetypeRefs "+expectedArchetypeOid+" expected: "+archetypeRefs);
+		}
+		assertEquals("Wrong archetypeRef in "+desc(), expectedArchetypeOid, archetypeRefs.get(0).getOid());
+		return this;
+	}
+	
+	public FocusAsserter<F,RA> assertNoArchetypeRef() {
+		List<ObjectReferenceType> archetypeRefs = getObject().asObjectable().getArchetypeRef();
+		if (archetypeRefs != null && !archetypeRefs.isEmpty()) {
+			fail("Found archetypeRefs while not expected any: "+archetypeRefs);
+		}
 		return this;
 	}
 }

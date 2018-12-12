@@ -31,6 +31,7 @@ import org.apache.wicket.model.util.ListModel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -39,6 +40,7 @@ import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationDefinitionType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Created by honchar
@@ -112,8 +114,8 @@ public class RelationDropDownChoicePanel extends BasePanel<QName> {
                 if (def != null){
                     DisplayType display = def.getDisplay();
                     if (display != null){
-                        String label = display.getLabel();
-                        if (StringUtils.isNotEmpty(label)){
+                        PolyStringType label = display.getLabel();
+                        if (PolyStringUtils.isNotEmpty(label)){
                             return getPageBase().createStringResource(label).getString();
                         }
                     }

@@ -55,13 +55,12 @@ public class CountRepositoryAction extends RepositoryAction<CountOptions> {
             throw new NinjaException("Type must be defined");
         }
 
-        ObjectQuery query = NinjaUtils.createObjectQuery(options.getFilter(), context);
-
         List<ObjectTypes> types = NinjaUtils.getTypes(options.getType());
 
         int total = 0;
         OperationResult result = new OperationResult(OPERATION_COUNT);
         for (ObjectTypes type : types) {
+            ObjectQuery query = NinjaUtils.createObjectQuery(options.getFilter(), context, type.getClassDefinition());
             int count = repository.countObjects(type.getClassDefinition(), query, new ArrayList<>(), result);
             if (count == 0 && options.getType() == null) {
                 continue;

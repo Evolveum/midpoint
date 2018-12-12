@@ -24,6 +24,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -32,11 +34,6 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -341,8 +338,9 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		ProjectionPolicyType projectionPolicyType = new ProjectionPolicyType();
 		projectionPolicyType.setLegalize(true);
 
-		ObjectDelta<ResourceType> objectDelta = ObjectDelta.createModificationReplaceContainer(ResourceType.class, RESOURCE_DUMMY_OID,
-				ResourceType.F_PROJECTION, prismContext, projectionPolicyType);
+		ObjectDelta<ResourceType> objectDelta = prismContext.deltaFactory().object()
+				.createModificationReplaceContainer(ResourceType.class, RESOURCE_DUMMY_OID,
+				ResourceType.F_PROJECTION, projectionPolicyType);
 
 		// WHEN
 		provisioningService.modifyObject(ResourceType.class, RESOURCE_DUMMY_OID, objectDelta.getModifications(), null, null, task, result);
@@ -451,8 +449,9 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		ProjectionPolicyType projectionPolicyType = new ProjectionPolicyType();
 		projectionPolicyType.setLegalize(true);
 
-		ObjectDelta<ResourceType> objectDelta = ObjectDelta.createModificationReplaceContainer(ResourceType.class, RESOURCE_DUMMY_OID,
-				ResourceType.F_PROJECTION, prismContext, projectionPolicyType);
+		ObjectDelta<ResourceType> objectDelta = prismContext.deltaFactory().object()
+				.createModificationReplaceContainer(ResourceType.class, RESOURCE_DUMMY_OID,
+				ResourceType.F_PROJECTION, projectionPolicyType);
 
 		// WHEN
 		repositoryService.modifyObject(ResourceType.class, RESOURCE_DUMMY_OID, objectDelta.getModifications(), result);
@@ -587,12 +586,12 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 	}
 
 	private PropertyDelta<String> createUselessStringDelta(String newVal) {
-		PropertyDelta<String> uselessStringDelta = PropertyDelta.createModificationReplaceProperty(
-				new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION,
-							 SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME,
-							 DummyResourceContoller.CONNECTOR_DUMMY_USELESS_STRING_QNAME),
-							 new PrismPropertyDefinitionImpl(DummyResourceContoller.CONNECTOR_DUMMY_USELESS_STRING_QNAME, DOMUtil.XSD_STRING, prismContext),
-							 newVal);
+		PropertyDelta<String> uselessStringDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
+				ItemPath.create(ResourceType.F_CONNECTOR_CONFIGURATION,
+						SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME,
+						DummyResourceContoller.CONNECTOR_DUMMY_USELESS_STRING_QNAME),
+				prismContext.definitionFactory().createPropertyDefinition(DummyResourceContoller.CONNECTOR_DUMMY_USELESS_STRING_QNAME, DOMUtil.XSD_STRING),
+				newVal);
 		return uselessStringDelta;
 	}
 

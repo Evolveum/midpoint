@@ -18,18 +18,13 @@ package com.evolveum.midpoint.web.page.self;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
@@ -286,10 +281,11 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
     }
 
     protected ObjectQuery createContentQuery() {
-        ObjectQuery memberQuery = new ObjectQuery();
+        ObjectQuery memberQuery = getPrismContext().queryFactory().createQuery();
         memberQuery.addFilter(getAssignableRolesFilter());
         if (getQueryType() != null && !AbstractRoleType.COMPLEX_TYPE.equals(getQueryType())){
-            ObjectFilter typeFilter = ObjectQueryUtil.filterAnd(TypeFilter.createType(getQueryType(), null), memberQuery.getFilter());
+            ObjectFilter typeFilter = ObjectQueryUtil.filterAnd(getPrismContext().queryFactory().createType(getQueryType(), null), memberQuery.getFilter(),
+		            getPrismContext());
             memberQuery.addFilter(typeFilter);
         }
 
@@ -310,7 +306,7 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
         Task task = getPageBase().createSimpleTask(OPERATION_LOAD_ASSIGNABLE_ROLES);
         OperationResult result = task.getResult();
         return WebComponentUtil.getAssignableRolesFilter(getTargetUser().asPrismObject(), (Class) ObjectTypes.getObjectTypeClass(getQueryType()),
-                result, task, getPageBase());
+                WebComponentUtil.AssignmentOrder.ASSIGNMENT, result, task, getPageBase());
     }
 
     protected abstract QName getQueryType();

@@ -21,9 +21,8 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -100,7 +99,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 		LensContext<UserType> context = createUserLensContext();
 		fillContextWithUser(context, userJackOid, result);
 		addFocusDeltaToContext(context,
-				DeltaBuilder.deltaFor(UserType.class, prismContext)
+				prismContext.deltaFor(UserType.class)
 						.item(UserType.F_ASSIGNMENT).delete(createAssignmentTo(getRoleOid(1), ObjectTypes.ROLE, prismContext))
 						.asObjectDelta(userJackOid));
 		clockwork.run(context, task, result);
@@ -288,8 +287,8 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 		PrismObject<UserType> jack = getUser(userJackOid);
 		AssignmentType assignment = createAssignmentTo(getRoleOid(1), ObjectTypes.ROLE, prismContext);
 		assignment.getTargetRef().setRelation(relation);
-		ObjectDelta<UserType> addRole1Delta = DeltaBuilder
-				.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> addRole1Delta = prismContext
+				.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT).add(assignment)
 				.asObjectDelta(userJackOid);
 		String realApproverOid = approverOid != null ? approverOid : userLead1Oid;
@@ -321,7 +320,9 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 
 			@Override
 			protected ObjectDelta<UserType> getExpectedDelta0() {
-				return ObjectDelta.createModifyDelta(jack.getOid(), Collections.emptyList(), UserType.class, prismContext);
+				return prismContext.deltaFactory().object()
+						.createModifyDelta(jack.getOid(), Collections.emptyList(), UserType.class
+						);
 			}
 
 			@Override
@@ -377,7 +378,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 			return;
 		}
 		Task task = createTask("query");
-		ObjectQuery query = QueryBuilder.queryFor(WorkItemType.class, prismContext)
+		ObjectQuery query = prismContext.queryFor(WorkItemType.class)
 				.item(WorkItemType.F_ASSIGNEE_REF).ref(getPotentialAssignees(getUser(approverOid)))
 				.build();
 		List<WorkItemType> items = modelService.searchContainers(WorkItemType.class, query, null, task, task.getResult());
@@ -387,32 +388,33 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 	private void executeAssignRoles123ToJack(String TEST_NAME, boolean immediate, boolean approve1, boolean approve2, boolean approve3) throws Exception {
 		PrismObject<UserType> jack = getUser(userJackOid);
 		@SuppressWarnings("unchecked")
-		ObjectDelta<UserType> addRole1Delta = DeltaBuilder
-				.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> addRole1Delta = prismContext
+				.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT).add(createAssignmentTo(getRoleOid(1), ObjectTypes.ROLE, prismContext))
 				.asObjectDelta(userJackOid);
 		@SuppressWarnings("unchecked")
-		ObjectDelta<UserType> addRole2Delta = DeltaBuilder
-				.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> addRole2Delta = prismContext
+				.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT).add(createAssignmentTo(getRoleOid(2), ObjectTypes.ROLE, prismContext))
 				.asObjectDelta(userJackOid);
 		@SuppressWarnings("unchecked")
-		ObjectDelta<UserType> addRole3Delta = DeltaBuilder
-				.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> addRole3Delta = prismContext
+				.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT).add(createAssignmentTo(getRoleOid(3), ObjectTypes.ROLE, prismContext))
 				.asObjectDelta(userJackOid);
 		@SuppressWarnings("unchecked")
-		ObjectDelta<UserType> addRole4Delta = DeltaBuilder
-				.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> addRole4Delta = prismContext
+				.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT).add(createAssignmentTo(getRoleOid(4), ObjectTypes.ROLE, prismContext))
 				.asObjectDelta(userJackOid);
 		@SuppressWarnings("unchecked")
-		ObjectDelta<UserType> changeDescriptionDelta = DeltaBuilder
-				.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> changeDescriptionDelta = prismContext
+				.deltaFor(UserType.class)
 				.item(UserType.F_DESCRIPTION).replace(TEST_NAME)
 				.asObjectDelta(userJackOid);
-		ObjectDelta<UserType> primaryDelta = ObjectDelta.summarize(addRole1Delta, addRole2Delta, addRole3Delta, addRole4Delta, changeDescriptionDelta);
-		ObjectDelta<UserType> delta0 = ObjectDelta.summarize(addRole4Delta, changeDescriptionDelta);
+		ObjectDelta<UserType> primaryDelta = ObjectDeltaCollectionsUtil
+				.summarize(addRole1Delta, addRole2Delta, addRole3Delta, addRole4Delta, changeDescriptionDelta);
+		ObjectDelta<UserType> delta0 = ObjectDeltaCollectionsUtil.summarize(addRole4Delta, changeDescriptionDelta);
 		String originalDescription = getUser(userJackOid).asObjectable().getDescription();
 		executeTest2(TEST_NAME, new TestDetails2<UserType>() {
 			@Override

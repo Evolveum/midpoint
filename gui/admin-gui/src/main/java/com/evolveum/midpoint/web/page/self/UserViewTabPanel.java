@@ -18,15 +18,13 @@ package com.evolveum.midpoint.web.page.self;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.assignment.UserSelectionButton;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.StringUtils;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -163,8 +161,8 @@ public class UserViewTabPanel extends AbstractShoppingCartTabPanel<AbstractRoleT
                 if (def != null) {
                     DisplayType display = def.getDisplay();
                     if (display != null) {
-                        String label = display.getLabel();
-                        if (StringUtils.isNotEmpty(label)) {
+                        PolyStringType label = display.getLabel();
+                        if (PolyStringUtils.isNotEmpty(label)) {
                             return getPageBase().createStringResource(label);
                         }
                     }
@@ -205,7 +203,7 @@ public class UserViewTabPanel extends AbstractShoppingCartTabPanel<AbstractRoleT
         if (getRoleCatalogStorage().getAssignmentsUserOwner() != null) {
             UserType assignmentsOwner =  getRoleCatalogStorage().getAssignmentsUserOwner();
             List<String> assignmentTargetObjectOidsList = collectTargetObjectOids(assignmentsOwner.getAssignment());
-            ObjectFilter oidsFilter = InOidFilter.createInOid(assignmentTargetObjectOidsList);
+            ObjectFilter oidsFilter = getPrismContext().queryFactory().createInOid(assignmentTargetObjectOidsList);
             query.addFilter(oidsFilter);
         }
         return query;

@@ -211,7 +211,8 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 			try {
 				Task task = parentPage.createSimpleTask(getOperationName(OPERATION_DELETE_OBJECT));
 
-				ObjectDelta<F> delta = ObjectDelta.createDeleteDelta(objectClass, object.getOid(), parentPage.getPrismContext());
+				ObjectDelta<F> delta = parentPage.getPrismContext().deltaFactory().object().createDeleteDelta(objectClass, object.getOid()
+				);
 				WebModelServiceUtils.save(delta, subResult, task, parentPage);
 				subResult.computeStatus();
 			} catch (RuntimeException ex) {
@@ -281,7 +282,9 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 			OperationResult opResult = result.createSubresult(getOperationName(OPERATION_RECONCILE_OBJECT));
 			try {
 				Task task = parentPage.createSimpleTask(OPERATION_RECONCILE_OBJECT);
-				ObjectDelta delta = ObjectDelta.createEmptyModifyDelta(objectClass, object.getOid(), parentPage.getPrismContext());
+				ObjectDelta delta = parentPage.getPrismContext().deltaFactory().object()
+						.createEmptyModifyDelta(objectClass, object.getOid()
+						);
 				Collection<ObjectDelta<? extends ObjectType>> deltas = WebComponentUtil.createDeltaCollection(delta);
 				parentPage.getModelService().executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, opResult);
 				opResult.computeStatusIfUnknown();

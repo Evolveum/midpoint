@@ -40,10 +40,9 @@
                 <c:value xsi:type="c:ScriptExpressionEvaluatorType">
                     <c:code>
                         import com.evolveum.midpoint.xml.ns._public.common.common_3.*
-                        import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder
 
                         log.info('Modifying user {}', input)
-                        def deltas = DeltaBuilder.deltaFor(UserType.class, prismContext)
+                        def deltas = midpoint.deltaFor(UserType.class)
                             .item(UserType.F_DESCRIPTION)
                             .replace(userDescription)
                             .asObjectDeltas(input.oid)

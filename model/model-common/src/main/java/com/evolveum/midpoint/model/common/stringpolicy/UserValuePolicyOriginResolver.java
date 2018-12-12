@@ -17,7 +17,6 @@ package com.evolveum.midpoint.model.common.stringpolicy;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -33,8 +32,8 @@ public class UserValuePolicyOriginResolver extends AbstractValuePolicyOriginReso
 
 	@Override
 	public ObjectQuery getOwnerQuery() {
-		return QueryBuilder
-				.queryFor(UserType.class, getObject().getPrismContext())
+		return getObject().getPrismContext()
+				.queryFor(UserType.class)
 				.item(UserType.F_PERSONA_REF).ref(getObject().getOid())
 				.build();
 	}	

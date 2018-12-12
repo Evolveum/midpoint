@@ -22,6 +22,9 @@ import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -41,24 +44,8 @@ import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.MappingInitializer;
 import com.evolveum.midpoint.model.impl.lens.projector.MappingOutputProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.MappingTimeEval;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.OriginType;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.repo.common.expression.ValuePolicyResolver;
@@ -83,7 +70,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
@@ -225,7 +211,7 @@ public class ProjectionCredentialsProcessor {
 					boolean projectionIsNew = projDelta != null && (projDelta.getChangeType() == ChangeType.ADD
 							|| projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.ADD);
 
-					Collection<PrismPropertyValue<ProtectedStringType>> newValues = outputTriple.getPlusSet();
+					Collection<PrismPropertyValue<ProtectedStringType>> newValues;
 					if (projectionIsNew) {
 						newValues = outputTriple.getNonNegativeValues();
 					} else {
@@ -265,7 +251,7 @@ public class ProjectionCredentialsProcessor {
 								try {
 									if (oldUserPassword.canGetCleartext() && protector.compare(oldUserPassword, oldProjectionPassword)) {
 										outputTriple.clearMinusSet();
-										outputTriple.addToMinusSet(new PrismPropertyValue<>(oldUserPassword));
+										outputTriple.addToMinusSet(prismContext.itemFactory().createPropertyValue(oldUserPassword));
 									}
 								} catch (EncryptionException e) {
 									throw new SystemException(e.getMessage(), e);
@@ -430,7 +416,8 @@ public class ProjectionCredentialsProcessor {
 
 		if (projectionContext.isAdd()) {
 			MetadataType metadataType = operationalDataManager.createCreateMetadata(context, now, task);
-			ContainerDelta<MetadataType> metadataDelta = ContainerDelta.createDelta(SchemaConstants.PATH_PASSWORD_METADATA, projectionContext.getObjectDefinition());
+			ContainerDelta<MetadataType> metadataDelta = prismContext.deltaFactory().container()
+					.createDelta(SchemaConstants.PATH_PASSWORD_METADATA, projectionContext.getObjectDefinition());
 			PrismContainerValue cval = metadataType.asPrismContainerValue();
 			cval.setOriginTypeRecursive(OriginType.OUTBOUND);
 			metadataDelta.addValuesToAdd(metadataType.asPrismContainerValue());

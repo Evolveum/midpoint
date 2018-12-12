@@ -119,7 +119,7 @@
             <class name="com.evolveum.midpoint.schema.TestParseGenericObject"/>
             <class name="com.evolveum.midpoint.schema.TestParseObjectTemplate"/>
             <class name="com.evolveum.midpoint.schema.TestParsePasswordPolicy"/>
-            <class name="com.evolveum.midpoint.schema.test.XPathTest"/>
+            <class name="com.evolveum.midpoint.schema.path.ItemPathCanonicalizationTest"/>
             <class name="com.evolveum.midpoint.schema.processor.TestResourceSchema"/>
             <class name="com.evolveum.midpoint.schema.processor.SchemaProcessorTest"/>
             <class name="com.evolveum.midpoint.schema.util.XsdTypeConverterTest"/>
@@ -129,12 +129,11 @@
             <class name="com.evolveum.midpoint.schema.TestJaxbConstruction"/>
             <class name="com.evolveum.midpoint.schema.TestParseDiffPatch"/>
             <class name="com.evolveum.midpoint.schema.TestDeltaConverter"/>
-            <class name="com.evolveum.midpoint.schema.TestQueryConvertor"/>
+            <class name="com.evolveum.midpoint.schema.TestQueryConverter"/>
             <class name="com.evolveum.midpoint.schema.TestDynamicSchema"/>
             <class name="com.evolveum.midpoint.schema.TestSchemaDelta"/>
             <class name="com.evolveum.midpoint.schema.TestSerialization"/>
             <class name="com.evolveum.midpoint.schema.TestOperationResult"/>
-            <class name="com.evolveum.midpoint.schema.util.SelectorOptionsTest"/>
             <class name="com.evolveum.midpoint.schema.TestEmptyItems"/>
             <class name="com.evolveum.midpoint.schema.TestMiscellaneous"/>
             <class name="com.evolveum.midpoint.schema.TestParseMisc"/>

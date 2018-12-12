@@ -124,7 +124,7 @@ public class TestParseShadow extends AbstractObjectParserTest<ShadowType> {
 //				new PolyString("Davie Jones' Locker", "davie jones locker"));
 
 
-		ItemPath admStatusPath = new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
+		ItemPath admStatusPath = ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
 		PrismProperty<ActivationStatusType> admStatusProperty1 = shadow.findProperty(admStatusPath);
 		PrismAsserts.assertDefinition(admStatusProperty1.getDefinition(), ActivationType.F_ADMINISTRATIVE_STATUS, SchemaConstants.C_ACTIVATION_STATUS_TYPE, 0, 1);
 		assertNotNull("Property "+admStatusPath+" not found", admStatusProperty1);

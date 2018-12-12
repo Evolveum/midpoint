@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.schema;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -27,8 +28,8 @@ import java.lang.reflect.Method;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.util.JaxbTestUtil;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.impl.util.JaxbTestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.testng.AssertJUnit;
@@ -36,10 +37,6 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -267,8 +264,8 @@ public class TestJaxbSanity {
 		System.out.println(resource2Type.hashCode());
 		assertTrue("Resource hashcode does not match", resource1Type.hashCode() == resource2Type.hashCode());
 
-		PrismPropertyValue<Object> pv1 = new PrismPropertyValue<>(resource1Type.getConnectorConfiguration());
-		PrismPropertyValue<Object> pv2 = new PrismPropertyValue<>(resource2Type.getConnectorConfiguration());
+		PrismPropertyValue<Object> pv1 = getPrismContext().itemFactory().createPropertyValue(resource1Type.getConnectorConfiguration());
+		PrismPropertyValue<Object> pv2 = getPrismContext().itemFactory().createPropertyValue(resource2Type.getConnectorConfiguration());
 
 		assertTrue("Real property values not equal",pv1.equalsRealValue(pv2));
 	}
@@ -294,7 +291,7 @@ public class TestJaxbSanity {
 
 		//FIXME : modification value -> rawType...
         RawType rawType = mod.getItemDelta().get(0).getValue().get(0);
-        ItemDefinition assignmentDefinition = PrismTestUtil.getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(AssignmentType.class);
+        ItemDefinition assignmentDefinition = getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(AssignmentType.class);
         assertNotNull(assignmentDefinition);
 		AssignmentType assignmentType = ((PrismContainerValue<AssignmentType>) rawType.getParsedValue(assignmentDefinition, null)).getValue();
 //                was: (JAXBElement<AssignmentType>) mod.getItemDelta().get(0).getValue().get(0).getContent().get(0);
@@ -316,7 +313,7 @@ public class TestJaxbSanity {
 
         //GIVEN
         SystemConfigurationType config = new SystemConfigurationType();
-        PrismTestUtil.getPrismContext().adopt(config);
+        getPrismContext().adopt(config);
 
         //WHEN
         config.setGlobalPasswordPolicyRef(null);
@@ -331,7 +328,7 @@ public class TestJaxbSanity {
         configNew.setGlobalPasswordPolicyRef(ref);
         configNew.setGlobalPasswordPolicyRef(null);
 
-        PrismTestUtil.getPrismContext().adopt(configNew);
+        getPrismContext().adopt(configNew);
 
         assertTrue(config.equals(configNew));
     }

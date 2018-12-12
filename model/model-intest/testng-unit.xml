@@ -16,4 +16,13 @@
   -->
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
 <suite name="unit" parallel="false" verbose="1">
+	<!-- temporarily moved here -->
+	<test name="Security" preserve-order="true" parallel="false" verbose="10">
+		<classes>
+			<class name="com.evolveum.midpoint.model.intest.security.TestSecurityPrincipal"/>
+			<class name="com.evolveum.midpoint.model.intest.security.TestSecurityBasic"/>
+			<class name="com.evolveum.midpoint.model.intest.security.TestSecurityAdvanced"/>
+			<class name="com.evolveum.midpoint.model.intest.security.TestSecurityMultitenant"/>
+		</classes>
+	</test>
 </suite>

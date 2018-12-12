@@ -22,17 +22,13 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -445,23 +441,11 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
                     LOGGER.debug("Loading roles which the current user has right to assign");
                     Task task = TypedAssignablePanel.this.getPageBase().createSimpleTask(OPERATION_LOAD_ASSIGNABLE_ROLES);
                     OperationResult result = task.getResult();
-                    ObjectFilter filter = null;
-                    try {
-                        ModelInteractionService mis = TypedAssignablePanel.this.getPageBase().getModelInteractionService();
-                        RoleSelectionSpecification roleSpec =
-                                mis.getAssignableRoleSpecification(SecurityUtils.getPrincipalUser().getUser().asPrismObject(), AbstractRoleType.class, task, result);
-                        filter = roleSpec.getFilter();
-                    } catch (Exception ex) {
-                        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load available roles", ex);
-                        result.recordFatalError("Couldn't load available roles", ex);
-                    } finally {
-                        result.recomputeStatus();
-                    }
-                    if (!result.isSuccess() && !result.isHandledError()) {
-                    	TypedAssignablePanel.this.getPageBase().showResult(result);
-                    }
+
+                    ObjectFilter filter = WebComponentUtil.getAssignableRolesFilter(SecurityUtils.getPrincipalUser().getUser().asPrismObject(), AbstractRoleType.class,
+							WebComponentUtil.AssignmentOrder.ASSIGNMENT, result, task, TypedAssignablePanel.this.getPageBase());
                     if (query == null){
-                        query = new ObjectQuery();
+                        query = getPrismContext().queryFactory().createQuery();
                     }
                     query.addFilter(filter);
                 }

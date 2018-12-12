@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -257,7 +258,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 			columns.add(checkboxColumn);
 		}
 
-		IColumn<SelectableBean<O>, String> iconColumn = (IColumn) ColumnUtils.createIconColumn(type.getClassDefinition());
+		IColumn<SelectableBean<O>, String> iconColumn = (IColumn) ColumnUtils.createIconColumn(type.getClassDefinition(), parentPage);
 		columns.add(iconColumn);
 
 		columns.addAll(getCustomColumnsTransformed(customColumns));
@@ -288,7 +289,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 			if (WebComponentUtil.getElementVisibility(customColumn.getVisibility())) {
 				IModel<String> columnDisplayModel =
 						customColumn.getDisplay() != null && customColumn.getDisplay().getLabel() != null ?
-								Model.of(customColumn.getDisplay().getLabel()) :
+								Model.of(customColumn.getDisplay().getLabel().getOrig()) :
 								createStringResource(getItemDisplayName(customColumn));
 				if (customColumns.indexOf(customColumn) == 0) {
 					// TODO what if a complex path is provided here?
@@ -313,7 +314,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 									OperationResult result = task.getResult();
 
 									Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
-											.createLookupTableRetrieveOptions();
+											.createLookupTableRetrieveOptions(getPageBase().getSchemaHelper());
 									PrismObject<LookupTableType> lookupTable = WebModelServiceUtils.loadObject(LookupTableType.class,
 											lookupTableOid, options, getPageBase(), task, result);
 									return getItemValuesString(item, lookupTable);
@@ -367,7 +368,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 			columns.add(checkboxColumn);
 		}
 
-		IColumn<SelectableBean<O>, String> iconColumn = (IColumn) ColumnUtils.createIconColumn(type.getClassDefinition());
+		IColumn<SelectableBean<O>, String> iconColumn = (IColumn) ColumnUtils.createIconColumn(type.getClassDefinition(), parentPage);
 		columns.add(iconColumn);
 
 		IColumn<SelectableBean<O>, String> nameColumn = createNameColumn(null, null);
@@ -617,9 +618,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	}
 
 	public ObjectQuery getQuery() {
-		ObjectQuery customQuery = createContentQuery();
-
-		return customQuery;
+		return createContentQuery();
 	}
 
 	protected ObjectQuery createContentQuery() {
@@ -646,9 +645,9 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	protected abstract List<InlineMenuItem> createInlineMenu();
 
 	protected void addCustomActions(@NotNull List<InlineMenuItem> actionsList, SerializableSupplier<Collection<? extends ObjectType>> objectsSupplier) {
-		GuiObjectListViewType guiObjectListViewType = getGuiObjectListViewType();
-		if (guiObjectListViewType != null && !guiObjectListViewType.getAction().isEmpty()) {
-			actionsList.addAll(WebComponentUtil.createMenuItemsFromActions(guiObjectListViewType.getAction(),
+		CompiledObjectCollectionView guiObjectListViewType = getGuiObjectListViewType();
+		if (guiObjectListViewType != null && !guiObjectListViewType.getActions().isEmpty()) {
+			actionsList.addAll(WebComponentUtil.createMenuItemsFromActions(guiObjectListViewType.getActions(),
 					OPERATION_LOAD_CUSTOM_MENU_ITEMS, parentPage, objectsSupplier));
 		}
 	}
@@ -658,23 +657,12 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	}
 
 	private List<GuiObjectColumnType> getGuiObjectColumnTypeList(){
-		GuiObjectListViewType guiObjectListViewType = getGuiObjectListViewType();
-		return guiObjectListViewType != null ? guiObjectListViewType.getColumn() : null;
+		CompiledObjectCollectionView guiObjectListViewType = getGuiObjectListViewType();
+		return guiObjectListViewType != null ? guiObjectListViewType.getColumns() : null;
 	}
 
-	private GuiObjectListViewType getGuiObjectListViewType(){
-		AdminGuiConfigurationType adminGuiConfig = parentPage.getPrincipal().getAdminGuiConfiguration();
-		if (adminGuiConfig != null && adminGuiConfig.getObjectLists() != null &&
-				adminGuiConfig.getObjectLists().getObjectList() != null){
-			for (GuiObjectListViewType object : adminGuiConfig.getObjectLists().getObjectList()){
-				if (object.getType() != null &&
-						!type.getClassDefinition().getSimpleName().equals(object.getType().getLocalPart())){
-					continue;
-				}
-				return object;
-			}
-		}
-		return null;
+	private CompiledObjectCollectionView getGuiObjectListViewType(){
+		return parentPage.getCompiledUserProfile().findObjectCollectionView(type.getTypeQName(), null);
 	}
 
 	private boolean isCustomColumnsListConfigured(){

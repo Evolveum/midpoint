@@ -27,10 +27,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -256,7 +254,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 						Task task = createSimpleTask("load task");
 						OperationResult result = task.getResult();
 						PrismObject<TaskType> taskType = WebModelServiceUtils
-								.loadObject(TaskType.class, oid, GetOperationOptions.retrieveItemsNamed(TaskType.F_RESULT),
+								.loadObject(TaskType.class, oid, retrieveItemsNamed(TaskType.F_RESULT),
 										PageTasks.this, task, result);
 						if (taskType == null) {
 							return null;
@@ -1304,10 +1302,10 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 	        }
             result.computeStatus();
             if (result.isSuccess()) {
-                result.recordStatus(OperationResultStatus.SUCCESS, "The task(s) have been successfully resumed.");
+                result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("pageTasks.message.resumeTasksPerformed.success").getString());
             }
         } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
-            result.recordFatalError("Couldn't resume the task(s)", e);
+            result.recordFatalError(createStringResource("pageTasks.message.resumeTasksPerformed.fatalError").getString(), e);
         }
         showResult(result);
 
@@ -1472,7 +1470,8 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 
         for (NodeDto nodeDto : nodes) {
             Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-            deltas.add(ObjectDelta.createDeleteDelta(NodeType.class, nodeDto.getOid(), getPrismContext()));
+            deltas.add(getPrismContext().deltaFactory().object().createDeleteDelta(NodeType.class, nodeDto.getOid()
+            ));
             try {
                 getModelService().executeChanges(deltas, null, task, result);
             } catch (Exception e) {     // until java 7 we do it in this way
@@ -1577,7 +1576,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
                 result.recordStatus(OperationResultStatus.SUCCESS, result.getLastSubresult().getMessage());
             }
         } catch (RuntimeException | SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
-            result.recordFatalError("Couldn't synchronize tasks", e);
+            result.recordFatalError(createStringResource("pageTasks.message.synchronizeTasksPerformed.fatalError").getString(), e);
         }
         showResult(result);
 
@@ -1596,7 +1595,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 				result.recordStatus(OperationResultStatus.SUCCESS, result.getLastSubresult().getMessage());
 			}
 		} catch (RuntimeException | SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
-			result.recordFatalError("Couldn't synchronize tasks", e);
+			result.recordFatalError(createStringResource("pageTasks.message.synchronizeTasksPerformed.fatalError").getString(), e);
 		}
 		showResult(result);
 
@@ -1649,7 +1648,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
         String category = dto.getCategory();
         boolean showSubtasks = dto.isShowSubtasks();
 
-        S_AtomicFilterEntry q = QueryBuilder.queryFor(TaskType.class, getPrismContext());
+        S_AtomicFilterEntry q = getPrismContext().queryFor(TaskType.class);
         if (status != null) {
             q = status.appendFilter(q);
         }
@@ -1908,7 +1907,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             task.setExtensionContainerValue(SchemaConstants.MODEL_EXTENSION_CLEANUP_POLICIES, policies);
         } catch (SchemaException e) {
             LOGGER.error("Error dealing with schema (task {})", task, e);
-            launchResult.recordFatalError("Error dealing with schema", e);
+            launchResult.recordFatalError(createStringResource("pageTasks.message.deleteAllClosedTasksConfirmedPerformed.fatalError").getString(), e);
             throw new IllegalStateException("Error dealing with schema", e);
         }
 

@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.common.expression.script;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
@@ -29,6 +30,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationTestUtil;
+import com.evolveum.midpoint.prism.crypto.KeyStoreBasedProtectorBuilder;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeSuite;
@@ -40,10 +42,8 @@ import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryUt
 import com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.crypto.ProtectorImpl;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.common.DirectoryFileObjectResolver;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
@@ -88,9 +88,9 @@ public class TestScriptCaching {
     @BeforeClass
     public void setupFactory() {
     	System.out.println("Setting up expression factory and evaluator");
-    	PrismContext prismContext = PrismTestUtil.getPrismContext();
+    	PrismContext prismContext = getPrismContext();
     	ObjectResolver resolver = new DirectoryFileObjectResolver(OBJECTS_DIR);
-    	Protector protector = new ProtectorImpl();
+    	Protector protector = KeyStoreBasedProtectorBuilder.create(prismContext).buildOnly();
     	Clock clock = new Clock();
         Collection<FunctionLibrary> functions = new ArrayList<>();
 		functions.add(FunctionLibraryUtil.createBasicFunctionLibrary(prismContext, protector, clock));
@@ -148,7 +148,7 @@ public class TestScriptCaching {
         // GIVEN
     	OperationResult result = new OperationResult(desc);
     	ScriptExpressionEvaluatorType scriptType = parseScriptType(filname);
-    	ItemDefinition outputDefinition = new PrismPropertyDefinitionImpl(PROPERTY_NAME, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+    	ItemDefinition outputDefinition = getPrismContext().definitionFactory().createPropertyDefinition(PROPERTY_NAME, DOMUtil.XSD_STRING);
 
     	ScriptExpression scriptExpression = createScriptExpression(scriptType, outputDefinition, desc);
 

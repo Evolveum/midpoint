@@ -20,8 +20,7 @@ import java.util.function.Consumer;
 
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -45,14 +44,12 @@ import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -272,7 +269,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 
 	public void swallowToPrimaryDelta(ItemDelta<?,?> itemDelta) throws SchemaException {
         if (primaryDelta == null) {
-        	primaryDelta = new ObjectDelta<>(getObjectTypeClass(), ChangeType.MODIFY, getPrismContext());
+        	primaryDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(), ChangeType.MODIFY);
         	primaryDelta.setOid(oid);
         }
         primaryDelta.swallow(itemDelta);
@@ -283,7 +280,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	// TODO deduplicate with swallowToSecondaryDelta in LensFocusContext
 	public ObjectDelta<O> swallowToDelta(ObjectDelta<O> originalDelta, ItemDelta<?,?> propDelta) throws SchemaException {
 		if (originalDelta == null) {
-			originalDelta = new ObjectDelta<>(getObjectTypeClass(), ChangeType.MODIFY, getPrismContext());
+			originalDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(), ChangeType.MODIFY);
 			originalDelta.setOid(getOid());
 		} else if (originalDelta.containsModification(propDelta, true, true)) {
 			return originalDelta;
@@ -401,11 +398,11 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
      * The returned object is (kind of) immutable. Changing it may do strange things (but most likely the changes will be lost).
      */
     public ObjectDelta<O> getDelta() throws SchemaException {
-        return ObjectDelta.union(primaryDelta, getSecondaryDelta());
+        return ObjectDeltaCollectionsUtil.union(primaryDelta, getSecondaryDelta());
     }
 
 	public ObjectDelta<O> getFixedDelta() throws SchemaException {
-		return ObjectDelta.union(getFixedPrimaryDelta(), getSecondaryDelta());
+		return ObjectDeltaCollectionsUtil.union(getFixedPrimaryDelta(), getSecondaryDelta());
 	}
 
 	public <F extends FocusType> boolean wasAddExecuted() {
@@ -464,6 +461,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         }
     }
 
+    @Contract(pure = true)
     public PrismObjectDefinition<O> getObjectDefinition() {
 		if (objectDefinition == null) {
 			if (objectOld != null) {
@@ -822,7 +820,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	public abstract void deleteSecondaryDeltas();
 	
 	public S_ItemEntry deltaBuilder() throws SchemaException {
-		return DeltaBuilder.deltaFor(getObjectTypeClass(), getPrismContext());
+		return getPrismContext().deltaFor(getObjectTypeClass());
 	}
 	
 	public void forEachObject(Consumer<PrismObject<O>> consumer) {

@@ -17,7 +17,6 @@ package com.evolveum.midpoint.model.common.stringpolicy;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
@@ -119,8 +118,8 @@ public abstract class AbstractValuePolicyOriginResolver<O extends ObjectType> {
 		if (object.canRepresent(FocusType.class)) {
 			focusType = ((FocusType)object.asObjectable());
 		} else if (object.canRepresent(ShadowType.class)) {
-			ObjectQuery query = QueryBuilder
-			.queryFor(FocusType.class, getObject().getPrismContext())
+			ObjectQuery query = getObject().getPrismContext()
+			.queryFor(FocusType.class)
 			.item(UserType.F_LINK_REF).ref(getObject().getOid())
 			.build();
 			final Holder<FocusType> focusTypeHolder = new Holder<>();

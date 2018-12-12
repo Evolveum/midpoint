@@ -137,20 +137,20 @@ public abstract class MidpointAbstractProvider<T> extends AbstractConfigurablePr
 			if (PrismObject.class.isAssignableFrom(type)) {
 				object = (T) parser.parse();
 			} else {
-                object = parser.parseRealValue();			// TODO consider prescribing type here (if no convertor is specified)
+                object = parser.parseRealValue();			// TODO consider prescribing type here (if no converter is specified)
 			}
 
 			if (object != null && !type.isAssignableFrom(object.getClass())) {	// TODO treat multivalues here
-				Optional<Annotation> convertorAnnotation = Arrays.stream(annotations).filter(a -> a instanceof Convertor).findFirst();
-				if (convertorAnnotation.isPresent()) {
-					Class<? extends ConvertorInterface> convertorClass = ((Convertor) convertorAnnotation.get()).value();
-					ConvertorInterface convertor;
+				Optional<Annotation> converterAnnotation = Arrays.stream(annotations).filter(a -> a instanceof Converter).findFirst();
+				if (converterAnnotation.isPresent()) {
+					Class<? extends ConverterInterface> converterClass = ((Converter) converterAnnotation.get()).value();
+					ConverterInterface converter;
 					try {
-						convertor = convertorClass.newInstance();
+						converter = converterClass.newInstance();
 					} catch (InstantiationException | IllegalAccessException e) {
-						throw new SystemException("Couldn't instantiate convertor class " + convertorClass, e);
+						throw new SystemException("Couldn't instantiate converter class " + converterClass, e);
 					}
-					object = (T) convertor.convert(object);
+					object = (T) converter.convert(object);
 				}
 			}
 			return object;

@@ -108,7 +108,15 @@ public class PrettyPrinter {
 				return "{..."+qname.getNamespaceURI().substring(defaultNamespacePrefix.length())+"}"+qname.getLocalPart();
 			}
 		}
-		return qname.toString();
+		return qnameToString(qname);    // avoiding qname.toString because recursive call to prettyPrint from ItemName.toString
+	}
+
+	public static String qnameToString(QName name) {
+		if (name.getNamespaceURI().equals(XMLConstants.NULL_NS_URI)) {
+			return name.getLocalPart();
+		} else {
+			return "{" + name.getNamespaceURI() + "}" + name.getLocalPart();
+		}
 	}
 
 	/**

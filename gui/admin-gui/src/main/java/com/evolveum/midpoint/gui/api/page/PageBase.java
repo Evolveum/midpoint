@@ -33,15 +33,20 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
 import com.evolveum.midpoint.model.api.*;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
+import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.validator.ResourceValidator;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.query.QueryConverter;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
+import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.Expression;
@@ -49,7 +54,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.report.api.ReportManager;
-import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
@@ -127,6 +132,8 @@ import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.*;
@@ -154,12 +161,12 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.*;
 import org.apache.wicket.protocol.http.WebSession;
-import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.CssResourceReference;
 import org.apache.wicket.resource.CoreLibrariesContributor;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.string.StringValue;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Element;
@@ -170,8 +177,6 @@ import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
 import javax.xml.namespace.QName;
 
-import java.io.Serializable;
-import java.net.URI;
 import java.util.*;
 
 /**
@@ -316,7 +321,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     private LoadableModel<Integer> certWorkItemCountModel;
 
     // No need to store this in the session. Retrieval is cheap.
-    private transient AdminGuiConfigurationType adminGuiConfiguration;
+    private transient CompiledUserProfile compiledUserProfile;
 
     // No need for this to store in session. It is used only during single init and render.
     private transient Task pageTask;
@@ -340,7 +345,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     @Override
-    protected void onInitialize(){
+    protected void onInitialize() {
         super.onInitialize();
         initLayout();
     }
@@ -365,7 +370,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             protected Integer load() {
                 try {
                     Task task = createSimpleTask(OPERATION_LOAD_WORK_ITEM_COUNT);
-                    S_FilterEntryOrEmpty q = QueryBuilder.queryFor(WorkItemType.class, getPrismContext());
+                    S_FilterEntryOrEmpty q = getPrismContext().queryFor(WorkItemType.class);
                     ObjectQuery query = QueryUtils.filterForAssignees(q, getPrincipal(),
                             OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, getRelationRegistry()).build();
                     return getModelService().countContainers(WorkItemType.class, query, null, task, task.getResult());
@@ -384,7 +389,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                     AccessCertificationService acs = getCertificationService();
                     Task task = createSimpleTask(OPERATION_LOAD_CERT_WORK_ITEM_COUNT);
                     OperationResult result = task.getResult();
-                    return acs.countOpenWorkItems(new ObjectQuery(), true, null, task, result);
+                    return acs.countOpenWorkItems(getPrismContext().queryFactory().createQuery(), true, null, task, result);
                 } catch (SchemaException | SecurityViolationException | ObjectNotFoundException
                         | ConfigurationException | CommunicationException | ExpressionEvaluationException e) {
                     LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't load certification work item count", e);
@@ -469,8 +474,25 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return midpointFunctions;
     }
 
+    @Contract(pure = true)
     public PrismContext getPrismContext() {
         return getMidpointApplication().getPrismContext();
+    }
+
+    public SchemaHelper getSchemaHelper() {
+        return getMidpointApplication().getSchemaHelper();
+    }
+
+    public GetOperationOptionsBuilder getOperationOptionsBuilder() {
+        return getSchemaHelper().getOperationOptionsBuilder();
+    }
+
+    public Collection<SelectorOptions<GetOperationOptions>> retrieveItemsNamed(Object... items) {
+        return getOperationOptionsBuilder().items(items).retrieve().build();
+    }
+
+    public QueryConverter getQueryConverter() {
+        return getPrismContext().getQueryConverter();
     }
 
     public RelationRegistry getRelationRegistry() {
@@ -562,25 +584,26 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public CacheDispatcher getCacheDispatcher() {
         return cacheDispatcher;
     }
-
+    
     @NotNull
     @Override
-    public AdminGuiConfigurationType getAdminGuiConfiguration() {
-        if (adminGuiConfiguration == null) {
-            Task task = createSimpleTask(PageBase.DOT_CLASS + "getAdminGuiConfiguration");
+    public CompiledUserProfile getCompiledUserProfile() {
+    	// TODO: may need to always go to ModelInteractionService to make sure the setting is up to date
+    	if (compiledUserProfile == null) {
+            Task task = createSimpleTask(PageBase.DOT_CLASS + "getCompiledUserProfile");
             try {
-                adminGuiConfiguration = modelInteractionService.getAdminGuiConfiguration(task, task.getResult());
+            	compiledUserProfile = modelInteractionService.getCompiledUserProfile(task, task.getResult());
             } catch (ObjectNotFoundException | SchemaException e) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Cannot retrieve admin GUI configuration", e);
+                LoggingUtils.logUnexpectedException(LOGGER, "Cannot retrieve compiled user profile", e);
                 if (InternalsConfig.nonCriticalExceptionsAreFatal()) {
-                    throw new SystemException("Cannot retrieve admin GUI configuration: " + e.getMessage(), e);
+                    throw new SystemException("Cannot retrieve compiled user profile: " + e.getMessage(), e);
                 } else {
                     // Just return empty admin GUI config, so the GUI can go on (and the problem may get fixed)
-                    return new AdminGuiConfigurationType();
+                    return new CompiledUserProfile();
                 }
             }
         }
-        return adminGuiConfiguration;
+        return compiledUserProfile;
     }
 
     @Override
@@ -638,7 +661,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return formValidatorRegistry;
     }
 
-    public MidPointPrincipal getPrincipal() {
+    public MidPointUserProfilePrincipal getPrincipal() {
         return SecurityUtils.getPrincipalUser();
     }
     
@@ -971,32 +994,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             }
         };
 
-        ExternalImage customLogoImgSrc = new ExternalImage(ID_CUSTOM_LOGO_IMG_SRC, new Model<Serializable>() {
-
-            @Override
-            public String getObject() {
-                if (logoModel.getObject() == null || logoModel.getObject().getImageUrl() == null) {
-                    return null;
-                }
-
-                String sUrl = logoModel.getObject().getImageUrl();
-                if (URI.create(sUrl).isAbsolute()) {
-                    return sUrl;
-                }
-
-                List<String> segments = RequestCycle.get().getRequest().getUrl().getSegments();
-                if (segments == null || segments.size() < 2) {
-                    return sUrl;
-                }
-
-                String prefix = StringUtils.repeat("../", segments.size() - 1);
-                if (!sUrl.startsWith("/")) {
-                    return prefix + sUrl;
-                }
-
-                return StringUtils.left(prefix, prefix.length() - 1) + sUrl;
-            }
-        });
+        ExternalImage customLogoImgSrc = new ExternalImage(ID_CUSTOM_LOGO_IMG_SRC,
+                WebComponentUtil.getIconUrlModel(logoModel != null ? logoModel.getObject() : null));
         customLogoImgSrc.add(new VisibleBehaviour(() -> logoModel.getObject() != null && StringUtils.isEmpty(logoModel.getObject().getCssClass())));
 
         WebMarkupContainer customLogoImgCss = new WebMarkupContainer(ID_CUSTOM_LOGO_IMG_CSS);
@@ -1241,6 +1240,26 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return new StringResourceModel(resourceKey, this).setModel(new Model<String>()).setDefaultValue(resourceKey)
                 .setParameters(objects);
     }
+    
+    public StringResourceModel createStringResource(PolyString polystringKey, Object... objects) {
+    	String resourceKey = null;
+    	if (polystringKey != null) {
+    		// TODO later: try polystringKey.getKey()
+    		resourceKey = polystringKey.getOrig();
+    	}
+        return new StringResourceModel(resourceKey, this).setModel(new Model<String>()).setDefaultValue(resourceKey)
+                .setParameters(objects);
+    }
+    
+    public StringResourceModel createStringResource(PolyStringType polystringKey, Object... objects) {
+    	String resourceKey = null;
+    	if (polystringKey != null) {
+    		// TODO later: try polystringKey.getKey()
+    		resourceKey = polystringKey.getOrig();
+    	}
+        return new StringResourceModel(resourceKey, this).setModel(new Model<String>()).setDefaultValue(resourceKey)
+                .setParameters(objects);
+    }
 
     public StringResourceModel createStringResource(Enum<?> e) {
         String resourceKey = e.getDeclaringClass().getSimpleName() + "." + e.name();
@@ -1306,7 +1325,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     private OperationResult executeResultScriptHook(OperationResult result) {
-        AdminGuiConfigurationType adminGuiConfiguration = getAdminGuiConfiguration();
+        CompiledUserProfile adminGuiConfiguration = getCompiledUserProfile();
         if (adminGuiConfiguration.getFeedbackMessagesHook() == null) {
             return result;
         }
@@ -1323,8 +1342,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         OperationResult topResult = task.getResult();
         try {
             ExpressionFactory factory = getExpressionFactory();
-            PrismPropertyDefinition<OperationResultType> outputDefinition = new PrismPropertyDefinitionImpl<>(
-                    ExpressionConstants.OUTPUT_ELEMENT_NAME, OperationResultType.COMPLEX_TYPE, getPrismContext());
+            PrismPropertyDefinition<OperationResultType> outputDefinition = getPrismContext().definitionFactory().createPropertyDefinition(
+                    ExpressionConstants.OUTPUT_ELEMENT_NAME, OperationResultType.COMPLEX_TYPE);
             Expression<PrismPropertyValue<OperationResultType>, PrismPropertyDefinition<OperationResultType>> expression = factory.makeExpression(expressionType, outputDefinition, contextDesc, task, topResult);
 
             ExpressionVariables variables = new ExpressionVariables();
@@ -1490,7 +1509,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 }
                 objectHolder.setValue(object);
             } catch (RuntimeException | SchemaException e) {
-                result.recordFatalError("Couldn't parse object: " + e.getMessage(), e);
+                result.recordFatalError(createStringResource("PageBase.message.parseObject.fatalError", e.getMessage()).getString(), e);
             }
             return;
         }
@@ -1888,8 +1907,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     private void createAdditionalMenu(SideBarMenuItem menu) {
-        AdminGuiConfigurationType adminGuiConfig = loadAdminGuiConfiguration();
-        List<RichHyperlinkType> menuList = adminGuiConfig.getAdditionalMenuLink();
+        CompiledUserProfile userProfile = getCompiledUserProfile();
+        List<RichHyperlinkType> menuList = userProfile.getAdditionalMenuLink();
 
         Map<String, Class> urlClassMap = DescriptorLoader.getUrlClassMap();
         if (menuList != null && menuList.size() > 0 && urlClassMap != null && urlClassMap.size() > 0) {
@@ -2066,19 +2085,20 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     private void addUsersViewMenuItems(List<MenuItem> menu) {
-        List<GuiObjectListViewType> objectListViews = getObjectViewsList();
-        if (objectListViews == null) {
+        List<CompiledObjectCollectionView> objectViews = getCompiledUserProfile().findAllApplicableObjectCollectionViews(UserType.COMPLEX_TYPE);
+        if (objectViews == null) {
             return;
         }
-        objectListViews.forEach(objectListView -> {
+        objectViews.forEach(objectView -> {
             //objectlistView.getType() might be null - from documentation:
             // It may not be present in case that the type is defined in a referenced object colleciton.
 
-            if (objectListView.getType() != null && !QNameUtil.match(objectListView.getType(), UserType.COMPLEX_TYPE)) {
-                return;
-            }
-
-            ObjectReferenceType collectionRef = objectListView.getCollectionRef();
+        	CollectionSpecificationType collection = objectView.getCollection();
+        	if (collection == null) {
+        		return;
+        	}
+        	
+            ObjectReferenceType collectionRef = collection.getCollectionRef();
             if (collectionRef == null) {
                 return;
             }
@@ -2099,25 +2119,17 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             if (!QNameUtil.match(collectionValue.getType(), UserType.COMPLEX_TYPE)) {
                 return;
             }
-            DisplayType viewDisplayType = objectListView.getDisplay();
+            DisplayType viewDisplayType = objectView.getDisplay();
 
             PageParameters pageParameters = new PageParameters();
             pageParameters.add(PageUsersView.PARAMETER_OBJECT_COLLECTION_TYPE_OID, collectionValue.getOid());
 
-            MenuItem userViewMenu = new MenuItem(viewDisplayType != null && StringUtils.isNotEmpty(viewDisplayType.getLabel())
+            MenuItem userViewMenu = new MenuItem(viewDisplayType != null && PolyStringUtils.isNotEmpty(viewDisplayType.getLabel())
                     ? createStringResource(viewDisplayType.getLabel())
                     : createStringResource("MenuItem.noName"), PageUsersView.class, pageParameters, null);
             menu.add(userViewMenu);
 
         });
-    }
-
-    private List<GuiObjectListViewType> getObjectViewsList() {
-        GuiObjectListViewsType objectListViews = getAdminGuiConfiguration().getObjectLists();
-        if (objectListViews == null) {
-            return null;
-        }
-        return objectListViews.getObjectList();
     }
 
     public PrismObject<UserType> loadUserSelf() {
@@ -2149,27 +2161,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         };
     }
 
-    @NotNull
-    public AdminGuiConfigurationType loadAdminGuiConfiguration() {
-        MidPointPrincipal user = SecurityUtils.getPrincipalUser();
-        AdminGuiConfigurationType adminGuiConfig = new AdminGuiConfigurationType();
-        if (user == null) {
-            return adminGuiConfig;
-        } else {
-            OperationResult result = new OperationResult(OPERATION_GET_SYSTEM_CONFIG);
-            Task task = createSimpleTask(OPERATION_GET_SYSTEM_CONFIG);
-            try {
-                adminGuiConfig = getModelInteractionService().getAdminGuiConfiguration(task, result);
-                LOGGER.trace("Admin GUI config: {}", adminGuiConfig);
-                result.recordSuccess();
-            } catch (Exception ex) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load system configuration", ex);
-                result.recordFatalError("Couldn't load system configuration.", ex);
-            }
-            return adminGuiConfig;
-        }
-    }
-
     public DeploymentInformationType loadDeploymentInformationType() {
         DeploymentInformationType deploymentInformationType = null;
         OperationResult result = new OperationResult(OPERATION_GET_DEPLOYMENT_INFORMATION);
@@ -2179,7 +2170,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             result.recordSuccess();
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load deployment information", ex);
-            result.recordFatalError("Couldn't load deployment information.", ex);
+            result.recordFatalError(createStringResource("PageBase.message.loadDeploymentInformationType.fatalError").getString(), ex);
         }
         return deploymentInformationType;
     }
@@ -2299,11 +2290,11 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     protected void setTimeZone(PageBase page) {
         PrismObject<UserType> user = loadUserSelf();
         String timeZone = null;
-        MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
+        MidPointUserProfilePrincipal principal = SecurityUtils.getPrincipalUser();
         if (user != null && user.asObjectable().getTimezone() != null) {
             timeZone = user.asObjectable().getTimezone();
-        } else if (principal != null && principal.getAdminGuiConfiguration() != null) {
-            timeZone = principal.getAdminGuiConfiguration().getDefaultTimezone();
+        } else if (principal != null && principal.getCompiledUserProfile() != null) {
+            timeZone = principal.getCompiledUserProfile().getDefaultTimezone();
         }
         if (timeZone != null) {
             WebSession.get().getClientInfo().getProperties().
@@ -2328,7 +2319,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                         .getObject(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), null, task, result);
             });
         } catch (Throwable t) {
-            result.recordFatalError("Couldn't get administrator user: " + t.getMessage(), t);
+            result.recordFatalError(createStringResource("PageBase.message.getAdministratorPrivileged.fatalError", t.getMessage()).getString(), t);
             throw t;
         } finally {
             result.computeStatusIfUnknown();
@@ -2415,7 +2406,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     protected String determineDataLanguage() {
-        AdminGuiConfigurationType config = loadAdminGuiConfiguration();
+        CompiledUserProfile config = getCompiledUserProfile();
         if (config.getPreferredDataLanguage() != null) {
             if (PrismContext.LANG_JSON.equals(config.getPreferredDataLanguage())) {
                 return PrismContext.LANG_JSON;
@@ -2441,5 +2432,4 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public Locale getLocale() {
         return getSession().getLocale();
     }
-
 }

@@ -23,7 +23,6 @@ import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
 import com.evolveum.midpoint.repo.sql.helpers.modify.MapperContext;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -39,7 +38,7 @@ public class AssignmentMapper extends ContainerMapper<AssignmentType, RAssignmen
 
         ItemDelta delta = context.getDelta();
         ItemPath path = delta.getPath().namedSegmentsOnly();
-        if (QNameUtil.match(FocusType.F_ASSIGNMENT, path.getFirstName())) {
+        if (path.startsWithName(FocusType.F_ASSIGNMENT)) {
             ass.setAssignmentOwner(RAssignmentOwner.FOCUS);
         } else {
             ass.setAssignmentOwner(RAssignmentOwner.ABSTRACT_ROLE);

@@ -129,7 +129,9 @@ public class PageAccountActivation extends PageBase {
 
 			@Override
 			public UserType run() {
-				Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(UserType.F_LINK_REF, GetOperationOptions.createResolve());
+				Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
+						.item(UserType.F_LINK_REF).resolve()
+						.build();
 				PrismObject<UserType> user = WebModelServiceUtils.loadObject(UserType.class, userOid, options, PageAccountActivation.this, task, result);
 				if (user == null) {
 					return null;
@@ -275,7 +277,9 @@ public class PageAccountActivation extends PageBase {
 
 		Collection<ObjectDelta<ShadowType>> passwordDeltas = new ArrayList<>(shadowsToActivate.size());
 		for (ShadowType shadow : shadowsToActivate) {
-			ObjectDelta<ShadowType> shadowDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class, shadow.getOid(), SchemaConstants.PATH_PASSWORD_VALUE, getPrismContext(), passwordValue);
+			ObjectDelta<ShadowType> shadowDelta = getPrismContext().deltaFactory().object()
+					.createModificationReplaceProperty(ShadowType.class, shadow.getOid(), SchemaConstants.PATH_PASSWORD_VALUE,
+							passwordValue);
 			shadowDelta.addModificationReplaceProperty(ShadowType.F_LIFECYCLE_STATE, SchemaConstants.LIFECYCLE_PROPOSED);
 			passwordDeltas.add(shadowDelta);
 		}

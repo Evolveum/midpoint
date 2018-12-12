@@ -39,14 +39,15 @@ public class PropertyWrapper<T> extends PropertyOrReferenceWrapper<PrismProperty
 	private static final long serialVersionUID = -6347026284758253783L;
 	private LookupTableType predefinedValues;
 
-	public PropertyWrapper(@Nullable ContainerValueWrapper container, PrismProperty<T> property, boolean readonly, ValueStatus status) {
-		super(container, property, readonly, status, null);
+	public PropertyWrapper(@Nullable ContainerValueWrapper container, PrismProperty<T> property, boolean readonly, ValueStatus status, PrismContext prismContext) {
+		super(container, property, readonly, status, null, prismContext);
 
         values = createValues();
     }
 	
-	public PropertyWrapper(@Nullable ContainerValueWrapper container, PrismProperty<T> property, boolean readonly, ValueStatus status, ItemPath path) {
-		super(container, property, readonly, status, path);
+	public PropertyWrapper(@Nullable ContainerValueWrapper container, PrismProperty<T> property, boolean readonly,
+			ValueStatus status, ItemPath path, PrismContext prismContext) {
+		super(container, property, readonly, status, path, prismContext);
 
         values = createValues();
     }
@@ -56,7 +57,7 @@ public class PropertyWrapper<T> extends PropertyOrReferenceWrapper<PrismProperty
         List<ValueWrapper> values = new ArrayList<>();
 
         for (PrismValue prismValue : item.getValues()) {
-            values.add(new ValueWrapper<T>(this, prismValue, ValueStatus.NOT_CHANGED));
+            values.add(new ValueWrapper<T>(this, prismValue, ValueStatus.NOT_CHANGED, prismContext));
         }
 
         int minOccurs = getItemDefinition().getMinOccurs();
@@ -83,41 +84,12 @@ public class PropertyWrapper<T> extends PropertyOrReferenceWrapper<PrismProperty
 //            wrapper = new ValueWrapper(this, new PrismPropertyValue(null),
 //                    new PrismPropertyValue(null), ValueStatus.ADDED);
 //        } else {
-            wrapper = new ValueWrapper(this, new PrismPropertyValue<>(null), ValueStatus.ADDED);
+            wrapper = new ValueWrapper(this, prismContext.itemFactory().createPropertyValue(), ValueStatus.ADDED,
+            		prismContext);
 //        }
 
         return wrapper;
     }
-
-//    private boolean isUser() {
-//		if (getContainerValue() == null) {
-//			return false;
-//		}
-//        ObjectWrapper wrapper = getContainerValue().getContainer().getObject();
-//		if (wrapper == null) {
-//			return false;
-//		}
-//        PrismObject object = wrapper.getObject();
-//
-//        return UserType.class.isAssignableFrom(object.getCompileTimeClass());
-//    }
-
-//    private boolean isThisPropertyActivationEnabled() {
-//        if (!new ItemPath(UserType.F_ACTIVATION).equivalent(container.getPath())) {
-//            return false;
-//        }
-//
-//        if (!ActivationType.F_ADMINISTRATIVE_STATUS.equals(item.getElementName())) {
-//            return false;
-//        }
-//
-////        if (container.getContainer().getObject() == null || ContainerStatus.MODIFYING.equals(container.getContainer().getObject().getStatus())) {
-////            //when modifying then we don't want to create "true" value for c:activation/c:enabled, only during add
-////            return false;
-////        }
-//
-//        return true;
-//    }
 
     @Override
     public String toString() {

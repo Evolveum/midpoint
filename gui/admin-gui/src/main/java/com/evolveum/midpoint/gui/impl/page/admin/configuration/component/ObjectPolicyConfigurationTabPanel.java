@@ -24,6 +24,7 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -52,10 +53,7 @@ import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.model.PropertyOrReferenceWrapperFromContainerModel;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
@@ -165,9 +163,10 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
 					PrismContainerDefinition<ObjectPolicyConfigurationType> containerDef) {
 				List<SearchItemDefinition> defs = new ArrayList<>();
 				
-				SearchFactory.addSearchRefDef(containerDef, new ItemPath(ObjectPolicyConfigurationType.F_OBJECT_TEMPLATE_REF), defs, AreaCategoryType.ADMINISTRATION, getPageBase());
-				SearchFactory.addSearchPropertyDef(containerDef, new ItemPath(ObjectPolicyConfigurationType.F_SUBTYPE), defs);
-				SearchFactory.addSearchPropertyDef(containerDef, new ItemPath(ObjectPolicyConfigurationType.F_LIFECYCLE_STATE_MODEL, LifecycleStateModelType.F_STATE, LifecycleStateType.F_NAME), defs);
+				SearchFactory.addSearchRefDef(containerDef, ObjectPolicyConfigurationType.F_OBJECT_TEMPLATE_REF, defs, AreaCategoryType.ADMINISTRATION, getPageBase());
+				SearchFactory.addSearchPropertyDef(containerDef, ObjectPolicyConfigurationType.F_SUBTYPE, defs);
+				SearchFactory.addSearchPropertyDef(containerDef, ItemPath
+						.create(ObjectPolicyConfigurationType.F_LIFECYCLE_STATE_MODEL, LifecycleStateModelType.F_STATE, LifecycleStateType.F_NAME), defs);
 				
 				return defs;
 			}
@@ -209,13 +208,14 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
 	}
     
     private ObjectQuery createQuery() {
-    	return QueryBuilder.queryFor(ObjectPolicyConfigurationType.class, getPageBase().getPrismContext())
+    	return getPageBase().getPrismContext().queryFor(ObjectPolicyConfigurationType.class)
     			.all()
                 .build();
     }
     
     private void initPaging() {
-    	getPageBase().getSessionStorage().getObjectPoliciesConfigurationTabStorage().setPaging(ObjectPaging.createPaging(0, (int) ((PageBase)getPage()).getItemsPerPage(UserProfileStorage.TableId.OBJECT_POLICIES_TAB_TABLE)));
+    	getPageBase().getSessionStorage().getObjectPoliciesConfigurationTabStorage().setPaging(
+    			getPrismContext().queryFactory().createPaging(0, (int) ((PageBase)getPage()).getItemsPerPage(UserProfileStorage.TableId.OBJECT_POLICIES_TAB_TABLE)));
     }
     
     private List<IColumn<ContainerValueWrapper<ObjectPolicyConfigurationType>, String>> initBasicColumns() {

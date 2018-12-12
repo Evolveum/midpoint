@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.component.progress.ProgressPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -38,10 +38,10 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -310,14 +310,11 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 					object = objectToEdit;
 				}
 			} else {
-
-				loadOptions = SelectorOptions.createCollection(UserType.F_JPEG_PHOTO,
-						GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
-
+				loadOptions = getOperationOptionsBuilder()
+						.item(UserType.F_JPEG_PHOTO).retrieve()
+						.build();
 				String focusOid = getObjectOidParameter();
-				object = WebModelServiceUtils.loadObject(getCompileTimeClass(), focusOid, loadOptions, this, task,
-						result);
-
+				object = WebModelServiceUtils.loadObject(getCompileTimeClass(), focusOid, loadOptions, this, task, result);
 				LOGGER.trace("Loading object: Existing object (loadled): {} -> {}", focusOid, object);
 			}
 
@@ -395,7 +392,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 				subResult.muteLastSubresultError();
 				LOGGER.debug("User {} does not have permission to read parent org unit {} (ignoring error)", task.getOwner().getName(), parentOrgRef.getOid());
 			} catch (Exception ex) {
-				subResult.recordWarning("Cannot load parent org " + parentOrgRef.getOid(), ex);
+				subResult.recordWarning(createStringResource("PageAdminObjectDetails.message.loadParentOrgs.warning", parentOrgRef.getOid()).getString(), ex);
 				LOGGER.warn("Cannot load parent org {}: {}", parentOrgRef.getOid(), ex.getMessage(), ex);
 			}
 
@@ -476,7 +473,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
 			delta = objectWrapper.getObjectDelta();
 			if (objectWrapper.getOldDelta() != null) {
-				delta = ObjectDelta.summarize(objectWrapper.getOldDelta(), delta);
+				delta = ObjectDeltaCollectionsUtil.summarize(objectWrapper.getOldDelta(), delta);
 			}
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("User delta computed from form:\n{}", new Object[] { delta.debugDump(3) });
@@ -544,8 +541,8 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 					}
 
 					if (delta.isEmpty() && ModelExecuteOptions.isReconcile(options)) {
-						ObjectDelta emptyDelta = ObjectDelta.createEmptyModifyDelta(getCompileTimeClass(),
-								objectWrapper.getObject().getOid(), getPrismContext());
+						ObjectDelta emptyDelta = getPrismContext().deltaFactory().object().createEmptyModifyDelta(getCompileTimeClass(),
+								objectWrapper.getObject().getOid());
 						deltas.add(emptyDelta);
 
 						Collection<SimpleValidationError> validationErrors = performCustomValidation(null, deltas);
@@ -703,9 +700,9 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 	public List<ObjectFormType> getObjectFormTypes() {
 		Task task = createSimpleTask(OPERATION_LOAD_GUI_CONFIGURATION);
 		OperationResult result = task.getResult();
-		AdminGuiConfigurationType adminGuiConfiguration;
+		CompiledUserProfile adminGuiConfiguration;
 		try {
-			adminGuiConfiguration = getModelInteractionService().getAdminGuiConfiguration(task, result);
+			adminGuiConfiguration = getModelInteractionService().getCompiledUserProfile(task, result);
 		} catch (ObjectNotFoundException | SchemaException e) {
 			throw new SystemException("Cannot load GUI configuration: "+e.getMessage(), e);
 		}
@@ -739,8 +736,8 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		return saveOnConfigure;
 	}
 
-	public boolean isForcedPreview(){
-		GuiObjectDetailsPageType objectDetails = AdminGuiConfigTypeUtil.findObjectConfiguration(getCompileTimeClass(), getAdminGuiConfiguration());
+	public boolean isForcedPreview() {
+		GuiObjectDetailsPageType objectDetails = getCompiledUserProfile().findObjectDetailsConfiguration(getCompileTimeClass());
 		return objectDetails != null && DetailsPageSaveMethodType.FORCED_PREVIEW.equals(objectDetails.getSaveMethod());
 	}
 

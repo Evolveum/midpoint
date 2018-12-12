@@ -43,6 +43,8 @@ public class PrismForm<T> extends Component<T> {
     public PrismForm<T> addAttributeValue(String name, String value) {
         SelenideElement property = findProperty(name);
 
+        $(By.className("prism-properties")).waitUntil(Condition.appears,MidPoint.TIMEOUT_MEDIUM_6_S);
+
         ElementsCollection values = property.$$(By.className("prism-property-value"));
         if (values.size() == 1) {
             values.first().$(By.className("form-control")).setValue(value);
@@ -69,6 +71,8 @@ public class PrismForm<T> extends Component<T> {
 
     public PrismForm<T> changeAttributeValue(String name, String oldValue, String newValue) {
         SelenideElement property = findProperty(name);
+
+        $(By.className("prism-properties")).waitUntil(Condition.appears,MidPoint.TIMEOUT_MEDIUM_6_S);
 
         ElementsCollection values = property.$$(By.className("prism-property-value"));
         if (values.size() == 1) {

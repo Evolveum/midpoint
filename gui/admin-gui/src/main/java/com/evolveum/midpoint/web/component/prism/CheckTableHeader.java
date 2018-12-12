@@ -187,7 +187,7 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
                 List<PendingOperationType> list = new ArrayList<>();
 
                 ObjectWrapper wrapper = getModelObject();
-                ContainerWrapper operations = wrapper.findContainerWrapper(new ItemPath(ShadowType.F_PENDING_OPERATION));
+                ContainerWrapper operations = wrapper.findContainerWrapper(ShadowType.F_PENDING_OPERATION);
                 if (operations == null) {
                     return list;
                 }
@@ -204,7 +204,7 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
     private String createAccountIcon() {
         ObjectWrapper<O> wrapper = getModelObject();
         PrismObject<O> object = wrapper.getObject();
-        PrismProperty<ActivationStatusType> status = object.findProperty(new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS));
+        PrismProperty<ActivationStatusType> status = object.findProperty(ItemPath.create(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS));
         if (status != null && status.getRealValue() != null) {
             ActivationStatusType value = status.getRealValue();
             if (ActivationStatusType.DISABLED.equals(value)) {

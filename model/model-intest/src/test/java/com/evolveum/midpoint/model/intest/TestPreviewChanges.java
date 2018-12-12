@@ -18,10 +18,10 @@ package com.evolveum.midpoint.model.intest;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
 import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -49,6 +49,7 @@ import java.io.IOException;
 import java.util.Collection;
 
 import static com.evolveum.midpoint.model.api.ModelExecuteOptions.createEvaluateAllAssignmentRelationsOnRecompute;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_DISABLE_TIMESTAMP;
 import static java.util.Collections.singleton;
 import static org.testng.AssertJUnit.*;
 
@@ -160,10 +161,11 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         PrismObject<ShadowType> account = accountSource.get();
 
-        ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
-        PrismReferenceValue accountRefVal = new PrismReferenceValue();
+        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
+		        .createEmptyModifyDelta(UserType.class, USER_JACK_OID);
+        PrismReferenceValue accountRefVal = itemFactory().createReferenceValue();
 		accountRefVal.setObject(account);
-		ReferenceDelta accountRefDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
+		ReferenceDelta accountRefDelta = prismContext.deltaFactory().reference().createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountRefDelta);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
@@ -181,7 +183,8 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         PrismObject<ShadowType> account = accountSource.get();
 
-        ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
+        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
+		        .createEmptyModifyDelta(UserType.class, USER_JACK_OID);
         ObjectDelta<ShadowType> accountDelta = account.createAddDelta();
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);
 
@@ -199,10 +202,11 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         PrismObject<ShadowType> account = accountSource.get();
 
-        ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
-        PrismReferenceValue accountRefVal = new PrismReferenceValue();
+        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
+		        .createEmptyModifyDelta(UserType.class, USER_JACK_OID);
+        PrismReferenceValue accountRefVal = itemFactory().createReferenceValue();
 		accountRefVal.setObject(account);
-		ReferenceDelta accountRefDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
+		ReferenceDelta accountRefDelta = prismContext.deltaFactory().reference().createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountRefDelta);
 		ObjectDelta<ShadowType> accountDelta = account.createAddDelta();
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);
@@ -221,10 +225,11 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         PrismObject<ShadowType> account = accountSource.get();
 
-        ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
-        PrismReferenceValue accountRefVal = new PrismReferenceValue();
+        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
+		        .createEmptyModifyDelta(UserType.class, USER_JACK_OID);
+        PrismReferenceValue accountRefVal = itemFactory().createReferenceValue();
 		accountRefVal.setObject(account);
-		ReferenceDelta accountRefDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
+		ReferenceDelta accountRefDelta = prismContext.deltaFactory().reference().createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountRefDelta);
 		ObjectDelta<ShadowType> accountDelta = account.createAddDelta();
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta, userDelta);
@@ -243,10 +248,11 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         PrismObject<ShadowType> account = accountSource.get();
 
-        ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
-        PrismReferenceValue accountRefVal = new PrismReferenceValue();
+        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
+		        .createEmptyModifyDelta(UserType.class, USER_JACK_OID);
+        PrismReferenceValue accountRefVal = itemFactory().createReferenceValue();
 		accountRefVal.setObject(account.clone());
-		ReferenceDelta accountRefDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
+		ReferenceDelta accountRefDelta = prismContext.deltaFactory().reference().createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountRefDelta);
 		ObjectDelta<ShadowType> accountDelta = account.createAddDelta();
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);
@@ -265,10 +271,11 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         PrismObject<ShadowType> account = accountSource.get();
 
-        ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
-        PrismReferenceValue accountRefVal = new PrismReferenceValue();
+        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
+		        .createEmptyModifyDelta(UserType.class, USER_JACK_OID);
+        PrismReferenceValue accountRefVal = itemFactory().createReferenceValue();
 		accountRefVal.setObject(account.clone());
-		ReferenceDelta accountRefDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
+		ReferenceDelta accountRefDelta = prismContext.deltaFactory().reference().createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountRefDelta);
 		ObjectDelta<ShadowType> accountDelta = account.createAddDelta();
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta, userDelta);
@@ -287,10 +294,11 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         PrismObject<ShadowType> account = accountSource.get();
 
-        ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
-        PrismReferenceValue accountRefVal = new PrismReferenceValue();
+        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
+		        .createEmptyModifyDelta(UserType.class, USER_JACK_OID);
+        PrismReferenceValue accountRefVal = itemFactory().createReferenceValue();
 		accountRefVal.setObject(account.clone());
-		ReferenceDelta accountRefDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
+		ReferenceDelta accountRefDelta = prismContext.deltaFactory().reference().createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountRefDelta);
 		// Let's make the account different. This should cause the preview to fail
 		account.asObjectable().setDescription("aye!");
@@ -311,10 +319,11 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         PrismObject<ShadowType> account = accountSource.get();
 
-        ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
-        PrismReferenceValue accountRefVal = new PrismReferenceValue();
+        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
+		        .createEmptyModifyDelta(UserType.class, USER_JACK_OID);
+        PrismReferenceValue accountRefVal = itemFactory().createReferenceValue();
 		accountRefVal.setObject(account.clone());
-		ReferenceDelta accountRefDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
+		ReferenceDelta accountRefDelta = prismContext.deltaFactory().reference().createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountRefDelta);
 		// Let's make the account different. This should cause the preview to fail
 		account.asObjectable().setDescription("aye!");
@@ -409,21 +418,25 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-
+        
 		// WHEN
-		AdminGuiConfigurationType adminGuiConfiguration = modelInteractionService.getAdminGuiConfiguration(task, result);
+		CompiledUserProfile compiledUserProfile = modelInteractionService.getCompiledUserProfile(task, result);
 
 		// THEN
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
-		assertAdminGuiConfigurations(adminGuiConfiguration, 0, 1, 3, 1, 0);
+		assertCompiledUserProfile(compiledUserProfile)
+			.assertAdditionalMenuLinks(0)
+			.assertUserDashboardLinks(1)
+			.assertObjectForms(1)
+			.assertUserDashboardWidgets(0)
+			.assertObjectCollectionViews(3);
 
-		RichHyperlinkType link = adminGuiConfiguration.getUserDashboardLink().get(0);
+		RichHyperlinkType link = compiledUserProfile.getUserDashboardLink().get(0);
 		assertEquals("Bad link label", "Foo", link.getLabel());
 		assertEquals("Bad link targetUrl", "/foo", link.getTargetUrl());
 
-		assertEquals("Bad timezone targetUrl", "Jamaica", adminGuiConfiguration.getDefaultTimezone());
+		assertEquals("Bad timezone targetUrl", "Jamaica", compiledUserProfile.getDefaultTimezone());
 	}
 
 	@Test
@@ -463,10 +476,11 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_GUYBRUSH_DUMMY_FILE);
 
-		ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_GUYBRUSH_OID, prismContext);
-		PrismReferenceValue accountRefVal = new PrismReferenceValue();
+		ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
+				.createEmptyModifyDelta(UserType.class, USER_GUYBRUSH_OID);
+		PrismReferenceValue accountRefVal = itemFactory().createReferenceValue();
 		accountRefVal.setObject(account);
-		ReferenceDelta accountDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), account);
+		ReferenceDelta accountDelta = prismContext.deltaFactory().reference().createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), account);
 		userDelta.addModification(accountDelta);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 		display("Input deltas: ", deltas);
@@ -511,7 +525,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_FILE);
-        ObjectDelta<ShadowType> accountDelta = ObjectDelta.createAddDelta(account);
+        ObjectDelta<ShadowType> accountDelta = DeltaFactory.Object.createAddDelta(account);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta);
         display("Input deltas: ", deltas);
 
@@ -561,8 +575,9 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-        ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_GUYBRUSH_OID, prismContext);
-        ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(),
+        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
+		        .createEmptyModifyDelta(UserType.class, USER_GUYBRUSH_OID);
+        ReferenceDelta accountDelta = prismContext.deltaFactory().reference().createModificationAdd(UserType.F_LINK_REF, getUserDefinition(),
         		ACCOUNT_SHADOW_GUYBRUSH_OID);
 		userDelta.addModification(accountDelta);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
@@ -722,7 +737,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		modifyUserReplace(USER_GUYBRUSH_OID, new ItemPath(UserType.F_EXTENSION, PIRACY_WEAPON), task, result,
+		modifyUserReplace(USER_GUYBRUSH_OID, ItemPath.create(UserType.F_EXTENSION, PIRACY_WEAPON), task, result,
 				"tongue");
         assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_OID, null, task, result);
 
@@ -1280,7 +1295,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ObjectDelta<ShadowType> accountDelta = createModifyAccountShadowEmptyDelta(ACCOUNT_SHADOW_ELAINE_DUMMY_OID);
         PropertyDelta<String> fullnameDelta = createAttributeAddDelta(getDummyResourceObject(),
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Elaine Threepwood");
-        fullnameDelta.addValueToDelete(new PrismPropertyValue<>("Elaine Marley"));
+        fullnameDelta.addRealValuesToDelete("Elaine Marley");
         accountDelta.addModification(fullnameDelta);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta);
 		display("Input deltas: ", deltas);
@@ -1372,7 +1387,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ObjectDelta<ShadowType> accountDelta = createModifyAccountShadowEmptyDelta(ACCOUNT_SHADOW_ELAINE_DUMMY_RED_OID);
         PropertyDelta<String> fullnameDelta = createAttributeAddDelta(getDummyResourceObject(RESOURCE_DUMMY_RED_NAME),
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Elaine Threepwood");
-        fullnameDelta.addValueToDelete(new PrismPropertyValue<>("Elaine Marley"));
+        fullnameDelta.addRealValuesToDelete("Elaine Marley");
         accountDelta.addModification(fullnameDelta);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta);
 		display("Input deltas: ", deltas);
@@ -1463,7 +1478,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ObjectDelta<ShadowType> accountDelta = createModifyAccountShadowEmptyDelta(ACCOUNT_SHADOW_ELAINE_DUMMY_BLUE_OID);
         PropertyDelta<String> fullnameDelta = createAttributeAddDelta(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME),
 				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Elaine Threepwood");
-        fullnameDelta.addValueToDelete(new PrismPropertyValue<>("Elaine Marley"));
+        fullnameDelta.addRealValuesToDelete("Elaine Marley");
         accountDelta.addModification(fullnameDelta);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta);
 		display("Input deltas: ", deltas);
@@ -1720,7 +1735,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
         PrismObject<UserType> user = PrismTestUtil.parseObject(USER_CAPSIZE_FILE);
-        ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(user);
+        ObjectDelta<UserType> userDelta = DeltaFactory.Object.createAddDelta(user);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
 		// WHEN
@@ -1809,7 +1824,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
 		PrismObject<UserType> user = PrismTestUtil.parseObject(USER_ROGERS_FILE);
-		ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(user);
+		ObjectDelta<UserType> userDelta = DeltaFactory.Object.createAddDelta(user);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
 		// WHEN
@@ -1878,7 +1893,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 				getAttributePath(getDummyResourceObject(RESOURCE_DUMMY_LEMON_NAME), DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
 				"The crew of The Sea Monkey");
 		PrismAsserts.assertPropertyReplace(accountSecondaryDelta,
-				new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME),
+				ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME),
 				"rogers");
 		PrismAsserts.assertPropertyAdd(accountSecondaryDelta,
 				getAttributePath(getDummyResourceObject(RESOURCE_DUMMY_LEMON_NAME), DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME),
@@ -1945,8 +1960,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ObjectDelta<ShadowType> accountSecondaryDelta = accContextDefault.getSecondaryDelta();
         PrismAsserts.assertModifications(accountSecondaryDelta, 2);
         assertNotNull("No disableTimestamp delta in account secodary delta (default)",
-        		accountSecondaryDelta.findPropertyDelta(
-        				new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP)));
+        		accountSecondaryDelta.findPropertyDelta(PATH_ACTIVATION_DISABLE_TIMESTAMP));
         PrismAsserts.assertPropertyReplace(accountSecondaryDelta, SchemaConstants.PATH_ACTIVATION_DISABLE_REASON,
         		SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
         // the other modification is disable timestamp
@@ -1963,9 +1977,8 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         ObjectDelta<ShadowType> accountSecondaryDeltaBlue = accContextBlue.getSecondaryDelta();
         PrismAsserts.assertModifications(accountSecondaryDeltaBlue, 2);
-        assertNotNull("No disableTimestamp delta in account secodary delta (blue)",
-        		accountSecondaryDeltaBlue.findPropertyDelta(
-        				new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP)));
+        assertNotNull("No disableTimestamp delta in account secondary delta (blue)",
+        		accountSecondaryDeltaBlue.findPropertyDelta(PATH_ACTIVATION_DISABLE_TIMESTAMP));
         PrismAsserts.assertPropertyReplace(accountSecondaryDeltaBlue, SchemaConstants.PATH_ACTIVATION_DISABLE_REASON,
         		SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
 	}
@@ -1985,7 +1998,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
 		assignRole(USER_GUYBRUSH_OID, ROLE_SAILOR_OID, SchemaConstants.ORG_OWNER, task, result);
 
-		ObjectDelta<UserType> empty = DeltaBuilder.deltaFor(UserType.class, prismContext).asObjectDeltaCast(USER_GUYBRUSH_OID);
+		ObjectDelta<UserType> empty = prismContext.deltaFor(UserType.class).asObjectDeltaCast(USER_GUYBRUSH_OID);
 
 		// WHEN
 		displayWhen(TEST_NAME);

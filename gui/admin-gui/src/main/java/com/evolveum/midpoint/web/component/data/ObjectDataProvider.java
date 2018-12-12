@@ -81,7 +81,7 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
     // Here we apply the distinct option. It is easier and more reliable to apply it here than to do at all the places
 	// where options for this provider are defined.
     private Collection<SelectorOptions<GetOperationOptions>> getOptionsToUse() {
-    	return GetOperationOptions.merge(options, getDistinctRelatedOptions());
+    	return GetOperationOptions.merge(getPrismContext(), options, getDistinctRelatedOptions());
     }
 
 
@@ -118,7 +118,7 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
 
             ObjectQuery query = getQuery();
             if (query == null){
-            	query = new ObjectQuery();
+            	query = getPrismContext().queryFactory().createQuery();
             }
             query.setPaging(paging);
 
@@ -136,7 +136,7 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
                 getAvailableData().add(createDataObjectWrapper(object));
             }
         } catch (Exception ex) {
-            result.recordFatalError("Couldn't list objects.", ex);
+            result.recordFatalError(getPage().createStringResource("ObjectDataProvider.message.listObjects.fatalError").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't list objects", ex);
         } finally {
             result.computeStatusIfUnknown();
@@ -177,7 +177,7 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
             Task task = getPage().createSimpleTask(OPERATION_COUNT_OBJECTS);
             count = getModel().countObjects(type, getQuery(), getOptionsToUse(), task, result);
         } catch (Exception ex) {
-            result.recordFatalError("Couldn't count objects.", ex);
+        	result.recordFatalError(getPage().createStringResource("ObjectDataProvider.message.countObjects.fatalError").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count objects", ex);
         } finally {
             result.computeStatusIfUnknown();

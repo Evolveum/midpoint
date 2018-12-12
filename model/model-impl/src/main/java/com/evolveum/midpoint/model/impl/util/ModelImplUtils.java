@@ -31,19 +31,11 @@ import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.Visitor;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.query.FullTextFilter;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -64,7 +56,6 @@ import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.Handler;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -241,27 +232,6 @@ public class ModelImplUtils {
 		return null;
 	}
 
-
-	@Deprecated	// use RepositoryService.objectSearchIterative instead
-	public static <T extends ObjectType> void searchIterative(RepositoryService repositoryService, Class<T> type, ObjectQuery query,
-			Handler<PrismObject<T>> handler, int blockSize, OperationResult opResult) throws SchemaException {
-		ObjectQuery myQuery = query.clone();
-		// TODO: better handle original values in paging
-		ObjectPaging myPaging = ObjectPaging.createPaging(0, blockSize);
-		myQuery.setPaging(myPaging);
-		boolean cont = true;
-		while (cont) {
-			List<PrismObject<T>> objects = repositoryService.searchObjects(type, myQuery, null, opResult);
-			for (PrismObject<T> object: objects) {
-				if (!handler.handle(object)) {
-	                return;
-	            }
-			}
-			cont = objects.size() == blockSize;
-			myPaging.setOffset(myPaging.getOffset() + blockSize);
-		}
-	}
-
 	/**
 	 * Resolves references contained in given PrismObject.
 	 *
@@ -434,7 +404,7 @@ public class ModelImplUtils {
 		ObjectFilter objFilter;
 		try{
 			PrismObjectDefinition objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
-			objFilter = QueryConvertor.parseFilter(filter, objDef);
+			objFilter = prismContext.getQueryConverter().parseFilter(filter, objDef);
 		} catch (SchemaException ex){
 			LOGGER.error("Failed to convert object filter from filter because of: "+ ex.getMessage() + "; filter: " + filter.debugDump(), ex);
 			throw new SystemException("Failed to convert object filter from filter. Reason: " + ex.getMessage(), ex);
@@ -458,7 +428,7 @@ public class ModelImplUtils {
 		}
 	
 		try {
-			ObjectQuery query = ObjectQuery.createObjectQuery(objFilter);
+			ObjectQuery query = prismContext.queryFactory().createQuery(objFilter);
 			objects = (List)repository.searchObjects(type, query, null, result);
 	
 		} catch (SchemaException e) {
@@ -752,17 +722,19 @@ public class ModelImplUtils {
 		}
 	}
 
-	public static PrismReferenceValue determineAuditTargetDeltaOps(Collection<ObjectDeltaOperation<? extends ObjectType>> deltaOps) {
+	public static PrismReferenceValue determineAuditTargetDeltaOps(
+			Collection<ObjectDeltaOperation<? extends ObjectType>> deltaOps,
+			PrismContext prismContext) {
 		if (deltaOps == null || deltaOps.isEmpty()) {
 			return null;
 		}
 		if (deltaOps.size() == 1) {
 			ObjectDeltaOperation<? extends ObjectType> deltaOp = deltaOps.iterator().next();
-			return getAditTarget(deltaOp.getObjectDelta());
+			return getAuditTarget(deltaOp.getObjectDelta(), prismContext);
 		}
 		for (ObjectDeltaOperation<? extends ObjectType> deltaOp: deltaOps) {
 			if (!ShadowType.class.isAssignableFrom(deltaOp.getObjectDelta().getObjectTypeClass())) {
-				return getAditTarget(deltaOp.getObjectDelta());
+				return getAuditTarget(deltaOp.getObjectDelta(), prismContext);
 			}
 		}
 		// Several raw operations, all on shadows, no focus ... this should not happen
@@ -771,17 +743,18 @@ public class ModelImplUtils {
 		return null;
 	}
 
-	public static PrismReferenceValue determineAuditTarget(Collection<ObjectDelta<? extends ObjectType>> deltas) {
+	public static PrismReferenceValue determineAuditTarget(Collection<ObjectDelta<? extends ObjectType>> deltas,
+			PrismContext prismContext) {
 		if (deltas == null || deltas.isEmpty()) {
 			return null;
 		}
 		if (deltas.size() == 1) {
 			ObjectDelta<? extends ObjectType> delta = deltas.iterator().next();
-			return getAditTarget(delta);
+			return getAuditTarget(delta, prismContext);
 		}
 		for (ObjectDelta<? extends ObjectType> delta: deltas) {
 			if (!ShadowType.class.isAssignableFrom(delta.getObjectTypeClass())) {
-				return getAditTarget(delta);
+				return getAuditTarget(delta, prismContext);
 			}
 		}
 		// Several raw operations, all on shadows, no focus ... this should not happen
@@ -790,8 +763,9 @@ public class ModelImplUtils {
 		return null;
 	}
 
-	public static PrismReferenceValue getAditTarget(ObjectDelta<? extends ObjectType> delta) {
-		PrismReferenceValue targetRef = new PrismReferenceValue(delta.getOid());
+	private static PrismReferenceValue getAuditTarget(ObjectDelta<? extends ObjectType> delta,
+			PrismContext prismContext) {
+		PrismReferenceValue targetRef = prismContext.itemFactory().createReferenceValue(delta.getOid());
 		targetRef.setTargetType(ObjectTypes.getObjectType(delta.getObjectTypeClass()).getTypeQName());
 		if (delta.isAdd()) {
 			targetRef.setObject(delta.getObjectToAdd());

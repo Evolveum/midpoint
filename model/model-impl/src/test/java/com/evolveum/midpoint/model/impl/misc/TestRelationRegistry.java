@@ -261,7 +261,7 @@ public class TestRelationRegistry extends AbstractInternalModelIntegrationTest {
 		assertTrue("'kinderManager' is not automatically matched", relationRegistry.isAutomaticallyMatched(unqualify(TEST_KINDER_MANAGER)));
 		assertFalse("'org:approver' is automatically matched", relationRegistry.isAutomaticallyMatched(SchemaConstants.ORG_APPROVER));
 
-		String metaLabel = Objects.requireNonNull(relationRegistry.getRelationDefinition(SchemaConstants.ORG_META)).getDisplay().getLabel();
+		String metaLabel = Objects.requireNonNull(relationRegistry.getRelationDefinition(SchemaConstants.ORG_META)).getDisplay().getLabel().getOrig();
 		assertEquals("Wrong label for org:meta", "Meta-relation", metaLabel);
 	}
 

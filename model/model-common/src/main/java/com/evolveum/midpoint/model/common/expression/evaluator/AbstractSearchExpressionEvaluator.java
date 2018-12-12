@@ -22,26 +22,18 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.*;
 import org.apache.commons.lang.BooleanUtils;
 
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.common.expression.evaluator.caching.AbstractSearchExpressionEvaluatorCache;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.Expression;
@@ -98,7 +90,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 			D outputDefinition, Protector protector, ObjectResolver objectResolver,
 			ModelService modelService, PrismContext prismContext, SecurityContextManager securityContextManager,
 			LocalizationService localizationService) {
-		super(expressionEvaluatorType, securityContextManager, localizationService);
+		super(expressionEvaluatorType, securityContextManager, localizationService, prismContext);
 		this.outputDefinition = outputDefinition;
 		this.prismContext = prismContext;
 		this.protector = protector;
@@ -169,7 +161,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 			if (filterType == null) {
 				throw new SchemaException("No filter in "+shortDebugDump());
 			}
-			query = QueryJaxbConvertor.createObjectQuery(targetTypeClass, filterType, prismContext);
+			query = prismContext.getQueryConverter().createObjectQuery(targetTypeClass, filterType);
 			if (LOGGER.isTraceEnabled()){
 				LOGGER.trace("XML query converted to: {}", query.debugDump());
 			}
@@ -474,13 +466,12 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 		Collection<IV> pvalues = outputTriple.getNonNegativeValues();
 
 		// Maybe not really clean but it works. TODO: refactor later
-		NameItemPathSegment first = (NameItemPathSegment)targetPath.first();
-		if (first.isVariable()) {
+		if (targetPath.startsWithVariable()) {
 			targetPath = targetPath.rest();
 		}
 
 		ItemDelta<IV,ID> itemDelta = propOutputDefinition.createEmptyDelta(targetPath);
-		itemDelta.addValuesToAdd(PrismValue.cloneCollection(pvalues));
+		itemDelta.addValuesToAdd(PrismValueCollectionsUtil.cloneCollection(pvalues));
 
 		LOGGER.trace("Item delta:\n{}", itemDelta.debugDump());
 

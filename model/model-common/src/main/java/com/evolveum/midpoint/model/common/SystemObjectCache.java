@@ -24,6 +24,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -118,5 +119,10 @@ public class SystemObjectCache {
 
 	public synchronized void invalidateCaches() {
 		systemConfiguration = null;
+	}
+
+	public PrismObject<ArchetypeType> getArchetype(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
+		// TODO: make this efficient (use cache)
+		return cacheRepositoryService.getObject(ArchetypeType.class, oid, null, result);
 	}
 }

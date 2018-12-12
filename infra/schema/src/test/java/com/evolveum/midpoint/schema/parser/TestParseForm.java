@@ -138,8 +138,8 @@ public class TestParseForm extends AbstractObjectParserTest<FormType> {
 		assertEquals("Wrong name", PrismTestUtil.createPolyStringType("form1"), form.getName());
 		FormDefinitionType formDefinition = form.getFormDefinition();
 		assertNotNull("no formDefinition value", formDefinition);
-		assertEquals("Wrong formDefinition/display/label", "some label", formDefinition.getDisplay().getLabel());
-		assertEquals("Wrong formDefinition/display/tooltip", "some tooltip", formDefinition.getDisplay().getTooltip());
+		assertEquals("Wrong formDefinition/display/label", "some label", formDefinition.getDisplay().getLabel().getOrig());
+		assertEquals("Wrong formDefinition/display/tooltip", "some tooltip", formDefinition.getDisplay().getTooltip().getOrig());
 		FormItemsType formItems = formDefinition.getFormItems();
 		assertNotNull("no formItems", formItems);
 		assertEquals("wrong # of form items", 3, formItems.getFormItem().size());

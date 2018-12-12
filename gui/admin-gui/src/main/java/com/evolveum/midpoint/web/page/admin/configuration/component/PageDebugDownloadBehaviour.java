@@ -5,10 +5,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -29,7 +26,6 @@ import org.apache.wicket.util.file.File;
 import org.apache.wicket.util.file.Files;
 
 import java.io.*;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
@@ -172,11 +168,11 @@ public class PageDebugDownloadBehaviour extends AjaxDownloadBehaviorFromFile {
         };
 
         ModelService service = page.getModelService();
-        GetOperationOptions options = GetOperationOptions.createRaw();
-        options.setResolveNames(true);
-        Collection<SelectorOptions<GetOperationOptions>> optionsCollection = SelectorOptions.createCollection(options);
-        WebModelServiceUtils.addIncludeOptionsForExportOrView(optionsCollection, type);
-        service.searchObjectsIterative(type, query, handler, optionsCollection,
+        GetOperationOptionsBuilder optionsBuilder = page.getSchemaHelper().getOperationOptionsBuilder()
+                .raw()
+                .resolveNames();
+        optionsBuilder = WebModelServiceUtils.addIncludeOptionsForExportOrView(optionsBuilder, type);
+        service.searchObjectsIterative(type, query, handler, optionsBuilder.build(),
                 page.createSimpleTask(OPERATION_SEARCH_OBJECT), result);
     }
 

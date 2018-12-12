@@ -18,17 +18,11 @@ package com.evolveum.midpoint.model.impl.trigger;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.util.AbstractScannerResultHandler;
 import com.evolveum.midpoint.model.impl.util.AbstractScannerTaskHandler;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
@@ -125,7 +119,7 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 
 		initProcessedTriggers(task);
 
-		return QueryBuilder.queryFor(ObjectType.class, prismContext)
+		return prismContext.queryFor(ObjectType.class)
 				.item(F_TRIGGER, F_TIMESTAMP).le(handler.getThisScanTimestamp())
 				.build();
 	}
@@ -235,7 +229,7 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 
 	private void removeTrigger(PrismObject<ObjectType> object, PrismContainerValue<TriggerType> triggerCVal, Task task,
 			PrismContainerDefinition<TriggerType> triggerContainerDef) {
-		ContainerDelta<TriggerType> triggerDelta = triggerContainerDef.createEmptyDelta(new ItemPath(F_TRIGGER));
+		ContainerDelta<TriggerType> triggerDelta = triggerContainerDef.createEmptyDelta(F_TRIGGER);
 		triggerDelta.addValuesToDelete(triggerCVal.clone());
 		Collection<? extends ItemDelta> modifications = MiscSchemaUtil.createCollection(triggerDelta);
 		// This is detached result. It will not take part of the task result. We do not really care.

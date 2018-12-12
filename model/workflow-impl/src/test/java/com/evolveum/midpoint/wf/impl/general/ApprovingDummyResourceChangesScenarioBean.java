@@ -52,7 +52,7 @@ public class ApprovingDummyResourceChangesScenarioBean extends BaseGcpScenarioBe
 //        JaxbValueContainer<ObjectDeltaType> deltaInProcess = (JaxbValueContainer) variables.get("dummyResourceDelta");
 //        if (deltaInProcess != null) {
 //            deltaInProcess.setPrismContext(prismContext);
-//            PrismProperty deltaProperty = extStateContainer.getValue().findOrCreateItem(new ItemPath(DUMMY_RESOURCE_DELTA_QNAME), PrismProperty.class, deltaDefinition);
+//            PrismProperty deltaProperty = extStateContainer.getValue().findOrCreateItem(prismContext.path(DUMMY_RESOURCE_DELTA_QNAME), PrismProperty.class, deltaDefinition);
 //            deltaProperty.setRealValue(deltaInProcess.getValue());
 //            LOGGER.info("deltaProperty = {}", deltaProperty.debugDump());
 //        } else {

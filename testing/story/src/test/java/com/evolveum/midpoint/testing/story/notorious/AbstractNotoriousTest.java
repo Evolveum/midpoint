@@ -1174,7 +1174,8 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 		for (int i=0; i<numberOfRoles; i++) {
 			modifications.add((createAssignmentModification(generateRoleAOid(i), RoleType.COMPLEX_TYPE, null, null, null, add)));
 		}
-		ObjectDelta<UserType> delta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
+		ObjectDelta<UserType> delta = prismContext.deltaFactory().object()
+				.createModifyDelta(USER_JACK_OID, modifications, UserType.class);
 
 		executeChanges(delta, null, task, result);
 	}

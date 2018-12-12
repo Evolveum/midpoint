@@ -20,6 +20,7 @@ import java.util.List;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.common.expression.evaluator.AbstractValueTransformationExpressionEvaluator;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
@@ -49,8 +50,9 @@ public class ScriptExpressionEvaluator<V extends PrismValue,D extends ItemDefini
 	private static final Trace LOGGER = TraceManager.getTrace(ScriptExpressionEvaluator.class);
 
     ScriptExpressionEvaluator(ScriptExpressionEvaluatorType scriptType, ScriptExpression scriptExpression,
-		    SecurityContextManager securityContextManager, LocalizationService localizationService) {
-    	super(scriptType, securityContextManager, localizationService);
+		    SecurityContextManager securityContextManager, LocalizationService localizationService,
+		    PrismContext prismContext) {
+    	super(scriptType, securityContextManager, localizationService, prismContext);
         this.scriptExpression = scriptExpression;
     }
 

@@ -31,11 +31,8 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.RelationTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.task.api.Task;
@@ -71,13 +68,11 @@ import org.apache.wicket.markup.head.CssHeaderItem;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
@@ -353,7 +348,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
 			@Override
 			public boolean isVisible(){
-				return isItemAllowed(new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_DESCRIPTION));
+				return isItemAllowed(ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_DESCRIPTION));
 			}
 		});
 		body.add(descriptionContainer);
@@ -377,7 +372,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
 			@Override
 			public boolean isVisible() {
-				if (!isItemAllowed(new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF,
+				if (!isItemAllowed(ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF,
 						ObjectReferenceType.F_RELATION))){
 					return false;
 				}
@@ -403,7 +398,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
 			@Override
 			public boolean isVisible(){
-				return isItemAllowed(new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_FOCUS_TYPE));
+				return isItemAllowed(ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_FOCUS_TYPE));
 			}
 		});
 		body.add(focusTypeContainer);
@@ -447,7 +442,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
 			@Override
 			public boolean isVisible(){
-				return isItemAllowed(new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TENANT_REF));
+				return isItemAllowed(ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_TENANT_REF));
 			}
 		});
 		body.add(tenantRefContainer);
@@ -458,7 +453,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
 			@Override
 			public boolean isVisible(){
-				return isItemAllowed(new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_ORG_REF));
+				return isItemAllowed(ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_ORG_REF));
 			}
 		});
 		body.add(orgRefContainer);
@@ -467,12 +462,12 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
 			@Override
 			public boolean isVisible(){
-				return isItemAllowed(new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_DESCRIPTION))
-						|| isItemAllowed(new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF,
+				return isItemAllowed(ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_DESCRIPTION))
+						|| isItemAllowed(ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF,
 						ObjectReferenceType.F_RELATION))
-						|| isItemAllowed(new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_FOCUS_TYPE))
-						|| isItemAllowed(new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TENANT_REF))
-						|| isItemAllowed(new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_ORG_REF));
+						|| isItemAllowed(ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_FOCUS_TYPE))
+						|| isItemAllowed(ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_TENANT_REF))
+						|| isItemAllowed(ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_ORG_REF));
 			}
 
 		});
@@ -487,7 +482,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
 			@Override
 			public boolean isVisible() {
-				return isItemAllowed(new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION,
+				return isItemAllowed(ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION,
 						ActivationType.F_ADMINISTRATIVE_STATUS));
 			}
 		});
@@ -515,7 +510,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
 			@Override
 			public boolean isVisible() {
-				return isItemAllowed(new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION,
+				return isItemAllowed(ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION,
 						ActivationType.F_VALID_FROM));
 			}
 		});
@@ -541,7 +536,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
 			@Override
 			public boolean isVisible() {
-				return isItemAllowed(new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION,
+				return isItemAllowed(ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION,
 						ActivationType.F_VALID_TO));
 			}
 		});
@@ -576,7 +571,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
 			@Override
 			public boolean isVisible() {
-				if (!isItemAllowed(new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET))){
+				if (!isItemAllowed(ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET))){
 					return false;
 				}
 				AssignmentEditorDto dto = getModel().getObject();
@@ -654,7 +649,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
 			@Override
 			protected ObjectQuery getChooseQuery() {
-				return QueryBuilder.queryFor(OrgType.class, getPageBase().getPrismContext())
+				return getPageBase().getPrismContext().queryFor(OrgType.class)
 						.item(OrgType.F_TENANT).eq(true)
 						.build();
 			}
@@ -695,7 +690,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
 			@Override
 			protected ObjectQuery getChooseQuery() {
-				return QueryBuilder.queryFor(OrgType.class, getPageBase().getPrismContext())
+				return getPageBase().getPrismContext().queryFor(OrgType.class)
 						.item(OrgType.F_TENANT).eq(false)
 						.or().item(OrgType.F_TENANT).isNull()
 						.build();
@@ -857,7 +852,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 			result.recordSuccess();
 		} catch (Exception ex) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Exception occurred during assignment attribute loading", ex);
-			result.recordFatalError("Exception occurred during assignment attribute loading.", ex);
+			result.recordFatalError(createStringResource("AssignmentEditorPanel.message.loadAttributes.fatalError").getString(), ex);
 		} finally {
 			result.recomputeStatus();
 		}
@@ -904,7 +899,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 			subResult.recordSuccess();
 		} catch (Exception ex) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get account construction resource ref", ex);
-			subResult.recordFatalError("Couldn't get account construction resource ref.", ex);
+			subResult.recordFatalError(createStringResource("AssignmentEditorPanel.message.getReference.fatalError").getString(), ex);
 		}
 
 		return target;
@@ -919,7 +914,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		}
 
 		ResourceAttributeDefinitionType construction = new ResourceAttributeDefinitionType();
-		construction.setRef(new ItemPathType(new ItemPath(attrDef.getName())));
+		construction.setRef(new ItemPathType(ItemPath.create(attrDef.getName())));
 
 		return construction;
 	}

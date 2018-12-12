@@ -22,8 +22,9 @@ import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -131,13 +132,13 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
 			return false;
 		}
 		if (!constraint.getItem().isEmpty()) {
-			ObjectDelta<?> summaryDelta = ObjectDelta.union(ctx.focusContext.getPrimaryDelta(), ctx.focusContext.getSecondaryDelta());
+			ObjectDelta<?> summaryDelta = ObjectDeltaCollectionsUtil.union(ctx.focusContext.getPrimaryDelta(), ctx.focusContext.getSecondaryDelta());
 			if (summaryDelta == null) {
 				return false;
 			}
 			boolean exactPathMatch = isTrue(constraint.isExactPathMatch());
 			for (ItemPathType path : constraint.getItem()) {
-				if (!pathMatches(summaryDelta, ctx.focusContext.getObjectOld(), path.getItemPath(), exactPathMatch)) {
+				if (!pathMatches(summaryDelta, ctx.focusContext.getObjectOld(), prismContext.toPath(path), exactPathMatch)) {
 					return false;
 				}
 			}
@@ -152,7 +153,7 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
 		} else if (delta.isDelete()) {
 			return objectOld != null && objectOld.containsItem(path, false);
 		} else {
-			return ItemDelta.pathMatches(emptyIfNull(delta.getModifications()), path, 0, exactPathMatch);
+			return ItemDeltaCollectionsUtil.pathMatches(emptyIfNull(delta.getModifications()), path, 0, exactPathMatch);
 		}
 	}
 

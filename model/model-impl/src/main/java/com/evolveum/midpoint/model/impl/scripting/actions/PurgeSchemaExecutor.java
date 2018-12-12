@@ -92,11 +92,10 @@ public class PurgeSchemaExecutor extends BaseActionExecutor {
         if (schemaContainer == null || schemaContainer.isEmpty()) {
             return null;
         }
-        return ObjectDelta.createModificationDeleteContainer(
+        return prismContext.deltaFactory().object().createModificationDeleteContainer(
                 ResourceType.class,
                 resourceType.getOid(),
                 ResourceType.F_SCHEMA,
-                prismContext,
                 schemaContainer.getValue().clone());
     }
 }

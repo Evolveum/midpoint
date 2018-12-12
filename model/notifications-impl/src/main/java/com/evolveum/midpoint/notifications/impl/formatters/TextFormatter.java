@@ -22,10 +22,7 @@ import com.evolveum.midpoint.notifications.impl.NotificationFunctionsImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -62,6 +59,7 @@ import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 public class TextFormatter {
 
     @Autowired @Qualifier("cacheRepositoryService") private transient RepositoryService cacheRepositoryService;
+    @Autowired private PrismContext prismContext;
     @Autowired protected NotificationFunctionsImpl functions;
     @Autowired private LocalizationService localizationService;
 
@@ -115,7 +113,7 @@ public class TextFormatter {
         List<ItemPath> alreadyExplained = new ArrayList<>();
         for (ItemDelta itemDelta : deltas) {
             ItemPath pathToExplain = getPathToExplain(itemDelta);
-            if (pathToExplain == null || ItemPath.containsSubpathOrEquivalent(alreadyExplained, pathToExplain)) {
+            if (pathToExplain == null || ItemPathCollectionsUtil.containsSubpathOrEquivalent(alreadyExplained, pathToExplain)) {
                 continue;       // null or already processed
             }
             PrismObject source = null;
@@ -395,32 +393,33 @@ public class TextFormatter {
 
     private String getItemPathLabel(ItemPath path, Definition deltaDefinition, PrismObjectDefinition objectDefinition) {
 
-        NameItemPathSegment lastNamedSegment = path.lastNamed();
+        int lastNameIndex = path.lastNameIndex();
 
         StringBuilder sb = new StringBuilder();
-        for (ItemPathSegment segment : path.getSegments()) {
-            if (segment instanceof NameItemPathSegment) {
+        for (int i = 0; i < path.size(); i++) {
+            Object segment = path.getSegment(i);
+            if (ItemPath.isName(segment)) {
                 if (sb.length() > 0) {
                     sb.append("/");
                 }
                 Definition itemDefinition;
                 if (objectDefinition == null) {
-                    if (segment == lastNamedSegment) {  // definition for last segment is the definition taken from delta
+                    if (i == lastNameIndex) {  // definition for last segment is the definition taken from delta
                         itemDefinition = deltaDefinition;    // this may be null but we don't care
                     } else {
                         itemDefinition = null;          // definitions for previous segments are unknown
                     }
                 } else {
                     // todo we could make this iterative (resolving definitions while walking down the path); but this is definitely simpler to implement and debug :)
-                    itemDefinition = objectDefinition.findItemDefinition(path.allUpToIncluding(segment));
+                    itemDefinition = objectDefinition.findItemDefinition(path.allUpToIncluding(i));
                 }
                 if (itemDefinition != null && itemDefinition.getDisplayName() != null) {
                     sb.append(resolve(itemDefinition.getDisplayName()));
                 } else {
-                    sb.append(((NameItemPathSegment) segment).getName().getLocalPart());
+                    sb.append(ItemPath.toName(segment).getLocalPart());
                 }
-            } else if (segment instanceof IdItemPathSegment) {
-                sb.append("[").append(((IdItemPathSegment) segment).getId()).append("]");
+            } else if (ItemPath.isId(segment)) {
+                sb.append("[").append(ItemPath.toId(segment)).append("]");
             }
         }
         return sb.toString();
@@ -439,8 +438,8 @@ public class TextFormatter {
         ItemPath path = itemDelta.getPath();
 
         for (int i = 0; i < path.size(); i++) {
-            ItemPathSegment segment = path.getSegments().get(i);
-            if (segment instanceof IdItemPathSegment) {
+            Object segment = path.getSegment(i);
+            if (ItemPath.isId(segment)) {
                 if (i < path.size()-1 || itemDelta.isDelete()) {
                     return path.allUpToIncluding(i);
                 } else {

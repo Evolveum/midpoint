@@ -16,12 +16,11 @@
 package com.evolveum.midpoint.web.page.admin.resources;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
@@ -56,8 +55,8 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
 	}
 
 	@Override
-	protected SelectorOptions<GetOperationOptions> addAdditionalOptions() {
-		return null;
+	protected GetOperationOptionsBuilder addAdditionalOptions(GetOperationOptionsBuilder builder) {
+		return builder;
 	}
 
 	@Override
@@ -96,14 +95,14 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
 			return map;
 		}
 
-		ItemPath attributePath = new ItemPath(ShadowType.F_ATTRIBUTES);
+		ItemPath attributePath = ShadowType.F_ATTRIBUTES;
 
 		for (ItemDefinition def : (List<ItemDefinition>) ocDef.getDefinitions()) {
 			if (!(def instanceof PrismPropertyDefinition) && !(def instanceof PrismReferenceDefinition)) {
 				continue;
 			}
 
-			map.add(new SearchItemDefinition(new ItemPath(attributePath, def.getName()), def, null));
+			map.add(new SearchItemDefinition(ItemPath.create(attributePath, def.getName()), def, null));
 		}
 
 		return map;

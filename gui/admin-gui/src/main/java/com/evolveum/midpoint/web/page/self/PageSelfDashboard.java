@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,9 +21,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.
 import java.util.*;
 
 import com.evolveum.midpoint.gui.api.PredefinedDashboardWidgetId;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
-import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.wf.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -42,13 +41,13 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
@@ -120,10 +119,10 @@ public class PageSelfDashboard extends PageSelf {
     private static final int MAX_REQUESTS = 1000;
 
     private final Model<PrismObject<UserType>> principalModel = new Model<>();
-    private AdminGuiConfigurationType adminGuiConfig;
+    private CompiledUserProfile compiledUserProfile;
 
     public PageSelfDashboard() {
-        adminGuiConfig = getPrincipal().getAdminGuiConfiguration();
+        compiledUserProfile = getPrincipal().getCompiledUserProfile();
         principalModel.setObject(loadUser());
         setTimeZone(PageSelfDashboard.this);
         initLayout();
@@ -257,7 +256,7 @@ public class PageSelfDashboard extends PageSelf {
         });
         add(myRequestsPanel);
 
-        initMyAccounts();
+        initMyAccounts(session);
         initAssignments();
     }
 
@@ -286,15 +285,15 @@ public class PageSelfDashboard extends PageSelf {
             // TODO try to use current state (user) instead of potentially obsolete principal
             // but this requires some computation (of deputy relation)
             // (Note that the current code is consistent with the other places where work items are displayed.)
-            S_FilterEntryOrEmpty q = QueryBuilder.queryFor(WorkItemType.class, getPrismContext());
+            S_FilterEntryOrEmpty q = getPrismContext().queryFor(WorkItemType.class);
             ObjectQuery query = QueryUtils.filterForAssignees(q, SecurityUtils.getPrincipalUser(),
                     OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, getRelationRegistry())
                     .desc(F_CREATE_TIMESTAMP)
                     .build();
-            Collection<SelectorOptions<GetOperationOptions>> options =
-                    GetOperationOptions.resolveItemsNamed(
-                            new ItemPath(T_PARENT, WfContextType.F_OBJECT_REF),
-                            new ItemPath(T_PARENT, WfContextType.F_TARGET_REF));
+            Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
+                    .item(T_PARENT, WfContextType.F_OBJECT_REF).resolve()
+                    .item(T_PARENT, WfContextType.F_TARGET_REF).resolve()
+                    .build();
             List<WorkItemType> workItems = getModelService().searchContainers(WorkItemType.class, query, options, task, result);
             for (WorkItemType workItem : workItems) {
                 list.add(new WorkItemDto(workItem));
@@ -358,11 +357,11 @@ public class PageSelfDashboard extends PageSelf {
         if (user == null) {
             return new ArrayList<>();
         } else {
-            return ((PageBase) getPage()).loadAdminGuiConfiguration().getUserDashboardLink();
+            return ((PageBase) getPage()).getCompiledUserProfile().getUserDashboardLink();
         }
     }
 
-    private void initMyAccounts() {
+    private void initMyAccounts(Session session) {
         AsyncDashboardPanel<Object, List<SimpleAccountDto>> accounts = new AsyncDashboardPanel<Object, List<SimpleAccountDto>>(ID_ACCOUNTS,
                         createStringResource("PageDashboard.accounts"),
                         GuiStyleConstants.CLASS_SHADOW_ICON_ACCOUNT,
@@ -381,6 +380,7 @@ public class PageSelfDashboard extends PageSelf {
                             @Override
                             public AccountCallableResult<List<SimpleAccountDto>> callWithContextPrepared()
                                     throws Exception {
+                                setupContext(application, session);	// TODO is this correct? [med]
                                 return loadAccounts();
                             }
                         };
@@ -442,15 +442,10 @@ public class PageSelfDashboard extends PageSelf {
         Task task = createSimpleTask(OPERATION_LOAD_ACCOUNTS);
         OperationResult result = task.getResult();
         callableResult.setResult(result);
-        GetOperationOptions getOpts = GetOperationOptions.createResolve();
-        getOpts.setNoFetch(Boolean.TRUE);
-        Collection<SelectorOptions<GetOperationOptions>> options =
-                SelectorOptions.createCollection(ShadowType.F_RESOURCE, getOpts);
-
-        SelectorOptions<GetOperationOptions> resolveNamesOptions = new SelectorOptions(GetOperationOptions.createResolveNames());
-        resolveNamesOptions.getOptions().setNoFetch(Boolean.TRUE);
-        options.add(resolveNamesOptions);
-
+        Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
+                .root().resolveNames().noFetch()
+                .item(ShadowType.F_RESOURCE).resolve().noFetch()
+                .build();
         List<ObjectReferenceType> references = user.asObjectable().getLinkRef();
         for (ObjectReferenceType reference : references) {
             PrismObject<ShadowType> account = WebModelServiceUtils.loadObject(ShadowType.class, reference.getOid(),
@@ -619,15 +614,14 @@ public class PageSelfDashboard extends PageSelf {
     }
 
 	private UserInterfaceElementVisibilityType getComponentVisibility(PredefinedDashboardWidgetId componentId){
-        if (adminGuiConfig == null || adminGuiConfig.getUserDashboard() == null) {
+        if (compiledUserProfile == null || compiledUserProfile.getUserDashboard() == null) {
             return UserInterfaceElementVisibilityType.AUTOMATIC;
         }
-        List<DashboardWidgetType> widgetsList = adminGuiConfig.getUserDashboard().getWidget();
+        List<DashboardWidgetType> widgetsList = compiledUserProfile.getUserDashboard().getWidget();
         if (widgetsList == null || widgetsList.size() == 0){
             return UserInterfaceElementVisibilityType.VACANT;
         }
-        DashboardWidgetType widget = AdminGuiConfigTypeUtil.findWidget(adminGuiConfig.getUserDashboard(),
-                componentId.getUri());
+        DashboardWidgetType widget = compiledUserProfile.findUserDashboardWidget(componentId.getUri());
         if (widget == null || widget.getVisibility() == null){
             return UserInterfaceElementVisibilityType.HIDDEN;
         } else {

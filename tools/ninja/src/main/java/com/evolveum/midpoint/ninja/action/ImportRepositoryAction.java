@@ -11,6 +11,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,10 +41,10 @@ public class ImportRepositoryAction extends RepositoryAction<ImportOptions> {
 
         ImportProducerWorker producer;
         if (options.getOid() != null) {
-            InOidFilter filter = InOidFilter.createInOid(options.getOid());
+            InOidFilter filter = context.getPrismContext().queryFactory().createInOid(options.getOid());
             producer = importByFilter(filter, true, queue, progress);
         } else {
-            ObjectFilter filter = NinjaUtils.createObjectFilter(options.getFilter(), context);
+            ObjectFilter filter = NinjaUtils.createObjectFilter(options.getFilter(), context, ObjectType.class);    // todo ok? (ObjectType)
             producer = importByFilter(filter, false, queue, progress);
         }
 

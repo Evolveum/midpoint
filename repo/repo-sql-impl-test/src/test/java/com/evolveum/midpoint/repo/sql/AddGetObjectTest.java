@@ -21,7 +21,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -30,10 +29,7 @@ import com.evolveum.midpoint.repo.sql.data.common.RTask;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.RetrieveOption;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -154,8 +150,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         long time = System.currentTimeMillis();
         for (int i = 0; i < elements.size(); i++) {
             PrismObject object = elements.get(i);
-            LOGGER.info("Adding object {}, type {}", new Object[]{(i + 1),
-                    object.getCompileTimeClass().getSimpleName()});
+            LOGGER.info("Adding object {}, type {}", i + 1, object.getCompileTimeClass().getSimpleName());
             oids.add(repositoryService.addObject(object, null, result));
         }
         LOGGER.info("Time to add objects ({}): {}", elements.size(), System.currentTimeMillis() - time);
@@ -170,21 +165,17 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
 
                 Class<? extends ObjectType> clazz = object.getCompileTimeClass();
 
-                Collection o = null;
+                GetOperationOptionsBuilder optionsBuilder = getOperationOptionsBuilder();
                 if (UserType.class.equals(clazz)) {
-                    o = SelectorOptions.createCollection(UserType.F_JPEG_PHOTO,
-                            GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
+                    optionsBuilder = optionsBuilder.item(UserType.F_JPEG_PHOTO).retrieve();
                 } else if (LookupTableType.class.equals(clazz)) {
-                    o = SelectorOptions.createCollection(LookupTableType.F_ROW,
-                            GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
+                    optionsBuilder = optionsBuilder.item(LookupTableType.F_ROW).retrieve();
                 } else if (AccessCertificationCampaignType.class.equals(clazz)) {
-                    o = SelectorOptions.createCollection(AccessCertificationCampaignType.F_CASE,
-                            GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
+                    optionsBuilder = optionsBuilder.item(AccessCertificationCampaignType.F_CASE).retrieve();
                 } else if (TaskType.class.equals(clazz)) {
-                    o = SelectorOptions.createCollection(TaskType.F_RESULT,
-                            GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
+                    optionsBuilder = optionsBuilder.item(TaskType.F_RESULT).retrieve();
                 }
-                PrismObject<? extends ObjectType> newObject = repositoryService.getObject(clazz, oids.get(i), o, result);
+                PrismObject<? extends ObjectType> newObject = repositoryService.getObject(clazz, oids.get(i), optionsBuilder.build(), result);
 
                 LOGGER.info("AFTER READ: {}\nOld\n{}\nnew\n{}", object, object.debugDump(3), newObject.debugDump(3));
                 checkContainersSize(newObject, object);
@@ -374,9 +365,9 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         AssertJUnit.assertNull("global password policy not null", repoSystemConfig.asObjectable()
                 .getGlobalPasswordPolicyRef());
 
-        ReferenceDelta refDelta = ReferenceDelta.createModificationAdd(
+        ReferenceDelta refDelta = prismContext.deltaFactory().reference().createModificationAdd(
                 SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY_REF, repoSystemConfig.getDefinition(),
-                PrismReferenceValue.createFromTarget(repoPasswordPolicy));
+                prismContext.itemFactory().createReferenceValue(repoPasswordPolicy));
         List<ReferenceDelta> refDeltas = new ArrayList<>();
         refDeltas.add(refDelta);
         repositoryService.modifyObject(SystemConfigurationType.class, systemCongigOid, refDeltas, result);
@@ -568,7 +559,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         user = repositoryService.getObject(UserType.class, OID, null, result);
         result.computeStatusIfUnknown();
 
-        PrismContainer pc = user.findContainer(new ItemPath(UserType.F_ASSIGNMENT, 1,
+        PrismContainer pc = user.findContainer(ItemPath.create(UserType.F_ASSIGNMENT, 1,
                 AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_OBJECT_STATE));
         AssertJUnit.assertNotNull(pc);
         AssertJUnit.assertNotNull(pc.getValue().getId());
@@ -847,8 +838,8 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         AssertJUnit.assertNull(taskType.getResult());
         AssertJUnit.assertEquals(OperationResultStatusType.IN_PROGRESS, taskType.getResultStatus());
 
-        task = repositoryService.getObject(TaskType.class, oid, SelectorOptions.createCollection(TaskType.F_RESULT,
-                GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)), result);
+        task = repositoryService.getObject(TaskType.class, oid,
+                getOperationOptionsBuilder().item(TaskType.F_RESULT).retrieve().build(), result);
         taskType = task.asObjectable();
         AssertJUnit.assertNotNull(taskType.getResult());
         AssertJUnit.assertEquals(OperationResultStatusType.IN_PROGRESS, taskType.getResultStatus());
@@ -856,7 +847,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         OperationResultType res = new OperationResultType();
         res.setOperation("asdf");
         res.setStatus(OperationResultStatusType.FATAL_ERROR);
-        List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(TaskType.class, prismContext)
+        List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(TaskType.class)
                 .item(TaskType.F_RESULT).replace(res)
                 .item(TaskType.F_RESULT_STATUS).replace(res.getStatus())
                 .asItemDeltas();
@@ -867,8 +858,8 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         AssertJUnit.assertNull(taskType.getResult());
         AssertJUnit.assertEquals(OperationResultStatusType.FATAL_ERROR, taskType.getResultStatus());
 
-        task = repositoryService.getObject(TaskType.class, oid, SelectorOptions.createCollection(TaskType.F_RESULT,
-                GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)), result);
+        task = repositoryService.getObject(TaskType.class, oid,
+                getOperationOptionsBuilder().item(TaskType.F_RESULT).retrieve().build(), result);
         taskType = task.asObjectable();
         AssertJUnit.assertNotNull(taskType.getResult());
         AssertJUnit.assertEquals(OperationResultStatusType.FATAL_ERROR, taskType.getResultStatus());

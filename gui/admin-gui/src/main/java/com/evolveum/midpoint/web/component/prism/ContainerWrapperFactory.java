@@ -27,9 +27,12 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+<<<<<<< HEAD
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+=======
+>>>>>>> origin/master
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -112,13 +115,14 @@ public class ContainerWrapperFactory {
 			LOGGER.debug("Association for {} is not supported", association.getComplexTypeDefinition().getTypeClass());
 			return null;
 		}
+		PrismContext prismContext = modelServiceLocator.getPrismContext();
 		result = new OperationResult(CREATE_ASSOCIATION_WRAPPER);
 		//we need to switch association wrapper to single value
 		//the transformation will be as following:
 		// we have single value ShadowAssociationType || ResourceObjectAssociationType, and from each shadowAssociationType we will create
     	// property - name of the property will be association type(QName) and the value will be shadowRef
     	PrismContainerDefinition<C> associationDefinition = association.getDefinition().clone();
-    	associationDefinition.setMaxOccurs(1);
+    	associationDefinition.toMutable().setMaxOccurs(1);
     	
     	RefinedResourceSchema refinedResourceSchema = RefinedResourceSchema.getRefinedSchema(resource);
 		RefinedObjectClassDefinition oc = refinedResourceSchema.getRefinedDefinition(kind, shadowIntent);
@@ -147,8 +151,9 @@ public class ContainerWrapperFactory {
 		
 		List<ItemWrapper> associationValuesWrappers = new ArrayList<>();
 		for (RefinedAssociationDefinition refinedAssocationDefinition: refinedAssociationDefinitions) {
-			PrismReferenceDefinitionImpl shadowRefDef = new PrismReferenceDefinitionImpl(refinedAssocationDefinition.getName(), ObjectReferenceType.COMPLEX_TYPE, modelServiceLocator.getPrismContext());
-			shadowRefDef.setMaxOccurs(-1);
+			MutablePrismReferenceDefinition shadowRefDef = prismContext
+					.definitionFactory().createReferenceDefinition(refinedAssocationDefinition.getName(), ObjectReferenceType.COMPLEX_TYPE);
+			shadowRefDef.toMutable().setMaxOccurs(-1);
 			shadowRefDef.setTargetTypeName(ShadowType.COMPLEX_TYPE);
 			PrismReference shadowAss = shadowRefDef.instantiate();
 			ItemPath itemPath = null;
@@ -163,7 +168,7 @@ public class ContainerWrapperFactory {
 					//for now Induced entitlements gui should support only targetRef expression value
 					//that is why no need to look for another expression types within association
 					ResourceObjectAssociationType resourceAssociation = (ResourceObjectAssociationType) associationValue.asContainerable();
-					if (resourceAssociation.getRef() == null || resourceAssociation.getRef().getItemPath() == null){
+					if (resourceAssociation.getRef() == null) {
 						continue;
 					}
 					if (resourceAssociation.getRef().getItemPath().asSingleName().equals(refinedAssocationDefinition.getName())){
@@ -176,19 +181,21 @@ public class ContainerWrapperFactory {
 						if (expression == null){
 							continue;
 						}
-						ObjectReferenceType shadowRef = ExpressionUtil.getShadowRefValue(expression);
-						if (shadowRef != null) {
-							shadowAss.add(shadowRef.asReferenceValue().clone());
+						List<ObjectReferenceType> shadowRefList = ExpressionUtil.getShadowRefValue(expression);
+						if (shadowRefList != null && shadowRefList.size() > 0) {
+							shadowAss.add(shadowRefList.get(0).asReferenceValue().clone());
 						}
 					}
 				}
 			}
 			
 			if (itemPath == null) {
-				itemPath = new ItemPath(ShadowType.F_ASSOCIATION);
+				itemPath = ShadowType.F_ASSOCIATION;
 			}		
 			
-			ReferenceWrapper associationValueWrapper = new ReferenceWrapper(shadowValueWrapper, shadowAss, isItemReadOnly(association.getDefinition(), shadowValueWrapper), shadowAss.isEmpty() ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED, itemPath);
+			ReferenceWrapper associationValueWrapper = new ReferenceWrapper(shadowValueWrapper, shadowAss,
+					isItemReadOnly(association.getDefinition(), shadowValueWrapper),
+					shadowAss.isEmpty() ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED, itemPath, prismContext);
 			String displayName = refinedAssocationDefinition.getDisplayName();
 			if (displayName == null) {
 				displayName = refinedAssocationDefinition.getName().getLocalPart();
@@ -196,7 +203,7 @@ public class ContainerWrapperFactory {
 			associationValueWrapper.setDisplayName(displayName);
 
 			associationValueWrapper.setFilter(WebComponentUtil.createAssociationShadowRefFilter(refinedAssocationDefinition,
-					modelServiceLocator.getPrismContext(), resource.getOid()));
+					prismContext, resource.getOid()));
 			
 			for (ValueWrapper valueWrapper : associationValueWrapper.getValues()) {
 				valueWrapper.setEditEnabled(isEmpty(valueWrapper));
@@ -275,7 +282,7 @@ public class ContainerWrapperFactory {
 			List<ItemWrapper> properties = createProperties(containerValueWrapper, false, task);
 			containerValueWrapper.setProperties(properties);
 			
-			ReferenceWrapper shadowRefWrapper = (ReferenceWrapper) containerValueWrapper.findPropertyWrapper(ShadowAssociationType.F_SHADOW_REF);
+			ReferenceWrapper shadowRefWrapper = (ReferenceWrapper) containerValueWrapper.findPropertyWrapperByName(ShadowAssociationType.F_SHADOW_REF);
     		if (shadowRefWrapper != null && cWrapper.getFilter() != null) {
     			shadowRefWrapper.setFilter(cWrapper.getFilter());
     		}
@@ -299,8 +306,13 @@ public class ContainerWrapperFactory {
 		}
 		Collection<? extends ItemDefinition> propertyDefinitions = definition.getDefinitions();
 		
+<<<<<<< HEAD
 		if(containerWrapper.getPath().equals(new ItemPath(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_APPENDER))) {
 			ItemRealValueModel<AppenderConfigurationType> value = new ItemRealValueModel<AppenderConfigurationType>((RealValuable<AppenderConfigurationType>)cWrapper);
+=======
+		if(containerWrapper.getPath().equivalent(ItemPath.create(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_APPENDER))) {
+			RealContainerValueFromContainerValueWrapperModel value = new RealContainerValueFromContainerValueWrapperModel(cWrapper);
+>>>>>>> origin/master
 			if(value != null || value.getObject() != null || value.getObject().asPrismContainerValue()!= null
 					|| value.getObject().asPrismContainerValue().getComplexTypeDefinition() != null
 					|| value.getObject().asPrismContainerValue().getComplexTypeDefinition().getDefinitions() != null) {
@@ -399,9 +411,11 @@ public class ContainerWrapperFactory {
 		if (ExpressionType.COMPLEX_TYPE.equals(def.getTypeName())){
 			if (property == null) {
 				PrismProperty newProperty = def.instantiate();
-				return new ExpressionWrapper(cWrapper, newProperty, propertyIsReadOnly, ValueStatus.ADDED, cWrapper.getPath().append(newProperty.getPath()));
+				return new ExpressionWrapper(cWrapper, newProperty, propertyIsReadOnly, ValueStatus.ADDED, cWrapper.getPath().append(newProperty.getPath()),
+						modelServiceLocator.getPrismContext());
 			} else {
-				return new ExpressionWrapper(cWrapper, property, propertyIsReadOnly, cWrapper.getStatus() == ValueStatus.ADDED ? ValueStatus.ADDED: ValueStatus.NOT_CHANGED, property.getPath());
+				return new ExpressionWrapper(cWrapper, property, propertyIsReadOnly, cWrapper.getStatus() == ValueStatus.ADDED ? ValueStatus.ADDED: ValueStatus.NOT_CHANGED, property.getPath(),
+						modelServiceLocator.getPrismContext());
 			}
 		}
 		
@@ -410,6 +424,7 @@ public class ContainerWrapperFactory {
 			PrismProperty<T> newProperty = def.instantiate();
 			// We cannot just get path from newProperty.getPath(). The property is not added to the container, so it does not know its path.
 			// Definitions are reusable, they do not have paths either.
+<<<<<<< HEAD
 			ItemPath propPath = cWrapper.getPath().subPath(newProperty.getElementName());
 			propertyWrapper = new PropertyWrapper(cWrapper, newProperty, propertyIsReadOnly, ValueStatus.ADDED, propPath);
 		} else {
@@ -419,6 +434,13 @@ public class ContainerWrapperFactory {
 		LookupTableType lookupTable = loadLookupTable(def, task, result);
 		propertyWrapper.setPredefinedValues(lookupTable);
 		return propertyWrapper;
+=======
+			ItemPath propPath = cWrapper.getPath().append(newProperty.getElementName());
+			return new PropertyWrapper(cWrapper, newProperty, propertyIsReadOnly, ValueStatus.ADDED, propPath, modelServiceLocator.getPrismContext());
+		}
+		return new PropertyWrapper(cWrapper, property, propertyIsReadOnly, cWrapper.getStatus() == ValueStatus.ADDED ? ValueStatus.ADDED: ValueStatus.NOT_CHANGED, property.getPath(),
+				modelServiceLocator.getPrismContext());
+>>>>>>> origin/master
 	}
 
 	private <T> LookupTableType loadLookupTable(PrismPropertyDefinition<T> def, Task task, OperationResult result) {
@@ -450,7 +472,8 @@ public class ContainerWrapperFactory {
 	}
 	
 	private <C extends Containerable> ReferenceWrapper createReferenceWrapper(PrismReferenceDefinition def, ContainerValueWrapper<C> cWrapper, boolean onlyEmpty) {
-		
+
+		PrismContext prismContext = modelServiceLocator.getPrismContext();
 		PrismContainerValue<C> containerValue = cWrapper.getContainerValue();
 
         PrismReference reference = containerValue.findReference(def.getName());
@@ -464,11 +487,11 @@ public class ContainerWrapperFactory {
         if (reference == null) {
         	PrismReference newReference = def.instantiate();
         	refWrapper = new ReferenceWrapper(cWrapper, newReference, propertyIsReadOnly,
-                    ValueStatus.ADDED, cWrapper.getPath().subPath(newReference.getElementName()));
+                    ValueStatus.ADDED, cWrapper.getPath().append(newReference.getElementName()), prismContext);
         } else {
         
         	refWrapper = new ReferenceWrapper(cWrapper, reference, propertyIsReadOnly,
-        		cWrapper.getStatus() == ValueStatus.ADDED ? ValueStatus.ADDED: ValueStatus.NOT_CHANGED, reference.getPath());
+        		cWrapper.getStatus() == ValueStatus.ADDED ? ValueStatus.ADDED: ValueStatus.NOT_CHANGED, reference.getPath(), prismContext);
         }
         
         //TODO: other special cases?
@@ -479,8 +502,8 @@ public class ContainerWrapperFactory {
 	     }
 
 		if (QNameUtil.match(AbstractRoleType.F_TENANT_REF, def.getName())) {
-			refWrapper.setFilter(EqualFilter.createEqual(new ItemPath(OrgType.F_TENANT), null, null,
-					modelServiceLocator.getPrismContext(), Boolean.TRUE));
+			refWrapper.setFilter(prismContext.queryFactory().createEqual(OrgType.F_TENANT, null, null,
+					prismContext, Boolean.TRUE));
 		}
 
 		return refWrapper;
@@ -520,7 +543,7 @@ public class ContainerWrapperFactory {
 				return null;
 			}
 			return createContainerWrapper(objectWrapper, newContainer, ContainerStatus.ADDING,
-					cWrapper.getPath().append(new ItemPath(newContainer.getElementName())), task);
+					cWrapper.getPath().append(newContainer.getElementName()), task);
 		}
 		return createContainerWrapper(objectWrapper, container, cWrapper.getStatus() == ValueStatus.ADDED ? ContainerStatus.ADDING: ContainerStatus.MODIFYING, container.getPath(), task);
 	}

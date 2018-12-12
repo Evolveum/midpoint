@@ -19,7 +19,7 @@ import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.schema.PrismSchemaImpl;
+import com.evolveum.midpoint.prism.impl.schema.PrismSchemaImpl;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
@@ -48,9 +48,13 @@ public class ConnectorSchemaImpl extends PrismSchemaImpl implements ConnectorSch
 		super(namespace, prismContext);
 	}
 
+	private ConnectorSchemaImpl(Element element, String shortDesc, PrismContext prismContext) throws SchemaException {
+		super(prismContext);
+		parseThis(element, true, shortDesc, prismContext);
+	}
+
 	public static ConnectorSchemaImpl parse(Element element, String shortDesc, PrismContext prismContext) throws SchemaException {
-		// TODO: make sure correct parser plugins are used
-		return (ConnectorSchemaImpl) PrismSchemaImpl.parse(element, new ConnectorSchemaImpl(prismContext), true, shortDesc, prismContext);
+		return new ConnectorSchemaImpl(element, shortDesc, prismContext);
 	}
 
     public static String retrieveUsualNamespacePrefix(ConnectorType connectorType) {

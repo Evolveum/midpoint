@@ -84,7 +84,7 @@
                             <artifactItems>
                                 <artifactItem>
                                     <groupId>com.evolveum.midpoint.infra</groupId>
-                                    <artifactId>prism</artifactId>
+                                    <artifactId>prism-impl</artifactId>
                                     <version>${project.version}</version>
                                     <type>jar</type>
                                     <!-- no catalog (the one in schema suffices) -->
@@ -98,7 +98,7 @@
                                 </artifactItem>
                             </artifactItems>
                             <includes>**/*.xsd,**/*.dtd,**/*.wsdl,META-INF/*</includes>
-                            <excludes>xml/ns/test/**,xml/ns/private/**,prism/**</excludes>
+                            <excludes>xml/ns/test/**,xml/ns/private/**,prism-impl/**</excludes>
                             <outputDirectory>${project.basedir}/target/schemadist</outputDirectory>
                         </configuration>
                     </execution>

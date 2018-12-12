@@ -21,9 +21,7 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.InOidFilter;
-import com.evolveum.midpoint.prism.query.NotFilter;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.application.Url;
@@ -57,7 +55,6 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -196,8 +193,8 @@ public class PageUsers extends PageAdminUsers {
 				ObjectQuery contentQuery = super.createContentQuery();
 				ObjectFilter usersViewFilter = getUsersViewFilter();
 				if (usersViewFilter != null){
-					if (contentQuery == null){
-						contentQuery = new ObjectQuery();
+					if (contentQuery == null) {
+						contentQuery = getPrismContext().queryFactory().createQuery();
 					}
 					contentQuery.addFilter(usersViewFilter);
 				}
@@ -451,7 +448,7 @@ public class PageUsers extends PageAdminUsers {
 			try {
 				Task task = createSimpleTask(OPERATION_DELETE_USER);
 
-				ObjectDelta delta = new ObjectDelta(UserType.class, ChangeType.DELETE, getPrismContext());
+				ObjectDelta delta = getPrismContext().deltaFactory().object().create(UserType.class, ChangeType.DELETE);
 				delta.setOid(user.getOid());
 
 				ExecuteChangeOptionsDto executeOptions = executeOptionsModel.getObject();
@@ -478,8 +475,8 @@ public class PageUsers extends PageAdminUsers {
     private void mergePerformed(AjaxRequestTarget target, final UserType selectedUser) {
         List<QName> supportedTypes = new ArrayList<>();
         supportedTypes.add(UserType.COMPLEX_TYPE);
-        ObjectFilter filter = InOidFilter.createInOid(selectedUser.getOid());
-        ObjectFilter notFilter = NotFilter.createNot(filter);
+        ObjectFilter filter = getPrismContext().queryFactory().createInOid(selectedUser.getOid());
+        ObjectFilter notFilter = getPrismContext().queryFactory().createNot(filter);
         ObjectBrowserPanel<UserType> panel = new ObjectBrowserPanel<UserType>(
                 getMainPopupBodyId(), UserType.class,
                 supportedTypes, false, PageUsers.this, notFilter) {
@@ -513,10 +510,10 @@ public class PageUsers extends PageAdminUsers {
 				// TODO skip the operation if the user has no password
 				// credentials specified (otherwise this would create
 				// almost-empty password container)
-				ObjectDelta delta = ObjectDelta.createModificationReplaceProperty(
-						UserType.class, user.getOid(), new ItemPath(UserType.F_ACTIVATION,
+				ObjectDelta delta = getPrismContext().deltaFactory().object().createModificationReplaceProperty(
+						UserType.class, user.getOid(), ItemPath.create(UserType.F_ACTIVATION,
                                 ActivationType.F_LOCKOUT_STATUS),
-						getPrismContext(), LockoutStatusType.NORMAL);
+						LockoutStatusType.NORMAL);
 				Collection<ObjectDelta<? extends ObjectType>> deltas = WebComponentUtil
 						.createDeltaCollection(delta);
 				getModelService().executeChanges(deltas, null, task, opResult);
@@ -547,8 +544,8 @@ public class PageUsers extends PageAdminUsers {
 			OperationResult opResult = result.createSubresult(getString(OPERATION_RECONCILE_USER, user));
 			try {
 				Task task = createSimpleTask(OPERATION_RECONCILE_USER + user);
-				ObjectDelta delta = ObjectDelta.createEmptyModifyDelta(UserType.class, user.getOid(),
-						getPrismContext());
+				ObjectDelta delta = getPrismContext().deltaFactory().object().createEmptyModifyDelta(UserType.class, user.getOid()
+				);
 				Collection<ObjectDelta<? extends ObjectType>> deltas = WebComponentUtil
 						.createDeltaCollection(delta);
 				getModelService().executeChanges(deltas, ModelExecuteOptions.createReconcile(), task,

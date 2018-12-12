@@ -26,7 +26,6 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -53,13 +52,6 @@ public class GdprAssignmentPanel extends AbstractRoleAssignmentPanel {
 		List<IColumn<ContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
 		
 		columns.add(new StaticPrismPropertyColumn(getModel(), AssignmentType.F_LIFECYCLE_STATE, getPageBase()));
-//		columns.add(new AbstractColumn<ContainerValueWrapper<AssignmentType>, String>(createStringResource("AssignmentType.lifecycleState")) {
-//			private static final long serialVersionUID = 1L;
-//				@Override
-//				public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId, IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-//					item.add(new Label(componentId, rowModel.getObject().getContainerValue().asContainerable().getLifecycleState()));
-//				}
-//		});
 
 		columns.add(new CheckBoxColumn<ContainerValueWrapper<AssignmentType>>(createStringResource("AssignmentType.accepted")) {
 
@@ -104,9 +96,9 @@ public class GdprAssignmentPanel extends AbstractRoleAssignmentPanel {
 //	}
 
 	protected ObjectQuery createObjectQuery() {
-		return QueryBuilder.queryFor(AssignmentType.class, getParentPage().getPrismContext())
+		return getParentPage().getPrismContext().queryFor(AssignmentType.class)
 				.block()
-				.item(new ItemPath(AssignmentType.F_TARGET_REF))
+				.item(AssignmentType.F_TARGET_REF)
 				.ref(SchemaConstants.ORG_CONSENT)
 				.endBlock()
 				.build();

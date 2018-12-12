@@ -19,10 +19,11 @@ package com.evolveum.midpoint.gui.api.util;
 import java.util.*;
 
 import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
+import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.prism.query.OrderDirection;
-import com.evolveum.midpoint.schema.RelationalValueSearchQuery;
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
@@ -52,9 +53,6 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.RetrieveOption;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -165,7 +163,7 @@ public class WebModelServiceUtils {
                 return references;
             }
         } catch (Exception e){
-            result.recordFatalError("Couldn't load password policies.", e);
+            result.recordFatalError(page.createStringResource("WebModelUtils.couldntLoadPasswordPolicies").getString(), e);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load password policies", e);
         }
 
@@ -180,7 +178,7 @@ public class WebModelServiceUtils {
 
     public static String runTask(TaskType taskToRun, Task operationalTask, OperationResult parentResult, PageBase pageBase){
     	try {
-			ObjectDelta<TaskType> delta = ObjectDelta.createAddDelta(taskToRun.asPrismObject());
+			ObjectDelta<TaskType> delta = DeltaFactory.Object.createAddDelta(taskToRun.asPrismObject());
 			pageBase.getPrismContext().adopt(delta);
 			pageBase.getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null,
 					operationalTask, parentResult);
@@ -193,7 +191,7 @@ public class WebModelServiceUtils {
 				| PolicyViolationException | SecurityViolationException e) {
 			// TODO Auto-generated catch block
 //			error(pageBase.getString("pageUsers.message.nothingSelected") + e.getMessage());
-			parentResult.recordFatalError("Couldn't run task " + e.getMessage(), e);
+			parentResult.recordFatalError(pageBase.createStringResource("WebModelUtils.couldntRunTask", e.getMessage()).getString(), e);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't run task " + e.getMessage(), e);
 			return null;
 		}
@@ -221,7 +219,7 @@ public class WebModelServiceUtils {
 //				| PolicyViolationException | SecurityViolationException e) {
 //			// TODO Auto-generated catch block
 ////			error(pageBase.getString("pageUsers.message.nothingSelected") + e.getMessage());
-//			parentResult.recordFatalError("Couldn't run task " + e.getMessage(), e);
+//			parentResult.recordFatalError(pageBase.createStringResource("WebModelUtils.couldntRunTask", e.getMessage()).getString(), e);
 //			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't run task " + e.getMessage(), e);
 //			return null;
 //		}
@@ -466,7 +464,7 @@ public class WebModelServiceUtils {
         try {
             Task task = createSimpleTask(result.getOperation(), principal, page.getTaskManager());
 
-            ObjectDelta delta = new ObjectDelta(type, ChangeType.DELETE, page.getPrismContext());
+            ObjectDelta delta = page.getPrismContext().deltaFactory().object().create(type, ChangeType.DELETE);
             delta.setOid(oid);
 
             page.getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), options, task, subResult);
@@ -484,18 +482,10 @@ public class WebModelServiceUtils {
         LOGGER.debug("Deleted with result {}", new Object[]{result});
     }
 
-    public static Collection<SelectorOptions<GetOperationOptions>> createOptionsForParentOrgRefs() {
-        Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<>();
-        options.add(SelectorOptions.create(ObjectType.F_PARENT_ORG_REF,
-                GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
-        return options;
-    }
-
-    public static Collection<SelectorOptions<GetOperationOptions>> createMinimalOptions() {
-        Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<>();
-        options.add(SelectorOptions.create(ItemPath.EMPTY_PATH,
-                GetOperationOptions.createRetrieve(RetrieveOption.DEFAULT)));
-        return options;
+    public static Collection<SelectorOptions<GetOperationOptions>> createOptionsForParentOrgRefs(GetOperationOptionsBuilder builder) {
+		return builder
+				.item(ObjectType.F_PARENT_ORG_REF).retrieve()
+				.build();
     }
 
     public static void save(ObjectDelta delta, OperationResult result, PageBase page) {
@@ -545,9 +535,10 @@ public class WebModelServiceUtils {
     public static <T extends ObjectType> ObjectDelta<T> createActivationAdminStatusDelta(
             Class<T> type, String oid, boolean enabled, PrismContext context) {
 
-        ItemPath path = new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
+        ItemPath path = SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS;
         ActivationStatusType status = enabled ? ActivationStatusType.ENABLED : ActivationStatusType.DISABLED;
-        ObjectDelta objectDelta = ObjectDelta.createModificationReplaceProperty(type, oid, path, context, status);
+        ObjectDelta objectDelta = context.deltaFactory().object().createModificationReplaceProperty(type, oid, path,
+		        status);
 
         return objectDelta;
     }
@@ -615,7 +606,7 @@ public class WebModelServiceUtils {
     }
 
     public static TimeZone getTimezone(UserType user) {
-        MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
+    	MidPointUserProfilePrincipal principal = SecurityUtils.getPrincipalUser();
         if (principal != null && user == null) {
             user = principal.getUser();
         }
@@ -624,8 +615,8 @@ public class WebModelServiceUtils {
         if (user != null && StringUtils.isNotEmpty(user.getTimezone())) {
             timeZone = user.getTimezone();
         } else {
-            timeZone = principal != null && principal.getAdminGuiConfiguration() != null ?
-                    principal.getAdminGuiConfiguration().getDefaultTimezone() : "";
+            timeZone = principal != null && principal.getCompiledUserProfile() != null ?
+                    principal.getCompiledUserProfile().getDefaultTimezone() : "";
         }
         try {
             if (timeZone != null) {
@@ -674,11 +665,13 @@ public class WebModelServiceUtils {
         return null;
     }
 
-	public static Collection<SelectorOptions<GetOperationOptions>> createLookupTableRetrieveOptions() {
-		return SelectorOptions.createCollection(LookupTableType.F_ROW,
-				GetOperationOptions.createRetrieve(
-						new RelationalValueSearchQuery(
-								ObjectPaging.createPaging(LookupTableRowType.F_LABEL, OrderDirection.ASCENDING))));
+	public static Collection<SelectorOptions<GetOperationOptions>> createLookupTableRetrieveOptions(SchemaHelper schemaHelper) {
+		return schemaHelper.getOperationOptionsBuilder()
+				.item(LookupTableType.F_ROW)
+				.retrieveQuery()
+					.asc(LookupTableRowType.F_LABEL)
+				.end()
+				.build();
 	}
 
 	public static ActivationStatusType getAssignmentEffectiveStatus(String lifecycleStatus, ActivationType activationType, PageBase pageBase){
@@ -694,7 +687,7 @@ public class WebModelServiceUtils {
 	        modelInteractionService.assumePowerOfAttorney(donor, task, result);
 	    } catch (CommonException ex) {
 	        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't assume power of attorney", ex);
-	        result.recordFatalError("Couldn't assume power of attorney", ex);
+	        result.recordFatalError("WebModelUtils.couldntAssumePowerAttorney", ex);
 	    } finally {
 	    	result.computeStatusIfUnknown();
 	    }
@@ -708,14 +701,14 @@ public class WebModelServiceUtils {
 	        modelInteractionService.dropPowerOfAttorney(task, result);
 	    } catch (CommonException ex) {
 	        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't drop power of attorney", ex);
-	        result.recordFatalError("Couldn't drop power of attorney", ex);
+	        result.recordFatalError("WebModelUtils.couldntDropPowerAttorney", ex);
 	    } finally {
 	    	result.computeStatusIfUnknown();
 	    }
 	}
 
 	// deduplicate with Action.addIncludeOptionsForExport (ninja module)
-	public static void addIncludeOptionsForExportOrView(Collection<SelectorOptions<GetOperationOptions>> options,
+	public static GetOperationOptionsBuilder addIncludeOptionsForExportOrView(GetOperationOptionsBuilder builder,
 			Class<? extends ObjectType> type) {
 		// todo fix this brutal hack (related to checking whether to include particular options)
 		boolean all = type == null
@@ -724,23 +717,18 @@ public class WebModelServiceUtils {
 				|| ObjectType.class.equals(type);
 
 		if (all || UserType.class.isAssignableFrom(type)) {
-			options.add(SelectorOptions.create(UserType.F_JPEG_PHOTO,
-					GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
+			builder = builder.item(UserType.F_JPEG_PHOTO).retrieve();
 		}
 		if (all || TaskType.class.isAssignableFrom(type)) {
-			options.add(SelectorOptions.create(TaskType.F_RESULT,
-					GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
+			builder = builder.item(TaskType.F_RESULT).retrieve();
 		}
 		if (all || LookupTableType.class.isAssignableFrom(type)) {
-			options.add(SelectorOptions.create(LookupTableType.F_ROW,
-					GetOperationOptions.createRetrieve(
-							new RelationalValueSearchQuery(
-									ObjectPaging.createPaging(PrismConstants.T_ID, OrderDirection.ASCENDING)))));
+			builder = builder.item(LookupTableType.F_ROW).retrieveQuery().asc(PrismConstants.T_ID).end();
 		}
 		if (all || AccessCertificationCampaignType.class.isAssignableFrom(type)) {
-			options.add(SelectorOptions.create(AccessCertificationCampaignType.F_CASE,
-					GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
+			builder = builder.item(AccessCertificationCampaignType.F_CASE).retrieve();
 		}
+		return builder;
 	}
 
 	public static boolean isEnableExperimentalFeature(Task task, ModelServiceLocator pageBase) {
@@ -748,9 +736,9 @@ public class WebModelServiceUtils {
 		
 		ModelInteractionService mInteractionService = pageBase.getModelInteractionService();
 		
-		AdminGuiConfigurationType adminGuiConfig = null;
+		CompiledUserProfile adminGuiConfig = null;
 		try {
-			adminGuiConfig = mInteractionService.getAdminGuiConfiguration(task, result);
+			adminGuiConfig = mInteractionService.getCompiledUserProfile(task, result);
 			result.recomputeStatus();
 			result.recordSuccessIfUnknown();
 		} catch (Exception e) {
@@ -846,7 +834,7 @@ public class WebModelServiceUtils {
 			result.recordSuccess();
 		} catch (Exception ex) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load system configuration", ex);
-			result.recordFatalError("Couldn't load system configuration.", ex);
+			result.recordFatalError(pageBase.createStringResource("WebModelUtils.couldntLoadSystemConfiguration").getString(), ex);
 		}
 		
 		if (!WebComponentUtil.isSuccessOrHandledError(result) || wrapper == null) {

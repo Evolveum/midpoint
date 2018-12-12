@@ -19,6 +19,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.function.Function;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.impl.lens.AbstractConstruction;
@@ -26,7 +28,6 @@ import com.evolveum.midpoint.model.impl.lens.ConstructionPack;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.FailableLensFunction;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.DeltaMapTriple;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
@@ -50,6 +51,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 @Component
 public class ConstructionProcessor {
 
+	@Autowired private PrismContext prismContext;
+
 	private static final Trace LOGGER = TraceManager.getTrace(ConstructionProcessor.class);
 
 	public <F extends FocusType, K extends HumanReadableDescribable, T extends AbstractConstruction>
@@ -60,7 +63,7 @@ public class ConstructionProcessor {
 
 		// We will be collecting the evaluated account constructions into these three maps.
         // It forms a kind of delta set triple for the account constructions.
-		DeltaMapTriple<K, ConstructionPack<T>> constructionMapTriple = new DeltaMapTriple<>();
+		DeltaMapTriple<K, ConstructionPack<T>> constructionMapTriple = prismContext.deltaFactory().createDeltaMapTriple();
         collectToConstructionMaps(context, evaluatedAssignmentTriple, constructionMapTriple,
         		constructionTripleExtractor, keyGenerator,
         		task, result);
@@ -251,7 +254,7 @@ public class ConstructionProcessor {
                 constructionMap.put(key, constructionPack);
             }
 
-            constructionPack.add(new PrismPropertyValue<>(construction));
+            constructionPack.add(context.getPrismContext().itemFactory().createPropertyValue(construction));
             if (evaluatedAssignment.isValid()) {
             	constructionPack.setHasValidAssignment(true);
             }

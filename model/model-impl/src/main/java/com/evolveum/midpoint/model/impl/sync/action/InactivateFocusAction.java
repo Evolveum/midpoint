@@ -25,6 +25,7 @@ import com.evolveum.midpoint.model.impl.sync.SynchronizationSituation;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -48,8 +49,9 @@ public class InactivateFocusAction extends BaseAction {
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		if (focusContext != null) {
 			PrismObject<F> objectCurrent = focusContext.getObjectCurrent();
+			ItemPath pathAdminStatus = SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS;
 			if (objectCurrent != null) {
-				PrismProperty<Object> administrativeStatusProp = objectCurrent.findProperty(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
+				PrismProperty<Object> administrativeStatusProp = objectCurrent.findProperty(pathAdminStatus);
 				if (administrativeStatusProp != null) {
 					if (desiredStatus.equals(administrativeStatusProp.getRealValue())) {
 						// Desired status already set, nothing to do
@@ -57,9 +59,8 @@ public class InactivateFocusAction extends BaseAction {
 					}
 				}
 			}
-			ObjectDelta<F> activationDelta = ObjectDelta.createModificationReplaceProperty(focusContext.getObjectTypeClass(),
-					focusContext.getOid(), SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, getPrismContext(),
-					desiredStatus);
+			ObjectDelta<F> activationDelta = getPrismContext().deltaFactory().object().createModificationReplaceProperty(focusContext.getObjectTypeClass(),
+					focusContext.getOid(), pathAdminStatus, desiredStatus);
 			focusContext.setPrimaryDelta(activationDelta);
 		}
 

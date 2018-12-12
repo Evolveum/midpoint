@@ -651,7 +651,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ObjectType">
+            <xsd:extension base="tns:FocusType">
                 <xsd:sequence>
                     <xsd:element name="objectType" type="xsd:anyURI">
                         <xsd:annotation>
@@ -666,14 +666,12 @@
                                 </p>
 
                                 <p>
-                                Object type may be changed, but the possible values may
-                                be constrained by the implementation. E.g. the implementation
-                                may allow to change the object type only to the subtype or
-                                supertype, or it may fail if the attributes of the object
-                                does not conform to the schema constraints defined for the
-                                new type.
+                                This property is DEPRECATED. It has been made obsolete by archetypes.
                                 </p>
                             </xsd:documentation>
+                            <xsd:appinfo>
+                            	<a:deprecated>true</a:deprecated>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
@@ -2284,7 +2282,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ObjectType">
+            <xsd:extension base="tns:AssignmentHolderType">
                 <xsd:sequence>
                     <xsd:element name="taskIdentifier" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
@@ -3556,11 +3554,11 @@
 		</xsd:sequence>
 	</xsd:complexType>
 
-	<xsd:complexType name="FocusType" abstract="true">
+	<xsd:complexType name="AssignmentHolderType" abstract="true">
         <xsd:annotation>
             <xsd:documentation>
             	<p>
-                    Abstract supertype for all object types that can be focus of midPoint computation.
+                    Abstract supertype for all object types that can have assignments.
             	</p>
             </xsd:documentation>
             <xsd:appinfo>
@@ -3571,63 +3569,6 @@
             <xsd:extension base="c:ObjectType">
                 <xsd:sequence>
 
-                    <xsd:element name="link" type="tns:ShadowType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:appinfo>
-                    			<a:objectReference>tns:linkRef</a:objectReference>
-                    		</xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="linkRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                Set of shadows (projections) linked to this focal object.
-                                E.g. a set of accounts linked to a user. This is the set of
-                                shadows that belongs to the focal object in a sense
-                                that these shadows represents the focal object on the resource.
-                                E.g. The set of accounts that represent the same midPoint user (the
-                                same physical person, they are "analogous").
-                                </p>
-                                <p>
-                                Links define what the object HAS. The links reflect real state of things
-                                (cf. assignment).
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                    			<a:objectReferenceTargetType>tns:ShadowType</a:objectReferenceTargetType>
-                    		</xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    
-                    <xsd:element name="personaRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                Set of personas linked to this focal object.
-                                E.g. a set of virtual identities linked to a user. This is the set of
-                                "secondary" focal objects that belongs to this focal object in a sense
-                                that the current focal object is in control over the linked focal objects.
-                                E.g. this reference can be used to link user object which specified a physical
-                                person with his virtual identities (personas) that specify his identity as an
-                                employee, system administrator, customer, etc.
-                                The default meaning is that the personas are "analogous", i.e. the represent
-                                different facets of the same physical person. However, this meaning may be 
-                                theoretically overridden by using various relation parameters in this reference. 
-                                </p>
-                                <p>
-                                This reference define what the object HAS. The links reflect real state of 
-                                things (cf. assignment).
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                    			<a:objectReferenceTargetType>tns:FocusType</a:objectReferenceTargetType>
-                    			<a:since>3.6</a:since>
-                    		</xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    
                     <xsd:element name="assignment" type="tns:AssignmentType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -3647,32 +3588,31 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-
-                    <xsd:element name="activation" type="tns:ActivationType" minOccurs="0" maxOccurs="1">
-                    </xsd:element>
                     
-                    <xsd:element name="iteration" type="xsd:int" minOccurs="0">
-                    <xsd:annotation>
-                    	<xsd:documentation>
-                    		Iteration number. Starts with 0. It is used to iteratively find unique identifier
-                    		for the object.
-                    	</xsd:documentation>
-                    	<xsd:appinfo>
-            				<a:operational>true</a:operational>
-            			</xsd:appinfo>
-                    </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="iterationToken" type="xsd:string" minOccurs="0">
-	                    <xsd:annotation>
-	                    	<xsd:documentation>
-	                    		Iteration token. String value that is usually a suffix to the identifier based
-	                    		on iteration number. E.g. ".007". It is used to iteratively find unique identifier
-	                    		for the object.
-	                    	</xsd:documentation>
-	                    	<xsd:appinfo>
-	            				<a:operational>true</a:operational>
-	            			</xsd:appinfo>
-            			</xsd:annotation>
+                    <xsd:element name="archetypeRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                  References to all applicable archetypes, including "indirect" archetypes such as archetype supertypes.
+                                  Contains references to active archetypes only.
+                                </p>
+                                <p>
+                                  Note: the value of this reference is only updated when object is recomputed.
+                                  Therefore if a role definition changes then all the affected objects must be recomputed
+                                  for this reference to be consistent.
+                                </p>
+                                <p>
+                                  This is an operational property. It is set and managed by the system. It is used
+                                  for efficient use of archetypes.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                    			<a:objectReferenceTargetType>tns:ArchetypeType</a:objectReferenceTargetType>
+                    			<a:operational>true</a:operational>
+								<a:displayName>AssignmentHolderType.archetypeRef</a:displayName>
+								<a:since>4.0</a:since>
+                    		</xsd:appinfo>
+                        </xsd:annotation>
                     </xsd:element>
 
                     <xsd:element name="roleMembershipRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
@@ -3755,6 +3695,115 @@
                     			<a:operational>true</a:operational>
                     		</xsd:appinfo>
                         </xsd:annotation>
+                    </xsd:element>
+                    
+				</xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <!-- No element definition for AssignmentHolderType, because it is abstract. -->
+	<!-- [med] but we need this to find PCD for AssignmentHolderType see MID-5010 -->
+	<xsd:element name="assignmentHolder" type="tns:AssignmentHolderType"/>
+
+	<xsd:complexType name="FocusType" abstract="true">
+        <xsd:annotation>
+            <xsd:documentation>
+            	<p>
+                    Abstract supertype for all object types that can be focus of full midPoint computation.
+                    This basically means objects that have projections. But focal objects also have
+                    activation, they may have personas, etc.
+            	</p>
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:object/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:AssignmentHolderType">
+                <xsd:sequence>
+
+                    <xsd:element name="link" type="tns:ShadowType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                    			<a:objectReference>tns:linkRef</a:objectReference>
+                    		</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="linkRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                Set of shadows (projections) linked to this focal object.
+                                E.g. a set of accounts linked to a user. This is the set of
+                                shadows that belongs to the focal object in a sense
+                                that these shadows represents the focal object on the resource.
+                                E.g. The set of accounts that represent the same midPoint user (the
+                                same physical person, they are "analogous").
+                                </p>
+                                <p>
+                                Links define what the object HAS. The links reflect real state of things
+                                (cf. assignment).
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                    			<a:objectReferenceTargetType>tns:ShadowType</a:objectReferenceTargetType>
+                    		</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    
+                    <xsd:element name="personaRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                Set of personas linked to this focal object.
+                                E.g. a set of virtual identities linked to a user. This is the set of
+                                "secondary" focal objects that belongs to this focal object in a sense
+                                that the current focal object is in control over the linked focal objects.
+                                E.g. this reference can be used to link user object which specified a physical
+                                person with his virtual identities (personas) that specify his identity as an
+                                employee, system administrator, customer, etc.
+                                The default meaning is that the personas are "analogous", i.e. the represent
+                                different facets of the same physical person. However, this meaning may be 
+                                theoretically overridden by using various relation parameters in this reference. 
+                                </p>
+                                <p>
+                                This reference define what the object HAS. The links reflect real state of 
+                                things (cf. assignment).
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                    			<a:objectReferenceTargetType>tns:FocusType</a:objectReferenceTargetType>
+                    			<a:since>3.6</a:since>
+                    		</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    
+                    <xsd:element name="activation" type="tns:ActivationType" minOccurs="0" maxOccurs="1">
+                    </xsd:element>
+                    
+                    <xsd:element name="iteration" type="xsd:int" minOccurs="0">
+                    <xsd:annotation>
+                    	<xsd:documentation>
+                    		Iteration number. Starts with 0. It is used to iteratively find unique identifier
+                    		for the object.
+                    	</xsd:documentation>
+                    	<xsd:appinfo>
+            				<a:operational>true</a:operational>
+            			</xsd:appinfo>
+                    </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="iterationToken" type="xsd:string" minOccurs="0">
+	                    <xsd:annotation>
+	                    	<xsd:documentation>
+	                    		Iteration token. String value that is usually a suffix to the identifier based
+	                    		on iteration number. E.g. ".007". It is used to iteratively find unique identifier
+	                    		for the object.
+	                    	</xsd:documentation>
+	                    	<xsd:appinfo>
+	            				<a:operational>true</a:operational>
+	            			</xsd:appinfo>
+            			</xsd:annotation>
                     </xsd:element>
 
                     <xsd:element name="jpegPhoto" type="xsd:base64Binary" minOccurs="0" maxOccurs="1">
@@ -3931,7 +3980,9 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="focus" type="tns:FocusType"/>
+    <!-- No element definition for FocusType, because it is abstract.
+    	 [med] OK but later :) We need this to be able to find PCD for FocusType ... see MID-5010 -->
+	<xsd:element name="focus" type="tns:FocusType"/>
 	    
     <xsd:complexType name="UserType">
         <xsd:annotation>
@@ -5427,7 +5478,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="c:ObjectType">
+            <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
                 	<xsd:element name="operationalState" type="tns:OperationalStateType" minOccurs="0"/>
                     <xsd:element name="connector" type="tns:ConnectorType" minOccurs="0" maxOccurs="1">
@@ -10398,7 +10449,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ObjectType">
+            <xsd:extension base="tns:AssignmentHolderType">
                 <xsd:sequence>
                     <xsd:element name="displayName" type="t:PolyStringType" minOccurs="0">
                         <xsd:annotation>
@@ -10528,7 +10579,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ObjectType">
+            <xsd:extension base="tns:AssignmentHolderType">
                 <xsd:sequence>
                     <xsd:element name="hostname" type="xsd:string">
                         <xsd:annotation>
@@ -13392,7 +13443,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="c:ObjectType">
+            <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
                 	<xsd:element name="includeRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                 		<xsd:annotation>
@@ -13760,7 +13811,136 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="service" type="tns:ServiceType" substitutionGroup="c:object"/>
+
+    <xsd:complexType name="ArchetypeType">
+        <xsd:annotation>
+            <xsd:documentation>
+            	<p>
+	            	Archetype definition. Archetype defines custom object (sub)type. I.e. it defines specific behavior,
+	            	look and feel of objects of a particular type, such as "employee", "project", "application", "business role"
+	            	and so on.
+            	</p>
+            </xsd:documentation>
+            <xsd:appinfo>
+            	<a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:AbstractRoleType">
+                <xsd:sequence>
+                    
+                    <xsd:element name="archetypePolicy" type="tns:ArchetypePolicyType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                            	<p>
+                                	Definition of archetype policies, such as object template, lifecycle, type display properties and so on.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ArchetypeType.archetypePolicy</a:displayName>
+                                <a:displayOrder>120</a:displayOrder>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="archetype" type="tns:ArchetypeType" substitutionGroup="c:object"/>
     
+    <xsd:complexType name="ArchetypePolicyType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Definition of archetype policies, such as object template, lifecycle, type display properties and so on.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+            	<a:since>4.0</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="display" type="tns:DisplayType" minOccurs="0" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Display properties of the archetyped objects.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>ArchetypePolicyType.display</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="objectTemplateRef" type="tns:ObjectReferenceType">
+				<xsd:annotation>
+					<xsd:documentation>
+						Reference to the template.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:objectReferenceTargetType>tns:ObjectTemplateType</a:objectReferenceTargetType>
+						<a:displayName>ArchetypePolicyType.objectTemplateRef</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="propertyConstraint" type="tns:PropertyConstraintType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>ObjectPolicyConfigurationType.propertyConstraint</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="oidNameBoundMode" type="xsd:boolean" minOccurs="0" default="false">
+				<xsd:annotation>
+					<xsd:documentation>
+						A mode in which OID and name of the specified object are the same.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:deprecated>true</a:deprecated>
+						<a:plannedRemoval>4.0</a:plannedRemoval>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="conflictResolution" type="tns:ConflictResolutionType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How to resolve write-write conflicts on focal objects, i.e. if two threads modify given objects at once.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.6.1</a:since>
+						<a:experimental>true</a:experimental>
+						<a:displayName>ArchetypePolicyType.conflictResolution</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="lifecycleStateModel" type="tns:LifecycleStateModelType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specification of lifecycle states and state transitions.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.7.1</a:since>
+						<a:experimental>true</a:experimental>
+						<a:displayName>ArchetypePolicyType.lifecycleStateModel</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="applicablePolicies" type="tns:ApplicablePoliciesType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specification of policies that are applicable to this object type.
+						This should refer to all applicable policies, not just those that
+						are applied. The purpose is primarily for presentation purposes,
+						so the user interface can present choice of all policies to the
+						user.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.8</a:since>
+						<a:displayName>ArchetypePolicyType.applicablePolicies</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	    
     <xsd:complexType name="LookupTableType">
         <xsd:annotation>
             <xsd:documentation>
@@ -13793,7 +13973,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="c:ObjectType">
+            <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
                 	<xsd:element name="row" type="tns:LookupTableRowType" minOccurs="0" maxOccurs="unbounded"/>
                 	<!-- TODO: Maybe more settings describing the intended use of the lookup table. -->
@@ -13887,7 +14067,7 @@
 
     <xsd:complexType name="ValuePolicyType">
         <xsd:complexContent>
-            <xsd:extension base="c:ObjectType">
+            <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
                     <xsd:element name="lifetime" type="c:PasswordLifeTimeType" minOccurs="1" maxOccurs="1">
                     	<xsd:annotation>
@@ -14432,7 +14612,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ObjectType">
+            <xsd:extension base="tns:AssignmentHolderType">
                 <xsd:sequence>
                     <xsd:element name="globalAccountSynchronizationSettings"
                                  type="tns:ProjectionPolicyType" minOccurs="0">
@@ -14785,6 +14965,8 @@
 			</xsd:documentation>
 			<xsd:appinfo>
 				<a:since>3.6</a:since>
+				<a:container/>
+				<a:displayName>FullTextSearchIndexedItemsConfigurationType.details</a:displayName>
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
@@ -14794,6 +14976,9 @@
 						To what object type(s) should this entry be applied.
 						Empty list means "all object types".
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>FullTextSearchIndexedItemsConfigurationType.objectType</a:displayName>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="item" type="t:ItemPathType" minOccurs="0" maxOccurs="unbounded">
@@ -14801,6 +14986,9 @@
 					<xsd:documentation>
 						What items to index for the given object type(s).
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>FullTextSearchIndexedItemsConfigurationType.item</a:displayName>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 		</xsd:sequence>
@@ -14816,7 +15004,7 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		 <xsd:complexContent>
-            <xsd:extension base="c:ObjectType">
+            <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
                 	<xsd:element name="function" type="tns:ExpressionType" minOccurs="0" maxOccurs="unbounded"/>
             	</xsd:sequence>
@@ -14835,7 +15023,7 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		 <xsd:complexContent>
-            <xsd:extension base="c:ObjectType">
+            <xsd:extension base="c:AssignmentHolderType">
 				<xsd:sequence>
 					<xsd:element name="type" type="xsd:QName" minOccurs="1">
 						<xsd:annotation>
@@ -14851,6 +15039,27 @@
 					        </xsd:documentation>
 					    </xsd:annotation>
 		            </xsd:element>
+		            <xsd:element name="baseCollection" type="tns:CollectionSpecificationType" minOccurs="0" maxOccurs="1">
+					    <xsd:annotation>
+					        <xsd:documentation>
+					        	<p>
+						        	Collection used as a base for this collection. In this case this collection may be
+						        	a "concretization" of another collection. E.g. to create "active employees" collection
+						        	use base collection referrence to "employees" archetype. And this collection adds a filer
+						        	that selects only active user. The resulting collection will be a combination of those two.
+					        	</p>
+					        	<p>
+					        		This mechanism may also be used without additional search filter to create a "named collection"
+					        		for a collection that has quite a complex specification.
+					        		E.g. "all managers in our company" or "owners of roles in role catalog".
+					        	</p>
+					        </xsd:documentation>
+						    <xsd:appinfo>
+								<a:since>4.0</a:since>
+							</xsd:appinfo>
+					    </xsd:annotation>
+		            </xsd:element>
+		            <!-- Note: collection references such as domanin or baseCollection may point to collection or archetype. Maybe even to org or role. -->
 		            <!-- TODO: domain (filter or reference to another collection) -->
 		            <!-- TODO: tresholds (actions should be performed by policy rules) -->
 		            <!-- TODO(maybe): default view specification, e.g. default set of columns, search, etc. -->
@@ -14859,6 +15068,164 @@
 		</xsd:complexContent>
 	</xsd:complexType>
 	<xsd:element name="objectCollection" type="tns:ObjectCollectionType" substitutionGroup="c:object"/>
+
+    <xsd:complexType name="CollectionSpecificationType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Specification of an explicit or implicit object collection.
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="collectionRef" type="tns:ObjectReferenceType" minOccurs="1" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Referrence to an object that defines the base of implicit or explicit collection.
+						This may be ObjectCollectionType or any subclass of AbstractRoleType.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+						<a:displayName>CollectionSpecificationType.collectionRef</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="interpretation" type="tns:CollectionSpecificationInterpretationType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							Method how implicit or explicit object collection should be interpreted.
+						</p>
+						<p>
+							If no interpretation is defined then the interpretation depends on the type
+							of object referenced in collectionRef. The default favors "native", the most
+							specific interpretation. Therefore if collectionRef points to an archetype then
+							"archetype" interpretation is assumed. Similarly for orgs and collections where
+							"org" and "explicit" interpretations are assumed. For roles and services only
+							"assignment" interpretation is possible.
+						</p>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+						<a:displayName>CollectionSpecificationType.interpretation</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="relation" type="xsd:QName" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Relation parameter for collection interpretations that depend on relation.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+						<a:displayName>CollectionSpecificationType.relation</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="depth" type="tns:CollectionSpecificationDepthType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Depth parameter for collection interpretations that allow distinction between direct and indirect relation.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+						<a:displayName>CollectionSpecificationType.depth</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<!-- TODO: Status may be added here later: all/active/active+delegated -->
+		</xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:simpleType name="CollectionSpecificationInterpretationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Method how implicit or explicit object collection should be interpreted.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="assignment">
+				<xsd:annotation>
+					<xsd:documentation>
+						Assignment-based interpretation of a collection. Selects objects that have
+						assignment to the reference object. For example, selects all owners of a role.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="ASSIGNMENT"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="explicit">
+				<xsd:annotation>
+					<xsd:documentation>
+						Explicit collection interpretation. This mode is only valid if a reference object
+						is ObjectCollectionType. In that case explicit collection instructions in the
+						ObjectCollectionType (e.g. filter) will be used to select objects.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="EXPLICIT"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="archetype">
+				<xsd:annotation>
+					<xsd:documentation>
+						Archetype collection interpretation. This mode is only valid if a reference object
+						is ArchetypeType. In this case all objects of a given archetype are selected. 
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="ARCHETYPE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="org">
+				<xsd:annotation>
+					<xsd:documentation>
+						Org-based collection interpretation. This mode is only valid if a reference object
+						is OrgType. In this case all objects that belong to given organizational unit (or subtree)
+						are selected. 
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="ORG"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+    <xsd:simpleType name="CollectionSpecificationDepthType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Depth parameter for collection interpretations that allow distinction between direct and indirect relation.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="direct">
+				<xsd:annotation>
+					<xsd:documentation>
+						Only directly related objects are considered.
+						E.g. direct organization structure sub-orgs (one level), direct assignments, etc.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="DIRECT"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="transitive">
+				<xsd:annotation>
+					<xsd:documentation>
+						Both direct and indirect objects are considered.
+						E.g. all organization structure sub-orgs (subtree), both direct and indirect assignments, etc.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="TRANSITIVE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
 
 	<xsd:complexType name="InternalsConfigurationType">
         <xsd:annotation>
@@ -14960,12 +15327,27 @@
       						such as Users, Roles, Orgs, ...
 						</p>
 						<p>
-							Note: name of this element is wrong. It should be objectViews or objectListViews.
+							DEPRECATED because name of this element is wrong. Use objectCollectionViews element instead.
 						</p>
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.4</a:since>
 						<a:displayName>AdminGuiConfigurationType.objectLists</a:displayName>
+						<a:deprecated>true</a:deprecated>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="objectCollectionViews" type="tns:GuiObjectListViewsType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							Specifies the set of pages that are used for displaying lists of objects
+      						such as Users, Roles, Orgs, ...
+						</p>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+						<a:displayName>AdminGuiConfigurationType.objectCollectionViews</a:displayName>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -15499,9 +15881,25 @@
 					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="color" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                    	Usual color used to render the icon. This color may be used in
+                    	situation when colorful presentation is appropriate. The color
+                    	may be used to color the icon itself, or it may also color the
+                    	background if icon is displayed with "inverted" color.
+                    	The color may also be ignored if monochrome presentation is
+                    	more appropriate.
+                    	Value of this element is HTML-like color name or code.
+                    </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>IconType.color</a:displayName>
+					</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-
+	
     <xsd:complexType name="ObjectPolicyConfigurationType">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -15514,102 +15912,36 @@
 				<a:displayName>ObjectPolicyConfigurationType.details</a:displayName>
 			</xsd:appinfo>
 		</xsd:annotation>
-		<xsd:sequence>
-			<xsd:element name="type" type="xsd:QName" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						Specification of the type (class) of the object to apply this definition to.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<a:displayName>ObjectPolicyConfigurationType.type</a:displayName>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="subtype" type="xsd:string" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						Specification of the subtype of the object to apply this template to.
-						If no subtype is specified then this definition will be applied to all subtypes.
-						The subtype is compared against the subtype property but it is also compared to the
-						deprecated employeeType, roleType, orgType and serviceType properties.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<a:displayName>ObjectPolicyConfigurationType.subtype</a:displayName>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="objectTemplateRef" type="tns:ObjectReferenceType">
-				<xsd:annotation>
-					<xsd:documentation>
-						Reference to the template.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<a:objectReferenceTargetType>tns:ObjectTemplateType</a:objectReferenceTargetType>
-						<a:displayName>ObjectPolicyConfigurationType.objectTemplateRef</a:displayName>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="propertyConstraint" type="tns:PropertyConstraintType" minOccurs="0" maxOccurs="unbounded">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<a:displayName>ObjectPolicyConfigurationType.propertyConstraint</a:displayName>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="oidNameBoundMode" type="xsd:boolean" minOccurs="0" default="false">
-				<xsd:annotation>
-					<xsd:documentation>
-						A mode in which OID and name of the specified object are the same.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<a:deprecated>true</a:deprecated>
-						<a:plannedRemoval>4.0</a:plannedRemoval>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="conflictResolution" type="tns:ConflictResolutionType" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						How to resolve write-write conflicts on focal objects, i.e. if two threads modify given objects at once.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<a:since>3.6.1</a:since>
-						<a:experimental>true</a:experimental>
-						<a:displayName>ObjectPolicyConfigurationType.conflictResolution</a:displayName>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="lifecycleStateModel" type="tns:LifecycleStateModelType" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						Specification of lifecycle states and state transitions.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<a:since>3.7.1</a:since>
-						<a:experimental>true</a:experimental>
-						<a:displayName>ObjectPolicyConfigurationType.lifecycleStateModel</a:displayName>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="applicablePolicies" type="tns:ApplicablePoliciesType" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						Specification of policies that are applicable to this object type.
-						This should refer to all applicable policies, not just those that
-						are applied. The purpose is primarily for presentation purposes,
-						so the user interface can present choice of all policies to the
-						user.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<a:since>3.8</a:since>
-						<a:displayName>ObjectPolicyConfigurationType.applicablePolicies</a:displayName>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:element>
-		</xsd:sequence>
+		<xsd:complexContent>
+			<xsd:extension base="tns:ArchetypePolicyType">
+				<xsd:sequence>
+					<xsd:element name="type" type="xsd:QName" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specification of the type (class) of the object to apply this definition to.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>ObjectPolicyConfigurationType.type</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="subtype" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specification of the subtype of the object to apply this template to.
+								If no subtype is specified then this definition will be applied to all subtypes.
+								The subtype is compared against the subtype property but it is also compared to the
+								deprecated employeeType, roleType, orgType and serviceType properties.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>ObjectPolicyConfigurationType.subtype</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
 	</xsd:complexType>
-	
-	<xsd:element name="objectPolicyConfiguration" type="tns:ObjectPolicyConfigurationType"/>
 	
 	<xsd:complexType name="ApplicablePoliciesType">
 		<xsd:annotation>
@@ -17459,7 +17791,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ObjectType">
+            <xsd:extension base="tns:AssignmentHolderType">
                 <xsd:sequence>
                 	<xsd:element name="authentication" type="tns:AuthenticationsPolicyType" minOccurs="0">
                 	</xsd:element>
@@ -19857,7 +20189,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="c:ObjectType">
+            <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
                     <xsd:element name="parent" type="xsd:boolean" default="true" minOccurs="0"/>
                     <xsd:element name="subreport" type="tns:SubreportType" minOccurs="0" maxOccurs="unbounded"/>
@@ -19972,7 +20304,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="c:ObjectType">
+            <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
             		<xsd:element name="filePath" type="xsd:string"/>
             		<xsd:element name="exportType" type="tns:ExportType"/>
@@ -20285,7 +20617,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="c:ObjectType">
+            <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
                     <xsd:element name="counter" type="xsd:long" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
@@ -20361,10 +20693,22 @@
            		<xsd:element name="objectList" type="tns:GuiObjectListViewType" minOccurs="0" maxOccurs="unbounded">
            			<xsd:annotation>
            				<xsd:documentation>
-           					Note: in fact name of this element is wrong. It should be objectView or objectListView.
+           					DEPRECATED because name of this element is wrong. Use objectCollectionView instead.
            				</xsd:documentation>
 						<xsd:appinfo>
 							<a:displayName>GuiObjectListViewsType.objectList</a:displayName>
+							<a:deprecated>true</a:deprecated>
+						</xsd:appinfo>
+           			</xsd:annotation>
+           		</xsd:element>
+           		<xsd:element name="objectCollectionView" type="tns:GuiObjectListViewType" minOccurs="0" maxOccurs="unbounded">
+           			<xsd:annotation>
+           				<xsd:documentation>
+           					Specifies a view of an object collection (list).
+           				</xsd:documentation>
+						<xsd:appinfo>
+							<a:displayName>GuiObjectListViewsType.objectCollectionView</a:displayName>
+							<a:since>4.0</a:since>
 						</xsd:appinfo>
            			</xsd:annotation>
            		</xsd:element>
@@ -20448,9 +20792,17 @@
 	       			<xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1">
 	       				<xsd:annotation>
 	       					<xsd:documentation>
-	       						Symbolic name for this view. It is not really used by the GUI code. It is mostly used for
-	       						diagnostics, logging and so on. It may be later used to detect whether a particular view is overriden,
-	       						e.g. if view defined in system configuraiton is overridden in the role.
+	       						<p>
+		       						Symbolic name for this view. It is not really used by the GUI code. It is mostly used for
+		       						diagnostics, logging and so on. It may be later used to detect whether a particular view is overriden,
+		       						e.g. if view defined in system configuraiton is overridden in the role.
+	       						</p>
+	       						<p>
+	       							If no name is specified for a view then midPoint will internally generate a name. This internal name
+	       							is based on object type and/or collection OID or other aspects of the view. The algorithm for name
+	       							generation may change and the results are not guaranteed to be completely unique. Therefore it is 
+	       							strongly recommended to explictly name all the views in any non-trivial midPoint configuration.  
+	       						</p>
 	       					</xsd:documentation>
 	       					<xsd:appinfo>
 	       						<a:since>3.9</a:since>
@@ -20468,15 +20820,27 @@
 							</xsd:appinfo>
 	       				</xsd:annotation>
 	       			</xsd:element>
-	       			<xsd:element name="collectionRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+	       			<xsd:element name="collection" type="tns:CollectionSpecificationType" minOccurs="0" maxOccurs="1">
 	       				<xsd:annotation>
 	       					<xsd:documentation>
-	       						Reference to object collection that will be used to select objects in this view.
+	       						Specification of an explicit or implicit object collection that will be used to select objects in this view.
 	       						If no collection is specified then it is assumed that all objects of a particular
 	       						type has to be displayed (type element above is mandatory in that case).
 	       					</xsd:documentation>
 	       					<xsd:appinfo>
+	       						<a:since>4.0</a:since>
+								<a:displayName>GuiObjectListViewType.collection</a:displayName>
+	       					</xsd:appinfo>
+	       				</xsd:annotation>
+	       			</xsd:element>
+	       			<xsd:element name="collectionRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+	       				<xsd:annotation>
+	       					<xsd:documentation>
+	       						DEPRECATED. Use "collection" element instead.
+	       					</xsd:documentation>
+	       					<xsd:appinfo>
 	       						<a:since>3.9</a:since>
+	       						<a:deprecated>true</a:deprecated>
 	       						<!-- Reference target type defeinition is NOT here by purpose. Later on we might want
 	       						     archetypes (meta-roles), services and orgs to work as implicit collections. Therefore
 	       						     this reference may point to various object types. By NOT specifying default ObjectCollectionType
@@ -20529,7 +20893,7 @@
          	</xsd:extension>
        	</xsd:complexContent>
     </xsd:complexType>
-    
+        
     <xsd:complexType name="GuiObjectListViewAdditionalPanelsType">
         <xsd:annotation>
         	<xsd:documentation>
@@ -21291,7 +21655,7 @@
              The schema change was just analysed, planned and clarified in those comments.
              -->
         <xsd:complexContent>
-            <xsd:extension base="c:ObjectType">
+            <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
                 	<!-- includeRef and formDefinition are used to specify "declarative" custom form.
                 	     Ideally, this should be inside its own container. But as this was not done
@@ -21402,7 +21766,7 @@
         </xsd:annotation>
         <xsd:sequence>
             <!-- basic properties -->
-            <xsd:element name="label" type="xsd:string" minOccurs="0" >
+            <xsd:element name="label" type="t:PolyStringType" minOccurs="0" >
             	<xsd:annotation>
             		<xsd:documentation>
             			<p>
@@ -21413,6 +21777,7 @@
 	            			Label should be very short (couple of words).
             			</p>
             			<p>
+            				MidPoint 3.x compatibility:
             				Plain string or a localization key may be used in
             				this field. The value of this field will be interpreted
             				as a localizaton key and looked up in the localization
@@ -21425,7 +21790,20 @@
 					</xsd:appinfo>
             	</xsd:annotation>
             </xsd:element>
-            <xsd:element name="tooltip" type="xsd:string" minOccurs="0">
+            <xsd:element name="pluralLabel" type="t:PolyStringType" minOccurs="0" >
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			<p>
+	            			Label of the displayed item, when it is required to refer
+	            			to the items in plural. This is often used in lists and collections.
+            			</p>
+            		</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>DisplayType.label</a:displayName>
+					</xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
+            <xsd:element name="tooltip" type="t:PolyStringType" minOccurs="0">
             	<xsd:annotation>
             		<xsd:documentation>
             			<p>
@@ -21436,6 +21814,7 @@
 	            			Tooltip should still be quite short (one short sentence).
             			</p>
             			<p>
+            				MidPoint 3.x compatibility:
             				Plain string or a localization key may be used in
             				this field. The value of this field will be interpreted
             				as a localizaton key and looked up in the localization
@@ -21448,7 +21827,7 @@
 					</xsd:appinfo>
             	</xsd:annotation>            
             </xsd:element>
-            <xsd:element name="help" type="xsd:string" minOccurs="0">
+            <xsd:element name="help" type="t:PolyStringType" minOccurs="0">
             	<xsd:annotation>
             		<xsd:documentation>
             			<p>
@@ -21457,6 +21836,7 @@
 	            			This may be a longer text (several sentences).
             			</p>
             			<p>
+            				MidPoint 3.x compatibility:
             				Plain string or a localization key may be used in
             				this field. The value of this field will be interpreted
             				as a localizaton key and looked up in the localization
@@ -21484,8 +21864,14 @@
 					</xsd:appinfo>
             	</xsd:annotation>            
             </xsd:element>
-            <!-- TODO: icon -->
-            <!-- TODO: multilingual label, tooltip and help -->
+            <!-- icon and media properties -->
+            <xsd:element name="icon" type="tns:IconType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>DisplayType.icon</a:displayName>
+					</xsd:appinfo>
+            	</xsd:annotation>            
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 

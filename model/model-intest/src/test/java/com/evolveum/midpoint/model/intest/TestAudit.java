@@ -28,7 +28,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
@@ -623,7 +622,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 					OperationResult threadResult = threadTask.getResult();
 					for (int iteration = 0; iteration < ITERATIONS; iteration++) {
 						display("Executing iteration " + iteration + " on user " + index);
-						ObjectDelta delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+						ObjectDelta delta = prismContext.deltaFor(UserType.class)
 								.item(UserType.F_FULL_NAME).replace(PolyString.fromOrig("User " + index + " iteration " + iteration))
 								.asObjectDelta(oids.get(index));
 						executeChangesAssertSuccess(delta, null, threadTask, threadResult);
@@ -697,7 +696,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 						AuditEventRecord record = new AuditEventRecord(AuditEventType.MODIFY_OBJECT, AuditEventStage.EXECUTION);
 						record.setEventIdentifier(
 								String.valueOf(iteration + ":" + System.currentTimeMillis()) + "-" + (int) (Math.random() * 1000000));
-						ObjectDelta<?> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+						ObjectDelta<?> delta = prismContext.deltaFor(UserType.class)
 								.item(UserType.F_FULL_NAME).replace(PolyString.fromOrig("Hi" + iteration))
 								.item(UserType.F_METADATA, MetadataType.F_MODIFY_TIMESTAMP).replace(XmlTypeConverter.createXMLGregorianCalendar(new Date()))
 								.asObjectDelta("oid" + index);

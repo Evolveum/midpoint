@@ -16,36 +16,25 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.util.ItemPathUtil;
+import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
 import com.evolveum.midpoint.web.component.form.multivalue.GenericMultiValueLabelEditPanel;
-import com.evolveum.midpoint.web.component.form.multivalue.MultiValueChoosePanel;
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.*;
@@ -109,31 +98,12 @@ public class ConstructionAssociationPanel<C extends Containerable, IW extends It
         refinedAssociationDefinitionsModel = new LoadableDetachableModel<List<RefinedAssociationDefinition>>() {
             @Override
             protected List<RefinedAssociationDefinition> load() {
-                List<RefinedAssociationDefinition> associationDefinitions = new ArrayList<>();
                 ConstructionType construction = getModelObject().getItem().getValue().asContainerable();
-                ShadowKindType kind = construction.getKind();
-                String intent = construction.getIntent();
-                try {
-                    PrismObject<ResourceType> resource = resourceModel.getObject();
-                    if (resource == null) {
-                        return associationDefinitions;
-                    }
-                    RefinedResourceSchema refinedResourceSchema = RefinedResourceSchema.getRefinedSchema(resource);
-                    RefinedObjectClassDefinition oc = refinedResourceSchema.getRefinedDefinition(kind, intent);
-                    if (oc == null) {
-                        LOGGER.debug("Association for {}/{} not supported by resource {}", kind, intent, resource);
-                        return associationDefinitions;
-                    }
-                    associationDefinitions.addAll(oc.getAssociationDefinitions());
-
-                    if (CollectionUtils.isEmpty(associationDefinitions)) {
-                        LOGGER.debug("Association for {}/{} not supported by resource {}", kind, intent, resource);
-                        return associationDefinitions;
-                    }
-                } catch (Exception ex) {
-                    LOGGER.error("Association for {}/{} not supported by resource {}", kind, intent, construction.getResourceRef(), ex.getLocalizedMessage());
+                if (construction == null){
+                    return new ArrayList<>();
                 }
-                return associationDefinitions;
+                return WebComponentUtil.getRefinedAssociationDefinition(resourceModel.getObject().asObjectable(), construction.getKind(),
+                        construction.getIntent());
             }
         };
     }
@@ -144,7 +114,9 @@ public class ConstructionAssociationPanel<C extends Containerable, IW extends It
                     @Override
                     protected void populateItem(ListItem<RefinedAssociationDefinition> item) {
                         GenericMultiValueLabelEditPanel associationReferencesPanel = new GenericMultiValueLabelEditPanel<ObjectReferenceType>(ID_ASSOCIATION_REFERENCE_PANEL,
-                                getShadowReferencesModel(item.getModelObject()), getAssociationDisplayNameModel(item.getModel()), ID_LABEL_SIZE, ID_INPUT_SIZE, true) {
+                                getShadowReferencesModel(item.getModelObject()),
+                                Model.of(WebComponentUtil.getAssociationDisplayName(item.getModelObject())),
+                                ID_LABEL_SIZE, ID_INPUT_SIZE, true) {
                             private static final long serialVersionUID = 1L;
 
                             @Override
@@ -189,13 +161,15 @@ public class ConstructionAssociationPanel<C extends Containerable, IW extends It
                                     PrismContainerValue associationValue = ((ContainerValueWrapper) associationValueWrapper).getContainerValue();
                                     ResourceObjectAssociationType assoc = (ResourceObjectAssociationType) associationValue.asContainerable();
                                     if (assoc == null || assoc.getOutbound() == null || assoc.getOutbound().getExpression() == null ||
-                                            ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression()) == null){
+                                            ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression()) == null) {
                                         return;
                                     }
-                                    ObjectReferenceType shadowRef = ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression());
-                                    if (shadowRef.equals(removedShadowRef)){
-                                        ((ContainerValueWrapper) associationValueWrapper).setStatus(ValueStatus.DELETED);
-                                    }
+                                    List<ObjectReferenceType> shadowRefList = ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression());
+                                    shadowRefList.forEach(shadowRef -> {
+                                        if (shadowRef.equals(removedShadowRef)) {
+                                            ((ContainerValueWrapper) associationValueWrapper).setStatus(ValueStatus.DELETED);
+                                        }
+                                    });
                                 });
                                 super.removeValuePerformed(target, item);
                             }
@@ -209,17 +183,6 @@ public class ConstructionAssociationPanel<C extends Containerable, IW extends It
 
         associationsPanel.setOutputMarkupId(true);
         add(associationsPanel);
-    }
-
-    private IModel<String> getAssociationDisplayNameModel(IModel<RefinedAssociationDefinition> assocDef) {
-        StringBuilder sb = new StringBuilder();
-        if (assocDef.getObject().getDisplayName() != null) {
-            sb.append(assocDef.getObject().getDisplayName()).append(", ");
-        }
-        if (assocDef.getObject().getResourceObjectAssociationType() != null && assocDef.getObject().getResourceObjectAssociationType().getRef() != null) {
-            sb.append("ref: ").append(assocDef.getObject().getResourceObjectAssociationType().getRef().getItemPath().toString());
-        }
-        return Model.of(sb.toString());
     }
 
     private IModel<List<ObjectReferenceType>> getShadowReferencesModel(RefinedAssociationDefinition def) {
@@ -242,10 +205,10 @@ public class ConstructionAssociationPanel<C extends Containerable, IW extends It
                             && !ValueStatus.ADDED.equals(((ContainerValueWrapper) associationValueWrapper).getStatus()))) {
                         return;
                     }
-                    QName assocRef = ItemPathUtil.getOnlySegmentQName(assoc.getRef());
+                    QName assocRef = ItemPathTypeUtil.asSingleNameOrFailNullSafe(assoc.getRef());
                     if ((defName != null && defName.equals(assocRef))
                             || (assocRef == null && ValueStatus.ADDED.equals(((ContainerValueWrapper) associationValueWrapper).getStatus()))) {
-                        shadowsList.add(ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression()));
+                        shadowsList.addAll(ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression()));
                     }
                 });
                 return shadowsList;
@@ -267,12 +230,12 @@ public class ConstructionAssociationPanel<C extends Containerable, IW extends It
                 return;
             }
             if (compareName) {
-                QName assocRef = ItemPathUtil.getOnlySegmentQName(assoc.getRef());
+                QName assocRef = ItemPathTypeUtil.asSingleNameOrFailNullSafe(assoc.getRef());
                 if (name != null && name.equals(assocRef)) {
-                    shadowsList.add(ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression()));
+                    shadowsList.addAll(ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression()));
                 }
             } else {
-                shadowsList.add(ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression()));
+                shadowsList.addAll(ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression()));
             }
         });
         return shadowsList;
@@ -295,12 +258,11 @@ public class ConstructionAssociationPanel<C extends Containerable, IW extends It
                 ContainerWrapper associationWrapper = constructionContainerWrapper.findContainerWrapper(constructionContainerWrapper
                         .getPath().append(ConstructionType.F_ASSOCIATION));
                 PrismContainerValue newAssociation = associationWrapper.getItem().createNewValue();
-                QName associationRefPath = def.getName();
-                NameItemPathSegment segment = new NameItemPathSegment(associationRefPath);
+                ItemName associationRefPath = def.getName();
                 ((ResourceObjectAssociationType)newAssociation.asContainerable())
-                        .setRef(new ItemPathType(new ItemPath(segment)));
+                        .setRef(new ItemPathType(associationRefPath));
                 ExpressionType newAssociationExpression = ((ResourceObjectAssociationType)newAssociation.asContainerable()).beginOutbound().beginExpression();
-                ExpressionUtil.createShadowRefEvaluatorValue(newAssociationExpression, object.getOid(),
+                ExpressionUtil.addShadowRefEvaluatorValue(newAssociationExpression, object.getOid(),
                         getPageBase().getPrismContext());
                 ContainerWrapperFactory factory = new ContainerWrapperFactory(getPageBase());
                 Task task = getPageBase().createAnonymousTask("Adding new shadow");

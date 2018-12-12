@@ -41,6 +41,7 @@ import com.evolveum.midpoint.web.application.DescriptorLoader;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.aopalliance.intercept.MethodInvocation;
@@ -75,12 +76,12 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
 	}
 
     @Override
-	public UserProfileService getUserProfileService() {
+	public MidPointPrincipalManager getUserProfileService() {
 		return securityContextManager.getUserProfileService();
 	}
 
 	@Override
-	public void setUserProfileService(UserProfileService userProfileService) {
+	public void setUserProfileService(MidPointPrincipalManager userProfileService) {
 		securityContextManager.setUserProfileService(userProfileService);
 	}
 
@@ -289,8 +290,8 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
 
     @Override
 	public <T extends ObjectType, O extends ObjectType> ObjectFilter preProcessObjectFilter(String[] operationUrls, AuthorizationPhaseType phase,
-			Class<T> objectType, PrismObject<O> object, ObjectFilter origFilter, String limitAuthorizationAction, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-		return securityEnforcer.preProcessObjectFilter(operationUrls, phase, objectType, object, origFilter, limitAuthorizationAction, task, result);
+			Class<T> objectType, PrismObject<O> object, ObjectFilter origFilter, String limitAuthorizationAction, List<OrderConstraintsType> paramOrderConstraints, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+		return securityEnforcer.preProcessObjectFilter(operationUrls, phase, objectType, object, origFilter, limitAuthorizationAction, paramOrderConstraints, task, result);
 	}
 
 	@Override

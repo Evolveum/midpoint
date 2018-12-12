@@ -26,7 +26,6 @@ import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluati
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -183,7 +182,7 @@ targetB:	for (EvaluatedAssignmentTargetImpl targetB : assignmentB.getNonNegative
 			QName typeQName = targetRef.getType();
 			@SuppressWarnings("rawtypes")
 			PrismObjectDefinition objDef = prismContext.getSchemaRegistry().findObjectDefinitionByType(typeQName);
-			ObjectFilter filter = QueryConvertor.parseFilter(filterType, objDef);
+			ObjectFilter filter = prismContext.getQueryConverter().parseFilter(filterType, objDef);
 			PrismObject<? extends FocusType> target = assignmentTarget.getTarget();
 			return filter.match(target.getValue(), matchingRuleRegistry);
 		} else {

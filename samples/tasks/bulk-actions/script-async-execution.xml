@@ -33,9 +33,8 @@
 					<s:name>script</s:name>
 					<c:value xsi:type="c:ScriptExpressionEvaluatorType">
 						<c:code>
-							import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder
 							import com.evolveum.midpoint.xml.ns._public.common.common_3.*
-							def delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+							def delta = midpoint.deltaFor(UserType.class)
 								.item(UserType.F_DESCRIPTION).replace('hi')
 								.asObjectDelta('00000000-0000-0000-0000-000000000002')
 							midpoint.executeChangesAsynchronously([delta], null, null)

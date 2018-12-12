@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.prism.xml.ns._public.types_3.EncryptedDataType;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -33,11 +34,6 @@ import org.apache.wicket.model.Model;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -164,9 +160,9 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
                     return dto;
                 }
 
-                final Collection<SelectorOptions<GetOperationOptions>> options =
-                        SelectorOptions.createCollection(ShadowType.F_RESOURCE, GetOperationOptions.createResolve());
-
+                final Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
+                        .item(ShadowType.F_RESOURCE).resolve()
+                        .build();
                 List<PrismReferenceValue> values = reference.getValues();
                 for (PrismReferenceValue value : values) {
                     subResult = result.createSubresult(OPERATION_LOAD_ACCOUNT);
@@ -336,7 +332,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
             if (!password.isEncrypted()) {
                 WebComponentUtil.encryptProtectedString(password, true, getMidpointApplication());
             }
-            final ItemPath valuePath = new ItemPath(SchemaConstantsGenerated.C_CREDENTIALS,
+            final ItemPath valuePath = ItemPath.create(SchemaConstantsGenerated.C_CREDENTIALS,
                     CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
             SchemaRegistry registry = getPrismContext().getSchemaRegistry();
             Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
@@ -347,14 +343,16 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
                             registry.findObjectDefinitionByCompileTimeClass(UserType.class) :
                             registry.findObjectDefinitionByCompileTimeClass(ShadowType.class);
 
-                    PropertyDelta<ProtectedStringType> delta = PropertyDelta.createModificationReplaceProperty(valuePath, objDef, password);
+                    PropertyDelta<ProtectedStringType> delta = getPrismContext().deltaFactory().property()
+                            .createModificationReplaceProperty(valuePath, objDef, password);
                     if (oldPassword != null) {
-                    	delta.addEstimatedOldValue(new PrismPropertyValue<>(oldPassword));
+                    	delta.addEstimatedOldValue(getPrismContext().itemFactory().createPropertyValue(oldPassword));
                     }
 
                     Class<? extends ObjectType> type = accDto.isMidpoint() ? UserType.class : ShadowType.class;
 
-                    deltas.add(ObjectDelta.createModifyDelta(accDto.getOid(), delta, type, getPrismContext()));
+                    deltas.add(getPrismContext().deltaFactory().object().createModifyDelta(accDto.getOid(), delta, type
+                    ));
             }
             getModelService().executeChanges(deltas, null, createSimpleTask(OPERATION_SAVE_PASSWORD, SchemaConstants.CHANNEL_GUI_SELF_SERVICE_URI), result);
 

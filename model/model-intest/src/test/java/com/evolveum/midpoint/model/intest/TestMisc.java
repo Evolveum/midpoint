@@ -38,7 +38,6 @@ import org.w3c.dom.Document;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RepositoryDiag;
@@ -151,7 +150,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         // WHEN
         displayWhen(TEST_NAME);
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null,
-        		SelectorOptions.createCollection(ItemPath.EMPTY_PATH, GetOperationOptions.createRaw()), task, result);
+        		SelectorOptions.createCollection(GetOperationOptions.createRaw()), task, result);
 
         // THEN
         displayThen(TEST_NAME);
@@ -431,14 +430,12 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 	/**
 	 * Modify resource (but make sure that connector configuration is the same).
 	 * Make just small an unimportant change in the connector. That should increase the version
-	 * number which should purge all the caches. Therefore a new connector instance should be used
-	 * (new connector instance number).
-	 * The problem with MID-3104 was, that midPoint caches got purged. But as the configuration
-	 * of old and new connector was the same, then ConnId assumed that it is still the same
-	 * connector and reused the pooled instances.
-	 * MID-3104
+	 * number which should purge resource caches. But the connector instance should still be the
+	 * same because connector configuration haven't changed. We do NOT want to purge connector cache
+	 * (and re-create connector) after every minor change to the resource. In that case change in
+	 * resource availability status can trigger quite a lot of connector re-initializations.
 	 */
-	@Test
+	@Test(enabled = false)
     public void test506ModifyResourceGetAccountJackResourceScripty() throws Exception {
 		final String TEST_NAME = "test506ModifyResourceGetAccountJackResourceScripty";
         displayTestTitle(TEST_NAME);
@@ -452,7 +449,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userBefore, 1);
         String accountOid = getSingleLinkOid(userBefore);
         PrismObject<ResourceType> resourceBefore = getObject(ResourceType.class, RESOURCE_SCRIPTY_OID);
-        display("Resouce version before", resourceBefore.getVersion());
+        display("Resource version before", resourceBefore.getVersion());
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -464,14 +461,14 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 		assertSuccess(result);
 		
 		PrismObject<ResourceType> resourceAfter = getObject(ResourceType.class, RESOURCE_SCRIPTY_OID);
-        display("Resouce version after", resourceAfter.getVersion());
+        display("Resource version after", resourceAfter.getVersion());
         assertFalse("Resource version is still the same: "+resourceAfter.getVersion(), resourceBefore.getVersion().equals(resourceAfter.getVersion()));
 		
         PrismObject<ShadowType> accountShadow = modelService.getObject(ShadowType.class, accountOid, null, task, result);
 
 		Integer dummyConnectorNumber = ShadowUtil.getAttributeValue(accountShadow, 
 				getDummyResourceController(RESOURCE_DUMMY_SCRIPTY_NAME).getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEALTH_NAME));
-		assertFalse("Connector number is still the same: "+dummyConnectorNumber,
+		assertTrue("Connector number hash changed: "+lastDummyConnectorNumber+" -> "+dummyConnectorNumber,
 				lastDummyConnectorNumber.equals(dummyConnectorNumber));
 	}
 	

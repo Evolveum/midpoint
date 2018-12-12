@@ -43,10 +43,6 @@ public class PropertyWrapperFromObjectWrapperModel<T,O extends ObjectType> exten
 
     private ItemPath path;
 
-    public PropertyWrapperFromObjectWrapperModel(IModel<ObjectWrapper<O>> model, QName item) {
-        this(model, new ItemPath(item));
-    }
-
     public PropertyWrapperFromObjectWrapperModel(IModel<ObjectWrapper<O>> model, ItemPath path) {
     	super(model);
         Validate.notNull(path, "Item path must not be null.");

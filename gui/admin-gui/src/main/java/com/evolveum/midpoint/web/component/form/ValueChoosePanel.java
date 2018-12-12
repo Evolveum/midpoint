@@ -34,10 +34,7 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.Referencable;
-import com.evolveum.midpoint.prism.query.InOidFilter;
-import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -45,7 +42,6 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -135,7 +131,7 @@ public class ValueChoosePanel<O extends ObjectType> extends BasePanel<ObjectRefe
 
 	protected ObjectQuery createChooseQuery() {
 		ArrayList<String> oidList = new ArrayList<>();
-		ObjectQuery query = new ObjectQuery();
+		ObjectQuery query = getPrismContext().queryFactory().createQuery();
 		// TODO we should add to filter currently displayed value
 		// not to be displayed on ObjectSelectionPanel instead of saved value
 		
@@ -150,8 +146,8 @@ public class ValueChoosePanel<O extends ObjectType> extends BasePanel<ObjectRefe
 			
 		}
 
-		ObjectFilter oidFilter = InOidFilter.createInOid(oidList);
-		query.setFilter(NotFilter.createNot(oidFilter));
+		ObjectFilter oidFilter = getPrismContext().queryFactory().createInOid(oidList);
+		query.setFilter(getPrismContext().queryFactory().createNot(oidFilter));
 
 		ObjectFilter customFilter = createCustomFilter();
 		if (customFilter != null) {

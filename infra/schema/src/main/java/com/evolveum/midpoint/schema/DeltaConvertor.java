@@ -23,6 +23,8 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.Validate;
@@ -30,9 +32,7 @@ import org.apache.commons.lang.Validate;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.RawTypeUtil;
-import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.prism.impl.util.RawTypeUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -69,7 +69,7 @@ public class DeltaConvertor {
 
     public static <T extends Objectable> ObjectDelta<T> createObjectDelta(ObjectModificationType objectModification,
             PrismObjectDefinition<T> objDef) throws SchemaException {
-        ObjectDelta<T> objectDelta = new ObjectDelta<>(objDef.getCompileTimeClass(), ChangeType.MODIFY, objDef.getPrismContext());
+        ObjectDelta<T> objectDelta = objDef.getPrismContext().deltaFactory().object().create(objDef.getCompileTimeClass(), ChangeType.MODIFY);
         objectDelta.setOid(objectModification.getOid());
 
         for (ItemDeltaType propMod : objectModification.getItemDelta()) {
@@ -91,7 +91,7 @@ public class DeltaConvertor {
     	Class<T> type = objDef.getCompileTimeClass();
 
         if (objectDeltaType.getChangeType() == ChangeTypeType.ADD) {
-        	ObjectDelta<T> objectDelta = new ObjectDelta<>(type, ChangeType.ADD, prismContext);
+        	ObjectDelta<T> objectDelta = prismContext.deltaFactory().object().create(type, ChangeType.ADD);
             objectDelta.setOid(objectDeltaType.getOid());
             ObjectType objectToAddElement = objectDeltaType.getObjectToAdd();
 //            PrismObject<T> objectToAdd = prismContext.getXnodeProcessor().parseObject(objectToAddElement.getXnode());
@@ -101,7 +101,7 @@ public class DeltaConvertor {
             }
             return objectDelta;
         } else if (objectDeltaType.getChangeType() == ChangeTypeType.MODIFY) {
-        	ObjectDelta<T> objectDelta = new ObjectDelta<>(type, ChangeType.MODIFY, prismContext);
+        	ObjectDelta<T> objectDelta = prismContext.deltaFactory().object().create(type, ChangeType.MODIFY);
             objectDelta.setOid(objectDeltaType.getOid());
 	        for (ItemDeltaType propMod : objectDeltaType.getItemDelta()) {
 	            ItemDelta itemDelta = createItemDelta(propMod, objDef, allowRawValues);
@@ -111,7 +111,7 @@ public class DeltaConvertor {
 	        }
 	        return objectDelta;
         } else if (objectDeltaType.getChangeType() == ChangeTypeType.DELETE) {
-        	ObjectDelta<T> objectDelta = new ObjectDelta<>(type, ChangeType.DELETE, prismContext);
+        	ObjectDelta<T> objectDelta = prismContext.deltaFactory().object().create(type, ChangeType.DELETE);
             objectDelta.setOid(objectDeltaType.getOid());
             return objectDelta;
         } else {
@@ -296,8 +296,8 @@ public class DeltaConvertor {
     public static <IV extends PrismValue,ID extends ItemDefinition> ItemDelta<IV,ID> createItemDelta(ItemDeltaType propMod, PrismContainerDefinition<?> pcDef, boolean allowRawValues) throws
     SchemaException {
     	ItemPathType parentPathType = propMod.getPath();
-    	ItemPath parentPath = null;
-    	if (parentPathType != null){
+    	ItemPath parentPath;
+    	if (parentPathType != null) {
     		parentPath = parentPathType.getItemPath();
     	} else {
     		throw new IllegalStateException("Path argument in the itemDelta HAVE TO BE specified.");
@@ -309,28 +309,28 @@ public class DeltaConvertor {
         ItemDefinition containingPcd = pcDef.findItemDefinition(parentPath);
         PrismContainerDefinition containerDef = null;
         if (containingPcd == null) {
-        	containerDef = pcDef.findContainerDefinition(parentPath.allUpToLastNamed());
+        	containerDef = pcDef.findContainerDefinition(parentPath.allUpToLastName());
         	if (containerDef == null){
         		if (allowRawValues){
         			return null;
         		}
-        		throw new SchemaException("No definition for " + parentPath.allUpToLastNamed().lastNamed().getName() + " (while creating delta for " + pcDef + ")");
+        		throw new SchemaException("No definition for " + parentPath.allUpToLastName().lastName() + " (while creating delta for " + pcDef + ")");
         	}
         }
-        QName elementName = parentPath.lastNamed().getName();
+        QName elementName = parentPath.lastName();
         Item item = RawTypeUtil.getParsedItem(containingPcd, propMod.getValue(), elementName, containerDef);//propMod.getValue().getParsedValue(containingPcd);
         ItemDelta<IV,ID> itemDelta = item.createDelta(parentPath);
         if (propMod.getModificationType() == ModificationTypeType.ADD) {
-        	itemDelta.addValuesToAdd(PrismValue.resetParentCollection(PrismValue.cloneCollection(item.getValues())));
+        	itemDelta.addValuesToAdd(PrismValueCollectionsUtil.resetParentCollection(PrismValueCollectionsUtil.cloneCollection(item.getValues())));
         } else if (propMod.getModificationType() == ModificationTypeType.DELETE) {
-        	itemDelta.addValuesToDelete(PrismValue.resetParentCollection(PrismValue.cloneCollection(item.getValues())));
+        	itemDelta.addValuesToDelete(PrismValueCollectionsUtil.resetParentCollection(PrismValueCollectionsUtil.cloneCollection(item.getValues())));
         } else if (propMod.getModificationType() == ModificationTypeType.REPLACE) {
-        	itemDelta.setValuesToReplace(PrismValue.resetParentCollection(PrismValue.cloneCollection(item.getValues())));
+        	itemDelta.setValuesToReplace(PrismValueCollectionsUtil.resetParentCollection(PrismValueCollectionsUtil.cloneCollection(item.getValues())));
         }
 
         if (!propMod.getEstimatedOldValue().isEmpty()) {
         	Item oldItem = RawTypeUtil.getParsedItem(containingPcd, propMod.getEstimatedOldValue(), elementName, containerDef);
-        	itemDelta.addEstimatedOldValues(PrismValue.resetParentCollection(PrismValue.cloneCollection(oldItem.getValues())));
+        	itemDelta.addEstimatedOldValues(PrismValueCollectionsUtil.resetParentCollection(PrismValueCollectionsUtil.cloneCollection(oldItem.getValues())));
         }
 
         return itemDelta;

@@ -25,6 +25,7 @@ import com.evolveum.midpoint.model.api.context.EvaluatedConstruction;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -234,12 +235,12 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	}
 
 	private <S extends ObjectType> List<FocusSubwrapperDto<S>> loadSubwrappers(Class<S> type,
-			QName propertyToLoad, boolean noFetch) {
+			ItemName propertyToLoad, boolean noFetch) {
 		List<FocusSubwrapperDto<S>> list = new ArrayList<>();
 
 		ObjectWrapper<F> focusWrapper = getObjectModel().getObject();
 		PrismObject<F> focus = focusWrapper.getObject();
-		PrismReference prismReference = focus.findReference(new ItemPath(propertyToLoad));
+		PrismReference prismReference = focus.findReference(propertyToLoad);
 		if (prismReference == null) {
 			return new ArrayList<>();
 		}
@@ -265,9 +266,9 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		try {
 			Collection<SelectorOptions<GetOperationOptions>> loadOptions;
 			if (ShadowType.class.equals(type)) {
-				GetOperationOptions resourceOption = GetOperationOptions.createResolve();
-				resourceOption.setReadOnly(true);
-				loadOptions = SelectorOptions.createCollection(ShadowType.F_RESOURCE, resourceOption);
+				loadOptions = getSchemaHelper().getOperationOptionsBuilder()
+						.item(ShadowType.F_RESOURCE).resolve().readOnly()
+						.build();
 			} else {
 				loadOptions = new ArrayList<>();
 			}
@@ -409,7 +410,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	protected ContainerDelta handleAssignmentDeltas(ObjectDelta<F> focusDelta,
 			List<AssignmentEditorDto> assignments, PrismContainerDefinition def,
 													boolean isDelegation) throws SchemaException {
-		ContainerDelta assDelta = new ContainerDelta(ItemPath.EMPTY_PATH, def.getName(), def, getPrismContext());
+		ContainerDelta assDelta = getPrismContext().deltaFactory().container().create(ItemPath.EMPTY_PATH, def.getName(), def);
 
 		for (AssignmentEditorDto assDto : assignments) {
 			PrismContainerValue newValue = assDto.getNewValue(getPrismContext());
@@ -460,7 +461,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	protected ContainerDelta<AssignmentType> handleAssignmentExperimentalDeltas(ObjectDelta<F> focusDelta,
 											List<ContainerValueWrapper<AssignmentType>> assignments, PrismContainerDefinition def,
 																				boolean isDelegation) throws SchemaException {
-		ContainerDelta<AssignmentType> assDelta = new ContainerDelta(ItemPath.EMPTY_PATH, def.getName(), def, getPrismContext());
+		ContainerDelta<AssignmentType> assDelta = getPrismContext().deltaFactory().container().create(ItemPath.EMPTY_PATH, def.getName(), def);
 
 
 		if (!assDelta.isEmpty()) {
@@ -483,7 +484,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			ItemPath deltaPath = delta.getPath().rest();
 			ItemDefinition deltaDef = assignmentDef.findItemDefinition(deltaPath);
 
-			delta.setParentPath(WebComponentUtil.joinPath(oldValue.getPath(), delta.getPath().allExceptLast()));
+			delta.setParentPath(WebComponentUtil.joinPath(oldValue.getPath(), delta.getPath().allExceptLast(), getPrismContext()));
 			delta.applyDefinition(deltaDef);
 
 			focusDelta.addModification(delta);
@@ -529,28 +530,29 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 
 			if (accDto.getStatus() == UserDtoStatus.DELETE) {
 				ObjectWrapper accWrapper = accDto.getObject();
-				ReferenceDelta refDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF,
+				ReferenceDelta refDelta = getPrismContext().deltaFactory().reference().createModificationDelete(UserType.F_LINK_REF,
 						focusWrapper.getObject().getDefinition(), accWrapper.getObject());
 				refDeltas.add(refDelta);
 			} else if (accDto.getStatus() == UserDtoStatus.UNLINK) {
 				ObjectWrapper accWrapper = accDto.getObject();
-				ReferenceDelta refDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF,
+				ReferenceDelta refDelta = getPrismContext().deltaFactory().reference().createModificationDelete(UserType.F_LINK_REF,
 						focusWrapper.getObject().getDefinition(), accWrapper.getObject().getOid());
 				refDeltas.add(refDelta);
 			}
 		}
 		if (!refDeltas.isEmpty()) {
-			forceDeleteDelta = ObjectDelta.createModifyDelta(focusWrapper.getObject().getOid(), refDeltas,
-					getCompileTimeClass(), getPrismContext());
+			forceDeleteDelta = getPrismContext().deltaFactory().object()
+					.createModifyDelta(focusWrapper.getObject().getOid(), refDeltas,
+					getCompileTimeClass());
 		}
 		PrismContainerDefinition def = focusWrapper.getObject().findContainer(UserType.F_ASSIGNMENT)
 				.getDefinition();
 		if (forceDeleteDelta == null) {
-			forceDeleteDelta = ObjectDelta.createEmptyModifyDelta(getCompileTimeClass(),
-					focusWrapper.getObject().getOid(), getPrismContext());
+			forceDeleteDelta = getPrismContext().deltaFactory().object().createEmptyModifyDelta(getCompileTimeClass(),
+					focusWrapper.getObject().getOid());
 		}
 //perhaps not needed anymore
-		ContainerWrapper assignmentContainerWrapper = getObjectWrapper().findContainerWrapper(new ItemPath(FocusType.F_ASSIGNMENT));
+		ContainerWrapper assignmentContainerWrapper = getObjectWrapper().findContainerWrapper(FocusType.F_ASSIGNMENT);
 		handleAssignmentExperimentalDeltas(forceDeleteDelta, assignmentContainerWrapper.getValues(), def, false);
 		return forceDeleteDelta;
 	}
@@ -617,7 +619,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 				}
 
 				if (accountWrapper.getOldDelta() != null) {
-					delta = ObjectDelta.summarize(delta, accountWrapper.getOldDelta());
+					delta = ObjectDeltaCollectionsUtil.summarize(delta, accountWrapper.getOldDelta());
 				}
 
 				// what is this???
@@ -661,7 +663,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 
 	private ReferenceDelta prepareUserAccountsDeltaForModify(PrismReferenceDefinition refDef)
 			throws SchemaException {
-		ReferenceDelta refDelta = new ReferenceDelta(refDef, getPrismContext());
+		ReferenceDelta refDelta = getPrismContext().deltaFactory().reference().create(refDef);
 
 		List<FocusSubwrapperDto<ShadowType>> accounts = getFocusShadows();
 		for (FocusSubwrapperDto<ShadowType> accDto : accounts) {
@@ -669,7 +671,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 				ObjectWrapper accountWrapper = accDto.getObject();
 				accountWrapper.revive(getPrismContext());
 				ObjectDelta delta = accountWrapper.getObjectDelta();
-				PrismReferenceValue refValue = new PrismReferenceValue(null, OriginType.USER_ACTION, null);
+				PrismReferenceValue refValue = getPrismContext().itemFactory().createReferenceValue(null, OriginType.USER_ACTION, null);
 
 				PrismObject<ShadowType> account;
 				switch (accDto.getStatus()) {
@@ -714,7 +716,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 
 	private ReferenceDelta prepareUserOrgsDeltaForModify(PrismReferenceDefinition refDef)
 			throws SchemaException {
-		ReferenceDelta refDelta = new ReferenceDelta(refDef, getPrismContext());
+		ReferenceDelta refDelta = getPrismContext().deltaFactory().reference().create(refDef);
 
 		List<FocusSubwrapperDto<OrgType>> orgs = getParentOrgs();
 		for (FocusSubwrapperDto<OrgType> orgDto : orgs) {
@@ -722,7 +724,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 				ObjectWrapper<OrgType> orgWrapper = orgDto.getObject();
 				orgWrapper.revive(getPrismContext());
 				ObjectDelta<OrgType> delta = orgWrapper.getObjectDelta();
-				PrismReferenceValue refValue = new PrismReferenceValue(null, OriginType.USER_ACTION, null);
+				PrismReferenceValue refValue = getPrismContext().itemFactory().createReferenceValue(null, OriginType.USER_ACTION, null);
 
 				switch (orgDto.getStatus()) {
 					case ADD:
@@ -761,7 +763,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			ObjectWrapper<F> focusWrapper = getObjectWrapper();
 			delta = focusWrapper.getObjectDelta();
 			if (focusWrapper.getOldDelta() != null) {
-				delta = ObjectDelta.summarize(focusWrapper.getOldDelta(), delta);
+				delta = ObjectDeltaCollectionsUtil.summarize(focusWrapper.getOldDelta(), delta);
 			}
 
 			switch (focusWrapper.getStatus()) {

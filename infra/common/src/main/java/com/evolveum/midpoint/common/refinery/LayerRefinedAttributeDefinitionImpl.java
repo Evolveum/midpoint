@@ -26,10 +26,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrategyType;
@@ -170,17 +168,17 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 		return refinedAttributeDefinition.canModify(layer);
 	}
 	
-	@Override
+//	@Override
 	public void setCanRead(boolean val) {
 		throw new UnsupportedOperationException("read only");
 	}
 
-	@Override
+	//@Override
 	public void setCanModify(boolean val) {
 		throw new UnsupportedOperationException("read only");
 	}
 
-	@Override
+	//@Override
 	public void setCanAdd(boolean val) {
 		throw new UnsupportedOperationException("read only");
 	}
@@ -235,7 +233,7 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 	/**
      * Return a human readable name of this class suitable for logs.
      */
-    protected String getDebugDumpClassName() {
+	public String getDebugDumpClassName() {
         return "LRRAD";
     }
 
@@ -319,6 +317,11 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 	@Override
 	public Class getTypeClass() {
 		return refinedAttributeDefinition.getTypeClass();
+	}
+
+	@Override
+	public MutableResourceAttributeDefinition<T> toMutable() {
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
@@ -467,7 +470,7 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 
 	@Override
 	@NotNull
-	public QName getName() {
+	public ItemName getName() {
 		return refinedAttributeDefinition.getName();
 	}
 
@@ -649,10 +652,10 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 
 	//endregion
 
-	@Override
-	public void setMaxOccurs(int maxOccurs) {
-		refinedAttributeDefinition.setMaxOccurs(maxOccurs);
-	}
+	//@Override
+	//public void setMaxOccurs(int maxOccurs) {
+	//	refinedAttributeDefinition.setMaxOccurs(maxOccurs);
+	//}
 
 	@Override
 	public boolean canBeDefinitionOf(PrismProperty<T> item) {

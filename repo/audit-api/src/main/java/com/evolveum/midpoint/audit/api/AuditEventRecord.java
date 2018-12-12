@@ -481,55 +481,6 @@ public class AuditEventRecord implements DebugDumpable {
 		return auditRecordType;
 	}
 
-    public static AuditEventRecord createAuditEventRecord(AuditEventRecordType auditEventRecordType) {
-    	AuditEventRecord auditRecord = new AuditEventRecord();
-    	auditRecord.setChannel(auditEventRecordType.getChannel());
-    	auditRecord.setEventIdentifier(auditEventRecordType.getEventIdentifier());
-    	auditRecord.setEventStage(AuditEventStage.toAuditEventStage(auditEventRecordType.getEventStage()));
-    	auditRecord.setEventType(AuditEventType.toAuditEventType(auditEventRecordType.getEventType()));
-    	auditRecord.setHostIdentifier(auditEventRecordType.getHostIdentifier());
-    	auditRecord.setRemoteHostAddress(auditEventRecordType.getRemoteHostAddress());
-		auditRecord.setNodeIdentifier(auditEventRecordType.getNodeIdentifier());
-    	auditRecord.setInitiator(getObjectFromObjectReferenceType(auditEventRecordType.getInitiatorRef()));
-    	auditRecord.setAttorney(getObjectFromObjectReferenceType(auditEventRecordType.getAttorneyRef()));
-    	auditRecord.setMessage(auditEventRecordType.getMessage());
-    	auditRecord.setOutcome(OperationResultStatus.parseStatusType(auditEventRecordType.getOutcome()));
-    	auditRecord.setParameter(auditEventRecordType.getParameter());
-    	auditRecord.setResult(auditEventRecordType.getResult());
-    	auditRecord.setSessionIdentifier(auditEventRecordType.getSessionIdentifier());
-    	auditRecord.setTarget(getReferenceValueFromObjectReferenceType(auditEventRecordType.getTargetRef()));
-    	auditRecord.setTargetOwner(getObjectFromObjectReferenceType(auditEventRecordType.getTargetOwnerRef()));
-    	auditRecord.setTaskIdentifier(auditEventRecordType.getTaskIdentifier());
-    	auditRecord.setTaskOID(auditEventRecordType.getTaskOID());
-    	auditRecord.setTimestamp(MiscUtil.asLong(auditEventRecordType.getTimestamp()));
-		for (AuditEventRecordPropertyType propertyType : auditEventRecordType.getProperty()) {
-			propertyType.getValue().forEach(v -> auditRecord.addPropertyValue(propertyType.getName(), v));
-		}
-		for (AuditEventRecordReferenceType referenceType : auditEventRecordType.getReference()) {
-			referenceType.getValue().forEach(v -> auditRecord.addReferenceValue(referenceType.getName(), AuditReferenceValue.fromXml(v)));
-		}
-		return auditRecord;
-    }
-
-    private static PrismReferenceValue getReferenceValueFromObjectReferenceType(ObjectReferenceType refType) {
-    	if (refType == null) {
-    		return null;
-    	}
-    	PrismReferenceValue refVal = new PrismReferenceValue(refType.getOid());
-    	refVal.setTargetType(refType.getType());
-    	refVal.setTargetName(refType.getTargetName());
-		return refVal;
-	}
-
-	private static PrismObject getObjectFromObjectReferenceType(ObjectReferenceType ref){
-    	if (ref == null){
-    		return null;
-    	}
-
-    	PrismReferenceValue prismRef = ref.asReferenceValue();
-    	return prismRef.getObject();
-    }
-
 	public AuditEventRecord clone() {
 		AuditEventRecord clone = new AuditEventRecord();
 		clone.channel = this.channel;
