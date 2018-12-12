@@ -104,10 +104,10 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends AbstractPrismPro
             protected void populateItem(final ListItem<ValueWrapper> item) {
                 BasePanel panel;
                 ItemWrapper itemWrapper = item.getModelObject().getItem();
-                if ((itemWrapper.getPath().containsName(ConstructionType.F_ASSOCIATION) ||
-                                itemWrapper.getPath().containsName(ConstructionType.F_ATTRIBUTE))&&
-                        itemWrapper.getPath().containsName(ResourceObjectAssociationType.F_OUTBOUND) &&
-                        itemWrapper.getPath().containsName(MappingType.F_EXPRESSION)){
+                if ((itemWrapper.getPath().containsNameExactly(ConstructionType.F_ASSOCIATION) ||
+                                itemWrapper.getPath().containsNameExactly(ConstructionType.F_ATTRIBUTE))&&
+                        itemWrapper.getPath().containsNameExactly(ResourceObjectAssociationType.F_OUTBOUND) &&
+                        itemWrapper.getPath().containsNameExactly(MappingType.F_EXPRESSION)){
                     ExpressionWrapper expressionWrapper = (ExpressionWrapper)item.getModelObject().getItem();
                     panel = new ExpressionValuePanel("value", new PropertyModel(item.getModel(), "value.value"),
                             expressionWrapper.getConstruction(), getPageBase()){
@@ -115,7 +115,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends AbstractPrismPro
 
                         @Override
                         protected boolean isAssociationExpression(){
-                            return itemWrapper.getPath().containsName(ConstructionType.F_ASSOCIATION);
+                            return itemWrapper.getPath().containsNameExactly(ConstructionType.F_ASSOCIATION);
                         }
                     };
                 } else {

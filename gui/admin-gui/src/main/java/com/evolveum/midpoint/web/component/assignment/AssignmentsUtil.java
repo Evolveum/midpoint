@@ -42,14 +42,8 @@ import org.apache.wicket.model.Model;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-<<<<<<< HEAD
 import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
-import com.evolveum.midpoint.gui.impl.model.PropertyOrReferenceWrapperFromContainerModel;
-import com.evolveum.midpoint.prism.path.ItemPath;
-=======
-import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerValueWrapperModel;
 import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
->>>>>>> origin/master
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -259,7 +253,7 @@ public class AssignmentsUtil {
 
 		if (assignment.getPolicyRule() != null){
 			StringBuilder sbName = new StringBuilder("");
-			ContainerWrapper<PolicyRuleType> policyRuleWrapper = assignmentValueWrapper.findContainerWrapper(new ItemPath(assignmentValueWrapper.getPath(), AssignmentType.F_POLICY_RULE));
+			ContainerWrapper<PolicyRuleType> policyRuleWrapper = assignmentValueWrapper.findContainerWrapper(ItemPath.create(assignmentValueWrapper.getPath(), AssignmentType.F_POLICY_RULE));
 			if(policyRuleWrapper != null) {
 				PropertyOrReferenceWrapper property = policyRuleWrapper.findPropertyWrapper(PolicyRuleType.F_NAME);
 				if(property != null && !property.getValues().isEmpty()) {

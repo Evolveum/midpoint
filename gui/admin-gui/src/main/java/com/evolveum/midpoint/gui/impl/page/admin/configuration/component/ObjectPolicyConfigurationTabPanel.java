@@ -262,13 +262,13 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
 			@Override
 			public void populateItem(Item<ICellPopulator<ContainerValueWrapper<ObjectPolicyConfigurationType>>> item, String componentId,
 									 final IModel<ContainerValueWrapper<ObjectPolicyConfigurationType>> rowModel) {
-				ContainerWrapper lifecycleStateModel = rowModel.getObject().findContainerWrapper(ObjectPolicyConfigurationType.F_LIFECYCLE_STATE_MODEL);
+				ContainerWrapper lifecycleStateModel = rowModel.getObject().findContainerWrapperByName(ObjectPolicyConfigurationType.F_LIFECYCLE_STATE_MODEL);
 				
 				Label label = null;
 				if (lifecycleStateModel == null || lifecycleStateModel.getValues() == null || lifecycleStateModel.getValues().isEmpty()) {
 					item.add(new Label(componentId, ""));
 				} else {
-					ContainerWrapper lifecycleState = lifecycleStateModel.findContainerWrapper(LifecycleStateModelType.F_STATE);
+					ContainerWrapper lifecycleState = lifecycleStateModel.findContainerWrapperByName(LifecycleStateModelType.F_STATE);
 					if (lifecycleState == null || lifecycleState.getValues() == null || lifecycleState.getValues().isEmpty()) {
 						item.add(new Label(componentId, ""));
 					} else {

@@ -778,14 +778,14 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		return null;
 	}
 
-	public <T extends Containerable> ContainerWrapper<T> findContainerWrapper(QName qname) {
+	public <T extends Containerable> ContainerWrapper<T> findContainerWrapperByName(ItemName name) {
 		Validate.notNull(path, "QName must not be null.");
 		for (ItemWrapper wrapper : getItems()) {
 			if (!(wrapper instanceof ContainerWrapper)) {
 				continue;
 			}
 			ContainerWrapper<T> containerWrapper = (ContainerWrapper<T>) wrapper;
-			if (QNameUtil.match(qname, containerWrapper.getItem().getElementName())) {
+			if (QNameUtil.match(name, containerWrapper.getItem().getElementName())) {
 				return containerWrapper;
 			} 
 		}

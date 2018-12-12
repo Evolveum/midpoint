@@ -593,8 +593,9 @@ public class PrismValuePanel2 extends BasePanel<ValueWrapper> {
 		ListView parent = findParent(ListView.class);
 		target.add(parent.getParent());
 	}
-
+	
 	private void removeValue(AjaxRequestTarget target) {
+		PrismContext prismContext = getPrismContext();
 		ValueWrapper wrapper = getModel().getObject();
 		PropertyOrReferenceWrapper propertyWrapper = (PropertyOrReferenceWrapper) wrapper.getItem();
 		LOGGER.debug("Removing value of {}", propertyWrapper);
@@ -617,9 +618,9 @@ public class PrismValuePanel2 extends BasePanel<ValueWrapper> {
 		int count = countUsableValues(propertyWrapper);
 		if (count == 0 && !hasEmptyPlaceholder(propertyWrapper)) {
 			if (inputPanel instanceof ValueChoosePanel) {
-				values.add(new ValueWrapper(propertyWrapper, new PrismReferenceValue(null), ValueStatus.ADDED));
+				values.add(new ValueWrapper(propertyWrapper, prismContext.itemFactory().createReferenceValue(), ValueStatus.ADDED, prismContext));
 			} else {
-				values.add(new ValueWrapper(propertyWrapper, new PrismPropertyValue(null), ValueStatus.ADDED));
+				values.add(new ValueWrapper(propertyWrapper, prismContext.itemFactory().createPropertyValue(), ValueStatus.ADDED, prismContext));
 			}
 		}
 		ListView parent = findParent(ListView.class);

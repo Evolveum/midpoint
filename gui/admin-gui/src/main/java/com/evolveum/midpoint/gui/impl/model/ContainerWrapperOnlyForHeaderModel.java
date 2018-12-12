@@ -19,6 +19,7 @@ package com.evolveum.midpoint.gui.impl.model;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
@@ -43,13 +44,13 @@ public class ContainerWrapperOnlyForHeaderModel<T extends Containerable, C exten
 	private static final Trace LOGGER = TraceManager.getTrace(ContainerWrapperOnlyForHeaderModel.class);
     
 	private IModel<ContainerWrapper<C>> model;
-	private QName qName;
+	private ItemName name;
 	private PageBase pageBase;
 	
-    public ContainerWrapperOnlyForHeaderModel(IModel<ContainerWrapper<C>> model, QName name, PageBase pageBase) {
+    public ContainerWrapperOnlyForHeaderModel(IModel<ContainerWrapper<C>> model, ItemName name, PageBase pageBase) {
     	Validate.notNull(model, "no model");
     	this.model = model;
-    	this.qName = name;
+    	this.name = name;
     	this.pageBase = pageBase;
     }
     
@@ -59,9 +60,9 @@ public class ContainerWrapperOnlyForHeaderModel<T extends Containerable, C exten
 		
     	if(model.getObject().getValues().size() < 1) {
     		ContainerValueWrapper<C> value = WebModelServiceUtils.createNewItemContainerValueWrapper(pageBase, model);
-    		return value.findContainerWrapper(qName);
+    		return value.findContainerWrapperByName(name);
     	} else {
-    		return model.getObject().getValues().get(0).findContainerWrapper(qName);
+    		return model.getObject().getValues().get(0).findContainerWrapperByName(name);
     	}
 	}
 

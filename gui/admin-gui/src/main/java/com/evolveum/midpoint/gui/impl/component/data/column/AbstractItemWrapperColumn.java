@@ -20,23 +20,18 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.prism.PrismPropertyHeaderPanel;
-import com.evolveum.midpoint.gui.impl.component.prism.PrismPropertyPanel;
-import com.evolveum.midpoint.gui.impl.model.PropertyOrReferenceWrapperFromContainerModel;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
-import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
 
 /**
  * @author skublik
@@ -98,7 +93,7 @@ public abstract class AbstractItemWrapperColumn<C extends Containerable> extends
 		return pageBase;
 	}
 	
-	protected static IModel<PropertyOrReferenceWrapper> getPropertyOrReferenceForHeaderWrapper(final IModel<ContainerWrapper<Containerable>> model, QName name, PageBase pageBase){
+	protected static IModel<PropertyOrReferenceWrapper> getPropertyOrReferenceForHeaderWrapper(final IModel<ContainerWrapper<Containerable>> model, ItemName name, PageBase pageBase){
 		Validate.notNull(model, "no model");
 		Validate.notNull(model.getObject(), "no model object");
 		return new IModel<PropertyOrReferenceWrapper>() {
@@ -107,9 +102,9 @@ public abstract class AbstractItemWrapperColumn<C extends Containerable> extends
 			public PropertyOrReferenceWrapper getObject() {
 				if(model.getObject().getValues().size() < 1) {
 		    		ContainerValueWrapper<Containerable> value = WebModelServiceUtils.createNewItemContainerValueWrapper(pageBase, model);
-		    		return value.findPropertyWrapper(name);
+		    		return value.findPropertyWrapperByName(name);
 		    	} else {
-		    		return model.getObject().getValues().get(0).findPropertyWrapper(name);
+		    		return model.getObject().getValues().get(0).findPropertyWrapperByName(name);
 		    	}
 			}
 			

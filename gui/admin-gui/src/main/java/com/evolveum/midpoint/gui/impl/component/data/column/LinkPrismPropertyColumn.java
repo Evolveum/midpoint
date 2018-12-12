@@ -16,8 +16,6 @@
 
 package com.evolveum.midpoint.gui.impl.component.data.column;
 
-import javax.xml.namespace.QName;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -31,21 +29,21 @@ import com.evolveum.midpoint.gui.impl.component.prism.StaticItemWrapperColumnPan
 import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.model.PropertyOrReferenceWrapperFromContainerModel;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.DefaultReferencableImpl;
+import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueWrapper;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 
 /**
  * @author skublik
  */
 public class LinkPrismPropertyColumn<T,C extends Containerable> extends AbstractItemWrapperColumn<C> implements IExportableColumn<ContainerValueWrapper<C>, String>{
 
-	public LinkPrismPropertyColumn(final IModel<ContainerWrapper<Containerable>> headerModel, QName name, PageBase pageBase) {
+	public LinkPrismPropertyColumn(final IModel<ContainerWrapper<Containerable>> headerModel, ItemName name, PageBase pageBase) {
 		super(headerModel == null ? null : getPropertyOrReferenceForHeaderWrapper(headerModel, name, pageBase),
 				pageBase);
 	}
@@ -98,7 +96,7 @@ public class LinkPrismPropertyColumn<T,C extends Containerable> extends Abstract
 			@Override
 			public String getObject() {
 				return WebComponentUtil.getReferencedObjectDisplayNamesAndNames(
-						new ItemRealValueModel<DefaultReferencableImpl>(object).getObject(), false);
+						new ItemRealValueModel<Referencable>(object).getObject(), false);
 			}
 			
 		};

@@ -808,9 +808,9 @@ public class WebModelServiceUtils {
 	
 	public static PrismObject<SystemConfigurationType> loadSystemConfigurationAsPrismObject(PageBase pageBase, Task task, OperationResult result) {
 
-		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
-			GetOperationOptions.createResolve(), SystemConfigurationType.F_DEFAULT_USER_TEMPLATE,
-			SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY);
+		Collection<SelectorOptions<GetOperationOptions>> options = pageBase.getOperationOptionsBuilder()
+				.items(SystemConfigurationType.F_DEFAULT_USER_TEMPLATE, SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY).resolve()
+				.build();
 
 		PrismObject<SystemConfigurationType> systemConfig = loadObject(
 			SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), options,

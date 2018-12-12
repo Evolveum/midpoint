@@ -16,8 +16,6 @@
 
 package com.evolveum.midpoint.gui.impl.component.data.column;
 
-import javax.xml.namespace.QName;
-
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
@@ -26,6 +24,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.prism.PrismPropertyColumnPanel;
 import com.evolveum.midpoint.gui.impl.model.PropertyOrReferenceWrapperFromContainerModel;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
@@ -36,7 +35,7 @@ import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
  */
 public class EditablePrismPropertyColumn<C extends Containerable> extends AbstractItemWrapperColumn<C> {
 
-	public EditablePrismPropertyColumn(final IModel<ContainerWrapper<Containerable>> headerModel, QName name, PageBase pageBase) {
+	public EditablePrismPropertyColumn(final IModel<ContainerWrapper<Containerable>> headerModel, ItemName name, PageBase pageBase) {
 		super(headerModel == null ? null : getPropertyOrReferenceForHeaderWrapper(headerModel, name, pageBase),
 				pageBase);
 	}

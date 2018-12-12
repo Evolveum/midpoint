@@ -27,12 +27,8 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-<<<<<<< HEAD
-import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-=======
->>>>>>> origin/master
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -306,13 +302,8 @@ public class ContainerWrapperFactory {
 		}
 		Collection<? extends ItemDefinition> propertyDefinitions = definition.getDefinitions();
 		
-<<<<<<< HEAD
-		if(containerWrapper.getPath().equals(new ItemPath(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_APPENDER))) {
+		if(containerWrapper.getPath().equals(ItemPath.create(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_APPENDER))) {
 			ItemRealValueModel<AppenderConfigurationType> value = new ItemRealValueModel<AppenderConfigurationType>((RealValuable<AppenderConfigurationType>)cWrapper);
-=======
-		if(containerWrapper.getPath().equivalent(ItemPath.create(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_APPENDER))) {
-			RealContainerValueFromContainerValueWrapperModel value = new RealContainerValueFromContainerValueWrapperModel(cWrapper);
->>>>>>> origin/master
 			if(value != null || value.getObject() != null || value.getObject().asPrismContainerValue()!= null
 					|| value.getObject().asPrismContainerValue().getComplexTypeDefinition() != null
 					|| value.getObject().asPrismContainerValue().getComplexTypeDefinition().getDefinitions() != null) {
@@ -424,23 +415,16 @@ public class ContainerWrapperFactory {
 			PrismProperty<T> newProperty = def.instantiate();
 			// We cannot just get path from newProperty.getPath(). The property is not added to the container, so it does not know its path.
 			// Definitions are reusable, they do not have paths either.
-<<<<<<< HEAD
-			ItemPath propPath = cWrapper.getPath().subPath(newProperty.getElementName());
-			propertyWrapper = new PropertyWrapper(cWrapper, newProperty, propertyIsReadOnly, ValueStatus.ADDED, propPath);
+			ItemPath propPath = cWrapper.getPath().append(newProperty.getElementName());
+			propertyWrapper = new PropertyWrapper(cWrapper, newProperty, propertyIsReadOnly, ValueStatus.ADDED, propPath, modelServiceLocator.getPrismContext());
 		} else {
-			propertyWrapper = new PropertyWrapper(cWrapper, property, propertyIsReadOnly, cWrapper.getStatus() == ValueStatus.ADDED ? ValueStatus.ADDED: ValueStatus.NOT_CHANGED, property.getPath());
+			propertyWrapper = new PropertyWrapper(cWrapper, property, propertyIsReadOnly, cWrapper.getStatus() == ValueStatus.ADDED ? ValueStatus.ADDED: ValueStatus.NOT_CHANGED, property.getPath(),
+					modelServiceLocator.getPrismContext());
 		}
 		
 		LookupTableType lookupTable = loadLookupTable(def, task, result);
 		propertyWrapper.setPredefinedValues(lookupTable);
 		return propertyWrapper;
-=======
-			ItemPath propPath = cWrapper.getPath().append(newProperty.getElementName());
-			return new PropertyWrapper(cWrapper, newProperty, propertyIsReadOnly, ValueStatus.ADDED, propPath, modelServiceLocator.getPrismContext());
-		}
-		return new PropertyWrapper(cWrapper, property, propertyIsReadOnly, cWrapper.getStatus() == ValueStatus.ADDED ? ValueStatus.ADDED: ValueStatus.NOT_CHANGED, property.getPath(),
-				modelServiceLocator.getPrismContext());
->>>>>>> origin/master
 	}
 
 	private <T> LookupTableType loadLookupTable(PrismPropertyDefinition<T> def, Task task, OperationResult result) {
@@ -449,7 +433,7 @@ public class ContainerWrapperFactory {
 
 			String lookupTableUid = valueEnumerationRef.getOid();
 
-			Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils.createLookupTableRetrieveOptions();
+			Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils.createLookupTableRetrieveOptions(((PageBase) modelServiceLocator).getSchemaHelper());
 			PrismObject<LookupTableType> lookupTable = WebModelServiceUtils.loadObject(LookupTableType.class, lookupTableUid,
 					options, (PageBase) modelServiceLocator, task, result);
 			if (lookupTable == null) {
