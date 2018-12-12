@@ -54,6 +54,12 @@
 					<runOrder>alphabetical</runOrder>
 				</configuration>
 			</plugin>
+			<plugin>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<configuration>
+					<runOrder>alphabetical</runOrder>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 	<dependencies>
@@ -319,8 +325,13 @@
 					  <artifactId>maven-surefire-plugin</artifactId>
 					  <configuration>
 					    <skip>false</skip>
-                        <argLine>-XX:MaxPermSize=256m</argLine>
 					  </configuration>
+					</plugin>
+					<plugin>
+						<artifactId>maven-failsafe-plugin</artifactId>
+						<configuration>
+							<skip>false</skip>
+						</configuration>
 					</plugin>
 				</plugins>
 			</build>
