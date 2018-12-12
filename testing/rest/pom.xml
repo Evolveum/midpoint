@@ -285,8 +285,13 @@
 					  <artifactId>maven-surefire-plugin</artifactId>
 					  <configuration>
 					    <skip>false</skip>
-                        <argLine>-XX:MaxPermSize=256m</argLine>
 					  </configuration>
+					</plugin>
+					<plugin>
+						<artifactId>maven-failsafe-plugin</artifactId>
+						<configuration>
+							<skip>false</skip>
+						</configuration>
 					</plugin>
 				</plugins>
 			</build>

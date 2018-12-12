@@ -89,11 +89,11 @@
         <wro4j.version>1.8.0</wro4j.version>
         <jackson.version>2.9.5</jackson.version>
         <snakeyaml.version>1.19</snakeyaml.version>
-        <surefire.version>2.22.1</surefire.version>
+        <surefire.version>3.0.0-M2</surefire.version>
         <reflections.version>0.9.11</reflections.version>
         <guava.version>20.0</guava.version>
         <jcommander.version>1.72</jcommander.version>
-		<failsafe.version>2.22.0</failsafe.version>
+		<failsafe.version>3.0.0-M2</failsafe.version>
 		<antrun.version>1.8</antrun.version>
     </properties>
     <dependencyManagement>
@@ -1427,6 +1427,7 @@
 							</properties>
 						</configuration>
 					</execution>
+                    <!--
 					<execution>
 						<id>integration-test</id>
 						<phase>integration-test</phase>
@@ -1444,11 +1445,12 @@
 								</property>
 								<property>
 									<name>usedefaultlisteners</name>
-									<value>false</value> <!-- do not generate HTML to make the runs faster -->
+									<value>false</value>
 								</property>
 							</properties>
 						</configuration>
 					</execution>
+        -->
 				</executions>
 				<configuration>
 					<parallel>false</parallel>
@@ -1492,6 +1494,50 @@
 					</dependency>
 				</dependencies>
 			</plugin>
+
+            <plugin>
+                <!--
+                <parallel>false</parallel>
+                <forkCount>1</forkCount>
+                <reuseForks>true</reuseForks>
+                -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>${failsafe.version}</version>
+                <executions>
+                    <execution>
+                        <id>integration-test</id>
+                        <phase>integration-test</phase>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                        <configuration>
+                            <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                            <systemPropertyVariables>
+                                <javax.net.ssl.trustStore>src/test/resources/truststore.jks</javax.net.ssl.trustStore>
+                                <midpoint.home>target/midpoint-home</midpoint.home>
+                                <java.util.logging.config.file>${project.build.directory}/test-classes/logging.properties</java.util.logging.config.file>
+                            </systemPropertyVariables>
+                            <argLine>-Xms1024m -Xmx4096m -Duser.language=en</argLine>
+                            <suiteXmlFiles>
+                                <suiteXmlFile>testng-integration.xml</suiteXmlFile>
+                            </suiteXmlFiles>
+                            <properties>
+                                <property>
+                                    <name>suitename</name>
+                                    <value>Integration</value>
+                                </property>
+                                <property>
+                                    <name>usedefaultlisteners</name>
+                                    <value>false</value>
+                                </property>
+                            </properties>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>findbugs-maven-plugin</artifactId>
@@ -1626,6 +1672,13 @@
 					    <skip>true</skip>
 					  </configuration>
 					</plugin>
+                    <plugin>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <version>${failsafe.version}</version>
+                        <configuration>
+                            <skip>true</skip>
+                        </configuration>
+                    </plugin>
 				</plugins>
 			</build>
 		</profile>
@@ -1641,6 +1694,13 @@
 					    <skip>true</skip>
 					  </configuration>
 					</plugin>
+                    <plugin>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <version>${failsafe.version}</version>
+                        <configuration>
+                            <skip>true</skip>
+                        </configuration>
+                    </plugin>
 				</plugins>
 			</build>
 		</profile>
@@ -1656,6 +1716,13 @@
 					    <skip>true</skip>
 					  </configuration>
 					</plugin>
+                    <plugin>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <version>${failsafe.version}</version>
+                        <configuration>
+                            <skip>true</skip>
+                        </configuration>
+                    </plugin>
 				</plugins>
 			</build>
 		</profile>
@@ -1671,6 +1738,13 @@
 					    <skip>true</skip>
 					  </configuration>
 					</plugin>
+                    <plugin>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <version>${failsafe.version}</version>
+                        <configuration>
+                            <skip>true</skip>
+                        </configuration>
+                    </plugin>
 				</plugins>
 			</build>
 		</profile>
