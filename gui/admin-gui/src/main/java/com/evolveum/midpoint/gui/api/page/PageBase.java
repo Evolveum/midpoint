@@ -1790,6 +1790,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 PageTaskEdit.class, null, createVisibleDisabledBehaviorForEditMenu(PageTaskEdit.class));
         item.getItems().add(menuItem);
 
+        addCollectionsMenuItems(item.getItems(), TaskType.COMPLEX_TYPE);
+
         return item;
     }
 
@@ -1805,6 +1807,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         addMenuItem(item, "PageAdmin.menu.top.resources.import", PageImportResource.class);
         addMenuItem(item, "PageAdmin.menu.top.connectorHosts.list", PageConnectorHosts.class);
+
+        addCollectionsMenuItems(item.getItems(), ResourceType.COMPLEX_TYPE);
 
         return item;
     }
@@ -1930,7 +1934,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.users.new",
                 "PageAdmin.menu.top.users.edit", PageUser.class, true);
 
-        addUsersViewMenuItems(item.getItems());
+        addCollectionsMenuItems(item.getItems(), UserType.COMPLEX_TYPE);
 
         return item;
     }
@@ -2048,6 +2052,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.users.org.new", "PageAdmin.menu.top.users.org.edit",
                 PageOrgUnit.class, true);
 
+        addCollectionsMenuItems(item.getItems(), OrgType.COMPLEX_TYPE);
+
         return item;
     }
 
@@ -2059,6 +2065,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.roles.new", "PageAdmin.menu.top.roles.edit",
                 PageRole.class, true);
+
+        addCollectionsMenuItems(item.getItems(), RoleType.COMPLEX_TYPE);
 
         return item;
     }
@@ -2072,11 +2080,13 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.services.new", "PageAdmin.menu.top.services.edit",
                 PageService.class, true);
 
+        addCollectionsMenuItems(item.getItems(), ServiceType.COMPLEX_TYPE);
+
         return item;
     }
 
-    private void addUsersViewMenuItems(List<MenuItem> menu) {
-        List<CompiledObjectCollectionView> objectViews = getCompiledUserProfile().findAllApplicableObjectCollectionViews(UserType.COMPLEX_TYPE);
+    private void addCollectionsMenuItems(List<MenuItem> menu, QName type) {
+        List<CompiledObjectCollectionView> objectViews = getCompiledUserProfile().findAllApplicableObjectCollectionViews(type);
         if (objectViews == null) {
             return;
         }
@@ -2102,18 +2112,13 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 return;
             }
             ObjectType objectType = collectionObject.asObjectable();
-            if (!(objectType instanceof ObjectCollectionType)) {
-                return;
-            }
-
-            ObjectCollectionType collectionValue = (ObjectCollectionType) objectType;
-            if (!QNameUtil.match(collectionValue.getType(), UserType.COMPLEX_TYPE)) {
+            if (!(objectType instanceof ObjectCollectionType) && !(objectType instanceof ArchetypeType)) {
                 return;
             }
             DisplayType viewDisplayType = objectView.getDisplay();
 
             PageParameters pageParameters = new PageParameters();
-            pageParameters.add(PageUsersView.PARAMETER_OBJECT_COLLECTION_TYPE_OID, collectionValue.getOid());
+            pageParameters.add(PageUsersView.PARAMETER_OBJECT_COLLECTION_TYPE_OID, objectType.getOid());
 
             MenuItem userViewMenu = new MenuItem(viewDisplayType != null && PolyStringUtils.isNotEmpty(viewDisplayType.getLabel())
                     ? createStringResource(viewDisplayType.getLabel())
