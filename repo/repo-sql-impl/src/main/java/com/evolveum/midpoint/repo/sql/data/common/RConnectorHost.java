@@ -102,7 +102,7 @@ public class RConnectorHost extends RObject<ConnectorHostType> {
     // dynamically called
     public static void copyFromJAXB(ConnectorHostType jaxb, RConnectorHost repo, RepositoryContext repositoryContext,
             IdGeneratorResult generatorResult) throws DtoTranslationException {
-        RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
+        copyAssignmentHolderInformationFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setHostname(jaxb.getHostname());

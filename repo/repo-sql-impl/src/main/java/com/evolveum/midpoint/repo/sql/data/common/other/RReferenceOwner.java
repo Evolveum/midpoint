@@ -53,7 +53,9 @@ public enum RReferenceOwner {
 
     DELEGATED(FocusType.class, FocusType.F_DELEGATED_REF),                // 9
 
-    PERSONA(FocusType.class, FocusType.F_PERSONA_REF);                    // 10
+    PERSONA(FocusType.class, FocusType.F_PERSONA_REF),                    // 10
+
+    ARCHETYPE(AssignmentHolderType.class, AssignmentHolderType.F_ARCHETYPE_REF);                    // 11
 
     private Class<? extends ObjectType> typeClass;
     private QName elementName;

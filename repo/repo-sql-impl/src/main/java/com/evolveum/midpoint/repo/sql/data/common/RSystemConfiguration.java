@@ -80,7 +80,7 @@ public class RSystemConfiguration extends RObject<SystemConfigurationType> {
     // dynamically called
     public static void copyFromJAXB(SystemConfigurationType jaxb, RSystemConfiguration repo,
             RepositoryContext repositoryContext, IdGeneratorResult generatorResult) throws DtoTranslationException {
-        RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
+        copyAssignmentHolderInformationFromJAXB(jaxb, repo, repositoryContext, generatorResult);
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
     }
 }

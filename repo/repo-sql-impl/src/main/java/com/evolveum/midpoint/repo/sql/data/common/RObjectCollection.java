@@ -79,7 +79,7 @@ public class RObjectCollection extends RObject<ObjectCollectionType> {
     // dynamically called
     public static void copyFromJAXB(ObjectCollectionType jaxb, RObjectCollection repo, RepositoryContext repositoryContext,
 			IdGeneratorResult generatorResult) throws DtoTranslationException {
-		RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
+		copyAssignmentHolderInformationFromJAXB(jaxb, repo, repositoryContext, generatorResult);
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
 	}
 }

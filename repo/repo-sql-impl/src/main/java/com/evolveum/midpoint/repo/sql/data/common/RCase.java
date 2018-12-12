@@ -131,7 +131,7 @@ public class RCase extends RObject<CaseType> {
     // dynamically called
     public static void copyFromJAXB(CaseType jaxb, RCase repo, RepositoryContext context,
 			IdGeneratorResult generatorResult) throws DtoTranslationException {
-		RObject.copyFromJAXB(jaxb, repo, context, generatorResult);
+		copyAssignmentHolderInformationFromJAXB(jaxb, repo, context, generatorResult);
 
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
 
