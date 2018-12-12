@@ -28,9 +28,7 @@ import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 
 import javax.xml.namespace.QName;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Collection;
 
 /**
  * @author lazyman
@@ -48,7 +46,7 @@ public class TypeRestriction extends Restriction<TypeFilter> {
 
         String property = getBaseHqlEntity().getHqlPath() + "." + RObject.F_OBJECT_TYPE_CLASS;
 
-        Set<RObjectType> values = getValues(filter.getType());
+        Collection<RObjectType> values = getValues(filter.getType());
 
         Condition basedOnType;
         if (values.size() > 1) {
@@ -67,26 +65,7 @@ public class TypeRestriction extends Restriction<TypeFilter> {
         return hibernateQuery.createAnd(basedOnType, basedOnFilter);
     }
 
-    private Set<RObjectType> getValues(QName typeQName) {
-        Set<RObjectType> set = new HashSet<>();
-
-        RObjectType type = ClassMapper.getHQLTypeForQName(typeQName);
-        set.add(type);
-
-        switch (type) {
-            case OBJECT:
-                set.addAll(Arrays.asList(RObjectType.values()));
-                break;
-            case FOCUS:
-                set.add(RObjectType.USER);
-            case ABSTRACT_ROLE:
-                set.add(RObjectType.ROLE);
-                set.add(RObjectType.ORG);
-                set.add(RObjectType.SERVICE);
-                break;
-            default:
-        }
-
-        return set;
+    private Collection<RObjectType> getValues(QName typeQName) {
+        return ClassMapper.getDescendantsForQName(typeQName);
     }
 }

@@ -34,6 +34,7 @@ import com.evolveum.midpoint.repo.sql.data.common.container.ROperationExecution;
 import com.evolveum.midpoint.repo.sql.data.common.container.RTrigger;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
+import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
@@ -53,9 +54,7 @@ import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.*;
@@ -69,10 +68,7 @@ import javax.persistence.Index;
 import javax.persistence.Table;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author lazyman
@@ -187,6 +183,12 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
 
     private Set<ROperationExecution> operationExecutions;
 
+    // AssignmentHolderType information
+    private Set<RObjectReference<RAbstractRole>> roleMembershipRef;         // AssignmentHolderType
+    private Set<RObjectReference<RFocus>> delegatedRef;                     // AssignmentHolderType
+    private Set<RObjectReference<RArchetype>> archetypeRef;                 // AssignmentHolderType
+    private Set<RAssignment> assignments;                                   // AssignmentHolderType
+
     @Id
     @GeneratedValue(generator = "ObjectOidGenerator")
     @GenericGenerator(name = "ObjectOidGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ObjectOidGenerator")
@@ -262,6 +264,76 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         }
         return createApproverRef;
     }
+
+    @Where(clause = RObjectReference.REFERENCE_TYPE + "= 8")
+    @OneToMany(mappedBy = "owner", orphanRemoval = true)
+    @ForeignKey(name = "none")
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<RObjectReference<RAbstractRole>> getRoleMembershipRef() {
+        if (roleMembershipRef == null) {
+            roleMembershipRef = new HashSet<>();
+        }
+        return roleMembershipRef;
+    }
+
+    @Where(clause = RObjectReference.REFERENCE_TYPE + "= 9")
+    @OneToMany(mappedBy = "owner", orphanRemoval = true)
+    @ForeignKey(name = "none")
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<RObjectReference<RFocus>> getDelegatedRef() {
+        if (delegatedRef == null) {
+            delegatedRef = new HashSet<>();
+        }
+        return delegatedRef;
+    }
+
+    @Where(clause = RObjectReference.REFERENCE_TYPE + "= 11")
+    @OneToMany(mappedBy = "owner", orphanRemoval = true)
+    @ForeignKey(name = "none")
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<RObjectReference<RArchetype>> getArchetypeRef() {
+        if (archetypeRef == null) {
+            archetypeRef = new HashSet<>();
+        }
+        return archetypeRef;
+    }
+
+    @Transient
+    protected Set<RAssignment> getAssignments(RAssignmentOwner owner) {
+        Set<RAssignment> assignments = getAssignments();
+        Set<RAssignment> wanted = new HashSet<>();
+        if (assignments == null) {
+            return wanted;
+        }
+
+        Iterator<RAssignment> iterator = assignments.iterator();
+        while (iterator.hasNext()) {
+            RAssignment ass = iterator.next();
+            if (owner.equals(ass.getAssignmentOwner())) {
+                wanted.add(ass);
+            }
+        }
+
+        return wanted;
+    }
+
+    @Transient
+    public Set<RAssignment> getAssignment() {
+        return getAssignments(RAssignmentOwner.FOCUS);
+    }
+
+    @JaxbPath(itemPath = @JaxbName(localPart = "assignment"))
+    @OneToMany(mappedBy = RAssignment.F_OWNER, orphanRemoval = true)
+    @ForeignKey(name = "none")
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @NotQueryable   // virtual definition is used instead
+    public Set<RAssignment> getAssignments() {
+        if (assignments == null) {
+            assignments = new HashSet<>();
+        }
+        return assignments;
+    }
+
 
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "createChannel") })
     public String getCreateChannel() {
@@ -602,6 +674,22 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         this.operationExecutions = operationExecutions;
     }
 
+    public void setAssignments(Set<RAssignment> assignments) {
+        this.assignments = assignments;
+    }
+
+    public void setRoleMembershipRef(Set<RObjectReference<RAbstractRole>> roleMembershipRef) {
+        this.roleMembershipRef = roleMembershipRef;
+    }
+
+    public void setDelegatedRef(Set<RObjectReference<RFocus>> delegatedRef) {
+        this.delegatedRef = delegatedRef;
+    }
+
+    public void setArchetypeRef(Set<RObjectReference<RArchetype>> archetypeRef) {
+        this.archetypeRef = archetypeRef;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o)
@@ -689,9 +777,31 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         }
     }
 
-    // dynamically called
-    public static <T extends ObjectType> void copyFromJAXB(ObjectType jaxb, RObject<T> repo, RepositoryContext repositoryContext,
-			IdGeneratorResult generatorResult)
+    static <T extends ObjectType> void copyAssignmentHolderInformationFromJAXB(AssignmentHolderType jaxb, RObject<T> repo,
+            RepositoryContext repositoryContext, IdGeneratorResult generatorResult) throws DtoTranslationException {
+
+        copyObjectInformationFromJAXB(jaxb, repo, repositoryContext, generatorResult);
+
+        repo.getRoleMembershipRef().addAll(
+                RUtil.safeListReferenceToSet(jaxb.getRoleMembershipRef(), repo, RReferenceOwner.ROLE_MEMBER, repositoryContext.relationRegistry));
+
+        repo.getDelegatedRef().addAll(
+                RUtil.safeListReferenceToSet(jaxb.getDelegatedRef(), repo, RReferenceOwner.DELEGATED, repositoryContext.relationRegistry));
+
+        repo.getArchetypeRef().addAll(
+                RUtil.safeListReferenceToSet(jaxb.getArchetypeRef(), repo, RReferenceOwner.ARCHETYPE, repositoryContext.relationRegistry));
+
+        for (AssignmentType assignment : jaxb.getAssignment()) {
+            RAssignment rAssignment = new RAssignment(repo, RAssignmentOwner.FOCUS);
+            RAssignment.fromJaxb(assignment, rAssignment, jaxb, repositoryContext, generatorResult);
+
+            repo.getAssignments().add(rAssignment);
+        }
+    }
+
+    static <T extends ObjectType> void copyObjectInformationFromJAXB(ObjectType jaxb, RObject<T> repo,
+            RepositoryContext repositoryContext,
+            IdGeneratorResult generatorResult)
             throws DtoTranslationException {
         Validate.notNull(jaxb, "JAXB object must not be null.");
         Validate.notNull(repo, "Repo object must not be null.");
@@ -724,7 +834,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         repo.setTenantRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTenantRef(), repositoryContext.relationRegistry));
 
         if (jaxb.getExtension() != null) {
-            copyFromJAXB(jaxb.getExtension().asPrismContainerValue(), repo, repositoryContext, RObjectExtensionType.EXTENSION, generatorResult);
+            copyExtensionOrAttributesFromJAXB(jaxb.getExtension().asPrismContainerValue(), repo, repositoryContext, RObjectExtensionType.EXTENSION, generatorResult);
         }
 
         repo.getTextInfoItems().addAll(RObjectTextInfo.createItemsSet(jaxb, repo, repositoryContext));
@@ -740,9 +850,8 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return RUtil.getDebugString(this);
     }
 
-    // dynamically called
-    public static void copyFromJAXB(PrismContainerValue<?> containerValue, RObject<?> repo, RepositoryContext repositoryContext,
-			RObjectExtensionType ownerType, IdGeneratorResult generatorResult) throws DtoTranslationException {
+    static void copyExtensionOrAttributesFromJAXB(PrismContainerValue<?> containerValue, RObject<?> repo,
+            RepositoryContext repositoryContext, RObjectExtensionType ownerType, IdGeneratorResult generatorResult) throws DtoTranslationException {
         RAnyConverter converter = new RAnyConverter(repositoryContext.prismContext, repositoryContext.extItemDictionary);
 
         Set<RAnyValue<?>> values = new HashSet<>();

@@ -92,7 +92,7 @@ public class RNode extends RObject<NodeType> {
     // dynamically called
     public static void copyFromJAXB(NodeType jaxb, RNode repo, RepositoryContext repositoryContext,
             IdGeneratorResult generatorResult) throws DtoTranslationException {
-        RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
+        copyObjectInformationFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setNodeIdentifier(jaxb.getNodeIdentifier());

@@ -80,7 +80,7 @@ public class RSequence extends RObject<SequenceType> {
     // dynamically called
     public static void copyFromJAXB(SequenceType jaxb, RSequence repo, RepositoryContext repositoryContext,
             IdGeneratorResult generatorResult) throws DtoTranslationException {
-        RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
+        copyAssignmentHolderInformationFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
     }

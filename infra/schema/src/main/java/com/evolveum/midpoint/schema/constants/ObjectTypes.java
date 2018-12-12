@@ -74,6 +74,9 @@ public enum ObjectTypes {
 
     FOCUS_TYPE(FocusType.COMPLEX_TYPE, SchemaConstants.C_FOCUS, FocusType.class, ObjectManager.MODEL, "focus"),
 
+    ASSIGNMENT_HOLDER_TYPE(AssignmentHolderType.COMPLEX_TYPE, SchemaConstantsGenerated.C_ASSIGNMENT_HOLDER,
+            AssignmentHolderType.class, ObjectManager.MODEL, "assignmentHolders"),
+
     REPORT(ReportType.COMPLEX_TYPE, SchemaConstants.C_REPORT, ReportType.class, ObjectManager.MODEL, "reports"),
 
     REPORT_OUTPUT(ReportOutputType.COMPLEX_TYPE, SchemaConstants.C_REPORT_OUTPUT, ReportOutputType.class,

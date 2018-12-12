@@ -30,6 +30,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import org.hibernate.query.Query;
 import org.hibernate.Session;
 
@@ -59,6 +60,8 @@ public class QueryEngine2 {
             Collection<SelectorOptions<GetOperationOptions>> options,
             boolean countingObjects, Session session) throws QueryException {
 
+        query = refineAssignmentHolderQuery(type, query);
+
         QueryInterpreter2 interpreter = new QueryInterpreter2(repoConfiguration, extItemDictionary);
         RootHibernateQuery hibernateQuery = interpreter.interpret(query, type, options, prismContext, relationRegistry, countingObjects, session);
         Query hqlQuery = hibernateQuery.getAsHqlQuery(session);
@@ -69,5 +72,20 @@ public class QueryEngine2 {
 
         }
         return new RQueryImpl(hqlQuery, hibernateQuery);
+    }
+
+    /**
+     * Both ObjectType and AssignmentHolderType are mapped to RObject. So when searching for AssignmentHolderType it is not sufficient to
+     * query this table. This method hacks this situation a bit by introducing explicit type filter for AssignmentHolderType.
+     */
+    private ObjectQuery refineAssignmentHolderQuery(Class<? extends Containerable> type, ObjectQuery query) {
+        if (!type.equals(AssignmentHolderType.class)) {
+            return query;
+        }
+        if (query == null) {
+            query = prismContext.queryFactory().createQuery();
+        }
+        query.setFilter(prismContext.queryFactory().createType(AssignmentHolderType.COMPLEX_TYPE, query.getFilter()));
+        return query;
     }
 }

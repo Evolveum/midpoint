@@ -145,7 +145,7 @@ public class RAccessCertificationDefinition extends RObject<AccessCertificationD
             RepositoryContext repositoryContext, IdGeneratorResult generatorResult)
             throws DtoTranslationException {
 
-        RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
+        copyAssignmentHolderInformationFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setHandlerUri(jaxb.getHandlerUri());

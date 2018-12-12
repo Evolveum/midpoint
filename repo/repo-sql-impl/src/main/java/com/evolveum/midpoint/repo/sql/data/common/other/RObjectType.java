@@ -2,6 +2,8 @@ package com.evolveum.midpoint.repo.sql.data.common.other;
 
 import com.evolveum.midpoint.repo.sql.data.common.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author lazyman
@@ -26,6 +28,7 @@ public enum RObjectType {
     ORG(ROrg.class, OrgType.class),
     ABSTRACT_ROLE(RAbstractRole.class, AbstractRoleType.class),
     FOCUS(RFocus.class, FocusType.class),
+    ASSIGNMENT_HOLDER(RObject.class, AssignmentHolderType.class),
     SECURITY_POLICY(RSecurityPolicy.class, SecurityPolicyType.class),
     LOOKUP_TABLE(RLookupTable.class, LookupTableType.class),
     ACCESS_CERTIFICATION_DEFINITION(RAccessCertificationDefinition.class, AccessCertificationDefinitionType.class),
@@ -54,6 +57,7 @@ public enum RObjectType {
         return jaxbClass;
     }
 
+    @NotNull
     public static <T extends RObject> RObjectType getType(Class<T> clazz) {
         for (RObjectType type : RObjectType.values()) {
             if (type.getClazz().equals(clazz)) {
@@ -64,13 +68,23 @@ public enum RObjectType {
         throw new IllegalArgumentException("Couldn't find type for class '" + clazz + "'.");
     }
 
+    @NotNull
     public static <T extends ObjectType> RObjectType getByJaxbType(Class<T> clazz) {
+        RObjectType type = getByJaxbTypeIfExists(clazz);
+        if (type != null) {
+            return type;
+        } else {
+            throw new IllegalArgumentException("Couldn't find type for class '" + clazz + "'.");
+        }
+    }
+
+    @Nullable
+    public static <T extends ObjectType> RObjectType getByJaxbTypeIfExists(Class<T> clazz) {
         for (RObjectType type : RObjectType.values()) {
             if (type.getJaxbClass().equals(clazz)) {
                 return type;
             }
         }
-
-        throw new IllegalArgumentException("Couldn't find type for class '" + clazz + "'.");
+        return null;
     }
 }

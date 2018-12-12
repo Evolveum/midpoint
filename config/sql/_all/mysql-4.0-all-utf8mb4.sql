@@ -662,6 +662,15 @@ CREATE TABLE m_abstract_role (
   DEFAULT CHARACTER SET utf8mb4
   COLLATE utf8mb4_bin
   ENGINE = InnoDB;
+CREATE TABLE m_archetype (
+  name_norm VARCHAR(191),
+  name_orig VARCHAR(191),
+  oid       VARCHAR(36) CHARSET utf8 COLLATE utf8_bin NOT NULL,
+  PRIMARY KEY (oid)
+)
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
+  ENGINE = InnoDB;
 CREATE TABLE m_case (
   name_norm           VARCHAR(191),
   name_orig           VARCHAR(191),
@@ -1100,8 +1109,9 @@ CREATE INDEX iAbstractRoleIdentifier
   ON m_abstract_role (identifier);
 CREATE INDEX iRequestable
   ON m_abstract_role (requestable);
-CREATE INDEX iAutoassignEnabled
-  ON m_abstract_role (autoassign_enabled);
+CREATE INDEX iAutoassignEnabled ON m_abstract_role(autoassign_enabled);
+CREATE INDEX iArchetypeNameOrig ON m_archetype(name_orig);
+CREATE INDEX iArchetypeNameNorm ON m_archetype(name_norm);
 CREATE INDEX iCaseNameOrig
   ON m_case (name_orig);
 ALTER TABLE m_case
@@ -1324,6 +1334,8 @@ ALTER TABLE m_user_organizational_unit
   ADD CONSTRAINT fk_user_org_unit FOREIGN KEY (user_oid) REFERENCES m_user (oid);
 ALTER TABLE m_abstract_role
   ADD CONSTRAINT fk_abstract_role FOREIGN KEY (oid) REFERENCES m_focus (oid);
+ALTER TABLE m_archetype
+  ADD CONSTRAINT fk_archetype FOREIGN KEY (oid) REFERENCES m_abstract_role(oid);
 ALTER TABLE m_case
   ADD CONSTRAINT fk_case FOREIGN KEY (oid) REFERENCES m_object (oid);
 ALTER TABLE m_connector
@@ -1337,7 +1349,7 @@ ALTER TABLE m_form
 ALTER TABLE m_function_library
   ADD CONSTRAINT fk_function_library FOREIGN KEY (oid) REFERENCES m_object (oid);
 ALTER TABLE m_generic_object
-  ADD CONSTRAINT fk_generic_object FOREIGN KEY (oid) REFERENCES m_object (oid);
+  ADD CONSTRAINT fk_generic_object FOREIGN KEY (oid) REFERENCES m_focus(oid);
 ALTER TABLE m_lookup_table
   ADD CONSTRAINT fk_lookup_table FOREIGN KEY (oid) REFERENCES m_object (oid);
 ALTER TABLE m_lookup_table_row
@@ -1373,7 +1385,7 @@ ALTER TABLE m_user
 ALTER TABLE m_value_policy
   ADD CONSTRAINT fk_value_policy FOREIGN KEY (oid) REFERENCES m_object (oid);
 
-INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '3.9');
+INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '4.0');
 
 # By: Ron Cordell - roncordell
 #  I didn't see this anywhere, so I thought I'd post it here. This is the script from Quartz to create the tables in a MySQL database, modified to use INNODB instead of MYISAM.

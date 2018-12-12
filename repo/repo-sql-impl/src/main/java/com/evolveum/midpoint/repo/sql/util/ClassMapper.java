@@ -24,14 +24,14 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import org.apache.commons.collections4.MultiValuedMap;
+import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.Contract;
 
 import javax.xml.namespace.QName;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author lazyman
@@ -41,6 +41,7 @@ public final class ClassMapper {
     private static final Trace LOGGER = TraceManager.getTrace(ClassMapper.class);
 
     private static final Map<ObjectTypes, RObjectType> types = new HashMap<>();
+    private static final MultiValuedMap<ObjectTypes, RObjectType> descendants = new HashSetValuedHashMap<>();
 
     private ClassMapper() {
     }
@@ -64,6 +65,7 @@ public final class ClassMapper {
         types.put(ObjectTypes.ORG, RObjectType.ORG);
         types.put(ObjectTypes.ABSTRACT_ROLE, RObjectType.ABSTRACT_ROLE);
         types.put(ObjectTypes.FOCUS_TYPE, RObjectType.FOCUS);
+        types.put(ObjectTypes.ASSIGNMENT_HOLDER_TYPE, RObjectType.ASSIGNMENT_HOLDER);
         types.put(ObjectTypes.SECURITY_POLICY, RObjectType.SECURITY_POLICY);
         types.put(ObjectTypes.LOOKUP_TABLE, RObjectType.LOOKUP_TABLE);
         types.put(ObjectTypes.ACCESS_CERTIFICATION_DEFINITION, RObjectType.ACCESS_CERTIFICATION_DEFINITION);
@@ -83,6 +85,40 @@ public final class ClassMapper {
                 LOGGER.error(message);
                 throw new IllegalStateException(message);
             }
+        }
+        try {
+            computeDescendants();
+        } catch (Throwable t) {
+            t.printStackTrace();
+            throw t;
+        }
+    }
+
+    private static void computeDescendants() {
+        descendants.clear();
+        for (RObjectType rType : RObjectType.values()) {
+            for (RObjectType ancestor : getAncestors(rType)) {
+                descendants.put(ObjectTypes.getObjectType(ancestor.getJaxbClass()), rType);
+            }
+        }
+    }
+
+    private static Collection<RObjectType> getAncestors(RObjectType type) {
+        Set<RObjectType> rv = new HashSet<>();
+        Class<? extends ObjectType> jaxbClass = type.getJaxbClass();
+        for (;;) {
+            RObjectType rType = RObjectType.getByJaxbTypeIfExists(jaxbClass);
+            if (rType != null) {
+                // this check is because of auxiliary classes like AbstractAccessCertificationDefinitionType
+                // that have no representation in RObjectType
+                rv.add(rType);
+            }
+            Class<?> superclass = jaxbClass.getSuperclass();
+            if (superclass == null || !ObjectType.class.isAssignableFrom(superclass)) {
+                return rv;
+            }
+            //noinspection unchecked
+            jaxbClass = (Class<? extends ObjectType>) superclass;
         }
     }
 
@@ -172,5 +208,9 @@ public final class ClassMapper {
 
     public static Collection<RObjectType> getKnownTypes() {
         return types.values();
+    }
+
+    public static Collection<RObjectType> getDescendantsForQName(QName typeName) {
+        return descendants.get(ObjectTypes.getObjectTypeFromTypeQName(typeName));
     }
 }
