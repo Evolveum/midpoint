@@ -123,7 +123,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	@Override
 	public Long getAssignmentId() {
 		Item<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> any = assignmentIdi.getAnyItem();
-		return any != null && !any.getValues().isEmpty() ? any.getValue(0).getId() : null;
+		return any != null && !any.getValues().isEmpty() ? any.getAnyValue().getId() : null;
 	}
 
 	@Override

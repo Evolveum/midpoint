@@ -87,7 +87,7 @@ public abstract class AbstractContainerValueParserTest<C extends Containerable> 
 
 		if (isContainer()) {
 			process("parseAnyData",
-					p -> ((PrismContainer<C>) p.parseItemOrRealValue()).getValue(0),
+					p -> ((PrismContainer<C>) p.parseItemOrRealValue()).getAnyValue(),
 					serializer, serId);
 		}
 	}

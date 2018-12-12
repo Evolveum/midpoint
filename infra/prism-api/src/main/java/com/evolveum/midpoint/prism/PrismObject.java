@@ -144,11 +144,12 @@ public interface PrismObject<O extends Objectable> extends PrismContainer<O> {
 	ObjectDelta<O> createDeleteDelta();
 
 	@Override
-	void setParent(PrismValue parentValue);
+	void setParent(PrismContainerValue<?> parentValue);
 
 	@Override
-	PrismValue getParent();
+	PrismContainerValue<?> getParent();
 
+	@NotNull
 	@Override
 	ItemPath getPath();
 

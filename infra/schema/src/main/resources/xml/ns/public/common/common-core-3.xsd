@@ -14965,6 +14965,8 @@
 			</xsd:documentation>
 			<xsd:appinfo>
 				<a:since>3.6</a:since>
+				<a:container/>
+				<a:displayName>FullTextSearchIndexedItemsConfigurationType.details</a:displayName>
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
@@ -14974,6 +14976,9 @@
 						To what object type(s) should this entry be applied.
 						Empty list means "all object types".
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>FullTextSearchIndexedItemsConfigurationType.objectType</a:displayName>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="item" type="t:ItemPathType" minOccurs="0" maxOccurs="unbounded">
@@ -14981,6 +14986,9 @@
 					<xsd:documentation>
 						What items to index for the given object type(s).
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>FullTextSearchIndexedItemsConfigurationType.item</a:displayName>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 		</xsd:sequence>

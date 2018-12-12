@@ -154,7 +154,7 @@ public class CompiledUserProfile implements DebugDumpable, Serializable {
 	
 	/**
 	 * Find all views that are applicable for a particular object type. Returns views for all collections
-	 * and archetypes that are applicable for that type. Ideal to be used in costructing menus.
+	 * and archetypes that are applicable for that type. Ideal to be used in constructing menus.
 	 */
 	@NotNull
 	public List<CompiledObjectCollectionView> findAllApplicableObjectCollectionViews(@NotNull QName objectType) {

@@ -511,7 +511,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 	
 	// TODO: generalize for other credentials
 	private <F extends FocusType> int createAddHistoryDelta(PrismContainer<R> oldCredentialContainer) throws SchemaException {
-		R oldCredentialContainerType = oldCredentialContainer.getValue().asContainerable();
+		R oldCredentialContainerType = oldCredentialContainer.getRealValue();
 		MetadataType oldCredentialMetadata = oldCredentialContainerType.getMetadata();
 		
 		PrismProperty<ProtectedStringType> oldValueProperty = oldCredentialContainer.findProperty(getCredentialRelativeValuePath());

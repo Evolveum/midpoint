@@ -21,7 +21,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.
 import java.util.*;
 
 import com.evolveum.midpoint.gui.api.PredefinedDashboardWidgetId;
-import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.wf.util.QueryUtils;
@@ -563,8 +562,8 @@ public class PageSelfDashboard extends PageSelf {
 			PrismContainer construction = assignment.findContainer(AssignmentType.F_CONSTRUCTION);
 			String name = null;
             String description = "";
-			if (construction.getValue().asContainerable() != null && !construction.isEmpty()) {
-				ConstructionType constr = (ConstructionType) construction.getValue().asContainerable();
+			if (construction.getRealValue() != null && !construction.isEmpty()) {
+				ConstructionType constr = (ConstructionType) construction.getRealValue();
 
 				if (constr.getResourceRef() != null) {
 					ObjectReferenceType resourceRef = constr.getResourceRef();

@@ -997,7 +997,7 @@ public class InboundProcessor {
 		    boolean hasRange, boolean isDelete) throws SchemaException {
 		
 		ItemDelta outputFocusItemDelta = outputDefinition.createEmptyDelta(outputPath);
-		Item targetFocusItem = null;
+		Item<V, D> targetFocusItem = null;
 		if (focusNew != null) {
 			targetFocusItem = focusNew.findItem(outputPath);
 		}
@@ -1023,7 +1023,7 @@ public class InboundProcessor {
 						targetFocusItem = focusNew.findItem(originMapping.getOutputPath());
 					}
 					V value = valueWithOrigin.getItemValue();
-					if (targetFocusItem != null && targetFocusItem.hasValueIgnoringMetadata(value)) {
+					if (targetFocusItem != null && targetFocusItem.containsEquivalentValue(value)) {
 						continue;
 					}
 
@@ -1057,7 +1057,7 @@ public class InboundProcessor {
 				for (ItemValueWithOrigin<V, D> valueWithOrigin : consolidatedTriples.getMinusSet()) {
 					V value = valueWithOrigin.getItemValue();
 
-					if (targetFocusItem == null || targetFocusItem.hasValueIgnoringMetadata(value)) {
+					if (targetFocusItem == null || targetFocusItem.containsEquivalentValue(value)) {
 						if (!outputFocusItemDelta.isReplace()) {
 							// This is not needed if we are going to
 							// replace. In fact it might cause an error.

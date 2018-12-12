@@ -66,12 +66,13 @@ public interface PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismProper
      */
 	void setDefinition(PrismPropertyDefinition<T> definition);
 
-	PrismPropertyValue<T> getValue();
-
 	/**
      * Type override, also for compatibility.
      */
 	<X> List<PrismPropertyValue<X>> getValues(Class<X> type);
+
+	@Override
+	PrismPropertyValue<T> getValue();
 
 	@NotNull
     @Override
@@ -84,8 +85,6 @@ public interface PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismProper
 	<X> Collection<X> getRealValues(Class<X> type);
 
 	T getAnyRealValue();
-
-	PrismPropertyValue<T> getAnyValue();
 
 	@Override
 	T getRealValue();
@@ -132,12 +131,6 @@ public interface PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismProper
 	boolean hasValue(PrismPropertyValue<T> value);
 
 	boolean hasRealValue(PrismPropertyValue<T> value);
-
-	@Override
-	PrismPropertyValue<T> getPreviousValue(PrismValue value);
-
-	@Override
-	PrismPropertyValue<T> getNextValue(PrismValue value);
 
 	Class<T> getValueClass();
 

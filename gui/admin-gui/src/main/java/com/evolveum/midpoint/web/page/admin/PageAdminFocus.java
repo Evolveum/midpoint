@@ -877,7 +877,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
                         PageAdminFocus.this, task, result);
                 Boolean isDelegable = false;
 				if (targetObject != null) {
-					isDelegable = targetObject.getRealValue().isDelegable();
+					isDelegable = targetObject.asObjectable().isDelegable();
 				}
                 if (Boolean.TRUE.equals(isDelegable)) {
                     return createAssignmentsPreviewDto(targetObject, true, assignment, task, result);

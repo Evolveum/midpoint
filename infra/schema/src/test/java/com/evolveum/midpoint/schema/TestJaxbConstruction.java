@@ -155,7 +155,7 @@ public class TestJaxbConstruction {
 
 		PrismReference accountRef = user.findReference(UserType.F_LINK_REF);
         assertEquals("1/ Wrong accountRef values", 1, accountRef.getValues().size());
-        PrismReferenceValue accountRefVal0 = accountRef.getValue(0);
+        PrismReferenceValue accountRefVal0 = accountRef.getAnyValue();
         SearchFilterType prismFilter = accountRefVal0.getFilter();
         assertNotNull("Filter have not passed", prismFilter);
         //assertTrue("Bad filter in reference", prismFilter instanceof EqualsFilter);
@@ -255,7 +255,7 @@ public class TestJaxbConstruction {
         assertEquals("Wrong accountRef values", 2, accountRef.getValues().size());
 		PrismAsserts.assertReferenceValues(accountRef, USER_ACCOUNT_REF_1_OID, USER_ACCOUNT_REF_2_OID);
 
-        PrismReferenceValue accountRefVal0 = accountRef.getValue(0);
+        PrismReferenceValue accountRefVal0 = accountRef.getAnyValue();
         SearchFilterType prismFilter = accountRefVal0.getFilter();
         assertNotNull("Filter have not passed", prismFilter);
         // assertTrue("Wrong filter in reference " , prismFilter instanceof EqualsFilter);

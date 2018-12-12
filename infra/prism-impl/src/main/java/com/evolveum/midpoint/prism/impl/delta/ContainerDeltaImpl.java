@@ -383,4 +383,8 @@ public class ContainerDeltaImpl<V extends Containerable> extends ItemDeltaImpl<P
         }
     }
 
+	@Override
+	public void acceptParentVisitor(Visitor visitor) {
+		visitor.visit(this);
+	}
 }

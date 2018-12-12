@@ -112,7 +112,6 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
-import com.evolveum.midpoint.security.api.MidPointPrincipalManager;
 import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.ObjectSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
@@ -335,7 +334,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 					}
 					RefinedObjectClassDefinition refinedObjectClassDefinition = getEditObjectClassDefinition(shadow, resource, phase, task, result);
 					if (refinedObjectClassDefinition != null) {
-						prismContext.hacks().replaceDefinition(objectDefinition.getComplexTypeDefinition(), ShadowType.F_ATTRIBUTES,
+						objectDefinition.getComplexTypeDefinition().toMutable().replaceDefinition(ShadowType.F_ATTRIBUTES,
 								refinedObjectClassDefinition.toResourceAttributeContainerDefinition());
 					}
 				}

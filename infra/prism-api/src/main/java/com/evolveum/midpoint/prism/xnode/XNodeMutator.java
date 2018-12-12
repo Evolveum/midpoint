@@ -13,21 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.prism;
+
+package com.evolveum.midpoint.prism.xnode;
+
+import javax.xml.namespace.QName;
 
 /**
- * @author semancik
- *
+ *  Temporary interface to allow modifying XNode representation. Hopefully it will be removed soon. DO NOT USE.
  */
-public interface PrismContainerable<T extends Containerable> extends Itemable, ParentVisitable {
+public interface XNodeMutator {
 
-	@Override
-	PrismContainerDefinition<T> getDefinition();
+	<T> void setPrimitiveXNodeValue(PrimitiveXNode<T> node, T value, QName typeName);
 
-	Class<T> getCompileTimeClass();
+	void putToMapXNode(MapXNode map, QName key, XNode value);
 
-	default ComplexTypeDefinition getComplexTypeDefinition() {
-		PrismContainerDefinition def = getDefinition();
-		return def != null ? def.getComplexTypeDefinition() : null;
-	}
+	void addToListXNode(ListXNode list, XNode... nodes);
+
+	void setXNodeType(XNode node, QName explicitTypeName, boolean explicitTypeDeclaration);
+
 }

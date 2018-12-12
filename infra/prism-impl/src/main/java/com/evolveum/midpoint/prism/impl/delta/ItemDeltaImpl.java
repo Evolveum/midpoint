@@ -55,6 +55,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	 * Parent path of the property (path to the property container)
 	 */
 	protected ItemPath parentPath;
+	protected ItemPath fullPath;            // lazily evaluated
 	protected D definition;
 
 	protected Collection<V> valuesToReplace = null;
@@ -126,6 +127,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 
 	public void setElementName(QName elementName) {
 		this.elementName = ItemName.fromQName(elementName);
+		this.fullPath = null;
 	}
 
 	public ItemPath getParentPath() {
@@ -134,15 +136,20 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 
 	public void setParentPath(ItemPath parentPath) {
 		this.parentPath = parentPath;
+		this.fullPath = null;
 	}
 
 	@NotNull
 	@Override
 	public ItemPath getPath() {
+		if (fullPath != null) {
+			return fullPath;
+		}
 		if (getParentPath() == null) {
 			throw new IllegalStateException("No parent path in "+this);
 		}
-		return getParentPath().append(elementName);
+		fullPath = getParentPath().append(elementName);
+		return fullPath;
 	}
 
 	public D getDefinition() {
@@ -1371,6 +1378,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 		clone.definition = this.definition;
 		clone.elementName = this.elementName;
 		clone.parentPath = this.parentPath;
+		clone.fullPath = this.fullPath;
 		clone.valuesToAdd = cloneSet(clone, this.valuesToAdd);
 		clone.valuesToDelete = cloneSet(clone, this.valuesToDelete);
 		clone.valuesToReplace = cloneSet(clone, this.valuesToReplace);

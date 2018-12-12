@@ -102,23 +102,6 @@ public class PrismPropertyImpl<T> extends ItemImpl<PrismPropertyValue<T>, PrismP
         this.definition = definition;
     }
 
-    public PrismPropertyValue<T> getValue() {
-		// I know of no reason why we should not return a value if it's only one (even for multivalued items) (see MID-3922)
-		// TODO reconsider this
-		if (getValues().size() == 1) {
-			return getValues().get(0);
-		}
-		if (!isSingleValue()) {
-    		throw new IllegalStateException("Attempt to get single value from property " + getElementName()
-                    + " with multiple values");
-    	}
-        List<PrismPropertyValue<T>> values = getValues();
-        if (values.isEmpty()) {
-        	return null;
-        }
-        return values.get(0);
-    }
-
 	/**
      * Type override, also for compatibility.
      */
@@ -156,20 +139,10 @@ public class PrismPropertyImpl<T> extends ItemImpl<PrismPropertyValue<T>, PrismP
 		return values.iterator().next();
 	}
 
-    public PrismPropertyValue<T> getAnyValue() {
-        Collection<PrismPropertyValue<T>> values = getValues();
-        if (values.isEmpty()) {
-            return null;
-        }
-        return values.iterator().next();
-    }
-
-    @Override
-    public T getRealValue() {
-		if (getValue() == null) {
-            return null;
-        }
-		return getValue().getValue();
+	@Override
+	public T getRealValue() {
+		PrismPropertyValue<T> value = getValue();
+		return value != null ? value.getRealValue() : null;
 	}
 
 	/**
@@ -338,16 +311,6 @@ public class PrismPropertyImpl<T> extends ItemImpl<PrismPropertyValue<T>, PrismP
 
         return false;
     }
-
-    @Override
-	public PrismPropertyValue<T> getPreviousValue(PrismValue value) {
-		return (PrismPropertyValue<T>) super.getPreviousValue(value);
-	}
-
-	@Override
-	public PrismPropertyValue<T> getNextValue(PrismValue value) {
-		return (PrismPropertyValue<T>) super.getNextValue(value);
-	}
 
 	public Class<T> getValueClass() {
     	if (getDefinition() != null) {

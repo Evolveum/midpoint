@@ -254,7 +254,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			}
 		}
 
-		if (decision.equals(AccessDecision.ALLOW)) {
+		if (decision == AccessDecision.ALLOW) {
 			// Still check allowedItems. We may still deny the operation.
 			if (allowedItems.isAllItems()) {
 				// This means all items are allowed. No need to check anything
@@ -403,20 +403,20 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		return container.getValues();
 	}
 
-	private AccessDecision determineContainerDecision(PrismContainerValue<?> cval, ItemDecisionFunction itemDecitionFunction, boolean removingContainer, String decisionContextDesc) {
+	private AccessDecision determineContainerDecision(PrismContainerValue<?> cval, ItemDecisionFunction itemDecisionFunction, boolean removingContainer, String decisionContextDesc) {
 		List<Item<?,?>> items = cval.getItems();
 		// Note: cval.isEmpty() will also check for id. We do not care about that.
 		if (items == null || items.isEmpty()) {
 			// TODO: problem with empty containers such as
-			// orderConstraint in assignment. Skip all
-			// empty items ... for now.
+			//  orderConstraint in assignment. Skip all
+			//  empty items ... for now.
 			logSubitemContainerDecision(null, decisionContextDesc, cval);
 			return null;
 		}
 		AccessDecision decision = null;
 		for (Item<?, ?> item: items) {
 			ItemPath itemPath = item.getPath();
-			AccessDecision itemDecision = itemDecitionFunction.decide(itemPath.namedSegmentsOnly(), removingContainer);
+			AccessDecision itemDecision = itemDecisionFunction.decide(itemPath.namedSegmentsOnly(), removingContainer);
 			logSubitemDecision(itemDecision, decisionContextDesc, itemPath);
 			if (itemDecision == null) {
 				// null decision means: skip this
@@ -427,7 +427,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 				List<PrismContainerValue<?>> subValues = (List)((PrismContainer<?>)item).getValues();
 				AccessDecision containerDecision = null;
 				for (PrismContainerValue<?> subValue: subValues) {
-					AccessDecision subdecision = determineContainerDecision(subValue, itemDecitionFunction, removingContainer, decisionContextDesc);
+					AccessDecision subdecision = determineContainerDecision(subValue, itemDecisionFunction, removingContainer, decisionContextDesc);
 					containerDecision = AccessDecision.combine(containerDecision, subdecision);
 					// We do not want to break the loop immediately here. We want all the denied items to get logged
 				}

@@ -255,6 +255,11 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
 		}
 	}
 
+	@Override
+	protected Object getPathComponent() {
+		return getId();
+	}
+
 	// For compatibility with other PrismValue types
 	public C getValue() {
 		return asContainerable();
@@ -978,7 +983,16 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
 		}
 	}
 
-    public boolean hasCompleteDefinition() {
+	@Override
+	public void acceptParentVisitor(Visitor visitor) {
+		visitor.visit(this);
+		PrismContainerable<C> parent = getParent();
+		if (parent != null) {
+			parent.acceptParentVisitor(visitor);
+		}
+	}
+
+	public boolean hasCompleteDefinition() {
 		if (items != null) {
 			for (Item<?,?> item : getItems()) {
 				if (!item.hasCompleteDefinition()) {

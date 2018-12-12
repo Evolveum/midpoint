@@ -57,6 +57,7 @@ public class PrismReferenceImpl extends ItemImpl<PrismReferenceValue, PrismRefer
 	/**
 	 * {@inheritDoc}
 	 */
+	@NotNull
     public PrismReferenceValue getValue() {
 		// I know of no reason why we should not return a value if it's only one (even for multivalued items) (see MID-3922)
 		// TODO reconsider this
@@ -96,10 +97,7 @@ public class PrismReferenceImpl extends ItemImpl<PrismReferenceValue, PrismRefer
 
 	@Override
 	public Referencable getRealValue() {
-		if (getValue() == null) {
-			return null;
-		}
-		return getValue().asReferencable();
+		return getValue().getRealValue();
 	}
 
 	@NotNull

@@ -675,6 +675,10 @@ public class TestDelta extends AbstractPrismTest {
         Collection<PrismContainerValue<AssignmentType>> valuesToAdd = containerDeltaAfter.getValuesToAdd();
         assertEquals("Unexpected number of values to add", 1, valuesToAdd.size());
         assertEquals("Wrong value to add", assignmentValue1, valuesToAdd.iterator().next());
+
+        PrismAsserts.assertPathEquivalent("Wrong path in container delta",
+		        ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_DESCRIPTION),
+		        assignmentValue2.findProperty(AssignmentType.F_DESCRIPTION).getPath());
     }
 
 	@Test

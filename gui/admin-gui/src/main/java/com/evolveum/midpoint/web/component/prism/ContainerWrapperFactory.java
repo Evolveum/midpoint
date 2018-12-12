@@ -165,7 +165,7 @@ public class ContainerWrapperFactory {
 					}
 					if (resourceAssociation.getRef().getItemPath().asSingleName().equals(refinedAssocationDefinition.getName())){
 						itemPath = associationValue.getPath();
-						MappingType outbound = ((ResourceObjectAssociationType)association.getValue().asContainerable()).getOutbound();
+						MappingType outbound = ((ResourceObjectAssociationType)association.getRealValue()).getOutbound();
 						if (outbound == null){
 							continue;
 						}

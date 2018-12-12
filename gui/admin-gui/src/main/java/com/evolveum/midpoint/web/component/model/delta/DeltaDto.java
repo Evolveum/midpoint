@@ -41,7 +41,7 @@ public class DeltaDto implements Serializable {
     private ContainerValueDto objectToAdd;
     private boolean add;
 
-    public DeltaDto(ObjectDelta delta) {
+    public DeltaDto(ObjectDelta<?> delta) {
 
         changeType = "" + delta.getChangeType();
         oid = delta.getOid();

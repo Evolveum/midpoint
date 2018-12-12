@@ -77,7 +77,7 @@ public class PageUsersView extends PageUsers {
         if (collectionObject == null){
             return null;
         }
-        ObjectCollectionType collectionValue = collectionObject.getValue().asObjectable();
+        ObjectCollectionType collectionValue = collectionObject.asObjectable();
         if (!QNameUtil.match(collectionValue.getType(), UserType.COMPLEX_TYPE)){
             return null;
         }
