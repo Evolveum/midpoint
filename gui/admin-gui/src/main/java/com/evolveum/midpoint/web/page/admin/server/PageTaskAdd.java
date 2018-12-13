@@ -674,7 +674,7 @@ public class PageTaskAdd extends PageAdminTasks {
     }
 
     private TaskType createTask(TaskAddDto dto) throws SchemaException {
-        TaskType task = new TaskType();
+        TaskType task = new TaskType(getPrismContext());
         MidPointPrincipal owner = SecurityUtils.getPrincipalUser();
 
         ObjectReferenceType ownerRef = new ObjectReferenceType();

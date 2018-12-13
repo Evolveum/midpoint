@@ -413,7 +413,7 @@ public abstract class ResourceContentPanel extends Panel {
 	}
 
 	private void newTaskPerformed(String category, AjaxRequestTarget target) {
-		TaskType taskType = new TaskType();
+		TaskType taskType = new TaskType(getPageBase().getPrismContext());
 		PrismProperty<ShadowKindType> pKind;
 		try {
 			pKind = taskType.asPrismObject().findOrCreateProperty(

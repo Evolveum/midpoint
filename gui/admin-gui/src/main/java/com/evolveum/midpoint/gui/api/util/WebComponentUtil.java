@@ -573,7 +573,7 @@ public final class WebComponentUtil {
 	public static TaskType createSingleRecurrenceTask(String taskName, QName applicableType, ObjectQuery query,
 			ObjectDelta delta, ModelExecuteOptions options, String category, PageBase pageBase) throws SchemaException {
 
-		TaskType task = new TaskType();
+		TaskType task = new TaskType(pageBase.getPrismContext());
 
 		MidPointPrincipal owner = SecurityUtils.getPrincipalUser();
 
