@@ -247,7 +247,7 @@ public class ObjectUpdater {
             savedObject.removeProperty(TaskType.F_RESULT);
         }
 
-        xml = prismContext.xmlSerializer().serialize(savedObject);
+        xml = prismContext.serializerFor(SqlRepositoryServiceImpl.DATA_LANGUAGE).serialize(savedObject);
         byte[] fullObject = RUtil.getByteArrayFromXml(xml, getConfiguration().isUseZip());
 
         object.setFullObject(fullObject);
