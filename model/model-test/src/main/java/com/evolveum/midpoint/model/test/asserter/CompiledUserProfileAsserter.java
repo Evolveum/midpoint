@@ -17,16 +17,13 @@ package com.evolveum.midpoint.model.test.asserter;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertTrue;
 
 import org.testng.AssertJUnit;
 
-import com.evolveum.midpoint.model.api.ArchetypeInteractionSpecification;
 import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
-import com.evolveum.midpoint.test.asserter.ArchetypePolicyAsserter;
-import com.evolveum.midpoint.test.asserter.DisplayTypeAsserter;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypePolicyType;
 
 /**
  * @author semancik
@@ -62,7 +59,11 @@ public class CompiledUserProfileAsserter<RA> extends AbstractAsserter<RA> {
 	}
 	
 	public CompiledUserProfileAsserter<RA> assertObjectForms(int expectedForms) {
-		assertEquals("Wrong number of object forms in " + desc(), expectedForms, getCompiledUserProfile().getObjectForms().getObjectForm().size());
+		if (getCompiledUserProfile().getObjectForms() == null) {
+			assertTrue("Wrong number of object forms in " + desc() + "; exected " + expectedForms + " but was null", expectedForms == 0);
+		} else {
+			assertEquals("Wrong number of object forms in " + desc(), expectedForms, getCompiledUserProfile().getObjectForms().getObjectForm().size());
+		}
 		return this;
 	}
 	
@@ -81,6 +82,12 @@ public class CompiledUserProfileAsserter<RA> extends AbstractAsserter<RA> {
 	public CompiledUserProfileAsserter<RA> assertObjectCollectionViews(int expectedViews) {
 		assertEquals("Wrong number of object collection views in " + desc(), expectedViews, getCompiledUserProfile().getObjectCollectionViews().size());
 		return this;
+	}
+	
+	public ObjectCollectionViewsAsserter<CompiledUserProfileAsserter<RA>> objectCollectionViews() {
+		ObjectCollectionViewsAsserter<CompiledUserProfileAsserter<RA>> asserter = new ObjectCollectionViewsAsserter<>(getCompiledUserProfile().getObjectCollectionViews(), this, desc());
+		copySetupTo(asserter);
+		return asserter;
 	}
 	
 	// TODO: better asserter for views

@@ -411,8 +411,8 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	}
 
 	@Test
-    public void test130GetAdminGuiConfig() throws Exception {
-		final String TEST_NAME = "test130GetAdminGuiConfig";
+    public void test130GetCompiledUserProfile() throws Exception {
+		final String TEST_NAME = "test130GetCompiledUserProfile";
         displayTestTitle(TEST_NAME);
 
         // GIVEN

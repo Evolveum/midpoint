@@ -51,6 +51,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -76,6 +77,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractObjectTypeConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationRoleManagementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetType;
@@ -92,6 +95,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OtherPrivilegesLimitationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
@@ -455,8 +459,22 @@ public class UserProfileCompiler {
 		if (existingView.getCollection() != null) {
 			LOGGER.debug("Redefining collection in view {}", existingView.getViewName());
 		}
-		// TODO: resolve collection, apply filter
 		existingView.setCollection(collection);
+		
+		// Compute and apply filter
+		ObjectReferenceType collectionRef = collection.getCollectionRef();
+		QName collectionRefType = collectionRef.getType();
+		ObjectFilter filter = null;
+		
+		// TODO: support more cases
+		if (QNameUtil.match(ArchetypeType.COMPLEX_TYPE, collectionRefType)) {
+			filter = prismContext.queryFor(AssignmentHolderType.class)
+				.item(AssignmentHolderType.F_ARCHETYPE_REF).ref(collectionRef.getOid())
+				.buildFilter();
+		}
+		
+		// TODO: resolve (read) collection if needed
+		existingView.setFilter(filter);
 	}
 	
 	private void compileColumns(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
@@ -504,8 +522,6 @@ public class UserProfileCompiler {
 		// TODO: merge
 		existingView.setSearchBoxConfiguration(newSearchBoxConfig);
 	}
-
-
 
 	private void joinForms(ObjectFormsType objectForms, ObjectFormType newForm) {
 		objectForms.getObjectForm().removeIf(currentForm -> isTheSameObjectForm(currentForm, newForm));
