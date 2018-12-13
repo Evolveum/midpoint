@@ -6,6 +6,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import com.evolveum.midpoint.testing.schrodinger.TestBase;
+import java.io.File;
 
 /**
  * Created by matus on 5/21/2018.
@@ -19,8 +20,18 @@ public class PolyStringTests extends TestBase {
     private static final String TEST_USER_JOZKO_FULL_NAME = "Jožko Jörg Nguyễn Trißtan Guðmund Mrkvička";
     private static final String TEST_USER_JOZKO_ADDITIONAL_NAME = "Jörg Nguyễn Trißtan Guðmund ";
 
+    private static final String INIT_BASIC_CONFIG_DEPENDENCY = "turnOnFullTextSearch";
     private static final String CREATE_USER_WITH_DIACRITIC_DEPENDENCY = "createUserWithDiacritic";
+    private static final String SEARCH_USER_WITH_DIACRITIC_DEPENDENCY = "searchForUserWithDiacritic";
+
+    private static final File SYSTEM_CONFIGURATION_FULLTEXT_FILE = new File("./src/test/resources/configuration/objects/systemconfig/system-configuration-fulltext.xml");
+
     @Test
+    public void turnOnFullTextSearch(){
+        importObject(SYSTEM_CONFIGURATION_FULLTEXT_FILE,true);
+    }
+
+    @Test (dependsOnMethods = INIT_BASIC_CONFIG_DEPENDENCY)
     public void createUserWithDiacritic(){
         UserPage user = basicPage.newUser();
 
@@ -66,6 +77,36 @@ public class PolyStringTests extends TestBase {
                        .and()
                        .currentTableContains(TEST_USER_JOZKO_NAME)
         );
+
+    }
+
+    @Test (dependsOnMethods = {SEARCH_USER_WITH_DIACRITIC_DEPENDENCY})
+    public void fullTextSearchForUserWithDiacritic(){
+
+        ListUsersPage usersPage = basicPage.listUsers();
+
+        Assert.assertTrue(
+                usersPage
+                        .table()
+                            .search()
+                                .byFullText()
+                                .inputValue(TEST_USER_JOZKO_NAME)
+                            .pressEnter()
+                        .and()
+                        .currentTableContains(TEST_USER_JOZKO_NAME)
+        );
+
+        Assert.assertTrue(
+                usersPage
+                        .table()
+                            .search()
+                                .byFullText()
+                                .inputValue(TEST_USER_JOZKO_NAME_NO_DIAC)
+                            .pressEnter()
+                        .and()
+                        .currentTableContains(TEST_USER_JOZKO_NAME)
+        );
+
     }
 
 }

@@ -3179,6 +3179,7 @@ public class TaskQuartzImpl implements Task {
 		List<ItemDelta<?, ?>> deltas = new ArrayList<>();
 		if (taskResult != null) {
 			addIgnoreNull(deltas, setResultAndPrepareDelta(taskResult));
+			addIgnoreNull(deltas, setResultStatusTypeAndPrepareDelta(taskResult.getStatus() != null ? taskResult.getStatus().createStatusType() : null));
 		}
 		addIgnoreNull(deltas, setExecutionStatusAndPrepareDelta(TaskExecutionStatus.CLOSED));
 		addIgnoreNull(deltas, setCompletionTimestampAndPrepareDelta(System.currentTimeMillis()));
