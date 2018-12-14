@@ -1424,10 +1424,12 @@
 									<name>suitename</name>
 									<value>Unit</value>
 								</property>
+                                <!--
                                 <property>
                                     <name>listener</name>
                                     <value>com.evolveum.midpoint.tools.testng.TestListener,com.evolveum.midpoint.tools.testng.RetryListener</value>
                                 </property>
+                                -->
 							</properties>
 						</configuration>
 					</execution>
@@ -1530,10 +1532,12 @@
                                     <name>usedefaultlisteners</name>
                                     <value>false</value>
                                 </property>
+                                <!--
                                 <property>
                                     <name>listener</name>
                                     <value>com.evolveum.midpoint.tools.testng.TestListener,com.evolveum.midpoint.tools.testng.RetryListener</value>
                                 </property>
+                                -->
                             </properties>
                         </configuration>
                     </execution>
