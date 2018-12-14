@@ -24,6 +24,6 @@ env:
 matrix:
   include:
     - name: JDK8 - Run all excluding model-intest
-      script: mvn install -T 1C -q -DskipTests; mvn verify -DskipModelIntTest=true -DskipModelUnitTest=true -Dfailsafe.rerunFailingTestsCount=2
+      script: mvn install -T 1C -q -DskipTests; mvn verify -DskipModelIntTest=true -DskipModelUnitTest=true -DtestsRetryCount=2
     - name: JDK8 - Run only model-intest
-      script: mvn install -T 1C -q -DskipTests; mvn verify -pl :model-intest -Dfailsafe.rerunFailingTestsCount=2
+      script: mvn install -T 1C -q -DskipTests; mvn verify -pl :model-intest -DtestsRetryCount=2
