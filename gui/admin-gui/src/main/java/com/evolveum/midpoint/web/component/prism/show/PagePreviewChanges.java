@@ -17,22 +17,10 @@ package com.evolveum.midpoint.web.component.prism.show;
 
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
-import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
@@ -42,18 +30,11 @@ import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.wf.ApprovalProcessesPreviewPanel;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
-import com.evolveum.midpoint.web.page.admin.roles.PageAdminRoles;
-import com.evolveum.midpoint.web.page.admin.services.PageAdminServices;
-import com.evolveum.midpoint.web.page.admin.users.PageAdminUsers;
-import com.evolveum.midpoint.web.page.admin.workflow.EvaluatedTriggerGroupListPanel;
-import com.evolveum.midpoint.web.page.admin.workflow.dto.ApprovalProcessExecutionInformationDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.EvaluatedTriggerGroupDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaExecutionInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleEnforcerHookPreviewOutputType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -73,17 +54,13 @@ import java.util.Map;
  * @author mederly
  */
 @PageDescriptor(url = "/admin/previewChanges", encoder = OnePageParameterEncoder.class, action = {
-        @AuthorizationAction(actionUri = PageAdminUsers.AUTH_USERS_ALL,
-                label = PageAdminUsers.AUTH_USERS_ALL_LABEL,
-                description = PageAdminUsers.AUTH_USERS_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USER_URL,
-                label = "PageUser.auth.user.label",
-                description = "PageUser.auth.user.description"),
-		@AuthorizationAction(actionUri = PageAdminRoles.AUTH_ROLE_ALL, label = PageAdminRoles.AUTH_ROLE_ALL_LABEL, description = PageAdminRoles.AUTH_ROLE_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USERS_ALL_URL, label = "PageAdminUsers.auth.usersAll.label", description = "PageAdminUsers.auth.usersAll.description"),
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USER_URL, label = "PageUser.auth.user.label", description = "PageUser.auth.user.description"),
+		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ROLES_ALL_URL, label = "PageAdminRoles.auth.roleAll.label", description = "PageAdminRoles.auth.roleAll.description"),
 		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ROLE_URL, label = "PageRole.auth.role.label", description = "PageRole.auth.role.description"),
-        @AuthorizationAction(actionUri = PageAdminUsers.AUTH_ORG_ALL, label = PageAdminUsers.AUTH_ORG_ALL_LABEL, description = PageAdminUsers.AUTH_ORG_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ORG_ALL_URL, label = "PageAdminUsers.auth.orgAll.label", description = "PageAdminUsers.auth.orgAll.description"),
 		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ORG_UNIT_URL, label = "PageOrgUnit.auth.orgUnit.label", description = "PageOrgUnit.auth.orgUnit.description"),
-		@AuthorizationAction(actionUri = PageAdminServices.AUTH_SERVICES_ALL, label = PageAdminServices.AUTH_SERVICES_ALL_LABEL, description = PageAdminServices.AUTH_SERVICES_ALL_DESCRIPTION),
+		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICES_ALL_URL, label = "PageAdminServices.auth.servicesAll.label", description = "PageAdminServices.auth.servicesAll.description"),
 		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICE_URL, label = "PageService.auth.role.label", description = "PageService.auth.role.description")
 })
 public class PagePreviewChanges<O extends ObjectType> extends PageAdmin {

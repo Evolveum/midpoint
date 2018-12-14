@@ -37,7 +37,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
  * @author semancik
  */
 @PageDescriptor(url = "/admin/role", encoder = OnePageParameterEncoder.class, action = {
-		@AuthorizationAction(actionUri = PageAdminRoles.AUTH_ROLE_ALL, label = PageAdminRoles.AUTH_ROLE_ALL_LABEL, description = PageAdminRoles.AUTH_ROLE_ALL_DESCRIPTION),
+		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ROLES_ALL_URL, label = "PageAdminRoles.auth.roleAll.label", description = "PageAdminRoles.auth.roleAll.description"),
 		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ROLE_URL, label = "PageRole.auth.role.label", description = "PageRole.auth.role.description") })
 public class PageRole extends PageAdminAbstractRole<RoleType> implements ProgressReportingAwarePage {
 	private static final long serialVersionUID = 1L;

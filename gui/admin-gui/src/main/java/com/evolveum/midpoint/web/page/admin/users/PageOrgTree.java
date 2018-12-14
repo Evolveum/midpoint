@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.web.page.admin.users;
 
+import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.Model;
 
@@ -31,13 +32,13 @@ import com.evolveum.midpoint.web.page.admin.users.component.TreeTablePanel;
  * @author lazyman
  */
 @PageDescriptor(url = "/admin/org/tree", action = {
-        @AuthorizationAction(actionUri = PageAdminUsers.AUTH_ORG_ALL,
-                label = PageAdminUsers.AUTH_ORG_ALL_LABEL,
-                description = PageAdminUsers.AUTH_ORG_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ORG_ALL_URL,
+                label = "PageAdminUsers.auth.orgAll.label",
+                description = "PageAdminUsers.auth.orgAll.description"),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ORG_TREE_URL,
                 label = "PageOrgTree.auth.orgTree.label",
                 description = "PageOrgTree.auth.orgTree.description")})
-public class PageOrgTree extends PageAdminUsers {
+public class PageOrgTree extends PageAdmin {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageOrgTree.class);
 
