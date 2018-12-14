@@ -18,6 +18,7 @@ package com.evolveum.midpoint.repo.sql.data.common.container;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.RAccessCertificationCampaign;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
@@ -356,7 +357,7 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         PrismContainerValue<AccessCertificationCaseType> cvalue = case1.asPrismContainerValue();
         String xml;
         try {
-            xml = context.prismContext.xmlSerializer().serialize(cvalue, SchemaConstantsGenerated.C_VALUE);
+            xml = context.prismContext.serializerFor(SqlRepositoryServiceImpl.DATA_LANGUAGE).serialize(cvalue, SchemaConstantsGenerated.C_VALUE);
         } catch (SchemaException e) {
             throw new IllegalStateException("Couldn't serialize certification case to string", e);
         }
@@ -376,7 +377,7 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         String xml = RUtil.getXmlFromByteArray(fullObject, false);
         LOGGER.trace("RAccessCertificationCase full object to be parsed\n{}", xml);
         try {
-            return prismContext.parserFor(xml).xml().compat().parseRealValue(AccessCertificationCaseType.class);
+            return prismContext.parserFor(xml).language(SqlRepositoryServiceImpl.DATA_LANGUAGE).compat().parseRealValue(AccessCertificationCaseType.class);
         } catch (SchemaException e) {
             LOGGER.debug("Couldn't parse certification case because of schema exception ({}):\nData: {}", e, xml);
             throw e;

@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<user
+		oid="2f9b9299-6f45-498f-bc8e-8d17c6b93b20"
+		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+		xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+		xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+		xmlns:foo="http://www.example.com/foo"
+		xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+		xmlns:ext="http://midpoint.evolveum.com/xml/ns/test/extension">
+	<name>jack</name>
+	<description>
+		Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed varius vestibulum gravida. Pellentesque neque lorem, lacinia vel tortor vel, ornare vestibulum purus. Morbi non maximus tellus, et vulputate massa. Morbi tristique massa at magna lobortis, id blandit augue dictum. Nam dapibus massa arcu, quis tincidunt mauris venenatis in. Vivamus sit amet turpis euismod, pulvinar quam a, porttitor sapien. Ut ex lacus, ultricies eget lectus sit amet, tincidunt aliquet nunc. Etiam nulla sapien, sodales eget iaculis eget, iaculis in erat. Sed dapibus laoreet metus, et ultrices neque iaculis eu. Suspendisse potenti.
+		Nunc eros ex, congue id elementum ac, egestas sed purus. Praesent egestas sem sapien, volutpat rutrum nisl hendrerit non. Pellentesque vestibulum fringilla metus eget luctus. Donec at sem in dolor consequat pulvinar. Nam bibendum vulputate nunc ac consequat. Aenean sollicitudin sodales libero, eget aliquet ante posuere vitae. Curabitur semper, ipsum quis varius facilisis, lorem velit gravida enim, non convallis est sapien vitae nisi. Phasellus tempor risus consectetur sapien bibendum, ultrices semper enim eleifend. Cras dignissim magna quis rhoncus placerat. Mauris rutrum lacus tortor, vitae placerat lacus volutpat non. Proin facilisis lacinia nisi nec lobortis. Vestibulum hendrerit leo purus.
+		Vivamus sit amet mattis ligula. Duis hendrerit luctus porttitor. Donec sollicitudin urna et volutpat pretium. Integer ac ex egestas nulla accumsan dignissim. Sed viverra ipsum lacus. Phasellus porta malesuada dui, sit amet ullamcorper odio bibendum ac. Morbi sagittis vestibulum odio in maximus. In eleifend quam sed venenatis vehicula. Nulla bibendum fermentum tempor. Sed tincidunt orci odio, a congue nisl eleifend pharetra. Integer tincidunt sapien urna, consectetur mattis dolor semper vitae. Nullam interdum erat id purus laoreet, vitae efficitur lacus semper. Sed molestie semper quam eget lacinia. Proin in placerat lectus.
+		Maecenas vel ligula nibh. Etiam posuere interdum velit sit amet luctus. Vivamus magna dui, tempor ac scelerisque et, pulvinar at felis. Donec faucibus nibh sit amet lacus placerat sodales. Curabitur in interdum dolor, ut vehicula diam. Quisque dignissim luctus urna sed consectetur. Sed lorem erat, tincidunt sed volutpat ut, porttitor in lectus. Integer feugiat turpis viverra lorem sollicitudin pharetra. Fusce faucibus arcu egestas, congue turpis non, tincidunt augue. Duis maximus, tellus dictum gravida varius, sapien purus lobortis mi, sit amet aliquam leo quam at justo. Aenean eget dolor urna. Integer nec magna non dui volutpat iaculis in eget velit. Fusce congue, nulla eu cursus euismod, augue augue sagittis mauris, sed porttitor odio mi quis ante.
+		Praesent volutpat orci ut nisl convallis, quis egestas velit dictum. Phasellus ac consectetur orci. Morbi suscipit elit congue auctor consequat. Nam finibus nisl leo, quis volutpat elit aliquet eget. Donec quis elit id dui eleifend commodo et vel dolor. Fusce at aliquam lorem, eu pretium est. Maecenas ullamcorper porttitor dictum. Nunc ac sapien vitae tortor interdum maximus sed lobortis nisi. Nulla a vestibulum tellus. Aenean ac pretium nulla. Duis diam magna, tempus quis enim posuere, iaculis pretium tellus. Suspendisse semper nibh felis, eu vehicula ipsum fermentum ac. Sed sed finibus diam. Quisque porttitor venenatis erat, elementum sagittis nibh. Donec suscipit purus ipsum, sed luctus felis convallis at. Vestibulum ac metus sed leo luctus hendrerit sed non turpis. </description>
+    <extension>
+		<foo:bar xsi:type="xsd:string">BAR</foo:bar>
+		<foo:num xsi:type="xsd:int">42</foo:num>
+		<foo:multi xsi:type="xsd:string">raz</foo:multi>
+		<foo:multi xsi:type="xsd:string">dva</foo:multi>
+		<foo:multi xsi:type="xsd:string">tri</foo:multi>
+		<foo:password xsi:type="t:ProtectedStringType">
+			<t:clearValue>openS3zam3</t:clearValue>
+		</foo:password>
+		<foo:bar0 xsi:type="xsd:string">BAR</foo:bar0>
+		<foo:bar1 xsi:type="xsd:string">BAR</foo:bar1>
+		<foo:bar2 xsi:type="xsd:string">BAR</foo:bar2>
+		<foo:bar3 xsi:type="xsd:string">BAR</foo:bar3>
+		<foo:bar4 xsi:type="xsd:string">BAR</foo:bar4>
+		<foo:bar5 xsi:type="xsd:string">BAR</foo:bar5>
+		<foo:bar6 xsi:type="xsd:string">BAR</foo:bar6>
+		<foo:bar7 xsi:type="xsd:string">BAR</foo:bar7>
+		<foo:bar8 xsi:type="xsd:string">BAR</foo:bar8>
+		<foo:bar9 xsi:type="xsd:string">BAR</foo:bar9>
+		<foo:bar10 xsi:type="xsd:string">BAR</foo:bar10>
+		<foo:bar11 xsi:type="xsd:string">BAR</foo:bar11>
+		<foo:bar12 xsi:type="xsd:string">BAR</foo:bar12>
+		<foo:bar13 xsi:type="xsd:string">BAR</foo:bar13>
+		<foo:bar14 xsi:type="xsd:string">BAR</foo:bar14>
+		<foo:bar15 xsi:type="xsd:string">BAR</foo:bar15>
+		<foo:bar16 xsi:type="xsd:string">BAR</foo:bar16>
+		<foo:bar17 xsi:type="xsd:string">BAR</foo:bar17>
+		<foo:bar18 xsi:type="xsd:string">BAR</foo:bar18>
+		<foo:bar19 xsi:type="xsd:string">BAR</foo:bar19>
+		<foo:bar20 xsi:type="xsd:string">BAR</foo:bar20>
+		<foo:bar21 xsi:type="xsd:string">BAR</foo:bar21>
+		<foo:bar22 xsi:type="xsd:string">BAR</foo:bar22>
+		<foo:bar23 xsi:type="xsd:string">BAR</foo:bar23>
+		<foo:bar24 xsi:type="xsd:string">BAR</foo:bar24>
+		<foo:bar25 xsi:type="xsd:string">BAR</foo:bar25>
+		<foo:bar26 xsi:type="xsd:string">BAR</foo:bar26>
+		<foo:bar27 xsi:type="xsd:string">BAR</foo:bar27>
+		<foo:bar28 xsi:type="xsd:string">BAR</foo:bar28>
+		<foo:bar29 xsi:type="xsd:string">BAR</foo:bar29>
+	</extension>
+	
+	<assignment id="111">
+    	<extension>
+    		<ext:intType>42</ext:intType>
+    	</extension>
+    	<construction>
+			<resourceRef oid="2f9b9299-5555-5555-5555-000000001111" type="c:ResourceType"/>    		
+    	</construction>
+    	<activation>
+    		<administrativeStatus>enabled</administrativeStatus>
+    	</activation>
+    </assignment>
+
+    <!-- Account as composite object, resource as reference -->
+    <link oid="2f9b9299-6f45-498f-aaaa-000000001111">
+    	<name>jsparrow</name>
+    	<resourceRef oid="2f9b9299-5555-5555-5555-000000001111"/>
+    	<!-- Faux object class, it does not even have a prefix -->
+    	<objectClass>AccountObjectClass</objectClass>
+    </link>
+    
+    <!-- Account as composite object, resource as composite object -->
+    <link oid="2f9b9299-6f45-498f-aaaa-000000002222">
+    	<name>captain</name>
+    	<resource oid="2f9b9299-5555-5555-5555-000000002222">
+    		<name>Rum Supply System</name>
+    		<connectorRef oid="2f9b9299-cccc-cccc-cccc-000000002222"/>
+    		<connectorConfiguration>
+    		</connectorConfiguration>
+    		<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/2f9b9299-5555-5555-5555-000000002222</namespace>
+    	</resource>
+    	<!-- Faux object class, it does not even have a prefix -->
+    	<objectClass>AccountObjectClass</objectClass>
+    </link>
+    
+    <!-- Account as reference -->
+    <linkRef oid="2f9b9299-6f45-498f-aaaa-000000003333" type="ShadowType">
+    	<description>This is third accountRef</description>
+    	<filter>
+    		<!-- Following filter is a logical nonsense. It is there just to test parsing of filters. -->
+            <q:equal>
+            	<q:path>connectorType</q:path>
+                <q:value>>org.identityconnectors.ldap.LdapConnector</q:value>
+            </q:equal>
+    	</filter>
+    </linkRef>
+    
+    <activation>
+        <administrativeStatus>enabled</administrativeStatus>
+    </activation>
+
+	<locality>loc</locality>
+	<emailAddress>a@evo.com</emailAddress>
+
+    <fullName>Jack Sparrow</fullName>
+    <givenName>Jack</givenName>
+    <familyName>Sparrow</familyName>
+    <honorificPrefix>Cpt.</honorificPrefix>
+    <organizationalUnit>Brethren of the Coast</organizationalUnit>
+    <organizationalUnit>Davie Jones' Locker</organizationalUnit>
+
+    <credentials>
+        <password>
+        	<value>
+            <t:encryptedData>
+            	<t:encryptionMethod>
+            		<t:algorithm>http://www.w3.org/2001/04/xmlenc#aes256-cbc"</t:algorithm>
+            	</t:encryptionMethod>
+                <t:keyInfo>
+                    <t:keyName>HF6JRsNMeJt6alihT44CXKgpe0c=</t:keyName>
+         		</t:keyInfo>
+                <t:cipherData>
+                    <t:cipherValue>blc5OXO2Z4vJW7o/XXhqZzg/rkwsIOwRBK7KLgMqwcrVcYpeZZOjxzgRgFiNw4IB</t:cipherValue>
+                </t:cipherData>
+            </t:encryptedData>
+            </value>
+        </password>
+    </credentials>
+    
+</user>
