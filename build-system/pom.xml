@@ -1424,6 +1424,10 @@
 									<name>suitename</name>
 									<value>Unit</value>
 								</property>
+                                <property>
+                                    <name>listener</name>
+                                    <value>com.evolveum.midpoint.tools.testng.TestListener,com.evolveum.midpoint.tools.testng.RetryListener</value>
+                                </property>
 							</properties>
 						</configuration>
 					</execution>
@@ -1463,12 +1467,6 @@
 					<!-- <reportFormat>plain</reportFormat> -->
 					<trimStackTrace>false</trimStackTrace>
 					<useSystemClassLoader>false</useSystemClassLoader> <!-- See https://issues.apache.org/jira/browse/SUREFIRE-1588 -->
-					<properties>
-						<property>
-							<name>listener</name>
-							<value>com.evolveum.midpoint.tools.testng.TestListener</value>
-						</property>
-					</properties>
 					<systemPropertyVariables>
 						<javax.net.ssl.trustStore>src/test/resources/truststore.jks</javax.net.ssl.trustStore>
 						<midpoint.home>target/midpoint-home</midpoint.home>
@@ -1531,6 +1529,10 @@
                                 <property>
                                     <name>usedefaultlisteners</name>
                                     <value>false</value>
+                                </property>
+                                <property>
+                                    <name>listener</name>
+                                    <value>com.evolveum.midpoint.tools.testng.TestListener,com.evolveum.midpoint.tools.testng.RetryListener</value>
                                 </property>
                             </properties>
                         </configuration>
