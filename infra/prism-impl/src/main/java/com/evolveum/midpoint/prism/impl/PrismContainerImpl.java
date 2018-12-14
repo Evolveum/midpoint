@@ -339,7 +339,7 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
      * @return applicable property container definition
      */
     public PrismContainerDefinition<C> getDefinition() {
-        return (PrismContainerDefinition<C>) definition;
+        return definition;
     }
 
     /**
