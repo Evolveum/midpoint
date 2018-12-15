@@ -17,9 +17,4 @@
   -->
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
 <suite name="unit" parallel="false" verbose="1">
-    <test name="XJC plugin" preserve-order="false" verbose="1">
-        <classes>
-
-        </classes>
-    </test>
 </suite>
