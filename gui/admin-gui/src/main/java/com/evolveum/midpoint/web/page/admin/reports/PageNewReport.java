@@ -57,7 +57,7 @@ import java.io.InputStreamReader;
  * @author lazyman
  */
 @PageDescriptor(url = "/admin/reports/create", action = {
-        @AuthorizationAction(actionUri = PageAdminReports.AUTH_REPORTS_ALL,
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_REPORTS_ALL_URL,
                 label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL,
                 description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_REPORTS_REPORT_CREATE_URL,

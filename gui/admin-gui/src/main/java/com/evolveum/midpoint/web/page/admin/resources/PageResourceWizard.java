@@ -31,13 +31,17 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.Wizard;
 import com.evolveum.midpoint.web.component.wizard.WizardStep;
 import com.evolveum.midpoint.web.component.wizard.resource.*;
+import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.error.PageError;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -46,6 +50,7 @@ import org.apache.wicket.extensions.wizard.WizardModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -58,18 +63,19 @@ import java.util.Iterator;
  * @author lazyman
  */
 @PageDescriptor(url = "/admin/resources/wizard", action = {
-        @AuthorizationAction(actionUri = PageAdminResources.AUTH_RESOURCE_ALL,
-            label = PageAdminResources.AUTH_RESOURCE_ALL_LABEL,
-            description = PageAdminResources.AUTH_RESOURCE_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL,
+            label = "PageAdminResources.auth.resourcesAll.label",
+            description = "PageAdminResources.auth.resourcesAll.description"),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCE_EDIT_URL,
             label = "PageResourceWizard.auth.resource.label",
             description = "PageResourceWizard.auth.resource.description")})
-public class PageResourceWizard extends PageAdminResources {
+public class PageResourceWizard extends PageAdmin {
 
     private static final String ID_WIZARD = "wizard";
 	public static final String PARAM_OID = "oid";
 	public static final String PARAM_CONFIG_ONLY = "configOnly";
 	public static final String PARAM_READ_ONLY = "readOnly";
+	private static final Trace LOGGER = TraceManager.getTrace(PageResourceWizard.class);
 
 	// these models should be reset after each 'save' operation, in order to fetch current data (on demand)
 	// each step should use corresponding model
@@ -311,5 +317,10 @@ public class PageResourceWizard extends PageAdminResources {
 
 	public boolean showSaveResultInPage(boolean saved, OperationResult result) {
 		return saved || WebComponentUtil.showResultInPage(result);
+	}
+
+	protected String getResourceOid() {
+		StringValue resourceOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
+		return resourceOid != null ? resourceOid.toString() : null;
 	}
 }

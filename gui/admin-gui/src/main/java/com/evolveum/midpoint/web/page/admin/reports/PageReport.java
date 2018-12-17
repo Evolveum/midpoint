@@ -56,7 +56,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
  * @author shood
  */
 @PageDescriptor(url = "/admin/report", encoder = OnePageParameterEncoder.class, action = {
-        @AuthorizationAction(actionUri = PageAdminReports.AUTH_REPORTS_ALL,
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_REPORTS_ALL_URL,
                 label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL,
                 description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_REPORT_URL,

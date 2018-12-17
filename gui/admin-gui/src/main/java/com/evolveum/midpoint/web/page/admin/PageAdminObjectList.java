@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -27,10 +28,14 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.ColGroup;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.ArrayList;
@@ -65,7 +70,7 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
         initLayout();
     }
 
-    private void initLayout() {
+    protected void initLayout() {
         Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
         add(mainForm);
 
@@ -73,9 +78,8 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
     }
 
     private void initTable(Form mainForm) {
-        Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<>();
         MainObjectListPanel<O> userListPanel = new MainObjectListPanel<O>(ID_TABLE,
-                getType(), UserProfileStorage.TableId.TABLE_USERS, options, this) {
+                getType(), UserProfileStorage.TableId.TABLE_USERS, getQueryOptions(), this) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -110,6 +114,21 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
                 }
                 return contentQuery;
             }
+
+            @Override
+            protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
+                return PageAdminObjectList.this.addCustomFilterToContentQuery(query);
+            }
+
+            @Override
+            protected boolean isClickable(IModel<SelectableBean<O>> rowModel) {
+                return isNameColumnClickable(rowModel);
+            }
+
+            @Override
+            protected List<ObjectOrdering> createCustomOrdering(SortParam<String> sortParam) {
+                return PageAdminObjectList.this.createCustomOrdering(sortParam);
+            }
         };
 
         userListPanel.setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_USER_BOX_CSS_CLASSES);
@@ -123,16 +142,37 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
 
     protected abstract List<InlineMenuItem> createRowActions();
 
-    protected abstract void objectDetailsPerformed(AjaxRequestTarget target, O object);
+    protected void objectDetailsPerformed(AjaxRequestTarget target, O object){}
 
-    protected abstract void newObjectActionPerformed(AjaxRequestTarget target);
+    protected void newObjectActionPerformed(AjaxRequestTarget target){}
 
     protected ObjectFilter getArchetypeViewFilter(){
         return null;
     }
 
+    protected ObjectQuery addCustomFilterToContentQuery(ObjectQuery query){
+        return query;
+    }
+
+    protected boolean isNameColumnClickable(IModel<SelectableBean<O>> rowModel) {
+        return true;
+    }
+
+    protected List<ObjectOrdering> createCustomOrdering(SortParam<String> sortParam) {
+        return null;
+    }
+
+    protected Collection<SelectorOptions<GetOperationOptions>> getQueryOptions(){
+        return null;
+    }
+
+    protected Form getMainForm(){
+        return (Form) get(ID_MAIN_FORM);
+    }
+
     public MainObjectListPanel<O> getObjectListPanel() {
         return (MainObjectListPanel<O>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
     }
+
 
 }

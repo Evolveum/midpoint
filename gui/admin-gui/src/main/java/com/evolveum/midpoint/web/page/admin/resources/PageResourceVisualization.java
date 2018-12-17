@@ -52,9 +52,9 @@ import java.io.IOException;
  * @author mederly
  */
 @PageDescriptor(url = "/admin/resources/visualization", action = {
-		@AuthorizationAction(actionUri = PageAdminResources.AUTH_RESOURCE_ALL,
-				label = PageAdminResources.AUTH_RESOURCE_ALL_LABEL,
-				description = PageAdminResources.AUTH_RESOURCE_ALL_DESCRIPTION),
+		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL,
+				label = "PageAdminResources.auth.resourcesAll.label",
+				description = "PageAdminResources.auth.resourcesAll.description"),
 		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCE_EDIT_URL,
 				label = "PageResourceWizard.auth.resource.label",
 				description = "PageResourceWizard.auth.resource.description")})

@@ -31,6 +31,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -85,13 +86,13 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
  * @author lazyman
  */
 @PageDescriptor(url = "/admin/reports/created", action = {
-        @AuthorizationAction(actionUri = PageAdminReports.AUTH_REPORTS_ALL,
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_REPORTS_ALL_URL,
                 label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL,
                 description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_REPORTS_CREATED_REPORTS_URL,
                 label = "PageCreatedReports.auth.createdReports.label",
                 description = "PageCreatedReports.auth.createdReports.description")})
-public class PageCreatedReports extends PageAdminReports {
+public class PageCreatedReports extends PageAdminObjectList<ReportOutputType> {
 
 	private static final long serialVersionUID = 1L;
 
@@ -103,8 +104,6 @@ public class PageCreatedReports extends PageAdminReports {
     private static final String OPERATION_GET_REPORT_FILENAME = DOT_CLASS + "getReportFilename";
     private static final String OPERATION_LOAD_REPORTS = DOT_CLASS + "loadReports";
 
-    private static final String ID_MAIN_FORM = "mainForm";
-    private static final String ID_CREATED_REPORTS_TABLE = "table";
     private static final String ID_REPORT_TYPE_SELECT = "reportType";
 
 
@@ -113,6 +112,8 @@ public class PageCreatedReports extends PageAdminReports {
 
     private static Map<ExportType, String> reportExportTypeMap = new HashMap<>();
     private Map<String, String> reportTypeMal = new HashMap<>();
+
+    private AjaxDownloadBehaviorFromStream ajaxDownloadBehavior = null;
 
     static {
         reportExportTypeMap.put(ExportType.CSV, "text/csv; charset=UTF-8");
@@ -134,10 +135,7 @@ public class PageCreatedReports extends PageAdminReports {
     public PageCreatedReports(PageParameters pageParameters) {
         super(pageParameters);
 
-
         initReportTypeMap();
-        initLayout();
-
     }
 
     private void initReportTypeMap() {
@@ -158,30 +156,32 @@ public class PageCreatedReports extends PageAdminReports {
          return "undefined";
     }
 
-    private void initLayout() {
-        Form<?> mainForm = new com.evolveum.midpoint.web.component.form.Form<>(ID_MAIN_FORM);
-        add(mainForm);
+    @Override
+    protected void initLayout() {
+        super.initLayout();
 
-
-
+        String reportName = reportTypeMal.get(getReportType());
+        List<String> values = new ArrayList<>(reportTypeMal.values());
         DropDownChoicePanel<String> reportTypeSelect = new DropDownChoicePanel(ID_REPORT_TYPE_SELECT,
-              Model.of(reportTypeMal.get(getReportType())),
-              Model.of(reportTypeMal.values()),
-              StringChoiceRenderer.simple(), true);
+                Model.of(reportName),
+                Model.ofList(values),
+                StringChoiceRenderer.simple(), true);
 
-      reportTypeSelect.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
+        reportTypeSelect.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
 
-    	  private static final long serialVersionUID = 1L;
-          @Override
-          protected void onUpdate(AjaxRequestTarget target) {
-              getReportOutputTable().refreshTable(ReportOutputType.class, target);;
-          }
-      });
-      reportTypeSelect.setOutputMarkupId(true);
-      mainForm.add(reportTypeSelect);
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                getObjectListPanel().refreshTable(ReportOutputType.class, target);
+                ;
+            }
+        });
+        reportTypeSelect.setOutputMarkupId(true);
+        getMainForm().add(reportTypeSelect);
 
 
-        final AjaxDownloadBehaviorFromStream ajaxDownloadBehavior = new AjaxDownloadBehaviorFromStream() {
+        AjaxDownloadBehaviorFromStream ajaxDownloadBehavior = new AjaxDownloadBehaviorFromStream() {
 
         	private static final long serialVersionUID = 1L;
 
@@ -196,70 +196,61 @@ public class PageCreatedReports extends PageAdminReports {
             }
         };
 
-        mainForm.add(ajaxDownloadBehavior);
-
-
-        MainObjectListPanel<ReportOutputType> table = new MainObjectListPanel<ReportOutputType>(ID_CREATED_REPORTS_TABLE, ReportOutputType.class, UserProfileStorage.TableId.PAGE_CREATED_REPORTS_PANEL, null, this) {
-
-        	private static final long serialVersionUID = 1L;
-			@Override
-			protected List<InlineMenuItem> createInlineMenu() {
-				return PageCreatedReports.this.initInlineMenu();
-			}
-
-			@Override
-			protected List<IColumn<SelectableBean<ReportOutputType>, String>> createColumns() {
-				return PageCreatedReports.this.initColumns(ajaxDownloadBehavior);
-			}
-
-            @Override
-			protected void objectDetailsPerformed(AjaxRequestTarget target, ReportOutputType object) {
-				// TODO Auto-generated method stub
-
-			}
-
-			@Override
-			protected void newObjectPerformed(AjaxRequestTarget target) {
-				// TODO Auto-generated method stub
-
-			}
-
-			@Override
-			protected boolean isClickable(IModel<SelectableBean<ReportOutputType>> rowModel) {
-				return false;
-			}
-
-			@Override
-			protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
-				return appendTypeFilter(query);
-			}
-
-			@Override
-			protected List<ObjectOrdering> createCustomOrdering(SortParam<String> sortParam) {
-
-				if (sortParam != null && sortParam.getProperty() != null) {
-					OrderDirection order = sortParam.isAscending() ? OrderDirection.ASCENDING : OrderDirection.DESCENDING;
-					if (sortParam.getProperty().equals("createTimestamp")) {
-						return Collections.singletonList(
-								getPrismContext().queryFactory().createOrdering(
-										ItemPath.create(ReportOutputType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), order));
-					}
-						return Collections.singletonList(
-								getPrismContext().queryFactory().createOrdering(
-										ItemPath.create(new QName(SchemaConstantsGenerated.NS_COMMON, sortParam.getProperty())), order));
-
-
-				} else {
-					return Collections.emptyList();
-				}
-			}
-
-		};
-
-
-        table.setOutputMarkupId(true);
-        mainForm.add(table);
+        getMainForm().add(ajaxDownloadBehavior);
     }
+
+    @Override
+    protected List<InlineMenuItem> createRowActions() {
+        return PageCreatedReports.this.initInlineMenu();
+    }
+
+    @Override
+    protected List<IColumn<SelectableBean<ReportOutputType>, String>> initColumns() {
+        return PageCreatedReports.this.initColumns(ajaxDownloadBehavior);
+    }
+
+    @Override
+    protected void objectDetailsPerformed(AjaxRequestTarget target, ReportOutputType object) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    protected void newObjectActionPerformed(AjaxRequestTarget target) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    protected boolean isNameColumnClickable(IModel<SelectableBean<ReportOutputType>> rowModel) {
+        return false;
+    }
+
+    @Override
+    protected ObjectQuery addCustomFilterToContentQuery(ObjectQuery query) {
+        return appendTypeFilter(query);
+    }
+
+    @Override
+    protected List<ObjectOrdering> createCustomOrdering(SortParam<String> sortParam) {
+
+        if (sortParam != null && sortParam.getProperty() != null) {
+            OrderDirection order = sortParam.isAscending() ? OrderDirection.ASCENDING : OrderDirection.DESCENDING;
+            if (sortParam.getProperty().equals("createTimestamp")) {
+                return Collections.singletonList(
+                        getPrismContext().queryFactory().createOrdering(
+                                ItemPath.create(ReportOutputType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), order));
+            }
+            return Collections.singletonList(
+                    getPrismContext().queryFactory().createOrdering(
+                            ItemPath.create(new QName(SchemaConstantsGenerated.NS_COMMON, sortParam.getProperty())), order));
+
+
+        } else {
+            return Collections.emptyList();
+        }
+    }
+
 
     //TODO - commented until FileType property will be available in ReportOutputType
 
@@ -395,11 +386,7 @@ public class PageCreatedReports extends PageAdminReports {
     }
 
     private List<ReportOutputType> getSelectedData() {
-        return getReportOutputTable().getSelectedObjects();
-    }
-
-    private MainObjectListPanel<ReportOutputType> getReportOutputTable() {
-        return (MainObjectListPanel<ReportOutputType>) get(createComponentPath(ID_MAIN_FORM, ID_CREATED_REPORTS_TABLE));
+        return getObjectListPanel().getSelectedObjects();
     }
 
     private void deleteAllPerformed(AjaxRequestTarget target, ReportDeleteDialogDto.Operation op) {
@@ -470,8 +457,8 @@ public class PageCreatedReports extends PageAdminReports {
         }
         result.computeStatusIfUnknown();
 
-        getReportOutputTable().clearCache();
-        getReportOutputTable().refreshTable(ReportOutputType.class, target);
+        getObjectListPanel().clearCache();
+        getObjectListPanel().refreshTable(ReportOutputType.class, target);
 
         showResult(result);
         target.add(getFeedbackPanel());
@@ -484,8 +471,8 @@ public class PageCreatedReports extends PageAdminReports {
     }
 
     private ObjectQuery appendTypeFilter(ObjectQuery query) {
-    	DropDownChoicePanel<String> typeSelect = (DropDownChoicePanel<String>) get(createComponentPath(ID_MAIN_FORM, ID_REPORT_TYPE_SELECT));
-    	String typeRef = (String) typeSelect.getBaseFormComponent().getModelObject();
+    	DropDownChoicePanel<String> typeSelect = (DropDownChoicePanel<String>) getMainForm().get(ID_REPORT_TYPE_SELECT);
+    	String typeRef = typeSelect == null ? reportTypeMal.get(getReportType()) : (String) typeSelect.getBaseFormComponent().getModelObject();
     	S_AtomicFilterEntry q = getPrismContext().queryFor(ReportOutputType.class);
 
     	S_AtomicFilterExit refF;
@@ -571,5 +558,10 @@ public class PageCreatedReports extends PageAdminReports {
             //nothing to do
         }
         return null;
+    }
+
+    @Override
+    protected Class<ReportOutputType> getType(){
+        return ReportOutputType.class;
     }
 }
