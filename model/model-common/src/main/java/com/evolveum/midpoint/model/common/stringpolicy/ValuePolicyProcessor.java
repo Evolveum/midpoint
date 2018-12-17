@@ -158,7 +158,7 @@ public class ValuePolicyProcessor {
 			}
 			LOGGER.trace("Generator attempt {}: check failed", attempt);
 			if (attempt == maxAttempts) {
-				ExpressionEvaluationException e =  new ExpressionEvaluationException("Unable to generate value, maximum number of attempts exceeded");
+				ExpressionEvaluationException e =  new ExpressionEvaluationException("Unable to generate value, maximum number of attempts ("+maxAttempts+") exceeded");
 				result.recordFatalError(e);
 				throw e;
 			}
