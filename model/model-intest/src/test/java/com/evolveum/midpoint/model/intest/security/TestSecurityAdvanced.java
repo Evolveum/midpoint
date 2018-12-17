@@ -116,6 +116,9 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 	protected static final File ROLE_READ_ROLE_MEMBERS_NONE_FILE = new File(TEST_DIR, "role-read-role-members-none.xml");
 	protected static final String ROLE_READ_ROLE_MEMBERS_NONE_OID = "9e93dfb2-3eff-11e7-b56b-1b0e35f837fc";
 	
+	protected static final File ROLE_ROLE_ADMINISTRATOR_FILE = new File(TEST_DIR, "role-role-administrator.xml");
+	protected static final String ROLE_ROLE_ADMINISTRATOR_OID = "b63ee91e-020c-11e9-a7c2-df4b9f00f209";
+	
 	protected static final File ROLE_LIMITED_ROLE_ADMINISTRATOR_FILE = new File(TEST_DIR, "role-limited-role-administrator.xml");
 	protected static final String ROLE_LIMITED_ROLE_ADMINISTRATOR_OID = "ce67b472-e5a6-11e7-98c3-174355334559";
 	
@@ -164,6 +167,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 				RESOURCE_DUMMY_VAULT_FILE, RESOURCE_DUMMY_VAULT_OID, initTask, initResult);
 		
 		repoAddObjectFromFile(ROLE_VAULT_DWELLER_FILE, initResult);
+		repoAddObjectFromFile(ROLE_ROLE_ADMINISTRATOR_FILE, initResult);
 		repoAddObjectFromFile(ROLE_LIMITED_ROLE_ADMINISTRATOR_FILE, initResult);
 		repoAddObjectFromFile(ROLE_LIMITED_READ_ROLE_ADMINISTRATOR_FILE, initResult);
 		repoAddObjectFromFile(ROLE_MAXASSIGNEES_10_FILE, initResult);
@@ -184,7 +188,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_SECURITY_OID, initResult);
 	}
 	
-	protected static final int NUMBER_OF_IMPORTED_ROLES = 17;
+	protected static final int NUMBER_OF_IMPORTED_ROLES = 18;
 	
 	protected int getNumberOfRoles() {
 		return super.getNumberOfRoles() + NUMBER_OF_IMPORTED_ROLES;
@@ -309,7 +313,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assertGetDeny(UserType.class, USER_JACK_OID);
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
         assertGetAllow(UserType.class, USER_LECHUCK_OID);
-        display("HEREHERE");
         assertGetAllow(UserType.class, USER_CHARLES_OID);
 
 //        TODO: MID-3899
@@ -2380,9 +2383,77 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		assertItemFlags(roleEmptyEditSchema, 
 				new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_STRENGTH),
 				true, true, true);
+		
+		assertAllow("induce role uninteresting to empty role",
+        		(task, result) -> induceRole(RoleType.class, ROLE_EMPTY_OID, ROLE_UNINTERESTING_OID, task, result));
+        
+        assertAllow("uninduce role uninteresting to empty role",
+        		(task, result) -> uninduceRole(RoleType.class, ROLE_EMPTY_OID, ROLE_UNINTERESTING_OID, task, result));
         
         assertGlobalStateUntouched();
 	}
+	
+	/**
+	 * MID-5005
+	 */
+	@Test
+    public void test266AutzJackRoleAdministrator() throws Exception {
+		final String TEST_NAME = "test266AutzJackRoleAdministrator";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_ROLE_ADMINISTRATOR_OID);
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        assertGetAllow(UserType.class, USER_JACK_OID);
+		assertGetDeny(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+		assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
+		assertGetDeny(UserType.class, USER_GUYBRUSH_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+		assertReadDenyRaw();
+
+		assertSearch(UserType.class, null, 1);
+		assertSearch(UserType.class, createNameQuery(USER_JACK_USERNAME), 1);
+		assertSearchDeny(UserType.class, createNameQuery(USER_JACK_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+		assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), 0);
+		assertSearchDeny(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+
+        assertAddDeny();
+        assertDeleteDeny();
+
+        assertAddAllow(ROLE_EXCLUSION_PIRATE_FILE);
+        
+        PrismObject<RoleType> roleExclusion = assertGetAllow(RoleType.class, ROLE_EXCLUSION_PIRATE_OID);
+        display("Exclusion role", roleExclusion);
+        assertExclusion(roleExclusion, ROLE_PIRATE_OID);
+        
+        assertAllow("assign role uninteresting to empty role",
+        		(task, result) -> assignRole(RoleType.class, ROLE_EMPTY_OID, ROLE_UNINTERESTING_OID, task, result));
+        
+        assertAllow("unassign role uninteresting to empty role",
+        		(task, result) -> unassignRole(RoleType.class, ROLE_EMPTY_OID, ROLE_UNINTERESTING_OID, task, result));
+
+        PrismObject<RoleType> roleEmpty = assertGetAllow(RoleType.class, ROLE_EMPTY_OID);
+        display("Empty empty (1)", roleEmpty);
+        assertAssignments(roleEmpty, 0);
+        assertInducements(roleEmpty, 0);
+        
+        assertAllow("induce role uninteresting to empty role",
+        		(task, result) -> induceRole(RoleType.class, ROLE_EMPTY_OID, ROLE_UNINTERESTING_OID, task, result));
+        
+        assertAllow("uninduce role uninteresting to empty role",
+        		(task, result) -> uninduceRole(RoleType.class, ROLE_EMPTY_OID, ROLE_UNINTERESTING_OID, task, result));
+
+        roleEmpty = assertGetAllow(RoleType.class, ROLE_EMPTY_OID);
+        display("Empty empty (2)", roleEmpty);
+        assertAssignments(roleEmpty, 0);
+        assertInducements(roleEmpty, 0);
+        
+        assertGlobalStateUntouched();
+	}
+
 
 	
 	@Test

@@ -134,7 +134,7 @@ public class ClockworkAuthorizationHelper {
 				// the same account in one operation
 				object = elementContext.getObjectNew();
 			}
-			String operationUrl = ModelImplUtils.getOperationUrlFromDelta(primaryDeltaClone);
+			String deltaOperationUrl = ModelImplUtils.getOperationUrlFromDelta(primaryDeltaClone);
 			ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(object, ownerResolver, task, result);
 			if (securityConstraints == null) {
 				if (LOGGER.isTraceEnabled()) {
@@ -147,10 +147,10 @@ public class ClockworkAuthorizationHelper {
 				// Process assignments/inducements first. If the assignments/inducements are allowed then we
 				// have to ignore the assignment item in subsequent security checks
 				if (object.canRepresent(FocusType.class)) {
-					processAssignment(context, elementContext, primaryDeltaClone, operationUrl, FocusType.F_ASSIGNMENT, object, ownerResolver, securityConstraints, task, result);
+					processAssignment(context, elementContext, primaryDeltaClone, deltaOperationUrl, FocusType.F_ASSIGNMENT, object, ownerResolver, securityConstraints, task, result);
 				}
 				if (object.canRepresent(AbstractRoleType.class)) {
-					processAssignment(context, elementContext, primaryDeltaClone, operationUrl, AbstractRoleType.F_INDUCEMENT, object, ownerResolver, securityConstraints, task, result);
+					processAssignment(context, elementContext, primaryDeltaClone, deltaOperationUrl, AbstractRoleType.F_INDUCEMENT, object, ownerResolver, securityConstraints, task, result);
 				}
 			}
 
@@ -206,7 +206,7 @@ public class ClockworkAuthorizationHelper {
 
 			if (primaryDeltaClone != null && !primaryDeltaClone.isEmpty()) {
 				// TODO: optimize, avoid evaluating the constraints twice
-				securityEnforcer.authorize(operationUrl, getRequestAuthorizationPhase(context) , AuthorizationParameters.Builder.buildObjectDelta(object, primaryDeltaClone), ownerResolver, task, result);
+				securityEnforcer.authorize(deltaOperationUrl, getRequestAuthorizationPhase(context) , AuthorizationParameters.Builder.buildObjectDelta(object, primaryDeltaClone), ownerResolver, task, result);
 			}
 
 			if (LOGGER.isTraceEnabled()) {
@@ -226,7 +226,7 @@ public class ClockworkAuthorizationHelper {
 			LensContext<F> context,
 			LensElementContext<O> elementContext,
 			ObjectDelta<O> primaryDeltaClone,
-			String operationUrl,
+			String deltaOperationUrl,
 			QName assignmentElementQName,
 			PrismObject<O> object,
 			OwnerResolver ownerResolver,
@@ -241,7 +241,7 @@ public class ClockworkAuthorizationHelper {
 		}
 		
 		if (primaryDeltaClone.hasItemOrSubitemDelta(new ItemPath(assignmentElementQName))) {
-			AccessDecision assignmentItemDecision = determineDecisionForAssignmentItems(securityConstraints, primaryDeltaClone, currentObject, operationUrl, getRequestAuthorizationPhase(context));
+			AccessDecision assignmentItemDecision = determineDecisionForAssignmentItems(securityConstraints, primaryDeltaClone, currentObject, deltaOperationUrl, assignmentElementQName, getRequestAuthorizationPhase(context));
 			LOGGER.trace("Security decision for {} items: {}", assignmentElementQName.getLocalPart(), assignmentItemDecision);
 			if (assignmentItemDecision == AccessDecision.ALLOW) {
 				// Nothing to do, operation is allowed for all values
@@ -253,7 +253,7 @@ public class ClockworkAuthorizationHelper {
 				}
 				throw new AuthorizationException("Access denied");
 			} else {
-				AuthorizationDecisionType allItemsDecision = securityConstraints.findAllItemsDecision(operationUrl, getRequestAuthorizationPhase(context));
+				AuthorizationDecisionType allItemsDecision = securityConstraints.findAllItemsDecision(deltaOperationUrl, getRequestAuthorizationPhase(context));
 				if (allItemsDecision == AuthorizationDecisionType.ALLOW) {
 					// Nothing to do, operation is allowed for all values
 				} else if (allItemsDecision == AuthorizationDecisionType.DENY) {
@@ -264,14 +264,14 @@ public class ClockworkAuthorizationHelper {
 				} else {
 					// No blank decision for assignment modification yet
 					// process each assignment individually
-					authorizeAssignmentRequest(context, operationUrl, ModelAuthorizationAction.ASSIGN.getUrl(),
+					authorizeAssignmentRequest(context, deltaOperationUrl, ModelAuthorizationAction.ASSIGN.getUrl(),
 							assignmentElementQName,
 							object, ownerResolver, securityConstraints, PlusMinusZero.PLUS, true, task, result);
 
 					if (!primaryDeltaClone.isAdd()) {
 						// We want to allow unassignment even if there are policies. Otherwise we would not be able to get
 						// rid of that assignment
-						authorizeAssignmentRequest(context, operationUrl, ModelAuthorizationAction.UNASSIGN.getUrl(),
+						authorizeAssignmentRequest(context, deltaOperationUrl, ModelAuthorizationAction.UNASSIGN.getUrl(),
 								assignmentElementQName,
 								object, ownerResolver, securityConstraints, PlusMinusZero.MINUS, false, task, result);
 					}
@@ -394,7 +394,7 @@ public class ClockworkAuthorizationHelper {
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.debug("{} of target {} to {} denied", operationDesc, target, object);
 			}
-			securityEnforcer.failAuthorization("with assignment", getRequestAuthorizationPhase(context),  autzParams, result);
+			securityEnforcer.failAuthorization("with "+assignmentElementQName.getLocalPart(), getRequestAuthorizationPhase(context),  autzParams, result);
 		}
 	}
 
@@ -420,9 +420,9 @@ public class ClockworkAuthorizationHelper {
 	}
 
 	private <O extends ObjectType> AccessDecision determineDecisionForAssignmentItems(
-			ObjectSecurityConstraints securityConstraints, ObjectDelta<O> primaryDelta, PrismObject<O> currentObject, String operationUrl,
-			AuthorizationPhaseType requestAuthorizationPhase) {
-		return securityEnforcer.determineSubitemDecision(securityConstraints, primaryDelta, currentObject, operationUrl, requestAuthorizationPhase, SchemaConstants.PATH_ASSIGNMENT);
+			ObjectSecurityConstraints securityConstraints, ObjectDelta<O> primaryDelta, PrismObject<O> currentObject, String deltaOperationUrl,
+			QName assignmentElementQName, AuthorizationPhaseType requestAuthorizationPhase) {
+		return securityEnforcer.determineSubitemDecision(securityConstraints, primaryDelta, currentObject, deltaOperationUrl, requestAuthorizationPhase, new ItemPath(assignmentElementQName));
 	}
 
 	private <F extends ObjectType> AuthorizationPhaseType getRequestAuthorizationPhase(LensContext<F> context) {
