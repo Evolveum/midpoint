@@ -3079,4 +3079,59 @@ public final class WebComponentUtil {
 
 		return Model.of(StringUtils.left(prefix, prefix.length() - 1) + sUrl);
 	}
+
+	public static void deleteSyncTokenPerformed(AjaxRequestTarget target, ResourceType resourceType, PageBase pageBase){
+		String resourceOid = resourceType.getOid();
+		String handlerUri = "http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3";
+		ObjectReferenceType resourceRef = new ObjectReferenceType();
+		resourceRef.setOid(resourceOid);
+		PrismObject<TaskType> oldTask;
+
+		OperationResult result = new OperationResult(pageBase.getClass().getName() + "." + "deleteSyncToken");
+		ObjectQuery query = pageBase.getPrismContext().queryFor(TaskType.class)
+				.item(TaskType.F_OBJECT_REF).ref(resourceOid)
+				.and().item(TaskType.F_HANDLER_URI).eq(handlerUri)
+				.build();
+
+		List<PrismObject<TaskType>> taskList = WebModelServiceUtils.searchObjects(TaskType.class, query, result, pageBase);
+
+		if (taskList.size() != 1) {
+			pageBase.error(pageBase.createStringResource("pageResource.message.invalidTaskSearch"));
+		} else {
+			oldTask = taskList.get(0);
+			saveTask(oldTask, result, pageBase);
+		}
+
+		result.recomputeStatus();
+		pageBase.showResult(result);
+		target.add(pageBase.getFeedbackPanel());
+	}
+
+	public static void saveTask(PrismObject<TaskType> oldTask, OperationResult result, PageBase pageBase){
+		Task task = pageBase.createSimpleTask(pageBase.getClass().getName() + "." + "saveSyncTask");
+
+		PrismProperty property = oldTask.findProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN));
+
+		if(property == null){
+			return;
+		}
+		Object value = property.getRealValue();
+
+		ObjectDelta<TaskType> delta = pageBase.getPrismContext().deltaFactory().object().createModifyDelta(oldTask.getOid(),
+				pageBase.getPrismContext().deltaFactory().property()
+						.createModificationDeleteProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN), property.getDefinition(), value),
+				TaskType.class);
+
+		if(LOGGER.isTraceEnabled()){
+			LOGGER.trace(delta.debugDump());
+		}
+
+		try {
+			pageBase.getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task, result);
+		} catch (Exception e){
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save task.", e);
+			result.recordFatalError("Couldn't save task.", e);
+		}
+		result.recomputeStatus();
+	}
 }
