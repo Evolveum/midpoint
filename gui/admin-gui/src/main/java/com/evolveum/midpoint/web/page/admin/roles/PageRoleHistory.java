@@ -35,9 +35,9 @@ import org.apache.wicket.model.IModel;
  * Created by honchar
  */
 @PageDescriptor(url = "/admin/roleHistory", action = {
-        @AuthorizationAction(actionUri = PageAdminRoles.AUTH_ROLE_ALL,
-                label = PageAdminRoles.AUTH_ROLE_ALL_LABEL,
-                description = PageAdminRoles.AUTH_ROLE_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ROLES_ALL_URL,
+                label = "PageAdminRoles.auth.roleAll.label",
+                description = "PageAdminRoles.auth.roleAll.description"),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ROLE_HISTORY_URL,
                 label = "PageRoleHistory.auth.roleHistory.label",
                 description = "PageRoleHistory.auth.roleHistory.description")})

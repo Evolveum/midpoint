@@ -74,9 +74,9 @@ import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
  * @author semancik
  */
 @PageDescriptor(url = "/admin/user", encoder = OnePageParameterEncoder.class, action = {
-        @AuthorizationAction(actionUri = PageAdminUsers.AUTH_USERS_ALL,
-                label = PageAdminUsers.AUTH_USERS_ALL_LABEL,
-                description = PageAdminUsers.AUTH_USERS_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USERS_ALL_URL,
+                label = "PageAdminUsers.auth.usersAll.label",
+                description = "PageAdminUsers.auth.usersAll.description"),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USER_URL,
                 label = "PageUser.auth.user.label",
                 description = "PageUser.auth.user.description")})

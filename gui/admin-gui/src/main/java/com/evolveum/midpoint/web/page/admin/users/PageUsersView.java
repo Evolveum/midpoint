@@ -42,9 +42,9 @@ import org.apache.wicket.util.string.StringValue;
                 @Url(mountUrl = "/admin/usersView", matchUrlForSecurity = "/admin/usersView")
         },
         action = {
-                @AuthorizationAction(actionUri = PageAdminUsers.AUTH_USERS_ALL,
-                        label = PageAdminUsers.AUTH_USERS_ALL_LABEL,
-                        description = PageAdminUsers.AUTH_USERS_ALL_DESCRIPTION),
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USERS_ALL_URL,
+                        label = "PageAdminUsers.auth.usersAll.label",
+                        description = "PageAdminUsers.auth.usersAll.description"),
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USERS_VIEW_URL,
                         label = "PageUsers.auth.users.label",
                         description = "PageUsers.auth.users.description")

@@ -67,14 +67,6 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		implements ProgressReportingAwarePage {
 	private static final long serialVersionUID = 1L;
 
-	public static final String AUTH_USERS_ALL = AuthorizationConstants.AUTZ_UI_USERS_ALL_URL;
-	public static final String AUTH_USERS_ALL_LABEL = "PageAdminUsers.auth.usersAll.label";
-	public static final String AUTH_USERS_ALL_DESCRIPTION = "PageAdminUsers.auth.usersAll.description";
-
-	public static final String AUTH_ORG_ALL = AuthorizationConstants.AUTZ_UI_ORG_ALL_URL;
-	public static final String AUTH_ORG_ALL_LABEL = "PageAdminUsers.auth.orgAll.label";
-	public static final String AUTH_ORG_ALL_DESCRIPTION = "PageAdminUsers.auth.orgAll.description";
-
 	private LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel;
 	private LoadableModel<List<AssignmentEditorDto>> delegatedToMeModel;
 
