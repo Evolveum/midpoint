@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
+import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
@@ -62,7 +63,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_REPORT_URL,
                 label = "PageReport.auth.report.label",
                 description = "PageReport.auth.report.description")})
-public class PageReport extends PageAdminReports {
+public class PageReport extends PageAdmin {
 
     private static Trace LOGGER = TraceManager.getTrace(PageReport.class);
 

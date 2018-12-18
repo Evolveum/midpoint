@@ -26,10 +26,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportOutputType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ColGroup;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -38,9 +37,7 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by honchar
@@ -78,6 +75,7 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
     }
 
     private void initTable(Form mainForm) {
+        //TODO fix tableId
         MainObjectListPanel<O> userListPanel = new MainObjectListPanel<O>(ID_TABLE,
                 getType(), UserProfileStorage.TableId.TABLE_USERS, getQueryOptions(), this) {
             private static final long serialVersionUID = 1L;
