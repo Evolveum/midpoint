@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.other;
 
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 
@@ -76,7 +77,7 @@ public enum RReferenceOwner {
         Validate.notNull(qname, "QName must not be null");
 
         for (RReferenceOwner owner : values()) {
-            if (qname.equals(owner.getElementName()) && owner.getTypeClass().isAssignableFrom(typeClass)) {
+            if (QNameUtil.match(qname, owner.getElementName()) && owner.getTypeClass().isAssignableFrom(typeClass)) {
                 return owner;
             }
         }
