@@ -17,11 +17,16 @@ package com.evolveum.midpoint.web.page.admin;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -29,6 +34,7 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ColGroup;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -106,7 +112,7 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
                 ObjectFilter usersViewFilter = getArchetypeViewFilter();
                 if (usersViewFilter != null){
                     if (contentQuery == null) {
-                        contentQuery = getPrismContext().queryFactory().createQuery();
+                        contentQuery = PageAdminObjectList.this.getPrismContext().queryFactory().createQuery();
                     }
                     contentQuery.addFilter(usersViewFilter);
                 }
@@ -145,7 +151,24 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
     protected void newObjectActionPerformed(AjaxRequestTarget target){}
 
     protected ObjectFilter getArchetypeViewFilter(){
-        return null;
+        PageParameters parameters = getPageParameters();
+        if (parameters == null || parameters.get(PARAMETER_OBJECT_ARCHETYPE_REF) == null || parameters.get(PARAMETER_OBJECT_ARCHETYPE_REF).isEmpty()) {
+            return null;
+        }
+
+        String oid = parameters.get(PARAMETER_OBJECT_ARCHETYPE_REF).toString();
+        List<CompiledObjectCollectionView> objectViews = getCompiledUserProfile().findAllApplicableObjectCollectionViews(getType());
+        if (objectViews == null) {
+            return null;
+        }
+        CompiledObjectCollectionView referredObjectView = null;
+        for (CompiledObjectCollectionView view : objectViews){
+            if (view.getCollection() != null && view.getCollection().getCollectionRef() != null && oid.equals(view.getCollection().getCollectionRef().getOid())){
+                referredObjectView = view;
+                break;
+            }
+        }
+        return referredObjectView.getFilter();
     }
 
     protected ObjectQuery addCustomFilterToContentQuery(ObjectQuery query){

@@ -25,6 +25,7 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.query.RefFilter;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -464,13 +465,15 @@ public class UserProfileCompiler {
 		// Compute and apply filter
 		ObjectReferenceType collectionRef = collection.getCollectionRef();
 		QName collectionRefType = collectionRef.getType();
-		ObjectFilter filter = null;
-		
+		RefFilter filter = null;
+
 		// TODO: support more cases
 		if (QNameUtil.match(ArchetypeType.COMPLEX_TYPE, collectionRefType)) {
-			filter = prismContext.queryFor(AssignmentHolderType.class)
+			filter = (RefFilter) prismContext.queryFor(AssignmentHolderType.class)
 				.item(AssignmentHolderType.F_ARCHETYPE_REF).ref(collectionRef.getOid())
 				.buildFilter();
+			filter.setTargetTypeNullAsAny(true);
+			filter.setRelationNullAsAny(true);
 		}
 		
 		// TODO: resolve (read) collection if needed
