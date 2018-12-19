@@ -32,6 +32,7 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 
 /**
  * @author Viliam Repan (lazyman)
+ * @author skublik
  */
 public abstract class AjaxCompositedIconButton extends AjaxLink<String> {
 
