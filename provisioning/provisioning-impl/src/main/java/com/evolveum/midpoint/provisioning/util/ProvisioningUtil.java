@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,7 +92,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static java.util.Collections.emptyList;
 
 public class ProvisioningUtil {
@@ -123,8 +122,8 @@ public class ProvisioningUtil {
 			i = i.item(ShadowType.F_CREDENTIALS).replace();
 		}
 		itemDeltas.addAll(i.asItemDeltas());
-		itemDeltas.addAll(ProvisioningUtil.createShadowAttributesReconciliationDeltas(currentShadow, repoShadowBefore, getPrismContext()));
-		itemDeltas.addAll(ProvisioningUtil.createShadowActivationCleanupDeltas(repo, getPrismContext()));
+		itemDeltas.addAll(ProvisioningUtil.createShadowAttributesReconciliationDeltas(currentShadow, repoShadowBefore, prismContext));
+		itemDeltas.addAll(ProvisioningUtil.createShadowActivationCleanupDeltas(repo, prismContext));
 		return itemDeltas;
 	}
 
