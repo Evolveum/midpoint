@@ -8,6 +8,7 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -22,7 +23,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 public class ItemPathSegmentPanel extends BasePanel<ItemPathDto> {
 
 	private static final long serialVersionUID = 1L;
-
+	
 	private static final String ID_DEFINITION = "definition";
 	private static final String ID_PARENT = "parentPath";
 
@@ -75,10 +76,22 @@ public class ItemPathSegmentPanel extends BasePanel<ItemPathDto> {
 				return collectAvailableDefinitions(input);
 
 			}
+			
+			@Override
+					protected void onUpdateAutoComplete(AjaxRequestTarget target,
+							Model<String> itemDefinitionAsStringModel, IModel<ItemDefinition<?>> model) {
+						super.onUpdateAutoComplete(target, itemDefinitionAsStringModel, model);
+						onUpdateAutoCompletePanel(target);
+					}
+			
 		};
 //		itemDefPanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		itemDefPanel.setOutputMarkupId(true);
 		add(itemDefPanel);
+	}
+	
+	protected void onUpdateAutoCompletePanel(AjaxRequestTarget target) {
+		
 	}
 
 	private Map<String, ItemDefinition<?>> collectAvailableDefinitions(String input) {
