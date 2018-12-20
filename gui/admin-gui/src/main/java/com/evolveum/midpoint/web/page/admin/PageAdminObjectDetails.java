@@ -303,6 +303,11 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 				if (objectToEdit == null) {
 					LOGGER.trace("Loading object: New object (creating)");
 					O focusType = createNewObject();
+
+					// Apply subtype using page parameters
+					List<StringValue> subtypes = getPageParameters().getValues(ObjectType.F_SUBTYPE.getLocalPart());
+					subtypes.stream().filter(p -> !p.isEmpty()).forEach(c -> focusType.subtype(c.toString()));
+
 					getMidpointApplication().getPrismContext().adopt(focusType);
 					object = (PrismObject<O>) focusType.asPrismObject();
 				} else {
