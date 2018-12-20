@@ -586,7 +586,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             Task task = createSimpleTask(PageBase.DOT_CLASS + "getCompiledUserProfile");
             try {
             	compiledUserProfile = modelInteractionService.getCompiledUserProfile(task, task.getResult());
-            } catch (ObjectNotFoundException | SchemaException e) {
+            } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Cannot retrieve compiled user profile", e);
                 if (InternalsConfig.nonCriticalExceptionsAreFatal()) {
                     throw new SystemException("Cannot retrieve compiled user profile: " + e.getMessage(), e);

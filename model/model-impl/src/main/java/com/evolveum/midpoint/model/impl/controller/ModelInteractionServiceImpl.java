@@ -781,7 +781,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
 	@NotNull
 	@Override
-	public CompiledUserProfile getCompiledUserProfile(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+	public CompiledUserProfile getCompiledUserProfile(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		MidPointPrincipal principal = null;
 		try {
 			principal = securityContextManager.getPrincipal();
@@ -791,7 +791,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
 		if (principal == null || !(principal instanceof MidPointUserProfilePrincipal)) {
 			// May be used for unathenticated user, error pages and so on
-			return userProfileCompiler.getGlobalCompiledUserProfile(parentResult);
+			return userProfileCompiler.getGlobalCompiledUserProfile(task, parentResult);
 		} else {
 			return ((MidPointUserProfilePrincipal)principal).getCompiledUserProfile();
 		}

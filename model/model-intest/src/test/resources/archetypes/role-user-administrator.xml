@@ -70,6 +70,16 @@
         </object>
     </authorization>
     
-    <!-- TODO: adminGuiConfig: view: active employees -->
+    <adminGuiConfiguration>
+    	<objectCollectionViews>
+    		<objectCollectionView>
+    			<name>Active employees</name>
+    			<type>UserType</type>
+    			<collection>
+    				<collectionRef oid="f61bcb4a-f8ae-11e8-9f5c-c3e7f27ee878" type="ObjectCollectionType"/> <!-- Active employees collection -->
+    			</collection>
+    		</objectCollectionView>
+    	</objectCollectionViews>
+    </adminGuiConfiguration>
     
 </role>
