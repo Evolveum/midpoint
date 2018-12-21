@@ -71,6 +71,12 @@
     </authorization>
     
     <adminGuiConfiguration>
+    	<objectForms>
+			<objectForm id="111"> <!-- Make sure there will be id conflict: MID-5002 -->
+				<type>RoleType</type>
+				<includeDefaultForms>true</includeDefaultForms>
+			</objectForm>
+		</objectForms>
     	<objectCollectionViews>
     		<objectCollectionView>
     			<name>Active employees</name>
