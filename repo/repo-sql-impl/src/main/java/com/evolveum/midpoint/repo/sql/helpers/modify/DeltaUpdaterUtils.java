@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql.helpers.modify;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAExtBase;
@@ -70,7 +71,7 @@ public class DeltaUpdaterUtils {
                 Container pairContainer = (Container) pairObject;
 
                 if (Objects.equals(c.getId(), pairContainer.getId())
-                        || pair.getPrism().equals(item.getPrism(), true)) {
+                        || pair.getPrism().equals(item.getPrism(), EquivalenceStrategy.IGNORE_METADATA)) {  //todo
                     return item;
                 }
             } else {

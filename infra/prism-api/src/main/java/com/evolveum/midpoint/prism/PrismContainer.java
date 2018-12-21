@@ -18,6 +18,7 @@ package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
@@ -83,9 +84,6 @@ public interface PrismContainer<C extends Containerable>
 	C getRealValue();
 
 	void setValue(@NotNull PrismContainerValue<C> value) throws SchemaException;
-
-	@Override
-	boolean add(@NotNull PrismContainerValue newValue, boolean checkUniqueness) throws SchemaException;
 
 	@NotNull
 	PrismContainerValue<C> getValue();
@@ -234,11 +232,11 @@ public interface PrismContainer<C extends Containerable>
 
 	ContainerDelta<C> diff(PrismContainer<C> other);
 
-	ContainerDelta<C> diff(PrismContainer<C> other, boolean ignoreMetadata, boolean isLiteral);
+	ContainerDelta<C> diff(PrismContainer<C> other, ParameterizedEquivalenceStrategy strategy);
 
 	List<? extends ItemDelta> diffModifications(PrismContainer<C> other);
 
-	List<? extends ItemDelta> diffModifications(PrismContainer<C> other, boolean ignoreMetadata, boolean isLiteral);
+	List<? extends ItemDelta> diffModifications(PrismContainer<C> other, ParameterizedEquivalenceStrategy strategy);
 
 	@Override
 	PrismContainer<C> clone();
@@ -248,30 +246,16 @@ public interface PrismContainer<C extends Containerable>
 
     PrismContainerDefinition<C> deepCloneDefinition(boolean ultraDeep, Consumer<ItemDefinition> postCloneAction);
 
-    @Override
+    @Deprecated
     boolean containsEquivalentValue(PrismContainerValue<C> value);
 
+	@Deprecated
 	@Override
 	boolean containsEquivalentValue(PrismContainerValue<C> value, Comparator<PrismContainerValue<C>> comparator);
 
 	@Override
 	void accept(Visitor visitor, ItemPath path, boolean recursive);
 
-	/**
-	 * Note: hashcode and equals compare the objects in the "java way". That means the objects must be
-	 * almost precisely equal to match (e.g. including source demarcation in values and other "annotations").
-	 * For a method that compares the "meaningful" parts of the objects see equivalent().
-	 */
-	@Override
-	int hashCode();
-
-	/**
-	 * Note: hashcode and equals compare the objects in the "java way". That means the objects must be
-	 * almost precisely equal to match (e.g. including source demarcation in values and other "annotations").
-	 * For a method that compares the "meaningful" parts of the objects see equivalent().
-	 */
-	@Override
-	boolean equals(Object obj);
 
 	/**
      * This method ignores some part of the object during comparison (e.g. source demarcation in values)

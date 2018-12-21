@@ -25,7 +25,7 @@ import java.io.IOException;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.impl.PrismReferenceDefinitionImpl;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.impl.PrismReferenceValueImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import org.testng.annotations.Test;
@@ -163,7 +163,7 @@ public abstract class TestCompare extends AbstractPrismTest {
 		PrismObject<UserType> jackModified = prismContext.parseObject(getFile(USER_JACK_MODIFIED_FILE_BASENAME));
 
 		// WHEN
-		ObjectDelta<UserType> jackDelta = jackOriginal.diff(jackModified, true, true);
+		ObjectDelta<UserType> jackDelta = jackOriginal.diff(jackModified, EquivalenceStrategy.NOT_LITERAL);
 
 		// THEN
 		System.out.println("Jack delta:");
@@ -312,41 +312,43 @@ public abstract class TestCompare extends AbstractPrismTest {
 
 		PrismContext prismContext = constructInitializedPrismContext();
 
-		PrismReferenceDefinitionImpl ref1Def = new PrismReferenceDefinitionImpl(REF_QNAME, REF_TYPE_QNAME, prismContext);
+		MutablePrismReferenceDefinition ref1Def = prismContext.definitionFactory().createReferenceDefinition(REF_QNAME, REF_TYPE_QNAME);
 		ref1Def.setTargetTypeName(ACCOUNT_TYPE_QNAME);
-		PrismReference ref1 = prismContext.itemFactory().createReference(REF_QNAME, ref1Def);
 
+		PrismReference ref1a = prismContext.itemFactory().createReference(REF_QNAME, ref1Def);
 		PrismReferenceValue val11 = new PrismReferenceValueImpl("oid1");
 		val11.setTargetType(ACCOUNT_TYPE_QNAME);
-		ref1.add(val11);
+		assertTrue(ref1a.add(val11));
 
 		PrismReferenceValue val12 = new PrismReferenceValueImpl("oid1");
 		val12.setTargetType(ACCOUNT_TYPE_QNAME);
-		ref1.add(val12);
+		assertFalse(ref1a.add(val12));
 
+		PrismReference ref1b = prismContext.itemFactory().createReference(REF_QNAME, ref1Def);
 		PrismReferenceValue val13 = new PrismReferenceValueImpl("oid1");
 		// No type
-		ref1.add(val13);
+		assertTrue(ref1b.add(val13));
 
 		PrismReferenceValue val14 = new PrismReferenceValueImpl("oid1");
 		// No type
-		ref1.add(val14);
+		assertFalse(ref1b.add(val14));
 
 		PrismReferenceDefinition ref2Def = prismContext.definitionFactory().createReferenceDefinition(REF_QNAME, REF_TYPE_QNAME);
 		// no target type def
-		PrismReference ref2 = prismContext.itemFactory().createReference(REF_QNAME, ref2Def);
 
+		PrismReference ref2a = prismContext.itemFactory().createReference(REF_QNAME, ref2Def);
 		PrismReferenceValue val21 = new PrismReferenceValueImpl("oid1");
 		val21.setTargetType(ACCOUNT_TYPE_QNAME);
-		ref2.add(val21);
+		assertTrue(ref2a.add(val21));
 
 		PrismReferenceValue val22 = new PrismReferenceValueImpl("oid1");
 		val22.setTargetType(ACCOUNT_TYPE_QNAME);
-		ref2.add(val22);
+		assertFalse(ref2a.add(val22));
 
+		PrismReference ref2b = prismContext.itemFactory().createReference(REF_QNAME, ref2Def);
 		PrismReferenceValue val23 = new PrismReferenceValueImpl("oid1");
 		// No type
-		ref2.add(val23);
+		assertTrue(ref2b.add(val23));
 
 		// No def in val4x
 
@@ -365,7 +367,7 @@ public abstract class TestCompare extends AbstractPrismTest {
 		assertTrue("val12 - val11", val12.equals(val11));
 		assertTrue("val11 - val13", val11.equals(val13));
 		assertTrue("val13 - val11", val13.equals(val11));
-		assertTrue("val13 - val14", val13.equals(val14));
+		assertFalse("val13 - val14", val13.equals(val14));      // val14 has no type because it is not in ref1b
 
 		assertTrue("val21 - val21", val21.equals(val21));
 		assertTrue("val21 - val22", val21.equals(val22));

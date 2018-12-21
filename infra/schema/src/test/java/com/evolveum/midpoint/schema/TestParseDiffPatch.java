@@ -28,6 +28,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -495,7 +496,7 @@ public class TestParseDiffPatch {
 
         // WHEN
 
-        ObjectDelta<ResourceType> resourceDelta = resourceBefore.diff(resourceAfter, true, true);
+        ObjectDelta<ResourceType> resourceDelta = resourceBefore.diff(resourceAfter, EquivalenceStrategy.LITERAL_IGNORE_METADATA);
 
         // THEN
 
@@ -642,14 +643,14 @@ public class TestParseDiffPatch {
 	public void testResourceNsChangeLiteral() throws SchemaException, SAXException, IOException, JAXBException {
 		System.out.println("===[ testResourceNsChangeLiteral ]===");
 
-		PrismObject<ResourceType> resourceBefore = PrismTestUtil.parseObject(new File(TEST_DIR, "resource-before.xml"));
-        PrismObject<ResourceType> resourceAfter = PrismTestUtil.parseObject(new File(TEST_DIR, "resource-after-ns-change.xml"));
+		PrismObject<ResourceType> resourceBefore = PrismTestUtil.parseObject(RESOURCE_BEFORE_FILE);
+        PrismObject<ResourceType> resourceAfter = PrismTestUtil.parseObject(RESOURCE_AFTER_NS_CHANGE_FILE);
 
         resourceBefore.checkConsistence();
         resourceAfter.checkConsistence();
 
         // WHEN
-        ObjectDelta<ResourceType> resourceDelta = resourceBefore.diff(resourceAfter, true, true);
+        ObjectDelta<ResourceType> resourceDelta = resourceBefore.diff(resourceAfter, EquivalenceStrategy.LITERAL_IGNORE_METADATA);
 
         // THEN
 
@@ -680,7 +681,7 @@ public class TestParseDiffPatch {
 
             // WHEN
             String xmlBroken = getPrismContext().serializeObjectToString(resourceBroken, PrismContext.LANG_XML);
-            ObjectDelta<ResourceType> resourceDelta = resourceBroken.diff(resourceFixed, true, true);
+            ObjectDelta<ResourceType> resourceDelta = resourceBroken.diff(resourceFixed, EquivalenceStrategy.LITERAL_IGNORE_METADATA);
 
             // THEN
 
@@ -922,7 +923,7 @@ public class TestParseDiffPatch {
 
         PrismObject changed = prismObject.clone();
         ItemDeltaCollectionsUtil.applyTo(delta.getModifications(), changed);
-        Collection<? extends ItemDelta> processedModifications = prismObject.diffModifications(changed, true, true);
+        Collection<? extends ItemDelta> processedModifications = prismObject.diffModifications(changed, EquivalenceStrategy.LITERAL_IGNORE_METADATA);
 
         ItemDeltaCollectionsUtil.applyTo(processedModifications, prismObject);
 
@@ -934,7 +935,7 @@ public class TestParseDiffPatch {
 		PrismObject<ResourceType> before = PrismTestUtil.parseObject(new File(TEST_DIR, "resource-white-before.xml"));
 		PrismObject<ResourceType> after = PrismTestUtil.parseObject(new File(TEST_DIR, "resource-white-after.xml"));
 
-		Collection<? extends ItemDelta> differences = before.diffModifications(after, true, true);
+		Collection<? extends ItemDelta> differences = before.diffModifications(after, EquivalenceStrategy.LITERAL_IGNORE_METADATA);
 
 		assertEquals(1, differences.size());
 		System.out.println(differences.iterator().next().debugDump());

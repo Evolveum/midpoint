@@ -143,11 +143,6 @@ public interface PrismReferenceValue extends PrismValue, ShortDumpable {
 	PrismReferenceValue toCanonical();
 
 	@Override
-	boolean equalsComplex(PrismValue other, boolean ignoreMetadata, boolean isLiteral);
-
-	boolean equalsComplex(PrismReferenceValue other, boolean ignoreMetadata, boolean isLiteral);
-
-	@Override
 	boolean equals(Object obj);
 
 	@Override
@@ -155,8 +150,6 @@ public interface PrismReferenceValue extends PrismValue, ShortDumpable {
 
 	@Override
 	boolean representsSameValue(PrismValue other, boolean lax);
-
-	boolean representsSameValue(PrismReferenceValue other);
 
 	@Override
 	String toString();
@@ -177,11 +170,6 @@ public interface PrismReferenceValue extends PrismValue, ShortDumpable {
 	@Override
 	PrismReferenceValue cloneComplex(CloneStrategy strategy);
 
-	boolean match(PrismValue otherValue);
-
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.PrismValue#getHumanReadableDump()
-	 */
 	String toHumanReadableString();
 
 	@Override

@@ -24,6 +24,7 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -113,7 +114,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
 
     	PrismProperty<ProtectedStringType> protectedStringProperty = user.findProperty(CREDENTIALS_PASSWORD_VALUE_PATH);
     	PrismPropertyValue<ProtectedStringType> protectedStringPropertyValue = protectedStringProperty.getValue();
-    	assertTrue("protectedString not equivalent", protectedStringPropertyValue.equalsRealValue(protectedStringVal));
+    	assertTrue("protectedString not equivalent", protectedStringPropertyValue.equals(protectedStringVal, EquivalenceStrategy.REAL_VALUE));
 
     	objectDelta.assertDefinitions();
     }
@@ -338,7 +339,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
         PrismObject newTask = PrismTestUtil.parseObject(
                 new File(TEST_DIR, "task-new.xml"));
 
-        ObjectDelta<TaskType> delta = oldTask.diff(newTask, true, true);
+        ObjectDelta<TaskType> delta = oldTask.diff(newTask, EquivalenceStrategy.LITERAL_IGNORE_METADATA);
         System.out.println("Delta:");
         System.out.println(delta.debugDump());
 

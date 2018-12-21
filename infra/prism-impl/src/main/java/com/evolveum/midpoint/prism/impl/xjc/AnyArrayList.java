@@ -21,6 +21,7 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.impl.ItemImpl;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.prism.Containerable;
@@ -130,7 +131,7 @@ public class AnyArrayList<C extends Containerable> extends AbstractList<Object> 
     	} else {
     		for (Item<?,?> item: containerValue.getItems()) {
 	    		if (index < item.getValues().size()) {
-	    			item.remove(index);
+				    ((ItemImpl) item).remove(index);
 	    		} else {
 	    			index -= item.getValues().size();
 	    		}

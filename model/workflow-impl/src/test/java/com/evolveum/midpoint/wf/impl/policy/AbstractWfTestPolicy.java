@@ -521,7 +521,13 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 
 	protected PrismReference ref(List<ObjectReferenceType> orts) {
 		PrismReference rv = prismContext.itemFactory().createReference(new QName("dummy"));
-		orts.forEach(ort -> rv.add(ort.asReferenceValue().clone()));
+		orts.forEach(ort -> {
+			try {
+				rv.add(ort.asReferenceValue().clone());
+			} catch (SchemaException e) {
+				throw new IllegalStateException(e);
+			}
+		});
 		return rv;
 	}
 

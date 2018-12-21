@@ -20,6 +20,8 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.impl.delta.ObjectDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -264,11 +266,11 @@ public class PrismObjectImpl<O extends Objectable> extends PrismContainerImpl<O>
 
 	@NotNull
 	public ObjectDelta<O> diff(PrismObject<O> other) {
-		return diff(other, true, false);
+		return diff(other, EquivalenceStrategy.IGNORE_METADATA);
 	}
 
 	@NotNull
-	public ObjectDelta<O> diff(PrismObject<O> other, boolean ignoreMetadata, boolean isLiteral) {
+	public ObjectDelta<O> diff(PrismObject<O> other, ParameterizedEquivalenceStrategy strategy) {
 		if (other == null) {
 			ObjectDelta<O> objectDelta = new ObjectDeltaImpl<>(getCompileTimeClass(), ChangeType.DELETE, getPrismContext());
 			objectDelta.setOid(getOid());
@@ -279,7 +281,7 @@ public class PrismObjectImpl<O extends Objectable> extends PrismContainerImpl<O>
 		objectDelta.setOid(getOid());
 
 		Collection<? extends ItemDelta> itemDeltas = new ArrayList<>();
-		diffInternal(other, itemDeltas, ignoreMetadata, isLiteral);
+		diffInternal(other, itemDeltas, strategy);
 		objectDelta.addModifications(itemDeltas);
 
 		return objectDelta;
@@ -345,31 +347,23 @@ public class PrismObjectImpl<O extends Objectable> extends PrismContainerImpl<O>
 		return null;
 	}
 
-	@Override
-	public boolean equals(Object obj) {
-		if (prismContext != null && prismContext.getMonitor() != null) {
-			prismContext.getMonitor().recordPrismObjectCompareCount(this, obj);
-		}
-		return super.equals(obj);
-	}
-
-	/**
-	 * this method ignores some part of the object during comparison (e.g. source demarcation in values)
-	 * These methods compare the "meaningful" parts of the objects.
-	 */
-	public boolean equivalent(Object obj) {
-		if (prismContext != null && prismContext.getMonitor() != null) {
-			prismContext.getMonitor().recordPrismObjectCompareCount(this, obj);
-		}
-		if (this == obj)
-			return true;
-		if (getClass() != obj.getClass())
-			return false;
-		PrismObjectImpl other = (PrismObjectImpl) obj;
-		//noinspection unchecked
-		ObjectDelta<O> delta = diff(other, true, false);
-		return delta.isEmpty();
-	}
+//	/**
+//	 * this method ignores some part of the object during comparison (e.g. source demarcation in values)
+//	 * These methods compare the "meaningful" parts of the objects.
+//	 */
+//	public boolean equivalent(Object obj) {
+//		if (prismContext != null && prismContext.getMonitor() != null) {
+//			prismContext.getMonitor().recordPrismObjectCompareCount(this, obj);
+//		}
+//		if (this == obj)
+//			return true;
+//		if (getClass() != obj.getClass())
+//			return false;
+//		PrismObjectImpl other = (PrismObjectImpl) obj;
+//		//noinspection unchecked
+//		ObjectDelta<O> delta = diff(other, EquivalenceStrategy.REAL_VALUE);
+//		return delta.isEmpty();
+//	}
 
 	@Override
 	public String toString() {

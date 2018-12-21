@@ -30,6 +30,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -1052,7 +1053,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         String serializedModifiedResource = prismContext.serializerFor(PrismContext.LANG_XML).serialize(modifiedResource);
         assertNotNull(serializedModifiedResource);
 
-        ObjectDelta<ResourceType> diffDelta = resourceBefore.diff(modifiedResource, true, true);
+        ObjectDelta<ResourceType> diffDelta = resourceBefore.diff(modifiedResource, EquivalenceStrategy.LITERAL_IGNORE_METADATA);
         display("Diff delta", diffDelta);
 
     	// WHEN

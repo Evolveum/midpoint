@@ -20,6 +20,7 @@ import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -988,14 +989,12 @@ public class ResourceObjectConverter {
 		} else {
 			matchingRule = null;
 		}
-		Comparator comparator = new Comparator<PrismPropertyValue<?>>() {
-			@Override
-			public int compare(PrismPropertyValue<?> o1, PrismPropertyValue<?> o2) {
-				if (o1.equalsComplex(o2, true, false, matchingRule)) {
-					return 0;
-				} else {
-					return 1;
-				}
+		Comparator comparator = (Comparator<PrismPropertyValue<?>>) (o1, o2) -> {
+			//noinspection unchecked
+			if (o1.equals(o2, EquivalenceStrategy.IGNORE_METADATA, matchingRule)) {
+				return 0;
+			} else {
+				return 1;
 			}
 		};
 		// add values that have to be added

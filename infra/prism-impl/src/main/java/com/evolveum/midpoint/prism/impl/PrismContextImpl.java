@@ -135,6 +135,7 @@ public class PrismContextImpl implements PrismContext {
 		this.definitionFactory = new DefinitionFactoryImpl(this);
 		this.itemPathParser = new ItemPathParserImpl(this);
 		this.schemaFactory = new SchemaFactoryImpl(this);
+		this.defaultPolyStringNormalizer = new AlphanumericPolyStringNormalizer();
 
 		try {
 			configurePolyStringNormalizer(null);

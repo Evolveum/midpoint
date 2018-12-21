@@ -51,8 +51,6 @@ public interface PrismReference extends Item<PrismReferenceValue,PrismReferenceD
 	@Override
 	Collection<Referencable> getRealValues();
 
-	boolean add(@NotNull PrismReferenceValue value);
-
 	boolean merge(PrismReferenceValue value);
 
 	String getOid();

@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaValidator;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.*;
@@ -370,7 +371,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 			V existingValue = valuesIterator.next();
 			// TODO either make equalsRealValue return false if both PCVs have IDs and these IDs are different
 			// TODO or include a special test condition here; see MID-3828
-			if (existingValue.equalsRealValue(valueToRemove)
+			if (existingValue.equals(valueToRemove, EquivalenceStrategy.REAL_VALUE)
 					|| toDelete && existingValue.representsSameValue(valueToRemove, false)) {		// the same algorithm as when deleting the item value
 				valuesIterator.remove();
 				removed = true;
@@ -454,7 +455,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	}
 
 	protected boolean isValueEquivalent(V a, V b) {
-		return a.equalsRealValue(b);
+		return a.equals(b, EquivalenceStrategy.REAL_VALUE);
 	}
 
 	public void mergeValuesToDelete(Collection<V> newValues) {
@@ -644,7 +645,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 			return false;
 		}
 		for (V myVal: set) {
-			if (myVal.equals(value, ignoreMetadata)) {
+			if (myVal.equals(value, ignoreMetadata ? EquivalenceStrategy.IGNORE_METADATA : EquivalenceStrategy.NOT_LITERAL)) {
 				return true;
 			}
 		}
@@ -855,14 +856,11 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	 * I.e. if it changes the current object state.
 	 */
 	public boolean isRedundant(PrismObject<? extends Objectable> object) {
-		Comparator<V> comparator = new Comparator<V>() {
-			@Override
-			public int compare(V o1, V o2) {
-				if (o1.equalsComplex(o2, true, false)) {
-					return 0;
-				} else {
-					return 1;
-				}
+		Comparator<V> comparator = (o1, o2) -> {
+			if (o1.equals(o2, EquivalenceStrategy.IGNORE_METADATA)) {
+				return 0;
+			} else {
+				return 1;
 			}
 		};
 		return isRedundant(object, comparator);
@@ -1019,7 +1017,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 			return false;
 		}
 		for (V v : values) {
-			if (v.equalsRealValue(val)) {
+			if (v.equals(val, EquivalenceStrategy.REAL_VALUE)) {
 				return true;
 			}
 		}
@@ -1241,7 +1239,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 					item.replaceAll(PrismValueCollectionsUtil.cloneCollection(valuesToAdd));
 				} else {
 					for (V valueToAdd : valuesToAdd) {
-						if (!item.containsEquivalentValue(valueToAdd)) {
+						if (!item.contains(valueToAdd, EquivalenceStrategy.REAL_VALUE)) {
 							item.add(valueToAdd.clone());
 						}
 					}
@@ -1323,7 +1321,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	 * deltas are equal.
 	 */
 	public boolean contains(ItemDelta<V,D> other) {
-		return contains(other, PrismConstants.EQUALS_DEFAULT_IGNORE_METADATA, PrismConstants.EQUALS_DEFAULT_IS_LITERAL);
+		return contains(other, EquivalenceStrategy.REAL_VALUE);
 	}
 	/**
 	 * Returns true if the other delta is a complete subset of this delta.
@@ -1331,17 +1329,18 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	 * in this delta. As a consequence it also returns true if the two
 	 * deltas are equal.
 	 */
-	public boolean contains(ItemDelta<V,D> other, boolean ignoreMetadata, boolean isLiteral) {
+
+	public boolean contains(ItemDelta<V,D> other, EquivalenceStrategy strategy) {
 		if (!this.getPath().equivalent(other.getPath())) {
 			return false;
 		}
-		if (!PrismValueCollectionsUtil.containsAll(this.valuesToAdd, other.getValuesToAdd(), ignoreMetadata, isLiteral)) {
+		if (!PrismValueCollectionsUtil.containsAll(this.valuesToAdd, other.getValuesToAdd(), strategy)) {
 			return false;
 		}
-		if (!PrismValueCollectionsUtil.containsAll(this.valuesToDelete, other.getValuesToDelete(), ignoreMetadata, isLiteral)) {
+		if (!PrismValueCollectionsUtil.containsAll(this.valuesToDelete, other.getValuesToDelete(), strategy)) {
 			return false;
 		}
-		if (!PrismValueCollectionsUtil.containsAll(this.valuesToReplace, other.getValuesToReplace(), ignoreMetadata, isLiteral)) {
+		if (!PrismValueCollectionsUtil.containsAll(this.valuesToReplace, other.getValuesToReplace(), strategy)) {
 			return false;
 		}
 		return true;
@@ -1595,7 +1594,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 							// Here it is questionable if we should consider adding "assignment id=1 (A)" and "assignment id=2 (A)"
 							// - i.e. assignments with the same real value but different identifiers - the same delta.
 							// Historically, we considered it as such. But the question is if it's correct.
-							return v1.equalsRealValue(v2);
+							return v1.equals(v2, EquivalenceStrategy.REAL_VALUE);
 						} else {
 							// But for container values to be deleted, they can be referred to either using IDs or values.
 							// If content is used - but no IDs - the content must be equal.
@@ -1603,7 +1602,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 							// The problem is if one side has content with ID, and the other has the same content without ID.
 							// This might have the same or different effect, depending on the content it is applied to.
 							// See MID-3828
-							return (v1.equalsRealValue(v2) && !differentIds(v1, v2)) || v1.representsSameValue(v2, false);
+							return (v1.equals(v2, EquivalenceStrategy.REAL_VALUE) && !differentIds(v1, v2)) || v1.representsSameValue(v2, false);
 						}
 					} else {
 						return false;
@@ -1749,7 +1748,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 			return null;
 		}
 		return values.stream()
-				.filter(v -> !differentIds(v, value) && v.equals(value, true))
+				.filter(v -> !differentIds(v, value) && v.equals(value, EquivalenceStrategy.REAL_VALUE))
 				.findFirst().orElse(null);
 	}
 

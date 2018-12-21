@@ -17,6 +17,8 @@ package com.evolveum.midpoint.prism.impl;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.marshaller.JaxbDomHack;
 import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.util.*;
@@ -528,7 +530,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
     public static <C extends Containerable> boolean containsRealValue(Collection<PrismContainerValue<C>> cvalCollection,
     		PrismContainerValue<C> cval) {
     	for (PrismContainerValue<C> colVal: cvalCollection) {
-    		if (colVal.equalsRealValue(cval)) {
+    		if (colVal.equals(cval, EquivalenceStrategy.REAL_VALUE)) {
     			return true;
     		}
     	}
@@ -1038,20 +1040,19 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
 		return false;
 	}
 
-
 	@Override
 	public void diffMatchingRepresentation(PrismValue otherValue,
-			Collection<? extends ItemDelta> deltas, boolean ignoreMetadata, boolean isLiteral) {
+			Collection<? extends ItemDelta> deltas, ParameterizedEquivalenceStrategy strategy) {
 		if (otherValue instanceof PrismContainerValue) {
-			diffRepresentation((PrismContainerValue)otherValue, deltas, ignoreMetadata, isLiteral);
+			diffRepresentation((PrismContainerValue)otherValue, deltas, strategy);
 		} else {
 			throw new IllegalStateException("Comparing incompatible values "+this+" - "+otherValue);
 		}
 	}
 
-	void diffRepresentation(PrismContainerValue<C> otherValue,
-			Collection<? extends ItemDelta> deltas, boolean ignoreMetadata, boolean isLiteral) {
-		diffItems(this, otherValue, deltas, ignoreMetadata, isLiteral);
+	private void diffRepresentation(PrismContainerValue<C> otherValue,
+			Collection<? extends ItemDelta> deltas, ParameterizedEquivalenceStrategy strategy) {
+		diffItems(this, otherValue, deltas, strategy);
 	}
 
 	@Override
@@ -1094,19 +1095,13 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
 		return jaxbDomHack.parseRawElement(element, definition);
 	}
 
-	private PrismContainerValue<C> parseRawElementsToNewValue(
-			PrismContainerValue<C> origCVal, PrismContainerValue<C> definitionSource) throws SchemaException {
-		throw new UnsupportedOperationException("Definition-less containers are not supported any more.");
-	}
+	private void diffItems(PrismContainerValue<C> thisValue, PrismContainerValue<C> other,
+			Collection<? extends ItemDelta> deltas, ParameterizedEquivalenceStrategy strategy) {
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	void diffItems(PrismContainerValue<C> thisValue, PrismContainerValue<C> other,
-			Collection<? extends ItemDelta> deltas, boolean ignoreMetadata, boolean isLiteral) {
-
-		if (thisValue.getItems() !=  null) {
+		if (thisValue.getItems() != null) {
 			for (Item<?,?> thisItem: thisValue.getItems()) {
 				Item otherItem = other.findItem(thisItem.getElementName());
-				if (!isLiteral) {
+				if (!strategy.isConsideringOperationalData()) {
 					ItemDefinition itemDef = thisItem.getDefinition();
 					if (itemDef == null && other.getDefinition() != null) {
 						itemDef = other.getDefinition().findLocalItemDefinition(thisItem.getElementName());
@@ -1117,7 +1112,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
 					}
 				}
 				// The "delete" delta will also result from the following diff
-				((ItemImpl) thisItem).diffInternal(otherItem, deltas, ignoreMetadata, isLiteral);
+				((ItemImpl) thisItem).diffInternal(otherItem, deltas, strategy);
 			}
 		}
 
@@ -1128,7 +1123,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
 					// Already processed in previous loop
 					continue;
 				}
-				if (!isLiteral) {
+				if (!strategy.isConsideringOperationalData()) {
 					ItemDefinition itemDef = otherItem.getDefinition();
 					if (itemDef == null && thisValue.getDefinition() != null) {
 						itemDef = thisValue.getDefinition().findLocalItemDefinition(otherItem.getElementName());
@@ -1408,48 +1403,38 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
 	}
 
 	@Override
-	public boolean equalsComplex(PrismValue other, boolean ignoreMetadata, boolean isLiteral) {
-		if (other == null || !(other instanceof PrismContainerValue<?>)) {
-			return false;
-		}
-		return equalsComplex((PrismContainerValue<?>)other, ignoreMetadata, isLiteral);
+	public boolean equals(PrismValue other, @NotNull ParameterizedEquivalenceStrategy strategy) {
+		return other instanceof PrismContainerValue<?> && equals((PrismContainerValue<?>) other, strategy);
 	}
 
-	public boolean equalsComplex(PrismContainerValue<?> other, boolean ignoreMetadata, boolean isLiteral) {
-		if (!super.equalsComplex(other, ignoreMetadata, isLiteral)) {
+	private boolean equals(PrismContainerValue<?> other, ParameterizedEquivalenceStrategy strategy) {
+		if (!super.equals(other, strategy)) {
 			return false;
 		}
-		if (!ignoreMetadata) {
-			if (this.id == null) {
-				if (other.getId() != null)
-					return false;
-			} else if (!this.id.equals(other.getId()))
+		if (strategy.isConsideringContainerIds()) {
+			if (!Objects.equals(id, other.getId())) {
 				return false;
+			}
 		}
 		if (this.items == null) {
 			if (other.getItems() != null)
 				return false;
-		} else if (!this.equalsItems(this, (PrismContainerValue<C>) other, ignoreMetadata, isLiteral)) {
+		} else if (!this.equalsItems((PrismContainerValue<C>) other, strategy)) {
 			return false;
 		}
 		return true;
 	}
 
-	boolean equalsItems(PrismContainerValue<C> other, boolean ignoreMetadata, boolean isLiteral) {
-		return equalsItems(this, other, ignoreMetadata, isLiteral);
-	}
-
-	boolean equalsItems(PrismContainerValue<C> thisValue, PrismContainerValue<C> other,
-			boolean ignoreMetadata, boolean isLiteral) {
+	private boolean equalsItems(PrismContainerValue<C> other, ParameterizedEquivalenceStrategy strategy) {
 		Collection<? extends ItemDelta<?,?>> deltas = new ArrayList<>();
 		// The EMPTY_PATH is a lie. We don't really care if the returned deltas have correct path or not
 		// we only care whether some deltas are returned or not.
-		diffItems(thisValue, other, deltas, ignoreMetadata, isLiteral);
+		diffItems(this, other, deltas, strategy);
 		return deltas.isEmpty();
 	}
 
 	public boolean equivalent(PrismContainerValue<?> other) {
-        return equalsRealValue(other);
+        return equals(other, EquivalenceStrategy.REAL_VALUE);
     }
 
 	@Override
@@ -1461,19 +1446,20 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
 		if (getClass() != obj.getClass())
 			return false;
 		PrismContainerValue<?> other = (PrismContainerValue<?>) obj;
-		return equalsComplex(other, false, false);
+		return equals(other, getEqualsHashCodeStrategy());
 	}
 
+	// TODO consider taking equivalence strategy into account
 	@Override
-	public int hashCode() {
+	public int hashCode(ParameterizedEquivalenceStrategy strategy) {
 		final int prime = 31;
-		int result = super.hashCode();
+		int result = super.hashCode(strategy);
 		// Do not include id. containers with non-null id and null id may still be considered equivalent
 		// We also need to make sure that container valus that contain only metadata will produce zero hashcode
 		// so it will not ruin hashcodes of parent containers
 		int itemsHash = 0;
 		if (items != null) {
-			itemsHash = MiscUtil.unorderedCollectionHashcode(items, item -> !item.isMetadata());
+			itemsHash = MiscUtil.unorderedCollectionHashcode(items, item -> !item.isOperational());
 		}
 		if (itemsHash != 0) {
 			result = prime * result + itemsHash;
@@ -1543,11 +1529,6 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
 
 	protected void detailedDebugDumpStart(StringBuilder sb) {
 		sb.append("PCV").append(": ");
-	}
-
-	@Override
-	public boolean match(PrismValue otherValue) {
-		return equalsRealValue(otherValue);
 	}
 
 	@Override

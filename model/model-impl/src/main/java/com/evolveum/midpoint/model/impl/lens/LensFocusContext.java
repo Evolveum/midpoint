@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.impl.lens;
 import java.util.*;
 
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
@@ -184,7 +185,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
             secondaryDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(), ChangeType.MODIFY);
             secondaryDelta.setOid(getOid());
             setProjectionWaveSecondaryDelta(secondaryDelta);
-        } else if (secondaryDelta.containsModification(propDelta, true, true)) {
+        } else if (secondaryDelta.containsModification(propDelta, EquivalenceStrategy.LITERAL_IGNORE_METADATA)) {   // todo why literal?
 			return;
 		}
 
@@ -197,7 +198,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
             secondaryDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(), ChangeType.MODIFY);
             secondaryDelta.setOid(getOid());
             setSecondaryDelta(secondaryDelta, 0);
-        } else if (secondaryDelta.containsModification(propDelta, true, true)) {
+        } else if (secondaryDelta.containsModification(propDelta, EquivalenceStrategy.LITERAL_IGNORE_METADATA)) {   // todo why literal?
       		return;
       	}
 
@@ -206,12 +207,12 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 
 	public boolean alreadyHasDelta(ItemDelta<?,?> itemDelta) {
 		ObjectDelta<O> primaryDelta = getPrimaryDelta();
-		if (primaryDelta != null && primaryDelta.containsModification(itemDelta, true, true)) {
+		if (primaryDelta != null && primaryDelta.containsModification(itemDelta, EquivalenceStrategy.LITERAL_IGNORE_METADATA)) {    // todo why literal?
 			return true;
 		}
 		if (secondaryDeltas != null) {
 			for (ObjectDelta<O> waveSecondaryDelta: secondaryDeltas) {
-				if (waveSecondaryDelta != null && waveSecondaryDelta.containsModification(itemDelta, true, true)) {
+				if (waveSecondaryDelta != null && waveSecondaryDelta.containsModification(itemDelta, EquivalenceStrategy.LITERAL_IGNORE_METADATA)) {    // todo why literal?
 					return true;
 				}
 			}

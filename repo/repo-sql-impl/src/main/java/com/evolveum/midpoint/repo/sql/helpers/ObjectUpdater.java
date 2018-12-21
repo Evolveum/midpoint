@@ -18,6 +18,7 @@ package com.evolveum.midpoint.repo.sql.helpers;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.*;
@@ -175,7 +176,7 @@ public class ObjectUpdater {
         if (originalOid != null) {
             try {
                 oldObject = objectRetriever.getObjectInternal(session, object.getCompileTimeClass(), originalOid, null, true, result);
-                ObjectDelta<T> delta = oldObject.diff(object, false, true);
+                ObjectDelta<T> delta = oldObject.diff(object, EquivalenceStrategy.LITERAL);
                 modifications = delta.getModifications();
 
                 LOGGER.trace("overwriteAddObjectAttempt: originalOid={}, modifications={}", originalOid, modifications);

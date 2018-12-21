@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.prism;
 
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -214,7 +216,7 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
 	V getValue();
 
 	/**
-	 * Returns the "real value" of this item:
+	 * Returns the "real value" (content) of this item:
 	 *  - value contained in PrismPropertyValue
 	 *  - Referencable in PrismReferenceValue
 	 *  - Containerable in PrismContainerValue
@@ -235,53 +237,91 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
 	 */
     boolean isSingleValue();
 
-    //region Comparing values
+    //region Add and remove
 
 	/**
-     * Returns value that is equal or equivalent to the provided value.
-     * The returned value is an instance stored in this item, while the
-     * provided value argument may not be.
-     */
-    PrismValue findValue(PrismValue value, boolean ignoreMetadata);
+	 * Adds a given value, unless an equivalent one is already there (if checkUniqueness is true).
+	 * @return true if this item changed as a result of the call (i.e. if the value was really added)
+	 */
+	boolean add(@NotNull V newValue, boolean checkUniqueness) throws SchemaException;
 
-    List<? extends PrismValue> findValuesIgnoringMetadata(PrismValue value);
+	/**
+	 * Adds a given value, unless an equivalent one is already there. It is the same as calling add with checkUniqueness=true.
+	 * @return true if this item changed as a result of the call (i.e. if the value was really added)
+	 */
+	boolean add(@NotNull V newValue) throws SchemaException;
+
+	/**
+	 * Adds a given value, unless an equivalent one is already there. It is the same as calling add with checkUniqueness=true.
+	 * Uses given strategy for equivalence testing.
+	 *
+	 * @return true if this item changed as a result of the call (i.e. if the value was really added)
+	 */
+	boolean add(@NotNull V newValue, @NotNull EquivalenceStrategy equivalenceStrategy) throws SchemaException;
+
+	/**
+	 * Adds given values, with the same semantics as repeated add(..) calls.
+	 * @return true if this item changed as a result of the call (i.e. if at least one value was really added)
+	 */
+	boolean addAll(Collection<V> newValues) throws SchemaException;
+
+	/**
+	 * Removes given value from the item.
+	 *
+	 * "Given value" currently means any value that is considered equivalent via REAL_VALUE equivalence strategy
+	 * or a value that is considered "the same" via "representsSameValue(.., lax=false)" method.
+	 *
+	 * TODO This is to be refined; most probably including a comparator or comparison strategy designation.
+	 *
+	 * @return true if this item changed as a result of the call (i.e. if at least one value was really removed)
+	 *
+	 * Note that there can be more than one values removed.
+	 */
+	boolean remove(V newValue);
+
+	/**
+	 * Removes all given values from the item.
+	 *
+	 * @return true if this item changed as a result of the call (i.e. if at least one value was really removed)
+	 */
+	boolean removeAll(Collection<V> newValues);
+
+	/**
+	 * Removes all values from the item.
+	 */
+	void clear();
+
+	/**
+	 * Replaces all values of the item by given values.
+	 */
+	void replaceAll(Collection<V> newValues) throws SchemaException;
+
+	/**
+	 * Replaces all values of the item by given value.
+	 */
+	void replace(V newValue);
+
+	//endregion
+
+    //region Comparing values
 
 	boolean contains(V value);
 
-	boolean containsEquivalentValue(V value);
-
+	@Deprecated
 	boolean containsEquivalentValue(V value, Comparator<V> comparator);
 
-	boolean contains(V value, boolean ignoreMetadata, Comparator<V> comparator);
+	boolean contains(V value, EquivalenceStrategy strategy);
 
-	boolean contains(V value, boolean ignoreMetadata);
+	boolean contains(V value, @NotNull EquivalenceStrategy strategy, Comparator<V> comparator);
 
 	boolean containsRealValue(V value);
 
 	boolean valuesExactMatch(Collection<V> matchValues, Comparator<V> comparator);
 	//endregion
 
-
+	PrismValue findValue(PrismValue value, EquivalenceStrategy strategy);
 
 	Collection<V> getClonedValues();
-
-    boolean addAll(Collection<V> newValues) throws SchemaException;
-
-    boolean add(@NotNull V newValue) throws SchemaException;
-
-    boolean add(@NotNull V newValue, boolean checkUniqueness) throws SchemaException;
-
-    boolean removeAll(Collection<V> newValues);
-
-    boolean remove(V newValue);
-
-    V remove(int index);
-
-    void replaceAll(Collection<V> newValues) throws SchemaException;
-
-    void replace(V newValue);
-
-    void clear();
 
     void normalize();
 
@@ -301,7 +341,7 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
     ItemDelta<V,D> diff(Item<V,D> other);
 
     // We want this method to be consistent with property diff
-    ItemDelta<V,D> diff(Item<V,D> other, boolean ignoreMetadata, boolean isLiteral);
+    ItemDelta<V,D> diff(Item<V,D> other, ParameterizedEquivalenceStrategy strategy);
 
 	/**
      * Creates specific subclass of ItemDelta appropriate for type of item that this definition
@@ -396,15 +436,37 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
 		return item == null || item.getValues().isEmpty();
 	}
 
-	boolean equalsRealValue(Object obj);
+	/**
+	 * Note: hashcode and equals compare the objects in the "java way". That means the objects must be
+	 * almost precisely equal to match (e.g. including source demarcation in values and other "annotations").
+	 * For a method that compares the "meaningful" parts of the objects see equivalent().
+	 */
+	@Override
+	int hashCode();
 
-	boolean match(Object obj);
+	int hashCode(@NotNull EquivalenceStrategy equivalenceStrategy);
+
+	int hashCode(@NotNull ParameterizedEquivalenceStrategy equivalenceStrategy);
+
+	/**
+	 * Note: hashcode and equals compare the objects in the "java way". That means the objects must be
+	 * almost precisely equal to match (e.g. including source demarcation in values and other "annotations").
+	 * For a method that compares the "meaningful" parts of the objects see equivalent().
+	 */
+	@Override
+	boolean equals(Object obj);
+
+	boolean equals(Object obj, @NotNull EquivalenceStrategy equivalenceStrategy);
+
+	boolean equals(Object obj, @NotNull ParameterizedEquivalenceStrategy equivalenceStrategy);
+
+	boolean equalsRealValue(Object obj);
 
 	/**
 	 * Returns true if this item is metadata item that should be ignored
 	 * for metadata-insensitive comparisons and hashCode functions.
 	 */
-	boolean isMetadata();
+	boolean isOperational();
 
 	boolean isImmutable();
 
