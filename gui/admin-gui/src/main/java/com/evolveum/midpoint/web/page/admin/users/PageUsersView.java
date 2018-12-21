@@ -52,7 +52,6 @@ import org.apache.wicket.util.string.StringValue;
 public class PageUsersView extends PageUsers {
     private static final long serialVersionUID = 1L;
 
-    public static final String PARAMETER_OBJECT_COLLECTION_TYPE_OID = "collectionOid";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageUsersView.class);
 

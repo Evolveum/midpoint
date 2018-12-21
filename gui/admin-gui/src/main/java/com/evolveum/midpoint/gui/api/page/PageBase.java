@@ -70,7 +70,6 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.CheckedProducer;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.Producer;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -91,6 +90,7 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
+import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
 import com.evolveum.midpoint.web.page.admin.cases.PageCase;
 import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItem;
 import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItemsAll;
@@ -186,7 +186,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     private static final String DOT_CLASS = PageBase.class.getName() + ".";
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
-    private static final String OPERATION_LOAD_USERS_VIEW_COLLECTION_REF = DOT_CLASS + "loadUsersViewCollectionRef";
+    protected static final String OPERATION_LOAD_VIEW_COLLECTION_REF = DOT_CLASS + "loadViewCollectionRef";
     private static final String OPERATION_LOAD_WORK_ITEM_COUNT = DOT_CLASS + "loadWorkItemCount";
     private static final String OPERATION_LOAD_CERT_WORK_ITEM_COUNT = DOT_CLASS + "loadCertificationWorkItemCount";
 
@@ -225,6 +225,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     private static final String ID_BODY = "body";
 
     private static final int DEFAULT_BREADCRUMB_STEP = 2;
+    public static final String PARAMETER_OBJECT_COLLECTION_TYPE_OID = "collectionOid";
+    public static final String PARAMETER_OBJECT_COLLECTION_NAME = "collectionName";
 
     private static final String CLASS_DEFAULT_SKIN = "skin-blue-light";
 
@@ -584,7 +586,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             Task task = createSimpleTask(PageBase.DOT_CLASS + "getCompiledUserProfile");
             try {
             	compiledUserProfile = modelInteractionService.getCompiledUserProfile(task, task.getResult());
-            } catch (ObjectNotFoundException | SchemaException e) {
+            } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Cannot retrieve compiled user profile", e);
                 if (InternalsConfig.nonCriticalExceptionsAreFatal()) {
                     throw new SystemException("Cannot retrieve compiled user profile: " + e.getMessage(), e);
@@ -1790,7 +1792,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 PageTaskEdit.class, null, createVisibleDisabledBehaviorForEditMenu(PageTaskEdit.class));
         item.getItems().add(menuItem);
 
-        addCollectionsMenuItems(item.getItems(), TaskType.COMPLEX_TYPE);
+        //should we support archetype view for TaskType?
+//        addCollectionsMenuItems(item.getItems(), TaskType.COMPLEX_TYPE);
 
         return item;
     }
@@ -1808,7 +1811,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         addMenuItem(item, "PageAdmin.menu.top.resources.import", PageImportResource.class);
         addMenuItem(item, "PageAdmin.menu.top.connectorHosts.list", PageConnectorHosts.class);
 
-        addCollectionsMenuItems(item.getItems(), ResourceType.COMPLEX_TYPE);
+        addCollectionsMenuItems(item.getItems(), ResourceType.COMPLEX_TYPE, PageResources.class);
 
         return item;
     }
@@ -1934,7 +1937,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.users.new",
                 "PageAdmin.menu.top.users.edit", PageUser.class, true);
 
-        addCollectionsMenuItems(item.getItems(), UserType.COMPLEX_TYPE);
+        addCollectionsMenuItems(item.getItems(), UserType.COMPLEX_TYPE, PageUsers.class);
 
         return item;
     }
@@ -2052,7 +2055,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.users.org.new", "PageAdmin.menu.top.users.org.edit",
                 PageOrgUnit.class, true);
 
-        addCollectionsMenuItems(item.getItems(), OrgType.COMPLEX_TYPE);
+        //todo should we have org list page for collection/archetype view?
+//        addCollectionsMenuItems(item.getItems(), OrgType.COMPLEX_TYPE);
 
         return item;
     }
@@ -2066,7 +2070,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.roles.new", "PageAdmin.menu.top.roles.edit",
                 PageRole.class, true);
 
-        addCollectionsMenuItems(item.getItems(), RoleType.COMPLEX_TYPE);
+        addCollectionsMenuItems(item.getItems(), RoleType.COMPLEX_TYPE, PageRoles.class);
 
         return item;
     }
@@ -2080,12 +2084,12 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.services.new", "PageAdmin.menu.top.services.edit",
                 PageService.class, true);
 
-        addCollectionsMenuItems(item.getItems(), ServiceType.COMPLEX_TYPE);
+        addCollectionsMenuItems(item.getItems(), ServiceType.COMPLEX_TYPE, PageServices.class);
 
         return item;
     }
 
-    private void addCollectionsMenuItems(List<MenuItem> menu, QName type) {
+    private void addCollectionsMenuItems(List<MenuItem> menu, QName type, Class<? extends PageAdminObjectList> redirectToPage) {
         List<CompiledObjectCollectionView> objectViews = getCompiledUserProfile().findAllApplicableObjectCollectionViews(type);
         if (objectViews == null) {
             return;
@@ -2104,25 +2108,25 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 return;
             }
 
-            OperationResult result = new OperationResult(OPERATION_LOAD_USERS_VIEW_COLLECTION_REF);
-            Task task = createSimpleTask(OPERATION_LOAD_USERS_VIEW_COLLECTION_REF);
+            OperationResult result = new OperationResult(OPERATION_LOAD_VIEW_COLLECTION_REF);
+            Task task = createSimpleTask(OPERATION_LOAD_VIEW_COLLECTION_REF);
             PrismObject<? extends ObjectType> collectionObject = WebModelServiceUtils.resolveReferenceNoFetch(collectionRef, this,
                     task, result);
             if (collectionObject == null) {
                 return;
             }
             ObjectType objectType = collectionObject.asObjectable();
-            if (!(objectType instanceof ObjectCollectionType) && !(objectType instanceof ArchetypeType)) {
+            if (!(objectType instanceof ArchetypeType)) {
                 return;
             }
             DisplayType viewDisplayType = objectView.getDisplay();
 
             PageParameters pageParameters = new PageParameters();
-            pageParameters.add(PageUsersView.PARAMETER_OBJECT_COLLECTION_TYPE_OID, objectType.getOid());
+            pageParameters.add(PageUsersView.PARAMETER_OBJECT_COLLECTION_NAME, objectView.getViewName());
 
             MenuItem userViewMenu = new MenuItem(viewDisplayType != null && PolyStringUtils.isNotEmpty(viewDisplayType.getLabel())
                     ? createStringResource(viewDisplayType.getLabel())
-                    : createStringResource("MenuItem.noName"), PageUsersView.class, pageParameters, null);
+                    : createStringResource("MenuItem.noName"), redirectToPage, pageParameters, null);
             menu.add(userViewMenu);
 
         });

@@ -26,6 +26,7 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
@@ -63,7 +64,7 @@ import java.io.InputStreamReader;
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_REPORTS_REPORT_CREATE_URL,
                 label = "PageNewReport.auth.reports.label",
                 description = "PageNewReport.auth.reports.description")})
-public class PageNewReport extends PageAdminReports {
+public class PageNewReport extends PageAdmin {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageNewReport.class);
 

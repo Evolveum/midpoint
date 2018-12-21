@@ -303,7 +303,7 @@ public class SearchFactory {
                 }
             }
             return null;
-        } catch (SchemaException | ObjectNotFoundException ex) {
+        } catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException ex) {
             throw new SystemException(ex);
         }
     }

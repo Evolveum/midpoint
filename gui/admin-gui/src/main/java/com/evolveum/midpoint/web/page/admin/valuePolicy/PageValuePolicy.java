@@ -40,6 +40,7 @@ import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
+import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.valuePolicy.component.ValuePolicyBasicPanel;
 import com.evolveum.midpoint.web.page.admin.valuePolicy.component.ValuePolicySummaryPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -66,15 +67,15 @@ import java.util.List;
                         matchUrlForSecurity = "/admin/valuepolicy")
         },
         action = {
-                @AuthorizationAction(actionUri = PageAdminValuePolicies.AUTH_VALUE_POLICIES_ALL,
-                        label = PageAdminValuePolicies.AUTH_VALUE_POLICIES_ALL_LABEL,
-                        description = PageAdminValuePolicies.AUTH_VALUE_POLICIES_ALL_DESCRIPTION),
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_VALUE_POLICIES_ALL_URL,
+                        label = "PageAdminValuePolicies.auth.valuePoliciesAll.label",
+                        description = "PageAdminValuePolicies.auth.valuePoliciesAll.description"),
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_VALUE_POLICY_URL,
                         label = "PageValuePolicy.auth.valuePolcy.label",
                         description = "PageValuePolicy.auth.valuePolicy.description")
         })
 
-public class PageValuePolicy extends PageAdminValuePolicies {
+public class PageValuePolicy extends PageAdmin {
 
     private static final long serialVersionUID = 1L;
 
