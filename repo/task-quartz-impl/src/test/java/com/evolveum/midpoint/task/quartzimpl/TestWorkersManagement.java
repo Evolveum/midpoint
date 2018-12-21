@@ -400,7 +400,7 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
 		}
 	}
 
-	@Test
+	@Test(enabled = false)      // MID-5041
 	public void test220PartitioningToWorkersMoreBuckets() throws Exception {
 		final String TEST_NAME = "test220PartitioningToWorkersMoreBuckets";
 		OperationResult result = createResult(TEST_NAME, LOGGER);
