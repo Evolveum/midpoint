@@ -40,6 +40,7 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
+import org.springframework.security.web.authentication.preauth.RequestAttributeAuthenticationFilter;
 
 import java.util.Arrays;
 
@@ -63,6 +64,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Value("${auth.sso.header:SM_USER}")
     private String principalRequestHeader;
+    @Value("${auth.sso.env:REMOTE_USER}")
+    private String principalRequestEnvVariable;
 
     @Value("${auth.cas.server.url:}")
     private String casServerUrl;
@@ -162,6 +165,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         if (Arrays.stream(environment.getActiveProfiles()).anyMatch(p -> p.equalsIgnoreCase("sso"))) {
             http.addFilterBefore(requestHeaderAuthenticationFilter(), LogoutFilter.class);
         }
+
+        if (Arrays.stream(environment.getActiveProfiles()).anyMatch(p -> p.equalsIgnoreCase("ssoenv"))) {
+            http.addFilterBefore(requestAttributeAuthenticationFilter(), LogoutFilter.class);
+        }
     }
     
     @Bean
@@ -209,6 +216,17 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         RequestHeaderAuthenticationFilter filter = new RequestHeaderAuthenticationFilter();
         filter.setPrincipalRequestHeader(principalRequestHeader);
         filter.setExceptionIfHeaderMissing(false);
+        filter.setAuthenticationManager(authenticationManager);
+
+        return filter;
+    }
+
+    @Profile("ssoenv")
+    @Bean
+    public RequestAttributeAuthenticationFilter requestAttributeAuthenticationFilter() {
+        RequestAttributeAuthenticationFilter filter = new RequestAttributeAuthenticationFilter();
+        filter.setPrincipalEnvironmentVariable(principalRequestEnvVariable);
+        filter.setExceptionIfVariableMissing(false);
         filter.setAuthenticationManager(authenticationManager);
 
         return filter;
