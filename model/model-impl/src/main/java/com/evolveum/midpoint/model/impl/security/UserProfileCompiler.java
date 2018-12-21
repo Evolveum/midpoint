@@ -59,8 +59,10 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationTransformer;
 import com.evolveum.midpoint.security.api.DelegatorWithOtherPrivilegesLimitations;
@@ -92,6 +94,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsSetT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewAdditionalPanelsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
@@ -103,6 +106,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceFeatureType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
  * Compiles user interface profile for a particular user. The profile contains essential information needed to efficiently render
@@ -141,7 +145,7 @@ public class UserProfileCompiler {
 		List<AdminGuiConfigurationType> adminGuiConfigurations = new ArrayList<>();
 		collect(adminGuiConfigurations, principal, systemConfiguration, authorizationTransformer, task, result);
 		
-		CompiledUserProfile compiledUserProfile = compileUserProfile(adminGuiConfigurations, systemConfiguration);
+		CompiledUserProfile compiledUserProfile = compileUserProfile(adminGuiConfigurations, systemConfiguration, task, result);
 		principal.setCompiledUserProfile(compiledUserProfile);
 	}
 
@@ -265,7 +269,7 @@ public class UserProfileCompiler {
 	}
 	
 	public CompiledUserProfile compileUserProfile(@NotNull List<AdminGuiConfigurationType> adminGuiConfigurations,
-			PrismObject<SystemConfigurationType> systemConfiguration) {
+			PrismObject<SystemConfigurationType> systemConfiguration, Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
 		AdminGuiConfigurationType globalAdminGuiConfig = null;
 		if (systemConfiguration != null) {
@@ -278,15 +282,15 @@ public class UserProfileCompiler {
 
 		CompiledUserProfile composite = new CompiledUserProfile();
 		if (globalAdminGuiConfig != null) {
-			applyAdminGuiConfiguration(composite, globalAdminGuiConfig);
+			applyAdminGuiConfiguration(composite, globalAdminGuiConfig, task, result);
 		}
 		for (AdminGuiConfigurationType adminGuiConfiguration: adminGuiConfigurations) {
-			applyAdminGuiConfiguration(composite, adminGuiConfiguration);
+			applyAdminGuiConfiguration(composite, adminGuiConfiguration, task, result);
 		}
 		return composite;
 	}
 
-	private void applyAdminGuiConfiguration(CompiledUserProfile composite, AdminGuiConfigurationType adminGuiConfiguration) {
+	private void applyAdminGuiConfiguration(CompiledUserProfile composite, AdminGuiConfigurationType adminGuiConfiguration, Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		if (adminGuiConfiguration == null) {
 			return;
 		}
@@ -305,8 +309,8 @@ public class UserProfileCompiler {
 			composite.setDefaultExportSettings(adminGuiConfiguration.getDefaultExportSettings().clone());
 		}
 		
-		applyViews(composite, adminGuiConfiguration.getObjectLists()); // Compatibility, deprecated
-		applyViews(composite, adminGuiConfiguration.getObjectCollectionViews());
+		applyViews(composite, adminGuiConfiguration.getObjectLists(), task, result); // Compatibility, deprecated
+		applyViews(composite, adminGuiConfiguration.getObjectCollectionViews(), task, result);
 		
 		if (adminGuiConfiguration.getObjectForms() != null) {
 			if (composite.getObjectForms() == null) {
@@ -362,7 +366,7 @@ public class UserProfileCompiler {
 		}
 	}
 
-	private void applyViews(CompiledUserProfile composite, GuiObjectListViewsType viewsType) {
+	private void applyViews(CompiledUserProfile composite, GuiObjectListViewsType viewsType, Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		if (viewsType == null) {
 			return;
 		}
@@ -371,21 +375,21 @@ public class UserProfileCompiler {
 			if (composite.getDefaultObjectCollectionView() == null) {
 				composite.setDefaultObjectCollectionView(new CompiledObjectCollectionView());
 			}
-			compileView(composite.getDefaultObjectCollectionView(), viewsType.getDefault());
+			compileView(composite.getDefaultObjectCollectionView(), viewsType.getDefault(), task, result);
 		}
 		
 		for (GuiObjectListViewType objectCollectionView : viewsType.getObjectList()) { // Compatibility, legacy
-			applyView(composite, objectCollectionView);
+			applyView(composite, objectCollectionView, task, result);
 		}
 		
 		for (GuiObjectListViewType objectCollectionView : viewsType.getObjectCollectionView()) {
-			applyView(composite, objectCollectionView);
+			applyView(composite, objectCollectionView, task, result);
 		}
 	}
 	
-	private void applyView(CompiledUserProfile composite, GuiObjectListViewType objectListViewType) {
+	private void applyView(CompiledUserProfile composite, GuiObjectListViewType objectListViewType, Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		CompiledObjectCollectionView existingView = findOrCreateMatchingView(composite, objectListViewType);
-		compileView(existingView, objectListViewType);
+		compileView(existingView, objectListViewType, task, result);
 	}
 	
 	
@@ -416,10 +420,10 @@ public class UserProfileCompiler {
 		return collectionRef.getOid();
 	}
 
-	private void compileView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
+	private void compileView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		compileActions(existingView, objectListViewType);
 		compileAdditionalPanels(existingView, objectListViewType);
-		compileCollection(existingView, objectListViewType);
+		compileCollection(existingView, objectListViewType, task, result);
 		compileColumns(existingView, objectListViewType);
 		compileDisplay(existingView, objectListViewType);
 		compileDistinct(existingView, objectListViewType);
@@ -445,39 +449,73 @@ public class UserProfileCompiler {
 		existingView.setAdditionalPanels(newAdditionalPanels);
 	}
 
-	
-	private void compileCollection(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
-		CollectionSpecificationType collection = objectListViewType.getCollection();
-		if (collection == null) {
+	private void compileCollection(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+		CollectionSpecificationType collectionSpec = objectListViewType.getCollection();
+		if (collectionSpec == null) {
 			ObjectReferenceType collectionRef = objectListViewType.getCollectionRef();
 			if (collectionRef == null) {
 				return;
 			}
 			// Legacy, deprecated
-			collection = new CollectionSpecificationType();
-			collection.setCollectionRef(collectionRef.clone());
+			collectionSpec = new CollectionSpecificationType();
+			collectionSpec.setCollectionRef(collectionRef.clone());
 		}
 		if (existingView.getCollection() != null) {
 			LOGGER.debug("Redefining collection in view {}", existingView.getViewName());
 		}
-		existingView.setCollection(collection);
+		existingView.setCollection(collectionSpec);
 		
 		// Compute and apply filter
-		ObjectReferenceType collectionRef = collection.getCollectionRef();
+		ObjectFilter filter = compileCollectionFilter(existingView, collectionSpec, task, result);
+		
+		// TODO: resolve (read) collection if needed
+		existingView.setFilter(filter);
+	}
+		
+	private ObjectFilter compileCollectionFilter(CompiledObjectCollectionView existingView, CollectionSpecificationType collectionSpec, Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+		ObjectReferenceType collectionRef = collectionSpec.getCollectionRef();
+		
+		QName targetObjectType = existingView.getObjectType();
+		Class<? extends ObjectType> targetTypeClass = ObjectType.class;
+		if (targetObjectType != null) {
+			targetTypeClass = ObjectTypes.getObjectTypeFromTypeQName(targetObjectType).getClassDefinition();
+		}
 		QName collectionRefType = collectionRef.getType();
-		RefFilter filter = null;
-
+		
 		// TODO: support more cases
 		if (QNameUtil.match(ArchetypeType.COMPLEX_TYPE, collectionRefType)) {
+			RefFilter filter = null;
 			filter = (RefFilter) prismContext.queryFor(AssignmentHolderType.class)
 				.item(AssignmentHolderType.F_ARCHETYPE_REF).ref(collectionRef.getOid())
 				.buildFilter();
 			filter.setTargetTypeNullAsAny(true);
 			filter.setRelationNullAsAny(true);
+			return filter;
 		}
 		
-		// TODO: resolve (read) collection if needed
-		existingView.setFilter(filter);
+		if (QNameUtil.match(ObjectCollectionType.COMPLEX_TYPE, collectionRefType)) {
+			ObjectCollectionType objectCollectionType;
+			try {
+				objectCollectionType = objectResolver.resolve(collectionRef, ObjectCollectionType.class, null, "view "+existingView.getViewName(), task, result);
+			} catch (ObjectNotFoundException e) {
+				throw new ConfigurationException(e.getMessage(), e);
+			}
+			SearchFilterType collectionFilterType = objectCollectionType.getFilter();
+			ObjectFilter collectionFilter = null;
+			if (collectionFilterType != null) {
+				collectionFilter = prismContext.getQueryConverter().parseFilter(collectionFilterType, targetTypeClass);
+			}
+			CollectionSpecificationType baseCollectionSpec = objectCollectionType.getBaseCollection();
+			if (baseCollectionSpec == null) {
+				return collectionFilter;
+			} else {
+				ObjectFilter baseFilter =  compileCollectionFilter(existingView, baseCollectionSpec, task, result);
+				return ObjectQueryUtil.filterAnd(baseFilter, collectionFilter, prismContext);
+			}
+		}
+		
+		// TODO
+		throw new UnsupportedOperationException("TODO");
 	}
 	
 	private void compileColumns(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
@@ -670,13 +708,13 @@ public class UserProfileCompiler {
 		return customColumnsList;
 	}
 
-	public CompiledUserProfile getGlobalCompiledUserProfile(OperationResult parentResult) throws SchemaException {
+	public CompiledUserProfile getGlobalCompiledUserProfile(Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(parentResult);
 		if (systemConfiguration == null) {
 			return null;
 		}
 		List<AdminGuiConfigurationType> adminGuiConfigurations = new ArrayList<>();
-		CompiledUserProfile compiledUserProfile = compileUserProfile(adminGuiConfigurations, systemConfiguration);
+		CompiledUserProfile compiledUserProfile = compileUserProfile(adminGuiConfigurations, systemConfiguration, task, parentResult);
 		// TODO: cache compiled profile
 		return compiledUserProfile;
 	}

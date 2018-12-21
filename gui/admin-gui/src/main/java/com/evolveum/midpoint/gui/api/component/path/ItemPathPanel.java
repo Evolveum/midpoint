@@ -32,7 +32,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 public class ItemPathPanel extends BasePanel<ItemPathDto> {
 
 	private static final long serialVersionUID = 1L;
-
+	
 	private static final String ID_ITEM_PATH = "itemPath";
 	private static final String ID_NAMESPACE = "namespace";
 	private static final String ID_DEFINITION = "definition";
@@ -94,6 +94,7 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 					public ItemPathDto getObject() {
 						return ItemPathPanel.this.getModelObject();
 					}
+					
 				}) {
 
 			private static final long serialVersionUID = 1L;
@@ -101,6 +102,11 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 			@Override
 			protected Map<QName, Collection<ItemDefinition<?>>> getSchemaDefinitionMap() {
 				return initNamspaceDefinitionMap();
+			}
+			
+			@Override
+			protected void onUpdateAutoCompletePanel(AjaxRequestTarget target) {
+				ItemPathPanel.this.onUpdate(ItemPathPanel.this.getModelObject());
 			}
 		};
 		itemDefPanel.setOutputMarkupId(true);

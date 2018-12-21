@@ -452,6 +452,25 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
         assertGlobalStateUntouched();
 	}
+	
+	/**
+	 * MID-5002
+	 */
+	@Test
+    public void test209AutzJackSuperuserAndGuiAccessRole() throws Exception {
+		final String TEST_NAME = "test209AutzJackSuperuserAndGuiAccessRole";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_SUPERUSER_OID);
+        assignRole(USER_JACK_OID, ROLE_APPROVER_OID);
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        assertSuperuserAccess(NUMBER_OF_ALL_USERS);
+
+        assertGlobalStateUntouched();
+	}
 
 	/**
 	 * MID-3126

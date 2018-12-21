@@ -48,8 +48,12 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.AuthorizationException;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -703,7 +707,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		CompiledUserProfile adminGuiConfiguration;
 		try {
 			adminGuiConfiguration = getModelInteractionService().getCompiledUserProfile(task, result);
-		} catch (ObjectNotFoundException | SchemaException e) {
+		} catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
 			throw new SystemException("Cannot load GUI configuration: "+e.getMessage(), e);
 		}
 		ObjectFormsType objectFormsType = adminGuiConfiguration.getObjectForms();

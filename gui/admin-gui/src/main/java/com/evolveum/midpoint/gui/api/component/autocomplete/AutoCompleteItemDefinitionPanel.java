@@ -33,7 +33,6 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 
 public class AutoCompleteItemDefinitionPanel extends AbstractAutoCompletePanel {
 
-
 	private static final long serialVersionUID = 1L;
 	private static final String ID_INPUT = "input";
 
@@ -73,17 +72,21 @@ public class AutoCompleteItemDefinitionPanel extends AbstractAutoCompletePanel {
 
 				@Override
 				protected void onUpdate(AjaxRequestTarget target) {
-					String newValue = itemDefinitionAsStringModel.getObject();
-					if (StringUtils.isNotBlank(newValue)){
-						ItemDefinition<?> def = listChoices("").get(newValue);
-						if (def != null) {
-							model.setObject(def);
-						}
-					}
+					onUpdateAutoComplete(target, itemDefinitionAsStringModel, model);
 				}
 			});
 
 		add(input);
+	}
+	
+	protected void onUpdateAutoComplete(AjaxRequestTarget target, final Model<String> itemDefinitionAsStringModel, final IModel<ItemDefinition<?>> model) {
+		String newValue = itemDefinitionAsStringModel.getObject();
+		if (StringUtils.isNotBlank(newValue)){
+			ItemDefinition<?> def = listChoices("").get(newValue);
+			if (def != null) {
+				model.setObject(def);
+			}
+		}
 	}
 
 	protected Map<String, ItemDefinition<?>> listChoices(String input){
