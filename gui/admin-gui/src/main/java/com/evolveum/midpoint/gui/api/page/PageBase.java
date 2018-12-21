@@ -226,7 +226,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     private static final int DEFAULT_BREADCRUMB_STEP = 2;
     public static final String PARAMETER_OBJECT_COLLECTION_TYPE_OID = "collectionOid";
-    public static final String PARAMETER_OBJECT_ARCHETYPE_REF = "archetypeOid";
+    public static final String PARAMETER_OBJECT_COLLECTION_NAME = "collectionName";
 
     private static final String CLASS_DEFAULT_SKIN = "skin-blue-light";
 
@@ -2122,7 +2122,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             DisplayType viewDisplayType = objectView.getDisplay();
 
             PageParameters pageParameters = new PageParameters();
-            pageParameters.add(PageUsersView.PARAMETER_OBJECT_ARCHETYPE_REF, objectType.getOid());
+            pageParameters.add(PageUsersView.PARAMETER_OBJECT_COLLECTION_NAME, objectView.getViewName());
 
             MenuItem userViewMenu = new MenuItem(viewDisplayType != null && PolyStringUtils.isNotEmpty(viewDisplayType.getLabel())
                     ? createStringResource(viewDisplayType.getLabel())
