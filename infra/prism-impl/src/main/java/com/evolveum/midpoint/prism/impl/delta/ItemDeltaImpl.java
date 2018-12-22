@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.delta.ItemDeltaValidator;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.*;
@@ -1155,14 +1156,12 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 		if (item.isEmpty()) {
 			PrismValue itemParent = item.getParent();
 			if (itemParent != null) {
-				if (itemParent instanceof PrismContainerValue<?>) {
-					((PrismContainerValue<?>)itemParent).remove(item);
-					if (itemParent.isEmpty()) {
-						Itemable itemGrandparent = itemParent.getParent();
-						if (itemGrandparent != null) {
-							if (itemGrandparent instanceof Item<?,?>) {
-								cleanupAllTheWayUp((Item<?,?>)itemGrandparent);
-							}
+				((PrismContainerValue<?>)itemParent).remove(item);
+				if (itemParent.isEmpty()) {
+					Itemable itemGrandparent = itemParent.getParent();
+					if (itemGrandparent != null) {
+						if (itemGrandparent instanceof Item<?,?>) {
+							cleanupAllTheWayUp((Item<?,?>)itemGrandparent);
 						}
 					}
 				}
@@ -1171,27 +1170,35 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	}
 
 	public void applyTo(PrismContainerValue containerValue) throws SchemaException {
+		applyTo(containerValue, ParameterizedEquivalenceStrategy.DEFAULT_FOR_DELTA_APPLICATION);
+	}
+
+	public void applyTo(PrismContainerValue containerValue, ParameterizedEquivalenceStrategy strategy) throws SchemaException {
 		ItemPath deltaPath = getPath();
 		if (ItemPath.isEmpty(deltaPath)) {
 			throw new IllegalArgumentException("Cannot apply empty-path delta " + this + " directly to a PrismContainerValue " + containerValue);
 		}
 		Item subItem = containerValue.findOrCreateItem(deltaPath, getItemClass(), getDefinition());
-		applyToMatchingPath(subItem);
+		applyToMatchingPath(subItem, strategy);
 	}
 
 	public void applyTo(Item item) throws SchemaException {
+		applyTo(item, ParameterizedEquivalenceStrategy.DEFAULT_FOR_DELTA_APPLICATION);
+	}
+
+	public void applyTo(Item item, ParameterizedEquivalenceStrategy strategy) throws SchemaException {
 		ItemPath itemPath = item.getPath();
 		ItemPath deltaPath = getPath();
 		CompareResult compareComplex = itemPath.compareComplex(deltaPath);
 		if (compareComplex == CompareResult.EQUIVALENT) {
-			applyToMatchingPath(item);
+			applyToMatchingPath(item, strategy);
 			cleanupAllTheWayUp(item);
 		} else if (compareComplex == CompareResult.SUBPATH) {
 			if (item instanceof PrismContainer<?>) {
 				PrismContainer<?> container = (PrismContainer<?>)item;
 				ItemPath remainderPath = deltaPath.remainder(itemPath);
 				Item subItem = container.findOrCreateItem(remainderPath, getItemClass(), getDefinition());
-				applyToMatchingPath(subItem);
+				applyToMatchingPath(subItem, strategy);
 			} else {
 				throw new SchemaException("Cannot apply delta "+this+" to "+item+" as delta path is below the item path and the item is not a container");
 			}
@@ -1205,29 +1212,35 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	/**
 	 * Applies delta to item were path of the delta and path of the item matches (skips path checks).
 	 */
-	public void applyToMatchingPath(Item item) throws SchemaException {
+	public void applyToMatchingPath(Item item, ParameterizedEquivalenceStrategy strategy) throws SchemaException {
 		if (item == null) {
 			return;
 		}
 		if (item.getDefinition() == null && getDefinition() != null){
+			//noinspection unchecked
 			item.applyDefinition(getDefinition());
 		}
 		if (!getItemClass().isAssignableFrom(item.getClass())) {
 			throw new SchemaException("Cannot apply delta "+this+" to "+item+" because the deltas is applicable only to "+getItemClass().getSimpleName());
 		}
 		if (valuesToReplace != null) {
-			item.replaceAll(PrismValueCollectionsUtil.cloneCollection(valuesToReplace));
+			//noinspection unchecked
+			item.replaceAll(PrismValueCollectionsUtil.cloneCollection(valuesToReplace), strategy);
 		} else {
 			if (valuesToDelete != null) {
+				//noinspection unchecked
 				item.removeAll(valuesToDelete);
 			}
 			if (valuesToAdd != null) {
 				if (item.getDefinition() != null && item.getDefinition().isSingleValue()) {
-					item.replaceAll(PrismValueCollectionsUtil.cloneCollection(valuesToAdd));
+					//noinspection unchecked
+					item.replaceAll(PrismValueCollectionsUtil.cloneCollection(valuesToAdd), strategy);
 				} else {
 					for (V valueToAdd : valuesToAdd) {
-						if (!item.contains(valueToAdd, EquivalenceStrategy.REAL_VALUE)) {
-							item.add(valueToAdd.clone());
+						//noinspection unchecked
+						if (!item.contains(valueToAdd, strategy)) {
+							//noinspection unchecked
+							item.add(valueToAdd.clone(), false);
 						}
 					}
 				}
@@ -1297,7 +1310,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 		} else {
 			itemNew = itemOld.clone();
 		}
-		applyToMatchingPath(itemNew);
+		applyToMatchingPath(itemNew, ParameterizedEquivalenceStrategy.DEFAULT_FOR_DELTA_APPLICATION);
 		return itemNew;
 	}
 

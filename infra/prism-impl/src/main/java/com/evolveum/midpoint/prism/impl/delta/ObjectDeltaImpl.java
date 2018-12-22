@@ -18,6 +18,7 @@ package com.evolveum.midpoint.prism.impl.delta;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -569,11 +570,11 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
     }
 
 
-    /**
-     * Applies this object delta to specified object, returns updated object.
-     * It modifies the provided object.
-     */
     public void applyTo(PrismObject<O> targetObject) throws SchemaException {
+		applyTo(targetObject, ParameterizedEquivalenceStrategy.DEFAULT_FOR_DELTA_APPLICATION);
+    }
+
+    public void applyTo(PrismObject<O> targetObject, ParameterizedEquivalenceStrategy strategy) throws SchemaException {
     	if (isEmpty()) {
     		// nothing to do
     		return;
@@ -581,12 +582,14 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
         if (changeType != ChangeType.MODIFY) {
             throw new IllegalStateException("Can apply only MODIFY delta to object, got " + changeType + " delta");
         }
-        applyTo(targetObject, modifications);
+        applyTo(targetObject, modifications, strategy);
     }
     
-    private static <O extends Objectable> void applyTo(PrismObject<O> targetObject, Collection<? extends ItemDelta<?,?>> modifications) throws SchemaException {
+    private static <O extends Objectable> void applyTo(PrismObject<O> targetObject,
+		    Collection<? extends ItemDelta<?, ?>> modifications,
+		    ParameterizedEquivalenceStrategy strategy) throws SchemaException {
     	for (ItemDelta itemDelta : modifications) {
-            itemDelta.applyTo(targetObject);
+            itemDelta.applyTo(targetObject, strategy);
         }
     }
 

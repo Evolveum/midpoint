@@ -552,7 +552,8 @@ public class ChangeExecutor {
 				.findItemDeltasSubPath(modifications1, ShadowType.F_ATTRIBUTES);
 		Collection<? extends ItemDelta<?, ?>> attrDeltas2 = ItemDeltaCollectionsUtil
 				.findItemDeltasSubPath(modifications2, ShadowType.F_ATTRIBUTES);
-		return MiscUtil.unorderedCollectionEquals(attrDeltas1, attrDeltas2);
+		//noinspection unchecked,RedundantCast
+		return MiscUtil.unorderedCollectionEquals((Collection) attrDeltas1, (Collection) attrDeltas2);
 	}
 
 	private boolean isEquivalentAddDelta(PrismObject<ShadowType> object1, PrismObject<ShadowType> object2) {

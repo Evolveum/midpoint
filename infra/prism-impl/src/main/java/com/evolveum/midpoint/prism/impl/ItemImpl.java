@@ -401,10 +401,21 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
     }
 
     public boolean addAll(Collection<V> newValues) throws SchemaException {
-		checkMutability();			// TODO consider weaker condition, like testing if there's a real change
+		checkMutability();
     	boolean changed = false;
     	for (V val: newValues) {
     		if (add(val)) {
+    			changed = true;
+    		}
+    	}
+    	return changed;
+    }
+
+    public boolean addAll(Collection<V> newValues, EquivalenceStrategy strategy) throws SchemaException {
+		checkMutability();
+    	boolean changed = false;
+    	for (V val: newValues) {
+    		if (add(val, strategy)) {
     			changed = true;
     		}
     	}
@@ -496,10 +507,10 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
     }
 
     @Override
-    public void replaceAll(Collection<V> newValues) throws SchemaException {
+    public void replaceAll(Collection<V> newValues, EquivalenceStrategy strategy) throws SchemaException {
 		checkMutability();
 		clear();
-    	addAll(newValues);
+    	addAll(newValues, strategy);
     }
 
 	@Override

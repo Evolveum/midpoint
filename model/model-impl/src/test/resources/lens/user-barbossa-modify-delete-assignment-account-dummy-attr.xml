@@ -25,7 +25,7 @@
 	<apit:itemDelta>
 		<t:modificationType>delete</t:modificationType>
 		<t:path>assignment</t:path>
-		<t:value id="1">
+		<t:value>
 				<construction>
 					<description>Undead monkey account construction</description>
 					<resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>

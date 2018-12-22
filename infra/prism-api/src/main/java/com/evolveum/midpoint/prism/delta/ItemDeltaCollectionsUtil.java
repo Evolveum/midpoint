@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.prism.delta;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -155,7 +156,7 @@ public class ItemDeltaCollectionsUtil {
 	public static void applyToMatchingPath(Collection<? extends ItemDelta> deltas, PrismContainer propertyContainer)
 			throws SchemaException {
 		for (ItemDelta delta : deltas) {
-			delta.applyToMatchingPath(propertyContainer);
+			delta.applyToMatchingPath(propertyContainer, ParameterizedEquivalenceStrategy.DEFAULT_FOR_DELTA_APPLICATION);
 		}
 	}
 

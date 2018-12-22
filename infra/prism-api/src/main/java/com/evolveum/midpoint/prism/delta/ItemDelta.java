@@ -17,6 +17,7 @@ package com.evolveum.midpoint.prism.delta;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -256,13 +257,15 @@ public interface ItemDelta<V extends PrismValue,D extends ItemDefinition> extend
 	void simplify();
 
 	void applyTo(PrismContainerValue containerValue) throws SchemaException;
+	void applyTo(PrismContainerValue containerValue, ParameterizedEquivalenceStrategy strategy) throws SchemaException;
 
 	void applyTo(Item item) throws SchemaException;
+	void applyTo(Item item, ParameterizedEquivalenceStrategy strategy) throws SchemaException;
 
 	/**
 	 * Applies delta to item were path of the delta and path of the item matches (skips path checks).
 	 */
-	void applyToMatchingPath(Item item) throws SchemaException;
+	void applyToMatchingPath(Item item, ParameterizedEquivalenceStrategy strategy) throws SchemaException;
 
 	ItemDelta<?,?> getSubDelta(ItemPath path);
 

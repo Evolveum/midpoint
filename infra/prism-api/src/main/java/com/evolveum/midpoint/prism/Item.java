@@ -279,6 +279,14 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
 	boolean addAll(Collection<V> newValues) throws SchemaException;
 
 	/**
+	 * Adds given values, with the same semantics as repeated add(..) calls.
+	 * For equality testing uses give strategy.
+	 *
+	 * @return true if this item changed as a result of the call (i.e. if at least one value was really added)
+	 */
+	boolean addAll(Collection<V> newValues, EquivalenceStrategy strategy) throws SchemaException;
+
+	/**
 	 * Removes given value from the item.
 	 *
 	 * "Given value" currently means any value that is considered equivalent via REAL_VALUE equivalence strategy
@@ -313,7 +321,7 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
 	/**
 	 * Replaces all values of the item by given values.
 	 */
-	void replaceAll(Collection<V> newValues) throws SchemaException;
+	void replaceAll(Collection<V> newValues, EquivalenceStrategy strategy) throws SchemaException;
 
 	/**
 	 * Replaces all values of the item by given value.

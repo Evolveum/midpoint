@@ -20,6 +20,7 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.impl.visualizer.output.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.CloneUtil;
@@ -673,7 +674,7 @@ public class Visualizer {
 			property.addValues(CloneUtil.cloneCollectionMembers(delta.getEstimatedOldValues()));
 		}
 		try {
-			delta.applyToMatchingPath(property);
+			delta.applyToMatchingPath(property, ParameterizedEquivalenceStrategy.DEFAULT_FOR_DELTA_APPLICATION);
 		} catch (SchemaException e) {
 			throw new SystemException("Couldn't visualize property delta: " + delta + ": " + e.getMessage(), e);
 		}
@@ -778,7 +779,7 @@ public class Visualizer {
 			if (delta.getEstimatedOldValues() != null) {
 				reference.addAll(CloneUtil.cloneCollectionMembers(delta.getEstimatedOldValues()));
 			}
-			delta.applyToMatchingPath(reference);
+			delta.applyToMatchingPath(reference, ParameterizedEquivalenceStrategy.DEFAULT_FOR_DELTA_APPLICATION);
 		} catch (SchemaException e) {
 			throw new SystemException("Couldn't visualize reference delta: " + delta + ": " + e.getMessage(), e);
 		}

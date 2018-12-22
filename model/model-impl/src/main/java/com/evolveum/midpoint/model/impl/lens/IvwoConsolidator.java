@@ -25,6 +25,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.commons.lang.mutable.MutableBoolean;
 import org.jetbrains.annotations.NotNull;
@@ -514,7 +515,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
 				return true;
 			} else {
 				Item<V,D> clonedItem = item.clone();
-				itemDelta.applyToMatchingPath(clonedItem);
+				itemDelta.applyToMatchingPath(clonedItem, ParameterizedEquivalenceStrategy.DEFAULT_FOR_DELTA_APPLICATION);
 				return !clonedItem.isEmpty();
 			}
 		}
