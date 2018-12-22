@@ -221,6 +221,13 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
 	 *  - Referencable in PrismReferenceValue
 	 *  - Containerable in PrismContainerValue
 	 *  - Objectable in PrismObjectValue
+	 *
+	 * Note that the real value can contain operational items.
+	 *
+	 * It can also contain container IDs (although they are not considered to be part of the real value).
+	 *
+	 * It does not contain information about item element name nor other metadata like origin, definition, etc.
+	 * (Although e.g. Containerable can be converted back into PrismContainerValue that can be used to retrieve this information.)
 	 */
 	@Nullable
     Object getRealValue();
@@ -241,12 +248,17 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
 
 	/**
 	 * Adds a given value, unless an equivalent one is already there (if checkUniqueness is true).
+	 *
 	 * @return true if this item changed as a result of the call (i.e. if the value was really added)
+	 *
+	 * Note that even if checkUniqueness is false we check the cardinality of the item according to its definition,
+	 * i.e. we do not allow single-valued item to contain more than one value.
 	 */
 	boolean add(@NotNull V newValue, boolean checkUniqueness) throws SchemaException;
 
 	/**
 	 * Adds a given value, unless an equivalent one is already there. It is the same as calling add with checkUniqueness=true.
+	 *
 	 * @return true if this item changed as a result of the call (i.e. if the value was really added)
 	 */
 	boolean add(@NotNull V newValue) throws SchemaException;
@@ -261,6 +273,7 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
 
 	/**
 	 * Adds given values, with the same semantics as repeated add(..) calls.
+	 *
 	 * @return true if this item changed as a result of the call (i.e. if at least one value was really added)
 	 */
 	boolean addAll(Collection<V> newValues) throws SchemaException;
@@ -271,20 +284,26 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
 	 * "Given value" currently means any value that is considered equivalent via REAL_VALUE equivalence strategy
 	 * or a value that is considered "the same" via "representsSameValue(.., lax=false)" method.
 	 *
-	 * TODO This is to be refined; most probably including a comparator or comparison strategy designation.
-	 *
 	 * @return true if this item changed as a result of the call (i.e. if at least one value was really removed)
 	 *
 	 * Note that there can be more than one values removed.
 	 */
-	boolean remove(V newValue);
+	boolean remove(V value);
 
 	/**
-	 * Removes all given values from the item.
+	 * Removes values equivalent to given value from the item; under specified equivalence strategy
+	 * OR when values represent the same value via "representsSameValue(.., lax=false)" method.
 	 *
 	 * @return true if this item changed as a result of the call (i.e. if at least one value was really removed)
 	 */
-	boolean removeAll(Collection<V> newValues);
+	boolean remove(V value, @NotNull EquivalenceStrategy strategy);
+
+	/**
+	 * Removes all given values from the item. It is basically a shortcut for repeated remove(value) call.
+	 *
+	 * @return true if this item changed as a result of the call (i.e. if at least one value was really removed)
+	 */
+	boolean removeAll(Collection<V> values);
 
 	/**
 	 * Removes all values from the item.
@@ -299,27 +318,108 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
 	/**
 	 * Replaces all values of the item by given value.
 	 */
-	void replace(V newValue);
+	void replace(V newValue) throws SchemaException;
 
 	//endregion
 
-    //region Comparing values
+    //region Finding and comparing values
 
+	/**
+	 * Compares this item to the specified object under NOT_LITERAL strategy (if no other is pre-set).
+	 */
+	@Override
+	boolean equals(Object obj);
+
+	/**
+	 * Compares this item to the specified object under given strategy.
+	 */
+	boolean equals(Object obj, @NotNull EquivalenceStrategy equivalenceStrategy);
+
+	/**
+	 * Compares this item to the specified object under given strategy.
+	 */
+	boolean equals(Object obj, @NotNull ParameterizedEquivalenceStrategy equivalenceStrategy);
+
+	/**
+	 * Computes hash code to be used under NOT_LITERAL equivalence strategy.
+	 */
+	@Override
+	int hashCode();
+
+	/**
+	 * Computes hash code to be used under given equivalence strategy.
+	 */
+	int hashCode(@NotNull EquivalenceStrategy equivalenceStrategy);
+
+	/**
+	 * Computes hash code to be used under given equivalence strategy.
+	 */
+	int hashCode(@NotNull ParameterizedEquivalenceStrategy equivalenceStrategy);
+
+	/**
+	 * @return true if the item contains a given value (by default using NOT_LITERAL strategy)
+	 *
+	 * Note that the "sameness" (ID-only value matching) is NOT considered here.
+	 */
 	boolean contains(V value);
 
-	@Deprecated
-	boolean containsEquivalentValue(V value, Comparator<V> comparator);
+	/**
+	 * @return true if the item contains a given value under specified equivalence strategy
+	 *
+	 * Note that the "sameness" (ID-only value matching) is NOT considered here.
+	 */
+	boolean contains(V value, @NotNull EquivalenceStrategy strategy);
 
-	boolean contains(V value, EquivalenceStrategy strategy);
+	/**
+	 * @return true if the item contains a given value using comparator (if not null) or
+	 * under specified equivalence strategy (if comparator is null).
+	 *
+	 * Note that the "sameness" (ID-only value matching) is NOT considered here.
+	 */
+	boolean contains(V value, @Nullable EquivalenceStrategy strategy, @Nullable Comparator<V> comparator);
 
-	boolean contains(V value, @NotNull EquivalenceStrategy strategy, Comparator<V> comparator);
+	/**
+	 * @return true if the item contains an equivalent value (the same as {@link #containsEquivalentValue(PrismValue, Comparator)}
+	 * with comparator being null)
+	 */
+	boolean containsEquivalentValue(V value);
 
-	boolean containsRealValue(V value);
+	/**
+	 * @return true if the item contains an equivalent value
+	 *
+	 * Item value is considered to be equivalent to the given value if:
+	 * 1) given value is ID-only container value and item value has the same ID, or
+	 * 2) comparator is not null and it gives "equals" (0) result when comparing these values, or
+	 * 3) comparator is null and values match under IGNORE_METADATA_CONSIDER_DIFFERENT_IDS strategy
+	 */
+	boolean containsEquivalentValue(V value, @Nullable Comparator<V> comparator);
 
-	boolean valuesExactMatch(Collection<V> matchValues, Comparator<V> comparator);
+	/**
+	 * @return a value of this item that is equivalent to the given one under given equivalence strategy
+	 * (or null if no such value exists)
+	 */
+	V findValue(V value, @NotNull EquivalenceStrategy strategy);
+
+	/**
+	 * @return true if the values of this item match the "matchValues" collection, under given comparator.
+	 *
+	 * If comparator is null the default equals(..) comparison is used.
+	 */
+	boolean valuesEqual(Collection<V> matchValues, @Nullable Comparator<V> comparator);
+
+	/**
+	 * Computes a difference (delta) with the specified item using IGNORE_METADATA_CONSIDER_DIFFERENT_IDS equivalence strategy.
+	 */
+	ItemDelta<V,D> diff(Item<V,D> other);
+
+	/**
+	 * Computes a difference (delta) with the specified item using given equivalence strategy.
+	 * Note this method cannot accept general EquivalenceStrategy here; it needs the parameterized strategy.
+	 */
+	ItemDelta<V,D> diff(Item<V,D> other, @NotNull ParameterizedEquivalenceStrategy strategy);
+
 	//endregion
 
-	PrismValue findValue(PrismValue value, EquivalenceStrategy strategy);
 
 	Collection<V> getClonedValues();
 
@@ -337,11 +437,6 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
 
     <IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path);
 
-    // We want this method to be consistent with property diff
-    ItemDelta<V,D> diff(Item<V,D> other);
-
-    // We want this method to be consistent with property diff
-    ItemDelta<V,D> diff(Item<V,D> other, ParameterizedEquivalenceStrategy strategy);
 
 	/**
      * Creates specific subclass of ItemDelta appropriate for type of item that this definition
@@ -416,7 +511,7 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
 
 	void assertDefinitions(String sourceDescription) throws SchemaException;
 
-	void assertDefinitions(boolean tolarateRawValues, String sourceDescription) throws SchemaException;
+	void assertDefinitions(boolean tolerateRawValues, String sourceDescription) throws SchemaException;
 
 	/**
 	 * Returns true is all the values are raw.
@@ -436,31 +531,6 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
 		return item == null || item.getValues().isEmpty();
 	}
 
-	/**
-	 * Note: hashcode and equals compare the objects in the "java way". That means the objects must be
-	 * almost precisely equal to match (e.g. including source demarcation in values and other "annotations").
-	 * For a method that compares the "meaningful" parts of the objects see equivalent().
-	 */
-	@Override
-	int hashCode();
-
-	int hashCode(@NotNull EquivalenceStrategy equivalenceStrategy);
-
-	int hashCode(@NotNull ParameterizedEquivalenceStrategy equivalenceStrategy);
-
-	/**
-	 * Note: hashcode and equals compare the objects in the "java way". That means the objects must be
-	 * almost precisely equal to match (e.g. including source demarcation in values and other "annotations").
-	 * For a method that compares the "meaningful" parts of the objects see equivalent().
-	 */
-	@Override
-	boolean equals(Object obj);
-
-	boolean equals(Object obj, @NotNull EquivalenceStrategy equivalenceStrategy);
-
-	boolean equals(Object obj, @NotNull ParameterizedEquivalenceStrategy equivalenceStrategy);
-
-	boolean equalsRealValue(Object obj);
 
 	/**
 	 * Returns true if this item is metadata item that should be ignored

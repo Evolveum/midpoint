@@ -477,7 +477,7 @@ public class ChangeExecutor {
 		for (AssignmentType assignment : assignments) {
 			PrismContainerValue<?> pcv = assignment.asPrismContainerValue();
 			PrismContainerValue<?> pcvToFind = assignmentToFind.asPrismContainerValue();
-			if (pcv.representsSameValue(pcvToFind, false) || pcv.equals(pcvToFind, EquivalenceStrategy.REAL_VALUE)) {
+			if (pcv.representsSameValue(pcvToFind, false) || pcv.equals(pcvToFind, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS)) {
 				// TODO what if ID of the assignment being added is changed in repo? Hopefully it will be not.
 				for (ItemDelta<?, ?> modification : modifications) {
 					ItemPath newParentPath = modification.getParentPath().rest(2);        // killing assignment + ID

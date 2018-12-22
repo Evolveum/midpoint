@@ -31,6 +31,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.lang.reflect.Modifier;
@@ -746,27 +747,11 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
 	}
 
 	@Override
-	public boolean containsEquivalentValue(PrismContainerValue<C> value) {
-		if (value.isIdOnly()) {
-			PrismContainerValue<C> myValue = findValue(value.getId());
-			return myValue != null;
-		} else if (value.getId() == null) {
-			return super.contains(value, EquivalenceStrategy.IGNORE_METADATA);
-		} else {
-			return super.contains(value, EquivalenceStrategy.NOT_LITERAL);
-		}
-	}
-
-	@Deprecated // todo
-	@Override
-	public boolean containsEquivalentValue(PrismContainerValue<C> value, Comparator<PrismContainerValue<C>> comparator) {
+	public boolean containsEquivalentValue(PrismContainerValue<C> value, @Nullable Comparator<PrismContainerValue<C>> comparator) {
     	if (value.isIdOnly()) {
-    		PrismContainerValue<C> myValue = findValue(value.getId());
-    		return myValue != null;
-    	} else if (value.getId() == null) {
-    		return super.contains(value, EquivalenceStrategy.IGNORE_METADATA, comparator);
+		    return findValue(value.getId()) != null;
     	} else {
-    		return super.contains(value, EquivalenceStrategy.NOT_LITERAL, comparator);
+    		return contains(value, EquivalenceStrategy.IGNORE_METADATA_CONSIDER_DIFFERENT_IDS, comparator);
     	}
 	}
 

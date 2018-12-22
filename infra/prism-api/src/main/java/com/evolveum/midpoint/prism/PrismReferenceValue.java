@@ -149,9 +149,6 @@ public interface PrismReferenceValue extends PrismValue, ShortDumpable {
 	int hashCode();
 
 	@Override
-	boolean representsSameValue(PrismValue other, boolean lax);
-
-	@Override
 	String toString();
 
 	Referencable asReferencable();

@@ -938,10 +938,8 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
 		ObjectDeltaImpl<?> other = (ObjectDeltaImpl<?>) obj;
 		if (changeType != other.changeType)
 			return false;
-		if (modifications == null) {
-			if (other.modifications != null)
-				return false;
-		} else if (!MiscUtil.unorderedCollectionEquals(this.modifications,other.modifications))
+		//noinspection RedundantCast,unchecked
+		if (!MiscUtil.unorderedCollectionEquals((Collection) this.modifications, (Collection) other.modifications))
 			return false;
 		if (objectToAdd == null) {
 			if (other.objectToAdd != null)

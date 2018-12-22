@@ -24,6 +24,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -108,7 +109,7 @@ public class ResourceObjectPattern implements Serializable {
 		RefinedAttributeDefinition rAttrDef = rOcDef.findAttributeDefinition(identifier.getElementName());
 		QName matchingRuleQName = rAttrDef.getMatchingRuleQName();
 		if (matchingRuleQName == null || matchingRuleRegistry == null) {
-			return identifier.equalsRealValue(attributeToMatch);
+			return identifier.equals(attributeToMatch, EquivalenceStrategy.REAL_VALUE);
 		}
 		MatchingRule<Object> matchingRule = matchingRuleRegistry.getMatchingRule(matchingRuleQName, rAttrDef.getTypeName());
 		return matchingRule.match(identifier.getRealValue(), attributeToMatch.getRealValue());

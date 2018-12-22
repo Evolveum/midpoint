@@ -266,7 +266,7 @@ public class PrismObjectImpl<O extends Objectable> extends PrismContainerImpl<O>
 
 	@NotNull
 	public ObjectDelta<O> diff(PrismObject<O> other) {
-		return diff(other, EquivalenceStrategy.IGNORE_METADATA);
+		return diff(other, ParameterizedEquivalenceStrategy.DEFAULT_FOR_DIFF);
 	}
 
 	@NotNull
