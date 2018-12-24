@@ -67,7 +67,7 @@
         <spring.version>5.0.7.RELEASE</spring.version>
         <spring.security.version>5.0.6.RELEASE</spring.security.version>
         <cas.client.version>3.5.0</cas.client.version>
-        <testng.version>6.8.8</testng.version>
+        <testng.version>6.14.3</testng.version>
         <xml.resolver.version>1.2</xml.resolver.version>
         <xmlunit.version>2.1.1</xmlunit.version>
         <cron4j.version>2.2.3</cron4j.version>
