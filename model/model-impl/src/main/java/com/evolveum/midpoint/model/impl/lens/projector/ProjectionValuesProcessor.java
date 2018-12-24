@@ -214,6 +214,9 @@ public class ProjectionValuesProcessor {
 				context.recompute();
 				if (consistencyChecks) context.checkConsistence();
 
+//				policyRuleProcessor.evaluateShadowPolicyRules(context, projContext, activityDescription, task, result);
+
+				
 //				LensUtil.traceContext(LOGGER, activityDescription, "values (assignment account values)", false, context, true);
 
 				// Evaluates the values in outbound mappings

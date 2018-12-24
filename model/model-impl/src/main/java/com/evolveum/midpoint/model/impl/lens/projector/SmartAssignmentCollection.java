@@ -49,7 +49,7 @@ public class SmartAssignmentCollection<F extends FocusType> implements Iterable<
 	private Map<SmartAssignmentKey,SmartAssignmentElement> aMap = null;
 	private Map<Long,SmartAssignmentElement> idMap;
 
-	public void collect(PrismObject<F> objectCurrent, PrismObject<F> objectOld, ContainerDelta<AssignmentType> assignmentDelta, Collection<AssignmentType> forcedAssignments) throws SchemaException {
+	public void collect(PrismObject<F> objectCurrent, PrismObject<F> objectOld, ContainerDelta<AssignmentType> assignmentDelta, Collection<AssignmentType> forcedAssignments, AssignmentType taskAssignment) throws SchemaException {
 		PrismContainer<AssignmentType> assignmentContainerCurrent = null;
 		if (objectCurrent != null) {
 			assignmentContainerCurrent = objectCurrent.findContainer(FocusType.F_ASSIGNMENT);
@@ -63,7 +63,11 @@ public class SmartAssignmentCollection<F extends FocusType> implements Iterable<
 
 		collectAssignments(assignmentContainerCurrent, Mode.CURRENT);
 		
-		collectAssignments(forcedAssignments, Mode.CURRENT);
+		collectVirtualAssignments(forcedAssignments, Mode.CURRENT);
+		
+		if (taskAssignment != null) {
+			collectAssignment(taskAssignment.asPrismContainerValue(), Mode.CURRENT, true);
+		}
 		
 		if (objectOld != null) {
 			collectAssignments(objectOld.findContainer(FocusType.F_ASSIGNMENT), Mode.OLD);
@@ -77,16 +81,16 @@ public class SmartAssignmentCollection<F extends FocusType> implements Iterable<
 			return;
 		}
 		for (PrismContainerValue<AssignmentType> assignmentCVal: assignmentContainer.getValues()) {
-			collectAssignment(assignmentCVal, mode);
+			collectAssignment(assignmentCVal, mode, false);
 		}
 	}
 	
-	private void collectAssignments(Collection<AssignmentType> forcedAssignments, Mode mode) throws SchemaException {
+	private void collectVirtualAssignments(Collection<AssignmentType> forcedAssignments, Mode mode) throws SchemaException {
 		if (forcedAssignments == null) {
 			return;
 		}
 		for (AssignmentType assignment : forcedAssignments) {
-			collectAssignment(assignment.asPrismContainerValue(), mode);
+			collectAssignment(assignment.asPrismContainerValue(), mode, true);
 		}
 	}
  
@@ -105,11 +109,11 @@ public class SmartAssignmentCollection<F extends FocusType> implements Iterable<
 			return;
 		}
 		for (PrismContainerValue<AssignmentType> assignmentCVal: deltaSet) {
-			collectAssignment(assignmentCVal, Mode.CHANGED);
+			collectAssignment(assignmentCVal, Mode.CHANGED, false);
 		}
 	}
 
-	private void collectAssignment(PrismContainerValue<AssignmentType> assignmentCVal, Mode mode) throws SchemaException {
+	private void collectAssignment(PrismContainerValue<AssignmentType> assignmentCVal, Mode mode, boolean virtual) throws SchemaException {
 
 		SmartAssignmentElement element = null;
 
@@ -134,7 +138,7 @@ public class SmartAssignmentCollection<F extends FocusType> implements Iterable<
 		}
 
 		if (element == null) {
-			 element = put(assignmentCVal);
+			 element = put(assignmentCVal, virtual);
 		}
 
 		switch (mode) {
@@ -150,8 +154,8 @@ public class SmartAssignmentCollection<F extends FocusType> implements Iterable<
 		}
 	}
 
-	private SmartAssignmentElement put(PrismContainerValue<AssignmentType> assignmentCVal) {
-		SmartAssignmentElement element = new SmartAssignmentElement(assignmentCVal);
+	private SmartAssignmentElement put(PrismContainerValue<AssignmentType> assignmentCVal, boolean virtual) {
+		SmartAssignmentElement element = new SmartAssignmentElement(assignmentCVal, virtual);
 		aMap.put(element.getKey(), element);
 		if (assignmentCVal.getId() != null) {
 			idMap.put(assignmentCVal.getId(), element);

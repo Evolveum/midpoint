@@ -33,7 +33,7 @@ import java.util.Collection;
  */
 public class EvaluatedAssignmentTargetImpl implements EvaluatedAssignmentTarget {
 
-	final PrismObject<? extends FocusType> target;
+	final PrismObject<? extends AssignmentHolderType> target;
 	private final boolean evaluateConstructions;
 	@NotNull private final AssignmentPathImpl assignmentPath;	 // TODO reconsider (maybe we should store only some lightweight information here)
 	private final AssignmentType assignment;
@@ -41,7 +41,7 @@ public class EvaluatedAssignmentTargetImpl implements EvaluatedAssignmentTarget 
 	private final boolean isValid;
 
 	EvaluatedAssignmentTargetImpl(
-			PrismObject<? extends FocusType> target, boolean evaluateConstructions,
+			PrismObject<? extends AssignmentHolderType> target, boolean evaluateConstructions,
 			@NotNull AssignmentPathImpl assignmentPath, AssignmentType assignment,
 			boolean isValid) {
 		this.target = target;
@@ -52,7 +52,7 @@ public class EvaluatedAssignmentTargetImpl implements EvaluatedAssignmentTarget 
 	}
 
 	@Override
-	public PrismObject<? extends FocusType> getTarget() {
+	public PrismObject<? extends AssignmentHolderType> getTarget() {
 		return target;
 	}
 
@@ -124,7 +124,7 @@ public class EvaluatedAssignmentTargetImpl implements EvaluatedAssignmentTarget 
 		if (exclusions == null) {
 			exclusions = new ArrayList<>();
 
-			FocusType focusType = target.asObjectable();
+			AssignmentHolderType focusType = target.asObjectable();
 			if (focusType instanceof AbstractRoleType) {
 				AbstractRoleType roleType = (AbstractRoleType)focusType;
 

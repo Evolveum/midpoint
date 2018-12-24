@@ -93,7 +93,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	private boolean presentInCurrentObject;
 	private boolean presentInOldObject;
 	private Collection<String> policySituations = new HashSet<>();
-
+	
 	private PrismContext prismContext;
 
 	public EvaluatedAssignmentImpl(
@@ -403,7 +403,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	public void addFocusPolicyRule(EvaluatedPolicyRule policyRule) {
 		focusPolicyRules.add(policyRule);
 	}
-
+	
 	@NotNull
 	public Collection<EvaluatedPolicyRule> getThisTargetPolicyRules() {
 		return thisTargetPolicyRules;
@@ -428,7 +428,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	}
 
 	public void addLegacyPolicyConstraints(PolicyConstraintsType constraints, AssignmentPath assignmentPath,
-			FocusType directOwner, PrismContext prismContext) {
+			AssignmentHolderType directOwner, PrismContext prismContext) {
 		// approximate solution - just add the constraints to all the places; hopefully any misplaced ones would be simply ignored
 		if (constraints == null) {
 			return;
@@ -440,7 +440,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 
 	@NotNull
 	private EvaluatedPolicyRule toEvaluatedPolicyRule(PolicyConstraintsType constraints, AssignmentPath assignmentPath,
-			FocusType directOwner, PrismContext prismContext) {
+			AssignmentHolderType directOwner, PrismContext prismContext) {
 		PolicyRuleType policyRuleType = new PolicyRuleType();
 		policyRuleType.setPolicyConstraints(constraints);
 		PolicyActionsType policyActionsType = new PolicyActionsType();

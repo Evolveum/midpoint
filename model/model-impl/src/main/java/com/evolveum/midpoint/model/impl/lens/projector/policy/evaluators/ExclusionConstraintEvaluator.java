@@ -1,4 +1,5 @@
 /*
+
  * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -183,7 +184,7 @@ targetB:	for (EvaluatedAssignmentTargetImpl targetB : assignmentB.getNonNegative
 			@SuppressWarnings("rawtypes")
 			PrismObjectDefinition objDef = prismContext.getSchemaRegistry().findObjectDefinitionByType(typeQName);
 			ObjectFilter filter = prismContext.getQueryConverter().parseFilter(filterType, objDef);
-			PrismObject<? extends FocusType> target = assignmentTarget.getTarget();
+			PrismObject<? extends AssignmentHolderType> target = assignmentTarget.getTarget();
 			return filter.match(target.getValue(), matchingRuleRegistry);
 		} else {
 			throw new SchemaException("No OID in " + context);

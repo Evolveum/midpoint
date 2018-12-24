@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2017 Evolveum
+/*
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.schema.internals;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+package com.evolveum.midpoint.repo.common;
 
 /**
- * @author semancik
+ * @author katka
  *
  */
-public interface InternalInspector {
-
-	<O extends ObjectType> void inspectRepositoryRead(Class<O> type, String oid);
-
-	<F extends AssignmentHolderType> void inspectRoleEvaluation(F target, boolean fullEvaluation);
+public class CounterSepcification {
+	
+	private int count = 0;
+	private long counterStart = 0;
+	
+	public int getCount() {
+		return count;
+	}
+	public long getCounterStart() {
+		return counterStart;
+	}
+	public void setCount(int count) {
+		this.count = count;
+	}
+	public void setCounterStart(long counterStart) {
+		this.counterStart = counterStart;
+	}
+	
+	
+	
 }

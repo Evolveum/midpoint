@@ -584,8 +584,11 @@ public class LensUtil {
         return forcedAssignments;
     }
     
-	public static boolean isFocusValid(FocusType focus, XMLGregorianCalendar now, ActivationComputer activationComputer, LifecycleStateModelType focusStateModel) {
-		return isValid(focus.getLifecycleState(), focus.getActivation(), now, activationComputer, focusStateModel);
+	public static boolean isFocusValid(AssignmentHolderType focus, XMLGregorianCalendar now, ActivationComputer activationComputer, LifecycleStateModelType focusStateModel) {
+		if (focus instanceof FocusType) {
+			return isValid(focus.getLifecycleState(),  ((FocusType) focus).getActivation(), now, activationComputer, focusStateModel);
+		}
+		return isValid(focus.getLifecycleState(),  null, now, activationComputer, focusStateModel);
 	}
 
 	private static boolean isValid(String lifecycleState, ActivationType activationType, XMLGregorianCalendar now, ActivationComputer activationComputer, LifecycleStateModelType focusStateModel) {

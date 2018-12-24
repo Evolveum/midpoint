@@ -887,7 +887,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
         return null;
     }
 
-	private AssignmentInfoDto createAssignmentsPreviewDto(PrismObject<? extends FocusType> targetObject,
+	private AssignmentInfoDto createAssignmentsPreviewDto(PrismObject<? extends AssignmentHolderType> targetObject,
 			boolean isDirectlyAssigned, AssignmentType assignment,
 			Task task, OperationResult result) {
 		AssignmentInfoDto dto = new AssignmentInfoDto();
@@ -915,7 +915,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		return dto;
 	}
 
-	private String getNameToDisplay(PrismObject<? extends FocusType> target) {
+	private String getNameToDisplay(PrismObject<? extends AssignmentHolderType> target) {
 		if (target.canRepresent(AbstractRoleType.class)) {
 			String n = PolyString.getOrig(((AbstractRoleType)target.asObjectable()).getDisplayName());
 			if (StringUtils.isNotBlank(n)) {

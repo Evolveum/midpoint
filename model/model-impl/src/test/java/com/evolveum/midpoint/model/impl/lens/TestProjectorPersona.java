@@ -70,7 +70,7 @@ public class TestProjectorPersona extends AbstractLensTest {
 
         LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_JACK_OID, result);
-        ObjectDelta<UserType> focusDelta = createAssignmentFocusDelta(UserType.class, USER_JACK_OID,
+        ObjectDelta<UserType> focusDelta = createAssignmentAssignmentHolderDelta(UserType.class, USER_JACK_OID,
         		ROLE_PERSONA_ADMIN_OID, RoleType.COMPLEX_TYPE, null, null, null, true);
         addFocusDeltaToContext(context, focusDelta);
 

@@ -36,6 +36,7 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.FullTextFilter;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -590,19 +591,27 @@ public class ModelImplUtils {
 	}
 
 	public static boolean isDryRun(Task task) throws SchemaException {
-		Boolean dryRun = isDryRunInternal(task);
+		Boolean dryRun = findItemValue(task, SchemaConstants.MODEL_EXTENSION_DRY_RUN);
 		if (dryRun == null && task.isLightweightAsynchronousTask() && task.getParentForLightweightAsynchronousTask() != null) {
-			dryRun = isDryRunInternal(task.getParentForLightweightAsynchronousTask());
+			dryRun = findItemValue(task.getParentForLightweightAsynchronousTask(), SchemaConstants.MODEL_EXTENSION_DRY_RUN);
 		}
 		return dryRun != null ? dryRun : Boolean.FALSE;
 	}
-
-	static Boolean isDryRunInternal(Task task) throws SchemaException{
+	
+	public static boolean isSimulateRun(Task task) throws SchemaException {
+		Boolean simulate = findItemValue(task, SchemaConstants.MODEL_EXTENSION_SIMULATE_BEFORE_EXECUTE);
+		if (simulate == null && task.isLightweightAsynchronousTask() && task.getParentForLightweightAsynchronousTask() != null) {
+			simulate = findItemValue(task.getParentForLightweightAsynchronousTask(), SchemaConstants.MODEL_EXTENSION_SIMULATE_BEFORE_EXECUTE);
+		}
+		return simulate != null ? simulate : Boolean.FALSE;
+	}
+	
+	static Boolean findItemValue(Task task, QName path) throws SchemaException{
 		Validate.notNull(task, "Task must not be null.");
 		if (task.getExtension() == null) {
 			return null;
 		}
-		PrismProperty<Boolean> item = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_DRY_RUN);
+		PrismProperty<Boolean> item = task.getExtensionProperty(path);
 		if (item == null || item.isEmpty()) {
 			return null;
 		}
@@ -611,6 +620,9 @@ public class ModelImplUtils {
 		}
 		return item.getValues().iterator().next().getValue();
 	}
+	
+	
+
 
 	public static ModelExecuteOptions getModelExecuteOptions(Task task) throws SchemaException {
 		Validate.notNull(task, "Task must not be null.");

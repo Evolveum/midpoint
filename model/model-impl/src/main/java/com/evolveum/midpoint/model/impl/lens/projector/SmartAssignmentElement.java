@@ -25,14 +25,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
  * @author semancik
  */
 public class SmartAssignmentElement implements DebugDumpable {
-
+	
 	private PrismContainerValue<AssignmentType> assignmentCVal;
 	private boolean isCurrent = false;
 	private boolean isOld = false;
 	private boolean isChanged = false;
-
-	public SmartAssignmentElement(PrismContainerValue<AssignmentType> assignmentCVal) {
+	
+	private boolean virtual = false;
+	
+	public SmartAssignmentElement(PrismContainerValue<AssignmentType> assignmentCVal, boolean virtual) {
 		this.assignmentCVal = assignmentCVal;
+		this.virtual = virtual;
 	}
 
 	public boolean isCurrent() {
@@ -65,6 +68,14 @@ public class SmartAssignmentElement implements DebugDumpable {
 
 	public SmartAssignmentKey getKey() {
 		return new SmartAssignmentKey(assignmentCVal);
+	}
+	
+	public boolean isVirtual() {
+		return virtual;
+	}
+	
+	public void setVirtual(boolean virtual) {
+		this.virtual = virtual;
 	}
 
 	@Override

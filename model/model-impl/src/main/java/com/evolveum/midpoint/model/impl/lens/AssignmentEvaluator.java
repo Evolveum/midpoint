@@ -64,6 +64,7 @@ import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Holder;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -224,13 +225,16 @@ public class AssignmentEvaluator<F extends FocusType> {
 	 */
 	public EvaluatedAssignmentImpl<F> evaluate(
 			ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi,
-			PlusMinusZero primaryAssignmentMode, boolean evaluateOld, ObjectType source, String sourceDescription, Task task, OperationResult result)
+			PlusMinusZero primaryAssignmentMode, boolean evaluateOld, ObjectType source, String sourceDescription, boolean forcedAssignment, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
 
 		assertSourceNotNull(source, assignmentIdi);
 
+		EvaluatedAssignmentImpl<F> evalAssignemntImpl = new EvaluatedAssignmentImpl<>(assignmentIdi, evaluateOld, prismContext);
+		evalAssignemntImpl.setVirtual(forcedAssignment);
+		
 		EvaluationContext ctx = new EvaluationContext(
-				new EvaluatedAssignmentImpl<>(assignmentIdi, evaluateOld, prismContext),
+				evalAssignemntImpl,
 				new AssignmentPathImpl(prismContext),
 				primaryAssignmentMode, evaluateOld, task, result);
 
@@ -331,23 +335,24 @@ public class AssignmentEvaluator<F extends FocusType> {
 			}
 		}
 
-		boolean isVirtual = isForcedAssignment(segment, ctx);
-		if (ctx.assignmentPath.isEmpty() && isVirtual) {
-			segment.setValidityOverride(isVirtual);
+	//	boolean isVirtual = isVirtualAssignment(segment, ctx);
+		if (ctx.assignmentPath.isEmpty() && ctx.evalAssignment.isVirtual()) {
+			segment.setValidityOverride(ctx.evalAssignment.isVirtual());
 		}
 		
-		boolean isValid = (evaluateContent && evaluateSegmentContent(segment, relativeMode, ctx)) || isVirtual;
+		boolean isValid = (evaluateContent && evaluateSegmentContent(segment, relativeMode, ctx)) || ctx.evalAssignment.isVirtual();
 
 		ctx.assignmentPath.removeLast(segment);
 		if (ctx.assignmentPath.isEmpty()) {		// direct assignment
 			ctx.evalAssignment.setValid(isValid);
-			ctx.evalAssignment.setVirtual(isVirtual);
+//			ctx.evalAssignment.setVirtual(isVirtual);
 		}
 		
 		LOGGER.trace("evalAssignment isVirtual {} ", ctx.evalAssignment.isVirtual());
 	}
 	
-	private <R extends AbstractRoleType> boolean isForcedAssignment(AssignmentPathSegmentImpl segment, EvaluationContext ctx) {
+	private <R extends AbstractRoleType> boolean isVirtualAssignment(AssignmentPathSegmentImpl segment, EvaluationContext ctx)
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		
 		F focusNew = focusOdo.getNewObject().asObjectable();
     	Collection<R> forcedRoles = new HashSet<>();
@@ -366,7 +371,24 @@ public class AssignmentEvaluator<F extends FocusType> {
 				| SecurityViolationException | ExpressionEvaluationException e) {
 			LOGGER.error("Cannot search for forced roles", e);
 		}
+    	
+    	Collection<AssignmentType> taskAssignments = ctx.task.getTaskType().getAssignment();
+    	for (AssignmentType taskAssignment : taskAssignments) {
+    		try {
+				forcedRoles.add(objectResolver.resolve(taskAssignment.getTargetRef(), 
+						getPrismContext().getSchemaRegistry().determineClassForType(taskAssignment.getTargetRef().getType()), null, " resolve task assignemnts ", ctx.task, ctx.result));
+			} catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException
+					| SecurityViolationException | ExpressionEvaluationException e) {
+				LOGGER.error("Cannot resolve task assignemnts.");
+				throw e;
+			}
+    	}
 		
+		return matchVirtualAssignment(forcedRoles, segment, ctx);
+		
+	}
+	
+	private <R extends AbstractRoleType> boolean matchVirtualAssignment(Collection<R> forcedRoles, AssignmentPathSegmentImpl segment, EvaluationContext ctx) {
 		for (R forcedRole : forcedRoles) {
 			ObjectFilter filterTargetRef = prismContext.queryFor(AssignmentType.class)
 					.item(AssignmentType.F_TARGET_REF).ref(forcedRole.getOid()).buildFilter();
@@ -381,7 +403,6 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 		
 		return false;
-		
 	}
     
    	// "content" means "payload + targets" here
@@ -470,7 +491,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 						if (isDelegationToNonDelegableTarget(assignmentType, target, ctx)) {
 							continue;
 						}
-						evaluateSegmentTarget(segment, relativeMode, reallyValid, (FocusType) target.asObjectable(), relation, ctx);
+						evaluateSegmentTarget(segment, relativeMode, reallyValid, (AssignmentHolderType) target.asObjectable(), relation, ctx);
 					}
 				}
 			}
@@ -732,7 +753,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	}
 
 	private void evaluateSegmentTarget(AssignmentPathSegmentImpl segment, PlusMinusZero relativeMode, boolean isValid,
-			FocusType targetType, QName relation, EvaluationContext ctx)
+			AssignmentHolderType targetType, QName relation, EvaluationContext ctx)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
 		assertSourceNotNull(segment.source, ctx.evalAssignment);
 
@@ -863,7 +884,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	}
 
 	private void evaluateAssignment(AssignmentPathSegmentImpl segment, PlusMinusZero mode, boolean isValid, EvaluationContext ctx,
-			FocusType targetType, QName relation, AssignmentType roleAssignment)
+			AssignmentHolderType targetType, QName relation, AssignmentType roleAssignment)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
 
 		ObjectType orderOneObject = getOrderOneObject(segment);
@@ -904,7 +925,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	}
 
 	private void evaluateInducement(AssignmentPathSegmentImpl segment, PlusMinusZero mode, boolean isValid, EvaluationContext ctx,
-			FocusType targetType, AssignmentType inducement)
+			AssignmentHolderType targetType, AssignmentType inducement)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
 
 		ObjectType orderOneObject = getOrderOneObject(segment);
@@ -1085,7 +1106,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 	}
 
-	private void collectMembership(FocusType targetType, QName relation, EvaluationContext ctx) {
+	private void collectMembership(AssignmentHolderType targetType, QName relation, EvaluationContext ctx) {
 		PrismReferenceValue refVal = prismContext.itemFactory().createReferenceValue();
 		refVal.setObject(targetType.asPrismObject());
 		refVal.setTargetType(ObjectTypes.getObjectType(targetType.getClass()).getTypeQName());
@@ -1095,7 +1116,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		collectMembershipRefVal(refVal, targetType.getClass(), relation, targetType, ctx);
 	}
 	
-	private void collectTenantRef(FocusType targetType, AssignmentEvaluator<F>.EvaluationContext ctx) {
+	private void collectTenantRef(AssignmentHolderType targetType, AssignmentEvaluator<F>.EvaluationContext ctx) {
 		if (targetType instanceof OrgType) {
 			if (BooleanUtils.isTrue(((OrgType)targetType).isTenant()) && ctx.evalAssignment.getTenantOid() == null) {
 				if (ctx.assignmentPath.hasOnlyOrgs()) {
@@ -1160,9 +1181,9 @@ public class AssignmentEvaluator<F extends FocusType> {
 		return mode == PlusMinusZero.PLUS || mode == PlusMinusZero.MINUS;
 	}
 
-	private void checkRelationWithTarget(AssignmentPathSegmentImpl segment, FocusType targetType, QName relation)
+	private void checkRelationWithTarget(AssignmentPathSegmentImpl segment, AssignmentHolderType targetType, QName relation)
 			throws SchemaException {
-		if (targetType instanceof AbstractRoleType) {
+		if (targetType instanceof AbstractRoleType || targetType instanceof TaskType) { //TODO:
 			// OK, just go on
 		} else if (targetType instanceof UserType) {
 			if (!relationRegistry.isDelegation(relation)) {

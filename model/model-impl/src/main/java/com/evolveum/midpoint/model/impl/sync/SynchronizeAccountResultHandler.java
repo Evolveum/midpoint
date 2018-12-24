@@ -61,7 +61,9 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 	private ObjectClassComplexTypeDefinition objectClassDef;
 	private QName sourceChannel;
 	private boolean forceAdd;
-
+	
+	private boolean simulate;
+	
 	public SynchronizeAccountResultHandler(ResourceType resource, ObjectClassComplexTypeDefinition objectClassDef,
 			String processShortName, Task coordinatorTask, ResourceObjectChangeListener objectChangeListener,
 			TaskManager taskManager) {
@@ -74,7 +76,7 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 		setRecordIterationStatistics(false);		// we do statistics ourselves in handler, because in case of reconciliation
 													// we are not called via AbstractSearchIterativeResultHandler.processRequest
 	}
-
+	
 	public boolean isForceAdd() {
 		return forceAdd;
 	}
@@ -108,6 +110,9 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 		return objectClassDef;
 	}
 
+	public void setSimulate(boolean simulate) {
+		this.simulate = simulate;
+	}
 	/**
 	 * This methods will be called for each search result. It means it will be
 	 * called for each account on a resource. We will pretend that the account
@@ -164,6 +169,7 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 		ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
 		change.setSourceChannel(QNameUtil.qNameToUri(sourceChannel));
 		change.setResource(getResourceWorkingCopy().asPrismObject());
+		change.setSimulate(simulate);
 
 		if (forceAdd) {
 			// We should provide shadow in the state before the change. But we are
@@ -196,9 +202,8 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 		// Invoke the change notification
 		ModelImplUtils.clearRequestee(workerTask);
 		objectChangeListener.notifyChange(change, workerTask, result);
-
+		
 		// No exception thrown here. The error is indicated in the result. Will be processed by superclass.
-
 		return workerTask.canRun();
 	}
 }

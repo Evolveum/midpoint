@@ -80,6 +80,7 @@ import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.model.impl.ModelCrudService;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator;
+import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.ContextFactory;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensContextPlaceholder;
@@ -187,6 +188,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	@Autowired UserProfileService userProfileService;
 	@Autowired private ExpressionFactory expressionFactory;
 	@Autowired private OperationalDataManager metadataManager;
+	@Autowired private Clockwork clockwork;
 
 	private static final String OPERATION_GENERATE_VALUE = ModelInteractionService.class.getName() +  ".generateValue";
 	private static final String OPERATION_VALIDATE_VALUE = ModelInteractionService.class.getName() +  ".validateValue";
@@ -225,57 +227,23 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		LensContext<F> context = null;
 
 		try {
-			RepositoryCache.enter();
-			//used cloned deltas instead of origin deltas, because some of the values should be lost later..
-			context = contextFactory.createContext(clonedDeltas, options, task, result);
-			context.setPreview(true);
+		RepositoryCache.enter();
+		// used cloned deltas instead of origin deltas, because some of the
+		// values should be lost later..
+		context = contextFactory.createContext(clonedDeltas, options, task, result);
+		context = clockwork.previewChanges(context, listeners, task, result);
 
-//			context.setOptions(options);
-			LOGGER.trace("Preview changes context:\n{}", context.debugDumpLazily());
-			context.setProgressListeners(listeners);
-
-			projector.projectAllWaves(context, "preview", task, result);
-			context.distributeResource();
-
-			if (hookRegistry != null) {
-				for (ChangeHook hook : hookRegistry.getAllChangeHooks()) {
-					hook.invokePreview(context, task, result);
-				}
-			}
-			
-			schemaTransformer.applySchemasAndSecurity(context, null, task, result);
-
-		} catch (ConfigurationException | SecurityViolationException | ObjectNotFoundException | SchemaException |
-				CommunicationException | PolicyViolationException | RuntimeException | ObjectAlreadyExistsException |
-				ExpressionEvaluationException e) {
-			ModelImplUtils.recordFatalError(result, e);
-			throw e;
-			
-		} catch (PreconditionViolationException e) {
-			ModelImplUtils.recordFatalError(result, e);
-			// TODO: Temporary fix for 3.6.1
-			// We do not want to propagate PreconditionViolationException to model API as that might break compatiblity
-			// ... and we do not really need that in 3.6.1
-			// TODO: expose PreconditionViolationException in 3.7
-			throw new SystemException(e);
-			
+		schemaTransformer.applySchemasAndSecurity(context, null, task, result);
 		} finally {
 			LensUtil.reclaimSequences(context, cacheRepositoryService, task, result);
 
 			RepositoryCache.exit();
 		}
-
-		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("Preview changes output:\n{}", context.debugDump());
-		}
-
-		result.computeStatus();
-		result.cleanupResult();
-
+		
 		return context;
 	}
-
-    @Override
+	
+	@Override
     public <F extends ObjectType> ModelContext<F> unwrapModelContext(LensContextType wrappedContext, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
         return LensContext.fromLensContextType(wrappedContext, prismContext, provisioning, task, result);
     }
@@ -1509,7 +1477,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 				// TODO some special mode for verification of the validity - we don't need complete calculation here!
 				EvaluatedAssignment<UserType> assignment = assignmentEvaluator
 						.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, potentialDeputy.asObjectable(),
-								potentialDeputy.toString(), task, result);
+								potentialDeputy.toString(), false, task, result);
 				if (!assignment.isValid()) {
 					continue;
 				}
