@@ -1802,7 +1802,20 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON_COLORED,
                 createStringResource("PageAdmin.menu.top.resources"), null);
 
-        addMenuItem(item, "PageAdmin.menu.top.resources.list", PageResources.class);
+        MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.resources.list"), PageResources.class){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isMenuActive(WebPage page) {
+                if (getPageParameters() != null && getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME) != null
+                        && getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME).toString() != null){
+                    return false;
+                } else {
+                    return super.isMenuActive(page);
+                }
+            }
+        };
+        item.getItems().add(menu);
 
         createFocusPageViewMenu(item.getItems(), "PageAdmin.menu.top.resources.view", PageResource.class);
         createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.resources.new",
@@ -1932,7 +1945,20 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_USER_ICON_COLORED,
                 createStringResource("PageAdmin.menu.top.users"), null);
 
-        addMenuItem(item, "PageAdmin.menu.top.users.list", PageUsers.class);
+        MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.users.list"), PageUsers.class){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isMenuActive(WebPage page) {
+                if (getPageParameters() != null && getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME) != null
+                        && getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME).toString() != null){
+                    return false;
+                } else {
+                    return super.isMenuActive(page);
+                }
+            }
+        };
+        item.getItems().add(menu);
 
         createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.users.new",
                 "PageAdmin.menu.top.users.edit", PageUser.class, true);
@@ -2065,7 +2091,20 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED,
                 createStringResource("PageAdmin.menu.top.roles"), null);
 
-        addMenuItem(item, "PageAdmin.menu.top.roles.list", PageRoles.class);
+        MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.roles.list"), PageRoles.class){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isMenuActive(WebPage page) {
+                if (getPageParameters() != null && getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME) != null
+                        && getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME).toString() != null){
+                    return false;
+                } else {
+                    return super.isMenuActive(page);
+                }
+            }
+        };
+        item.getItems().add(menu);
 
         createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.roles.new", "PageAdmin.menu.top.roles.edit",
                 PageRole.class, true);
@@ -2079,7 +2118,20 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON_COLORED,
                 createStringResource("PageAdmin.menu.top.services"), null);
 
-        addMenuItem(item, "PageAdmin.menu.top.services.list", PageServices.class);
+        MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.services.list"), PageServices.class){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isMenuActive(WebPage page) {
+                if (getPageParameters() != null && getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME) != null
+                        && getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME).toString() != null){
+                    return false;
+                } else {
+                    return super.isMenuActive(page);
+                }
+            }
+        };
+        item.getItems().add(menu);
 
         createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.services.new", "PageAdmin.menu.top.services.edit",
                 PageService.class, true);
@@ -2122,11 +2174,25 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             DisplayType viewDisplayType = objectView.getDisplay();
 
             PageParameters pageParameters = new PageParameters();
-            pageParameters.add(PageUsersView.PARAMETER_OBJECT_COLLECTION_NAME, objectView.getViewName());
+            pageParameters.add(PARAMETER_OBJECT_COLLECTION_NAME, objectView.getViewName());
 
             MenuItem userViewMenu = new MenuItem(viewDisplayType != null && PolyStringUtils.isNotEmpty(viewDisplayType.getLabel())
                     ? createStringResource(viewDisplayType.getLabel())
-                    : createStringResource("MenuItem.noName"), redirectToPage, pageParameters, null);
+                    : createStringResource("MenuItem.noName"), redirectToPage, pageParameters, null){
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public boolean isMenuActive(WebPage page) {
+                    PageParameters params = getPageParameters();
+                    if (params != null && params.get(PARAMETER_OBJECT_COLLECTION_NAME) != null){
+                        StringValue collectionName = params.get(PARAMETER_OBJECT_COLLECTION_NAME);
+                        if (objectView.getViewName().equals(collectionName.toString())) {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+            };
             menu.add(userViewMenu);
 
         });
