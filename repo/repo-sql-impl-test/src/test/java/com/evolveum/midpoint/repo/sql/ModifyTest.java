@@ -37,6 +37,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -956,7 +957,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         ItemDeltaCollectionsUtil.applyTo(deltas1, collection.asPrismObject());
         PrismObject<ObjectCollectionType> afterChange1 = repositoryService
                 .getObject(ObjectCollectionType.class, collection.getOid(), null, result);
-        assertEquals("Objects differ after change 1", collection.asPrismObject(), afterChange1);
+        assertTrue("Objects differ after change 1", collection.asPrismObject().equals(afterChange1, EquivalenceStrategy.NOT_LITERAL));
 
         ObjectFilter filter = prismContext.queryFor(UserType.class)
                 .item(UserType.F_COST_CENTER).eq("100")
@@ -978,7 +979,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         fromRepoWithoutFilter.asObjectable().setFilter(null);
         PrismObject<ObjectCollectionType> expectedWithoutFilter = collection.asPrismObject().clone();
         expectedWithoutFilter.asObjectable().setFilter(null);
-        assertEquals("Objects (without filter) differ after change 2", expectedWithoutFilter, fromRepoWithoutFilter);
+        assertTrue("Objects (without filter) differ after change 2", expectedWithoutFilter.equals(fromRepoWithoutFilter, EquivalenceStrategy.NOT_LITERAL));
 
         SearchFilterType filterFromRepo = afterChange2.asObjectable().getFilter();
         SearchFilterType filterExpected = collection.getFilter();

@@ -260,7 +260,11 @@ public final class PrismForJAXBUtil {
                 if (value.getParent() != null) {
                     value = value.clone();
                 }
-                reference.add(value);
+	            try {
+		            reference.add(value);
+	            } catch (SchemaException e) {
+		            throw new IllegalStateException("Couldn't add a value: " + e.getMessage(), e);
+	            }
             } else {
                 reference.getValue().setOid(value.getOid());
                 reference.getValue().setTargetType(value.getTargetType());

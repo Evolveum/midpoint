@@ -19,6 +19,8 @@ package com.evolveum.midpoint.prism.impl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.impl.delta.PropertyDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
@@ -240,7 +242,7 @@ public class PrismPropertyImpl<T> extends ItemImpl<PrismPropertyValue<T>, PrismP
     	Iterator<PrismPropertyValue<T>> iterator = getValues().iterator();
     	while (iterator.hasNext()) {
     		PrismPropertyValue<T> pValue = iterator.next();
-    		if (pValue.equalsRealValue(pValueToAdd)) {
+    		if (pValue.equals(pValueToAdd, EquivalenceStrategy.REAL_VALUE)) {
     			LOGGER.warn("Adding value to property "+ getElementName()+" that already exists (overwriting), value: "+pValueToAdd);
     			iterator.remove();
     		}
@@ -280,7 +282,7 @@ public class PrismPropertyImpl<T> extends ItemImpl<PrismPropertyValue<T>, PrismP
     	boolean found = false;
     	while (iterator.hasNext()) {
     		PrismPropertyValue<T> pValue = iterator.next();
-    		if (pValue.equalsRealValue(pValueToDelete)) {
+    		if (pValue.equals(pValueToDelete, EquivalenceStrategy.REAL_VALUE)) {
     			iterator.remove();
     			pValue.setParent(null);
     			found = true;
@@ -298,13 +300,9 @@ public class PrismPropertyImpl<T> extends ItemImpl<PrismPropertyValue<T>, PrismP
         addValues(valuesToReplace);
     }
 
-    public boolean hasValue(PrismPropertyValue<T> value) {
-        return super.hasValue(value);
-    }
-
     public boolean hasRealValue(PrismPropertyValue<T> value) {
         for (PrismPropertyValue<T> propVal : getValues()) {
-            if (propVal.equalsRealValue(value)) {
+            if (propVal.equals(value, EquivalenceStrategy.REAL_VALUE)) {
                 return true;
             }
         }
@@ -369,8 +367,8 @@ public class PrismPropertyImpl<T> extends ItemImpl<PrismPropertyValue<T>, PrismP
 		return (PropertyDelta<T>) super.diff(other);
     }
 
-    public PropertyDelta<T> diff(PrismProperty<T> other, boolean ignoreMetadata, boolean isLiteral) {
-    	return (PropertyDelta<T>) super.diff(other, true, false);
+    public PropertyDelta<T> diff(PrismProperty<T> other, ParameterizedEquivalenceStrategy strategy) {
+    	return (PropertyDelta<T>) super.diff(other, strategy);
     }
 
 	@Override
@@ -400,25 +398,7 @@ public class PrismPropertyImpl<T> extends ItemImpl<PrismPropertyValue<T>, PrismP
     }
 
 	@Override
-    public int hashCode() {
-        int result = super.hashCode();
-        return result;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (!super.equals(obj))
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        return true;
-    }
-
-	@Override
-	protected ItemDelta fixupDelta(ItemDelta delta, Item otherItem,
-			boolean ignoreMetadata) {
+	protected ItemDelta fixupDelta(ItemDelta delta, Item otherItem) {
 		PrismPropertyDefinition def = getDefinition();
 		if (def != null && def.isSingleValue() && !delta.isEmpty()) {
         	// Drop the current delta (it was used only to detect that something has changed
@@ -433,7 +413,7 @@ public class PrismPropertyImpl<T> extends ItemImpl<PrismPropertyValue<T>, PrismP
             propertyDelta.setValuesToReplace(replaceValues);
 			return propertyDelta;
         } else {
-        	return super.fixupDelta(delta, otherItem, ignoreMetadata);
+        	return super.fixupDelta(delta, otherItem);
         }
 	}
 

@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.prism;
 
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -41,7 +42,7 @@ public class PrismValueCollectionsUtil {
 
 	public static boolean containsRealValue(Collection<PrismPropertyValue<?>> collection, PrismPropertyValue<?> value) {
 		for (PrismPropertyValue<?> colVal: collection) {
-			if (value.equalsRealValue(colVal)) {
+			if (value.equals(colVal, EquivalenceStrategy.REAL_VALUE)) {
 				return true;
 			}
 		}
@@ -119,10 +120,10 @@ public class PrismValueCollectionsUtil {
 
 
 	public static <V extends PrismValue> boolean equalsRealValues(Collection<V> collection1, Collection<V> collection2) {
-		return MiscUtil.unorderedCollectionEquals(collection1, collection2, (v1, v2) -> v1.equalsRealValue(v2));
+		return MiscUtil.unorderedCollectionEquals(collection1, collection2, (v1, v2) -> v1.equals(v2, EquivalenceStrategy.REAL_VALUE));
 	}
 
-	public static <V extends PrismValue> boolean containsAll(Collection<V> thisSet, Collection<V> otherSet, boolean ignoreMetadata, boolean isLiteral) {
+	public static <V extends PrismValue> boolean containsAll(Collection<V> thisSet, Collection<V> otherSet, EquivalenceStrategy strategy) {
 		if (thisSet == null && otherSet == null) {
 			return true;
 		}
@@ -133,7 +134,7 @@ public class PrismValueCollectionsUtil {
 			return false;
 		}
 		for (V otherValue: otherSet) {
-			if (!contains(thisSet, otherValue, ignoreMetadata, isLiteral)) {
+			if (!contains(thisSet, otherValue, strategy)) {
 				return false;
 			}
 		}
@@ -176,7 +177,7 @@ public class PrismValueCollectionsUtil {
 				return value == null;
 			}
 
-			if (valueExtractor.apply(colVal).equalsRealValue(value)) {
+			if (valueExtractor.apply(colVal).equals(value, EquivalenceStrategy.REAL_VALUE)) {
 
 				return true;
 			}
@@ -184,9 +185,9 @@ public class PrismValueCollectionsUtil {
 		return false;
 	}
 
-	public static <V extends PrismValue> boolean contains(Collection<V> thisSet, V otherValue, boolean ignoreMetadata, boolean isLiteral) {
+	public static <V extends PrismValue> boolean contains(Collection<V> thisSet, V otherValue, EquivalenceStrategy strategy) {
 		for (V thisValue: thisSet) {
-			if (thisValue.equalsComplex(otherValue, ignoreMetadata, isLiteral)) {
+			if (thisValue.equals(otherValue, strategy)) {
 				return true;
 			}
 		}
@@ -219,7 +220,7 @@ public class PrismValueCollectionsUtil {
 			return false;
 		}
 		for (V collectionVal: collection) {
-			if (collectionVal.equals(value, true)) {
+			if (collectionVal.equals(value, EquivalenceStrategy.IGNORE_METADATA)) {
 				return true;
 			}
 		}

@@ -38,6 +38,7 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.Holder;
@@ -294,7 +295,7 @@ public class CryptoUtil {
 		if (changes == 0) {
 			return Collections.emptySet();
 		}
-		ObjectDelta<T> diff = object.diff(reencrypted, false, true);
+		ObjectDelta<T> diff = object.diff(reencrypted, EquivalenceStrategy.LITERAL);
 		if (!diff.isModify()) {
 			throw new AssertionError("Expected MODIFY delta, got " + diff);
 		}

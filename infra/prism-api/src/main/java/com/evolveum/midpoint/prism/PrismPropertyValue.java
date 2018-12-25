@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.prism;
 
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xnode.XNode;
@@ -71,12 +72,7 @@ public interface PrismPropertyValue<T> extends DebugDumpable, Serializable, Pris
 	@Override
 	PrismPropertyValue<T> cloneComplex(CloneStrategy strategy);
 
-	@Override
-	boolean equalsComplex(PrismValue other, boolean ignoreMetadata, boolean isLiteral);
-
-	boolean equalsComplex(PrismPropertyValue<?> other, boolean ignoreMetadata, boolean isLiteral, MatchingRule<T> matchingRule);
-
-	boolean match(PrismValue otherValue);
+	boolean equals(PrismPropertyValue<?> other, ParameterizedEquivalenceStrategy strategy, MatchingRule<T> matchingRule);
 
 	@Override
 	boolean equals(Object obj);

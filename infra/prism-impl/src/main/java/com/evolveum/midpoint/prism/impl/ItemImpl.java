@@ -17,7 +17,9 @@
 package com.evolveum.midpoint.prism.impl;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -34,6 +36,8 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * Item is a common abstraction of Property and PropertyContainer.
@@ -57,6 +61,8 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
     protected D definition;
     @NotNull protected final List<V> values = new ArrayList<>();
     private transient Map<String,Object> userData = new HashMap<>();;
+
+    protected EquivalenceStrategy defaultEquivalenceStrategy;
 
 	protected boolean immutable;
 	protected boolean incomplete;
@@ -313,14 +319,6 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
 		}
 	}
 
-    private boolean hasValue(PrismValue value, boolean ignoreMetadata) {
-    	return findValue(value, ignoreMetadata) != null;
-    }
-
-    public boolean hasValue(PrismValue value) {
-        return hasValue(value, false);
-    }
-
 	public boolean isSingleValue() {
     	// TODO what about dynamic definitions? See MID-3922
 		if (getDefinition() != null) {
@@ -331,20 +329,21 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
 		return values.size() <= 1;
 	}
 
-    public PrismValue findValue(PrismValue value, boolean ignoreMetadata) {
+	@Override
+    public PrismValue findValue(PrismValue value, EquivalenceStrategy strategy) {
         for (PrismValue myVal : getValues()) {
-            if (myVal.equalsComplex(value, ignoreMetadata, false)) {
+            if (myVal.equals(value, strategy)) {
                 return myVal;
             }
         }
         return null;
     }
 
-    public List<? extends PrismValue> findValuesIgnoringMetadata(PrismValue value) {
-    	return getValues().stream()
-			    .filter(v -> v.equalsComplex(value, true, false))
-			    .collect(Collectors.toList());
-    }
+//    public List<? extends PrismValue> findValuesIgnoringMetadata(PrismValue value) {
+//    	return getValues().stream()
+//			    .filter(v -> v.equalsComplex(value, true, false))
+//			    .collect(Collectors.toList());
+//    }
 
 	public Collection<V> getClonedValues() {
     	Collection<V> clonedValues = new ArrayList<>(getValues().size());
@@ -355,42 +354,40 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
 	}
 
     public boolean contains(V value) {
-    	return contains(value, false);
+    	return contains(value, getEqualsHashCodeStrategy());
     }
 
-    public boolean containsEquivalentValue(V value) {
-    	return contains(value, true);
-    }
-    
+    @Deprecated
     public boolean containsEquivalentValue(V value, Comparator<V> comparator) {
-    	return contains(value, true, comparator);
+    	return contains(value, EquivalenceStrategy.IGNORE_METADATA, comparator);
     }
 
-    public boolean contains(V value, boolean ignoreMetadata, Comparator<V> comparator) {
+    public boolean contains(V value, @NotNull EquivalenceStrategy strategy) {
+	    for (V myValue: getValues()) {
+		    if (strategy.equals(myValue, value)) {
+			    return true;
+		    }
+	    }
+    	return false;
+    }
+
+    @Override
+    public boolean contains(V value, @NotNull EquivalenceStrategy strategy, Comparator<V> comparator) {
     	if (comparator == null) {
-    		return contains(value, ignoreMetadata);
-    	} else {
-    		for (V myValue: getValues()) {
-        		if (comparator.compare(myValue, value) == 0) {
-        			return true;
-        		}
-        	}
-    	}
-    	return false;
-    }
-
-    public boolean contains(V value, boolean ignoreMetadata) {
-    	for (V myValue: getValues()) {
-    		if (myValue.equals(value, ignoreMetadata)) {
-    			return true;
-    		}
-    	}
-    	return false;
+    		return contains(value, strategy);
+	    } else {
+		    for (V myValue : getValues()) {
+			    if (comparator.compare(myValue, value) == 0) {
+				    return true;
+			    }
+		    }
+		    return false;
+	    }
     }
 
     public boolean containsRealValue(V value) {
     	for (V myValue: getValues()) {
-    		if (myValue.equalsRealValue(value)) {
+    		if (myValue.equals(value, EquivalenceStrategy.REAL_VALUE)) {
     			return true;
     		}
     	}
@@ -417,18 +414,29 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
     }
 
     public boolean add(@NotNull V newValue) throws SchemaException {
-    	return add(newValue, true);
+    	return add(newValue, true, getEqualsHashCodeStrategy());
     }
 
-    public boolean add(@NotNull V newValue, boolean checkUniqueness) throws SchemaException {
+	@Override
+	public boolean add(@NotNull V newValue, @NotNull EquivalenceStrategy equivalenceStrategy) throws SchemaException {
+		return add(newValue, true, equivalenceStrategy);
+	}
+
+	public boolean add(@NotNull V newValue, boolean checkUniqueness) throws SchemaException {
+    	return add(newValue, checkUniqueness, getEqualsHashCodeStrategy());
+	}
+
+	public boolean add(@NotNull V newValue, boolean checkUniqueness, @NotNull EquivalenceStrategy equivalenceStrategy) throws SchemaException {
 		checkMutability();
 		if (newValue.getPrismContext() == null) {
 			newValue.setPrismContext(prismContext);
 		}
-    	if (checkUniqueness && containsEquivalentValue(newValue)) {
+		Itemable originalParent = newValue.getParent();
+		newValue.setParent(this);       // needed e.g. because of PrismReferenceValue comparisons
+    	if (checkUniqueness && contains(newValue, equivalenceStrategy)) {
+    		newValue.setParent(originalParent);
     		return false;
     	}
-	    newValue.setParent(this);
 	    D definition = getDefinition();
 	    if (definition != null) {
 		    if (!values.isEmpty() && definition.isSingleValue()) {
@@ -439,7 +447,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
     	return values.add(newValue);
     }
 
-    public boolean removeAll(Collection<V> newValues) {
+	public boolean removeAll(Collection<V> newValues) {
 		checkMutability();					// TODO consider if there is real change
     	boolean changed = false;
     	for (V val: newValues) {
@@ -459,7 +467,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
 			// the same algorithm as when deleting the item value from delete delta
 			// TODO either make equalsRealValue return false if both PCVs have IDs and these IDs are different
 			// TODO or include a special test condition here; see MID-3828
-			if (val.representsSameValue(newValue, false) || val.equalsRealValue(newValue)) {
+			if (val.representsSameValue(newValue, false) || val.equals(newValue, EquivalenceStrategy.REAL_VALUE)) {
     			iterator.remove();
     			val.setParent(null);
     			changed = true;
@@ -470,11 +478,13 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
 
     public V remove(int index) {
 		checkMutability();					// TODO consider if there is real change
+	    // TODO set parent for removed value?
     	return values.remove(index);
     }
 
     public void replaceAll(Collection<V> newValues) throws SchemaException {
 		checkMutability();					// TODO consider if there is real change
+	    // TODO set parent for removed values?
     	values.clear();
     	addAll(newValues);
     }
@@ -511,13 +521,13 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
 
     // We want this method to be consistent with property diff
     public ItemDelta<V,D> diff(Item<V,D> other) {
-    	return diff(other, true, false);
+    	return diff(other, EquivalenceStrategy.IGNORE_METADATA);
     }
 
     // We want this method to be consistent with property diff
-    public ItemDelta<V,D> diff(Item<V,D> other, boolean ignoreMetadata, boolean isLiteral) {
+    public ItemDelta<V,D> diff(Item<V,D> other, ParameterizedEquivalenceStrategy strategy) {
     	List<? extends ItemDelta> itemDeltas = new ArrayList<>();
-		diffInternal(other, itemDeltas, ignoreMetadata, isLiteral);
+		diffInternal(other, itemDeltas, strategy);
 		if (itemDeltas.isEmpty()) {
 			return null;
 		}
@@ -527,8 +537,8 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
 		return itemDeltas.get(0);
     }
 
-    protected void diffInternal(Item<V,D> other, Collection<? extends ItemDelta> deltas,
-    		boolean ignoreMetadata, boolean isLiteral) {
+	void diffInternal(Item<V, D> other, Collection<? extends ItemDelta> deltas,
+			ParameterizedEquivalenceStrategy strategy) {
     	ItemDelta delta = createDelta();
     	if (other == null) {
     		if (delta.getDefinition() == null && this.getDefinition() != null) {
@@ -550,18 +560,17 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
     			Iterator<PrismValue> iterator = outstandingOtherValues.iterator();
     			boolean found = false;
     			while (iterator.hasNext()) {
-    				PrismValue otherValue = iterator.next();
-    				if (thisValue.representsSameValue(otherValue, true) || delta == null) {
+    				PrismValueImpl otherValue = (PrismValueImpl) iterator.next();
+    				if (thisValue.representsSameValue(otherValue, true)) {
     					found = true;
     					// Matching IDs, look inside to figure out internal deltas
-    					thisValue.diffMatchingRepresentation(otherValue, deltas,
-    							ignoreMetadata, isLiteral);
+					    ((PrismValueImpl) thisValue).diffMatchingRepresentation(otherValue, deltas, strategy);
     					// No need to process this value again
     					iterator.remove();
     					break;
 					// TODO either make equalsRealValue return false if both PCVs have IDs and these IDs are different
 					// TODO or include a special test condition here; see MID-3828
-					} else if (thisValue.equalsComplex(otherValue, ignoreMetadata, isLiteral)) {
+					} else if (thisValue.equals(otherValue, strategy)) {
     					found = true;
     					// same values. No delta
     					// No need to process this value again
@@ -581,14 +590,14 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
             }
     		// Some deltas may need to be polished a bit. E.g. transforming
     		// add/delete delta to a replace delta.
-    		delta = fixupDelta(delta, other, ignoreMetadata);
+    		delta = fixupDelta(delta, other);
     	}
     	if (delta != null && !delta.isEmpty()) {
     		((Collection)deltas).add(delta);
     	}
     }
 
-	protected ItemDelta<V,D> fixupDelta(ItemDelta<V,D> delta, Item<V,D> other, boolean ignoreMetadata) {
+	protected ItemDelta<V,D> fixupDelta(ItemDelta<V, D> delta, Item<V, D> other) {
 		return delta;
 	}
 
@@ -780,20 +789,37 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
 		return getValues().isEmpty();
     }
 
+    @Override
+    public int hashCode(@NotNull EquivalenceStrategy equivalenceStrategy) {
+		return equivalenceStrategy.hashCode(this);
+    }
+
+    @Override
+    public int hashCode(@NotNull ParameterizedEquivalenceStrategy equivalenceStrategy) {
+	    int valuesHash = MiscUtil.unorderedCollectionHashcode(values, null);
+	    if (valuesHash == 0) {
+		    // empty or non-significant container. We do not want this to destroy hashcode of
+		    // parent item
+		    return 0;
+	    }
+	    final int prime = 31;
+	    int result = 1;
+	    if (equivalenceStrategy.isConsideringElementNames()) {
+		    String localElementName = elementName != null ? elementName.getLocalPart() : null;
+		    result = prime * result + ((localElementName == null) ? 0 : localElementName.hashCode());
+	    }
+	    result = prime * result + valuesHash;
+	    return result;
+    }
+
 	@Override
 	public int hashCode() {
-		int valuesHash = MiscUtil.unorderedCollectionHashcode(values, null);
-		if (valuesHash == 0) {
-			// empty or non-significant container. We do not want this to destroy hashcode of
-			// parent item
-			return 0;
-		}
-		final int prime = 31;
-		int result = 1;
-		String localElementName = elementName != null ? elementName.getLocalPart() : null;
-		result = prime * result + ((localElementName == null) ? 0 : localElementName.hashCode());
-		result = prime * result + valuesHash;
-		return result;
+		return hashCode(getEqualsHashCodeStrategy());
+	}
+
+	@NotNull
+	private EquivalenceStrategy getEqualsHashCodeStrategy() {
+		return defaultIfNull(defaultEquivalenceStrategy, EquivalenceStrategy.NOT_LITERAL);
 	}
 
 	public boolean equalsRealValue(Object obj) {
@@ -811,88 +837,53 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
 
 	private boolean equalsRealValues(List<V> thisValue, List<?> otherValues) {
 		return MiscUtil.unorderedCollectionEquals(thisValue, otherValues,
-				(o1, o2) -> o1 != null && o2 instanceof PrismValue && o1.equalsRealValue((PrismValue) o2));
+				(o1, o2) -> o1 != null && o2 instanceof PrismValue && o1.equals((PrismValue) o2, EquivalenceStrategy.IGNORE_METADATA));
 	}
 
-	private boolean match(List<V> thisValue, List<?> otherValues) {
-		return MiscUtil.unorderedCollectionEquals(thisValue, otherValues,
-				(o1, o2) -> {
-					if (o1 instanceof PrismValueImpl && o2 instanceof PrismValueImpl) {
-						PrismValueImpl v1 = (PrismValueImpl) o1;
-						PrismValueImpl v2 = (PrismValueImpl)o2;
-						return v1.match(v2);
-					} else {
-						return false;
-					}
-				});
+	public boolean equals(Object obj, @NotNull EquivalenceStrategy strategy) {
+		if (!(obj instanceof Item)) {
+			return false;
+		} else if (strategy instanceof ParameterizedEquivalenceStrategy) {
+			return equals(obj, (ParameterizedEquivalenceStrategy) strategy);
+		} else {
+			incrementObjectCompareCounterIfNeeded(obj);
+			return strategy.equals(this, (Item<?, ?>) obj);
+		}
 	}
 
+	public boolean equals(Object obj, @NotNull ParameterizedEquivalenceStrategy parameterizedEquivalenceStrategy) {
+		incrementObjectCompareCounterIfNeeded(obj);
+		if (this == obj) {
+			return true;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		ItemImpl<?,?> second = (ItemImpl<?,?>) obj;
+		return (!parameterizedEquivalenceStrategy.isConsideringDefinitions() || Objects.equals(definition, second.definition)) &&
+				(!parameterizedEquivalenceStrategy.isConsideringElementNames() || Objects.equals(elementName, second.elementName)) &&
+				incomplete == second.incomplete &&
+				MiscUtil.unorderedCollectionEquals(values, second.values, parameterizedEquivalenceStrategy::equals);
+		// Do not compare parents at all. They are not relevant.
+	}
+
+	private void incrementObjectCompareCounterIfNeeded(Object obj) {
+		if (this instanceof PrismObject && prismContext != null && prismContext.getMonitor() != null) {
+			prismContext.getMonitor().recordPrismObjectCompareCount((PrismObject<? extends Objectable>) this, obj);
+		}
+	}
+
+	@SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		ItemImpl<?,?> other = (ItemImpl<?,?>) obj;
-		if (definition == null) {
-			if (other.definition != null)
-				return false;
-		} else if (!definition.equals(other.definition))
-			return false;
-		if (elementName == null) {
-			if (other.elementName != null)
-				return false;
-		} else if (!elementName.equals(other.elementName))
-			return false;
-		if (incomplete != other.incomplete) {
-				return false;
-		}
-		// Do not compare parent at all. This is not relevant.
-		if (values == null) {
-			if (other.values != null)
-				return false;
-		} else if (!MiscUtil.unorderedCollectionEquals(this.values, other.values))
-			return false;
-		return true;
-	}
-
-	public boolean match(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		ItemImpl<?,?> other = (ItemImpl<?,?>) obj;
-		if (definition == null) {
-			if (other.definition != null)
-				return false;
-		} else if (!definition.equals(other.definition))
-			return false;
-		if (elementName == null) {
-			if (other.elementName != null)
-				return false;
-		} else if (!elementName.equals(other.elementName))
-			return false;
-		if (incomplete != other.incomplete) {
-			return false;
-		}
-		// Do not compare parent at all. This is not relevant.
-		if (values == null) {
-			if (other.values != null)
-				return false;
-		} else if (!match(this.values, other.values))
-			return false;
-		return true;
+		return equals(obj, getEqualsHashCodeStrategy());
 	}
 
 	/**
-	 * Returns true if this item is metadata item that should be ignored
-	 * for metadata-insensitive comparisons and hashCode functions.
+	 * Returns true if this item is operational one that should be ignored
+	 * for operational data-insensitive comparisons and hashCode functions.
 	 */
-	public boolean isMetadata() {
+	public boolean isOperational() {
 		D def = getDefinition();
 		if (def != null) {
 			return def.isOperational();

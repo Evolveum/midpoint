@@ -24,15 +24,9 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.hibernate.query.Query;
 import org.hibernate.Session;
@@ -58,9 +52,11 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
 
     private static final String ROLE_OID = "00000000-8888-6666-0000-100000000005";
 
-    private static final String OLD_ASSIGNMENT_OID = "12345678-d34d-b33f-f00d-987987987988";
-    private static final String NEW_ASSIGNMENT_OID = "12345678-d34d-b33f-f00d-987987987989";
-    private static final String NEW_INDUCEMENT_OID = "12345678-d34d-b33f-f00d-987987987987";
+    private static final String ORIGINAL_ASSIGNMENT_4_TARGET_OID = "12345678-d34d-b33f-f00d-987987987988";
+    private static final String NEW_ASSIGNMENT_4_TARGET_OID = "12345678-d34d-b33f-f00d-987987987989";
+    private static final String ORIGINAL_INDUCEMENT_5_TARGET_OID = "00000000-76e0-48e2-86d6-3d4f02d3e1a2";
+    private static final String NEW_INDUCEMENT_5_TARGET_OID = "12345678-d34d-b33f-f00d-987987987987";
+    private static final String MOVED_ASSIGNMENT_TARGET_OID = "ef2bc95b-76e0-48e2-86d6-3d4f02d3e333";
 
 	private static final String ROLE_A1_OID = "aaaa00aa-aa00-aa00-a0a0-000000000001";
 	private static final String ROLE_A2_OID = "aaaa00aa-aa00-aa00-a0a0-000000000002";
@@ -93,10 +89,15 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
     public void test010AddAssignment() throws Exception {
         //given
 
-        ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
-                new File(TEST_DIR, "modify-add-assignment.xml"), ObjectModificationType.COMPLEX_TYPE);
+        AssignmentType assignment1 = new AssignmentType(prismContext)
+                .id(4L)
+                .targetRef(ORIGINAL_ASSIGNMENT_4_TARGET_OID, RoleType.COMPLEX_TYPE);
 
-        ObjectDelta<RoleType> delta = DeltaConvertor.createObjectDelta(modification, RoleType.class, prismContext);
+        ObjectDelta<RoleType> delta = deltaFor(RoleType.class)
+                .item(RoleType.F_ASSIGNMENT).add(assignment1)
+                .asObjectDeltaCast(ROLE_OID);
+
+
         OperationResult result = new OperationResult("add assignment");
         
         // WHEN
@@ -122,17 +123,22 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
         assertNotNull(targetRef);
         assertEquals(1, targetRef.getValues().size());
         PrismReferenceValue refValue = targetRef.getValue();
-        assertEquals(OLD_ASSIGNMENT_OID, refValue.getOid());
+        assertEquals(ORIGINAL_ASSIGNMENT_4_TARGET_OID, refValue.getOid());
         assertEquals(RoleType.COMPLEX_TYPE, refValue.getTargetType());
     }
 
     @Test
     public void test011AddInducement() throws Exception {
         //given
-        ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
-                new File(TEST_DIR, "modify-add-inducement.xml"), ObjectModificationType.COMPLEX_TYPE);
+        AssignmentType inducement1 = new AssignmentType(prismContext)
+                .id(5L)
+                .beginConstruction()
+                    .resourceRef(ORIGINAL_INDUCEMENT_5_TARGET_OID, ResourceType.COMPLEX_TYPE)
+                .end();
 
-        ObjectDelta<RoleType> delta = DeltaConvertor.createObjectDelta(modification, RoleType.class, prismContext);
+        ObjectDelta<RoleType> delta = deltaFor(RoleType.class)
+                .item(RoleType.F_INDUCEMENT).add(inducement1)
+                .asObjectDeltaCast(ROLE_OID);
 
         OperationResult result = new OperationResult("add inducement");
         
@@ -164,10 +170,10 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
     public void test020ModifyAssignment() throws Exception {
         //given
 
-        ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
-                new File(TEST_DIR, "modify-assignment.xml"), ObjectModificationType.COMPLEX_TYPE);
-
-        ObjectDelta<RoleType> delta = DeltaConvertor.createObjectDelta(modification, RoleType.class, prismContext);
+        ObjectDelta<RoleType> delta = deltaFor(RoleType.class)
+                .item(RoleType.F_ASSIGNMENT, 4L, AssignmentType.F_TARGET_REF)
+                    .replace(new ObjectReferenceType().oid(NEW_ASSIGNMENT_4_TARGET_OID).type(RoleType.COMPLEX_TYPE))
+                .asObjectDeltaCast(ROLE_OID);
 
         OperationResult result = new OperationResult("modify assignment");
         
@@ -192,7 +198,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
         assertNotNull(targetRef);
         assertEquals(1, targetRef.getValues().size());
         PrismReferenceValue refValue = targetRef.getValue();
-        assertEquals(NEW_ASSIGNMENT_OID, refValue.getOid());
+        assertEquals(NEW_ASSIGNMENT_4_TARGET_OID, refValue.getOid());
         assertEquals(RoleType.COMPLEX_TYPE, refValue.getTargetType());
     }
 
@@ -200,10 +206,10 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
     public void test021ModifyInducement() throws Exception {
         //given
 
-        ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
-                new File(TEST_DIR, "modify-inducement.xml"), ObjectModificationType.COMPLEX_TYPE);
-
-        ObjectDelta<RoleType> delta = DeltaConvertor.createObjectDelta(modification, RoleType.class, prismContext);
+        ObjectDelta<RoleType> delta = deltaFor(RoleType.class)
+                .item(RoleType.F_INDUCEMENT, 5L, AssignmentType.F_TARGET_REF)
+                    .replace(new ObjectReferenceType().oid(NEW_INDUCEMENT_5_TARGET_OID).type(RoleType.COMPLEX_TYPE))
+                .asObjectDeltaCast(ROLE_OID);
 
         OperationResult result = new OperationResult("modify inducement");
         
@@ -228,7 +234,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
         assertNotNull(targetRef);
         assertEquals(1, targetRef.getValues().size());
         PrismReferenceValue refValue = targetRef.getValue();
-        assertEquals(NEW_INDUCEMENT_OID, refValue.getOid());
+        assertEquals(NEW_INDUCEMENT_5_TARGET_OID, refValue.getOid());
         assertEquals(RoleType.COMPLEX_TYPE, refValue.getTargetType());
 
         PrismProperty accConstruction = value5.findProperty(AssignmentType.F_CONSTRUCTION);
@@ -239,10 +245,9 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
     public void test030DeleteAssignment() throws Exception {
         //given
 
-        AssignmentType a = new AssignmentType();
-        a.setId(4L);
-        ObjectDelta<RoleType> delta = prismContext.deltaFactory().object().createModificationDeleteContainer(RoleType.class,
-                "00000000-8888-6666-0000-100000000005", RoleType.F_ASSIGNMENT, a);
+        ObjectDelta<RoleType> delta = deltaFor(RoleType.class)
+                .item(RoleType.F_ASSIGNMENT).delete(new AssignmentType(prismContext).id(4L))
+                .asObjectDeltaCast(ROLE_OID);
 
         OperationResult result = new OperationResult("delete assignment");
 
@@ -280,11 +285,13 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
     public void test031DeleteInducement() throws Exception {
         //given
 
-        //when
-        ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
-                new File(TEST_DIR, "modify-delete-inducement.xml"), ObjectModificationType.COMPLEX_TYPE);
+        AssignmentType i = new AssignmentType(prismContext)
+                .id(3L)
+                .targetRef(ORIGINAL_INDUCEMENT_5_TARGET_OID, OrgType.COMPLEX_TYPE);
 
-        ObjectDelta<RoleType> delta = DeltaConvertor.createObjectDelta(modification, RoleType.class, prismContext);
+        ObjectDelta<RoleType> delta = deltaFor(RoleType.class)
+                .item(RoleType.F_INDUCEMENT).delete(i)
+                .asObjectDeltaCast(ROLE_OID);
 
         OperationResult result = new OperationResult("delete inducement");
 
@@ -317,10 +324,16 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
     public void test040RenameAssignmentToInducement() throws Exception {
         //given
 
-        ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
-                new File(TEST_DIR, "modify-delete-add-assignment.xml"), ObjectModificationType.COMPLEX_TYPE);
+        AssignmentType a = new AssignmentType(prismContext)
+                .id(1L)
+                .beginConstruction()
+                    .resourceRef(MOVED_ASSIGNMENT_TARGET_OID, ResourceType.COMPLEX_TYPE)
+                .end();
 
-        ObjectDelta<RoleType> delta = DeltaConvertor.createObjectDelta(modification, RoleType.class, prismContext);
+        ObjectDelta<RoleType> delta = deltaFor(RoleType.class)
+                .item(RoleType.F_ASSIGNMENT).delete(a.clone())
+                .item(RoleType.F_INDUCEMENT).add(a.clone())
+                .asObjectDeltaCast(ROLE_OID);
 
         OperationResult result = new OperationResult("delete add assignment");
         

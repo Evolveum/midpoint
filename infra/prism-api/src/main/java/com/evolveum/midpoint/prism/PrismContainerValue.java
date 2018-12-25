@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.prism;
 
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -169,7 +170,7 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 	static <C extends Containerable> boolean containsRealValue(Collection<PrismContainerValue<C>> cvalCollection,
 			PrismContainerValue<C> cval) {
     	for (PrismContainerValue<C> colVal: cvalCollection) {
-    		if (colVal.equalsRealValue(cval)) {
+    		if (colVal.equals(cval, EquivalenceStrategy.REAL_VALUE)) {
     			return true;
     		}
     	}
@@ -295,11 +296,6 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 	@Override
 	PrismContainerValue<C> cloneComplex(CloneStrategy strategy);
 
-	@Override
-	boolean equalsComplex(PrismValue other, boolean ignoreMetadata, boolean isLiteral);
-
-	boolean equalsComplex(PrismContainerValue<?> other, boolean ignoreMetadata, boolean isLiteral);
-
 	boolean equivalent(PrismContainerValue<?> other);
 
 	@Override
@@ -313,8 +309,6 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 
 	@Override
 	String debugDump(int indent);
-
-	boolean match(PrismValue otherValue);
 
 	String toHumanReadableString();
 

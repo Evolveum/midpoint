@@ -15,13 +15,13 @@
  */
 package com.evolveum.midpoint.tools.testng;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 import org.testng.ITestContext;
 import org.testng.ITestListener;
 import org.testng.ITestResult;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class TestListener implements ITestListener {
 
@@ -46,7 +46,18 @@ public class TestListener implements ITestListener {
 
 	@Override
 	public void onTestFailure(ITestResult tr) {
+		/*
+		if (tr.getMethod().getRetryAnalyzer() != null) {
+			Retry retryAnalyzer = (Retry) tr.getMethod().getRetryAnalyzer();
+			if (retryAnalyzer.isOneMoreRetryAvailable()) {
+				print("Skipping test for retry "+tr);
+				tr.setStatus(ITestResult.SKIP);
+				return;
+			}
+		}
+		*/
 		print("Failed test "+tr);
+
 	}
 
 	@Override

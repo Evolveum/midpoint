@@ -67,7 +67,7 @@
         <spring.version>5.0.7.RELEASE</spring.version>
         <spring.security.version>5.0.6.RELEASE</spring.security.version>
         <cas.client.version>3.5.0</cas.client.version>
-        <testng.version>6.8.8</testng.version>
+        <testng.version>6.14.3</testng.version>
         <xml.resolver.version>1.2</xml.resolver.version>
         <xmlunit.version>2.1.1</xmlunit.version>
         <cron4j.version>2.2.3</cron4j.version>
@@ -1603,6 +1603,13 @@
                                         <value>com.evolveum.midpoint.tools.testng.TestListener,com.evolveum.midpoint.tools.testng.RetryListener</value>
                                     </property>
                                 </properties>
+                                <!-- it's used for bamboo build to load jdbc libraries which can not
+															be installed to public maven repository (MS SQL, ORACLE) -->
+                                <additionalClasspathElements>
+                                    <additionalClasspathElement>/opt/jenkins_db_configs/ojdbc7.jar</additionalClasspathElement>
+                                    <!-- used running tests on windows machines -->
+                                    <additionalClasspathElement>c:\midpoint\jdbc-drivers\ojdbc7.jar</additionalClasspathElement>
+                                </additionalClasspathElements>
                             </configuration>
                         </execution>
                     </executions>

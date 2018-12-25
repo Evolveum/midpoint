@@ -15,27 +15,21 @@
  */
 package com.evolveum.midpoint.prism.delta;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.function.Function;
-
-import javax.xml.namespace.QName;
-
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.*;
-import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Foreachable;
 import com.evolveum.midpoint.util.Processor;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
-import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
 import org.jetbrains.annotations.NotNull;
+
+import javax.xml.namespace.QName;
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.function.Function;
 
 /**
  * @author Radovan Semancik
@@ -302,7 +296,7 @@ public interface ItemDelta<V extends PrismValue,D extends ItemDefinition> extend
 	 * in this delta. As a consequence it also returns true if the two
 	 * deltas are equal.
 	 */
-	boolean contains(ItemDelta<V, D> other, boolean ignoreMetadata, boolean isLiteral);
+	boolean contains(ItemDelta<V, D> other, EquivalenceStrategy strategy);
 
 	void filterValues(Function<V, Boolean> function);
 

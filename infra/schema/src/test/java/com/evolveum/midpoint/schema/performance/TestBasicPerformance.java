@@ -34,6 +34,14 @@ import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 public class TestBasicPerformance extends AbstractSchemaPerformanceTest {
 
 	@Test
+	public void test010Dummy() throws Exception {
+		System.out.println("===[ test010Dummy ]===");
+
+		measure("currentTimeMillis", () -> System.currentTimeMillis());
+		measure("long numbers addition", () -> System.currentTimeMillis() + 2000L);
+	}
+
+	@Test
 	public void test100FindNameProperty() throws Exception {
 		System.out.println("===[ test100FindNameProperty ]===");
 

@@ -19,6 +19,7 @@ package com.evolveum.midpoint.schema;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -506,7 +507,7 @@ public class TestDiffEquals {
         PrismObject<RoleType> role1 = PrismTestUtil.parseObject(ROLE_1);
         PrismObject<RoleType> role2 = PrismTestUtil.parseObject(ROLE_2);
 
-        ObjectDelta<RoleType> delta = role1.diff(role2, true, true);
+        ObjectDelta<RoleType> delta = role1.diff(role2, EquivalenceStrategy.LITERAL_IGNORE_METADATA);
         assertFalse(delta.isEmpty());
     }
 
@@ -538,9 +539,9 @@ public class TestDiffEquals {
 				.<UserType>end()
 				.asPrismObject();
 
-		ObjectDelta<UserType> diffIgnoreMetadataNotLiteral = user1.diff(user2, true, false);
-		ObjectDelta<UserType> diffWithMetadataAndLiteral = user1.diff(user2, false, true);
-		ObjectDelta<UserType> diffWithMetadataNotLiteral = user1.diff(user2, false, false);
+		ObjectDelta<UserType> diffIgnoreMetadataNotLiteral = user1.diff(user2, EquivalenceStrategy.IGNORE_METADATA);
+		ObjectDelta<UserType> diffWithMetadataAndLiteral = user1.diff(user2, EquivalenceStrategy.LITERAL);
+		ObjectDelta<UserType> diffWithMetadataNotLiteral = user1.diff(user2, EquivalenceStrategy.NOT_LITERAL);
 
 		assertTrue("Diff ignoring metadata is not empty:\n" + diffIgnoreMetadataNotLiteral.debugDump(),
 				diffIgnoreMetadataNotLiteral.isEmpty());

@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import org.jetbrains.annotations.NotNull;
 
@@ -128,8 +129,6 @@ public interface PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismProper
 
 	void replaceValues(Collection<PrismPropertyValue<T>> valuesToReplace);
 
-	boolean hasValue(PrismPropertyValue<T> value);
-
 	boolean hasRealValue(PrismPropertyValue<T> value);
 
 	Class<T> getValueClass();
@@ -148,7 +147,7 @@ public interface PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismProper
 
 	PropertyDelta<T> diff(PrismProperty<T> other);
 
-	PropertyDelta<T> diff(PrismProperty<T> other, boolean ignoreMetadata, boolean isLiteral);
+	PropertyDelta<T> diff(PrismProperty<T> other, ParameterizedEquivalenceStrategy strategy);
 
 	@Override
 	PrismProperty<T> clone();

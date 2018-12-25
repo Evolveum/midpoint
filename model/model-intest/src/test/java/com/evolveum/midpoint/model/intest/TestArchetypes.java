@@ -229,7 +229,7 @@ public class TestArchetypes extends AbstractInitializedModelIntegrationTest {
 		ObjectFilter allEmployeesViewFilter = assertCompiledUserProfile(compiledUserProfile)
 			.assertAdditionalMenuLinks(0)
 			.assertUserDashboardLinks(0)
-			.assertObjectForms(0)
+			.assertObjectForms(2)
 			.assertUserDashboardWidgets(0)
 			.objectCollectionViews()
 				.assertViews(2)

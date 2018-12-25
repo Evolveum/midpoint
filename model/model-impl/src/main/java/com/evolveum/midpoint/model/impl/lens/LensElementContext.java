@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -282,7 +283,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		if (originalDelta == null) {
 			originalDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(), ChangeType.MODIFY);
 			originalDelta.setOid(getOid());
-		} else if (originalDelta.containsModification(propDelta, true, true)) {
+		} else if (originalDelta.containsModification(propDelta, EquivalenceStrategy.LITERAL_IGNORE_METADATA)) {    // todo why literal?
 			return originalDelta;
 		}
 		originalDelta.swallow(propDelta);

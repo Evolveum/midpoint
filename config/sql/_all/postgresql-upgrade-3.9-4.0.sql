@@ -11,6 +11,7 @@ CREATE INDEX iArchetypeNameNorm ON m_archetype(name_norm);
 ALTER TABLE IF EXISTS m_archetype
   ADD CONSTRAINT fk_archetype FOREIGN KEY (oid) REFERENCES m_abstract_role;
 
+ALTER TABLE m_generic_object DROP CONSTRAINT fk_generic_object;
 ALTER TABLE IF EXISTS m_generic_object
   ADD CONSTRAINT fk_generic_object FOREIGN KEY (oid) REFERENCES m_focus;
 
