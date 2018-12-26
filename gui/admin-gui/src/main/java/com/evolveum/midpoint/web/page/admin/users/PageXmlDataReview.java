@@ -30,9 +30,9 @@ import org.apache.wicket.model.IModel;
  * Created by honchar.
  */
 @PageDescriptor(url = "/admin/xmlDataReview", action = {
-        @AuthorizationAction(actionUri = PageAdminUsers.AUTH_USERS_ALL,
-                label = PageAdminUsers.AUTH_USERS_ALL_LABEL,
-                description = PageAdminUsers.AUTH_USERS_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USERS_ALL_URL,
+                label = "PageAdminUsers.auth.usersAll.label",
+                description = "PageAdminUsers.auth.usersAll.description"),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USER_HISTORY_XML_REVIEW_URL,
                 label = "PageUser.auth.userHistoryXmlReview.label",
                 description = "PageUser.auth.userHistoryXmlReview.description")})

@@ -18,28 +18,50 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-.fe-assignment-thicker:before {
-  content: "\e907";
+.fe-officer-cap-object:before {
+  content: "\e90b";
 }
-.fe-assignment:before {
+.fe-assignment-straight-thicker-object:before {
+  content: "\e90a";
+}
+.fe-unemployer-icon:before {
+  content: "\e910";
+}
+.fe-employer-icon:before {
+  content: "\e911";
+}
+.fe-assignment-straight-object:before {
+  content: "\e912";
+}
+.fe-crown-object:before {
   content: "\e900";
 }
-.fe-midpoint-shorter-lines:before {
+.fe-approver-object:before {
   content: "\e901";
 }
-.fe-midpoint-wheel:before {
+.fe-assignment:before {
   content: "\e902";
 }
-.fe-midpoint-with-lines:before {
+.fe-midpoint-shorter-lines:before {
   content: "\e903";
 }
-.fe-role-hat:before {
+.fe-midpoint-wheel:before {
   content: "\e904";
 }
-.fe-role-tie:before {
+.fe-midpoint-with-lines:before {
   content: "\e905";
 }
-.fe-role-top-hat:before {
+.fe-role-hat:before {
   content: "\e906";
 }
+.fe-role-tie:before {
+  content: "\e907";
+}
+.fe-role-top-hat:before {
+  content: "\e908";
+}
+.fe-assignment-thicker:before {
+  content: "\e909";
+}
+
 

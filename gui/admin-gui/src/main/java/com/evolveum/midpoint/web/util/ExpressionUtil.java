@@ -349,7 +349,7 @@ public class ExpressionUtil {
             if (node instanceof MapXNode && ((MapXNode) node).containsKey(SHADOW_REF_KEY)) {
                 XNode shadowRefNodes = ((MapXNode) node).get(SHADOW_REF_KEY);
                if (shadowRefNodes instanceof MapXNode && shadowRefOid.equals(getShadowRefNodeOid((MapXNode) shadowRefNodes))) {
-                   prismContext.hacks().putToMapXNode((MapXNode) node, SHADOW_REF_KEY, null);
+                   prismContext.xnodeMutator().putToMapXNode((MapXNode) node, SHADOW_REF_KEY, null);
                    //todo don't get why while using removeEvaluatorByName no changes are saved
 //                   removeEvaluatorByName(expression, SchemaConstantsGenerated.C_VALUE);
                } else if (shadowRefNodes instanceof ListXNode) {
@@ -416,7 +416,7 @@ public class ExpressionUtil {
             filterClauseNode = prismContext.xnodeFactory().map();
         }
         if (!filterClauseNode.containsKey(new QName("equal"))) {
-            prismContext.hacks().putToMapXNode(filterClauseNode, new QName("equal"), null);
+            prismContext.xnodeMutator().putToMapXNode(filterClauseNode, new QName("equal"), null);
         }
         MapXNode values = (MapXNode)filterClauseNode.get(new QName("equal"));
         if (values == null) {
@@ -429,7 +429,7 @@ public class ExpressionUtil {
         MapXNode values = getOrCreateAssociationTargetSearchValues(expression, prismContext);
         PrimitiveXNode<ItemPathType> pathValue = (PrimitiveXNode<ItemPathType>)values.get(new QName("path"));
         if (pathValue != null) {
-            prismContext.hacks().setPrimitiveXNodeValue(pathValue, path, null);
+            prismContext.xnodeMutator().setPrimitiveXNodeValue(pathValue, path, null);
         }
     }
 
@@ -499,16 +499,16 @@ public class ExpressionUtil {
                     } else if (createIfNotExist && ((MapXNode) node).get(SHADOW_REF_KEY) instanceof MapXNode) {
                         MapXNode shadowRef = (MapXNode) ((MapXNode) node).get(SHADOW_REF_KEY);
                         shadowRefNodes = prismContext.xnodeFactory().list(shadowRef);
-                        prismContext.hacks().putToMapXNode((MapXNode) node, SHADOW_REF_KEY, shadowRefNodes);
+                        prismContext.xnodeMutator().putToMapXNode((MapXNode) node, SHADOW_REF_KEY, shadowRefNodes);
                     }
                 } else if (createIfNotExist) {
                     shadowRefNodes = prismContext.xnodeFactory().list();
-                    prismContext.hacks().putToMapXNode((MapXNode) node, SHADOW_REF_KEY, shadowRefNodes);
+                    prismContext.xnodeMutator().putToMapXNode((MapXNode) node, SHADOW_REF_KEY, shadowRefNodes);
                 }
             } else if (createIfNotExist) {
                 shadowRefNodes = prismContext.xnodeFactory().list();
                 node = prismContext.xnodeFactory().map();
-                prismContext.hacks().putToMapXNode((MapXNode) node, SHADOW_REF_KEY, shadowRefNodes);
+                prismContext.xnodeMutator().putToMapXNode((MapXNode) node, SHADOW_REF_KEY, shadowRefNodes);
                 raw = new RawType(node, prismContext);
                 element.setValue(raw);
             }
@@ -532,7 +532,7 @@ public class ExpressionUtil {
         Map<QName, XNode> shadowRefNodeSource = new HashMap<>();
         shadowRefNodeSource.put(SHADOW_OID_KEY, factory.primitive(oid));
         shadowRefNodeSource.put(SHADOW_TYPE_KEY, factory.primitive(ShadowType.COMPLEX_TYPE.getLocalPart()));
-        prismContext.hacks().addToListXNode(shadowRefNodes, factory.map(shadowRefNodeSource));
+        prismContext.xnodeMutator().addToListXNode(shadowRefNodes, factory.map(shadowRefNodeSource));
     }
 
     public static List<String> getLiteralExpressionValues(ExpressionType expression) throws SchemaException{

@@ -95,6 +95,9 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
+import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
+import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
+import com.evolveum.midpoint.model.api.authentication.UserProfileService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
@@ -104,6 +107,7 @@ import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.stringpolicy.UserValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.model.test.asserter.ArchetypeInteractionSpecificationAsserter;
+import com.evolveum.midpoint.model.test.asserter.CompiledUserProfileAsserter;
 import com.evolveum.midpoint.model.test.asserter.ModelContextAsserter;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.transports.Message;
@@ -136,7 +140,6 @@ import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
-import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
@@ -174,7 +177,6 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentSelectorType;
@@ -798,6 +800,18 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			PolicyViolationException, SecurityViolationException {
 		modifyUserAssignment(userOid, roleOid, RoleType.COMPLEX_TYPE, null, task, null, activationType, false, result);
 	}
+	
+	protected void unassignRole(Class<? extends FocusType> focusClass, String focusOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException,
+		SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+		PolicyViolationException, SecurityViolationException {
+		unassignRole(focusClass, focusOid, roleOid, (ActivationType) null, task, result);
+	}
+	
+	protected void unassignRole(Class<? extends FocusType> focusClass, String focusOid, String roleOid, ActivationType activationType, Task task, OperationResult result) throws ObjectNotFoundException,
+		SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+		PolicyViolationException, SecurityViolationException {
+		modifyAssignmentHolderAssignment(focusClass, focusOid, roleOid, RoleType.COMPLEX_TYPE, null, task, null, activationType, false, result);
+	}
 
 	protected void assignRole(Class<? extends AssignmentHolderType> focusClass, String focusOid, String roleOid, ActivationType activationType, Task task, OperationResult result) throws ObjectNotFoundException,
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
@@ -1136,19 +1150,19 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		modifyFocusAssignment(UserType.class, userOid, roleOid, refType, relation, task, modificationBlock, add, options, result);
 	}
 
-	protected <F extends FocusType> void modifyFocusAssignment(Class<F> focusClass, String focusOid, String roleOid, QName refType, QName relation, Task task,
+	protected <F extends AssignmentHolderType> void modifyFocusAssignment(Class<F> focusClass, String focusOid, String roleOid, QName refType, QName relation, Task task,
 			Consumer<AssignmentType> modificationBlock, boolean add, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
     	modifyFocusAssignment(focusClass, focusOid, roleOid, refType, relation, task, modificationBlock, add, null, result);
 	}
 
-	protected <F extends FocusType> void modifyFocusAssignment(Class<F> focusClass, String focusOid, String roleOid, QName refType, QName relation, Task task,
+	protected <F extends AssignmentHolderType> void modifyFocusAssignment(Class<F> focusClass, String focusOid, String roleOid, QName refType, QName relation, Task task,
 			Consumer<AssignmentType> modificationBlock, boolean add, ModelExecuteOptions options, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
 		modifyFocusAssignment(focusClass, focusOid, FocusType.F_ASSIGNMENT, roleOid, refType, relation, task, modificationBlock, add, options, result);
 	}
 	
-	protected <F extends FocusType> void modifyFocusAssignment(Class<F> focusClass, String focusOid, QName elementName, String roleOid, QName refType, QName relation, Task task,
+	protected <F extends AssignmentHolderType> void modifyFocusAssignment(Class<F> focusClass, String focusOid, QName elementName, String roleOid, QName refType, QName relation, Task task,
 			Consumer<AssignmentType> modificationBlock, boolean add, ModelExecuteOptions options, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
 		ObjectDelta<F> focusDelta = createAssignmentFocusDelta(focusClass, focusOid, elementName, roleOid, refType, relation, modificationBlock, add);
@@ -1279,7 +1293,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 
-	protected <F extends FocusType> ContainerDelta<AssignmentType> createAssignmentModification(Class<F> type, QName elementName, String roleOid, QName refType, QName relation,
+	protected <F extends AssignmentHolderType> ContainerDelta<AssignmentType> createAssignmentModification(Class<F> type, QName elementName, String roleOid, QName refType, QName relation,
 			Consumer<AssignmentType> modificationBlock, boolean add) throws SchemaException {
 		ContainerDelta<AssignmentType> assignmentDelta = prismContext.deltaFactory().container().createDelta(ItemName.fromQName(elementName), getObjectDefinition(type));
 		PrismContainerValue<AssignmentType> cval = prismContext.itemFactory().createContainerValue();
@@ -1368,7 +1382,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return createAssignmentFocusDelta(focusClass, focusOid, FocusType.F_ASSIGNMENT, roleOid, refType, relation, modificationBlock, add);
 	}
 	
-	protected <F extends FocusType> ObjectDelta<F> createAssignmentFocusDelta(Class<F> focusClass, String focusOid, QName elementName, String roleOid, QName refType, QName relation,
+	protected <F extends AssignmentHolderType> ObjectDelta<F> createAssignmentFocusDelta(Class<F> focusClass, String focusOid, QName elementName, String roleOid, QName refType, QName relation,
 			Consumer<AssignmentType> modificationBlock, boolean add) throws SchemaException {
 		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 		modifications.add((createAssignmentModification(focusClass, elementName, roleOid, refType, relation, modificationBlock, add)));
@@ -4698,42 +4712,22 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 	}
 
-	protected AdminGuiConfigurationType assertAdminGuiConfigurations(MidPointPrincipal principal, int expectedMenuLinks,
-			int expectedDashboardLinks, int expectedObjectLists, int expectedObjectForms, int expecteduserDashboardWidgets) {
-		AdminGuiConfigurationType adminGuiConfiguration = principal.getAdminGuiConfiguration();
-		display("Admin GUI config for "+principal.getUsername(), adminGuiConfiguration);
-		assertAdminGuiConfigurations(adminGuiConfiguration,
-				expectedMenuLinks, expectedDashboardLinks, expectedObjectLists, expectedObjectForms, expecteduserDashboardWidgets);
-		return adminGuiConfiguration;
+	protected CompiledUserProfileAsserter<Void> assertCompiledUserProfile(MidPointPrincipal principal) {
+		if (!(principal instanceof MidPointUserProfilePrincipal)) {
+			fail("Expected MidPointUserProfilePrincipal, but got "+principal.getClass());
+		}
+		CompiledUserProfile compiledUserProfile = ((MidPointUserProfilePrincipal)principal).getCompiledUserProfile();
+		CompiledUserProfileAsserter<Void> asserter = new CompiledUserProfileAsserter<>(compiledUserProfile, null, "in principal "+principal);
+		initializeAsserter(asserter);
+		asserter.display();
+		return asserter;
 	}
-
-	protected void assertAdminGuiConfigurations(AdminGuiConfigurationType adminGuiConfiguration,
-			int expectedMenuLinks, int expectedDashboardLinks, int expectedObjectLists, int expectedObjectForms, int expecteduserDashboardWidgets) {
-		assertNotNull("No admin GUI configuration", adminGuiConfiguration);
-		assertEquals("Wrong number of menu links in",
-				expectedMenuLinks, adminGuiConfiguration.getAdditionalMenuLink().size());
-		assertEquals("Wrong number of menu links in",
-				expectedDashboardLinks, adminGuiConfiguration.getUserDashboardLink().size());
-		if ( adminGuiConfiguration.getObjectLists() == null ) {
-			if (expectedObjectLists != 0) {
-				AssertJUnit.fail("Wrong number of object lists in user dashboard admin GUI configuration, expected "
-						+ expectedObjectLists + " but there was none");
-			}
-		} else {
-			assertEquals("Wrong number of object lists in admin GUI configuration",
-				expectedObjectLists, adminGuiConfiguration.getObjectLists().getObjectList().size());
-		}
-		assertEquals("Wrong number of object forms in admin GUI configuration",
-				expectedObjectForms, adminGuiConfiguration.getObjectForms().getObjectForm().size());
-		if ( adminGuiConfiguration.getUserDashboard() == null) {
-			if (expecteduserDashboardWidgets != 0) {
-				AssertJUnit.fail("Wrong number of widgets in user dashboard admin GUI configuration, expected "
-						+ expecteduserDashboardWidgets + " but there was none");
-			}
-		} else {
-			assertEquals("Wrong number of widgets in user dashboard admin GUI configuration",
-				expectedObjectForms, adminGuiConfiguration.getUserDashboard().getWidget().size());
-		}
+	
+	protected CompiledUserProfileAsserter<Void> assertCompiledUserProfile(CompiledUserProfile compiledUserProfile) {
+		CompiledUserProfileAsserter<Void> asserter = new CompiledUserProfileAsserter<>(compiledUserProfile, null, null);
+		initializeAsserter(asserter);
+		asserter.display();
+		return asserter;
 	}
 
 	protected void createSecurityContext(MidPointPrincipal principal) {

@@ -202,7 +202,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
 		if (subContainer == null) {
 			return null;
 		}
-		return subContainer.getValue().asContainerable();
+		return subContainer.getRealValue();
 	}
 
 	protected String getTagBoxCssClass() {

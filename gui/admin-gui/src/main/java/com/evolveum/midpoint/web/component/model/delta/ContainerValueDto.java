@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.web.component.model.delta;
 
 import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 
 import java.io.Serializable;
@@ -43,9 +42,5 @@ public class ContainerValueDto implements Serializable {
         }
 
         Collections.sort(itemList);
-    }
-
-    public ContainerValueDto(PrismContainer container) {
-        this(container.getValue());
     }
 }

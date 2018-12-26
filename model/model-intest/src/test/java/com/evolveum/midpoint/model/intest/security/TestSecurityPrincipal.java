@@ -241,7 +241,12 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         assertNotAuthorized(principal, AUTZ_LOOT_URL, null);
         assertNotAuthorized(principal, AUTZ_COMMAND_URL);
 
-        assertAdminGuiConfigurations(principal, 1, 2, 3, 2, 2);
+        assertCompiledUserProfile(principal)
+        	.assertAdditionalMenuLinks(1)
+        	.assertUserDashboardLinks(2)
+        	.assertObjectCollectionViews(3)
+        	.assertObjectForms(2)
+        	.assertUserDashboardWidgets(2);
 	}
 
 	@Test
@@ -267,7 +272,12 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         assertNotAuthorized(principal, AUTZ_LOOT_URL);
         assertNotAuthorized(principal, AUTZ_COMMAND_URL);
 
-        assertAdminGuiConfigurations(principal, 0, 1, 3, 1, 0);
+        assertCompiledUserProfile(principal)
+	    	.assertAdditionalMenuLinks(0)
+	    	.assertUserDashboardLinks(1)
+	    	.assertObjectCollectionViews(3)
+	    	.assertObjectForms(1)
+	    	.assertUserDashboardWidgets(0);
 	}
 
 	@Test

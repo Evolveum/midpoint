@@ -27,6 +27,9 @@ auth:
 ## Example SSO header authentication configuration
 #  sso:
 #    header: SM_USER
+## Example SSO environment authentication configuration
+#  sso:
+#    env: REMOTE_USER
 ## Example CAS SSO configuration
 #  cas:
 #    midpoint:

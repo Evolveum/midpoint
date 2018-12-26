@@ -61,6 +61,9 @@ import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.ProgressListener;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
+import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
+import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
+import com.evolveum.midpoint.model.api.authentication.UserProfileService;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.model.api.context.ModelContext;
@@ -89,6 +92,7 @@ import com.evolveum.midpoint.model.impl.lens.OperationalDataManager;
 import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
+import com.evolveum.midpoint.model.impl.security.UserProfileCompiler;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.model.impl.visualizer.Visualizer;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -109,7 +113,6 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
-import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.ObjectSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
@@ -185,7 +188,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	@Autowired private ActivationComputer activationComputer;
 	@Autowired private Clock clock;
 	@Autowired private HookRegistry hookRegistry;
-	@Autowired UserProfileService userProfileService;
+	@Autowired private UserProfileService userProfileService;
+	@Autowired private UserProfileCompiler userProfileCompiler;
 	@Autowired private ExpressionFactory expressionFactory;
 	@Autowired private OperationalDataManager metadataManager;
 	@Autowired private Clockwork clockwork;
@@ -298,7 +302,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 					}
 					RefinedObjectClassDefinition refinedObjectClassDefinition = getEditObjectClassDefinition(shadow, resource, phase, task, result);
 					if (refinedObjectClassDefinition != null) {
-						prismContext.hacks().replaceDefinition(objectDefinition.getComplexTypeDefinition(), ShadowType.F_ATTRIBUTES,
+						objectDefinition.getComplexTypeDefinition().toMutable().replaceDefinition(ShadowType.F_ATTRIBUTES,
 								refinedObjectClassDefinition.toResourceAttributeContainerDefinition());
 					}
 				}
@@ -745,12 +749,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
 	@NotNull
 	@Override
-	public AdminGuiConfigurationType getAdminGuiConfiguration(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		AdminGuiConfigurationType config = getAdminGuiConfigurationInternal(task, parentResult);
-		return config != null ? config : new AdminGuiConfigurationType();
-	}
-
-	public AdminGuiConfigurationType getAdminGuiConfigurationInternal(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+	public CompiledUserProfile getCompiledUserProfile(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		MidPointPrincipal principal = null;
 		try {
 			principal = securityContextManager.getPrincipal();
@@ -758,14 +757,11 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			LOGGER.warn("Security violation while getting principlal to get GUI config: {}", e.getMessage(), e);
 		}
 
-		if (principal == null) {
-			PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(parentResult);
-			if (systemConfiguration == null) {
-				return null;
-			}
-			return systemConfiguration.asObjectable().getAdminGuiConfiguration();
+		if (principal == null || !(principal instanceof MidPointUserProfilePrincipal)) {
+			// May be used for unathenticated user, error pages and so on
+			return userProfileCompiler.getGlobalCompiledUserProfile(task, parentResult);
 		} else {
-			return principal.getAdminGuiConfiguration();
+			return ((MidPointUserProfilePrincipal)principal).getCompiledUserProfile();
 		}
 	}
 

@@ -111,7 +111,7 @@ public class XsdTypeConverterTest {
 
 		Document doc = DOMUtil.getDocument();
 		JAXBElement<ShadowType> accountElement =
-            new JAXBElement<>(ObjectTypes.SHADOW.getQName(),
+            new JAXBElement<>(ObjectTypes.SHADOW.getElementName(),
                 ShadowType.class, shadow);
 		JaxbTestUtil.getInstance().marshalElementToDom(accountElement, doc);
 

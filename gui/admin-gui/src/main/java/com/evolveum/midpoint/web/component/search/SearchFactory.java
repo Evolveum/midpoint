@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@ import java.util.*;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -291,20 +293,17 @@ public class SearchFactory {
     private static <T extends ObjectType> SearchBoxModeType getDefaultSearchType(ModelServiceLocator modelServiceLocator, Class<T> type) {
         OperationResult result = new OperationResult(LOAD_ADMIN_GUI_CONFIGURATION);
         try {
-            AdminGuiConfigurationType guiConfig = modelServiceLocator.getModelInteractionService().getAdminGuiConfiguration(null, result);
-            GuiObjectListViewsType objectLists = guiConfig.getObjectLists();
-            if (objectLists != null && objectLists.getObjectList() != null){
-                for (GuiObjectListViewType objectList : objectLists.getObjectList()){
-                    if (objectList.getType() != null
-                            && type.getSimpleName().equals(objectList.getType().getLocalPart())
-                            && objectList.getSearchBoxConfiguration() != null) {
-                        SearchBoxConfigurationType searchBoxConfig = objectList.getSearchBoxConfiguration();
-                        return searchBoxConfig.getDefaultMode();
-                    }
+            CompiledUserProfile guiConfig = modelServiceLocator.getModelInteractionService().getCompiledUserProfile(null, result);
+            // TODO: improve: use proper view name
+            List<CompiledObjectCollectionView> objectLists = guiConfig.findAllApplicableObjectCollectionViews(type);
+            for (CompiledObjectCollectionView objectList : objectLists){
+                if (objectList.getSearchBoxConfiguration() != null) {
+                    SearchBoxConfigurationType searchBoxConfig = objectList.getSearchBoxConfiguration();
+                    return searchBoxConfig.getDefaultMode();
                 }
             }
             return null;
-        } catch (SchemaException | ObjectNotFoundException ex) {
+        } catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException ex) {
             throw new SystemException(ex);
         }
     }

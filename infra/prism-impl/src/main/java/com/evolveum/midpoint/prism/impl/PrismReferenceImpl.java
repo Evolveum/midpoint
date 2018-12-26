@@ -18,12 +18,14 @@ package com.evolveum.midpoint.prism.impl;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.impl.delta.ReferenceDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
@@ -57,6 +59,7 @@ public class PrismReferenceImpl extends ItemImpl<PrismReferenceValue, PrismRefer
 	/**
 	 * {@inheritDoc}
 	 */
+	@NotNull
     public PrismReferenceValue getValue() {
 		// I know of no reason why we should not return a value if it's only one (even for multivalued items) (see MID-3922)
 		// TODO reconsider this
@@ -78,8 +81,12 @@ public class PrismReferenceImpl extends ItemImpl<PrismReferenceValue, PrismRefer
         	// Insert first empty value. This simulates empty single-valued reference. It the reference exists
 	        // it is clear that it has at least one value (and that value is empty).
         	PrismReferenceValue rval = new PrismReferenceValueImpl();
-            add(rval);
-            return rval;
+	        try {
+		        add(rval);
+	        } catch (SchemaException e) {
+		        throw new IllegalStateException("Unexpected SchemaException while creating new value: " + e.getMessage(), e);
+	        }
+	        return rval;
         }
         return getValues().iterator().next();
     }
@@ -96,10 +103,7 @@ public class PrismReferenceImpl extends ItemImpl<PrismReferenceValue, PrismRefer
 
 	@Override
 	public Referencable getRealValue() {
-		if (getValue() == null) {
-			return null;
-		}
-		return getValue().asReferencable();
+		return getValue().getRealValue();
 	}
 
 	@NotNull
@@ -112,50 +116,50 @@ public class PrismReferenceImpl extends ItemImpl<PrismReferenceValue, PrismRefer
 		return realValues;
 	}
 
-
-    public boolean add(@NotNull PrismReferenceValue value) {
-    	value.setParent(this);
-    	return getValues().add(value);
-    }
-
     public boolean merge(PrismReferenceValue value) {
-    	String newOid = value.getOid();
-    	// We need to tolerate null OIDs here. Because of JAXB.
-    	PrismReferenceValue existingValue = getValue(newOid);
-		if (existingValue == null) {
-			return add(value);
-		}
+		try {
+			String newOid = value.getOid();
+			// We need to tolerate null OIDs here. Because of JAXB.
+			PrismReferenceValue existingValue = getValue(newOid);
+			if (existingValue == null) {
+				return add(value);
+			}
 
-		// if there is newValue containing object (instead of oid only) and also
-		// old value containing object (instead of oid only) we need to compare
-		// these two object if they are equals..this can avoid of bad resolving
-		// (e.g. creating user and adding two or more accounts at the same time)
-		if (value.getObject() != null && existingValue.getObject() != null && !value.equalsComplex(existingValue, false, false)){
-			return add(value);
-		}
+			// if there is newValue containing object (instead of oid only) and also
+			// old value containing object (instead of oid only) we need to compare
+			// these two object if they are equals..this can avoid of bad resolving
+			// (e.g. creating user and adding two or more accounts at the same time)
+			if (value.getObject() != null && existingValue.getObject() != null && !value
+					.equals(existingValue, EquivalenceStrategy.NOT_LITERAL)) {
+				return add(value);
+			}
 
-		// in the value.getObject() is not null, it it probably only resolving
-		// of refenrence, so only change oid to object
-		if (value.getObject() != null) {
-			existingValue.setObject(value.getObject());
+			// in the value.getObject() is not null, it it probably only resolving
+			// of reference, so only change oid to object
+			if (value.getObject() != null) {
+				existingValue.setObject(value.getObject());
+				return true;
+			}
+
+			// in the case, if the existing value and new value are not equal, add
+			// also another reference alhtrough one with the same oid exist. It is
+			// needed for parent org refs, becasue there can exist more than one
+			// reference with the same oid, but they should be different (e.g. user
+			// is member and also manager of the org. unit.)
+			if (!value.equals(existingValue, EquivalenceStrategy.NOT_LITERAL)) {
+				return add(value);
+			}
+
+			if (value.getTargetType() != null) {
+				existingValue.setTargetType(value.getTargetType());
+				//			return true;
+			}
+			// No need to copy OID as OIDs match
 			return true;
+		} catch (SchemaException e) {
+			// todo or publish SchemaException in the interface?
+			throw new IllegalStateException("Unexpected SchemaException while merging: " + e.getMessage(), e);
 		}
-
-		// in the case, if the existing value and new value are not equal, add
-		// also another reference alhtrough one with the same oid exist. It is
-		// needed for parent org refs, becasue there can exist more than one
-		// reference with the same oid, but they should be different (e.g. user
-		// is member and also manager of the org. unit.)
-		if (!value.equalsComplex(existingValue, false, false)) {
-			return add(value);
-		}
-
-		if (value.getTargetType() != null) {
-			existingValue.setTargetType(value.getTargetType());
-//			return true;
-		}
-    	// No need to copy OID as OIDs match
-    	return true;
     }
 
 
@@ -234,7 +238,11 @@ public class PrismReferenceImpl extends ItemImpl<PrismReferenceValue, PrismRefer
     protected void copyValues(CloneStrategy strategy, PrismReferenceImpl clone) {
         super.copyValues(strategy, clone);
         for (PrismReferenceValue value : getValues()) {
-            clone.add(value.cloneComplex(strategy));
+	        try {
+		        clone.add(value.cloneComplex(strategy));
+	        } catch (SchemaException e) {
+		        throw new IllegalStateException("Unexpected SchemaException while copying values: " + e.getMessage(), e);
+	        }
         }
     }
 

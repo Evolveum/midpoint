@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.wf.impl.processors.primary.entitlements;
 
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
@@ -189,7 +190,7 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
     private boolean existsEquivalentValue(PrismObject<ShadowType> shadowOld, PrismContainerValue<ShadowAssociationType> association) {
         ShadowType shadowType = shadowOld.asObjectable();
         for (ShadowAssociationType existing : shadowType.getAssociation()) {
-            if (existing.asPrismContainerValue().equalsRealValue(association)) {        // TODO better check
+            if (existing.asPrismContainerValue().equals(association, EquivalenceStrategy.REAL_VALUE)) {        // TODO better check
                 return true;
             }
         }

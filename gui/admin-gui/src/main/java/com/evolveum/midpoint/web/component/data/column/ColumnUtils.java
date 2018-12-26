@@ -22,6 +22,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.model.api.ArchetypeInteractionSpecification;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.wicket.Component;
@@ -112,82 +114,113 @@ public class ColumnUtils {
 		}
 	}
 
-	public static <O extends ObjectType> IColumn<SelectableBean<O>, String> createIconColumn(Class<? extends O> type){
+	public static <O extends ObjectType> IColumn<SelectableBean<O>, String> createIconColumn(Class<? extends O> type, PageBase pageBase){
 
-		if (type.equals(ObjectType.class)){
-			return getDefaultIcons();
+		return new IconColumn<SelectableBean<O>>(createIconColumnHeaderModel()) {
+
+			@Override
+			public void populateItem(Item<ICellPopulator<SelectableBean<O>>> cellItem, String componentId, IModel<SelectableBean<O>> rowModel) {
+				DisplayType displayType = getDisplayTypeForRowObject(rowModel, pageBase);
+				if (displayType != null){
+					cellItem.add(new ImagePanel(componentId, displayType));
+				} else {
+					super.populateItem(cellItem, componentId, rowModel);
+				}
+			}
+
+			@Override
+			protected IModel<String> createIconModel(final IModel<SelectableBean<O>> rowModel) {
+				return Model.of(getIconColumnValue(type, rowModel));
+			}
+
+			@Override
+			protected IModel<String> createTitleModel(final IModel<SelectableBean<O>> rowModel) {
+				return Model.of(getIconColumnTitle(type, rowModel));
+			}
+
+			@Override
+			public IModel<String> getDataModel(IModel<SelectableBean<O>> rowModel) {
+				return getIconColumnDataModel(type, rowModel);
+			}
+		};
+
+	}
+
+	private static <O extends ObjectType> DisplayType getDisplayTypeForRowObject(IModel<SelectableBean<O>> rowModel, PageBase pageBase){
+		O object = rowModel.getObject().getValue();
+		if (object != null) {
+			ArchetypeInteractionSpecification archetypeSpec = WebComponentUtil.getArchetypeSpecification(object.asPrismObject(), pageBase);
+			if (archetypeSpec != null && archetypeSpec.getArchetypePolicy() != null) {
+				return archetypeSpec.getArchetypePolicy().getDisplay();
+			}
 		}
+		return null;
+	}
 
-		if (type.equals(UserType.class)) {
-			return getUserIconColumn();
+	private static <T extends ObjectType> String getIconColumnValue(Class<? extends T> type, IModel<SelectableBean<T>> rowModel){
+		T object = rowModel.getObject().getValue();
+		if (object == null && !ShadowType.class.equals(type)){
+			return null;
+		} else if (type.equals(ObjectType.class)){
+			return WebComponentUtil.createDefaultIcon(object.asPrismObject());
+		} else if (type.equals(UserType.class)) {
+			return WebComponentUtil.createUserIcon(object.asPrismContainer());
 		} else if (RoleType.class.equals(type)) {
-			return getRoleIconColumn();
+			return WebComponentUtil.createRoleIcon(object.asPrismContainer());
 		} else if (OrgType.class.equals(type)) {
-			return getOrgIconColumn();
+			return WebComponentUtil.createOrgIcon(object.asPrismContainer());
 		} else if (ServiceType.class.equals(type)) {
-			return getServiceIconColumn();
+			return WebComponentUtil.createServiceIcon(object.asPrismContainer()) ;
 		} else if (ShadowType.class.equals(type)) {
-			return getShadowIconColumn();
+			if (object == null) {
+				return WebComponentUtil.createErrorIcon(rowModel.getObject().getResult());
+			} else {
+				return WebComponentUtil.createShadowIcon(object.asPrismContainer());
+			}
 		} else if (type.equals(TaskType.class)) {
-			return getTaskIconColumn();
+			return WebComponentUtil.createTaskIcon(object.asPrismContainer());
 		} else if (type.equals(ResourceType.class)) {
-			return getResourceIconColumn();
+			return WebComponentUtil.createResourceIcon(object.asPrismContainer());
 		} else if (type.equals(AccessCertificationDefinitionType.class)) {
-			return getAccessCertificationDefinitionIconColumn();
+			return GuiStyleConstants.CLASS_OBJECT_CERT_DEF_ICON + " " + GuiStyleConstants.CLASS_ICON_STYLE_NORMAL;
 		} else {
-			return getEmptyIconColumn();
+			return "";
 //			throw new UnsupportedOperationException("Will be implemented eventually");
 		}
+
 	}
 
-	private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getEmptyIconColumn(){
-		return new IconColumn<SelectableBean<T>>(createIconColumnHeaderModel()) {
-			private static final long serialVersionUID = 1L;
+	private static <T extends ObjectType> IModel<String> getIconColumnDataModel(Class<? extends T> type, IModel<SelectableBean<T>> rowModel){
+		if (ShadowType.class.equals(type)) {
+				T shadow = rowModel.getObject().getValue();
+				if (shadow == null){
+					return null;
+				}
+				return ShadowUtil.isProtected(shadow.asPrismContainer()) ?
+						createStringResource("ThreeStateBooleanPanel.true") : createStringResource("ThreeStateBooleanPanel.false");
 
-			@Override
-			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
-				return new IModel<String>() {
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public String getObject() {
-						return "";
-					}
-				};
-			}
-		};
+		}
+		return null;
 	}
 
-	private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getDefaultIcons(){
-		return new IconColumn<SelectableBean<T>>(createIconColumnHeaderModel()) {
-
-			@Override
-			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
-				return new IModel() {
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public String getObject() {
-						T object = rowModel.getObject().getValue();
-						return object != null ? WebComponentUtil.createDefaultIcon(object.asPrismObject()) : null;
-					}
-				};
-
+	private static <T extends ObjectType> String getIconColumnTitle(Class<? extends T> type, IModel<SelectableBean<T>> rowModel){
+		T object = rowModel.getObject().getValue();
+		if (object == null && !ShadowType.class.equals(type)){
+			return null;
+		} else if (type.equals(UserType.class)) {
+			String iconClass = object != null ? WebComponentUtil.createUserIcon(object.asPrismContainer()) : null;
+			String compareStringValue = GuiStyleConstants.CLASS_OBJECT_USER_ICON + " " + GuiStyleConstants.CLASS_ICON_STYLE;
+			String titleValue = "";
+			if (iconClass != null &&
+					iconClass.startsWith(compareStringValue) &&
+					iconClass.length() > compareStringValue.length()){
+				titleValue = iconClass.substring(compareStringValue.length());
 			}
-
-			@Override
-			protected IModel<String> createTitleModel(final IModel<SelectableBean<T>> rowModel) {
-
-				return new IModel<String>() {
-
-					@Override
-					public String getObject() {
-						T object = rowModel.getObject().getValue();
-						return object.asPrismContainer().getDefinition().getTypeName().getLocalPart();
-					}
-				};
-			}
-		};
+			return createStringResource("ColumnUtils.getUserIconColumn.createTitleModel." + titleValue) == null ?
+					"" : createStringResource("ColumnUtils.getUserIconColumn.createTitleModel." + titleValue).getString();
+		} else {
+			return object.asPrismContainer().getDefinition().getTypeName().getLocalPart();
+		}
 	}
 
 	private static IModel<String> createIconColumnHeaderModel() {
@@ -195,222 +228,6 @@ public class ColumnUtils {
 			@Override
 			public String getObject() {
 				return "";
-			}
-		};
-	}
-
-	private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getUserIconColumn(){
-		return new IconColumn<SelectableBean<T>>(createIconColumnHeaderModel()) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
-				return new IModel<String>() {
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public String getObject() {
-						T user = rowModel.getObject().getValue();
-						return user != null ? WebComponentUtil.createUserIcon(user.asPrismContainer()) : null;
-					}
-				};
-			}
-
-            @Override
-            protected IModel<String> createTitleModel(final IModel<SelectableBean<T>> rowModel) {
-
-                return new IModel<String>() {
-
-                    @Override
-                    public String getObject() {
-                        T user = rowModel.getObject().getValue();
-                        String iconClass = user != null ? WebComponentUtil.createUserIcon(user.asPrismContainer()) : null;
-                        String compareStringValue = GuiStyleConstants.CLASS_OBJECT_USER_ICON + " " + GuiStyleConstants.CLASS_ICON_STYLE;
-                        String titleValue = "";
-                        if (iconClass != null &&
-                                iconClass.startsWith(compareStringValue) &&
-                                iconClass.length() > compareStringValue.length()){
-                            titleValue = iconClass.substring(compareStringValue.length());
-                        }
-                        return createStringResource("ColumnUtils.getUserIconColumn.createTitleModel." + titleValue) == null ?
-                                "" : createStringResource("ColumnUtils.getUserIconColumn.createTitleModel." + titleValue).getString();
-                    }
-                };
-            }
-
-        };
-	}
-
-	public static <T extends ObjectType> IColumn<SelectableBean<T>, String> getShadowIconColumn(){
-		return new IconColumn<SelectableBean<T>>(createIconColumnHeaderModel()) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
-				return new IModel<String>() {
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public String getObject() {
-						T shadow = rowModel.getObject().getValue();
-						if (shadow == null) {
-							return WebComponentUtil.createErrorIcon(rowModel.getObject().getResult());
-						} else {
-							return WebComponentUtil.createShadowIcon(shadow.asPrismContainer());
-						}
-					}
-				};
-			}
-
-			@Override
-			public Component getHeader(String componentId) {
-				return new Label(componentId, "");
-			}
-
-			@Override
-			public IModel<String> getDataModel(IModel<SelectableBean<T>> rowModel) {
-				T shadow = rowModel.getObject().getValue();
-				if (shadow == null){
-					return super.getDataModel(rowModel);
-				}
-				return ShadowUtil.isProtected(shadow.asPrismContainer()) ?
-						createStringResource("ThreeStateBooleanPanel.true") : createStringResource("ThreeStateBooleanPanel.false");
-			}
-
-
-			@Override
-			public IModel<String> getDisplayModel(){
-				//TODO what for this label is needed? getHeader is overrided and sends "" as label
-//				return createStringResource("pageContentAccounts.isProtected");
-				//fix for icon column width
-				return Model.of("");
-			}
-		};
-	}
-
-	private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getRoleIconColumn(){
-		return new IconColumn<SelectableBean<T>>(createIconColumnHeaderModel()) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
-				return new IModel<String>() {
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public String getObject() {
-						T role = rowModel.getObject().getValue();
-						return role != null ? WebComponentUtil.createRoleIcon(role.asPrismContainer()) : null;
-					}
-				};
-			}
-		};
-	}
-
-	private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getOrgIconColumn(){
-		return new IconColumn<SelectableBean<T>>(createIconColumnHeaderModel()) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
-				return new IModel<String>() {
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public String getObject() {
-						T org = rowModel.getObject().getValue();
-						return org != null ? WebComponentUtil.createOrgIcon(org.asPrismContainer()) : null;
-					}
-				};
-			}
-		};
-	}
-
-	private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getServiceIconColumn(){
-		return new IconColumn<SelectableBean<T>>(createIconColumnHeaderModel()) {
-
-			/**
-			 *
-			 */
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
-				return new IModel<String>() {
-
-					/**
-					 *
-					 */
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public String getObject() {
-						T service = rowModel.getObject().getValue();
-						return service != null ? WebComponentUtil.createServiceIcon(service.asPrismContainer()) : null;
-					}
-				};
-			}
-		};
-	}
-
-	private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getTaskIconColumn(){
-		return new IconColumn<SelectableBean<T>>(createIconColumnHeaderModel()) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
-				return new IModel<String>() {
-
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public String getObject() {
-						T task = rowModel.getObject().getValue();
-						return task != null ? WebComponentUtil.createTaskIcon(task.asPrismContainer()) : null;
-					}
-				};
-			}
-		};
-	}
-
-	private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getAccessCertificationDefinitionIconColumn(){
-		return new IconColumn<SelectableBean<T>>(createIconColumnHeaderModel()) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
-				return new IModel<String>() {
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public String getObject() {
-						return GuiStyleConstants.CLASS_OBJECT_CERT_DEF_ICON + " " + GuiStyleConstants.CLASS_ICON_STYLE_NORMAL;
-					}
-				};
-			}
-		};
-	}
-
-
-	private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getResourceIconColumn(){
-		return new IconColumn<SelectableBean<T>>(createIconColumnHeaderModel()) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected IModel<String> createIconModel(final IModel<SelectableBean<T>> rowModel) {
-				return new IModel<String>() {
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public String getObject() {
-						T resource = rowModel.getObject().getValue();
-						if (resource == null) {
-							return GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON;
-						} else {
-							return WebComponentUtil.createResourceIcon(resource.asPrismContainer());
-						}
-					}
-				};
 			}
 		};
 	}

@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.prism.delta;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -97,7 +98,7 @@ public interface ObjectDelta<O extends Objectable> extends DebugDumpable, Visita
 
 	boolean containsModification(ItemDelta itemDelta);
 
-	boolean containsModification(ItemDelta itemDelta, boolean ignoreMetadata, boolean isLiteral);
+	boolean containsModification(ItemDelta itemDelta, EquivalenceStrategy strategy);
 
 	void addModifications(Collection<? extends ItemDelta> itemDeltas);
 

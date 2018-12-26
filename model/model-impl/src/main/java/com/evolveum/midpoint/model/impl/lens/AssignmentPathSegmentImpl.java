@@ -328,7 +328,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 		if (assignmentIdi == null || assignmentIdi.getItemNew() == null || assignmentIdi.getItemNew().isEmpty()) {
 			return null;
 		}
-		return ((PrismContainer<AssignmentType>) assignmentIdi.getItemNew()).getValue().asContainerable();
+		return ((PrismContainer<AssignmentType>) assignmentIdi.getItemNew()).getRealValue();
 	}
 
 	@Override
@@ -551,7 +551,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 			sb.append("inducement ");
 		}
 		PrismContainer<AssignmentType> assignment = (PrismContainer<AssignmentType>) assignmentIdi.getAnyItem();
-		AssignmentType assignmentType = assignment != null ? assignment.getValue().asContainerable() : null;
+		AssignmentType assignmentType = assignment != null ? assignment.getRealValue() : null;
 		if (assignmentType != null) {
 			sb.append("id:").append(assignmentType.getId()).append(" ");
 			if (assignmentType.getConstruction() != null) {

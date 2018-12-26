@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import org.jetbrains.annotations.NotNull;
 
@@ -66,12 +67,13 @@ public interface PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismProper
      */
 	void setDefinition(PrismPropertyDefinition<T> definition);
 
-	PrismPropertyValue<T> getValue();
-
 	/**
      * Type override, also for compatibility.
      */
 	<X> List<PrismPropertyValue<X>> getValues(Class<X> type);
+
+	@Override
+	PrismPropertyValue<T> getValue();
 
 	@NotNull
     @Override
@@ -84,8 +86,6 @@ public interface PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismProper
 	<X> Collection<X> getRealValues(Class<X> type);
 
 	T getAnyRealValue();
-
-	PrismPropertyValue<T> getAnyValue();
 
 	@Override
 	T getRealValue();
@@ -129,15 +129,7 @@ public interface PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismProper
 
 	void replaceValues(Collection<PrismPropertyValue<T>> valuesToReplace);
 
-	boolean hasValue(PrismPropertyValue<T> value);
-
 	boolean hasRealValue(PrismPropertyValue<T> value);
-
-	@Override
-	PrismPropertyValue<T> getPreviousValue(PrismValue value);
-
-	@Override
-	PrismPropertyValue<T> getNextValue(PrismValue value);
 
 	Class<T> getValueClass();
 
@@ -155,7 +147,7 @@ public interface PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismProper
 
 	PropertyDelta<T> diff(PrismProperty<T> other);
 
-	PropertyDelta<T> diff(PrismProperty<T> other, boolean ignoreMetadata, boolean isLiteral);
+	PropertyDelta<T> diff(PrismProperty<T> other, ParameterizedEquivalenceStrategy strategy);
 
 	@Override
 	PrismProperty<T> clone();

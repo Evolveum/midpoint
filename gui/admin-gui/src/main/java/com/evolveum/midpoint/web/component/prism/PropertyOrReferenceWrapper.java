@@ -305,7 +305,7 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 			valueWrapper.normalize(prismContext);
 			if (ValueStatus.DELETED.equals(valueWrapper.getStatus())) {
 				updatedItem.remove(valueWrapper.getValue());
-			} else if (!updatedItem.hasValueIgnoringMetadata(valueWrapper.getValue())) {
+			} else if (!updatedItem.containsEquivalentValue(valueWrapper.getValue(), null)) {
 				PrismValue cloned = ObjectWrapper.clone(valueWrapper.getValue());
 				if (cloned != null) {
 					updatedItem.add(cloned);

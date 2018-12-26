@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.prism.impl;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.impl.marshaller.BeanMarshaller;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -40,6 +41,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jvnet.jaxb2_commons.lang.Equals;
 import org.w3c.dom.Element;
@@ -382,15 +384,13 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
 	}
 
 	@Override
-	public boolean equalsComplex(PrismValue other, boolean ignoreMetadata, boolean isLiteral) {
-		if (other == null || !(other instanceof PrismPropertyValue)) {
-			return false;
-		}
-		return equalsComplex((PrismPropertyValue<?>)other, ignoreMetadata, isLiteral, null);
+	public boolean equals(PrismValue other, @NotNull ParameterizedEquivalenceStrategy strategy) {
+		return other instanceof PrismPropertyValue && equals((PrismPropertyValue<?>) other, strategy, null);
 	}
 
-	public boolean equalsComplex(PrismPropertyValue<?> other, boolean ignoreMetadata, boolean isLiteral, MatchingRule<T> matchingRule) {
-		if (!super.equalsComplex(other, ignoreMetadata, isLiteral)) {
+	@Override
+	public boolean equals(PrismPropertyValue<?> other, ParameterizedEquivalenceStrategy strategy, MatchingRule<T> matchingRule) {
+		if (!super.equals(other, strategy)) {
 			return false;
 		}
 
@@ -436,27 +436,24 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
 
 			if (thisRealValue instanceof Element &&
 					otherRealValue instanceof Element) {
-				return DOMUtil.compareElement((Element)thisRealValue, (Element)otherRealValue, isLiteral);
+				return DOMUtil.compareElement((Element)thisRealValue, (Element)otherRealValue, strategy.isLiteralDomComparison());
 			}
 
 			if (thisRealValue instanceof SchemaDefinitionType &&
 					otherRealValue instanceof SchemaDefinitionType) {
 				SchemaDefinitionType thisSchema = (SchemaDefinitionType) thisRealValue;
-				return thisSchema.equals(otherRealValue, isLiteral);
-	//			return DOMUtil.compareElement((Element)thisRealValue, (Element)otherRealValue, isLiteral);
+				return thisSchema.equals(otherRealValue, strategy.isLiteralDomComparison());
 			}
 
 	        if (thisRealValue instanceof byte[] && otherRealValue instanceof byte[]) {
 	            return Arrays.equals((byte[]) thisRealValue, (byte[]) otherRealValue);
 	        }
 
-            if (isLiteral) {
+            if (strategy.isLiteralDomComparison()) {
                 if (thisRealValue instanceof QName && otherRealValue instanceof QName) {
                     // we compare prefixes as well
-                    if (!thisRealValue.equals(otherRealValue)) {
-                        return false;
-                    }
-                    return StringUtils.equals(((QName) thisRealValue).getPrefix(), ((QName) otherRealValue).getPrefix());
+	                return thisRealValue.equals(otherRealValue) &&
+			                StringUtils.equals(((QName) thisRealValue).getPrefix(), ((QName) otherRealValue).getPrefix());
                 } else if (thisRealValue instanceof Equals && otherRealValue instanceof Equals) {
                     return ((Equals) thisRealValue).equals(null, null, otherRealValue, LiteralEqualsStrategy.INSTANCE);
                 }
@@ -470,63 +467,6 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
 	}
 
 
-	@Override
-	public boolean match(PrismValue otherValue) {
-		if (otherValue == null || !(otherValue instanceof PrismPropertyValue)) {
-			return false;
-		}
-		return matchComplex((PrismPropertyValue<?>)otherValue, false, false);
-	}
-
-	private boolean matchComplex(PrismPropertyValue<?> otherValue, boolean ignoreMetadata, boolean isLiteral) {
-
-		if (!super.equalsComplex(otherValue, ignoreMetadata, isLiteral)) {
-			return false;
-		}
-
-        if (this.rawElement != null && otherValue.getRawElement() != null) {
-        	return equalsRawElements((PrismPropertyValue<T>)otherValue);
-        }
-
-        PrismPropertyValue<T> otherProcessed = (PrismPropertyValue<T>) otherValue;
-		PrismPropertyValue<T> thisProcessed = this;
-		if (this.rawElement != null || otherValue.getRawElement() != null) {
-			try {
-				if (this.rawElement == null) {
-					otherProcessed = parseRawElementToNewValue((PrismPropertyValue<T>) otherValue, this);
-				} else if (otherValue.getRawElement() == null) {
-					thisProcessed = parseRawElementToNewValue(this, (PrismPropertyValue<T>) otherValue);
-				}
-			} catch (SchemaException e) {
-				// TODO: Maybe just return false?
-				throw new IllegalArgumentException("Error parsing the value of property "+getParent()+" using the 'other' definition "+
-						"during a compare: "+e.getMessage(),e);
-			}
-		}
-
-        T otherRealValue = otherProcessed.getValue();
-        T thisRealValue = thisProcessed.getValue();
-        if (otherRealValue == null && thisRealValue == null) {
-        	return true;
-        }
-        if (otherRealValue == null || thisRealValue == null) {
-        	return false;
-        }
-
-		if (thisRealValue instanceof Element &&
-				otherRealValue instanceof Element) {
-			return DOMUtil.compareElement((Element)thisRealValue, (Element)otherRealValue, isLiteral);
-		}
-
-		if (otherRealValue instanceof Matchable && thisRealValue instanceof Matchable){
-			Matchable thisMatchableValue = (Matchable) thisRealValue;
-			Matchable otherMatchableValue = (Matchable) otherRealValue;
-			return thisMatchableValue.match(otherMatchableValue);
-		}
-
-		return thisRealValue.equals(otherRealValue);
-
-	}
 
 	@Override
 	public boolean equals(Object obj) {
@@ -537,13 +477,13 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
 		if (getClass() != obj.getClass())
 			return false;
 		PrismPropertyValue other = (PrismPropertyValue) obj;
-		return equalsComplex(other, false, false, null);
+		return equals(other, getEqualsHashCodeStrategy());
 	}
 
-    @Override
-	public int hashCode() {
+	@Override
+	public int hashCode(@NotNull ParameterizedEquivalenceStrategy strategy) {
 		final int prime = 31;
-		int result = super.hashCode();
+		int result = super.hashCode(strategy);
 		if (value != null && value instanceof Element) {
 			// We need special handling here. We haven't found out the proper way now.
 			// so we just do not include this in the hashcode now.

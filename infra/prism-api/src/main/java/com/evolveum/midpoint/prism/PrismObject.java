@@ -19,6 +19,7 @@ package com.evolveum.midpoint.prism;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -71,9 +72,6 @@ public interface PrismObject<O extends Objectable> extends PrismContainer<O> {
 
 	@Override
 	void setValue(@NotNull PrismContainerValue<O> value) throws SchemaException;
-
-	@Override
-	boolean add(@NotNull PrismContainerValue newValue, boolean checkUniqueness) throws SchemaException;
 
 	/**
 	 * Returns Object ID (OID).
@@ -130,7 +128,7 @@ public interface PrismObject<O extends Objectable> extends PrismContainer<O> {
 	ObjectDelta<O> diff(PrismObject<O> other);
 
 	@NotNull
-	ObjectDelta<O> diff(PrismObject<O> other, boolean ignoreMetadata, boolean isLiteral);
+	ObjectDelta<O> diff(PrismObject<O> other, ParameterizedEquivalenceStrategy strategy);
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	Collection<? extends ItemDelta<?,?>> narrowModifications(Collection<? extends ItemDelta<?, ?>> modifications);
@@ -144,11 +142,12 @@ public interface PrismObject<O extends Objectable> extends PrismContainer<O> {
 	ObjectDelta<O> createDeleteDelta();
 
 	@Override
-	void setParent(PrismValue parentValue);
+	void setParent(PrismContainerValue<?> parentValue);
 
 	@Override
-	PrismValue getParent();
+	PrismContainerValue<?> getParent();
 
+	@NotNull
 	@Override
 	ItemPath getPath();
 

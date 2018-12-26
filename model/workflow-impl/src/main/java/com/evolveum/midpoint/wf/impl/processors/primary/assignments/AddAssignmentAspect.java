@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -188,7 +189,7 @@ public abstract class AddAssignmentAspect<T extends ObjectType, F extends FocusT
     private boolean existsEquivalentValue(PrismObject<?> focusOld, PrismContainerValue<AssignmentType> assignmentValue) {
         FocusType focusType = (FocusType) focusOld.asObjectable();
         for (AssignmentType existing : focusType.getAssignment()) {
-            if (existing.asPrismContainerValue().equalsRealValue(assignmentValue)) {
+            if (existing.asPrismContainerValue().equals(assignmentValue, EquivalenceStrategy.REAL_VALUE)) {
                 return true;
             }
         }

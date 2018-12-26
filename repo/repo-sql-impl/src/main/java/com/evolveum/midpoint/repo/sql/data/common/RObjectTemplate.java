@@ -119,7 +119,7 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
     // dynamically called
     public static void copyFromJAXB(ObjectTemplateType jaxb, RObjectTemplate repo, RepositoryContext repositoryContext,
             IdGeneratorResult generatorResult) throws DtoTranslationException {
-        RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
+        copyAssignmentHolderInformationFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
         repo.setType(RUtil.getRepoEnumValue(jaxb.asPrismObject().getElementName(), RObjectTemplateType.class));
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));

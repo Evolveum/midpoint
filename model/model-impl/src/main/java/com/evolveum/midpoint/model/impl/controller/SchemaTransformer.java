@@ -269,6 +269,10 @@ public class SchemaTransformer {
 	
 			AuthorizationDecisionType assignmentDecision = securityConstraints.findItemDecision(SchemaConstants.PATH_ASSIGNMENT, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, phase);
 			if (!AuthorizationDecisionType.ALLOW.equals(assignmentDecision)) {
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Logged in user isn't authorized to read (or get) assignment item of the object: {}", object);
+				}
+				result.recordWarning("Logged in user isn't authorized to read (or get) assignment item of the object: " + object);
 				context.setEvaluatedAssignmentTriple(null);
 			}
 			

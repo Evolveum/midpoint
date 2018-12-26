@@ -39,7 +39,7 @@ import javax.persistence.*;
         }
 )
 @Persister(impl = MidPointJoinedPersister.class)
-public class RGenericObject extends RObject<GenericObjectType> {
+public class RGenericObject extends RFocus<GenericObjectType> {
 
     private RPolyString nameCopy;
     private String objectType;
@@ -91,7 +91,7 @@ public class RGenericObject extends RObject<GenericObjectType> {
     // dynamically called
     public static void copyFromJAXB(GenericObjectType jaxb, RGenericObject repo, RepositoryContext repositoryContext,
                                     IdGeneratorResult generatorResult) throws DtoTranslationException {
-        RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
+        copyFocusInformationFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setObjectType(jaxb.getObjectType());

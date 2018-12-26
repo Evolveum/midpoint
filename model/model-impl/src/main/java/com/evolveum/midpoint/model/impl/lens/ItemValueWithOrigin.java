@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -85,7 +86,7 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
 			return false;
 		}
 		if (valueMatcher == null) {
-			return itemValue.equalsRealValue(pvalue);
+			return itemValue.equals(pvalue, EquivalenceStrategy.IGNORE_METADATA);
 		} else {
 			// this must be a property, otherwise there would be no matcher
 			return valueMatcher.match(((PrismPropertyValue<T>)itemValue).getValue(),

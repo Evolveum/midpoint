@@ -86,7 +86,7 @@ public class DeputyUtils {
 		for (OtherPrivilegesLimitationType limitation : limitations) {
 			@SuppressWarnings({ "unchecked", "raw" })
 			PrismContainer<WorkItemSelectorType> selector = limitation.asPrismContainerValue().findContainer(itemName);
-			if (selector == null || selector.isEmpty() || !selector.getValue().asContainerable().isAll()) {
+			if (selector == null || selector.isEmpty() || !selector.getRealValue().isAll()) {
 				return false;
 			}
 		}

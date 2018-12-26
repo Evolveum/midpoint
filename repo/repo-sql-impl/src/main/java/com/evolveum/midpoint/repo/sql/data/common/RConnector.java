@@ -162,7 +162,7 @@ public class RConnector extends RObject<ConnectorType> {
     // dynamically called
     public static void copyFromJAXB(ConnectorType jaxb, RConnector repo, RepositoryContext repositoryContext,
             IdGeneratorResult generatorResult) throws DtoTranslationException {
-        RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
+        copyAssignmentHolderInformationFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setConnectorBundle(jaxb.getConnectorBundle());

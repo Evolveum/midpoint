@@ -56,10 +56,29 @@
 		<module>prism-api</module>
         <module>prism-impl</module>
 	</modules>
+    <build>
+        <plugins>
+            <!-- reference failsafe and surefire from build-system plugin management in order for tests to be running -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
     <dependencies> 
     	<dependency> <!-- Not used, but required for surefire plugin not to complain -->
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.tools</groupId>
+            <artifactId>test-ng</artifactId>
+            <version>4.0-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

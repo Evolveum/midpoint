@@ -94,6 +94,9 @@ import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 @Repository
 public class SqlRepositoryServiceImpl extends SqlBaseService implements RepositoryService {
 
+    // experimental (currently some tests fail when using JSON)
+    public static final String DATA_LANGUAGE = PrismContext.LANG_XML;
+
     public static final String PERFORMANCE_LOG_NAME = SqlRepositoryServiceImpl.class.getName() + ".performance";
     public static final String CONTENTION_LOG_NAME = SqlRepositoryServiceImpl.class.getName() + ".contention";
     public static final int CONTENTION_LOG_DEBUG_THRESHOLD = 3;

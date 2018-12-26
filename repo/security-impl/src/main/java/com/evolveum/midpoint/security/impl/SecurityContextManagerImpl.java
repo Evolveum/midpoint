@@ -34,7 +34,7 @@ import com.evolveum.midpoint.security.api.HttpConnectionInformation;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.SecurityUtil;
-import com.evolveum.midpoint.security.api.UserProfileService;
+import com.evolveum.midpoint.security.api.MidPointPrincipalManager;
 import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -50,16 +50,16 @@ public class SecurityContextManagerImpl implements SecurityContextManager {
 	
 	private static final transient Trace LOGGER = TraceManager.getTrace(SecurityContextManagerImpl.class);
 	
-	private UserProfileService userProfileService = null;
+	private MidPointPrincipalManager userProfileService = null;
 	private ThreadLocal<HttpConnectionInformation> connectionInformationThreadLocal = new ThreadLocal<>();
 
 	@Override
-	public UserProfileService getUserProfileService() {
+	public MidPointPrincipalManager getUserProfileService() {
 		return userProfileService;
 	}
 
 	@Override
-	public void setUserProfileService(UserProfileService userProfileService) {
+	public void setUserProfileService(MidPointPrincipalManager userProfileService) {
 		this.userProfileService = userProfileService;
 	}
 	

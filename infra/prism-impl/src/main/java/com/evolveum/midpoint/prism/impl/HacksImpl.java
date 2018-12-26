@@ -16,51 +16,31 @@
 
 package com.evolveum.midpoint.prism.impl;
 
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.Hacks;
+import com.evolveum.midpoint.prism.ParsingContext;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.impl.lex.dom.DomLexicalProcessor;
 import com.evolveum.midpoint.prism.impl.marshaller.XNodeProcessorUtil;
 import com.evolveum.midpoint.prism.impl.xnode.*;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.xnode.*;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedDataType;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
 import javax.xml.soap.Detail;
-import java.io.Serializable;
 
 /**
  * TEMPORARY
  */
-public class HacksImpl implements Hacks {
+public class HacksImpl implements Hacks, XNodeMutator {
 
 	@NotNull private final PrismContextImpl prismContext;
 
 	HacksImpl(@NotNull PrismContextImpl prismContext) {
 		this.prismContext = prismContext;
-	}
-
-	/**
-	 * Obscure method. TODO specify the functionality and decide what to do with this.
-	 */
-	@Override
-	@Nullable
-	public Serializable guessFormattedValue(Serializable value) throws SchemaException {
-		if (value instanceof RawType) {
-			XNode xnode = ((RawType) value).getXnode();
-			if (xnode instanceof PrimitiveXNodeImpl) {
-				return ((PrimitiveXNodeImpl) xnode).getGuessedFormattedValue();
-			} else {
-				return null;
-			}
-		} else {
-			return value;
-		}
 	}
 
 	/**
@@ -116,15 +96,5 @@ public class HacksImpl implements Hacks {
 	public void setXNodeType(XNode node, QName explicitTypeName, boolean explicitTypeDeclaration) {
 		((XNodeImpl) node).setTypeQName(explicitTypeName);
 		((XNodeImpl) node).setExplicitTypeDeclaration(explicitTypeDeclaration);
-	}
-
-	@Override
-	public void addToDefinition(ComplexTypeDefinition ctd, ItemDefinition other) {
-		((ComplexTypeDefinitionImpl) ctd).add(other);
-	}
-
-	@Override
-	public void replaceDefinition(ComplexTypeDefinition ctd, ItemName name, ItemDefinition other) {
-		((ComplexTypeDefinitionImpl) ctd).replaceDefinition(name, other);
 	}
 }

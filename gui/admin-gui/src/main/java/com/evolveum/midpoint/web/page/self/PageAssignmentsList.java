@@ -80,12 +80,16 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
     private IModel<List<AssignmentEditorDto>> assignmentsModel;
     private OperationResult backgroundTaskOperationResult = null;
     IModel<String> descriptionModel;
+    private boolean conflictProblemExists = false;
+    private boolean loadConflicts = false;
+
 
     public PageAssignmentsList(){
         this(false);
     }
 
     public PageAssignmentsList(boolean loadConflicts){
+        this.loadConflicts = loadConflicts;
         initModels();
         if (loadConflicts){
             getSessionStorage().getRoleCatalog().setConflictsList(getAssignmentConflicts());
@@ -155,14 +159,13 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             protected void onDeleteSelectedUsersPerformed(AjaxRequestTarget target){
                 super.onDeleteSelectedUsersPerformed(target);
                 getSessionStorage().getRoleCatalog().setTargetUserList(new ArrayList<>());
-
-                target.add(getTargetUserSelectionButton());
+                targetUserChangePerformed(target);
             }
 
             @Override
             protected void multipleUsersSelectionPerformed(AjaxRequestTarget target, List<UserType> usersList){
                 getSessionStorage().getRoleCatalog().setTargetUserList(usersList);
-                target.add(getTargetUserSelectionButton());
+                targetUserChangePerformed(target);
             }
 
         };
@@ -215,6 +218,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             public boolean isEnabled(){
                 return (getSessionStorage().getRoleCatalog().isMultiUserRequest() ||
                         onlyWarnings() || areConflictsResolved()) &&
+                        !conflictProblemExists &&
                         getSessionStorage().getRoleCatalog().getAssignmentShoppingCart() != null &&
                         getSessionStorage().getRoleCatalog().getAssignmentShoppingCart().size() > 0;
             }
@@ -284,6 +288,15 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             clearStorage();
             setResponsePage(PageAssignmentShoppingCart.class);
         }
+    }
+
+    private void targetUserChangePerformed(AjaxRequestTarget target){
+        PageAssignmentsList.this.getFeedbackMessages().clear();
+        conflictProblemExists = false;
+        if (loadConflicts){
+            getSessionStorage().getRoleCatalog().setConflictsList(getAssignmentConflicts());
+        }
+        target.add(PageAssignmentsList.this);
     }
 
     @NotNull
@@ -449,17 +462,22 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                     .previewChanges(WebComponentUtil.createDeltaCollection(delta), recomputeOptions, task, result);
             DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = modelContext
                     .getEvaluatedAssignmentTriple();
-            Collection<? extends EvaluatedAssignment> addedAssignments = evaluatedAssignmentTriple.getPlusSet();
-            for (EvaluatedAssignment<UserType> evaluatedAssignment : addedAssignments) {
-
-                for (EvaluatedPolicyRule policyRule : evaluatedAssignment.getAllTargetsPolicyRules()) {
-                    if (!policyRule.containsEnabledAction()) {
-                        continue;
+            if (evaluatedAssignmentTriple != null) {
+                Collection<? extends EvaluatedAssignment> addedAssignments = evaluatedAssignmentTriple.getPlusSet();
+                for (EvaluatedAssignment<UserType> evaluatedAssignment : addedAssignments) {
+                    for (EvaluatedPolicyRule policyRule : evaluatedAssignment.getAllTargetsPolicyRules()) {
+                        if (!policyRule.containsEnabledAction()) {
+                            continue;
+                        }
+                        // everything other than 'enforce' is a warning
+                        boolean isWarning = !policyRule.containsEnabledAction(EnforcementPolicyActionType.class);
+                        fillInConflictedObjects(evaluatedAssignment, policyRule.getAllTriggers(), isWarning, conflictsMap);
                     }
-                    // everything other than 'enforce' is a warning
-                    boolean isWarning = !policyRule.containsEnabledAction(EnforcementPolicyActionType.class);
-                    fillInConflictedObjects(evaluatedAssignment, policyRule.getAllTriggers(), isWarning, conflictsMap);
                 }
+            } else if (!result.isSuccess() && StringUtils.isNotEmpty(getSubresultWarningMessages(result))) {
+                getFeedbackMessages().warn(PageAssignmentsList.this,
+                        createStringResource("PageAssignmentsList.conflictsWarning").getString() + " " + getSubresultWarningMessages(result));
+                conflictProblemExists = true;
             }
         } catch (Exception e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get assignments conflicts. Reason: ", e);
@@ -467,6 +485,20 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         }
         conflictsList.addAll(conflictsMap.values());
         return conflictsList;
+    }
+
+    private String getSubresultWarningMessages(OperationResult result){
+       if (result == null || result.getSubresults() == null){
+           return "";
+       }
+       StringBuilder sb = new StringBuilder();
+       result.getSubresults().forEach(subresult ->{
+           if (subresult.isWarning()){
+               sb.append(subresult.getMessage());
+               sb.append("\n");
+           }
+       });
+       return sb.toString();
     }
     
     private void fillInConflictedObjects(EvaluatedAssignment<UserType> evaluatedAssignment, Collection<EvaluatedPolicyRuleTrigger<?>> triggers, boolean isWarning, Map<String, ConflictDto> conflictsMap) {

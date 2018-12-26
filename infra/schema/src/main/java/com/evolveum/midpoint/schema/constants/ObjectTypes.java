@@ -74,6 +74,9 @@ public enum ObjectTypes {
 
     FOCUS_TYPE(FocusType.COMPLEX_TYPE, SchemaConstants.C_FOCUS, FocusType.class, ObjectManager.MODEL, "focus"),
 
+    ASSIGNMENT_HOLDER_TYPE(AssignmentHolderType.COMPLEX_TYPE, SchemaConstantsGenerated.C_ASSIGNMENT_HOLDER,
+            AssignmentHolderType.class, ObjectManager.MODEL, "assignmentHolders"),
+
     REPORT(ReportType.COMPLEX_TYPE, SchemaConstants.C_REPORT, ReportType.class, ObjectManager.MODEL, "reports"),
 
     REPORT_OUTPUT(ReportOutputType.COMPLEX_TYPE, SchemaConstants.C_REPORT_OUTPUT, ReportOutputType.class,
@@ -133,15 +136,15 @@ public enum ObjectTypes {
     }
 
 	@NotNull private final QName type;
-	@NotNull private final QName name;
+	@NotNull private final QName elementName;
     @NotNull private final Class<? extends ObjectType> classDefinition;
 	@NotNull private final ObjectManager objectManager;
 	@NotNull private final String restType;
 
-    ObjectTypes(@NotNull QName type, @NotNull QName name, @NotNull Class<? extends ObjectType> classDefinition,
+    ObjectTypes(@NotNull QName type, @NotNull QName elementName, @NotNull Class<? extends ObjectType> classDefinition,
 		    @NotNull ObjectManager objectManager, @NotNull String restType) {
         this.type = type;
-        this.name = name;
+        this.elementName = elementName;
         this.classDefinition = classDefinition;
         this.objectManager = objectManager;
         this.restType = restType;
@@ -160,8 +163,8 @@ public enum ObjectTypes {
     }
 
 	@NotNull
-	public QName getQName() {
-        return name;
+	public QName getElementName() {
+        return elementName;
     }
 
 	@NotNull

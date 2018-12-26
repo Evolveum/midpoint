@@ -304,7 +304,10 @@ class EntitlementConverter {
 	private <TV,TA> ObjectQuery createQuery(RefinedAssociationDefinition assocDefType, RefinedAttributeDefinition<TA> assocAttrDef, ResourceAttribute<TV> valueAttr) throws SchemaException{
 		MatchingRule<TA> matchingRule = matchingRuleRegistry.getMatchingRule(assocDefType.getResourceObjectAssociationType().getMatchingRule(),
 				assocAttrDef.getTypeName());
-		PrismPropertyValue<TA> converted = PrismUtil.convertPropertyValue(valueAttr.getValue(0), valueAttr.getDefinition(), assocAttrDef, prismContext);
+		if (valueAttr.size() > 1) {
+			throw new IllegalStateException("Attributes with more than 1 values are not supported here");
+		}
+		PrismPropertyValue<TA> converted = PrismUtil.convertPropertyValue(valueAttr.getAnyValue(), valueAttr.getDefinition(), assocAttrDef, prismContext);
 		TA normalizedRealValue = matchingRule.normalize(converted.getValue());
 		PrismPropertyValue<TA> normalized = prismContext.itemFactory().createPropertyValue(normalizedRealValue);
 		LOGGER.trace("Converted entitlement filter value: {} ({}) def={}", normalized, normalized.getValue().getClass(), assocAttrDef);

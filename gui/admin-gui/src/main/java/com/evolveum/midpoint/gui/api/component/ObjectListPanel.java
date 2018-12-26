@@ -20,6 +20,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -257,7 +258,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 			columns.add(checkboxColumn);
 		}
 
-		IColumn<SelectableBean<O>, String> iconColumn = (IColumn) ColumnUtils.createIconColumn(type.getClassDefinition());
+		IColumn<SelectableBean<O>, String> iconColumn = (IColumn) ColumnUtils.createIconColumn(type.getClassDefinition(), parentPage);
 		columns.add(iconColumn);
 
 		columns.addAll(getCustomColumnsTransformed(customColumns));
@@ -341,7 +342,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 							return String.valueOf(((PrismPropertyValue<?>) itemValue).getValue());
 						} else {
 							String lookupTableKey = ((PrismPropertyValue<?>) itemValue).getValue().toString();
-							LookupTableType lookupTableObject = lookupTable.getValue().asObjectable();
+							LookupTableType lookupTableObject = lookupTable.asObjectable();
 							String rowLabel = "";
 							for (LookupTableRowType lookupTableRow : lookupTableObject.getRow()){
 								if (lookupTableRow.getKey().equals(lookupTableKey)){
@@ -367,7 +368,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 			columns.add(checkboxColumn);
 		}
 
-		IColumn<SelectableBean<O>, String> iconColumn = (IColumn) ColumnUtils.createIconColumn(type.getClassDefinition());
+		IColumn<SelectableBean<O>, String> iconColumn = (IColumn) ColumnUtils.createIconColumn(type.getClassDefinition(), parentPage);
 		columns.add(iconColumn);
 
 		IColumn<SelectableBean<O>, String> nameColumn = createNameColumn(null, null);
@@ -644,9 +645,9 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	protected abstract List<InlineMenuItem> createInlineMenu();
 
 	protected void addCustomActions(@NotNull List<InlineMenuItem> actionsList, SerializableSupplier<Collection<? extends ObjectType>> objectsSupplier) {
-		GuiObjectListViewType guiObjectListViewType = getGuiObjectListViewType();
-		if (guiObjectListViewType != null && !guiObjectListViewType.getAction().isEmpty()) {
-			actionsList.addAll(WebComponentUtil.createMenuItemsFromActions(guiObjectListViewType.getAction(),
+		CompiledObjectCollectionView guiObjectListViewType = getGuiObjectListViewType();
+		if (guiObjectListViewType != null && !guiObjectListViewType.getActions().isEmpty()) {
+			actionsList.addAll(WebComponentUtil.createMenuItemsFromActions(guiObjectListViewType.getActions(),
 					OPERATION_LOAD_CUSTOM_MENU_ITEMS, parentPage, objectsSupplier));
 		}
 	}
@@ -656,23 +657,12 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	}
 
 	private List<GuiObjectColumnType> getGuiObjectColumnTypeList(){
-		GuiObjectListViewType guiObjectListViewType = getGuiObjectListViewType();
-		return guiObjectListViewType != null ? guiObjectListViewType.getColumn() : null;
+		CompiledObjectCollectionView guiObjectListViewType = getGuiObjectListViewType();
+		return guiObjectListViewType != null ? guiObjectListViewType.getColumns() : null;
 	}
 
-	private GuiObjectListViewType getGuiObjectListViewType(){
-		AdminGuiConfigurationType adminGuiConfig = parentPage.getPrincipal().getAdminGuiConfiguration();
-		if (adminGuiConfig != null && adminGuiConfig.getObjectLists() != null &&
-				adminGuiConfig.getObjectLists().getObjectList() != null){
-			for (GuiObjectListViewType object : adminGuiConfig.getObjectLists().getObjectList()){
-				if (object.getType() != null &&
-						!type.getClassDefinition().getSimpleName().equals(object.getType().getLocalPart())){
-					continue;
-				}
-				return object;
-			}
-		}
-		return null;
+	private CompiledObjectCollectionView getGuiObjectListViewType(){
+		return parentPage.getCompiledUserProfile().findObjectCollectionView(type.getTypeQName(), null);
 	}
 
 	private boolean isCustomColumnsListConfigured(){

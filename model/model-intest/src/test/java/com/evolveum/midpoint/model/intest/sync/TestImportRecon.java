@@ -1550,6 +1550,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	/**
 	 * Create account that will correlate to existing user.
 	 * See that it is linked and modified.
+	 * MID-4997
 	 */
 	@Test
     public void test330ReconcileDummyAzureAddAccountRapp() throws Exception {
@@ -1621,6 +1622,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         }
 
         assertNotNull("No clear text password", stringPassword);
+        assertTrue("Rapp's password is supposed to contain letter a: "+stringPassword, stringPassword.contains("a"));
+
 
         PrismObject<ValuePolicyType> passwordPolicy = getObjectViaRepo(ValuePolicyType.class, PASSWORD_POLICY_LOWER_CASE_ALPHA_AZURE_OID);
 

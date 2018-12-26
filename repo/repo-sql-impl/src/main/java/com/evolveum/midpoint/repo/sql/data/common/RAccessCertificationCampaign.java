@@ -199,7 +199,7 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
             RepositoryContext repositoryContext, IdGeneratorResult generatorResult)
             throws DtoTranslationException {
 
-        RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
+        copyAssignmentHolderInformationFromJAXB(jaxb, repo, repositoryContext, generatorResult);
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setDefinitionRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getDefinitionRef(), repositoryContext.relationRegistry));
 

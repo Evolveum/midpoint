@@ -33,6 +33,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -863,9 +864,9 @@ public class InboundProcessor {
 					boolean consolidated = false;
 					if (originTriples.hasMinusSet()) {
 						for (ItemValueWithOrigin<V, D> minusValue: originTriples.getMinusSet()) {
-							if (minusValue.getItemValue().equalsRealValue(plusValue.getItemValue())) {
+							if (minusValue.getItemValue().equals(plusValue.getItemValue(), EquivalenceStrategy.REAL_VALUE)) {
 								LOGGER.trace(
-										"Removing value {} from minus set -> moved to the zero, becuase the same value present in plus and minus set at the same time",
+										"Removing value {} from minus set -> moved to the zero, because the same value present in plus and minus set at the same time",
 										minusValue.debugDumpLazily());
 								consolidatedMinusSet.remove(minusValue);
 								consolidatedPlusSet.remove(plusValue);
@@ -877,9 +878,9 @@ public class InboundProcessor {
 					
 					if (originTriples.hasZeroSet()) {
 						for (ItemValueWithOrigin<V, D> zeroValue: originTriples.getZeroSet()) {
-							if (zeroValue.getItemValue().equalsRealValue(plusValue.getItemValue())) {
+							if (zeroValue.getItemValue().equals(plusValue.getItemValue(), EquivalenceStrategy.REAL_VALUE)) {
 								LOGGER.trace(
-										"Removing value {} from plus set -> moved to the zero, becuase the same value present in plus and minus set at the same time",
+										"Removing value {} from plus set -> moved to the zero, because the same value present in plus and minus set at the same time",
 										zeroValue.debugDumpLazily());
 								consolidatedPlusSet.remove(plusValue);
 								consolidated = true;
@@ -905,9 +906,9 @@ public class InboundProcessor {
 					boolean consolidated = false;
 					if (originTriples.hasMinusSet()) {
 						for (ItemValueWithOrigin<V, D> minusValue : originTriples.getMinusSet()) {
-							if (minusValue.getItemValue().equalsRealValue(zeroValue.getItemValue())) {
+							if (minusValue.getItemValue().equals(zeroValue.getItemValue(), EquivalenceStrategy.REAL_VALUE)) {
 								LOGGER.trace(
-										"Removing value {} from minus set -> moved to the zero, becuase the same value present in zero and minus set at the same time",
+										"Removing value {} from minus set -> moved to the zero, because the same value present in zero and minus set at the same time",
 										minusValue.debugDumpLazily());
 								consolidatedMinusSet.remove(minusValue);
 								consolidatedZeroSet.add(minusValue);
@@ -919,9 +920,9 @@ public class InboundProcessor {
 					
 					if (originTriples.hasPlusSet()) {
 						for (ItemValueWithOrigin<V, D> plusValue : originTriples.getPlusSet()) {
-							if (plusValue.getItemValue().equalsRealValue(zeroValue.getItemValue())) {
+							if (plusValue.getItemValue().equals(zeroValue.getItemValue(), EquivalenceStrategy.REAL_VALUE)) {
 								LOGGER.trace(
-										"Removing value {} from plus set -> moved to the zero, becuase the same value present in zero and plus set at the same time",
+										"Removing value {} from plus set -> moved to the zero, because the same value present in zero and plus set at the same time",
 										plusValue.debugDumpLazily());
 								consolidatedPlusSet.remove(plusValue);
 								consolidatedZeroSet.add(plusValue);
@@ -948,9 +949,9 @@ public class InboundProcessor {
 					boolean consolidated = false;
 					if (originTriples.hasPlusSet()) {
 						for (ItemValueWithOrigin<V, D> plusValue : originTriples.getPlusSet()) {
-							if (plusValue.getItemValue().equalsRealValue(minusValue.getItemValue())) {
+							if (plusValue.getItemValue().equals(minusValue.getItemValue(), EquivalenceStrategy.REAL_VALUE)) {
 								LOGGER.trace(
-										"Removing value {} from minus set -> moved to the zero, becuase the same value present in plus and minus set at the same time",
+										"Removing value {} from minus set -> moved to the zero, because the same value present in plus and minus set at the same time",
 										plusValue.debugDumpLazily());
 								consolidatedPlusSet.remove(plusValue);
 								consolidatedMinusSet.remove(minusValue);
@@ -963,9 +964,9 @@ public class InboundProcessor {
 					
 					if (originTriples.hasZeroSet()) {
 						for (ItemValueWithOrigin<V, D> zeroValue : originTriples.getZeroSet()) {
-							if (zeroValue.getItemValue().equalsRealValue(minusValue.getItemValue())) {
+							if (zeroValue.getItemValue().equals(minusValue.getItemValue(), EquivalenceStrategy.REAL_VALUE)) {
 								LOGGER.trace(
-										"Removing value {} from minus set -> moved to the zero, becuase the same value present in plus and minus set at the same time",
+										"Removing value {} from minus set -> moved to the zero, because the same value present in plus and minus set at the same time",
 										zeroValue.debugDumpLazily());
 								consolidatedMinusSet.remove(minusValue);
 								consolidatedZeroSet.add(zeroValue);
@@ -997,7 +998,7 @@ public class InboundProcessor {
 		    boolean hasRange, boolean isDelete) throws SchemaException {
 		
 		ItemDelta outputFocusItemDelta = outputDefinition.createEmptyDelta(outputPath);
-		Item targetFocusItem = null;
+		Item<V, D> targetFocusItem = null;
 		if (focusNew != null) {
 			targetFocusItem = focusNew.findItem(outputPath);
 		}
@@ -1023,7 +1024,7 @@ public class InboundProcessor {
 						targetFocusItem = focusNew.findItem(originMapping.getOutputPath());
 					}
 					V value = valueWithOrigin.getItemValue();
-					if (targetFocusItem != null && targetFocusItem.hasValueIgnoringMetadata(value)) {
+					if (targetFocusItem != null && targetFocusItem.contains(value, EquivalenceStrategy.REAL_VALUE)) {
 						continue;
 					}
 
@@ -1057,7 +1058,7 @@ public class InboundProcessor {
 				for (ItemValueWithOrigin<V, D> valueWithOrigin : consolidatedTriples.getMinusSet()) {
 					V value = valueWithOrigin.getItemValue();
 
-					if (targetFocusItem == null || targetFocusItem.hasValueIgnoringMetadata(value)) {
+					if (targetFocusItem == null || targetFocusItem.contains(value, EquivalenceStrategy.REAL_VALUE)) {
 						if (!outputFocusItemDelta.isReplace()) {
 							// This is not needed if we are going to
 							// replace. In fact it might cause an error.

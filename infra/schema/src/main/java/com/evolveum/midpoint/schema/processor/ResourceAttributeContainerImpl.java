@@ -431,5 +431,4 @@ public final class ResourceAttributeContainerImpl extends PrismContainerImpl imp
 	protected String getDebugDumpClassName() {
 		return "RAC";
 	}
-
 }

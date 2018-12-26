@@ -102,7 +102,7 @@ public class BaseHelper {
 			session.setHibernateFlushMode(FlushMode.MANUAL);
 
 			LOGGER.trace("Marking transaction as read only.");
-			session.doWork(connection -> connection.createStatement().execute("SET TRANSACTION READ ONLY"));
+				session.doWork(connection -> connection.createStatement().execute("SET TRANSACTION READ ONLY"));
 		}
 		return session;
 	}
@@ -135,6 +135,10 @@ public class BaseHelper {
 	}
 
 	public void cleanupSessionAndResult(Session session, OperationResult result) {
+	    if (session != null && session.getTransaction().isActive()) {
+            session.getTransaction().commit();
+        }
+
 		if (session != null && session.isOpen()) {
 			session.close();
 		}

@@ -15,9 +15,9 @@
  */
 package com.evolveum.midpoint.prism;
 
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import org.apache.commons.lang.Validate;
@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
  * @author semancik
  *
  */
-public interface PrismContainerValue<C extends Containerable> extends PrismValue, DebugDumpable {
+public interface PrismContainerValue<C extends Containerable> extends PrismValue, ParentVisitable {
 
 	static <T extends Containerable> T asContainerable(PrismContainerValue<T> value) {
     	return value != null ? value.asContainerable() : null;
@@ -170,7 +170,7 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 	static <C extends Containerable> boolean containsRealValue(Collection<PrismContainerValue<C>> cvalCollection,
 			PrismContainerValue<C> cval) {
     	for (PrismContainerValue<C> colVal: cvalCollection) {
-    		if (colVal.equalsRealValue(cval)) {
+    		if (colVal.equals(cval, EquivalenceStrategy.REAL_VALUE)) {
     			return true;
     		}
     	}
@@ -296,11 +296,6 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 	@Override
 	PrismContainerValue<C> cloneComplex(CloneStrategy strategy);
 
-	@Override
-	boolean equalsComplex(PrismValue other, boolean ignoreMetadata, boolean isLiteral);
-
-	boolean equalsComplex(PrismContainerValue<?> other, boolean ignoreMetadata, boolean isLiteral);
-
 	boolean equivalent(PrismContainerValue<?> other);
 
 	@Override
@@ -314,8 +309,6 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 
 	@Override
 	String debugDump(int indent);
-
-	boolean match(PrismValue otherValue);
 
 	String toHumanReadableString();
 
@@ -415,4 +408,6 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 	void removeOperationalItems();
 
 	PrismContainerDefinition<C> getDefinition();
+
+	void acceptParentVisitor(Visitor visitor);
 }

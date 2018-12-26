@@ -49,14 +49,14 @@ public class TestEquals extends AbstractPrismTest {
 		addAssignment(user, ASSIGNMENT_ABRAKADABRA_ID, ASSIGNMENT_ABRAKADABRA_DESCRIPTION);
 		display("user", user);
 		
-		PrismContainer<AssignmentType> assignmentConatiner = user.findContainer(UserType.F_ASSIGNMENT);
+		PrismContainer<AssignmentType> assignmentContainer = user.findContainer(UserType.F_ASSIGNMENT);
 
 		// WHEN, THEN
 		displayWhen(TEST_NAME);
-		assertTrue(ASSIGNMENT_PATLAMA_ID+":null", assignmentConatiner.containsEquivalentValue(createAssignmentValue(ASSIGNMENT_PATLAMA_ID, null)));
-		assertTrue("null:"+ASSIGNMENT_PATLAMA_DESCRIPTION, assignmentConatiner.containsEquivalentValue(createAssignmentValue(null, ASSIGNMENT_PATLAMA_DESCRIPTION)));
-		assertFalse("364576:null", assignmentConatiner.containsEquivalentValue(createAssignmentValue(364576L, null)));
-		assertFalse("null:never ever never", assignmentConatiner.containsEquivalentValue(createAssignmentValue(null, "never ever never")));
+		assertTrue(ASSIGNMENT_PATLAMA_ID+":null", assignmentContainer.containsEquivalentValue(createAssignmentValue(ASSIGNMENT_PATLAMA_ID, null)));
+		assertTrue("null:"+ASSIGNMENT_PATLAMA_DESCRIPTION, assignmentContainer.containsEquivalentValue(createAssignmentValue(null, ASSIGNMENT_PATLAMA_DESCRIPTION)));
+		assertFalse("364576:null", assignmentContainer.containsEquivalentValue(createAssignmentValue(364576L, null)));
+		assertFalse("null:never ever never", assignmentContainer.containsEquivalentValue(createAssignmentValue(null, "never ever never")));
 	}
 
 	@Test(enabled = false)				// normalization no longer removes empty values

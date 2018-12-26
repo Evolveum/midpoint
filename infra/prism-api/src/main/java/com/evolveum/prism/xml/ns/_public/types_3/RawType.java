@@ -162,8 +162,8 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
                 }
                 checkPrismContext();
 				Item<IV,ID> subItem = prismContext.parserFor(getRootXNode(itemName)).name(itemName).definition(itemDefinition).parseItem();
-				if (!subItem.isEmpty()){
-					value = subItem.getValue(0);
+				if (!subItem.isEmpty()) {
+					value = subItem.getAnyValue();
 				} else {
 					value = null;
 				}
@@ -259,7 +259,7 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
         } else if (parsed != null) {
             checkPrismContext();
 	        XNode rv = prismContext.xnodeSerializer().root(new QName("dummy")).serialize(parsed).getSubnode();
-	        prismContext.hacks().setXNodeType(rv, explicitTypeName, explicitTypeDeclaration);
+	        prismContext.xnodeMutator().setXNodeType(rv, explicitTypeName, explicitTypeDeclaration);
 	        return rv;
         } else {
             return null;            // or an exception here?
@@ -392,4 +392,18 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
 		}
 	}
 
+	public boolean isParsed() {
+		return parsed != null;
+	}
+
+	// avoid if possible
+	public String guessFormattedValue() throws SchemaException {
+		if (parsed != null) {
+			return parsed.getRealValue().toString();    // todo reconsider this
+		} else if (xnode instanceof PrimitiveXNode) {
+			return ((PrimitiveXNode) xnode).getGuessedFormattedValue();
+		} else {
+			return null;
+		}
+	}
 }

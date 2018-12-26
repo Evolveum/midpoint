@@ -188,7 +188,7 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
 		    RepositoryContext repositoryContext, IdGeneratorResult generatorResult)
 			throws DtoTranslationException {
 
-        RFocus.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
+        copyFocusInformationFromJAXB(jaxb, repo, repositoryContext, generatorResult);
         repo.setRequestable(jaxb.isRequestable());
 
 		repo.setDisplayName(RPolyString.copyFromJAXB(jaxb.getDisplayName()));

@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.impl.lens.projector;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -68,7 +69,7 @@ public class SmartAssignmentKey {
 	}
 
 	private boolean equalsAssignment(PrismContainerValue<AssignmentType> other) {
-		return assignmentCVal.match(other);
+		return assignmentCVal.equals(other, EquivalenceStrategy.IGNORE_METADATA);
 	}
 
 	@Override

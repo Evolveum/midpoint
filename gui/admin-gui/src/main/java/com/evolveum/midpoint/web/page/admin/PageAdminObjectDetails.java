@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
-import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.component.progress.ProgressPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -39,6 +38,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -48,8 +48,12 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.AuthorizationException;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -303,6 +307,11 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 				if (objectToEdit == null) {
 					LOGGER.trace("Loading object: New object (creating)");
 					O focusType = createNewObject();
+
+					// Apply subtype using page parameters
+					List<StringValue> subtypes = getPageParameters().getValues(ObjectType.F_SUBTYPE.getLocalPart());
+					subtypes.stream().filter(p -> !p.isEmpty()).forEach(c -> focusType.subtype(c.toString()));
+
 					getMidpointApplication().getPrismContext().adopt(focusType);
 					object = (PrismObject<O>) focusType.asPrismObject();
 				} else {
@@ -700,10 +709,10 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 	public List<ObjectFormType> getObjectFormTypes() {
 		Task task = createSimpleTask(OPERATION_LOAD_GUI_CONFIGURATION);
 		OperationResult result = task.getResult();
-		AdminGuiConfigurationType adminGuiConfiguration;
+		CompiledUserProfile adminGuiConfiguration;
 		try {
-			adminGuiConfiguration = getModelInteractionService().getAdminGuiConfiguration(task, result);
-		} catch (ObjectNotFoundException | SchemaException e) {
+			adminGuiConfiguration = getModelInteractionService().getCompiledUserProfile(task, result);
+		} catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
 			throw new SystemException("Cannot load GUI configuration: "+e.getMessage(), e);
 		}
 		ObjectFormsType objectFormsType = adminGuiConfiguration.getObjectForms();
@@ -736,8 +745,8 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		return saveOnConfigure;
 	}
 
-	public boolean isForcedPreview(){
-		GuiObjectDetailsPageType objectDetails = AdminGuiConfigTypeUtil.findObjectConfiguration(getCompileTimeClass(), getAdminGuiConfiguration());
+	public boolean isForcedPreview() {
+		GuiObjectDetailsPageType objectDetails = getCompiledUserProfile().findObjectDetailsConfiguration(getCompileTimeClass());
 		return objectDetails != null && DetailsPageSaveMethodType.FORCED_PREVIEW.equals(objectDetails.getSaveMethod());
 	}
 

@@ -54,6 +54,12 @@
 					<runOrder>alphabetical</runOrder>
 				</configuration>
 			</plugin>
+			<plugin>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<configuration>
+					<runOrder>alphabetical</runOrder>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 	<dependencies>

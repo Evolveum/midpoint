@@ -18,6 +18,8 @@ package com.evolveum.midpoint.prism.impl;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.impl.delta.ContainerDeltaImpl;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.*;
@@ -140,28 +142,16 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
 		for (PrismContainerValue<C> value : getValues()) {
 			realValues.add(value.asContainerable());
 		}
-
 		return realValues;
-
 	}
 
-    @Override
-    public C getRealValue() {
-    	if (getValue() == null) {
-    		return null;
-    	}
-    	return getValue().asContainerable();
-    }
+	@Override
+	public C getRealValue() {
+		return getValue().getRealValue();
+	}
 
-    public PrismContainerValue<C> getOrCreateValue() {
-		if (getValues().size() == 0) {
-			return createNewValue();
-		} else {
-			return getValue();
-		}
-    }
-
-    public PrismContainerValue<C> getValue() {
+	@NotNull
+	public PrismContainerValue<C> getValue() {
     	if (getValues().size() == 1) {
     		return getValues().get(0);
 		}
@@ -231,16 +221,6 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
         return super.add(newValue, checkUniqueness);
     }
 
-	@Override
-	public PrismContainerValue<C> getPreviousValue(PrismValue value) {
-		return (PrismContainerValue<C>) super.getPreviousValue(value);
-	}
-
-	@Override
-	public PrismContainerValue<C> getNextValue(PrismValue value) {
-		return (PrismContainerValue<C>) super.getNextValue(value);
-	}
-
 	private boolean canAssumeSingleValue() {
 		if (getDefinition() != null) {
 			return getDefinition().isSingleValue();
@@ -288,7 +268,7 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
      */
     public void add(Item<?,?> item) throws SchemaException {
 		checkMutability();
-    	getValue().add(item);
+    	this.getValue().add(item);
     }
 
     public PrismContainerValue<C> createNewValue() {
@@ -361,7 +341,7 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
      * @return applicable property container definition
      */
     public PrismContainerDefinition<C> getDefinition() {
-        return (PrismContainerDefinition<C>) definition;
+        return definition;
     }
 
     /**
@@ -455,7 +435,7 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
 	}
 
     public <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findCreateItem(QName itemQName, Class<I> type, boolean create) throws SchemaException {
-        return ((PrismContainerValueImpl<C>) getValue()).findCreateItem(itemQName, type, null, create);
+        return ((PrismContainerValueImpl<C>) this.getValue()).findCreateItem(itemQName, type, null, create);
     }
 
     @Override
@@ -519,7 +499,7 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
 	private PrismContainerValue<C> findValue(Long id) {
     	if (id == null) {
     		if (canAssumeSingleValue()) {
-    			return getValue();
+    			return this.getValue();
     		} else {
     			throw new IllegalArgumentException("Attempt to get segment without an ID from a multi-valued container "+ getElementName());
     		}
@@ -542,7 +522,7 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
     }
 
     public <I extends Item<?,?>> List<I> getItems(Class<I> type) {
-		return getValue().getItems(type);
+		return this.getValue().getItems(type);
     }
 
     @SuppressWarnings("unchecked")
@@ -560,7 +540,7 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
     }
 
     public PrismReference findReferenceByCompositeObjectElementName(QName elementName) {
-    	return getValue().findReferenceByCompositeObjectElementName(elementName);
+    	return this.getValue().findReferenceByCompositeObjectElementName(elementName);
     }
 
     public <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findOrCreateItem(
@@ -597,7 +577,7 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
      * Convenience method. Works only on single-valued containers.
      */
     public void remove(Item<?,?> item) {
-    	getValue().remove(item);
+    	this.getValue().remove(item);
     }
 
     public void removeProperty(ItemPath path) {
@@ -701,10 +681,10 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
     }
 
     @Override
-	public void assertDefinitions(boolean tolarateRaw, String sourceDescription) throws SchemaException {
-		super.assertDefinitions(tolarateRaw, sourceDescription);
+	public void assertDefinitions(boolean tolerateRaw, String sourceDescription) throws SchemaException {
+		super.assertDefinitions(tolerateRaw, sourceDescription);
 		for (PrismContainerValue<C> val: getValues()) {
-			val.assertDefinitions(tolarateRaw, this.toString()+" in "+sourceDescription);
+			val.assertDefinitions(tolerateRaw, this.toString()+" in "+sourceDescription);
 		}
 	}
 
@@ -712,17 +692,17 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
 		return (ContainerDelta<C>) super.diff(other);
     }
 
-    public ContainerDelta<C> diff(PrismContainer<C> other, boolean ignoreMetadata, boolean isLiteral) {
-    	return (ContainerDelta<C>) super.diff(other, true, false);
+    public ContainerDelta<C> diff(PrismContainer<C> other, ParameterizedEquivalenceStrategy strategy) {
+    	return (ContainerDelta<C>) super.diff(other, strategy);
     }
 
     public List<? extends ItemDelta> diffModifications(PrismContainer<C> other) {
-    	return diffModifications(other, true, false);
+    	return diffModifications(other, EquivalenceStrategy.IGNORE_METADATA);
     }
 
-    public List<? extends ItemDelta> diffModifications(PrismContainer<C> other, boolean ignoreMetadata, boolean isLiteral) {
+    public List<? extends ItemDelta> diffModifications(PrismContainer<C> other, ParameterizedEquivalenceStrategy strategy) {
     	List<? extends ItemDelta> itemDeltas = new ArrayList<>();
-		diffInternal(other, itemDeltas, ignoreMetadata, isLiteral);
+		diffInternal(other, itemDeltas, strategy);
 		return itemDeltas;
     }
 
@@ -765,27 +745,28 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
 		}
 	}
 
-    @Override
+	@Override
 	public boolean containsEquivalentValue(PrismContainerValue<C> value) {
-    	if (value.isIdOnly()) {
-    		PrismContainerValue<C> myValue = findValue(value.getId());
-    		return myValue != null;
-    	} else if (value.getId() == null) {
-    		return super.contains(value, true);
-    	} else {
-    		return super.contains(value, false);
-    	}
+		if (value.isIdOnly()) {
+			PrismContainerValue<C> myValue = findValue(value.getId());
+			return myValue != null;
+		} else if (value.getId() == null) {
+			return super.contains(value, EquivalenceStrategy.IGNORE_METADATA);
+		} else {
+			return super.contains(value, EquivalenceStrategy.NOT_LITERAL);
+		}
 	}
-    
-    @Override
+
+	@Deprecated // todo
+	@Override
 	public boolean containsEquivalentValue(PrismContainerValue<C> value, Comparator<PrismContainerValue<C>> comparator) {
     	if (value.isIdOnly()) {
     		PrismContainerValue<C> myValue = findValue(value.getId());
     		return myValue != null;
     	} else if (value.getId() == null) {
-    		return super.contains(value, true, comparator);
+    		return super.contains(value, EquivalenceStrategy.IGNORE_METADATA, comparator);
     	} else {
-    		return super.contains(value, false, comparator);
+    		return super.contains(value, EquivalenceStrategy.NOT_LITERAL, comparator);
     	}
 	}
 
@@ -815,49 +796,12 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
 		}
 	}
 
-	/**
-	 * Note: hashcode and equals compare the objects in the "java way". That means the objects must be
-	 * almost precisely equal to match (e.g. including source demarcation in values and other "annotations").
-	 * For a method that compares the "meaningful" parts of the objects see equivalent().
-	 */
-	@Override
-	public int hashCode() {
-		int result = super.hashCode();
-		return result;
-	}
-
-	/**
-	 * Note: hashcode and equals compare the objects in the "java way". That means the objects must be
-	 * almost precisely equal to match (e.g. including source demarcation in values and other "annotations").
-	 * For a method that compares the "meaningful" parts of the objects see equivalent().
-	 */
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (!super.equals(obj))
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		return true;
-	}
-
     /**
      * This method ignores some part of the object during comparison (e.g. source demarcation in values)
      * These methods compare the "meaningful" parts of the objects.
      */
     public boolean equivalent(Object obj) {
-        // Alibistic implementation for now. But should work well.
-        if (this == obj)
-            return true;
-        if (getClass() != obj.getClass())
-            return false;
-        PrismContainerImpl other = (PrismContainerImpl) obj;
-
-        //todo probably better comparation (ignore some part of object)
-        return equals(other);
-//        ObjectDelta<T> delta = compareTo(other);
-//        return delta.isEmpty();
+    	return equals(obj, EquivalenceStrategy.REAL_VALUE);
     }
 
 	@Override

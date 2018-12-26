@@ -14977,6 +14977,8 @@
 			</xsd:documentation>
 			<xsd:appinfo>
 				<a:since>3.6</a:since>
+				<a:container/>
+				<a:displayName>FullTextSearchIndexedItemsConfigurationType.details</a:displayName>
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
@@ -14986,6 +14988,9 @@
 						To what object type(s) should this entry be applied.
 						Empty list means "all object types".
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>FullTextSearchIndexedItemsConfigurationType.objectType</a:displayName>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="item" type="t:ItemPathType" minOccurs="0" maxOccurs="unbounded">
@@ -14993,6 +14998,9 @@
 					<xsd:documentation>
 						What items to index for the given object type(s).
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>FullTextSearchIndexedItemsConfigurationType.item</a:displayName>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 		</xsd:sequence>
@@ -20796,9 +20804,17 @@
 	       			<xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1">
 	       				<xsd:annotation>
 	       					<xsd:documentation>
-	       						Symbolic name for this view. It is not really used by the GUI code. It is mostly used for
-	       						diagnostics, logging and so on. It may be later used to detect whether a particular view is overriden,
-	       						e.g. if view defined in system configuraiton is overridden in the role.
+	       						<p>
+		       						Symbolic name for this view. It is not really used by the GUI code. It is mostly used for
+		       						diagnostics, logging and so on. It may be later used to detect whether a particular view is overriden,
+		       						e.g. if view defined in system configuraiton is overridden in the role.
+	       						</p>
+	       						<p>
+	       							If no name is specified for a view then midPoint will internally generate a name. This internal name
+	       							is based on object type and/or collection OID or other aspects of the view. The algorithm for name
+	       							generation may change and the results are not guaranteed to be completely unique. Therefore it is 
+	       							strongly recommended to explictly name all the views in any non-trivial midPoint configuration.  
+	       						</p>
 	       					</xsd:documentation>
 	       					<xsd:appinfo>
 	       						<a:since>3.9</a:since>
@@ -20816,7 +20832,7 @@
 							</xsd:appinfo>
 	       				</xsd:annotation>
 	       			</xsd:element>
-	       			<xsd:element name="collection" type="tns:CollectionSpecificationType" minOccurs="0" maxOccurs="unbounded">
+	       			<xsd:element name="collection" type="tns:CollectionSpecificationType" minOccurs="0" maxOccurs="1">
 	       				<xsd:annotation>
 	       					<xsd:documentation>
 	       						Specification of an explicit or implicit object collection that will be used to select objects in this view.

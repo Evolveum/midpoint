@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.security;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -47,28 +48,28 @@ public class SecurityUtils {
 
     private static final Trace LOGGER = TraceManager.getTrace(SecurityUtils.class);
 
-    public static MidPointPrincipal getPrincipalUser() {
+    public static MidPointUserProfilePrincipal getPrincipalUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         return getPrincipalUser(authentication);
     }
 
-    public static MidPointPrincipal getPrincipalUser(Authentication authentication) {
+    public static MidPointUserProfilePrincipal getPrincipalUser(Authentication authentication) {
         if (authentication == null) {
             LOGGER.trace("Authentication not available in security context.");
             return null;
         }
 
         Object principal = authentication.getPrincipal();
-        if (principal instanceof MidPointPrincipal) {
-        	return (MidPointPrincipal) principal;
+        if (principal instanceof MidPointUserProfilePrincipal) {
+        	return (MidPointUserProfilePrincipal) principal;
         }
         if (AuthorizationConstants.ANONYMOUS_USER_PRINCIPAL.equals(principal)) {
         	// silently ignore to avoid filling the logs
         	return null;
         }
         LOGGER.debug("Principal user in security context holder is {} ({}) but not type of {}",
-                principal, principal.getClass(), MidPointPrincipal.class.getName());
+                principal, principal.getClass(), MidPointUserProfilePrincipal.class.getName());
         return null;
     }
 

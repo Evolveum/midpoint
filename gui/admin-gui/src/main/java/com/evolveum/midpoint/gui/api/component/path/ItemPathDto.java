@@ -86,6 +86,12 @@ public class ItemPathDto implements Serializable{
 		return (path != null && itemDef == null && parentPath == null);
 	}
 
-
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("{ObjectType: [").append("], Parent: [").append(parentPath).append("], ItemDef: [")
+		.append(getItemDef()).append("], Path: [").append(path).append("] }");
+		return sb.toString();
+	}
 
 }
