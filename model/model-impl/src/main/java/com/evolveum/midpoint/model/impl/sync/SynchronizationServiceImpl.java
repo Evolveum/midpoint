@@ -38,6 +38,8 @@ import org.springframework.stereotype.Service;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.SynchronizationUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
@@ -92,6 +94,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizatio
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationSorterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -126,6 +129,8 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 	@Autowired private PrismContext prismContext;
 	@Autowired private Clock clock;
 	
+	@Autowired private ModelInteractionService modelInteractionService;
+	
 	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
@@ -157,6 +162,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		SynchronizationEventInformation eventInfo = new SynchronizationEventInformation(applicableShadow,
 				change.getSourceChannel(), task);
 
+		LensContext<F> modelCtx = null;
 		try {
 
 			PrismObject<SystemConfigurationType> configuration = systemObjectCache.getSystemConfiguration(subResult);
@@ -180,7 +186,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
 			setupSituation(syncCtx, eventInfo, change);
 			
-			if (!checkDryRunAndUnrelatedChange(syncCtx, eventInfo, now)) {
+			if (!checkDryRun(syncCtx, eventInfo, now)) {
 				return;
 			}
 
@@ -191,10 +197,9 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 				change.setCurrentShadow(newCurrentShadow);
 				syncCtx.setCurrentShadow(newCurrentShadow);
 			}
-
-			SynchronizationSituationType newSituation = reactToChange(syncCtx, change,
-					logDebug);
-			eventInfo.setNewSituation(newSituation);
+			modelCtx = reactToChange(syncCtx, change,
+					logDebug, eventInfo);
+			
 			eventInfo.record(task);
 			subResult.computeStatus();
 
@@ -381,7 +386,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		return true;
 	}
 	
-	private <F extends FocusType> boolean checkDryRunAndUnrelatedChange(SynchronizationContext<F> syncCtx, SynchronizationEventInformation eventInfo, XMLGregorianCalendar now) throws SchemaException {
+	private <F extends FocusType> boolean checkDryRun(SynchronizationContext<F> syncCtx, SynchronizationEventInformation eventInfo, XMLGregorianCalendar now) throws SchemaException {
 		OperationResult subResult = syncCtx.getResult();
 		Task task = syncCtx.getTask();
 		if (ModelImplUtils.isDryRun(task)) {
@@ -737,8 +742,8 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		return ChangeType.ADD;
 	}
 
-	private <F extends FocusType> SynchronizationSituationType reactToChange(SynchronizationContext<F> syncCtx,
-			ResourceObjectShadowChangeDescription change, boolean logDebug)
+	private <F extends FocusType> LensContext<F> reactToChange(SynchronizationContext<F> syncCtx,
+			ResourceObjectShadowChangeDescription change, boolean logDebug, SynchronizationEventInformation eventInfo)
 					throws ConfigurationException, ObjectNotFoundException, SchemaException,
 					PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException,
 					CommunicationException, SecurityViolationException {
@@ -748,7 +753,8 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		findReactionDefinition(syncCtx);
 		if (syncCtx.getReaction() == null) {
 			LOGGER.trace("No reaction is defined for situation {} in {}", syncCtx.getSituation(), syncCtx.getResource());
-			return newSituation;
+			eventInfo.setNewSituation(newSituation);
+			return null;
 		}
 
 		// seems to be unused so commented it out [med]
@@ -799,7 +805,11 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
 			try {
 
-				clockwork.run(lensContext, task, parentResult);
+				if (change.isSimulate()) {
+					clockwork.previewChanges(lensContext, null, task, parentResult);
+				} else {
+					clockwork.run(lensContext, task, parentResult);
+				}
 
 			} catch (ConfigurationException | ObjectNotFoundException | SchemaException |
 					PolicyViolationException | ExpressionEvaluationException | ObjectAlreadyExistsException |
@@ -829,7 +839,8 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 					new Object[] { syncCtx.getResource(), syncCtx.getSituation() });
 		}
 
-		return newSituation;
+		eventInfo.setNewSituation(newSituation);
+		return lensContext;
 
 	}
 
@@ -908,7 +919,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 					.asObjectable();
 			context.setFocusTemplate(objectTemplate);
 		}
-
+		
 		return context;
 	}
 

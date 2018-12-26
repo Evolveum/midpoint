@@ -2716,7 +2716,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 	}
 	
 	protected void modifyRoleAddExclusionAndAssignOrg(String roleOid, String excludedRoleOid, String orgOid, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-		ObjectDelta<RoleType> roleDelta = createAssignmentFocusDelta(RoleType.class, roleOid, orgOid, OrgType.COMPLEX_TYPE, null, null, null, true);
+		ObjectDelta<RoleType> roleDelta = createAssignmentAssignmentHolderDelta(RoleType.class, roleOid, orgOid, OrgType.COMPLEX_TYPE, null, null, null, true);
 		PolicyRuleType exclusionPolicyRule = createExclusionPolicyRule(excludedRoleOid);
 		AssignmentType assignment = new AssignmentType();
 		assignment.setPolicyRule(exclusionPolicyRule);

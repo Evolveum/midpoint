@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -218,7 +219,7 @@ public class InternalMonitor implements PrismMonitor, DebugDumpable {
 		}
 	}
 
-	public static <F extends FocusType> void recordRoleEvaluation(F target, boolean fullEvaluation) {
+	public static <F extends AssignmentHolderType> void recordRoleEvaluation(F target, boolean fullEvaluation) {
 		long count = recordCountInternal(InternalCounters.ROLE_EVALUATION_COUNT);
 		if (isTrace(InternalCounters.ROLE_EVALUATION_COUNT)) {
 			traceOperation("roleEvaluation", () -> target.toString() , count, true);
@@ -228,7 +229,7 @@ public class InternalMonitor implements PrismMonitor, DebugDumpable {
 		}
 	}
 
-	public static <F extends FocusType> void recordRoleEvaluationSkip(F target, boolean fullEvaluation) {
+	public static <F extends AssignmentHolderType> void recordRoleEvaluationSkip(F target, boolean fullEvaluation) {
 		long count = recordCountInternal(InternalCounters.ROLE_EVALUATION_SKIP_COUNT);
 		if (isTrace(InternalCounters.ROLE_EVALUATION_SKIP_COUNT)) {
 			traceOperation("roleEvaluationSkip", () -> target.toString() , count, true);

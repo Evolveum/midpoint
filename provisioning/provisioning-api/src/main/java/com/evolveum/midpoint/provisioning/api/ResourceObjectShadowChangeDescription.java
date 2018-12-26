@@ -59,6 +59,8 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
      * with lower overhead and without abmition to provide full synchronization.
      */
     private boolean unrelatedChange = false;
+    
+    private boolean simulate = false;
 
     public ObjectDelta<ShadowType> getObjectDelta() {
         return objectDelta;
@@ -108,6 +110,14 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
 		this.unrelatedChange = unrelatedChange;
 	}
 
+	public boolean isSimulate() {
+		return simulate;
+	}
+	
+	public void setSimulate(boolean simulate) {
+		this.simulate = simulate;
+	}
+	
 	public void checkConsistence() {
     	if (resource == null) {
     		throw new IllegalArgumentException("No resource in "+this.getClass().getSimpleName());
@@ -151,7 +161,7 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
 	public String toString() {
 		return "ResourceObjectShadowChangeDescription(objectDelta=" + objectDelta + ", currentShadow="
 				+ SchemaDebugUtil.prettyPrint(currentShadow) + ", oldShadow=" + SchemaDebugUtil.prettyPrint(oldShadow) + ", sourceChannel=" + sourceChannel
-				+ ", resource=" + resource + (unrelatedChange ? " UNRELATED" : "") +")";
+				+ ", resource=" + resource + (unrelatedChange ? " UNRELATED" : "") + (simulate ? " SIMULATE" : "") +")";
 	}
 
 	/* (non-Javadoc)
@@ -216,6 +226,10 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
 		sb.append("\n");
 		SchemaDebugUtil.indentDebugDump(sb, indent+1);
 		sb.append("unrelatedChange: ").append(unrelatedChange);
+		
+		sb.append("\n");
+		SchemaDebugUtil.indentDebugDump(sb, indent+1);
+		sb.append("simulate: ").append(simulate);
 
 		return sb.toString();
 	}

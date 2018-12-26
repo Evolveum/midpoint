@@ -109,9 +109,9 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 	private static final String USER_NEWMAN_EMPLOYEE_NUMBER = "N00001";
 	private static final String USER_NEWMAN_SHIP = "Nova";
 	
-	private static final int BASIC_USERS_CONTAINERS = 8;
-	private static final int BASIC_SHADOW_CONTAINERS = 9;
-	private static final int BASIC_ORG_CONTAINERS = 14;
+	private static final int BASIC_USERS_CONTAINERS = 9;
+	private static final int BASIC_SHADOW_CONTAINERS = 10;
+	private static final int BASIC_ORG_CONTAINERS = 15;
 	
 	private String userWallyOid;
 	private String accountWallyOid;

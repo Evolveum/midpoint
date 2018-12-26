@@ -15,10 +15,21 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector.focus;
 
+import java.util.Collection;
+
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.apache.commons.collections.CollectionUtils;
+
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
-import com.evolveum.midpoint.model.impl.lens.*;
+import com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator;
+import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
+import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
+import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.projector.SmartAssignmentCollection;
 import com.evolveum.midpoint.model.impl.lens.projector.SmartAssignmentElement;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
@@ -36,17 +47,21 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.PolicyViolationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-
-import java.util.Collection;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
  * Evaluates all assignments and sorts them to triple: added, removed and untouched assignments.
@@ -160,7 +175,13 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
         		getNewObjectLifecycleState(focusContext), assignmentEvaluator.getObjectResolver(), 
         		prismContext, task, result);
         
-        assignmentCollection.collect(focusContext.getObjectCurrent(), focusContext.getObjectOld(), assignmentDelta, forcedAssignments);
+        TaskType taskType = task.getTaskType();
+        AssignmentType taskAssignment = null;
+        if (CollectionUtils.isNotEmpty(taskType.getAssignment())) {
+        	taskAssignment = new AssignmentType(prismContext);
+        	taskAssignment.setTarget(taskType);
+        }
+        assignmentCollection.collect(focusContext.getObjectCurrent(), focusContext.getObjectOld(), assignmentDelta, forcedAssignments, taskAssignment);
 
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Assignment collection:\n{}", assignmentCollection.debugDump(1));
@@ -196,8 +217,8 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
         final PrismContainerValue<AssignmentType> assignmentCValOld = assignmentCVal;
         PrismContainerValue<AssignmentType> assignmentCValNew = assignmentCVal;		// refined later
 
-		final boolean presentInCurrent = assignmentElement.isCurrent();
-		final boolean presentInOld = assignmentElement.isOld();
+//		final boolean presentInCurrent = assignmentElement.isCurrent();
+//		final boolean presentInOld = assignmentElement.isOld();
         // This really means whether the WHOLE assignment was changed (e.g. added/deleted/replaced). It tells nothing
         // about "micro-changes" inside assignment, these will be processed later.
         boolean isAssignmentChanged = assignmentElement.isChanged();			// refined later
@@ -241,12 +262,10 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
         	if (LOGGER.isTraceEnabled()) {
         		LOGGER.trace("Processing focus delete for: {}", SchemaDebugUtil.prettyPrint(assignmentCVal));
         	}
-        	EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(createAssignmentIdiDelete(assignmentCVal), PlusMinusZero.MINUS, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+        	EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(createAssignmentIdiDelete(assignmentCVal), PlusMinusZero.MINUS, false, assignmentPlacementDesc, assignmentElement);
             if (evaluatedAssignment == null) {
             	return;
             }
-			evaluatedAssignment.setPresentInCurrentObject(presentInCurrent);
-			evaluatedAssignment.setPresentInOldObject(presentInOld);
 			evaluatedAssignment.setWasValid(evaluatedAssignment.isValid());
 			collectToMinus(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
 
@@ -262,36 +281,30 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
         		// (remain after replace). As account delete and add are costly operations (and potentially dangerous)
         		// we optimize here are consider the assignments that were there before replace and still are there
         		// after it as unchanged.
-        		boolean hadValue = presentInCurrent;
+        		boolean hadValue = assignmentElement.isCurrent();
         		boolean willHaveValue = assignmentDelta.isValueToReplace(assignmentCVal, true);
         		if (hadValue && willHaveValue) {
         			// No change
-        			EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(createAssignmentIdiNoChange(assignmentCVal), PlusMinusZero.ZERO, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+        			EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(createAssignmentIdiNoChange(assignmentCVal), PlusMinusZero.ZERO, false, assignmentPlacementDesc, assignmentElement);
                     if (evaluatedAssignment == null) {
                     	return;
                     }
-					evaluatedAssignment.setPresentInCurrentObject(presentInCurrent);
-					evaluatedAssignment.setPresentInOldObject(presentInOld);
 					evaluatedAssignment.setWasValid(evaluatedAssignment.isValid());
 					collectToZero(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
         		} else if (willHaveValue) {
         			// add
-        			EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(createAssignmentIdiAdd(assignmentCVal), PlusMinusZero.PLUS, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+        			EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(createAssignmentIdiAdd(assignmentCVal), PlusMinusZero.PLUS, false, assignmentPlacementDesc, assignmentElement);
                     if (evaluatedAssignment == null) {
                     	return;
                     }
-					evaluatedAssignment.setPresentInCurrentObject(presentInCurrent);
-					evaluatedAssignment.setPresentInOldObject(presentInOld);
 					evaluatedAssignment.setWasValid(false);
                     collectToPlus(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
         		} else if (hadValue) {
         			// delete
-        			EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(createAssignmentIdiDelete(assignmentCVal), PlusMinusZero.MINUS, true, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+        			EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(createAssignmentIdiDelete(assignmentCVal), PlusMinusZero.MINUS, true, assignmentPlacementDesc, assignmentElement);
                     if (evaluatedAssignment == null) {
                     	return;
                     }
-					evaluatedAssignment.setPresentInCurrentObject(presentInCurrent);
-					evaluatedAssignment.setPresentInOldObject(presentInOld);
 					evaluatedAssignment.setWasValid(evaluatedAssignment.isValid());
                     collectToMinus(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
         		} else if (assignmentElement.isOld()) {
@@ -314,29 +327,25 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 	            	boolean isDelete = assignmentDelta.isValueToDelete(assignmentCVal, true);
 	                if (isAdd & !isDelete) {
 	                	// Entirely new assignment is added
-	                	if (presentInCurrent && presentInOld) {
+	                	if (assignmentElement.isCurrent() && assignmentElement.isOld()) {
 	                		// Phantom add: adding assignment that is already there
 	                		if (LOGGER.isTraceEnabled()) {
 			            		LOGGER.trace("Processing changed assignment, phantom add: {}", SchemaDebugUtil.prettyPrint(assignmentCVal));
 			            	}
-	                		EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(createAssignmentIdiNoChange(assignmentCVal), PlusMinusZero.ZERO, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+	                		EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(createAssignmentIdiNoChange(assignmentCVal), PlusMinusZero.ZERO, false, assignmentPlacementDesc, assignmentElement);
 	                        if (evaluatedAssignment == null) {
 	                        	return;
 	                        }
-							evaluatedAssignment.setPresentInCurrentObject(presentInCurrent);
-							evaluatedAssignment.setPresentInOldObject(presentInOld);
 							evaluatedAssignment.setWasValid(evaluatedAssignment.isValid());
 							collectToZero(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
 	                	} else {
 	                		if (LOGGER.isTraceEnabled()) {
 			            		LOGGER.trace("Processing changed assignment, add: {}", SchemaDebugUtil.prettyPrint(assignmentCVal));
 			            	}
-	                		EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(createAssignmentIdiAdd(assignmentCVal), PlusMinusZero.PLUS, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+	                		EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(createAssignmentIdiAdd(assignmentCVal), PlusMinusZero.PLUS, false, assignmentPlacementDesc, assignmentElement);
 	                        if (evaluatedAssignment == null) {
 	                        	return;
 	                        }
-							evaluatedAssignment.setPresentInCurrentObject(presentInCurrent);
-							evaluatedAssignment.setPresentInOldObject(presentInOld);
 							evaluatedAssignment.setWasValid(false);
 		                    collectToPlus(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
 	                	}
@@ -346,12 +355,10 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 	                	if (LOGGER.isTraceEnabled()) {
 		            		LOGGER.trace("Processing changed assignment, delete: {}", SchemaDebugUtil.prettyPrint(assignmentCVal));
 		            	}
-	                	EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(createAssignmentIdiDelete(assignmentCVal), PlusMinusZero.MINUS, true, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+	                	EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(createAssignmentIdiDelete(assignmentCVal), PlusMinusZero.MINUS, true, assignmentPlacementDesc, assignmentElement);
 	                    if (evaluatedAssignment == null) {
 	                    	return;
 	                    }
-						evaluatedAssignment.setPresentInCurrentObject(presentInCurrent);
-						evaluatedAssignment.setPresentInOldObject(presentInOld);
 						evaluatedAssignment.setWasValid(evaluatedAssignment.isValid());
 	                    collectToMinus(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
 
@@ -373,12 +380,10 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 			            		LOGGER.trace("Processing changed assignment, minor change (add={}, delete={}, valid={}): {}",
 										isAdd, isDelete, isValid, SchemaDebugUtil.prettyPrint(assignmentCVal));
 			            	}
-	                		EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, PlusMinusZero.ZERO, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+	                		EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, PlusMinusZero.ZERO, false, assignmentPlacementDesc, assignmentElement);
 	                        if (evaluatedAssignment == null) {
 	                        	return;
 	                        }
-							evaluatedAssignment.setPresentInCurrentObject(presentInCurrent);
-							evaluatedAssignment.setPresentInOldObject(presentInOld);
 							evaluatedAssignment.setWasValid(evaluatedAssignment.isValid());
 			                collectToZero(evaluatedAssignmentTriple, evaluatedAssignment, true);
 	                	} else if (isValid) {
@@ -387,12 +392,10 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 			            		LOGGER.trace("Processing changed assignment, assignment becomes valid (add={}, delete={}): {}",
 										isAdd, isDelete, SchemaDebugUtil.prettyPrint(assignmentCVal));
 			            	}
-	                		EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, PlusMinusZero.PLUS, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+	                		EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, PlusMinusZero.PLUS, false, assignmentPlacementDesc, assignmentElement);
 	                        if (evaluatedAssignment == null) {
 	                        	return;
 	                        }
-							evaluatedAssignment.setPresentInCurrentObject(presentInCurrent);
-							evaluatedAssignment.setPresentInOldObject(presentInOld);
 							evaluatedAssignment.setWasValid(false);
 		                    collectToPlus(evaluatedAssignmentTriple, evaluatedAssignment, true);
 	                	} else {
@@ -401,12 +404,10 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 			            		LOGGER.trace("Processing changed assignment, assignment becomes invalid (add={}, delete={}): {}",
 										isAdd, isDelete, SchemaDebugUtil.prettyPrint(assignmentCVal));
 			            	}
-	                		EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, PlusMinusZero.MINUS, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+	                		EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, PlusMinusZero.MINUS, false, assignmentPlacementDesc, assignmentElement);
 	                        if (evaluatedAssignment == null) {
 	                        	return;
 	                        }
-							evaluatedAssignment.setPresentInCurrentObject(presentInCurrent);
-							evaluatedAssignment.setPresentInOldObject(presentInOld);
 							evaluatedAssignment.setWasValid(true);
 	                        collectToMinus(evaluatedAssignmentTriple, evaluatedAssignment, true);
 	                	}
@@ -416,20 +417,18 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 	                // No change in assignment
 	            	if (LOGGER.isTraceEnabled()) {
 	            		LOGGER.trace("Processing unchanged assignment ({}) {}",
-	            				presentInCurrent ? "present" : "not present",
+	            				assignmentElement.isCurrent() ? "present" : "not present",
 	            				SchemaDebugUtil.prettyPrint(assignmentCVal));
 	            	}
-	            	EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(createAssignmentIdiNoChange(assignmentCVal), PlusMinusZero.ZERO, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+	            	EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(createAssignmentIdiNoChange(assignmentCVal), PlusMinusZero.ZERO, false, assignmentPlacementDesc, assignmentElement);
 	                if (evaluatedAssignment == null) {
 	                	return;
 	                }
 	                // NOTE: unchanged may mean both:
 	                //   * was there before, is there now
 	                //   * was not there before, is not there now
-					evaluatedAssignment.setPresentInCurrentObject(presentInCurrent);
-					evaluatedAssignment.setPresentInOldObject(presentInOld);
 					evaluatedAssignment.setWasValid(evaluatedAssignment.isValid());
-					if (presentInCurrent) {
+					if (assignmentElement.isCurrent()) {
 						collectToZero(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
 					} else {
 						collectToMinus(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
@@ -530,37 +529,38 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
     	evaluatedAssignmentTriple.addToMinusSet(evaluatedAssignment);
     }
 
-    private <F extends FocusType> EvaluatedAssignmentImpl<F> evaluateAssignment(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi,
-    		PlusMinusZero mode, boolean evaluateOld, LensContext<F> context, ObjectType source, AssignmentEvaluator<F> assignmentEvaluator,
-			String assignmentPlacementDesc, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
-		OperationResult result = parentResult.createMinorSubresult(AssignmentProcessor.class.getSimpleName()+".evaluateAssignment");
-		result.addParam("assignmentDescription", assignmentPlacementDesc);
+    private EvaluatedAssignmentImpl<F> evaluateAssignment(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi,
+    		PlusMinusZero mode, boolean evaluateOld, String assignmentPlacementDesc, SmartAssignmentElement smartAssignment) throws SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
+		OperationResult subResult = result.createMinorSubresult(AssignmentProcessor.class.getSimpleName()+".evaluateAssignment");
+		subResult.addParam("assignmentDescription", assignmentPlacementDesc);
         try {
 			// Evaluate assignment. This follows to the assignment targets, follows to the inducements,
         	// evaluates all the expressions, etc.
-        	EvaluatedAssignmentImpl<F> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, mode, evaluateOld, source, assignmentPlacementDesc, task, result);
-        	context.rememberResources(evaluatedAssignment.getResources(task, result));
-        	result.recordSuccess();
+        	EvaluatedAssignmentImpl<F> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, mode, evaluateOld, source, assignmentPlacementDesc, smartAssignment.isVirtual(), task, subResult);
+        	context.rememberResources(evaluatedAssignment.getResources(task, subResult));
+        	subResult.recordSuccess();
         	if (LOGGER.isTraceEnabled()) {
         		LOGGER.trace("Evaluated assignment:\n{}", evaluatedAssignment == null ? null : evaluatedAssignment.debugDump(1));
         	}
+        	evaluatedAssignment.setPresentInCurrentObject(smartAssignment.isCurrent());
+			evaluatedAssignment.setPresentInOldObject(smartAssignment.isOld());
         	return evaluatedAssignment;
         } catch (ObjectNotFoundException ex) {
         	if (LOGGER.isTraceEnabled()) {
         		LOGGER.trace("Processing of assignment resulted in error {}: {}", ex, SchemaDebugUtil.prettyPrint(LensUtil.getAssignmentType(assignmentIdi, evaluateOld)));
             }
         	if (ModelExecuteOptions.isForce(context.getOptions())) {
-        		result.recordHandledError(ex);
+        		subResult.recordHandledError(ex);
         		return null;
         	}
-        	ModelImplUtils.recordFatalError(result, ex);
+        	ModelImplUtils.recordFatalError(subResult, ex);
         	return null;
         } catch (SchemaException ex) {
         	AssignmentType assignmentType = LensUtil.getAssignmentType(assignmentIdi, evaluateOld);
         	if (LOGGER.isTraceEnabled()) {
         		LOGGER.trace("Processing of assignment resulted in error {}: {}", ex, SchemaDebugUtil.prettyPrint(assignmentType));
             }
-        	ModelImplUtils.recordFatalError(result, ex);
+        	ModelImplUtils.recordFatalError(subResult, ex);
         	String resourceOid = FocusTypeUtil.determineConstructionResource(assignmentType);
         	if (resourceOid == null) {
         		// This is a role assignment or something like that. Just throw the original exception for now.
@@ -579,7 +579,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
         	if (LOGGER.isTraceEnabled()) {
         		LOGGER.trace("Processing of assignment resulted in error {}: {}", e, SchemaDebugUtil.prettyPrint(assignmentType));
             }
-        	result.recordFatalError(e);
+        	subResult.recordFatalError(e);
         	throw e;
 		}
 	}

@@ -1,0 +1,108 @@
+dn: uid=user1,ou=People,dc=example,dc=com
+uid: user1
+cn: User First
+sn: First
+givenname: User
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+l: Caribbean
+mail: user.first@example.com
+
+dn: uid=user2,ou=People,dc=example,dc=com
+uid: user2
+cn: User Second
+sn: Second
+givenname: User
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+l: Caribbean
+mail: user.second@example.com
+
+dn: uid=user3,ou=People,dc=example,dc=com
+uid: user3
+cn: User Third
+sn: Third
+givenname: User
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+l: Caribbean
+mail: user.third@example.com
+
+dn: uid=user4,ou=People,dc=example,dc=com
+uid: user4
+cn: User Fourth
+sn: Fourth
+givenname: User
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+l: Caribbean
+mail: user.fourth@example.com
+
+dn: uid=user5,ou=People,dc=example,dc=com
+uid: user5
+cn: User Fifth
+sn: Fifth
+givenname: User
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+l: Caribbean
+mail: user.fifth@example.com
+
+dn: uid=user6,ou=People,dc=example,dc=com
+uid: user6
+cn: User Sixth
+sn: Sixth
+givenname: User
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+l: Caribbean
+mail: user.sixth@example.com
+
+dn: uid=user7,ou=People,dc=example,dc=com
+uid: user7
+cn: User Seventh
+sn: Seventh
+givenname: User
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+l: Caribbean
+mail: user.seventh@example.com
+
+dn: uid=user8,ou=People,dc=example,dc=com
+uid: user8
+cn: User Eighth
+sn: Eighth
+givenname: User
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+l: Caribbean
+mail: user.eighth@example.com
+
+dn: uid=user9,ou=People,dc=example,dc=com
+uid: user9
+cn: User Ninth
+sn: Ninth
+givenname: User
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+l: Caribbean
+mail: user.ninth@example.com
+

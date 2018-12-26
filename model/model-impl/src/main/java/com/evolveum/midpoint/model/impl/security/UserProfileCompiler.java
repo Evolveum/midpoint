@@ -66,6 +66,7 @@ import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationTransformer;
 import com.evolveum.midpoint.security.api.DelegatorWithOtherPrivilegesLimitations;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -151,9 +152,18 @@ public class UserProfileCompiler {
 
 	private void collect(List<AdminGuiConfigurationType> adminGuiConfigurations, MidPointUserProfilePrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, AuthorizationTransformer authorizationTransformer, Task task, OperationResult result) throws SchemaException {
 		UserType userType = principal.getUser();
-		Collection<Authorization> authorizations = principal.getAuthorities();
-		if (!userType.getAssignment().isEmpty()) {
-			LensContext<UserType> lensContext = createAuthenticationLensContext(userType.asPrismObject(), systemConfiguration);
+		LensContext<UserType> lensContext = createAuthenticationLensContext(userType.asPrismObject(), systemConfiguration);
+		
+		Collection<AssignmentType> forcedAssignments = null;
+		try {
+			forcedAssignments = LensUtil.getForcedAssignments(lensContext.getFocusContext().getLifecycleModel(), 
+					userType.getLifecycleState(), objectResolver, prismContext, task, result);
+		} catch (ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException
+				| ExpressionEvaluationException e1) {
+			LOGGER.error("Forced assignments defined for lifecycle {} won't be evaluated", userType.getLifecycleState(), e1);
+		}
+		if (!userType.getAssignment().isEmpty() || forcedAssignments != null) {
+			
 			AssignmentEvaluator.Builder<UserType> builder =
 					new AssignmentEvaluator.Builder<UserType>()
 							.repository(repositoryService)
@@ -178,54 +188,51 @@ public class UserProfileCompiler {
 
 			AssignmentEvaluator<UserType> assignmentEvaluator = builder.build();
 
-			Collection<AssignmentType> collectedAssignments = new HashSet<>();
-			collectedAssignments.addAll(userType.getAssignment());
+			evaluateAssignments(userType.getAssignment(), false, assignmentEvaluator, principal, authorizationTransformer, adminGuiConfigurations, task, result);
 			
-			try {
-				Collection<AssignmentType> forcedAssignments = LensUtil.getForcedAssignments(lensContext.getFocusContext().getLifecycleModel(), 
-						userType.getLifecycleState(), objectResolver, prismContext, task, result);
-				if (forcedAssignments != null) {
-					collectedAssignments.addAll(forcedAssignments);
-				}
-			} catch (ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException
-					| ExpressionEvaluationException e1) {
-				LOGGER.error("Forced assignments defined for lifecycle {} won't be evaluated", userType.getLifecycleState(), e1);
-			}
-			
-			try {
-				RepositoryCache.enter();
-				for (AssignmentType assignmentType: collectedAssignments) {
-					try {
-						ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
-						assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
-						assignmentIdi.recompute();
-						EvaluatedAssignment<UserType> assignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userType, userType.toString(), task, result);
-						if (assignment.isValid()) {
-							addAuthorizations(authorizations, assignment.getAuthorizations(), authorizationTransformer);
-							adminGuiConfigurations.addAll(assignment.getAdminGuiConfigurations());
-						}
-						for (EvaluatedAssignmentTarget target : assignment.getRoles().getNonNegativeValues()) {
-							if (target.isValid() && target.getTarget() != null && target.getTarget().asObjectable() instanceof UserType
-									&& DeputyUtils.isDelegationPath(target.getAssignmentPath(), relationRegistry)) {
-								List<OtherPrivilegesLimitationType> limitations = DeputyUtils.extractLimitations(target.getAssignmentPath());
-								principal.addDelegatorWithOtherPrivilegesLimitations(new DelegatorWithOtherPrivilegesLimitations(
-										(UserType) target.getTarget().asObjectable(), limitations));
-							}
-						}
-					} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | PolicyViolationException | SecurityViolationException | ConfigurationException | CommunicationException e) {
-						LOGGER.error("Error while processing assignment of {}: {}; assignment: {}",
-								userType, e.getMessage(), assignmentType, e);
-					}
-				}
-			} finally {
-				RepositoryCache.exit();
-			}
+			evaluateAssignments(forcedAssignments, true, assignmentEvaluator, principal, authorizationTransformer, adminGuiConfigurations, task, result);
 		}
 		if (userType.getAdminGuiConfiguration() != null) {
 			// config from the user object should go last (to be applied as the last one)
 			adminGuiConfigurations.add(userType.getAdminGuiConfiguration());
 		}
 
+	}
+	
+	private void evaluateAssignments(Collection<AssignmentType> assignments, boolean virtual, AssignmentEvaluator<UserType> assignmentEvaluator, MidPointPrincipal principal, AuthorizationTransformer authorizationTransformer, Collection<AdminGuiConfigurationType> adminGuiConfigurations, Task task, OperationResult result) {
+		UserType userType = principal.getUser();
+
+		Collection<Authorization> authorizations = principal.getAuthorities();
+
+		
+		try {
+			RepositoryCache.enter();
+			for (AssignmentType assignmentType: assignments) {
+				try {
+					ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
+					assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
+					assignmentIdi.recompute();
+					EvaluatedAssignment<UserType> assignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userType, userType.toString(), virtual, task, result);
+					if (assignment.isValid()) {
+						addAuthorizations(authorizations, assignment.getAuthorizations(), authorizationTransformer);
+						adminGuiConfigurations.addAll(assignment.getAdminGuiConfigurations());
+					}
+					for (EvaluatedAssignmentTarget target : assignment.getRoles().getNonNegativeValues()) {
+						if (target.isValid() && target.getTarget() != null && target.getTarget().asObjectable() instanceof UserType
+								&& DeputyUtils.isDelegationPath(target.getAssignmentPath(), relationRegistry)) {
+							List<OtherPrivilegesLimitationType> limitations = DeputyUtils.extractLimitations(target.getAssignmentPath());
+							principal.addDelegatorWithOtherPrivilegesLimitations(new DelegatorWithOtherPrivilegesLimitations(
+									(UserType) target.getTarget().asObjectable(), limitations));
+						}
+					}
+				} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | PolicyViolationException | SecurityViolationException | ConfigurationException | CommunicationException e) {
+					LOGGER.error("Error while processing assignment of {}: {}; assignment: {}",
+							userType, e.getMessage(), assignmentType, e);
+				}
+			}
+		} finally {
+			RepositoryCache.exit();
+		}
 	}
 
 	private LensContext<UserType> createAuthenticationLensContext(PrismObject<UserType> user, PrismObject<SystemConfigurationType> systemConfiguration) throws SchemaException {

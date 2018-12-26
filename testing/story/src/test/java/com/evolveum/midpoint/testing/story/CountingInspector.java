@@ -28,6 +28,7 @@ import java.util.Set;
 import com.evolveum.midpoint.schema.internals.InternalInspector;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -57,7 +58,7 @@ public class CountingInspector implements InternalInspector, DebugDumpable {
 	}
 
 	@Override
-	public <F extends FocusType> void inspectRoleEvaluation(F target, boolean fullEvaluation) {
+	public <F extends AssignmentHolderType> void inspectRoleEvaluation(F target, boolean fullEvaluation) {
 		NamedObjectKey key = new NamedObjectKey(target);
 		Integer i = roleEvaluationMap.get(key);
 		if (i == null) {

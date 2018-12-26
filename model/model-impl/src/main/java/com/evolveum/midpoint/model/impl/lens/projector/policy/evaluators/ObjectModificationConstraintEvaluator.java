@@ -70,6 +70,7 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		if (!(rctx instanceof ObjectPolicyRuleEvaluationContext)) {
+			LOGGER.trace("Policy rule evaluationo context is not of type ObjectPolicyRuleEvaluationContext. Skipping processing.");
 			return null;
 		}
 		ObjectPolicyRuleEvaluationContext<F> ctx = (ObjectPolicyRuleEvaluationContext<F>) rctx;
@@ -80,6 +81,7 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
 			return new EvaluatedModificationTrigger(PolicyConstraintKindType.OBJECT_MODIFICATION, constraint.getValue(), 
 					message, shortMessage);
 		} else {
+			LOGGER.trace("No operation matches.");
 			return null;
 		}
 	}
