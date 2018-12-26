@@ -16,12 +16,15 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
 
 import javax.xml.namespace.QName;
@@ -42,6 +45,7 @@ public class SwitchAssignmentTypePanel extends BasePanel<ContainerWrapper<Assign
     private static final String ID_CONSENT_ASSIGNMENTS = "consentAssignments";
     private static final String ID_ASSIGNMENTS = "assignmentsPanel";
 
+    private String activeButtonId = ID_ALL_ASSIGNMENTS;
 
     public SwitchAssignmentTypePanel(String id, IModel<ContainerWrapper<AssignmentType>> assignmentContainerWrapperModel) {
         super(id, assignmentContainerWrapperModel);
@@ -64,9 +68,10 @@ public class SwitchAssignmentTypePanel extends BasePanel<ContainerWrapper<Assign
                 AssignmentPanel assignmentPanel =
                         new AssignmentPanel(ID_ASSIGNMENTS, SwitchAssignmentTypePanel.this.getModel());
                 assignmentPanel.setOutputMarkupId(true);
-                switchAssignmentTypePerformed(target, assignmentPanel);
+                switchAssignmentTypePerformed(target, assignmentPanel, ID_ASSIGNMENTS);
             }
         };
+        allAssignmentsButton.add(AttributeAppender.append("class", getButtonStyleModel(ID_ALL_ASSIGNMENTS)));
         allAssignmentsButton.setOutputMarkupId(true);
         add(allAssignmentsButton);
 
@@ -84,9 +89,10 @@ public class SwitchAssignmentTypePanel extends BasePanel<ContainerWrapper<Assign
                             }
                         };
                 assignmentPanel.setOutputMarkupId(true);
-                switchAssignmentTypePerformed(target, assignmentPanel);
+                switchAssignmentTypePerformed(target, assignmentPanel, ID_ROLE_TYPE_ASSIGNMENTS);
             }
         };
+        roleTypeAssignmentsButton.add(AttributeAppender.append("class", getButtonStyleModel(ID_ROLE_TYPE_ASSIGNMENTS)));
         roleTypeAssignmentsButton.setOutputMarkupId(true);
         add(roleTypeAssignmentsButton);
 
@@ -104,9 +110,10 @@ public class SwitchAssignmentTypePanel extends BasePanel<ContainerWrapper<Assign
                             }
                         };
                 assignmentPanel.setOutputMarkupId(true);
-                switchAssignmentTypePerformed(target, assignmentPanel);
+                switchAssignmentTypePerformed(target, assignmentPanel, ID_ORG_TYPE_ASSIGNMENTS);
             }
         };
+        orgTypeAssignmentsButton.add(AttributeAppender.append("class", getButtonStyleModel(ID_ORG_TYPE_ASSIGNMENTS)));
         orgTypeAssignmentsButton.setOutputMarkupId(true);
         add(orgTypeAssignmentsButton);
 
@@ -124,10 +131,11 @@ public class SwitchAssignmentTypePanel extends BasePanel<ContainerWrapper<Assign
                             }
                         };
                 assignmentPanel.setOutputMarkupId(true);
-                switchAssignmentTypePerformed(target, assignmentPanel);
+                switchAssignmentTypePerformed(target, assignmentPanel, ID_SERVICE_TYPE_ASSIGNMENTS);
 
             }
         };
+        serviceTypeAssignmentsButton.add(AttributeAppender.append("class", getButtonStyleModel(ID_SERVICE_TYPE_ASSIGNMENTS)));
         serviceTypeAssignmentsButton.setOutputMarkupId(true);
         add(serviceTypeAssignmentsButton);
 
@@ -138,9 +146,10 @@ public class SwitchAssignmentTypePanel extends BasePanel<ContainerWrapper<Assign
                 ConstructionAssignmentPanel constructionsPanel =
                         new ConstructionAssignmentPanel(ID_ASSIGNMENTS, SwitchAssignmentTypePanel.this.getModel());
                 constructionsPanel.setOutputMarkupId(true);
-                switchAssignmentTypePerformed(target, constructionsPanel);
+                switchAssignmentTypePerformed(target, constructionsPanel, ID_RESOURCE_TYPE_ASSIGNMENTS);
             }
         };
+        resourceTypeAssignmentsButton.add(AttributeAppender.append("class", getButtonStyleModel(ID_RESOURCE_TYPE_ASSIGNMENTS)));
         resourceTypeAssignmentsButton.setOutputMarkupId(true);
         add(resourceTypeAssignmentsButton);
 
@@ -151,10 +160,11 @@ public class SwitchAssignmentTypePanel extends BasePanel<ContainerWrapper<Assign
                 PolicyRulesPanel policyRulesPanel =
                         new PolicyRulesPanel(ID_ASSIGNMENTS, SwitchAssignmentTypePanel.this.getModel()) ;
                 policyRulesPanel.setOutputMarkupId(true);
-                switchAssignmentTypePerformed(target, policyRulesPanel);
+                switchAssignmentTypePerformed(target, policyRulesPanel, ID_POLICY_RULE_TYPE_ASSIGNMENTS);
 
             }
         };
+        policyRuleTypeAssignmentsButton.add(AttributeAppender.append("class", getButtonStyleModel(ID_POLICY_RULE_TYPE_ASSIGNMENTS)));
         policyRuleTypeAssignmentsButton.setOutputMarkupId(true);
         policyRuleTypeAssignmentsButton.add(new VisibleBehaviour(()  ->
                 getModelObject().getObjectWrapper().getObject().asObjectable() instanceof AbstractRoleType));
@@ -167,10 +177,11 @@ public class SwitchAssignmentTypePanel extends BasePanel<ContainerWrapper<Assign
                 InducedEntitlementsPanel entitlementAssignments =
                         new InducedEntitlementsPanel(ID_ASSIGNMENTS, SwitchAssignmentTypePanel.this.getModel()) ;
                 entitlementAssignments.setOutputMarkupId(true);
-                switchAssignmentTypePerformed(target, entitlementAssignments);
+                switchAssignmentTypePerformed(target, entitlementAssignments, ID_ENTITLEMENT_ASSIGNMENTS);
 
             }
         };
+        entitlementAssignmentsButton.add(AttributeAppender.append("class", getButtonStyleModel(ID_ENTITLEMENT_ASSIGNMENTS)));
         entitlementAssignmentsButton.setOutputMarkupId(true);
         entitlementAssignmentsButton.add(new VisibleBehaviour(()  ->
                 (getModelObject().getObjectWrapper().getObject().asObjectable() instanceof AbstractRoleType) && isInducement()));
@@ -192,9 +203,23 @@ public class SwitchAssignmentTypePanel extends BasePanel<ContainerWrapper<Assign
 //        add(consentsButton);
     }
 
-    private void switchAssignmentTypePerformed(AjaxRequestTarget target, AssignmentPanel assignmentsPanel){
+    private void switchAssignmentTypePerformed(AjaxRequestTarget target, AssignmentPanel assignmentsPanel, String buttonId){
+        activeButtonId = buttonId;
         addOrReplace(assignmentsPanel);
         target.add(SwitchAssignmentTypePanel.this);
+    }
+
+    private LoadableModel<String> getButtonStyleModel(String buttonId){
+        return new LoadableModel<String>() {
+            @Override
+            protected String load() {
+                if (activeButtonId.equals(buttonId)){
+                    return "btn btn-primary";
+                } else {
+                    return "btn btn-default";
+                }
+            }
+        };
     }
 
     private void initAssignmentsPanel(){
