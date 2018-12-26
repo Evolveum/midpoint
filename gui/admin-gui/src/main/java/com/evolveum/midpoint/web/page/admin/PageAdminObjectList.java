@@ -17,6 +17,7 @@ package com.evolveum.midpoint.web.page.admin;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
@@ -27,8 +28,10 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
@@ -134,6 +137,14 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
             protected String getTableIdKeyValue(){
                 return collectionNameParameter == null || collectionNameParameter.isEmpty() ?
                         super.getTableIdKeyValue() : super.getTableIdKeyValue() + "." + collectionNameParameter.toString();
+            }
+
+            @Override
+            protected String getStorageKey() {
+                StringValue collectionName = getCollectionNameParameterValue();
+                String key = (collectionName != null && StringUtils.isNotEmpty(collectionName.toString()))?
+                        SessionStorage.KEY_OBJECT_LIST + "." + collectionName : SessionStorage.KEY_OBJECT_LIST + "." + getType().getSimpleName();
+                return key;
             }
         };
 

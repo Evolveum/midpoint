@@ -26,6 +26,7 @@ import com.evolveum.midpoint.gui.impl.session.WorkItemsStorage;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * @author lazyman
@@ -62,6 +63,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
     public static final String KEY_ORG_MEMEBER_PANEL = "orgMemberPanel";
     public static final String KEY_SERVICE_MEMEBER_PANEL = "serviceMemberPanel";
     public static final String KEY_WORK_ITEMS = "workItems";
+    public static final String KEY_OBJECT_LIST = "objectListPage";
 
     private static final String KEY_TASKS = "tasks";
     private static final String KEY_CERT_CAMPAIGNS = "certCampaigns";
@@ -102,6 +104,13 @@ public class SessionStorage implements Serializable, DebugDumpable {
             pageStorageMap.put(KEY_USERS, new UsersStorage());
         }
         return (UsersStorage)pageStorageMap.get(KEY_USERS);
+    }
+
+    public ObjectListStorage getObjectListStorage(String key) {
+        if (pageStorageMap.get(key) != null) {
+            pageStorageMap.put(key, new ObjectListStorage());
+        }
+        return (ObjectListStorage) pageStorageMap.get(key);
     }
 
     public ResourcesStorage getResources() {
@@ -259,7 +268,10 @@ public class SessionStorage implements Serializable, DebugDumpable {
 
     public PageStorage initPageStorage(String key){
     	PageStorage pageStorage = null;
-    	if (KEY_USERS.equals(key)){
+    	if (key.startsWith(KEY_OBJECT_LIST)) {
+    	    pageStorage = new ObjectListStorage();
+    	    pageStorageMap.put(key, pageStorage);
+        } else  if (KEY_USERS.equals(key)){
     		pageStorage = new UsersStorage();
     		pageStorageMap.put(KEY_USERS, pageStorage);
 

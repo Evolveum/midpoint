@@ -499,7 +499,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 		return null;
 	}
 
-	private String getStorageKey() {
+	protected String getStorageKey() {
 		String storageKey =  WebComponentUtil.getStorageKeyForPage(parentPage.getClass());
 		if (storageKey == null) {
 			storageKey = WebComponentUtil.getStorageKeyForTableId(tableId);
