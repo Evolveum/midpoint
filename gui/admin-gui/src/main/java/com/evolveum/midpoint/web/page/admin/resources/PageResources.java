@@ -34,6 +34,7 @@ import com.evolveum.midpoint.web.component.search.*;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -169,6 +170,11 @@ public class PageResources extends PageAdminObjectList<ResourceType> {
 				.noFetch()
 				.item(ResourceType.F_CONNECTOR).resolve()
 				.build();
+	}
+
+	@Override
+	protected UserProfileStorage.TableId getTableId(){
+		return UserProfileStorage.TableId.TABLE_RESOURCES;
 	}
 
 	private List<InlineMenuItem> createRowMenuItems() {

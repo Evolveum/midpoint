@@ -35,6 +35,7 @@ import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.StringValue;
 
 import java.util.*;
 
@@ -75,8 +76,10 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
 
     private void initTable(Form mainForm) {
         //TODO fix tableId
+        StringValue collectionNameParameter = getCollectionNameParameterValue();
         MainObjectListPanel<O> userListPanel = new MainObjectListPanel<O>(ID_TABLE,
-                getType(), UserProfileStorage.TableId.TABLE_USERS, getQueryOptions(), this) {
+                getType(), collectionNameParameter == null || collectionNameParameter.isEmpty() ?
+                getTableId() : UserProfileStorage.TableId.COLLECTION_VIEW_TABLE, getQueryOptions(), this) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -126,6 +129,12 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
             protected List<ObjectOrdering> createCustomOrdering(SortParam<String> sortParam) {
                 return PageAdminObjectList.this.createCustomOrdering(sortParam);
             }
+
+            @Override
+            protected String getTableIdKeyValue(){
+                return collectionNameParameter == null || collectionNameParameter.isEmpty() ?
+                        super.getTableIdKeyValue() : super.getTableIdKeyValue() + "." + collectionNameParameter.toString();
+            }
         };
 
         userListPanel.setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_USER_BOX_CSS_CLASSES);
@@ -144,14 +153,18 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
     protected void newObjectActionPerformed(AjaxRequestTarget target){}
 
     protected ObjectFilter getArchetypeViewFilter(){
-        PageParameters parameters = getPageParameters();
-        if (parameters == null || parameters.get(PARAMETER_OBJECT_COLLECTION_NAME) == null || parameters.get(PARAMETER_OBJECT_COLLECTION_NAME).isEmpty()) {
+        StringValue collectionNameParam = getCollectionNameParameterValue();
+        if (collectionNameParam == null || collectionNameParam.isEmpty()) {
             return null;
         }
-
-        String collectionName = parameters.get(PARAMETER_OBJECT_COLLECTION_NAME).toString();
+        String collectionName = collectionNameParam.toString();
         CompiledObjectCollectionView view = getCompiledUserProfile().findObjectViewByViewName(getType(), collectionName);
         return view != null ? view.getFilter() : null;
+    }
+
+    protected StringValue getCollectionNameParameterValue(){
+        PageParameters parameters = getPageParameters();
+        return parameters ==  null ? null : parameters.get(PARAMETER_OBJECT_COLLECTION_NAME);
     }
 
     protected ObjectQuery addCustomFilterToContentQuery(ObjectQuery query){
@@ -169,6 +182,8 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
     protected Collection<SelectorOptions<GetOperationOptions>> getQueryOptions(){
         return null;
     }
+
+    protected abstract UserProfileStorage.TableId getTableId();
 
     protected Form getMainForm(){
         return (Form) get(ID_MAIN_FORM);

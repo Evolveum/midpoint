@@ -326,6 +326,11 @@ public class PageConnectorHosts extends PageAdminObjectList<ConnectorHostType> {
 		return SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
 	}
 
+	@Override
+	protected UserProfileStorage.TableId getTableId(){
+		return UserProfileStorage.TableId.PAGE_RESOURCES_CONNECTOR_HOSTS;
+	}
+
 //	private void searchHostPerformed(ObjectQuery query, AjaxRequestTarget target) {
 //		target.add(getFeedbackPanel());
 //

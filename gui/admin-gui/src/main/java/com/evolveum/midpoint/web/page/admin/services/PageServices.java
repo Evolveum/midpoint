@@ -34,6 +34,7 @@ import com.evolveum.midpoint.web.component.util.FocusListComponent;
 import com.evolveum.midpoint.web.component.util.FocusListInlineMenuHelper;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
@@ -105,6 +106,11 @@ public class PageServices extends PageAdminObjectList<ServiceType> {
 	@Override
 	protected Class<ServiceType> getType(){
 		return ServiceType.class;
+	}
+
+	@Override
+	protected UserProfileStorage.TableId getTableId(){
+		return TableId.TABLE_SERVICES;
 	}
 
 	protected void serviceDetailsPerformed(AjaxRequestTarget target, ServiceType service) {

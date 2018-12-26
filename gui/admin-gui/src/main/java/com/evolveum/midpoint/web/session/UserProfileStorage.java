@@ -91,12 +91,20 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
         GLOBAL_POLICY_RULES_TAB_TABLE,
         LOGGING_TAB_LOGGER_TABLE,
         LOGGING_TAB_APPENDER_TABLE,
-        NOTIFICATION_TAB_MAIL_SERVER_TABLE
+        NOTIFICATION_TAB_MAIL_SERVER_TABLE,
+        COLLECTION_VIEW_TABLE,
+        USERS_VIEW_TABLE
     }
 
-    private Map<TableId, Integer> tables = new HashMap<>();
+    private Map<String, Integer> tables = new HashMap<>();
 
     public Integer getPagingSize(TableId key) {
+        Validate.notNull(key, "Key must not be null.");
+
+        return getPagingSize(key.name());
+    }
+
+    public Integer getPagingSize(String key) {
         Validate.notNull(key, "Key must not be null.");
 
         Integer size = tables.get(key);
@@ -106,10 +114,16 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
     public void setPagingSize(TableId key, Integer size) {
         Validate.notNull(key, "Key must not be null.");
 
+        setPagingSize(key.name(), size);
+    }
+
+    public void setPagingSize(String key, Integer size) {
+        Validate.notNull(key, "Key must not be null.");
+
         tables.put(key, size);
     }
 
-    public Map<TableId, Integer> getTables() {
+    public Map<String, Integer> getTables() {
         return tables;
     }
 

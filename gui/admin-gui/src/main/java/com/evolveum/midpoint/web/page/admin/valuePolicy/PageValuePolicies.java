@@ -128,4 +128,9 @@ public class PageValuePolicies extends PageAdminObjectList<ValuePolicyType> {
         return menu;
 
     }
+
+    @Override
+    protected UserProfileStorage.TableId getTableId(){
+        return UserProfileStorage.TableId.TABLE_VALUE_POLICIES;
+    }
 }

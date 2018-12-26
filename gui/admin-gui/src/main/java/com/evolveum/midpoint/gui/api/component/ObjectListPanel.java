@@ -208,7 +208,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
 
 		BoxedTablePanel<SelectableBean<O>> table = new BoxedTablePanel<SelectableBean<O>>(ID_TABLE, provider,
-				columns, tableId, tableId == null ? 10 : parentPage.getSessionStorage().getUserProfile().getPagingSize(tableId)) {
+				columns, tableId, tableId == null ? 10 : parentPage.getSessionStorage().getUserProfile().getPagingSize(getTableIdKeyValue())) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -446,6 +446,10 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
 		return provider;
 	}
+
+	protected String getTableIdKeyValue(){
+	    return tableId != null ? tableId.name() : null;
+    }
 
 	protected List<O> getPreselectedObjectList(){
 		return null;

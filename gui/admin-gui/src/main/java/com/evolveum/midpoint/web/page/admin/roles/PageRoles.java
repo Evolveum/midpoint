@@ -29,6 +29,7 @@ import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.util.FocusListInlineMenuHelper;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -104,6 +105,11 @@ public class PageRoles extends PageAdminObjectList<RoleType> {
         PageParameters parameters = new PageParameters();
         parameters.add(OnePageParameterEncoder.PARAMETER, oid);
         navigateToNext(PageRole.class, parameters);
+    }
+
+    @Override
+    protected UserProfileStorage.TableId getTableId(){
+        return UserProfileStorage.TableId.TABLE_ROLES;
     }
 
     private IModel<String> getConfirmationMessageModel(ColumnMenuAction action, String actionName){

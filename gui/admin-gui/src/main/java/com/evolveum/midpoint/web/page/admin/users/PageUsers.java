@@ -34,6 +34,7 @@ import com.evolveum.midpoint.web.component.search.SearchValue;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -384,6 +385,11 @@ public class PageUsers extends PageAdminObjectList<UserType> {
 	@Override
 	protected Class getType(){
 		return UserType.class;
+	}
+
+	@Override
+	protected UserProfileStorage.TableId getTableId(){
+		return TableId.TABLE_USERS;
 	}
 
 	private MainObjectListPanel<UserType> getTable() {

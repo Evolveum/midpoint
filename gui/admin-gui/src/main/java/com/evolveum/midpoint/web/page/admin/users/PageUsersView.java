@@ -29,6 +29,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -89,5 +90,10 @@ public class PageUsersView extends PageUsers {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't parse filter. Filter: " + collectionValue.getFilter(), ex);
         }
         return filter;
+    }
+
+    @Override
+    protected UserProfileStorage.TableId getTableId(){
+        return UserProfileStorage.TableId.USERS_VIEW_TABLE;
     }
 }

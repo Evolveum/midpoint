@@ -251,6 +251,10 @@ public class PageCreatedReports extends PageAdminObjectList<ReportOutputType> {
         }
     }
 
+    @Override
+    protected UserProfileStorage.TableId getTableId(){
+        return UserProfileStorage.TableId.PAGE_CREATED_REPORTS_PANEL;
+    }
 
     //TODO - commented until FileType property will be available in ReportOutputType
 
