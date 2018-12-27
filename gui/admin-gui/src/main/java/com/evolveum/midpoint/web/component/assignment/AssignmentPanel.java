@@ -23,10 +23,7 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -85,6 +82,7 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 
 	private static final String DOT_CLASS = AssignmentPanel.class.getName() + ".";
 	protected static final String OPERATION_LOAD_ASSIGNMENTS_LIMIT = DOT_CLASS + "loadAssignmentsLimit";
+	protected static final String OPERATION_LOAD_ASSIGNMENTS_TARGET_OBJ = DOT_CLASS + "loadAssignmentsTargetRefObject";
 
 	protected int assignmentsRequestsLimit = -1;
 	private List<ContainerValueWrapper<AssignmentType>> detailsPanelAssignmentsList = new ArrayList<>();
@@ -666,6 +664,41 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 			@Override
 			public InlineMenuItemAction initAction() {
 				return getMultivalueContainerListPanel().createEditColumnAction();
+			}
+		});
+		menuItems.add(new ButtonInlineMenuItem(createStringResource("AssignmentPanel.viewTargetObject")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public String getButtonIconCssClass() {
+				return GuiStyleConstants.CLASS_NAVIGATE_ARROW;
+			}
+
+			@Override
+			public InlineMenuItemAction initAction() {
+				return new ColumnMenuAction<ContainerValueWrapper<AssignmentType>>() {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						ContainerValueWrapper<AssignmentType> assignmentContainer = getRowModel().getObject();
+						PropertyOrReferenceWrapper targetRef = assignmentContainer.findPropertyWrapper(assignmentContainer.getPath()
+								.append(AssignmentType.F_TARGET_REF));
+
+						if (targetRef != null && targetRef.getValues() != null && targetRef.getValues().size() > 0) {
+							ValueWrapper refWrapper = (ValueWrapper)targetRef.getValues().get(0);
+							PrismReferenceValue refValue = (PrismReferenceValue)refWrapper.getValue();
+							ObjectReferenceType ort = new ObjectReferenceType();
+							ort.setupReferenceValue(refValue);
+							WebComponentUtil.dispatchToObjectDetailsPage(ort, AssignmentPanel.this, false);
+						}
+					}
+				};
+			}
+
+			@Override
+			public boolean isHeaderMenuItem(){
+				return false;
 			}
 		});
 		return menuItems;
