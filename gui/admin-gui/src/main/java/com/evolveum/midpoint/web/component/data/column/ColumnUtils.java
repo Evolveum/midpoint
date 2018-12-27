@@ -114,7 +114,7 @@ public class ColumnUtils {
 		}
 	}
 
-	public static <O extends ObjectType> IColumn<SelectableBean<O>, String> createIconColumn(Class<? extends O> type, PageBase pageBase){
+	public static <O extends ObjectType> IColumn<SelectableBean<O>, String> createIconColumn(PageBase pageBase){
 
 		return new IconColumn<SelectableBean<O>>(createIconColumnHeaderModel()) {
 
@@ -130,17 +130,17 @@ public class ColumnUtils {
 
 			@Override
 			protected IModel<String> createIconModel(final IModel<SelectableBean<O>> rowModel) {
-				return Model.of(getIconColumnValue(type, rowModel));
+				return Model.of(getIconColumnValue(rowModel));
 			}
 
 			@Override
 			protected IModel<String> createTitleModel(final IModel<SelectableBean<O>> rowModel) {
-				return Model.of(getIconColumnTitle(type, rowModel));
+				return Model.of(getIconColumnTitle(rowModel));
 			}
 
 			@Override
 			public IModel<String> getDataModel(IModel<SelectableBean<O>> rowModel) {
-				return getIconColumnDataModel(type, rowModel);
+				return getIconColumnDataModel(rowModel);
 			}
 		};
 
@@ -157,8 +157,9 @@ public class ColumnUtils {
 		return null;
 	}
 
-	private static <T extends ObjectType> String getIconColumnValue(Class<? extends T> type, IModel<SelectableBean<T>> rowModel){
+	private static <T extends ObjectType> String getIconColumnValue(IModel<SelectableBean<T>> rowModel){
 		T object = rowModel.getObject().getValue();
+		Class<T> type = (Class<T>)rowModel.getObject().getValue().getClass();
 		if (object == null && !ShadowType.class.equals(type)){
 			return null;
 		} else if (type.equals(ObjectType.class)){
@@ -190,7 +191,8 @@ public class ColumnUtils {
 
 	}
 
-	private static <T extends ObjectType> IModel<String> getIconColumnDataModel(Class<? extends T> type, IModel<SelectableBean<T>> rowModel){
+	private static <T extends ObjectType> IModel<String> getIconColumnDataModel(IModel<SelectableBean<T>> rowModel){
+		Class<T> type = (Class<T>) rowModel.getObject().getValue().getClass();
 		if (ShadowType.class.equals(type)) {
 				T shadow = rowModel.getObject().getValue();
 				if (shadow == null){
@@ -203,7 +205,8 @@ public class ColumnUtils {
 		return null;
 	}
 
-	private static <T extends ObjectType> String getIconColumnTitle(Class<? extends T> type, IModel<SelectableBean<T>> rowModel){
+	private static <T extends ObjectType> String getIconColumnTitle(IModel<SelectableBean<T>> rowModel){
+		Class<T> type = (Class<T>)rowModel.getObject().getValue().getClass();
 		T object = rowModel.getObject().getValue();
 		if (object == null && !ShadowType.class.equals(type)){
 			return null;

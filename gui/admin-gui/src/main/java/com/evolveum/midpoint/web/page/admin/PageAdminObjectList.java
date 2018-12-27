@@ -78,7 +78,6 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
     }
 
     private void initTable(Form mainForm) {
-        //TODO fix tableId
         StringValue collectionNameParameter = getCollectionNameParameterValue();
         MainObjectListPanel<O> userListPanel = new MainObjectListPanel<O>(ID_TABLE,
                 getType(), collectionNameParameter == null || collectionNameParameter.isEmpty() ?
@@ -148,7 +147,8 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
             }
         };
 
-        userListPanel.setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_USER_BOX_CSS_CLASSES);
+        //todo fix table style
+//        userListPanel.setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_USER_BOX_CSS_CLASSES);
         userListPanel.setOutputMarkupId(true);
         mainForm.add(userListPanel);
     }
