@@ -784,6 +784,15 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	}
 
 	@Override
+	public List<MergeConfigurationType> getMergeConfiguration(OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(parentResult);
+		if (systemConfiguration == null) {
+			return null;
+		}
+		return systemConfiguration.asObjectable().getMergeConfiguration();
+	}
+
+	@Override
 	public AccessCertificationConfigurationType getCertificationConfiguration(OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(parentResult);
 		if (systemConfiguration == null) {

@@ -24,8 +24,11 @@ import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.data.column.*;
+import com.evolveum.midpoint.web.component.dialog.HelpInfoPanel;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
@@ -108,6 +111,7 @@ public class PageUsers extends PageAdminObjectList<UserType> {
 	private static final String OPERATION_RECONCILE_USER = DOT_CLASS + "reconcileUser";
 	private static final String OPERATION_UNLOCK_USERS = DOT_CLASS + "unlockUsers";
 	private static final String OPERATION_UNLOCK_USER = DOT_CLASS + "unlockUser";
+	private static final String OPERATION_LOAD_MERGE_CONFIGURATION = DOT_CLASS + "loadMergeConfiguration";
 
 	private static final String ID_MAIN_FORM = "mainForm";
 	private static final String ID_TABLE = "table";
@@ -352,6 +356,23 @@ public class PageUsers extends PageAdminObjectList<UserType> {
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
+						OperationResult result = new OperationResult(OPERATION_LOAD_MERGE_CONFIGURATION);
+						List<MergeConfigurationType> mergeConfiguration = null;
+						try {
+							mergeConfiguration = getModelInteractionService().getMergeConfiguration(result);
+						} catch (ObjectNotFoundException | SchemaException ex){
+							LOGGER.error("Couldn't load merge configuration, ", ex.getLocalizedMessage());
+							result.recomputeStatus();
+							getFeedbackMessages().error(PageUsers.this, ex.getLocalizedMessage());
+							target.add(getFeedbackPanel());
+							return;
+						}
+
+						if (mergeConfiguration == null || mergeConfiguration.size() == 0){
+							getFeedbackMessages().warn(PageUsers.this, createStringResource("PageUsers.noMergeConfigurationMessage").getString());
+							target.add(getFeedbackPanel());
+							return;
+						}
 						if (getRowModel() == null) {
 							mergePerformed(target, null);
 						} else {
