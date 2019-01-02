@@ -68,7 +68,7 @@ public class SwitchAssignmentTypePanel extends BasePanel<ContainerWrapper<Assign
                 AssignmentPanel assignmentPanel =
                         new AssignmentPanel(ID_ASSIGNMENTS, SwitchAssignmentTypePanel.this.getModel());
                 assignmentPanel.setOutputMarkupId(true);
-                switchAssignmentTypePerformed(target, assignmentPanel, ID_ASSIGNMENTS);
+                switchAssignmentTypePerformed(target, assignmentPanel, ID_ALL_ASSIGNMENTS);
             }
         };
         allAssignmentsButton.add(AttributeAppender.append("class", getButtonStyleModel(ID_ALL_ASSIGNMENTS)));
