@@ -263,9 +263,9 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         return Model.of("");
     }
 
-	protected List<ObjectTypes> getObjectTypesList(){
-        return WebComponentUtil.createAssignableTypesList();
-    }
+//	protected List<ObjectTypes> getObjectTypesList(){
+//        return WebComponentUtil.createAssignableTypesList();
+//    }
 
 	@Override
 	protected Fragment getCustomSpecificContainers(String contentAreaId, ContainerValueWrapper<AssignmentType> modelObject) {

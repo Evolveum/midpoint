@@ -122,6 +122,11 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 			}
 
 			@Override
+			protected void cancelItemDetailsPerformed(AjaxRequestTarget target){
+				AssignmentPanel.this.cancelAssignmentDetailsPerformed(target);
+			}
+
+			@Override
 			protected ObjectQuery createQuery() {
 				return createObjectQuery();
 			}
@@ -250,6 +255,9 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 				.build();
 	}
 
+	protected void cancelAssignmentDetailsPerformed(AjaxRequestTarget target){
+	}
+
 	private List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initBasicColumns() {
 		List<IColumn<ContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
 
@@ -288,6 +296,7 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
+				AssignmentPanel.this.assignmentDetailsPerformed(target);
 				getMultivalueContainerListPanel().itemDetailsPerformed(target, rowModel);
 			}
 		});
@@ -320,6 +329,9 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 
 	protected List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initColumns(){
 		return new ArrayList<>();
+	}
+
+	protected void assignmentDetailsPerformed(AjaxRequestTarget target){
 	}
 
 	protected void newAssignmentClickPerformed(AjaxRequestTarget target){
@@ -708,7 +720,7 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 		return ((MultivalueContainerListPanelWithDetailsPanel<AssignmentType>)get(ID_ASSIGNMENTS));
 	}
 
-	protected MultivalueContainerDetailsPanel<AssignmentType> getMultivalueContainerDetailsPanel() {
+	public MultivalueContainerDetailsPanel<AssignmentType> getMultivalueContainerDetailsPanel() {
 		return ((MultivalueContainerDetailsPanel<AssignmentType>)get(MultivalueContainerListPanelWithDetailsPanel.ID_ITEM_DETAILS));
 	}
 
