@@ -17,8 +17,12 @@ package com.evolveum.midpoint.gui.api.component;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.assignment.AssignmentPanel;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
@@ -51,10 +55,16 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
     private final static String ID_RELATION = "relation";
     private final static String ID_KIND_INTENT = "kindIntent";
     private final static String ID_DESCRIPTION = "description";
+    private final static String ID_NAVIGATE_TO_OBJECT = "navigateToObject";
 
 	public DisplayNamePanel(String id, IModel<C> model) {
 		super(id, model);
 
+	}
+
+	@Override
+	protected void onInitialize(){
+		super.onInitialize();
 		initLayout();
 	}
 
@@ -72,7 +82,24 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
         identifier.setOutputMarkupId(true);
         identifier.add(new VisibleBehaviour(() -> isIdentifierVisible()));
         add(identifier);
-        
+
+		AjaxButton navigateToObject = new AjaxButton(ID_NAVIGATE_TO_OBJECT) {
+			@Override
+			public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+				if (DisplayNamePanel.this.getModelObject() instanceof ObjectType){
+					ObjectType o = (ObjectType) DisplayNamePanel.this.getModelObject();
+					ObjectReferenceType ort = new ObjectReferenceType();
+					ort.setOid(o.getOid());
+					ort.setType(WebComponentUtil.classToQName(DisplayNamePanel.this.getPageBase().getPrismContext(), o.getClass()));
+					WebComponentUtil.dispatchToObjectDetailsPage(ort, DisplayNamePanel.this, false);
+				}
+			}
+		};
+		navigateToObject.add(new VisibleBehaviour(() -> DisplayNamePanel.this.getModelObject() instanceof ObjectType &&
+				WebComponentUtil.getObjectDetailsPage(((ObjectType)DisplayNamePanel.this.getModelObject()).getClass()) != null));
+		navigateToObject.setOutputMarkupId(true);
+		add(navigateToObject);
+
         Label relation = new Label(ID_RELATION, Model.of(getRelationLabel()));
         relation.setOutputMarkupId(true);
         relation.add(new VisibleBehaviour(() -> isRelationVisible()));
