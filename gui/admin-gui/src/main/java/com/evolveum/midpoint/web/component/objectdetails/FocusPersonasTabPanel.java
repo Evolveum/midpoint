@@ -15,9 +15,11 @@
  */
 package com.evolveum.midpoint.web.component.objectdetails;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -25,8 +27,11 @@ import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -67,14 +72,49 @@ public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTa
             private static final long serialVersionUID = 1L;
 
             @Override
+            protected IColumn<SelectableBean<F>, String> createCheckboxColumn(){
+                return null;
+            }
+
+            @Override
             protected List<IColumn<SelectableBean<F>, String>> createColumns() {
                 return new ArrayList<>();
             }
 
             @Override
             protected List<InlineMenuItem> createInlineMenu() {
-                return null; //navigate to persona target object?
-            }
+                List<InlineMenuItem> menuItems = new ArrayList<>();
+                menuItems.add(new ButtonInlineMenuItem(createStringResource("AssignmentPanel.viewTargetObject")) {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public String getButtonIconCssClass() {
+                        return GuiStyleConstants.CLASS_NAVIGATE_ARROW;
+                    }
+
+                    @Override
+                    public InlineMenuItemAction initAction() {
+                        return new ColumnMenuAction<SelectableBean<F>>() {
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            public void onClick(AjaxRequestTarget target) {
+                                SelectableBean<F> personaRefSelectableBean = getRowModel().getObject();
+                                F personaRefObj = personaRefSelectableBean.getValue();
+                                ObjectReferenceType ort = new ObjectReferenceType();
+                                ort.setOid(personaRefObj.getOid());
+                                ort.setType(WebComponentUtil.classToQName(FocusPersonasTabPanel.this.getPrismContext(), personaRefObj.getClass()));
+                                WebComponentUtil.dispatchToObjectDetailsPage(ort, FocusPersonasTabPanel.this, false);
+                            }
+                        };
+                    }
+
+                    @Override
+                    public boolean isHeaderMenuItem(){
+                        return false;
+                    }
+                });
+                return menuItems;          }
 
             @Override
             protected void objectDetailsPerformed(AjaxRequestTarget target, F object) {
