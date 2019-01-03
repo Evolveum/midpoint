@@ -486,13 +486,8 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 		if (ModelImplUtils.isSimulateRun(localCoordinatorTask)) {
 			boolean canContinue = performResourceReconciliationInternal(resource, objectclassDef, ModelImplUtils.isSimulateRun(localCoordinatorTask), 
 					reconResult, localCoordinatorTask, workBucket, result);
-			TaskRunResult runResult = reconResult.getRunResult();
-			TaskRunResultStatus runStatus = null;
-			if (runResult != null) {
-				runStatus = runResult.getRunResultStatus();
-			}
 			
-			if (canContinue && isAcceptable(runStatus)) {
+			if (canContinue && result.isSuccess()) {
 				canContinue = performResourceReconciliationInternal(resource, objectclassDef, false, 
 						reconResult, localCoordinatorTask, workBucket, result);
 			}
