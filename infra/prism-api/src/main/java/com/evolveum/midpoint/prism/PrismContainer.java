@@ -246,13 +246,6 @@ public interface PrismContainer<C extends Containerable>
 
     PrismContainerDefinition<C> deepCloneDefinition(boolean ultraDeep, Consumer<ItemDefinition> postCloneAction);
 
-    @Deprecated
-    boolean containsEquivalentValue(PrismContainerValue<C> value);
-
-	@Deprecated
-	@Override
-	boolean containsEquivalentValue(PrismContainerValue<C> value, Comparator<PrismContainerValue<C>> comparator);
-
 	@Override
 	void accept(Visitor visitor, ItemPath path, boolean recursive);
 

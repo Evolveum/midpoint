@@ -773,11 +773,10 @@ public class PrismAsserts {
 		ObjectDelta<O> delta = expected.diff(actual);
 		String suffix = "the difference: "+delta;
 		if (delta.isEmpty()) {
-			suffix += ": Empty delta. This is not expected. Somethig has got quite wrong here.";
+			suffix += ": Empty delta. This is not expected. Something has got quite wrong here.";
 		}
-		LOGGER.error("ASSERT: {}: {} and {} not equivalent, delta:\n{}", new Object[]{
-				message, expected, actual, delta.debugDump()
-		});
+		LOGGER.error("ASSERT: {}: {} and {} not equivalent, delta:\n{}", message, expected, actual, delta.debugDump());
+		System.err.println(delta.debugDump());
 		assert false: message + ": " + suffix;
 	}
 

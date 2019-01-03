@@ -390,7 +390,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         display("Input context", context);
 
         PrismObject<UserType> userNew = context.getFocusContext().getObjectNew();
-        assertEquals("Unexpected number of assignemnts in userNew after recompute", 1, userNew.asObjectable().getAssignment().size());
+        assertEquals("Unexpected number of assignments in userNew after recompute", 1, userNew.asObjectable().getAssignment().size());
 
         assertFocusModificationSanity(context);
 

@@ -99,14 +99,14 @@ public class MiscUtil {
 		return true;
 	}
 
-	public static boolean unorderedCollectionEquals(Collection a, Collection b) {
+	public static <T> boolean unorderedCollectionEquals(Collection<T> a, Collection<T> b) {
 		return unorderedCollectionEquals(a, b, (xa, xb) -> xa.equals(xb));
 	}
 
 	/**
 	 * Only zero vs non-zero value of comparator is important.
 	 */
-	public static <T> boolean unorderedCollectionCompare(Collection<T> a, Collection<T> b, final Comparator<T> comparator) {
+	public static <T> boolean unorderedCollectionCompare(Collection<T> a, Collection<T> b, Comparator<T> comparator) {
 		if (comparator == null) {
 			return unorderedCollectionEquals(a, b);
 		} else {

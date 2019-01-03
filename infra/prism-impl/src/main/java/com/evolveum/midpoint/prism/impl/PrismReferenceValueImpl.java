@@ -494,19 +494,6 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
 	}
 
 	@Override
-	public boolean representsSameValue(PrismValue other, boolean lax) {
-		return other instanceof PrismReferenceValue && representsSameValue((PrismReferenceValue) other);
-	}
-
-	// TODO fix this one!
-	private boolean representsSameValue(PrismReferenceValue other) {
-		return this.getOid() != null && other.getOid() != null &&
-				this.getOid().equals(other.getOid()) &&
-				QNameUtil.match(this.getTargetType(), other.getTargetType()) &&
-				relationsEquivalent(this.getRelation(), other.getRelation(), false);
-	}
-
-	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("PRV(");

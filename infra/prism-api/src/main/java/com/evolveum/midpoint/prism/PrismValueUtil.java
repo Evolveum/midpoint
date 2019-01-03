@@ -56,4 +56,9 @@ public class PrismValueUtil {
 		return prismContext.itemFactory().createPropertyValue(rawElement);
 	}
 
+	public static boolean differentIds(PrismValue v1, PrismValue v2) {
+		Long id1 = v1 instanceof PrismContainerValue ? ((PrismContainerValue) v1).getId() : null;
+		Long id2 = v2 instanceof PrismContainerValue ? ((PrismContainerValue) v2).getId() : null;
+		return id1 != null && id2 != null && id1.longValue() != id2.longValue();
+	}
 }
