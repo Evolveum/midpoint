@@ -35,6 +35,7 @@ import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismMonitor;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNodeFactory;
+import com.evolveum.midpoint.prism.xnode.XNodeMutator;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringNormalizerConfigurationType;
@@ -316,6 +317,8 @@ public interface PrismContext extends ProtectorCreator {
 	Hacks hacks();
 
 	XNodeFactory xnodeFactory();
+
+	XNodeMutator xnodeMutator();
 
 	/**
 	 * Temporary

@@ -62,20 +62,28 @@ public class ParamsTypeUtil {
 		return entryType;
 	}
 
-	public static Map<String, Serializable> fromParamsType(ParamsType paramsType, PrismContext prismContext) throws SchemaException{
+	public static Map<String, Serializable> fromParamsType(ParamsType paramsType, PrismContext prismContext) throws SchemaException {
 		if (paramsType != null) {
 			Map<String, Serializable> params = new HashMap<>();
 			for (EntryType entry : paramsType.getEntry()) {
 				Serializable realValue;
 				if (entry.getEntryValue() != null) {
 					Serializable value = (Serializable) entry.getEntryValue().getValue();
-					realValue = prismContext.hacks().guessFormattedValue(value);
+					if (value instanceof RawType) {
+						RawType raw = (RawType) value;
+						if (raw.isParsed()) {
+							realValue = raw.getAlreadyParsedValue().getRealValue();
+						} else {
+							realValue = raw.guessFormattedValue();
+						}
+					} else {
+						realValue = value;
+					}
 				} else {
 					realValue = null;
 				}
 				params.put(entry.getKey(), realValue);
 			}
-
 			return params;
 		}
 		return null;

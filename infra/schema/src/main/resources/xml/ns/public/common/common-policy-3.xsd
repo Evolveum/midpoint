@@ -1400,6 +1400,17 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="stop" type="tns:StopPolicyActionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Stop action. This action stops the operation after n executions and results with the error.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:displayName>PolicyActionsType.stop</a:displayName>
+						<a:help>PolicyActionsType.stop.help</a:help>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
@@ -1456,6 +1467,19 @@
 					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+             <xsd:element name="count" type="xsd:integer" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Action is executed after reatching the limit
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:displayName>PolicyActionType.count</a:displayName>
+						<a:help>PolicyActionType.cunt.help</a:help>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
 		<xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
@@ -1468,6 +1492,27 @@
             <xsd:appinfo>
                 <a:container />
                 <a:since>3.5</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:PolicyActionType">
+                <xsd:sequence>
+                    <!-- Empty for now.
+						 TODO: later add type of error and message -->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    
+     <xsd:complexType name="StopPolicyActionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Stop action. This action stops the operation and results with the error.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container />
+                <a:since>4.0</a:since>
                 <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>

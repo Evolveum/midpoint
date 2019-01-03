@@ -53,6 +53,7 @@ import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.*;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -328,7 +329,9 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         ObjectDelta<ShadowType> delta = fileAccount.diff(repoAccount);
         AssertJUnit.assertNotNull(delta);
         LOGGER.info("delta\n{}", new Object[]{delta.debugDump(3)});
-        assertTrue(delta.isEmpty());
+        if (!delta.isEmpty()) {
+            fail("delta is not empty: " + delta.debugDump());
+        }
         ShadowType repoShadow = repoAccount.asObjectable();
         AssertJUnit.assertNotNull(repoShadow.getSynchronizationSituation());
         AssertJUnit.assertEquals(SynchronizationSituationType.LINKED, repoShadow.getSynchronizationSituation());
@@ -775,7 +778,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
     public void test990AddResourceWithEmptyConnectorConfiguration() throws Exception {
         OperationResult result = new OperationResult("test990AddResourceWithEmptyConnectorConfiguration");
 
-        PrismObject<ResourceType> prismResource = PrismTestUtil.getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceType.class).instantiate();
+        PrismObject<ResourceType> prismResource = getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceType.class).instantiate();
 
         PolyStringType name = new PolyStringType();
         name.setOrig("Test Resource");
@@ -826,7 +829,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
             AssertJUnit.assertEquals(ROperationResultStatus.IN_PROGRESS, rTask.getStatus());
 
             String xml = RUtil.getXmlFromByteArray(rTask.getFullObject(), true);
-            PrismObject<TaskType> obj = PrismTestUtil.parseObject(xml);
+            PrismObject<TaskType> obj = getPrismContext().parserFor(xml).language(SqlRepositoryServiceImpl.DATA_LANGUAGE).parse();
             TaskType objType = obj.asObjectable();
             AssertJUnit.assertNull(objType.getResult());
         } finally {

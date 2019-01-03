@@ -377,6 +377,18 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
+			
+			<xsd:element name="lensContext" type="tns:LensContextType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Model context descibing executed operation
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+						<a:experimental>true</a:experimental>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
 
 			<xsd:element name="policySituation" type="xsd:anyURI" minOccurs="0" maxOccurs="unbounded">
 				<xsd:annotation>
@@ -17534,7 +17546,7 @@
     		<xsd:element name="policyActions" type="tns:PolicyActionsType" minOccurs="0">
     			<xsd:annotation>
     				<xsd:documentation>
-    					Action(s) that has to be takes as a reaction to this rule being
+    					Action(s) that has to be taken as a reaction to this rule being
     					triggered.
     				</xsd:documentation>
 					<xsd:appinfo>

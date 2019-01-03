@@ -23,22 +23,19 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.component.FocusSummaryPanel;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.page.admin.roles.PageAdminRoles;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.model.IModel;
-
-import javax.xml.ws.Service;
 
 /**
  * Created by honchar
  */
 @PageDescriptor(url = "/admin/serviceHistory", encoder = OnePageParameterEncoder.class, action = {
-        @AuthorizationAction(actionUri = PageAdminServices.AUTH_SERVICES_ALL, label = PageAdminServices.AUTH_SERVICES_ALL_LABEL, description = PageAdminServices.AUTH_SERVICES_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICES_ALL_URL,
+                label = "PageAdminServices.auth.servicesAll.label",
+                description = "PageAdminServices.auth.servicesAll.description"),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICE_HISTORY_URL,
                 label = "PageServiceHistory.auth.service.label",
                 description = "PageServiceHistory.auth.service.description") })

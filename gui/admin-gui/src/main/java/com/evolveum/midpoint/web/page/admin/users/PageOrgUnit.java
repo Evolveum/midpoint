@@ -48,8 +48,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
  * @author lazyman
  */
 @PageDescriptor(url = "/admin/org/unit", encoder = OnePageParameterEncoder.class, action = {
-		@AuthorizationAction(actionUri = PageAdminUsers.AUTH_ORG_ALL, label = PageAdminUsers.AUTH_ORG_ALL_LABEL, description = PageAdminUsers.AUTH_ORG_ALL_DESCRIPTION),
-		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ORG_UNIT_URL, label = "PageOrgUnit.auth.orgUnit.label", description = "PageOrgUnit.auth.orgUnit.description") })
+		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ORG_ALL_URL,
+				label = "PageAdminUsers.auth.orgAll.label",
+				description = "PageAdminUsers.auth.orgAll.description"),
+		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ORG_UNIT_URL,
+				label = "PageOrgUnit.auth.orgUnit.label",
+				description = "PageOrgUnit.auth.orgUnit.description") })
 public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements ProgressReportingAwarePage {
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageOrgUnit.class);

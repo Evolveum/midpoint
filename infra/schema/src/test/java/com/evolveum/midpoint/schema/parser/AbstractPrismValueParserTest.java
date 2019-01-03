@@ -18,6 +18,7 @@ package com.evolveum.midpoint.schema.parser;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.xnode.XNode;
@@ -163,7 +164,7 @@ public abstract class AbstractPrismValueParserTest<T extends PrismValue> extends
 			Collection<? extends ItemDelta> deltas = value.diff(reparsed);
 			assertTrue("Deltas not empty", deltas.isEmpty());
 
-			assertTrue("Values not equal", value.equals(reparsed));
+			assertTrue("Values not equal", value.equals(reparsed, EquivalenceStrategy.NOT_LITERAL));
 		}
 	}
 

@@ -1,0 +1,29 @@
+dn: uid=user1,ou=People,dc=example,dc=com
+changetype: modify
+replace: ds-pwp-account-disabled
+ds-pwp-account-disabled: true
+
+dn: uid=user2,ou=People,dc=example,dc=com
+changetype: modify
+replace: ds-pwp-account-disabled
+ds-pwp-account-disabled: true
+
+dn: uid=user3,ou=People,dc=example,dc=com
+changetype: modify
+replace: ds-pwp-account-disabled
+ds-pwp-account-disabled: true
+
+dn: uid=user4,ou=People,dc=example,dc=com
+changetype: modify
+replace: ds-pwp-account-disabled
+ds-pwp-account-disabled: true
+
+dn: uid=user5,ou=People,dc=example,dc=com
+changetype: modify
+replace: ds-pwp-account-disabled
+ds-pwp-account-disabled: true
+
+dn: uid=user6,ou=People,dc=example,dc=com
+changetype: modify
+replace: ds-pwp-account-disabled
+ds-pwp-account-disabled: true

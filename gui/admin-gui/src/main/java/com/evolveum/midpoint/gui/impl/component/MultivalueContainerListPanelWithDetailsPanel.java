@@ -139,6 +139,7 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
 			@Override
 			public void onClick(AjaxRequestTarget ajaxRequestTarget) {
 				itemDetailsVisible = false;
+				cancelItemDetailsPerformed(ajaxRequestTarget);
 				ajaxRequestTarget.add(MultivalueContainerListPanelWithDetailsPanel.this);
 			}
 		};
@@ -151,6 +152,9 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
 
 	public void itemDetailsPerformed(AjaxRequestTarget target, List<ContainerValueWrapper<C>> listItems) {
 		itemPerformedForDefaultAction(target, null, listItems);
+	}
+
+	protected void cancelItemDetailsPerformed(AjaxRequestTarget target){
 	}
 	
 	@Override
@@ -177,7 +181,7 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
 	}
 	
 	@Override
-	protected boolean isListPanelVisible() {
+	public boolean isListPanelVisible() {
 		return !itemDetailsVisible;
 	}
 }

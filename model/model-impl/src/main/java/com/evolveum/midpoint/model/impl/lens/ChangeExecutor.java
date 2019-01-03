@@ -25,6 +25,7 @@ import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistency
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.SynchronizationUtils;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.XNodeFactory;
@@ -476,7 +477,7 @@ public class ChangeExecutor {
 		for (AssignmentType assignment : assignments) {
 			PrismContainerValue<?> pcv = assignment.asPrismContainerValue();
 			PrismContainerValue<?> pcvToFind = assignmentToFind.asPrismContainerValue();
-			if (pcv.representsSameValue(pcvToFind, false) || pcv.equalsRealValue(pcvToFind)) {
+			if (pcv.representsSameValue(pcvToFind, false) || pcv.equals(pcvToFind, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS)) {
 				// TODO what if ID of the assignment being added is changed in repo? Hopefully it will be not.
 				for (ItemDelta<?, ?> modification : modifications) {
 					ItemPath newParentPath = modification.getParentPath().rest(2);        // killing assignment + ID
@@ -498,7 +499,7 @@ public class ChangeExecutor {
 			
 			PrismObject<O> objectToAdd = focusDelta.getObjectToAdd();
 			PrismContainer<MetadataType> metadataContainer = objectToAdd.findOrCreateContainer(ObjectType.F_METADATA);
-			metadataContainer.getValue().asContainerable().setLastProvisioningTimestamp(clock.currentTimeXMLGregorianCalendar());
+			metadataContainer.getRealValue().setLastProvisioningTimestamp(clock.currentTimeXMLGregorianCalendar());
 			
 		} else if (focusDelta.isModify()) {
 			
@@ -551,7 +552,8 @@ public class ChangeExecutor {
 				.findItemDeltasSubPath(modifications1, ShadowType.F_ATTRIBUTES);
 		Collection<? extends ItemDelta<?, ?>> attrDeltas2 = ItemDeltaCollectionsUtil
 				.findItemDeltasSubPath(modifications2, ShadowType.F_ATTRIBUTES);
-		return MiscUtil.unorderedCollectionEquals(attrDeltas1, attrDeltas2);
+		//noinspection unchecked,RedundantCast
+		return MiscUtil.unorderedCollectionEquals((Collection) attrDeltas1, (Collection) attrDeltas2);
 	}
 
 	private boolean isEquivalentAddDelta(PrismObject<ShadowType> object1, PrismObject<ShadowType> object2) {
@@ -997,7 +999,7 @@ public class ChangeExecutor {
 			Iterator<? extends ItemDelta> objectDeltaIterator = objectDelta.getModifications().iterator();
 			while (objectDeltaIterator.hasNext()) {
 				ItemDelta d = objectDeltaIterator.next();
-				if (executed.containsModification(d, true, true) || d.isEmpty()) {
+				if (executed.containsModification(d, EquivalenceStrategy.LITERAL_IGNORE_METADATA) || d.isEmpty()) {     // todo why literal?
 					objectDeltaIterator.remove();
 				}
 			}

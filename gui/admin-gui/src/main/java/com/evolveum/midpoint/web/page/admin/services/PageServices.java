@@ -33,6 +33,8 @@ import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.util.FocusListComponent;
 import com.evolveum.midpoint.web.component.util.FocusListInlineMenuHelper;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
@@ -50,73 +52,65 @@ import java.util.List;
  * @author lazyman
  */
 @PageDescriptor(url = "/admin/services", action = {
-        @AuthorizationAction(actionUri = PageAdminServices.AUTH_SERVICES_ALL,
-                label = PageAdminServices.AUTH_SERVICES_ALL_LABEL,
-                description = PageAdminServices.AUTH_SERVICES_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICES_ALL_URL,
+                label = "PageAdminServices.auth.servicesAll.label",
+                description = "PageAdminServices.auth.servicesAll.description"),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICES_URL,
                 label = "PageServices.auth.services.label",
                 description = "PageServices.auth.services.description")})
-public class PageServices extends PageAdminServices implements FocusListComponent {
+public class PageServices extends PageAdminObjectList<ServiceType> {
 	private static final long serialVersionUID = 1L;
 
-	private static final String ID_MAIN_FORM = "mainForm";
-	private static final String ID_TABLE = "table";
-    private static final String DOT_CLASS = PageServices.class.getName() + ".";
-    private static final Trace LOGGER = TraceManager.getTrace(PageServices.class);
+	private static final String DOT_CLASS = PageServices.class.getName() + ".";
+	private static final Trace LOGGER = TraceManager.getTrace(PageServices.class);
 	private static final String OPERATION_DELETE_SERVICES = DOT_CLASS + "deleteServices";
 
 	private IModel<Search> searchModel;
 
 	public PageServices() {
-		this(true);
+		super();
 	}
 
-	public PageServices(boolean clearPagingInSession) {
-		initLayout();
-	}
-
-	private final FocusListInlineMenuHelper<ServiceType> listInlineMenuHelper = new FocusListInlineMenuHelper<ServiceType>(ServiceType.class, this, this){
+	private final FocusListInlineMenuHelper<ServiceType> listInlineMenuHelper = new FocusListInlineMenuHelper<ServiceType>(ServiceType.class, this, this) {
 		private static final long serialVersionUID = 1L;
 
-		protected boolean isShowConfirmationDialog(ColumnMenuAction action){
+		protected boolean isShowConfirmationDialog(ColumnMenuAction action) {
 			return PageServices.this.isShowConfirmationDialog(action);
 		}
 
-		protected IModel<String> getConfirmationMessageModel(ColumnMenuAction action, String actionName){
+		protected IModel<String> getConfirmationMessageModel(ColumnMenuAction action, String actionName) {
 			return PageServices.this.getConfirmationMessageModel(action, actionName);
 		}
 	};
 
-	private void initLayout() {
-		Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
-		add(mainForm);
+	@Override
+	public void objectDetailsPerformed(AjaxRequestTarget target, ServiceType service) {
+		serviceDetailsPerformed(target, service);
+	}
 
-		MainObjectListPanel<ServiceType> servicePanel = new MainObjectListPanel<ServiceType>(ID_TABLE, ServiceType.class, TableId.TABLE_SERVICES, null, this){
-			private static final long serialVersionUID = 1L;
+	@Override
+	protected List<IColumn<SelectableBean<ServiceType>, String>> initColumns() {
+		return ColumnUtils.getDefaultServiceColumns();
+	}
 
-			@Override
-			public void objectDetailsPerformed(AjaxRequestTarget target, ServiceType service) {
-				PageServices.this.serviceDetailsPerformed(target, service);
-			}
+	@Override
+	protected List<InlineMenuItem> createRowActions() {
+		return listInlineMenuHelper.createRowActions();
+	}
 
-			@Override
-			protected List<IColumn<SelectableBean<ServiceType>, String>> createColumns() {
-				return ColumnUtils.getDefaultServiceColumns();
-			}
+	@Override
+	protected void newObjectActionPerformed(AjaxRequestTarget target) {
+		navigateToNext(PageService.class);
+	}
 
-			@Override
-			protected List<InlineMenuItem> createInlineMenu() {
-				return listInlineMenuHelper.createRowActions();
-			}
+	@Override
+	protected Class<ServiceType> getType(){
+		return ServiceType.class;
+	}
 
-			@Override
-			protected void newObjectPerformed(AjaxRequestTarget target) {
-				navigateToNext(PageService.class);
-			}
-		};
-		servicePanel.setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_SERVICE_BOX_CSS_CLASSES);
-		servicePanel.setOutputMarkupId(true);
-		mainForm.add(servicePanel);
+	@Override
+	protected UserProfileStorage.TableId getTableId(){
+		return TableId.TABLE_SERVICES;
 	}
 
 	protected void serviceDetailsPerformed(AjaxRequestTarget target, ServiceType service) {
@@ -125,12 +119,7 @@ public class PageServices extends PageAdminServices implements FocusListComponen
 		navigateToNext(PageService.class, parameters);
 	}
 
- 	@Override
-	public MainObjectListPanel<ServiceType> getObjectListPanel() {
-		return (MainObjectListPanel<ServiceType>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
-	}
-
-	private IModel<String> getConfirmationMessageModel(ColumnMenuAction action, String actionName){
+ 	private IModel<String> getConfirmationMessageModel(ColumnMenuAction action, String actionName){
 		return WebComponentUtil.createAbstractRoleConfirmationMessage(actionName, action, getObjectListPanel(), this);
 //		if (action.getRowModel() == null) {
 //			return createStringResource("PageServices.message.confirmationMessageForMultipleObject",

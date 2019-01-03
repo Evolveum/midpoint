@@ -194,5 +194,22 @@
         <maxModelClicks>30</maxModelClicks>     <!-- especially for TestIteration.test235 to prevent long test run in case of failure -->
     </internals>
     
+    <adminGuiConfiguration>
+    	<objectForms>
+			<objectForm id="111"> <!-- Make sure there will be id conflict: MID-5002 -->
+				<type>ServiceType</type>
+				<includeDefaultForms>true</includeDefaultForms>
+			</objectForm>
+		</objectForms>
+    	<objectCollectionViews>
+    		<objectCollectionView>
+    			<name>All employees</name>
+    			<type>UserType</type>
+    			<collection>
+    				<collectionRef oid="7135e68c-ee53-11e8-8025-170b77da3fd6" type="ArchetypeType"/> <!-- Employee archetype -->
+    			</collection>
+    		</objectCollectionView>
+    	</objectCollectionViews>
+    </adminGuiConfiguration>
     
 </systemConfiguration>

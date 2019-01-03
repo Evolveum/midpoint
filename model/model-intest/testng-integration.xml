@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
-<suite name="unit" parallel="false">
+<suite name="integration" parallel="false">
 	<listeners>
 		<listener class-name="com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor"/>
 	</listeners>

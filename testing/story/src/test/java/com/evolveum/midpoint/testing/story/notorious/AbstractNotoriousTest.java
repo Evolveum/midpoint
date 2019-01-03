@@ -917,7 +917,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         // WHEN
         displayWhen(TEST_NAME);
-        modifyFocusAssignment(UserType.class, USER_JACK_OID,
+        modifyAssignmentHolderAssignment(UserType.class, USER_JACK_OID,
         		getNotoriousOid(), getNotoriousType(), null, task, null, null, true, result);
 
         // THEN
@@ -960,7 +960,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         // WHEN
         displayWhen(TEST_NAME);
-        modifyFocusAssignment(UserType.class, USER_JACK_OID,
+        modifyAssignmentHolderAssignment(UserType.class, USER_JACK_OID,
         		getNotoriousOid(), getNotoriousType(), getAltRelation(), task, null, null, true, result);
 
         // THEN
@@ -1094,7 +1094,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         // WHEN
         displayWhen(TEST_NAME);
-        modifyFocusAssignment(UserType.class, USER_JACK_OID,
+        modifyAssignmentHolderAssignment(UserType.class, USER_JACK_OID,
         		getNotoriousOid(), getNotoriousType(), null, task, null, null, false, result);
 
         // THEN
@@ -1136,7 +1136,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         // WHEN
         displayWhen(TEST_NAME);
-        modifyFocusAssignment(UserType.class, USER_JACK_OID,
+        modifyAssignmentHolderAssignment(UserType.class, USER_JACK_OID,
         		getNotoriousOid(), getNotoriousType(), getAltRelation(), task, null, null, false, result);
 
         // THEN

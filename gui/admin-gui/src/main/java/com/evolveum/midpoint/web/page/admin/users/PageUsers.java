@@ -24,15 +24,20 @@ import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.data.column.*;
+import com.evolveum.midpoint.web.component.dialog.HelpInfoPanel;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItem;
 import com.evolveum.midpoint.web.component.search.SearchValue;
+import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -82,14 +87,14 @@ import javax.xml.namespace.QName;
 				@Url(mountUrl = "/admin/users", matchUrlForSecurity = "/admin/users")
 		},
 		action = {
-				@AuthorizationAction(actionUri = PageAdminUsers.AUTH_USERS_ALL,
-						label = PageAdminUsers.AUTH_USERS_ALL_LABEL,
-						description = PageAdminUsers.AUTH_USERS_ALL_DESCRIPTION),
+				@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USERS_ALL_URL,
+						label = "PageAdminUsers.auth.usersAll.label",
+						description = "PageAdminUsers.auth.usersAll.description"),
 				@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USERS_URL,
 						label = "PageUsers.auth.users.label",
 						description = "PageUsers.auth.users.description")
 		})
-public class PageUsers extends PageAdminUsers {
+public class PageUsers extends PageAdminObjectList<UserType> {
 	private static final long serialVersionUID = 1L;
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageUsers.class);
@@ -106,19 +111,19 @@ public class PageUsers extends PageAdminUsers {
 	private static final String OPERATION_RECONCILE_USER = DOT_CLASS + "reconcileUser";
 	private static final String OPERATION_UNLOCK_USERS = DOT_CLASS + "unlockUsers";
 	private static final String OPERATION_UNLOCK_USER = DOT_CLASS + "unlockUser";
+	private static final String OPERATION_LOAD_MERGE_CONFIGURATION = DOT_CLASS + "loadMergeConfiguration";
 
 	private static final String ID_MAIN_FORM = "mainForm";
 	private static final String ID_TABLE = "table";
 
-	private UserType singleDelete;
-    private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel;
+	private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel;
 
 	public PageUsers() {
 		this(null);
 	}
 
 	public PageUsers(final String text) {
-
+		super();
 		executeOptionsModel = new LoadableModel<ExecuteChangeOptionsDto>(false) {
 
 			@Override
@@ -130,12 +135,6 @@ public class PageUsers extends PageAdminUsers {
         if (StringUtils.isNotEmpty(text)){
             initSearch(text);
         }
-	}
-
-	@Override
-	protected void onInitialize(){
-		super.onInitialize();
-		initLayout();
 	}
 
     private void initSearch(String text){
@@ -155,59 +154,8 @@ public class PageUsers extends PageAdminUsers {
 
     }
 
-	private void initLayout() {
-		Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
-		add(mainForm);
-
-		initTable(mainForm);
-	}
-
-	private void initTable(Form mainForm) {
-		Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<>();
-		MainObjectListPanel<UserType> userListPanel = new MainObjectListPanel<UserType>(ID_TABLE,
-				UserType.class, TableId.TABLE_USERS, options, this) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected List<IColumn<SelectableBean<UserType>, String>> createColumns() {
-				return PageUsers.this.initColumns();
-			}
-
-			@Override
-			protected List<InlineMenuItem> createInlineMenu() {
-				return createRowActions();
-			}
-
-			@Override
-			protected void objectDetailsPerformed(AjaxRequestTarget target, UserType object) {
-				userDetailsPerformed(target, object.getOid());
-			}
-
-			@Override
-			protected void newObjectPerformed(AjaxRequestTarget target) {
-				navigateToNext(PageUser.class);
-			}
-
-			@Override
-			protected ObjectQuery createContentQuery() {
-				ObjectQuery contentQuery = super.createContentQuery();
-				ObjectFilter usersViewFilter = getUsersViewFilter();
-				if (usersViewFilter != null){
-					if (contentQuery == null) {
-						contentQuery = getPrismContext().queryFactory().createQuery();
-					}
-					contentQuery.addFilter(usersViewFilter);
-				}
-				return contentQuery;
-			}
-		};
-
-		userListPanel.setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_USER_BOX_CSS_CLASSES);
-		userListPanel.setOutputMarkupId(true);
-		mainForm.add(userListPanel);
-	}
-
-	private List<IColumn<SelectableBean<UserType>, String>> initColumns() {
+	@Override
+	protected List<IColumn<SelectableBean<UserType>, String>> initColumns() {
 		List<IColumn<SelectableBean<UserType>, String>> columns = new ArrayList<>();
 
 		IColumn<SelectableBean<UserType>, String> column = new PropertyColumn(
@@ -252,7 +200,8 @@ public class PageUsers extends PageAdminUsers {
 		return columns;
 	}
 
-	private List<InlineMenuItem> createRowActions() {
+	@Override
+	protected List<InlineMenuItem> createRowActions() {
     	List<InlineMenuItem> menu = new ArrayList<>();
 		menu.add(new ButtonInlineMenuItem(createStringResource("pageUsers.menu.enable")) {
 			private static final long serialVersionUID = 1L;
@@ -407,6 +356,23 @@ public class PageUsers extends PageAdminUsers {
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
+						OperationResult result = new OperationResult(OPERATION_LOAD_MERGE_CONFIGURATION);
+						List<MergeConfigurationType> mergeConfiguration = null;
+						try {
+							mergeConfiguration = getModelInteractionService().getMergeConfiguration(result);
+						} catch (ObjectNotFoundException | SchemaException ex){
+							LOGGER.error("Couldn't load merge configuration, ", ex.getLocalizedMessage());
+							result.recomputeStatus();
+							getFeedbackMessages().error(PageUsers.this, ex.getLocalizedMessage());
+							target.add(getFeedbackPanel());
+							return;
+						}
+
+						if (mergeConfiguration == null || mergeConfiguration.size() == 0){
+							getFeedbackMessages().warn(PageUsers.this, createStringResource("PageUsers.noMergeConfigurationMessage").getString());
+							target.add(getFeedbackPanel());
+							return;
+						}
 						if (getRowModel() == null) {
 							mergePerformed(target, null);
 						} else {
@@ -425,10 +391,26 @@ public class PageUsers extends PageAdminUsers {
 		return menu;
 	}
 
-	private void userDetailsPerformed(AjaxRequestTarget target, String oid) {
+	@Override
+	protected void objectDetailsPerformed(AjaxRequestTarget target, UserType user) {
 		PageParameters parameters = new PageParameters();
-		parameters.add(OnePageParameterEncoder.PARAMETER, oid);
+		parameters.add(OnePageParameterEncoder.PARAMETER, user.getOid());
 		navigateToNext(PageUser.class, parameters);
+	}
+
+	@Override
+	protected void newObjectActionPerformed(AjaxRequestTarget target){
+    	navigateToNext(PageUser.class);
+	}
+
+	@Override
+	protected Class getType(){
+		return UserType.class;
+	}
+
+	@Override
+	protected UserProfileStorage.TableId getTableId(){
+		return TableId.TABLE_USERS;
 	}
 
 	private MainObjectListPanel<UserType> getTable() {

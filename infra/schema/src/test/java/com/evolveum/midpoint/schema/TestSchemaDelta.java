@@ -19,6 +19,7 @@ package com.evolveum.midpoint.schema;
 import com.evolveum.midpoint.prism.*;
 
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -46,21 +47,18 @@ import static org.testng.AssertJUnit.*;
 public class TestSchemaDelta extends AbstractSchemaTest {
 
     @Test
-    public void testAssignmentSameNullIdApplyToObject() throws Exception {
-    	final String TEST_NAME = "testAssignmentSameNullIdApplyToObject";
+    public void testAssignmentNullIdApplyToObject() throws Exception {
+    	final String TEST_NAME = "testAssignmentNullIdApplyToObject";
     	displayTestTile(TEST_NAME);
 
 		// GIVEN
 		PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_FILE);
 
-		//Delta
-    	PrismContainerValue<AssignmentType> assignmentValue = getPrismContext().itemFactory().createContainerValue();
-    	// The value id is null
-    	assignmentValue.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "jamalalicha patlama paprtala", getPrismContext());
-
-		ObjectDelta<UserType> userDelta = getPrismContext().deltaFactory().object()
-				.createModificationAddContainer(UserType.class, USER_JACK_OID,
-				UserType.F_ASSIGNMENT, assignmentValue);
+	    AssignmentType a = new AssignmentType(getPrismContext())       // The value id is null
+				.description("jamalalicha patlama paprtala");
+	    ObjectDelta<UserType> userDelta = getPrismContext().deltaFor(UserType.class)
+			    .item(UserType.F_ASSIGNMENT).add(a)
+			    .asObjectDeltaCast(USER_JACK_OID);
 
 		// WHEN
         userDelta.applyTo(user);
@@ -76,21 +74,18 @@ public class TestSchemaDelta extends AbstractSchemaTest {
     }
 
     @Test
-    public void testAddInducementConstructionSameNullIdApplyToObject() throws Exception {
-    	final String TEST_NAME = "testAddInducementConstructionSameNullIdApplyToObject";
+    public void testAddInducementNullIdApplyToObject() throws Exception {
+    	final String TEST_NAME = "testAddInducementNullIdApplyToObject";
     	displayTestTile(TEST_NAME);
 
 		// GIVEN
 		PrismObject<RoleType> role = PrismTestUtil.parseObject(ROLE_CONSTRUCTION_FILE);
 
-		//Delta
-    	PrismContainerValue<AssignmentType> inducementValue = getPrismContext().itemFactory().createContainerValue();
-    	// The value id is null
-    	inducementValue.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "jamalalicha patlama paprtala", getPrismContext());
-
-		ObjectDelta<RoleType> roleDelta = getPrismContext().deltaFactory().object()
-				.createModificationAddContainer(RoleType.class, ROLE_CONSTRUCTION_OID,
-				RoleType.F_INDUCEMENT, inducementValue);
+	    AssignmentType i = new AssignmentType(getPrismContext())       // The value id is null
+			    .description("jamalalicha patlama paprtala");
+	    ObjectDelta<RoleType> roleDelta = getPrismContext().deltaFor(RoleType.class)
+			    .item(RoleType.F_INDUCEMENT).add(i)
+			    .asObjectDeltaCast(ROLE_CONSTRUCTION_OID);
 
 		// WHEN
         roleDelta.applyTo(role);
@@ -306,7 +301,36 @@ public class TestSchemaDelta extends AbstractSchemaTest {
         assertEquals("Wrong activation administrativeStatus", ActivationStatusType.ENABLED, activation.getAdministrativeStatus());
     }
 
-    // subtract of single-valued PCV from multivalued one
+	@Test
+	public void testAddAssignmentSameOidDifferentTargetType() throws Exception {
+		final String TEST_NAME = "testAddAssignmentSameOidDifferentTargetType";
+		displayTestTile(TEST_NAME);
+
+		// GIVEN
+		PrismObject<UserType> user = new UserType(getPrismContext())
+				.name("test")
+				.oid("oid1")
+				.beginAssignment()
+					.id(1L)
+					.targetRef("target-oid-1", RoleType.COMPLEX_TYPE)
+				.<UserType>end()
+				.asPrismObject();
+
+		ObjectDelta<UserType> userDelta = getPrismContext().deltaFor(UserType.class)
+				.item(UserType.F_ASSIGNMENT)
+					.add(new AssignmentType().id(2L).targetRef("target-oid-1", OrgType.COMPLEX_TYPE))
+				.asObjectDeltaCast("oid1");
+
+		// WHEN
+		userDelta.applyTo(user);
+
+		// THEN
+		System.out.println("User after delta application:");
+		System.out.println(user.debugDump());
+		assertEquals("Wrong # of assignments", 2, user.asObjectable().getAssignment().size());
+	}
+
+	// subtract of single-valued PCV from multivalued one
 	@Test
 	public void testSubtractAssignmentFromAddDelta() throws Exception {
 		final String TEST_NAME = "testSubtractAssignmentFromAddDelta";
@@ -588,7 +612,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 		userDeltaUnion.applyTo(userWithUnion);
 		display("userWithUnion after", userWithUnion);
 
-		ObjectDelta<UserType> diff = userWithSeparateDeltas.diff(userWithUnion, false, true);       // set to isLiteral = false after fixing MID-4688
+		ObjectDelta<UserType> diff = userWithSeparateDeltas.diff(userWithUnion, EquivalenceStrategy.LITERAL);       // set to isLiteral = false after fixing MID-4688
 		display("diff", diff.debugDump());
 		assertTrue("Deltas have different effects:\n" + diff.debugDump(), diff.isEmpty());
 	}

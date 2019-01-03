@@ -42,8 +42,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 
 @PageDescriptor(url = "/admin/service", encoder = OnePageParameterEncoder.class, action = {
-		@AuthorizationAction(actionUri = PageAdminServices.AUTH_SERVICES_ALL, label = PageAdminServices.AUTH_SERVICES_ALL_LABEL, description = PageAdminServices.AUTH_SERVICES_ALL_DESCRIPTION),
-		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICE_URL, label = "PageService.auth.role.label", description = "PageService.auth.role.description") })
+		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICES_ALL_URL,
+				label = "PageAdminServices.auth.servicesAll.label",
+				description = "PageAdminServices.auth.servicesAll.description"),
+		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICE_URL,
+				label = "PageService.auth.role.label",
+				description = "PageService.auth.role.description") })
 public class PageService extends PageAdminAbstractRole<ServiceType> implements ProgressReportingAwarePage{
 
 	private static final long serialVersionUID = 1L;

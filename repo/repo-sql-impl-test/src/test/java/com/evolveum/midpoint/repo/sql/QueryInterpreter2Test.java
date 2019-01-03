@@ -5182,4 +5182,116 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         }
     }
 
+    @Test
+    public void test1420QueryTasksForArchetypeRef() throws Exception {
+        Session session = open();
+
+        try {
+            ObjectQuery query = prismContext.queryFor(TaskType.class)
+                    .item(AssignmentHolderType.F_ARCHETYPE_REF).ref("oid1")
+                    .build();
+
+            String expected = "select\n"
+                    + "  t.oid,\n"
+                    + "  t.fullObject,\n"
+                    + "  t.stringsCount,\n"
+                    + "  t.longsCount,\n"
+                    + "  t.datesCount,\n"
+                    + "  t.referencesCount,\n"
+                    + "  t.polysCount,\n"
+                    + "  t.booleansCount\n"
+                    + "from\n"
+                    + "  RTask t\n"
+                    + "    left join t.archetypeRef a\n"
+                    + "where\n"
+                    + "  (\n"
+                    + "    a.targetOid = :targetOid and\n"
+                    + "    a.relation in (:relation)\n"
+                    + "  )";
+
+            String real = getInterpretedQuery2(session, TaskType.class, query);
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test1430QuerySearchForFocusType() throws Exception {
+        Session session = open();
+
+        try {
+            String expected = "select\n"
+		            + "  f.oid,\n"
+		            + "  f.fullObject,\n"
+		            + "  f.stringsCount,\n"
+		            + "  f.longsCount,\n"
+		            + "  f.datesCount,\n"
+		            + "  f.referencesCount,\n"
+		            + "  f.polysCount,\n"
+		            + "  f.booleansCount\n"
+		            + "from\n"
+		            + "  RFocus f";
+
+            String real = getInterpretedQuery2(session, FocusType.class, (ObjectQuery) null);
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test1432QuerySearchForAssignmentHolderType() throws Exception {
+        Session session = open();
+
+        try {
+            String expected = "select\n"
+		            + "  o.oid,\n"
+		            + "  o.fullObject,\n"
+		            + "  o.stringsCount,\n"
+		            + "  o.longsCount,\n"
+		            + "  o.datesCount,\n"
+		            + "  o.referencesCount,\n"
+		            + "  o.polysCount,\n"
+		            + "  o.booleansCount\n"
+		            + "from\n"
+		            + "  RObject o\n"
+		            + "where\n"
+		            + "  o.objectTypeClass in (:objectTypeClass)";
+
+	        RQueryImpl rQuery = (RQueryImpl) getInterpretedQuery2Whole(session, AssignmentHolderType.class, null, false, null);
+	        String real = rQuery.getQuery().getQueryString();
+	        System.out.println("Query parameters:\n" + rQuery.getQuerySource().getParameters());
+
+	        assertEqualsIgnoreWhitespace(expected, real);
+
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test1434QuerySearchForObjectType() throws Exception {
+        Session session = open();
+
+        try {
+            String expected = "select\n"
+		            + "  o.oid,\n"
+		            + "  o.fullObject,\n"
+		            + "  o.stringsCount,\n"
+		            + "  o.longsCount,\n"
+		            + "  o.datesCount,\n"
+		            + "  o.referencesCount,\n"
+		            + "  o.polysCount,\n"
+		            + "  o.booleansCount\n"
+		            + "from\n"
+		            + "  RObject o";
+
+            String real = getInterpretedQuery2(session, ObjectType.class, (ObjectQuery) null);
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
 }

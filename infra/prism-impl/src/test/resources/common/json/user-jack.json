@@ -80,7 +80,7 @@
       "filter" : {
         "@ns" : "http://prism.evolveum.com/xml/ns/public/query-3",
         "equal" : {
-          "path" : "name",
+          "path" : "declare namespace c='http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd'; c:name",
           "value" : [ "captain" ]
         }
       }

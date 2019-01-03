@@ -15,26 +15,29 @@
  */
 package com.evolveum.midpoint.web.component.objectdetails;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.FocusSummaryPanel;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.prism.ContainerStatus;
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.repeater.RepeatingView;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.model.IModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,51 +53,126 @@ public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTa
 
     private static final Trace LOGGER = TraceManager.getTrace(FocusPersonasTabPanel.class);
 
-    private static final String ID_PERSONAS_CONTAINER = "personasContainer";
     private static final String ID_PERSONAS_TABLE = "personasTable";
-    private static final String ID_PERSONAS_SUMMARY = "personaSummary";
-
-    private PageBase pageBase;
 
     public FocusPersonasTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapper<F>> focusModel,
                                  PageBase page) {
         super(id, mainForm, focusModel, page);
-        this.pageBase = page;
-        initLayout(page);
     }
 
-    private void initLayout(ModelServiceLocator serviceLocator) {
-        WebMarkupContainer container = new WebMarkupContainer(ID_PERSONAS_CONTAINER);
-        container.setOutputMarkupId(true);
-        add(container);
+    @Override
+    protected void onInitialize(){
+        super.onInitialize();
+        initLayout();
+    }
 
-        RepeatingView view = new RepeatingView(ID_PERSONAS_TABLE);
-        view.setOutputMarkupId(true);
-        container.add(view);
+    private void initLayout() {
+        MainObjectListPanel<F> userListPanel = new MainObjectListPanel<F>(ID_PERSONAS_TABLE,
+                (Class<F>) FocusType.class, null, null, getPageBase()) {
+            private static final long serialVersionUID = 1L;
 
-        LoadableModel<List<PrismObject<FocusType>>> personasListModel = loadModel();
-        if (personasListModel.getObject() == null || personasListModel.getObject().size() == 0){
-            WebMarkupContainer viewChild = new WebMarkupContainer(view.newChildId());
-            viewChild.setOutputMarkupId(true);
-            view.add(viewChild);
+            @Override
+            protected IColumn<SelectableBean<F>, String> createCheckboxColumn(){
+                return null;
+            }
 
-            WebMarkupContainer emptyContainer = new WebMarkupContainer(ID_PERSONAS_SUMMARY);
-            emptyContainer.setOutputMarkupId(true);
-            viewChild.add(emptyContainer);
-            return;
-        }
-        Task task = pageBase.createSimpleTask(OPERATION_LOAD_PERSONAS);
-        for (PrismObject<FocusType> personaObject : personasListModel.getObject()){
-            ObjectWrapper<FocusType> personaWrapper = ObjectWrapperUtil.createObjectWrapper(
-                    WebComponentUtil.getEffectiveName(personaObject, RoleType.F_DISPLAY_NAME), "", personaObject,
-                    ContainerStatus.MODIFYING, task, getPageBase());
+            @Override
+            protected List<IColumn<SelectableBean<F>, String>> createColumns() {
+                return new ArrayList<>();
+            }
 
-            WebMarkupContainer personaPanel = new WebMarkupContainer(view.newChildId());
-            personaPanel.setOutputMarkupId(true);
-            view.add(personaPanel);
+            @Override
+            protected List<InlineMenuItem> createInlineMenu() {
+                List<InlineMenuItem> menuItems = new ArrayList<>();
+                menuItems.add(new ButtonInlineMenuItem(createStringResource("AssignmentPanel.viewTargetObject")) {
+                    private static final long serialVersionUID = 1L;
 
-            FocusSummaryPanel.addSummaryPanel(personaPanel, personaObject, personaWrapper, ID_PERSONAS_SUMMARY, serviceLocator);
-        }
+                    @Override
+                    public String getButtonIconCssClass() {
+                        return GuiStyleConstants.CLASS_NAVIGATE_ARROW;
+                    }
+
+                    @Override
+                    public InlineMenuItemAction initAction() {
+                        return new ColumnMenuAction<SelectableBean<F>>() {
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            public void onClick(AjaxRequestTarget target) {
+                                SelectableBean<F> personaRefSelectableBean = getRowModel().getObject();
+                                F personaRefObj = personaRefSelectableBean.getValue();
+                                ObjectReferenceType ort = new ObjectReferenceType();
+                                ort.setOid(personaRefObj.getOid());
+                                ort.setType(WebComponentUtil.classToQName(FocusPersonasTabPanel.this.getPrismContext(), personaRefObj.getClass()));
+                                WebComponentUtil.dispatchToObjectDetailsPage(ort, FocusPersonasTabPanel.this, false);
+                            }
+                        };
+                    }
+
+                    @Override
+                    public boolean isHeaderMenuItem(){
+                        return false;
+                    }
+                });
+                return menuItems;          }
+
+            @Override
+            protected void objectDetailsPerformed(AjaxRequestTarget target, F object) {
+            }
+
+            @Override
+            protected void newObjectPerformed(AjaxRequestTarget target) {
+            }
+
+            @Override
+            protected ObjectQuery createContentQuery() {
+                List<String> personaOidsList = getPersonasOidsList();
+                QueryFactory factory = FocusPersonasTabPanel.this.getPageBase().getPrismContext().queryFactory();
+                ObjectQuery query = factory.createQuery(factory.createInOid(personaOidsList));
+                return query;
+            }
+
+            @Override
+            protected boolean isClickable(IModel<SelectableBean<F>> rowModel) {
+                return false;
+            }
+        };
+        userListPanel.setOutputMarkupId(true);
+        add(userListPanel);
+
+
+//
+//        WebMarkupContainer container = new WebMarkupContainer(ID_PERSONAS_CONTAINER);
+//        container.setOutputMarkupId(true);
+//        add(container);
+//
+//        RepeatingView view = new RepeatingView(ID_PERSONAS_TABLE);
+//        view.setOutputMarkupId(true);
+//        container.add(view);
+//
+//        LoadableModel<List<PrismObject<FocusType>>> personasListModel = loadModel();
+//        if (personasListModel.getObject() == null || personasListModel.getObject().size() == 0){
+//            WebMarkupContainer viewChild = new WebMarkupContainer(view.newChildId());
+//            viewChild.setOutputMarkupId(true);
+//            view.add(viewChild);
+//
+//            WebMarkupContainer emptyContainer = new WebMarkupContainer(ID_PERSONAS_SUMMARY);
+//            emptyContainer.setOutputMarkupId(true);
+//            viewChild.add(emptyContainer);
+//            return;
+//        }
+//        Task task = pageBase.createSimpleTask(OPERATION_LOAD_PERSONAS);
+//        for (PrismObject<FocusType> personaObject : personasListModel.getObject()){
+//            ObjectWrapper<FocusType> personaWrapper = ObjectWrapperUtil.createObjectWrapper(
+//                    WebComponentUtil.getEffectiveName(personaObject, RoleType.F_DISPLAY_NAME), "", personaObject,
+//                    ContainerStatus.MODIFYING, task, getPageBase());
+//
+//            WebMarkupContainer personaPanel = new WebMarkupContainer(view.newChildId());
+//            personaPanel.setOutputMarkupId(true);
+//            view.add(personaPanel);
+//
+//            FocusSummaryPanel.addSummaryPanel(personaPanel, personaObject, personaWrapper, ID_PERSONAS_SUMMARY, serviceLocator);
+//        }
 
     }
 

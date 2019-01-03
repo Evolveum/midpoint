@@ -34,6 +34,10 @@
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgUnit</action>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#service</action>
     </authorization>
+    <authorization id="123"> <!-- MID-5002  -->
+		<name>gui services all</name>
+		<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#servicesAll</action>
+	</authorization>
 	<authorization>
 		<name>workitems-delegate</name>
 		<description>

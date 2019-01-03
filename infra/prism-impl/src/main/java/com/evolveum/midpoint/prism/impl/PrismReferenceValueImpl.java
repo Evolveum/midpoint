@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.prism.impl;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -387,14 +388,12 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
 		return can;
 	}
 
-	@Override
-	public boolean equalsComplex(PrismValue other, boolean ignoreMetadata, boolean isLiteral) {
-		return other instanceof PrismReferenceValue
-				&& equalsComplex((PrismReferenceValue) other, ignoreMetadata, isLiteral);
+	public boolean equals(PrismValue other, @NotNull ParameterizedEquivalenceStrategy strategy) {
+		return other instanceof PrismReferenceValue && equals((PrismReferenceValue) other, strategy);
 	}
 
-	public boolean equalsComplex(PrismReferenceValue other, boolean ignoreMetadata, boolean isLiteral) {
-		if (!super.equalsComplex(other, ignoreMetadata, isLiteral)) {
+	public boolean equals(PrismReferenceValue other, @NotNull ParameterizedEquivalenceStrategy strategy) {
+		if (!super.equals(other, strategy)) {
 			return false;
 		}
 		if (this.getOid() == null) {
@@ -418,10 +417,10 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
 		if (!equalsTargetType(other)) {
 			return false;
 		}
-		if (!relationsEquivalent(relation, other.getRelation(), isLiteral)) {
+		if (!relationsEquivalent(relation, other.getRelation(), strategy.isLiteralDomComparison())) {
 			return false;
 		}
-		if ((isLiteral || bothOidsNull) && !filtersEquivalent(filter, other.getFilter())) {
+		if ((strategy.isConsideringReferenceFilters() || bothOidsNull) && !filtersEquivalent(filter, other.getFilter())) {
 			return false;
 		}
 		return true;
@@ -438,6 +437,7 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
 	}
 
 	private boolean relationsEquivalent(QName r1, QName r2, boolean isLiteral) {
+		// todo use equals if isLiteral is true
 		return QNameUtil.match(normalizedRelation(r1, isLiteral), normalizedRelation(r2, isLiteral));
 	}
 
@@ -473,13 +473,14 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
 		if (getClass() != obj.getClass())
 			return false;
 		PrismReferenceValue other = (PrismReferenceValue) obj;
-		return equalsComplex(other, false, false);
+		return equals(other, getEqualsHashCodeStrategy());
 	}
 
+	// TODO take strategy into account
 	@Override
-	public int hashCode() {
+	public int hashCode(ParameterizedEquivalenceStrategy strategy) {
 		final int prime = 31;
-		int result = super.hashCode();
+		int result = super.hashCode(strategy);
 		result = prime * result + ((oid == null) ? 0 : oid.hashCode());
 		QName normalizedRelation = normalizedRelation(relation, false);
 		if (normalizedRelation != null) {
@@ -490,22 +491,6 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
 			}
 		}
 		return result;
-	}
-
-	@Override
-	public boolean representsSameValue(PrismValue other, boolean lax) {
-		if (other instanceof PrismReferenceValue) {
-			return representsSameValue((PrismReferenceValue)other);
-		} else {
-			return false;
-		}
-	}
-
-	public boolean representsSameValue(PrismReferenceValue other) {
-		if (this.getOid() != null && other.getOid() != null) {
-			return this.getOid().equals(other.getOid()) && relationsEquivalent(this.getRelation(), other.getRelation(), false);
-		}
-		return false;
 	}
 
 	@Override
@@ -619,11 +604,6 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
 		clone.resolutionTime = this.resolutionTime;
         clone.relation = this.relation;
         clone.targetName = this.targetName;
-	}
-
-	@Override
-	public boolean match(PrismValue otherValue) {
-		return equalsRealValue(otherValue);
 	}
 
 	/* (non-Javadoc)

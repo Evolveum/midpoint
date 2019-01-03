@@ -19,7 +19,7 @@ package com.evolveum.midpoint.prism;
  * @author semancik
  *
  */
-public interface PrismContainerable<T extends Containerable> extends Itemable {
+public interface PrismContainerable<T extends Containerable> extends Itemable, ParentVisitable {
 
 	@Override
 	PrismContainerDefinition<T> getDefinition();

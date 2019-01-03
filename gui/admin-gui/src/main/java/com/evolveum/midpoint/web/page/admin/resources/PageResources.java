@@ -20,14 +20,24 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.search.*;
+import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -72,14 +82,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 				@Url(mountUrl = "/admin/resources", matchUrlForSecurity = "/admin/resources")
 		},
 		action = {
-				@AuthorizationAction(actionUri = PageAdminResources.AUTH_RESOURCE_ALL,
-						label = PageAdminResources.AUTH_RESOURCE_ALL_LABEL,
-						description = PageAdminResources.AUTH_RESOURCE_ALL_DESCRIPTION),
+				@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL,
+						label = "PageAdminResources.auth.resourcesAll.label",
+						description = "PageAdminResources.auth.resourcesAll.description"),
 				@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCES_URL,
 						label = "PageResources.auth.resources.label",
 						description = "PageResources.auth.resources.description")
 		})
-public class PageResources extends PageAdminResources {
+public class PageResources extends PageAdminObjectList<ResourceType> {
 
 	private static final long serialVersionUID = 1L;
 	private static final Trace LOGGER = TraceManager.getTrace(PageResources.class);
@@ -92,42 +102,23 @@ public class PageResources extends PageAdminResources {
 	private static final String ID_TABLE = "table";
 	private static final String ID_CONNECTOR_TABLE = "connectorTable";
 
-	private IModel<Search> searchModel;
 	private ResourceType singleDelete;
 
 	public PageResources() {
-		this(true);
-	}
-
-	public PageResources(boolean clearSessionPaging) {
-		this(clearSessionPaging, "");
+		this("");
 	}
 
 	public PageResources(String searchText) {
-		this(true, searchText);
-	}
-
-	public PageResources(boolean clearSessionPaging, String searchText) {
-		searchModel = new LoadableModel<Search>(false) {
-
-			private static final long serialVersionUID = 1L;
-			@Override
-			protected Search load() {
-				ResourcesStorage storage = getSessionStorage().getResources();
-				Search dto = storage.getSearch();
-
-				if (dto == null) {
-					dto = SearchFactory.createSearch(ResourceType.class, PageResources.this);
-				}
-
-				return dto;
-			}
-		};
-
-        if (StringUtils.isNotEmpty(searchText)){
+		super();
+		if (StringUtils.isNotEmpty(searchText)){
             initSearch(searchText);
         }
-        initLayout();
+	}
+
+	protected void initLayout(){
+		super.initLayout();
+		getObjectListPanel().setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_RESOURCE_BOX_CSS_CLASSES);
+
 	}
 
     private void initSearch(String text){
@@ -146,46 +137,44 @@ public class PageResources extends PageAdminResources {
         getSessionStorage().getPageStorageMap().put(SessionStorage.KEY_RESOURCES, storage);
     }
 
-	private void initLayout() {
-		Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
-		add(mainForm);
+	@Override
+	protected List<InlineMenuItem> createRowActions() {
+		return PageResources.this.createRowMenuItems();
+	}
 
-		Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
+	@Override
+	protected List<IColumn<SelectableBean<ResourceType>, String>> initColumns() {
+		return PageResources.this.initResourceColumns();
+	}
+
+	@Override
+	protected void objectDetailsPerformed(AjaxRequestTarget target, ResourceType object) {
+		PageResources.this.resourceDetailsPerformed(target, object.getOid());
+
+	}
+
+	@Override
+	protected void newObjectActionPerformed(AjaxRequestTarget target) {
+		navigateToNext(PageResourceWizard.class);
+
+	}
+
+	@Override
+	protected Class<ResourceType> getType(){
+    	return ResourceType.class;
+	}
+
+	@Override
+	protected Collection<SelectorOptions<GetOperationOptions>> getQueryOptions(){
+		return getOperationOptionsBuilder()
 				.noFetch()
 				.item(ResourceType.F_CONNECTOR).resolve()
 				.build();
+	}
 
-		MainObjectListPanel<ResourceType> resourceListPanel = new MainObjectListPanel<ResourceType>(ID_TABLE,
-				ResourceType.class, TableId.TABLE_RESOURCES, options, this) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected List<InlineMenuItem> createInlineMenu() {
-				return PageResources.this.createRowMenuItems();
-			}
-
-			@Override
-			protected List<IColumn<SelectableBean<ResourceType>, String>> createColumns() {
-				return PageResources.this.initResourceColumns();
-			}
-
-			@Override
-			protected void objectDetailsPerformed(AjaxRequestTarget target, ResourceType object) {
-				PageResources.this.resourceDetailsPerformed(target, object.getOid());
-
-			}
-
-			@Override
-			protected void newObjectPerformed(AjaxRequestTarget target) {
-				navigateToNext(PageResourceWizard.class);
-
-			}
-
-		};
-		resourceListPanel.setOutputMarkupId(true);
-		resourceListPanel.setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_RESOURCE_BOX_CSS_CLASSES);
-		mainForm.add(resourceListPanel);
-
+	@Override
+	protected UserProfileStorage.TableId getTableId(){
+		return UserProfileStorage.TableId.TABLE_RESOURCES;
 	}
 
 	private List<InlineMenuItem> createRowMenuItems() {
@@ -414,10 +403,6 @@ public class PageResources extends PageAdminResources {
 		return (MainObjectListPanel<ResourceType>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
 	}
 
-	private Table getConnectorHostTable() {
-		return (Table) get(createComponentPath(ID_MAIN_FORM, ID_CONNECTOR_TABLE));
-	}
-
 	/**
 	 * @param oneDeleteKey
 	 *            message if deleting one item
@@ -490,8 +475,6 @@ public class PageResources extends PageAdminResources {
 
 		OperationResult result = new OperationResult(OPERATION_TEST_RESOURCE);
 
-		// SelectableBean<ResourceType> dto = rowModel.getObject();
-		// ResourceType resourceType = dto.getValue();
 		if (StringUtils.isEmpty(resourceType.getOid())) {
 			result.recordFatalError(createStringResource("PageResources.message.testResourcePerformed.partialError").getString());
 		}
@@ -499,9 +482,6 @@ public class PageResources extends PageAdminResources {
 		Task task = createSimpleTask(OPERATION_TEST_RESOURCE);
 		try {
 			result = getModelService().testResource(resourceType.getOid(), task);
-			// ResourceController.updateResourceState(resourceType.getState(),
-			// result);
-
 			// todo de-duplicate code (see the same operation in PageResource)
 			// this provides some additional tests, namely a test for schema
 			// handling section
@@ -527,7 +507,7 @@ public class PageResources extends PageAdminResources {
 
 
 	private void deleteResourceSyncTokenPerformed(AjaxRequestTarget target, ResourceType resourceType) {
-		deleteSyncTokenPerformed(target, resourceType);
+		WebComponentUtil.deleteSyncTokenPerformed(target, resourceType, PageResources.this);
 	}
 
 	private void editResourcePerformed(ResourceType resourceType) {

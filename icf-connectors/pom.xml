@@ -51,8 +51,21 @@
 		<module>dummy-connector-fake</module>
 		<module>dummy-resource</module>
 	</modules>
+	<build>
+		<plugins>
+			<!-- reference failsafe and surefire from build-system plugin management in order for tests to be running -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
 	<dependencies>
-	<dependency>
+		<dependency>
 			<groupId>com.evolveum.midpoint.tools</groupId>
 			<artifactId>test-ng</artifactId>
 			<version>4.0-SNAPSHOT</version>

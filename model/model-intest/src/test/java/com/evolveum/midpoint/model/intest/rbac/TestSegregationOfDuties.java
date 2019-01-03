@@ -1845,7 +1845,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-        ObjectDelta<UserType> delta = createAssignmentFocusDelta(UserType.class, USER_GUYBRUSH_OID,
+        ObjectDelta<UserType> delta = createAssignmentAssignmentHolderDelta(UserType.class, USER_GUYBRUSH_OID,
         		ROLE_MINISTER_OID, RoleType.COMPLEX_TYPE, null, null, null, true);
 
         // WHEN

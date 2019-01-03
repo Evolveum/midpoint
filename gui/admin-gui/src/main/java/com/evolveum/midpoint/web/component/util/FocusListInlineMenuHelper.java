@@ -32,6 +32,7 @@ import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -69,10 +70,10 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 
 	@NotNull private final Class<F> objectClass;
 	@NotNull private final PageBase parentPage;
-	@NotNull private final FocusListComponent<F> focusListComponent;
+	@NotNull private final PageAdminObjectList<F> focusListComponent;
 	private F singleDelete;
 
-	public FocusListInlineMenuHelper(@NotNull Class<F> objectClass, @NotNull PageBase parentPage, @NotNull FocusListComponent<F> focusListComponent) {
+	public FocusListInlineMenuHelper(@NotNull Class<F> objectClass, @NotNull PageBase parentPage, @NotNull PageAdminObjectList<F> focusListComponent) {
 		this.objectClass = objectClass;
 		this.parentPage = parentPage;
 		this.focusListComponent = focusListComponent;

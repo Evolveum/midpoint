@@ -56,6 +56,7 @@ public class SearchTest extends BaseSQLRepoTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(SearchTest.class);
     private static final String DESCRIPTION_TO_FIND = "tralala";
+    private static final String ARCHETYPE1_OID = "a71e48fe-f6e2-40f4-ab76-b4ad4a0918ad";
 
     private String beforeConfigOid;
 
@@ -994,5 +995,81 @@ public class SearchTest extends BaseSQLRepoTest {
         result.recomputeStatus();
         assertTrue(result.isSuccess());
         assertEquals("Should find 1 object", 1, collections.size());
+    }
+
+    @Test
+    public void testSearchAssignmentHoldersByArchetypeRef() throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(AssignmentHolderType.class)
+                .item(AssignmentHolderType.F_ARCHETYPE_REF).ref(ARCHETYPE1_OID)
+                .build();
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<AssignmentHolderType>> objects = repositoryService.searchObjects(AssignmentHolderType.class, query, null, result);
+        result.recomputeStatus();
+        assertTrue(result.isSuccess());
+        System.out.println("Objects found: " + objects);
+        assertEquals("Should find 3 objects", 3, objects.size());
+    }
+
+    @Test
+    public void testSearchObjectsByArchetypeRef() throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(AssignmentHolderType.class)
+                .item(AssignmentHolderType.F_ARCHETYPE_REF).ref(ARCHETYPE1_OID)
+                .build();
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<ObjectType>> objects = repositoryService.searchObjects(ObjectType.class, query, null, result);
+        result.recomputeStatus();
+        assertTrue(result.isSuccess());
+        System.out.println("Objects found: " + objects);
+        assertEquals("Should find 3 objects", 3, objects.size());
+    }
+
+    @Test
+    public void testSearchUsersByArchetypeRef() throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .item(AssignmentHolderType.F_ARCHETYPE_REF).ref(ARCHETYPE1_OID)
+                .build();
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<UserType>> objects = repositoryService.searchObjects(UserType.class, query, null, result);
+        result.recomputeStatus();
+        assertTrue(result.isSuccess());
+        System.out.println("Users found: " + objects);
+        assertEquals("Should find 2 objects", 2, objects.size());
+    }
+
+    @Test
+    public void testSearchTasksByArchetypeRef() throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(TaskType.class)
+                .item(AssignmentHolderType.F_ARCHETYPE_REF).ref(ARCHETYPE1_OID)
+                .build();
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<TaskType>> objects = repositoryService.searchObjects(TaskType.class, query, null, result);
+        result.recomputeStatus();
+        assertTrue(result.isSuccess());
+        System.out.println("Tasks found: " + objects);
+        assertEquals("Should find 1 object", 1, objects.size());
+    }
+
+    @Test
+    public void testSearchFocus() throws SchemaException {
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<FocusType>> objects = repositoryService.searchObjects(FocusType.class, null, null, result);
+        result.recomputeStatus();
+        assertSuccess(result);
+        System.out.println("Objects found: " + objects);
+        for (PrismObject<?> object : objects) {
+            assertTrue("returned object is not a FocusType: " + object, object.asObjectable() instanceof FocusType);
+        }
+    }
+
+    @Test
+    public void testSearchAssignmentHolder() throws SchemaException {
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<AssignmentHolderType>> objects = repositoryService.searchObjects(AssignmentHolderType.class, null, null, result);
+        result.recomputeStatus();
+        assertSuccess(result);
+        System.out.println("Objects found: " + objects);
+        for (PrismObject<?> object : objects) {
+            assertTrue("returned object is not a AssignmentHolderType: " + object, object.asObjectable() instanceof AssignmentHolderType);
+        }
     }
 }

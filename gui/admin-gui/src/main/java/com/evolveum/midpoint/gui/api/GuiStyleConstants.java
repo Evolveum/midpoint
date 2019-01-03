@@ -143,6 +143,7 @@ public class GuiStyleConstants {
 	public static final String CLASS_STOP_MENU_ITEM = "fa fa-stop";
 	public static final String CLASS_START_MENU_ITEM = "fa fa-play";
 	public static final String CLASS_IMPORT_MENU_ITEM = "fa fa-download";
+	public static final String CLASS_NAVIGATE_ARROW = "fa fa-share";
 
 	public static final String CLASS_BUTTON_TOGGLE_OFF = "btn-default";
 	public static final String CLASS_BUTTON_TOGGLE_ON = "btn-info";
@@ -173,4 +174,21 @@ public class GuiStyleConstants {
 	public static final String CLASS_ADD_NEW_OBJECT = "fa fa-plus";
 	public static final String CLASS_UPLOAD = "fa fa-upload";
 	public static final String CLASS_CREATE_FOCUS = "fa fa-user-plus";
+	
+	public static final String EVO_CROW_ICON = "fe fe-crown-object";
+	public static final String EVO_ASSIGNMENT_ICON = "fe fe-assignment";
+	public static final String EVO_OFFICER_CAP_ICON = "fe fe-officer-cap-object";
+	public static final String EVO_ASSIGNMENT_STRAIGHT_THICKER_ICON = "fe fe-assignment-straight-thicker-object";
+	public static final String EVO_ASSIGNMENT_STRAIGHT_ICON = "fe fe-assignment-straight-object";
+	public static final String EVO_UNEMPLOYER_ICON = "fe fe-unemployer-icon";
+	public static final String EVO_EMPLOYER_ICON = "fe fe-employer-icon";
+	public static final String EVO_APPROVER_ICON = "fe fe-approver-object";
+	public static final String EVO_MP_SHORTER_LINES = "fe fe-midpoint-shorter-lines";
+	public static final String EVO_MP_WHEEL_ICON = "fe fe-midpoint-wheel";
+	public static final String EVO_MP_WITH_LINES_ICON = "fe fe-midpoint-with-lines";
+	public static final String EVO_ROLE_HAT_ICON = "fe fe-role-hat";
+	public static final String EVO_ROLE_TIE_ICON = "fe fe-role-tie";
+	public static final String EVO_ROLE_TOP_HAT_ICON = "fe fe-role-top-hat";
+	public static final String EVO_ASSIGNMENT_THICKER_ICON = "fe assignment-thicker";
+	
 }

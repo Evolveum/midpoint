@@ -202,7 +202,7 @@ public class LensUtil {
 			if (originMappingName != null) {
 				//noinspection unchecked
 				PrismContainer<MetadataType> metadataContainer = ((PrismContainerValue) cloned).findOrCreateContainer(AssignmentType.F_METADATA);
-				metadataContainer.getOrCreateValue().asContainerable().setOriginMappingName(originMappingName);
+				metadataContainer.getValue().asContainerable().setOriginMappingName(originMappingName);
 			}
 		}
 		return cloned;
@@ -249,7 +249,7 @@ public class LensUtil {
 		Iterator<? extends ItemDelta> iterator = modifications.iterator();
 		while (iterator.hasNext()) {
 			ItemDelta projModification = iterator.next();
-			LOGGER.trace("MOD: {}\n{}", projModification.getPath(), projModification.debugDump());
+			LOGGER.trace("MOD: {}\n{}", projModification.getPath(), projModification.debugDumpLazily());
 			if (projModification.getPath().equivalent(SchemaConstants.PATH_TRIGGER)) {
 				focusCtx.swallowToProjectionWaveSecondaryDelta(projModification);
 				iterator.remove();
@@ -584,8 +584,11 @@ public class LensUtil {
         return forcedAssignments;
     }
     
-	public static boolean isFocusValid(FocusType focus, XMLGregorianCalendar now, ActivationComputer activationComputer, LifecycleStateModelType focusStateModel) {
-		return isValid(focus.getLifecycleState(), focus.getActivation(), now, activationComputer, focusStateModel);
+	public static boolean isFocusValid(AssignmentHolderType focus, XMLGregorianCalendar now, ActivationComputer activationComputer, LifecycleStateModelType focusStateModel) {
+		if (focus instanceof FocusType) {
+			return isValid(focus.getLifecycleState(),  ((FocusType) focus).getActivation(), now, activationComputer, focusStateModel);
+		}
+		return isValid(focus.getLifecycleState(),  null, now, activationComputer, focusStateModel);
 	}
 
 	private static boolean isValid(String lifecycleState, ActivationType activationType, XMLGregorianCalendar now, ActivationComputer activationComputer, LifecycleStateModelType focusStateModel) {

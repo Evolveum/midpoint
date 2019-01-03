@@ -29,6 +29,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.impl.util.JaxbTestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -159,8 +160,8 @@ public class TestJaxbSanity {
 		PrismContainerValue<AssignmentType> as2ContVal = as2Type.asPrismContainerValue();
 		PrismContainer<AssignmentType> as2Cont = as2ContVal.getContainer();
 		assertTrue("Assignment not equals (ContainerValue)", as1ContVal.equals(as2ContVal));
-		assertTrue("Assignment not equals (ContainerValue, ignoreMetadata)", as1ContVal.equals(as2ContVal,true));
-		assertTrue("Assignment not equals (ContainerValue, not ignoreMetadata)", as1ContVal.equals(as2ContVal,false));
+		assertTrue("Assignment not equals (ContainerValue, ignoreMetadata)", as1ContVal.equals(as2ContVal, EquivalenceStrategy.IGNORE_METADATA));
+		assertTrue("Assignment not equals (ContainerValue, not ignoreMetadata)", as1ContVal.equals(as2ContVal, EquivalenceStrategy.NOT_LITERAL));
 		assertTrue("Assignment not equivalent (ContainerValue)", as1ContVal.equivalent(as2ContVal));
 		assertTrue("Assignment not equals (Container)", as1Cont.equals(as2Cont));
 		assertTrue("Assignment not equivalent (Container)", as1Cont.equivalent(as2Cont));
@@ -267,7 +268,7 @@ public class TestJaxbSanity {
 		PrismPropertyValue<Object> pv1 = getPrismContext().itemFactory().createPropertyValue(resource1Type.getConnectorConfiguration());
 		PrismPropertyValue<Object> pv2 = getPrismContext().itemFactory().createPropertyValue(resource2Type.getConnectorConfiguration());
 
-		assertTrue("Real property values not equal",pv1.equalsRealValue(pv2));
+		assertTrue("Real property values not equal",pv1.equals(pv2, EquivalenceStrategy.REAL_VALUE));
 	}
 
 	@Test

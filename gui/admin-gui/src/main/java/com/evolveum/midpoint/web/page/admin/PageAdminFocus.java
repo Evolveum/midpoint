@@ -67,14 +67,6 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		implements ProgressReportingAwarePage {
 	private static final long serialVersionUID = 1L;
 
-	public static final String AUTH_USERS_ALL = AuthorizationConstants.AUTZ_UI_USERS_ALL_URL;
-	public static final String AUTH_USERS_ALL_LABEL = "PageAdminUsers.auth.usersAll.label";
-	public static final String AUTH_USERS_ALL_DESCRIPTION = "PageAdminUsers.auth.usersAll.description";
-
-	public static final String AUTH_ORG_ALL = AuthorizationConstants.AUTZ_UI_ORG_ALL_URL;
-	public static final String AUTH_ORG_ALL_LABEL = "PageAdminUsers.auth.orgAll.label";
-	public static final String AUTH_ORG_ALL_DESCRIPTION = "PageAdminUsers.auth.orgAll.description";
-
 	private LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel;
 	private LoadableModel<List<AssignmentEditorDto>> delegatedToMeModel;
 
@@ -877,7 +869,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
                         PageAdminFocus.this, task, result);
                 Boolean isDelegable = false;
 				if (targetObject != null) {
-					isDelegable = targetObject.getRealValue().isDelegable();
+					isDelegable = targetObject.asObjectable().isDelegable();
 				}
                 if (Boolean.TRUE.equals(isDelegable)) {
                     return createAssignmentsPreviewDto(targetObject, true, assignment, task, result);
@@ -887,7 +879,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
         return null;
     }
 
-	private AssignmentInfoDto createAssignmentsPreviewDto(PrismObject<? extends FocusType> targetObject,
+	private AssignmentInfoDto createAssignmentsPreviewDto(PrismObject<? extends AssignmentHolderType> targetObject,
 			boolean isDirectlyAssigned, AssignmentType assignment,
 			Task task, OperationResult result) {
 		AssignmentInfoDto dto = new AssignmentInfoDto();
@@ -915,7 +907,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		return dto;
 	}
 
-	private String getNameToDisplay(PrismObject<? extends FocusType> target) {
+	private String getNameToDisplay(PrismObject<? extends AssignmentHolderType> target) {
 		if (target.canRepresent(AbstractRoleType.class)) {
 			String n = PolyString.getOrig(((AbstractRoleType)target.asObjectable()).getDisplayName());
 			if (StringUtils.isNotBlank(n)) {

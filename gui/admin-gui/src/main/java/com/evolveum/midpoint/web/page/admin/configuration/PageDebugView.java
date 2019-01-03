@@ -21,6 +21,7 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
@@ -312,7 +313,7 @@ public class PageDebugView extends PageAdminConfiguration {
 			if (result.isAcceptable()) {
                 PrismObject<? extends ObjectType> newObject = objectHolder.getValue().asPrismObject();
 
-				ObjectDelta<? extends ObjectType> delta = oldObject.diff((PrismObject) newObject, true, true);
+				ObjectDelta<? extends ObjectType> delta = oldObject.diff((PrismObject) newObject, EquivalenceStrategy.LITERAL);
 
                 if (delta.getPrismContext() == null) {
                 	LOGGER.warn("No prism context in delta {} after diff, adding it", delta);

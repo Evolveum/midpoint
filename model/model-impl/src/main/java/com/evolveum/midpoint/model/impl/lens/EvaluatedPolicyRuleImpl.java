@@ -85,7 +85,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 	@Nullable private final AssignmentPath assignmentPath;
 	@Nullable private final ObjectType directOwner;
 	private final transient PrismContext prismContextForDebugDump;     // if null, nothing serious happens
-
+	
 	@NotNull private final List<PolicyActionType> enabledActions = new ArrayList<>();          // computed only when necessary (typically when triggered)
 
 	public EvaluatedPolicyRuleImpl(@NotNull PolicyRuleType policyRuleType, @Nullable AssignmentPath assignmentPath,
@@ -299,7 +299,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		// in the future we might employ special flag for this (if needed)
 		return policyRuleType instanceof GlobalPolicyRuleType;
 	}
-
+	
 	@Override
 	public String toShortString() {
 		StringBuilder sb = new StringBuilder();
@@ -423,7 +423,9 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 	public <F extends FocusType> void computeEnabledActions(@Nullable PolicyRuleEvaluationContext<F> rctx, PrismObject<F> object,
 			ExpressionFactory expressionFactory, PrismContext prismContext, Task task, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+		LOGGER.trace("$$$$COmpute enabled actions");
 		List<PolicyActionType> allActions = PolicyRuleTypeUtil.getAllActions(policyRuleType.getPolicyActions());
+		LOGGER.trace("Actions defined for policy rule: {}", allActions);
 		for (PolicyActionType action : allActions) {
 			if (action.getCondition() != null) {
 				ExpressionVariables variables = createExpressionVariables(rctx, object);
@@ -434,6 +436,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 					LOGGER.trace("Accepting action {} ({}) because the condition evaluated to true", action.getName(), action.getClass().getSimpleName());
 				}
 			}
+			LOGGER.trace("Adding action {} into the enabled action list.", action);
 			enabledActions.add(action);
 		}
 	}

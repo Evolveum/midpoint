@@ -26,8 +26,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -47,6 +49,8 @@ import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ProgressInformation;
+import com.evolveum.midpoint.model.api.ProgressListener;
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
@@ -59,6 +63,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.FocusConstraintsChecker;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleScriptExecutor;
+import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleStopExecutor;
 import com.evolveum.midpoint.model.impl.migrator.Migrator;
 import com.evolveum.midpoint.model.impl.sync.RecomputeTaskHandler;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
@@ -75,6 +80,8 @@ import com.evolveum.midpoint.provisioning.api.ResourceOperationListener;
 import com.evolveum.midpoint.repo.api.ConflictWatcher;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.cache.RepositoryCache;
+import com.evolveum.midpoint.repo.common.CounterManager;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
@@ -158,8 +165,9 @@ public class Clockwork {
 	@Autowired private Migrator migrator;
 	@Autowired private ClockworkMedic medic;
 	@Autowired private PolicyRuleScriptExecutor policyRuleScriptExecutor;
+	@Autowired private PolicyRuleStopExecutor policyRuleStopExecutor;
 	@Autowired private ClockworkAuthorizationHelper clockworkAuthorizationHelper;
-
+	
 	@Autowired(required = false)
 	private HookRegistry hookRegistry;
 
@@ -168,7 +176,6 @@ public class Clockwork {
     private transient RepositoryService repositoryService;
 
     
-
 	private static final int DEFAULT_MAX_CLICKS = 200;
 
 	public <F extends ObjectType> HookOperationMode run(LensContext<F> context, Task task, OperationResult result) 
@@ -178,7 +185,7 @@ public class Clockwork {
 		if (InternalsConfig.consistencyChecks) {
 			context.checkConsistence();
 		}
-
+		
 		int clicked = 0;
 		boolean focusConflictPresent = false;
 		HookOperationMode finalMode;
@@ -232,7 +239,54 @@ public class Clockwork {
 		}
 		return finalMode;
 	}
+	
+	public <F extends ObjectType> LensContext<F> previewChanges(LensContext<F> context, Collection<ProgressListener> listeners, Task task, OperationResult result) 
+			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+		try {
+			context.setPreview(true);
 
+//			context.setOptions(options);
+			LOGGER.trace("Preview changes context:\n{}", context.debugDumpLazily());
+			context.setProgressListeners(listeners);
+
+			projector.projectAllWaves(context, "preview", task, result);
+			context.distributeResource();
+
+			if (hookRegistry != null) {
+				for (ChangeHook hook : hookRegistry.getAllChangeHooks()) {
+					hook.invokePreview(context, task, result);
+				}
+			}
+
+			policyRuleStopExecutor.execute(context, task, result);
+			
+		} catch (ConfigurationException | SecurityViolationException | ObjectNotFoundException | SchemaException |
+				CommunicationException | PolicyViolationException | RuntimeException | ObjectAlreadyExistsException |
+				ExpressionEvaluationException e) {
+			ModelImplUtils.recordFatalError(result, e);
+			throw e;
+			
+		} catch (PreconditionViolationException e) {
+			ModelImplUtils.recordFatalError(result, e);
+			// TODO: Temporary fix for 3.6.1
+			// We do not want to propagate PreconditionViolationException to model API as that might break compatiblity
+			// ... and we do not really need that in 3.6.1
+			// TODO: expose PreconditionViolationException in 3.7
+			throw new SystemException(e);
+			
+		}
+		
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Preview changes output:\n{}", context.debugDump());
+		}
+
+		result.computeStatus();
+		result.cleanupResult();
+
+		return context;
+	}
+	
+	
 	private <F extends ObjectType> boolean checkFocusConflicts(LensContext<F> context, Task task, OperationResult result) {
 		for (ConflictWatcher watcher : context.getConflictWatchers()) {
 			if (repositoryService.hasConflict(watcher, result)) {
@@ -628,9 +682,12 @@ public class Clockwork {
 		switchState(context, ModelState.PRIMARY);
 	}
 
-	private <F extends ObjectType> void processPrimaryToSecondary(LensContext<F> context, Task task, OperationResult result) {
+	private <F extends ObjectType> void processPrimaryToSecondary(LensContext<F> context, Task task, OperationResult result) throws PolicyViolationException {
 		// Nothing to do now. The context is already recomputed.
 		switchState(context, ModelState.SECONDARY);
+		
+		policyRuleStopExecutor.execute(context, task, result);
+		
 	}
 
 	private <F extends ObjectType> void processSecondary(LensContext<F> context, Task task, OperationResult result) 
@@ -642,7 +699,7 @@ public class Clockwork {
 		}
 
 		Holder<Boolean> restartRequestedHolder = new Holder<>();
-
+		
 		medic.partialExecute("execution",
 				() -> {	
 					boolean restartRequested = changeExecutor.executeChanges(context, task, result);
@@ -670,9 +727,9 @@ public class Clockwork {
 	}
 
 
-	private <F extends ObjectType> void processSecondaryToFinal(LensContext<F> context, Task task, OperationResult result) {
+	private <F extends ObjectType> void processSecondaryToFinal(LensContext<F> context, Task task, OperationResult result) throws PolicyViolationException {
 		switchState(context, ModelState.FINAL);
-		policyRuleScriptExecutor.execute(context, task, result);
+		policyRuleScriptExecutor.execute(context, task, result);		
 	}
 
 	/**

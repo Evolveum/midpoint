@@ -177,6 +177,59 @@ public class PolicyRuleProcessor {
 	}
 
 	//endregion
+	
+//	//region ------------------------------------------------------------------ Shadow policy rules
+//		public <F extends FocusType> void evaluateShadowPolicyRules(LensContext<F> context, LensProjectionContext projectionCtx, String activityDescription,
+//				Task task, OperationResult result)
+//				throws PolicyViolationException, SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
+//			LensFocusContext<F> focusContext = context.getFocusContext();
+//			if (focusContext == null) {
+//				return;
+//			}
+//
+//			RulesEvaluationContext globalCtx = new RulesEvaluationContext();
+//
+//			List<EvaluatedPolicyRule> rules = new ArrayList<>();
+//			collectFocusRulesFromAssignments(rules, context);
+//			
+//			resolveReferences(rules, getAllGlobalRules(context));
+//
+//			List<EvaluatedPolicyRule> situationRules = new ArrayList<>();
+//			List<EvaluatedPolicyRule> nonSituationRules = new ArrayList<>();
+//
+//			LOGGER.trace("Evaluating {} object policy rules", rules.size());
+//			focusContext.clearPolicyRules();
+//			for (EvaluatedPolicyRule rule : rules) {
+//				if (isApplicableToObject(rule)) {
+//					if (hasSituationConstraint(rule)) {
+//						situationRules.add(rule);
+//					} else {
+//						nonSituationRules.add(rule);
+//					}
+//					focusContext.addPolicyRule(rule);
+//				} else {
+//					LOGGER.trace("Rule {} is not applicable to an object, skipping: {}", rule.getName(), rule);
+//				}
+//			}
+//
+//			for (EvaluatedPolicyRule rule : nonSituationRules) {
+//				evaluateFocusRule(rule, context, globalCtx, task, result);
+//			}
+//			for (EvaluatedPolicyRule rule : situationRules) {
+//				evaluateFocusRule(rule, context, globalCtx, task, result);
+//			}
+//			policyStateRecorder.applyObjectState(context, globalCtx.rulesToRecord);
+//		}
+//
+//		private <F extends FocusType> void collectShadowRulesFromAssignments(List<EvaluatedPolicyRule> rules, LensContext<F> context) {
+//			DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
+//			if (evaluatedAssignmentTriple == null) {
+//				return;
+//			}
+//			for (EvaluatedAssignmentImpl<?> evaluatedAssignment : evaluatedAssignmentTriple.getNonNegativeValues()) {
+//				rules.addAll(evaluatedAssignment.getShadowPolicyRules());
+//			}
+//		}
 
 	//region ------------------------------------------------------------------ Focus policy rules
 	public <F extends FocusType> void evaluateObjectPolicyRules(LensContext<F> context, String activityDescription,
@@ -317,6 +370,7 @@ public class PolicyRuleProcessor {
 		PolicyConstraintsType constraints = ctx.policyRule.getPolicyConstraints();
 		JAXBElement<PolicyConstraintsType> conjunction = new JAXBElement<>(F_AND, PolicyConstraintsType.class, constraints);
 		EvaluatedCompositeTrigger trigger = compositeConstraintEvaluator.evaluate(conjunction, ctx, result);
+		LOGGER.trace("Evaluated composite trigger {} for ctx {}", trigger, ctx);
 		if (trigger != null && !trigger.getInnerTriggers().isEmpty()) {
 			List<EvaluatedPolicyRuleTrigger<?>> triggers;
 			// TODO reconsider this
@@ -327,7 +381,9 @@ public class PolicyRuleProcessor {
 			}
 			ctx.triggerRule(triggers);
 		}
+		LOGGER.trace("Policy rule triggered: {}", ctx.policyRule.isTriggered());
 		if (ctx.policyRule.isTriggered()) {
+			LOGGER.trace("Start to compute actions");
 			((EvaluatedPolicyRuleImpl) ctx.policyRule).computeEnabledActions(ctx, ctx.getObject(), expressionFactory, prismContext, ctx.task, result);
 			if (ctx.policyRule.containsEnabledAction(RecordPolicyActionType.class)) {
 				ctx.record();
@@ -350,6 +406,7 @@ public class PolicyRuleProcessor {
 			PolicyConstraintEvaluator<AbstractPolicyConstraintType> evaluator =
 					(PolicyConstraintEvaluator<AbstractPolicyConstraintType>) getConstraintEvaluator(constraint);
 			EvaluatedPolicyRuleTrigger<?> trigger = evaluator.evaluate(constraint, ctx, result);
+			LOGGER.trace("Evaluated policy rule trigger: {}", trigger);
 			traceConstraintEvaluationResult(constraint, ctx, trigger);
 			if (trigger != null) {
 				triggers.add(trigger);
@@ -511,7 +568,7 @@ public class PolicyRuleProcessor {
 		List<GlobalPolicyRuleType> globalPolicyRuleList = systemConfiguration.asObjectable().getGlobalPolicyRule();
 		LOGGER.trace("Checking {} global policy rules for selection to assignments", globalPolicyRuleList.size());
 		int globalRulesInstantiated = 0;
-		for (GlobalPolicyRuleType globalPolicyRule: systemConfiguration.asObjectable().getGlobalPolicyRule()) {
+		for (GlobalPolicyRuleType globalPolicyRule: globalPolicyRuleList) {
 			ObjectSelectorType focusSelector = globalPolicyRule.getFocusSelector();
 			if (!repositoryService.selectorMatches(focusSelector, focus, null, LOGGER,
 					"Global policy rule "+globalPolicyRule.getName()+" focus selector: ")) {

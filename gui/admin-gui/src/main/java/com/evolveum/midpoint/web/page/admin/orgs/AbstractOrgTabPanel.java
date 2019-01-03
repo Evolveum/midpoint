@@ -16,12 +16,13 @@
 package com.evolveum.midpoint.web.page.admin.orgs;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UsersStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
@@ -46,7 +47,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxTabbedPanel;
 import com.evolveum.midpoint.web.component.TabbedPanel;
-import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
 public abstract class AbstractOrgTabPanel extends BasePanel {
@@ -182,8 +182,7 @@ public abstract class AbstractOrgTabPanel extends BasePanel {
             }
             list = getPageBase().getModelService().searchObjects(OrgType.class, query, null, task, result);
             // Sort org roots by displayOrder, if not set push the org to the end
-            list.sort((o1, o2) -> (o1.getRealValue().getDisplayOrder() == null ? Integer.MAX_VALUE : o1.getRealValue().getDisplayOrder())
-                    - (o2.getRealValue().getDisplayOrder() == null ? Integer.MAX_VALUE : o2.getRealValue().getDisplayOrder()));
+            list.sort(Comparator.comparingInt(o -> (ObjectUtils.defaultIfNull(o.getRealValue().getDisplayOrder(), Integer.MAX_VALUE))));
 
             if (list.isEmpty() && isWarnMessageVisible()) {
                 warn(getString("PageOrgTree.message.noOrgStructDefined"));

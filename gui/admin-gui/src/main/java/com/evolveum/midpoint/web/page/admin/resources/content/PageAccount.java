@@ -40,7 +40,7 @@ import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.resources.PageAdminResources;
+import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.resources.ShadowDetailsTabPanel;
 import com.evolveum.midpoint.web.page.admin.resources.ShadowSummaryPanel;
@@ -67,13 +67,13 @@ import java.util.List;
  * @author lazyman
  */
 @PageDescriptor(url = "/admin/resources/account", encoder = OnePageParameterEncoder.class, action = {
-		@AuthorizationAction(actionUri = PageAdminResources.AUTH_RESOURCE_ALL,
-				label = PageAdminResources.AUTH_RESOURCE_ALL_LABEL,
-				description = PageAdminResources.AUTH_RESOURCE_ALL_DESCRIPTION),
+		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL,
+				label = "PageAdminResources.auth.resourcesAll.label",
+				description = "PageAdminResources.auth.resourcesAll.description"),
 		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCES_ACCOUNT_URL,
 				label = "PageAccount.auth.resourcesAccount.label",
 				description = "PageAccount.auth.resourcesAccount.description")})
-public class PageAccount extends PageAdminResources {
+public class PageAccount extends PageAdmin {
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageAccount.class);
 	private static final String DOT_CLASS = PageAccount.class.getName() + ".";

@@ -40,6 +40,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.CounterManager;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -91,6 +92,8 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 
     @Autowired
 	protected PrismContext prismContext;
+    
+    @Autowired private CounterManager counterManager;
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(AbstractSearchIterativeTaskHandler.class);
 
@@ -171,6 +174,8 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 			TaskWorkBucketProcessingResult previousRunResult) {
 	    LOGGER.trace("{} run starting: local coordinator task {}, bucket {}, previous run result {}", taskName,
 			    localCoordinatorTask, workBucket, previousRunResult);
+	    
+	    counterManager.registerCounter(localCoordinatorTask, false);
 
 		if (localCoordinatorTask.getOid() == null) {
 			throw new IllegalArgumentException(

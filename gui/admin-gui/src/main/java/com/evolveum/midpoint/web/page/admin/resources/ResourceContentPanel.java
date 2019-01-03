@@ -282,7 +282,7 @@ public abstract class ResourceContentPanel extends Panel {
 			@Override
 			protected ObjectQuery createContentQuery() {
 				ObjectQuery parentQuery = super.createContentQuery();
-				QueryFactory queryFactory = getPrismContext().queryFactory();
+				QueryFactory queryFactory = pageBase.getPrismContext().queryFactory();
 
 				List<ObjectFilter> filters = new ArrayList<>();
 				if (parentQuery != null) {
@@ -413,7 +413,7 @@ public abstract class ResourceContentPanel extends Panel {
 	}
 
 	private void newTaskPerformed(String category, AjaxRequestTarget target) {
-		TaskType taskType = new TaskType();
+		TaskType taskType = new TaskType(getPageBase().getPrismContext());
 		PrismProperty<ShadowKindType> pKind;
 		try {
 			pKind = taskType.asPrismObject().findOrCreateProperty(
@@ -986,8 +986,8 @@ public abstract class ResourceContentPanel extends Panel {
 		}
 
 		ConfirmationPanel dialog = new ConfirmationPanel(((PageBase) getPage()).getMainPopupBodyId(),
-				createDeleteConfirmString(selected, "pageContentAccounts.message.deleteConfirmation",
-						"pageContentAccounts.message.deleteConfirmationSingle")) {
+				createDeleteConfirmString(selected, "pageContentAccounts.message.deleteConfirmationSingle",
+						"pageContentAccounts.message.deleteConfirmation")) {
 			@Override
 			public void yesPerformed(AjaxRequestTarget target) {
 				deleteAccountConfirmedPerformed(target, result, selectedShadow);

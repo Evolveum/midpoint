@@ -72,7 +72,6 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.CheckedProducer;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.Producer;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -93,6 +92,7 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
+import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
 import com.evolveum.midpoint.web.page.admin.cases.PageCase;
 import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItem;
 import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItemsAll;
@@ -189,7 +189,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     private static final String DOT_CLASS = PageBase.class.getName() + ".";
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
-    private static final String OPERATION_LOAD_USERS_VIEW_COLLECTION_REF = DOT_CLASS + "loadUsersViewCollectionRef";
+    protected static final String OPERATION_LOAD_VIEW_COLLECTION_REF = DOT_CLASS + "loadViewCollectionRef";
     private static final String OPERATION_LOAD_WORK_ITEM_COUNT = DOT_CLASS + "loadWorkItemCount";
     private static final String OPERATION_LOAD_CERT_WORK_ITEM_COUNT = DOT_CLASS + "loadCertificationWorkItemCount";
 
@@ -228,6 +228,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     private static final String ID_BODY = "body";
 
     private static final int DEFAULT_BREADCRUMB_STEP = 2;
+    public static final String PARAMETER_OBJECT_COLLECTION_TYPE_OID = "collectionOid";
+    public static final String PARAMETER_OBJECT_COLLECTION_NAME = "collectionName";
 
     private static final String CLASS_DEFAULT_SKIN = "skin-blue-light";
 
@@ -593,7 +595,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             Task task = createSimpleTask(PageBase.DOT_CLASS + "getCompiledUserProfile");
             try {
             	compiledUserProfile = modelInteractionService.getCompiledUserProfile(task, task.getResult());
-            } catch (ObjectNotFoundException | SchemaException e) {
+            } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Cannot retrieve compiled user profile", e);
                 if (InternalsConfig.nonCriticalExceptionsAreFatal()) {
                     throw new SystemException("Cannot retrieve compiled user profile: " + e.getMessage(), e);
@@ -1799,6 +1801,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 PageTaskEdit.class, null, createVisibleDisabledBehaviorForEditMenu(PageTaskEdit.class));
         item.getItems().add(menuItem);
 
+        //should we support archetype view for TaskType?
+//        addCollectionsMenuItems(item.getItems(), TaskType.COMPLEX_TYPE);
+
         return item;
     }
 
@@ -1806,7 +1811,20 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON_COLORED,
                 createStringResource("PageAdmin.menu.top.resources"), null);
 
-        addMenuItem(item, "PageAdmin.menu.top.resources.list", PageResources.class);
+        MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.resources.list"), PageResources.class){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isMenuActive(WebPage page) {
+                if (getPageParameters() != null && getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME) != null
+                        && getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME).toString() != null){
+                    return false;
+                } else {
+                    return super.isMenuActive(page);
+                }
+            }
+        };
+        item.getItems().add(menu);
 
         createFocusPageViewMenu(item.getItems(), "PageAdmin.menu.top.resources.view", PageResource.class);
         createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.resources.new",
@@ -1814,6 +1832,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         addMenuItem(item, "PageAdmin.menu.top.resources.import", PageImportResource.class);
         addMenuItem(item, "PageAdmin.menu.top.connectorHosts.list", PageConnectorHosts.class);
+
+        addCollectionsMenuItems(item.getItems(), ResourceType.COMPLEX_TYPE, PageResources.class);
 
         return item;
     }
@@ -1934,12 +1954,25 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_USER_ICON_COLORED,
                 createStringResource("PageAdmin.menu.top.users"), null);
 
-        addMenuItem(item, "PageAdmin.menu.top.users.list", PageUsers.class);
+        MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.users.list"), PageUsers.class){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isMenuActive(WebPage page) {
+                if (getPageParameters() != null && getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME) != null
+                        && getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME).toString() != null){
+                    return false;
+                } else {
+                    return super.isMenuActive(page);
+                }
+            }
+        };
+        item.getItems().add(menu);
 
         createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.users.new",
                 "PageAdmin.menu.top.users.edit", PageUser.class, true);
 
-        addUsersViewMenuItems(item.getItems());
+        addCollectionsMenuItems(item.getItems(), UserType.COMPLEX_TYPE, PageUsers.class);
 
         return item;
     }
@@ -2057,6 +2090,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.users.org.new", "PageAdmin.menu.top.users.org.edit",
                 PageOrgUnit.class, true);
 
+        //todo should we have org list page for collection/archetype view?
+//        addCollectionsMenuItems(item.getItems(), OrgType.COMPLEX_TYPE);
+
         return item;
     }
 
@@ -2064,10 +2100,25 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED,
                 createStringResource("PageAdmin.menu.top.roles"), null);
 
-        addMenuItem(item, "PageAdmin.menu.top.roles.list", PageRoles.class);
+        MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.roles.list"), PageRoles.class){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isMenuActive(WebPage page) {
+                if (getPageParameters() != null && getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME) != null
+                        && getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME).toString() != null){
+                    return false;
+                } else {
+                    return super.isMenuActive(page);
+                }
+            }
+        };
+        item.getItems().add(menu);
 
         createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.roles.new", "PageAdmin.menu.top.roles.edit",
                 PageRole.class, true);
+
+        addCollectionsMenuItems(item.getItems(), RoleType.COMPLEX_TYPE, PageRoles.class);
 
         return item;
     }
@@ -2076,16 +2127,31 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON_COLORED,
                 createStringResource("PageAdmin.menu.top.services"), null);
 
-        addMenuItem(item, "PageAdmin.menu.top.services.list", PageServices.class);
+        MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.services.list"), PageServices.class){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isMenuActive(WebPage page) {
+                if (getPageParameters() != null && getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME) != null
+                        && getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME).toString() != null){
+                    return false;
+                } else {
+                    return super.isMenuActive(page);
+                }
+            }
+        };
+        item.getItems().add(menu);
 
         createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.services.new", "PageAdmin.menu.top.services.edit",
                 PageService.class, true);
 
+        addCollectionsMenuItems(item.getItems(), ServiceType.COMPLEX_TYPE, PageServices.class);
+
         return item;
     }
 
-    private void addUsersViewMenuItems(List<MenuItem> menu) {
-        List<CompiledObjectCollectionView> objectViews = getCompiledUserProfile().findAllApplicableObjectCollectionViews(UserType.COMPLEX_TYPE);
+    private void addCollectionsMenuItems(List<MenuItem> menu, QName type, Class<? extends PageAdminObjectList> redirectToPage) {
+        List<CompiledObjectCollectionView> objectViews = getCompiledUserProfile().findAllApplicableObjectCollectionViews(type);
         if (objectViews == null) {
             return;
         }
@@ -2103,30 +2169,39 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 return;
             }
 
-            OperationResult result = new OperationResult(OPERATION_LOAD_USERS_VIEW_COLLECTION_REF);
-            Task task = createSimpleTask(OPERATION_LOAD_USERS_VIEW_COLLECTION_REF);
+            OperationResult result = new OperationResult(OPERATION_LOAD_VIEW_COLLECTION_REF);
+            Task task = createSimpleTask(OPERATION_LOAD_VIEW_COLLECTION_REF);
             PrismObject<? extends ObjectType> collectionObject = WebModelServiceUtils.resolveReferenceNoFetch(collectionRef, this,
                     task, result);
             if (collectionObject == null) {
                 return;
             }
             ObjectType objectType = collectionObject.asObjectable();
-            if (!(objectType instanceof ObjectCollectionType)) {
-                return;
-            }
-
-            ObjectCollectionType collectionValue = (ObjectCollectionType) objectType;
-            if (!QNameUtil.match(collectionValue.getType(), UserType.COMPLEX_TYPE)) {
+            if (!(objectType instanceof ArchetypeType)) {
                 return;
             }
             DisplayType viewDisplayType = objectView.getDisplay();
 
             PageParameters pageParameters = new PageParameters();
-            pageParameters.add(PageUsersView.PARAMETER_OBJECT_COLLECTION_TYPE_OID, collectionValue.getOid());
+            pageParameters.add(PARAMETER_OBJECT_COLLECTION_NAME, objectView.getViewName());
 
             MenuItem userViewMenu = new MenuItem(viewDisplayType != null && PolyStringUtils.isNotEmpty(viewDisplayType.getLabel())
                     ? createStringResource(viewDisplayType.getLabel())
-                    : createStringResource("MenuItem.noName"), PageUsersView.class, pageParameters, null);
+                    : createStringResource("MenuItem.noName"), redirectToPage, pageParameters, null){
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public boolean isMenuActive(WebPage page) {
+                    PageParameters params = getPageParameters();
+                    if (params != null && params.get(PARAMETER_OBJECT_COLLECTION_NAME) != null){
+                        StringValue collectionName = params.get(PARAMETER_OBJECT_COLLECTION_NAME);
+                        if (objectView.getViewName().equals(collectionName.toString())) {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+            };
             menu.add(userViewMenu);
 
         });

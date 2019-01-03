@@ -81,7 +81,7 @@ public class ConstructionAssociationPanel<C extends Containerable, IW extends It
         resourceModel = new LoadableDetachableModel<PrismObject<ResourceType>>() {
             @Override
             protected PrismObject<ResourceType> load() {
-                ConstructionType construction = getModelObject().getItem().getValue().asContainerable();
+                ConstructionType construction = getModelObject().getItem().getRealValue();
                 ObjectReferenceType resourceRef = construction.getResourceRef();
                 Task loadResourceTask = getPageBase().createSimpleTask(OPERATION_LOAD_RESOURCE);
                 OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCE);
@@ -98,7 +98,7 @@ public class ConstructionAssociationPanel<C extends Containerable, IW extends It
         refinedAssociationDefinitionsModel = new LoadableDetachableModel<List<RefinedAssociationDefinition>>() {
             @Override
             protected List<RefinedAssociationDefinition> load() {
-                ConstructionType construction = getModelObject().getItem().getValue().asContainerable();
+                ConstructionType construction = getModelObject().getItem().getRealValue();
                 if (construction == null){
                     return new ArrayList<>();
                 }

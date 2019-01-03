@@ -22,6 +22,7 @@ import java.util.function.BooleanSupplier;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -154,7 +155,7 @@ public class CompiledUserProfile implements DebugDumpable, Serializable {
 	
 	/**
 	 * Find all views that are applicable for a particular object type. Returns views for all collections
-	 * and archetypes that are applicable for that type. Ideal to be used in costructing menus.
+	 * and archetypes that are applicable for that type. Ideal to be used in constructing menus.
 	 */
 	@NotNull
 	public List<CompiledObjectCollectionView> findAllApplicableObjectCollectionViews(@NotNull QName objectType) {
@@ -174,6 +175,22 @@ public class CompiledUserProfile implements DebugDumpable, Serializable {
 	@NotNull
 	public <O extends ObjectType> List<CompiledObjectCollectionView> findAllApplicableObjectCollectionViews(Class<O> compileTimeClass) {
 		return findAllApplicableObjectCollectionViews(ObjectTypes.getObjectType(compileTimeClass).getTypeQName());
+	}
+
+	public <O extends ObjectType> CompiledObjectCollectionView findObjectViewByViewName(Class<O> compileTimeClass, String viewName){
+		if (compileTimeClass == null || StringUtils.isEmpty(viewName)){
+			return null;
+		}
+		List<CompiledObjectCollectionView> objectViews = findAllApplicableObjectCollectionViews(compileTimeClass);
+		if (objectViews == null) {
+			return null;
+		}
+		for (CompiledObjectCollectionView view : objectViews){
+			if (viewName.equals(view.getViewName())){
+				return view;
+			}
+		}
+		return null;
 	}
 
 	/**

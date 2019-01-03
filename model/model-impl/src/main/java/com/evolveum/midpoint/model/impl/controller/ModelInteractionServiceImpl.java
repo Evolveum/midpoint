@@ -83,6 +83,7 @@ import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.model.impl.ModelCrudService;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator;
+import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.ContextFactory;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensContextPlaceholder;
@@ -112,7 +113,6 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
-import com.evolveum.midpoint.security.api.MidPointPrincipalManager;
 import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.ObjectSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
@@ -192,6 +192,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	@Autowired private UserProfileCompiler userProfileCompiler;
 	@Autowired private ExpressionFactory expressionFactory;
 	@Autowired private OperationalDataManager metadataManager;
+	@Autowired private Clockwork clockwork;
 
 	private static final String OPERATION_GENERATE_VALUE = ModelInteractionService.class.getName() +  ".generateValue";
 	private static final String OPERATION_VALIDATE_VALUE = ModelInteractionService.class.getName() +  ".validateValue";
@@ -230,57 +231,23 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		LensContext<F> context = null;
 
 		try {
-			RepositoryCache.enter();
-			//used cloned deltas instead of origin deltas, because some of the values should be lost later..
-			context = contextFactory.createContext(clonedDeltas, options, task, result);
-			context.setPreview(true);
+		RepositoryCache.enter();
+		// used cloned deltas instead of origin deltas, because some of the
+		// values should be lost later..
+		context = contextFactory.createContext(clonedDeltas, options, task, result);
+		context = clockwork.previewChanges(context, listeners, task, result);
 
-//			context.setOptions(options);
-			LOGGER.trace("Preview changes context:\n{}", context.debugDumpLazily());
-			context.setProgressListeners(listeners);
-
-			projector.projectAllWaves(context, "preview", task, result);
-			context.distributeResource();
-
-			if (hookRegistry != null) {
-				for (ChangeHook hook : hookRegistry.getAllChangeHooks()) {
-					hook.invokePreview(context, task, result);
-				}
-			}
-			
-			schemaTransformer.applySchemasAndSecurity(context, null, task, result);
-
-		} catch (ConfigurationException | SecurityViolationException | ObjectNotFoundException | SchemaException |
-				CommunicationException | PolicyViolationException | RuntimeException | ObjectAlreadyExistsException |
-				ExpressionEvaluationException e) {
-			ModelImplUtils.recordFatalError(result, e);
-			throw e;
-			
-		} catch (PreconditionViolationException e) {
-			ModelImplUtils.recordFatalError(result, e);
-			// TODO: Temporary fix for 3.6.1
-			// We do not want to propagate PreconditionViolationException to model API as that might break compatiblity
-			// ... and we do not really need that in 3.6.1
-			// TODO: expose PreconditionViolationException in 3.7
-			throw new SystemException(e);
-			
+		schemaTransformer.applySchemasAndSecurity(context, null, task, result);
 		} finally {
 			LensUtil.reclaimSequences(context, cacheRepositoryService, task, result);
 
 			RepositoryCache.exit();
 		}
-
-		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("Preview changes output:\n{}", context.debugDump());
-		}
-
-		result.computeStatus();
-		result.cleanupResult();
-
+		
 		return context;
 	}
-
-    @Override
+	
+	@Override
     public <F extends ObjectType> ModelContext<F> unwrapModelContext(LensContextType wrappedContext, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
         return LensContext.fromLensContextType(wrappedContext, prismContext, provisioning, task, result);
     }
@@ -335,7 +302,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 					}
 					RefinedObjectClassDefinition refinedObjectClassDefinition = getEditObjectClassDefinition(shadow, resource, phase, task, result);
 					if (refinedObjectClassDefinition != null) {
-						prismContext.hacks().replaceDefinition(objectDefinition.getComplexTypeDefinition(), ShadowType.F_ATTRIBUTES,
+						objectDefinition.getComplexTypeDefinition().toMutable().replaceDefinition(ShadowType.F_ATTRIBUTES,
 								refinedObjectClassDefinition.toResourceAttributeContainerDefinition());
 					}
 				}
@@ -782,7 +749,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
 	@NotNull
 	@Override
-	public CompiledUserProfile getCompiledUserProfile(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+	public CompiledUserProfile getCompiledUserProfile(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		MidPointPrincipal principal = null;
 		try {
 			principal = securityContextManager.getPrincipal();
@@ -792,7 +759,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
 		if (principal == null || !(principal instanceof MidPointUserProfilePrincipal)) {
 			// May be used for unathenticated user, error pages and so on
-			return userProfileCompiler.getGlobalCompiledUserProfile(parentResult);
+			return userProfileCompiler.getGlobalCompiledUserProfile(task, parentResult);
 		} else {
 			return ((MidPointUserProfilePrincipal)principal).getCompiledUserProfile();
 		}
@@ -814,6 +781,15 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			return null;
 		}
 			return systemConfiguration.asObjectable().getDeploymentInformation();
+	}
+
+	@Override
+	public List<MergeConfigurationType> getMergeConfiguration(OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(parentResult);
+		if (systemConfiguration == null) {
+			return null;
+		}
+		return systemConfiguration.asObjectable().getMergeConfiguration();
 	}
 
 	@Override
@@ -1506,7 +1482,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 				// TODO some special mode for verification of the validity - we don't need complete calculation here!
 				EvaluatedAssignment<UserType> assignment = assignmentEvaluator
 						.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, potentialDeputy.asObjectable(),
-								potentialDeputy.toString(), task, result);
+								potentialDeputy.toString(), false, task, result);
 				if (!assignment.isValid()) {
 					continue;
 				}

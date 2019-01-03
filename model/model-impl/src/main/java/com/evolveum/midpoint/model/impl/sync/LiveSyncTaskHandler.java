@@ -21,6 +21,7 @@ import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.repo.common.CounterManager;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -63,6 +64,7 @@ public class LiveSyncTaskHandler implements TaskHandler {
     @Autowired private TaskManager taskManager;
 	@Autowired private ProvisioningService provisioningService;
 	@Autowired private PrismContext prismContext;
+	@Autowired private CounterManager counterManager;
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(LiveSyncTaskHandler.class);
 
@@ -84,6 +86,8 @@ public class LiveSyncTaskHandler implements TaskHandler {
 	@Override
 	public TaskRunResult run(Task task) {
 		LOGGER.trace("LiveSyncTaskHandler.run starting");
+		
+		counterManager.registerCounter(task, true);
 
 		OperationResult opResult = new OperationResult(OperationConstants.LIVE_SYNC);
 		TaskRunResult runResult = new TaskRunResult();

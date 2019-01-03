@@ -36,6 +36,7 @@ import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxTabbedPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
 import com.evolveum.midpoint.web.page.admin.resources.component.TestConnectionResultPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -60,14 +61,14 @@ import java.util.List;
 				@Url(mountUrl = "/admin/resource", matchUrlForSecurity = "/admin/resource")
 		},
 		action = {
-				@AuthorizationAction(actionUri = PageAdminResources.AUTH_RESOURCE_ALL,
-						label = PageAdminResources.AUTH_RESOURCE_ALL_LABEL,
-						description = PageAdminResources.AUTH_RESOURCE_ALL_DESCRIPTION),
+				@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL,
+						label = "PageAdminResources.auth.resourcesAll.label",
+						description = "PageAdminResources.auth.resourcesAll.description"),
 				@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCE_URL,
 						label = "PageResource.auth.resource.label",
 						description = "PageResource.auth.resource.description")
 		})
-public class PageResource extends PageAdminResources {
+public class PageResource extends PageAdmin {
 	private static final long serialVersionUID = 1L;
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageResource.class);

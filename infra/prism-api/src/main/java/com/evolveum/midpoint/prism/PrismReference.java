@@ -44,19 +44,12 @@ public interface PrismReference extends Item<PrismReferenceValue,PrismReferenceD
 //		super(name, definition, prismContext);
 //	}
 
-	/**
-	 * {@inheritDoc}
-	 */
-	PrismReferenceValue getValue();
-
 	@Override
 	Referencable getRealValue();
 
 	@NotNull
 	@Override
 	Collection<Referencable> getRealValues();
-
-	boolean add(@NotNull PrismReferenceValue value);
 
 	boolean merge(PrismReferenceValue value);
 

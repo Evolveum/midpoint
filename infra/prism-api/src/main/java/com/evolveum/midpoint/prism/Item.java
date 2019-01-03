@@ -16,100 +16,109 @@
 
 package com.evolveum.midpoint.prism;
 
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
-import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.function.Function;
 
 /**
- * Item is a common abstraction of Property and PropertyContainer.
+ * Item is a common abstraction of Property, Reference and Container.
  * <p>
  * This is supposed to be a superclass for all items. Items are things
- * that can appear in property containers, which generally means only a property
- * and property container itself. Therefore this is in fact superclass for those
- * two definitions.
+ * that can appear in containers, which generally means only a property, reference
+ * and container itself. Therefore this is in fact superclass for those
+ * three definitions.
  *
  * @author Radovan Semancik
  */
-public interface Item<V extends PrismValue, D extends ItemDefinition> extends Itemable, DebugDumpable, Visitable, PathVisitable, Serializable, Revivable {
+public interface Item<V extends PrismValue, D extends ItemDefinition> extends Itemable, DebugDumpable, Visitable, PathVisitable,
+		ParentVisitable, Serializable, Revivable {
 
     /**
-     * Returns applicable property definition.
+     * Returns applicable definition.
      * <p>
-     * May return null if no definition is applicable or the definition is not
-     * know.
+     * May return null if no definition is applicable or the definition is not known.
      *
-     * @return applicable property definition
+     * @return applicable definition
      */
     D getDefinition();
 
+	/**
+	 * Returns true if this item and all contained items have proper definition.
+	 */
 	boolean hasCompleteDefinition();
 
-
-    /**
-     * Returns the name of the property.
-     * <p>
-     * The name is a QName. It uniquely defines a property.
-     * <p>
-     * The name may be null, but such a property will not work.
-     * <p>
-     * The name is the QName of XML element in the XML representation.
-     *
-     * @return property name
-     */
+	/**
+	 * Returns the name of the item.
+	 * <p>
+	 * The name is a QName. It uniquely defines an item.
+	 * <p>
+	 * The name may be null, but such an item will not work.
+	 * <p>
+	 * The name is the QName of XML element in the XML representation.
+	 *
+	 * @return item name
+	 *
+	 * TODO consider making element name obligatory
+	 */
     @Override
     ItemName getElementName();
 
-    /**
-     * Sets the name of the property.
-     * <p>
-     * The name is a QName. It uniquely defines a property.
-     * <p>
-     * The name may be null, but such a property will not work.
-     * <p>
-     * The name is the QName of XML element in the XML representation.
-     *
-     * @param elementName the name to set
-     */
-    void setElementName(QName elementName);     // todo remove
+	/**
+	 * Sets the name of the item.
+	 * <p>
+	 * The name is a QName. It uniquely defines an item.
+	 * <p>
+	 * The name may be null, but such an item will not work.
+	 * <p>
+	 * The name is the QName of XML element in the XML representation.
+	 *
+	 * @param elementName the name to set
+	 *
+	 * TODO consider removing this method
+	 */
+    void setElementName(QName elementName);
 
     /**
-     * Sets applicable property definition.
+     * Sets applicable item definition.
      *
      * @param definition the definition to set
+     *
+     * TODO consider removing this method
      */
-    void setDefinition(D definition);           // todo remove
+    void setDefinition(@Nullable D definition);
 
 	/**
-     * Returns a display name for the property type.
+     * Returns a display name for the item.
      * <p>
      * Returns null if the display name cannot be determined.
      * <p>
      * The display name is fetched from the definition. If no definition
      * (schema) is available, the display name will not be returned.
      *
-     * @return display name for the property type
+     * @return display name for the item
      */
     String getDisplayName();
 
     /**
-     * Returns help message defined for the property type.
+     * Returns help message defined for the item.
      * <p>
      * Returns null if the help message cannot be determined.
      * <p>
      * The help message is fetched from the definition. If no definition
      * (schema) is available, the help message will not be returned.
      *
-     * @return help message for the property type
+     * @return help message for the item
      */
     String getHelp();
 
@@ -128,112 +137,299 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
      */
     boolean isIncomplete();
 
-	void setIncomplete(boolean incomplete);     // todo reconsider
+	/**
+	 * Flags the item as incomplete.
+	 * @see Item#isIncomplete()
+	 *
+	 * @param incomplete The new value
+	 */
+	void setIncomplete(boolean incomplete);
 
-	@Override
-    PrismContext getPrismContext();
+	/**
+	 * Returns the parent of this item (if exists). Currently this has to be a PrismContainerValue.
+	 *
+	 * @return The parent if exists
+	 */
+	@Nullable
+	PrismContainerValue<?> getParent();
 
-    // Primarily for testing
-    PrismContext getPrismContextLocal();
+	/**
+	 * Sets the parent of this item.
+	 *
+	 * @param parentValue The new parent
+	 */
+    void setParent(@Nullable PrismContainerValue<?> parentValue);
 
-    void setPrismContext(PrismContext prismContext);        // todo remove
+	/**
+	 * Returns the path of this item (sequence of names from the "root" container or similar object to this item).
+	 * Note that if the containing object is a delta (usually a container delta), then the path
+	 *
+	 * @return the path
+	 */
+	@NotNull
+	ItemPath getPath();
 
-	PrismValue getParent();
-
-    void setParent(PrismValue parentValue);                 // todo remove
-
-    ItemPath getPath();
-
+	/**
+	 * Returns the "user data", a map that allows attaching arbitrary named data to this item.
+	 * @return the user data map
+	 */
+	@NotNull
     Map<String, Object> getUserData();
 
+	/**
+	 * Returns the user data for the given key (name).
+	 */
     <T> T getUserData(String key);
 
-    void setUserData(String key, Object value);
+	/**
+	 * Sets the user data for the given key (name).
+	 */
+	void setUserData(String key, Object value);
 
+	/**
+	 * Returns the values for this item. Although the ordering of this values is not important, and each value should
+	 * be present at most once, we currently return them as a list instead of a set. TODO reconsider this
+	 */
     @NotNull
 	List<V> getValues();
 
-    V getValue(int index);
+	/**
+	 * Returns the number of values for this item.
+	 */
+	int size();
 
+	/**
+	 * Returns any of the values. Usually called when we are quite confident that there is only a single value;
+	 * or we don't care which of the values we get. Does not create values if there are none.
+	 */
+	V getAnyValue();
+
+	/**
+	 * Returns the value, if there is only one. Throws exception if there are more values.
+	 * If there is no value, this method either:
+	 * - returns null (for properties)
+	 * - throws an exception (for items that can hold multiple values)
+	 * - creates an empty value (for containers and references).
+	 *
+	 * TODO think again whether getOrCreateValue would not be better
+	 */
+	V getValue();
+
+	/**
+	 * Returns the "real value" (content) of this item:
+	 *  - value contained in PrismPropertyValue
+	 *  - Referencable in PrismReferenceValue
+	 *  - Containerable in PrismContainerValue
+	 *  - Objectable in PrismObjectValue
+	 *
+	 * Note that the real value can contain operational items.
+	 *
+	 * It can also contain container IDs (although they are not considered to be part of the real value).
+	 *
+	 * It does not contain information about item element name nor other metadata like origin, definition, etc.
+	 * (Although e.g. Containerable can be converted back into PrismContainerValue that can be used to retrieve this information.)
+	 */
+	@Nullable
     Object getRealValue();
 
-    @NotNull
+	/**
+	 * Returns (potentially empty) collection of "real values".
+	 * @see Item#getRealValue().
+	 */
+	@NotNull
     Collection<?> getRealValues();
 
-
-	// TODO what about dynamic definitions? See MID-3922
+	/**
+	 * Returns true if the item contains 0 or 1 values and (by definition) is not multivalued.
+	 */
     boolean isSingleValue();
 
-
-	boolean hasValue(PrismValue value, boolean ignoreMetadata);
-
-	boolean hasValue(PrismValue value);
+    //region Add and remove
 
 	/**
-	 * Returns true if this item has a given value (ignoring metadata).
+	 * Adds a given value, unless an equivalent one is already there (if checkUniqueness is true).
+	 *
+	 * @return true if this item changed as a result of the call (i.e. if the value was really added)
+	 *
+	 * Note that even if checkUniqueness is false we check the cardinality of the item according to its definition,
+	 * i.e. we do not allow single-valued item to contain more than one value.
 	 */
-	boolean hasValueIgnoringMetadata(PrismValue value);
+	boolean add(@NotNull V newValue, boolean checkUniqueness) throws SchemaException;
 
 	/**
-     * Returns value that is equal or equivalent to the provided value.
-     * The returned value is an instance stored in this item, while the
-     * provided value argument may not be.
-     */
-    PrismValue findValue(PrismValue value, boolean ignoreMetadata);
+	 * Adds a given value, unless an equivalent one is already there. It is the same as calling add with checkUniqueness=true.
+	 *
+	 * @return true if this item changed as a result of the call (i.e. if the value was really added)
+	 */
+	boolean add(@NotNull V newValue) throws SchemaException;
 
-    List<? extends PrismValue> findValuesIgnoringMetadata(PrismValue value);
+	/**
+	 * Adds a given value, unless an equivalent one is already there. It is the same as calling add with checkUniqueness=true.
+	 * Uses given strategy for equivalence testing.
+	 *
+	 * @return true if this item changed as a result of the call (i.e. if the value was really added)
+	 */
+	boolean add(@NotNull V newValue, @NotNull EquivalenceStrategy equivalenceStrategy) throws SchemaException;
 
-    /**
-     * Returns value that is previous to the specified value.
-     * Note that the order is semantically insignificant and this is used only
-     * for presentation consistency in order-sensitive formats such as XML or JSON.
-     * TODO consider removing because it's not used
-     */
-    PrismValue getPreviousValue(PrismValue value);
+	/**
+	 * Adds given values, with the same semantics as repeated add(..) calls.
+	 *
+	 * @return true if this item changed as a result of the call (i.e. if at least one value was really added)
+	 */
+	boolean addAll(Collection<V> newValues) throws SchemaException;
 
-    /**
-     * Returns values that is following the specified value.
-     * Note that the order is semantically insignificant and this is used only
-     * for presentation consistency in order-sensitive formats such as XML or JSON.
-     * TODO consider removing because it's not used
-     */
-    PrismValue getNextValue(PrismValue value);
+	/**
+	 * Adds given values, with the same semantics as repeated add(..) calls.
+	 * For equality testing uses give strategy.
+	 *
+	 * @return true if this item changed as a result of the call (i.e. if at least one value was really added)
+	 */
+	boolean addAll(Collection<V> newValues, EquivalenceStrategy strategy) throws SchemaException;
 
-    Collection<V> getClonedValues();
+	/**
+	 * Removes given value from the item.
+	 *
+	 * "Given value" currently means any value that is considered equivalent via REAL_VALUE equivalence strategy
+	 * or a value that is considered "the same" via "representsSameValue(.., lax=false)" method.
+	 *
+	 * @return true if this item changed as a result of the call (i.e. if at least one value was really removed)
+	 *
+	 * Note that there can be more than one values removed.
+	 */
+	boolean remove(V value);
 
-    boolean contains(V value);
+	/**
+	 * Removes values equivalent to given value from the item; under specified equivalence strategy
+	 * OR when values represent the same value via "representsSameValue(.., lax=false)" method.
+	 *
+	 * @return true if this item changed as a result of the call (i.e. if at least one value was really removed)
+	 */
+	boolean remove(V value, @NotNull EquivalenceStrategy strategy);
 
-    boolean containsEquivalentValue(V value);
-    
-    boolean containsEquivalentValue(V value, Comparator<V> comparator);
+	/**
+	 * Removes all given values from the item. It is basically a shortcut for repeated remove(value) call.
+	 *
+	 * @return true if this item changed as a result of the call (i.e. if at least one value was really removed)
+	 */
+	boolean removeAll(Collection<V> values);
 
-    boolean contains(V value, boolean ignoreMetadata, Comparator<V> comparator);
+	/**
+	 * Removes all values from the item.
+	 */
+	void clear();
 
-    boolean contains(V value, boolean ignoreMetadata);
+	/**
+	 * Replaces all values of the item by given values.
+	 */
+	void replaceAll(Collection<V> newValues, EquivalenceStrategy strategy) throws SchemaException;
 
-    boolean containsRealValue(V value);
+	/**
+	 * Replaces all values of the item by given value.
+	 */
+	void replace(V newValue) throws SchemaException;
 
-    boolean valuesExactMatch(Collection<V> matchValues, Comparator<V> comparator);
+	//endregion
 
-    int size();
+    //region Finding and comparing values
 
-    boolean addAll(Collection<V> newValues) throws SchemaException;
+	/**
+	 * Compares this item to the specified object under NOT_LITERAL strategy (if no other is pre-set).
+	 */
+	@Override
+	boolean equals(Object obj);
 
-    boolean add(@NotNull V newValue) throws SchemaException;
+	/**
+	 * Compares this item to the specified object under given strategy.
+	 */
+	boolean equals(Object obj, @NotNull EquivalenceStrategy equivalenceStrategy);
 
-    boolean add(@NotNull V newValue, boolean checkUniqueness) throws SchemaException;
+	/**
+	 * Compares this item to the specified object under given strategy.
+	 */
+	boolean equals(Object obj, @NotNull ParameterizedEquivalenceStrategy equivalenceStrategy);
 
-    boolean removeAll(Collection<V> newValues);
+	/**
+	 * Computes hash code to be used under NOT_LITERAL equivalence strategy.
+	 */
+	@Override
+	int hashCode();
 
-    boolean remove(V newValue);
+	/**
+	 * Computes hash code to be used under given equivalence strategy.
+	 */
+	int hashCode(@NotNull EquivalenceStrategy equivalenceStrategy);
 
-    V remove(int index);
+	/**
+	 * Computes hash code to be used under given equivalence strategy.
+	 */
+	int hashCode(@NotNull ParameterizedEquivalenceStrategy equivalenceStrategy);
 
-    void replaceAll(Collection<V> newValues) throws SchemaException;
+	/**
+	 * @return true if the item contains a given value (by default using NOT_LITERAL strategy)
+	 *
+	 * Note that the "sameness" (ID-only value matching) is NOT considered here.
+	 */
+	boolean contains(V value);
 
-    void replace(V newValue);
+	/**
+	 * @return true if the item contains a given value under specified equivalence strategy
+	 *
+	 * Note that the "sameness" (ID-only value matching) is NOT considered here.
+	 */
+	boolean contains(V value, @NotNull EquivalenceStrategy strategy);
 
-    void clear();
+	/**
+	 * @return true if the item contains a given value using comparator (if not null) or
+	 * under specified equivalence strategy (if comparator is null).
+	 *
+	 * Note that the "sameness" (ID-only value matching) is NOT considered here.
+	 */
+	boolean contains(V value, @Nullable EquivalenceStrategy strategy, @Nullable Comparator<V> comparator);
+
+	/**
+	 * @return true if the item contains an equivalent value (the same as {@link #containsEquivalentValue(PrismValue, Comparator)}
+	 * with comparator being null)
+	 */
+	boolean containsEquivalentValue(V value);
+
+	/**
+	 * @return true if the item contains an equivalent value
+	 *
+	 * Item value is considered to be equivalent to the given value if:
+	 * 1) given value is ID-only container value and item value has the same ID, or
+	 * 2) comparator is not null and it gives "equals" (0) result when comparing these values, or
+	 * 3) comparator is null and values match under IGNORE_METADATA_CONSIDER_DIFFERENT_IDS strategy
+	 */
+	boolean containsEquivalentValue(V value, @Nullable Comparator<V> comparator);
+
+	/**
+	 * @return a value of this item that is equivalent to the given one under given equivalence strategy
+	 * (or null if no such value exists)
+	 */
+	V findValue(V value, @NotNull EquivalenceStrategy strategy);
+
+	/**
+	 * @return true if the values of this item match the "matchValues" collection, under given comparator.
+	 *
+	 * If comparator is null the default equals(..) comparison is used.
+	 */
+	boolean valuesEqual(Collection<V> matchValues, @Nullable Comparator<V> comparator);
+
+	/**
+	 * Computes a difference (delta) with the specified item using IGNORE_METADATA_CONSIDER_DIFFERENT_IDS equivalence strategy.
+	 */
+	ItemDelta<V,D> diff(Item<V,D> other);
+
+	/**
+	 * Computes a difference (delta) with the specified item using given equivalence strategy.
+	 * Note this method cannot accept general EquivalenceStrategy here; it needs the parameterized strategy.
+	 */
+	ItemDelta<V,D> diff(Item<V,D> other, @NotNull ParameterizedEquivalenceStrategy strategy);
+
+	//endregion
+
+
+	Collection<V> getClonedValues();
 
     void normalize();
 
@@ -249,11 +445,6 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
 
     <IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path);
 
-    // We want this method to be consistent with property diff
-    ItemDelta<V,D> diff(Item<V,D> other);
-
-    // We want this method to be consistent with property diff
-    ItemDelta<V,D> diff(Item<V,D> other, boolean ignoreMetadata, boolean isLiteral);
 
 	/**
      * Creates specific subclass of ItemDelta appropriate for type of item that this definition
@@ -263,11 +454,11 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
 
 	ItemDelta<V,D> createDelta(ItemPath path);
 
-	@Override
-	void accept(Visitor visitor);
-
-	@Override
-	void accept(Visitor visitor, ItemPath path, boolean recursive);
+	/**
+	 * Accepts a visitor that visits each item/value on the way to the structure root.
+	 * @param visitor
+	 */
+	void acceptParentVisitor(@NotNull Visitor visitor);
 
 	/**
 	 * Re-apply PolyString (and possible other) normalizations to the object.
@@ -328,7 +519,7 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
 
 	void assertDefinitions(String sourceDescription) throws SchemaException;
 
-	void assertDefinitions(boolean tolarateRawValues, String sourceDescription) throws SchemaException;
+	void assertDefinitions(boolean tolerateRawValues, String sourceDescription) throws SchemaException;
 
 	/**
 	 * Returns true is all the values are raw.
@@ -348,15 +539,12 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
 		return item == null || item.getValues().isEmpty();
 	}
 
-	boolean equalsRealValue(Object obj);
-
-	boolean match(Object obj);
 
 	/**
 	 * Returns true if this item is metadata item that should be ignored
 	 * for metadata-insensitive comparisons and hashCode functions.
 	 */
-	boolean isMetadata();
+	boolean isOperational();
 
 	boolean isImmutable();
 
@@ -381,4 +569,13 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
 	static Collection<PrismValue> getAllValues(Item<?, ?> item, ItemPath path) {
     	return item != null ? item.getAllValues(path) : Collections.emptySet();
 	}
+
+	@Override
+	PrismContext getPrismContext();
+
+	// Primarily for testing
+	PrismContext getPrismContextLocal();
+
+	void setPrismContext(PrismContext prismContext);        // todo remove
+
 }

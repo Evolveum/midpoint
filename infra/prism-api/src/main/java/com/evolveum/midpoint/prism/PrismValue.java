@@ -16,6 +16,8 @@
 package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -113,15 +115,15 @@ public interface PrismValue extends Visitable, PathVisitable, Serializable, Debu
      */
     PrismValue cloneComplex(CloneStrategy strategy);
 
-	boolean equalsComplex(PrismValue other, boolean ignoreMetadata, boolean isLiteral);
+	int hashCode(@NotNull EquivalenceStrategy equivalenceStrategy);
 
-	boolean equals(PrismValue otherValue, boolean ignoreMetadata);
+	int hashCode(@NotNull ParameterizedEquivalenceStrategy equivalenceStrategy);
+
+	boolean equals(PrismValue otherValue, @NotNull EquivalenceStrategy strategy);
+
+	boolean equals(PrismValue otherValue, @NotNull ParameterizedEquivalenceStrategy strategy);
 
 	boolean equals(PrismValue thisValue, PrismValue otherValue);
-
-	boolean equalsRealValue(PrismValue otherValue);
-
-	boolean equalsRealValue(PrismValue thisValue, PrismValue otherValue);
 
 	/**
 	 * Assumes matching representations. I.e. it assumes that both this and otherValue represent the same instance of item.
@@ -133,7 +135,7 @@ public interface PrismValue extends Visitable, PathVisitable, Serializable, Debu
 	 * Assumes matching representations. I.e. it assumes that both this and otherValue represent the same instance of item.
 	 * E.g. the container with the same ID.
 	 */
-	Collection<? extends ItemDelta> diff(PrismValue otherValue, boolean ignoreMetadata, boolean isLiteral);
+	Collection<? extends ItemDelta> diff(PrismValue otherValue, ParameterizedEquivalenceStrategy strategy);
 
 	boolean isImmutable();
 
@@ -167,9 +169,9 @@ public interface PrismValue extends Visitable, PathVisitable, Serializable, Debu
 
 	String toHumanReadableString();
 
-	// todo hide from public
-	void diffMatchingRepresentation(PrismValue otherValue,
-			Collection<? extends ItemDelta> deltas, boolean ignoreMetadata, boolean isLiteral);
+//	// todo hide from public
+//	void diffMatchingRepresentation(PrismValue otherValue,
+//			Collection<? extends ItemDelta> deltas, boolean ignoreMetadata, boolean isLiteral);
 
 	Object find(ItemPath path);
 }

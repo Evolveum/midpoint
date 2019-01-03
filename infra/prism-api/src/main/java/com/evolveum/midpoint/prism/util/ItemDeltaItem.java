@@ -436,7 +436,7 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 		if (item == null || item.isEmpty()) {
 			return null;
 		} else if (item.size() == 1) {
-			return item.getValue(0);
+			return item.getAnyValue();
 		} else {
 			throw new IllegalStateException("Multiple values where single one was expected: " + item);
 		}

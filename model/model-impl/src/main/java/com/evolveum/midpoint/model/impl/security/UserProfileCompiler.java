@@ -25,6 +25,7 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.query.RefFilter;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -51,17 +52,21 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationTransformer;
 import com.evolveum.midpoint.security.api.DelegatorWithOtherPrivilegesLimitations;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -76,6 +81,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractObjectTypeConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationRoleManagementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetType;
@@ -88,16 +95,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsSetT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewAdditionalPanelsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OtherPrivilegesLimitationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceFeatureType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
  * Compiles user interface profile for a particular user. The profile contains essential information needed to efficiently render
@@ -136,15 +146,24 @@ public class UserProfileCompiler {
 		List<AdminGuiConfigurationType> adminGuiConfigurations = new ArrayList<>();
 		collect(adminGuiConfigurations, principal, systemConfiguration, authorizationTransformer, task, result);
 		
-		CompiledUserProfile compiledUserProfile = compileUserProfile(adminGuiConfigurations, systemConfiguration);
+		CompiledUserProfile compiledUserProfile = compileUserProfile(adminGuiConfigurations, systemConfiguration, task, result);
 		principal.setCompiledUserProfile(compiledUserProfile);
 	}
 
 	private void collect(List<AdminGuiConfigurationType> adminGuiConfigurations, MidPointUserProfilePrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, AuthorizationTransformer authorizationTransformer, Task task, OperationResult result) throws SchemaException {
 		UserType userType = principal.getUser();
-		Collection<Authorization> authorizations = principal.getAuthorities();
-		if (!userType.getAssignment().isEmpty()) {
-			LensContext<UserType> lensContext = createAuthenticationLensContext(userType.asPrismObject(), systemConfiguration);
+		LensContext<UserType> lensContext = createAuthenticationLensContext(userType.asPrismObject(), systemConfiguration);
+		
+		Collection<AssignmentType> forcedAssignments = null;
+		try {
+			forcedAssignments = LensUtil.getForcedAssignments(lensContext.getFocusContext().getLifecycleModel(), 
+					userType.getLifecycleState(), objectResolver, prismContext, task, result);
+		} catch (ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException
+				| ExpressionEvaluationException e1) {
+			LOGGER.error("Forced assignments defined for lifecycle {} won't be evaluated", userType.getLifecycleState(), e1);
+		}
+		if (!userType.getAssignment().isEmpty() || forcedAssignments != null) {
+			
 			AssignmentEvaluator.Builder<UserType> builder =
 					new AssignmentEvaluator.Builder<UserType>()
 							.repository(repositoryService)
@@ -169,54 +188,51 @@ public class UserProfileCompiler {
 
 			AssignmentEvaluator<UserType> assignmentEvaluator = builder.build();
 
-			Collection<AssignmentType> collectedAssignments = new HashSet<>();
-			collectedAssignments.addAll(userType.getAssignment());
+			evaluateAssignments(userType.getAssignment(), false, assignmentEvaluator, principal, authorizationTransformer, adminGuiConfigurations, task, result);
 			
-			try {
-				Collection<AssignmentType> forcedAssignments = LensUtil.getForcedAssignments(lensContext.getFocusContext().getLifecycleModel(), 
-						userType.getLifecycleState(), objectResolver, prismContext, task, result);
-				if (forcedAssignments != null) {
-					collectedAssignments.addAll(forcedAssignments);
-				}
-			} catch (ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException
-					| ExpressionEvaluationException e1) {
-				LOGGER.error("Forced assignments defined for lifecycle {} won't be evaluated", userType.getLifecycleState(), e1);
-			}
-			
-			try {
-				RepositoryCache.enter();
-				for (AssignmentType assignmentType: collectedAssignments) {
-					try {
-						ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
-						assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
-						assignmentIdi.recompute();
-						EvaluatedAssignment<UserType> assignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userType, userType.toString(), task, result);
-						if (assignment.isValid()) {
-							addAuthorizations(authorizations, assignment.getAuthorizations(), authorizationTransformer);
-							adminGuiConfigurations.addAll(assignment.getAdminGuiConfigurations());
-						}
-						for (EvaluatedAssignmentTarget target : assignment.getRoles().getNonNegativeValues()) {
-							if (target.isValid() && target.getTarget() != null && target.getTarget().asObjectable() instanceof UserType
-									&& DeputyUtils.isDelegationPath(target.getAssignmentPath(), relationRegistry)) {
-								List<OtherPrivilegesLimitationType> limitations = DeputyUtils.extractLimitations(target.getAssignmentPath());
-								principal.addDelegatorWithOtherPrivilegesLimitations(new DelegatorWithOtherPrivilegesLimitations(
-										(UserType) target.getTarget().asObjectable(), limitations));
-							}
-						}
-					} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | PolicyViolationException | SecurityViolationException | ConfigurationException | CommunicationException e) {
-						LOGGER.error("Error while processing assignment of {}: {}; assignment: {}",
-								userType, e.getMessage(), assignmentType, e);
-					}
-				}
-			} finally {
-				RepositoryCache.exit();
-			}
+			evaluateAssignments(forcedAssignments, true, assignmentEvaluator, principal, authorizationTransformer, adminGuiConfigurations, task, result);
 		}
 		if (userType.getAdminGuiConfiguration() != null) {
 			// config from the user object should go last (to be applied as the last one)
 			adminGuiConfigurations.add(userType.getAdminGuiConfiguration());
 		}
 
+	}
+	
+	private void evaluateAssignments(Collection<AssignmentType> assignments, boolean virtual, AssignmentEvaluator<UserType> assignmentEvaluator, MidPointPrincipal principal, AuthorizationTransformer authorizationTransformer, Collection<AdminGuiConfigurationType> adminGuiConfigurations, Task task, OperationResult result) {
+		UserType userType = principal.getUser();
+
+		Collection<Authorization> authorizations = principal.getAuthorities();
+
+		
+		try {
+			RepositoryCache.enter();
+			for (AssignmentType assignmentType: assignments) {
+				try {
+					ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
+					assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
+					assignmentIdi.recompute();
+					EvaluatedAssignment<UserType> assignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userType, userType.toString(), virtual, task, result);
+					if (assignment.isValid()) {
+						addAuthorizations(authorizations, assignment.getAuthorizations(), authorizationTransformer);
+						adminGuiConfigurations.addAll(assignment.getAdminGuiConfigurations());
+					}
+					for (EvaluatedAssignmentTarget target : assignment.getRoles().getNonNegativeValues()) {
+						if (target.isValid() && target.getTarget() != null && target.getTarget().asObjectable() instanceof UserType
+								&& DeputyUtils.isDelegationPath(target.getAssignmentPath(), relationRegistry)) {
+							List<OtherPrivilegesLimitationType> limitations = DeputyUtils.extractLimitations(target.getAssignmentPath());
+							principal.addDelegatorWithOtherPrivilegesLimitations(new DelegatorWithOtherPrivilegesLimitations(
+									(UserType) target.getTarget().asObjectable(), limitations));
+						}
+					}
+				} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | PolicyViolationException | SecurityViolationException | ConfigurationException | CommunicationException e) {
+					LOGGER.error("Error while processing assignment of {}: {}; assignment: {}",
+							userType, e.getMessage(), assignmentType, e);
+				}
+			}
+		} finally {
+			RepositoryCache.exit();
+		}
 	}
 
 	private LensContext<UserType> createAuthenticationLensContext(PrismObject<UserType> user, PrismObject<SystemConfigurationType> systemConfiguration) throws SchemaException {
@@ -260,7 +276,7 @@ public class UserProfileCompiler {
 	}
 	
 	public CompiledUserProfile compileUserProfile(@NotNull List<AdminGuiConfigurationType> adminGuiConfigurations,
-			PrismObject<SystemConfigurationType> systemConfiguration) {
+			PrismObject<SystemConfigurationType> systemConfiguration, Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
 		AdminGuiConfigurationType globalAdminGuiConfig = null;
 		if (systemConfiguration != null) {
@@ -273,15 +289,15 @@ public class UserProfileCompiler {
 
 		CompiledUserProfile composite = new CompiledUserProfile();
 		if (globalAdminGuiConfig != null) {
-			applyAdminGuiConfiguration(composite, globalAdminGuiConfig);
+			applyAdminGuiConfiguration(composite, globalAdminGuiConfig, task, result);
 		}
 		for (AdminGuiConfigurationType adminGuiConfiguration: adminGuiConfigurations) {
-			applyAdminGuiConfiguration(composite, adminGuiConfiguration);
+			applyAdminGuiConfiguration(composite, adminGuiConfiguration, task, result);
 		}
 		return composite;
 	}
 
-	private void applyAdminGuiConfiguration(CompiledUserProfile composite, AdminGuiConfigurationType adminGuiConfiguration) {
+	private void applyAdminGuiConfiguration(CompiledUserProfile composite, AdminGuiConfigurationType adminGuiConfiguration, Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		if (adminGuiConfiguration == null) {
 			return;
 		}
@@ -300,8 +316,8 @@ public class UserProfileCompiler {
 			composite.setDefaultExportSettings(adminGuiConfiguration.getDefaultExportSettings().clone());
 		}
 		
-		applyViews(composite, adminGuiConfiguration.getObjectLists()); // Compatibility, deprecated
-		applyViews(composite, adminGuiConfiguration.getObjectCollectionViews());
+		applyViews(composite, adminGuiConfiguration.getObjectLists(), task, result); // Compatibility, deprecated
+		applyViews(composite, adminGuiConfiguration.getObjectCollectionViews(), task, result);
 		
 		if (adminGuiConfiguration.getObjectForms() != null) {
 			if (composite.getObjectForms() == null) {
@@ -357,7 +373,7 @@ public class UserProfileCompiler {
 		}
 	}
 
-	private void applyViews(CompiledUserProfile composite, GuiObjectListViewsType viewsType) {
+	private void applyViews(CompiledUserProfile composite, GuiObjectListViewsType viewsType, Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		if (viewsType == null) {
 			return;
 		}
@@ -366,21 +382,21 @@ public class UserProfileCompiler {
 			if (composite.getDefaultObjectCollectionView() == null) {
 				composite.setDefaultObjectCollectionView(new CompiledObjectCollectionView());
 			}
-			compileView(composite.getDefaultObjectCollectionView(), viewsType.getDefault());
+			compileView(composite.getDefaultObjectCollectionView(), viewsType.getDefault(), task, result);
 		}
 		
 		for (GuiObjectListViewType objectCollectionView : viewsType.getObjectList()) { // Compatibility, legacy
-			applyView(composite, objectCollectionView);
+			applyView(composite, objectCollectionView, task, result);
 		}
 		
 		for (GuiObjectListViewType objectCollectionView : viewsType.getObjectCollectionView()) {
-			applyView(composite, objectCollectionView);
+			applyView(composite, objectCollectionView, task, result);
 		}
 	}
 	
-	private void applyView(CompiledUserProfile composite, GuiObjectListViewType objectListViewType) {
+	private void applyView(CompiledUserProfile composite, GuiObjectListViewType objectListViewType, Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		CompiledObjectCollectionView existingView = findOrCreateMatchingView(composite, objectListViewType);
-		compileView(existingView, objectListViewType);
+		compileView(existingView, objectListViewType, task, result);
 	}
 	
 	
@@ -411,10 +427,10 @@ public class UserProfileCompiler {
 		return collectionRef.getOid();
 	}
 
-	private void compileView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
+	private void compileView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		compileActions(existingView, objectListViewType);
 		compileAdditionalPanels(existingView, objectListViewType);
-		compileCollection(existingView, objectListViewType);
+		compileCollection(existingView, objectListViewType, task, result);
 		compileColumns(existingView, objectListViewType);
 		compileDisplay(existingView, objectListViewType);
 		compileDistinct(existingView, objectListViewType);
@@ -440,23 +456,73 @@ public class UserProfileCompiler {
 		existingView.setAdditionalPanels(newAdditionalPanels);
 	}
 
-	
-	private void compileCollection(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
-		CollectionSpecificationType collection = objectListViewType.getCollection();
-		if (collection == null) {
+	private void compileCollection(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+		CollectionSpecificationType collectionSpec = objectListViewType.getCollection();
+		if (collectionSpec == null) {
 			ObjectReferenceType collectionRef = objectListViewType.getCollectionRef();
 			if (collectionRef == null) {
 				return;
 			}
 			// Legacy, deprecated
-			collection = new CollectionSpecificationType();
-			collection.setCollectionRef(collectionRef.clone());
+			collectionSpec = new CollectionSpecificationType();
+			collectionSpec.setCollectionRef(collectionRef.clone());
 		}
 		if (existingView.getCollection() != null) {
 			LOGGER.debug("Redefining collection in view {}", existingView.getViewName());
 		}
-		// TODO: resolve collection, apply filter
-		existingView.setCollection(collection);
+		existingView.setCollection(collectionSpec);
+		
+		// Compute and apply filter
+		ObjectFilter filter = compileCollectionFilter(existingView, collectionSpec, task, result);
+		
+		// TODO: resolve (read) collection if needed
+		existingView.setFilter(filter);
+	}
+		
+	private ObjectFilter compileCollectionFilter(CompiledObjectCollectionView existingView, CollectionSpecificationType collectionSpec, Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+		ObjectReferenceType collectionRef = collectionSpec.getCollectionRef();
+		
+		QName targetObjectType = existingView.getObjectType();
+		Class<? extends ObjectType> targetTypeClass = ObjectType.class;
+		if (targetObjectType != null) {
+			targetTypeClass = ObjectTypes.getObjectTypeFromTypeQName(targetObjectType).getClassDefinition();
+		}
+		QName collectionRefType = collectionRef.getType();
+		
+		// TODO: support more cases
+		if (QNameUtil.match(ArchetypeType.COMPLEX_TYPE, collectionRefType)) {
+			RefFilter filter = null;
+			filter = (RefFilter) prismContext.queryFor(AssignmentHolderType.class)
+				.item(AssignmentHolderType.F_ARCHETYPE_REF).ref(collectionRef.getOid())
+				.buildFilter();
+			filter.setTargetTypeNullAsAny(true);
+			filter.setRelationNullAsAny(true);
+			return filter;
+		}
+		
+		if (QNameUtil.match(ObjectCollectionType.COMPLEX_TYPE, collectionRefType)) {
+			ObjectCollectionType objectCollectionType;
+			try {
+				objectCollectionType = objectResolver.resolve(collectionRef, ObjectCollectionType.class, null, "view "+existingView.getViewName(), task, result);
+			} catch (ObjectNotFoundException e) {
+				throw new ConfigurationException(e.getMessage(), e);
+			}
+			SearchFilterType collectionFilterType = objectCollectionType.getFilter();
+			ObjectFilter collectionFilter = null;
+			if (collectionFilterType != null) {
+				collectionFilter = prismContext.getQueryConverter().parseFilter(collectionFilterType, targetTypeClass);
+			}
+			CollectionSpecificationType baseCollectionSpec = objectCollectionType.getBaseCollection();
+			if (baseCollectionSpec == null) {
+				return collectionFilter;
+			} else {
+				ObjectFilter baseFilter =  compileCollectionFilter(existingView, baseCollectionSpec, task, result);
+				return ObjectQueryUtil.filterAnd(baseFilter, collectionFilter, prismContext);
+			}
+		}
+		
+		// TODO
+		throw new UnsupportedOperationException("TODO");
 	}
 	
 	private void compileColumns(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
@@ -504,8 +570,6 @@ public class UserProfileCompiler {
 		// TODO: merge
 		existingView.setSearchBoxConfiguration(newSearchBoxConfig);
 	}
-
-
 
 	private void joinForms(ObjectFormsType objectForms, ObjectFormType newForm) {
 		objectForms.getObjectForm().removeIf(currentForm -> isTheSameObjectForm(currentForm, newForm));
@@ -651,13 +715,13 @@ public class UserProfileCompiler {
 		return customColumnsList;
 	}
 
-	public CompiledUserProfile getGlobalCompiledUserProfile(OperationResult parentResult) throws SchemaException {
+	public CompiledUserProfile getGlobalCompiledUserProfile(Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(parentResult);
 		if (systemConfiguration == null) {
 			return null;
 		}
 		List<AdminGuiConfigurationType> adminGuiConfigurations = new ArrayList<>();
-		CompiledUserProfile compiledUserProfile = compileUserProfile(adminGuiConfigurations, systemConfiguration);
+		CompiledUserProfile compiledUserProfile = compileUserProfile(adminGuiConfigurations, systemConfiguration, task, parentResult);
 		// TODO: cache compiled profile
 		return compiledUserProfile;
 	}

@@ -72,7 +72,6 @@ import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.*;
-import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDeleteDialogDto;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
@@ -595,7 +594,7 @@ public final class WebComponentUtil {
 	public static TaskType createSingleRecurrenceTask(String taskName, QName applicableType, ObjectQuery query,
 			ObjectDelta delta, ModelExecuteOptions options, String category, PageBase pageBase) throws SchemaException {
 
-		TaskType task = new TaskType();
+		TaskType task = new TaskType(pageBase.getPrismContext());
 
 		MidPointPrincipal owner = SecurityUtils.getPrincipalUser();
 
@@ -3168,5 +3167,60 @@ public final class WebComponentUtil {
 		}
 
 		return Model.of(StringUtils.left(prefix, prefix.length() - 1) + sUrl);
+	}
+
+	public static void deleteSyncTokenPerformed(AjaxRequestTarget target, ResourceType resourceType, PageBase pageBase){
+		String resourceOid = resourceType.getOid();
+		String handlerUri = "http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3";
+		ObjectReferenceType resourceRef = new ObjectReferenceType();
+		resourceRef.setOid(resourceOid);
+		PrismObject<TaskType> oldTask;
+
+		OperationResult result = new OperationResult(pageBase.getClass().getName() + "." + "deleteSyncToken");
+		ObjectQuery query = pageBase.getPrismContext().queryFor(TaskType.class)
+				.item(TaskType.F_OBJECT_REF).ref(resourceOid)
+				.and().item(TaskType.F_HANDLER_URI).eq(handlerUri)
+				.build();
+
+		List<PrismObject<TaskType>> taskList = WebModelServiceUtils.searchObjects(TaskType.class, query, result, pageBase);
+
+		if (taskList.size() != 1) {
+			pageBase.error(pageBase.createStringResource("pageResource.message.invalidTaskSearch"));
+		} else {
+			oldTask = taskList.get(0);
+			saveTask(oldTask, result, pageBase);
+		}
+
+		result.recomputeStatus();
+		pageBase.showResult(result);
+		target.add(pageBase.getFeedbackPanel());
+	}
+
+	public static void saveTask(PrismObject<TaskType> oldTask, OperationResult result, PageBase pageBase){
+		Task task = pageBase.createSimpleTask(pageBase.getClass().getName() + "." + "saveSyncTask");
+
+		PrismProperty property = oldTask.findProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN));
+
+		if(property == null){
+			return;
+		}
+		Object value = property.getRealValue();
+
+		ObjectDelta<TaskType> delta = pageBase.getPrismContext().deltaFactory().object().createModifyDelta(oldTask.getOid(),
+				pageBase.getPrismContext().deltaFactory().property()
+						.createModificationDeleteProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN), property.getDefinition(), value),
+				TaskType.class);
+
+		if(LOGGER.isTraceEnabled()){
+			LOGGER.trace(delta.debugDump());
+		}
+
+		try {
+			pageBase.getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task, result);
+		} catch (Exception e){
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save task.", e);
+			result.recordFatalError("Couldn't save task.", e);
+		}
+		result.recomputeStatus();
 	}
 }

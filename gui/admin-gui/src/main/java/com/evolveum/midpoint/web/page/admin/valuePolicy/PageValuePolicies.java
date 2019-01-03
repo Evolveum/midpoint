@@ -28,6 +28,7 @@ import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
@@ -48,15 +49,15 @@ import java.util.List;
                 @Url(mountUrl = "/admin/valuepolicies", matchUrlForSecurity = "/admin/valuepolicies" )
         },
         action = {
-                @AuthorizationAction(actionUri = PageAdminValuePolicies.AUTH_VALUE_POLICIES_ALL,
-                        label = PageAdminValuePolicies.AUTH_VALUE_POLICIES_ALL_LABEL,
-                        description = PageAdminValuePolicies.AUTH_VALUE_POLICIES_ALL_DESCRIPTION),
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_VALUE_POLICIES_ALL_URL,
+                        label = "PageAdminValuePolicies.auth.valuePoliciesAll.label",
+                        description = "PageAdminValuePolicies.auth.valuePoliciesAll.description"),
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_VALUE_POLICIES_URL,
                         label = "PageValuePolicies.auth.valuePolicies.label",
                         description = "PageValuePolicies.auth.valuePolicies.description")
         })
 
-public class PageValuePolicies extends PageAdminValuePolicies {
+public class PageValuePolicies extends PageAdminObjectList<ValuePolicyType> {
 
     private static final long serialVersionUID = 1L;
 
@@ -67,38 +68,30 @@ public class PageValuePolicies extends PageAdminValuePolicies {
         initLayout();
     }
 
-    protected void initLayout() {
-        Form mainForm = new Form(ID_MAIN_FORM);
-        add(mainForm);
+    @Override
+    protected void objectDetailsPerformed(AjaxRequestTarget target, ValuePolicyType valuePolicy) {
+        PageValuePolicies.this.valuePolicyDetailsPerformed(target, valuePolicy);
+    }
 
-        MainObjectListPanel<ValuePolicyType> valuePolicyPanel = new MainObjectListPanel<ValuePolicyType>(ID_VALUE_POLICIES_TABLE, ValuePolicyType.class,
-                UserProfileStorage.TableId.TABLE_VALUE_POLICIES, null, this) {
-            private static final long serialVersionUID = 1L;
+    @Override
+    protected void newObjectActionPerformed(AjaxRequestTarget target) {
+        navigateToNext(PageValuePolicy.class);
+    }
 
-            @Override
-            protected void objectDetailsPerformed(AjaxRequestTarget target, ValuePolicyType valuePolicy) {
-                PageValuePolicies.this.valuePolicyDetailsPerformed(target, valuePolicy);
-            }
+    @Override
+    protected List<IColumn<SelectableBean<ValuePolicyType>, String>> initColumns() {
+        return PageValuePolicies.this.initValuePoliciesColumns();
+    }
 
-            @Override
-            protected void newObjectPerformed(AjaxRequestTarget target) {
-                navigateToNext(PageValuePolicy.class);
-            }
+    @Override
+    protected List<InlineMenuItem> createRowActions() {
+        return PageValuePolicies.this.createInlineMenu();
+    }
 
-            @Override
-            protected List<IColumn<SelectableBean<ValuePolicyType>, String>> createColumns() {
-                return PageValuePolicies.this.initColumns();
-            }
 
-            @Override
-            protected List<InlineMenuItem> createInlineMenu() {
-                return PageValuePolicies.this.createInlineMenu();
-            }
-
-        };
-        valuePolicyPanel.setOutputMarkupId(true);
-        mainForm.add(valuePolicyPanel);
-
+    @Override
+    protected Class<ValuePolicyType> getType() {
+        return ValuePolicyType.class;
     }
 
     private void valuePolicyDetailsPerformed(AjaxRequestTarget target, ValuePolicyType valuePolicy) {
@@ -107,7 +100,7 @@ public class PageValuePolicies extends PageAdminValuePolicies {
         navigateToNext(PageValuePolicy.class, pageParameters);
     }
 
-    private List<IColumn<SelectableBean<ValuePolicyType>, String>> initColumns() {
+    private List<IColumn<SelectableBean<ValuePolicyType>, String>> initValuePoliciesColumns() {
         List<IColumn<SelectableBean<ValuePolicyType>, String>> columns = new ArrayList<>();
 
         IColumn column = new PropertyColumn(createStringResource("pageValuePolicies.table.description"), "value.description");
@@ -134,5 +127,10 @@ public class PageValuePolicies extends PageAdminValuePolicies {
         });
         return menu;
 
+    }
+
+    @Override
+    protected UserProfileStorage.TableId getTableId(){
+        return UserProfileStorage.TableId.TABLE_VALUE_POLICIES;
     }
 }

@@ -25,6 +25,8 @@
 	<properties>
 		<project.source.version>1.8</project.source.version>
     	<cxf.version>3.1.6</cxf.version>
+        <surefire.version>3.0.0-M2</surefire.version>
+        <failsafe.version>3.0.0-M2</failsafe.version>
 	</properties>
 	<organization>
 		<name>Evolveum</name>
@@ -162,9 +164,15 @@
                 </configuration>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.20</version>
+                <version>${surefire.version}</version>
+                <configuration>
+                    <skipTests>true</skipTests> <!-- there are tests but we don't want them to be executed automatically -->
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>${failsafe.version}</version>
                 <configuration>
                     <skipTests>true</skipTests> <!-- there are tests but we don't want them to be executed automatically -->
                 </configuration>
@@ -243,6 +251,12 @@
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <version>6.8.8</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.tools</groupId>
+            <artifactId>test-ng</artifactId>
+            <version>4.0-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
 

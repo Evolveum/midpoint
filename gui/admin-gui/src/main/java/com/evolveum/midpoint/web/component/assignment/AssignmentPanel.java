@@ -24,10 +24,7 @@ import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -87,6 +84,7 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 
 	private static final String DOT_CLASS = AssignmentPanel.class.getName() + ".";
 	protected static final String OPERATION_LOAD_ASSIGNMENTS_LIMIT = DOT_CLASS + "loadAssignmentsLimit";
+	protected static final String OPERATION_LOAD_ASSIGNMENTS_TARGET_OBJ = DOT_CLASS + "loadAssignmentsTargetRefObject";
 
 	protected int assignmentsRequestsLimit = -1;
 	private List<ContainerValueWrapper<AssignmentType>> detailsPanelAssignmentsList = new ArrayList<>();
@@ -123,6 +121,11 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 				} catch (Exception ex){
 					return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_ACTION_URI);
 				}
+			}
+
+			@Override
+			protected void cancelItemDetailsPerformed(AjaxRequestTarget target){
+				AssignmentPanel.this.cancelAssignmentDetailsPerformed(target);
 			}
 
 			@Override
@@ -254,6 +257,9 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 				.build();
 	}
 
+	protected void cancelAssignmentDetailsPerformed(AjaxRequestTarget target){
+	}
+
 	private List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initBasicColumns() {
 		List<IColumn<ContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
 
@@ -292,6 +298,7 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
+				AssignmentPanel.this.assignmentDetailsPerformed(target);
 				getMultivalueContainerListPanel().itemDetailsPerformed(target, rowModel);
 			}
 		});
@@ -326,6 +333,9 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 
 	protected List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initColumns(){
 		return new ArrayList<>();
+	}
+
+	protected void assignmentDetailsPerformed(AjaxRequestTarget target){
 	}
 
 	protected void newAssignmentClickPerformed(AjaxRequestTarget target){
@@ -672,6 +682,41 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 				return getMultivalueContainerListPanel().createEditColumnAction();
 			}
 		});
+		menuItems.add(new ButtonInlineMenuItem(createStringResource("AssignmentPanel.viewTargetObject")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public String getButtonIconCssClass() {
+				return GuiStyleConstants.CLASS_NAVIGATE_ARROW;
+			}
+
+			@Override
+			public InlineMenuItemAction initAction() {
+				return new ColumnMenuAction<ContainerValueWrapper<AssignmentType>>() {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						ContainerValueWrapper<AssignmentType> assignmentContainer = getRowModel().getObject();
+						PropertyOrReferenceWrapper targetRef = assignmentContainer.findPropertyWrapper(assignmentContainer.getPath()
+								.append(AssignmentType.F_TARGET_REF));
+
+						if (targetRef != null && targetRef.getValues() != null && targetRef.getValues().size() > 0) {
+							ValueWrapper refWrapper = (ValueWrapper)targetRef.getValues().get(0);
+							PrismReferenceValue refValue = (PrismReferenceValue)refWrapper.getValue();
+							ObjectReferenceType ort = new ObjectReferenceType();
+							ort.setupReferenceValue(refValue);
+							WebComponentUtil.dispatchToObjectDetailsPage(ort, AssignmentPanel.this, false);
+						}
+					}
+				};
+			}
+
+			@Override
+			public boolean isHeaderMenuItem(){
+				return false;
+			}
+		});
 		return menuItems;
 	}
 
@@ -679,7 +724,7 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 		return ((MultivalueContainerListPanelWithDetailsPanel<AssignmentType>)get(ID_ASSIGNMENTS));
 	}
 
-	protected MultivalueContainerDetailsPanel<AssignmentType> getMultivalueContainerDetailsPanel() {
+	public MultivalueContainerDetailsPanel<AssignmentType> getMultivalueContainerDetailsPanel() {
 		return ((MultivalueContainerDetailsPanel<AssignmentType>)get(MultivalueContainerListPanelWithDetailsPanel.ID_ITEM_DETAILS));
 	}
 

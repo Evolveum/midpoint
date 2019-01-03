@@ -23,6 +23,7 @@ import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -54,6 +55,7 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
 	private DistinctSearchOptionType distinct;
 	private Boolean disableSorting;
 	private SearchBoxConfigurationType searchBoxConfiguration;
+	private ObjectFilter filter;
 	
 	// Only used to construct "default" view definition. May be not needed later on.
 	public CompiledObjectCollectionView() {
@@ -141,6 +143,14 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
 		this.searchBoxConfiguration = searchBoxConfiguration;
 	}
 
+	public ObjectFilter getFilter() {
+		return filter;
+	}
+
+	public void setFilter(ObjectFilter filter) {
+		this.filter = filter;
+	}
+
 	public boolean match(QName expectedObjectType, String expectedViewName) {
 		if (!QNameUtil.match(objectType, expectedObjectType)) {
 			return false;
@@ -176,7 +186,7 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "distinct", distinct, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "disableSorting", disableSorting, indent + 1);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "searchBoxConfiguration", searchBoxConfiguration, indent + 1);
-		// TODO
+		DebugUtil.debugDumpWithLabel(sb, "filter", filter, indent + 1);
 		return sb.toString();
 	}
 	

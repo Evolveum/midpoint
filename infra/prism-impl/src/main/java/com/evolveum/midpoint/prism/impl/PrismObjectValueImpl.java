@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.prism.impl;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -122,9 +123,10 @@ public class PrismObjectValueImpl<O extends Objectable> extends PrismContainerVa
 		return Objects.equals(oid, that.oid);
 	}
 
+	// TODO consider the strategy
 	@Override
-	public int hashCode() {
-		return Objects.hash(super.hashCode(), oid);
+	public int hashCode(ParameterizedEquivalenceStrategy strategy) {
+		return Objects.hash(super.hashCode(strategy), oid);
 	}
 
 	@Override

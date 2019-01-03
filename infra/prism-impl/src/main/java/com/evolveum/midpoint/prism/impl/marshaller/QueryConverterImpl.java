@@ -298,7 +298,7 @@ public class QueryConverterImpl implements QueryConverter {
 					return prismContext.queryFactory().createEqual(itemPath, (PrismPropertyDefinition<T>)itemDefinition, matchingRule, prismContext, values);
 				}
 				//noinspection unchecked
-				PrismPropertyValue<T> propertyValue = (PrismPropertyValue<T>) item.getValue(0);
+				PrismPropertyValue<T> propertyValue = (PrismPropertyValue<T>) item.getAnyValue();
 				propertyValue.clearParent();
 				if (isGt || isGtEq) {
 					//noinspection unchecked

@@ -25,7 +25,8 @@ import java.io.IOException;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.impl.PrismReferenceDefinitionImpl;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.impl.PrismReferenceValueImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import org.testng.annotations.Test;
@@ -106,7 +107,7 @@ public abstract class TestCompare extends AbstractPrismTest {
 		PrismObject<UserType> jackModified = prismContext.parseObject(getFile(USER_JACK_MODIFIED_FILE_BASENAME));
 
 		// WHEN
-		ObjectDelta<UserType> jackDelta = jackOriginal.diff (jackModified);
+		ObjectDelta<UserType> jackDelta = jackOriginal.diff(jackModified);
 
 		// THEN
 		System.out.println("Jack delta:");
@@ -163,7 +164,7 @@ public abstract class TestCompare extends AbstractPrismTest {
 		PrismObject<UserType> jackModified = prismContext.parseObject(getFile(USER_JACK_MODIFIED_FILE_BASENAME));
 
 		// WHEN
-		ObjectDelta<UserType> jackDelta = jackOriginal.diff(jackModified, true, true);
+		ObjectDelta<UserType> jackDelta = jackOriginal.diff(jackModified, EquivalenceStrategy.NOT_LITERAL);
 
 		// THEN
 		System.out.println("Jack delta:");
@@ -312,41 +313,43 @@ public abstract class TestCompare extends AbstractPrismTest {
 
 		PrismContext prismContext = constructInitializedPrismContext();
 
-		PrismReferenceDefinitionImpl ref1Def = new PrismReferenceDefinitionImpl(REF_QNAME, REF_TYPE_QNAME, prismContext);
+		MutablePrismReferenceDefinition ref1Def = prismContext.definitionFactory().createReferenceDefinition(REF_QNAME, REF_TYPE_QNAME);
 		ref1Def.setTargetTypeName(ACCOUNT_TYPE_QNAME);
-		PrismReference ref1 = prismContext.itemFactory().createReference(REF_QNAME, ref1Def);
 
+		PrismReference ref1a = prismContext.itemFactory().createReference(REF_QNAME, ref1Def);
 		PrismReferenceValue val11 = new PrismReferenceValueImpl("oid1");
 		val11.setTargetType(ACCOUNT_TYPE_QNAME);
-		ref1.add(val11);
+		assertTrue(ref1a.add(val11));
 
 		PrismReferenceValue val12 = new PrismReferenceValueImpl("oid1");
 		val12.setTargetType(ACCOUNT_TYPE_QNAME);
-		ref1.add(val12);
+		assertFalse(ref1a.add(val12));
 
+		PrismReference ref1b = prismContext.itemFactory().createReference(REF_QNAME, ref1Def);
 		PrismReferenceValue val13 = new PrismReferenceValueImpl("oid1");
 		// No type
-		ref1.add(val13);
+		assertTrue(ref1b.add(val13));
 
 		PrismReferenceValue val14 = new PrismReferenceValueImpl("oid1");
 		// No type
-		ref1.add(val14);
+		assertFalse(ref1b.add(val14));
 
 		PrismReferenceDefinition ref2Def = prismContext.definitionFactory().createReferenceDefinition(REF_QNAME, REF_TYPE_QNAME);
 		// no target type def
-		PrismReference ref2 = prismContext.itemFactory().createReference(REF_QNAME, ref2Def);
 
+		PrismReference ref2a = prismContext.itemFactory().createReference(REF_QNAME, ref2Def);
 		PrismReferenceValue val21 = new PrismReferenceValueImpl("oid1");
 		val21.setTargetType(ACCOUNT_TYPE_QNAME);
-		ref2.add(val21);
+		assertTrue(ref2a.add(val21));
 
 		PrismReferenceValue val22 = new PrismReferenceValueImpl("oid1");
 		val22.setTargetType(ACCOUNT_TYPE_QNAME);
-		ref2.add(val22);
+		assertFalse(ref2a.add(val22));
 
+		PrismReference ref2b = prismContext.itemFactory().createReference(REF_QNAME, ref2Def);
 		PrismReferenceValue val23 = new PrismReferenceValueImpl("oid1");
 		// No type
-		ref2.add(val23);
+		assertTrue(ref2b.add(val23));
 
 		// No def in val4x
 
@@ -365,7 +368,7 @@ public abstract class TestCompare extends AbstractPrismTest {
 		assertTrue("val12 - val11", val12.equals(val11));
 		assertTrue("val11 - val13", val11.equals(val13));
 		assertTrue("val13 - val11", val13.equals(val11));
-		assertTrue("val13 - val14", val13.equals(val14));
+		assertFalse("val13 - val14", val13.equals(val14));      // val14 has no type because it is not in ref1b
 
 		assertTrue("val21 - val21", val21.equals(val21));
 		assertTrue("val21 - val22", val21.equals(val22));
@@ -403,6 +406,78 @@ public abstract class TestCompare extends AbstractPrismTest {
 //		assertTrue("val11 - val11", val11.equals(val11));
 
 
+	}
+
+	@Test
+	public void testDiffReferences() throws Exception {
+		final String TEST_NAME="testDiffReferences";
+		displayTestTitle(TEST_NAME);
+
+		if (!"xml".equals(getFilenameSuffix())) {
+			return;
+		}
+
+		// GIVEN
+		PrismContext prismContext = constructInitializedPrismContext();
+
+		PrismObject<UserType> refWithFilter = prismContext.parserFor(getFile(REF_WITH_FILTER_BASENAME)).parse();
+		PrismObject<UserType> refWithFilter2 = prismContext.parserFor(getFile(REF_WITH_FILTER_BASENAME)).parse();
+		PrismObject<UserType> refWithFilterDifferentPath = prismContext.parserFor(getFile(REF_WITH_FILTER_DIFFERENT_PATH_BASENAME)).parse();
+		PrismObject<UserType> refWithFilterNoOid = prismContext.parserFor(getFile(REF_WITH_FILTER_NO_OID_BASENAME)).parse();
+		PrismObject<UserType> refWithFilterNoOid2 = prismContext.parserFor(getFile(REF_WITH_FILTER_NO_OID_BASENAME)).parse();
+		PrismObject<UserType> refWithoutFilter = prismContext.parserFor(getFile(REF_WITHOUT_FILTER_BASENAME)).parse();
+
+		// WHEN/THEN
+
+		assertEquality("refWithFilter - refWithFilter2", refWithFilter, refWithFilter2, null);
+		assertEquality("refWithFilter - refWithFilter2", refWithFilter, refWithFilter2, EquivalenceStrategy.LITERAL);
+		assertEquality("refWithFilter - refWithFilter2", refWithFilter, refWithFilter2, EquivalenceStrategy.NOT_LITERAL);
+		assertEquality("refWithFilter - refWithFilter2", refWithFilter, refWithFilter2, EquivalenceStrategy.IGNORE_METADATA);
+		assertEquality("refWithFilter - refWithFilter2", refWithFilter, refWithFilter2, EquivalenceStrategy.IGNORE_METADATA_CONSIDER_DIFFERENT_IDS);
+		assertEquality("refWithFilter - refWithFilter2", refWithFilter, refWithFilter2, EquivalenceStrategy.REAL_VALUE);
+		assertEquality("refWithFilter - refWithFilter2", refWithFilter, refWithFilter2, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS);
+
+		assertInequality("refWithFilter - refWithFilterDifferentPath", refWithFilter, refWithFilterDifferentPath, null);
+		assertInequality("refWithFilter - refWithFilterDifferentPath", refWithFilter, refWithFilterDifferentPath, EquivalenceStrategy.LITERAL);
+		// if the filter was parsed this should be an equality
+		assertInequality("refWithFilter - refWithFilterDifferentPath", refWithFilter, refWithFilterDifferentPath, EquivalenceStrategy.NOT_LITERAL);
+		assertInequality("refWithFilter - refWithFilterDifferentPath", refWithFilter, refWithFilterDifferentPath, EquivalenceStrategy.IGNORE_METADATA);
+		assertInequality("refWithFilter - refWithFilterDifferentPath", refWithFilter, refWithFilterDifferentPath, EquivalenceStrategy.IGNORE_METADATA_CONSIDER_DIFFERENT_IDS);
+		assertEquality("refWithFilter - refWithFilter2", refWithFilter, refWithFilterDifferentPath, EquivalenceStrategy.REAL_VALUE);
+		assertEquality("refWithFilter - refWithFilter2", refWithFilter, refWithFilterDifferentPath, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS);
+
+		assertInequality("refWithFilter - refWithFilterNoOid", refWithFilter, refWithFilterNoOid, null);
+		assertInequality("refWithFilter - refWithFilterNoOid", refWithFilter, refWithFilterNoOid, EquivalenceStrategy.LITERAL);
+		assertInequality("refWithFilter - refWithFilterNoOid", refWithFilter, refWithFilterNoOid, EquivalenceStrategy.NOT_LITERAL);
+		assertInequality("refWithFilter - refWithFilterNoOid", refWithFilter, refWithFilterNoOid, EquivalenceStrategy.IGNORE_METADATA);
+		assertInequality("refWithFilter - refWithFilterNoOid", refWithFilter, refWithFilterNoOid, EquivalenceStrategy.IGNORE_METADATA_CONSIDER_DIFFERENT_IDS);
+		assertInequality("refWithFilter - refWithFilterNoOid", refWithFilter, refWithFilterNoOid, EquivalenceStrategy.REAL_VALUE);
+		assertInequality("refWithFilter - refWithFilterNoOid", refWithFilter, refWithFilterNoOid, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS);
+
+		assertEquality("refWithFilterNoOid2 - refWithFilterNoOid", refWithFilterNoOid2, refWithFilterNoOid, null);
+		assertEquality("refWithFilterNoOid2 - refWithFilterNoOid", refWithFilterNoOid2, refWithFilterNoOid, EquivalenceStrategy.LITERAL);
+		assertEquality("refWithFilterNoOid2 - refWithFilterNoOid", refWithFilterNoOid2, refWithFilterNoOid, EquivalenceStrategy.NOT_LITERAL);
+		assertEquality("refWithFilterNoOid2 - refWithFilterNoOid", refWithFilterNoOid2, refWithFilterNoOid, EquivalenceStrategy.IGNORE_METADATA);
+		assertEquality("refWithFilterNoOid2 - refWithFilterNoOid", refWithFilterNoOid2, refWithFilterNoOid, EquivalenceStrategy.IGNORE_METADATA_CONSIDER_DIFFERENT_IDS);
+		assertEquality("refWithFilterNoOid2 - refWithFilterNoOid", refWithFilterNoOid2, refWithFilterNoOid, EquivalenceStrategy.REAL_VALUE);
+		assertEquality("refWithFilterNoOid2 - refWithFilterNoOid", refWithFilterNoOid2, refWithFilterNoOid, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS);
+
+		assertInequality("refWithFilter - refWithoutFilter", refWithFilter, refWithoutFilter, null);
+		assertInequality("refWithFilter - refWithoutFilter", refWithFilter, refWithoutFilter, EquivalenceStrategy.LITERAL);
+		assertInequality("refWithFilter - refWithoutFilter", refWithFilter, refWithoutFilter, EquivalenceStrategy.NOT_LITERAL);
+		assertInequality("refWithFilter - refWithoutFilter", refWithFilter, refWithoutFilter, EquivalenceStrategy.IGNORE_METADATA);
+		assertInequality("refWithFilter - refWithoutFilter", refWithFilter, refWithoutFilter, EquivalenceStrategy.IGNORE_METADATA_CONSIDER_DIFFERENT_IDS);
+		assertEquality("refWithFilter - refWithoutFilter", refWithFilter, refWithoutFilter, EquivalenceStrategy.REAL_VALUE);
+		assertEquality("refWithFilter - refWithoutFilter", refWithFilter, refWithoutFilter, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS);
+	}
+
+	protected void assertEquality(String message, PrismObject<?> o1, PrismObject<?> o2, ParameterizedEquivalenceStrategy strategy) {
+		boolean equals = strategy != null ? o1.equals(o2, strategy) : o1.equals(o2);
+		assertTrue(message + " under '" + strategy + "' should be equivalent but it is not", equals);
+	}
+	protected void assertInequality(String message, PrismObject<?> o1, PrismObject<?> o2, ParameterizedEquivalenceStrategy strategy) {
+		boolean equals = strategy != null ? o1.equals(o2, strategy) : o1.equals(o2);
+		assertFalse(message + " under '" + strategy + "' should not be equivalent but it is", equals);
 	}
 
 }

@@ -283,6 +283,7 @@ public abstract class SchemaConstants {
 			NS_MODEL_EXTENSION, "freshnessInterval"); // unused? TODO consider
 														// removing
 	public static final ItemName MODEL_EXTENSION_DRY_RUN = new ItemName(NS_MODEL_EXTENSION, "dryRun");
+	public static final ItemName MODEL_EXTENSION_SIMULATE_BEFORE_EXECUTE = new ItemName(NS_MODEL_EXTENSION, "simulateBeforeExecute");
 	public static final ItemName SYNC_TOKEN_RETRY_UNHANDLED = new ItemName(NS_MODEL_EXTENSION, "retryLiveSyncErrors");
 	public static final ItemName MODEL_EXTENSION_FINISH_OPERATIONS_ONLY = new ItemName(NS_MODEL_EXTENSION, "finishOperationsOnly");
 	public static final ItemName MODEL_EXTENSION_KIND = new ItemName(NS_MODEL_EXTENSION, "kind");

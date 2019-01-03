@@ -691,7 +691,7 @@ public class ReportUtils {
         if (item.size() > 1) {
             throw new IllegalStateException("More than one value in item " + item);
         }
-        PrismValue value = item.getValue(0);
+        PrismValue value = item.getAnyValue();
         if (value == null) {
             return null;
         }

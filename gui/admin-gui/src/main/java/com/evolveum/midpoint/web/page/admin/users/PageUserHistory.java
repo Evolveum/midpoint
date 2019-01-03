@@ -54,9 +54,9 @@ import java.util.List;
  * Created by honchar.
  */
 @PageDescriptor(url = "/admin/userHistory", action = {
-        @AuthorizationAction(actionUri = PageAdminUsers.AUTH_USERS_ALL,
-                label = PageAdminUsers.AUTH_USERS_ALL_LABEL,
-                description = PageAdminUsers.AUTH_USERS_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USERS_ALL_URL,
+                label = "PageAdminUsers.auth.usersAll.label",
+                description = "PageAdminUsers.auth.usersAll.description"),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USER_HISTORY_URL,
                 label = "PageUser.auth.userHistory.label",
                 description = "PageUser.auth.userHistory.description")})

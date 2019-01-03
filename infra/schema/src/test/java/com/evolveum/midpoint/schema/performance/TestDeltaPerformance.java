@@ -1,0 +1,152 @@
+/*
+ * Copyright (c) 2010-2018 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.evolveum.midpoint.schema.performance;
+
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.testng.annotations.Test;
+
+import javax.xml.namespace.QName;
+
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
+
+/**
+ *
+ *
+ */
+public class TestDeltaPerformance extends AbstractSchemaPerformanceTest {
+
+	@Test
+	public void test100ApplyNameDelta() throws Exception {
+		System.out.println("===[ test100ApplyNameDelta ]===");
+
+		PrismObject<UserType> jack = getJack();
+		PrismObject<UserType> temp = jack.clone();
+		ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
+				.item(UserType.F_NAME).replace("jjj")
+				.asObjectDeltaCast(temp.getOid());
+		measure("delta.applyTo(jack)", () -> { delta.applyTo(temp); return true; });
+
+		PrismObject<UserType> jack2 = jack.clone();
+		delta.applyTo(jack2);
+		measure("jack2.diff(jack)", () -> jack2.diff(jack));
+	}
+
+	@Test
+	public void test102ApplyPasswordValueDelta() throws Exception {
+		System.out.println("===[ test102ApplyPasswordValueDelta ]===");
+
+		PrismObject<UserType> jack = getJack();
+		PrismObject<UserType> temp = jack.clone();
+		ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
+				.item(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE).replace("cleartext")
+				.asObjectDeltaCast(temp.getOid());
+		measure("delta.applyTo(jack)", () -> { delta.applyTo(temp); return true; });
+		PrismObject<UserType> jack2 = jack.clone();
+		delta.applyTo(jack2);
+		measure("jack2.diff(jack)", () -> jack2.diff(jack));
+	}
+
+	@Test
+	public void test104ApplyExtensionItemDelta() throws Exception {
+		System.out.println("===[ test104ApplyExtensionItemDelta ]===");
+
+		PrismObject<UserType> jack = getJack();
+		PrismObject<UserType> temp = jack.clone();
+		ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
+				.item(ItemPath.create(UserType.F_EXTENSION, "bar23"), def("bar23")).replace("bbb")
+				.asObjectDeltaCast(temp.getOid());
+		measure("delta.applyTo(jack)", () -> { delta.applyTo(temp); return true; });
+		PrismObject<UserType> jack2 = jack.clone();
+		delta.applyTo(jack2);
+		measure("jack2.diff(jack)", () -> jack2.diff(jack));
+	}
+
+	@Test
+	public void test110ApplyDeltaWith5Modifications() throws Exception {
+		System.out.println("===[ test110ApplyDeltaWith5Modifications ]===");
+
+		PrismObject<UserType> jack = getJack();
+		PrismObject<UserType> temp = jack.clone();
+		ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
+				.item(UserType.F_NAME).replace("jjj")
+				.item(UserType.F_HONORIFIC_SUFFIX).replace("sss")
+				.item(ItemPath.create(UserType.F_EXTENSION, "bar23"), def("bar23")).replace("bbb")
+				.item(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE).replace("cleartext")
+				.item(UserType.F_ADMIN_GUI_CONFIGURATION).replace(new AdminGuiConfigurationType(getPrismContext()))
+				.asObjectDeltaCast(temp.getOid());
+		measure("delta.applyTo(jack)", () -> { delta.applyTo(temp); return true; });
+		PrismObject<UserType> jack2 = jack.clone();
+		delta.applyTo(jack2);
+		measure("jack2.diff(jack)", () -> jack2.diff(jack));
+	}
+
+	private PrismPropertyDefinition<String> def(String name) {
+		return getPrismContext().definitionFactory().createPropertyDefinition(new QName(NS_FOO, name), DOMUtil.XSD_STRING);
+	}
+
+	@Test
+	public void test120ApplyDeltaWith30Modifications() throws Exception {
+		System.out.println("===[ test120ApplyDeltaWith30Modifications ]===");
+
+		PrismObject<UserType> jack = getJack();
+		PrismObject<UserType> temp = jack.clone();
+		ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
+				.item(ItemPath.create(UserType.F_EXTENSION, "bar0"), def("bar0")).replace("bbb")
+				.item(ItemPath.create(UserType.F_EXTENSION, "bar1"), def("bar1")).replace("bbb")
+				.item(ItemPath.create(UserType.F_EXTENSION, "bar2"), def("bar2")).replace("bbb")
+				.item(ItemPath.create(UserType.F_EXTENSION, "bar3"), def("bar3")).replace("bbb")
+				.item(ItemPath.create(UserType.F_EXTENSION, "bar4"), def("bar4")).replace("bbb")
+				.item(ItemPath.create(UserType.F_EXTENSION, "bar5"), def("bar5")).replace("bbb")
+				.item(ItemPath.create(UserType.F_EXTENSION, "bar6"), def("bar6")).replace("bbb")
+				.item(ItemPath.create(UserType.F_EXTENSION, "bar7"), def("bar7")).replace("bbb")
+				.item(ItemPath.create(UserType.F_EXTENSION, "bar8"), def("bar8")).replace("bbb")
+				.item(ItemPath.create(UserType.F_EXTENSION, "bar9"), def("bar9")).replace("bbb")
+				.item(ItemPath.create(UserType.F_EXTENSION, "bar10"), def("bar10")).replace("bbb")
+				.item(ItemPath.create(UserType.F_EXTENSION, "bar11"), def("bar11")).replace("bbb")
+				.item(ItemPath.create(UserType.F_EXTENSION, "bar12"), def("bar12")).replace("bbb")
+				.item(ItemPath.create(UserType.F_EXTENSION, "bar13"), def("bar13")).replace("bbb")
+				.item(ItemPath.create(UserType.F_EXTENSION, "bar14"), def("bar14")).replace("bbb")
+				.item(ItemPath.create(UserType.F_EXTENSION, "bar15"), def("bar15")).replace("bbb")
+				.item(ItemPath.create(UserType.F_EXTENSION, "bar16"), def("bar16")).replace("bbb")
+				.item(ItemPath.create(UserType.F_EXTENSION, "bar17"), def("bar17")).replace("bbb")
+				.item(ItemPath.create(UserType.F_EXTENSION, "bar18"), def("bar18")).replace("bbb")
+				.item(ItemPath.create(UserType.F_EXTENSION, "bar19"), def("bar19")).replace("bbb")
+				.item(ItemPath.create(UserType.F_EXTENSION, "bar20"), def("bar20")).replace("bbb")
+				.item(ItemPath.create(UserType.F_EXTENSION, "bar21"), def("bar21")).replace("bbb")
+				.item(ItemPath.create(UserType.F_EXTENSION, "bar22"), def("bar22")).replace("bbb")
+				.item(ItemPath.create(UserType.F_EXTENSION, "bar23"), def("bar23")).replace("bbb")
+				.item(ItemPath.create(UserType.F_EXTENSION, "bar24"), def("bar24")).replace("bbb")
+				.item(ItemPath.create(UserType.F_EXTENSION, "bar25"), def("bar25")).replace("bbb")
+				.item(ItemPath.create(UserType.F_EXTENSION, "bar26"), def("bar26")).replace("bbb")
+				.item(ItemPath.create(UserType.F_EXTENSION, "bar27"), def("bar27")).replace("bbb")
+				.item(ItemPath.create(UserType.F_EXTENSION, "bar28"), def("bar28")).replace("bbb")
+				.item(ItemPath.create(UserType.F_EXTENSION, "bar29"), def("bar29")).replace("bbb")
+				.asObjectDeltaCast(temp.getOid());
+		measure("delta.applyTo(jack)", () -> { delta.applyTo(temp); return true; });
+		PrismObject<UserType> jack2 = jack.clone();
+		delta.applyTo(jack2);
+		measure("jack2.diff(jack)", () -> jack2.diff(jack));
+	}
+
+}

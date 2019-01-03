@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<role oid="6ae02e34-f8b0-11e8-9c40-87e142b606fe"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <name>User administrator</name>
+    <description>Role for delegated administration of users.</description>
+    
+    <authorization>
+    	<name>self-read</name>
+    	<description>
+    		Allow to read all the properties of "self" object. I.e. every logged-in user can read
+    		object that represent his own identity.
+    	</description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <special>self</special>
+        </object>
+    </authorization>
+    
+    <authorization>
+	    <name>self-shadow-read</name>
+    	<description>
+    		Allow to read all the properties of all the shadows that belong to "self" object. 
+    		I.e. every logged-in user can read all his accounts.
+    	</description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>ShadowType</type>
+            <owner>
+                <special>self</special>
+            </owner>
+        </object>
+    </authorization>    
+        
+    <authorization>
+    	<name>assignment-target-read</name>
+    	<description>
+    		Authorization that allows to read all the object that are possible assignment targets. We want that
+    		to display the targets in the selection windows.
+    		Note that this authorization may be too broad for production use. Normally it should be limited to just
+    		selected properties such as name and description.
+    	</description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>OrgType</type>
+        </object>
+        <object>
+            <type>ResourceType</type>
+        </object>
+        <object>
+            <type>RoleType</type>
+        </object>
+        <object>
+            <type>ServiceType</type>
+        </object>
+    </authorization>
+    
+    <adminGuiConfiguration>
+    	<objectForms>
+			<objectForm id="111"> <!-- Make sure there will be id conflict: MID-5002 -->
+				<type>RoleType</type>
+				<includeDefaultForms>true</includeDefaultForms>
+			</objectForm>
+		</objectForms>
+    	<objectCollectionViews>
+    		<objectCollectionView>
+    			<name>Active employees</name>
+    			<type>UserType</type>
+    			<collection>
+    				<collectionRef oid="f61bcb4a-f8ae-11e8-9f5c-c3e7f27ee878" type="ObjectCollectionType"/> <!-- Active employees collection -->
+    			</collection>
+    		</objectCollectionView>
+    	</objectCollectionViews>
+    </adminGuiConfiguration>
+    
+</role>

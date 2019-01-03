@@ -17,6 +17,8 @@ package com.evolveum.midpoint.prism.impl;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -24,13 +26,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * @author semancik
@@ -43,6 +43,7 @@ public abstract class PrismValueImpl implements PrismValue {
     private Itemable parent;
     private transient Map<String,Object> userData = new HashMap<>();
 	protected boolean immutable;
+	protected EquivalenceStrategy defaultEquivalenceStrategy;
 
 	transient protected PrismContext prismContext;
 
@@ -129,6 +130,10 @@ public abstract class PrismValueImpl implements PrismValue {
 		return parent.getPath();
 	}
 
+	protected Object getPathComponent() {
+		return null;
+	}
+
 	/**
 	 * Used when we are removing the value from the previous parent.
 	 * Or when we know that the previous parent will be discarded and we
@@ -209,17 +214,6 @@ public abstract class PrismValueImpl implements PrismValue {
 
     public abstract void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw, ConsistencyCheckScope scope);
 
-	/**
-	 * Returns true if this and other value represent the same value.
-	 * E.g. if they have the same IDs, OIDs or it is otherwise know
-	 * that they "belong together" without a deep examination of the
-	 * values.
-	 *
-	 * @param lax If we can reasonably assume that the two values belong together even if they don't have the same ID,
-	 *            e.g. if they both belong to single-valued parent items. This is useful e.g. when comparing
-	 *            multi-valued containers. But can cause problems when we want to be sure we are removing the correct
-	 *            value.
-	 */
 	public boolean representsSameValue(PrismValue other, boolean lax) {
 		return false;
 	}
@@ -252,66 +246,56 @@ public abstract class PrismValueImpl implements PrismValue {
 		}
 	}
 
+	protected EquivalenceStrategy getEqualsHashCodeStrategy() {
+		return defaultIfNull(defaultEquivalenceStrategy, EquivalenceStrategy.NOT_LITERAL);
+	}
+
 	@Override
 	public int hashCode() {
-		int result = 0;
-		return result;
-	}
-
-	public boolean equalsComplex(PrismValue other, boolean ignoreMetadata, boolean isLiteral) {
-		// parent is not considered at all. it is not relevant.
-		// neither the immutable flag
-		if (!ignoreMetadata) {
-			if (originObject == null) {
-				if (other.getOriginObject() != null)
-					return false;
-			} else if (!originObject.equals(other.getOriginObject()))
-				return false;
-			if (originType != other.getOriginType())
-				return false;
-		}
-		return true;
+		return hashCode(getEqualsHashCodeStrategy());
 	}
 
 	@Override
-	public boolean equals(PrismValue otherValue, boolean ignoreMetadata) {
-		return equalsComplex(otherValue, ignoreMetadata, false);
+	public int hashCode(@NotNull ParameterizedEquivalenceStrategy equivalenceStrategy) {
+		return 0;
+	}
+
+	@Override
+	public int hashCode(@NotNull EquivalenceStrategy equivalenceStrategy) {
+		return equivalenceStrategy.hashCode(this);
+	}
+
+	@Override
+	public boolean equals(PrismValue otherValue, @NotNull EquivalenceStrategy equivalenceStrategy) {
+		if (equivalenceStrategy instanceof ParameterizedEquivalenceStrategy) {   // todo or skip this check?
+			return equals(otherValue, (ParameterizedEquivalenceStrategy) equivalenceStrategy);
+		} else {
+			return equivalenceStrategy.equals(this, otherValue);
+		}
+	}
+
+	public boolean equals(PrismValue other, @NotNull ParameterizedEquivalenceStrategy strategy) {
+		// parent is not considered at all. it is not relevant.
+		// neither the immutable flag
+		return !strategy.isConsideringValueOrigin() ||
+				Objects.equals(originObject, other.getOriginObject()) && originType == other.getOriginType();
+	}
+
+	// original equals was "isLiteral = false"!
+	public boolean equals(Object other) {
+		return this == other ||
+				(other == null || other instanceof PrismValue) &&
+				equals((PrismValue) other, getEqualsHashCodeStrategy());
 	}
 
 	public boolean equals(PrismValue thisValue, PrismValue otherValue) {
-		if (thisValue == null && otherValue == null) {
+		if (thisValue == otherValue) {
 			return true;
 		}
 		if (thisValue == null || otherValue == null) {
 			return false;
 		}
-		return thisValue.equalsComplex(otherValue, false, false);
-	}
-
-	public boolean equalsRealValue(PrismValue otherValue) {
-		return equalsComplex(otherValue, true, false);
-	}
-
-	public boolean equalsRealValue(PrismValue thisValue, PrismValue otherValue) {
-		if (thisValue == null && otherValue == null) {
-			return true;
-		}
-		if (thisValue == null || otherValue == null) {
-			return false;
-		}
-		return thisValue.equalsComplex(otherValue, true, false);
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		PrismValue other = (PrismValue) obj;
-		return equalsComplex(other, false, false);
+		return thisValue.equals(otherValue, getEqualsHashCodeStrategy());
 	}
 
 	/**
@@ -320,7 +304,7 @@ public abstract class PrismValueImpl implements PrismValue {
 	 */
 	@Override
 	public Collection<? extends ItemDelta> diff(PrismValue otherValue) {
-		return diff(otherValue, true, false);
+		return diff(otherValue, EquivalenceStrategy.IGNORE_METADATA);
 	}
 
 	/**
@@ -328,14 +312,14 @@ public abstract class PrismValueImpl implements PrismValue {
 	 * E.g. the container with the same ID.
 	 */
 	@Override
-	public Collection<? extends ItemDelta> diff(PrismValue otherValue, boolean ignoreMetadata, boolean isLiteral) {
+	public Collection<? extends ItemDelta> diff(PrismValue otherValue, ParameterizedEquivalenceStrategy strategy) {
 		Collection<? extends ItemDelta> itemDeltas = new ArrayList<>();
-		diffMatchingRepresentation(otherValue, itemDeltas, ignoreMetadata, isLiteral);
+		diffMatchingRepresentation(otherValue, itemDeltas, strategy);
 		return itemDeltas;
 	}
 
 	public void diffMatchingRepresentation(PrismValue otherValue,
-			Collection<? extends ItemDelta> deltas, boolean ignoreMetadata, boolean isLiteral) {
+			Collection<? extends ItemDelta> deltas, ParameterizedEquivalenceStrategy strategy) {
 		// Nothing to do by default
 	}
 
@@ -408,6 +392,4 @@ public abstract class PrismValueImpl implements PrismValue {
 			return emptySet();
 		}
 	}
-
-	public abstract boolean match(PrismValue v2);
 }

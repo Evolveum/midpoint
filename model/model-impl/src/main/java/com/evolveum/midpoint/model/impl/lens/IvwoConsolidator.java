@@ -24,6 +24,8 @@ import java.util.HashSet;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.commons.lang.mutable.MutableBoolean;
 import org.jetbrains.annotations.NotNull;
@@ -513,7 +515,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
 				return true;
 			} else {
 				Item<V,D> clonedItem = item.clone();
-				itemDelta.applyToMatchingPath(clonedItem);
+				itemDelta.applyToMatchingPath(clonedItem, ParameterizedEquivalenceStrategy.DEFAULT_FOR_DELTA_APPLICATION);
 				return !clonedItem.isEmpty();
 			}
 		}
@@ -526,7 +528,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
 		if (valueMatcher != null && newValue instanceof PrismPropertyValue) {
 			return valueMatcher.hasRealValue((PrismProperty)existingUserItem, (PrismPropertyValue)newValue);
 		} else {
-			return existingUserItem.contains(newValue, true, comparator);
+			return existingUserItem.contains(newValue, EquivalenceStrategy.IGNORE_METADATA, comparator);
 		}
 	}
 

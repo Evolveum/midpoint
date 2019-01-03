@@ -172,7 +172,7 @@ public class PrismMarshaller {
 	private XNodeImpl marshalItemContent(@NotNull Item<?, ?> item,
 			ItemDefinition itemDefinition, SerializationContext context) throws SchemaException {
 		if (item.size() == 1) {
-			return marshalItemValue(item.getValue(0), itemDefinition, null, context);
+			return marshalItemValue(item.getAnyValue(), itemDefinition, null, context);
 		} else {
 			ListXNodeImpl xlist = new ListXNodeImpl();
 			for (PrismValue val : item.getValues()) {

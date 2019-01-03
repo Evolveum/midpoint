@@ -16,6 +16,8 @@
 package com.evolveum.midpoint.prism.delta;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -97,7 +99,7 @@ public interface ObjectDelta<O extends Objectable> extends DebugDumpable, Visita
 
 	boolean containsModification(ItemDelta itemDelta);
 
-	boolean containsModification(ItemDelta itemDelta, boolean ignoreMetadata, boolean isLiteral);
+	boolean containsModification(ItemDelta itemDelta, EquivalenceStrategy strategy);
 
 	void addModifications(Collection<? extends ItemDelta> itemDeltas);
 
@@ -196,6 +198,8 @@ public interface ObjectDelta<O extends Objectable> extends DebugDumpable, Visita
      * It modifies the provided object.
      */
 	void applyTo(PrismObject<O> targetObject) throws SchemaException;
+
+	void applyTo(PrismObject<O> targetObject, ParameterizedEquivalenceStrategy strategy) throws SchemaException;
 
 	/**
      * Applies this object delta to specified object, returns updated object.

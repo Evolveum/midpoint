@@ -98,16 +98,16 @@ public class TestExport {
 
 		Item<?, ?> intAttributeReparsed = shadowReparsed.findItem(ItemPath.create(ShadowType.F_ATTRIBUTES, INT_ATTRIBUTE_NAME));
 		assertNotNull(intAttributeReparsed);
-		assertFalse(intAttributeReparsed.getValue(0).isRaw());
+		assertFalse(intAttributeReparsed.getAnyValue().isRaw());
 		Item<?, ?> stringAttributeReparsed = shadowReparsed.findItem(ItemPath.create(ShadowType.F_ATTRIBUTES, STRING_ATTRIBUTE_NAME));
 		assertNotNull(stringAttributeReparsed);
-		assertFalse(stringAttributeReparsed.getValue(0).isRaw());
+		assertFalse(stringAttributeReparsed.getAnyValue().isRaw());
 		Item<?, ?> longExtensionReparsed = shadowReparsed.findItem(ItemPath.create(ShadowType.F_EXTENSION, SchemaTestConstants.EXTENSION_LONG_TYPE_ELEMENT));
 		assertNotNull(longExtensionReparsed);
-		assertFalse(longExtensionReparsed.getValue(0).isRaw());
+		assertFalse(longExtensionReparsed.getAnyValue().isRaw());
 		Item<?, ?> doubleExtensionReparsed = shadowReparsed.findItem(ItemPath.create(ShadowType.F_EXTENSION, SchemaTestConstants.EXTENSION_DOUBLE_TYPE_ELEMENT));
 		assertNotNull(doubleExtensionReparsed);
-		assertFalse(doubleExtensionReparsed.getValue(0).isRaw());
+		assertFalse(doubleExtensionReparsed.getAnyValue().isRaw());
 	}
 
 }

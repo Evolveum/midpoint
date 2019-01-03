@@ -17,6 +17,8 @@ package com.evolveum.midpoint.prism.impl.delta;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -215,12 +217,12 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
     }
 
     public boolean containsModification(ItemDelta itemDelta) {
-    	return containsModification(itemDelta, PrismConstants.EQUALS_DEFAULT_IGNORE_METADATA, PrismConstants.EQUALS_DEFAULT_IS_LITERAL);
+    	return containsModification(itemDelta, EquivalenceStrategy.IGNORE_METADATA);
     }
 
-	public boolean containsModification(ItemDelta itemDelta, boolean ignoreMetadata, boolean isLiteral) {
+	public boolean containsModification(ItemDelta itemDelta, EquivalenceStrategy strategy) {
 		for (ItemDelta<?,?> modification: modifications) {
-			if (modification.contains(itemDelta, ignoreMetadata, isLiteral)) {
+			if (modification.contains(itemDelta, strategy)) {
 				return true;
 			}
 		}
@@ -472,9 +474,9 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
     	ObjectDeltaImpl<O> narrowedDelta = new ObjectDeltaImpl<>(this.objectTypeClass, this.changeType, this.prismContext);
     	narrowedDelta.oid = this.oid;
     	for (ItemDelta<?, ?> modification: modifications) {
-    		ItemDelta<?, ?> narrowedModifiacation = modification.narrow(existingObject);
-    		if (narrowedModifiacation != null && !narrowedModifiacation.isEmpty()) {
-    			narrowedDelta.addModification(narrowedModifiacation);
+    		ItemDelta<?, ?> narrowedModification = modification.narrow(existingObject);
+    		if (narrowedModification != null && !narrowedModification.isEmpty()) {
+    			narrowedDelta.addModification(narrowedModification);
     		}
     	}
     	return narrowedDelta;
@@ -568,11 +570,11 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
     }
 
 
-    /**
-     * Applies this object delta to specified object, returns updated object.
-     * It modifies the provided object.
-     */
     public void applyTo(PrismObject<O> targetObject) throws SchemaException {
+		applyTo(targetObject, ParameterizedEquivalenceStrategy.DEFAULT_FOR_DELTA_APPLICATION);
+    }
+
+    public void applyTo(PrismObject<O> targetObject, ParameterizedEquivalenceStrategy strategy) throws SchemaException {
     	if (isEmpty()) {
     		// nothing to do
     		return;
@@ -580,12 +582,14 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
         if (changeType != ChangeType.MODIFY) {
             throw new IllegalStateException("Can apply only MODIFY delta to object, got " + changeType + " delta");
         }
-        applyTo(targetObject, modifications);
+        applyTo(targetObject, modifications, strategy);
     }
     
-    private static <O extends Objectable> void applyTo(PrismObject<O> targetObject, Collection<? extends ItemDelta<?,?>> modifications) throws SchemaException {
+    private static <O extends Objectable> void applyTo(PrismObject<O> targetObject,
+		    Collection<? extends ItemDelta<?, ?>> modifications,
+		    ParameterizedEquivalenceStrategy strategy) throws SchemaException {
     	for (ItemDelta itemDelta : modifications) {
-            itemDelta.applyTo(targetObject);
+            itemDelta.applyTo(targetObject, strategy);
         }
     }
 
@@ -937,10 +941,8 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
 		ObjectDeltaImpl<?> other = (ObjectDeltaImpl<?>) obj;
 		if (changeType != other.changeType)
 			return false;
-		if (modifications == null) {
-			if (other.modifications != null)
-				return false;
-		} else if (!MiscUtil.unorderedCollectionEquals(this.modifications,other.modifications))
+		//noinspection RedundantCast,unchecked
+		if (!MiscUtil.unorderedCollectionEquals((Collection) this.modifications, (Collection) other.modifications))
 			return false;
 		if (objectToAdd == null) {
 			if (other.objectToAdd != null)
