@@ -148,7 +148,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
-public class PrismValuePanel2 extends BasePanel<ValueWrapper> {
+public class PrismValuePanel2<T> extends BasePanel<ValueWrapper<T>> {
 	private static final long serialVersionUID = 1L;
 
 	private static final String ID_FEEDBACK = "feedback";
@@ -158,18 +158,15 @@ public class PrismValuePanel2 extends BasePanel<ValueWrapper> {
 	private static final String ID_VALUE_CONTAINER = "valueContainer";
 	private static final String ID_BUTTON_CONTAINER = "buttonContainer";
 	
-	private static final String OBJECT_TYPE = "ObjectType";
-
 	private static final Trace LOGGER = TraceManager.getTrace(PrismValuePanel.class);
 
 	private IModel<String> labelModel;
-	private Form form;
+	private Form<?> form;
 	private String valueCssClass;
 	private String inputCssClass;
 	private String buttonCssClass;
-	private QName objectTypeValue = null;
-
-	public PrismValuePanel2(String id, IModel<ValueWrapper> valueWrapperModel, IModel<String> labelModel, Form form,
+	
+	public PrismValuePanel2(String id, IModel<ValueWrapper<T>> valueWrapperModel, IModel<String> labelModel, Form<?> form,
 			String valueCssClass, String inputCssClass, String buttonCssClass) {
 		super(id, valueWrapperModel);
 		Validate.notNull(valueWrapperModel, "Property value model must not be null.");
@@ -221,7 +218,7 @@ public class PrismValuePanel2 extends BasePanel<ValueWrapper> {
 		buttonContainer.add(new AttributeModifier("class", buttonCssClass));
 		valueContainer.add(buttonContainer);
 		// buttons
-		AjaxLink addButton = new AjaxLink(ID_ADD_BUTTON) {
+		AjaxLink<Void> addButton = new AjaxLink<Void>(ID_ADD_BUTTON) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -239,7 +236,7 @@ public class PrismValuePanel2 extends BasePanel<ValueWrapper> {
 		});
 		buttonContainer.add(addButton);
 
-		AjaxLink removeButton = new AjaxLink(ID_REMOVE_BUTTON) {
+		AjaxLink<Void> removeButton = new AjaxLink<Void>(ID_REMOVE_BUTTON) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -257,18 +254,6 @@ public class PrismValuePanel2 extends BasePanel<ValueWrapper> {
 		});
 		buttonContainer.add(removeButton);
 	}
-
-//	private IModel<String> createHelpModel() {
-//		return new AbstractReadOnlyModel<String>() {
-//			private static final long serialVersionUID = 1L;
-//
-//			@Override
-//			public String getObject() {
-//				ItemWrapper wrapper = getModel().getObject().getItem();
-//				return wrapper.getItem().getHelp();
-//			}
-//		};
-//	}
 
 	private boolean isAccessible(ItemDefinition def, ContainerStatus status) {
 		if (def.getName().equals(ConstructionType.F_KIND) || def.getName().equals(ConstructionType.F_INTENT)){
