@@ -147,8 +147,7 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
             }
         };
 
-        //todo fix table style
-//        userListPanel.setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_USER_BOX_CSS_CLASSES);
+        userListPanel.setAdditionalBoxCssClasses(WebComponentUtil.getBoxCssClasses(WebComponentUtil.classToQName(getPrismContext(), getType())));
         userListPanel.setOutputMarkupId(true);
         mainForm.add(userListPanel);
     }
