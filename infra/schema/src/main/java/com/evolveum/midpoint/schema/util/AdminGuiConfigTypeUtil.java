@@ -56,8 +56,8 @@ public class AdminGuiConfigTypeUtil {
 		if (adminGuiConfiguration == null) {
 			return;
 		}
-		adminGuiConfiguration.getAdditionalMenuLink().forEach(additionalMenuLink -> composite.getAdditionalMenuLink().add(additionalMenuLink.clone()));
-		adminGuiConfiguration.getUserDashboardLink().forEach(userDashboardLink -> composite.getUserDashboardLink().add(userDashboardLink.clone()));
+		adminGuiConfiguration.getAdditionalMenuLink().forEach(additionalMenuLink -> composite.getAdditionalMenuLink().add(clone(additionalMenuLink)));
+		adminGuiConfiguration.getUserDashboardLink().forEach(userDashboardLink -> composite.getUserDashboardLink().add(clone(userDashboardLink)));
 		if (adminGuiConfiguration.getDefaultTimezone() != null) {
 			composite.setDefaultTimezone(adminGuiConfiguration.getDefaultTimezone());
 		}
@@ -143,14 +143,32 @@ public class AdminGuiConfigTypeUtil {
 		}
 	}
 
+	private static RichHyperlinkType clone(RichHyperlinkType additionalMenuLink) {
+		RichHyperlinkType clone = additionalMenuLink.clone();
+		clone.asPrismContainerValue().setId(null);
+		return clone;
+	}
+
 	private static void joinForms(ObjectFormsType objectForms, ObjectFormType newForm) {
 		objectForms.getObjectForm().removeIf(currentForm -> isTheSameObjectForm(currentForm, newForm));
-		objectForms.getObjectForm().add(newForm.clone());
+		objectForms.getObjectForm().add(clone(newForm));
+	}
+
+	private static ObjectFormType clone(ObjectFormType form) {
+		ObjectFormType clone = form.clone();
+		clone.asPrismContainerValue().setId(null);
+		return clone;
 	}
 
 	private static void joinObjectDetails(GuiObjectDetailsSetType objectDetailsSet, GuiObjectDetailsPageType newObjectDetails) {
 		objectDetailsSet.getObjectDetailsPage().removeIf(currentDetails -> isTheSameObjectType(currentDetails, newObjectDetails));
-		objectDetailsSet.getObjectDetailsPage().add(newObjectDetails.clone());
+		objectDetailsSet.getObjectDetailsPage().add(clone(newObjectDetails));
+	}
+
+	private static GuiObjectDetailsPageType clone(GuiObjectDetailsPageType objectDetails) {
+		GuiObjectDetailsPageType clone = objectDetails.clone();
+		clone.asPrismContainerValue().setId(null);
+		return clone;
 	}
 
 	private static boolean isTheSameObjectType(AbstractObjectTypeConfigurationType oldConf, AbstractObjectTypeConfigurationType newConf) {
@@ -193,17 +211,29 @@ public class AdminGuiConfigTypeUtil {
 		// We support only the default object lists now, so simply replace the existing definition with the
 		// latest definition. We will need a more sophisticated merging later.
 		objectLists.getObjectList().removeIf(currentList -> currentList.getType().equals(newList.getType()));
-		objectLists.getObjectList().add(newList.clone());
+		objectLists.getObjectList().add(clone(newList));
+	}
+
+	private static GuiObjectListViewType clone(GuiObjectListViewType newList) {
+		GuiObjectListViewType clone = newList.clone();
+		clone.asPrismContainerValue().setId(null);
+		return clone;
 	}
 
 	private static void mergeWidget(DashboardLayoutType compositeDashboard, DashboardWidgetType newWidget) {
 		String newWidgetIdentifier = newWidget.getIdentifier();
 		DashboardWidgetType compositeWidget = findWidget(compositeDashboard, newWidgetIdentifier);
 		if (compositeWidget == null) {
-			compositeDashboard.getWidget().add(newWidget.clone());
+			compositeDashboard.getWidget().add(clone(newWidget));
 		} else {
 			mergeWidget(compositeWidget, newWidget);
 		}
+	}
+
+	private static DashboardWidgetType clone(DashboardWidgetType newWidget) {
+		DashboardWidgetType clone = newWidget.clone();
+		clone.asPrismContainerValue().setId(null);
+		return clone;
 	}
 
 	public static DashboardWidgetType findWidget(DashboardLayoutType dashboard, String widgetIdentifier) {
@@ -219,10 +249,16 @@ public class AdminGuiConfigTypeUtil {
 		String newIdentifier = newFeature.getIdentifier();
 		UserInterfaceFeatureType compositeFeature = findFeature(compositeFeatures, newIdentifier);
 		if (compositeFeature == null) {
-			compositeFeatures.add(newFeature.clone());
+			compositeFeatures.add(clone(newFeature));
 		} else {
 			mergeFeature(compositeFeature, newFeature, UserInterfaceElementVisibilityType.AUTOMATIC);
 		}
+	}
+
+	private static UserInterfaceFeatureType clone(UserInterfaceFeatureType newFeature) {
+		UserInterfaceFeatureType clone = newFeature.clone();
+		clone.asPrismContainerValue().setId(null);
+		return clone;
 	}
 
 	private static <T extends UserInterfaceFeatureType> void mergeFeature(T compositeFeature, T newFeature, UserInterfaceElementVisibilityType defaultVisibility) {

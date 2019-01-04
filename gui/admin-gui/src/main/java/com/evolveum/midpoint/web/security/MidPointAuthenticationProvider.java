@@ -56,27 +56,39 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider, M
 	@Override
 	public Authentication authenticate(Authentication authentication) throws AuthenticationException {
 
-		String enteredUsername = (String) authentication.getPrincipal();
-		LOGGER.trace("Authenticating username '{}'", enteredUsername);
-
-		ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_GUI_USER_URI);
-
-		Authentication token;
-		if (authentication instanceof UsernamePasswordAuthenticationToken) {
-			String enteredPassword = (String) authentication.getCredentials();
-			token = passwordAuthenticationEvaluator.authenticate(connEnv, new PasswordAuthenticationContext(enteredUsername, enteredPassword));
-		} else if (authentication instanceof PreAuthenticatedAuthenticationToken) {
-			token = passwordAuthenticationEvaluator.authenticateUserPreAuthenticated(connEnv, enteredUsername);
-		} else {
-			LOGGER.error("Unsupported authentication {}", authentication);
-			throw new AuthenticationServiceException("web.security.provider.unavailable");
+		try {
+			String enteredUsername = (String) authentication.getPrincipal();
+			LOGGER.trace("Authenticating username '{}'", enteredUsername);
+	
+			ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_GUI_USER_URI);
+	
+			try {
+				Authentication token;
+				if (authentication instanceof UsernamePasswordAuthenticationToken) {
+					String enteredPassword = (String) authentication.getCredentials();
+					token = passwordAuthenticationEvaluator.authenticate(connEnv, new PasswordAuthenticationContext(enteredUsername, enteredPassword));
+				} else if (authentication instanceof PreAuthenticatedAuthenticationToken) {
+					token = passwordAuthenticationEvaluator.authenticateUserPreAuthenticated(connEnv, enteredUsername);
+				} else {
+					LOGGER.error("Unsupported authentication {}", authentication);
+					throw new AuthenticationServiceException("web.security.provider.unavailable");
+				}
+		
+				MidPointPrincipal principal = (MidPointPrincipal)token.getPrincipal();
+		
+				LOGGER.debug("User '{}' authenticated ({}), authorities: {}", authentication.getPrincipal(),
+						authentication.getClass().getSimpleName(), principal.getAuthorities());
+				return token;
+				
+			} catch (AuthenticationException e) {
+				LOGGER.info("Authentication failed for {}: {}", enteredUsername, e.getMessage());
+				throw e;
+			}
+		} catch (RuntimeException | Error e) {
+			// Make sure to explicitly log all runtime errors here. Spring security is doing very poor job and does not log this properly.
+			LOGGER.error("Authentication (runtime) error: {}", e.getMessage(), e);
+			throw e;
 		}
-
-		MidPointPrincipal principal = (MidPointPrincipal)token.getPrincipal();
-
-		LOGGER.debug("User '{}' authenticated ({}), authorities: {}", authentication.getPrincipal(),
-				authentication.getClass().getSimpleName(), principal.getAuthorities());
-		return token;
 	}
 
 	@Override
