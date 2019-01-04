@@ -1007,11 +1007,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
 
 	@Override
 	public boolean representsSameValue(PrismValue other, boolean lax) {
-		if (other instanceof PrismContainerValue) {
-			return representsSameValue((PrismContainerValue<C>)other, lax);
-		} else {
-			return false;
-		}
+		return other instanceof PrismContainerValue && representsSameValue((PrismContainerValue<C>) other, lax);
 	}
 
 	@SuppressWarnings("Duplicates")
@@ -1034,10 +1030,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
 				}
 			}
 		}
-		if (this.getId() != null && other.getId() != null) {
-			return this.getId().equals(other.getId());
-		}
-		return false;
+		return this.getId() != null && other.getId() != null && this.getId().equals(other.getId());
 	}
 
 	@Override
@@ -1413,6 +1406,10 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
 		}
 		if (strategy.isConsideringContainerIds()) {
 			if (!Objects.equals(id, other.getId())) {
+				return false;
+			}
+		} else if (strategy.isConsideringDifferentContainerIds()) {
+			if (PrismValueUtil.differentIds(this, other)) {
 				return false;
 			}
 		}

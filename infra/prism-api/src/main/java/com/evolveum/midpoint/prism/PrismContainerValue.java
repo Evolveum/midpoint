@@ -258,9 +258,6 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 
 	boolean hasCompleteDefinition();
 
-	@Override
-	boolean representsSameValue(PrismValue other, boolean lax);
-
 	boolean isRaw();
 
 	boolean addRawElement(Object element) throws SchemaException;

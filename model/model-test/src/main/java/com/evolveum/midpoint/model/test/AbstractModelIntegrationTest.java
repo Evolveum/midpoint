@@ -48,6 +48,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -5016,7 +5017,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		            Item property = focusOld.findItem(itemMod.getPath());
 		            assertNotNull("Deleted item " + itemMod.getParentPath() + "/" + itemMod.getElementName() + " not found in focus", property);
 		            for (Object valueToDelete : itemMod.getValuesToDelete()) {
-		                if (!property.containsRealValue((PrismValue) valueToDelete)) {
+		                if (!property.contains((PrismValue) valueToDelete, EquivalenceStrategy.REAL_VALUE)) {
 		                    display("Deleted value " + valueToDelete + " is not in focus item " + itemMod.getParentPath() + "/" + itemMod.getElementName());
 		                    display("Deleted value", valueToDelete);
 		                    display("HASHCODE: " + valueToDelete.hashCode());

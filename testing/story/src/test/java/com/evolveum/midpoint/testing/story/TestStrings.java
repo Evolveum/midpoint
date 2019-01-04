@@ -1251,7 +1251,7 @@ public class TestStrings extends AbstractStoryTest {
 		assertEquals("Wrong # of triggers", count, wfTask.asObjectable().getTrigger().size());
 	}
 
-	private void assertAssignee(WorkItemType workItem, String originalAssignee, String... currentAssignee) {
+	private void assertAssignee(WorkItemType workItem, String originalAssignee, String... currentAssignee) throws SchemaException {
 		assertRefEquals("Wrong original assignee", ObjectTypeUtil.createObjectRef(originalAssignee, ObjectTypes.USER), workItem.getOriginalAssigneeRef());
 		assertReferenceValues(ref(workItem.getAssigneeRef()), currentAssignee);
 	}
@@ -1281,7 +1281,7 @@ public class TestStrings extends AbstractStoryTest {
 
 	private void assertEscalationEvent(CaseEventType wfProcessEventType, String initiator, String originalAssignee,
 			int stageNumber, String stageName, List<String> assigneesBefore, List<String> delegatedTo,
-			WorkItemDelegationMethodType methodType, int newEscalationLevelNumber, String newEscalationLevelName) {
+			WorkItemDelegationMethodType methodType, int newEscalationLevelNumber, String newEscalationLevelName) throws SchemaException {
 		if (!(wfProcessEventType instanceof WorkItemEscalationEventType)) {
 			fail("Wrong event class: expected: " + WorkItemEscalationEventType.class + ", real: " + wfProcessEventType.getClass());
 		}
@@ -1295,7 +1295,7 @@ public class TestStrings extends AbstractStoryTest {
 	}
 
 	private void assertCompletionEvent(CaseEventType wfProcessEventType, String initiator, String originalAssignee,
-			int stageNumber, String stageName, WorkItemOutcomeType outcome, String comment) {
+			int stageNumber, String stageName, WorkItemOutcomeType outcome, String comment) throws SchemaException {
 		if (!(wfProcessEventType instanceof WorkItemCompletionEventType)) {
 			fail("Wrong event class: expected: " + WorkItemCompletionEventType.class + ", real: " + wfProcessEventType.getClass());
 		}
@@ -1306,7 +1306,7 @@ public class TestStrings extends AbstractStoryTest {
 	}
 
 	private void assertEvent(CaseEventType processEvent, String initiator, String originalAssignee, Integer stageNumber,
-			String stageName) {
+			String stageName) throws SchemaException {
 		if (!(processEvent instanceof WorkItemEventType)) {
 			fail("Wrong event class: expected: " + WorkItemEventType.class + ", real: " + processEvent.getClass());
 		}

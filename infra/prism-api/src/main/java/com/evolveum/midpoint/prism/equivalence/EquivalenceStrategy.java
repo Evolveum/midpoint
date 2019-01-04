@@ -39,8 +39,10 @@ public interface EquivalenceStrategy {
 	ParameterizedEquivalenceStrategy LITERAL = ParameterizedEquivalenceStrategy.LITERAL;
 	ParameterizedEquivalenceStrategy NOT_LITERAL = ParameterizedEquivalenceStrategy.NOT_LITERAL;
 	ParameterizedEquivalenceStrategy IGNORE_METADATA = ParameterizedEquivalenceStrategy.IGNORE_METADATA;
+	ParameterizedEquivalenceStrategy IGNORE_METADATA_CONSIDER_DIFFERENT_IDS = ParameterizedEquivalenceStrategy.IGNORE_METADATA_CONSIDER_DIFFERENT_IDS;
 	ParameterizedEquivalenceStrategy LITERAL_IGNORE_METADATA = ParameterizedEquivalenceStrategy.LITERAL_IGNORE_METADATA;
 	ParameterizedEquivalenceStrategy REAL_VALUE = ParameterizedEquivalenceStrategy.REAL_VALUE;
+	ParameterizedEquivalenceStrategy REAL_VALUE_CONSIDER_DIFFERENT_IDS = ParameterizedEquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS;
 
 	boolean equals(Item<?,?> first, Item<?,?> second);
 	boolean equals(PrismValue first, PrismValue second);

@@ -108,6 +108,11 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	public static final String RESOURCE_RUM_FILE_BASENAME = "resource-rum";
 	public static final String RESOURCE_RUM_OID = "c0c010c0-d34d-b33f-f00d-222222220001";
 
+	public static final String REF_WITH_FILTER_BASENAME = "ref-with-filter";
+	public static final String REF_WITH_FILTER_DIFFERENT_PATH_BASENAME = "ref-with-filter-different-path";
+	public static final String REF_WITH_FILTER_NO_OID_BASENAME = "ref-with-filter-no-oid";
+	public static final String REF_WITHOUT_FILTER_BASENAME = "ref-without-filter";
+
 	// Namespaces
 	public static final String DEFAULT_NAMESPACE_PREFIX = "http://midpoint.evolveum.com/xml/ns";
 	public static final String NS_FOO = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd";

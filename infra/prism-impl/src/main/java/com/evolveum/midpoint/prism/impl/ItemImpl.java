@@ -330,8 +330,8 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
 	}
 
 	@Override
-    public PrismValue findValue(PrismValue value, EquivalenceStrategy strategy) {
-        for (PrismValue myVal : getValues()) {
+    public V findValue(V value, @NotNull EquivalenceStrategy strategy) {
+        for (V myVal : getValues()) {
             if (myVal.equals(value, strategy)) {
                 return myVal;
             }
@@ -357,9 +357,12 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
     	return contains(value, getEqualsHashCodeStrategy());
     }
 
-    @Deprecated
-    public boolean containsEquivalentValue(V value, Comparator<V> comparator) {
-    	return contains(value, EquivalenceStrategy.IGNORE_METADATA, comparator);
+    public boolean containsEquivalentValue(V value) {
+    	return containsEquivalentValue(value, null);
+    }
+
+    public boolean containsEquivalentValue(V value, @Nullable Comparator<V> comparator) {
+    	return contains(value, EquivalenceStrategy.IGNORE_METADATA_CONSIDER_DIFFERENT_IDS, comparator);
     }
 
     public boolean contains(V value, @NotNull EquivalenceStrategy strategy) {
@@ -372,9 +375,13 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
     }
 
     @Override
-    public boolean contains(V value, @NotNull EquivalenceStrategy strategy, Comparator<V> comparator) {
+    public boolean contains(V value, EquivalenceStrategy strategy, Comparator<V> comparator) {
     	if (comparator == null) {
-    		return contains(value, strategy);
+    		if (strategy == null) {
+			    return contains(value);
+		    } else {
+    			return contains(value, strategy);
+		    }
 	    } else {
 		    for (V myValue : getValues()) {
 			    if (comparator.compare(myValue, value) == 0) {
@@ -385,17 +392,8 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
 	    }
     }
 
-    public boolean containsRealValue(V value) {
-    	for (V myValue: getValues()) {
-    		if (myValue.equals(value, EquivalenceStrategy.REAL_VALUE)) {
-    			return true;
-    		}
-    	}
-    	return false;
-    }
-
-    public boolean valuesExactMatch(Collection<V> matchValues, Comparator<V> comparator) {
-    	return MiscUtil.unorderedCollectionCompare(values, matchValues, comparator );
+    public boolean valuesEqual(Collection<V> matchValues, Comparator<V> comparator) {
+    	return MiscUtil.unorderedCollectionCompare(values, matchValues, comparator);
     }
 
     public int size() {
@@ -403,10 +401,21 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
     }
 
     public boolean addAll(Collection<V> newValues) throws SchemaException {
-		checkMutability();			// TODO consider weaker condition, like testing if there's a real change
+		checkMutability();
     	boolean changed = false;
     	for (V val: newValues) {
     		if (add(val)) {
+    			changed = true;
+    		}
+    	}
+    	return changed;
+    }
+
+    public boolean addAll(Collection<V> newValues, EquivalenceStrategy strategy) throws SchemaException {
+		checkMutability();
+    	boolean changed = false;
+    	for (V val: newValues) {
+    		if (add(val, strategy)) {
     			changed = true;
     		}
     	}
@@ -448,7 +457,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
     }
 
 	public boolean removeAll(Collection<V> newValues) {
-		checkMutability();					// TODO consider if there is real change
+		checkMutability();
     	boolean changed = false;
     	for (V val: newValues) {
     		if (remove(val)) {
@@ -459,15 +468,13 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
     }
 
     public boolean remove(V newValue) {
-		checkMutability();					// TODO consider if there is real change
+	    checkMutability();
     	boolean changed = false;
     	Iterator<V> iterator = values.iterator();
     	while (iterator.hasNext()) {
     		V val = iterator.next();
 			// the same algorithm as when deleting the item value from delete delta
-			// TODO either make equalsRealValue return false if both PCVs have IDs and these IDs are different
-			// TODO or include a special test condition here; see MID-3828
-			if (val.representsSameValue(newValue, false) || val.equals(newValue, EquivalenceStrategy.REAL_VALUE)) {
+			if (val.representsSameValue(newValue, false) || val.equals(newValue, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS)) {
     			iterator.remove();
     			val.setParent(null);
     			changed = true;
@@ -476,33 +483,55 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
     	return changed;
     }
 
-    public V remove(int index) {
-		checkMutability();					// TODO consider if there is real change
-	    // TODO set parent for removed value?
-    	return values.remove(index);
+	@Override
+	public boolean remove(V value, @NotNull EquivalenceStrategy strategy) {
+		checkMutability();
+		boolean changed = false;
+		Iterator<V> iterator = values.iterator();
+		while (iterator.hasNext()) {
+			V val = iterator.next();
+			if (val.representsSameValue(value, false) || val.equals(value, strategy)) {
+				iterator.remove();
+				val.setParent(null);
+				changed = true;
+			}
+		}
+		return changed;
+	}
+
+	public V remove(int index) {
+		checkMutability();
+    	V removed = values.remove(index);
+    	removed.setParent(null);
+    	return removed;
     }
 
-    public void replaceAll(Collection<V> newValues) throws SchemaException {
-		checkMutability();					// TODO consider if there is real change
-	    // TODO set parent for removed values?
-    	values.clear();
-    	addAll(newValues);
+    @Override
+    public void replaceAll(Collection<V> newValues, EquivalenceStrategy strategy) throws SchemaException {
+		checkMutability();
+		clear();
+    	addAll(newValues, strategy);
     }
 
-    public void replace(V newValue) {
-		checkMutability();					// TODO consider if there is real change
-    	values.clear();
-        newValue.setParent(this);
-    	values.add(newValue);
+	@Override
+    public void replace(V newValue) throws SchemaException {
+		checkMutability();
+	    clear();
+	    add(newValue);
     }
 
+	@Override
     public void clear() {
-		checkMutability();					// TODO consider if there is real change
+		checkMutability();
+	    for (V value : values) {
+		    value.setParent(null);
+	    }
 		values.clear();
     }
 
+	@Override
     public void normalize() {
-		checkMutability();					// TODO consider if there is real change
+		checkMutability();
 		for (V value : values) {
 			value.normalize();
 		}
@@ -511,6 +540,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
     /**
      * Merge all the values of other item to this item.
      */
+    @Override
     public void merge(Item<V,D> otherItem) throws SchemaException {
     	for (V otherValue: otherItem.getValues()) {
     		if (!contains(otherValue)) {
@@ -519,13 +549,11 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
     	}
     }
 
-    // We want this method to be consistent with property diff
     public ItemDelta<V,D> diff(Item<V,D> other) {
-    	return diff(other, EquivalenceStrategy.IGNORE_METADATA);
+    	return diff(other, ParameterizedEquivalenceStrategy.DEFAULT_FOR_DIFF);
     }
 
-    // We want this method to be consistent with property diff
-    public ItemDelta<V,D> diff(Item<V,D> other, ParameterizedEquivalenceStrategy strategy) {
+    public ItemDelta<V,D> diff(Item<V,D> other, @NotNull ParameterizedEquivalenceStrategy strategy) {
     	List<? extends ItemDelta> itemDeltas = new ArrayList<>();
 		diffInternal(other, itemDeltas, strategy);
 		if (itemDeltas.isEmpty()) {
@@ -568,8 +596,6 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
     					// No need to process this value again
     					iterator.remove();
     					break;
-					// TODO either make equalsRealValue return false if both PCVs have IDs and these IDs are different
-					// TODO or include a special test condition here; see MID-3828
 					} else if (thisValue.equals(otherValue, strategy)) {
     					found = true;
     					// same values. No delta
@@ -818,32 +844,16 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
 	}
 
 	@NotNull
-	private EquivalenceStrategy getEqualsHashCodeStrategy() {
-		return defaultIfNull(defaultEquivalenceStrategy, EquivalenceStrategy.NOT_LITERAL);
-	}
-
-	public boolean equalsRealValue(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (!(obj instanceof Item)) {       // todo should we compare classes and element names here? probably not
-			return false;
-		}
-		Item<?,?> other = (Item<?,?>) obj;
-		// Do not compare parent at all. This is not relevant.
-		return equalsRealValues(this.values, other.getValues());
-	}
-
-	private boolean equalsRealValues(List<V> thisValue, List<?> otherValues) {
-		return MiscUtil.unorderedCollectionEquals(thisValue, otherValues,
-				(o1, o2) -> o1 != null && o2 instanceof PrismValue && o1.equals((PrismValue) o2, EquivalenceStrategy.IGNORE_METADATA));
+	protected EquivalenceStrategy getEqualsHashCodeStrategy() {
+		return defaultIfNull(defaultEquivalenceStrategy, ParameterizedEquivalenceStrategy.DEFAULT_FOR_EQUALS);
 	}
 
 	public boolean equals(Object obj, @NotNull EquivalenceStrategy strategy) {
 		if (!(obj instanceof Item)) {
 			return false;
 		} else if (strategy instanceof ParameterizedEquivalenceStrategy) {
+			// note that the counter is increased in the called equals(..) method - because that method can be called also
+			// independently from this site
 			return equals(obj, (ParameterizedEquivalenceStrategy) strategy);
 		} else {
 			incrementObjectCompareCounterIfNeeded(obj);
