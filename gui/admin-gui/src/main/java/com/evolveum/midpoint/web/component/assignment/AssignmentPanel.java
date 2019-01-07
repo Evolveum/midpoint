@@ -238,7 +238,12 @@ public class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>>
 	}
 
 	protected ObjectTabStorage getAssignmentsTabStorage(){
-		return getParentPage().getSessionStorage().getAssignmentsTabStorage();
+		boolean isInducement = getModelObject().getPath().containsNameExactly(AbstractRoleType.F_INDUCEMENT);
+		if (isInducement){
+			return getParentPage().getSessionStorage().getInducementsTabStorage();
+		} else {
+			return getParentPage().getSessionStorage().getAssignmentsTabStorage();
+		}
 	}
 
 	protected List<ContainerValueWrapper<AssignmentType>> customPostSearch(List<ContainerValueWrapper<AssignmentType>> assignments) {

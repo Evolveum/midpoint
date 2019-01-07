@@ -140,7 +140,7 @@ public class TestThresholds extends AbstractStoryTest {
 		
 		//THEN
 		assertUsers(getNumberOfUsers());
-		assertTaskExecutionStatus(TASK_RECONCILE_OPENDJ_OID, TaskExecutionStatus.SUSPENDED);
+		assertTaskExecutionStatus(TASK_RECONCILE_OPENDJ_OID, TaskExecutionStatus.RUNNABLE);
 	}
 	
 	
@@ -170,7 +170,7 @@ public class TestThresholds extends AbstractStoryTest {
 		
 		Boolean simulateBeforeExecuteValue = simulateBeforeExecute.getRealValue();
 		assertTrue(simulateBeforeExecuteValue == null || !simulateBeforeExecuteValue.booleanValue(), "Unexpected simulate value");
-		assertTaskExecutionStatus(TASK_RECONCILE_OPENDJ_OID, TaskExecutionStatus.SUSPENDED);
+		assertTaskExecutionStatus(TASK_RECONCILE_OPENDJ_OID, TaskExecutionStatus.RUNNABLE);
 				
 				
 	}

@@ -237,20 +237,6 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 //
 //		});
 
-		if (WebComponentUtil.isAuthorized(ModelAuthorizationAction.AUDIT_READ.getUrl()) && getObjectWrapper().getStatus() != ContainerStatus.ADDING){
-			authorization = new FocusTabVisibleBehavior<>(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_OBJECT_HISTORY_URL, false, isFocusHistoryPage(), parentPage);
-			tabs.add(
-					new PanelTab<R>(parentPage.createStringResource("pageAdminFocus.objectHistory"), authorization) {
-
-						private static final long serialVersionUID = 1L;
-
-						@Override
-						public WebMarkupContainer createPanel(String panelId) {
-							return createObjectHistoryTabPanel(panelId, parentPage);
-						}
-					});
-		}
-
 		authorization = new FocusTabVisibleBehavior<>(unwrapModel(),
 				ComponentConstants.UI_FOCUS_TAB_MEMBERS_URL, false, isFocusHistoryPage(), parentPage);
 		tabs.add(new PanelTab<R>(parentPage.createStringResource("pageRole.members"), authorization) {
