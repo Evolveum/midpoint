@@ -34,7 +34,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.api.WorkflowException;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.impl.messages.TaskEvent;
 import com.evolveum.midpoint.wf.impl.processes.common.WfStageComputeHelper;
@@ -392,7 +391,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 
     @Override
     public AuditEventRecord prepareWorkItemCreatedAuditRecord(WorkItemType workItem, TaskEvent taskEvent, WfTask wfTask,
-            OperationResult result) throws WorkflowException {
+            OperationResult result) {
         AuditEventRecord auditEventRecord = baseAuditHelper.prepareWorkItemCreatedAuditRecord(workItem, wfTask, result);
         try {
             addDeltasToEventRecord(auditEventRecord,
@@ -405,7 +404,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 
     @Override
     public AuditEventRecord prepareWorkItemDeletedAuditRecord(WorkItemType workItem, WorkItemEventCauseInformationType cause,
-			TaskEvent taskEvent, WfTask wfTask, OperationResult result) throws WorkflowException {
+			TaskEvent taskEvent, WfTask wfTask, OperationResult result) {
         AuditEventRecord auditEventRecord = baseAuditHelper.prepareWorkItemDeletedAuditRecord(workItem, cause, wfTask, result);
         try {
 			AbstractWorkItemOutputType output = workItem.getOutput();

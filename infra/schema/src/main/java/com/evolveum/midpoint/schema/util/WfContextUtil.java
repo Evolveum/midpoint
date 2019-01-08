@@ -192,11 +192,6 @@ public class WfContextUtil {
 				(WfPrimaryChangeProcessorStateType) state : null;
 	}
 
-	public static ItemApprovalWorkItemPartType getItemApprovalWorkItemInfo(WorkItemType workItem) {
-		return workItem.getProcessSpecificPart() instanceof ItemApprovalWorkItemPartType ?
-				(ItemApprovalWorkItemPartType) workItem.getProcessSpecificPart() : null;
-	}
-
 	@NotNull
 	public static List<SchemaAttachedPolicyRuleType> getAttachedPolicyRules(WfContextType workflowContext, int order) {
 		ItemApprovalProcessStateType info = getItemApprovalProcessInfo(workflowContext);

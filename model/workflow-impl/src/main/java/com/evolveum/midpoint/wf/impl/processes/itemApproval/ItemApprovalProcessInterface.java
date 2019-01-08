@@ -96,12 +96,6 @@ public class ItemApprovalProcessInterface extends BaseProcessMidPointInterface {
     }
 
 	@Override
-	public WfProcessSpecificWorkItemPartType extractProcessSpecificWorkItemPart(Map<String, Object> variables) {
-		// nothing to do here for now
-		return null;
-	}
-
-	@Override
     public List<ObjectReferenceType> prepareApprovedBy(ProcessEvent event, PcpWfTask job, OperationResult result) {
     	WfContextType wfc = job.getTask().getWorkflowContext();
 		List<ObjectReferenceType> rv = new ArrayList<>();

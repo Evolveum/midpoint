@@ -31,7 +31,6 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.wf.api.WorkflowException;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.impl.messages.TaskEvent;
 import com.evolveum.midpoint.wf.impl.tasks.WfTask;
@@ -114,10 +113,10 @@ public interface ChangeProcessor {
      */
 	// workItem contains taskRef, assignee, candidates resolved (if possible)
     AuditEventRecord prepareWorkItemCreatedAuditRecord(WorkItemType workItem,
-            TaskEvent taskEvent, WfTask wfTask, OperationResult result) throws WorkflowException;
+            TaskEvent taskEvent, WfTask wfTask, OperationResult result);
 
     AuditEventRecord prepareWorkItemDeletedAuditRecord(WorkItemType workItem, WorkItemEventCauseInformationType cause,
-            TaskEvent taskEvent, WfTask wfTask, OperationResult result) throws WorkflowException;
+            TaskEvent taskEvent, WfTask wfTask, OperationResult result);
 
     /**
      * Auxiliary method to access autowired Spring beans from within non-spring java objects.

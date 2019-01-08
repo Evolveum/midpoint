@@ -35,7 +35,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.WorkflowConstants;
-import com.evolveum.midpoint.wf.api.WorkflowException;
 import com.evolveum.midpoint.wf.impl.tasks.WfTask;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -125,7 +124,7 @@ public class BaseAuditHelper {
 	}
 
 	public AuditEventRecord prepareWorkItemAuditReportCommon(WorkItemType workItem, WfTask wfTask, AuditEventStage stage,
-			OperationResult result) throws WorkflowException {
+			OperationResult result) {
 
 		AuditEventRecord record = new AuditEventRecord();
 		record.setEventType(AuditEventType.WORK_ITEM);
@@ -154,8 +153,7 @@ public class BaseAuditHelper {
 	}
 
 	// workItem contains taskRef, assignee, originalAssignee, candidates resolved (if possible)
-    public AuditEventRecord prepareWorkItemCreatedAuditRecord(WorkItemType workItem, WfTask wfTask, OperationResult result)
-			throws WorkflowException {
+    public AuditEventRecord prepareWorkItemCreatedAuditRecord(WorkItemType workItem, WfTask wfTask, OperationResult result) {
 
         AuditEventRecord record = prepareWorkItemAuditReportCommon(workItem, wfTask, AuditEventStage.REQUEST, result);
 		record.setInitiator(wfTask.getRequesterIfExists(result));
@@ -165,7 +163,7 @@ public class BaseAuditHelper {
 
 	// workItem contains taskRef, assignee, candidates resolved (if possible)
     public AuditEventRecord prepareWorkItemDeletedAuditRecord(WorkItemType workItem, WorkItemEventCauseInformationType cause,
-			WfTask wfTask, OperationResult result) throws WorkflowException {
+			WfTask wfTask, OperationResult result) {
 
         AuditEventRecord record = prepareWorkItemAuditReportCommon(workItem, wfTask, AuditEventStage.EXECUTION, result);
 		setInitiatorAndAttorneyFromPrincipal(record);

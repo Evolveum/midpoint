@@ -20,7 +20,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpWfTask;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessSpecificWorkItemPartType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemResultType;
 import org.springframework.stereotype.Component;
 
@@ -37,11 +36,6 @@ import java.util.Map;
 public class DefaultProcessMidPointInterface extends BaseProcessMidPointInterface {
 
     @Override public WorkItemResultType extractWorkItemResult(Map<String, Object> variables) {
-        return null;
-    }
-
-    @Override
-    public WfProcessSpecificWorkItemPartType extractProcessSpecificWorkItemPart(Map<String, Object> variables) {
         return null;
     }
 

@@ -1744,37 +1744,6 @@
     </xsd:complexType>
     <xsd:element name="wfGeneralChangeProcessorStateType" type="tns:WfGeneralChangeProcessorStateType" />
 
-    <xsd:complexType name="WfProcessSpecificWorkItemPartType">
-        <xsd:annotation>
-            <xsd:appinfo>
-                <a:container/>
-            </xsd:appinfo>
-            <xsd:documentation>
-                Describe work item parts that are specific to a given BPMN process.
-            </xsd:documentation>
-        </xsd:annotation>
-    </xsd:complexType>
-    <xsd:element name="wfProcessSpecificWorkItemPart" type="tns:WfProcessSpecificWorkItemPartType" />
-
-    <xsd:complexType name="ItemApprovalWorkItemPartType">
-        <xsd:annotation>
-            <xsd:appinfo>
-                <a:container/>
-            </xsd:appinfo>
-            <xsd:documentation>
-                TODO
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:WfProcessSpecificWorkItemPartType">
-                <xsd:sequence>
-                    <!-- TODO -->
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-    <xsd:element name="itemApprovalWorkItemPart" type="tns:ItemApprovalWorkItemPartType" />
-
 	<xsd:complexType name="WfProcessSpecificStateType">
 		<xsd:annotation>
 			<xsd:appinfo>
@@ -1863,7 +1832,6 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
-					<xsd:element name="processSpecificPart" type="tns:WfProcessSpecificWorkItemPartType" minOccurs="0" />
 				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>

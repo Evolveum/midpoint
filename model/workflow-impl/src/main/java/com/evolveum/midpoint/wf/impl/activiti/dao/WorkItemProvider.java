@@ -24,9 +24,7 @@ import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -90,14 +88,15 @@ public class WorkItemProvider {
 
     private static final String OPERATION_ACTIVITI_TASK_TO_WORK_ITEM = DOT_CLASS + "activitiTaskToWorkItem";
 
-	public Integer countWorkItems(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
-		TaskQuery taskQuery = createTaskQuery(query, false, options, result);
+	public Integer countWorkItems(ObjectQuery query) throws SchemaException {
+		TaskQuery taskQuery = createTaskQuery(query, false);
 		return taskQuery != null ? (int) taskQuery.count() : 0;
 	}
 
-	public SearchResultList<WorkItemType> searchWorkItems(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
+	public SearchResultList<WorkItemType> searchWorkItems(ObjectQuery query,
+			OperationResult result)
 			throws SchemaException {
-		TaskQuery taskQuery = createTaskQuery(query, true, options, result);
+		TaskQuery taskQuery = createTaskQuery(query, true);
 		if (taskQuery == null) {
 			return new SearchResultList<>(Collections.emptyList());
 		}
@@ -116,7 +115,7 @@ public class WorkItemProvider {
 
 	// primitive 'query interpreter'
 	// returns null if no results should be returned
-    private TaskQuery createTaskQuery(ObjectQuery query, boolean includeVariables, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
+    private TaskQuery createTaskQuery(ObjectQuery query, boolean includeVariables) throws SchemaException {
         final UniformItemPath WORK_ITEM_ID_PATH = prismContext.toUniformPath(F_EXTERNAL_ID);
         final UniformItemPath ASSIGNEE_PATH = prismContext.toUniformPath(F_ASSIGNEE_REF);
         final UniformItemPath CANDIDATE_PATH = prismContext.toUniformPath(F_CANDIDATE_REF);
@@ -495,7 +494,6 @@ public class WorkItemProvider {
 			// This is just because 'variables' switches in task query DO NOT fetch all required variables...
 			if (fetchAllVariables) {		// TODO can we do this e.g. in the task completion listener?
 				Map<String, Object> allVariables = activitiEngine.getTaskService().getVariables(task.getId());
-				wi.setProcessSpecificPart(pmi.extractProcessSpecificWorkItemPart(allVariables));
 				wi.getAdditionalInformation().addAll(pmi.getAdditionalInformation(allVariables));
 			}
 

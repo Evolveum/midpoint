@@ -27,7 +27,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.api.WorkflowException;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.impl.tasks.WfTask;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskController;
@@ -215,14 +214,14 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
 
     @Override
     public AuditEventRecord prepareWorkItemCreatedAuditRecord(WorkItemType workItem, TaskEvent taskEvent, WfTask wfTask,
-            OperationResult result) throws WorkflowException {
+            OperationResult result) {
         return getScenarioBean(taskEvent.getVariables()).prepareWorkItemCreatedAuditRecord(workItem, wfTask, taskEvent, result);
     }
 
     @Override
     public AuditEventRecord prepareWorkItemDeletedAuditRecord(WorkItemType workItem, WorkItemEventCauseInformationType cause,
             TaskEvent taskEvent, WfTask wfTask,
-            OperationResult result) throws WorkflowException {
+            OperationResult result) {
         return getScenarioBean(taskEvent.getVariables())
                 .prepareWorkItemDeletedAuditRecord(workItem, cause, taskEvent, wfTask, result);
     }

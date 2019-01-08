@@ -53,5 +53,4 @@ public interface ProcessMidPointInterface {
 
     List<ObjectReferenceType> prepareApprovedBy(ProcessEvent event, PcpWfTask job, OperationResult result);
 
-	WfProcessSpecificWorkItemPartType extractProcessSpecificWorkItemPart(Map<String, Object> variables);
 }

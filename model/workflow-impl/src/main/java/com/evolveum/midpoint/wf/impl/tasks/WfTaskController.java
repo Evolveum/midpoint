@@ -301,7 +301,7 @@ public class WfTaskController {
 	// workItem contains taskRef, assignee, candidates resolved (if possible)
 	// workItem can be freely modified (e.g. by overriding result, etc.)
 	@SuppressWarnings("unchecked")
-    public void onTaskEvent(WorkItemType workItem, TaskEvent taskEvent, OperationResult result) throws WorkflowException, SchemaException {
+    public void onTaskEvent(WorkItemType workItem, TaskEvent taskEvent, OperationResult result) throws SchemaException {
 
 		final TaskType shadowTaskType = WfContextUtil.getTask(workItem);
 		if (shadowTaskType == null) {

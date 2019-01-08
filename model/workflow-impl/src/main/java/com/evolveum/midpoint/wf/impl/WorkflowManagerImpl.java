@@ -105,7 +105,7 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
 			if (!WorkItemType.class.equals(type)) {
 				throw new UnsupportedOperationException("countContainers is available only for work items");
 			}
-			return workItemProvider.countWorkItems(query, options, result);
+			return workItemProvider.countWorkItems(query);
 		} catch (SchemaException|RuntimeException e) {
 			result.recordFatalError("Couldn't count items: " + e.getMessage(), e);
 			throw e;
@@ -126,7 +126,7 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
 			if (!WorkItemType.class.equals(type)) {
 				throw new UnsupportedOperationException("searchContainers is available only for work items");
 			}
-			return (SearchResultList<T>) workItemProvider.searchWorkItems(query, options, result);
+			return (SearchResultList<T>) workItemProvider.searchWorkItems(query, result);
 		} catch (SchemaException|RuntimeException e) {
 			result.recordFatalError("Couldn't count items: " + e.getMessage(), e);
 			throw e;
