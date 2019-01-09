@@ -23,6 +23,8 @@ import java.util.Map.Entry;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+
 /**
  * @author skublik
  */
@@ -54,7 +56,7 @@ public class CompositedIconBuilder {
 	}
 	
 	public CompositedIconBuilder setBasicIcon(String icon, IconCssStyle style, String additionalCssClass) {
-		validateInput(icon, style);
+		additionalCssClass = additionalCssClass + " " + validateInput(icon, style, true);
 		setBasicIcon(icon, style.getBasicCssClass() + " " + additionalCssClass);
 		return this;
 	}
@@ -64,7 +66,7 @@ public class CompositedIconBuilder {
 	}
 	
 	public CompositedIconBuilder setBasicIcon(String icon, LayeredIconCssStyle style, String additionalCssClass) {
-		validateInput(icon, style);
+		additionalCssClass = additionalCssClass + " " + validateInput(icon, style, true);
 		setBasicIcon(icon, style.getBasicCssClass());
 		StringBuilder sb = new StringBuilder(icon);
 		sb.append(" ").append(style.getBasicLayerCssClass());
@@ -80,7 +82,7 @@ public class CompositedIconBuilder {
 	}
 	
 	public CompositedIconBuilder appendLayerIcon(String icon, CompositedIconCssStyle style, String additionalCssClass) {
-		validateInput(icon, style);
+		additionalCssClass = additionalCssClass + " " + validateInput(icon, style, false);
 		StringBuilder sb = new StringBuilder(icon);
 		sb.append(" ");
 		if(layerIcons.isEmpty()) {
@@ -100,7 +102,7 @@ public class CompositedIconBuilder {
 	}
 	
 	public CompositedIconBuilder appendLayerIcon(String icon, LayeredIconCssStyle style, String additionalCssClass) {
-		validateInput(icon, style);
+		additionalCssClass = additionalCssClass + " " + validateInput(icon, style, false);
 		StringBuilder sb = new StringBuilder(icon);
 		sb.append(" ").append(style.getLayerCssClass());
 		if(StringUtils.isNotEmpty(additionalCssClass)) {
@@ -118,7 +120,7 @@ public class CompositedIconBuilder {
 	}
 	
 	public CompositedIconBuilder appendLayerIcon(String icon, IconCssStyle style, String additionalCssClass) {
-		validateInput(icon, style);
+		additionalCssClass = additionalCssClass + " " + validateInput(icon, style, false);
 		StringBuilder sb = new StringBuilder(icon);
 		sb.append(" ").append(style.getLayerCssClass());
 		if(StringUtils.isNotEmpty(additionalCssClass)) {
@@ -128,8 +130,13 @@ public class CompositedIconBuilder {
 		return this;
 	}
 	
-	private void validateInput(String icon, IconCssStyle style) {
+	private String validateInput(String icon, IconCssStyle style, Boolean isBasic) {
 		Validate.notNull(icon, "no icon class");
 		Validate.notNull(style, "no icon style");
+		
+		if(isBasic && icon.equals(GuiStyleConstants.EVO_CROW_ICON) && style instanceof LayeredIconCssStyle) {
+			return "font-size-130-per";
+		}
+		return "";
 	}
 }
